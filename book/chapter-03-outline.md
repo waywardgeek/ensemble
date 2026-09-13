@@ -447,6 +447,15 @@ exact commands:
   training data, from a repository, or from a book, this one included. Ask the
   endpoint. See P10.
 
+  Expect the answer to be unhelpfully honest. The endpoint lists every model the
+  key can see, in no useful order, with nothing marking which ones can call
+  tools. On the day of writing, Gemini's listing opened with `gemini-2.5-flash`
+  and OpenAI's with `babbage-002`: a superseded model and a base completion
+  model from another era, both sitting above anything you would actually use.
+  The list is an inventory, not a recommendation. It is authoritative about what
+  *exists*, which is exactly the question training data gets wrong, and silent
+  about what is *suitable*, which is the question you still have to answer.
+
   Two traps that cost real afternoons. **The newest model is not the default** —
   `gpt-6-astra` is more capable and substantially more expensive, so reaching
   for the top of the list is a cost decision wearing a quality decision's
