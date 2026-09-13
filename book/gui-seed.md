@@ -69,6 +69,30 @@ but not the graded artifact. Benefits:
 
 ## Placement
 
+**RULED 13 Sep 2026 (Bill): the GUI is Chapter 5.** That places it immediately
+after jobs and *before* actors, which inverts the proposal below. The detailed
+conversation is deferred; this section records the ruling and one consequence
+that turns out to favor it.
+
+**The consequence, and why I now think Bill's order is the better one.** My
+argument was that actors should come first so the hint channel exists before the
+surface that uses it. Reversing them produces something stronger. A GUI built on
+a single-threaded blocking agent can *watch* but not *interject*: the moment the
+agent starts a long tool call, the window sits there, inert, and the user's
+typing goes nowhere. In a terminal, blocking feels normal, because terminals
+block all the time. In a GUI, a frozen window is self-evidently broken.
+
+So Chapter 5 ends with the student staring at a UI that is visibly, annoyingly
+wrong, having built it themselves. Chapter 6 then introduces the mailbox to fix a
+pain they have actually felt rather than one the author asserts. That is the
+better teaching order, and it is the same move the book already makes in Chapter
+1, where the naive format is built specifically so Chapter 2 can demolish it.
+
+Consequence to carry into the ch6 outline: the actors chapter now inherits a
+concrete opening scene and does not have to manufacture motivation.
+
+### Original proposal, superseded (kept for the record)
+
 Proposed: **immediately after the actors chapter, not before it.**
 
 Actors introduces the mailbox and makes a hint an event. The GUI is what lets a
@@ -89,8 +113,8 @@ Working order under this proposal:
 2. the LLM seam
 3. six tools
 4. jobs
-5. actors and hints
-6. **GUI (observation and control surface)**
+5. **GUI (observation and control surface)**  ← RULED
+6. actors and hints
 7. capability seam and MCP
 8. skills
 9. security
