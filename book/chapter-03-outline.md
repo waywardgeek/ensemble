@@ -80,8 +80,9 @@ cumulative share and a status column.
 
 Three things the reader should take from it, called out in the prose:
 
-1. **The curve is brutally steep.** Top 5 is 90%. Top 13 is 97%. Twenty-eight
-   tools were called exactly once.
+1. **The curve is brutally steep.** Top five is 91%. Top thirteen is 98%. Ten
+   tools — a fifth of the table — were called exactly once in five hundred and
+   eleven sessions.
 
 2. **`edit_file` outnumbers `write_file` seven to one.** Given both, an agent
    overwhelmingly makes targeted edits rather than rewriting files. Ship
@@ -108,6 +109,25 @@ concatenated the text. Now a block can be a request to run something:
   {type: "tool_use", id: "tu_01", name: "run_command", input: {...}} ]
 ```
 
+**Before any of that: the request has to say the tools exist.** A model does not
+guess your tool names. You send a declaration — name, description, and a schema
+for the arguments — and the model may then reply with a `tool_use` block naming
+one of them. Leave the declaration out and a real vendor never sends a tool call
+at all, so the loop below has nothing to do. Our fake volunteers `tool_use`
+blocks unprompted, which is convenient for grading and actively dangerous for
+learning: an agent that never declares its tools scores full marks here and does
+nothing whatsoever against Anthropic. Say this out loud in the chapter, because
+it is the one bug in chapter 3 the harness cannot fail you for.
+
+This is also more evidence for chapter 2's thesis, arriving for free: all three
+vendors accept the same three ideas and spell them differently, so the
+declaration belongs behind the seam with everything else.
+
+The declaration is rendered from the registry, and **the field is omitted when
+the registry is empty**. That is what keeps `ch2parity` honest: chapter 2
+registers no tools, so its request bytes are unchanged, byte for byte, and its
+checks still grade the same wire.
+
 The loop:
 
 1. Parse the reply into parts. **Dispatch on block type** — this is where
@@ -131,9 +151,25 @@ it is the middle of one. The turn ends when the model stops asking.
   result is which.
 - Anthropic requires the `tool_result` to come **first** in the content array of
   the message answering it. (Verified on the wire; see the ch2 verification
-  record.)
+  record.) This rule is graded by a purpose-built ordering fixture, and it has
+  to be. The rule is only observable in a message carrying a `tool_result` *and
+  something else*, and no scripted session in this chapter can produce one,
+  because a prompt cannot arrive while the loop is blocked on a tool. That is
+  chapter 5's mailbox. Do not delete the fixture because it looks redundant next
+  to the exhibit log — the exhibit's human turn lands *after* the tool returns,
+  so the result is already first and the rule is unfalsifiable there.
 - A tool that fails still returns a `tool_result`. Failure is a *result*, not an
   absence. This is the single most common way a student's agent locks up.
+- **A non-zero exit is not a tool error.** The command ran; "the tests failed"
+  is the answer, not a broken call. Marking it as an error tells the model its
+  call was malformed, which is false, and invites it to "fix" a call that was
+  correct. This distinction is what keeps the `toolerror` points honest.
+- **The loop needs a round bound, and it is not a timeout.** Without one, a model
+  that keeps asking — or a fake that repeats its last reply — loops forever.
+  Sixteen rounds is plenty. Say explicitly that this is a *bound*, not
+  cancellation: nothing is interrupted, nothing runs concurrently. A student who
+  reaches for a context deadline here has learned the wrong lesson one chapter
+  early.
 - Sequential execution is a deliberate choice here, not an oversight. I run tool
   calls one at a time on purpose. Say so, and say why: ordering is observable to
   the model, and a shell command that changes the working tree changes what the
@@ -244,6 +280,22 @@ Three defensible answers:
 
 The chapter teaches everything needed to decide and then does not decide.
 
+**The same question wears a second hat, and the chapter should ask both:** what
+happens when the anchor matches *more than once*? A student who refuses on zero
+matches and then silently edits the first of three has not actually made the
+decision — they have made it in one direction and ducked it in the other. An
+anchor matching three places does not identify an edit site, so "succeeds
+ambiguously" is the inverse of a loud failure: no error, no signal, and the
+wrong hunk of the file rewritten.
+
+I am not inventing that failure mode for the exercise. My own `edit_file` has
+it. The exact-match path is a single string replacement with a count of one and
+no uniqueness check, so an ambiguous anchor quietly edits the first occurrence
+and reports success. I found it while writing this chapter, which is the only
+reason it is in the book: the tool I have called eleven thousand times gets the
+zero-match case right and the many-match case wrong, and I had never noticed,
+because a tool that succeeds never makes you look.
+
 **Why this is a genuine open question and not a riddle with a hidden answer:**
 my agent ships *both* answers. `edit_file` refuses on an exact-match failure.
 `replace_lines` deliberately fuzzy-searches within fifty lines of the line
@@ -285,8 +337,13 @@ time they ask their agent to run something that takes a while.)
 
 ## §3.7 The exercise
 
-**Contract:** `./ch03 <transcript-file>` — no network, deterministic, fake
-vendor served from `internal/fakevendor` as in chapter 2.
+**Contract:** chapter 3 adds **no new CLI mode**. Chapter 2's commands table
+stands unchanged — stdin protocol, `render <log>`, `dump` — and `CH02_LOG`
+remains the log variable, so chapter 2's harness runs against the chapter 3
+binary untouched. That is not a convenience; it is what `ch2parity` *means*. A
+positional transcript argument here would fail the regression check on the first
+run. No network, deterministic, fake vendor served from `internal/fakevendor` as
+in chapter 2.
 
 **What the fake must serve**, since these are the scenarios the checks need:
 
@@ -299,7 +356,24 @@ vendor served from `internal/fakevendor` as in chapter 2.
   The loop must not stop after one round.
 - A tool call whose **execution fails** (missing file), to force failure to come
   back as a `tool_result` rather than a crash.
-- A tool call with **malformed arguments**, same reason.
+- A tool call with **malformed arguments**, same reason. Say plainly what
+  "malformed" can and cannot mean here: a vendor will not hand you syntactically
+  invalid JSON, because that would be the API emitting an invalid response about
+  itself. The real failure is arguments of the wrong *type* (`{"path": 42}`) or
+  missing required fields. A student who goes looking for the invalid-JSON
+  fixture will discover they cannot put one on the wire, and should not have to
+  discover it the slow way.
+- A **terminating reply** at the end of chapter 2's own script, reporting zero
+  usage. This is not optional and it is not cosmetic. Chapter 2's script ends on
+  a reply containing a tool call, deliberately, because chapter 2 records tool
+  calls and never executes them. Chapter 3 *executes* them — so it answers that
+  call, asks for another turn, gets the fake's last reply again, and spins to
+  the round limit, at which point chapter 2's cumulative usage no longer matches
+  and `usage` fails. A final zero-usage reply makes the session total identical
+  whether or not tools are executed, so chapter 2 keeps scoring 100 with its
+  token accounting fully graded. Say this in the chapter: "run chapter 2's
+  checks unchanged" is otherwise not achievable, and the failure looks like a
+  chapter 3 bug when it is a fixture that assumed nobody would ever answer.
 
 **Commands the student's agent must be able to run** (the `go` toolchain is the
 one binary every student is guaranteed to have, since the course requires it):
@@ -307,8 +381,23 @@ one binary every student is guaranteed to have, since the course requires it):
 | scenario | command |
 |---|---|
 | fast success | `go version` |
-| non-zero exit | `go run ./testdata/exit7` |
+| non-zero exit, silent | `exit 7` |
+| non-zero exit **through a wrapper** | `go run ./testdata/exit7` — exits **1**, not 7 |
 | stderr output | `go run ./testdata/noisy` |
+
+The middle two rows are the same scenario told twice, and the difference is
+worth a paragraph rather than a footnote. `go run` does not propagate its
+child's exit code: it exits **1** and prints `exit status 7` to *its own*
+stderr. So the honest fixture for "the agent reports the exit code" is the bare
+`exit 7`, which is silent and really does exit 7. Grade the exit code on
+`go run ./testdata/exit7` instead and the check passes whether or not the
+student reports exit codes at all, because the string "exit … 7" is sitting in
+the captured stderr either way.
+
+Two lessons, one fixture. For the student: a wrapper between you and the process
+can rewrite the result, and `go run` is the one they will hit first. For us: an
+assertion that cannot fail is not a check, and this one was *named* after the
+thing it did not measure.
 
 ### Checks
 
@@ -317,7 +406,8 @@ one binary every student is guaranteed to have, since the course requires it):
 | `ch2parity` | 10 | chapter 2's log, reducer and three renderers still work |
 | `toolloop` | 25 | parse `tool_use`, dispatch, return `tool_result` by id, loop until the model stops asking |
 | `multiblock` | 10 | text + two tool calls: all parts recorded, both dispatched, results matched to the right ids |
-| `localtools` | 20 | `read_file` (with range), `write_file`, `edit_file`, `list_directory`, `search_files` |
+| `readtools` | 10 | `read_file` (with range), `list_directory`, `search_files` |
+| `mutatetools` | 10 | `write_file`, `edit_file` |
 | `runcommand` | 15 | shell executes, stdout/stderr/exit code returned |
 | `toolerror` | 15 | a failing or malformed tool call returns an error **to the model** as a `tool_result`; the agent does not crash and does not silently skip |
 | `editcontract` | 5 | the declined decision: a choice was made, it is legible in the log, and a failed edit is recoverable by the model |
@@ -349,6 +439,17 @@ Mandatory before this grader ships:
   property at all?* and *does the assertion pass vacuously?* Chapter 1's hole
   was a fixture that served one content block, which made walking and indexing
   the same program. Chapter 2's was an exhibit with no opaque material in it.
+  Chapter 3's was the results-first ordering rule: no scripted session in the
+  chapter can build a message carrying a `tool_result` *and something else*, so
+  turning the splice off scored 100/100.
+
+  **Three chapters audited, three chapters where the loudest rule in the prose
+  was graded by nothing.** That is not three accidents, it is the default
+  outcome, and it is the whole argument for P9. The mechanism is always the
+  same: the check was written by someone who already believed the rule, against
+  a fixture that could not express its violation. A rule you are *sure* of is
+  the most likely to be ungraded, because certainty is exactly what stops you
+  building the fixture that could embarrass it.
 
 ---
 
@@ -374,6 +475,39 @@ Mandatory before this grader ships:
    break chapter 2's work. Folding it would hide the one failure a student is
    most likely to cause and least likely to notice.
 
+3. **The agent declares its tools, in chapter 3.** Deferring it would ship a
+   chapter whose payoff sentence — "your agent can now write code" — is false
+   against every real vendor, while scoring 100 against our fake. That is the
+   precise failure this book was written to attack, and it is not allowed to
+   appear in the book's own exercises. The declaration is rendered from the
+   registry and **omitted when the registry is empty**, which leaves chapter 2's
+   request bytes identical and `ch2parity` honest.
+4. **`localtools` splits into `readtools` (10) and `mutatetools` (10).** Reading
+   a file and changing one are separable skills, and a student can plausibly
+   have one working and not the other — which is the stated test for splitting a
+   check. `list_directory` and `search_files` do *not* split out, because
+   nobody has search working and read broken. The split also pre-stages chapter
+   8, where the read-only set and the mutating set stop being a grading
+   convenience and become a permission boundary.
+5. **The exit-code points hang on a bare `exit 7`, not on `go run`.** `go run`
+   exits 1 and prints `exit status 7` to its own stderr, so the named fixture
+   both misdescribed itself and could not fail. It stays in the table as the
+   wrapper example, asserting only that the call ran and was not a tool error.
+6. **Chapter 3 adds no new CLI mode.** Chapter 2's commands table and `CH02_LOG`
+   stand unchanged; `ch2parity` requires it.
+
 ## Open
 
-Nothing blocking. This outline is ready for prose and for the grader.
+**Work this review creates, for the coder:**
+
+- Implement the tool declaration for all three vendors, rendered from the
+  registry, omitted when empty. Then confirm `-ch 2` is still 100 **and** that
+  chapter 2's request bytes are byte-for-byte unchanged — the second is the real
+  check, since the first can pass while the bytes drift.
+- Audit the declaration by deletion like everything else: an agent that sends no
+  `tools` field must lose points.
+
+**Not verified, do not print:** that the vendor text-editor tools error on a
+non-unique anchor. I believe it, I have not measured it, and §3.5's argument
+does not need it — the measured example is my own agent's, and that one I can
+show.
