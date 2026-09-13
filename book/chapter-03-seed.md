@@ -164,7 +164,152 @@ answer, and the decision is real rather than a riddle.
 
 ---
 
-## 5. Open for Bill
+## 5. The tool set — RULED 2026-09-13
+
+**Bill's constraint, and it overrides tidiness:**
+
+> "I feel like we should not move on from tools with a set that isn't usable for
+> an AI coding agent to actually code."
+
+This killed a proposed set of `read_file` + `fetch`. The reason it had to die is
+chapter 4: ch4's whole payoff is steering an agent *mid-work*. Steering an agent
+that can only fetch a URL is a demo. Steering one that is editing code and
+running tests is the book. **A tool set that cannot code makes chapter 4 a toy.**
+
+**The set: three tools, deliberately asymmetric.** (Pending the usage audit of
+§7, which may add one or two.)
+
+| tool | class | role in the chapter |
+|---|---|---|
+| `read_file` | fast, local | counterexample — building job machinery around this is waste |
+| `write_file` | fast, local, **mutating** | completes the coding loop; the mutation matters in ch7 |
+| `run_command` | **supervised job** | the chapter's spine, and Bill's own origin story |
+
+Read the code, change the code, run the tests. That is the loop the book is
+about, and roughly what every real coding agent ships as its core.
+
+### Portability: the objection I raised and then dissolved
+
+I initially cut `run_command` as ungradeable because `sleep` is absent on
+Windows and shell quoting differs. That was treating a solvable problem as a
+constraint — the classic move that makes a chapter teach the wrong thing for the
+grader's convenience.
+
+**Go is required for this course, so `go` is the one binary every student
+provably has.** The grader scripts `go` invocations and gets determinism free.
+For the awkward scenarios the exercise ships a tiny Go helper the agent runs:
+
+- fast — returns immediately
+- slow — dribbles output over several seconds (feeds ch4's mailbox)
+- flood — emits a **megabyte** (discharges promise 4, exercises ch2's
+  `RedactedPart`, forces output to disk with a stub in context)
+- hang — never returns (forces the declined decision of §4)
+
+All portable, all deterministic, no shell-quoting hazard.
+
+### `fetch` is CUT, and cutting it improves chapter 7
+
+`run_command` subsumes every scenario `fetch` was carrying. The original
+argument for keeping it was that ch7 needs a bare GET as a command-and-control
+channel. But the reveal is sharper without it:
+
+> You never added a network tool. You added a shell, and a shell contains every
+> tool.
+
+The agent has had `curl` since the moment `run_command` existed. That is the
+honest lesson and it lands harder than a tool planted for the purpose. It also
+matches what is already written in `coderhapsody`'s `cr/docs/sandbox-design.md`:
+
+> An agent's required boundary is a *function of the tools it holds* [...]
+> `run_command` present → **Process or stronger**
+
+The tool set *is* the threat model. Chapter 3 ships the tool that forces the
+boundary; chapter 7 collects.
+
+### What the student builds beyond the tools
+
+The tool loop chapter 2 explicitly deferred: parse a `tool_use` block (where
+ch1's deferred `type` filter finally bites), dispatch it, return a `tool_result`
+in the correct vendor shape, loop until the model stops asking. Plus job events
+in the log, a timing on every call, and one deliberate choice about the job that
+never returns.
+
+---
+
+## 6. TOOL USAGE AUDIT — measured, 2026-09-13
+
+Bill's framing: chapter 2 is complex enough that a student realistically drives
+an AI coding agent to complete it. So the set chapter 3 teaches should be the set
+**a real coding agent actually leans on**, not a set chosen for tidiness.
+
+That is an empirical question, and the answer was sitting in the logs.
+
+**Corpus:** 514 archived session histories from
+`~/projects/coderhapsody.old/cr/histories` — CodeRhapsody working on its own
+codebase. **73,777 tool calls.**
+
+```
+grep -h '^### TOOL_CALL: ' *.md | sed 's/^### TOOL_CALL: //' \
+  | sort | uniq -c | sort -rn
+```
+
+| rank | tool | calls | share |
+|---|---|---|---|
+| 1 | `run_command` | 26,784 | 36.3% |
+| 2 | `read_file` | 18,667 | 25.3% |
+| 3 | `edit_file` | 12,086 | 16.4% |
+| 4 | `search_files` | 7,379 | 10.0% |
+| 5 | `write_file` | 1,667 | 2.3% |
+| | **top five** | **66,583** | **90.2%** |
+
+Roughly 110 further tools share the remaining ~10%: `refine_context` 1,181,
+`send_input` 803, `find_files` 545, `list_directory` 529, `semantic_search` 497,
+`replace_lines` 407, `wait_for_job` 366, `search_web` 208, and a long tail of
+browser, memory, skill and sub-agent tools mostly in single or double digits.
+
+### Three findings, in order of how much they change the chapter
+
+**1. `search_files` was missing from my proposed set, and it is 10% of all
+calls.** An agent without grep is blind: it cannot locate the thing to read
+before reading it. The three-tool set I proposed would have shipped an agent that
+cannot find its own work. **Caught only by measuring.**
+
+**2. `edit_file` outnumbers `write_file` 7:1** (12,086 vs 1,667). Given both, a
+coding agent overwhelmingly makes targeted edits instead of rewriting files.
+Worth stating in the chapter, because the naive instinct is to ship `write_file`
+alone as "simpler" — and the result is an agent that rewrites a 400-line file to
+change one line, burning output tokens and clobbering concurrent edits.
+
+**3. The supervision verbs are routine, not exotic — this is §2's thesis,
+measured.** `send_input` 803 + `wait_for_job` 366 + `kill_job` 101 + `jobs` 80 =
+**~1,350 calls, comparable to `write_file` itself.** Interacting with a job
+*while it runs* is a first-class activity in real usage, not a defensive corner
+case. This is Bill's July 2025 `ed` story appearing in the aggregate, and it is
+the strongest single argument that chapter 3 must ship the process model rather
+than a blocking call.
+
+### Revised tool set (supersedes §5's table)
+
+| tool | class | share | why it is in |
+|---|---|---|---|
+| `run_command` | **supervised job** | 36.3% | the chapter's spine; carries slow/flood/hang |
+| `read_file` | fast, local | 25.3% | the counterexample — do not wrap this in job machinery |
+| `edit_file` | fast, local, mutating | 16.4% | how agents actually change code |
+| `search_files` | fast, local | 10.0% | without it the agent cannot find anything |
+| `write_file` | fast, local, mutating | 2.3% | file *creation*; trivial; keep or cut |
+
+Four are non-negotiable. `write_file` is the only judgement call: 2.3% of calls,
+but it is the sole way to create a new file, and it costs ~10 lines.
+
+**This distribution is itself publishable material.** A measured answer to "what
+is actually in an AI coding agent" — five tools, 90% of calls — is exactly the
+kind of receipt §1.1's bare-metal argument trades on, and no framework
+documentation will tell a reader this.
+
+---
+
+## 7. Open for Bill
+
 
 1. Confirm the corrected thesis is how it actually went, not tidying.
 2. Verify the sub-agent introduction date (~Dec 2025?).
