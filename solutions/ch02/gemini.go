@@ -40,12 +40,34 @@ type gemContent struct {
 }
 
 type gemPart struct {
-	Text             string               `json:"text,omitempty"`
+	Text string `json:"text,omitempty"`
+	// FileData is the REMOTE-reference form: it names bytes Gemini will fetch
+	// for itself. Three of Gemini's four file input methods arrive here — a
+	// File API uri, a registered gs:// object, and an external URL — and not
+	// one of them is expressible as a local path, which is why BlobPart
+	// carries a Ref.
+	FileData         *gemFileData         `json:"fileData,omitempty"`
 	FunctionCall     *gemFunctionCall     `json:"functionCall,omitempty"`
 	FunctionResponse *gemFunctionResponse `json:"functionResponse,omitempty"`
 	// A SIBLING key of functionCall, not a member of it. Gemini 3.x returns
 	// 400 if a replayed functionCall arrives without it.
 	ThoughtSignature json.RawMessage `json:"thoughtSignature,omitempty"`
+}
+
+// gemFileData is Gemini's remote file reference.
+//
+//	{ "mimeType": string, "fileUri": string }
+//
+// fileUri is required; mimeType is optional. Verified against the Gemini API
+// reference: https://ai.google.dev/api/generate-content (FileData).
+//
+// Note what is NOT here: the base64 inline form (`inlineData`/`inline_data`,
+// carrying `data`). Inlining is a decision made HERE, while building one
+// request, and is never written back into the log — a log you cannot grep is a
+// log you cannot debug.
+type gemFileData struct {
+	MIMEType string `json:"mimeType,omitempty"`
+	FileURI  string `json:"fileUri"`
 }
 
 type gemFunctionCall struct {
@@ -65,6 +87,39 @@ type gemFunctionResponse struct {
 
 type gemOutput struct {
 	Output string `json:"output"`
+}
+
+// geminiFileParts renders every locator in an entry to Gemini's remote form.
+//
+// Only RefURI can be sent. A RefPath names a file on the machine running the
+// agent, and a RefHandle names something the framework holds — possibly only in
+// memory. Gemini can fetch neither, so neither is guessed at: resolving one
+// into a uri is an upload, which is a job for the layer that owns the bytes.
+//
+// The alternative — dropping what cannot be sent — is how a multimodal request
+// silently loses its attachment and comes back with a confident answer about a
+// file the model never saw.
+func geminiFileParts(r renderable) ([]gemPart, error) {
+	var out []gemPart
+	for _, b := range r.Blobs {
+		if b.Ref.Kind != RefURI {
+			return nil, fmt.Errorf("gemini: cannot send a blob of kind %s (%s): Gemini fetches "+
+				"remote references only, so this must be resolved to a uri before rendering",
+				b.Ref.Kind, b.Ref.Locator)
+		}
+		out = append(out, gemPart{FileData: &gemFileData{MIMEType: b.MIME, FileURI: b.Ref.Locator}})
+	}
+	// A locator that survived a redaction has no MIME type — only a place the
+	// superseded content still is. mimeType is optional, so it is simply
+	// omitted. One that cannot be fetched is dropped rather than raised: the
+	// stub has already said the content is gone, and failing the whole request
+	// over a recoverability hint would be worse than not offering it.
+	for _, ref := range r.Refs {
+		if ref.Kind == RefURI {
+			out = append(out, gemPart{FileData: &gemFileData{FileURI: ref.Locator}})
+		}
+	}
+	return out, nil
 }
 
 func (geminiSeam) Render(c *Context, cfg Config) (*http.Request, error) {
@@ -137,6 +192,12 @@ func (geminiSeam) Render(c *Context, cfg Config) (*http.Request, error) {
 				parts = append(parts, gemPart{Text: t})
 			}
 		}
+
+		fileParts, err := geminiFileParts(r)
+		if err != nil {
+			return nil, err
+		}
+		parts = append(parts, fileParts...)
 
 		if len(parts) > 0 {
 			contents = append(contents, gemContent{Role: role, Parts: parts})

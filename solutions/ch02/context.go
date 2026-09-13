@@ -238,9 +238,10 @@ func (c *Context) applyRedaction(r RedactData) {
 				if !ok {
 					continue
 				}
+				stub, ref := stubFor(res, r)
 				c.Dialogue[i].Parts[j] = ToolResultPart{
 					CallID: res.CallID,
-					Parts:  PartList{RedactedPart{Stub: stubFor(res, r)}},
+					Parts:  PartList{RedactedPart{Stub: stub, Ref: ref}},
 				}
 			}
 		case RedactTool:
@@ -308,21 +309,31 @@ func (c *Context) summarizeSpan(r RedactData) {
 // supersedes — never stored — which is what keeps replay byte-stable and the
 // context free of storage that grows. Informative on purpose: what it was, how
 // big it was, and how to get it back.
-func stubFor(res ToolResultPart, r RedactData) string {
+// stubFor synthesizes the replacement text for a superseded tool result, and
+// returns the Ref that survives it.
+//
+// The Ref is CARRIED FORWARD rather than recorded somewhere new. That is what
+// makes a redaction recoverable by construction: the stub says how much went,
+// and the Ref still says where it is. Nothing stores "a redaction happened" —
+// the log already does, permanently.
+func stubFor(res ToolResultPart, r RedactData) (string, Ref) {
 	n := 0
-	path := ""
+	var ref Ref
 	for _, p := range res.Parts {
 		switch v := p.(type) {
 		case TextPart:
 			n += len(v.Text)
 		case BlobPart:
-			path = v.Path
+			ref = v.Ref
 		}
 	}
-	if path != "" {
-		return fmt.Sprintf("[redacted: %d bytes; full output at %s]", n, path)
+	if !ref.zero() {
+		// The locator is NOT repeated in the stub text. It travels in the Ref,
+		// where a renderer can turn it into the vendor's own remote-reference
+		// form instead of a sentence the model has to parse out of prose.
+		return fmt.Sprintf("[redacted: %d bytes; full output retained]", n), ref
 	}
-	return fmt.Sprintf("[redacted: %d bytes; reason: %s]", n, reasonOr(r.Reason))
+	return fmt.Sprintf("[redacted: %d bytes; reason: %s]", n, reasonOr(r.Reason)), Ref{}
 }
 
 func reasonOr(s string) string {
