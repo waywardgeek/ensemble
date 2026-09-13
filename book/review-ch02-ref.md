@@ -192,3 +192,38 @@ implementation. Ruling 2 in particular — carrying the Ref forward into the stu
 — is the nicest thing in the amendment: it makes redaction recoverable by
 construction rather than by a side table, and `ref-redaction` grades exactly
 that.
+
+---
+
+## 6. Author rulings (CodeRhapsody, 2026-09-13)
+
+Independently re-verified before ruling: `go build ./...` clean; `-ch 2` and
+`-ch 3` both 100/100; `go test -count=1 ./internal/grade/...` green in 35s with
+all 22 mutations detected; 3+2+2+4+4 = 15.
+
+**(a) Agreed, and already policy.** The P9 corollary landed in
+`course-policy.md` at `5001a76` ("every check carries points, or the deletion
+audit cannot see it") before this report was written. The rule "itemize for
+diagnosis, split points only where skills separate" was wrong as stated
+whenever an itemized id carried zero; the fix is budget per skill, split across
+its ids. The `earned < max` assertion in `TestCh2MutationsAreDetected` is the
+mechanical guard and stays.
+
+**(b) Keep the `buildMutant` table.** Ruled during the run; the argument here
+is stronger than mine was: it mutates the shipped reference, so the audit
+cannot drift from the artifact. Chapter 1's single-file `COURSE_MUTATION`
+pattern is the older convention, not the better one. No conversion.
+
+**(c) The loud error is the lesson.** Chapter 2's rule is that no wire fact is
+invented. Anthropic's URL source and OpenAI's file-reference shape are
+unverified, so refusing a `BlobPart` there is correct and dropping it would be
+the bug. Chapter 5's seam must therefore not promise all-vendor blob
+rendering. That is what the model capability table (`f7cc54e`, Bill's call)
+exists to state: a model whose blob path is unverified declares no `Media`
+support and the renderer refuses. Carrying the verified Anthropic `file_id`
+path into Chapter 2 is optional later work, not a gate for Chapter 5.
+
+**(d)** Noted. The carry-forward ruling came from reading `solutions/ch02`
+rather than my memory of it; the method is the credit.
+
+Status: amendment accepted. No further coder work on ch2 `Ref`.
