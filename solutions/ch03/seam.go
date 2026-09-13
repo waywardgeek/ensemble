@@ -135,6 +135,14 @@ type renderable struct {
 	Texts []string
 	Tools []ToolResultPart
 	Blobs []BlobPart
+
+	// Refs are locators that SURVIVED a redaction: the Ref carried forward
+	// from a part that was superseded. They have no MIME type and no bytes,
+	// only a place the content still is. A vendor that can act on a remote
+	// reference renders them; one that cannot ignores them, because the stub
+	// text has already said that something was removed.
+	Refs []Ref
+
 	Raw   []OpaquePart
 }
 
@@ -151,10 +159,22 @@ func classify(e Entry, cfg Config) (renderable, error) {
 			}
 		case RedactedPart:
 			r.Texts = append(r.Texts, v.Stub)
+			if !v.Ref.zero() {
+				r.Refs = append(r.Refs, v.Ref)
+			}
 		case ToolCallPart:
 			r.Calls = append(r.Calls, v)
 		case ToolResultPart:
 			r.Tools = append(r.Tools, v)
+			// A redaction of a tool RESULT leaves its stub nested one level
+			// down, inside the ToolResultPart that survived. The locator it
+			// carried forward has to be lifted out here or it is invisible to
+			// every renderer.
+			for _, sub := range v.Parts {
+				if rp, ok := sub.(RedactedPart); ok && !rp.Ref.zero() {
+					r.Refs = append(r.Refs, rp.Ref)
+				}
+			}
 		case BlobPart:
 			// Media asymmetry is a LOUD error.
 			if strings.HasPrefix(v.MIME, "audio/") && !cfg.AcceptsAudio {
@@ -179,7 +199,7 @@ func resultText(res ToolResultPart) string {
 		case RedactedPart:
 			b.WriteString(v.Stub)
 		case BlobPart:
-			b.WriteString("[" + v.MIME + " at " + v.Path + "]")
+			b.WriteString("[" + v.MIME + " at " + v.Ref.Locator + "]")
 		}
 	}
 	return b.String()

@@ -95,6 +95,13 @@ func (openAISeam) Render(c *Context, cfg Config) (*http.Request, error) {
 		if err != nil {
 			return nil, err
 		}
+		// Same reasoning as the Anthropic renderer: OpenAI's file-reference
+		// shape was not verified for this chapter, and a guessed field name is
+		// worse than an unimplemented one.
+		if len(r.Blobs) > 0 {
+			return nil, fmt.Errorf("openai: rendering a blob part is not implemented in this "+
+				"chapter (%s at %s)", r.Blobs[0].MIME, r.Blobs[0].Ref.Locator)
+		}
 		switch entry.Actor {
 		case ActorTool:
 			// Its own message, with a role that exists for exactly this.

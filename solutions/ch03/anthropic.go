@@ -120,6 +120,17 @@ func (anthropicSeam) Render(c *Context, cfg Config) (*http.Request, error) {
 		if err != nil {
 			return nil, err
 		}
+		// Anthropic references an uploaded file as a `source` of type "file"
+		// carrying a `file_id`, on an `image` or `document` block. That form is
+		// real, but mapping a Ref onto it needs a rule for which locators are
+		// Anthropic file ids and which are something else, and Chapter 2 does
+		// not have one. Raising here is the honest answer: a guessed field name
+		// is worse than an unimplemented one, and dropping the blob would send
+		// a request that looks fine and is missing its attachment.
+		if len(r.Blobs) > 0 {
+			return nil, fmt.Errorf("anthropic: rendering a blob part is not implemented in this "+
+				"chapter (%s at %s)", r.Blobs[0].MIME, r.Blobs[0].Ref.Locator)
+		}
 		switch entry.Actor {
 		case ActorTool:
 			var blocks []anthBlock
