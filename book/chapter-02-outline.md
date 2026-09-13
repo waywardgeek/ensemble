@@ -680,7 +680,7 @@ themselves piled up, summarize.
 **Stubs are synthesized, not stored.** A `RedactResult` stub is computed by the
 reducer from the event it supersedes (the tool's name, the size, the path the
 output still lives at), which makes it deterministic (so replay is stable),
-recoverable (§2.2's greppable log, and Chapter 3's on-disk tool output), and
+recoverable (§2.2's greppable log, and Chapter 4's on-disk tool output), and
 free of storage that grows. Only `RedactSummary` stores a `Replacement`,
 because only there is the new content something an LLM wrote and nobody can
 recompute.
@@ -1236,7 +1236,7 @@ cannot fail is a green dashboard with a schema around it.
 
 ### What you are not building
 
-No tool loop — Chapter 3. No mailbox, hints, or interrupts — Chapter 4. No
+No tool loop — Chapter 3. No mailbox, hints, or interrupts — Chapter 5. No
 streaming, no retries, no skills, no sub-agents. **You are building one context
 and three ways in and out of it.**
 
@@ -1307,7 +1307,7 @@ and three ways in and out of it.**
 
 `book/chapter-05-actors-parking.md` holds, verbatim, the hint and interrupt
 sections and review findings M1, M2, M4, E4, E7. Of particular value when
-Chapter 4 is outlined:
+Chapter 5 is outlined:
 
 - **M1**: a pending hint is not in the dialogue; `RequestSent` is what moves it
   there. The one place a careful student still fails.
