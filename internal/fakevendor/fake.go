@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -109,13 +110,46 @@ type Server struct {
 	replies  []Reply
 	n        int
 	requests []Recorded
+	opt      Options
 
 	ts *httptest.Server
 }
 
+// Options tune the fake for being driven by hand (cmd/fakevendor). The grader
+// uses none of them: New() is the grader's constructor and its behaviour is
+// unchanged — a script that runs out repeats its last reply.
+type Options struct {
+	// Cycle restarts the script from the top when it runs out, instead of
+	// repeating the last reply. A REPL session sends an unbounded number of
+	// requests; without this every turn after the script ends gets the same
+	// answer, and if that answer is a tool call the loop never terminates.
+	Cycle bool
+	// Trace, if set, gets one line per request: which vendor's endpoint it hit,
+	// whether it carried tool results, and which reply was served. This is
+	// how a person WATCHES the loop rather than only being scored by it.
+	Trace io.Writer
+	// Addr, if set, is a fixed listen address such as "127.0.0.1:8089".
+	// Empty picks a free port, as httptest does.
+	Addr string
+}
+
 func New(replies []Reply) *Server {
-	s := &Server{replies: replies}
-	s.ts = httptest.NewServer(http.HandlerFunc(s.handle))
+	return NewWithOptions(replies, Options{})
+}
+
+func NewWithOptions(replies []Reply, opt Options) *Server {
+	s := &Server{replies: replies, opt: opt}
+	if opt.Addr == "" {
+		s.ts = httptest.NewServer(http.HandlerFunc(s.handle))
+		return s
+	}
+	ln, err := net.Listen("tcp", opt.Addr)
+	if err != nil {
+		panic("fakevendor: listen " + opt.Addr + ": " + err.Error())
+	}
+	s.ts = httptest.NewUnstartedServer(http.HandlerFunc(s.handle))
+	s.ts.Listener = ln
+	s.ts.Start()
 	return s
 }
 
@@ -157,14 +191,28 @@ func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
 
 	s.mu.Lock()
 	s.requests = append(s.requests, Recorded{Vendor: vendor, Path: r.URL.Path, Body: body})
+	seq := s.n + 1
+	idx := s.n
+	if s.opt.Cycle && len(s.replies) > 0 {
+		idx = s.n % len(s.replies)
+	}
 	var reply Reply
-	if s.n < len(s.replies) {
-		reply = s.replies[s.n]
+	if idx < len(s.replies) {
+		reply = s.replies[idx]
 	} else if len(s.replies) > 0 {
-		reply = s.replies[len(s.replies)-1]
+		idx = len(s.replies) - 1
+		reply = s.replies[idx]
 	}
 	s.n++
 	s.mu.Unlock()
+
+	if s.opt.Cycle {
+		reply = uniquifyIDs(reply, seq)
+	}
+	if s.opt.Trace != nil {
+		fmt.Fprintf(s.opt.Trace, "fake: #%d %-9s %s  %s  -> reply %d/%d: %s\n",
+			seq, vendorOrUnknown(vendor), r.URL.Path, describeRequest(body), idx+1, len(s.replies), describeReply(reply))
+	}
 
 	if vendor == "" {
 		// An unknown path is a student bug worth reporting precisely, but it
@@ -286,4 +334,73 @@ func geminiBody(r Reply) string {
 "usageMetadata":{"promptTokenCount":%d,"candidatesTokenCount":%d,"cachedContentTokenCount":%d,"thoughtsTokenCount":%d,"totalTokenCount":%d}}`,
 		jsonStr(Models["gemini"]), strings.Join(parts, ","),
 		prompt, candidates, r.Usage.CacheRead, thoughts, prompt+candidates+thoughts)
+}
+
+// --- trace helpers (hand-run only) -----------------------------------------
+
+func vendorOrUnknown(v string) string {
+	if v == "" {
+		return "unknown"
+	}
+	return v
+}
+
+// describeRequest says, in a few words, what a request body carried. It
+// counts the three vendors' tool-result markers rather than parsing the body,
+// because the point of the trace is to show the loop turning, not to grade
+// it — the grader does the parsing.
+func describeRequest(body []byte) string {
+	n := strings.Count(string(body), `"tool_result"`) + // anthropic
+		strings.Count(string(body), `"role":"tool"`) + strings.Count(string(body), `"role": "tool"`) + // openai
+		strings.Count(string(body), `"functionResponse"`) // gemini
+	tools := strings.Contains(string(body), `"tools"`)
+	var parts []string
+	parts = append(parts, fmt.Sprintf("%d bytes", len(body)))
+	if tools {
+		parts = append(parts, "declares tools")
+	}
+	if n > 0 {
+		parts = append(parts, fmt.Sprintf("carries %d tool result(s)", n))
+	}
+	return "[" + strings.Join(parts, ", ") + "]"
+}
+
+func describeReply(r Reply) string {
+	switch {
+	case r.Status != 0:
+		return fmt.Sprintf("HTTP %d", r.Status)
+	case len(r.Tools) > 1:
+		var names []string
+		for _, c := range r.Tools {
+			names = append(names, c.Name)
+		}
+		return fmt.Sprintf("%d tool_use blocks: %s", len(r.Tools), strings.Join(names, ", "))
+	case r.ToolName != "":
+		return fmt.Sprintf("tool_use %s %s", r.ToolName, r.ToolArgs)
+	case r.Text != "":
+		return fmt.Sprintf("text %q", r.Text)
+	default:
+		return "(empty)"
+	}
+}
+
+// uniquifyIDs gives a cycled reply's tool calls IDs no earlier request saw.
+// A real vendor never reuses a tool call id, and the reference engine relies
+// on that: it computes outstanding calls from the WHOLE dialogue, so a reused
+// id looks already answered and the tool is silently never run. Measured: the
+// second REPL turn against a cycling script stopped after one request until
+// this was added.
+func uniquifyIDs(r Reply, seq int) Reply {
+	if r.ToolID != "" {
+		r.ToolID = fmt.Sprintf("%s_%d", r.ToolID, seq)
+	}
+	if len(r.Tools) > 0 {
+		calls := make([]ToolCall, len(r.Tools))
+		for i, c := range r.Tools {
+			c.ID = fmt.Sprintf("%s_%d", c.ID, seq)
+			calls[i] = c
+		}
+		r.Tools = calls
+	}
+	return r
 }

@@ -404,11 +404,38 @@ exact commands:
 
 - **Against the fake.** Deterministic, free, no key required. This is your inner
   loop, and it is where you should spend nearly all of your time.
-- **Against a live vendor** — any of the three. This is the outer loop. Run it
-  when you have something working, not while you are debugging.
 
-*(Exact commands to be filled in from `cmd/fakevendor` and `scripts/live.sh`
-once they land — do not print a command in this chapter that has not been run.)*
+  ```bash
+  go run ./cmd/fakevendor -ch 3 chat                  # REPL, Anthropic dialect
+  go run ./cmd/fakevendor -ch 3 -vendor gemini chat   # same loop, Gemini dialect
+  go run ./cmd/fakevendor -ch 3 -vendor openai chat   # same loop, OpenAI dialect
+  go run ./cmd/fakevendor -vendor openai              # serve only: paste the env block into YOUR agent's shell
+  ```
+
+  The fake does not read your prompt. Its replies are scripted — ask for
+  `list_directory`, ask for `read_file`, answer — so what you are watching is
+  the protocol: every request is traced on stderr with the dialect it hit,
+  whether it declared tools, whether it carried tool results, and which reply
+  was served. Request 1 gets a tool call; request 2 carries the result; request
+  3 carries two; the reply to request 3 is the answer.
+
+- **Against a live vendor** — any of the three. This is the outer loop. Run it
+  when you have something working, not while you are debugging. It costs
+  tokens: a `rounds` run of chapter 3 was 9k input / 400 output on Anthropic,
+  3k / 1.3k on OpenAI, 3k / 300 on Gemini — a few cents.
+
+  ```bash
+  scripts/live.sh 3 anthropic models   # which model IDs your key can actually use — free
+  scripts/live.sh 3 anthropic          # three rounds; round 2 needs a tool, round 3 needs the history
+  scripts/live.sh 3 gemini chat        # REPL, Gemini
+  ```
+
+  Keys come from `$<VENDOR>_API_KEY`; models default to the solution's, or
+  `<VENDOR>_MODEL=...`. If the default model is not one your key can see, the
+  request fails with `{"error":...}` and `models` tells you what is.
+
+*(Every command above was run before it was printed. `cmd/fakevendor` and
+`scripts/live.sh` are documented in the repository README.)*
 
 ## §3.8 The exercise
 

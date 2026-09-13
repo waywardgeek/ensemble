@@ -11,13 +11,17 @@ from.
 ```
 book/                   chapter outlines (the text these graders serve)
 cmd/grade/              the auto-grader CLI (-ch selects the chapter)
-internal/fakeanthropic/ deterministic stand-ins for the Messages API
-                        (Server: chapter 1; ToolServer: chapter 2, drives a
-                        tool loop and can hold its reply open)
+cmd/fakevendor/         the fake vendor as a local server, so you can RUN a
+                        chapter by hand instead of only being scored
+internal/fakeanthropic/ chapter 1's stand-in for the Messages API
+internal/fakevendor/    chapters 2+: deterministic stand-in for all three vendor
+                        APIs (Anthropic, OpenAI, Gemini — routed by request path);
+                        the grader mounts it in-process, cmd/fakevendor serves it
 internal/grade/         scripts, process harnesses, checks, report
 solutions/ch01/         reference solution (the chapter's own code)
 solutions/ch02/         reference solution: event log, reducer, renderer, actor
-scripts/live.sh         run a solution against the real API
+solutions/ch03/         reference solution: tools declared, tool loop, local tools
+scripts/live.sh         run a solution against a real vendor API
 testdata/students/      deliberately defective submissions (grader self-test)
 ```
 
@@ -27,6 +31,7 @@ testdata/students/      deliberately defective submissions (grader self-test)
 
 ```bash
 make grade                          # or: go run ./cmd/grade ./solutions/ch01
+make grade2 grade3                  # chapters 2 and 3
 ```
 
 **Grade your own submission** — point it at any package directory or built
@@ -34,23 +39,53 @@ binary:
 
 ```bash
 make grade-dir DIR=~/my-agent       # or: go run ./cmd/grade ~/my-agent
+go run ./cmd/grade -ch 3 ~/my-agent # chapter 3's checks
 go run ./cmd/grade -json ~/my-agent # machine-readable report
 ```
 
 Exit status is 0 on a pass, 1 on a fail, 2 if the grader itself could not run.
 
-**Talk to it live**, against the real Anthropic API:
+**Run it against the fake and watch it** — still no key, no cost. Being
+scored by the tool loop and watching it turn are different things:
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
-scripts/live.sh models   # which model IDs your key can actually use
-scripts/live.sh          # three scripted rounds + the token bill
-scripts/live.sh chat     # interactive REPL
+go run ./cmd/fakevendor -ch 3 chat                  # chapter 3 REPL, Anthropic dialect
+go run ./cmd/fakevendor -ch 3 -vendor gemini chat   # same loop, Gemini dialect
+go run ./cmd/fakevendor -ch 2 -vendor openai chat   # chapter 2, OpenAI dialect
 ```
 
-`scripts/live.sh` never echoes your key. It reads `$ANTHROPIC_API_KEY`, else
-the file named by `$ANTHROPIC_API_KEY_FILE`, else `~/.cr/settings.json` if you
-happen to run CodeRhapsody. Override the model with `ANTHROPIC_MODEL=...`.
+The fake does not read your prompt: its replies are scripted (for chapter 3:
+ask for `list_directory`, ask for `read_file`, then answer). What you are
+watching is the protocol, on stderr — every request, which dialect's endpoint
+it hit, whether it declared tools, whether it carried tool results, and which
+reply was served. Request 1 gets a tool call; request 2 carries the result.
+
+To run **your own** agent against it, start the fake alone and paste the
+environment block it prints into your agent's shell:
+
+```bash
+go run ./cmd/fakevendor -vendor openai      # serves; Ctrl-C to stop
+```
+
+or `-ch 3 -solution ~/my-agent chat` to have it run yours directly.
+
+**Talk to it live**, against a real vendor — this costs tokens (a chapter 3
+`rounds` run is a few cents):
+
+```bash
+export ANTHROPIC_API_KEY=sk-ant-...         # or OPENAI_API_KEY / GEMINI_API_KEY
+scripts/live.sh 3 anthropic models          # which model IDs your key can actually use
+scripts/live.sh 3 anthropic                 # three scripted rounds + the token bill
+scripts/live.sh 3 gemini chat               # interactive REPL, Gemini
+scripts/live.sh 1 chat                      # chapter 1 (Anthropic only)
+```
+
+Arguments are recognised by shape and default to chapter 3, Anthropic,
+`rounds`. The script never echoes your key: it reads `$LLM_API_KEY`, else
+`$<VENDOR>_API_KEY`, else the file named by `$<VENDOR>_API_KEY_FILE`, else
+`~/.cr/settings.json` if you happen to run CodeRhapsody. Override the model
+with `LLM_MODEL=...` or `<VENDOR>_MODEL=...`; if the solution's default model
+is not one your key can see, `models` tells you what is.
 
 **Check the grader itself** — does it catch real defects?
 
@@ -172,16 +207,20 @@ wrong.
 
 ## Running a solution live
 
-The same binary talks to the real API (or the course proxy) — one env var, and
-the program never knows the difference:
+The same binary talks to the fake, the real API, or a proxy — a base URL and
+a vendor name, and the program never knows the difference:
 
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
-go run ./solutions/ch01 chat        # interactive REPL
+go run ./solutions/ch01 chat                        # chapter 1: Anthropic only
+LLM_VENDOR=gemini GEMINI_API_KEY=... go run ./solutions/ch03 chat
 ```
 
-Leave `ANTHROPIC_BASE_URL` unset for `api.anthropic.com`, or point it at the
-course proxy.
+Chapters 2 and up read `LLM_VENDOR`, `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL`
+first, then the vendor-prefixed names (`ANTHROPIC_*`, `OPENAI_*`, `GEMINI_*`).
+Leave the base URL unset for the vendor's own endpoint, or point it at the
+fake or a proxy. `scripts/live.sh` and `cmd/fakevendor` are wrappers over
+exactly this.
 
 ## License
 

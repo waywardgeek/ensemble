@@ -92,12 +92,19 @@ func (e *Engine) Turn() (string, error) {
 	if err != nil {
 		return "", err
 	}
+	var vendorErr error
 	for _, ev := range events {
 		if err := e.record(ev); err != nil {
 			return "", err
 		}
+		if ev.Type == ErrorOccurred && ev.Error != nil {
+			// The event is the record; this is the report. Without it a 404
+			// on the model name prints {"assistant":""} and exits 0 — measured
+			// live against Gemini, and invisible unless you read the log.
+			vendorErr = fmt.Errorf("%s: %s", e.Cfg.Vendor, ev.Error.Message)
+		}
 	}
-	return e.lastAgentText(), nil
+	return e.lastAgentText(), vendorErr
 }
 
 func (e *Engine) send(req *http.Request) (int, []byte, error) {

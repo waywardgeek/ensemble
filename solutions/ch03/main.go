@@ -1,6 +1,6 @@
 package main
 
-// ch02 — one log, three vendors.
+// ch03 — one log, three vendors, and a tool loop.
 //
 //	./ch02              grader mode: the Chapter 1 stdio protocol, unchanged
 //	./ch02 chat         the interactive loop from Chapter 1
@@ -88,7 +88,7 @@ func runLoop(cfg Config, logPath string, interactive bool) {
 	defer out.Flush()
 
 	if interactive {
-		fmt.Fprintln(os.Stderr, "ch02 — type a message, ctrl-D to exit")
+		fmt.Fprintln(os.Stderr, "ch03 — type a message, ctrl-D to exit")
 		fmt.Fprint(os.Stderr, "> ")
 	}
 
