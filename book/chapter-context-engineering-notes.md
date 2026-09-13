@@ -150,3 +150,64 @@ lives today.
 The token-share claim about tool results, the compression ratios, the bucket
 sizes, and the "identity survives the purge" result are all currently the
 author's and Bill's working knowledge.
+
+
+---
+
+## War story: `compress_context`, and why LLM-discretionary compaction died
+
+**Source: Bill, 2026-09-13, first-party.** Recorded verbatim because the
+mechanism matters more than the summary.
+
+> "compress_context was the old system that you (Claude) did pretty well,
+> picking a range of messages to summarize, but freaking Gemini almost always
+> deleted 80% of messages, starting with message 1, with a terrible summary,
+> lobotomizing the LLM, so we switched to handoffs instead."
+
+### Why this is the best available argument for structural compaction
+
+Same tool. Same prompt. Same instructions. **Two models, and one of them
+routinely destroyed the conversation it was asked to condense.**
+
+That is a receipt no amount of reasoning substitutes for, and it kills a
+tempting design in one sentence: *let the model decide what to drop.* It works
+on the model you tested and silently lobotomizes the agent on the model you
+did not. A capability that is correct on one frontier model and catastrophic on
+another is not a capability; it is a coin flip with a good day.
+
+Note the shape of Gemini's failure, because it is exactly the failure mode the
+notes above predict: it compacted **by position** — "starting with message 1" —
+rather than by category. Position-based compaction cannot distinguish the goal
+stack from a stale directory listing, so it eats the former first, since the
+oldest messages are where the goal was stated. **The agent forgets what it is
+doing before it forgets anything it could afford to lose.**
+
+### The succession, which the book should tell as a sequence
+
+1. **`compress_context`** — model picks a range and summarizes it. Died of
+   model-dependence. 154 calls in the corpus, all historical.
+2. **`handoff_task`** — write a structured document for a fresh instance.
+   Deterministic, author-controlled, survives the model swap. **Currently in
+   use, and already slated for deprecation.**
+3. **What replaces it:** keep the actor permanently knowledgeable about its own
+   history and current work, through more refined context engineering, rather
+   than periodically resetting it and handing over a note.
+
+**Bill, same session:** *"Handoffs will be deprecated [...] and we'll instead
+try to keep an actor permanently knowledgeable about its history and what it is
+doing, with more refined context engineering."*
+
+This is worth printing as a **live** trajectory rather than a solved one. The
+book gains more from "here is where this is going and here is what each step
+cost" than from pretending the current answer is the final one. It also keeps
+the chapter honest: handoffs are taught while being openly marked as
+transitional.
+
+### Corollary for the tool table
+
+`refine_context` and `keep_tool_results` both survive, and for a reason worth
+stating: **redacting tool results the agent did not keep is far more effective
+than `refine_context`, but not every model handles `keep_tool_results` well.**
+So both ship. That is the same lesson as above in a smaller frame — the better
+mechanism is kept *alongside* the worse one because model capability is uneven,
+not because the design is undecided.
