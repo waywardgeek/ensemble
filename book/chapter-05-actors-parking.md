@@ -1,4 +1,4 @@
-# Parking file — material extracted from Chapter 2 Draft 3 for Chapter 4 (Actors)
+# Parking file — material extracted from Chapter 2 Draft 3 for Chapter 5 (the agent framework)
 
 **Provenance:** these sections were written for Chapter 2 and survived Opus 5's review
 (findings M1, M2, M4, M8, E4, E7). When Chapter 2 became the LLM-seam chapter, hints
