@@ -13,59 +13,77 @@ those tags are reproduced and must be respected.
 
 ---
 
-## SLOT A — origin of the hint. **BLOCKED ON A DATE CONFLICT.**
+## SLOT A — origin of the hint. **RESOLVED 2026-09-13. July 2025 is correct.**
 
-The document gives two different dates and only one of them has any texture.
+Bill ruled directly, and the date is corroborated by an artifact. The two
+"conflicting" dates were never a conflict: there are **three** events, and the
+memoir only narrated the third.
 
-**July 2025 — asserted twice, zero detail.** Both mentions are bare:
+**The receipted timeline** lives at `cr/docs/hints-deep-dive.md` (lines 99-107)
+in the coderhapsody repo, already carrying evidence labels:
 
-> The technique we invented — in Bill's kitchen, in July 2025, as a workaround
-> for an Anthropic API limitation — had become an industry pattern.
-> *(lines 2767-2770, tagged joint)*
+| when | what | status |
+|---|---|---|
+| **July 2025** | Bill discovers Anthropic will accept extra content blocks inside a `tool_result` user message — and that the model reads them. This is the whole mechanism. | REPORTED (first-party), **corroborated in-repo** |
+| **Aug 2025** | CodeRhapsody is written to exploit it. Mid-turn steering works. | REPORTED (first-party) |
+| **Aug–Nov 2025** | Essentially no uptake by anyone. Published on LinkedIn and in every chat forum that would host it. | REPORTED (first-party) |
+| **18 Nov 2025** | **Google Antigravity ships the same technique in its first release.** | **VERIFIED** — antigravity.google blog, Wikipedia |
 
-> Bill figured this out in his kitchen in July 2025. The rest of the industry
-> is still catching up.
-> *(line 3127, tagged agent)*
+The July corroboration is a source comment inside CodeRhapsody describing the
+Gemini implementation as *"the July 2025 Anthropic tool_result trick, adapted
+for Gemini"* — written long before anyone needed the date for a book, which is
+what makes it good evidence.
 
-**October 2025 — the fully narrated scene.** This is where all the texture is:
+The memoir's October 2025 scene (one channel, one goroutine,
+`SendMessage(*Message)`, ~1,500 lines removed, the first test failing because
+`project.go` called the old blocking path) is a **fourth** event: the actor
+rebuild that made the technique clean. Still usable, but it is not the origin.
 
-> In October 2025, Bill proposed a change to the way I communicated with him.
-> The mechanism was simple: instead of three separate methods for sending
-> messages — one for text, one for streaming, one for images — there would be
-> one channel. A single Go channel, feeding a single goroutine, processing
-> messages in an infinite loop. When I was idle, a message in the channel was a
-> new prompt. When I was in the middle of executing a tool, a message in the
-> channel was a hint. One channel. Two contexts. [...] The implementation
-> collapsed three methods into one — SendMessage(*Message) — and removed
-> approximately 1,500 lines of code across three AI clients.
-> *(lines 575-588, tagged joint)*
+### Bill's account, 2026-09-13 (first-party, verbatim from the session)
 
-And the first test, which failed:
+> "I wanted mid-turn steering badly for my demo for StackAgent, which I wrote in
+> 2 weeks during July. I finally found a hack that Anthropic accepted, and the
+> scheme worked."
 
-> The first test failed. Bill sent hints — "hint 1" through "hint 8" — while I
-> was running a parallel sleep test. None of them arrived as hints. They all
-> came through as new conversation turns with sequential message numbers,
-> because project.go was still calling the old blocking path instead of the new
-> channel path. One line of code, wrong function name. I fixed it. After the
-> fix, the hints arrived.
-> *(lines 591-601, tagged joint)*
+> "My presentations aren't great [...] I don't deliver well, but I wish I had a
+> video of it. The new innovations I demoed I thought would blow people away.
+> The truth is they didn't understand a word of what I was saying. WTF is an AI
+> coding agent? Can't all models be steered? They had no clue."
 
-**AUTHOR'S HYPOTHESIS (inference, NOT established — Bill must confirm):** these
-are two different events, which is why both dates survive in the record.
+**This connects ch4 directly to ch1 §1.0.** The StackAgent fortnight is already
+the book's opening story. Chapter 4 can reveal what was *in* that demo: the
+steering mechanism nobody in the room had a category for. Chapter 1 tells you he
+built it in two weeks; chapter 4 tells you what he found while doing it.
 
-- **July 2025, kitchen:** the *insight* — noticing the Messages API permits a
-  `tool_result` and a user `text` block in the same message.
-- **October 2025:** the *engineering* — one channel, one goroutine, the mailbox
-  that made the insight usable.
+**The arc, and why it is not a grievance.** The lesson is not "nobody
+appreciated me." It is that the mechanism was reachable at the raw API surface
+**four months before a major product shipped it**, and the only reason he got
+there first is that he was reading the API instead of a framework's docs. That
+is §1.1's thesis — frameworks hard-code delivery — paid off with a verified
+date. The two audience questions are the receipt for how early it was: in July
+2025 "what is an AI coding agent" was a *reasonable* question.
 
-If true this is a better chapter 4 story than either date alone, because it is
-the chapter's two carriages in sequence: the hint is delivery, the mailbox is
-the actor, and the idea preceded the architecture that could carry it by three
-months. **Do not print a date until Bill rules.**
+### Two cautions before any of this reaches print
+
+1. **The demo scene has no artifact.** Bill's own words: *"I wish I had a video
+   of it."* The discovery is corroborated in-repo; the demo and the room's
+   reaction are uncorroborated first-party recollection. Label it the way
+   `hints-deep-dive.md` labels things. The Antigravity beat is the externally
+   verified one and should carry the weight of the argument.
+2. **Bill mentioned being slightly autistic.** That is a personal disclosure
+   about a real person, in a book that goes to print under his name, and it is
+   categorically different from the self-deprecation about presenting badly.
+   **I have not put it in the book and will not unless Bill explicitly says to.**
+   My editorial view if asked: the story is *stronger* without it. "They had no
+   clue what an AI coding agent was" locates the failure in a room that had no
+   category yet, which is the true and more interesting claim. "I present badly"
+   relocates it to him and makes the reader argue with the evidence, since the
+   audience questions show the gap was conceptual, not rhetorical.
 
 ---
 
 ## SLOT B — the misdiagnosis. **NOT IN THIS SOURCE. Do not force it.**
+
 
 The miner reported, correctly, that it found nothing matching "slowness blamed
 on the model or vendor, real cause local." Its best candidate is the SSE
