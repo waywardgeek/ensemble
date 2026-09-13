@@ -83,6 +83,19 @@ Already-settled corollaries: normalize the *student's* own names (event types,
 field names) case- and punctuation-insensitively; grade the **vendor's** wire
 names exactly. `tool_use_id` is Anthropic's spelling, not a naming preference.
 
+"Exactly" means *as the vendor accepts it*, which is not always one spelling.
+Gemini's tool block is proto-JSON, and proto-JSON accepts both the lowerCamelCase
+and the original snake_case field name, so `functionDeclarations` and
+`function_declarations` are equally correct. Verified 13 Sep 2026 against
+`gemini-3.8-flash`: both return 200 and both produce a `functionCall`. A grader
+that demands the camelCase spelling is not enforcing the vendor's contract, it is
+enforcing the example we happened to print — and it fails a student whose code is
+right. Where a vendor accepts a set, grade the set.
+
+The general form: before a grader asserts an exact wire name, check whether the
+vendor's own encoding rules admit a synonym. Proto-JSON does. A hand-rolled JSON
+API usually does not.
+
 ## P4. Three cost meters, never fused
 
 Stated in full at `review.md` D5 and in Chapter 1 §1.7. Summary:
@@ -347,6 +360,24 @@ mutant student and asserts which checks notice. The pass that found the
 Chapter 2 hole deletes a behavior **from the reference solution** and asks
 whether the score still says 100. Run both. The second one is the one that
 catches a promise the book made and the grader never collected on.
+
+**A check's probes must target material the harness planted, never another
+check's output.** This surfaced when Chapter 3's single `localtools` check was
+split into `readtools` and `mutatetools`. Sabotage `write_file` and the *read*
+check failed too — because its probe searched for a string that existed only if
+the write and the edit had already worked. The two checks were never independent;
+splitting them into two rows made the coupling visible without removing it.
+
+This matters because coupling makes a grader lie in the direction that hurts
+most: one broken behavior lights up several checks, the score drops further than
+the defect warrants, and the failing set no longer names the cause. A student
+reads it as "my reads are broken" and goes looking in the wrong file.
+
+The test is mechanical, and it is just P9 pointed sideways. Break each behavior
+alone, and confirm the failing set is exactly the checks that own it. If a
+neighbor fails, the fixture is shared when it should have been planted — give the
+read check its own file, written by the harness before the student's agent
+starts.
 
 ---
 
