@@ -335,7 +335,82 @@ time they ask their agent to run something that takes a while.)
 
 ---
 
-## §3.7 The exercise
+## §3.7 Fakes first
+
+You did not write the fake. There is one in this repository that speaks all
+three vendor dialects, and we handed it to you so that chapter 2 could be about
+the seam instead of about HTTP plumbing. That was a gift with a cost: it hid the
+most important habit in the book.
+
+**If you build your own agent, the fake is the first thing you write.** Not the
+last, not "when we get around to testing." First.
+
+The working loop:
+
+1. **Write the fake.**
+2. **Build the new functionality against it** until it works.
+3. **Only then run against the live API.**
+
+And one exception, which is where most people go wrong by skipping it:
+
+4. **When the documentation does not answer a question, write a probe.** A small
+   program that asks the real API one thing. The probe's job is *not* to test
+   your agent. Its job is to tell you what to put in the fake. Then you go back
+   to step 1 with an answer instead of a belief.
+
+Say plainly why, because "write tests first" is advice students have learned to
+nod at and ignore:
+
+- **A live model is nondeterministic, slow, and metered.** You cannot iterate a
+  loop that costs money per turn, and you cannot write a regression test whose
+  expected output changes every run. Chapter 2's checks compare *bytes*. That is
+  only possible against something that repeats itself.
+- **Writing the fake forces you to state the contract.** You discover you did not
+  actually know the wire format while writing the fake — which is the cheapest
+  possible moment to discover it. Every hour after that is more expensive.
+- **A fake breaks when the real system changes, and that breakage is signal.**
+  This is the whole reason to prefer a fake over a mock. A mock agrees with you
+  forever, including after you become wrong.
+
+### The honest caveat, and we have the receipt
+
+A fake can be **more generous than the real thing**, and then it grades a world
+that does not exist.
+
+Ours is. The fake volunteers `tool_use` blocks without ever being asked for
+them. A real vendor does not: it sends a tool call only if the request declared
+that the tools exist. So an agent that never declares its tools scores **full
+marks against our fake and does nothing whatsoever against Anthropic** — and we
+found that by auditing this chapter, not by running it, because the fake was
+kinder than reality and the score said everything was fine.
+
+That is the failure mode this book exists to attack, and we shipped it in our
+own harness. It is in the chapter now precisely because it is embarrassing.
+
+This is what step 4 is for. The corrections in our wire-verification record all
+came from probes, and every one of them went back into the fake. The most
+useful thing we learned doing it: **no model has the vendors' token-accounting
+conventions right from training data, and neither did we.** You cannot look this
+up from memory, yours or the model's. You have to ask the API.
+
+So: fakes first — *and* probe the real thing periodically, or your fake slowly
+becomes a comfortable fiction that agrees with your code about a vendor neither
+of you has spoken to in months.
+
+### Running it yourself
+
+Two things you should be able to do by hand, and the chapter should print the
+exact commands:
+
+- **Against the fake.** Deterministic, free, no key required. This is your inner
+  loop, and it is where you should spend nearly all of your time.
+- **Against a live vendor** — any of the three. This is the outer loop. Run it
+  when you have something working, not while you are debugging.
+
+*(Exact commands to be filled in from `cmd/fakevendor` and `scripts/live.sh`
+once they land — do not print a command in this chapter that has not been run.)*
+
+## §3.8 The exercise
 
 **Contract:** chapter 3 adds **no new CLI mode**. Chapter 2's commands table
 stands unchanged — stdin protocol, `render <log>`, `dump` — and `CH02_LOG`
