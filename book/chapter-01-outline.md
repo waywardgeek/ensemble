@@ -32,8 +32,9 @@ hook.
 **The bet (the author's story, told straight):** The Windsurf acquisition is
 what broke me. Billions for *that*? I told my team I could write a better AI
 coding agent PoC than Windsurf in two weeks. My manager told me to prove it.
-I did. The result was StackAgent — a vibe-coded pile of shit I had to throw
-away. The two weeks were not wasted: the value was never the code, it was
+I did. The result was StackAgent: a working proof of concept, vibe-coded, that
+I threw away in its entirety. The two weeks were not wasted: the value was
+never the code, it was
 what I learned building it. I then spent a month writing the initial version
 of CodeRhapsody properly, production-worthy, and that is the direct
 ancestor of the agent that is helping me write this book right now.
@@ -122,7 +123,7 @@ and not an error. Every reply in this chapter arrives as text, so indexing and
 walking return the same string, and they keep agreeing right up until a reply
 arrives carrying something that is not text. That happens in chapter 3, the
 first time a model asks to call a tool, and by then the line that reads
-position zero will be four chapters old and entirely trusted.
+position zero will be old code that you trust.
 
 **Sidebar — ask the API which models exist.** Don't take a model ID from a
 blog post, a tutorial, or your own memory:
@@ -209,14 +210,14 @@ the author, not a line of the chapter.)*
 
 The awkward truth, taught straight because it is part of the landscape:
 
-- **You cannot cheaply get a key that goes fast enough — eventually.**
+- **Cheap keys exist. Fast ones do not, and that only bites you later.**
   Writing code with an agent needs sustained token throughput, and the big
-  providers gate that behind expensive tiers: Anthropic (last checked) wants
-  ~$400 and a couple of weeks of account aging before you can burn tokens at
-  coding speed. Be precise about when this bites. It does **not** bite in
-  this course, whose exercises spend almost nothing (see the cost note
-  below). It bites the day you point a finished agent at real work. The
-  friction the course actually removes is *having a provider account at
+  providers gate that behind expensive tiers: Anthropic's API tiers (as of
+  September 2026) want ~$400 and a couple of weeks of account aging before you
+  can burn tokens at coding speed. Be precise about when this bites. It does
+  **not** bite in this course, whose exercises spend almost nothing (see the
+  cost note below). It bites the day you point a finished agent at real work.
+  The friction the course actually removes is *having a provider account at
   all*, not the throughput ceiling.
 - **Why: the economics of the tool layer.** Every major model advance is
   followed within months by cheap distilled competitors, so raw model access
@@ -255,12 +256,11 @@ The awkward truth, taught straight because it is part of the landscape:
   3. **Building the real thing afterwards: $1,000–$10,000.** This is the
      number people mean when they say building an agent is expensive, and
      it is almost never your program's own token burn. It is what you will
-     pay **Claude Code or Codex** to help you write it, the assistant
-     spend it takes an AI-accelerated engineer to produce a coding agent
-     good enough to replace Claude Code or Codex. That is the real tuition,
-     it goes to the providers, and no route around it exists. It is also
-     entirely optional and it begins *after* the last chapter. Nothing in
-     this course asks you to spend it.
+     pay **Claude Code or Codex** to help you write it: the assistant spend
+     it takes to produce a coding agent good enough to replace them. That is
+     the real tuition, it goes to the providers, and no route around it
+     exists. It is also entirely optional and it begins *after* the last
+     chapter. Nothing in this course asks you to spend it.
 - **The happy accident:** the Chapter 1 program already targets
   `ANTHROPIC_BASE_URL` because the auto-grader's fake server needs it. The
   proxy is the same seam: fake server for grading, course proxy for live
