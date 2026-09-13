@@ -6,7 +6,7 @@ a built reference solution.
 **Code:** commit `cfd79c3`. Reference solution scores 100/100; 16 mutations
 each fail exactly the predicted set of checks.
 **Supersedes:** `book/review-ch02.md`, which reviewed Draft 3. That file is
-kept because `chapter-04-actors-parking.md` cites its findings M1/M2/M4/E4/E7.
+kept because `chapter-05-actors-parking.md` cites its findings M1/M2/M4/E4/E7.
 
 Everything below came from building the chapter, not from reading it. Where a
 finding contradicts the outline, I built it the outline's way first and it

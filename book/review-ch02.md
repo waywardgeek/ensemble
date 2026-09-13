@@ -5,7 +5,7 @@
 > `agent_status` tool. Draft 4 is the LLM seam chapter. The current review is
 > **`book/review-ch02-draft4.md`**.
 >
-> This file is kept because `book/chapter-04-actors-parking.md` cites its
+> This file is kept because `book/chapter-05-actors-parking.md` cites its
 > findings M1, M2, M4, E4 and E7, which remain correct and are simply not due
 > until Chapter 4. See `book/brief-ch02-code.md` for the applied / moved /
 > obsolete disposition of every finding below.
