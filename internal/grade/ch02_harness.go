@@ -105,6 +105,22 @@ func ch2Replies(vendor string) []fakevendor.Reply {
 			Usage:          fakevendor.Canonical{Input: 12, CacheWrite: 0, CacheRead: 200, Output: 8},
 			GeminiThoughts: 3,
 		},
+		{
+			// CHAPTER 2 NEVER REACHES THIS REPLY. It sends two prompts and so
+			// makes two requests; this is the third.
+			//
+			// Chapter 3's agent does reach it, because Chapter 3 EXECUTES the
+			// tool call above and comes back for another turn. Without a
+			// terminating reply the fake would repeat the last one — a tool
+			// call — and the loop would run until its round limit.
+			//
+			// It reports ZERO usage, so the session total is identical whether
+			// or not tools were executed. That is what lets Chapter 3's parity
+			// check run Chapter 2's checks completely unmodified, including
+			// the token accounting.
+			Text:  "That is everything I needed.",
+			Usage: fakevendor.Canonical{},
+		},
 	}
 }
 

@@ -28,6 +28,18 @@ import (
 // convert them back.
 type Canonical struct{ Input, CacheWrite, CacheRead, Output int }
 
+// ToolCall is one requested call inside a reply.
+//
+// Chapter 3 needs a single assistant message to carry MORE THAN ONE call, so
+// that matching results to calls by id is forced rather than optional: with
+// one call outstanding, keying results by position, by name or by id are the
+// same program, and the grader cannot tell them apart.
+type ToolCall struct {
+	ID   string
+	Name string
+	Args string // raw JSON object, e.g. `{"path":"config.json"}`
+}
+
 // Reply is one scripted model response.
 type Reply struct {
 	Text     string
@@ -35,6 +47,11 @@ type Reply struct {
 	ToolArgs string // raw JSON object, e.g. `{"path":"config.json"}`
 	ToolID   string
 	Usage    Canonical
+
+	// Tools carries two or more calls. When it is empty the singular
+	// ToolName/ToolArgs/ToolID fields are used instead, so every Chapter 2
+	// fixture keeps producing byte-identical wire output.
+	Tools []ToolCall
 
 	// GeminiThoughts splits Output so that the Gemini response reports
 	// thoughtsTokenCount separately from candidatesTokenCount. They are
@@ -45,6 +62,17 @@ type Reply struct {
 	// Status and ErrBody override a normal reply to exercise error parsing.
 	Status  int
 	ErrBody string
+}
+
+// calls normalizes the two ways a reply can request tools into one list.
+func (r Reply) calls() []ToolCall {
+	if len(r.Tools) > 0 {
+		return r.Tools
+	}
+	if r.ToolName != "" {
+		return []ToolCall{{ID: r.ToolID, Name: r.ToolName, Args: r.ToolArgs}}
+	}
+	return nil
 }
 
 // Recorded is one request as the server received it.
@@ -181,12 +209,14 @@ func anthropicBody(r Reply) string {
 	if r.Text != "" {
 		blocks = append(blocks, fmt.Sprintf(`{"type":"text","text":%s}`, jsonStr(r.Text)))
 	}
-	if r.ToolName != "" {
-		blocks = append(blocks, fmt.Sprintf(`{"type":"tool_use","id":%s,"name":%s,"input":%s}`,
-			jsonStr(r.ToolID), jsonStr(r.ToolName), r.ToolArgs))
+	if r.ToolName != "" || len(r.Tools) > 0 {
+		for _, c := range r.calls() {
+			blocks = append(blocks, fmt.Sprintf(`{"type":"tool_use","id":%s,"name":%s,"input":%s}`,
+				jsonStr(c.ID), jsonStr(c.Name), c.Args))
+		}
 	}
 	stop := "end_turn"
-	if r.ToolName != "" {
+	if len(r.calls()) > 0 {
 		stop = "tool_use"
 	}
 	return fmt.Sprintf(`{"id":"msg_fake","type":"message","role":"assistant","model":%s,
@@ -210,9 +240,13 @@ func openAIBody(r Reply) string {
 	}
 	tools := ""
 	finish := "stop"
-	if r.ToolName != "" {
-		tools = fmt.Sprintf(`,"tool_calls":[{"id":%s,"type":"function","function":{"name":%s,"arguments":%s}}]`,
-			jsonStr(r.ToolID), jsonStr(r.ToolName), jsonStr(r.ToolArgs))
+	if calls := r.calls(); len(calls) > 0 {
+		var items []string
+		for _, c := range calls {
+			items = append(items, fmt.Sprintf(`{"id":%s,"type":"function","function":{"name":%s,"arguments":%s}}`,
+				jsonStr(c.ID), jsonStr(c.Name), jsonStr(c.Args)))
+		}
+		tools = fmt.Sprintf(`,"tool_calls":[%s]`, strings.Join(items, ","))
 		finish = "tool_calls"
 	}
 	prompt := r.Usage.Input + r.Usage.CacheWrite + r.Usage.CacheRead
@@ -237,9 +271,9 @@ func geminiBody(r Reply) string {
 	if r.Text != "" {
 		parts = append(parts, fmt.Sprintf(`{"text":%s}`, jsonStr(r.Text)))
 	}
-	if r.ToolName != "" {
+	for _, c := range r.calls() {
 		parts = append(parts, fmt.Sprintf(`{"functionCall":{"id":%s,"name":%s,"args":%s},"thoughtSignature":%s}`,
-			jsonStr(r.ToolID), jsonStr(r.ToolName), r.ToolArgs, jsonStr("sig-fake-"+r.ToolID)))
+			jsonStr(c.ID), jsonStr(c.Name), c.Args, jsonStr("sig-fake-"+c.ID)))
 	}
 	thoughts := r.GeminiThoughts
 	if thoughts > r.Usage.Output {
