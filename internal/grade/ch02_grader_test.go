@@ -96,10 +96,13 @@ var mutations = []mutation{
 		wantFail: []string{"ephemera"},
 	},
 	{
-		name:     "redaction-ignored",
-		why:      "a reducer that is total by ignoring an event it should have handled",
-		edits:    []edit{{"context.go", `c\.applyRedaction\(\*e\.Redact\)`, `_ = e.Redact`}},
-		wantFail: []string{"redaction"},
+		name:  "redaction-ignored",
+		why:   "a reducer that is total by ignoring an event it should have handled",
+		edits: []edit{{"context.go", `c\.applyRedaction\(\*e\.Redact\)`, `_ = e.Redact`}},
+		// ref-redaction too: if no redaction is applied there is no stub, and
+		// so no superseded Ref to carry forward. The carry-forward property is
+		// downstream of redaction happening at all.
+		wantFail: []string{"redaction", "ref-redaction"},
 	},
 	{
 		name:     "opaque-replayed-to-wrong-model",
@@ -108,10 +111,13 @@ var mutations = []mutation{
 		wantFail: []string{"seam-render"},
 	},
 	{
-		name:     "gemini-uses-messages-key",
-		why:      "renaming Anthropic's shape instead of learning Gemini's",
-		edits:    []edit{{"gemini.go", `json:"contents"`, `json:"messages"`}},
-		wantFail: []string{"seam-render"},
+		name:  "gemini-uses-messages-key",
+		why:   "renaming Anthropic's shape instead of learning Gemini's",
+		edits: []edit{{"gemini.go", `json:"contents"`, `json:"messages"`}},
+		// ref-render too: it looks for the fileData part INSIDE `contents`, so
+		// a request that calls the array something else cannot deliver a
+		// remote file reference either. Same single bug, two symptoms.
+		wantFail: []string{"seam-render", "ref-render"},
 	},
 	{
 		name: "openai-arguments-as-object",
@@ -132,7 +138,11 @@ var mutations = []mutation{
 		name:     "dump-prints-nothing",
 		why:      "a log that cannot be dumped cannot be replayed, and the parse check reads the dump",
 		edits:    []edit{{"main.go", `if err := log\.Write\(os\.Stdout\); err != nil \{`, `if _ = log; false {`}},
-		wantFail: []string{"logdump", "seam-parse"},
+		// ref-roundtrip too: it is graded on `dump`, because the three RefKinds
+		// are a property of OUR log format and no vendor's opinion of them
+		// should be able to make it pass. A dump that prints nothing takes the
+		// round-trip evidence with it.
+		wantFail: []string{"logdump", "seam-parse", "ref-roundtrip"},
 	},
 	{
 		name:     "ch1-protocol-broken",

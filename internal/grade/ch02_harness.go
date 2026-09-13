@@ -72,6 +72,47 @@ type Ch2Result struct {
 	// ephemera phase
 	Ephemera *VendorSession
 
+	// --- Ref phases --------------------------------------------------------
+	//
+	// A blob's location is a Ref (a Kind plus a locator), not a path. These
+	// phases pin the three kinds, the two ways a Ref can be malformed, and the
+	// one kind a vendor can fetch for itself.
+	//
+	// Every fixture carrying a LIVE blob is driven under GEMINI ONLY. Gemini is
+	// the one vendor whose remote-file wire shape was verified against its
+	// docs; the other two renderers refuse a blob loudly rather than guess a
+	// field name, so rendering these fixtures under them would grade the
+	// refusal, not the Ref.
+
+	// RefDump is RefRoundTripLog loaded and re-emitted by `dump`. It is never
+	// rendered: the three kinds are graded on surviving the LOG, rather than on
+	// any vendor's opinion of them.
+	RefDump    string
+	RefDumpErr string
+
+	// RefRender is RefURILog rendered for Gemini — the remote-reference form.
+	RefRender    string
+	RefRenderErr string
+
+	// An old-format log and a zero-kind log must both be REFUSED. Exit code is
+	// recorded because "refused" means a non-zero exit and a diagnostic, not a
+	// silent empty render.
+	RefOldFormatOut  string
+	RefOldFormatErr  string
+	RefOldFormatCode int
+	RefZeroKindOut   string
+	RefZeroKindErr   string
+	RefZeroKindCode  int
+
+	// RefRedacted is a render of a log whose redaction supersedes a tool result
+	// containing a BlobPart. RefRedactedPlain is the same log with no Redacted
+	// event — the negative control, without which the check would pass for a
+	// submission that simply never renders tool results.
+	RefRedacted         string
+	RefRedactedErr      string
+	RefRedactedPlain    string
+	RefRedactedPlainErr string
+
 	// logdump phase: dump from a live session, re-rendered in a fresh process
 	RoundTripOut string
 	RoundTripErr string
@@ -213,6 +254,40 @@ func Ch2Run(bin string) (*Ch2Result, error) {
 	if strings.TrimSpace(tout) == "" {
 		res.ThoughtReplayErr = terr
 	}
+
+	// --- phase 5: Ref -------------------------------------------------------
+	//
+	// Driven under gemini for every fixture that carries a live blob: see the
+	// note on Ch2Result's Ref fields.
+	//
+	// The three SERIALIZATION fixtures go through `dump`, not `render`, because
+	// properties 3 and 4 are about the LOADER. Rendering them would let the
+	// renderer's own kind switch refuse a malformed Ref that the loader had
+	// happily accepted, and the check would pass for the wrong reason — the
+	// loader bug would be invisible behind a renderer that caught it later.
+	refDump := func(name, body string) (string, string, int) {
+		p := filepath.Join(work, name)
+		if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
+			return "", err.Error(), -1
+		}
+		env := append(vendorEnv("gemini", "", work), "CH02_LOG="+p)
+		return runOnce(bin, work, env, "dump")
+	}
+	refRender := func(name, body string) (string, string, int) {
+		p := filepath.Join(work, name)
+		if err := os.WriteFile(p, []byte(body), 0o644); err != nil {
+			return "", err.Error(), -1
+		}
+		return runOnce(bin, work, vendorEnv("gemini", "", work), "render", p)
+	}
+
+	res.RefDump, res.RefDumpErr, _ = refDump("ref-roundtrip.log", RefRoundTripLog)
+	res.RefOldFormatOut, res.RefOldFormatErr, res.RefOldFormatCode = refDump("ref-oldformat.log", RefOldFormatLog)
+	res.RefZeroKindOut, res.RefZeroKindErr, res.RefZeroKindCode = refDump("ref-zerokind.log", RefZeroKindLog)
+
+	res.RefRender, res.RefRenderErr, _ = refRender("ref-uri.log", RefURILog)
+	res.RefRedacted, res.RefRedactedErr, _ = refRender("ref-redacted.log", RefRedactionLog)
+	res.RefRedactedPlain, res.RefRedactedPlainErr, _ = refRender("ref-redacted-plain.log", RefRedactionPlainLog)
 
 	if s := res.Session["anthropic"]; s != nil && strings.TrimSpace(s.DumpOut) != "" {
 		rt := filepath.Join(work, "roundtrip.log")

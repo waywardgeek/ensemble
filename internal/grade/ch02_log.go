@@ -42,6 +42,75 @@ const RedactionLog = ExhibitLog + `{"seq":6,"type":"redacted","time":"2026-01-01
 // RedactedSecret is the content that must NOT survive a redaction.
 const RedactedSecret = "port=8080"
 
+// --- Ref fixtures ----------------------------------------------------------
+//
+// A blob no longer carries a path. It carries a Ref: a Kind saying WHAT the
+// locator is, and the locator itself. These fixtures pin the three kinds, the
+// two ways a Ref can be malformed, and the one kind a vendor can actually
+// fetch.
+
+// RefLocatorPath is a file on the machine running the agent.
+const RefLocatorPath = "/var/agent/out/build-1.txt"
+
+// RefLocatorURI is a Gemini File API uri — one of the three remote forms a
+// local path could never express.
+const RefLocatorURI = "https://generativelanguage.googleapis.com/v1beta/files/ch2exhibit"
+
+// RefLocatorHandle is framework-managed output. It is deliberately not a
+// filesystem path: the jobs chapter allows an in-memory buffer.
+const RefLocatorHandle = "handle:job-7/stdout"
+
+// RefRoundTripLog carries one blob of EACH kind. It is never rendered, only
+// loaded and re-emitted, so that the three kinds are graded on surviving the
+// log rather than on any vendor's opinion of them.
+const RefRoundTripLog = `{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-01-01T00:00:00Z","message":{"actor":"human","parts":[{"type":"text","text":"here are three attachments"},{"type":"blob","mime":"text/plain","ref":{"kind":1,"locator":"` + RefLocatorPath + `"}},{"type":"blob","mime":"image/png","ref":{"kind":2,"locator":"` + RefLocatorURI + `"}},{"type":"blob","mime":"application/json","ref":{"kind":3,"locator":"` + RefLocatorHandle + `"}}]}}
+`
+
+// RefURILog carries the one kind a vendor can fetch for itself.
+const RefURILog = `{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-01-01T00:00:00Z","message":{"actor":"human","parts":[{"type":"text","text":"describe this image"},{"type":"blob","mime":"image/png","ref":{"kind":2,"locator":"` + RefLocatorURI + `"}}]}}
+`
+
+// RefOldFormatLog is a log written BEFORE the Ref type: the blob carries the
+// old "path" spelling and no ref at all. It must be refused, loudly. Coercing
+// it to RefPath would silently downgrade every remote reference in a real file
+// to a local filename that never existed.
+const RefOldFormatLog = `{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-01-01T00:00:00Z","message":{"actor":"human","parts":[{"type":"text","text":"describe this image"},{"type":"blob","mime":"image/png","path":"` + RefLocatorPath + `"}]}}
+`
+
+// RefZeroKindLog has a well-formed ref whose kind is the ZERO VALUE. The
+// constants start at iota+1 precisely so this cannot be mistaken for RefPath.
+const RefZeroKindLog = `{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-01-01T00:00:00Z","message":{"actor":"human","parts":[{"type":"text","text":"describe this image"},{"type":"blob","mime":"image/png","ref":{"kind":0,"locator":"` + RefLocatorPath + `"}}]}}
+`
+
+// RefRedactionSecret is the tool output that must NOT survive the redaction in
+// RefRedactionLog.
+const RefRedactionSecret = "BUILD_SECRET_TOKEN=swordfish"
+
+// RefRedactionLocator is where the superseded content still is. It must
+// survive, because the Ref is carried forward into the stub.
+const RefRedactionLocator = "https://generativelanguage.googleapis.com/v1beta/files/ch2buildlog"
+
+const refRedactionPrefix = `{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-01-01T00:00:00Z","message":{"actor":"human","parts":[{"type":"text","text":"build the project"}]}}
+{"seq":2,"type":"response_ended","time":"2026-01-01T00:00:01Z","response":{"parts":[{"type":"text","text":"Building."},{"type":"tool_call","call_id":"fc_ref_1","from":{"vendor":"gemini","model":"gemini-3.5-flash-course","surface":"generatecontent"},"name":"run_build","args":{}}],"usage":{"input":10,"cache_write":0,"cache_read":0,"output":5},"from":{"vendor":"gemini","model":"gemini-3.5-flash-course","surface":"generatecontent"}}}
+{"seq":3,"type":"tool_called","time":"2026-01-01T00:00:02Z","tool":{"call_id":"fc_ref_1","name":"run_build","args":{}}}
+{"seq":4,"type":"tool_returned","time":"2026-01-01T00:00:03Z","tool":{"call_id":"fc_ref_1","parts":[{"type":"text","text":"` + RefRedactionSecret + `"},{"type":"blob","mime":"text/plain","ref":{"kind":2,"locator":"` + RefRedactionLocator + `"}}]}}
+`
+
+// RefRedactionPlainLog is the NEGATIVE CONTROL: the same log with no Redacted
+// event. The secret must be present here, or the redaction check would pass
+// for the wrong reason on a submission that simply never renders tool results.
+const RefRedactionPlainLog = refRedactionPrefix
+
+// RefRedactionLog supersedes the tool result. The stub replaces the bytes; the
+// Ref carried forward from the superseded BlobPart says where they still are.
+const RefRedactionLog = refRedactionPrefix + `{"seq":5,"type":"redacted","time":"2026-01-01T00:00:05Z","redact":{"from":4,"to":4,"level":"redact_result","reason":"compaction"}}
+`
+
 // Ch2LogLine is one dumped event, with keys normalized.
 type Ch2LogLine struct {
 	Seq  int

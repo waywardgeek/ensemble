@@ -3,7 +3,7 @@ package grade
 // Chapter 2 checks. Sum = 100.
 //
 //	session      0   stdio protocol honoured; directives acked; request census
-//	ch1parity   25   all seven Chapter 1 checks still pass, unchanged
+//	ch1parity   20   all seven Chapter 1 checks still pass, unchanged
 //	logdump      5   log round-trips: dump -> render in a fresh process
 //	replay      10   two renders of one log are byte-identical
 //	redaction   10   a Redacted event names its target; content absent later
@@ -11,11 +11,50 @@ package grade
 //	usage       10   four token categories normalized from all three vendors
 //	seam-render 15   one log renders correctly to all three request shapes
 //	seam-parse  15   three responses -> contexts identical apart from provenance
+//
+//	ref-roundtrip  \
+//	ref-oldformat   >  ch2RefSerialization   a blob's location is a Ref, and a
+//	ref-zerokind   /                         Ref never filled in is refused
+//	ref-render         ch2RefRender          RefURI -> the vendor's remote form
+//	ref-redaction      ch2RefRedaction       a stub keeps the superseded Ref
+//
+// The five ref-* IDs are itemized for DIAGNOSIS, not for weight. They cover
+// three skills, and points are split only where the skills separate: a student
+// who cannot serialize a Ref has one bug, not three, and should be told which
+// of the three symptoms fired without being charged three times for it. The
+// three serialization IDs therefore SHARE one budget.
 
 import (
 	"encoding/json"
 	"fmt"
 	"strings"
+)
+
+// Point budget for the Ref amendment.
+//
+// PENDING AUTHOR RULING. The instruction was "take the 15 from ch1parity
+// (25->20)", which is two different numbers: 25->20 frees 5, not 15. Both
+// readings are encoded here, because the total is machine-checked against 100
+// by TestCh2ReferenceSolutionScores100 and cannot be split.
+//
+// Currently set to the 15-point reading. To take the 5-point reading instead,
+// change these four constants to 3 / 1 / 1 / 20 — nothing else moves.
+const (
+	ch2RefSerialization = 7 // shared by ref-roundtrip, ref-oldformat, ref-zerokind
+	ch2RefRender        = 4
+	ch2RefRedaction     = 4
+	ch2ParityPoints     = 10
+)
+
+// The three serialization IDs SHARE one budget: losing the skill entirely costs
+// ch2RefSerialization, not three times it. The budget is split across them
+// rather than parked on one, because a zero-point check cannot satisfy course
+// policy P9 — deleting the behavior it guards would fire the check without
+// moving the score, which is precisely the green dashboard P9 exists to catch.
+const (
+	ch2RefRoundTrip = 3
+	ch2RefOldFormat = 2
+	ch2RefZeroKind  = 2
 )
 
 func Ch2Evaluate(r *Ch2Result) []Check {
@@ -29,6 +68,11 @@ func Ch2Evaluate(r *Ch2Result) []Check {
 		ch2UsageCheck(r),
 		ch2SeamRender(r),
 		ch2SeamParse(r),
+		ch2RefRoundTripCheck(r),
+		ch2RefOldFormatCheck(r),
+		ch2RefZeroKindCheck(r),
+		ch2RefRenderCheck(r),
+		ch2RefRedactionCheck(r),
 	}
 }
 
@@ -73,7 +117,7 @@ func ch2Session(r *Ch2Result) Check {
 }
 
 func ch2Parity(r *Ch2Result) Check {
-	c := Check{ID: "ch1parity", Title: "all seven Chapter 1 checks still pass", Points: 25, Passed: true, Earned: 25}
+	c := Check{ID: "ch1parity", Title: "all seven Chapter 1 checks still pass", Points: ch2ParityPoints, Passed: true, Earned: ch2ParityPoints}
 	if r.Ch1Err != "" {
 		c.failf("Chapter 1 harness could not run: %s", r.Ch1Err)
 		return c
