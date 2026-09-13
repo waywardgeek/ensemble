@@ -149,6 +149,79 @@ verified — and never as a claim about why a model has a capability.
 
 ---
 
+## The democratization argument — the version that survives contact
+
+The tempting form: *an agent is a loop and a log, a reader builds one in eight
+chapters, therefore $60 billion is absurd.*
+
+**Do not make that argument.** It is refutable in one sentence, and the
+refutation is on the record: nobody paid $60 billion for the source code. SpaceX
+named what it was buying — *"distribution to expert software engineers"* — and
+that is exactly the thing a book cannot hand out. 700 employees, 60% of the
+Fortune 500, and the accept/reject telemetry of millions of expert engineers
+working on real code under deadline. That asset is real and this book does not
+compete with it.
+
+**The version that holds:**
+
+> You cannot out-compute Colossus. You cannot out-hire them. But you can decline
+> to be the thing they measured.
+
+The agent is the apparatus that collects the signal. Running your own does not
+dent their numbers — claiming otherwise would be an unearned number of exactly
+the kind this book refuses — but it removes *you* from the sample, and it buys
+four concrete things:
+
+- your code does not leave the machine unless you send it
+- your accept/reject signal trains nobody
+- you can change vendor in a day, because the seam is yours
+- you can run a local model when one is good enough
+
+That is sovereignty for one engineer. It is a smaller claim than "this makes a
+mockery of the deal," and it is the one that is true, which is why it is the one
+that will still be true in five years.
+
+**The irony worth one dry sentence, and no more:** the asset being bought is
+expert engineers who have not built their own tools. That is the only sense in
+which this book is a threat to the valuation, and the joke works better stated
+once, flatly, than leaned on.
+
+---
+
+## Why Grok is not in this book, and why that is the thesis and not a snub
+
+CodeRhapsody supports Anthropic, OpenAI and Gemini. Chapter 2 teaches all three.
+Grok is absent from both the agent and the book.
+
+**The architecture is the argument.** Chapter 2's whole point is a seam: one log,
+three vendors, vendor types never in the signature. The reason to build that seam
+is that it makes vendor choice **revocable**. A framework that hard-codes a
+vendor has taken the decision away from you — that is chapter 1's thesis about
+delivery, applied one level up.
+
+So the honest statement of the absence is mechanical, and it is stronger than a
+complaint:
+
+> Adding a fourth vendor to this architecture is about a day's work. The book
+> ships three. The absence of a fourth is therefore a choice, not a limitation —
+> and the seam is precisely what makes it a choice rather than a lock-in. Your
+> copy can make the opposite choice by Tuesday.
+
+Then the reader has everything needed to decide for themselves: the training-loop
+argument (§ above), the dated public record of what each owner's model has done,
+and a seam that makes acting on either conclusion cheap.
+
+**Recommendation: state the mechanism, let the reader draw the conclusion.**
+Telling a reader whose model to distrust is weaker than handing them a revocable
+seam and the receipts. It also ages better — corporate structures are moving fast
+enough that a named grudge could be stale before the paperback.
+
+The author may prefer the sharper version. It is his book and his name; this
+note records only that the mechanical version is the one that cannot be argued
+with.
+
+---
+
 ## Open
 
 1. **Verify the MechaHitler date** before any draft goes near it.
