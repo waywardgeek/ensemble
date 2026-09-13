@@ -587,6 +587,83 @@ Mandatory before this grader ships:
 
 ---
 
+## §3.9 Drive it yourself
+
+Ungraded. Do it anyway. This is the chapter where the thing stops being a
+correspondent and starts being a participant.
+
+In Chapter 1 you talked to something you built. It was a good feeling and it was
+also just talk. What you have now reads your files, writes them, and runs
+commands on your machine. The first time it fixes a typo you pointed at
+vaguely, the abstraction collapses into something physical.
+
+**Against the fake, which costs nothing and needs no key:**
+
+    go run ./cmd/fakevendor -ch 3 chat
+    go run ./cmd/fakevendor -ch 3 -vendor gemini chat
+    go run ./cmd/fakevendor -ch 3 -vendor openai chat
+
+Watch the trace line the fake prints on every request. It reports the request
+size, whether tools were declared, and how many tool results the request is
+carrying:
+
+    fake: #3 anthropic /v1/messages  [5777 bytes, declares tools,
+          carries 2 tool result(s)]  -> reply 3/3: text "..."
+
+That single line is the chapter's whole argument made visible. The request grows
+because history accumulates. Tools are declared on every request, not just the
+first. Results ride back in the next request rather than in a side channel.
+
+**One thing that will confuse you if nobody says it.** The fake is *scripted*. It
+replies from a fixed sequence no matter what you type, so ask it to read
+`hello.txt` and it may cheerfully answer about `go.mod`. That is not a bug, and
+it is the point of §3.7: a fake proves your plumbing, not your prompting. It is
+also why the fake is kinder than reality, which is how the missing tool
+declaration scored a hundred.
+
+**Live, against a real vendor,** where it does surprise you. Three modes, and
+the difference matters:
+
+    scripts/live.sh 3 anthropic          # scripted demo: proves the loop
+    scripts/live.sh 3 anthropic chat     # interactive: you drive
+    scripts/live.sh 3 anthropic models   # what your key can actually reach
+
+Swap `anthropic` for `gemini` or `openai`; all three work.
+
+The scripted demo is the one to run first, because it proves something a single
+question cannot. It asks the agent to invent a codename, then makes it count
+files with a tool, then asks for the codename back. The recall only succeeds if
+the tool loop ran *and* the entire history was re-sent afterward. One command,
+and the two central claims of Chapters 2 and 3 are both demonstrated.
+
+Then run `chat` and go off script. That is the mode the list below assumes.
+
+Every command in this section was run before it was printed.
+
+**Things worth trying,** roughly in order of how much they will teach you:
+
+- Ask what is in the current directory, then ask a follow-up that depends on the
+  answer. That second question is the loop working.
+- Ask it to fix something small and real in a scratch file. Then look at the
+  diff yourself. It will sometimes be wrong in an interesting way.
+- Ask it to run the test suite and explain a failure.
+- Ask for something that needs three tools in sequence, and watch it plan.
+- Ask for something impossible and watch how it handles a tool error. This is
+  the behavior §3.2 argued about, and reading about it is not the same as
+  seeing it.
+
+**Commit the moment it passes.** Tag it. You are about to spend Chapter 4 taking
+`run_command` apart, and a tag is the difference between an experiment and a
+demolition:
+
+    git commit -am "ch3: six tools, grader 100"
+    git tag ch03-pass
+
+Every chapter from here ends the same way. The tag is how you get back to
+working code after a chapter that does not go well, and there will be one.
+
+---
+
 ## What exists now for a later chapter
 
 | thing | state after ch3 | collected in |
