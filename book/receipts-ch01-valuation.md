@@ -125,6 +125,101 @@ is false, but because it costs the reader who most needs convincing.
 
 ---
 
+## The three transactions, in order — this is the cold open
+
+Read together these are not three funding-round anecdotes. They are a market
+pricing the same thing three times, and getting more specific each time.
+
+### 1. July 2025 — the knowledge, priced without the company
+
+**VERIFIED.** Reuters, 11 July 2025. Google paid **$2.4 billion** for a
+**non-exclusive licence** to some Windsurf technology and to hire Windsurf's
+co-founder and CEO Varun Mohan, co-founder Douglas Chen, and part of the R&D
+team into DeepMind.
+
+**It was not an acquisition.** Windsurf continued to exist, keeping its product,
+its customers and its revenue. Cognition bought what remained weeks later.
+OpenAI's earlier $3 billion acquisition attempt had collapsed over IP terms
+tied to its Microsoft arrangement. The press called it a *reverse acqui-hire*.
+
+This is the single most useful fact in the chapter, because of what was
+**declined**: the product, the brand, the customer base, the revenue. What was
+bought was **the people who knew how to build an AI coding agent**, and a
+licence to look at how they had done it.
+
+> ⚠️ **Headcount needs a source before printing.** The author recalls roughly
+> thirty people. Reuters says "CEO, co-founder, and some members of the R&D
+> team" without a number. Do **not** print a per-head figure until the headcount
+> is sourced — a derived number is exactly where this book would lose its
+> footing. The argument does not need it: "a licence and a few dozen people,
+> leaving the company behind" carries the point and is fully verified.
+
+### 2. October 2022 — the benchmark nobody set on purpose
+
+**VERIFIED.** Musk completed the Twitter acquisition for **$44 billion** on
+27 October 2022 (offer 14 April 2022). Reuters, NYT, LA Times.
+
+It is in this file only as a yardstick, and it is a devastating one.
+
+### 3. June 2026 — the loop, priced
+
+**VERIFIED.** SpaceX agreed to acquire Anysphere for **$60 billion**, all-stock,
+SEC filing 16 June 2026.
+
+**Sixteen billion dollars more than the global town square, for a 700-person
+company that makes a code editor.**
+
+That sentence needs no adjective attached to anyone. The reader does the
+arithmetic and arrives somewhere on their own, which is the only place a reader
+ever really arrives.
+
+### What the sequence says
+
+- 2025: the **knowledge** of how to build one was worth $2.4B without the company.
+- 2026: the **loop** — workflow, expert users, telemetry — was worth $60B, more
+  than Twitter.
+- The code itself has never been the asset. It is roughly 2,300 lines, and this
+  book hands it to you.
+
+**This is the honest form of the democratization argument.** Not "the code is
+cheap so the price is absurd" — the price was never for the code. It is: *the
+knowledge was priced at $2.4 billion in 2025, and it is teachable, and here it
+is.* The thing Google would not buy the company to get is the thing this book is.
+
+---
+
+## Where "why coding first" gets its answer
+
+Coding is the first knowledge domain to be automated because its outcomes are
+**measurable**: tests pass or fail, code compiles or does not. A measurable
+outcome is a reward signal, and a reward signal is what reinforcement learning
+needs. Every other knowledge profession has to argue about whether the work was
+good.
+
+The obvious objection is that the *interesting* part of software — architecture,
+judgment, taste — is exactly the part that cannot be scored. The author's own
+proposal answers that objection directly and should be linked from this section:
+
+**`coderhapsody.ai/docs/superhuman-architecture`** — "Training Superhuman
+Software Architects."
+
+Its argument in brief: an LLM's judgment is bounded by the human-generated data
+it was trained on, so exceeding human architecture requires self-play against an
+objective score — AlphaGo for software architecture. It proposes the score:
+**change cost** (lines changed per new requirement, the primary metric),
+**deletion resilience**, **code growth rate** (does the codebase grow linearly or
+sublinearly as features land), and **modification speed** measured by handing the
+design to a fresh agent. The key insight is that architecture quality is only
+observable against a **sequence of requirements arriving over time** — and that
+real git histories already contain those sequences, which makes the training
+signal harvestable rather than hypothetical.
+
+That is the missing step in the chapter's argument: it explains not merely that
+coding is measurable, but that even the part everyone calls unmeasurable has a
+proposed metric and a source of training data.
+
+---
+
 ## UNVERIFIABLE — do not print
 
 The author proposed noting that the coding model used to build this book "has
