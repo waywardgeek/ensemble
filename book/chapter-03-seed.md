@@ -346,26 +346,118 @@ documentation will tell a reader this.
 ## 7. THE IMPLEMENTED SET — what the student ships by end of ch3
 
 **Bill's requirement, 2026-09-13:** *"I'd like to leave the students with a
-usable AI coding agent by the end of ch 3."* The exhibit table
-(`book/exhibit-ch03-tools.md`) is for the READER to study. This is the much
-smaller set the student BUILDS.
+usable AI coding agent by the end of ch 3."* And: *"I think the exercise should
+be to implement them all."* The 51-row exhibit
+(`book/exhibit-ch03-tools.md`) is for the READER to study. This is what the
+student BUILDS, and all of it is graded.
 
-**Bill's list:** `run_command`, `read_file`, `edit_file`, `write_file`,
-`list_directory`.
+| # | tool | class | share | why it is in |
+|---|---|---|---|---|
+| 1 | `run_command` | **supervised job** | 36.3% | the crown jewel; starts a job, returns a handle |
+| 2 | `send_input` | **job lifecycle** | 1.13% | write to a *running* job's stdin |
+| 3 | `wait_for_job` | **job lifecycle** | 0.45% | block on a job until output or completion |
+| 4 | `read_file` | fast, local | 25.7% | line ranges and limits; `cat` floods context |
+| 5 | `edit_file` | fast, local, mutating | 16.6% | how agents actually change code (7:1 over write) |
+| 6 | `write_file` | fast, local, mutating | 2.3% | file creation |
+| 7 | `list_directory` | fast, local | 0.75% | orientation |
+| 8 | `search_files` | fast, local | 10.2% | **RULED IN by Bill** — an agent that cannot grep cannot find what to read |
 
-**Proposed addition, on the data:** `search_files`. It is **7,247 calls
-(10.2%)** against `list_directory`'s **530 (0.75%)** — a 14:1 gap. By Bill's own
-criterion (ship what we actually use) it has the strongest claim of anything
-outside his five. An agent that cannot grep cannot find what to read.
+**Coverage: these eight tools are 93.6% of every coding call in the corpus**
+(65,870 of 70,401). With `kill_job` it is 93.9%. That is the line worth printing:
+**a student implements eight tools and gets ninety-four percent of what a real
+AI coding agent actually does.** The remaining 6% is a long tail of memory,
+skills, sub-agents and context management — every one of which is a later
+chapter.
 
-| set | coverage of all coding calls |
-|---|---|
-| Bill's five | 81.7% |
-| five + `search_files` | **92.0%** |
+**One still needing Bill's word:**
+- **`kill_job`** (225 calls merged) — not requested, but it *closes the
+  lifecycle*: start → observe → interact → terminate. Without it, one of the
+  three permitted answers to §4's declined decision ("kill it") cannot actually
+  be implemented by the student. Recommend including it for that reason alone.
 
-If the set must stay at five, the data says cut `list_directory`, not grep.
+### THE PAYOFF: the student's agent drives `dlv`
+
+Bill's framing: *"the crown jewel of course is run_command and to round it out,
+we should add send_input, and wait_for_job as well so the user can watch their
+AI coding agent use dlv."*
+
+This is the chapter's closing demonstration, and it is chosen because **it
+proves the process model is necessary rather than stylistic.**
+
+A blocking tool call returns when the process exits. **A debugger never exits
+until you tell it to quit.** So with blocking tool calls, driving `dlv` is not
+slow and not awkward — it is *impossible*. There is no version of "just wait for
+the command to finish" that produces a breakpoint. The chapter's thesis stops
+being a matter of taste and becomes a capability boundary the student can stand
+on either side of.
+
+The sequence, which is how a real agent does it:
+
+```
+run_command  "PAGER=cat dlv debug main.go"   ai_callback_pattern="(dlv) "
+send_input   "b main.go:42"                  ai_callback_pattern="(dlv) "
+send_input   "c"                             ai_callback_pattern="(dlv) "
+send_input   "p myVar"                       ai_callback_pattern="(dlv) "
+send_input   "q"
+```
+
+Note `ai_callback_pattern`. The agent does not sleep a guessed number of
+seconds; it **waits for the prompt string to appear**. That is worth teaching
+explicitly: a fixed delay is a race condition with a comfortable name. Waiting
+on a *signal in the output* is the difference between supervising a process and
+hoping about one.
+
+`dlv` is also portable enough to grade: it is `go install`-able, and Go is
+already required.
+
+**Why this ends the chapter.** The student began chapter 1 with a program that
+could hold a conversation. They end chapter 3 watching their own agent set a
+breakpoint, continue to it, and print a variable. Nothing about that reads as a
+toy, and it is reachable in one chapter only because the tool set was chosen
+from measurement rather than taste.
 
 ### "Do we need anything other than `run_command`?" — Bill's question, and the section it deserves
+
+Bill raised it himself: *"I'm not entirely sure we need anything other than
+run_command, though. It is more a matter that you actually use the other tools
+than how critical they are."*
+
+**He is right that it is sufficient.** `run_command` is Turing-complete. `cat`,
+`sed`, `ls` and `grep` cover every other tool on the list. That is exactly why
+"is it sufficient?" is the wrong test. A tool set is not a capability list; it
+is a set of affordances and constraints. Five reasons the dedicated tools earn
+their place, four of them receipted from the session that produced this file:
+
+1. **Loud failure.** `edit_file` refused an edit three times in one session
+   because a markdown heading was not repeated, and once because a word had
+   wrapped mid-anchor. `sed` would have silently done the wrong thing. A tool
+   that fails loudly beats one that succeeds ambiguously.
+2. **Portability.** Same session: `sed -i ''` (BSD) vs `sed -i` (GNU), and
+   `cat -A` unsupported on macOS. Every shell-based file operation carries that
+   tax. `edit_file` does not.
+3. **Context volume.** `read_file` has line ranges, per-line truncation and a
+   text limit. `cat` floods the context window, and you pay for that flood on
+   every subsequent turn.
+4. **Quoting.** Content containing quotes, backticks or newlines is hazardous
+   through a shell — backticks had to be escaped twice in this session to stop
+   the shell executing a table that was being generated.
+5. **You cannot withhold a capability you have bundled into a shell.** This is
+   the one that matters, and it is chapter 7's spine. A read-only agent is
+   expressible as `read_file` + `list_directory` + `search_files`. It is *not*
+   expressible if reading is `run_command cat`. `coderhapsody`'s
+   `cr/docs/workflow-design.md` already specifies a `readonly-agent` skill
+   defined exactly this way, and `sandbox-design.md` states the rule directly:
+   the required boundary is a function of the tools held.
+
+**The framing for the chapter:**
+
+> `run_command` is the tool that makes the agent capable. The others are what
+> make it steerable, auditable, and containable.
+
+And the empirical kicker: `edit_file` outnumbers `write_file` **7:1**. The model
+did not have to prefer targeted edits — it preferred them *because the tool
+existed*. **Providing a tool changes behaviour, not just capability.** That is
+the answer to "how critical is it" — criticality is the wrong axis.
 
 Bill raised it himself: *"I'm not entirely sure we need anything other than
 run_command, though. It is more a matter that you actually use the other tools
