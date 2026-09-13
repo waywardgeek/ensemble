@@ -113,9 +113,16 @@ fine on day one.)
 
 **The asymmetry that catches everyone once.** The request lets you send
 `content` as a bare string. The response never does: response `content` is
-always a list of typed blocks. Walk it and concatenate the `text` blocks. The
-field has the same name on both sides and a different shape; this is the
-classic day-one stumble.
+always a list of typed blocks. Walk the list and concatenate the text out of
+every block. The field has the same name on both sides and a different shape;
+this is the classic day-one stumble.
+
+`content[0].text` will be right for a while, which is what makes it a stumble
+and not an error. Every reply in this chapter arrives as text, so indexing and
+walking return the same string, and they keep agreeing right up until a reply
+arrives carrying something that is not text. That happens in chapter 3, the
+first time a model asks to call a tool, and by then the line that reads
+position zero will be four chapters old and entirely trusted.
 
 **Sidebar — ask the API which models exist.** Don't take a model ID from a
 blog post, a tutorial, or your own memory:
@@ -302,9 +309,12 @@ none:**
 | `ANTHROPIC_API_KEY` | send as the `x-api-key` header |
 | `ANTHROPIC_MODEL` | put in the `model` field |
 
-A student who hardcodes the model passes the fake (which accepts any
-non-empty model) and then breaks on the live path and the proxy, far from
-the cause.
+Hardcode any of the three and you fail here, in the grader, next to the
+decision that caused it. That is deliberate, and it costs the fake about four
+lines. The alternative is a fake that shrugs and accepts whatever you send:
+it passes you now and breaks you weeks later against the live API or a
+corporate proxy, with nothing on screen connecting the failure to the line
+you typed today.
 
 **Grading rig: a fake Anthropic server.** The grader sets
 `ANTHROPIC_BASE_URL` to a local fake that validates every request and returns
@@ -332,10 +342,11 @@ There is no partial credit for a conversation that does not exist.
 
 Notes on the ones you cannot infer:
 
-- **`wire`** also requires `content-type: application/json`, a non-empty
-  `model`, non-empty message content, and **no streaming** (`stream: true` is
-  rejected). Roles must strictly alternate, the first message must be `user`,
-  and the last message must be `user`.
+- **`wire`** also requires `content-type: application/json`, a `model` equal
+  to `$ANTHROPIC_MODEL`, a non-empty `system` string, non-empty message
+  content, and **no streaming** (`stream: true` is rejected). Roles must
+  strictly alternate, the first message must be `user`, and the last message
+  must be `user`.
 - **`calls`** means exactly one API call per round. Plausible-looking designs
   fail this: a warm-up call, a retry, a second call to summarize.
 - **`replies`** catches the laziest possible cheat, a program that never
@@ -351,6 +362,18 @@ Notes on the ones you cannot infer:
   characters, rounded up), which is a *grading device*, **not** a real
   tokenizer. Infer nothing about real token math from it. Exact matching is
   what catches a program that invents plausible numbers instead of summing.
+
+**What this grader deliberately does not check.** It requires the walk: the
+fake splits every reply across two text blocks that concatenate to exactly the
+answer, so a program that reads `content[0].text` returns half a sentence and
+fails `replies`. It does **not** require you to filter those blocks by
+`type`. Nothing in this chapter's wire can punish the omission, because every
+block the API returns here is a text block, and no real Anthropic block
+carries a `text` field for a sloppy walk to pick up by mistake. Catching the
+missing filter would mean inventing a block type that does not exist, and a
+grader that teaches you a false fact about the wire to score a point has made
+a bad trade. The filter starts paying in chapter 3. It is ungraded until the
+wire can show you why it matters.
 
 **Grade yourself, free, as often as you like:**
 
