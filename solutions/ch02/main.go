@@ -66,10 +66,14 @@ func main() {
 		}
 
 	case "chat":
-		runLoop(cfg, logPath, true)
+		if runLoop(cfg, logPath, true) {
+			os.Exit(1)
+		}
 
 	case "":
-		runLoop(cfg, logPath, false)
+		if runLoop(cfg, logPath, false) {
+			os.Exit(1)
+		}
 
 	default:
 		fmt.Fprintf(os.Stderr, "unknown command %q\n", mode)
@@ -80,7 +84,15 @@ func main() {
 // runLoop is both the interactive REPL and the grader protocol. They differ
 // only in how a line is read and how a reply is printed, which is the honest
 // amount of difference between them.
-func runLoop(cfg Config, logPath string, interactive bool) {
+//
+// runLoop reports whether any vendor call failed during the session.
+//
+// The failure is also printed, as a JSON error line, and printing feels like
+// reporting. It is not. Nothing outside this process reads that line: a shell,
+// a CI job and scripts/live.sh all ask the same question, and the only answer
+// they get is the exit status. A session that could not reach the vendor and
+// still exits 0 is a green dashboard — it reports success it did not have.
+func runLoop(cfg Config, logPath string, interactive bool) (vendorFailed bool) {
 	eng := NewEngine(cfg, logPath)
 	in := bufio.NewScanner(os.Stdin)
 	in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
@@ -131,6 +143,7 @@ func runLoop(cfg Config, logPath string, interactive bool) {
 
 		reply, err := eng.Ask(prompt)
 		if err != nil {
+			vendorFailed = true
 			if interactive {
 				fmt.Fprintln(os.Stderr, "error:", err)
 				fmt.Fprint(os.Stderr, "> ")
@@ -157,6 +170,7 @@ func runLoop(cfg Config, logPath string, interactive bool) {
 		emit(out, map[string]any{"usage": eng.Ctx.Usage})
 	}
 	out.Flush()
+	return vendorFailed
 }
 
 func emit(out *bufio.Writer, v any) {

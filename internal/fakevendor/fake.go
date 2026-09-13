@@ -19,9 +19,35 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"sync"
 )
+
+// dumpPath, when set via FAKEVENDOR_DUMP, makes the server append every
+// request body it receives to that file, verbatim. Off by default and inert
+// when unset: it adds a file write, never a change to what is served.
+//
+// It exists so that a claim like "this refactor did not change what we send"
+// can be settled by diffing bytes instead of by comparing two scores of 100.
+// A score is a summary; the request body is the artifact.
+var dumpPath = os.Getenv("FAKEVENDOR_DUMP")
+
+func dumpRequest(path string, body []byte) {
+	if dumpPath == "" {
+		return
+	}
+	dumpMu.Lock()
+	defer dumpMu.Unlock()
+	f, err := os.OpenFile(dumpPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	fmt.Fprintf(f, "===== REQUEST %s =====\n%s\n", path, body)
+}
+
+var dumpMu sync.Mutex
 
 // Canonical is usage as the book defines it: four disjoint categories summing
 // to the billable total. Each vendor below re-expresses these numbers in its
@@ -188,6 +214,7 @@ func vendorFor(path string) string {
 func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
 	body, _ := io.ReadAll(r.Body)
 	vendor := vendorFor(r.URL.Path)
+	dumpRequest(r.URL.Path, body)
 
 	s.mu.Lock()
 	s.requests = append(s.requests, Recorded{Vendor: vendor, Path: r.URL.Path, Body: body})

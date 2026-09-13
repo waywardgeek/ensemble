@@ -131,6 +131,23 @@ func (openAISeam) Render(c *Context, cfg Config) (*http.Request, error) {
 			// recorded in one place, not an accident — and the material is
 			// still in the log, still tagged with the model that issued it,
 			// for a renderer that can use it.
+
+			// An assistant turn with neither text nor tool calls still has to
+			// be renderable, because we will replay it as history on the next
+			// round. content:null is accepted ONLY alongside tool_calls; on a
+			// bare assistant message OpenAI rejects it outright:
+			//
+			//   Invalid value for 'content': expected a string, got null.
+			//
+			// That shape is not hypothetical. A reasoning model that spends
+			// its entire max_completion_tokens budget on reasoning returns
+			// content:"" with finish_reason:"length" — a legal string, which
+			// our parser discards as "no parts", and which this renderer would
+			// then send back as null. The vendor never emitted null; we did.
+			// Send back the empty string the vendor actually gave us.
+			if m.Content == nil && len(m.ToolCalls) == 0 {
+				m.Content = strptr("")
+			}
 			_ = target
 			msgs = append(msgs, m)
 
