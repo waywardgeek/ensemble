@@ -662,6 +662,45 @@ demolition:
 Every chapter from here ends the same way. The tag is how you get back to
 working code after a chapter that does not go well, and there will be one.
 
+### Then use it for real work
+
+This is the part to actually do.
+
+`live.sh` is a harness: it runs your agent inside the course repo, which is fine
+for a demo and useless for work. Build the binary and put it somewhere on your
+path instead:
+
+    cd solutions/ch03 && go build -o ~/bin/ch3agent .
+
+Then go to a project you care about and run it there:
+
+    cd ~/some/project
+    LLM_MODEL=claude-opus-5 LLM_API_KEY=sk-... ~/bin/ch3agent chat
+
+The tools operate on the **current working directory**, so where you launch it
+is the whole scope of what it can see and change. The default model is
+`claude-sonnet-5`, which is a genuinely good default; `LLM_MODEL` overrides it
+when you want a stronger one.
+
+Two honest warnings, because you are about to point six tools at real files.
+
+**Start in a git repository with nothing uncommitted.** The agent has
+`write_file` and `edit_file` and no notion of your feelings about the file it is
+editing. This is the same advice the tag above encodes, applied to work you care
+about more than the exercise.
+
+**It will freeze on anything slow, and that is not a bug you should fix yet.**
+Ask it to run a test suite that takes ninety seconds and the whole program sits
+there, blind and unresponsive, until the command returns. Ask it to start a
+server and it never comes back at all. Chapter 4 is that problem: every tool
+call in this chapter is synchronous, which is the simplest thing that works and
+the wrong thing for a third of what you will actually want. Feel it first. The
+next chapter is much more convincing once the frustration is yours.
+
+Use it anyway, today, on something real. An agent you have only ever seen score
+100 against a fake is a thing you built. An agent that just fixed a bug in your
+own repository is a thing you own.
+
 ---
 
 ## What exists now for a later chapter

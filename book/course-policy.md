@@ -399,6 +399,21 @@ These are what our live runs use. **The graders do not use them at all** — the
 run against the fake and need no model and no key, which is the whole point of
 P4's first meter. Model choice only matters when you leave the fake.
 
+**The solution's built-in default is deliberately not the table above.** The ch2
+and ch3 solutions default to `claude-sonnet-5`. That is not drift and should not
+be "fixed". A student running the exercise repeatedly wants a model that is good
+and cheap; a person doing real work on their own repository wants the strongest
+one available and is choosing to pay for it. Both are correct defaults for
+different readers, so the code ships the cheap-and-good one and `LLM_MODEL`
+overrides it in one word.
+
+This is the same distinction P10 already draws at the top end, where
+`gpt-6-astra` is more capable than `gpt-5.6-sol` and still not the default. State
+the axis out loud whenever it comes up: **capability, cost, and default are three
+different decisions**, and a default that silently optimizes for one of them
+while claiming to optimize for another is how a book quietly spends its readers'
+money.
+
 **The student should use whatever is right at the time, not what is printed
 here.** By the time anyone reads this, at least one of those three will be
 wrong. That is expected and it is not a defect in the book; it is the nature of
