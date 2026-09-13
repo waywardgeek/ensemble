@@ -479,7 +479,8 @@ thing it did not measure.
 | id | points | what it grades |
 |---|---|---|
 | `ch2parity` | 10 | chapter 2's log, reducer and three renderers still work |
-| `toolloop` | 25 | parse `tool_use`, dispatch, return `tool_result` by id, loop until the model stops asking |
+| `toolsdecl` | 5 | the request declares the registry's tools, per vendor; field absent when the registry is empty |
+| `toolloop` | 20 | parse `tool_use`, dispatch, return `tool_result` by id, loop until the model stops asking |
 | `multiblock` | 10 | text + two tool calls: all parts recorded, both dispatched, results matched to the right ids |
 | `readtools` | 10 | `read_file` (with range), `list_directory`, `search_files` |
 | `mutatetools` | 10 | `write_file`, `edit_file` |
