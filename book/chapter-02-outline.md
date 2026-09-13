@@ -1242,7 +1242,80 @@ and three ways in and out of it.**
 
 ---
 
-## §2.9 Open questions for Bill
+## §2.9 Drive it yourself
+
+Ungraded. Do it anyway.
+
+Chapter 1 ended by telling you to chat with the thing you built, because talking
+to your own chatbot is a better argument for the architecture than any diagram.
+This chapter's payoff is quieter and, once you see it, larger: **the same
+conversation, through three different vendors, from one log.**
+
+**Against the fake, free and keyless:**
+
+    go run ./cmd/fakevendor -ch 2 chat
+    go run ./cmd/fakevendor -ch 2 -vendor gemini chat
+    go run ./cmd/fakevendor -ch 2 -vendor openai chat
+
+The fake will tell you outright that it is scripted and did not read what you
+said. Believe it. A fake proves your plumbing, not your prompting.
+
+**Live, against all three:**
+
+    scripts/live.sh 2 anthropic
+    scripts/live.sh 2 gemini
+    scripts/live.sh 2 openai
+
+That scripted session is doing more work than it looks. It asks the model to
+invent a codename, then asks an unrelated question, then asks for the codename
+back. The recall proves the entire history is being re-sent and re-rendered on
+every request. Run it against all three vendors and watch three different wire
+formats produce the same remembered word.
+
+Then read the usage line it prints:
+
+    {"usage":{"input":737,"cache_write":0,"cache_read":0,"output":350}}
+
+Four counters, disjoint by construction. That shape is not the shape any of the
+three vendors reports, and §2.6 is the argument for why we record counts and
+never money.
+
+For a free-form session, add `chat`:
+
+    scripts/live.sh 2 anthropic chat
+
+Every command in this section was run before it was printed.
+
+**Things worth trying:**
+
+- Record one session, then render it as two different vendors without touching
+  the network:
+
+      CH02_LOG=/tmp/s.log go run ./cmd/fakevendor -ch 2 chat
+      LLM_VENDOR=anthropic ./ch02 render /tmp/s.log
+      LLM_VENDOR=gemini    ./ch02 render /tmp/s.log
+
+  Nine lines of log produced 896 bytes of Anthropic JSON and 851 bytes of
+  Gemini JSON on the run that wrote this paragraph. One opens with `system` and
+  `messages`, the other with `systemInstruction` and `contents`. Nothing is
+  shared but the conversation. That is the chapter, in two commands, and it is
+  the exercise `seam-render` grades.
+
+- Ask a question whose answer depends on something you said three turns earlier,
+  and watch the request grow as the history is re-sent.
+
+- Record against one vendor and render as another. A conversation that happened
+  in Anthropic's format becomes a well-formed Gemini request. Nothing about that
+  should work, and it does, because the log is not anybody's wire format.
+
+**Commit and tag the passing state:**
+
+    git commit -am "ch2: one log, three vendors, grader 100"
+    git tag ch02-pass
+
+---
+
+## Open questions for Bill (author scaffolding)
 
 1. ~~**Three vendors, or two required plus one as payoff?**~~ **RULED
    (2026-09-12): three.** Anthropic, OpenAI, Gemini — all three graded, in that
