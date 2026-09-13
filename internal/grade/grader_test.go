@@ -108,6 +108,10 @@ func TestMutationsAreCaught(t *testing.T) {
 			"reads content[0].text instead of walking the block list and concatenating"},
 		{"hardkey", []string{"wire"},
 			"hardcodes an API key instead of reading ANTHROPIC_API_KEY"},
+		{"hardmodel", []string{"wire"},
+			"hardcodes a model name instead of reading ANTHROPIC_MODEL"},
+		{"nosystem", []string{"wire"},
+			"sends no system prompt at all, so the agent has no instructions"},
 	}
 
 	for _, tc := range cases {

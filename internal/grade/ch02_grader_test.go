@@ -124,9 +124,9 @@ var mutations = []mutation{
 	},
 	{
 		name:     "system-prompt-omitted",
-		why:      "the system prompt is renderer output; drop it and all three placements vanish",
+		why:      "the system prompt is renderer output; drop it and all three placements vanish — and Chapter 1 wire conformance, which requires a system prompt, breaks too",
 		edits:    []edit{{"main.go", `SystemPrompt: systemPrompt,`, `SystemPrompt: "",`}},
-		wantFail: []string{"seam-render"},
+		wantFail: []string{"ch1parity", "seam-render"},
 	},
 	{
 		name:     "dump-prints-nothing",
@@ -250,9 +250,16 @@ func buildMutant(t *testing.T, edits []edit, extra string) string {
 		if err != nil {
 			t.Fatalf("bad mutation pattern %q: %v", ed.pattern, err)
 		}
-		if !re.Match(b) {
-			// A mutation that does not apply is a test that silently passes.
-			t.Fatalf("mutation pattern %q did not match anything in %s", ed.pattern, ed.file)
+		if n := len(re.FindAll(b, -1)); n != 1 {
+			// A mutation that does not apply is a test that silently passes:
+			// the submission stays correct, the grader says 100/100, and the
+			// suite records that as "the grader caught nothing" when nothing
+			// was ever broken. A mutation that applies more than once is the
+			// mirror image — the mutant then fails for reasons beyond the one
+			// defect under test, so the failing-check set stops being
+			// evidence about that defect. Demand exactly one site.
+			t.Fatalf("mutation pattern %q matched %d sites in %s, want exactly 1",
+				ed.pattern, n, ed.file)
 		}
 		out := re.ReplaceAll(b, []byte(ed.repl))
 		if err := os.WriteFile(path, out, 0o644); err != nil {

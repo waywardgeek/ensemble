@@ -222,6 +222,14 @@ func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
 	} else {
 		if rec.Body.Model == "" {
 			rec.Violations = append(rec.Violations, "model field is empty")
+		} else if rec.Body.Model != ExpectedModel {
+			rec.Violations = append(rec.Violations,
+				fmt.Sprintf("model is %q, want %q — the model must come from ANTHROPIC_MODEL, not a hardcoded string",
+					rec.Body.Model, ExpectedModel))
+		}
+		if strings.TrimSpace(rec.Body.SystemText()) == "" {
+			rec.Violations = append(rec.Violations,
+				"system field is empty — the agent must send a system prompt")
 		}
 		if rec.Body.MaxTokens <= 0 {
 			rec.Violations = append(rec.Violations,
@@ -320,6 +328,17 @@ func (s *Server) TotalUsage() Usage {
 // plausible-looking key still scored 100. Comparing against the value the
 // harness actually supplied is the whole fix, and it costs one equality.
 const ExpectedAPIKey = "sk-ant-course-grader-fake"
+
+// ExpectedModel is the model the grader puts in ANTHROPIC_MODEL. The fake
+// requires the request body to name this exact model.
+//
+// Same disease as ExpectedAPIKey, same cure. A non-empty check graded §1.2's
+// "read the model from the environment" vacuously: hardcoding "claude-3-5-
+// sonnet" and never reading ANTHROPIC_MODEL still scored 100. The harness sets
+// the variable FROM this constant, so there is one source of truth and a
+// student who echoes the environment back to us cannot be told apart from one
+// who guessed — because guessing this string is not a thing anyone does.
+const ExpectedModel = "claude-fake-course-1"
 
 // truncateKey keeps a credential out of the transcript while still showing the
 // student enough to recognise their own hardcoded string.

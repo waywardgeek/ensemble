@@ -101,10 +101,16 @@ func Run(bin string) (*RunResult, error) {
 	cmd.Env = append(os.Environ(),
 		"ANTHROPIC_BASE_URL="+baseURL,
 		"ANTHROPIC_API_KEY="+fakeanthropic.ExpectedAPIKey,
-		"ANTHROPIC_MODEL=claude-fake-course-1",
+		"ANTHROPIC_MODEL="+fakeanthropic.ExpectedModel,
 		// Belt and braces: a student who wired the base URL under a different
 		// name still lands on the fake rather than on the real API.
 		"ANTHROPIC_API_URL="+baseURL,
+		// Same, for the model. Chapter 2's submission prefers LLM_MODEL over
+		// ANTHROPIC_MODEL, and this harness also runs as Chapter 2's phase 1.
+		// Pinning both names keeps ExpectedModel the single source of truth
+		// and stops an ambient LLM_MODEL in the grader's own environment from
+		// failing a correct submission.
+		"LLM_MODEL="+fakeanthropic.ExpectedModel,
 	)
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
