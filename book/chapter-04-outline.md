@@ -9,22 +9,57 @@ prose and the grader are both written from.*
 
 ## What this chapter is
 
-Chapter 3 built six tools in their simplest honest form. Five of them are
-finished forever. This chapter reworks exactly one.
+Chapter 3 built six tools in their simplest honest form, and all six share one
+shape: you call the tool, you block, you get a result. That shape is not a
+property of those six tools. It is a property of how chapter 3 *dispatched*
+them, and it is wrong for all of them.
 
-Which one is predictable from the rule chapter 3 gave you: **the tool that
-crosses a boundary you do not control.** `edit_file` either works or fails, in
-milliseconds, every time. `run_command` starts something that might not come
-back.
+The proof is the cold open below. The call that froze the agent was a
+`screenshot`. Not a shell command, not a network fetch. A tool whose whole job is
+to grab the framebuffer and return, which on paper cannot be slow. If the defect
+lived in `run_command`, that hang was impossible.
 
-**Chapter 4 does not add reach.** The three verbs it introduces —
-`wait_for_job`, `send_input`, `kill_job` — are together under two percent of all
-tool calls. It earns its place by reworking `run_command`, which is thirty-six
-percent on its own. It does not extend what your agent can touch. It fixes the
-biggest thing you already built.
+So this chapter does not rework one tool. It changes what a tool call **is**: not
+a function you call and wait for, but a **job you start and supervise**. Every
+tool gets a handle, an output file, a status, and a deadline. The three verbs it
+introduces (`wait_for_job`, `send_input`, `kill_job`) are the supervision API for
+all of them.
+
+**Chapter 4 still does not add reach.** Those three verbs are together under two
+percent of all tool calls, and your agent cannot touch one thing it could not
+touch before. It earns its place twice over: it makes the biggest tool you
+already built (`run_command`, thirty-six percent on its own) genuinely usable,
+and it makes *every* tool incapable of taking the agent down with it.
+
+The chapter's central distinction is which tools can report progress and which
+cannot. A subprocess emits bytes over time, so you can watch it and match a
+pattern against what it says. A `read_file` produces everything at the instant it
+finishes or nothing at all. Both can be jobs. Only one can be *watched*, and a
+design that pretends otherwise ships a parameter that silently does nothing.
 
 And it ends by doing something your chapter 3 agent could not do at all, not
 slowly but *at all*.
+
+### What this chapter deliberately cannot finish
+
+Chapter 4 gives you supervision by **asking**. You start a job, and when you want
+to know how it is doing, you call `wait_for_job`. That is a complete, shippable
+design and it is where this chapter stops.
+
+It is not the whole story, and the limit is worth naming now so that it lands as
+a discovery rather than a gap. While your agent is inside a tool call it cannot
+hear anything. Not a completion it did not ask about, and not *you*. The reason
+is structural and it survives making tools asynchronous: the tool runs on its own
+goroutine, but the loop that dispatched it is parked waiting for the answer, and
+that same loop is the only thing that would notice an inbound message.
+
+So a supervised job fixes the freeze and leaves the deafness. Your agent can run
+a ninety second test suite without dying, and still cannot be told "stop, wrong
+file" while it does. Fixing that is not more job machinery. It is a different
+shape: one inbound queue carrying prompts, interruptions and job completions as
+the same kind of thing, drained by a loop that never blocks on a tool.
+
+That is the actors chapter. This chapter earns it by making the pain specific.
 
 ---
 
