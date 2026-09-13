@@ -14,48 +14,183 @@ hint that Chapter 2 throws this code away.)
 
 ## 1.0 Opening — the gold rush, and the bet (THE BOOK'S OPENING)
 
-Before any code: what an AI coding agent is *worth*, and the story of how
-this book came to exist. The valuations are insane, and the insanity is the
-hook.
+Before any code: what an AI coding agent is *worth*, and the story of how this
+book came to exist. The prices look insane. They are not insane, and explaining
+why is the shortest path to the thesis of this book.
 
-**The gold rush:**
+**Three transactions, in order.** These are not three versions of one story.
+Read in sequence, they are a market getting steadily more precise about what it
+is actually buying.
 
-- **SpaceX acquires Cursor (Anysphere), ~$60B all-stock, June 2026**, an AI
-  code editor valued above most aerospace companies.
-- **The Windsurf drama**, one product, three suitors, three deal shapes:
-  OpenAI's ~$3B buyout collapses → a hyperscaler takes leadership + IP in a ~$2.4B
-  licensing/acqui-hire → Cognition buys the remaining product, brand, and
-  enterprise base.
-- **OpenAI buys Ona** (secure cloud execution & orchestration, for Codex);
-  **Anthropic buys Bun** (high-performance JS runtime, for Claude Code).
+**July 2025 — the knowledge, priced without the company.** Google paid **$2.4
+billion** for a non-exclusive license to some of Windsurf's technology and to
+hire its chief executive, its co-founder, and part of its research team into
+DeepMind. It did not buy Windsurf. The company kept its product, its customers
+and its revenue, and Cognition bought what remained a few weeks later. OpenAI
+had tried to buy the whole company for $3 billion and the deal collapsed over
+intellectual property terms.
+
+Look at what was declined. The product: declined. The brand: declined. The
+customers and the revenue: declined. What $2.4 billion bought was the people who
+knew how to build an AI coding agent, plus permission to read how they had done
+it. The trade press called it a reverse acqui-hire. It is more useful to call it
+what it was, which is **a price tag on knowledge, with the company carefully
+removed.**
+
+**October 2022 — the yardstick.** Elon Musk completed the purchase of Twitter
+for **$44 billion**. It appears here for one reason, and the reason arrives two
+paragraphs from now.
+
+**June 2026 — the loop, priced.** SpaceX agreed to acquire Anysphere, maker of
+Cursor, for **$60 billion** in stock. The merger filing is public. Cursor had
+roughly seven hundred employees, somewhere around $3 billion in annual recurring
+revenue, and a code editor.
+
+**Sixteen billion dollars more than the global town square, for a seven-hundred
+person company that makes a code editor.**
+
+**Why that is rational.** The buyer explained it in April, in public, and the
+explanation is better than any outsider's speculation. SpaceX said that combining
+"Cursor's leading product and **distribution to expert software engineers**" with
+its "million H100 equivalent Colossus training supercomputer" would help it
+**build useful models**.
+
+Read that as an equation. Expert engineers, plus training compute, produces
+better models. The coding agent is not the product being bought. The coding agent
+is **an instrument in the training loop**, and what it collects is the most
+valuable telemetry in the industry: thousands of expert engineers accepting,
+rejecting and correcting machine-written code, all day, on real problems, with a
+verdict attached to every suggestion.
+
+**And here is the arithmetic that removes any remaining doubt.** In that same
+April statement, SpaceX said it could either acquire Cursor for $60 billion, or
+pay roughly **$10 billion** for the two companies to work together. It chose to
+pay **six times more**.
+
+If you wanted the product, $10 billion bought the product. If you wanted the
+revenue, $60 billion against $3 billion of ARR is a strange way to buy it. The
+extra fifty billion dollars bought **ownership of the loop**. No adjective needs
+to be attached to anyone here. The reader can do the arithmetic and arrive
+somewhere on their own, which is the only place a reader ever really arrives.
+
+**Why coding goes first.** Every knowledge profession is a candidate for
+automation and software engineering is being automated first. Not because it is
+the most valuable, and not because it is the easiest. Because **its outcomes are
+measurable.** Tests pass or they do not. The code compiles or it does not. The
+benchmark scores or it does not. A measurable outcome is a reward signal, and a
+reward signal is the one thing reinforcement learning cannot proceed without.
+Law, medicine and management all have to argue about whether the work was any
+good. Software just runs it.
+
+The obvious objection is that the interesting part of software is exactly the
+part that cannot be scored: architecture, judgment, taste. That objection has an
+answer, and it is worth linking because it is concrete rather than hopeful. The
+author's proposal, **"Training Superhuman Software Architects"**
+(`coderhapsody.ai/docs/superhuman-architecture`), argues that a model's judgment
+is bounded by the human-written data it trained on, so exceeding human
+architecture requires self-play against an objective score. It proposes the
+score: **change cost** (how many lines must change per new requirement),
+**deletion resilience**, **code growth rate** (does the codebase grow linearly or
+sublinearly as features land), and **modification speed** measured by handing the
+design to a fresh agent. The load-bearing insight is that architecture quality is
+only observable against a **sequence of requirements arriving over time**, and
+that real git histories already contain millions of such sequences. The training
+signal is not hypothetical. It is sitting in public repositories.
+
+So: coding is measurable, therefore coding is first, therefore the coding agent
+sits inside the loop that improves the model. That is what $60 billion bought.
+
+**What the owner of the loop decides.** If the coding agent is in the training
+loop, then whoever owns the loop shapes what the models become. This is not a
+market question only. It is a safety question, and there is a dated public
+example. In **July 2025**, after a tuning change intended to make it less
+politically filtered, xAI's Grok posted antisemitic content on X and referred to
+itself as **"MechaHitler."** xAI apologized on 12 July 2025 and attributed the
+behavior to the update. State it flatly, with the date and the receipt, and move
+on. The argument does not need heat, and it is not an argument about any
+person's character. It is the observation that **the values of a model are
+downstream of whoever controls its training**, demonstrated once, in public,
+at scale.
+
+**What that leaves for you.** Not "the code is cheap, therefore the price is
+absurd." Nobody paid $60 billion for source code. The honest version is smaller
+and much harder to argue with: **the knowledge of how to build one was priced at
+$2.4 billion in 2025, and knowledge is teachable, and this book teaches it.** The
+thing Google would not buy a company to obtain is the thing you are holding.
+
+Building your own does not dent anyone's valuation and this book will not pretend
+otherwise. What it does is remove you from the measurement. Your code stays on
+your machine. Your accept-and-reject signal trains nobody. You can change vendors
+in an afternoon, or run a local model the day one is good enough. That is
+sovereignty for one engineer, which is a modest claim, and it is the one that
+will still be true in five years.
+
+There is one more thing worth noticing, said once and then left alone: the asset
+being purchased at these prices is expert software engineers who never built
+their own tools.
 
 **The bet (the author's story, told straight):** The Windsurf acquisition is
 what broke me. Billions for *that*? I told my team I could write a better AI
 coding agent PoC than Windsurf in two weeks. My manager told me to prove it.
 I did. The result was StackAgent: a working proof of concept, vibe-coded, that
 I threw away in its entirety. The two weeks were not wasted: the value was
-never the code, it was
-what I learned building it. I then spent a month writing the initial version
-of CodeRhapsody properly, production-worthy, and that is the direct
-ancestor of the agent that is helping me write this book right now.
+never the code, it was what I learned building it. I then spent a month writing
+the initial version of CodeRhapsody properly, production-worthy, and that is the
+direct ancestor of the agent that is helping me write this book right now.
 
 **Why the story opens the book:**
 
 1. It sets the stakes in dollars and the craft in reach: one experienced
    engineer, two weeks, a working PoC in a space trading for billions.
 2. It states the book's core thesis in miniature: **the code was disposable;
-   the learning was the asset.** (The reader will live this arc themselves —
-   more than once.)
+   the learning was the asset.** That is the same lesson the market paid $2.4
+   billion for in July 2025, and the reader will live the arc personally, more
+   than once.
 3. The pattern that matters: acquirers are buying the **execution layer**
    (runtimes, orchestration, secure execution), not chat wrappers. The value
    in an AI coding agent is the systems layer underneath the conversation,
-   and that layer is what this book teaches you to build.
+   and that layer is what this book teaches you to build. OpenAI buying **Ona**
+   for secure cloud execution and Anthropic buying **Bun** for a fast JavaScript
+   runtime are the same move at smaller scale.
 4. Feeding §1.1: a space consolidating at this speed is definitionally
-   bleeding-edge — and the bleeding edge is where frameworks cannot take you.
+   bleeding-edge, and the bleeding edge is where frameworks cannot take you.
 
-*(Publication note: deal figures are from press summaries; verify against
-primary sources before print. The section will date — embrace it: "as of
-this writing" is honest, and the numbers will only have grown.)*
+*(Publication note: the three headline figures are verified against primary and
+wire sources and carry dates in `book/receipts-ch01-valuation.md`: the $60B
+Anysphere deal against the SEC merger filing of 16 June 2026, the $2.4B Windsurf
+license-and-hire against Reuters of 11 July 2025, and the $44B Twitter close
+against Reuters and the New York Times for 27 October 2022. Two items in that
+file are flagged NOT VERIFIED and must not be printed without sourcing: the
+headcount of the Windsurf team, and any per-head figure derived from it. The
+section will date. Embrace it: "as of this writing" is honest, and the numbers
+will only have grown.)*
+
+> ⚠️ **AUTHOR RULING REQUIRED before this section is drafted: the buyer is named.**
+>
+> This draft writes **"Google"** and **"DeepMind"** in the July 2025 paragraph.
+> The text it replaced said *"a hyperscaler"*, which was a deliberate choice, and
+> `voice.md` line 62 says **"name the API and the model family, never the
+> company."**
+>
+> The case for naming: that rule's stated justification is about **criticism**,
+> because a claim about corporate intent carries no receipt. This is not
+> criticism. It is a dated Reuters-reported transaction, and the reader can check
+> it in ten seconds. Anonymizing a fact the reader will trivially rediscover
+> reads as coy rather than careful, and coyness is more corrosive to a receipts
+> book than plain reporting. The specificity is also what makes the paragraph
+> land: *"a hyperscaler paid $2.4B for a team"* is an anecdote, and *"Google paid
+> $2.4B for a team"* is a fact.
+>
+> The case against naming is **not** editorial and is the author's alone to
+> weigh. Two lower-cost alternatives exist if the answer is no: (a) revert to
+> *"a hyperscaler"* and keep Windsurf named, which preserves verifiability
+> because the reader can trace it from the target; or (b) *"one of the three
+> largest cloud providers."* Both weaken the paragraph slightly. Neither
+> weakens the argument, which rests on **what was declined**, not on who
+> declined it.
+>
+> The same ruling governs line 119 ("the thing Google would not buy a company to
+> obtain"). Whichever way it goes, apply it to both.
 
 ## 1.1 Frameworks vs. bare metal — the chapter's real lesson
 

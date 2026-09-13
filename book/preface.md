@@ -85,7 +85,7 @@ rate for building a serious piece of software quickly in 2026.
 Go, a text editor, and an AI coding assistant.
 
 That last one is a real prerequisite, and it is worth being honest about why. The
-Chapter 2 solution is about 1,600 lines. Hand-typed, that is a semester project.
+Chapter 2 solution is about 2,400 lines. Hand-typed, that is a semester project.
 Directed, it is a week: you specify, an assistant implements, you review. You are welcome to type every line yourself. It will take the semester.
 
 Which brings up the one norm this course asks you to honor, and it is an odd one
