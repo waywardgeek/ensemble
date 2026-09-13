@@ -77,6 +77,34 @@ where fix-once-propagate pays.
 
 ## A simplification worth taking while we are in here
 
+**Decided 13 Sep 2026 (Bill), and it is free: the default log name becomes the
+executable's own name plus `.log`.**
+
+Today both solutions hardcode `envOr("CH02_LOG", "ch02.log")`, so a binary built
+from `solutions/ch03` writes `ch02.log`, and Bill's own `ch3agent` did too the
+first time he used it for real work. Deriving the default from `os.Args[0]`
+instead means `ch02` writes `ch02.log`, `ch03` writes `ch03.log`, `ch3agent`
+writes `ch3agent.log`, and a future binary named `agent` writes `agent.log`. The
+chapter number stops being a constant in the source and becomes a consequence of
+what you named the thing.
+
+**Why it is free.** Every grader harness sets `CH02_LOG` explicitly:
+`internal/grade/ch02_harness.go` at three call sites and
+`internal/grade/ch03_harness.go` at one. The hardcoded default is reached only
+when a human runs the binary by hand, so changing it cannot move a graded byte.
+`ch2parity` is unaffected.
+
+**What is NOT free, and should not be bundled with it:** renaming the
+environment variable itself. `CH02_LOG` is chapter-numbered and ugly, but a
+student who passed Chapter 2 wrote code that reads `CH02_LOG`. If the harness
+starts setting `AGENT_LOG`, that student's passing solution fails for a reason
+the chapter never asked about — which is the line drawn earlier: strengthening a
+grader may fail a prior-100 student only where the chapter already made the
+promise. Keep `CH02_LOG` for now and fold the rename into this restructure,
+where the tags are being regenerated anyway and a coordinated change is cheap.
+
+---
+
 The copy/paste rot exists *because we pretend each chapter is a different
 program.* It is one program that grows. If the linear repo builds a binary
 called `agent`, the "ch02 in a ch03 banner" class of bug cannot occur again:
