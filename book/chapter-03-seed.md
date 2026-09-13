@@ -176,8 +176,10 @@ chapter 4: ch4's whole payoff is steering an agent *mid-work*. Steering an agent
 that can only fetch a URL is a demo. Steering one that is editing code and
 running tests is the book. **A tool set that cannot code makes chapter 4 a toy.**
 
-**The set: three tools, deliberately asymmetric.** (Pending the usage audit of
-§7, which may add one or two.)
+**The set: three tools, deliberately asymmetric.** **SUPERSEDED — see §7**,
+which is authoritative for what the student implements. The reasoning below
+(class asymmetry, portability, why `fetch` was cut) still holds; only the list
+changed, after the §6 audit and Bill's "leave them a usable agent" ruling.
 
 | tool | class | role in the chapter |
 |---|---|---|
