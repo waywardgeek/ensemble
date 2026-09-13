@@ -1,0 +1,316 @@
+# Chapter 5 — the seam, in Go (DRAFT)
+
+Status: DRAFT for review. This is the source that ships INLINE in the chapter, so
+every type here is a promise in print. Rationale lives in
+`book/chapter-05-seed.md`; structure in `book/chapter-05-outline.md`.
+
+Reviewed against the REAL Chapter 2 types in `solutions/ch02/` on 2026-09-13, so
+this is an amendment to code the reader already has, not a parallel invention.
+
+---
+
+## Two rules this file obeys
+
+1. **The seam package imports nothing outside the standard library.** Checkable:
+   `go list -deps` returns stdlib only. A package that imports nothing cannot
+   participate in a cycle — the `gui_independence` guard generalized from "do not
+   import the GUI" to "do not import anything."
+2. **Not under `internal/`.** Go forbids other modules from importing it there.
+   A framework nobody can import is not a framework.
+
+Interfaces for behavior. For data, Chapter 2's existing pattern: a SEALED union
+(`isPart()`) plus an ordered-field JSON envelope. Note this corrects a too-strong
+claim in an earlier outline draft — a sealed union interface serializes fine; an
+OPEN behavioral interface is what cannot be replayed.
+
+---
+
+## 1. `Ref` — the content is elsewhere, here is how to get it
+
+Three requirements collapse into one type: multimedia input, redacted-but-
+fetchable tool payloads, and supervision that never reads a history file.
+
+```go
+// RefKind says how to resolve a Ref. Constants start at iota+1 so the zero
+// value is invalid rather than accidentally meaningful.
+type RefKind uint8
+
+const (
+	RefPath   RefKind = iota + 1 // a file on local disk
+	RefURI                       // remote: a vendor File API uri, gs://, https://
+	RefHandle                    // framework-managed output: cr/io/<handle>, or memory
+)
+
+// Ref locates content that is NOT stored in the log.
+//
+// There is deliberately no inline-bytes case. BlobPart's contract in Chapter 2
+// is "never inline", because a log you cannot grep is a log you cannot debug.
+// Base64 on the wire is a RENDERING decision, made when building a request and
+// never written back into the log.
+type Ref struct {
+	Kind    RefKind `json:"kind"`
+	Locator string  `json:"locator"`
+}
+```
+
+`RefHandle` is distinct from `RefPath` on purpose: a handle is resolved by the
+framework and need not be a filesystem path at all — the jobs chapter allows
+in-memory buffers.
+
+## 2. The Chapter 2 amendment
+
+Two existing types change. Everything else in `part.go` stands.
+
+```go
+// WAS: type BlobPart struct{ MIME, Path string }
+// A local path cannot express three of Gemini's four input methods (File API
+// uri, gs://, external URL), nor Anthropic's file_id.
+type BlobPart struct {
+	MIME string
+	Ref  Ref
+}
+
+// WAS: type RedactedPart struct{ Stub string }
+// The stub is still SYNTHESIZED by the reducer, never stored. The Ref is
+// carried forward from the part it supersedes, so redaction stays recoverable
+// BY CONSTRUCTION rather than by convention.
+type RedactedPart struct {
+	Stub string
+	Ref  Ref // zero value when the superseded content had no locator
+}
+```
+
+`partJSON` gains two ordered fields — `ref_kind` and `ref` — and keeps its
+existing discipline: refuse to marshal an unknown part type, refuse to load a log
+containing one.
+
+Media capability stays per MODEL, not per vendor, and refusal stays LOUD.
+Chapter 2 already models this with one bool; multimedia generalizes it:
+
+```go
+// WAS a single AcceptsAudio bool on the model description.
+type Media uint8
+
+const (
+	MediaImage Media = 1 << iota
+	MediaAudio
+	MediaVideo
+	MediaDocument
+)
+
+// Accepts reports whether this model takes that medium as INPUT.
+// Verified 2026-09-13: Gemini takes video in; OpenAI does not (its video APIs
+// are generation); Anthropic takes neither audio nor video, and flattens
+// animated GIFs to the first frame.
+func (m Media) Accepts(want Media) bool { return m&want == want }
+```
+
+There is no honest degraded rendering of a video part, which is why a model that
+cannot accept one must refuse loudly rather than drop it.
+
+## 3. The outbound seam: observers
+
+```go
+// AgentID names which agent an observation came from.
+//
+// Empty means "the one agent", which is the only case this chapter builds. It
+// is `omitempty` everywhere, so the single-agent log is byte-identical to one
+// written before this field existed. Sequence numbers stay GLOBAL: per-agent
+// numbering was considered and rejected, because a reconnecting observer would
+// then have to reconcile N transcripts.
+type AgentID string
+
+// PartID identifies a part across its deltas and its finalization.
+type PartID uint64
+
+// Observation is what an observer receives. Sealed union, same discipline as
+// Part.
+type Observation interface{ isObservation() }
+
+// PartDelta is content arriving incrementally.
+//
+// THE RULE THAT KEEPS THIS SEAM STABLE: streaming is not a mode. A
+// non-streaming vendor emits exactly one delta and then a final. Adding real
+// streaming after the GUI chapter therefore adds NO new observation kinds —
+// only a different chunk count. Tool results are simply always length one,
+// which is why "observable but never streaming" needs no special case.
+type PartDelta struct {
+	Agent  AgentID `json:"agent,omitempty"`
+	PartID PartID  `json:"part_id"`
+	Chunk  string  `json:"chunk"`
+}
+
+// PartFinal is the authoritative, complete part.
+type PartFinal struct {
+	Agent  AgentID `json:"agent,omitempty"`
+	Seq    Seq     `json:"seq"`
+	PartID PartID  `json:"part_id"`
+	Part   Part    `json:"part"`
+}
+
+// StateChanged is a transition of the state machine Chapter 2 already defined.
+// Chapter 5 does not introduce agent state. It EXPOSES it.
+type StateChanged struct {
+	Agent AgentID   `json:"agent,omitempty"`
+	From  TurnState `json:"from"`
+	To    TurnState `json:"to"`
+}
+
+func (PartDelta) isObservation()    {}
+func (PartFinal) isObservation()    {}
+func (StateChanged) isObservation() {}
+```
+
+```go
+// Observer watches one or more agents. It never calls back into the agent.
+//
+// Observe MUST NOT BLOCK. An observer that blocks parks the actor's loop and
+// re-creates the exact deafness this chapter exists to remove — the GUI would
+// become able to freeze the agent by being slow. A slow observer buffers, or
+// drops, on its own time.
+type Observer interface {
+	Observe(Observation)
+}
+```
+
+**The stream is not the log.** Deltas are transient and never appended; only
+`PartFinal` is recorded. That is what preserves Chapter 2's replay promise and
+honors "no field grows without bound."
+
+> The log is the state. The stream is the experience.
+
+## 4. The inbound seam: the mailbox
+
+```go
+// Inbound is anything the agent can hear. ONE queue carries all of it — that
+// is the entire point. A prompt, a hint typed mid-turn, a tool finishing, and
+// a child asking a question are the same kind of event to the loop.
+type Inbound interface{ isInbound() }
+
+type UserMessage struct{ Parts PartList }
+
+// Hint is a message that arrives while a turn is already running. It is not a
+// separate channel: classification happens in the reducer, by turn state, never
+// at capture.
+type Hint struct{ Parts PartList }
+
+// ToolCompleted is DELIVERED INTO the queue rather than awaited in a select.
+// This is the whole fix. The tool already ran on its own goroutine; the agent
+// was deaf because the loop that would drain events was parked waiting for it.
+type ToolCompleted struct {
+	CallID string
+	Result ToolResultPart
+}
+
+type Interrupt struct{ AfterTool bool }
+
+// ChildEscalation is a sub-agent blocking on a decision. Built in a later
+// chapter; the kind exists now so the queue's shape does not change when it
+// arrives.
+type ChildEscalation struct {
+	Agent     AgentID
+	MessageID string
+	Parts     PartList
+}
+
+func (UserMessage) isInbound()     {}
+func (Hint) isInbound()            {}
+func (ToolCompleted) isInbound()   {}
+func (Interrupt) isInbound()       {}
+func (ChildEscalation) isInbound() {}
+```
+
+## 5. The actor
+
+A loop with a mailbox. That is the whole definition.
+
+Explicitly NOT built, because "actor" is a loaded word: supervision trees,
+addresses, distribution, restart strategies.
+
+```go
+// Agent is the loop between the two seams.
+type Agent struct{ /* unexported */ }
+
+// Send delivers into the mailbox. It NEVER blocks. Everything the agent can
+// hear arrives this way, including its own tools finishing.
+func (a *Agent) Send(in Inbound)
+
+// Attach registers an observer. Detach is by the returned func, so an observer
+// cannot leak by forgetting its own identity.
+func (a *Agent) Attach(o Observer) (detach func())
+
+// State reports the current state without waiting. Cheap, and the answer is a
+// FACT held by the framework — nothing parses a history file to discover it.
+func (a *Agent) State() TurnState
+
+// Wait blocks until an observation satisfies pred, or ctx is done.
+//
+// This is the primitive the entire waiting surface derives from.
+func (a *Agent) Wait(ctx context.Context, pred func(Observation) bool) (Observation, error)
+```
+
+### Everything else is derived, not enumerated
+
+| operation             | expressed as                                        |
+|-----------------------|-----------------------------------------------------|
+| blocking send         | `Send` then `Wait(turn ended)`                      |
+| wait for agent        | `Wait(any state change)`                            |
+| join agents           | `Wait(terminal state)` on each                      |
+| wake-any, N agents    | `Wait` over a merged observation stream             |
+| check progress        | `State()` — no waiting at all                       |
+
+Join and wake-any differ only in predicate, not mechanism. When a surface derives
+instead of enumerating, the primitive is usually the right one.
+
+**Wake-any is why the mailbox is structural.** "Wake when ANY awaited agent sends
+a message or completes" is epoll/select semantics and cannot be built on blocking
+calls. And a parent waiting on N children is the same mechanism as an agent
+draining its own queue — one primitive, two scales.
+
+### End of turn is not a result
+
+```go
+// Submitted reports what an agent PRODUCED, which is a different fact from
+// having stopped.
+//
+// Keep these separate. Conflating "the turn ended" with "the agent succeeded"
+// is how a framework acquires a self-reported success flag, and a self-reported
+// success flag invites an agent to tick its own box. Terminal state says it
+// stopped. This says what came out. NEITHER says the work was correct.
+type Submitted struct {
+	Agent AgentID
+	Data  json.RawMessage
+}
+```
+
+This also retires the `DONE:`-marker heuristic: a marker in text is a guess, a
+state transition is a fact.
+
+## 6. Supervision needs nothing new
+
+A parent watching a child is `Attach`. Steering it mid-turn is `Send(Hint{...})`.
+That is the entire supervision API, and it is why the seam is worth cutting here
+rather than after the GUI.
+
+The requirement that forces it: **the parent must never read the child's history
+file.** It observes current thinking, current chat, and redacted tool calls, and
+resolves a `Ref` on demand for the full payload.
+
+The failure this prevents, measured: a supervision call that returned 307,984
+bytes in one call — about 13% of a context window — because supervision was built
+as "read the history file." Its sibling, which has volume controls, returned
+3,447 bytes for the same job.
+
+> A new waiting primitive must inherit the volume contract, or supervision
+> destroys the context window it was meant to protect.
+
+## Open
+
+1. Does `Wait` belong on `Agent`, or on a separate `Watcher` that can span
+   several agents? The wake-any row wants the latter; the one-agent chapter
+   wants the former. Leaning: `Wait` on `Agent`, plus a free function that
+   merges observation streams, so the multi-agent case adds no method.
+2. `PartDelta.Chunk` as `string` vs `[]byte`. String is friendlier in print and
+   correct for chat/thinking/args; media never streams through this path.
+3. Whether `Submitted` is an `Observation`, an `Inbound` on the parent, or both.
+4. Exact `partJSON` field names for the Ref.

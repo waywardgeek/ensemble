@@ -164,7 +164,13 @@ rest of the Erlang/Akka surface explicitly rather than imply it.
 
 Bill's requirement, and the primitive the rest of the surface derives from.
 
-- The framework holds a state machine. Agent state is a FACT, not something
+**Chapter 5 does not introduce agent state. It EXPOSES it.** The reader has had a
+state machine since Chapter 2 — `TurnState` with `Idle`, `InputPending`,
+`InFlight`, `ToolsPending` — and Chapter 4 added `Interrupted`, deliberately as a
+STATE rather than a flag, "or replay re-executes tool calls that were cancelled."
+This is another reveal, not an introduction, and it should be written that way.
+
+- The framework holds that state machine. Agent state is a FACT, not something
   parsed out of a history file.
 - Observers can both receive transitions (push) and BLOCK until one matching a
   predicate occurs (wait). "Wait for end of turn" is the canonical case.
@@ -239,10 +245,13 @@ Corollary worth stating, because Chapter 2 already earned it: vendor types must
 not appear in the seam. Vendor types in a signature were the tell in Chapter 2's
 cold open; here the rule is mechanical instead of stylistic.
 
-**Interfaces for behavior, concrete structs for data.** Observers, tool handlers
-and vendor render/parse are interfaces. Events and parts stay concrete
-serializable structs, because replay is a byte comparison and you cannot replay a
-log of interfaces. Over-interfacing the data would silently break Chapter 2.
+**Interfaces for behavior, concrete data for data — with a precision that
+matters.** Observers, tool handlers and vendor render/parse are interfaces.
+Events and parts use Chapter 2's existing pattern: a SEALED union (`isPart()`)
+plus an ordered-field JSON envelope. A sealed union serializes and replays fine;
+what cannot be replayed is an OPEN behavioral interface. Do not state the rule as
+"no interfaces in the data" — Chapter 2's `Part` IS an interface, and the book
+must not contradict code the reader already has.
 
 ### The `Ref` type, and the Chapter 2 amendment
 
