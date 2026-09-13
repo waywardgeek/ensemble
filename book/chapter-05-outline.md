@@ -66,11 +66,34 @@ Beats:
    framework — a cycle. **The seam can look clean while the dependency graph is
    not.**
 
-Second instance, same failure, stated by the compiler rather than by argument:
-the entire framework lives under `internal/`. `pkg/` holds one package;
-`internal/agent` alone is 112 files. Go forbids any other module from importing
-anything under `internal/`. An agent library that no other project can import is
-not a library. This is deliberately dropped here and paid off in §5.7.
+Second instance, same failure, same week — and it is the stronger one because
+nobody chose it as a design: **the public surface did not exist until a real
+consumer forced it.**
+
+- The bulk of the framework lives under `internal/`, where Go forbids other
+  modules from importing it. `internal/agent` alone is 112 files.
+- A root facade was retrofitted 2026-08-24 through 08-28, the first commit
+  titled *"root facade with a go/ast guard that changed the design."* Note the
+  guard did not merely enforce a decision; it CHANGED it.
+- It runs straight into the GUI commits of the same week, one of which is *"no
+  GUI left in the public API"* — so the GUI had leaked into the public surface
+  too, not only into the tests.
+- **The facade was measured, not designed from taste.** A real consumer
+  (homebrew-vtt, 141 Go files) was ported and the compiler enumerated what it
+  actually touched: 21 symbols, 455 references — tool authoring 300 (66%),
+  sandboxed file I/O 80 (18%), media 52 (11%), agent lifecycle 23 (5%).
+
+That measurement is the chapter's thesis arriving as evidence instead of
+assertion: **two-thirds of a real consumer's use of an "agent framework" is
+declaring tools, and five percent is controlling agents.** It is a
+tool-authoring SDK. Design the seam accordingly.
+
+Do NOT write that the framework "cannot be imported by anyone" — that was true
+before the facade and is false now. The honest version is better: it went months
+without a public seam, and cutting one took a five-day campaign that is still
+ratcheting.
+
+This is deliberately dropped here and paid off in §5.7.
 
 Transition: both failures are the same mistake — deciding what the core knows
 about, too late. This chapter cuts the seam first.
@@ -231,9 +254,30 @@ scale.
 
 Two rules, both checkable, both earned by the cold open.
 
-**Rule 1 — not under `internal/`.** Go forbids other modules from importing
-anything under `internal/`. A framework nobody can import is not a framework.
-This is the compiler stating the architecture rule for us.
+**Rule 1 — `internal/` for the bulk, plus a MEASURED facade.** The naive version
+of this rule ("don't use internal/") is wrong, and CodeRhapsody demonstrates the
+right one. Hide the implementation where Go forbids others from reaching it, and
+export a deliberately small public surface. Then the hard part, which is the
+actual lesson:
+
+> Do not design the facade from taste. Measure it.
+
+CodeRhapsody's was derived by porting a real consumer and letting the compiler
+enumerate what it touched — 21 symbols, 455 references, two-thirds of them tool
+authoring. Taste would have produced a symmetrical API with an elegant agent
+lifecycle; the measurement said agent lifecycle is 5% and tool authoring is 66%.
+
+Two corollaries worth printing, both from that facade:
+
+- **Aliases, never wrappers.** `type Tool = common.Tool`, not a struct that
+  copies it. An alias IS the same type, so a value crossing the seam needs no
+  conversion and cannot drift from the implementation it names. A wrapper is two
+  types that must be kept in sync forever, and buys nothing here.
+- **Enforce it mechanically.** The rule that no exported symbol may mention an
+  unaliased internal type is a TEST, not a convention. Third instance in this
+  codebase of architecture enforced by a guard rather than by discipline — and
+  the guard on the facade is documented as having CHANGED the design, not merely
+  checked it.
 
 **Rule 2 — the seam package imports nothing outside the standard library.**
 This is what actually minimizes exposure. It is also checkable: `go list -deps`

@@ -304,12 +304,107 @@ as "read the history file." Its sibling, which has volume controls, returned
 > A new waiting primitive must inherit the volume contract, or supervision
 > destroys the context window it was meant to protect.
 
+## 7. The workflow seam — learned from the built one, not invented
+
+Bill: "In CodeRhapsody, we put wait and other agent orchestration APIs on a
+workflow seam… We definitely need to learn from that, rather than just invent
+one." And: "We provide workflow APIs via reverse-MCP: workflows can call tools in
+the agent running in CodeRhapsody." He notes the design came from what he learned
+from dynamic workflows in Claude Cowork, and is better than his original.
+
+Verified in `~/projects/coderhapsody`: `cr/docs/workflow-design.md`,
+`internal/agent/workflow.go`, `internal/agent/subagent_api.go`,
+`internal/agent/join.go`, `skills/lib/python/cr_workflow.py`.
+
+### What it actually is
+
+A workflow is a SKILL whose MCP server IS the orchestrator. Control is inverted:
+a deterministic script holds the plan, and the model is a leaf-node worker
+spawned into a fresh context per micro-task. No new runtime and no new protocol —
+it reuses bidirectional MCP and reverse tool dispatch.
+
+Its stated motivation is three failure modes observed in practice, which is
+better material than any argument from elegance:
+
+- **agentic laziness** — context fills, and the agent rationalizes stopping at
+  70% done
+- **self-preferential bias** — the same context that generated the work also
+  verifies it
+- **goal drift** from compaction
+
+Note `adversarial_verify(result, rubric)` exists in the Python surface as a
+first-class helper. It is the second failure mode answered in the API.
+
+### THE CORRECTION TO §5 OF THIS DRAFT
+
+The orchestrator runs in ANOTHER PROCESS. Therefore:
+
+> Orchestration is a TOOL SURFACE, not a Go API.
+
+Which breaks the `Wait` signature drafted above:
+
+```go
+// WRONG as the seam. A Go closure cannot cross a process boundary, so a Python
+// workflow script can never call this.
+func (a *Agent) Wait(ctx context.Context, pred func(Observation) bool) (Observation, error)
+```
+
+The real surface is a closed set of SERIALIZABLE wait conditions. CodeRhapsody's
+is `wait_for_agent_change(agent_ids, patterns, timeout_seconds,
+settling_seconds, stuck_threshold_seconds)` returning typed events —
+`status_change`, `agent_exited`, `message_to_parent`, `pattern_match`, `stuck`.
+
+So the honest design is two layers, and the chapter should say which is the seam:
+
+| layer | form | who calls it |
+|-------|------|--------------|
+| in-process convenience | `Wait(ctx, predicate)` with a Go closure | Go embedders |
+| **the seam** | a serializable wait condition, invoked as a tool | the model, AND a deterministic script in another process |
+
+The derivations in §5 still hold — blocking send, wait-for-agent, join and
+wake-any all come from one waiting primitive, differing only in condition. What
+changes is that the condition must be DATA, not a function.
+
+Operational details in the built version that look like scar tissue and are
+probably load-bearing: `settling_seconds` debounces a rapid flap, and
+`stuck_threshold_seconds` synthesizes a "stuck" event only at timeout. Neither
+would occur to someone designing this from taste.
+
+### The rule worth stealing: one escape hatch, ergonomics above the seam
+
+`cr_workflow.py` is roughly 30 methods — `spawn`, `send_message`, `join`,
+`join_strict`, `fan_out`, `agent_json(schema, retries)`, `adversarial_verify` —
+and all of them are sugar over ONE primitive:
+
+> `call(tool_name, arguments)` — "Reverse-call ANY tool enabled on the host
+> agent, by name… The typed helpers above are conveniences, not the ceiling.
+> Anything the host agent has enabled is reachable here — this is the floor the
+> wrappers are built on."
+
+**Keep the seam generic; put ergonomics above it, not inside it.** Thirty
+convenience methods on the seam would be thirty promises to keep. Thirty
+convenience methods above a generic `call` are a library, replaceable without
+touching the framework.
+
+This is the same shape as the measured facade in §5.7 of the outline — small
+seam, and what is deliberately absent is part of the design.
+
+### Consequence for chapter order
+
+The workflow chapter is not merely "later, when we get to it." It INVERTS
+control, and it needs the tool surface to already be the orchestration surface.
+Chapter 5 must therefore make the waiting condition serializable even though
+Chapter 5 itself only ever calls it in-process. That is the same class of
+decision as the `omitempty` agent tag: cheap now, a broken promise later.
+
 ## Open
 
-1. Does `Wait` belong on `Agent`, or on a separate `Watcher` that can span
-   several agents? The wake-any row wants the latter; the one-agent chapter
-   wants the former. Leaning: `Wait` on `Agent`, plus a free function that
-   merges observation streams, so the multi-agent case adds no method.
+1. PARTLY ANSWERED by §7: the SEAM's wait condition must be serializable data,
+   because the orchestrator may be a script in another process. A Go closure
+   `Wait` can still exist as an in-process convenience. Still open: whether the
+   merged multi-agent wait is a free function over agents or a `Watcher` type,
+   and what the closed set of serializable conditions should be for this book —
+   CodeRhapsody's five event kinds are a starting point, not a ruling.
 2. `PartDelta.Chunk` as `string` vs `[]byte`. String is friendlier in print and
    correct for chat/thinking/args; media never streams through this path.
 3. Whether `Submitted` is an `Observation`, an `Inbound` on the parent, or both.
