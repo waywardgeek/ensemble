@@ -537,58 +537,31 @@ did not have to prefer targeted edits — it preferred them *because the tool
 existed*. **Providing a tool changes behaviour, not just capability.** That is
 the answer to "how critical is it" — criticality is the wrong axis.
 
-Bill raised it himself: *"I'm not entirely sure we need anything other than
-run_command, though. It is more a matter that you actually use the other tools
-than how critical they are."*
-
-**He is right that it is sufficient.** `run_command` is Turing-complete. `cat`,
-`sed`, `ls` and `grep` cover every other tool on the list. That is exactly why
-"is it sufficient?" is the wrong test. A tool set is not a capability list; it
-is a set of affordances and constraints. Five reasons the dedicated tools earn
-their place, four of them receipted from the session that produced this file:
-
-1. **Loud failure.** `edit_file` refused an edit three times in one session
-   because a markdown heading was not repeated, and once because a word had
-   wrapped mid-anchor. `sed` would have silently done the wrong thing. A tool
-   that fails loudly beats one that succeeds ambiguously.
-2. **Portability.** Same session: `sed -i ''` (BSD) vs `sed -i` (GNU), and
-   `cat -A` unsupported on macOS. Every shell-based file operation carries that
-   tax. `edit_file` does not.
-3. **Context volume.** `read_file` has line ranges, per-line truncation and a
-   text limit. `cat` floods the context window, and you pay for that flood on
-   every subsequent turn.
-4. **Quoting.** Content containing quotes, backticks or newlines is hazardous
-   through a shell — backticks had to be escaped twice in this session to stop
-   the shell executing a table that was being generated.
-5. **You cannot withhold a capability you have bundled into a shell.** This is
-   the one that matters, and it is chapter 7's spine. A read-only agent is
-   expressible as `read_file` + `list_directory` + `search_files`. It is *not*
-   expressible if reading is `run_command cat`. `coderhapsody`'s
-   `cr/docs/workflow-design.md` already specifies a `readonly-agent` skill
-   defined exactly this way, and `sandbox-design.md` states the rule directly:
-   the required boundary is a function of the tools held.
-
-**The framing for the chapter:**
-
-> `run_command` is the tool that makes the agent capable. The others are what
-> make it steerable, auditable, and containable.
-
-And the empirical kicker: `edit_file` outnumbers `write_file` **7:1**. The model
-did not have to prefer targeted edits — it preferred them *because the tool
-existed*. **Providing a tool changes behaviour, not just capability.** That is
-the answer to "how critical is it" — criticality is the wrong axis.
-
 ---
 
 ## 8. Open for Bill
 
 
-1. Confirm the corrected thesis is how it actually went, not tidying.
-2. Verify the sub-agent introduction date (~Dec 2025?).
+**RULED, recorded here so they are not re-litigated:**
+
+- *The corrected thesis* — the process model is earned by tools that cross a
+  boundary you do not control. Confirmed by Bill: blocking `run_command` was
+  trivial to build first, and he did exactly that during the StackAgent sprint.
+- *Chapter 4's cold open* — the `screenshot` hang, with the MCP hang as the
+  generalization. Specific failure first, then the class of failure.
+- *Chapter 3's declined decision* — `edit_file`'s failure contract.
+- *The tool set* — the eight above, plus a ruling still owed on `kill_job`.
+
+**STILL OPEN:**
+
+1. `kill_job` — in or out? Without it the student cannot implement the "kill it"
+   branch of chapter 4's declined decision: they would be offered three answers
+   and able to build two.
+2. Verify the sub-agent introduction date (~Dec 2025?). Chapter 8's territory,
+   unverified, not to be printed until checked.
 3. The PTY trouble with `run_command` — Bill recalls "a lot of trouble" and that
    it is probably a real incident, but details need a history-log search. Not yet
    done. Memory fragment to check: PTY per **job** not per **session**, because
-   shared mutable state destroys replay.
-4. Does chapter 3 open on the `screenshot` hang, or on an MCP hang? The
-   screenshot one is better documented; the MCP one is more representative of
-   the thesis and points at chapter 5.
+   shared mutable state destroys replay. Chapter 4 material if it pans out, and
+   chapter 4 already has a receipted war story, so this is a bonus rather than a
+   dependency.
