@@ -18,6 +18,20 @@ fixed in nine places, by hand, with nine chances to miss one. And P2 already
 promises students they may rebase from our solution at any chapter, which means
 these copies are a *maintained baseline* we have committed to keeping correct.
 
+The stale banner is cosmetic. Here is the same disease doing real damage. When a
+vendor returned an error, Chapter 1's agent propagated it and exited non-zero.
+Chapters 2 and 3 printed the error as JSON and **exited 0**: a failed run that
+reported success, in the book whose argument is that green dashboards lie. The
+property was not argued away or traded off. It was simply lost in the copy, and
+it stayed lost for two chapters because every grader scored 100 throughout.
+
+Note the direction. Copy-paste does not only carry defects *forward*, which is
+the failure everyone anticipates. It silently drops properties the earlier
+chapter already had, and nothing in the process is looking backward to notice.
+A linear history cannot lose Chapter 1's exit code in Chapter 2, because
+Chapter 2 *is* Chapter 1 plus a diff. That is the argument for this restructure,
+and it is not an argument about tidiness.
+
 ## The proposal
 
 One linear history where the agent is built commit by commit, with a tag at each

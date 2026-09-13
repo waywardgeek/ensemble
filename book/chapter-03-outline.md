@@ -679,9 +679,14 @@ working code after a chapter that does not go well, and there will be one.
 
 This is the part to actually do.
 
-`live.sh` is a harness: it runs your agent inside the course repo, which is fine
-for a demo and useless for work. Build the binary and put it somewhere on your
-path instead:
+`live.sh` is a harness: it runs your agent in a scratch directory it creates for
+the purpose, which is fine for a demo and useless for work. It runs somewhere
+disposable for a reason. Chapter 3 is the first chapter whose agent can *write*,
+and the first time we ran this demo against the book's own repository it invented
+a project codename and saved it to a file in the root. The demo worked perfectly.
+It also left something behind, which a demo has no business doing.
+
+Build the binary and put it somewhere on your path instead:
 
     cd solutions/ch03 && go build -o ~/bin/ch3agent .
 
