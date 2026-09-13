@@ -422,7 +422,7 @@ exact commands:
 - **Against a live vendor** — any of the three. This is the outer loop. Run it
   when you have something working, not while you are debugging. It costs
   tokens: a `rounds` run of chapter 3 was 9k input / 400 output on Anthropic,
-  3k / 1.3k on OpenAI, 3k / 300 on Gemini — a few cents.
+  3k / 1.3k on OpenAI, 3.6k / 375 on Gemini — a few cents.
 
   ```bash
   scripts/live.sh 3 anthropic models   # which model IDs your key can actually use — free
