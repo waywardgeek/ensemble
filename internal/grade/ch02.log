@@ -1,5 +1,0 @@
-{"log_version":1}
-{"seq":1,"type":"message_received","time":"2026-09-12T20:27:20.690862Z","message":{"actor":"human","parts":[{"type":"text","text":"Hello! I'm starting a new project. Give it a codename and remember it."}]}}
-{"seq":2,"type":"request_sent","time":"2026-09-12T20:27:20.691026Z","request":{"to":{"vendor":"anthropic","model":"claude-fake-course-1","surface":"messages"}}}
-{"seq":3,"type":"response_started","time":"2026-09-12T20:27:20.691822Z"}
-{"seq":4,"type":"response_ended","time":"2026-09-12T20:27:20.691823Z","response":{"parts":[{"type":"text","text":"Welcome aboard. Your project's codename is TANAGER-4417, and I'll remember it."}],"usage":{"input":25,"cache_write":0,"cache_read":0,"output":20},"from":{"vendor":"anthropic","model":"claude-fake-course-1","surface":"messages"}}}

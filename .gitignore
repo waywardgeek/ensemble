@@ -1,7 +1,16 @@
 /grade
 /fakevendor
 /ch01
+/ch02
+/ch03
 *.test
 .DS_Store
 testdata/slowtool/
 testdata/mutants/
+
+# Event logs are run OUTPUT, not source. Tracking one meant every manual run of
+# a solution showed up as a modification and added noise to every git status.
+# The rule covers *.log rather than one filename because the default log name is
+# derived from the executable: a binary built from solutions/ch03 writes
+# ch03.log, and one you named yourself writes whatever you named it.
+*.log

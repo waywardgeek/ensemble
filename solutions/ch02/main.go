@@ -6,14 +6,63 @@ package main
 //	./ch02 chat         the interactive loop from Chapter 1
 //	./ch02 render LOG   play LOG -> context -> render; print the request JSON
 //	./ch02 dump         write the event log as JSON-lines
+//	./ch02 --help       print the commands table
 
 import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
+	"path/filepath"
 	"strings"
 )
+
+// fallbackName is used only when os.Args[0] is empty or degenerate, which
+// happens when a process is exec'd with an empty argv. It is not the normal
+// path and never the one a student sees.
+const fallbackName = "ch02"
+
+// progName is the name this binary was invoked as. Deriving it once means the
+// usage text, the `render` usage line and the default log name all agree with
+// whatever the executable is actually called — so a binary built from
+// solutions/ch03 calls itself ch03 and writes ch03.log, instead of claiming to
+// be ch02 and scribbling into ch02.log.
+func progName() string {
+	base := filepath.Base(os.Args[0])
+	if base == "." || base == string(os.PathSeparator) || base == "" {
+		return fallbackName
+	}
+	return base
+}
+
+// defaultLogPath is the log used when CH02_LOG is unset. The environment
+// variable keeps its name: students who passed Chapter 2 read CH02_LOG, and
+// renaming it would break them for no gain. Only the DEFAULT changes.
+func defaultLogPath() string { return progName() + ".log" }
+
+// usage prints the commands table. It goes to stdout when the user asked for
+// it and to stderr when they got here by making a mistake, which is the
+// ordinary Unix split: asked-for output is data, unasked-for output is
+// diagnostics.
+func usage(w io.Writer) {
+	p := progName()
+	fmt.Fprintf(w, `%[1]s — one log, three vendors.
+
+usage:
+  %[1]s                grader mode: read a JSON-lines log on stdin
+  %[1]s chat           interactive loop; type a message, ctrl-D to exit
+  %[1]s render LOG     play LOG -> context -> render; print the request JSON
+  %[1]s dump           write the event log as JSON-lines
+  %[1]s --help         print this table
+
+environment:
+  LLM_VENDOR           anthropic (default), openai or gemini
+  LLM_MODEL            model id; overrides the vendor default
+  LLM_API_KEY          API key (or ANTHROPIC_/OPENAI_/GEMINI_API_KEY)
+  CH02_LOG             event log path (default %[2]s)
+`, p, defaultLogPath())
+}
 
 // The system prompt is a CONSTANT, computed nowhere and stored nowhere. For
 // this chapter a constant is a perfectly good renderer. The rule is only about
@@ -32,12 +81,17 @@ func main() {
 		fmt.Fprintln(os.Stderr, "config:", err)
 		os.Exit(2)
 	}
-	logPath := envOr("CH02_LOG", "ch02.log")
+	logPath := envOr("CH02_LOG", defaultLogPath())
 
 	switch mode {
+	case "--help", "-h", "help":
+		// Asked for, so it is data: stdout, exit 0. A --help that exits
+		// nonzero cannot be piped into a pager without the shell complaining.
+		usage(os.Stdout)
+
 	case "render":
 		if len(args) < 2 {
-			fmt.Fprintln(os.Stderr, "usage: ch02 render LOG")
+			fmt.Fprintf(os.Stderr, "usage: %s render LOG\n", progName())
 			os.Exit(2)
 		}
 		// `render` takes NO FLAGS. Vendor and model come from the
@@ -76,7 +130,10 @@ func main() {
 		}
 
 	default:
-		fmt.Fprintf(os.Stderr, "unknown command %q\n", mode)
+		// Naming the bad token and then showing what the valid ones ARE is the
+		// whole difference between a diagnostic and a shrug.
+		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", mode)
+		usage(os.Stderr)
 		os.Exit(2)
 	}
 }
@@ -100,9 +157,20 @@ func runLoop(cfg Config, logPath string, interactive bool) (vendorFailed bool) {
 	defer out.Flush()
 
 	if interactive {
-		fmt.Fprintln(os.Stderr, "ch02 — type a message, ctrl-D to exit")
+		fmt.Fprintf(os.Stderr, "%s — type a message, ctrl-D to exit\n", progName())
 		fmt.Fprint(os.Stderr, "> ")
+	} else if isTerminal(os.Stdin) {
+		// A human typed the bare command and is now looking at a blank line,
+		// wondering whether it hung. Say what this mode is BEFORE they type
+		// prose at it, not after. Grader stdin is a pipe, so this never fires
+		// under grading.
+		fmt.Fprintf(os.Stderr, "%[1]s: reading a JSON-lines log on stdin, one object per line, e.g. {\"user\":\"Hi.\"}\n", progName())
+		fmt.Fprintf(os.Stderr, "for an interactive chat run `%[1]s chat`; `%[1]s --help` lists every command\n", progName())
 	}
+
+	// hinted keeps the long explanation to once per session: a malformed
+	// 10,000-line file should not print 10,000 identical paragraphs.
+	hinted := false
 
 	for in.Scan() {
 		line := strings.TrimSpace(in.Text())
@@ -120,7 +188,21 @@ func runLoop(cfg Config, logPath string, interactive bool) (vendorFailed bool) {
 				Ephemeral *string `json:"ephemeral"`
 			}
 			if err := json.Unmarshal([]byte(line), &msg); err != nil {
+				// The stdout line is the machine protocol and is unchanged,
+				// byte for byte. The EXPLANATION goes to stderr, where a human
+				// reading their terminal sees it and a program parsing stdout
+				// does not. "invalid character 'H'" is accurate and useless;
+				// it names the symptom and not the mistake.
 				emit(out, map[string]string{"error": "bad input: " + err.Error()})
+				if !hinted {
+					hinted = true
+					fmt.Fprintf(os.Stderr,
+						"\n%[1]s: that line is not JSON.\n"+
+							"This mode reads a JSON-lines log on stdin — one object per line, e.g.\n"+
+							"    {\"user\":\"Hi.\"}\n"+
+							"To type messages yourself, run `%[1]s chat`.\n"+
+							"`%[1]s --help` lists every command.\n\n", progName())
+				}
 				continue
 			}
 			// A directive is acknowledged so that one unhandled directive
@@ -218,6 +300,15 @@ func parseVendor(s string) (Vendor, error) {
 		return VendorGemini, nil
 	}
 	return 0, fmt.Errorf("unknown vendor %q (want anthropic, openai or gemini)", s)
+}
+
+// isTerminal reports whether f is attached to a terminal rather than a pipe or
+// a file. It is the difference between "a person is typing at me" and "a
+// program is feeding me", and it is the only thing that decides whether the
+// bare-invocation banner prints. Under grading stdin is always a pipe.
+func isTerminal(f *os.File) bool {
+	fi, err := f.Stat()
+	return err == nil && fi.Mode()&os.ModeCharDevice != 0
 }
 
 func envOr(k, def string) string {

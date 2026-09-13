@@ -21,6 +21,14 @@
 # requests as the history grows — on the order of 20k input tokens, a few
 # cents at 2026 prices. `chat` costs whatever you type.
 #
+# The agent runs in a FRESH TEMP DIRECTORY, not in the course repo. Chapter 3's
+# agent can write files and run commands, and its working directory is the only
+# thing deciding where a relative path lands — the scripted demo once left a
+# PROJECT_CODENAME.txt in the repo root. The temp directory is seeded with a few
+# small files (four of them ending in .md, which is what round 2 counts) and is
+# left behind after the run so you can see what the agent did in it. The path is
+# printed at startup.
+#
 # To run with NO key and NO cost, use the fake instead:
 #
 #   go run ./cmd/fakevendor -ch 3 -vendor gemini chat
@@ -97,6 +105,75 @@ export LLM_VENDOR="$vendor"
 base="${!base_var:-$default_base}"
 solution="./solutions/ch0$chapter"
 
+# --- a scratch directory, OUTSIDE the repository ----------------------------
+#
+# Chapter 3's agent has write_file and run_command, and its working directory is
+# the only thing deciding where a relative path lands. Run it in the repo and it
+# writes into the repo: the scripted demo once invented a codename and left
+# PROJECT_CODENAME.txt sitting in the repo root. Nothing was sandboxed; it was
+# simply standing in the wrong place. So the agent now runs in a fresh temp
+# directory and the repository that holds the book is never the thing it is
+# standing in.
+#
+# The seeded files also make the demo SELF-CONTAINED. Round 2 asks how many
+# entries end in .md. Pointed at the course repo that answer changed every time
+# a chapter was added — the demo was already non-deterministic, and a bare
+# scratch directory would have made the answer zero.
+#
+# The files being counted live in notes/, one level down, and NOT in the
+# directory the agent is standing in. That is deliberate and was learned the
+# hard way: on the first run of this script the agent answered round 1 by
+# writing its codename to PROJECT_CODENAME.md in the working directory, which
+# is a .md file, which made round 2 answer 5 instead of 4. The agent was
+# perturbing the very thing it was about to be asked to measure. Counting a
+# directory it has no reason to write into leaves it free to demonstrate that it
+# CAN write — the point of the exercise — without moving the answer.
+md_fixtures=4
+setup_scratch() {
+	run_root="$(mktemp -d "${TMPDIR:-/tmp}/live-ch0$chapter.XXXXXX")"
+	bin="$run_root/bin/ch0$chapter"
+	work="$run_root/work"
+	mkdir -p "$run_root/bin" "$work/notes"
+
+	go build -o "$bin" "$solution"
+
+	cat >"$work/notes/README.md" <<'EOF'
+# Scratch project
+
+A throwaway project for a live agent demo. Nothing here is precious, and
+nothing here is in the course repository.
+EOF
+	cat >"$work/notes/design-notes.md" <<'EOF'
+# Design notes
+
+The agent is standing in a temp directory, not in the repo that holds the book.
+EOF
+	cat >"$work/notes/meeting-minutes.md" <<'EOF'
+# Meeting minutes
+
+Decided: keep the demo self-contained, so its correct answer does not drift
+every time the course gains a chapter.
+EOF
+	cat >"$work/notes/glossary.md" <<'EOF'
+# Glossary
+
+scratch directory — somewhere an agent may write without consequence.
+EOF
+	# Two distractors, so "how many end in .md" is a real filter over six
+	# entries rather than a head count of the directory.
+	cat >"$work/notes/config.json" <<'EOF'
+{"name": "scratch", "version": 1}
+EOF
+	cat >"$work/notes/run.sh" <<'EOF'
+#!/usr/bin/env bash
+echo "a distractor whose name does not end in .md"
+EOF
+
+	echo "working directory: $work"
+	echo "(a scratch directory outside the repo; it is left behind so you can see"
+	echo " what the agent did in it)"
+}
+
 # --- modes -----------------------------------------------------------------
 case "$mode" in
 models)
@@ -130,20 +207,27 @@ for m in json.load(sys.stdin).get('models', []):
 
 chat)
 	echo "chapter $chapter, $vendor, model: ${LLM_MODEL:-${!model_var:-(solution default)}}"
-	exec go run "$solution" chat
+	setup_scratch
+	cd "$work"
+	exec "$bin" chat
 	;;
+
 
 rounds)
 	echo "chapter $chapter, $vendor, model: ${LLM_MODEL:-${!model_var:-(solution default)}}"
+	setup_scratch
+	cd "$work"
 	if [ "$chapter" = 3 ]; then
 		echo "three live rounds — round 2 needs a tool, round 3 asks it to recall round 1,"
 		echo "which only works if the tool loop ran and the whole history is being resent."
+		echo "round 2 has exactly one right answer here: of the six entries in"
+		echo "notes/, $md_fixtures end in .md."
 		echo
 		printf '%s\n' \
 			'{"user":"Hello! I am starting a new project. Give it a one-word codename and remember it."}' \
-			'{"user":"Use your list_directory tool on the current directory and tell me how many entries end in .md. Do not guess; call the tool."}' \
+			'{"user":"Use your list_directory tool on the notes directory and tell me how many entries end in .md. Do not guess; call the tool."}' \
 			'{"user":"What codename did you give my project?"}' |
-			go run "$solution"
+			"$bin"
 	else
 		echo "three live rounds — round 3 asks it to recall what it said in round 1,"
 		echo "which only works if the whole history is being resent."
@@ -152,7 +236,8 @@ rounds)
 			'{"user":"Hello! I am starting a new project. Give it a codename and remember it."}' \
 			'{"user":"What is the capital of France?"}' \
 			'{"user":"What codename did you give my project?"}' |
-			go run "$solution"
+			"$bin"
 	fi
 	;;
+
 esac
