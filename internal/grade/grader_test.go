@@ -104,6 +104,10 @@ func TestMutationsAreCaught(t *testing.T) {
 			"two API calls per round: the answers come from the wrong response"},
 		{"fabricate", []string{"calls", "growth", "memory", "replies", "usage", "wire"},
 			"never calls the API at all"},
+		{"firstblock", []string{"memory", "replies"},
+			"reads content[0].text instead of walking the block list and concatenating"},
+		{"hardkey", []string{"wire"},
+			"hardcodes an API key instead of reading ANTHROPIC_API_KEY"},
 	}
 
 	for _, tc := range cases {

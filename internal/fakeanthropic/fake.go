@@ -200,8 +200,13 @@ func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
 		rec.Violations = append(rec.Violations,
 			fmt.Sprintf("path %q does not end in /messages (expected /v1/messages)", r.URL.Path))
 	}
-	if r.Header.Get("x-api-key") == "" {
+	if got := r.Header.Get("x-api-key"); got == "" {
 		rec.Violations = append(rec.Violations, "missing x-api-key header")
+	} else if got != ExpectedAPIKey {
+		rec.Violations = append(rec.Violations, fmt.Sprintf(
+			"x-api-key was %q, but the grader put %q in ANTHROPIC_API_KEY "+
+				"— read the key from the environment instead of hardcoding one",
+			truncateKey(got), ExpectedAPIKey))
 	}
 	if r.Header.Get("anthropic-version") == "" {
 		rec.Violations = append(rec.Violations, "missing anthropic-version header")
@@ -285,7 +290,7 @@ func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
 		"type":          "message",
 		"role":          "assistant",
 		"model":         "claude-fake-course-1",
-		"content":       []map[string]string{{"type": "text", "text": reply}},
+		"content":       splitIntoBlocks(reply),
 		"stop_reason":   "end_turn",
 		"stop_sequence": nil,
 		"usage":         rec.Usage,
@@ -305,4 +310,52 @@ func (s *Server) TotalUsage() Usage {
 		t.OutputTokens += r.Usage.OutputTokens
 	}
 	return t
+}
+
+// ExpectedAPIKey is the credential the grader puts in ANTHROPIC_API_KEY. The
+// fake requires this exact value.
+//
+// It used to accept any non-empty string, which graded §1.2's "read all three,
+// hardcode none" vacuously: deleting the os.Getenv call and hardcoding a
+// plausible-looking key still scored 100. Comparing against the value the
+// harness actually supplied is the whole fix, and it costs one equality.
+const ExpectedAPIKey = "sk-ant-course-grader-fake"
+
+// truncateKey keeps a credential out of the transcript while still showing the
+// student enough to recognise their own hardcoded string.
+func truncateKey(k string) string {
+	if len(k) <= 12 {
+		return k
+	}
+	return k[:12] + "..."
+}
+
+// splitIntoBlocks renders one reply as SEVERAL text blocks.
+//
+// §1.2 tells the student that content is "always a list of typed blocks. Walk
+// it and concatenate the text blocks", and calls reading content[0].text the
+// classic day-one stumble. A fixture that only ever served ONE block graded
+// that instruction vacuously — the stumble the chapter warns about loudest
+// scored full marks. Serving two blocks makes the walk load-bearing.
+//
+// The blocks concatenate to exactly `reply`, so every expected answer, and the
+// output token count derived from it, are unchanged.
+func splitIntoBlocks(reply string) []map[string]string {
+	one := []map[string]string{{"type": "text", "text": reply}}
+	third := len(reply) / 3
+	if third == 0 {
+		return one
+	}
+	i := strings.IndexByte(reply[third:], ' ')
+	if i < 0 {
+		return one
+	}
+	cut := third + i + 1 // the space stays on the first block
+	if cut <= 0 || cut >= len(reply) {
+		return one
+	}
+	return []map[string]string{
+		{"type": "text", "text": reply[:cut]},
+		{"type": "text", "text": reply[cut:]},
+	}
 }

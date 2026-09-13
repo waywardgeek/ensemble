@@ -100,7 +100,7 @@ func Run(bin string) (*RunResult, error) {
 	cmd := exec.Command(bin)
 	cmd.Env = append(os.Environ(),
 		"ANTHROPIC_BASE_URL="+baseURL,
-		"ANTHROPIC_API_KEY=sk-ant-course-grader-fake",
+		"ANTHROPIC_API_KEY="+fakeanthropic.ExpectedAPIKey,
 		"ANTHROPIC_MODEL=claude-fake-course-1",
 		// Belt and braces: a student who wired the base URL under a different
 		// name still lands on the fake rather than on the real API.

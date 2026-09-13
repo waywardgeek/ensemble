@@ -60,7 +60,11 @@ func main() {
 		if err != nil {
 			return "", err
 		}
-		hreq.Header.Set("x-api-key", key)
+		hdrKey := key
+		if mutation == "hardkey" {
+			hdrKey = "sk-ant-hardcoded-by-student"
+		}
+		hreq.Header.Set("x-api-key", hdrKey)
 		hreq.Header.Set("content-type", "application/json")
 		if mutation != "noversion" {
 			hreq.Header.Set("anthropic-version", "2023-06-01")
@@ -78,8 +82,16 @@ func main() {
 		inTok += parsed.Usage.InputTokens
 		outTok += parsed.Usage.OutputTokens
 		var text strings.Builder
-		for _, b := range parsed.Content {
-			text.WriteString(b.Text)
+		if mutation == "firstblock" {
+			// The classic day-one stumble: read content[0].text and ignore
+			// the rest of the list.
+			if len(parsed.Content) > 0 {
+				text.WriteString(parsed.Content[0].Text)
+			}
+		} else {
+			for _, b := range parsed.Content {
+				text.WriteString(b.Text)
+			}
 		}
 		return text.String(), nil
 	}
