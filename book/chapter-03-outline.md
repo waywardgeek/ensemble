@@ -387,6 +387,19 @@ kinder than reality and the score said everything was fine.
 That is the failure mode this book exists to attack, and we shipped it in our
 own harness. It is in the chapter now precisely because it is embarrassing.
 
+It happened twice, in opposite directions, which is what makes it a rule rather
+than an anecdote. The first time the fake was too generous in what it **sent**.
+The second time it was too permissive in what it **accepted**: our OpenAI
+renderer emitted `"content": null` on an empty assistant turn, and the fake took
+it without complaint for weeks. The real API rejects it outright. The bug only
+ever appeared live, intermittently, and only when a reply was truncated at the
+token limit: roughly one run in five, which is the worst possible frequency,
+often enough to happen to a reader and rare enough to look like bad luck.
+
+So the fake lies in both directions of the seam, and the two lies are not
+symmetrical. A fake that sends too much inflates your score. A fake that accepts
+too much hides a bug until a stranger runs your code.
+
 This is what step 4 is for. The corrections in our wire-verification record all
 came from probes, and every one of them went back into the fake. The most
 useful thing we learned doing it: **no model has the vendors' token-accounting

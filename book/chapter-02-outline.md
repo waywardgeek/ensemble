@@ -959,6 +959,26 @@ is an `ErrorOccurred`, not a response.
 - **Media asymmetry is a LOUD error.** An audio part rendered for a text-only
   model raises; it never silently drops. Fallbacks convert an invariant
   violation into silently-wrong output.
+- **Empty is not absent, and the seam must keep them apart.** A vendor may
+  legally return `content: ""` — an assistant turn that genuinely produced no
+  text. If the parser decides an empty string is not worth recording, the turn
+  becomes structurally empty, and the renderer, asked to serialize *nothing*,
+  reaches for `null`. We shipped exactly this bug. OpenAI returned
+
+      "message": {"role":"assistant","content":"","refusal":null},
+      "finish_reason": "length",
+      "usage": {"completion_tokens_details":{"reasoning_tokens":1024}}
+
+  and our very next request on the same wire said
+
+      {"role":"assistant","content":null}
+
+  which that API rejects on a bare assistant message. Note what this is *not*:
+  the vendor was consistent, accepting `""` and refusing `null` throughout. The
+  round trip lost the distinction, and a value the vendor never sent came back
+  to it as an error. The other two renderers were already correct, which is the
+  tell — when one of three implementations of a seam is wrong, the seam is
+  usually fine and the implementation is lazy.
 - **Opaque replay material is carried, never interpreted.** Thinking
   signatures, tool-use ids, cache markers: store them, hand them back to the
   **exact model** that issued them, and never to a different one. Match the
