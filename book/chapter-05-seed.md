@@ -114,11 +114,111 @@ Constraints on the choice: it must use genuinely different tools (or the seam is
 not exercised) and stay deterministic against the fake vendor (or it is not
 gradeable).
 
-OPEN — Bill's call. Recommendation: a scheduler/reminder agent. It has a clock
-instead of a filesystem, notification output instead of edits, and it exercises
-the observer seam from the other side because the notifier IS an observer.
-Receipt that this is not hypothetical: Puffin is a real non-coding agent built on
-the CodeRhapsody agent library.
+### CANDIDATE EXERCISE (Bill, 2026-09-13): author / editor / reviewer
+
+> "Maybe the exercise could be like author-editor? Three agents, author, editor,
+> and reviewer? A simplified version that has a Go hard-coded workflow giving
+> tools to the 3 agents to enable them to do their work? I did that, maybe 1,000
+> lines of code, and didn't work great. It would help motivate dynamic workflows
+> later on."
+
+**The artifact exists and is better material than a designed exercise.**
+`~/projects/coderhapsody/examples/author_editor/main.go` — 1,544 lines, with
+README.md and design.md. Verified 2026-09-13.
+
+Why this beats the chat-agent exercise: it motivates THREE later chapters at once.
+
+| what is hardcoded in the exercise      | the chapter it motivates |
+|----------------------------------------|--------------------------|
+| the orchestration, in Go                | dynamic workflows        |
+| three agent definitions (tools+prompt)  | skills — the same thing as DATA |
+| coordination living outside the agents  | sub-agent management     |
+
+It also does NOT contradict deferring sub-agents. A Go program constructing three
+agents and passing messages is not an agent spawning children through its own
+tool surface. Teaching that distinction is worth the page: multi-agent does not
+require a sub-agent API — you can just write Go. (Note the shipped example DOES
+use sub-agents of an Orchestrator; the ch5 version is Bill's "simplified"
+variant, which should construct the agents directly instead.)
+
+And three agents prove the chapter's claim better than one: if the seam is right,
+agents two and three are nearly free. If they are not, the seam is wrong. The
+exercise measures the chapter's own thesis.
+
+#### The mechanism in the shipped example is the thing this book teaches you to stop doing
+
+From its README, verbatim:
+
+> "When the Author calls `reach_out_to_editor`, the tool pushes the message to a
+> Go channel and **blocks**. The Author's LLM pauses execution. The Editor's
+> `suggest_improvement` tool receives the message, processes it, and sends
+> feedback back through another channel. The Author's tool unblocks, returning
+> the Editor's feedback as the tool result."
+>
+> "To the LLMs, it looks like a normal synchronous tool call. To the Go runtime,
+> it's two parallel goroutines safely passing messages."
+
+This is genuinely elegant, and it is the deafness BY CONSTRUCTION. While the
+Author waits on the Editor it is parked inside a tool call and can hear nothing —
+the same defect as the 11.4s blackout, reached from a different direction.
+
+Corroborating smell, also from the README: "**Turn Enforcement**: The Go code
+enforces turn-taking. If an agent tries to call the other out of turn, the tool
+returns an error instructing them to finish their thought." That reads as a
+workaround for the same limitation.
+
+HYPOTHESIS CORRECTED BY BILL, same session: he first wrote "didn't work great,"
+then clarified — "**It worked OK.**" Do not build a demolition framing on it. My
+blocking-tool hypothesis is demoted from verdict to technical observation: the
+blocking coordination is real and worth noticing, but it is not the reported
+failure, and the book must not put a stronger complaint in his mouth than he
+made.
+
+The honest motivation is RIGIDITY, not failure, and it is what he actually said:
+"It would help motivate dynamic workflows later on." The workflow works and is
+hardcoded, so every new collaboration pattern is new Go code. That is a better
+argument for dynamic workflows than breakage would have been, because it cannot
+be dismissed as a bug someone should have fixed.
+
+Chapter rhythm, restated accordingly: students build a version that WORKS, and
+feel its rigidity. Not "build the broken thing."
+
+#### Then what happens to the chat/Discord agent?
+
+RECOMMENDATION: move it to the gateway chapter, which needs a worked example
+anyway and for which Discord is the real use case (Puffin). Both of Bill's ideas
+get used, each where it is strongest.
+
+OPEN — Bill's call. Earlier candidate, now second choice:
+
+MY RECOMMENDATION: take the chat agent, defer the gateway to its own chapter, and
+make the channel a FAKE in ch5.
+
+Why the chat agent beats my earlier scheduler suggestion: **it exercises both
+seams symmetrically, and nothing else does.** A channel is an observer outbound
+and a mailbox source inbound. Messages arrive whenever they arrive, so the
+mailbox stops being a hint convenience and becomes the obvious way to receive a
+message. The exercise then motivates the chapter's central mechanism instead of
+merely consuming it.
+
+Why the gateway is its own chapter:
+- Its real content is security and deployment — Noise-KK mutual identity, routing
+  as a deterministic control plane, trust levels and the provenance envelope,
+  at-least-once delivery, scheduled jobs going through the same router with no
+  privileged back door. That buries the seam under crypto in what is already the
+  book's largest chapter.
+- It is where input starts arriving from the OUTSIDE WORLD, which is the
+  prompt-injection setup. It wants the security chapter's vocabulary.
+- The split creates the payoff: the gateway chapter is where THE FAKE CHANNEL
+  BECOMES REAL, and if the ch5 seam was right, that swap touches no framework
+  code. Same arc as replacing the fake vendor with a real one. It PROVES the
+  chapter's claim rather than asserting it.
+
+Determinism is preserved by the fake channel, consistent with the fakes-first
+section of the tools chapter: no network, no Discord token, no cost.
+
+Receipt that a non-coding agent on this framework is real, not hypothetical:
+Puffin is a Discord family assistant built on the CodeRhapsody agent library.
 
 ## Constraints on the seam (Bill, 2026-09-13)
 
@@ -399,6 +499,117 @@ What this chapter does instead: preview the surface, build the one-agent case,
 and make sure the waiting primitive is epoll-shaped so the later chapter is
 reachable.
 
+## Supervision IS observation (Bill, 2026-09-13)
+
+> "Of course we want to observe and inject hints mid-turn. We need to make it so
+> the parent doesn't need to read history.md, and instead can see current
+> thinking, chat, and redacted tool calls, with the ability to get the actual
+> tool call data from the sub-agent's io files, or in-memory files."
+
+This is the chapter's biggest simplification, and it should be stated outright:
+
+**The GUI, the history-file writer, and a parent supervising a child are the same
+seam.** A parent attaching to a child is an observer registration carrying an
+agent identity. Injecting a hint is a write into that child's mailbox — the same
+queue the user's hints and the tool completions arrive on. Supervision needs no
+new mechanism at all. That is the property worth printing.
+
+It also DIAGNOSES the measured bug above. `wait_for_agent_change` returns
+unbounded history (307,984 bytes in one call) precisely because supervision was
+built as "read the child's history file." "The parent doesn't need to read
+history.md" is the fix, expressed as a requirement.
+
+### What the supervision stream carries
+
+- current thinking
+- current chat
+- tool calls, REDACTED by default (name, and params subject to a cap)
+- tool results, whole but capped
+- a REFERENCE that lets the observer fetch the full payload on demand, from the
+  child's io files or in-memory buffers
+
+This is the jobs chapter's rule reused, not reinvented: summary inline, full
+payload by reference, universal spill so truncation is paging rather than loss.
+One mechanism now serves three needs — tool output caps, observer volume, and
+parent supervision. That is an argument for the jobs chapter's design, made one
+chapter later.
+
+### One `Ref` type answers both blocking questions
+
+The two open questions that blocked the Go types turn out to have a single
+answer, because they are the same shape: *the content is elsewhere, here is how
+to get it.*
+
+| case                      | reference form                          |
+|---------------------------|------------------------------------------|
+| multimedia, inline        | bytes (base64 on the wire)               |
+| multimedia, local         | file path                                |
+| multimedia, remote        | URI — File API, `gs://`, external URL    |
+| redacted tool call/result | handle into the io files, or in-memory   |
+
+So: ONE `Ref` with those cases, used by the media part AND by the redaction stub.
+Chapter 2's existing `RedactedPart{Stub}` becomes a stub that CARRIES a Ref, at
+which point redaction is recoverable by construction rather than by convention.
+
+Shipping receipt: CodeRhapsody's own tool-result redaction already drops a stub
+that cites `cr/io/<handle>`, which is exactly why a redacted result is
+recoverable. The mechanism is not speculative.
+
+RULED by Bill: amend Chapter 2 rather than patching around it in ch5. His words:
+"By the time we finish the book's outline, the ch 2 outline will finally be
+correct." P1 permits this — additive means architecture, not files.
+
+### Agent state is observable AND waitable (Bill, 2026-09-13)
+
+> "We'll need a blocking send_message or something like it that maybe requires a
+> submit_result, or something like that. Or a wait_for_agent where we wake up and
+> can check on progress and agent state. The new system has the agent state
+> directly in the context, which is nice. We can for example wait for the end of
+> the agent's turn trivially I suspect. We just need the ability to have
+> observers waiting for state changes, such as ending turn."
+
+This supplies the primitive the seam was still missing. The observer seam carries
+TWO kinds of thing, not one:
+
+1. **Content** — thinking, chat, tool call parameters, tool results. Parts with
+   identity, deltas, and a finalizer (see the streaming rule).
+2. **State transitions** — turn started, turn ended, idle, processing, blocked
+   awaiting a parent decision. These are events on the same stream.
+
+And observers must be able to do two things with them: receive them as they
+arrive (push), and BLOCK until one matching a predicate occurs (wait). "Wait for
+end of turn" is the canonical case.
+
+**Agent state is explicit, not inferred.** Bill: "the new system has the agent
+state directly in the context." The framework holds a state machine; nothing
+parses a history file to discover whether a turn ended. This is the same fix as
+"the parent doesn't need to read history.md," one level down — and it is why
+waiting for end-of-turn is trivial rather than heuristic. It also retires the
+`DONE:` marker contradiction recorded above: a marker in text is a heuristic, a
+state transition is a fact.
+
+#### Everything else is built from those two primitives
+
+| operation                  | = observe + wait, expressed as              |
+|----------------------------|---------------------------------------------|
+| blocking send message      | write to mailbox, then wait for turn-end     |
+| wait for agent             | wait for next state change on one agent      |
+| join agents                | wait for terminal state on every agent       |
+| wait for agents (wake-any) | wait for ANY state change or message, N agents |
+| check progress             | read current state; no waiting at all        |
+
+That is the whole sub-agent waiting surface, derived rather than enumerated,
+which is a strong sign the primitive is the right one. Note that `join_agents`
+and wake-any differ only in the predicate — not in mechanism.
+
+**`submit_result`.** A blocking send that returns a STRUCTURED result needs a
+completion mechanism the agent invokes deliberately: the submit tool plus a
+schema. Worth keeping distinct in the prose — "the turn ended" and "the agent
+produced a result" are different facts, and conflating them is exactly how a
+framework ends up with a self-reported success flag (see the no-success-flag
+property above). Terminal state says the agent stopped; submit says what it
+produced; neither says the work was correct.
+
 ## Risks
 
 - **Scope.** Actors + mailbox + observers + framework extraction + a second agent
@@ -420,10 +631,14 @@ is needed. Its "What this chapter deliberately cannot finish" section stands.
 Ordered by what blocks the Go types, since those print inline and cannot be
 quietly changed later.
 
-1. **`BlobPart` reference shape.** Local `Path` cannot express a File API URI, a
-   `gs://` URI, or an external URL. Fix in ch5, or amend ch2? BLOCKS THE TYPES.
-2. **Does anything workflow-shaped have to exist in the seam now?** Same class of
-   question as the `Agent` tag. BLOCKS THE TYPES.
+1. ~~**`BlobPart` reference shape.**~~ ANSWERED: amend Chapter 2. One `Ref` type
+   covers inline bytes, local path, remote URI, and the redaction handle. Bill:
+   "By the time we finish the book's outline, the ch 2 outline will finally be
+   correct."
+2. ~~**Does anything workflow-shaped have to exist in the seam now?**~~ ANSWERED:
+   yes. Observers must be attachable per agent, must carry state transitions as
+   well as content, and must support blocking until a state predicate holds.
+   Supervision is observation; nothing reads history.md.
 3. ~~**Anthropic and OpenAI multimedia support.**~~ ANSWERED 2026-09-13, see the
    matrix above: Gemini takes video in, OpenAI does not (generation only),
    Anthropic takes neither audio nor video. Residual: the OpenAI row is
