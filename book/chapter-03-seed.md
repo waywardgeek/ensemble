@@ -55,48 +55,54 @@ later chapter may do, is discard the *approach*. Ch4 turning fifteen trivial
 lines of blocking `run_command` into supervised ones is building on the student's
 work, not demolishing it. `course-policy.md` now says so explicitly.
 
-### Forward promises that must be renumbered (P9 — uncollected promises)
+### Forward promises: renumbered in `fb3af87`
 
-| file | current text | becomes |
-|---|---|---|
-| `chapter-02-outline.md` | "Chapter 3 adds job events" | Chapter **4** |
-| `chapter-02-outline.md` | "Chapter 3 can time one and Chapter 4 can cancel one" | Chapter **4** … Chapter **5** |
-| `chapter-02-outline.md` | JSON-lines pays off "in Chapter 3, when tool output arrives by the megabyte" | Chapter **4** |
-| `chapter-04-actors-parking.md` | "Chapter 2's tool is instant […] Chapter 3's tools are not" | Chapter **4**'s tools |
-| `chapter-04-actors-parking.md` | filename itself | rename to `chapter-05-actors-parking.md` |
-
-`chapter-01-outline.md`'s deferral of the `type` filter to "chapter 3, the first
-time a model asks to call a tool" **stays correct** — the tool loop is still ch3.
+All references were reclassified line by line, not by global substitution —
+several "Chapter 4" mentions meant the *actors* chapter (now 5) and several
+meant the *jobs* chapter (now 4). A blind `sed` would have manufactured false
+promises. `chapter-04-actors-parking.md` was renamed to
+`chapter-05-actors-parking.md`.
 
 ---
 
 ## 1. What chapter 3 has already been promised to do
 
 **Status:** no outline yet. This file is the raw material from the 2026-09-13
-session with Bill, written down before it rots. Chapter 3 is *unwritten* but it
-is not *unspecified*: four other documents have already made binding promises
-about it, and those promises are the spec.
+session with Bill, written down before it rots.
 
----
+After the ch3/ch4 split, chapter 3's inherited spec is **small**. Most of what
+was promised to "chapter 3" was promised to the *jobs* material, which is now
+chapter 4. What remains:
 
-## 1. What chapter 3 has already been promised to do
+| # | promise | source | status |
+|---|---|---|---|
+| 1 | The response `type` filter becomes load-bearing. Chapter 3's wire **must** return a reply containing a non-text block. | `chapter-01-outline.md` §1.2, §1.8 | **discharged automatically** — a `tool_use` block *is* the non-text block |
+| 2 | Chapter 3 is where a **deliberately-declined design decision** first appears (P6 anti-cheat). | `course-policy.md` P6 | **OPEN — the only real gap** |
 
-Every item below is a commitment made in a committed document. Breaking one
-leaves an earlier chapter holding a forward promise nobody collects, which is
-the failure mode P9 exists to catch.
+Promise 1 is the happy case: the tool loop cannot be built without it, so no
+special effort is needed to make the filter load-bearing. Chapter 1's forward
+promise gets collected by the chapter simply doing its job.
 
-| # | promise | source |
-|---|---|---|
-| 1 | The response `type` filter becomes load-bearing. Chapter 3's wire **must** return a reply containing a non-text block. | `chapter-01-outline.md` §1.2 and §1.8 ("chapter 3, the first time a model asks to call a tool") |
-| 2 | The event log gains **job events**. Note the noun: *job*, not *tool*. | `chapter-02-outline.md` ("Chapter 4 adds `Interrupted`. Chapter 3 adds job events.") |
-| 3 | Chapter 3 must **time** a tool call. `ToolCalled` exists as an engine event partly for this. | `chapter-02-outline.md` ("so that Chapter 3 can time one and Chapter 4 can cancel one") |
-| 4 | Tool output arrives **by the megabyte**, which is where JSON-lines greppability finally pays. | `chapter-02-outline.md` |
-| 5 | Chapter 3's tools are **not instant** — that is precisely what makes chapter 4's mailbox earn its keep. | `chapter-04-actors-parking.md` |
-| 6 | Chapter 3 is where a **deliberately-declined design decision** first appears (P6 anti-cheat). | `course-policy.md` P6 |
+Promise 2 is the gap, and the split created it. The declined decision I had
+chosen — *what do you do when a supervised job never returns?* — belongs to the
+job model, which is now chapter 4. Chapter 3 needs one of its own.
 
-Promise 4 is a gift: chapter 2 built `RedactedPart` / `RedactSummary` and
-nothing has yet *used* it. Megabyte tool output is its job. That is additive
-under P1 and it collects on a debt.
+### Promises that moved to chapter 4
+
+Recorded here so nobody looks for them in chapter 3 and concludes they were
+dropped:
+
+| promise | source |
+|---|---|
+| The event log gains **job events**. Note the noun: *job*, not *tool*. | `chapter-02-outline.md` |
+| Chapter 4 must **time** a tool call; `ToolCalled` exists partly for this. | `chapter-02-outline.md` |
+| Tool output arrives **by the megabyte** — where JSON-lines greppability pays. | `chapter-02-outline.md` |
+| Chapter 4's tools are **not instant**, which is what makes chapter 5's mailbox earn its keep. | `chapter-05-actors-parking.md` |
+
+The megabyte promise is a gift: chapter 2 built `RedactedPart` / `RedactSummary`
+and nothing has yet *used* it. Megabyte tool output is its job — additive under
+P1, and it collects on a debt.
+
 
 ---
 
@@ -143,7 +149,7 @@ exactly the slow ones.
 
 ---
 
-## 3. The war story — RECEIPTED, two commits, both 2026-08-10
+## 3. The war story (CHAPTER 4 — it belongs to the job model) — RECEIPTED, two commits, both 2026-08-10
 
 Repo `coderhapsody`, `internal/agent/watchdog.go`.
 
@@ -211,7 +217,7 @@ the chapter.
 
 ---
 
-## 4. The deliberately-declined decision (P6) — CANDIDATE
+## 4. The declined decision (CHAPTER 4 — moved with the job model) — CANDIDATE
 
 **Rejected candidate:** "run tool calls in parallel or sequentially?" Bill runs
 them **sequentially on purpose**. It is not an open question in this book and
