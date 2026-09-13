@@ -18,6 +18,20 @@ Chapter 1 is the single sacrificial chapter. From Chapter 2 on, every chapter is
 strictly **additive** — new events, new tools, new seams; never "delete what you
 built."
 
+**Additive is about the architecture, not about the files.** *(Clarified by
+Bill, 2026-09-13: "We will wind up editing prior code many times in this book.
+We're building on work, not blowing it up.")* Prior code gets edited, extended
+and refactored constantly; that is ordinary engineering and this book does it
+repeatedly. What Chapter 1 did — and what no later chapter may do — is throw away
+the **approach**: the data structure, the model of the problem, the reason the
+code was shaped the way it was.
+
+The test is not "did a file change?" but "does the student still own what they
+built?" Rewriting `run_command` in Chapter 4 so it returns a job handle is
+building on their work: fifteen trivial lines become supervised ones, and the
+other seven tools do not move. Replacing their conversation model wholesale is
+not.
+
 **Consequence:** chapter order is a dependency graph, not editorial taste.
 Reordering chapters is a design change, not a formatting one.
 

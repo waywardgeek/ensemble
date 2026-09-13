@@ -19,13 +19,13 @@ Three structural changes:
 1. **The LLM seam is the chapter.** The data structures are motivated *by* the
    seam rather than the seam being one of their benefits. Three vendors —
    Anthropic, OpenAI, Gemini — request rendering **and** response parsing.
-2. **Hints and interrupts moved to Chapter 4.** They are about time and
+2. **Hints and interrupts moved to Chapter 5.** They are about time and
    concurrency, not about vendors. Nothing is retracted; the material is
-   preserved verbatim in `book/chapter-04-actors-parking.md`, including review
+   preserved verbatim in `book/chapter-05-actors-parking.md`, including review
    findings M1, M2, M4, E4 and E7.
 3. **The `agent_status` toy tool is gone.** It existed only so a Chapter 2 turn
    would have a middle for a hint to land in. With tools in Chapter 3 and hints
-   in Chapter 4, the constraint that forced it no longer exists. Chapter 2
+   in Chapter 5, the constraint that forced it no longer exists. Chapter 2
    *renders* logs containing tool events without executing any.
 
 **The write-once constraint now governs the book.** Chapter 1 is the single
@@ -49,9 +49,9 @@ check asks whose code it is.
 - **FALSIFIED and removed** (Draft 3, finding M9): the claim that mid-turn
   `system` messages work on `claude-opus-4-8`+ but not `claude-sonnet-5`.
   Measured live; Sonnet 5 accepts and obeys them. That material now lives in
-  the Chapter 4 parking file with the correction applied.
+  the Chapter 5 parking file with the correction applied.
 - **STILL UNVERIFIED:** the July 2025 priority claim for mid-turn hints — now
-  a Chapter 4 problem, not this chapter's.
+  a Chapter 5 problem, not this chapter's.
 - **NEEDS VERIFICATION BEFORE PRINT:** every wire-format detail in §2.6. The
   three request and response shapes are quoted from working knowledge and must
   be checked against current vendor documentation by the coder. Wire formats
@@ -209,7 +209,7 @@ conversation APIs.
 - Never edited, never reordered, never deleted in place. A redaction is a new
   event that supersedes, not a mutation of an old one (§2.6).
 - Serialized as JSON-lines so it is greppable with ordinary tools, a property
-  that becomes load-bearing in Chapter 3, when tool output starts arriving by
+  that becomes load-bearing in Chapter 4, when tool output starts arriving by
   the megabyte.
 
 ---
@@ -236,7 +236,7 @@ non-determinism (§2.7).
 **Classification is the reducer's job, not the capture site's.** The same
 arriving bytes mean different things depending on turn state. Decide at capture
 time and you are wrong every time the human types quickly. Only the reducer
-holds the state that makes the decision correct. (Chapter 4 makes this vivid:
+holds the state that makes the decision correct. (Chapter 5 makes this vivid:
 the *same* event is a prompt or a hint depending solely on turn state.)
 
 ### The taxonomy for this chapter
@@ -244,7 +244,7 @@ the *same* event is a prompt or a hint depending solely on turn state.)
 `MessageReceived`, `RequestSent`, `ResponseStarted`, `ResponseEnded`,
 `ToolCalled`, `ToolReturned`, `Redacted`, `ErrorOccurred`.
 
-Chapter 4 adds `Interrupted`. Chapter 3 adds job events. **Additive, always**:
+Chapter 5 adds `Interrupted`. Chapter 4 adds job events. **Additive, always**:
 this is the first place the write-once discipline is visible to the reader.
 
 Three notes:
@@ -263,7 +263,7 @@ Three notes:
   compatible. `ResponseEnded.Parts` holds everything the assistant produced:
   text and `ToolCallPart`s together, in the order it produced them. `ToolCalled`
   is an **engine** event: it contributes no dialogue content and records that a
-  call was actually dispatched, so that Chapter 3 can time one and Chapter 4 can
+  call was actually dispatched, so that Chapter 4 can time one and Chapter 5 can
   cancel one. The alternative (a `ToolCalled` per call, with `ResponseEnded`
   carrying only text) throws away the ordering of text relative to calls within
   a single turn, which is why it is not what we do. This is also how to read
@@ -283,7 +283,7 @@ the shape determines whether the capability can be added without a rewrite.
 ### Turn states
 
 `Idle`, `InputPending`, `InFlight`, `ToolsPending`. (`Interrupted` arrives in
-Chapter 4; and it must be a *state*, not a flag, or replay re-executes tool
+Chapter 5; and it must be a *state*, not a flag, or replay re-executes tool
 calls that were canceled.)
 
 | transition | result | note |
@@ -1305,7 +1305,7 @@ and three ways in and out of it.**
 
 ## Appendix — material relocated from Draft 3
 
-`book/chapter-04-actors-parking.md` holds, verbatim, the hint and interrupt
+`book/chapter-05-actors-parking.md` holds, verbatim, the hint and interrupt
 sections and review findings M1, M2, M4, E4, E7. Of particular value when
 Chapter 4 is outlined:
 

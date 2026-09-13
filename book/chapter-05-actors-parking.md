@@ -2,7 +2,7 @@
 
 **Provenance:** these sections were written for Chapter 2 and survived Opus 5's review
 (findings M1, M2, M4, M8, E4, E7). When Chapter 2 became the LLM-seam chapter, hints
-and interrupts moved to Chapter 4, where turns have real middles because Chapter 3 gave
+and interrupts moved to Chapter 5, where turns have real middles because Chapter 4 gave
 them real tools. Nothing here is retracted — it is relocated. The `agent_status` toy tool
 is expected to DISSOLVE in the move: it existed only to give a Chapter 2 turn a middle.
 
@@ -194,7 +194,7 @@ not to characterise a model. Re-measure before you trust any digit here.)
 Which lands us somewhere better than a compatibility table. An actor whose
 mailbox goes deaf whenever it does work does not really have a mailbox — it has
 an inbox it checks between chores. Chapter 2's tool is instant, so the chapter
-cannot show you this failure. Chapter 3's tools are not, and that is when the
+cannot show you this failure. Chapter 4's tools are not, and that is when the
 mailbox starts to earn its keep.
 
 

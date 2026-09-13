@@ -1,5 +1,77 @@
 # Chapter 3 — seed notes (tools)
 
+## 0. STRUCTURAL RULING 2026-09-13: ch3 splits into ch3 + ch4
+
+**Bill:** *"run_command in its blocking form is trivial. Why not let the user
+build the easy form of all 5 tools? They have an AI coding agent writing the
+code. I feel this should be pretty fast, and the students will quickly learn why
+blocking run_command is a bad idea. In fact, I did exactly this when building
+StackAgent. Then ch 4 can be about doing tools right."*
+
+| chapter | content | ends with |
+|---|---|---|
+| **ch3 — Tools** | the tool loop (parse `tool_use`, dispatch, return `tool_result`) and the **easy, blocking** implementation of all eight tools | a genuinely usable AI coding agent: reads, greps, edits, writes, runs the tests |
+| **ch4 — Doing tools right** | the job model: handles, `wait_for_job`, `send_input`, `kill_job`, output to disk with stubs, the declined decision, `dlv` | an agent that can supervise work that hangs |
+| **ch5 — Actors and hints** | *(was ch4)* mailbox, mid-turn steering | an agent that can hear you while it works |
+
+Each chapter removes exactly one impossibility. Ch4 ends with the agent
+supervising a long job; ch5 opens by observing it went deaf while doing so.
+
+### Why this is better than pre-sorting the tools for them
+
+The student implements all eight the obvious way and **hits the wall
+themselves** — a command that hangs takes the whole agent down. That is a lesson
+earned rather than announced. Bill lived it: StackAgent, July 2025, and ch1 §1.0
+already tells the reader those 58,000 lines were thrown away. Ch4 can open with
+*I built the blocking version first too.*
+
+### Write-once: CHECKED, and it holds
+
+`coderhapsody`'s `cr/docs/tool-calls-as-jobs-design.md` (Tier 1) settles it:
+
+> Allocate a job handle at the single dispatch site [...] one funnel, already the
+> single security enforcement point, so nothing bypasses it. [...] **No tool
+> handler changes at all.** Tools stay `func(ToolUse) (string, error)`.
+
+**The job model is a property of the dispatch site, not of the tools.** So of the
+eight tools built in ch3, **seven need no change at all** for ch4's purposes.
+Ch4 wraps the funnel and reworks exactly one — and reworking it is small, because
+the blocking version was trivial to begin with.
+
+**And which one is the point.** It is the tool that crosses a boundary you do not
+control — the rule ch3 already taught. The chapter structure demonstrates the
+thesis rather than asserting it: *exactly one of your eight was wrong, and you
+could have predicted which.*
+
+### P1: clarified, and it was never in danger
+
+**Bill, 2026-09-13:** *"It is OK to rewrite small bits. We're not blowing up all
+their work. run_command is trivial in ch 3."* And: *"We will wind up editing
+prior code many times in this book. We're building on work, not blowing it up."*
+
+P1's "additive" is about the **architecture**, not the files. Editing prior code
+is ordinary engineering and this book will do it repeatedly. What ch1 did, and no
+later chapter may do, is discard the *approach*. Ch4 turning fifteen trivial
+lines of blocking `run_command` into supervised ones is building on the student's
+work, not demolishing it. `course-policy.md` now says so explicitly.
+
+### Forward promises that must be renumbered (P9 — uncollected promises)
+
+| file | current text | becomes |
+|---|---|---|
+| `chapter-02-outline.md` | "Chapter 3 adds job events" | Chapter **4** |
+| `chapter-02-outline.md` | "Chapter 3 can time one and Chapter 4 can cancel one" | Chapter **4** … Chapter **5** |
+| `chapter-02-outline.md` | JSON-lines pays off "in Chapter 3, when tool output arrives by the megabyte" | Chapter **4** |
+| `chapter-04-actors-parking.md` | "Chapter 2's tool is instant […] Chapter 3's tools are not" | Chapter **4**'s tools |
+| `chapter-04-actors-parking.md` | filename itself | rename to `chapter-05-actors-parking.md` |
+
+`chapter-01-outline.md`'s deferral of the `type` filter to "chapter 3, the first
+time a model asks to call a tool" **stays correct** — the tool loop is still ch3.
+
+---
+
+## 1. What chapter 3 has already been promised to do
+
 **Status:** no outline yet. This file is the raw material from the 2026-09-13
 session with Bill, written down before it rots. Chapter 3 is *unwritten* but it
 is not *unspecified*: four other documents have already made binding promises

@@ -21,7 +21,7 @@ Your findings were not discarded:
   **E6** (`Apply` is information flow, not value semantics) — all **applied and
   still live**.
 - **M1, M2, M4, E4, E7** — hint and interrupt findings, **moved verbatim** to
-  `book/chapter-04-actors-parking.md`. Still correct, not yet due.
+  `book/chapter-05-actors-parking.md`. Still correct, not yet due.
 - **M9** — your falsification of the model-support table stands and is recorded
   in Draft 4's claim-status block.
 - **M5** (declare the tool in the request) — **obsolete**. Chapter 2 no longer
