@@ -85,10 +85,25 @@ existing discipline: refuse to marshal an unknown part type, refuse to load a lo
 containing one.
 
 Media capability stays per MODEL, not per vendor, and refusal stays LOUD.
-Chapter 2 already models this with one bool; multimedia generalizes it:
+Chapter 2 already models this with one bool; multimedia generalizes it.
+
+Bill's note on the built system: CodeRhapsody keeps a model-features module —
+a table of supported models, what media each accepts, and the constants used to
+compute cost. That is better than a method that answers questions about a model,
+and the reason is worth stating, because it is a recurring shape:
+
+**Capability is DATA about a model, not BEHAVIOUR of code.** A table is
+diffable, testable, and updatable without touching logic. A function that
+decides is a place for a guess to hide.
 
 ```go
-// WAS a single AcceptsAudio bool on the model description.
+// Media is a bitmask of INPUT media. It is a FIELD in the table below, not an
+// interface — the bitmask is how one row answers, not how the system decides.
+//
+// Verified 2026-09-13. Gemini accepts video as input. OpenAI does NOT: its
+// video APIs are GENERATION, a conflation that is easy to make and load-bearing
+// if you make it. Anthropic accepts neither audio nor video, and flattens an
+// animated GIF to its first frame — it has no time-based media at all.
 type Media uint8
 
 const (
@@ -98,15 +113,43 @@ const (
 	MediaDocument
 )
 
-// Accepts reports whether this model takes that medium as INPUT.
-// Verified 2026-09-13: Gemini takes video in; OpenAI does not (its video APIs
-// are generation); Anthropic takes neither audio nor video, and flattens
-// animated GIFs to the first frame.
-func (m Media) Accepts(want Media) bool { return m&want == want }
+// ModelFeatures is one row: everything the seam needs to know about a model.
+//
+// Cost lives here as integer micro-units per million tokens, NEVER as a float
+// and never as money in the log. Chapter 2's rule was "record counts, never
+// money"; this is its other half. The log stores what happened, the table
+// interprets it, and an interpretation you can re-run against a corrected table
+// is worth more than a number you cannot re-derive.
+type ModelFeatures struct {
+	Media           Media
+	InputMicros     int64 // per million tokens
+	CacheWriteMicros int64
+	CacheReadMicros  int64
+	OutputMicros     int64
+}
+
+// Keyed by MODEL, not by vendor: Chapter 2 already established that provenance
+// is per-model and recorded at write time.
+var models = map[string]ModelFeatures{ /* ... */ }
+
+// Lookup returns the row, or false. There is deliberately no default row.
+func Lookup(model string) (ModelFeatures, bool) { f, ok := models[model]; return f, ok }
 ```
 
-There is no honest degraded rendering of a video part, which is why a model that
-cannot accept one must refuse loudly rather than drop it.
+The table earns its place by what it does with a model it has never heard of:
+nothing. An unknown model is absent from the map, so the caller refuses. A
+method that inspected a model name and guessed would answer "probably images"
+and be wrong quietly. **A missing row is a loud failure; a default row is a
+silent one.** There is no honest degraded rendering of a video part either,
+which is why a model that cannot accept one must refuse rather than drop it.
+
+One caveat belongs in print beside the table, because a book is the worst
+possible place to publish a list of model names: **this table rots.** Model IDs
+are retired and renamed on vendor schedules that have nothing to do with
+publication dates. So the table ships with a documented way to re-verify it
+against the vendor's live models endpoint, and no chapter's correctness is ever
+allowed to depend on a particular model ID still existing. The table is an
+example of a shape, not a reference you should trust.
 
 ## 3. The outbound seam: observers
 
