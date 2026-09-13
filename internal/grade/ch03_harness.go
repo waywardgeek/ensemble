@@ -344,10 +344,14 @@ func ch3LocalToolReplies() []fakevendor.Reply {
 		step("Changing the greeting.", "edit_file",
 			`{"path":"src/greet.go","old_text":"hello","new_text":"goodbye"}`,
 			"toolu_lt_edit"),
-		step("Looking at the directory.", "list_directory",
-			`{"path":"src"}`, "toolu_lt_ls"),
-		step("Finding the new greeting.", "search_files",
-			`{"pattern":"goodbye","path":"src"}`, "toolu_lt_grep"),
+		// The three READ probes look at material the harness planted, never
+		// at src/greet.go. Measured: when they searched for the new greeting,
+		// a sabotaged write_file also failed readtools — the row that was
+		// split out precisely so it could not be blamed for the other one.
+		step("Looking at the working directory.", "list_directory",
+			`{"path":"."}`, "toolu_lt_ls"),
+		step("Finding the third note.", "search_files",
+			`{"pattern":"gamma","path":"."}`, "toolu_lt_grep"),
 		step("Reading the middle of the notes.", "read_file",
 			`{"path":"notes.md","start_line":3,"end_line":4}`, "toolu_lt_read"),
 		{Text: "All five local tools are done.", Usage: fakevendor.Canonical{Input: 50, Output: 9}},

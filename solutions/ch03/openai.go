@@ -23,6 +23,31 @@ type oaiRequest struct {
 	Model     string   `json:"model"`
 	MaxTokens int      `json:"max_completion_tokens,omitempty"`
 	Messages  []oaiMsg `json:"messages"`
+	// Omitted when nothing is declared — see anthRequest.Tools.
+	Tools []oaiTool `json:"tools,omitempty"`
+}
+
+// oaiTool is OpenAI's declaration shape: one level of wrapping more than the
+// others, because `tools` is a union and `function` is the arm we want.
+type oaiTool struct {
+	Type     string      `json:"type"` // always "function"
+	Function oaiFunction `json:"function"`
+}
+
+type oaiFunction struct {
+	Name        string          `json:"name"`
+	Description string          `json:"description,omitempty"`
+	Parameters  json.RawMessage `json:"parameters"`
+}
+
+func oaiTools(decls []ToolDecl) []oaiTool {
+	var out []oaiTool
+	for _, d := range decls {
+		out = append(out, oaiTool{Type: "function", Function: oaiFunction{
+			Name: d.Name, Description: d.Description, Parameters: d.Schema,
+		}})
+	}
+	return out
 }
 
 type oaiMsg struct {
@@ -121,7 +146,7 @@ func (openAISeam) Render(c *Context, cfg Config) (*http.Request, error) {
 	}
 
 	return newJSONRequest("POST", cfg.BaseURL+"/v1/chat/completions",
-		oaiRequest{Model: cfg.Model, MaxTokens: cfg.MaxTokens, Messages: msgs},
+		oaiRequest{Model: cfg.Model, MaxTokens: cfg.MaxTokens, Messages: msgs, Tools: oaiTools(cfg.Tools)},
 		map[string]string{"Authorization": "Bearer " + cfg.APIKey})
 }
 

@@ -12,6 +12,7 @@ package main
 // in the plumbing, it is in what each tool refuses to do.
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -32,8 +33,14 @@ type ToolFunc func(args json.RawMessage) (string, error)
 
 type Tool struct {
 	Name string
-	Args string // human-readable argument summary, for the tool schema
-	Run  ToolFunc
+	// Description is read by the MODEL, not by a person. It is the only thing
+	// that tells the model when to reach for this tool instead of another one,
+	// so it says what the tool is FOR, not how it is implemented.
+	Description string
+	// Schema is the JSON Schema of the arguments object, exactly as it goes on
+	// the wire. Vendor-neutral: all three vendors take this subset verbatim.
+	Schema json.RawMessage
+	Run    ToolFunc
 }
 
 // argSpec is a human-readable summary of each tool's arguments, kept as plain
@@ -52,13 +59,99 @@ var argSpec = map[string]string{
 // permission boundary. A capability you do not put in this map is one the
 // model cannot reach — which is the argument for having tools at all rather
 // than only a shell.
+//
+// Each entry is also the model's only documentation of the tool. The schemas
+// use the subset of JSON Schema every vendor accepts unmodified — object,
+// properties, required, per-property type and description — and nothing
+// else. `additionalProperties`, `$schema`, `format` and friends are where
+// the vendors disagree, so they stay out.
 var Registry = map[string]Tool{
-	"run_command":    {Name: "run_command", Args: argSpec["run_command"], Run: toolRunCommand},
-	"read_file":      {Name: "read_file", Args: argSpec["read_file"], Run: toolReadFile},
-	"write_file":     {Name: "write_file", Args: argSpec["write_file"], Run: toolWriteFile},
-	"edit_file":      {Name: "edit_file", Args: argSpec["edit_file"], Run: toolEditFile},
-	"list_directory": {Name: "list_directory", Args: argSpec["list_directory"], Run: toolListDirectory},
-	"search_files":   {Name: "search_files", Args: argSpec["search_files"], Run: toolSearchFiles},
+	"run_command": {
+		Name:        "run_command",
+		Description: "Run a shell command in the working directory and return its combined stdout and stderr, plus the exit status. Use for builds, tests, and anything the other tools cannot do.",
+		Schema: json.RawMessage(`{"type":"object","properties":{
+			"command":{"type":"string","description":"The command line to run, as you would type it in a shell."}},
+			"required":["command"]}`),
+		Run: toolRunCommand,
+	},
+	"read_file": {
+		Name:        "read_file",
+		Description: "Read a text file, or an inclusive range of lines from it. Ask for a range when the file is large; the result is truncated after max_bytes.",
+		Schema: json.RawMessage(`{"type":"object","properties":{
+			"path":{"type":"string","description":"Path to the file, relative to the working directory."},
+			"start_line":{"type":"integer","description":"First line to return, 1-based. Defaults to the start of the file."},
+			"end_line":{"type":"integer","description":"Last line to return, inclusive. Defaults to the end of the file."},
+			"max_bytes":{"type":"integer","description":"Truncate the result after this many bytes."}},
+			"required":["path"]}`),
+		Run: toolReadFile,
+	},
+	"write_file": {
+		Name:        "write_file",
+		Description: "Create or overwrite a file with the given content. Set append to add to the end instead of replacing.",
+		Schema: json.RawMessage(`{"type":"object","properties":{
+			"path":{"type":"string","description":"Path to the file, relative to the working directory."},
+			"content":{"type":"string","description":"The complete new content, or the text to append."},
+			"append":{"type":"boolean","description":"Append instead of overwrite."}},
+			"required":["path","content"]}`),
+		Run: toolWriteFile,
+	},
+	"edit_file": {
+		Name:        "edit_file",
+		Description: "Replace one exact occurrence of old_text in a file with new_text. Refuses if old_text is absent or matches more than once — include enough context to make it unique.",
+		Schema: json.RawMessage(`{"type":"object","properties":{
+			"path":{"type":"string","description":"Path to the file, relative to the working directory."},
+			"old_text":{"type":"string","description":"The exact text to find. Must occur exactly once."},
+			"new_text":{"type":"string","description":"The text to put in its place."}},
+			"required":["path","old_text","new_text"]}`),
+		Run: toolEditFile,
+	},
+	"list_directory": {
+		Name:        "list_directory",
+		Description: "List the entries of a directory, one per line: subdirectories with a trailing slash, files with their size in bytes.",
+		Schema: json.RawMessage(`{"type":"object","properties":{
+			"path":{"type":"string","description":"Directory to list. Defaults to the working directory."}}}`),
+		Run: toolListDirectory,
+	},
+	"search_files": {
+		Name:        "search_files",
+		Description: "Search files for a regular expression and return matching lines as path:line: text.",
+		Schema: json.RawMessage(`{"type":"object","properties":{
+			"pattern":{"type":"string","description":"Go regular expression to search for."},
+			"path":{"type":"string","description":"Directory to search under. Defaults to the working directory."},
+			"file_pattern":{"type":"string","description":"Glob restricting which file names are searched, e.g. *.go."}},
+			"required":["pattern"]}`),
+		Run: toolSearchFiles,
+	},
+}
+
+// Declarations is the registry as the model will be told about it: the
+// request-direction half of the tool protocol, in the same stable order as
+// ToolNames. It is the ONLY place the agent converts "a tool I can run" into
+// "a tool the model may ask for", which is what makes the registry the
+// permission boundary rather than just a lookup table.
+//
+// An empty registry yields a nil slice, and a nil slice renders to no field.
+func Declarations() []ToolDecl {
+	var decls []ToolDecl
+	for _, n := range ToolNames() {
+		t := Registry[n]
+		decls = append(decls, ToolDecl{
+			Name:        t.Name,
+			Description: t.Description,
+			Schema:      json.RawMessage(compactJSON(t.Schema)),
+		})
+	}
+	return decls
+}
+
+// compactJSON strips the whitespace the source literals use for readability
+// so the bytes on the wire are canonical.
+func compactJSON(raw json.RawMessage) []byte {
+	var buf bytes.Buffer
+	if err := json.Compact(&buf, raw); err != nil {
+		panic("tool schema is not valid JSON: " + err.Error())
+	}
+	return buf.Bytes()
 }
 
 // ToolNames returns the registry in a stable order. Map iteration order is

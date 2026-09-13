@@ -20,6 +20,25 @@ type anthRequest struct {
 	MaxTokens int       `json:"max_tokens"`
 	System    string    `json:"system,omitempty"` // TOP-LEVEL, not a message
 	Messages  []anthMsg `json:"messages"`
+	// Tools is omitted, not empty, when nothing is declared: a chapter 2
+	// request and a chapter 3 request with an empty registry are the same bytes.
+	Tools []anthTool `json:"tools,omitempty"`
+}
+
+// anthTool is Anthropic's declaration shape. The schema key is `input_schema`
+// — the one vendor of the three that does not call it `parameters`.
+type anthTool struct {
+	Name        string          `json:"name"`
+	Description string          `json:"description,omitempty"`
+	InputSchema json.RawMessage `json:"input_schema"`
+}
+
+func anthTools(decls []ToolDecl) []anthTool {
+	var out []anthTool
+	for _, d := range decls {
+		out = append(out, anthTool{Name: d.Name, Description: d.Description, InputSchema: d.Schema})
+	}
+	return out
 }
 
 type anthMsg struct {
@@ -163,6 +182,7 @@ func (anthropicSeam) Render(c *Context, cfg Config) (*http.Request, error) {
 		MaxTokens: cfg.MaxTokens,
 		System:    cfg.SystemPrompt, // top-level. Store it and you have picked a vendor.
 		Messages:  msgs,
+		Tools:     anthTools(cfg.Tools),
 	}
 	return newJSONRequest("POST", cfg.BaseURL+"/v1/messages", body, map[string]string{
 		"x-api-key":         cfg.APIKey,

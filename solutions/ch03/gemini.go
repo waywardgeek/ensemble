@@ -26,6 +26,33 @@ type gemRequest struct {
 	SystemInstruction *gemContent   `json:"systemInstruction,omitempty"`
 	Contents          []gemContent  `json:"contents"`
 	GenerationConfig  *gemGenConfig `json:"generationConfig,omitempty"`
+	// Omitted when nothing is declared — see anthRequest.Tools.
+	Tools []gemTool `json:"tools,omitempty"`
+}
+
+// gemTool is Gemini's declaration shape: `tools` is a list of tool GROUPS,
+// each holding many functionDeclarations. We send one group with everything
+// in it. Gemini's schema dialect is an OpenAPI subset, which is why the
+// registry's schemas avoid keys like additionalProperties that it rejects.
+type gemTool struct {
+	FunctionDeclarations []gemFunctionDecl `json:"functionDeclarations"`
+}
+
+type gemFunctionDecl struct {
+	Name        string          `json:"name"`
+	Description string          `json:"description,omitempty"`
+	Parameters  json.RawMessage `json:"parameters,omitempty"`
+}
+
+func gemTools(decls []ToolDecl) []gemTool {
+	if len(decls) == 0 {
+		return nil
+	}
+	var fns []gemFunctionDecl
+	for _, d := range decls {
+		fns = append(fns, gemFunctionDecl{Name: d.Name, Description: d.Description, Parameters: d.Schema})
+	}
+	return []gemTool{{FunctionDeclarations: fns}}
 }
 
 type gemGenConfig struct {
@@ -149,7 +176,7 @@ func (geminiSeam) Render(c *Context, cfg Config) (*http.Request, error) {
 		}
 	}
 
-	body := gemRequest{Contents: contents}
+	body := gemRequest{Contents: contents, Tools: gemTools(cfg.Tools)}
 	if cfg.SystemPrompt != "" {
 		body.SystemInstruction = &gemContent{Parts: []gemPart{{Text: cfg.SystemPrompt}}}
 	}

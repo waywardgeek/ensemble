@@ -176,6 +176,10 @@ func configFromEnv() (Config, error) {
 		Surface:      DefaultSurface(vendor),
 		SystemPrompt: systemPrompt,
 		MaxTokens:    1024,
+		// The registry becomes the request's tool list here and nowhere else.
+		// Delete this line and the agent still RUNS tools the fake volunteers —
+		// and a real model never asks for one, because it was never told.
+		Tools: Declarations(),
 	}
 	switch vendor {
 	case VendorAnthropic:

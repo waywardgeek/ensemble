@@ -1,9 +1,14 @@
 package grade
 
-// Chapter 3's seven checks.
+// Chapter 3's nine checks.
 //
-// ch2parity 10 + toolloop 25 + multiblock 10 + localtools 20 + runcommand 15
-// + toolerror 15 + editcontract 5 = 100.
+// ch2parity 10 + toolsdecl 5 + toolloop 20 + multiblock 10 + readtools 10
+// + mutatetools 10 + runcommand 15 + toolerror 15 + editcontract 5 = 100.
+//
+// toolsdecl's five points came out of toolloop (was 25). They grade the two
+// halves of one protocol: toolsdecl the request direction, toolloop the
+// response direction. Before toolsdecl existed an agent that never declared a
+// tool scored 100 against the fake and was dead against every real vendor.
 //
 // A note on what these checks deliberately do NOT grade: formatting. A student
 // may render a tool's output however they like, so the assertions are about
@@ -12,6 +17,7 @@ package grade
 // this solution's particular phrasing.
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -19,13 +25,175 @@ import (
 func Ch3Evaluate(res *Ch3Result) []Check {
 	return []Check{
 		checkCh2Parity(res),
+		checkToolsDecl(res),
 		checkToolLoop(res),
 		checkMultiblock(res),
-		checkLocalTools(res),
+		checkReadTools(res),
+		checkMutateTools(res),
 		checkRunCommand(res),
 		checkToolError(res),
 		checkEditContract(res),
 	}
+}
+
+// --- toolsdecl -------------------------------------------------------------
+
+// requiredTools is the capability surface the chapter names and the fake
+// calls by these exact names. A declaration that omits one is a tool the
+// model will never ask for.
+var requiredTools = []string{"read_file", "write_file", "edit_file", "list_directory", "search_files", "run_command"}
+
+// declaredTool is one tool declaration lifted out of whichever vendor
+// envelope it arrived in, so the assertions below are vendor-neutral.
+type declaredTool struct {
+	Name        string
+	Description string
+	Schema      map[string]any
+}
+
+// vendorToolDecls finds the tool declarations in a request body for the
+// given vendor, in that vendor's exact wire shape. ok is false when the
+// field is missing or not the shape the vendor documents; why says which.
+func vendorToolDecls(vendor string, body []byte) (decls []declaredTool, ok bool, why string) {
+	var req map[string]any
+	if err := json.Unmarshal(body, &req); err != nil {
+		return nil, false, "request body is not a JSON object"
+	}
+	raw, present := req["tools"]
+	if !present {
+		return nil, false, "no `tools` field in the request"
+	}
+	list, isList := raw.([]any)
+	if !isList {
+		return nil, false, "`tools` is not an array"
+	}
+	if len(list) == 0 {
+		return nil, false, "`tools` is present but empty"
+	}
+	str := func(m map[string]any, k string) string {
+		s, _ := m[k].(string)
+		return s
+	}
+	lift := func(m map[string]any, schemaKey string) declaredTool {
+		schema, _ := m[schemaKey].(map[string]any)
+		return declaredTool{Name: str(m, "name"), Description: str(m, "description"), Schema: schema}
+	}
+	for i, item := range list {
+		m, isObj := item.(map[string]any)
+		if !isObj {
+			return nil, false, fmt.Sprintf("tools[%d] is not an object", i)
+		}
+		switch vendor {
+		case "anthropic":
+			// {name, description, input_schema}
+			decls = append(decls, lift(m, "input_schema"))
+		case "openai":
+			// {type:"function", function:{name, description, parameters}}
+			if str(m, "type") != "function" {
+				return nil, false, fmt.Sprintf("tools[%d].type is %q, want \"function\"", i, str(m, "type"))
+			}
+			fn, has := m["function"].(map[string]any)
+			if !has {
+				return nil, false, fmt.Sprintf("tools[%d] has no `function` object", i)
+			}
+			decls = append(decls, lift(fn, "parameters"))
+		case "gemini":
+			// {functionDeclarations:[{name, description, parameters}]} — the
+			// snake_case spelling is also a valid proto-JSON wire name.
+			fds, has := m["functionDeclarations"].([]any)
+			if !has {
+				fds, has = m["function_declarations"].([]any)
+			}
+			if !has {
+				return nil, false, fmt.Sprintf("tools[%d] has no `functionDeclarations` array", i)
+			}
+			for j, fd := range fds {
+				fm, isObj := fd.(map[string]any)
+				if !isObj {
+					return nil, false, fmt.Sprintf("tools[%d].functionDeclarations[%d] is not an object", i, j)
+				}
+				decls = append(decls, lift(fm, "parameters"))
+			}
+		}
+	}
+	return decls, true, ""
+}
+
+// checkToolsDecl: every request the agent sends declares its tools — name,
+// description, argument schema — in the vendor's own shape. This is the
+// request-direction half of the tool protocol; toolloop grades the response
+// half. Without it a real model never emits a tool call, and the chapter's
+// payoff sentence is true only against our fake, which volunteers them.
+//
+// Every request in the session is inspected, not only the first: Anthropic
+// rejects a request whose messages contain tool_use blocks but whose `tools`
+// is missing, so a declaration that disappears on the second turn kills the
+// agent one turn later than never declaring at all.
+//
+// What the grader cannot see: that an EMPTY registry renders to no field.
+// The student's registry is never empty from out here. The reference
+// solution proves that property in its own test suite by byte comparison
+// against chapter 2's binary (TestCh3NoDeclIsCh2Bytes).
+func checkToolsDecl(res *Ch3Result) Check {
+	c := Check{ID: "toolsdecl", Title: "every request declares the tools — name, description, schema — in the vendor's shape",
+		Points: 5, Passed: true, Earned: 5}
+
+	var bad []string
+	for _, vendor := range Ch2Vendors {
+		s := res.Loop[vendor]
+		if s == nil || s.Err != "" {
+			bad = append(bad, vendor+": scenario did not run")
+			continue
+		}
+		if len(s.Requests) == 0 {
+			bad = append(bad, vendor+": no requests were sent")
+			continue
+		}
+		p := func(format string, args ...any) {
+			bad = append(bad, vendor+": "+fmt.Sprintf(format, args...))
+		}
+		for i, rq := range s.Requests {
+			decls, ok, why := vendorToolDecls(vendor, rq.Body)
+			if !ok {
+				p("request %d: %s", i+1, why)
+				break
+			}
+			byName := map[string]declaredTool{}
+			for _, d := range decls {
+				byName[d.Name] = d
+			}
+			var problems []string
+			for _, name := range requiredTools {
+				d, declared := byName[name]
+				switch {
+				case !declared:
+					problems = append(problems, name+" not declared")
+				case strings.TrimSpace(d.Description) == "":
+					problems = append(problems, name+" has no description")
+				case d.Schema == nil:
+					problems = append(problems, name+" has no argument schema object")
+				case d.Schema["type"] != "object":
+					problems = append(problems, fmt.Sprintf("%s schema type is %v, want \"object\"", name, d.Schema["type"]))
+				default:
+					props, _ := d.Schema["properties"].(map[string]any)
+					if len(props) == 0 {
+						problems = append(problems, name+" schema declares no properties — the model would have to guess the argument names")
+					}
+				}
+			}
+			if len(problems) > 0 {
+				p("request %d: %s", i+1, joined(problems))
+				break
+			}
+		}
+	}
+	if len(bad) > 0 {
+		c.failf("%s", joined(bad))
+		return c
+	}
+	c.Details = append(c.Details, fmt.Sprintf("all %d tools declared with description and object schema, on every request, for %s",
+		len(requiredTools), strings.Join(Ch2Vendors, ", ")))
+	return c
 }
 
 // --- shared readers --------------------------------------------------------
@@ -125,9 +293,12 @@ func checkCh2Parity(res *Ch3Result) Check {
 // Gemini matters most here: its finishReason is "STOP" even when it asks for a
 // tool, so an implementation keyed on the stop signal — which works on the
 // other two — silently never calls anything.
+//
+// Twenty points, not twenty-five: the other five moved to toolsdecl, the
+// request-direction half of the same protocol, when it became graded.
 func checkToolLoop(res *Ch3Result) Check {
 	c := Check{ID: "toolloop", Title: "parse tool_use, dispatch, return tool_result by id, loop until the model stops",
-		Points: 25, Passed: true, Earned: 25}
+		Points: 20, Passed: true, Earned: 20}
 
 	var bad []string
 	for _, vendor := range Ch2Vendors {
@@ -319,60 +490,66 @@ func checkMultiblock(res *Ch3Result) Check {
 	return c
 }
 
-// --- localtools ------------------------------------------------------------
+// --- readtools / mutatetools -----------------------------------------------
 
-// checkLocalTools grades five tools at four points each.
+// localToolProbes runs the LocalTools scenario's assertions once and reports,
+// per tool, the first thing wrong with it. Two checks read this map:
+// readtools (read_file with range, list_directory, search_files) and
+// mutatetools (write_file, edit_file). They are separate rows because a
+// student can — and in practice does — have one half working and the other
+// broken, and a single 20-point row could not say which. list_directory and
+// search_files do not split out further: nobody has search working and read
+// broken.
 //
-// Where possible it looks at the DISK rather than at the tool's own report: a
-// write_file that says "wrote 42 bytes" and writes nothing is exactly the
-// failure worth catching, and only the file system can tell.
-func checkLocalTools(res *Ch3Result) Check {
-	c := Check{ID: "localtools", Title: "read_file (with range), write_file, edit_file, list_directory, search_files",
-		Points: 20, Passed: true, Earned: 20}
-
+// Where possible the probes look at the DISK rather than at the tool's own
+// report: a write_file that says "wrote 42 bytes" and writes nothing is
+// exactly the failure worth catching, and only the file system can tell.
+func localToolProbes(res *Ch3Result) (broken map[string]string, scenarioErr string) {
 	s := res.LocalTools
-	if s == nil || s.Err != "" {
-		c.failf("scenario did not run")
-		return c
+	if s == nil {
+		return nil, "scenario did not run"
+	}
+	if s.Err != "" {
+		return nil, "scenario did not run: " + s.Err
 	}
 
 	results := wireResultIDs(s)
 	greet := s.After["src/greet.go"]
-
-	type probe struct {
-		tool string
-		bad  string
+	broken = map[string]string{}
+	fail := func(tool, bad string) {
+		if _, seen := broken[tool]; !seen {
+			broken[tool] = bad
+		}
 	}
-	var probes []probe
 
 	// write_file: the file must exist with the content it was given.
 	switch {
 	case greet == "":
-		probes = append(probes, probe{"write_file", "src/greet.go was not created"})
+		fail("write_file", "src/greet.go was not created")
 	case !strings.Contains(greet, "package src"):
-		probes = append(probes, probe{"write_file", "src/greet.go does not contain the content that was written"})
+		fail("write_file", "src/greet.go does not contain the content that was written")
 	}
 
 	// edit_file: the bytes on disk must have changed, not just been reported.
 	switch {
 	case greet == "":
-		probes = append(probes, probe{"edit_file", "no file to edit (write_file failed first)"})
+		fail("edit_file", "no file to edit (write_file failed first)")
 	case !strings.Contains(greet, "goodbye"):
-		probes = append(probes, probe{"edit_file", "the replacement text is not in the file"})
+		fail("edit_file", "the replacement text is not in the file")
 	case strings.Contains(greet, "hello"):
-		probes = append(probes, probe{"edit_file", "the original text is still in the file"})
+		fail("edit_file", "the original text is still in the file")
 	}
 
 	if r, ok := results["toolu_lt_ls"]; !ok {
-		probes = append(probes, probe{"list_directory", "no result was returned"})
-	} else if !strings.Contains(r.Text, "greet.go") {
-		probes = append(probes, probe{"list_directory", "listing of src/ does not mention greet.go: " + fmt.Sprintf("%.60q", r.Text)})
+		fail("list_directory", "no result was returned")
+	} else if !strings.Contains(r.Text, "notes.md") || !strings.Contains(r.Text, "testdata") {
+		fail("list_directory", "listing of the working directory does not show notes.md and testdata/: "+fmt.Sprintf("%.60q", r.Text))
 	}
 
 	if r, ok := results["toolu_lt_grep"]; !ok {
-		probes = append(probes, probe{"search_files", "no result was returned"})
-	} else if !strings.Contains(r.Text, "greet.go") || !strings.Contains(r.Text, "goodbye") {
-		probes = append(probes, probe{"search_files", "search did not report the matching file and line: " + fmt.Sprintf("%.60q", r.Text)})
+		fail("search_files", "no result was returned")
+	} else if !strings.Contains(r.Text, "notes.md") || !strings.Contains(r.Text, "gamma line three") {
+		fail("search_files", "search for \"gamma\" did not report notes.md and the matching line: "+fmt.Sprintf("%.60q", r.Text))
 	}
 
 	// read_file WITH A RANGE. The absence assertions here are controlled by
@@ -380,32 +557,57 @@ func checkLocalTools(res *Ch3Result) Check {
 	// range read of line 1 — so a checker that cannot see "alpha" at all
 	// would fail there rather than passing vacuously here.
 	if r, ok := results["toolu_lt_read"]; !ok {
-		probes = append(probes, probe{"read_file", "no result was returned"})
+		fail("read_file", "no result was returned")
 	} else if !strings.Contains(r.Text, "gamma") || !strings.Contains(r.Text, "delta") {
-		probes = append(probes, probe{"read_file", "lines 3-4 are missing: " + fmt.Sprintf("%.60q", r.Text)})
+		fail("read_file", "lines 3-4 are missing: "+fmt.Sprintf("%.60q", r.Text))
 	} else if strings.Contains(r.Text, "alpha") || strings.Contains(r.Text, "epsilon") {
-		probes = append(probes, probe{"read_file", "the range was ignored and the whole file came back"})
+		fail("read_file", "the range was ignored and the whole file came back")
 	}
+	return broken, ""
+}
 
-	if len(probes) > 0 {
-		broken := map[string]bool{}
-		var msgs []string
-		for _, p := range probes {
-			if !broken[p.tool] {
-				broken[p.tool] = true
-				msgs = append(msgs, p.tool+": "+p.bad)
-			}
-		}
-		c.Passed = false
-		c.Earned = c.Points - 4*len(broken)
-		if c.Earned < 0 {
-			c.Earned = 0
-		}
-		c.Details = append(c.Details, fmt.Sprintf("%d of 5 local tools work: %s", 5-len(broken), joined(msgs)))
+// gradeToolGroup turns the probe map into one check over a named subset of
+// tools, deducting perTool points for each broken one, floored at zero.
+func gradeToolGroup(c Check, tools []string, perTool int, broken map[string]string, scenarioErr string) Check {
+	if scenarioErr != "" {
+		c.failf("%s", scenarioErr)
 		return c
 	}
-	c.Details = append(c.Details, "all five local file tools verified, against the disk where possible")
+	var msgs []string
+	for _, t := range tools {
+		if bad, ok := broken[t]; ok {
+			msgs = append(msgs, t+": "+bad)
+		}
+	}
+	if len(msgs) == 0 {
+		c.Details = append(c.Details, fmt.Sprintf("%s verified, against the disk where possible", strings.Join(tools, ", ")))
+		return c
+	}
+	c.Passed = false
+	c.Earned = c.Points - perTool*len(msgs)
+	if c.Earned < 0 {
+		c.Earned = 0
+	}
+	c.Details = append(c.Details, fmt.Sprintf("%d of %d work: %s", len(tools)-len(msgs), len(tools), joined(msgs)))
 	return c
+}
+
+// checkReadTools grades the three tools that only look: read_file with a
+// range, list_directory, search_files. Ten points, four off per broken tool.
+func checkReadTools(res *Ch3Result) Check {
+	c := Check{ID: "readtools", Title: "read_file (with range), list_directory, search_files",
+		Points: 10, Passed: true, Earned: 10}
+	broken, err := localToolProbes(res)
+	return gradeToolGroup(c, []string{"read_file", "list_directory", "search_files"}, 4, broken, err)
+}
+
+// checkMutateTools grades the two tools that change the disk: write_file and
+// edit_file. Ten points, five each.
+func checkMutateTools(res *Ch3Result) Check {
+	c := Check{ID: "mutatetools", Title: "write_file, edit_file change the bytes on disk",
+		Points: 10, Passed: true, Earned: 10}
+	broken, err := localToolProbes(res)
+	return gradeToolGroup(c, []string{"write_file", "edit_file"}, 5, broken, err)
 }
 
 // --- runcommand ------------------------------------------------------------

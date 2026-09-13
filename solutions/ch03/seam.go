@@ -46,6 +46,37 @@ type Config struct {
 	// text-only model must RAISE, never silently drop: a fallback converts an
 	// invariant violation into silently-wrong output.
 	AcceptsAudio bool
+
+	// Tools is what the model is told it may call. It is request configuration,
+	// not conversation: nothing in the Context changes when a tool is added, and
+	// two Contexts rendered under the same Config declare the same tools.
+	//
+	// It is deliberately a vendor-neutral list, not the vendor's wire shape.
+	// Each Renderer folds it into its own envelope — Anthropic's `tools`,
+	// OpenAI's `tools[].function`, Gemini's `tools[].functionDeclarations` —
+	// and a nil list renders to NO field at all, not an empty one. That is what
+	// keeps a chapter 2 request byte-identical: no tools, no field.
+	//
+	// Nothing here knows where a declaration came from. Chapter 3 builds the
+	// list from a Go map; chapter 6 will build it from an MCP server's
+	// tools/list. Both produce []ToolDecl and the renderers cannot tell.
+	Tools []ToolDecl
+}
+
+// ToolDecl is a tool as the MODEL sees it: a name it can emit, a description
+// it reads to decide when, and a JSON Schema for the arguments object. It is
+// the request-direction half of the tool protocol; ToolCallPart is the
+// response-direction half.
+//
+// Schema is kept as raw JSON on purpose. A JSON Schema is a document, not a
+// Go type, and all three vendors accept the same subset (type, properties,
+// required, description) verbatim — so the seam carries it through untouched
+// rather than inventing a fourth representation that would have to be
+// converted three times.
+type ToolDecl struct {
+	Name        string
+	Description string
+	Schema      json.RawMessage
 }
 
 type Renderer interface {

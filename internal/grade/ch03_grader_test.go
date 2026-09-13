@@ -19,9 +19,13 @@ package grade
 // silently-unapplied mutation scores 100 and manufactures a fake finding.
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"runtime"
 	"sort"
@@ -139,7 +143,7 @@ func ch3Mutants() []ch3mutation {
 			name: "blind-walk-no-type-filter",
 			why: "Chapter 1 promised that filtering content blocks by `type` starts paying here. " +
 				"This walks every block as if it were text, which is the naive implementation the promise warns about.",
-			wantFail: []string{"ch2parity", "editcontract", "localtools", "multiblock", "runcommand", "toolerror", "toolloop"},
+			wantFail: []string{"ch2parity", "editcontract", "multiblock", "mutatetools", "readtools", "runcommand", "toolerror", "toolloop"},
 			edits: []ch3edit{{
 				file: "anthropic.go", find: `switch h\.Type \{`, replace: `switch "text" {`,
 			}},
@@ -147,7 +151,7 @@ func ch3Mutants() []ch3mutation {
 		{
 			name:     "tool-use-blocks-ignored",
 			why:      "An implementation that only looks at text blocks never sees the call and silently does nothing.",
-			wantFail: []string{"ch2parity", "editcontract", "localtools", "multiblock", "runcommand", "toolerror", "toolloop"},
+			wantFail: []string{"ch2parity", "editcontract", "multiblock", "mutatetools", "readtools", "runcommand", "toolerror", "toolloop"},
 			edits: []ch3edit{{
 				file: "anthropic.go", find: `case "tool_use":`, replace: `case "tool_use_never_matches":`,
 			}},
@@ -165,7 +169,7 @@ func ch3Mutants() []ch3mutation {
 		{
 			name:     "loop-runs-one-round",
 			why:      "A tool call is the middle of a turn, not the end. This executes the tools but never goes back.",
-			wantFail: []string{"editcontract", "localtools", "multiblock", "runcommand", "toolerror", "toolloop"},
+			wantFail: []string{"editcontract", "multiblock", "mutatetools", "readtools", "runcommand", "toolerror", "toolloop"},
 			edits: []ch3edit{{
 				file: "engine.go", find: `for round := 0; ; round\+\+ \{`, replace: `for round := 0; round < 1; round++ {`,
 			}},
@@ -241,7 +245,7 @@ func ch3Mutants() []ch3mutation {
 		{
 			name:     "read-range-ignored",
 			why:      "read_file's line range is the whole point of the tool: it decides how much context the turn costs.",
-			wantFail: []string{"localtools", "multiblock", "toolloop"},
+			wantFail: []string{"multiblock", "readtools", "toolloop"},
 			edits: []ch3edit{{
 				file: "tools.go", find: `if a\.StartLine > 0 \|\| a\.EndLine > 0 \{`, replace: `if false {`,
 			}},
@@ -249,7 +253,7 @@ func ch3Mutants() []ch3mutation {
 		{
 			name:     "write-file-writes-nothing",
 			why:      "Reports success, writes an empty file. Only the disk can catch this.",
-			wantFail: []string{"localtools"},
+			wantFail: []string{"mutatetools"},
 			edits: []ch3edit{{
 				file: "tools.go", find: `os\.WriteFile\(a\.Path, \[\]byte\(a\.Content\), 0o644\)`,
 				replace: `os.WriteFile(a.Path, []byte(""), 0o644)`,
@@ -258,7 +262,7 @@ func ch3Mutants() []ch3mutation {
 		{
 			name:     "edit-file-does-not-change-the-file",
 			why:      "Reports the edit, writes the original bytes back.",
-			wantFail: []string{"localtools"},
+			wantFail: []string{"mutatetools"},
 			edits: []ch3edit{{
 				file: "tools.go", find: `updated := strings\.Replace\(text, a\.OldText, a\.NewText, 1\)`,
 				replace: `updated := text`,
@@ -267,7 +271,7 @@ func ch3Mutants() []ch3mutation {
 		{
 			name:     "list-directory-hides-files",
 			why:      "An agent that cannot see the tree guesses at paths.",
-			wantFail: []string{"localtools"},
+			wantFail: []string{"readtools"},
 			edits: []ch3edit{{
 				file: "tools.go", find: `fmt\.Fprintf\(&b, "file  %s \(%d bytes\)\\n", e\.Name\(\), size\)`, replace: `_ = size`,
 			}},
@@ -275,7 +279,7 @@ func ch3Mutants() []ch3mutation {
 		{
 			name:     "search-files-finds-nothing",
 			why:      "An agent that cannot grep cannot find what to read.",
-			wantFail: []string{"localtools"},
+			wantFail: []string{"readtools"},
 			edits: []ch3edit{{
 				file: "tools.go", find: `if re\.MatchString\(line\) \{`, replace: `if false && re.MatchString(line) {`,
 			}},
@@ -340,6 +344,67 @@ func ch3Mutants() []ch3mutation {
 			}},
 		},
 
+		// ---- the tool declaration (request direction) ----------------------
+		// Before toolsdecl existed, every one of these scored 100/100: the fake
+		// volunteers tool calls whether or not it was told about any tools, so
+		// an agent that never declared them was indistinguishable from one
+		// that did. Against a real vendor it is a dead agent.
+		{
+			name: "tools-never-declared",
+			why: "The registry is never handed to the request. Scores 100 against a fake that volunteers calls; " +
+				"against a real vendor the model never emits a tool_use because it was never told there were tools.",
+			wantFail: []string{"toolsdecl"},
+			edits:    []ch3edit{{file: "main.go", find: `Tools: Declarations\(\),\n`, replace: ``}},
+		},
+		{
+			name:     "tools-not-declared-anthropic",
+			why:      "One renderer forgets. The other two vendors work, so nothing but a per-vendor check notices.",
+			wantFail: []string{"toolsdecl"},
+			edits:    []ch3edit{{file: "anthropic.go", find: `Tools:     anthTools\(cfg\.Tools\),\n`, replace: ``}},
+		},
+		{
+			name:     "tools-not-declared-openai",
+			why:      "Same, for OpenAI.",
+			wantFail: []string{"toolsdecl"},
+			edits:    []ch3edit{{file: "openai.go", find: `, Tools: oaiTools\(cfg\.Tools\)\}`, replace: `}`}},
+		},
+		{
+			name:     "tools-not-declared-gemini",
+			why:      "Same, for Gemini.",
+			wantFail: []string{"toolsdecl"},
+			edits:    []ch3edit{{file: "gemini.go", find: `, Tools: gemTools\(cfg\.Tools\)\}`, replace: `}`}},
+		},
+		{
+			name:     "tools-declared-empty-but-present",
+			why:      "`\"tools\": []` is not a declaration. It is also the shape a lazy omitempty-less struct produces.",
+			wantFail: []string{"toolsdecl"},
+			edits: []ch3edit{{
+				file: "tools.go", find: `var decls \[\]ToolDecl\n\tfor _, n := range ToolNames\(\) \{`,
+				replace: "decls := []ToolDecl{}\n\tfor _, n := range ToolNames()[:0] {",
+			}, {
+				file: "anthropic.go", find: "`json:\"tools,omitempty\"`", replace: "`json:\"tools\"`",
+			}, {
+				file: "openai.go", find: "`json:\"tools,omitempty\"`", replace: "`json:\"tools\"`",
+			}, {
+				file: "gemini.go", find: "`json:\"tools,omitempty\"`", replace: "`json:\"tools\"`",
+			}},
+		},
+		{
+			name:     "tool-schemas-are-placeholders",
+			why:      "Name and description go out, the schema is an empty object. The model has to guess every argument name.",
+			wantFail: []string{"toolsdecl"},
+			edits: []ch3edit{{
+				file: "tools.go", find: `Schema:      json\.RawMessage\(compactJSON\(t\.Schema\)\),`,
+				replace: `Schema:      json.RawMessage(` + "`" + `{"type":"object"}` + "`" + `),`,
+			}},
+		},
+		{
+			name:     "tool-descriptions-blank",
+			why:      "The description is the only thing that tells the model WHEN to use a tool.",
+			wantFail: []string{"toolsdecl"},
+			edits:    []ch3edit{{file: "tools.go", find: `Description: t\.Description,`, replace: `Description: "",`}},
+		},
+
 		// ---- the Chapter 2 regression guard --------------------------------
 		{
 			name:     "ch2-usage-accounting-broken",
@@ -399,8 +464,8 @@ func TestCh3PointsSumTo100(t *testing.T) {
 	if sum != 100 {
 		t.Fatalf("checks sum to %d, want exactly 100", sum)
 	}
-	if len(seen) != 7 {
-		t.Fatalf("got %d checks, want 7", len(seen))
+	if len(seen) != 9 {
+		t.Fatalf("got %d checks, want 9", len(seen))
 	}
 }
 
@@ -439,4 +504,141 @@ func TestCh3DeletionAudit(t *testing.T) {
 			}
 		})
 	}
+}
+
+// --- chapter 2's bytes -----------------------------------------------------
+
+// ch2RequestBodies runs the Chapter 2 grader against a binary and returns
+// every request body it observed, keyed by where it came from. Renders are
+// pure functions of log and vendor; live bodies depend on the fake's
+// scripted replies, which are deterministic too.
+func ch2RequestBodies(t *testing.T, bin string) map[string][]byte {
+	t.Helper()
+	r, err := Ch2Run(bin)
+	if err != nil {
+		t.Fatalf("Ch2Run(%s): %v", bin, err)
+	}
+	out := map[string][]byte{}
+	for v, s := range r.Render {
+		out["render-"+v] = []byte(s)
+	}
+	for v, s := range r.RenderTwice {
+		out["render2-"+v] = []byte(s)
+	}
+	for v, s := range r.Redacted {
+		out["redacted-"+v] = []byte(s)
+	}
+	out["thoughtreplay"] = []byte(r.ThoughtReplay)
+	for v, s := range r.Session {
+		for i, rq := range s.Requests {
+			out[fmt.Sprintf("session-%s-%d", v, i)] = rq.Body
+		}
+	}
+	for v, s := range r.UsageProbe {
+		for i, rq := range s.Requests {
+			out[fmt.Sprintf("usage-%s-%d", v, i)] = rq.Body
+		}
+	}
+	if r.Ephemera != nil {
+		for i, rq := range r.Ephemera.Requests {
+			out[fmt.Sprintf("ephemera-%d", i)] = rq.Body
+		}
+	}
+	return out
+}
+
+func buildDir(t *testing.T, dir, name string) string {
+	t.Helper()
+	bin := filepath.Join(t.TempDir(), name)
+	cmd := exec.Command("go", "build", "-o", bin, ".")
+	cmd.Dir = dir
+	if out, err := cmd.CombinedOutput(); err != nil {
+		t.Fatalf("build %s: %v\n%s", dir, err, out)
+	}
+	return bin
+}
+
+// withoutTools parses a request body and removes its top-level `tools` key,
+// so two bodies can be compared for "differ ONLY by the declaration".
+func withoutTools(t *testing.T, body []byte) any {
+	t.Helper()
+	var m map[string]any
+	if err := json.Unmarshal(body, &m); err != nil {
+		t.Fatalf("body is not a JSON object: %v", err)
+	}
+	delete(m, "tools")
+	return m
+}
+
+// TestCh3NoDeclIsCh2Bytes is the brief's byte comparison, made durable.
+//
+// Chapter 3 registers tools; chapter 2 registers none. The property the book
+// promises is that a chapter 3 agent with an EMPTY registry sends exactly the
+// bytes chapter 2 sent — no `tools` field, not an empty one. The grader
+// cannot check that against a student (their registry is never empty from
+// out here), so it is checked here, against the reference:
+//
+//  1. the `tools-never-declared` mutant — chapter 3 with the registry
+//     disconnected from the request — must produce request bodies byte-
+//     identical to solutions/ch02's, for every body the two have in common;
+//  2. NEGATIVE CONTROL: the unmutated chapter 3 must differ from chapter 2 on
+//     every one of those bodies, and differ ONLY by the `tools` key. Without
+//     (2), (1) could pass because the comparison compares nothing.
+//
+// "In common" because the chapter 3 engine takes one more turn than chapter
+// 2's in each live session; those extra bodies have no chapter 2 counterpart.
+func TestCh3NoDeclIsCh2Bytes(t *testing.T) {
+	if testing.Short() {
+		t.Skip("builds three binaries and runs the chapter 2 grader against each")
+	}
+	var nodecl *ch3mutation
+	for _, m := range ch3Mutants() {
+		if m.name == "tools-never-declared" {
+			m := m
+			nodecl = &m
+		}
+	}
+	if nodecl == nil {
+		t.Fatal("mutant tools-never-declared is gone; this test depends on it")
+	}
+
+	ch2Bin := buildDir(t, filepath.Join(ch3ReferenceDir(t), "..", "ch02"), "ch02")
+	ch3Bin := buildDir(t, ch3ReferenceDir(t), "ch03")
+	nodeclBin := buildCh3Mutant(t, *nodecl)
+
+	ch2 := ch2RequestBodies(t, ch2Bin)
+	ch3 := ch2RequestBodies(t, ch3Bin)
+	nd := ch2RequestBodies(t, nodeclBin)
+
+	keys := make([]string, 0, len(ch2))
+	for k := range ch2 {
+		if _, ok := nd[k]; ok {
+			keys = append(keys, k)
+		}
+	}
+	sort.Strings(keys)
+	const minShared = 20 // 21 at the time of writing; a collapse here means the harness changed
+	if len(keys) < minShared {
+		t.Fatalf("only %d request bodies in common between ch02 and ch03-without-declaration; want at least %d", len(keys), minShared)
+	}
+
+	// (1) identical bytes.
+	for _, k := range keys {
+		if !bytes.Equal(ch2[k], nd[k]) {
+			t.Errorf("%s: chapter 3 with no declaration differs from chapter 2:\n--- ch02\n%s\n--- ch03 (tools-never-declared)\n%s", k, ch2[k], nd[k])
+		}
+	}
+
+	// (2) negative control: the real chapter 3 differs on EVERY shared body,
+	// and only by the declaration.
+	for _, k := range keys {
+		if bytes.Equal(ch2[k], ch3[k]) {
+			t.Errorf("%s: NEGATIVE CONTROL FAILED — chapter 3 with tools registered sent chapter 2's exact bytes; the comparison cannot detect a declaration", k)
+			continue
+		}
+		if !reflect.DeepEqual(withoutTools(t, ch2[k]), withoutTools(t, ch3[k])) {
+			t.Errorf("%s: chapter 3 changed a chapter 2 request by more than the `tools` key:\n--- ch02\n%s\n--- ch03\n%s", k, ch2[k], ch3[k])
+		}
+	}
+	t.Logf("%d shared request bodies: identical without the declaration, differ only by `tools` with it", len(keys))
 }
