@@ -244,9 +244,10 @@ an AI coding agent to complete it. So the set chapter 3 teaches should be the se
 
 That is an empirical question, and the answer was sitting in the logs.
 
-**Corpus:** 514 archived session histories from
-`~/projects/coderhapsody.old/cr/histories` — CodeRhapsody working on its own
-codebase. **73,777 tool calls.**
+**Corpus:** 511 archived session histories from
+`~/projects/coderhapsody/cr/histories` — CodeRhapsody working on its own
+codebase, after Bill scrubbed Hewitt/Lyric-generated sessions on 2026-09-13.
+**71,032 tool calls.**
 
 ```
 grep -h '^### TOOL_CALL: ' *.md | sed 's/^### TOOL_CALL: //' \
@@ -255,17 +256,40 @@ grep -h '^### TOOL_CALL: ' *.md | sed 's/^### TOOL_CALL: //' \
 
 | rank | tool | calls | share |
 |---|---|---|---|
-| 1 | `run_command` | 26,784 | 36.3% |
-| 2 | `read_file` | 18,667 | 25.3% |
-| 3 | `edit_file` | 12,086 | 16.4% |
-| 4 | `search_files` | 7,379 | 10.0% |
-| 5 | `write_file` | 1,667 | 2.3% |
-| | **top five** | **66,583** | **90.2%** |
+| 1 | `run_command` | 25,586 | 36.0% |
+| 2 | `read_file` | 18,094 | 25.5% |
+| 3 | `edit_file` | 11,671 | 16.4% |
+| 4 | `search_files` | 7,247 | 10.2% |
+| 5 | `write_file` | 1,616 | 2.3% |
+| | **top five** | **64,214** | **90.4%** |
 
-Roughly 110 further tools share the remaining ~10%: `refine_context` 1,181,
-`send_input` 803, `find_files` 545, `list_directory` 529, `semantic_search` 497,
-`replace_lines` 407, `wait_for_job` 366, `search_web` 208, and a long tail of
-browser, memory, skill and sub-agent tools mostly in single or double digits.
+### The distribution is ROBUST, and that is the stronger claim
+
+The first run of this audit used a mixed corpus (514 files, 73,777 calls) that
+still contained Hewitt/Lyric compiler sessions. Scrubbing them removed **2,745
+calls, 3.7% of the corpus** — and moved no share by more than **0.3 points**:
+
+| tool | mixed corpus | scrubbed | delta |
+|---|---|---|---|
+| `run_command` | 36.3% | 36.0% | −0.3 |
+| `read_file` | 25.3% | 25.5% | +0.2 |
+| `edit_file` | 16.4% | 16.4% | 0.0 |
+| `search_files` | 10.0% | 10.2% | +0.2 |
+| `write_file` | 2.3% | 2.3% | 0.0 |
+| **top five** | 90.2% | **90.4%** | +0.2 |
+
+So the shape is not an artifact of which sessions were included. A 3.7%
+perturbation of the population leaves the ranking and the 90% concentration
+intact. **Cite the robustness, not just the table** — a single distribution is a
+number, but a distribution that survives having a chunk cut out of it is a
+finding.
+
+Roughly 110 further tools share the remaining ~10%: `refine_context`,
+`send_input`, `find_files`, `list_directory`, `semantic_search`,
+`replace_lines`, `wait_for_job`, `search_web`, and a long tail of browser,
+memory, skill and sub-agent tools mostly in single or double digits. (Exact
+counts for the tail were taken against the pre-scrub corpus and are not restated
+here; re-run the one-liner if a specific figure is ever printed.)
 
 ### Three findings, in order of how much they change the chapter
 
@@ -274,15 +298,15 @@ calls.** An agent without grep is blind: it cannot locate the thing to read
 before reading it. The three-tool set I proposed would have shipped an agent that
 cannot find its own work. **Caught only by measuring.**
 
-**2. `edit_file` outnumbers `write_file` 7:1** (12,086 vs 1,667). Given both, a
+**2. `edit_file` outnumbers `write_file` 7:1** (11,671 vs 1,616). Given both, a
 coding agent overwhelmingly makes targeted edits instead of rewriting files.
 Worth stating in the chapter, because the naive instinct is to ship `write_file`
 alone as "simpler" — and the result is an agent that rewrites a 400-line file to
 change one line, burning output tokens and clobbering concurrent edits.
 
 **3. The supervision verbs are routine, not exotic — this is §2's thesis,
-measured.** `send_input` 803 + `wait_for_job` 366 + `kill_job` 101 + `jobs` 80 =
-**~1,350 calls, comparable to `write_file` itself.** Interacting with a job
+measured.** `send_input` 800 + `wait_for_job` 322 + `kill_job` 97 + `jobs` 80 =
+**1,299 calls, comparable to `write_file`'s 1,616.** Interacting with a job
 *while it runs* is a first-class activity in real usage, not a defensive corner
 case. This is Bill's July 2025 `ed` story appearing in the aggregate, and it is
 the strongest single argument that chapter 3 must ship the process model rather
@@ -292,10 +316,10 @@ than a blocking call.
 
 | tool | class | share | why it is in |
 |---|---|---|---|
-| `run_command` | **supervised job** | 36.3% | the chapter's spine; carries slow/flood/hang |
-| `read_file` | fast, local | 25.3% | the counterexample — do not wrap this in job machinery |
+| `run_command` | **supervised job** | 36.0% | the chapter's spine; carries slow/flood/hang |
+| `read_file` | fast, local | 25.5% | the counterexample — do not wrap this in job machinery |
 | `edit_file` | fast, local, mutating | 16.4% | how agents actually change code |
-| `search_files` | fast, local | 10.0% | without it the agent cannot find anything |
+| `search_files` | fast, local | 10.2% | without it the agent cannot find anything |
 | `write_file` | fast, local, mutating | 2.3% | file *creation*; trivial; keep or cut |
 
 Four are non-negotiable. `write_file` is the only judgement call: 2.3% of calls,
