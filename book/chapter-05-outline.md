@@ -400,30 +400,80 @@ contrast with the mailbox. Present it as an observation, NOT as the reason it
 underperformed. It also enforces turn-taking in Go, returning an error if an
 agent calls out of turn.
 
-OPEN: how much of the three-agent workflow is given to the student vs written by
-them, and whether the reviewer is a third actor or a second pass by the editor.
+**RULED (Bill, 2026-09-13): the exercise gives NO code.** The exercise is a
+problem statement written in enough detail that a good AI coding agent, handed
+it verbatim, could succeed. Every prior chapter's exercise handed over a
+contract and let the student find the design; this one hands over the design in
+prose and lets the student's agent find the code. The chapter states the reason
+out loud: the student is meant to become the expert in the code base, and there
+are exactly two ways to do that with an AI writing the code. Type the prompts
+yourself, one at a time, guiding the agent and reading what comes back; the
+book asks, as close to begging as prose allows, for this one. Or paste the whole
+statement and review every generated line, which is what most working engineers
+do today and is the fallback, not the goal. What the book will not endorse is
+the third option nobody admits to: paste, run the grader, ship.
+
+**RULED (author): the reviewer is a third actor, not a second editor pass.** The
+chapter's checkable claim is that a new agent adds nothing to the framework.
+Two actors cannot test that claim, because the second one IS the framework's design
+cost. Only the third shows whether the cost was paid once.
+
+**Exercise contract** (the only thing that is fixed; contents are the student's):
+
+- Directory `seam/` holds the seam types from §5.7, typed in from the chapter.
+  It imports nothing outside the standard library (§5.11 property 2).
+- Directory `framework/` holds the actor loop. It imports `seam/` and nothing
+  from any agent (§5.11 property 3).
+- One binary, `./ch05`, runs the three-agent workflow. Inbound events arrive as
+  JSON lines on stdin; observations leave as JSON lines on stdout; the event log
+  is written to the path given by `CH05_LOG`. Stdin and stdout are the two seams
+  from §5.1 made into pipes, and they are the door the grader walks through to
+  prove the agent hears while a tool runs. The GUI chapter will grade the same
+  door, so nothing here is thrown away.
+- Vendor: the fake from chapters 2–4, unchanged, so the grader controls what the
+  model "says" and can request a slow tool on cue.
+
+The problem statement itself (what author/editor/reviewer do, what tools each
+has, what "done" means) is the last section of the chapter and is written to be
+handed to an agent. The seam-draft Go from §5.7 appears in the chapter body with
+its prose; the student's agent will need the student to point it at the right
+page.
 
 ## §5.11 Grading
 
-Properties, not pixels. Each must be checkable by deletion (P9).
+Properties, not pixels. Each must be checkable by deletion (P9), and every
+check carries points (P9 corollary, `5001a76`). Points are the author's
+allocation (ruled: author's choice). 100 total, seven checks.
 
-1. **Replay equals live.** Replaying the log produces the same final state as the
-   live run, minus deltas. Byte comparison.
-2. **The seam imports only stdlib.** `go list -deps` on the seam package.
-3. **The second agent adds zero lines to the framework package.** The chapter's
-   thesis, mechanically checked.
-4. **The agent is not deaf.** A message delivered while a tool is running is
-   observed before the tool completes. This is the mailbox's whole point and it
-   must be graded, or it is decoration.
-5. **A state predicate wakes exactly once.** Wait-for-turn-end returns on the
-   transition, not on a timeout and not on a text marker.
-6. **Loud refusal.** A media part a model cannot accept fails loudly rather than
-   being dropped.
+| Check | Pts | What the grader does |
+|---|---|---|
+| `ch4parity` | 10 | Re-runs the ch4 grader against the student's tree. A regression gate is worth 10 in every chapter that has one (ch2→ch3 precedent). |
+| `not-deaf` | 25 | Fake vendor requests a slow tool (a job that takes seconds). While it runs, the grader writes a `Hint` to stdin. The observation stream on stdout must show the hint observed BEFORE the tool's `ToolCompleted`. The chapter's thesis; it carries the most weight. A blocking select passes every other check and fails this one. |
+| `replay-is-live` | 15 | Byte-compare the context rendered from the event log against the context the live run sent to the fake. Deltas must not be in the log; finalized parts must be. Ch2's discipline carried forward. |
+| `framework-blind` | 15 | `go list -deps ./framework/` contains no package from any agent directory. Dependency DIRECTION is the mechanical form of "a new agent adds zero lines to the framework". Line counting is not checkable without a before, and the grader has no before. |
+| `wake-once` | 15 | Two children finish in the same turn; the grader counts the workflow's wakeups on the observation stream. Exactly one. Two is the polling loop the mailbox was supposed to replace; zero is a timeout or a text marker. |
+| `seam-stdlib` | 10 | `go list -deps ./seam/` is standard library only. Split from `framework-blind` because a student can get the direction right and still let a vendor type leak into the seam; different mistake, different fix. |
+| `loud-refusal` | 10 | Present a `BlobPart` whose `Media` the model's table row does not declare. Renderer must refuse with an error naming the model and the media. Dropping the part or substituting text scores zero here. |
+
+Budget per skill, then split across ids (P9 corollary): mailbox 40 (`not-deaf`,
+`wake-once`), dependency discipline 25 (`framework-blind`, `seam-stdlib`),
+logging 15, rendering 10, regression 10.
+
+Deletion audit: `not-deaf` and `wake-once` are the checks most likely to be
+graded by nothing if the fake's slow tool is not actually slow. The audit must
+include a mutant that makes the tool instant and confirm a blocking student
+still fails both. Ch1–3 each shipped with their loudest rule ungraded; this is
+the chapter whose loudest rule is hardest to grade, so the audit goes first,
+not last.
+
+Grader cost: the fake vendor from ch2–4 already serves three vendors on one
+path, and the ch3 grader already scripts a tool request for its ordering check.
+Nothing new is served. The observation stream is JSON lines on stdout by
+contract (§5.10), so every check except the two `go list` checks reads one
+file.
 
 Fake vendor is SHARED with earlier chapters — regression-check the earlier
 graders after any change to it.
-
-OPEN: point allocation.
 
 ## Figures used in this chapter, and their verification status
 
@@ -449,9 +499,19 @@ NAV-LEVEL ONLY (a page exists; body not read):
 
 ## Open questions
 
-1. Chapter title. Candidate above; Bill said the two-seams framing SGTM but has
-   not ruled on wording.
-2. Exercise scope — see §5.10 OPEN.
-3. Package path for the seam in the course repo. Rules are settled (§5.7); the
-   literal path is not.
-4. Point allocation for §5.11.
+All four closed 2026-09-13.
+
+1. **Title: "The Agent Framework."** RULED (Bill).
+2. **Exercise scope.** RULED (Bill): no code given; a problem statement good
+   enough to be a prompt; the book asks the student to type the prompts, not
+   paste them. Reviewer as third actor is the author's consequence (§5.10).
+3. **Seam location.** RULED (Bill): in the chapter, not the repo. The seam is
+   read and discussed as prose; the student's agent types it in. The only fixed
+   thing is the contract directory name `seam/`. Question 3 as asked
+   (a repo path) is dissolved, not answered.
+4. **Points.** RULED (Bill): author's choice. Allocated in §5.11.
+
+Remaining, carried from the seam draft (Go-level, not outline-level):
+`Chunk` string vs `[]byte`; is `Submitted` an `Observation`; `partJSON` field
+names. `Wait` on Agent vs Watcher was resolved by the workflow seam
+(`f7cc54e`): the condition is data, invoked as a tool.
