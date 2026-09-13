@@ -160,6 +160,63 @@ var mutations = []mutation{
 		edits:    []edit{{"gemini.go", `p\.ThoughtSignature = call\.Opaque`, `_ = call.Opaque`}},
 		wantFail: []string{"seam-render"},
 	},
+
+	// --- the Ref amendment -------------------------------------------------
+	//
+	// Prior art says to assume this amendment is graded by nothing until proven
+	// otherwise: Chapter 2's Opaque field, Chapter 1's content-block walk and
+	// Chapter 3's results-first ordering were all graded by nothing. Three for
+	// three. Each mutation below deletes ONE protected behavior.
+	{
+		name: "ref-not-serialized",
+		why:  "a blob whose location is dropped on the way out: the log still parses, and every locator in it is gone",
+		edits: []edit{{"part.go",
+			`w = partJSON\{Type: "blob", MIME: v\.MIME, Ref: &ref\}`,
+			`w = partJSON{Type: "blob", MIME: v.MIME}; _ = ref`}},
+		wantFail: []string{"ref-roundtrip"},
+	},
+	{
+		// THE TEMPTING ONE-LINER. Not a deletion of the error but a
+		// replacement of it with the coercion the loader's comment warns
+		// about, because merely deleting the error leaves the "blob has no
+		// ref" guard to refuse the log anyway — and the check would pass while
+		// the behavior it names was gone.
+		name: "old-path-coerced-into-refpath",
+		why:  "silently reading a pre-Ref \"path\" as a RefPath: survives every local-file log ever written, and turns the first remote reference into a filename that never existed",
+		edits: []edit{{"part.go",
+			`if w\.Path != "" \{`,
+			`if w.Path != "" { w.Ref = &Ref{Kind: RefPath, Locator: w.Path} }; if false {`}},
+		wantFail: []string{"ref-oldformat"},
+	},
+	{
+		name: "zero-kind-accepted",
+		why:  "accepting a Ref that was never filled in; the constants start at iota+1 precisely so the zero value cannot be mistaken for a real kind",
+		edits: []edit{{"part.go",
+			`if !r\.Kind\.valid\(\) \{`,
+			`if false {`}},
+		wantFail: []string{"ref-zerokind"},
+	},
+	{
+		// Deliberately mutates the BLOBS loop and not the carried-forward REFS
+		// loop below it, which renders a nearly identical line. Dropping what
+		// cannot be sent is how a multimodal request silently loses its
+		// attachment and comes back with a confident answer about a file the
+		// model never saw.
+		name: "refuri-not-rendered",
+		why:  "dropping a remote file reference instead of rendering it, so the request is well-formed and missing its attachment",
+		edits: []edit{{"gemini.go",
+			`out = append\(out, gemPart\{FileData: &gemFileData\{MIMEType: b\.MIME, FileURI: b\.Ref\.Locator\}\}\)`,
+			`_ = b`}},
+		wantFail: []string{"ref-render"},
+	},
+	{
+		name: "stub-drops-superseded-ref",
+		why:  "a redaction stub that forgets where the bytes went, making redaction unrecoverable and requiring a side table to undo",
+		edits: []edit{{"context.go",
+			`full output retained\]", n\), ref`,
+			`full output retained]", n), Ref{}`}},
+		wantFail: []string{"ref-redaction"},
+	},
 }
 
 func TestCh2ReferenceSolutionScores100(t *testing.T) {
@@ -199,7 +256,10 @@ func TestCh2MutationsAreDetected(t *testing.T) {
 				t.Fatalf("Ch2Run: %v", err)
 			}
 			var failed []string
+			var earned, max int
 			for _, c := range Ch2Evaluate(res) {
+				earned += c.Earned
+				max += c.Points
 				if !c.Passed {
 					failed = append(failed, c.ID)
 				}
@@ -212,6 +272,17 @@ func TestCh2MutationsAreDetected(t *testing.T) {
 					"When a mutation expectation misses, ask FIRST whether the grader is right.",
 					m.name, m.why, failed, want)
 			}
+			// Course policy P9: a check that cannot move the score is a green
+			// dashboard with a schema around it. Asserting the failing ID set
+			// alone would not catch a check worth zero points, so the score is
+			// asserted to actually DROP.
+			if earned >= max {
+				t.Errorf("mutation %q (%s) scored %d/%d: the behavior was deleted and the score did "+
+					"not move. The checks that fired (%v) are worth nothing.",
+					m.name, m.why, earned, max, failed)
+			}
+			// The mutant table, measured rather than asserted by hand.
+			t.Logf("MUTANT %-32s score %3d/%d  fired: %v", m.name, earned, max, failed)
 		})
 	}
 }
