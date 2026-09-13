@@ -1,4 +1,4 @@
-# Chapter 3 — Eight Tools: Ninety-Four Percent of an AI Coding Agent
+# Chapter 3 — Six Tools: Ninety-Two Percent of an AI Coding Agent
 
 *Status: outline, first pass. Design decisions are settled (see
 `chapter-03-seed.md` for the reasoning and receipts behind each). This document
@@ -17,7 +17,7 @@ At the end of chapter 3 it writes code.
 That is the whole arc, and it is the most satisfying chapter in the book to
 finish. Chapter 2 was the hard one — a log format, a reducer, three renderers,
 three parsers. This one is fast, and it should feel fast. The student implements
-eight tools in their simplest honest form, and the thing comes alive.
+six tools in their simplest honest form, and the thing comes alive.
 
 **What it deliberately does not do:** supervise anything. Every tool here blocks
 until it returns. That is the correct thing to build first, it is what I built
@@ -52,10 +52,11 @@ Seventy thousand four hundred and one tool calls. The top five:
 The agent has fifty-one tools available. It earns its living with four verbs:
 run things, read things, change things, find things.
 
-This chapter builds eight tools. Together they are **93.6%** of every tool call
-in that corpus. The remaining six and a half percent is memory, skills,
-sub-agents and context management — and each of those is a later chapter, which
-is a more useful way to read the tail than as leftovers.
+This chapter builds six tools. Together they are **92.0%** of every tool call in
+that corpus. Chapter 4 adds three more and takes it to 93.9%. The remaining six
+percent is memory, skills, sub-agents and context management — and each of those
+is a later chapter, which is a more useful way to read the tail than as
+leftovers.
 
 **Voice note:** the cold open is a receipt, not a boast. State the method, state
 the number, move on. No "you might be surprised to learn."
@@ -140,7 +141,7 @@ it is the middle of one. The turn ends when the model stops asking.
 
 ---
 
-## §3.3 The eight tools
+## §3.3 The six tools
 
 | tool | share of corpus | shape |
 |---|---|---|
@@ -150,14 +151,20 @@ it is the middle of one. The turn ends when the model stops asking.
 | `search_files` | 10.3% | local, fast |
 | `write_file` | 2.3% | local, fast, mutating |
 | `list_directory` | 0.75% | local, fast |
-| `send_input` | 1.1% | *(chapter 4)* |
+| `send_input` | 1.14% | *(chapter 4)* |
 | `wait_for_job` | 0.46% | *(chapter 4)* |
+| `kill_job` | 0.32% | *(chapter 4)* |
 
-The first six ship blocking, in this chapter. `send_input` and `wait_for_job`
-have no meaning until a tool can still be running when it returns to you, so
-they are named here and built in chapter 4.
+The first six ship blocking, in this chapter. The last three have no meaning
+until a tool can still be running at the moment it returns to you, so they are
+named here and built in chapter 4.
 
-**Six tools, 92.0% of the corpus. Eight, 93.6%.**
+**Six tools, 92.0% of the corpus. Nine, 93.9%.**
+
+Note what chapter 4 is worth, because it is not percentage. The three job verbs
+together are under two percent of all calls. Chapter 4 earns its place by
+reworking `run_command` — the single most-used tool in the table, thirty-six
+percent on its own. It does not add reach. It fixes the biggest thing you built.
 
 Design notes the prose should carry:
 
@@ -350,20 +357,23 @@ Mandatory before this grader ships:
 | thing | state after ch3 | collected in |
 |---|---|---|
 | `run_command`, blocking | works, returns when the process exits | Ch4, which makes it a job |
-| `send_input`, `wait_for_job` | named, not built | Ch4 |
+| `send_input`, `wait_for_job`, `kill_job` | named, not built | Ch4 |
 | `BlobPart.Path` | still not exercised | Ch4, when output arrives by the megabyte |
 | the shell itself | added innocently | Ch8, where it turns out to contain every tool |
 | tool arguments from the model | trusted | Ch8 |
 
 ---
 
+## Ruled
+
+1. **`kill_job` ships in chapter 4, not here.** It has no meaning without a job
+   to kill. Without it the student could not implement the "kill it" branch of
+   chapter 4's declined decision — three answers offered, two buildable.
+2. **`ch2parity` keeps its own 10 points rather than folding.** It is a
+   regression guard, and chapter 3 is the first chapter that could plausibly
+   break chapter 2's work. Folding it would hide the one failure a student is
+   most likely to cause and least likely to notice.
+
 ## Open
 
-1. **`kill_job` — in or out?** Not in the eight. Without it the student cannot
-   implement the "kill it" branch of chapter 4's declined decision: three
-   answers offered, two buildable. Recommend adding it in chapter 4 rather than
-   here, since it has no meaning without a job to kill.
-2. Confirm the `ch2parity` check is worth 10 points rather than folded into the
-   others. It is a regression guard, and the argument for keeping it visible is
-   that chapter 3 is the first chapter that could plausibly break chapter 2's
-   work.
+Nothing blocking. This outline is ready for prose and for the grader.
