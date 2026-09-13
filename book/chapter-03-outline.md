@@ -434,6 +434,28 @@ exact commands:
   `<VENDOR>_MODEL=...`. If the default model is not one your key can see, the
   request fails with `{"error":...}` and `models` tells you what is.
 
+  **Which model.** As of this writing the default coding models are
+  `claude-opus-5`, `gemini-3.8-flash` and `gpt-5.6-sol`, each verified against
+  its vendor's models endpoint on the day of writing. The grader uses none of
+  them, because the grader talks to the fake.
+
+  At least one of those three will be wrong by the time you read this. Use
+  whatever is right *at the time* — including for the probes in step 4, where
+  asking a superseded model about the API earns you a confident answer about a
+  world that has moved on. That is what the `models` subcommand is for, and it
+  is free. The rule that outlives the list: never take a model identifier from
+  training data, from a repository, or from a book, this one included. Ask the
+  endpoint. See P10.
+
+  Two traps that cost real afternoons. **The newest model is not the default** —
+  `gpt-6-astra` is more capable and substantially more expensive, so reaching
+  for the top of the list is a cost decision wearing a quality decision's
+  clothes. And **not every model can call tools**: `gemini-2.5-flash-lite` is
+  cheap and genuinely good at summarizing, and it cannot call a tool at all.
+  Point this chapter's loop at it and your agent sits there doing nothing, with
+  no error that names the reason. In a chapter about tool calling, that is worth
+  knowing before it happens to you rather than after.
+
 *(Every command above was run before it was printed. `cmd/fakevendor` and
 `scripts/live.sh` are documented in the repository README.)*
 

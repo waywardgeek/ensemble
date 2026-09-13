@@ -347,3 +347,52 @@ mutant student and asserts which checks notice. The pass that found the
 Chapter 2 hole deletes a behavior **from the reference solution** and asks
 whether the score still says 100. Run both. The second one is the one that
 catches a promise the book made and the grader never collected on.
+
+---
+
+## P10. Model IDs are dated facts, not constants
+
+A model identifier is the most perishable fact in this book. It looks like a
+constant and behaves like a timestamp. So we treat it as one.
+
+**The defaults, as of 2026-09-13**, each verified that day against the vendor's
+own models endpoint rather than recalled:
+
+| vendor | default coding model |
+|---|---|
+| Anthropic | `claude-opus-5` |
+| Google | `gemini-3.8-flash` |
+| OpenAI | `gpt-5.6-sol` |
+
+These are what our live runs use. **The graders do not use them at all** — they
+run against the fake and need no model and no key, which is the whole point of
+P4's first meter. Model choice only matters when you leave the fake.
+
+**The student should use whatever is right at the time, not what is printed
+here.** By the time anyone reads this, at least one of those three will be
+wrong. That is expected and it is not a defect in the book; it is the nature of
+the fact. What does not rot is the method:
+
+> Never take a model ID from training data, from a list in a repository, or
+> from a book — including this one. Ask the vendor's models endpoint and use an
+> ID you have seen it return today.
+
+We have the receipt for why. A dotted model name that looked obviously correct
+returned 404, because the vendor spelled it with a hyphen. The shape of these
+identifiers is not guessable, and a model that is confidently wrong about its
+own name is not an unusual model.
+
+Two traps worth stating plainly, because both have cost us real time:
+
+- **The most advanced model is not the default.** OpenAI's `gpt-6-astra` is more
+  capable than the default above and much more expensive. Picking the top of the
+  list is a cost decision disguised as a quality decision.
+- **Not every model can call tools.** `gemini-2.5-flash-lite` is very cheap and
+  perfectly good at summarizing text or acting as a judge, and it *cannot call
+  tools*. Point a tool loop at it and the agent does nothing, with no error that
+  names the cause. That is not your bug, and you can lose an afternoon to it.
+
+Standing rule for this repository: **nothing older than Gemini 3.0 Flash**,
+every earlier model having been superseded — with that single exception of
+`gemini-2.5-flash-lite` for summarizing and cheap judging, where tool calling is
+not required.
