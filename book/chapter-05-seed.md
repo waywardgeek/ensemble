@@ -171,8 +171,49 @@ video input is real today, not speculative. Gemini accepts "images, audio, video
 and documents" and ships dedicated video-understanding endpoints. Its part shape
 is `{type, mime_type, data | uri}`. Input methods: inline base64 (100MB/request,
 50MB PDFs), File API upload (2GB, 48h), registered GCS URI, and external URLs.
-NOT YET CHECKED: Anthropic and OpenAI video support. Do not write a
-cross-vendor claim until both are verified.
+
+### Cross-vendor input matrix, verified 2026-09-13
+
+| vendor    | image | audio | video IN                |
+|-----------|-------|-------|-------------------------|
+| Gemini    | yes   | yes   | YES                     |
+| OpenAI    | yes   | yes   | no — generation only    |
+| Anthropic | yes   | no    | no                      |
+
+Verification levels, kept distinct on purpose:
+
+- **Anthropic, read from body text** (platform.claude.com vision guide): `image`
+  content blocks with three source types — base64, a URL, or a Files API
+  `file_id`. Formats JPEG, PNG, GIF, WebP. Limits: 10MB/image direct, 8000x8000
+  px, 100 images/request at 200k context. The telling line: "Animations are
+  unsupported, and only the first frame is used." Even an animated GIF is
+  flattened — there is no time-based media in this surface at all.
+- **OpenAI, read from nav structure only** (developers.openai.com): the "Images
+  and video" section contains *Images and vision*, *Image generation*, and
+  *Video GENERATION*. There is no video-understanding/input page. Audio input is
+  real: *Audio in Chat Completions*, Realtime API, GPT-Live, live transcription.
+  NOT yet confirmed from body text — do not quote specifics without re-reading.
+
+Consequence for the seam: capability varies per VENDOR and per MODEL, which is
+exactly the situation Chapter 2's `AcceptsAudio bool` already models. The
+loud-refusal rule becomes more important, not less — a video part sent to Claude
+must fail loudly, because there is no degraded rendering that is honest.
+
+### Vendor features that confirm chapters we have already argued
+
+Found incidentally in vendor nav while checking media support. Each is a receipt
+that a mechanism this book teaches is real rather than invented here. All are
+nav-level sightings; read the body before citing in prose.
+
+- Anthropic **"Fine-grained tool streaming"** — streaming tool call parameters is
+  a shipped vendor feature. Direct support for this chapter's streaming rule.
+- OpenAI **"Mid-turn steering"** — the hint channel as a vendor primitive.
+  Relevant to the actors material and to the Chapter 2 M9 finding.
+- OpenAI **"Async tool calling"** — the jobs chapter's shape, vendor-side.
+- Anthropic **"Mid-conversation system messages and tool changes"** — bears
+  directly on the M9 result about mid-turn system messages.
+- Both vendors ship **Compaction** and **Skills** pages, relevant to the context
+  engineering material and the skills chapter.
 
 Two consequences for Chapter 2's existing types:
 
@@ -383,9 +424,10 @@ quietly changed later.
    `gs://` URI, or an external URL. Fix in ch5, or amend ch2? BLOCKS THE TYPES.
 2. **Does anything workflow-shaped have to exist in the seam now?** Same class of
    question as the `Agent` tag. BLOCKS THE TYPES.
-3. **Anthropic and OpenAI multimedia support** — video and audio input, verified
-   against live docs. Only Gemini is verified so far. Needed before any
-   cross-vendor sentence is written.
+3. ~~**Anthropic and OpenAI multimedia support.**~~ ANSWERED 2026-09-13, see the
+   matrix above: Gemini takes video in, OpenAI does not (generation only),
+   Anthropic takes neither audio nor video. Residual: the OpenAI row is
+   nav-level only; read the body before quoting specifics in prose.
 4. **Which non-coding agent** for the exercise? (recommendation: scheduler /
    reminder agent, above)
 5. **Chapter title.** "Creating the agent framework" names the activity, not the
