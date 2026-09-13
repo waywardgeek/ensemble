@@ -187,7 +187,7 @@ func configFromEnv() (Config, error) {
 		cfg.BaseURL = pick("LLM_BASE_URL", "OPENAI_BASE_URL", "https://api.openai.com")
 		cfg.APIKey = pick("LLM_API_KEY", "OPENAI_API_KEY", "")
 	case VendorGemini:
-		cfg.Model = pick("LLM_MODEL", "GEMINI_MODEL", "gemini-3-pro")
+		cfg.Model = pick("LLM_MODEL", "GEMINI_MODEL", "gemini-3.8-flash")
 		cfg.BaseURL = pick("LLM_BASE_URL", "GEMINI_BASE_URL", "https://generativelanguage.googleapis.com")
 		cfg.APIKey = pick("LLM_API_KEY", "GEMINI_API_KEY", "")
 	}
