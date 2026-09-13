@@ -831,7 +831,7 @@ uses yet. Answer honestly, in the text:
 | element | used in Ch2 | exists for |
 |---|---|---|
 | `ToolCallPart` / `ToolResultPart` | rendering supplied logs | Ch3, where tools are executed |
-| `BlobPart.Path` | not exercised | Ch3, when tool output arrives by the megabyte |
+| `BlobPart.Path` | not exercised | Ch4, when tool output arrives by the megabyte |
 | `OpaquePart` | thinking signatures | every chapter; never interpreted |
 | `TurnState.ToolsPending` | replaying supplied logs | Ch3 |
 | `RedactedPart` | fully exercised | Ch7 |
