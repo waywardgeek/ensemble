@@ -379,6 +379,20 @@ neighbor fails, the fixture is shared when it should have been planted — give 
 read check its own file, written by the harness before the student's agent
 starts.
 
+**Every check carries points, or the deletion audit cannot see it.** This
+surfaced during the Chapter 2 `Ref` amendment. Five new check ids were added
+under a single 15-point budget, and the first draft gave the budget to one id
+and zero to the other four, on the theory that the extra ids were there for
+diagnosis. That satisfies step 1 in letter and fails it in substance: delete
+the behavior a zero-point check protects and the check fires, the failing set
+names it, and the score still says 100. A student who never implemented it
+would never know. The audit measures the score; a check that cannot move the
+score is invisible to the audit however loudly it reports. The fix is
+mechanical. Budget per skill, then split the budget across the ids that
+exercise that skill so that each deletion moves the total. Itemization is
+still for diagnosis, but diagnosis with no consequence is decoration, and P9
+exists to find decoration.
+
 ---
 
 ## P10. Model IDs are dated facts, not constants
