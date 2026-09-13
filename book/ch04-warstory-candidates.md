@@ -91,7 +91,10 @@ goes deaf while working. Measured blackout: **11.4 seconds.**
 That is the exact shape chapter 4 wants: a belief held, a measurement taken, the
 belief overturned, and the fault found at home. It is dated, it is measured, it
 is Bill's own wrong belief and therefore his to tell, and the receipt already
-exists in `book/ch02-wire-verification.md`. Recommend chapter 4 opens on it.
+exists in `book/ch02-wire-verification.md`.
+
+**RULED 2026-09-13 by Bill: chapter 4 opens on it.** The M9 falsification is the
+cold open. Slot B is closed and needs nothing further from the memoir.
 
 ---
 
@@ -178,9 +181,15 @@ really a chapter 3/5 theme (tool parameters, capability seam), not chapter 4.
 
 ---
 
-## Flagged: an internal inconsistency in the source
+## Flagged: an internal inconsistency in the source — **RESOLVED**
 
 The miner noticed the HTML bug marathon is described early as running from
 1:37 AM to "somewhere past 4:00 AM" (~2.5 hours), and later as "the 4.5-hour
-HTML bug marathon at 1:37 AM." Both cannot be right. If either number is ever
-quoted in the book, resolve it with Bill first.
+HTML bug marathon at 1:37 AM." Both cannot be right.
+
+**RULED 2026-09-13 by Bill: 4.5 hours is correct.** His recollection is that it
+ran long into the morning, and was not one of the sessions he started at 2 AM.
+1:37 AM plus 4.5 hours lands near 6 AM, which fits. **The "past 4:00 AM" /
+~2.5-hour figure in the source is the erroneous one; do not quote it.** If the
+duration is ever printed, it is 4.5 hours, sourced to Bill, not to the memoir.
+
