@@ -173,7 +173,7 @@ checked: it had the same one-round lag, which settled whose bug it was.
 Anthropic's documentation now shows the shape exactly, a `tool_result`
 followed by a text block in the same user message, with not much said about
 why you would want one. The lag went away when Anthropic added mid-turn system
-messages, around Opus 4.8, and today the hint lands on the round that carries
+messages, with Opus 4.8, and today the hint lands on the round that carries
 it.
 
 The same bytes were legal on the OpenAI and Gemini wires and steered nothing,
