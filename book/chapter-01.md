@@ -2,7 +2,7 @@
 
 ## 1.0 Sixty billion dollars
 
-Three transactions, in order. They are not three versions of one story. Read
+Three transactions. They are not three versions of one story. Read
 in sequence, they are a market getting steadily more precise about what it is
 buying.
 
@@ -43,14 +43,12 @@ telemetry in the industry: thousands of expert engineers accepting, rejecting
 and correcting machine-written code, all day, on real problems, with a verdict
 attached to every suggestion.
 
-The arithmetic removes any remaining doubt. In the same April statement, SpaceX
+The arithmetic is public too. In the same April statement, SpaceX
 said it could acquire Cursor for $60 billion, or pay roughly $10 billion for
-the two companies to work together. It paid six times more. If you wanted the
+the two companies to work together. It paid six times as much. If you wanted the
 product, $10 billion bought the product. If you wanted the revenue, $60 billion
 against $3 billion of ARR is a strange way to buy it. The extra fifty billion
-bought ownership of the loop. Nobody in this paragraph needs an adjective. You
-can do the arithmetic and arrive somewhere on your own, which is the only place
-a reader ever really arrives.
+bought ownership of the loop.
 
 **Why coding goes first.** Every knowledge profession is a candidate for
 automation, and software engineering is being automated first. Not because it
@@ -61,17 +59,13 @@ reinforcement learning cannot proceed without. Law, medicine and management all
 have to argue about whether the work was any good. Software just runs it.
 
 The obvious objection is that the interesting part of software is exactly the
-part that can't be scored: architecture, judgment, taste. I have a proposal
-that answers it, "Training Superhuman Software Architects"
-(`coderhapsody.ai/docs/superhuman-architecture`). A model's judgment is bounded
-by the human-written data it trained on, so exceeding human architecture
-requires self-play against an objective score. The score it proposes: change
-cost (lines changed per new requirement), deletion resilience, code growth rate
-(linear or sublinear as features land), and modification speed, measured by
-handing the design to a fresh agent. Architecture quality is only observable
-against a sequence of requirements arriving over time, and real git histories
-already contain millions of such sequences. The training signal isn't
-hypothetical. It's sitting in public repositories.
+part that can't be scored: architecture, judgment, taste. It does not change
+what was bought; SpaceX paid whether or not taste is scorable. I have a
+proposal that answers it anyway, "Training Superhuman Software Architects"
+(`coderhapsody.ai/docs/superhuman-architecture`): architecture quality is
+observable against a sequence of requirements arriving over time, and public
+git histories already contain millions of such sequences. The training signal
+for judgment isn't hypothetical. It's sitting in public repositories.
 
 So: coding is measurable, therefore coding is first, therefore the coding agent
 sits inside the loop that improves the model. That is what $60 billion bought.
@@ -208,7 +202,10 @@ The response:
 }
 ```
 
-Three fields matter: `content`, `stop_reason`, `usage`.
+Three fields matter: `content`, `stop_reason`, `usage`. `stop_reason` is
+`end_turn` on every reply in this chapter. Chapter 3 is where it first says
+something else, and that turns out to be the same moment `content` stops being
+simple.
 
 **The asymmetry that catches everyone once.** The request lets you send
 `content` as a bare string. The response never does: response `content` is
@@ -221,7 +218,9 @@ and not an error. Every reply in this chapter arrives as text, so indexing and
 walking return the same string, and they keep agreeing right up until a reply
 arrives carrying something that is not text. That happens in Chapter 3, the
 first time a model asks to call a tool, and by then the line that reads
-position zero will be old code that you trust.
+position zero will be old code that you trust. Live, that is how it goes. The
+grader's fake does not wait for Chapter 3: it splits every reply across two
+blocks, so the shortcut fails on day one, where the failure is cheap.
 
 ### Sidebar: ask the API which models exist
 
@@ -336,6 +335,15 @@ counter is deterministic; `make grade` prints them. Live against
 No caching and no remedies here. Just the habit, and the curve.
 
 ## 1.6 Chat with it
+
+The reference has exactly one fixed line to say about itself, and it says it
+in the system prompt:
+
+```go
+const systemPrompt = "You are a helpful assistant built from raw HTTP calls in Chapter 1 of Building Advanced AI Coding Agents. Answer briefly."
+```
+
+Everything the model knows about where it is running is in that string.
 
 ```
 $ go build -o ch01 . && ./ch01 chat
@@ -519,11 +527,12 @@ The ones you cannot infer from the table:
   token math from it. Exact matching is what catches a program that invents
   plausible numbers instead of summing.
 
-**What the grader deliberately does not check.** It requires the walk: the
+**What the grader deliberately does not check.** It does not require you to
+filter blocks by `type`. It does require the walk: the
 fake splits every reply across two text blocks that concatenate to exactly the
 answer, so a program that reads `content[0].text` returns half a sentence and
-fails `replies`. It does not require you to filter those blocks by `type`.
-Nothing in this chapter's wire can punish the omission, because every block the
+fails `replies`. The filter is a different matter. Nothing in this chapter's
+wire can punish leaving it out, because every block the
 API returns here is a text block, and no real Anthropic block carries a `text`
 field for a sloppy walk to pick up by mistake. Catching the missing filter
 would mean inventing a block type that does not exist, and a grader that
