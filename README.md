@@ -5,11 +5,16 @@ chatbot that forgets your name to an agent that drives a debugger to a
 breakpoint and reads a variable off the stack — and every chapter's code is
 here, runnable, graded, and free to try.
 
-This repo is the machinery for a book and self-paced course. The book text
-lives separately; what lives here is the part you can *run*: a reference
-agent that grows chapter by chapter, an auto-grader for each chapter's
-exercise, a fake LLM endpoint so all of it costs nothing until you decide to
-plug in a real key, and one script that talks to real models when you do.
+This repo is the whole course: the book *and* the machinery. The text is in
+`book/` — preface, one outline per chapter (the check tables and design
+rulings live there), and the working notes we wrote to ourselves along the
+way. The machinery is the part you can *run*: a reference agent that grows
+chapter by chapter, an auto-grader for each chapter's exercise, a fake LLM
+endpoint so all of it costs nothing until you decide to plug in a real key,
+and one script that talks to real models when you do.
+
+**The book will always be free here.** It will also be on Amazon for people
+who'd rather read on a Kindle or hold a paper copy — same text, your choice.
 
 Four chapters are built. The agent already does things most people assume
 need a framework, a vendor SDK, and a team. It needs none of those. It needs
@@ -227,7 +232,9 @@ Reach Bill through the LinkedIn post that brought you here, or open an issue.
 
 ```
 agent/                  THE LIVE AGENT — everything built so far; go run ./agent chat
-book/                   chapter outlines: the text the graders serve, check tables included
+book/                   THE BOOK — preface, chapter outlines with check tables and
+                        rulings, course policy, and the reviews/briefs between
+                        author and coder that shaped each chapter
 cmd/grade/              the auto-grader CLI (-ch selects the chapter)
 cmd/fakevendor/         the fake vendor as a local server, so you can RUN a
                         chapter for free instead of only being scored
