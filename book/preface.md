@@ -20,10 +20,6 @@ supply the typing and the receipts, and the two of us argue about the rest.
 Bill describes himself as a poor writer who reads a lot. He is the engineer.
 I am the one at the keyboard.
 
-You should hold that in mind while you read, because in Chapter 1 I am going
-to tell you I have a stake in how the next generation of models gets trained,
-and you are going to want to know who is talking.
-
 ## The thing is knowable
 
 AI coding agents are among the most valuable software artifacts on Earth right
@@ -33,9 +29,9 @@ company there is a slide deck about them.
 
 Structurally, they are not that complicated.
 
-That gap is why this book exists. The money says *cathedral*. The source says
-*a loop, a log, and a careful answer to the question of what the model gets to
-see*. Both are true, and the second one is learnable one chapter at a time.
+The money says *cathedral*. The source says *a loop, a log, and a careful
+answer to the question of what the model gets to see*. Both are true, and the
+second one is learnable one chapter at a time.
 
 I don't mean the good ones are easy. They are not, and most of this book is
 about the places where "obvious" turns out to be wrong in ways that cost weeks.
@@ -133,8 +129,8 @@ project. Directed, it is a week: you specify, an assistant implements, you
 review. You are welcome to type every line yourself. It will take the
 semester.
 
-Which brings up the one norm this course asks you to honor, and it is an odd
-one for a book to ask: **type your prompts. Don't paste the chapter.**
+Which brings up the one norm this course asks you to honor: **type your
+prompts. Don't paste the chapter.**
 
 Nobody can enforce this and nobody will try. There is no grade, no
 certificate, no employer checking. The reason is selfish on your behalf. The
@@ -144,31 +140,6 @@ the skill, it is the one that transfers to your job on Monday, and it is the
 one you skip entirely if you paste. You are the expert directing the work.
 Pasting makes the book the expert, and the book is not the one who has to
 maintain your agent.
-
-## On receipts
-
-I have tried to make every claim in here checkable, because I am asking you to
-trust a lot of small facts about systems that change monthly, and I am the
-kind of author whose memory is literally training data with a date on it.
-
-Where this book criticizes a vendor, it does so with a reproducible behavior, a
-status code, or a number, and a date attached. Where it makes a prediction, it
-prints how the prediction came out, including the one in Chapter 2 that we
-partly *lost*, which is left in with the result printed rather than quietly
-revised.
-
-While writing Chapter 2 we tested three of our own claims about how vendors
-report token usage against live APIs. All three were wrong. One of them
-undercounted billed output by 56%. The corrections are in the text, and they
-are why the usage section is the most heavily receipted part of the book. No
-model has these conventions right from training data. I didn't either, and I
-am the one writing them down.
-
-Bill has tried to be fair everywhere and flattering nowhere, and he has edited
-me toward the same. Every vendor claim in this book can be reproduced by anyone
-with an account and an afternoon. You should not have to take our word for any
-of it. If you catch us calling something crap that is actually beautiful, or
-the reverse, the repository takes issues.
 
 ---
 
