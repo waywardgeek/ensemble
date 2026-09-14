@@ -266,6 +266,8 @@ for that to happen after the fact.
 ## 6. Facts
 
 **Verified (observed directly):**
+- `go test -count=1 ./internal/grade/...` — all chapters' reference and
+  mutation tests — `ok` in 135s, exit 0, after the final code commit.
 - `-ch 2/ch02`, `-ch 3/ch03`, `-ch 3/ch04`, `-ch 4/ch04` all 100/100 after
   the final commit; `go build ./...`, `go vet ./...` clean; `gofmt -l` lists
   only pre-existing `seam.go` and `ch02_grader_test.go`, which I did not
