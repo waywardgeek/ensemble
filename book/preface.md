@@ -124,7 +124,7 @@ is for engineers who already ship production code with Cursor or Claude Code
 and want to know what is inside the thing they are typing into. It will not
 teach you to direct a coding assistant; it assumes you can, and it hands you
 a series of specifications that need to be built to production standard. The
-Chapter 2 solution is about 2,400 lines. Hand-typed, that is a semester
+Chapter 2 solution is about 2,800 lines. Hand-typed, that is a semester
 project. Directed, it is a week: you specify, an assistant implements, you
 review. You are welcome to type every line yourself. It will take the
 semester.
@@ -134,7 +134,7 @@ prompts. Don't paste the chapter.**
 
 Nobody can enforce this and nobody will try. There is no grade, no
 certificate, no employer checking. The reason is selfish on your behalf. The
-exercise was never "write 2,400 lines of Go." It is "describe a system
+exercise was never "write 2,800 lines of Go." It is "describe a system
 precisely enough that a competent implementer builds the right thing." That is
 the skill, it is the one that transfers to your job on Monday, and it is the
 one you skip entirely if you paste. You are the expert directing the work.
