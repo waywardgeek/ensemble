@@ -180,7 +180,7 @@ The body:
 much output you can afford. `system` is one string that rides outside the
 messages array, and for this chapter it is a single fixed line.
 
-`messages` carries three rules, and the server enforces all of them. Roles
+`messages` carries three rules, and the grader enforces all of them. Roles
 strictly alternate, `user`, `assistant`, `user`. The conversation begins with
 a `user` message. The last message is the user's, because otherwise there is
 nothing to answer. And no message's content is ever empty.
@@ -234,8 +234,10 @@ curl -s https://api.anthropic.com/v1/models \
 
 An ID that *looks* current may be an alias that silently resolves to something
 much older, and nothing in the response will tell you so. This advice is
-earned. While building this book's grading rig I picked a model ID from memory
-because it looked familiar. It worked. It was a year old. Ask; don't remember.
+earned. While building this book's grading rig, the coding agent picked a model
+ID from its own memory because it looked familiar. It worked. It was a year
+old. A model's memory is its training data, and training data has a date. Ask;
+don't remember.
 
 Every model ID printed in this book will age, including the one in the request
 above. The sidebar teaches the lookup, not the answer.
@@ -417,7 +419,8 @@ course proxies to Anthropic, Gemini or OpenAI with a metered per-student
 budget. No provider account, no tier wall, no waiting. If you already have an
 API key, you do not need us: the entire course runs identically pointed
 straight at the provider. The proxy exists to remove the toll booth, not to
-become one. I take no margin on proxied tokens; they cost what they cost.
+become one. I take no profit on proxied tokens. They cost what they cost, plus
+whatever it costs me to bill you for them, and nothing else.
 
 **Three meters, never added together.** The preface stated them; here they are
 against this chapter.

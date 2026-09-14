@@ -195,3 +195,22 @@ Not verifiable by me: the three attributions in §0.
 2. Author applies 2.1, 2.4, 5.1 (the three that change what the reader can
    correctly infer), then 1.1–1.6, 2.2, 2.5, 2.3-if-ruled.
 3. Re-sum nothing — no tables changed.
+
+## 9. Rulings (Bill, 2026-09-14) and application
+
+§0 row 1 — KEEP verbatim. Bill has shipped agents on third-party
+frameworks (ADK 1.0 and 2.0, among others). The sentence is his.
+§0 row 2 — KEEP verbatim. Confirmed his system.
+§0 row 3 — CONFIRMED the agent's. Applied the §2.5 wording (the party whose
+memory is training data is the one shown trusting it).
+§1.7 promise — RULED with a correction: no *profit* on tokens, but costs of
+billing (e.g. payment-processor fees) are passed through. "No margin" was
+therefore false; rewritten as "no profit ... plus whatever it costs me to bill
+you for them, and nothing else."
+2.3 — RULED: "the grader enforces all of them." Applied.
+
+All ungated edits applied in 52389d4; gated edits in the commit following.
+One deviation from §5.1's script: the exercise paragraph already carried the
+`type`-filter sentence further down, so the swap would have duplicated it. The
+later instance was removed and its pronoun ("the omission") replaced with a
+named referent. Em-dash count unchanged at 2.
