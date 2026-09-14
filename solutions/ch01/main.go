@@ -14,7 +14,9 @@
 //	ANTHROPIC_API_KEY    required
 //	ANTHROPIC_BASE_URL   optional, defaults to https://api.anthropic.com
 //	                     (the grader and the course proxy both live here)
-//	ANTHROPIC_MODEL      optional, defaults to a current Claude model
+//	ANTHROPIC_MODEL      required — there is deliberately no default, because a
+//	                     remembered model ID is exactly the failure mode this
+//	                     chapter is about. Ask GET /v1/models what exists today.
 package main
 
 import (
@@ -93,11 +95,14 @@ func newClient() (*Client, error) {
 	}
 	model := os.Getenv("ANTHROPIC_MODEL")
 	if model == "" {
-		// This default will date. Ask the API what exists today:
+		// No default on purpose. Any ID written here would be a soft hardcode:
+		// correct the day it was typed, wrong some later day, and invisible to
+		// the grader, which always sets the variable. Refuse instead, and tell
+		// the reader where the real answer lives:
 		//   curl -s https://api.anthropic.com/v1/models \
 		//     -H "x-api-key: $ANTHROPIC_API_KEY" \
 		//     -H "anthropic-version: 2023-06-01"
-		model = "claude-sonnet-5"
+		return nil, fmt.Errorf("ANTHROPIC_MODEL is not set; ask GET /v1/models which models exist")
 	}
 	return &Client{
 		BaseURL: strings.TrimSuffix(base, "/"),
