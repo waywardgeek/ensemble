@@ -6,8 +6,10 @@
 build and his rulings supersede the first pass of §4.6 and §4.7 (blocking
 contracts and budget policy are gone). War story is receipted — commits
 `286bfd84` and `4bec4b96`, both 10 August 2026, `internal/agent/watchdog.go`.
-Architecture is receipted — `cr/docs/tool-calls-as-jobs-design.md`. One
-amendment is proposed and awaits Bill: the P6 decision in §4.7.*
+Architecture is receipted — `cr/docs/tool-calls-as-jobs-design.md`. Shell
+state across calls is RULED (§4.7, with corpus numbers); the reference still
+needs the `cwd` argument and the `jobmodel` legs that grade it — coder brief
+pending.*
 
 ---
 
@@ -422,51 +424,71 @@ intended.
 
 Unix only, via the process group. Chapter 3 already was, via `sh -c`.
 
-### The decision this chapter does not make — PROPOSED, awaiting Bill
+### Does shell state persist between calls? — RULED: no, and here is the receipt
 
 The first pass declined "what happens when a job outruns its budget." There is
 no budget, so there is nothing to decline; the coder's candidate replacement
 (how a report spells a signal death) is three spellings of one fact with nothing
-downstream depending on the answer, and is rejected.
+downstream depending on the answer, and is rejected. The question that *is*
+real, that students will hit, and that shipping agents answer differently:
 
-The decision that *is* open, that students will hit, that two shipping agents
-answer differently, and that a pasted chapter cannot answer for them:
+**Does shell state persist between `run_command` calls?** Claude Code's Bash
+tool says yes — one shell, `cd` sticks — and its docs issue #45478 is the cost
+made visible: a `cd` outside the approved directories is silently reverted and
+a "Shell cwd was reset" notice appended, because the shell now holds state the
+security boundary has to police. Editor-style agents ship named terminal
+panes whose state persists. The reference says no. This chapter **rules**
+rather than declines, because the job model makes it not a close call:
 
-**Does shell state persist between `run_command` calls?**
+1. **A persistent shell is a job.** `run_command "bash --norc"` with pattern
+   `\$ `, then `send_input "cd lyric"`, `send_input "make"`. The model gets a
+   shell whose state sticks — *and it has a handle.* Every `send_input` to that
+   handle is a logged event in order, so the log still reproduces the session.
+   Claude Code's problem was never state; it was **implicit** state with no
+   handle to attribute it to. Those named terminal panes are handles with a
+   GUI. Isolation is the primitive; persistence is composed on top of it,
+   explicitly. You can build a persistent shell out of isolated jobs. You
+   cannot build isolation out of a persistent shell.
+2. **Overlapping jobs cannot share one shell.** Two `run_command`s in flight
+   at once — the point of this chapter — is not a thing one bash does.
+3. **The measured tax is a *directory* tax, not a state tax.** On 26,781
+   archived `run_command` calls, **69.6% begin with `cd`** (18,651), and
+   almost all name one directory: the project root (`cd ~/projects/forge`
+   7,979 times; `lyric` 1,908; `coderhapsody` 1,240). Environment setup —
+   `source …/activate`, `export`, `nvm use` — is **0.12%** (33 calls). That is
+   not a model navigating. That is a model started in the wrong directory and
+   correcting for it on every call, forever.
 
-- **Fresh shell per job.** Every command is self-contained. `cd` and `export`
-  die with the call. The log alone reproduces every result. Cost: the model
-  prefixes `cd repo &&` on every call, forever, and pays for it. (This is what
-  the reference ships, and what CodeRhapsody ships.)
-- **One persistent shell.** `cd` sticks. Fewer tokens per call, and the shell
-  is what the model expects a shell to be. Cost: the working directory and
-  environment are state that lives in a process and *not in the log*; replaying
-  the log does not reproduce the session unless every command is re-run in
-  order. (Claude Code's Bash tool ships this — and its docs issue #45478 is
-  the cost made visible: a `cd` outside the approved directories is silently
-  reverted and a "Shell cwd was reset" notice appended, because the shell now
-  holds state the security boundary has to police.)
-- **Track the directory, nothing else.** The dispatcher remembers `cwd` from
-  each call and prepends it to the next; environment does not persist. A
-  middle answer some tools ship.
+So the remedy for the 69.6% is not persistence. It is two things, neither of
+which is state:
 
-The chapter teaches everything needed to make the choice — the PTY, the job,
-the log — and declines. **Grader shape (P6, as ch3's `editcontract`):** not
-which answer, but that one answer was made and holds. Fixture: `cd testdata;
-export CH4_M=1` then `pwd; echo ${CH4_M:-unset}`, run twice; the two probe
-results must be identical (a half-built persistence that leaks
-nondeterministically fails), and the (cwd, env) pair must be one of the three
-above — env persisting while cwd does not is no product anyone ships and is
-rejected as incoherent. **Points:** 5, from `jobmodel` 25 → 20; five other
-checks already fail without the job mechanism, so `jobmodel`'s unique load is
-"handle before the tool ran" plus its `read_file` negative control, and 20
-still says it is the chapter.
+- **`cwd` as an argument on `run_command`**, for this call only. Relative
+  paths resolve against the workspace; a missing directory is an error, never a
+  silent fall back to the workspace. The effective directory is recorded on
+  the job and printed in the report when it is not the default — chapter 2's
+  rule, record and never infer.
+- **The default cwd is a launch-time setting**: the agent's workspace, which
+  is not the same directory as the one holding the event log. (CodeRhapsody
+  shipped exactly this the morning after the numbers were measured:
+  `./coderhapsody [workspace]` with `--data-dir` anchored to the launch
+  directory, commit `48839be8`.)
 
-**Alternative if Bill rules rather than declines:** fresh per job, taught in this
-section with the replay argument, no check. Chapter 4 then has no P6 decision.
-P6 is a norm ("design these into chapter 3 onward"), not a per-chapter quota,
-so that is acceptable — but a student who has argued the replay cost has
-learned it, and a student handed the ruling has not. Recommendation: decline.
+**Why no `set_cwd` tool.** It is the `tool_limits` argument again, with a worse
+failure mode. A sticky default set at call 40 and compacted away by call 300
+is state the model can no longer see but still acts on — and a wrong wake
+costs seconds, a wrong directory runs `rm -rf build` in the wrong tree. To make
+it safe you would have to promote sticky settings to the never-dropped category
+in the reducer. **One-shot settings never need to survive compaction; sticky
+ones always do.** That sentence is the general rule, and it is why both of
+this chapter's knobs are per-call.
+
+**Grader:** `jobmodel`'s fixture gains a `cwd` leg (a `run_command pwd` with
+`cwd: testdata` must print the subdirectory as a line of *output* — a
+substring test is satisfied by the report's own header, a mutant of the
+reference passed exactly that test in CodeRhapsody) and a no-persistence leg
+(the next call without `cwd` prints the workspace). No new check id; the
+points stay at 25. Chapter 4 has no P6 declined decision; P6 is a norm, not a
+per-chapter quota.
 
 ---
 
@@ -535,7 +557,7 @@ never `go run`:
 | id | points | what it grades |
 |---|---|---|
 | `ch3parity` | 10 | chapter 3's whole grader passes against the chapter 4 binary |
-| `jobmodel` | 25 | handle on `tool_called` **before** the tool ran, for `read_file` and `list_directory` as well as the shell; `cr/io/N` bytes **equal** the result the model saw; `wait_for_job`'s own record carries no job |
+| `jobmodel` | 25 | handle on `tool_called` **before** the tool ran, for `read_file` and `list_directory` as well as the shell; `cr/io/N` bytes **equal** the result the model saw; `wait_for_job`'s own record carries no job; `cwd` honoured as a line of `pwd` output and **not** persisted to the next call *(legs pending — see §4.7)* |
 | `waitjob` | 10 | delay honored (`running` at 0.2 s); wait returns the result; **works on an already-finished job**; file ends with marker and exit code |
 | `sendinput` | 10 | pattern wakes on the prompt and not the echo; input reaches the process; its reply comes back; clean exit recorded |
 | `debugger` | 5 | the fake drives `dlv` to a breakpoint and reads `42` |
@@ -545,8 +567,7 @@ never `go run`:
 | `shutdown` | 5 | a job still running when the model stops is killed at exit and `job_killed{reason shutdown, status killed}` is logged |
 
 **Sum: 100.** The code sums itself (a test adds the checks' declared points);
-the awk over this table is a cross-check, not the instrument. If the §4.7
-decision is adopted: `jobmodel` 20, `shellstate` 5.
+the awk over this table is a cross-check, not the instrument.
 
 **Weighting rationale:** `jobmodel` is 25 because it is the chapter, and because
 the common wrong answer — special-casing `run_command` instead of changing the
@@ -631,11 +652,20 @@ not required): run `exit7` once before grading to warm the build cache.
    log.
 9. **Signal-death spelling** rejected as a P6 candidate — representational.
 10. **`list_jobs` not built.**
+11. **Shell state does not persist between calls** (Bill, after the corpus
+    numbers). `cwd` is a per-call argument on `run_command`; the default is
+    the launch-time workspace; no `set_cwd` — one-shot settings never need to
+    survive compaction, sticky ones always do. A persistent shell is a job the
+    model opens explicitly. No P6 declined decision in this chapter.
 
 ## Open
 
-1. **§4.7's declined decision** — shell state across `run_command` calls.
-   Decline (5 pts from `jobmodel`) or rule fresh-per-job and teach it? Bill.
+1. **Coder brief:** add `cwd` to the reference's `run_command` (per call,
+   relative to workspace, error on missing dir, recorded on the job and in the
+   report) and the two `jobmodel` legs; mirror in `agent/`, re-snapshot
+   `solutions/ch04`, retag; `-ch 3 solutions/ch04` must stay 100. Mutant:
+   `cwd-ignored` must fail `jobmodel`, and the leg's assertion must be on a
+   line of output, not a substring.
 2. **Title.** "Containment, Not Cancellation" now names a sentence that
    survives in one place (`kill_job` on a goroutine). The chapter's spine is
    "stop discarding the result" / "the wait belongs to the call." Keep the
