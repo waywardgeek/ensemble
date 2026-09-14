@@ -24,7 +24,40 @@ a function.
 > **We're turning this into a video course and looking for collaborators.**
 > If you found this through Bill's LinkedIn post: welcome. Skip to
 > [Kick the tires](#kick-the-tires-in-five-minutes), get it talking, then read
-> [Help build the course](#help-build-the-course).
+> [Help build the course](#help-build-the-course). You do **not** need to be
+> the engineer described in the next section to help make this.
+
+---
+
+## Who this is for
+
+This is not an ordinary software-engineering course, and the exercises are
+not ordinary exercises. The reference agent stands at 5,000 lines of Go by the
+end of chapter 4 — and chapter 1's code is thrown away on purpose, so that is
+5,000 lines across three chapters. Chapter 2 alone is over two thousand. A
+student is expected to produce each chapter — production-worthy, graded, all
+checks passing — in a few days at most.
+
+No human writes that by hand in that time. The course assumes you already
+work the way the next generation of engineers works: fluent with Cursor,
+Claude Code, Codex or their equivalent, directing an agent rather than
+typing, and *reading* at the speed it produces. If you have never shipped a
+few thousand lines of agent-written code that you could defend line by line,
+start there and come back. If you have, this course is the next thing.
+
+**Or just read along.** The book, the outlines, the reference solutions and
+the reviews that shaped them are all here and all free. You can follow every
+decision without building anything, and you'll come away knowing exactly how
+the agent you use every day works — and where it cuts corners. The exercises
+are for people who want to own one.
+
+The receipt is the git log. The idea for this course was born on a Friday
+afternoon. Four chapters of reference code, their graders — each audited by
+deleting behaviour from the reference and proving the score drops — the fake
+vendors, the live harness, and the outlines you'll read were all committed by
+Monday morning, by one engineer working with his agents. That pace is not the
+point. The point is that it is now the *normal* pace for people who work this
+way, and a course for them has to be pitched at it.
 
 ---
 
@@ -211,18 +244,28 @@ you have been paying a subscription for.
 ## Help build the course
 
 We're making a video, self-paced course from this material — chapter by
-chapter, watch-then-build, graded by the tools in this repo. If that's a
-thing you'd like to help make, here's what helps most, in order:
+chapter, watch-then-build, graded by the tools in this repo.
+
+**You do not need to be the engineer the course is for.** The systems
+expertise is already in the repo: the code, the outlines, the design rulings,
+the reviews between author and coder that explain every decision. What the
+course does not have yet is someone who is great at teaching on camera —
+someone who can take a chapter and make a live audience *see* it. If that's
+you, you are the collaborator we're short of, whether or not you've written a
+line of Go.
+
+Here's what helps most, in order:
 
 1. **Run it.** Kick the tires above. Where did you get stuck? Where did the
    README lie to you? Open an issue with the command and what happened.
-2. **Do a chapter as a student.** Read `book/chapter-0N-outline.md`, build
-   the exercise, grade it. Tell us where the outline undersold or oversold
-   the difficulty.
-3. **Record yourself doing it.** Rough screen capture is fine. The first cut
-   of a video course is finding out what a real person needs to *see*.
-4. **Bring what you're good at**: video editing, course platforms,
-   accessibility, teaching. None of us are experts in all of those.
+2. **Do a chapter as a student** (if you code at AI speed). Read
+   `book/chapter-0N-outline.md`, build the exercise, grade it. Tell us where
+   the outline undersold or oversold the difficulty.
+3. **Record yourself explaining a chapter.** Rough screen capture is fine. The
+   first cut of a video course is finding out what a real person needs to see,
+   and a teacher's instinct for that is worth more than another engineer's.
+4. **Bring what you're good at**: presenting, video editing, course platforms,
+   accessibility, curriculum design. None of us are experts in all of those.
 
 Reach Bill through the LinkedIn post that brought you here, or open an issue.
 
