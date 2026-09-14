@@ -72,6 +72,11 @@ func wire(c *Check, s *Ch4Session, id string) (WireResult, bool) {
 var (
 	runningRe = regexp.MustCompile(`(?i)\brunning\b`)
 	killedRe  = regexp.MustCompile(`(?i)\bkilled\b`)
+	// completedRe is what a report must NOT say about a killed job. The words
+	// are the ones a status line uses for a normal end; the exit-code spelling
+	// is included because "exit_code -1" is how a killed process's goroutine
+	// describes the death if nobody told it the job was already over.
+	completedRe = regexp.MustCompile(`(?i)\b(done|finished|completed|succeeded)\b|exit_code`)
 )
 
 // --- ch3parity ---------------------------------------------------------------
@@ -218,7 +223,7 @@ func checkWaitJob(res *Ch4Result) Check {
 	if len(s.Answers) == 0 {
 		c.failf("the session never reached its final answer — a wait on an already-finished job most likely hung")
 	}
-	if s.Wall > 20*time.Second {
+	if s.Wall > 12*time.Second {
 		c.failf("the session took %s; a second wait on a finished job must return at once, not block for its delay", s.Wall.Round(time.Millisecond))
 	}
 	if file, ok := ioFile(s, "cr/io/1"); !ok {
@@ -335,16 +340,23 @@ func checkKillJob(res *Ch4Result) Check {
 	if r, ok := wire(&c, s, "toolu_kj_kill"); ok && r.IsError {
 		c.failf("kill_job returned an error: %.200q", r.Text)
 	}
-	if reason, ok := killEvents(s)[1]; !ok {
+	if ev, ok := killEvents(s)[1]; !ok {
 		c.failf("no job_killed event for handle 1 in the log; the kill must be legible after the fact")
-	} else if !strings.Contains(strings.ToLower(reason), "kill") {
-		c.failf("job_killed for handle 1 has reason %q; want it to name kill_job", reason)
+	} else {
+		if !strings.Contains(strings.ToLower(ev.Reason), "kill") {
+			c.failf("job_killed for handle 1 has reason %q; want it to name kill_job", ev.Reason)
+		}
+		if ev.Status != "killed" {
+			c.failf("job_killed for handle 1 records the job's status as %q, not killed; the status is the claim the log makes, and it must not go on to say done", ev.Status)
+		}
 	}
 	if r, ok := wire(&c, s, "toolu_kj_after"); ok {
 		if r.IsError {
 			c.failf("wait_for_job after the kill returned an error: %.200q", r.Text)
 		} else if !killedRe.MatchString(r.Text) {
 			c.failf("wait_for_job after the kill must say the job was killed: %.200q", r.Text)
+		} else if completedRe.MatchString(r.Text) {
+			c.failf("wait_for_job after the kill reports the job as having finished normally; a killed job did not finish: %.300q", r.Text)
 		}
 	}
 	if s.Wall > 15*time.Second {
@@ -491,10 +503,15 @@ func checkShutdown(res *Ch4Result) Check {
 		file, _ := ioFile(s, rj.Locator)
 		c.failf("the blocker should still be running when run_command returns; status %q; its output ends %.300q", rj.Status, tail(string(file), 300))
 	}
-	if reason, ok := killEvents(s)[1]; !ok {
+	if ev, ok := killEvents(s)[1]; !ok {
 		c.failf("no job_killed event for handle 1; a job killed at exit must be recorded, or the transcript shows a process that simply vanished")
-	} else if !strings.Contains(strings.ToLower(reason), "shutdown") {
-		c.failf("job_killed for handle 1 has reason %q; want it to say shutdown", reason)
+	} else {
+		if !strings.Contains(strings.ToLower(ev.Reason), "shutdown") {
+			c.failf("job_killed for handle 1 has reason %q; want it to say shutdown", ev.Reason)
+		}
+		if ev.Status != "killed" {
+			c.failf("job_killed at shutdown records the job's status as %q, not killed", ev.Status)
+		}
 	}
 	if pid, ok := s.Pids["shutdown.pid"]; !ok {
 		c.failf("the blocker never wrote its pid file; nothing was left running to shut down")

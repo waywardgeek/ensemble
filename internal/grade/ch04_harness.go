@@ -535,9 +535,19 @@ func logJobs(s *Ch4Session) (called, returned map[string]JobRecord) {
 	return called, returned
 }
 
-// killEvents returns the job_killed events by handle → reason.
-func killEvents(s *Ch4Session) map[int]string {
-	out := map[int]string{}
+// KillEvent is one job_killed event: why, and what the job's status was
+// when it was written. The status is the structural claim; a check that
+// reads only the prose around a kill can be satisfied by a note in the
+// output while the job goes on to end as `done`. Measured: that mutant
+// scored 100 before this field existed.
+type KillEvent struct {
+	Reason string
+	Status string
+}
+
+// killEvents returns the job_killed events by handle.
+func killEvents(s *Ch4Session) map[int]KillEvent {
+	out := map[int]KillEvent{}
 	for _, l := range s.Log {
 		if normName(l.Type) != "jobkilled" {
 			continue
@@ -548,7 +558,8 @@ func killEvents(s *Ch4Session) map[int]string {
 		}
 		h, _ := j["handle"].(float64)
 		reason, _ := j["reason"].(string)
-		out[int(h)] = reason
+		status, _ := j["status"].(string)
+		out[int(h)] = KillEvent{Reason: reason, Status: status}
 	}
 	return out
 }

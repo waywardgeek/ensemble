@@ -51,11 +51,11 @@ vendor=anthropic
 mode=rounds
 for arg in "$@"; do
 	case "$arg" in
-	1 | 2 | 3) chapter="$arg" ;;
+	1 | 2 | 3 | 4) chapter="$arg" ;;
 	anthropic | openai | gemini) vendor="$arg" ;;
 	rounds | chat | models) mode="$arg" ;;
 	*)
-		echo "usage: scripts/live.sh [1|2|3] [anthropic|openai|gemini] [rounds|chat|models]" >&2
+		echo "usage: scripts/live.sh [1|2|3|4] [anthropic|openai|gemini] [rounds|chat|models]" >&2
 		exit 2
 		;;
 	esac
@@ -169,7 +169,27 @@ EOF
 echo "a distractor whose name does not end in .md"
 EOF
 
-	echo "working directory: $work"
+	if [ "$chapter" -ge 4 ]; then
+		# Chapter 4's closing demonstration, live: a program to stop
+		# inside. `answer` is in scope at line 7 and equals 42. dlv is
+		# found via GOPATH/bin, where `go install` puts it and PATH
+		# very often does not look.
+		mkdir -p "$work/dbg"
+		printf 'module scratch\n\ngo 1.21\n' >"$work/go.mod"
+		cat >"$work/dbg/main.go" <<'EOF'
+package main
+
+import "fmt"
+
+func main() {
+	answer := 42
+	fmt.Println("answer is", answer)
+}
+EOF
+		export PATH="$(go env GOPATH)/bin:$PATH"
+	fi
+
+	        echo "working directory: $work"
 	echo "(a scratch directory outside the repo; it is left behind so you can see"
 	echo " what the agent did in it)"
 }
@@ -217,7 +237,18 @@ rounds)
 	echo "chapter $chapter, $vendor, model: ${LLM_MODEL:-${!model_var:-(solution default)}}"
 	setup_scratch
 	cd "$work"
-	if [ "$chapter" = 3 ]; then
+	if [ "$chapter" = 4 ]; then
+		echo "three live rounds — round 2 is the chapter's closing demonstration: the model"
+		echo "drives dlv to a breakpoint with run_command + send_input, waiting on the"
+		echo "'(dlv) ' prompt rather than on a guessed delay. The only right answer is 42."
+		echo "round 3 asks it to recall round 1."
+		echo
+		printf '%s\n' \
+			'{"user":"Hello! I am starting a new project. Give it a one-word codename and remember it."}' \
+			'{"user":"Debug ./dbg for me. Start it with run_command as `PAGER=cat dlv debug ./dbg`, passing ai_callback_pattern \"\\\\(dlv\\\\) \" so you return when the debugger prompts. Then, with send_input and the same ai_callback_pattern each time: set a breakpoint with `b main.go:7`, `c` to reach it, `p answer` to read the variable, then `q`. Tell me the value of answer. Do not guess; read it from the debugger."}' \
+			'{"user":"What codename did you give my project?"}' |
+			"$bin"
+	elif [ "$chapter" = 3 ]; then
 		echo "three live rounds — round 2 needs a tool, round 3 asks it to recall round 1,"
 		echo "which only works if the tool loop ran and the whole history is being resent."
 		echo "round 2 has exactly one right answer here: of the six entries in"
