@@ -123,6 +123,16 @@ Rules for keeping that from turning into the thing skeptical engineers hate:
    disclosure, followed immediately by the discount. Everywhere else the
    narrator has positions, evidence, and receipts.
 
+**Ruled gap (Bill, 2026-09-14).** Bill has watched a vendor's model threaten
+its sub-agents inside a harness at work. There is no public log and there will
+not be one. It is therefore not printable in any form, including softened
+testimony, because it is both an unreceipted criticism of a model and an
+employer disclosure. The sub-agent chapter carries the position as mechanism
+instead: the reference parent never threatens a child, every parent-to-child
+message is logged and graded, and the reader can run the same harness against
+any model and read the transcript. If a public receipt for the behavior ever
+appears, cite that.
+
 ## Receipts *(kept)*
 
 We claim no academic standing. The authority is that we built the thing and we
