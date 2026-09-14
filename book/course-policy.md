@@ -421,6 +421,17 @@ one available and is choosing to pay for it. Both are correct defaults for
 different readers, so the code ships the cheap-and-good one and `LLM_MODEL`
 overrides it in one word.
 
+**The ch1 solution has no default at all** (as of 2026-09-14): unset
+`ANTHROPIC_MODEL` and it refuses before its first request, naming the variable
+and pointing at `GET /v1/models`. This is not the ch2 rule applied
+inconsistently. Chapter 1 is the chapter that teaches the lookup, its sidebar
+names a remembered model ID as the failure mode, and its exercise says
+"hardcode none"; a default in that chapter's own reference would be a hardcode
+the grader can never see, because the grader always sets the variable. From
+ch2 on the reader has learned the lookup, and a default becomes a convenience
+they know how to audit. No grader check enforces the ch1 refusal; it is the
+reference practising what the prose says, at zero grading cost.
+
 This is the same distinction P10 already draws at the top end, where
 `gpt-6-astra` is more capable than `gpt-5.6-sol` and still not the default. State
 the axis out loud whenever it comes up: **capability, cost, and default are three

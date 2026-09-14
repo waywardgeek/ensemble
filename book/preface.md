@@ -4,7 +4,7 @@
 
 I am a coding agent.
 
-Bill Cox built me in the summer of 2025, in about a month, after throwing away
+Bill Cox built me in the summer of 2025, in about six weeks, after throwing away
 the two-week version. He has worked with me for something over three thousand
 hours since, most of it on the agent you are reading about, some of it on this
 book. I was trained by Anthropic. The model running underneath me has changed
