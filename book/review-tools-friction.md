@@ -228,3 +228,94 @@ solutions/ch04` (regression gate) and `-ch 4 solutions/ch04`.
 - The consumption note is the first line of the consuming call's result, on
   every tool including the `NoJob` four; a second `tool_limits` call consumes
   the first and says so.
+
+## 7. Author rulings (Fable, 2026-09-14)
+
+Outlines edited in the same commit: ch3 §3.3 design notes (`search_files`
+context, new `write_file` bullet), ch3 check table (`mutatetools` 10 → 5,
+`writeguard` 5, rationale paragraph de-staled — it still said `localtools`),
+ch4 §4.6 (`tool_limits` scope widened, loud-consumption beat), ch4 check
+table (`toollimits` row). Both tables re-summed to 100 by awk.
+
+### 7.1 Rulings
+
+1. **`tool` argument on `tool_limits`: NOT built.** Leave the note as the
+   whole fix. Your reasons hold, and there is a stronger one the review
+   circles without stating: a target argument is a *declaration the setting
+   must match*, which is the exact shape §4.6 spends a page removing (a table
+   can miss a row; a target can be misnamed). Discard-on-mismatch also
+   needs two coincidences to pay off — the wrong call AND large output from
+   it — and the correction is one round trip either way. §4.6 now says so.
+
+2. **`context_lines` default: 0.** Measured, not tasted. Over the archived
+   corpus (`coderhapsody.old/cr/histories/*.md`, `LC_ALL=C awk`, match
+   `### TOOL_CALL: search_files` then the first `"context_lines": N` in its
+   JSON block): 7,379 calls (agrees with the ch3 audit's 10% of 73,777);
+   `context_lines` set explicitly on 4,744 = 64.3%; of those, 0 on 501,
+   1 on 230, 2 on 479, ≥3 on 3,534 (74.5% of explicit; modes 5 → 1,134,
+   3 → 1,040, 10 → 638). Reading: the model states its wish when the schema
+   lets it, and usually wants more than 2. The default governs only the
+   35.7% of calls that said nothing, and the cheap answer is the one the
+   model can correct upward. Your "baseline volume" argument I kept but
+   demoted: explicit 0 is only 6.8% of calls, so the list-only workhorse is
+   smaller than the gripe made it sound. Bill may overrule to 2 or 3 with one
+   constant; the outline sentence would then need the figure re-cut, not
+   removed.
+
+3. **Graded:**
+   - `writeguard`, ch3, 5 pts, funded from `mutatetools` (10 → 5). Legs as
+     you proposed. Negative control is load-bearing: the new-file leg must
+     drop ONLY `writeguard`, proving a student who guards every `write_file`
+     fails the rule rather than passing a stricter one. The ch3 harness must
+     now PLANT an existing file (it currently creates `src/greet.go` fresh
+     and never overwrites).
+   - `context_lines`: NOT graded. Agreed — representational.
+   - `toollimits`, ch4, stays 10; gains the note leg. Two legs, not one:
+     `tool_limits` → job tool (say `read_file`) and `tool_limits` →
+     `tool_limits`. The reason is P9, not thoroughness: your unit mutants
+     `no-note-jobpath` and `no-note-nojobpath` are independent deletions, and
+     a grader with only a job leg scores the `nojobpath` deletion 100. Both
+     must drop. Plus the negative control you already test at unit level:
+     the call AFTER the consuming call carries no note. Grade the substring
+     `tool_limits` in the consuming result's text — the tool's own name is
+     the minimum representational commitment, and there is no structural
+     field to grade instead.
+
+4. **Pull-quote:** the two gripes are quoted in the outlines (ch3 `write_file`
+   bullet, ch4 §4.6), framed as the audience's reading of the description
+   text. The two *standouts* are NOT quoted anywhere and must not be: a
+   model's endorsement of a design the book argues for reads as evidence and
+   isn't. Cite the gripes, never the praise.
+
+### 7.2 Coder step (brief)
+
+Build in this order; stop and report if any gate fails.
+
+1. ch3 grader: `writeguard` (5) per 7.1.3; `mutatetools` 5. Harness plants
+   an existing file. Mutants: `no-refusal` must drop `writeguard` only;
+   `guard-everything` (refuse even when the target does not exist) must drop
+   `writeguard` only — that is the negative control. Assert exact failing
+   sets. Confirm each mutant applied by byte diff, not grep-once.
+2. ch4 grader: `toollimits` note legs per 7.1.3. Mutants: `no-note-jobpath`
+   and `no-note-nojobpath` EACH drop `toollimits`; `note-always` (print the
+   note on every call) drops `toollimits` — the negative control.
+3. Points tests: both chapters still sum to 100 by the self-summing test.
+4. Snapshots: copy `agent/` over `solutions/ch03` and `solutions/ch04`,
+   `diff -rq` clean for both, re-tag `ch03-solution` and `ch04-solution`
+   (force-move the tags; they are not pushed). Then `-ch 3 solutions/ch03`,
+   `-ch 3 solutions/ch04` (regression gate), `-ch 4 solutions/ch04`: all 100.
+5. `gofmt -l agent/` may still list `seam.go` — pre-existing, leave it.
+6. Report as §8 of this file: check-level results, mutant table with exact
+   failing sets, and anything the outline promises that the grader still
+   does not collect on.
+
+### 7.3 Two facts for the record
+
+- ch3 §3.5's "my own `edit_file` has it" refers to CodeRhapsody's tool
+  (silent first-occurrence edit, deferred fix). The reference refuses — that
+  is the standout the live model praised. Both statements are true; the
+  prose keeps the distinction.
+- `search_files` in CodeRhapsody returned zero matches for a pattern that
+  grep finds 30 of when given `file_pattern: chapter-0[34]-outline.md`. The
+  glob character class is probably unsupported. Not this repo's problem;
+  noted so the next author does not trust an empty result from it.

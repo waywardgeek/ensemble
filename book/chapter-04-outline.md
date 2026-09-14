@@ -356,8 +356,9 @@ Three limits, and they are ordinary arguments on the tools that wait:
 | `max_output_bytes` | 16 KiB | same three |
 
 **Precedence, later wins:** defaults → a pending `tool_limits` → the call's own
-arguments. `tool_limits` exists for one reason: a tool whose schema you do not
-own (an MCP server's, chapter 6) has nowhere to put these three arguments, so
+arguments. `tool_limits` exists because most tools have nowhere to put these
+three arguments: the five local tools you own but never gave them to, and
+every tool whose schema you do not own at all (an MCP server's, chapter 6). So
 the model sets them the call *before*. It is **one-shot** — consumed by the very
 next call, whatever that call is, including a `kill_job` or another
 `tool_limits`. The friendlier rule ("applies to the next job-creating or
@@ -365,6 +366,25 @@ waiting call") is one line of code and a category in the model's head; a limit
 set several calls ago and still pending is the persistent escape hatch the
 first pass warned about, wearing a friendlier name. *The next call* is the rule
 a model can hold.
+
+**The footgun in a one-shot setting is a silent misfire**, and a live model
+named it unprompted: "it's easy to burn it on the wrong thing." Set
+`max_output_bytes: 200000` for the `read_file` you are about to make, glance at
+a directory first, and the limits went to `list_directory`; the symptom is a
+truncated read one call later with no cause in sight. The rule stays — a target
+argument is a declaration the setting must match, which is the shape this
+section just spent a page removing — but the misfire must not be silent. The
+consuming call's result begins with one line:
+
+    [tool_limits consumed by this list_directory call: ai_callback_delay 3s,
+     ai_callback_pattern none, max_output_bytes 200000]
+
+on every tool including the four that are not jobs (a second `tool_limits`
+consumes the first and says so), and the `tool_limits` reply itself says the
+next call, whichever tool that is, will report the consumption. A burn is now an
+error you read in the result it caused, one round trip from the correction.
+This is the book's rule about failures applied to the book's own mechanism, and
+it pre-empts the objection a careful reader raises on their own.
 
 The one-shot, capped, reasoned override from the first pass
 (`set_tool_watchdog`) is **not built** and is not the same idea. It suspended a
@@ -563,7 +583,7 @@ never `go run`:
 | `debugger` | 5 | the fake drives `dlv` to a breakpoint and reads `42` |
 | `killjob` | 10 | `job_killed{reason kill_job, status killed}`; the post-kill wait is told **killed**, never `done`/`exit_code`; a 30 s waiter returns early; the pid is dead |
 | `bigoutput` | 15 | full output on disk with first and last line; inline ≤ cap, names locator and exact total; `max_output_bytes 2048` honored; `read_file` of a 1 MiB file truncated the same way — **at dispatch** |
-| `toollimits` | 10 | `tool_limits` is not a job; applies to the next call; one-shot; pattern form wakes; the call's explicit argument wins |
+| `toollimits` | 10 | `tool_limits` is not a job; applies to the next call; one-shot; pattern form wakes; the call's explicit argument wins; **the consuming call's result names `tool_limits`** on both a job tool and a non-job tool (a second `tool_limits`), and the call after it does not |
 | `shutdown` | 5 | a job still running when the model stops is killed at exit and `job_killed{reason shutdown, status killed}` is logged |
 
 **Sum: 100.** The code sums itself (a test adds the checks' declared points);

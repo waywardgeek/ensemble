@@ -210,7 +210,30 @@ Design notes the prose should carry:
   is also the tool that decides how much of the window to spend.
 - **`search_files` earns its 10%** because an agent that cannot grep cannot find
   what to read. It is the tool that makes `read_file` usable on a codebase
-  bigger than one directory.
+  bigger than one directory. It takes `context_lines`, and the output with
+  context is `grep -C` byte for byte (`path-N-text`, merged windows, `--`
+  between groups) — the model has parsed more grep output than anything this
+  program could invent, so a format it already knows costs it nothing to learn.
+  The default is 0, and the corpus says the default barely matters: over 7,379
+  `search_files` calls the model set `context_lines` explicitly on 64% of them,
+  and three quarters of those asked for more than CodeRhapsody's default of 2.
+  A model that wants context says so. The default governs only the call that
+  expressed no wish, and the cheap answer is the one the model can correct
+  upward — it can ask for more; it cannot un-spend the window.
+- **`write_file` refuses to overwrite unless asked by name.** Of the six tools,
+  exactly one operation destroys work with no trace in the log: `write_file` on
+  a path that already exists. So that call is gated — the target exists, the
+  reply says so and how big it is, nothing has happened, and `overwrite: true`
+  is the word that makes it happen. A new file needs no flag (7:1 says most
+  `write_file` calls create); `append` is never refused. This is `edit_file`'s
+  rule from §3.5 seen from the other side, and the chapter should state it as
+  one rule with two instances rather than two features: **the dangerous call is
+  the one that makes you be specific.** An ambiguous anchor does not identify an
+  edit site; an unflagged overwrite does not prove you knew what was there. Both
+  refuse. A live model, asked what it thought of this tool set, put the reader's
+  intuition in one sentence before the guard existed: "`write_file` … is the one
+  tool that can quietly destroy work; I try to read before I overwrite." The
+  refusal is that habit, made a contract.
 - **`list_directory` is only 0.75%** and stays anyway, because orientation is
   cheap and an agent that cannot see the tree guesses at paths. This is the one
   tool in the set justified by judgement rather than by the measurement, and the
@@ -554,7 +577,8 @@ thing it did not measure.
 | `toolloop` | 20 | parse `tool_use`, dispatch, return `tool_result` by id, loop until the model stops asking |
 | `multiblock` | 10 | text + two tool calls: all parts recorded, both dispatched, results matched to the right ids |
 | `readtools` | 10 | `read_file` (with range), `list_directory`, `search_files` |
-| `mutatetools` | 10 | `write_file`, `edit_file` |
+| `mutatetools` | 5 | `write_file`, `edit_file` — the happy path |
+| `writeguard` | 5 | `write_file` on an existing planted file without `overwrite` is an error and the file is byte-identical; with `overwrite: true` it is replaced; a new file needs no flag |
 | `runcommand` | 15 | shell executes, stdout/stderr/exit code returned |
 | `toolerror` | 15 | a failing or malformed tool call returns an error **to the model** as a `tool_result`; the agent does not crash and does not silently skip |
 | `editcontract` | 5 | the declined decision: a choice was made, it is legible in the log, and a failed edit is recoverable by the model |
@@ -567,9 +591,14 @@ this bit us in chapter 2.)
 returning a failure to the model rather than crashing is a genuinely separable
 skill and the most common way a student's agent locks up. `editcontract` is 5
 because any coherent answer passes — the points buy legibility, not judgement.
-`localtools` is one check rather than five because a student who can implement
-one local file tool can implement all of them; splitting points is for when a
-student can plausibly have one skill and not the other.
+`readtools` and `mutatetools` are two checks rather than six because a student
+who can implement one local file tool can implement all of them; splitting
+points is for when a student can plausibly have one skill and not the other.
+`writeguard` is that case: the overwrite guard is a contract a student either
+wrote or did not, separable from being able to write a file at all, so it is
+graded apart from the happy path and funded from it (10 → 5 + 5). Its
+negative control is the new-file leg: a student who guards *every* `write_file`
+has not implemented the rule, they have broken the tool.
 
 ### Grader audit (P9)
 
