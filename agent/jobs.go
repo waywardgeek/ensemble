@@ -224,20 +224,36 @@ func (js *Jobs) SetNext(l Limits) {
 }
 
 // Take returns the limits for the next call: defaults, then the pending
-// tool_limits if any (consumed), then the call's own arguments.
-func (js *Jobs) Take(args json.RawMessage) (Limits, error) {
+// tool_limits if any (consumed), then the call's own arguments. The bool
+// says whether a pending tool_limits was consumed; the caller puts that in
+// the report, so limits that land on the wrong call are seen, not suffered.
+func (js *Jobs) Take(args json.RawMessage) (Limits, bool, error) {
 	l := DefaultLimits()
+	consumed := false
 	js.mu.Lock()
 	if js.pending != nil {
 		l = *js.pending
 		js.pending = nil
+		consumed = true
 	}
 	js.mu.Unlock()
 	a, err := limitsInArgs(args)
 	if err != nil {
-		return l, err
+		return l, consumed, err
 	}
-	return l.overlay(a)
+	l, err = l.overlay(a)
+	return l, consumed, err
+}
+
+// String spells the three limits the way tool_limits and the consumption
+// note report them, so the model sees one vocabulary in both places.
+func (l Limits) String() string {
+	pat := "none"
+	if l.Pattern != nil {
+		pat = fmt.Sprintf("%q", l.Pattern.String())
+	}
+	return fmt.Sprintf("ai_callback_delay %s, ai_callback_pattern %s, max_output_bytes %d",
+		l.Delay, pat, l.MaxOutput)
 }
 
 // --- one job ---------------------------------------------------------------
