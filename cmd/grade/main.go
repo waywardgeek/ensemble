@@ -60,6 +60,15 @@ func main() {
 		report = grade.NewTitledReport(
 			"Chapter 3 — Six Tools: Ninety-Two Percent of an AI Coding Agent",
 			grade.Ch3Evaluate(res), "")
+	case 4:
+		res, err := grade.Ch4Run(bin)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
+			os.Exit(2)
+		}
+		report = grade.NewTitledReport(
+			"Chapter 4 — Jobs: Containment, Not Cancellation",
+			grade.Ch4Evaluate(res), res.HelpersErr)
 	default:
 		fmt.Fprintf(os.Stderr, "grader: no grader for chapter %d yet\n", *chapter)
 		os.Exit(2)
