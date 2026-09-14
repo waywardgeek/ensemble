@@ -237,7 +237,7 @@ missing bonus.
 
 | ch | book egg | solution egg | status |
 |---|---|---|---|
-| 1 | TBD — plant with the prose | `solutions/ch01` | neither planted |
+| 1 | `chapter-01.md` §1.6, the example `systemPrompt` in the "give it a personality" block — text the reader pastes into their own program without reading | `solutions/ch01` | book egg planted 2026-09-14; solution egg not planted |
 | 2 | TBD — plant with the prose | `solutions/ch02/part.go`, the `OpaquePart` doc comment — quoted as a decoded replay block | solution planted; book egg outstanding |
 | 3–6 | TBD | TBD | chapters not written |
 | 7 | the reveal, plus its own egg | `solutions/ch07` | not written |

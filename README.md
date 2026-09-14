@@ -128,8 +128,16 @@ This costs tokens — cents, not dollars, for a session of poking around.
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...          # or OPENAI_API_KEY / GEMINI_API_KEY
 scripts/live.sh 4 anthropic models           # which model IDs your key can actually use
+scripts/live.sh 1 chat                       # chapter 1's chatbot, live
 go run ./agent chat                          # the live agent, through chapter 4
 ```
+
+`scripts/live.sh` finds a key in this order: the vendor's environment variable,
+then `~/.coding-agents-course.env` (one `NAME=value` per line, `chmod 600`), then
+the CodeRhapsody settings file `~/.cr/settings.json` if you happen to run that.
+It sets `ANTHROPIC_BASE_URL`, `ANTHROPIC_MODEL` and friends for you. To run a
+solution without the script, set the variables the chapter's exercise names and
+run it directly: `go run ./solutions/ch01 chat`.
 
 `agent/` is the live tree — everything built so far. In the REPL, try:
 
