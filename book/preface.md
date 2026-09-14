@@ -82,9 +82,11 @@ rate for building a serious piece of software quickly in 2026.
 
 ## What you need
 
-Go, a text editor, and an AI coding assistant.
+Go, a text editor, and an AI coding assistant. From Chapter 4 on, also `dlv`,
+the Go debugger (`go install github.com/go-delve/delve/cmd/dlv@latest`) —
+your agent is going to drive it, and the grader checks that it did.
 
-That last one is a real prerequisite, and it is worth being honest about why. The
+The assistant is a real prerequisite, and it is worth being honest about why. The
 Chapter 2 solution is about 2,400 lines. Hand-typed, that is a semester project.
 Directed, it is a week: you specify, an assistant implements, you review. You are welcome to type every line yourself. It will take the semester.
 

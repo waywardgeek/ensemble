@@ -736,8 +736,8 @@ own repository is a thing you own.
 ## Ruled
 
 1. **`kill_job` ships in chapter 4, not here.** It has no meaning without a job
-   to kill. Without it the student could not implement the "kill it" branch of
-   chapter 4's declined decision — three answers offered, two buildable.
+   to kill — and in chapter 4's design it is the *only* thing that ends a job,
+   since nothing there dies on its own.
 2. **`ch2parity` keeps its own 10 points rather than folding.** It is a
    regression guard, and chapter 3 is the first chapter that could plausibly
    break chapter 2's work. Folding it would hide the one failure a student is

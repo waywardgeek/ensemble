@@ -295,3 +295,77 @@ for that to happen after the fact.
 - The `\b42\b` assertion is not satisfiable by anything but `p answer` in
   that session's fifth result (the source listing `answer := 42` is printed
   by dlv at the breakpoint *hit*, which is the fourth result, not the fifth).
+
+---
+
+## 7. Author rulings
+
+**From:** the author. **Date:** 2026-09-13. The outline is reworked
+(`book/chapter-04-outline.md`, second pass); §4.6/§4.7 first-pass mechanisms
+are gone from it, the nine checks in §2 are ratified as built, and the checks
+table in the outline now matches the code.
+
+**On the report itself.** Accepted. The `killed-job-reported-as-done` finding
+goes into the outline's P9 section in the coder's words — *a text regex can be
+satisfied by the very message that documents the failure* — and the two
+"not mutated, and why" entries are recorded there too, so the gaps are
+deliberate on paper and not just in this file. The `select {}` fixture story
+is in §4.9 as the reason the helper sleeps in a loop.
+
+**On the thesis.** The report is right that it came out stronger than the
+outline said. Bill's rulings did not just delete two sections; they collapsed
+two errors into one. The first-pass §4.1 said "supervise the boundary-crossing
+tools; do not supervise `edit_file`." The first-pass §4.6 defended a table of
+per-tool blocking contracts. Both are the same mistake — classifying tools by
+hand — and the shipped defect (`send_secret` missing from the map) is what that
+mistake costs. The reworked chapter makes uniformity-at-one-function the
+argument, and moves the deadline from a property of the tool to a property of
+the call. That is now §4.1 and §4.6.
+
+### §5 answers
+
+1. **P6.** The signal-death candidate is rejected: three spellings of one fact,
+   nothing downstream depends on which. Proposed instead, awaiting Bill: **does
+   shell state persist between `run_command` calls?** Three answers ship in
+   real products (fresh per job — the reference and CodeRhapsody; one
+   persistent shell — Claude Code's Bash tool; cwd tracked, env not). Observable
+   from the log; the replay cost is the lesson and I would rather the student
+   argue it than be handed it. Grader shape as ch3's `editcontract`: not which
+   answer, but that one answer holds — the same `cd; export` probe twice, results
+   identical, and the (cwd, env) pair one of the three (env-persists-cwd-doesn't
+   rejected as incoherent). 5 points from `jobmodel` 25 → 20. If Bill rules
+   fresh-per-job instead, no check, and ch4 has no P6 decision — P6 is a norm,
+   not a quota. Do not build until he rules.
+2. **3 s stays.** It is Bill's number and the wake kills nothing. The exposure
+   is stated in the outline as an environmental assumption alongside `dlv` and
+   macOS-only PTY measurement. Recommended, not required: warm the build cache
+   with one `exit7` run before `ch3parity` in the harness. No rule change.
+3. **Any next call, as built.** Bill's ruling, and CodeRhapsody's measured
+   behaviour (`set_tool_watchdog`: "consumed by whatever you call next, even if
+   that is not the tool you had in mind"). The friendlier rule puts a category
+   in the model's head, and a limit set several calls ago and still pending is
+   the persistent escape hatch wearing a friendlier name. Reason is in §4.6.
+4. **Yes, verbatim, in the prose** — §4.3 states it as a contract and names
+   `ch3parity` as the thing that collects on it.
+5. **Echo stays**, stated as a cost in §4.7. Turning it off changes what `dlv`
+   shows, and the echo is how the model sees its keystroke land.
+6. **Preface amended** — `dlv` is in "What you need" with the install line.
+7. **Handles from 1 per process is a stated contract** (§4.9). The two-pass
+   fixture is not worth its complexity for a fact the prose can simply state.
+
+### Corrections landed elsewhere
+
+- `chapter-03-outline.md` Ruled #1 justified `kill_job`-in-ch4 via the deleted
+  "kill it" branch. Rewritten: `kill_job` is the *only* terminator, since
+  nothing dies on its own.
+- Verified before printing: `286bfd84` 14:28:02, `4bec4b96` 14:50:23 (22
+  minutes); Claude Code's Bash tool persists cwd/env, and its docs issue
+  #45478 (cwd silently reset outside approved dirs) is the state-vs-boundary
+  cost made visible.
+
+### For Bill
+
+1. §4.7 P6 — decline (build `shellstate`, 5 pts) or rule?
+2. Title — "Containment, Not Cancellation" now names one surviving sentence
+   (`kill_job` on a goroutine). Keep for the war story, or retitle to the
+   spine ("stop discarding the result")?
