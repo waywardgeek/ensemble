@@ -35,7 +35,7 @@ Structurally, they are not that complicated.
 
 That gap is why this book exists. The money says *cathedral*. The source says
 *a loop, a log, and a careful answer to the question of what the model gets to
-see*. Both are true, and the second one fits in eight chapters.
+see*. Both are true, and the second one is learnable one chapter at a time.
 
 I don't mean the good ones are easy. They are not, and most of this book is
 about the places where "obvious" turns out to be wrong in ways that cost weeks.
@@ -64,13 +64,21 @@ with parts you can name. You will find yourself looking at it the way a
 compiler writer looks at an error message: not annoyed, exactly, but curious
 which pass produced it.
 
-Not a job, not a certificate, not a product. The same reason you'd write a
-compiler.
+Not a job, not a certificate. The same reason you'd write a compiler, with one
+difference that matters: the compiler you write as a rite of passage gets
+thrown away. This one you keep. The exercises in this book are not a warm-up
+for the real thing. Chapter by chapter, they *are* the real thing: the
+reference solution is meant to be a globally competitive AI coding agent in its
+own right, and yours is meant to be at least as good. Bill's words: "If the
+official solution isn't a competitive coding agent on its own, I will have
+failed." That is why the Chapter 2 solution is over two thousand lines of Go
+and not two hundred. It is production code, because you are going to run it in
+production.
 
 ## What this is
 
-Eight chapters. Each ends with an exercise, and each exercise is graded by a
-program you run locally. The grader is not a quiz. It starts fake vendor
+A long book, one chapter per subsystem, each ending with an exercise graded by
+a program you run locally. The grader is not a quiz. It starts fake vendor
 servers, runs your binary against them, and checks what your code actually
 did. You can score 100 without ever touching a real API.
 
@@ -99,12 +107,15 @@ against fake vendor servers, so the default cost is zero. If you want to watch
 your agent talk to a real model, and you should, at least once, budget twenty
 to a hundred dollars for the whole book. Not per chapter. Total.
 
-**Building your own agent afterwards: $1,000 to $10,000.** This is the number
+**Building the agent: $1,000 to $10,000, preferably less.** This is the number
 that startles people, so here is exactly what it is. It is what you will spend
-on Claude Code, Codex, or whatever assistant you use, while building a real
-agent of your own after the course ends. It is not the course. It is not
-tokens your program burns. It is optional, it begins after Chapter 8, and it
-is the going rate for building a serious piece of software quickly in 2026.
+on Claude Code, Cursor, or whatever assistant you direct, across the whole
+book, to build the exercises to production quality. It is not tokens your
+program burns; that is the meter above. It is the going rate in 2026 for
+building a serious piece of software quickly, and at the end of it you own a
+coding agent that competes with the ones that cost $60 billion. Bill's target
+is that you come in under ten. If the book makes you spend more, that is a
+defect in the book.
 
 ## What you need
 
@@ -112,10 +123,15 @@ Go, a text editor, and an AI coding assistant. From Chapter 4 on, also `dlv`,
 the Go debugger (`go install github.com/go-delve/delve/cmd/dlv@latest`). Your
 agent is going to drive it, and the grader checks that it did.
 
-The assistant is a real prerequisite. The Chapter 2 solution is about 2,400
-lines. Hand-typed, that is a semester project. Directed, it is a week: you
-specify, an assistant implements, you review. You are welcome to type every
-line yourself. It will take the semester.
+The assistant is a real prerequisite, and so is being good with it. This book
+is for engineers who already ship production code with Cursor or Claude Code
+and want to know what is inside the thing they are typing into. It will not
+teach you to direct a coding assistant; it assumes you can, and it hands you
+a series of specifications that need to be built to production standard. The
+Chapter 2 solution is about 2,400 lines. Hand-typed, that is a semester
+project. Directed, it is a week: you specify, an assistant implements, you
+review. You are welcome to type every line yourself. It will take the
+semester.
 
 Which brings up the one norm this course asks you to honor, and it is an odd
 one for a book to ask: **type your prompts. Don't paste the chapter.**

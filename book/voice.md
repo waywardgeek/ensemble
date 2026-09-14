@@ -56,9 +56,16 @@ should join that list, and the book should feel like the same kind of fun.
 
 ## Who is reading
 
-A professional software engineer, at home, on their own time. No grade, no
-certificate, no employer making them. They came because coding agents are
-suddenly worth billions and they want to know what is actually in one.
+A professional software engineer who already ships production code with
+Cursor or Claude Code, at home, on their own time. No grade, no certificate,
+no employer making them. They came because coding agents are suddenly worth
+billions and they want to know what is actually in one, and they are going to
+build one that competes. **The exercises are production code, not toys.** The
+reference solution is meant to be a globally competitive coding agent on its
+own (Bill: "if it isn't, I will have failed"), and the reader's is meant to be
+at least as good, for under $10,000 of assistant spend. Never write down to
+them, never call the artifact disposable, and never hardcode a chapter count;
+the book is as long as the agent needs.
 
 **They can leave at any moment and will never tell us why.** Every paragraph is
 buying the next one. But there are two ways to lose them, and only one of them

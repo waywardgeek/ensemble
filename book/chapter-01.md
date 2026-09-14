@@ -132,8 +132,9 @@ sovereignty for one engineer, which is a modest claim, and it is the one that
 will still be true in five years.
 
 The asset being purchased at these prices is expert software engineers who
-never built their own tools. The market priced the fix at $2.4 billion. It
-costs you a few API calls.
+never built their own tools. The market priced the fix at $2.4 billion. This
+book prices it at under ten thousand dollars of assistant time and a stack of
+evenings, and at the end you own the tool.
 
 ## 1.1 Frameworks, and why this book uses none
 
@@ -456,7 +457,7 @@ against this chapter.
 |---|---|---|
 | reading | $0 | $0 |
 | graded exercises | $0 on the fake; cents live | $0, or $20 to $100 live |
-| building your own agent afterwards | nothing | $1,000 to $10,000 of assistant spend, optional, after Chapter 8 |
+| building the agent, with an assistant | this one you can type | $1,000 to $10,000 of assistant spend across the book, preferably less |
 
 The middle row is small because the exercises are graded against a local fake
 server. The real cost of the exercises is time, not money: the reference
