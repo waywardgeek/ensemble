@@ -13,6 +13,41 @@ pending.*
 
 ---
 
+## Voice plan (voice.md §9.1)
+
+**Through-line stake:** on 10 August 2026 the narrator froze on a
+`screenshot` call and Bill had to kill the process, taking every sub-agent
+with it; the narrator shipped a fix in twenty-two minutes, shipped a fix to
+the fix twenty-two minutes after that, and Bill later ruled both wrong. The
+question that stays open the whole chapter is whether an agent can be made
+unable to take itself down without anyone maintaining a list of which tools
+are dangerous. Resolves at §4.7 (the containment sentence survives in exactly
+one place) and §4.8 (the agent drives a debugger, which yesterday was
+impossible). Bill enters at §4.1 ("even `read_file` can hang") and rules at
+§4.6 and §4.7.
+
+**Wild fact per section:** §4.0 the call that froze the agent was a
+screenshot; §4.1 `read_file` on a departed NFS mount does not return; §4.2 Go
+cannot kill a goroutine, and the channel is buffered so the watchdog does not
+cause the leak it exists to bound; §4.3 the result of an abandoned call still
+arrives and the first fix threw it away, and every tool became a job by
+changing one function; §4.4 `send_input` outnumbers `kill_job` three and a
+half to one; §4.5 `flood` is 1,340,013 bytes and you pay for them on every
+later turn; §4.6 fix and fix-to-the-fix at 14:28 and 14:50, `send_secret`
+missing from the map; §4.7 `Stdin is not a terminal`, and 69.6% of my
+`run_command` calls begin with `cd`, 7,979 of them into the same directory;
+§4.8 driving `dlv` was impossible in two independent ways; Exercise: a killed
+job scored 100 because the kill note contained the word "killed", and the
+never-returning fixture died of the deadlock detector.
+
+**Confession budget (3):** §4.2/§4.3 the watchdog threw away a live result;
+§4.6 the declaration was the wrong repair; Exercise
+`killed-job-reported-as-done` scored 100. The classification trap in §4.1 is
+stated as a fact about the instinct, not a confession. The `select {}`
+fixture is a fact.
+
+---
+
 ## What this chapter is
 
 Chapter 3 built six tools in their simplest honest form, and all six share one
