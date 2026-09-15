@@ -282,6 +282,9 @@ type Job struct {
 	stdin interface {
 		Write([]byte) (int, error)
 	}
+	// cwd is where a run_command job ran, when that was not the working
+	// directory. Set once by the tool, before the process starts.
+	cwd string
 }
 
 // Write appends output. It is the io.Writer the tool's process writes into,
@@ -459,7 +462,17 @@ func (j *Job) Data() *JobData {
 		Output:   Ref{Kind: RefHandle, Locator: j.Path},
 		Bytes:    j.out.Len(),
 		ExitCode: j.exit,
+		Cwd:      j.cwd,
 	}
+}
+
+// SetCwd records the directory a job's process ran in. run_command calls it
+// before the process starts and only when a cwd other than the working
+// directory was asked for, so the record is the exception, not the rule.
+func (j *Job) SetCwd(dir string) {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	j.cwd = dir
 }
 
 // Report renders what the model sees after a wait, and advances the cursor

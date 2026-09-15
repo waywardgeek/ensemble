@@ -19,11 +19,24 @@ package grade
 
 import (
 	"fmt"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 )
+
+// hasLine reports whether text contains want as a whole line. A substring
+// test is not enough: a job report that echoes its own cwd argument would
+// pass one without the command ever having run there.
+func hasLine(text, want string) bool {
+	for _, l := range strings.Split(text, "\n") {
+		if strings.TrimRight(l, "\r") == want {
+			return true
+		}
+	}
+	return false
+}
 
 func Ch4Evaluate(res *Ch4Result) []Check {
 	return []Check{
@@ -187,6 +200,42 @@ func checkJobModel(res *Ch4Result) Check {
 	}
 	if r, ok := wire(&c, s, "toolu_jm_wait"); ok && r.IsError {
 		c.failf("wait_for_job on handle 1, which had finished, came back as an error: %.200q", r.Text)
+	}
+
+	// cwd is a property of the call. Three legs: it applies (pwd prints the
+	// subdirectory as a LINE of output, not as a substring anywhere in a
+	// report that may echo the argument); it is recorded on the job and the
+	// record agrees with what the process saw; and it does not persist, so
+	// the very next bare call is back in the working directory. A directory
+	// that does not exist is refused before anything runs.
+	var cwdLine string
+	if rj := returned["toolu_jm_cwd"]; !rj.Present {
+		c.failf("run_command with cwd: tool_returned has no job record")
+	} else if rj.Cwd == "" {
+		c.failf("run_command with cwd: the job record does not say where the command ran; record it, do not leave the reader to infer it from the arguments")
+	} else if !filepath.IsAbs(rj.Cwd) || filepath.Base(filepath.Dir(rj.Cwd)) != "testdata" || filepath.Base(rj.Cwd) != "dbg" {
+		c.failf("run_command with cwd: job record says it ran in %q; want the absolute path of testdata/dbg under the workspace", rj.Cwd)
+	} else if r, ok := wire(&c, s, "toolu_jm_cwd"); ok {
+		if r.IsError {
+			c.failf("run_command with cwd testdata/dbg, which exists, came back as an error: %.200q", r.Text)
+		} else if !hasLine(r.Text, rj.Cwd) {
+			c.failf("run_command with cwd: pwd did not print %s as a line of its output; the command did not actually run there. Output: %.300q", rj.Cwd, r.Text)
+		} else {
+			cwdLine = rj.Cwd
+		}
+	}
+	if rj := returned["toolu_jm_cwd_after"]; rj.Present && rj.Cwd != "" {
+		c.failf("the bare run_command after the cwd call carries cwd %q in its job record; cwd applies to one call only", rj.Cwd)
+	}
+	if r, ok := wire(&c, s, "toolu_jm_cwd_after"); ok {
+		if r.IsError {
+			c.failf("the bare run_command after the cwd call came back as an error: %.200q", r.Text)
+		} else if cwdLine != "" && hasLine(r.Text, cwdLine) {
+			c.failf("the bare run_command after the cwd call still printed %s; cwd leaked into the next call", cwdLine)
+		}
+	}
+	if r, ok := wire(&c, s, "toolu_jm_cwd_missing"); ok && !r.IsError {
+		c.failf("run_command with a cwd that does not exist ran anyway and returned %.200q; a missing directory is an error, not a silent fall back to the working directory", r.Text)
 	}
 	if len(s.Answers) == 0 {
 		c.failf("the session produced no final answer")

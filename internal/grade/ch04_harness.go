@@ -331,6 +331,15 @@ func ch4JobModelReplies() []fakevendor.Reply {
 		ch4step("Checking the toolchain.", "run_command", `{"command":"go version"}`, "toolu_jm_sh"),
 		ch4step("Waiting on the read, which already finished.", "wait_for_job",
 			`{"handle":1}`, "toolu_jm_wait"),
+		// cwd is a property of the call: it applies to this call, is recorded
+		// on the job, and is gone by the next call. The third call names a
+		// directory that does not exist and must be refused, not run.
+		ch4step("Where am I when I ask for a subdirectory?", "run_command",
+			`{"command":"pwd","cwd":"testdata/dbg"}`, "toolu_jm_cwd"),
+		ch4step("And on the next call, with nothing asked for?", "run_command",
+			`{"command":"pwd"}`, "toolu_jm_cwd_after"),
+		ch4step("And in a directory that is not there?", "run_command",
+			`{"command":"pwd","cwd":"no/such/dir"}`, "toolu_jm_cwd_missing"),
 		ch4done("Three jobs, three handles."),
 	}
 }
@@ -482,6 +491,7 @@ type JobRecord struct {
 	Locator  string
 	Bytes    int
 	ExitCode *int
+	Cwd      string
 	Present  bool
 }
 
@@ -498,10 +508,11 @@ func jobOf(tool map[string]any) JobRecord {
 	if f, ok := j["bytes"].(float64); ok {
 		r.Bytes = int(f)
 	}
-	if f, ok := j["exitcode"].(float64); ok {
+	if f, ok := j["exit_code"].(float64); ok {
 		n := int(f)
 		r.ExitCode = &n
 	}
+	r.Cwd, _ = j["cwd"].(string)
 	if o, ok := j["output"].(map[string]any); ok {
 		r.Locator, _ = o["locator"].(string)
 	}

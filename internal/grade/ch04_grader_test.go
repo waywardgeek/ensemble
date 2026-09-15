@@ -318,6 +318,36 @@ func ch4Mutants() []ch4mutation {
 			}},
 		},
 
+		// ---- cwd ------------------------------------------------------------
+		{
+			name:     "cwd-ignored",
+			why:      "run_command accepts cwd, records it, and runs in the working directory anyway. The record and the process disagree; the grader must believe the process.",
+			wantFail: []string{"jobmodel"},
+			edits: []ch4edit{{
+				file: "tools.go", find: `\t\tcmd\.Dir = dir\n`, replace: "",
+			}},
+		},
+		{
+			name:     "cwd-sticky",
+			why:      "cwd persists to the next call: a directory chosen once for a build is where every later command runs, and nothing after compaction says so.",
+			wantFail: []string{"jobmodel"},
+			edits: []ch4edit{
+				{file: "tools.go", find: `\tcmd := exec\.Command\("sh", "-c", a\.Command\)\n\tcmd\.Env = append\(os\.Environ\(\), "TERM=dumb"\)\n`,
+					replace: "\tcmd := exec.Command(\"sh\", \"-c\", a.Command)\n\tcmd.Env = append(os.Environ(), \"TERM=dumb\")\n\tcmd.Dir = stickyCwd\n"},
+				{file: "tools.go", find: `\t\tcmd\.Dir = dir\n`, replace: "\t\tcmd.Dir = dir\n\t\tstickyCwd = dir\n"},
+				{file: "tools.go", find: `\n// --- read_file ---`, replace: "\nvar stickyCwd string\n\n// --- read_file ---"},
+			},
+		},
+		{
+			name:     "cwd-fallback",
+			why:      "A cwd that does not exist silently runs in the working directory. The output looks like an answer to a question nobody asked.",
+			wantFail: []string{"jobmodel"},
+			edits: []ch4edit{{
+				file: "tools.go", find: `\t\tst, err := os\.Stat\(dir\)\n\t\tif err != nil \{\n\t\t\treturn "", fmt\.Errorf\("run_command: cwd %q: %v", a\.Cwd, err\)\n\t\t\}\n\t\tif !st\.IsDir\(\) \{\n\t\t\treturn "", fmt\.Errorf\("run_command: cwd %q is not a directory", a\.Cwd\)\n\t\t\}\n`,
+				replace: "\t\tif st, err := os.Stat(dir); err != nil || !st.IsDir() {\n\t\t\tdir = \"\"\n\t\t}\n",
+			}},
+		},
+
 		// ---- shutdown -----------------------------------------------------
 		{
 			name:     "no-shutdown",

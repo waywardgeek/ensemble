@@ -66,7 +66,7 @@ type Tool struct {
 // data so that an error message can describe a tool without depending on the
 // registry that holds the tool's code.
 var argSpec = map[string]string{
-	"run_command":    `{"command":string,"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
+	"run_command":    `{"command":string,"cwd":string?,"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
 	"read_file":      `{"path":string,"start_line":int?,"end_line":int?,"max_bytes":int?}`,
 	"write_file":     `{"path":string,"content":string,"append":bool?}`,
 	"edit_file":      `{"path":string,"old_text":string,"new_text":string}`,
@@ -97,9 +97,10 @@ const limitProps = `"ai_callback_delay":{"type":"number","description":"Seconds 
 var Registry = map[string]Tool{
 	"run_command": {
 		Name:        "run_command",
-		Description: "Run a shell command in the working directory under a terminal. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Use for builds, tests, debuggers, and anything the other tools cannot do.",
+		Description: "Run a shell command under a terminal, in the working directory or in cwd. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Nothing persists between calls: no cd, no exported variable, no shell. Use for builds, tests, debuggers, and anything the other tools cannot do.",
 		Schema: json.RawMessage(`{"type":"object","properties":{
 			"command":{"type":"string","description":"The command line to run, as you would type it in a shell."},
+			"cwd":{"type":"string","description":"Directory to run in, for this call only. Relative paths resolve against the working directory. A directory that does not exist is an error."},
 			` + limitProps + `},
 			"required":["command"]}`),
 		Run: toolRunCommand,
@@ -299,6 +300,7 @@ func decode(name string, args json.RawMessage, into any) error {
 func toolRunCommand(c *Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Command string `json:"command"`
+		Cwd     string `json:"cwd"`
 		limitArgs
 	}
 	if err := decode("run_command", args, &a); err != nil {
@@ -310,6 +312,33 @@ func toolRunCommand(c *Call, args json.RawMessage) (string, error) {
 
 	cmd := exec.Command("sh", "-c", a.Command)
 	cmd.Env = append(os.Environ(), "TERM=dumb")
+	// cwd is a property of THIS call. It is resolved against the working
+	// directory, checked before anything starts, and recorded on the job. A
+	// directory that is not there is an error: running in the working
+	// directory instead would be a command executed somewhere the model did
+	// not ask for, with output that looks like an answer.
+	if a.Cwd != "" {
+		dir := a.Cwd
+		if !filepath.IsAbs(dir) {
+			// The working directory is the process's: every other tool
+			// resolves paths against it the same way.
+			wd, err := os.Getwd()
+			if err != nil {
+				return "", fmt.Errorf("run_command: working directory: %v", err)
+			}
+			dir = filepath.Join(wd, dir)
+		}
+		dir = filepath.Clean(dir)
+		st, err := os.Stat(dir)
+		if err != nil {
+			return "", fmt.Errorf("run_command: cwd %q: %v", a.Cwd, err)
+		}
+		if !st.IsDir() {
+			return "", fmt.Errorf("run_command: cwd %q is not a directory", a.Cwd)
+		}
+		cmd.Dir = dir
+		c.Job.SetCwd(dir)
+	}
 	// pty.Start puts the child in its own session with the pty as its
 	// controlling terminal. Its own session means its own process group, so
 	// kill_job can take down everything it started with one signal.
