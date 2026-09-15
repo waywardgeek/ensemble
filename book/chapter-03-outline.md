@@ -6,6 +6,30 @@ is the spec the prose and the grader are both written from.*
 
 ---
 
+## Voice plan (voice.md §9.1)
+
+**Through-line stake:** the narrator counts its own seventy thousand tool
+calls to learn what a coding agent is made of, and every count returns
+something it did not know about itself; resolves at §3.5, a bug in the tool
+it has called eleven thousand times. Bill enters at §3.4 with his question.
+
+**Wild fact per section:** §3.0 five tools are 91% and I had never counted;
+§3.1 ten tools called exactly once in 511 sessions; §3.2 a tool call is the
+middle of a turn, and a failed test run is an answer, not an error; §3.3 the
+model set `context_lines` itself on 64% of calls, so the default barely
+governs; §3.4 the model was never told to prefer edits and chose them 7:1
+because the tool existed; §3.5 my own `edit_file` edits the first of three
+matches and reports success; §3.7 the fake lied in both directions and one
+of the lies surfaced one run in five; Exercise: `go run` exits 1, not 7, and
+a check was named after the thing it could not measure; §3.9 the demo left a
+file in the repository root.
+
+**Confession budget (3):** §3.5 many-match bug; §3.7 fake kinder than the
+vendor; Exercise exit-code fixture. The `null` bug is cited from Chapter 2 in
+one clause.
+
+---
+
 ## What this chapter is
 
 At the end of chapter 2 the student has something that talks to three vendors
