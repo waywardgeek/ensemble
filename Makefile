@@ -1,4 +1,9 @@
-.PHONY: test grade grade2 grade3 grade-dir fake fake-serve vet fmt
+.PHONY: test grade grade2 grade3 grade-dir fake fake-serve vet fmt lint-prose
+
+# Count the prose moves budgeted in book/voice.md §5. Hard ceilings fail;
+# soft ones warn. Add -v via LINTFLAGS=-v to list every counted instance.
+lint-prose:
+	go run ./cmd/lintprose $(LINTFLAGS) book/preface.md book/chapter-[0-9][0-9].md
 
 test: vet
 	go test ./...
