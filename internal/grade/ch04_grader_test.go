@@ -285,11 +285,10 @@ func ch4Mutants() []ch4mutation {
 		// ---- tool_limits --------------------------------------------------
 		{
 			name:     "tool-limits-ignored",
-			why:      "tool_limits records the limits and the dispatcher never reads them.",
+			why:      "tool_limits accepts the setting and the next call never consumes it. The model set a delay and nothing happened.",
 			wantFail: []string{"toollimits"},
 			edits: []ch4edit{{
-				file: "jobs.go", find: `\tif js\.pending != nil \{\n\t\tl = \*js\.pending\n\t\tjs\.pending = nil\n\t\}`,
-				replace: "\tif false {\n\t\tl = *js.pending\n\t\tjs.pending = nil\n\t}",
+				file: "jobs.go", find: `\tif js\.pending != nil \{\n\t\tl = \*js\.pending\n\t\tjs\.pending = nil\n\t\tconsumed = true\n\t\}\n`, replace: "",
 			}},
 		},
 		{
@@ -305,8 +304,8 @@ func ch4Mutants() []ch4mutation {
 			why:      "When tool_limits is pending, the call's own ai_callback_delay is ignored. The nearer instruction must win.",
 			wantFail: []string{"toollimits"},
 			edits: []ch4edit{{
-				file: "jobs.go", find: `\t\tl = \*js\.pending\n\t\tjs\.pending = nil\n\t\}\n\tjs\.mu\.Unlock\(\)`,
-				replace: "\t\tl = *js.pending\n\t\tjs.pending = nil\n\t\tjs.mu.Unlock()\n\t\treturn l, nil\n\t}\n\tjs.mu.Unlock()",
+				file: "jobs.go", find: `\t\tconsumed = true\n\t\}\n\tjs\.mu\.Unlock\(\)\n`,
+				replace: "\t\tconsumed = true\n\t\tjs.mu.Unlock()\n\t\treturn l, true, nil\n\t}\n\tjs.mu.Unlock()\n",
 			}},
 		},
 		{
@@ -336,9 +335,10 @@ func ch4Mutants() []ch4mutation {
 			}},
 		},
 		{
-			name:     "note-always",
-			why:      "Every result carries the consumed-by note whether or not anything was pending. A note that is always there says nothing.",
-			wantFail: []string{"toollimits"},
+			name: "note-always",
+			why: "Every result carries the consumed-by note whether or not anything was pending. A note that is always there says nothing. " +
+				"Measured: it also drops jobmodel, because the note is dispatcher decoration prepended to the wire text while cr/io/<handle> holds the tool's output, and the two no longer byte-match.",
+			wantFail: []string{"jobmodel", "toollimits"},
 			edits: []ch4edit{{
 				file: "engine.go", find: `\n\tif fromPending \{\n\t\tout = pendingNote\(call\.Name, limits\) \+ out\n\t\}\n`,
 				replace: "\n\tout = pendingNote(call.Name, limits) + out\n",

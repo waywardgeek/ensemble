@@ -143,7 +143,7 @@ func ch3Mutants() []ch3mutation {
 			name: "blind-walk-no-type-filter",
 			why: "Chapter 1 promised that filtering content blocks by `type` starts paying here. " +
 				"This walks every block as if it were text, which is the naive implementation the promise warns about.",
-			wantFail: []string{"ch2parity", "editcontract", "multiblock", "mutatetools", "readtools", "runcommand", "toolerror", "toolloop"},
+			wantFail: []string{"ch2parity", "editcontract", "multiblock", "mutatetools", "readtools", "runcommand", "toolerror", "toolloop", "writeguard"},
 			edits: []ch3edit{{
 				file: "anthropic.go", find: `switch h\.Type \{`, replace: `switch "text" {`,
 			}},
@@ -151,7 +151,7 @@ func ch3Mutants() []ch3mutation {
 		{
 			name:     "tool-use-blocks-ignored",
 			why:      "An implementation that only looks at text blocks never sees the call and silently does nothing.",
-			wantFail: []string{"ch2parity", "editcontract", "multiblock", "mutatetools", "readtools", "runcommand", "toolerror", "toolloop"},
+			wantFail: []string{"ch2parity", "editcontract", "multiblock", "mutatetools", "readtools", "runcommand", "toolerror", "toolloop", "writeguard"},
 			edits: []ch3edit{{
 				file: "anthropic.go", find: `case "tool_use":`, replace: `case "tool_use_never_matches":`,
 			}},
@@ -169,7 +169,7 @@ func ch3Mutants() []ch3mutation {
 		{
 			name:     "loop-runs-one-round",
 			why:      "A tool call is the middle of a turn, not the end. This executes the tools but never goes back.",
-			wantFail: []string{"editcontract", "multiblock", "mutatetools", "readtools", "runcommand", "toolerror", "toolloop"},
+			wantFail: []string{"editcontract", "multiblock", "mutatetools", "readtools", "runcommand", "toolerror", "toolloop", "writeguard"},
 			edits: []ch3edit{{
 				file: "engine.go", find: `for round := 0; ; round\+\+ \{`, replace: `for round := 0; round < 1; round++ {`,
 			}},
@@ -189,7 +189,7 @@ func ch3Mutants() []ch3mutation {
 		{
 			name:     "tool-error-result-dropped",
 			why:      "The single most common way a student's agent locks up: a failure that returns nothing at all.",
-			wantFail: []string{"editcontract", "toolerror"},
+			wantFail: []string{"editcontract", "toolerror", "writeguard"},
 			edits: []ch3edit{{
 				file: "engine.go", find: `isError, out = true, err\.Error\(\)`, replace: `return nil`,
 			}},
@@ -197,7 +197,7 @@ func ch3Mutants() []ch3mutation {
 		{
 			name:     "tool-error-not-marked",
 			why:      "The result comes back, but the model is not told it was a failure.",
-			wantFail: []string{"editcontract", "toolerror"},
+			wantFail: []string{"editcontract", "toolerror", "writeguard"},
 			edits: []ch3edit{{
 				file: "engine.go", find: `isError, out = true, err\.Error\(\)`, replace: `isError, out = false, err.Error()`,
 			}},
@@ -253,7 +253,7 @@ func ch3Mutants() []ch3mutation {
 		{
 			name:     "write-file-writes-nothing",
 			why:      "Reports success, writes an empty file. Only the disk can catch this.",
-			wantFail: []string{"mutatetools"},
+			wantFail: []string{"mutatetools", "writeguard"},
 			edits: []ch3edit{{
 				file: "tools.go", find: `os\.WriteFile\(a\.Path, \[\]byte\(a\.Content\), 0o644\)`,
 				replace: `os.WriteFile(a.Path, []byte(""), 0o644)`,
@@ -442,7 +442,9 @@ func ch3Mutants() []ch3mutation {
 				"and the negative control that keeps the grader from rewarding it: the guard is for files that are there.",
 			wantFail: []string{"writeguard", "mutatetools"},
 			edits: []ch3edit{{
-				file: "tools.go", find: `if exists && !a\.Overwrite \{`, replace: `if !a.Overwrite {`,
+				file:    "tools.go",
+				find:    `if exists && !a\.Overwrite \{\n\t\treturn "", fmt\.Errorf\("write_file refused: %s exists \(%d bytes, %d lines\); pass overwrite:true to replace it, or use edit_file to change part of it",\n\t\t\ta\.Path, info\.Size\(\), lineCount\(prior\)\)\n\t\}`,
+				replace: "if !a.Overwrite {\n\t\treturn \"\", fmt.Errorf(\"write_file refused: pass overwrite:true to write %s\", a.Path)\n\t}",
 			}},
 		},
 	}
