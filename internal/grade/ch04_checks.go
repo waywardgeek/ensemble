@@ -533,6 +533,27 @@ func checkToolLimits(res *Ch4Result) Check {
 	if st := status("toolu_tl_run4"); st != "" && st != "done" {
 		c.failf("an explicit ai_callback_delay of 10 on the call must override the pending tool_limits delay of 0.2; status %q", st)
 	}
+
+	// The consumed-by note. Ruled: the result of the call that consumes a
+	// pending tool_limits names tool_limits in its text, so the model learns
+	// where its setting went when the next call was not the one it meant.
+	// Two legs because the reference emits the note from two sites, the job
+	// path and the inline verbs, and each is an independent deletion. The
+	// bare run_command after the first consumption is the negative control.
+	noteRe := regexp.MustCompile(`tool_limits`)
+	if r, ok := wire(&c, s, "toolu_tl_run1"); ok && !noteRe.MatchString(r.Text) {
+		c.failf("run_command consumed the pending tool_limits and its result does not say so; the note must name tool_limits")
+	}
+	if r, ok := wire(&c, s, "toolu_tl_run2"); ok && noteRe.MatchString(r.Text) {
+		c.failf("the run_command with no tool_limits pending carries a tool_limits note anyway; the note marks consumption, not every call: %.200q", r.Text)
+	}
+	if r, ok := wire(&c, s, "toolu_tl_set3b"); ok {
+		if r.IsError {
+			c.failf("tool_limits called while a tool_limits was already pending came back as an error: %.200q", r.Text)
+		} else if !noteRe.MatchString(r.Text) {
+			c.failf("tool_limits consumed a pending tool_limits and its result does not say so; the inline verbs consume too, and must note it")
+		}
+	}
 	return c
 }
 

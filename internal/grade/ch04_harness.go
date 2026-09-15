@@ -435,6 +435,13 @@ func ch4ToolLimitsReplies(h map[string]string) []fakevendor.Reply {
 			`{"ai_callback_delay":0.2}`, "toolu_tl_set2"),
 		ch4step("Explicit argument wins.", "run_command",
 			`{"command":`+q(h["sleeper"]+" 1")+`,"ai_callback_delay":10}`, "toolu_tl_run4"),
+		// The note has two emission paths, jobs and the inline verbs, and the
+		// second is easiest to forget. tool_limits followed by tool_limits:
+		// the second call consumes the first and must say so.
+		ch4step("Setting a delay.", "tool_limits",
+			`{"ai_callback_delay":0.2}`, "toolu_tl_set3"),
+		ch4step("Setting it again, which eats the first.", "tool_limits",
+			`{"ai_callback_delay":0.3}`, "toolu_tl_set3b"),
 		ch4done("Limits behaved."),
 	}
 }

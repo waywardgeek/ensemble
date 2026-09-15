@@ -318,6 +318,33 @@ func ch4Mutants() []ch4mutation {
 			}},
 		},
 
+		// ---- tool_limits consumed-by note -----------------------------------
+		{
+			name:     "no-note-jobpath",
+			why:      "A job that consumed the pending tool_limits says nothing about it. The model set a delay, the next call ate it, and nothing in the result explains why the wait was short.",
+			wantFail: []string{"toollimits"},
+			edits: []ch4edit{{
+				file: "engine.go", find: `\n\tif fromPending \{\n\t\tout = pendingNote\(call\.Name, limits\) \+ out\n\t\}\n`, replace: "\n",
+			}},
+		},
+		{
+			name:     "no-note-nojobpath",
+			why:      "The inline verbs consume a pending tool_limits silently. tool_limits followed by tool_limits is the easy case to forget, and a grader with only the job leg scores this at 100.",
+			wantFail: []string{"toollimits"},
+			edits: []ch4edit{{
+				file: "engine.go", find: `\t\tif fromPending \{\n\t\t\tout = pendingNote\(call\.Name, limits\) \+ out\n\t\t\}\n`, replace: "",
+			}},
+		},
+		{
+			name:     "note-always",
+			why:      "Every result carries the consumed-by note whether or not anything was pending. A note that is always there says nothing.",
+			wantFail: []string{"toollimits"},
+			edits: []ch4edit{{
+				file: "engine.go", find: `\n\tif fromPending \{\n\t\tout = pendingNote\(call\.Name, limits\) \+ out\n\t\}\n`,
+				replace: "\n\tout = pendingNote(call.Name, limits) + out\n",
+			}},
+		},
+
 		// ---- cwd ------------------------------------------------------------
 		{
 			name:     "cwd-ignored",
