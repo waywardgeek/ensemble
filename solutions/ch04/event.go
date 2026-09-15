@@ -183,6 +183,11 @@ type JobData struct {
 	ExitCode *int      `json:"exit_code,omitempty"`
 	// Reason is set on JobKilled events only: "kill_job" or "shutdown".
 	Reason string `json:"reason,omitempty"`
+	// Cwd is the directory a run_command job actually ran in, recorded when
+	// the process started and only when it was not the working directory.
+	// Recorded, never inferred: the log states where the command ran rather
+	// than leaving a reader to reconstruct it from the arguments.
+	Cwd string `json:"cwd,omitempty"`
 }
 
 // RedactData names a SPAN and a LEVEL. The span says where, the level says

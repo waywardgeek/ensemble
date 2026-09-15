@@ -236,7 +236,7 @@ func (e *Engine) Execute(call ToolCallPart) error {
 	// Limits are resolved BEFORE the ToolCalled record, so that a pending
 	// tool_limits is consumed by this call whether or not the tool exists.
 	// A bad pattern is a tool error like any other: reported, not fatal.
-	limits, limErr := e.Jobs.Take(call.Args)
+	limits, fromPending, limErr := e.Jobs.Take(call.Args)
 
 	tool, err := Lookup(call.Name)
 	if err == nil {
@@ -258,6 +258,9 @@ func (e *Engine) Execute(call ToolCallPart) error {
 		isError := false
 		if err != nil {
 			isError, out = true, err.Error()
+		}
+		if fromPending {
+			out = pendingNote(call.Name, limits) + out
 		}
 		if err := e.record(Event{Type: ToolReturned, Tool: &ToolData{
 			CallID: call.CallID, Name: call.Name, Args: call.Args,
@@ -299,6 +302,9 @@ func (e *Engine) Execute(call ToolCallPart) error {
 	// returns anyway, with a handle, and the model decides what happens next.
 	reason := job.Wait(limits)
 	out := job.Report(reason, limits)
+	if fromPending {
+		out = pendingNote(call.Name, limits) + out
+	}
 	isError := job.Status() == StatusDone && job.Err() != nil
 
 	return e.record(Event{Type: ToolReturned, Tool: &ToolData{
@@ -309,6 +315,16 @@ func (e *Engine) Execute(call ToolCallPart) error {
 		IsError: isError,
 		Job:     job.Data(),
 	}})
+}
+
+// pendingNote heads the report of whichever call consumed a pending
+// tool_limits. The limits are one-shot and land on the next call whatever it
+// is. That is the design, and the footgun in it is that landing on the wrong
+// call used to be silent: the model saw a truncated build two calls later
+// with no cause in sight. This line puts the cause in the very result it
+// produced. Loud, not different.
+func pendingNote(tool string, l Limits) string {
+	return fmt.Sprintf("[tool_limits consumed by this %s call: %s]\n", tool, l)
 }
 
 // Shutdown ends every job that is still running, and says so in the log.

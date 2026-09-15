@@ -156,10 +156,6 @@ func toolLimits(c *Call, args json.RawMessage) (string, error) {
 		return "", fmt.Errorf("tool_limits: %v", err)
 	}
 	c.Jobs.SetNext(l)
-	pat := "none"
-	if l.Pattern != nil {
-		pat = fmt.Sprintf("%q", l.Pattern.String())
-	}
-	return fmt.Sprintf("limits for the next tool call: ai_callback_delay %s, ai_callback_pattern %s, max_output_bytes %d",
-		l.Delay, pat, l.MaxOutput), nil
+	return fmt.Sprintf("limits pending for the NEXT tool call, whichever tool that is: %s. "+
+		"Call the tool you meant them for now; the next call consumes them and its result says so.", l), nil
 }

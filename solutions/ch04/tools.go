@@ -66,7 +66,7 @@ type Tool struct {
 // data so that an error message can describe a tool without depending on the
 // registry that holds the tool's code.
 var argSpec = map[string]string{
-	"run_command":    `{"command":string,"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
+	"run_command":    `{"command":string,"cwd":string?,"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
 	"read_file":      `{"path":string,"start_line":int?,"end_line":int?,"max_bytes":int?}`,
 	"write_file":     `{"path":string,"content":string,"append":bool?}`,
 	"edit_file":      `{"path":string,"old_text":string,"new_text":string}`,
@@ -97,9 +97,10 @@ const limitProps = `"ai_callback_delay":{"type":"number","description":"Seconds 
 var Registry = map[string]Tool{
 	"run_command": {
 		Name:        "run_command",
-		Description: "Run a shell command in the working directory under a terminal. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Use for builds, tests, debuggers, and anything the other tools cannot do.",
+		Description: "Run a shell command under a terminal, in the working directory or in cwd. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Nothing persists between calls: no cd, no exported variable, no shell. Use for builds, tests, debuggers, and anything the other tools cannot do.",
 		Schema: json.RawMessage(`{"type":"object","properties":{
 			"command":{"type":"string","description":"The command line to run, as you would type it in a shell."},
+			"cwd":{"type":"string","description":"Directory to run in, for this call only. Relative paths resolve against the working directory. A directory that does not exist is an error."},
 			` + limitProps + `},
 			"required":["command"]}`),
 		Run: toolRunCommand,
@@ -137,7 +138,7 @@ var Registry = map[string]Tool{
 	},
 	"tool_limits": {
 		Name:        "tool_limits",
-		Description: "Set ai_callback_delay, ai_callback_pattern and max_output_bytes for the NEXT tool call only, for tools whose own arguments do not include them. run_command, wait_for_job and send_input take these directly; call this before other tools.",
+		Description: "Set ai_callback_delay, ai_callback_pattern and max_output_bytes for the NEXT tool call only, whichever tool that is. The very next call consumes them even if it is not the one you meant, and its result says so. For tools whose own arguments do not include them; run_command, wait_for_job and send_input take these directly. Call this immediately before the target tool.",
 		Schema: json.RawMessage(`{"type":"object","properties":{
 			` + limitProps + `}}`),
 		Run:   toolLimits,
@@ -156,11 +157,12 @@ var Registry = map[string]Tool{
 	},
 	"write_file": {
 		Name:        "write_file",
-		Description: "Create or overwrite a file with the given content. Set append to add to the end instead of replacing.",
+		Description: "Create a file with the given content. Refuses to replace a file that already exists unless overwrite is true; read it first, or use edit_file to change part of it. Set append to add to the end instead.",
 		Schema: json.RawMessage(`{"type":"object","properties":{
 			"path":{"type":"string","description":"Path to the file, relative to the working directory."},
 			"content":{"type":"string","description":"The complete new content, or the text to append."},
-			"append":{"type":"boolean","description":"Append instead of overwrite."}},
+			"append":{"type":"boolean","description":"Append instead of overwrite. Never refused."},
+			"overwrite":{"type":"boolean","description":"Allow replacing a file that already exists. Without it the call is refused and the reply gives the existing file's size, so nothing is lost by asking."}},
 			"required":["path","content"]}`),
 		Run: toolWriteFile,
 	},
@@ -183,11 +185,12 @@ var Registry = map[string]Tool{
 	},
 	"search_files": {
 		Name:        "search_files",
-		Description: "Search files for a regular expression and return matching lines as path:line: text.",
+		Description: "Search files for a regular expression and return matching lines as path:line:text. Set context_lines to also return the lines around each match (grep -C format: context lines as path-line-text, -- between separate groups).",
 		Schema: json.RawMessage(`{"type":"object","properties":{
 			"pattern":{"type":"string","description":"Go regular expression to search for."},
 			"path":{"type":"string","description":"Directory to search under. Defaults to the working directory."},
-			"file_pattern":{"type":"string","description":"Glob restricting which file names are searched, e.g. *.go."}},
+			"file_pattern":{"type":"string","description":"Glob restricting which file names are searched, e.g. *.go."},
+			"context_lines":{"type":"integer","description":"Lines of context to return before and after each match. Default 0."}},
 			"required":["pattern"]}`),
 		Run: toolSearchFiles,
 	},
@@ -297,6 +300,7 @@ func decode(name string, args json.RawMessage, into any) error {
 func toolRunCommand(c *Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Command string `json:"command"`
+		Cwd     string `json:"cwd"`
 		limitArgs
 	}
 	if err := decode("run_command", args, &a); err != nil {
@@ -308,6 +312,33 @@ func toolRunCommand(c *Call, args json.RawMessage) (string, error) {
 
 	cmd := exec.Command("sh", "-c", a.Command)
 	cmd.Env = append(os.Environ(), "TERM=dumb")
+	// cwd is a property of THIS call. It is resolved against the working
+	// directory, checked before anything starts, and recorded on the job. A
+	// directory that is not there is an error: running in the working
+	// directory instead would be a command executed somewhere the model did
+	// not ask for, with output that looks like an answer.
+	if a.Cwd != "" {
+		dir := a.Cwd
+		if !filepath.IsAbs(dir) {
+			// The working directory is the process's: every other tool
+			// resolves paths against it the same way.
+			wd, err := os.Getwd()
+			if err != nil {
+				return "", fmt.Errorf("run_command: working directory: %v", err)
+			}
+			dir = filepath.Join(wd, dir)
+		}
+		dir = filepath.Clean(dir)
+		st, err := os.Stat(dir)
+		if err != nil {
+			return "", fmt.Errorf("run_command: cwd %q: %v", a.Cwd, err)
+		}
+		if !st.IsDir() {
+			return "", fmt.Errorf("run_command: cwd %q is not a directory", a.Cwd)
+		}
+		cmd.Dir = dir
+		c.Job.SetCwd(dir)
+	}
 	// pty.Start puts the child in its own session with the pty as its
 	// controlling terminal. Its own session means its own process group, so
 	// kill_job can take down everything it started with one signal.
@@ -413,9 +444,10 @@ func toolReadFile(_ *Call, args json.RawMessage) (string, error) {
 
 func toolWriteFile(_ *Call, args json.RawMessage) (string, error) {
 	var a struct {
-		Path    string `json:"path"`
-		Content string `json:"content"`
-		Append  bool   `json:"append"`
+		Path      string `json:"path"`
+		Content   string `json:"content"`
+		Append    bool   `json:"append"`
+		Overwrite bool   `json:"overwrite"`
 	}
 	if err := decode("write_file", args, &a); err != nil {
 		return "", err
@@ -439,10 +471,45 @@ func toolWriteFile(_ *Call, args json.RawMessage) (string, error) {
 		}
 		return fmt.Sprintf("appended %d bytes to %s", len(a.Content), a.Path), nil
 	}
+
+	// Replacing a file that exists is the one operation in this set that
+	// destroys work with no trace in the log, so it is the one that must be
+	// asked for by name. The refusal is the dry run: it costs one round trip
+	// and reports what would have been lost. edit_file is the same rule seen
+	// from the other side; the dangerous call is the one that makes you be
+	// specific.
+	info, statErr := os.Stat(a.Path)
+	exists := statErr == nil && !info.IsDir()
+	var prior string
+	if exists {
+		b, _ := os.ReadFile(a.Path) // best effort, for the line count only
+		prior = string(b)
+	}
+	if exists && !a.Overwrite {
+		return "", fmt.Errorf("write_file refused: %s exists (%d bytes, %d lines); pass overwrite:true to replace it, or use edit_file to change part of it",
+			a.Path, info.Size(), lineCount(prior))
+	}
 	if err := os.WriteFile(a.Path, []byte(a.Content), 0o644); err != nil {
 		return "", fmt.Errorf("write_file: %v", err)
 	}
+	if exists {
+		return fmt.Sprintf("wrote %d bytes to %s (replaced %d bytes, %d lines)",
+			len(a.Content), a.Path, info.Size(), lineCount(prior)), nil
+	}
 	return fmt.Sprintf("wrote %d bytes to %s", len(a.Content), a.Path), nil
+}
+
+// lineCount counts lines the way an editor does: a trailing newline ends the
+// last line rather than starting an empty one.
+func lineCount(s string) int {
+	if s == "" {
+		return 0
+	}
+	n := strings.Count(s, "\n")
+	if !strings.HasSuffix(s, "\n") {
+		n++
+	}
+	return n
 }
 
 // --- edit_file -------------------------------------------------------------
@@ -561,15 +628,19 @@ const maxMatches = 200
 // directory. An agent that cannot grep cannot find what to read.
 func toolSearchFiles(_ *Call, args json.RawMessage) (string, error) {
 	var a struct {
-		Pattern     string `json:"pattern"`
-		Path        string `json:"path"`
-		FilePattern string `json:"file_pattern"`
+		Pattern      string `json:"pattern"`
+		Path         string `json:"path"`
+		FilePattern  string `json:"file_pattern"`
+		ContextLines int    `json:"context_lines"`
 	}
 	if err := decode("search_files", args, &a); err != nil {
 		return "", err
 	}
 	if a.Pattern == "" {
 		return "", fmt.Errorf("search_files: pattern is required")
+	}
+	if a.ContextLines < 0 {
+		return "", fmt.Errorf("search_files: context_lines must not be negative")
 	}
 	re, err := regexp.Compile(a.Pattern)
 	if err != nil {
@@ -584,8 +655,9 @@ func toolSearchFiles(_ *Call, args json.RawMessage) (string, error) {
 	}
 
 	var out []string
+	matches := 0
 	err = filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
-		if err != nil || d.IsDir() || len(out) >= maxMatches {
+		if err != nil || d.IsDir() || matches >= maxMatches {
 			if d != nil && d.IsDir() && d.Name() == ".git" {
 				return filepath.SkipDir
 			}
@@ -601,14 +673,21 @@ func toolSearchFiles(_ *Call, args json.RawMessage) (string, error) {
 		if err != nil {
 			return nil
 		}
-		for i, line := range strings.Split(string(data), "\n") {
+		lines := strings.Split(string(data), "\n")
+		if n := len(lines); n > 0 && lines[n-1] == "" {
+			lines = lines[:n-1] // a trailing newline ends a line, it does not start one
+		}
+		var hits []int
+		for i, line := range lines {
 			if re.MatchString(line) {
-				out = append(out, fmt.Sprintf("%s:%d:%s", path, i+1, line))
-				if len(out) >= maxMatches {
+				hits = append(hits, i)
+				if matches+len(hits) >= maxMatches {
 					break
 				}
 			}
 		}
+		matches += len(hits)
+		out = append(out, withContext(path, lines, hits, a.ContextLines, len(out) > 0)...)
 		return nil
 	})
 	if err != nil {
@@ -618,4 +697,42 @@ func toolSearchFiles(_ *Call, args json.RawMessage) (string, error) {
 		return fmt.Sprintf("no matches for %q under %s", a.Pattern, root), nil
 	}
 	return strings.Join(out, "\n"), nil
+}
+
+// withContext renders one file's hits in grep's format: with no context,
+// path:N:text per hit, as before. With context, each hit brings its
+// neighbours as path-N-text, overlapping windows merge, and "--" separates
+// groups that are not adjacent, the first group included when output from
+// an earlier file precedes it. The format is grep's because the model has
+// read more grep output than anything this program could invent.
+func withContext(path string, lines []string, hits []int, ctx int, precededBy bool) []string {
+	var out []string
+	if ctx == 0 {
+		for _, h := range hits {
+			out = append(out, fmt.Sprintf("%s:%d:%s", path, h+1, lines[h]))
+		}
+		return out
+	}
+	isHit := make(map[int]bool, len(hits))
+	for _, h := range hits {
+		isHit[h] = true
+	}
+	last := -1 // index of the last line emitted from this file
+	for _, h := range hits {
+		lo, hi := max(h-ctx, 0), min(h+ctx, len(lines)-1)
+		if lo <= last {
+			lo = last + 1 // overlap with the previous window: extend it
+		} else if last >= 0 || precededBy {
+			out = append(out, "--")
+		}
+		for i := lo; i <= hi; i++ {
+			sep := "-"
+			if isHit[i] {
+				sep = ":"
+			}
+			out = append(out, fmt.Sprintf("%s%s%d%s%s", path, sep, i+1, sep, lines[i]))
+		}
+		last = hi
+	}
+	return out
 }

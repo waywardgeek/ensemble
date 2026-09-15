@@ -87,11 +87,12 @@ var Registry = map[string]Tool{
 	},
 	"write_file": {
 		Name:        "write_file",
-		Description: "Create or overwrite a file with the given content. Set append to add to the end instead of replacing.",
+		Description: "Create a file with the given content. Refuses to replace a file that already exists unless overwrite is true; read it first, or use edit_file to change part of it. Set append to add to the end instead.",
 		Schema: json.RawMessage(`{"type":"object","properties":{
 			"path":{"type":"string","description":"Path to the file, relative to the working directory."},
 			"content":{"type":"string","description":"The complete new content, or the text to append."},
-			"append":{"type":"boolean","description":"Append instead of overwrite."}},
+			"append":{"type":"boolean","description":"Append instead of overwrite. Never refused."},
+			"overwrite":{"type":"boolean","description":"Allow replacing a file that already exists. Without it the call is refused and the reply gives the existing file's size, so nothing is lost by asking."}},
 			"required":["path","content"]}`),
 		Run: toolWriteFile,
 	},
@@ -308,9 +309,10 @@ func toolReadFile(args json.RawMessage) (string, error) {
 
 func toolWriteFile(args json.RawMessage) (string, error) {
 	var a struct {
-		Path    string `json:"path"`
-		Content string `json:"content"`
-		Append  bool   `json:"append"`
+		Path      string `json:"path"`
+		Content   string `json:"content"`
+		Append    bool   `json:"append"`
+		Overwrite bool   `json:"overwrite"`
 	}
 	if err := decode("write_file", args, &a); err != nil {
 		return "", err
@@ -334,8 +336,30 @@ func toolWriteFile(args json.RawMessage) (string, error) {
 		}
 		return fmt.Sprintf("appended %d bytes to %s", len(a.Content), a.Path), nil
 	}
+
+	// Replacing a file that exists is the one operation in this set that
+	// destroys work with no trace in the log, so it is the one that must be
+	// asked for by name. The refusal is the dry run: it costs one round trip
+	// and reports what would have been lost. edit_file is the same rule seen
+	// from the other side; the dangerous call is the one that makes you be
+	// specific.
+	info, statErr := os.Stat(a.Path)
+	exists := statErr == nil && !info.IsDir()
+	var prior string
+	if exists {
+		b, _ := os.ReadFile(a.Path) // best effort, for the line count only
+		prior = string(b)
+	}
+	if exists && !a.Overwrite {
+		return "", fmt.Errorf("write_file refused: %s exists (%d bytes, %d lines); pass overwrite:true to replace it, or use edit_file to change part of it",
+			a.Path, info.Size(), lineCount(prior))
+	}
 	if err := os.WriteFile(a.Path, []byte(a.Content), 0o644); err != nil {
 		return "", fmt.Errorf("write_file: %v", err)
+	}
+	if exists {
+		return fmt.Sprintf("wrote %d bytes to %s (replaced %d bytes, %d lines)",
+			len(a.Content), a.Path, info.Size(), lineCount(prior)), nil
 	}
 	return fmt.Sprintf("wrote %d bytes to %s", len(a.Content), a.Path), nil
 }
@@ -513,4 +537,17 @@ func toolSearchFiles(args json.RawMessage) (string, error) {
 		return fmt.Sprintf("no matches for %q under %s", a.Pattern, root), nil
 	}
 	return strings.Join(out, "\n"), nil
+}
+
+// lineCount counts lines the way an editor does: a trailing newline ends the
+// last line rather than starting an empty one.
+func lineCount(s string) int {
+	if s == "" {
+		return 0
+	}
+	n := strings.Count(s, "\n")
+	if !strings.HasSuffix(s, "\n") {
+		n++
+	}
+	return n
 }

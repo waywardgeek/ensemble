@@ -224,20 +224,36 @@ func (js *Jobs) SetNext(l Limits) {
 }
 
 // Take returns the limits for the next call: defaults, then the pending
-// tool_limits if any (consumed), then the call's own arguments.
-func (js *Jobs) Take(args json.RawMessage) (Limits, error) {
+// tool_limits if any (consumed), then the call's own arguments. The bool
+// says whether a pending tool_limits was consumed; the caller puts that in
+// the report, so limits that land on the wrong call are seen, not suffered.
+func (js *Jobs) Take(args json.RawMessage) (Limits, bool, error) {
 	l := DefaultLimits()
+	consumed := false
 	js.mu.Lock()
 	if js.pending != nil {
 		l = *js.pending
 		js.pending = nil
+		consumed = true
 	}
 	js.mu.Unlock()
 	a, err := limitsInArgs(args)
 	if err != nil {
-		return l, err
+		return l, consumed, err
 	}
-	return l.overlay(a)
+	l, err = l.overlay(a)
+	return l, consumed, err
+}
+
+// String spells the three limits the way tool_limits and the consumption
+// note report them, so the model sees one vocabulary in both places.
+func (l Limits) String() string {
+	pat := "none"
+	if l.Pattern != nil {
+		pat = fmt.Sprintf("%q", l.Pattern.String())
+	}
+	return fmt.Sprintf("ai_callback_delay %s, ai_callback_pattern %s, max_output_bytes %d",
+		l.Delay, pat, l.MaxOutput)
 }
 
 // --- one job ---------------------------------------------------------------
@@ -266,6 +282,9 @@ type Job struct {
 	stdin interface {
 		Write([]byte) (int, error)
 	}
+	// cwd is where a run_command job ran, when that was not the working
+	// directory. Set once by the tool, before the process starts.
+	cwd string
 }
 
 // Write appends output. It is the io.Writer the tool's process writes into,
@@ -443,7 +462,17 @@ func (j *Job) Data() *JobData {
 		Output:   Ref{Kind: RefHandle, Locator: j.Path},
 		Bytes:    j.out.Len(),
 		ExitCode: j.exit,
+		Cwd:      j.cwd,
 	}
+}
+
+// SetCwd records the directory a job's process ran in. run_command calls it
+// before the process starts and only when a cwd other than the working
+// directory was asked for, so the record is the exception, not the rule.
+func (j *Job) SetCwd(dir string) {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	j.cwd = dir
 }
 
 // Report renders what the model sees after a wait, and advances the cursor
