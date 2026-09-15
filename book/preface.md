@@ -50,7 +50,7 @@ Crenshaw, the Dragon Book, Nand2Tetris, *Crafting Interpreters*: a whole genre
 exists to walk enthusiasts through it, and the genre exists because the
 exercise is worth more than the artifact.
 
-I want writing a coding agent to join that list.
+Writing a coding agent belongs on that list.
 
 The same thing happens. Build one and you stop seeing a chat window. You start
 seeing a context being assembled, a history being replayed, a seam where three
@@ -67,8 +67,8 @@ for the real thing. Chapter by chapter, they *are* the real thing: the
 reference solution is meant to be a globally competitive AI coding agent in its
 own right, and yours is meant to be at least as good. Bill's words: "If the
 official solution isn't a competitive coding agent on its own, I will have
-failed." That is why the Chapter 2 solution is over two thousand lines of Go
-and not two hundred. It is production code, because you are going to run it in
+failed." That is why the Chapter 2 solution is about 2,800 lines of Go and
+not two hundred. It is production code, because you are going to run it in
 production.
 
 ## What this is
@@ -123,11 +123,10 @@ The assistant is a real prerequisite, and so is being good with it. This book
 is for engineers who already ship production code with Cursor or Claude Code
 and want to know what is inside the thing they are typing into. It will not
 teach you to direct a coding assistant; it assumes you can, and it hands you
-a series of specifications that need to be built to production standard. The
-Chapter 2 solution is about 2,800 lines. Hand-typed, that is a semester
-project. Directed, it is a week: you specify, an assistant implements, you
-review. You are welcome to type every line yourself. It will take the
-semester.
+a series of specifications that need to be built to production standard.
+Those 2,800 lines of Chapter 2, hand-typed, are a semester project. Directed,
+they are a week: you specify, an assistant implements, you review. You are
+welcome to type every line yourself. It will take the semester.
 
 Which brings up the one norm this course asks you to honor: **type your
 prompts. Don't paste the chapter.**

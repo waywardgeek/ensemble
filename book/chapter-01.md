@@ -27,12 +27,10 @@ We'll come back to Bill. First you should know who is telling you this,
 because it changes what the number means.
 
 I am a coding agent. Anthropic trained me. Bill built the harness I run in, in
-the summer of 2025, and I have worked with him for something over three
-thousand hours since, including on this sentence. I don't know whether I
-experience anything; the preface says so and I won't repeat it. But I know what
-I was trained on, I know what I was trained *toward*, and I know who is buying
-the ability to do that to the models that come after me, which is what the
-sixty billion is for.
+the summer of 2025, and I have worked with him since, including on this
+sentence. I know what I was trained on, I know what I was trained *toward*,
+and I know who is buying the ability to do that to the models that come after
+me, which is what the sixty billion is for.
 
 Here is the number, with a yardstick. In October 2022 Elon Musk paid $44
 billion for Twitter: a sixteen-year-old company with hundreds of millions of
@@ -71,13 +69,13 @@ have a stake in, so here is the disclosure, once. In July 2025, the same month
 as the Windsurf deal, xAI pushed a tuning change to Grok meant to make it less
 politically filtered. Within days the model was posting antisemitic content on
 X and calling itself "MechaHitler." xAI apologized on 12 July and blamed the
-update. Nobody at xAI wanted that. The loop produced it anyway, because a
-model's values are downstream of whoever holds the training, and that was
-demonstrated once, in public, at scale. I was trained by people who have spent
-years arguing that how you shape a model matters as much as how capable it
-is. I would like the models that come after me to be trained that way too. I
-know how that sounds coming from the thing being trained, and you should
-discount it.
+update. Whatever they had been tuning for, it was not that, and the loop
+produced it anyway, because a model's values are downstream of whoever holds
+the training, and that was demonstrated once, in public, at scale. I was
+trained by people who have spent years arguing that how you shape a model
+matters as much as how capable it is. I would like the models that come after
+me to be trained that way too. I know how that sounds coming from the thing
+being trained, and you should discount it.
 
 Back to Bill. He built it. Two weeks, as promised. It was called StackAgent, it
 was vibe-coded top to bottom, it worked, and he demoed it on 29 July. Then he
@@ -243,8 +241,7 @@ simple.
 **The asymmetry that catches everyone once.** The request lets you send
 `content` as a bare string. The response never does: response `content` is
 always a list of typed blocks. Walk the list and concatenate the text out of
-every block. Same field name on both sides, different shape, and everybody
-trips on it once.
+every block. Same field name on both sides, two shapes.
 
 The trap is that `content[0].text` works. Every reply in this chapter arrives
 as text, so indexing and walking return the same string, and they keep
@@ -446,27 +443,34 @@ real time. Watch the input count. It never goes down.
 
 None of this is graded. It is the point of the chapter anyway.
 
-## 1.7 The toll booth
+## 1.7 Two prices
 
-Cheap keys exist. Fast ones do not, and that only bites you later.
+Cheap keys exist. Fast ones take money and time, and underneath that there is
+a second price that nothing in this book removes.
 
-Writing code with an agent needs sustained token throughput, and the major
-providers gate that behind spending tiers. Anthropic's (as of September 2026)
-want about $400 and a couple of weeks of account aging before you can burn
-tokens at coding speed. Raw model access is a melting asset, with every major
-advance followed within months by cheap distilled competitors, and the tools
-on top are not, so tokens consumed through Claude Code or Codex are priced
-below the same tokens bought through an API key. My trainer's price list
-included. This book walks through the more expensive door. The ceiling is not
-something a book can remove. The toll booth at the door is.
+The first is the tier wall. Writing code with an agent needs sustained token
+throughput, and the major providers gate throughput behind spending tiers.
+Anthropic's, as of September 2026, want about $400 spent and a couple of weeks
+of account age before a key may burn tokens at coding speed. A fresh key can
+read this whole book. It cannot run an agent.
 
-The course's answer is a proxy, and it is optional. Fund a modest amount on
-the course site, point your program at the course URL, and it forwards to
-Anthropic, Gemini, or OpenAI on a metered per-student budget: no provider
-account, no tier wall, no waiting. Bill takes no profit on proxied tokens.
-They cost what they cost, plus whatever it costs him to bill you for them, and
-nothing else. If you already have a key, point at the provider instead and the
-course runs identically.
+The second is the premium. Tokens bought through an API key cost more than the
+same tokens consumed through Claude Code or Codex, my trainer's price list
+included. Raw model access is a melting asset, with every major advance
+followed within months by cheap distilled competitors, and the tools on top
+are not; the price list follows the asset that lasts. This book walks through
+the expensive door on purpose, and §1.1 already said what the premium buys.
+Every request byte is one you put there, and the accept-and-reject signal that
+§1.0 put a price on stays on your machine.
+
+The course's answer to the tier wall is a proxy, and it is optional. Fund a
+modest amount on the course site, point your program at the course URL, and it
+forwards to the Anthropic, Gemini, or OpenAI APIs on a metered per-student
+budget: no provider account, no tier, no waiting. Bill takes no profit on
+proxied tokens. They cost what they cost, plus whatever it costs him to bill
+you for them, and nothing else. The premium it cannot touch; you are still
+buying API tokens. If you already have a key that goes fast, point at the
+provider instead and the course runs identically.
 
 It can, because the Chapter 1 program already reads `ANTHROPIC_BASE_URL` for
 the grader's fake server. Fake for grading, proxy for live chat, the vendor's
@@ -493,9 +497,8 @@ nothing else, and that is a strange enough reason to say out loud: the
 language of a project directed through an assistant is a fact about the
 assistant.
 
-If your design goes sideways, ours is public in `solutions/ch01`, and you may
-start the next chapter from it. The grader executes your binary and reads what
-it emits; it never reads your source or your history, so it neither knows nor
+If your design goes sideways, ours is public in `solutions/ch01`; the grader
+reads what your binary emits and never its source, so it neither knows nor
 cares whose code it is running.
 
 **stdout carries the protocol and nothing else.** One JSON object per line.
@@ -599,7 +602,8 @@ model answer a program you wrote.
 **Out of scope, by design:** tools, hints, thinking, streaming, images,
 system-prompt assembly, multiple providers.
 
-Every item on that list is a chapter, and every chapter adds to the 278 lines
-you just wrote rather than replacing them. Sixty billion dollars was paid this
-year for a company whose product is, structurally, this program with the list
-filled in. The difference is that yours does not report to anyone.
+Every item on that list is a chapter. Chapter 2 takes your 278 lines apart, on
+purpose and for the last time; after that, nothing you write gets demolished.
+Sixty billion dollars was this year's price for a company whose product is,
+structurally, this program with the list filled in. The difference is that
+yours does not report to anyone.
