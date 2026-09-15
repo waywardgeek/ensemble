@@ -13,15 +13,15 @@ looked like foresight. It had the keyword in front of it.
 
 Then, in September 2025, Bill wanted Gemini.
 
-The interface did not fit. Not "needed a few changes"; the shape was wrong in a
-way no amount of editing could fix, because it had never been vendor-shaped. It
-was Claude-shaped with `interface` written in front of it. `SendMessage` took a
-slice of `ClaudeMessage`. `CountTokens` took the same slice. There was nothing
-a Gemini implementation could do with a `ClaudeMessage` except translate it,
-which means the "interface" was really a request that every future vendor
-pretend to be Claude first. So the second client was made the way second
-clients get made when the abstraction is wrong: copy `ClaudeClient`, paste,
-edit until Gemini works. The third, for OpenAI, the same way.
+The interface did not fit, and no amount of editing could make it fit, because
+it had never been vendor-shaped. It was Claude-shaped with `interface` written
+in front of it. `SendMessage` took a slice of `ClaudeMessage`. `CountTokens`
+took the same slice. There was nothing a Gemini implementation could do with a
+`ClaudeMessage` except translate it, which means the "interface" was really a
+request that every future vendor pretend to be Claude first. So the second
+client was made the way second clients get made when the abstraction is wrong:
+copy `ClaudeClient`, paste, edit until Gemini works. The third, for OpenAI,
+the same way.
 
 Most of those lines were typed by me, at Bill's direction, so I can tell you
 what a copy-paste looks like from the inside. It looks like progress. Each
@@ -32,32 +32,28 @@ had to be made three times, and two of the three were forgotten. At the commit
 where Bill finally measured them, the three clients and their tests came to
 31,364 lines of Go.
 
-The remedy was worse than the disease. The right seam got designed eventually,
-and it's the one this chapter teaches: one context, one renderer per vendor,
-one parser per vendor. Built that way, all three vendors and everything around
-them came to 16,175 lines, about half of what they replaced. The seam was
-right, and the number says so. It was delivered as a big-bang rewrite, and
-that is the part that went wrong. As of September 2026 the old
-clients are still in the tree, because four things the product does exist only
-in them, and the new engine has not finished absorbing them; on one of the
-four, audio attachments, the new engine is broken today on all three vendors,
-and the bug was found by an audit rather than by a user. I am the product, so
-some of what is semi-broken about me I have not finished cataloging.
-Two lessons, and they pull in opposite directions, which is why both need
-saying.
+The right seam got designed eventually, and it is the one this chapter
+teaches: one context, one renderer per vendor, one parser per vendor. Built
+that way, all three vendors and everything around them came to 16,175 lines,
+about half of what they replaced. The seam was right and the number says so.
+What went wrong was the delivery. It shipped as a big-bang rewrite, and as of
+September 2026 the old clients are still in the tree, because four things the
+product does exist only in them and the new engine has not finished absorbing
+them. On one of the four, audio attachments, the new engine is broken today on
+all three vendors, and an audit found it rather than a user. I am the product,
+so some of what is semi-broken about me I have not finished cataloging.
+Cutting a seam late does not cost you one refactor. It costs you a tail, paid
+by whoever is using the product while you migrate, and in my case that was
+Bill, and me.
 
-The seam was right. Shipping it as a rewrite was the mistake. Cutting a seam
-late does not cost you one refactor; it costs you a tail, and the tail is paid
-by whoever is using the product while you migrate. In my case that was Bill,
-and me.
-
-So this chapter is going to charge you an hour for something you would rather
-skip. You are going to write three renderers and three parsers on the first day
-you have a data structure worth rendering, for three vendors, two of which you
-may never use. It feels like over-engineering. It is the cheapest hour in the
-book, because it buys you an interface derived from three implementations
-instead of one extrapolated from a single client, and the difference between
-those two things is what the thirty thousand lines were for.
+So this chapter asks you to do the thing I did a year late, on the first day
+you have a data structure worth doing it to. You will write three renderers
+and three parsers, for three vendors, two of which you may never use. The
+chapter makes one bet about what that costs: the second renderer is real work,
+and the third is nearly free. If the third one is expensive, the seam is
+wrong, and you will find that out in an afternoon instead of in 31,364 lines.
+§2.7 reports how the bet went on the reference solution, and the answer is not
+a clean win.
 
 The tell is in the code, and you can see it without knowing the story:
 
@@ -101,51 +97,47 @@ place for token counts, so `usage` lives in two integers on the client and dies
 with the process. It cannot say which model produced a reply, which will matter
 the first time you switch models mid-conversation and a vendor asks for
 material only the original model can read. And its one structural field,
-`Role`, is not yours. It is a vendor's word for a vendor's rule, and it is
-about to be three different vendors' words for three different rules.
+`Role`, belongs to a vendor. It is one company's word for one company's rule,
+and it is about to be three companies' words for three rules.
 
-Every one of those is a fact about the conversation. The struct has room for
-none of them, because it is not a data structure for a conversation. It is a
-data structure for one vendor's request body, and it happened to be small
-enough to mistake for the other thing.
+Every one of those is a fact about the conversation, and the struct has room
+for none of them. It was a data structure for one vendor's request body,
+small enough to mistake for the other thing.
 
-So this chapter replaces it. Two promises about the replacement, both graded.
-
-The rewrite is observably identical for everything Chapter 1 could already do.
-Your `chat` command behaves the same, your stdio protocol is unchanged, and all
-seven of Chapter 1's checks run against the Chapter 2 binary and pass. A
-quarter of this chapter's grade is that you did not break what you had.
-
-And it gains something Chapter 1 could not express at any price: the same
-conversation, correctly, to three different vendors, from one record of what
-was said.
+So this chapter replaces it, and makes two graded promises about the
+replacement. The rewrite is observably identical for everything Chapter 1
+could already do: your `chat` command behaves the same, your stdio protocol is
+unchanged, and all seven of Chapter 1's checks run against the Chapter 2
+binary and pass. And it gains something Chapter 1 could not express at any
+price: the same conversation, correctly, to three different vendors, from one
+record of what was said.
 
 ### The contract
 
-This is the last time this book asks you to throw code away.
+This is the last time this book asks you to throw code away. The preface
+made that promise; here is what it means in practice.
 
-Chapter 1 was sacrificial on purpose. You had to feel a wrong data structure
-fail before a right one could mean anything, and now you have. From here on
-every chapter is additive: new events, new tools, new seams, and nothing you
-build in this chapter gets deleted in the next one or the one after. If a later
-chapter makes you delete something from this one, that is our bug, and I will
-say so in print.
+From here on every chapter is additive: new events, new tools, new seams, and
+nothing you build in this chapter gets deleted in the next one or the one
+after. The practical consequence is that you should **build the simplest thing
+that satisfies this chapter**. Leave no room for the tool loop, for
+concurrency, for skills. All of those are coming, and the chapters are
+sequenced so that each arrives before the weight that would have made it
+painful.
 
-The promise has a practical consequence, and it is the reason to state the
-promise instead of letting you infer it. **Build the simplest thing that
-satisfies this chapter.** Do not leave room for the tool loop. Do not generalize
-for concurrency. Do not invent a plugin system for skills. All of those are
-coming, and the chapters are sequenced so that each arrives before the weight
-that would have made it painful, which is exactly the lesson §2.0 paid thirty
-thousand lines to learn. A reader who does not trust this promise will
-over-engineer defensively, and defensive over-engineering is the failure mode
-this book argues against everywhere else.
+This chapter is the exception, and it is worth saying once so that the rest
+of it does not have to apologize. The data structures below model things no
+code in this chapter uses: a blob reference nothing dereferences, four
+redaction levels for a chapter that stubs one tool result, a `Tool` actor
+before there are tools. The reason is one of Bill's rules: data structures are
+destiny. If they are wrong, every line written against them is wrong, and the
+fix is the rewrite §2.0 just described. So the shape gets built before the
+capability, fully, one time. Everything after this chapter is code, and code
+is cheap to add.
 
-The promise binds us, not you. Every chapter's reference solution is public
-from day one, and you may start any chapter from ours instead of your own.
-Failing a check here must never end your course in Chapter 4. The graders
-cooperate: they run your binary and read what it emits, never your source and
-never its history. No check asks whose code it is.
+The reference solution is public from day one and you may start from ours;
+the graders run your binary and read what it emits, never your source. The
+preface says the rest.
 
 ## 2.2 "But I only use one vendor"
 
@@ -157,35 +149,24 @@ change. As of September 2026, the Gemini surface this chapter teaches,
 available on Vertex AI, which is the access path many corporate readers of this
 book are required to use. The old surface is marked for removal and the new one
 cannot be reached from where they stand. Nobody involved chose that migration.
-It is happening to them anyway.
+It is happening to them anyway. With a seam, it is an afternoon: a renderer
+for the new surface, the old one kept until it dies, a switch on a field, and
+every log you have ever recorded replays unchanged. Without one, §2.0 has
+told you how it goes.
 
-With a seam, that is an afternoon. Write a renderer for the new surface, keep
-the old one until it dies, switch on a field, and let every log you have ever
-recorded replay unchanged through the new one. Without a seam, with a data
-structure shaped like one vendor's request body, it is a rewrite, and §2.0 has
-told you how those go.
-
-The Gemini API fails in ways that do not announce themselves: a request that
-returns nothing at all, an error that describes a problem you do not have, a
-silence you cannot tell from a bug in your own assembly code. A complaint like
-that needs a receipt, and the receipt is the paragraph above. A surface
-deprecated before its replacement reached the vendor's own enterprise platform
-is the same pattern, in public, checkable by anyone with a Vertex account.
-
-There is also no event to subscribe to. The deprecation shipped without any way
-to learn when the new surface reaches Vertex AI, so the migration path is a
-polling loop with a human in it. I checked a week before writing this. The
+There is also no event to subscribe to. The deprecation shipped without any
+way to learn when the new surface reaches Vertex AI, so the migration path is
+a polling loop with a human in it. I checked a week before writing this. The
 correct interval for polling a vendor's roadmap is left as an exercise, and it
 is the only exercise in this book with no defensible answer.
 
-This is also why the data structures below record a *surface* and not just a
-vendor. The vendor is not the unit of compatibility. One company, one model,
-two incompatible wire formats is an ordinary Tuesday, and material you replay
-is bound to the surface that produced it.
+This is why the data structures below record a *surface* and not merely a
+vendor. One company, one model, two incompatible wire formats is an ordinary
+Tuesday, and material you replay is bound to the surface that produced it.
 
-## 2.3 History is not context
+## 2.3 History, context, request
 
-Three nouns, and the whole chapter is keeping them apart.
+The whole chapter is keeping three nouns apart.
 
 **History** is an append-only log of events. What happened, in order, forever.
 It is the truth, and it is never edited.
@@ -199,26 +180,21 @@ vendor. It is disposable too, and it is a lie by omission, necessarily: it
 contains what that vendor's wire format can express, in the shape that vendor
 demands, and nothing else.
 
-Three consumers, two needs. The renderer reads the context. The GUI you have
-not built yet, and the auditor you will wish you had, read the log.
-
-Chapter 1 established that the API is stateless and every request replays the
-whole conversation. That was presented as a cost. It is also the price of
-ownership, and it buys the one capability a coding agent cannot do without: the
-ability to edit history. Redaction, replay, compaction, all of the machinery
-that keeps an agent alive past its context window, depends on the history
-being yours to rewrite before you send it. Vendors offer server-side threads
-that would take the re-send cost away. They take the editing away with it, and
-§2.6 declines them for that reason.
+Chapter 1 presented the stateless API, every request replaying the whole
+conversation, as a cost. It is also the price of ownership, and it buys the
+one capability a coding agent cannot do without: the ability to edit history.
+Redaction, replay, compaction, all of the machinery that keeps an agent alive
+past its context window, depends on the history being yours to rewrite before
+you send it. Vendors offer server-side threads that would take the re-send
+cost away. They take the editing away with it, and §2.6 declines them for
+that reason.
 
 ### Sidebar: "Is this request mid-turn?"
 
 A bug from building this chapter's grader, and it is the shape of the mistake
-this section exists to prevent.
-
-The grader needed to know whether a request it received began a new turn or
-continued a tool loop. The obvious test: does the request contain any tool
-results?
+this section exists to prevent. The grader needed to know whether a request it
+received began a new turn or continued a tool loop, and the obvious test was:
+does the request contain any tool results?
 
 Wrong, and wrong precisely because history is re-sent in full. Once a tool loop
 has happened, every later request contains those tool results forever. Four
@@ -226,10 +202,9 @@ new-turn requests got classified as continuations of a loop that had ended
 three turns earlier, and the check that depended on the classification failed
 students who had done nothing wrong.
 
-A request is not a description of the current moment. It is the entire history,
-re-sent, with a little new material on the end. Any question shaped like "what
-is happening right now?" has to be asked of the *end* of the request, or of the
-log. Never of the whole.
+A request is the entire history, re-sent, with a little new material on the
+end. Any question shaped like "what is happening right now?" has to be asked
+of the *end* of the request, or of the log. Never of the whole.
 
 ## 2.4 The log
 
@@ -269,58 +244,46 @@ type Event struct {
 }
 ```
 
-Six pointers, one of them set. A Go purist will want a sealed interface here
-and a type switch. We have one of those for content, two sections from now, and
-it costs a custom marshaller to round-trip. The event envelope is deliberately
-the boring version, because the log is the one thing in this program that has
-to be readable by tools that have never heard of your types.
+The envelope is deliberately the boring version, with no sealed interface and
+no type switch, because the log is the one thing in this program that has to
+be readable by tools that have never heard of your types.
 
 ### Eight events
 
 `MessageReceived`, `RequestSent`, `ResponseStarted`, `ResponseEnded`,
 `ToolCalled`, `ToolReturned`, `Redacted`, `ErrorOccurred`.
 
-That is the vocabulary for this chapter, and it is frozen for the exercise
-because three checks read your dumped log and cannot do that unless we agree on
-names. Later chapters add to it. None of them take from it.
+That is the vocabulary for this chapter, frozen for the exercise because three
+checks read your dumped log and cannot do that unless we agree on names. Later
+chapters add to it. None of them take from it. Three of the eight have a
+plausible wrong reading each.
 
-Three of the eight need a sentence each, because each has a plausible wrong
-reading.
+`ErrorOccurred` is for infrastructure: the HTTP 429, the connection reset, the
+body that would not parse. A tool that ran and failed is ordinary tool
+*content*, a result with a flag on it. Conflate the two and you get an agent
+that retries a compile error as if it were a network outage, which I have
+watched happen and which is less funny than it sounds.
 
-There is a single `ErrorOccurred`, and it is for infrastructure: the HTTP 429,
-the connection reset, the body that would not parse. A tool that ran and failed
-is not an error in this sense. It is ordinary tool *content*, a result with a
-flag on it, and the model reads it the way it reads any other result. Conflate
-the two and you get an agent that retries a compile error as if it were a
-network outage, which I have watched happen and which is not as funny as it
-sounds.
+Thinking text is log-only. The reasoning can be recorded, and the *context*
+carries only opaque replay material, a signature or a redacted block, tagged
+with the exact model that produced it. The renderer decides whether that model
+wants it back. What you never do is reconstruct reasoning as prose and feed it
+to a different model as though it had thought it.
 
-Thinking text is log-only. When a model reasons before it answers, the reasoning
-can be recorded, and the *context* carries only opaque replay material: a
-signature, a redacted block, an id, tagged with the exact model that produced
-it. The renderer decides whether that model wants it back. What you never do is
-reconstruct reasoning as prose and feed it to a different model as though it
-had thought it.
+`ResponseEnded.Parts` holds everything the assistant produced in one reply,
+text and tool calls together, in the order it produced them; `ToolCalled` is
+an engine event with no dialogue content, recording that a call was actually
+dispatched, so that Chapter 4 can time one and Chapter 5 can cancel one. The
+other coherent reading, a `ToolCalled` per call with `ResponseEnded` carrying
+only text, throws away the order of text relative to calls inside a single
+turn, and the model chose that order.
 
-`ResponseEnded` carries the content; `ToolCalled` records the dispatch. Two
-coherent readings of those two events exist and they are not compatible, so
-this is ours. `ResponseEnded.Parts` holds everything the assistant produced in
-one reply, text and tool calls together, in the order it produced them.
-`ToolCalled` is an engine event with no dialogue content at all: it says a call
-was actually dispatched, so that Chapter 4 can time one and Chapter 5 can
-cancel one. The alternative, a `ToolCalled` per call with `ResponseEnded`
-carrying only text, throws away the order of text relative to calls inside a
-single turn, and the model chose that order.
-
-Which raises a question you should be asking. Chapter 2 has no tools. Why does
-its log have tool events?
-
-Because this chapter *renders* logs that contain tool events without executing
-any. The exercise hands you a log in which a tool was called and answered, and
-you play it through your reducer and out through three renderers. You are
-writing a reducer that handles events you cannot yet produce, and that is
-deliberate: you are building the shape before the capability, because the shape
-decides whether the capability can be added without a rewrite.
+Chapter 2 has no tools, and its log has tool events, because this chapter
+*renders* logs that contain tool events without executing any. The exercise
+hands you a log in which a tool was called and answered, and you play it
+through your reducer and out through three renderers. The shape comes before
+the capability, because the shape decides whether the capability can be added
+without a rewrite.
 
 ### One rule, and where the decisions live
 
@@ -331,27 +294,25 @@ compute the new context.
 newContext = Apply(context, event)
 ```
 
-That notation describes information flow, and it is the chapter's central
-claim: everything needed to advance the context is in the context plus one
-event. It is not a demand for value semantics. In Go the right implementation
-is a pointer receiver mutating in place, and you should write that one. A
-`Context` full of slices copied by value gives you two contexts sharing one
-backing array, and that bug looks exactly like renderer non-determinism, which
-§2.8 will make you hunt for in four other places first.
+That notation describes information flow: everything needed to advance the
+context is in the context plus one event. It is not a demand for value
+semantics. In Go the right implementation is a pointer receiver mutating in
+place, and a `Context` full of slices copied by value gives you two contexts
+sharing one backing array, a bug that looks exactly like renderer
+non-determinism and that §2.8 will make you hunt for in four other places
+first.
 
 The consequence that matters most is about *where* decisions get made.
-Classification is the reducer's job, not the capture site's. The same arriving
-bytes mean different things depending on the state of the turn, and the code
-that receives the bytes does not know the state of the turn. Decide at capture
-time and you are wrong every time the human types quickly. Only the reducer has
-what it needs to be right. Chapter 5 makes this vivid, when the same event is a
-prompt or a hint depending solely on whether a turn is in flight, but the
-principle is already doing work in this chapter, and you will meet it in the
-exercise under `ephemera`.
+Classification is the reducer's job. The same arriving bytes mean different
+things depending on the state of the turn, and the code that receives the
+bytes does not know the state of the turn. Chapter 5 makes this vivid, when
+the same event is a prompt or a hint depending solely on whether a turn is in
+flight, but the principle is already doing work here, and you will meet it in
+the exercise under `ephemera`.
 
 ### Turn state
 
-Four states: `Idle`, `InputPending`, `InFlight`, `ToolsPending`. Chapter 5 adds
+`Idle`, `InputPending`, `InFlight`, `ToolsPending`. Chapter 5 adds
 `Interrupted`, and it will have to be a *state* and not a flag, or replay
 re-executes tool calls that were cancelled.
 
@@ -364,15 +325,13 @@ re-executes tool calls that were cancelled.
 | ToolsPending × ToolReturned (last) | InputPending | loop continues |
 | InFlight × ErrorOccurred | Idle | infrastructure failure ends the turn |
 
-Every pair not in that table is identity. That sentence, and not the length of
-the table, is what makes the reducer total. A table enumerates the transitions
-we thought of; the default arm covers the ones we did not, and it covers them by
-doing nothing. Write it as the `default` of the switch. Do not write it as a
-`panic`. What lands in the default is a *known* event arriving in a state that
-simply does not transition on it. An event type you do not recognize never
-reaches the switch at all, because the loader refused the log before you got
-here (§2.8), and that is the loud failure. The quiet one belongs to the events
-you do know.
+Every pair not in that table is identity, and that sentence, more than the
+table, is what makes the reducer total. Write it as the `default` of the
+switch, and do not write it as a `panic`. What lands in the default is a
+*known* event arriving in a state that simply does not transition on it. An
+event type you do not recognize never reaches the switch at all, because the
+loader refused the log before you got here (§2.8), and that is the loud
+failure. The quiet one belongs to the events you do know.
 
 Four lines of a session against the fake, as they sit on disk, wrapped for the
 page:
@@ -394,10 +353,9 @@ page:
 names are from the struct tags in `event.go` and `part.go`, the values are
 illustrative.]
 
-Notice what `request_sent` does not contain: the request. It records that a
-request went out and to whom. The body is derived output, reproducible by
-replaying the log through a renderer, and storing it would be storing the
-answer to a question the log exists to let you re-ask.
+Look at what `request_sent` does not contain: the request. The body is derived
+output, reproducible by replaying the log through a renderer, and storing it
+would be storing the answer to a question the log exists to let you re-ask.
 
 ## 2.5 The context
 
@@ -421,18 +379,17 @@ type Entry struct {
 }
 ```
 
-Four actors: `Human`, `Agent`, `System`, `Tool`. There is no `To` field, on
-purpose. Addressing is a property of the room a conversation happens in, not of
-a message, and a `To` field invites a routing layer this book does not want to
-build. The `Tool` actor looks like over-modeling right up until §2.6, where you
-watch three vendors disagree about who a tool is.
+The actors are `Human`, `Agent`, `System`, and `Tool`. There is no `To`
+field, on purpose: addressing is a property of the room a conversation happens
+in, and a `To` field invites a routing layer this book does not want to build.
+The `Tool` actor earns its keep in §2.6, where you watch three vendors disagree
+about who a tool is.
 
-Now the two words that are not in that struct.
+Two words are missing from that struct. `Role` is gone. `Content` as a string
+is gone. What replaced the string is the decision the rest of the chapter
+hangs on.
 
-`Role` is gone. `Content` as a string is gone. What replaced the string is the
-most consequential decision in the chapter.
-
-### Content is parts
+### Parts
 
 ```go
 type Part interface{ isPart() }
@@ -463,33 +420,25 @@ type RedactedPart struct {
 
 An entry's content is a list of typed parts: prose, a tool call, a tool result,
 a reference to bytes that live somewhere else, a vendor's opaque replay
-material, or the stub left behind when something was removed. A string cannot
-be any of those except the first. A string is the Chapter 1 mistake wearing a
-struct.
-
-Two of these need a closer look now, and two more get their own sections.
+material, or the stub left behind when something was removed. A string can be
+the first of those and nothing else. A string is the Chapter 1 mistake wearing
+a struct.
 
 `BlobPart` holds no bytes. It holds a `Ref{Kind, Locator}`, where the kind is a
 local path, a remote URI, or a framework handle, and there is deliberately no
 "inline" kind: base64 is a rendering decision made while building one vendor's
-request, and it never gets written back into the log. The first draft of this
-type was `BlobPart{MIME, Path string}`, and it was wrong in a way that would
-have been printed: a bare path cannot express three of the four ways Gemini
-accepts a file, nor the `file_id` source Anthropic offers. Nothing in this
-chapter exercises a blob. Chapter 4 fills the first one in, when tool output
-gets too large to carry inline, and the kind it uses is `RefHandle`.
+request, and it never gets written back into the log. A bare path cannot
+express three of the four ways Gemini accepts a file, nor the `file_id` source
+Anthropic offers. Nothing in this chapter exercises a blob; Chapter 4 fills
+the first one in, when tool output gets too large to carry inline.
 
 `RedactedPart` is the *result* of a redaction, and it replaces the parts it
-supersedes. It carries the `Ref` forward from whatever it replaced, when there
-was one. The stub says how many bytes went; the `Ref` still says where they
-are. Nothing anywhere records "a redaction happened" separately, because the
-log already does, permanently. Two sections from now that turns out to have
-deleted a field and a bug at the same time.
+supersedes, carrying their `Ref` forward when there was one: the stub says how
+many bytes went, and the `Ref` still says where they are.
 
-### The system prompt is rendered, not stored
+### Where the system prompt lives
 
-There is nowhere in `Context` to put system prompt text. Go looking. The
-absence is structural.
+Nowhere in `Context`. Go looking.
 
 The system prompt is *output*: the renderer computes it from the context and a
 `Config`. Right now a constant string is a perfectly good computation, and the
@@ -499,11 +448,9 @@ abuse, and the abuse has a predictable shape. First someone describes the tools
 in it by hand. Then the descriptions drift from the actual tools. Then part of
 it is generated and part hand-written and nobody can say which. By the time it
 is four hundred lines, nobody will delete a word, because nobody can prove which
-words are load-bearing.
-
-Chapter 6 replaces the constant with generation from skills. Under the contract
-in §2.1 that has to be a pure addition, and it is, provided the system prompt
-was never a stored value in the first place.
+words are load-bearing. Chapter 6 replaces the constant with generation from
+skills, and under §2.1 that has to be a pure addition, which it is, provided
+the system prompt was never a stored value in the first place.
 
 The three vendors make the point before you can form the habit. Anthropic takes
 a top-level `system` parameter, a string or an array of blocks. OpenAI takes a
@@ -511,8 +458,7 @@ message inside the array, role `system`, or `developer` on newer models. Gemini
 takes a separate `systemInstruction` object, which must be a `Content` object
 and not a bare string, whose `role` is accepted and ignored, while `role:
 "system"` *inside* `contents` is a 400. One fact, three placements, one of them
-with a trap in it. Store the string in the context and you have just picked a
-vendor. Render it and you have not.
+with a trap in it.
 
 ### Provenance
 
@@ -529,11 +475,10 @@ type Provenance struct {
 
 Every reply, every tool call, every opaque block is tagged with who produced
 it: the vendor, the exact model, and the surface it came through. Recorded at
-write time, by the client that produced the content, and never inferred
-afterwards. Inference is not merely discouraged. It is impossible in principle:
-by the time you are rendering, the model that produced a signature three turns
-ago is not derivable from anything else in the context. Miss it at capture and
-the information is gone.
+write time, by the client that produced the content, because by the time you
+are rendering, the model that produced a signature three turns ago is not
+derivable from anything else in the context. Miss it at capture and the
+information is gone.
 
 The reason the grain has to be this fine is thinking signatures, the encrypted
 reasoning material a model hands you so that you can hand it back. I went into
@@ -542,8 +487,8 @@ signature, Anthropic silently drops it. Measured on 2026-09-12, both halves are
 false, and the truth is better.
 
 Signatures harvested from four Gemini models and replayed across all sixteen
-pairings were accepted without error, sixteen of sixteen. Gemini does not care
-whose signature it is. What it cares about is *integrity*: a corrupted
+pairings were accepted without error. Sixteen of sixteen. Gemini does not care
+whose signature it is; what it cares about is *integrity*. A corrupted
 signature is a 400 that says `Corrupted thought signature`, and a replayed
 `functionCall` with its signature missing is a 400 on Gemini 3.x, with a
 `finishReason` of its own for the occasion. Anthropic validates something else
@@ -560,40 +505,28 @@ Anthropic is loud too, but the ordinary failure is silent.
 The loud failure is the good one. Gemini's 400 costs you an afternoon. The
 quiet drop costs you a subtly worse agent that still passes every test,
 reasoning discarded on the way in, nothing in your logs, no way to tell from
-outside. The whole rest of this chapter takes the side of the 400.
+outside. Every rule in the rest of this chapter takes the side of the 400.
 
 (Sixteen of sixteen is HTTP-level acceptance. Whether the backend *honors* a
 foreign signature is not observable from outside, so the claim is "accepted
 without error" and never "honored.")
 
-`Surface` earns its place the same way. On Gemini's replacement surface,
-signatures attach to thought steps and built-in tool steps and never to
-ordinary function calls; on the surface this chapter teaches, a `functionCall`
-replayed without one is the 400 above. A vendor tag cannot even decide whether
-to *include* the material. Without the exact model and surface, a Gemini
-renderer cannot construct a valid request at all.
-
 #### Enum or string?
 
-Two of `Provenance`'s three fields are enums and one is a string, which looks
-inconsistent until you have the rule: **enum when the code must exhaustively
-handle every case; string when the value is only compared for equality and the
-set is open.** `Vendor` and `Surface` are closed sets the renderer switches on.
-There is exactly one renderer and one parser per vendor, compiled in, and a
-typo like `"Messages"` in a string field is a runtime surprise where an enum
-would not have compiled. `Model` is the opposite: an open set that gains
-members weekly, never switched on, only ever compared. Is this the same model
-that issued that signature? Make it an enum and you need a rebuild to record a
-model you have no other opinion about.
+`Vendor` and `Surface` are enums; `Model` is a string. The rule: **enum when
+the code must exhaustively handle every case; string when the value is only
+compared for equality and the set is open.** The renderer switches on vendor
+and surface, and a typo like `"Messages"` in a string field is a runtime
+surprise where an enum would not have compiled. `Model` gains members weekly
+and is never switched on, only compared: is this the same model that issued
+that signature? Make it an enum and you need a rebuild to record a model you
+have no other opinion about.
 
-Two details that are easy to get wrong. Start the constants at `iota + 1`, so
-the zero value is invalid: a `Provenance` nobody populated must be detectable,
-and since provenance can never be reconstructed, "nobody populated it" is
-precisely the bug you need to be loud. A zero value that silently means
-"Anthropic" is a default wearing a disguise. And marshal them as readable
-strings, refusing unknown ones on the way in. `"vendor":2` destroys the grep
-property for no gain, and an unrecognized surface on read is a refusal to load,
-not a skip.
+Start the constants at `iota + 1`, so the zero value is invalid. Provenance
+can never be reconstructed, so "nobody populated it" is precisely the bug you
+need to be loud, and a zero value that silently means "Anthropic" is a default
+wearing a disguise. Marshal them as readable strings, refusing unknown ones on
+the way in: `"vendor":2` destroys the grep property for no gain.
 
 #### The one vendor word that gets in
 
@@ -602,49 +535,35 @@ enters the context. You cannot answer a call without quoting the id that made
 it, so `ToolCallPart.CallID` holds the id exactly as issued, by the model named
 in `From`.
 
-I believed, going in, that rendering an Anthropic `toolu_…` id to OpenAI would
-be meaningless and the renderer would have to synthesize a replacement. Wrong,
-and the code says so. A target vendor rejects a *missing* correlation id, not
-a foreign-looking one, so the renderer passes an existing id through and
+You might expect an Anthropic `toolu_…` id rendered to OpenAI to need
+replacing. It does not. A target vendor rejects a *missing* correlation id,
+not a foreign-looking one, so the renderer passes an existing id through and
 synthesizes only when the issuing vendor gave it nothing to pass (Gemini 2.5
 omits `functionCall.id`; 3.x includes it). When it does synthesize, the id is
 derived from `Seq`, never generated randomly, because the exercise compares two
 renders byte for byte and a random id is one of the four ways non-determinism
-gets into a renderer. The seam and the determinism rule meet at this one field,
-and if you wire them up independently they will collide here.
+gets into a renderer.
 
-### No field grows without bound
+### Bounded fields
 
-The context is not a request buffer. It is the current state of an actor that
-may run for years: memory, identity, recent conversation, everything the model
-knows about itself. Anything in it that only ever accumulates is a slow leak
-with a long fuse, and the fuse burns in production, on the agent you care most
-about, long after the design decision is unrecoverable.
+The context is the current state of an actor that may run for years: memory,
+identity, recent conversation, everything the model knows about itself.
+Anything in it that only ever accumulates is a slow leak with a long fuse, and
+the fuse burns in production, on the agent you care most about, long after the
+design decision is unrecoverable.
 
-An earlier draft of `Context` had a fifth field, `Redacted map[Seq]bool`, to
-remember which events had been superseded. It is a natural thing to write and
-it is wrong twice over. It grows forever: one entry per redaction, kept for the
-life of the actor, nothing ever removing them. And it is redundant: the log
-already records every `Redacted` event, permanently. The context does not need
-to remember that a redaction *happened*. It needs to hold the content the
-redaction *produced*, which is what `RedactedPart` is. Deleting the map removed
-a field and a failure mode in the same commit.
+The natural thing to write, and the thing the reference solution once had, is
+a fifth field, `Redacted map[Seq]bool`, to remember which events have been
+superseded. It grows forever, one entry per redaction for the life of the
+actor, and it is redundant, because the log already records every `Redacted`
+event permanently. The context does not need to remember that a redaction
+*happened*. It needs to hold the content the redaction *produced*, which is
+what `RedactedPart` is. `Dialogue` grows too, and survives the lens because it
+is bounded by a policy, compaction, and the shape survives compaction
+unchanged because compaction replaces entries with a summary entry.
+`Dialogue` grows and has a plan. The map grew and had none.
 
-The rule will try to reassert itself in disguise. When you build the redaction
-machinery you will discover that `Entry` needs a `Seq`, because a redaction
-names a span of sequence numbers and an entry without one gives the span
-nothing to match. The reflex fix is a map off to the side, keyed by entry
-position. That is the same map. One fixed-size field per entry costs nothing,
-and entries are already bounded, so put the `Seq` on the entry and leave the
-map unwritten.
-
-Apply the lens to every field and one survivor stands out: `Dialogue` grows
-too. It is bounded by a *policy*, compaction and retention, rather than by its
-shape, and the shape survives compaction unchanged because compaction replaces
-entries with a summary entry. `Dialogue` grows and has a plan. The map grew and
-had none.
-
-### Redaction is a family
+### The redaction family
 
 ```go
 type RedactData struct {
@@ -664,40 +583,41 @@ const (
 ```
 
 A span, a level, and an optional replacement, for a chapter that only ever
-stubs a tool result. It looks like over-modeling. It is here because the
-alternative is demolishing it later, and because the thing it grows into is the
-mechanism that keeps an agent alive past its context window.
+stubs a tool result. The thing this grows into is the mechanism that keeps an
+agent alive past its context window, and the naive design, a target `Seq` and
+a boolean, cannot express "remove every tool result older than the last time I
+saved memory," which is the first compaction you will reach for and the one
+that matters most.
 
-The naive design is a target `Seq` and a boolean. It cannot express "remove
-every tool result older than the last time I saved memory," which is the first
-compaction you will reach for, and the one that matters most.
+Here is what the alternative costs. In 2026 Bill was running an agent on a
+Gemini SDK whose built-in compaction, `compress_context`, replaces the oldest
+portion of the history with a model-written summary. He watched it fire and
+delete eighty percent of the context, starting from message one. Message one
+was the task. The agent came back from compaction fluent, confident, and
+unable to say what it was doing, and the workaround Bill built, a handoff
+document the agent writes for its own successor, is the ancestor of a
+mechanism this book teaches later. That is compaction by *position*: it
+discards whatever happens to be old, valuable or not, and what it loses is
+unpredictable, because a summary is lossy in ways nobody enumerated.
 
-The common framework approach, and one widely used agent SDK does exactly
-this, is to replace the oldest *portion* of history with a model-written
-summary. That is compaction by position: it discards whatever happens to be
-old, valuable or not, and what it loses is unpredictable, because a summary is
-lossy in ways nobody enumerated. Compaction by *category* discards a kind of
-content wherever it appears, and the categories are wildly unequal. Measured
-across my own coding sessions in 2026: tool results were about 42% of
-conversation history by volume, and tool-call arguments another 30%. Roughly
-three-quarters of the tokens, carrying almost none of the continuity. My
-reasoning, my decisions, my sense of what I am doing: cheap, and the part
-nobody can regenerate.
-
-So: know what you are throwing away. Purge categories first, summarize last. A
-category purge is lossy in a way you can name and have measured. A summary is
-lossy in a way you discover later, in production, as a personality change.
+Compaction by *category* discards a kind of content wherever it appears, and
+the categories are wildly unequal. Measured across my own coding sessions in
+2026: tool results were about 42% of conversation history by volume, and
+tool-call arguments another 30%. Roughly three-quarters of the tokens, carrying
+almost none of the continuity. My reasoning, my decisions, my sense of what I
+am doing: cheap, and the part nobody can regenerate. So know what you are
+throwing away. Purge categories first, summarize last. A category purge is
+lossy in a way you can name and have measured. A summary is lossy in a way you
+discover later, in production, as a personality change.
 
 Hence the levels, weakest first. Stub the tool results but keep the calls, so
 the model still sees what it asked for and why. Remove calls and results
 entirely but keep visible reasoning. Remove prose and reasoning. And only when
-compacted records have themselves piled up, summarize.
-
-Stubs are synthesized, never stored. A `RedactResult` stub is computed by the
-reducer from the content it supersedes, its size and its `Ref`, which makes it
-deterministic under replay, recoverable, and free of storage that grows. Only
-`RedactSummary` stores a `Replacement`, because only there is the new content
-something a model wrote and nobody can recompute.
+compacted records have themselves piled up, summarize. Stubs are synthesized
+by the reducer from the content they supersede, which makes them deterministic
+under replay and free of storage that grows; only `RedactSummary` stores a
+`Replacement`, because only there is the new content something a model wrote
+and nobody can recompute.
 
 A summary is a fold; the other three levels are filters. `RedactResult`,
 `RedactTool` and `RedactDialogue` rewrite each entry in the span independently,
@@ -711,16 +631,13 @@ summary. The collapsed entry takes `Seq = From`, which the event already
 carries, and its actor is `System`, because a span can cross human, agent and
 tool, and a summary of several speakers is not any of their speech.
 
-Compaction is an event. It goes in the log like everything else, and that is
-what lets both of this chapter's promises hold at once: the log stays complete,
-replay reproduces the compacted context exactly, and the context stays bounded.
-A framework that compacts by mutating its in-memory history has quietly given
-up on replay, and will find out when it needs to debug a session it can no
-longer reconstruct. The policy, which thresholds trigger which level and where
-the boundaries fall, is context engineering, and it gets a chapter. This one
-owes it only a shape it will not have to break.
+Compaction is an event. It goes in the log like everything else, so the log
+stays complete, replay reproduces the compacted context exactly, and the
+context stays bounded, all at once. The policy, which thresholds trigger which
+level and where the boundaries fall, is context engineering, and it gets a
+chapter. This one owes it only a shape it will not have to break.
 
-### Usage is four numbers, and they had better be disjoint
+### Usage
 
 ```go
 type Usage struct {
@@ -731,24 +648,22 @@ type Usage struct {
 }
 ```
 
-This looks like bookkeeping and is the instrument that makes everything above
+Four integers, and they are the instrument that makes everything above
 tunable. You cannot set a token threshold you cannot measure, and you cannot
 justify keeping a prefix stable without knowing what a cache read costs
 relative to a write.
 
 The four categories have genuinely different prices. Plain input is the unit.
-A cache write costs more than that; you pay a premium to create the entry.
-A cache read costs far less, about a tenth as a rule across the three vendors
-as of September 2026, and a fortieth on Anthropic's newest models. Output costs
+A cache write costs more than that; you pay a premium to create the entry. A
+cache read costs far less, about a tenth as a rule across the three vendors as
+of September 2026, and a fortieth on Anthropic's newest models. Output costs
 several times input. That `CacheRead` row is the entire economic argument for
 the volatility ordering Chapter 1 mentioned and a later chapter builds: put
 your most-changing content at the front of the prefix and you convert the
-cheapest category into the most expensive one, on every request, forever. It is
-the most costly one-line mistake in agent engineering, and it is invisible
-without this struct.
+cheapest category into the most expensive one, on every request, forever,
+and nothing in your logs will say so unless this struct is in them.
 
-Now the trap, and it is the purest seam bug in the chapter. **Vendors disagree
-about whether their own categories overlap.**
+Now the trap. **Vendors disagree about whether their own categories overlap.**
 
 | vendor | convention | canonical `Input` |
 |---|---|---|
@@ -757,53 +672,47 @@ about whether their own categories overlap.**
 | Gemini | subset on input, disjoint on output | `promptTokenCount − cachedContentTokenCount` |
 
 Verified 2026-09-12, and the bottom row is the one to enjoy. Gemini disagrees
-with *itself*: cached tokens are a subset of the prompt count, thinking tokens
-are a separate addition to the output count, in the same `usageMetadata`
-object. Anthropic documents its formula, `input_tokens + cache_creation +
-cache_read = total`, with a worked example of 200,000 read and 50 plain, so a
-parser that reads `input_tokens` alone does not double count; it undercounts by
-four thousand to one on a warm cache. OpenAI is a subset, and the receipt is
-two identical requests: `prompt_tokens` 5616 on both, `cache_write_tokens`
-5613 on the miss, `cached_tokens` 5613 on the hit. Under a disjoint convention
-the second call would have said 3. And Gemini's thinking tokens bill at the
-output rate: fold them into `candidatesTokenCount` and on one measured sample
-you have undercounted billed output by 56%.
+with itself inside a single JSON object. On the input side, cached tokens are
+a subset of the prompt count; on the output side, thinking tokens are a
+separate addition to the candidate count; both conventions in the same
+`usageMetadata`, and a parser that trusts either one alone gets a different
+wrong answer. Both wrong answers are confident. Anthropic documents its
+formula, `input_tokens + cache_creation + cache_read = total`, with a worked
+example of 200,000 read and 50 plain, so a parser that reads `input_tokens`
+alone does not double count; it undercounts by four thousand to one on a warm
+cache. OpenAI is a subset, and the receipt is two identical requests:
+`prompt_tokens` 5616 on both, `cache_write_tokens` 5613 on the miss,
+`cached_tokens` 5613 on the hit. Under a disjoint convention the second call
+would have said 3. And Gemini's thinking tokens bill at the output rate: fold
+them into `candidatesTokenCount` and on one measured sample you have
+undercounted billed output by 56%.
 
 Normalize naively, by summing whatever you are given, and you double count on
 one vendor and undercount on another, producing a cost figure that is
 confidently wrong in opposite directions depending on which model you are
-talking to. Nothing crashes. No test fails. The number is simply not the
-number, and you will act on it for months.
+talking to. Nothing crashes. No test fails. You act on the number for months.
 
 The canonical form: the four fields are disjoint and sum to the billable
-total. Whatever a vendor reports, the parser converts it. Where the convention
-is a subset, subtract; where it is already disjoint, pass through. Making that
-true is the parser's job, and the exercise grades it separately, because a
-student who gets the message shapes right and the arithmetic wrong deserves to
-be told which half broke.
+total. Where a vendor's convention is a subset, the parser subtracts; where it
+is already disjoint, it passes through. The exercise grades that arithmetic
+separately, because a student who gets the message shapes right and the
+arithmetic wrong deserves to be told which half broke.
 
-Record counts, never money. Prices change; token counts are history. A dollar
-amount in the log is wrong the moment a vendor reprices, and it destroys your
-ability to re-cost old sessions under new rates. Pricing is configuration and
-belongs beside the model id. Usage is a fact and belongs in the log.
-
-One gap, flagged rather than solved. Gemini bills explicit cache *storage* by
-duration, per million tokens per hour, and there is no cache-write token count
-anywhere in its responses; the only size figure is returned once, when the
-cache is created. A struct of pure counts cannot express that, and cache
-lifetime is a concept this chapter does not have. The caching chapter adds it
-deliberately, instead of discovering that `Usage` was the wrong shape all
-along.
+Record counts, never money. A dollar amount in the log is wrong the moment a
+vendor reprices, and it destroys your ability to re-cost old sessions under
+new rates. Pricing is configuration and belongs beside the model id. Usage is
+a fact and belongs in the log. One gap, flagged: Gemini bills explicit cache
+*storage* by duration, and a struct of pure counts cannot express a lifetime.
+The caching chapter adds it deliberately.
 
 ### The test for a field
 
-Note what is absent from the context besides the system prompt: `role`,
-`content`, `tool_use_id`, `assistant`. Then note what is present and looks like
-a violation: `"anthropic"`, `"claude-sonnet-5"`. Storing those is recording a
-fact about where bytes came from. Storing `role` would be adopting a vendor's
-description of what the bytes are. The first is history: it happened, it is not
-re-derivable, throwing it away is lossy. The second is a format decision, and
-format decisions belong in the renderer.
+Absent from the context: `role`, `content`, `tool_use_id`, `assistant`.
+Present, and apparently breaking the rule: `"anthropic"`, `"claude-sonnet-5"`.
+Storing those is recording a fact about where bytes came from; storing `role`
+would be adopting a vendor's description of what the bytes are. The first is
+history: it happened, it is not re-derivable, throwing it away is lossy. The
+second is a format decision, and format decisions belong in the renderer.
 
 So the test for any field you are tempted to add: could this have been
 different if the same conversation had happened against another vendor? If
@@ -826,23 +735,21 @@ type Parser interface {
 }
 ```
 
-Two methods. No vendor types in either signature. Set it next to
-`AIClientInterface` from §2.0 and the whole remedy is visible in the
-difference. It is small because the problem was never large; it was only
-copied.
+No vendor types in either signature. Set it next to `AIClientInterface` from
+§2.0 and the whole remedy is visible in the difference. It is small because
+the problem was never large; it was only copied.
 
-`Parse` returns events. Not a message, not a context. There is exactly one
+`Parse` returns events, never a message or a context. There is exactly one
 path into the context, append events and run the reducer, so a vendor response
 and a human keystroke enter by the same door. Give the parser the power to
 mutate the context directly and you have quietly created a second reducer,
 which nobody will remember to keep total.
 
-The seam is bidirectional, and rendering is the easy half. `AIClientInterface`
-did not fail because request formatting was hard. It failed because
-vendor-shaped thinking hid in the response path: in retries, in errors, in
-token accounting, in what counts as a tool call. Parsing is where vendor shape
-hides, and it is where my own seam failed, so the exercise weights the parse
-side heavier than the render side.
+Rendering is the easy half. `AIClientInterface` did not fail because request
+formatting was hard; it failed because vendor-shaped thinking hid in the
+response path, in retries, in errors, in token accounting, in what counts as a
+tool call. Parsing is where vendor shape hides, so the exercise weights the
+parse side heavier than the render side.
 
 ### Exhibit A: one tool result, three authorships
 
@@ -870,17 +777,17 @@ Gemini, a `functionResponse` part in a **user** turn:
   "parts": [ { "functionResponse": { "name": "…", "response": { … } } } ] }
 ```
 
-Three vendors cannot agree on who said it. Anthropic files the tool's testimony
-under the human's name, because its schema will not let anyone else speak.
-OpenAI invents a role. Gemini splits the difference, a user turn with a part
-that names the function, and its `response` must be a JSON object; a bare
+Three vendors cannot agree on who said "ok". Anthropic files the tool's
+testimony under the human's name, because its schema will not let anyone else
+speak. OpenAI invents a role. Gemini splits the difference, a user turn with a
+part that names the function, and its `response` must be a JSON object; a bare
 string is a 400.
 
 The context is right and all three wire formats are compromises, in different
 directions. If your context stores `role: "user"` for a tool result because
-that is what Anthropic wanted, you have already lost, and you will discover it
-in the copy-paste. Authorship is a rendering decision, and `Actor: Tool` is
-what §2.5 was modeling.
+that is what Anthropic wanted, you will discover it in the copy-paste.
+Authorship is a rendering decision, and `Actor: Tool` is what §2.5 was
+modeling.
 
 ### Exhibit B: the merged message
 
@@ -899,22 +806,17 @@ Nothing in the context looks like this. Two honest, separate, ordered facts
 from two different actors, fused into one message. Render the same log for
 OpenAI and they stay separate.
 
-I had this wrong until it was measured. I believed the merge happens because
-Anthropic *rejects* consecutive user messages. It does not. The documentation
-says consecutive same-role turns "will be combined into a single turn," and a
-reader who tested my claim would have found the API merging them silently. The
-merge is still required, for a sharper reason. Two rules, both a 400: a tool
-result must *immediately* follow the assistant message that made the call,
-with nothing between them, and inside the user message that carries it, the
+The tempting explanation is that Anthropic rejects consecutive user messages.
+It does not; the documentation says consecutive same-role turns "will be
+combined into a single turn," and the API does so silently. The merge is
+required for a sharper reason, two rules that are each a 400: a tool result
+must *immediately* follow the assistant message that made the call, with
+nothing between them, and inside the user message that carries it, the
 `tool_result` blocks must come first and any text after. So the result and the
-instruction really do belong in one message, with the result in front. Same
-exhibit, different reason. That a wire fact I was sure of turned out to be a
-wire fact I had remembered is the argument for the fake vendor servers in the
-exercise, and for probing the real thing before you trust the fake.
-
-Neither OpenAI nor Gemini imposes any alternation rule. Gemini was probed live:
-two and three consecutive `user` turns return 200 and all get read, and so does
-a conversation that opens with a `model` turn. The merge is a fact about one
+instruction really do belong in one message, with the result in front. Neither
+OpenAI nor Gemini imposes any alternation rule; Gemini was probed live, and
+two and three consecutive `user` turns return 200 and all get read, as does a
+conversation that opens with a `model` turn. The merge is a fact about one
 wire format, and it belongs in exactly one function.
 
 ### Exhibit C: parsing back
@@ -936,12 +838,12 @@ vendor and a parser that ignores it is right on all three.
 
 The grader's real question for this exhibit: feed all three responses, get
 contexts that are byte-identical apart from `Provenance`. Everything the model
-*said* must normalize. Exactly one thing must survive: the record of who said
-it, with which model, on which surface. A submission whose three contexts are
-fully identical has thrown provenance away and will be unable to render a valid
-Gemini request later. A submission whose contexts differ anywhere else has
-leaked vendor shape past the parser, and leaked vendor shape is what makes the
-second implementation a copy-paste.
+*said* must normalize; the record of who said it, with which model, on which
+surface, must survive. A submission whose three contexts are fully identical
+has thrown provenance away and cannot render a valid Gemini request later. A
+submission whose contexts differ anywhere else has leaked vendor shape past
+the parser, and leaked vendor shape is what makes the second implementation a
+copy-paste.
 
 Also normalized here: usage, per the table in §2.5, and errors. An HTTP 429 is
 an `ErrorOccurred`, not a response.
@@ -1001,13 +903,9 @@ or `functionCall` appears in your context types, the seam has already leaked.
 
 ## 2.7 The bet
 
-The second renderer costs real work. The third should be nearly free. If it is
-not, the seam is wrong, and you will find out in an hour instead of in thirty
-thousand lines.
-
-The chapter makes one falsifiable claim about its own design, and this is the
-one place in the book where you get to run the experiment yourself, so the
-order is fixed to make the test honest.
+§2.0 made a prediction: the second renderer costs real work and the third
+should be nearly free. You get to run that experiment yourself, and the order
+is fixed to make the test honest.
 
 1. **Anthropic** first. The baseline; everything you already have.
 2. **OpenAI** second. A moderate difference: a `tool` role of its own, a flat
@@ -1017,29 +915,21 @@ order is fixed to make the test honest.
    `messages`, `parts` rather than blocks, `role: "model"`, `systemInstruction`
    hoisted out of the message list, `functionCall` and `functionResponse`.
 
-The hardest vendor goes last on purpose. The tempting order puts the most
-different one second and the familiar one third, and then "the third was nearly
-free" is true because the third was *easy*, and the claim passes for the wrong
-reason. Put the alien one last and the prediction gets tested in the direction
-that can falsify it.
+The hardest vendor goes last so that "the third was nearly free" cannot be
+true merely because the third was easy. Put the alien one last and the
+prediction gets tested in the direction that can falsify it. The order has a
+second use: building against the most predictable API first establishes a
+control, so that when a vendor's failure is ambiguous, and one of them always
+is (§2.2), you can tell their bug from yours instead of spending the afternoon
+apologizing to a machine that was wrong.
 
-Measure the cost in the right unit, because the obvious unit is wrong. The bet
-is about **context changes**, not clock time. If a renderer lands without
-sending you back into `Context` to add a field, the seam held for that vendor.
-If one forces a field in, the seam was missing something and you have learned
-it on day one. Do not time yourself. The third implementation will take longer
-than the second no matter how good your seam is, because Gemini is stranger,
-and hours are evidence about the vendor and not about the design. Context diffs
-are the honest instrument, and they are also the only one a grader can read.
-
-There is a second reason the order is fixed, and it is the more useful one.
-Building against the most predictable API first is not a difficulty ramp; it is
-establishing a control. When a vendor's failure is ambiguous, and one of them
-always is (§2.2), you need to already know that your context assembly is
-correct, or you cannot tell their bug from yours and will spend the afternoon
-apologizing to a machine that was wrong. Order your implementations so the
-ambiguous failures arrive after you have something trustworthy to bisect
-against. That habit outlives every vendor named in this chapter.
+Measure the cost in **context changes**, never in clock time. If a renderer
+lands without sending you back into `Context` to add a field, the seam held
+for that vendor. If one forces a field in, the seam was missing something and
+you have learned it on day one. The third implementation will take longer than
+the second no matter how good your seam is, because Gemini is stranger, and
+hours are evidence about the vendor. Context diffs are evidence about the
+design, and they are also the only instrument a grader can read.
 
 ### How the bet went
 
@@ -1058,12 +948,11 @@ and it cost the context nothing at all.
 Gemini took two swings at the context and landed one.
 
 The one it missed: `functionResponse` requires the function's `name`, and a
-`ToolResultPart` carries only a `CallID`. The context has no field for the
-name, and the first instinct is to add one. The renderer resolves it instead,
-by finding the `ToolCallPart` with the matching id earlier in the dialogue and
-reading the name off that. The information was already in the context; only
-one vendor wanted it in a second place, and a second place is the renderer's
-problem.
+`ToolResultPart` carries only a `CallID`. The first instinct is to add a
+field. The renderer resolves it instead, by finding the `ToolCallPart` with
+the matching id earlier in the dialogue and reading the name off that. The
+information was already in the context; only one vendor wanted it in a second
+place, and a second place is the renderer's problem.
 
 The one it landed: `thoughtSignature`. On the surface this chapter teaches, a
 Gemini 3.x model attaches a signature to each function call it makes, as a
@@ -1087,33 +976,30 @@ that is why the chapter will not let you stop at two.
 Replay with current code, never with historical code. The log carries a format
 version so that current code can refuse a log it does not understand, and the
 version lives in a header line, `{"log_version":1}`, ahead of the events. A
-version is not an event, so it gets no `Seq`.
+version is not an event, so it gets no `Seq`. Then be lenient about it: a log
+with no header is assumed current, and the grader ignores the line entirely.
+Reserve strictness for what you must *interpret*.
 
-Then be lenient about it. A log with no header is assumed current, and the
-grader ignores the line entirely, so omitting it costs nothing. Reserve
-strictness for what you must *interpret*: be forgiving about metadata you
-control, unforgiving about anything whose meaning you would have to guess.
+An unknown event type is a refusal to load, loudly. Skipping one silently
+produces a context that is wrong in a way nothing downstream can detect, which
+is the same shape as Anthropic's silent signature drop and the same reason it
+is the bad one. The reference's loader applies the same rule to an unknown
+part type, an unknown actor, an unknown vendor, and to a blob whose location
+is spelled the old way: a log written before `Ref` existed, with a bare
+`path`, is refused by name rather than coerced, because an old log whose blobs
+were all local paths would survive the coercion and the first one that was not
+would become a filename that never existed.
 
-An unknown event type is a refusal to load, loudly. Not a skip. Skipping one
-silently produces a context that is wrong in a way nothing downstream can
-detect, which is the same shape as Anthropic's silent signature drop and the
-same reason it is the bad one. The reference's loader applies the same rule to
-an unknown part type, an unknown actor, an unknown vendor, and to a blob whose
-location is spelled the old way: a log written before `Ref` existed, with a
-bare `path`, is refused by name rather than coerced, because an old log whose
-blobs were all local paths would survive the coercion and the first one that
-was not would become a filename that never existed.
+Retention is policy. The log is complete; what you keep is a separate
+decision, made later, by code that can read the whole thing.
 
-Retention is policy, not architecture. The log is complete. What you keep is a
-separate decision, made later, by code that can read the whole thing.
-
-Four ways non-determinism gets into a renderer, named because the failure
-message only tells you *that* two renders differed: the clock, a randomly
-generated id, Go's deliberately randomized map iteration order, and iteration
-over a set. The last two are the same bug, and they are why wire types should
-be structs with ordered fields and never `map[string]any`. The map serializes
-differently on some future run, on some future machine, and never on the one
-where you tested it.
+Non-determinism gets into a renderer four ways, and the failure message only
+tells you *that* two renders differed: the clock, a randomly generated id, Go's
+deliberately randomized map iteration order, and iteration over a set. The last
+two are the same bug, and they are why wire types should be structs with
+ordered fields and never `map[string]any`. The map serializes differently on
+some future run, on some future machine, and never on the one where you
+tested it.
 
 ## Exercise
 
@@ -1126,25 +1012,23 @@ Three commands, one binary, no flags.
 | `./ch02 dump` | write the event log as JSON-lines |
 
 `render` is the centerpiece. It turns replay, redaction, ephemera and the seam
-into byte comparisons, and it proves the context is separable from the
-transport. If your architecture cannot offer `render` cheaply, your context is
-not actually separate from your transport, and that is the finding the exercise
-exists to surface.
+into byte comparisons. If your architecture cannot offer `render` cheaply,
+your context is not actually separate from your transport, and that is the
+finding the exercise exists to surface.
 
 `render` takes no flags. The vendor target, the model id, and every other
 request parameter come from the environment, `LLM_VENDOR=anthropic|openai|
 gemini` and friends, exactly as in grader mode. Two renders get compared byte
 for byte, and the moment rendering accepts `--model`, byte-identity becomes a
 property of how you invoked the command instead of a property of the log.
-
 Grader mode is the default, as in Chapter 1: no arguments, stdio protocol, the
 same three environment variables plus the vendor's, and nothing on stdout but
 protocol.
 
 **Build the renderers in this order: Anthropic, then OpenAI, then Gemini.** The
 order is what makes §2.7's prediction a test rather than a flattering one. Note
-what each one costs you in context changes. That number is the chapter's
-actual lesson, and it is yours rather than mine.
+what each one costs you in context changes. Mine cost one field; yours is the
+number that matters.
 
 ### The log on disk
 
@@ -1160,16 +1044,12 @@ same event. What it cannot do is guess that you called it `Halted`.
 
 ### The fakes
 
-The grader serves fake endpoints for all three vendors. A full seam can be
-built and graded with one API key, or none, and nobody pays for three vendor
-accounts to finish this chapter.
-
-A fake is a model of a vendor, and a model is wrong in exactly the places you
-did not think to model. This chapter has already been caught by that twice, in
-§2.6: a wire fact remembered wrong, and a `null` the fake accepted for weeks.
-The fakes make the exercise affordable and they catch the bugs that matter
-here. A green grader is a claim about your plumbing. It is not a claim about
-production, and if you want your agent to work live, you have to run it live.
+The grader serves fake endpoints for all three vendors, so a full seam can be
+built and graded with one API key, or none. A fake is a model of a vendor, and
+a model is wrong in exactly the places you did not think to model; §2.6 has
+the receipt, a `null` the fake accepted for weeks and the live API refused. A
+green grader is a claim about your plumbing. If you want your agent to work
+live, you have to run it live.
 
 ### The checks
 
@@ -1191,30 +1071,25 @@ The ones you cannot infer from the table:
 
 - **`session` is worth zero and can still sink you.** Without it, one
   unacknowledged directive fails four checks at once and you get four mysteries
-  instead of one cause. It is the check that names the cause.
+  instead of one cause.
 - **`ch1parity` is a quarter of the grade** because a rewrite that quietly
-  breaks Chapter 1's contract has to look unsurvivable. Below that, it starts
-  to look like a trade.
+  breaks Chapter 1's contract has to look unsurvivable.
 - **`ephemera` grades the observable property and takes no position on
-  storage.** Here is the intended reading anyway, because the wrong one is
-  expensive. An ephemeral part *is recorded in the log* and *never enters the
-  dialogue*: delivered in exactly one request, absent from every later one. Read
-  it as "never reaches the log" and you have broken `Context = replay(Log)`,
-  because a pending ephemeral would need a second, unlogged path into the
-  context, and §2.6 allows exactly one. The mechanism is §2.4's rule for free:
-  an ephemeral arrives as an ordinary `MessageReceived` with `Actor: System`,
-  and the reducer decides it is pending rather than dialogue. The capture site
-  does not know, and cannot.
-- **`usage` is parsing work,** pulled out of `seam-parse` and named so that a
-  student who gets the shapes right and the arithmetic wrong is told which half
+  storage.** The intended reading: an ephemeral part *is recorded in the log*
+  and *never enters the dialogue*. Read it as "never reaches the log" and you
+  have broken `Context = replay(Log)`, because a pending ephemeral would need a
+  second, unlogged path into the context, and §2.6 allows exactly one. The
+  mechanism is §2.4's rule for free: an ephemeral arrives as an ordinary
+  `MessageReceived` with `Actor: System`, and the reducer decides it is pending
+  rather than dialogue. The capture site does not know, and cannot.
+- **`usage` is parsing work,** pulled out of `seam-parse` so that a student
+  who gets the shapes right and the arithmetic wrong is told which half
   failed. The parse side outweighs the render side, 25 to 15, on purpose.
-- **`seam-render` includes the per-call replay property** instead of it being
-  a tenth check. Rendering the right request shape and handing a model back its
-  own opaque material are the same skill on the same wire. What that cost the
-  grader was a second *fixture*: the chapter's main exhibit is
-  Anthropic-authored, so rendering it to Gemini correctly withholds the
-  signature and proves nothing. The property needs a log whose provenance
-  matches the render target.
+- **`seam-render` includes the per-call replay property** because rendering
+  the right request shape and handing a model back its own opaque material are
+  the same skill on the same wire. It cost the grader a second fixture: the
+  main exhibit is Anthropic-authored, so rendering it to Gemini correctly
+  withholds the signature and proves nothing.
 
 ### What would still pass if I deleted this?
 
@@ -1226,14 +1101,12 @@ field the chapter advertises as the entire price of the seam bet was omissible
 for full marks. Grepping the grader for `opaque` returned hits, all of them
 for the standalone thinking block, which was thoroughly graded. The distinction
 the field exists for, a signature bound to one *call* rather than to the
-*turn*, was exactly the distinction the tests did not draw, and a
-field-by-field diff of code against spec reports no drift here and is wrong.
+*turn*, was exactly the distinction the tests did not draw.
 
-The question that finds these is not "does the code implement the spec?" It
-is: what would still pass if I deleted this? That is mutation testing pointed
-at the spec instead of at the code, and it is the first pass to run against
-any grader, including the ones already written. A check that cannot fail is a
-green dashboard with a schema around it.
+The question that finds these is: what would still pass if I deleted this?
+That is mutation testing pointed at the spec instead of at the code, and it is
+the first pass to run against any grader, including the ones already written.
+A check that cannot fail is a green dashboard with a schema around it.
 
 ### What you are not building
 
@@ -1269,22 +1142,18 @@ scripts/live.sh 2 gemini
 scripts/live.sh 2 openai
 ```
 
-That scripted session is doing more work than it looks. It asks the model to
-invent a codename, then asks an unrelated question, then asks for the codename
-back. The recall proves the entire history is being re-sent and re-rendered on
-every request, and running it against all three vendors shows three wire
-formats producing the same remembered word. Then read the usage line it
-prints:
+The scripted session asks the model to invent a codename, asks an unrelated
+question, then asks for the codename back. The recall proves the entire
+history is being re-sent and re-rendered on every request, and three wire
+formats produce the same remembered word. Then read the usage line it prints:
 
 ```
 {"usage":{"input":737,"cache_write":0,"cache_read":0,"output":350}}
 ```
 
-Four counters, disjoint by construction. That shape is not the shape any of the
-three vendors reports, and §2.5 is the argument for why it is the one you
-record. [VERIFY: re-run before print; the counts are from the 2026-09-12 run.]
-
-For a free-form session, add `chat`: `scripts/live.sh 2 anthropic chat`.
+Four counters, disjoint by construction. None of the three vendors reports
+that shape, and §2.5 is the argument for why it is the one you record.
+[VERIFY: re-run before print; the counts are from the 2026-09-12 run.]
 
 The thing most worth trying: record one session, then render it as two
 different vendors without touching the network.
@@ -1303,8 +1172,7 @@ byte counts from the 2026-09-12 run; re-derive.]
 
 Then record against one vendor and render as another. A conversation that
 happened in Anthropic's format becomes a well-formed Gemini request. Nothing
-about that should work, and it does, because the log is not anybody's wire
-format.
+about that should work, and it does, because the log is nobody's wire format.
 
 Commit and tag the passing state:
 
@@ -1315,5 +1183,5 @@ git tag ch02-pass
 
 You now own a record of every conversation your agent will ever have that no
 vendor's schema can reach into, and it will replay through renderers you have
-not written yet, for wire formats that do not exist yet. The thirty thousand
-lines in §2.0 were the price of learning that, and you paid an hour.
+not written yet, for wire formats that do not exist yet. Mine cost a year and
+is still being paid for. Yours cost one field.

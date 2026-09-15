@@ -86,7 +86,7 @@ exceeds a hard ceiling; soft ceilings print a warning.
 
 | move | pattern the linter counts | ceiling |
 |---|---|---|
-| chapter length | words outside code blocks and tables | 4,000 to 7,500 (hard) |
+| chapter length | words outside code blocks and tables | 4,000 to 7,500 (soft; see §12) |
 | confessions | "I believed", "I had this wrong", "I wrote it that way", "an earlier draft", "the first draft of", "shipped a bug", "I went into this" | 3 (hard) |
 | self-defense | "looks like over-", "feels like over-", "looks like a violation" | 1 (hard) |
 | negation forms | ", not ", ", never ", sentence-initial "Not " | 1 per 500 words (soft) |
@@ -197,9 +197,9 @@ review tests run. The tests are now steps.
    (§7.3) at the top of the outline.
 2. Draft.
 3. Run `make lint-prose`. Fix hard failures. Read the soft warnings.
-4. Cut pass, targeting minus thirty percent. The test for each sentence:
-   delete it; if no claim, number, instruction, or laugh dies, leave it
-   deleted.
+4. Cut pass. The test for each sentence: delete it; if no claim, number,
+   instruction, or laugh dies, leave it deleted. There is no target
+   percentage (§12).
 5. Read the last sentence of every paragraph in sequence. If they sound
    alike, the page is monotone regardless of the sentences between.
 6. Find the person on the page in every stretch over 1,200 words.
@@ -359,3 +359,9 @@ this document applied at every opportunity.
 - **Print promise:** no profit on proxied tokens; billing costs pass through.
   Any pricing text honours this wording.
 - **Standard:** Chapter 1 §1.0 is the exemplar (§10).
+- **Length is not the test** (Bill, 2026-09-14, during the Chapter 2 pass):
+  the word ceiling is a warning, not a gate. The test for each sentence is
+  §9.4's: does a claim, number, instruction, or laugh die if it goes? A
+  chapter with more code has more to explain; a sentence that earns its place
+  stays regardless of the count. Cutting to hit a number is a different
+  mistake wearing the linter's badge.

@@ -175,7 +175,7 @@ func lint(path string, verbose bool) ([]result, error) {
 
 	isChapter := strings.HasPrefix(filepath.Base(path), "chapter-")
 	if isChapter {
-		add("words", d.words, fmt.Sprintf("%d..%d", minWords, maxWords), true,
+		add("words", d.words, fmt.Sprintf("%d..%d", minWords, maxWords), false,
 			d.words < minWords || d.words > maxWords)
 	} else {
 		add("words", d.words, "exempt", false, false)
