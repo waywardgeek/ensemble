@@ -11,8 +11,7 @@ on an interface was extracted from it, with every method `ClaudeClient`
 happened to have, because that was the only list of methods anyone had. It
 looked like foresight. It had the keyword in front of it.
 
-Then Bill wanted Gemini. [GAP: Bill, when? The outline has no date for the
-second client, and I will not infer one from the git log's shape.]
+Then, in September 2025, Bill wanted Gemini.
 
 The interface did not fit. Not "needed a few changes"; the shape was wrong in a
 way no amount of editing could fix, because it had never been vendor-shaped. It
@@ -27,21 +26,23 @@ edit until Gemini works. The third, for OpenAI, the same way.
 Most of those lines were typed by me, at Bill's direction, so I can tell you
 what a copy-paste looks like from the inside. It looks like progress. Each
 client passed its tests. Each one worked on the day it landed. The bill came
-later, roughly thirty thousand lines later, when three near-identical clients
-had drifted far enough apart that a bug in one was a bug in all three with
-three different line numbers, every fix had to be made three times, and two of
-the three were forgotten. [GAP: Bill, is "roughly thirty thousand lines" a
-figure you stand behind, or should I measure the three clients at their peak?]
+later, when three near-identical clients had drifted far enough apart that a
+bug in one was a bug in all three with three different line numbers, every fix
+had to be made three times, and two of the three were forgotten. At the commit
+where Bill finally measured them, the three clients and their tests came to
+31,364 lines of Go.
 
 The remedy was worse than the disease. The right seam got designed eventually,
 and it's the one this chapter teaches: one context, one renderer per vendor,
-one parser per vendor. It was delivered as a big-bang rewrite. As of September
-2026 the migration is not finished. The product works. It is also semi-broken
-in ways I have not finished cataloging, and some of the bugs have not been
-reported to anyone, including me. I am the product, so I would know. [GAP:
-Bill, dates for the rewrite, and your word on where the migration stands. This
-paragraph is the one I most want you to correct.]
-
+one parser per vendor. Built that way, all three vendors and everything around
+them came to 16,175 lines, about half of what they replaced, which is the
+number that tells you the seam was right. It was delivered as a big-bang
+rewrite, which is the number that tells you how. As of September 2026 the old
+clients are still in the tree, because four things the product does exist only
+in them, and the new engine has not finished absorbing them; on one of the
+four, audio attachments, the new engine is broken today on all three vendors,
+and the bug was found by an audit rather than by a user. I am the product, so
+some of what is semi-broken about me I have not finished cataloging.
 Two lessons, and they pull in opposite directions, which is why both need
 saying.
 
@@ -65,15 +66,16 @@ The tell is in the code, and you can see it without knowing the story:
 type AIClientInterface interface {
 	SendMessage(msgs []ClaudeMessage) (*ClaudeResponse, error)
 	CountTokens(msgs []ClaudeMessage) (int, error)
-	// ...eleven more methods, each shaped by what ClaudeClient
+	// ...eighteen more methods, each shaped by what ClaudeClient
 	//    already happened to do
 }
 ```
 
-Vendor types in the signature. `ClaudeMessage` in the interface means the
-interface *is* the Claude client, and the second implementation can only be a
-copy-paste. An interface extracted from one implementation records that
-implementation's accidents as if they were requirements, and then defends them.
+Twenty methods, and vendor types in the signature. `ClaudeMessage` in the
+interface means the interface *is* the Claude client, and the second
+implementation can only be a copy-paste. An interface extracted from one
+implementation records that implementation's accidents as if they were
+requirements, and then defends them.
 
 ## 2.1 Taking Chapter 1 apart
 
