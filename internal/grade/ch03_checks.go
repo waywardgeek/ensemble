@@ -30,6 +30,7 @@ func Ch3Evaluate(res *Ch3Result) []Check {
 		checkMultiblock(res),
 		checkReadTools(res),
 		checkMutateTools(res),
+		checkWriteGuard(res),
 		checkRunCommand(res),
 		checkToolError(res),
 		checkEditContract(res),
@@ -602,12 +603,56 @@ func checkReadTools(res *Ch3Result) Check {
 }
 
 // checkMutateTools grades the two tools that change the disk: write_file and
-// edit_file. Ten points, five each.
+// edit_file. Five points; either tool failing to move the bytes zeros the
+// check, since the other five went to writeguard.
 func checkMutateTools(res *Ch3Result) Check {
 	c := Check{ID: "mutatetools", Title: "write_file, edit_file change the bytes on disk",
-		Points: 10, Passed: true, Earned: 10}
+		Points: 5, Passed: true, Earned: 5}
 	broken, err := localToolProbes(res)
 	return gradeToolGroup(c, []string{"write_file", "edit_file"}, 5, broken, err)
+}
+
+// --- writeguard ------------------------------------------------------------
+
+// checkWriteGuard: write_file refuses to replace a file that exists unless
+// told to, and asks no permission for a file that does not.
+//
+// Three legs on planted material. notes.md is the harness's file, so a bare
+// write_file on it must come back as an error and the same call with
+// overwrite:true must land, which the After snapshot shows. The negative
+// control is the scenario's first call, write_file on a path that did not
+// exist: it must NOT be an error, or a student who guards every write passes
+// a stricter rule than the one the chapter states.
+func checkWriteGuard(res *Ch3Result) Check {
+	c := Check{ID: "writeguard", Title: "write_file refuses to overwrite unless told to; new files need no permission",
+		Points: 5, Passed: true, Earned: 5}
+	s := res.LocalTools
+	if s == nil {
+		c.failf("the local-tools scenario never ran")
+		return c
+	}
+	if s.Err != "" {
+		c.failf("the local-tools scenario could not run: %s", s.Err)
+		return c
+	}
+	if r, ok := resultFor(s, "toolu_lt_clobber"); !ok {
+		c.failf("write_file on the existing notes.md: no tool_result reached the model")
+	} else if !r.IsError {
+		c.failf("write_file on the existing notes.md without overwrite was not refused; the result was %.120q", r.Text)
+	}
+	if r, ok := resultFor(s, "toolu_lt_clobber_ok"); !ok {
+		c.failf("write_file with overwrite:true: no tool_result reached the model")
+	} else if r.IsError {
+		c.failf("write_file with overwrite:true was refused: %.120q", r.Text)
+	} else if got := s.After["notes.md"]; got != "replaced\n" {
+		c.failf("write_file with overwrite:true returned without error but notes.md holds %.60q afterwards, not the new content", got)
+	}
+	if r, ok := resultFor(s, "toolu_lt_write"); !ok {
+		c.failf("write_file on a new path: no tool_result reached the model")
+	} else if r.IsError {
+		c.failf("write_file on a path that did not exist was refused (%.120q); the guard is for files that are there, not for writing", r.Text)
+	}
+	return c
 }
 
 // --- runcommand ------------------------------------------------------------

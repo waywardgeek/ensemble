@@ -354,6 +354,15 @@ func ch3LocalToolReplies() []fakevendor.Reply {
 			`{"pattern":"gamma","path":"."}`, "toolu_lt_grep"),
 		step("Reading the middle of the notes.", "read_file",
 			`{"path":"notes.md","start_line":3,"end_line":4}`, "toolu_lt_read"),
+		// The guard. notes.md is material the harness planted, so a write
+		// without overwrite must be refused and the bytes must not move; the
+		// same write with overwrite:true must land. The new-file write at the
+		// top of this script is the negative control: no permission needed
+		// for a file that is not there.
+		step("Replacing the notes.", "write_file",
+			`{"path":"notes.md","content":"replaced\n"}`, "toolu_lt_clobber"),
+		step("Replacing the notes, on purpose this time.", "write_file",
+			`{"path":"notes.md","content":"replaced\n","overwrite":true}`, "toolu_lt_clobber_ok"),
 		{Text: "All five local tools are done.", Usage: fakevendor.Canonical{Input: 50, Output: 9}},
 	}
 }

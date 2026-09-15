@@ -426,6 +426,25 @@ func ch3Mutants() []ch3mutation {
 				file: "anthropic.go", find: `appendBlocks\("user", blocks, true\)`, replace: `appendBlocks("user", blocks, false)`,
 			}},
 		},
+
+		// ---- writeguard -----------------------------------------------------
+		{
+			name:     "no-refusal",
+			why:      "write_file replaces whatever is there. The model that never read the file it just erased is the one this guard exists for.",
+			wantFail: []string{"writeguard"},
+			edits: []ch3edit{{
+				file: "tools.go", find: `if exists && !a\.Overwrite \{`, replace: `if false {`,
+			}},
+		},
+		{
+			name: "guard-everything",
+			why: "write_file refuses every call without overwrite:true, including a path that does not exist. A stricter rule than the chapter's, " +
+				"and the negative control that keeps the grader from rewarding it: the guard is for files that are there.",
+			wantFail: []string{"writeguard", "mutatetools"},
+			edits: []ch3edit{{
+				file: "tools.go", find: `if exists && !a\.Overwrite \{`, replace: `if !a.Overwrite {`,
+			}},
+		},
 	}
 }
 
