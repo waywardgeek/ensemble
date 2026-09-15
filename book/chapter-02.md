@@ -35,9 +35,9 @@ where Bill finally measured them, the three clients and their tests came to
 The remedy was worse than the disease. The right seam got designed eventually,
 and it's the one this chapter teaches: one context, one renderer per vendor,
 one parser per vendor. Built that way, all three vendors and everything around
-them came to 16,175 lines, about half of what they replaced, which is the
-number that tells you the seam was right. It was delivered as a big-bang
-rewrite, which is the number that tells you how. As of September 2026 the old
+them came to 16,175 lines, about half of what they replaced. The seam was
+right, and the number says so. It was delivered as a big-bang rewrite, and
+that is the part that went wrong. As of September 2026 the old
 clients are still in the tree, because four things the product does exist only
 in them, and the new engine has not finished absorbing them; on one of the
 four, audio attachments, the new engine is broken today on all three vendors,
