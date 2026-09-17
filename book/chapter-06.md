@@ -873,7 +873,7 @@ credentials:
 ```bash
 cd agent && go build -o bin ./cmd/
 export LLM_API_KEY="your-anthropic-api-key"
-export LLM_MODEL="claude-sonnet-4-20250514"
+export LLM_MODEL="claude-opus-5"
 ```
 
 `LLM_VENDOR` defaults to `anthropic`. For Gemini, set it to `google`
