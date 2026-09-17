@@ -48,19 +48,16 @@ type ModelFeatures struct {
 func models() map[string]ModelFeatures {
 	return map[string]ModelFeatures{
 	// Anthropic — no audio, no video.
-	"claude-sonnet-5":   {Media: MediaImage | MediaDocument},
-	"claude-sonnet-4":   {Media: MediaImage | MediaDocument},
-	"claude-haiku-3.5":  {Media: MediaImage | MediaDocument},
+	"claude-opus-5":    {Media: MediaImage | MediaDocument},
+	"claude-sonnet-5":  {Media: MediaImage | MediaDocument},
 
 	// OpenAI — images yes, audio and video NO (video APIs are generation).
-	"gpt-5":             {Media: MediaImage | MediaDocument},
-	"gpt-4.1":           {Media: MediaImage | MediaDocument},
-	"gpt-4o":            {Media: MediaImage | MediaDocument},
+	"gpt-6-astra":      {Media: MediaImage | MediaDocument},
+	"gpt-5.6-sol":      {Media: MediaImage | MediaDocument},
 
 	// Gemini — images, audio, video, documents.
-	"gemini-3.8-flash":  {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument},
-	"gemini-2.5-flash":  {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument},
-	"gemini-2.5-pro":    {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument},
+	"gemini-3.8-flash":       {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument},
+	"gemini-3.1-pro-preview": {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument},
 
 	// Fake model used by the grader — images only, to test loud refusal.
 	"fake-model":        {Media: MediaImage},
