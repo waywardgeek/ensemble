@@ -1,21 +1,23 @@
 package main
 
-// ch05 — the same agent as ch04, refactored into packages.
+// ch06 — the actor upgrade: two seams and a loop.
 //
-//	./ch05              grader mode: the Chapter 1 stdio protocol, unchanged
-//	./ch05 chat         the interactive loop from Chapter 1
-//	./ch05 render LOG   play LOG -> context -> render; print the request JSON
-//	./ch05 dump         write the event log as JSON-lines
-//	./ch05 --help       print the commands table
+//	./ch06              grader mode: JSON-lines protocol on stdin/stdout
+//	./ch06 chat         the interactive loop
+//	./ch06 render LOG   play LOG -> context -> render; print the request JSON
+//	./ch06 dump         write the event log as JSON-lines
+//	./ch06 --help       print the commands table
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 
 	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 	"github.com/waywardgeek/coding-agents-course/agent/internal/jobs"
@@ -23,7 +25,7 @@ import (
 	"github.com/waywardgeek/coding-agents-course/agent/internal/tools"
 )
 
-const fallbackName = "ch05"
+const fallbackName = "ch06"
 
 func progName() string {
 	base := filepath.Base(os.Args[0])
@@ -37,10 +39,10 @@ func defaultLogPath() string { return progName() + ".log" }
 
 func usage(w io.Writer) {
 	p := progName()
-	fmt.Fprintf(w, `%[1]s — one log, three vendors, and a tool loop.
+	fmt.Fprintf(w, `%[1]s — two seams and a loop.
 
 usage:
-  %[1]s                grader mode: read a JSON-lines log on stdin
+  %[1]s                grader mode: JSON-lines protocol on stdin/stdout
   %[1]s chat           interactive loop; type a message, ctrl-D to exit
   %[1]s render LOG     play LOG -> context -> render; print the request JSON
   %[1]s dump           write the event log as JSON-lines
@@ -107,7 +109,7 @@ func main() {
 		}
 
 	case "":
-		if runLoop(cfg, logPath, false, reg) {
+		if runActorLoop(cfg, logPath, reg) {
 			os.Exit(1)
 		}
 
@@ -118,12 +120,200 @@ func main() {
 	}
 }
 
-// cliHost implements common.Host for the CLI — a simple stderr logger.
+// cliHost implements common.Host for the CLI.
 type cliHost struct{}
 
 func (cliHost) Logf(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, format+"\n", args...)
 }
+
+// ----------------------------------------------------------------
+// Actor-based loop for grader mode. Reads stdin on its own goroutine
+// and processes messages through the mailbox.
+// ----------------------------------------------------------------
+
+// stdinMsg is the unified JSON input format.
+type stdinMsg struct {
+	// Chapter 6 protocol.
+	Kind *string `json:"kind"`
+	Text *string `json:"text"`
+	// Backward compat with ch1–5.
+	User      *string `json:"user"`
+	Ephemeral *string `json:"ephemeral"`
+}
+
+func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg) (vendorFailed bool) {
+	host := cliHost{}
+	j := jobs.NewJobs(host)
+	eng := llm.NewEngine(cfg, logPath, j, reg, host)
+	actor := llm.NewActor(eng, host)
+
+	out := bufio.NewWriter(os.Stdout)
+	defer out.Flush()
+
+	var outMu sync.Mutex
+
+	emitLocked := func(v any) {
+		outMu.Lock()
+		defer outMu.Unlock()
+		b, _ := json.Marshal(v)
+		out.Write(b)
+		out.WriteByte('\n')
+		out.Flush()
+	}
+
+	if isTerminal(os.Stdin) {
+		fmt.Fprintf(os.Stderr, "%[1]s: reading JSON-lines on stdin\n", progName())
+		fmt.Fprintf(os.Stderr, "for an interactive chat run `%[1]s chat`; `%[1]s --help` lists every command\n", progName())
+	}
+
+	// Attach an observer that emits observations as JSON on stdout.
+	actor.Attach(stdoutObserver(func(obs common.Observation) {
+		emitLocked(observationJSON(obs))
+	}))
+
+	// Start the actor loop.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go actor.Run(ctx)
+
+	// Read stdin on this goroutine.
+	in := bufio.NewScanner(os.Stdin)
+	in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
+	hinted := false
+
+	for in.Scan() {
+		line := strings.TrimSpace(in.Text())
+		if line == "" {
+			continue
+		}
+
+		var msg stdinMsg
+		if err := json.Unmarshal([]byte(line), &msg); err != nil {
+			emitLocked(map[string]string{"error": "bad input: " + err.Error()})
+			if !hinted {
+				hinted = true
+				fmt.Fprintf(os.Stderr, "\n%[1]s: that line is not JSON.\n", progName())
+			}
+			continue
+		}
+
+		// Chapter 6 protocol: {"kind":"prompt","text":"..."}
+		if msg.Kind != nil {
+			switch *msg.Kind {
+			case "prompt":
+				if msg.Text == nil {
+					emitLocked(map[string]string{"error": "prompt requires text"})
+					continue
+				}
+				actor.Send(common.UserMessage{Text: *msg.Text})
+				// Wait for turn to end.
+				obs, err := actor.Wait(ctx, func(o common.Observation) bool {
+					_, ok := o.(common.TurnEnded)
+					return ok
+				})
+				if err != nil {
+					vendorFailed = true
+					emitLocked(map[string]string{"error": err.Error()})
+					continue
+				}
+				ended := obs.(common.TurnEnded)
+				if ended.Err != "" {
+					vendorFailed = true
+					emitLocked(map[string]string{"error": ended.Err})
+				} else {
+					emitLocked(map[string]string{"assistant": ended.Text})
+				}
+			case "hint":
+				if msg.Text == nil {
+					emitLocked(map[string]string{"error": "hint requires text"})
+					continue
+				}
+				actor.Send(common.Hint{Text: *msg.Text})
+			case "interrupt":
+				actor.Send(common.Interrupt{})
+			default:
+				emitLocked(map[string]string{"error": "unknown kind: " + *msg.Kind})
+			}
+			continue
+		}
+
+		// Backward compat: {"ephemeral":"..."}
+		if msg.Ephemeral != nil {
+			if err := eng.Attach(*msg.Ephemeral); err != nil {
+				emitLocked(map[string]string{"error": err.Error()})
+				continue
+			}
+			emitLocked(map[string]string{"ack": "ephemeral"})
+			continue
+		}
+
+		// Backward compat: {"user":"..."}
+		if msg.User != nil {
+			reply, err := eng.Ask(*msg.User)
+			if err != nil {
+				vendorFailed = true
+				emitLocked(map[string]string{"error": err.Error()})
+				continue
+			}
+			emitLocked(map[string]string{"assistant": reply})
+			continue
+		}
+
+		emitLocked(map[string]string{"error": "no recognized field"})
+	}
+
+	_ = actor.Shutdown()
+	emitLocked(map[string]any{"usage": eng.Ctx.Usage})
+	out.Flush()
+	return vendorFailed
+}
+
+// stdoutObserver adapts a func to common.Observer.
+type stdoutObserver func(common.Observation)
+
+func (f stdoutObserver) Observe(o common.Observation) { f(o) }
+
+// observationJSON converts an Observation to a JSON-friendly map.
+func observationJSON(obs common.Observation) map[string]any {
+	switch v := obs.(type) {
+	case common.PartDelta:
+		m := map[string]any{"observation": "part_delta", "part_id": v.PartID, "chunk": v.Chunk}
+		if v.Agent != "" {
+			m["agent"] = string(v.Agent)
+		}
+		return m
+	case common.PartFinal:
+		m := map[string]any{"observation": "part_final", "part_id": v.PartID, "seq": v.Seq}
+		if v.Agent != "" {
+			m["agent"] = string(v.Agent)
+		}
+		if tp, ok := v.Part.(common.TextPart); ok {
+			m["text"] = tp.Text
+		}
+		return m
+	case common.StateChanged:
+		m := map[string]any{"observation": "state_changed", "from": v.From.String(), "to": v.To.String()}
+		if v.Agent != "" {
+			m["agent"] = string(v.Agent)
+		}
+		return m
+	case common.TurnEnded:
+		m := map[string]any{"observation": "turn_ended", "text": v.Text}
+		if v.Agent != "" {
+			m["agent"] = string(v.Agent)
+		}
+		if v.Err != "" {
+			m["error"] = v.Err
+		}
+		return m
+	}
+	return map[string]any{"observation": "unknown"}
+}
+
+// ----------------------------------------------------------------
+// Interactive chat mode (same as ch05, uses synchronous Ask).
+// ----------------------------------------------------------------
 
 func runLoop(cfg common.Config, logPath string, interactive bool, reg *tools.Reg) (vendorFailed bool) {
 	host := cliHost{}
@@ -137,12 +327,7 @@ func runLoop(cfg common.Config, logPath string, interactive bool, reg *tools.Reg
 	if interactive {
 		fmt.Fprintf(os.Stderr, "%s — type a message, ctrl-D to exit\n", progName())
 		fmt.Fprint(os.Stderr, "> ")
-	} else if isTerminal(os.Stdin) {
-		fmt.Fprintf(os.Stderr, "%[1]s: reading a JSON-lines log on stdin, one object per line, e.g. {\"user\":\"Hi.\"}\n", progName())
-		fmt.Fprintf(os.Stderr, "for an interactive chat run `%[1]s chat`; `%[1]s --help` lists every command\n", progName())
 	}
-
-	hinted := false
 
 	for in.Scan() {
 		line := strings.TrimSpace(in.Text())
@@ -153,66 +338,20 @@ func runLoop(cfg common.Config, logPath string, interactive bool, reg *tools.Reg
 			continue
 		}
 
-		prompt := line
-		if !interactive {
-			var msg struct {
-				User      *string `json:"user"`
-				Ephemeral *string `json:"ephemeral"`
-			}
-			if err := json.Unmarshal([]byte(line), &msg); err != nil {
-				emit(out, map[string]string{"error": "bad input: " + err.Error()})
-				if !hinted {
-					hinted = true
-					fmt.Fprintf(os.Stderr,
-						"\n%[1]s: that line is not JSON.\n"+
-							"This mode reads a JSON-lines log on stdin — one object per line, e.g.\n"+
-							"    {\"user\":\"Hi.\"}\n"+
-							"To type messages yourself, run `%[1]s chat`.\n"+
-							"`%[1]s --help` lists every command.\n\n", progName())
-				}
-				continue
-			}
-			if msg.Ephemeral != nil {
-				if err := eng.Attach(*msg.Ephemeral); err != nil {
-					emit(out, map[string]string{"error": err.Error()})
-					continue
-				}
-				emit(out, map[string]string{"ack": "ephemeral"})
-				continue
-			}
-			if msg.User == nil {
-				emit(out, map[string]string{"error": "no user field"})
-				continue
-			}
-			prompt = *msg.User
-		}
-
-		reply, err := eng.Ask(prompt)
+		reply, err := eng.Ask(line)
 		if err != nil {
 			vendorFailed = true
-			if interactive {
-				fmt.Fprintln(os.Stderr, "error:", err)
-				fmt.Fprint(os.Stderr, "> ")
-				continue
-			}
-			emit(out, map[string]string{"error": err.Error()})
-			continue
-		}
-
-		if interactive {
-			fmt.Fprintln(os.Stdout, reply)
-			out.Flush()
+			fmt.Fprintln(os.Stderr, "error:", err)
 			fmt.Fprint(os.Stderr, "> ")
 			continue
 		}
-		emit(out, map[string]string{"assistant": reply})
+
+		fmt.Fprintln(os.Stdout, reply)
+		out.Flush()
+		fmt.Fprint(os.Stderr, "> ")
 	}
 
 	_ = eng.Shutdown()
-
-	if !interactive {
-		emit(out, map[string]any{"usage": eng.Ctx.Usage})
-	}
 	out.Flush()
 	return vendorFailed
 }

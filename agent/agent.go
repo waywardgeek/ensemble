@@ -25,10 +25,45 @@ type Vendor = common.Vendor
 type Surface = common.Surface
 type Usage = common.Usage
 
+// Chapter 6: observer and mailbox types.
+type Observer = common.Observer
+type Observation = common.Observation
+type PartDelta = common.PartDelta
+type PartFinal = common.PartFinal
+type StateChanged = common.StateChanged
+type TurnEnded = common.TurnEnded
+type AgentID = common.AgentID
+type Inbound = common.Inbound
+type UserMessage = common.UserMessage
+type Hint = common.Hint
+type ToolCompleted = common.ToolCompleted
+type Interrupt = common.Interrupt
+type Mailbox = common.Mailbox
+type Media = common.Media
+type ModelFeatures = common.ModelFeatures
+type TurnState = common.TurnState
+
 const (
 	VendorAnthropic = common.VendorAnthropic
 	VendorOpenAI    = common.VendorOpenAI
 	VendorGemini    = common.VendorGemini
+)
+
+// TurnState constants.
+const (
+	Idle         = common.Idle
+	InputPending = common.InputPending
+	InFlight     = common.InFlight
+	ToolsPending = common.ToolsPending
+	StateInterrupted  = common.Interrupted
+)
+
+// Media constants.
+const (
+	MediaImage    = common.MediaImage
+	MediaAudio    = common.MediaAudio
+	MediaVideo    = common.MediaVideo
+	MediaDocument = common.MediaDocument
 )
 
 // DefaultSurface returns the default API surface for a vendor.
@@ -87,6 +122,36 @@ func (a *Agent) Shutdown() error {
 // Usage returns the token counts accumulated across all requests.
 func (a *Agent) Usage() Usage {
 	return a.eng.Ctx.Usage
+}
+
+// ----------------------------------------------------------------
+// Chapter 6: Actor-based API
+// ----------------------------------------------------------------
+
+// Actor is the public handle to an actor-based agent.
+type Actor = llm.Actor
+
+// Framework manages multiple actors.
+type Framework = llm.Framework
+
+// NewActor creates an Actor wrapping the given engine.
+func (a *Agent) NewActor() *Actor {
+	return llm.NewActor(a.eng, a)
+}
+
+// NewFramework creates a multi-agent framework.
+func NewFramework(host common.Host) *Framework {
+	return llm.NewFramework(host)
+}
+
+// NewMailbox creates a new mailbox.
+func NewMailbox() *Mailbox {
+	return common.NewMailbox()
+}
+
+// LookupModel returns model features.
+func LookupModel(model string) (ModelFeatures, bool) {
+	return common.LookupModel(model)
 }
 
 // ConfigFromEnv builds a Config from environment variables (LLM_VENDOR,

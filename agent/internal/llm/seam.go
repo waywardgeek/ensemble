@@ -98,9 +98,10 @@ func classify(e common.Entry, cfg common.Config) (renderable, error) {
 				}
 			}
 		case common.BlobPart:
-			// Media asymmetry is a LOUD error.
-			if strings.HasPrefix(v.MIME, "audio/") && !cfg.AcceptsAudio {
-				return r, fmt.Errorf("cannot render %s part to model %q: it does not accept audio (refusing to silently drop content)", v.MIME, cfg.Model)
+			// Media asymmetry is a LOUD error. The model table says what each
+			// model accepts; a missing row is an unknown model and equally loud.
+			if err := checkMedia(v.MIME, cfg.Model); err != nil {
+				return r, err
 			}
 			r.Blobs = append(r.Blobs, v)
 		case common.OpaquePart:
@@ -108,6 +109,33 @@ func classify(e common.Entry, cfg common.Config) (renderable, error) {
 		}
 	}
 	return r, nil
+}
+
+// checkMedia refuses to render a MIME type the model does not accept.
+// A missing model row is an equally loud refusal — never guess.
+func checkMedia(mime, model string) error {
+	features, ok := common.LookupModel(model)
+	if !ok {
+		return fmt.Errorf("cannot render %s part: unknown model %q (no entry in the model table)", mime, model)
+	}
+	var need common.Media
+	switch {
+	case strings.HasPrefix(mime, "image/"):
+		need = common.MediaImage
+	case strings.HasPrefix(mime, "audio/"):
+		need = common.MediaAudio
+	case strings.HasPrefix(mime, "video/"):
+		need = common.MediaVideo
+	case strings.HasPrefix(mime, "application/pdf"):
+		need = common.MediaDocument
+	default:
+		// Unknown MIME prefix — let it through, the vendor will reject if needed.
+		return nil
+	}
+	if features.Media&need == 0 {
+		return fmt.Errorf("cannot render %s part to model %q: it does not accept %s (refusing to silently drop content)", mime, model, need)
+	}
+	return nil
 }
 
 // resultText flattens a tool result to a string. Vendors all want a scalar

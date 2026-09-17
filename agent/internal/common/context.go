@@ -15,8 +15,7 @@ const (
 	InputPending
 	InFlight
 	ToolsPending
-	// Interrupted arrives in Chapter 4, and it must be a STATE, not a flag,
-	// or replay re-executes tool calls that were cancelled.
+	Interrupted
 )
 
 var turnNames = map[TurnState]string{
@@ -24,6 +23,7 @@ var turnNames = map[TurnState]string{
 	InputPending: "input_pending",
 	InFlight:     "in_flight",
 	ToolsPending: "tools_pending",
+	Interrupted:  "interrupted",
 }
 
 func (t TurnState) String() string { return turnNames[t] }

@@ -16,7 +16,6 @@ type Config struct {
 	APIKey       string
 	SystemPrompt string
 	MaxTokens    int
-	AcceptsAudio bool
 	Tools        []ToolDecl
 	Cwd          string
 }

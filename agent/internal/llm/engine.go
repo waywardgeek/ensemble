@@ -40,15 +40,15 @@ func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools com
 	}
 }
 
-// record appends to the log and advances the context. One path in.
-func (e *Engine) record(ev common.Event) error {
+// Record appends to the log and advances the context. One path in.
+func (e *Engine) Record(ev common.Event) error {
 	stored := e.Log.Append(ev)
 	return e.Ctx.Apply(stored)
 }
 
 // Say records a human prompt.
 func (e *Engine) Say(text string) error {
-	return e.record(common.Event{Type: common.MessageReceived, Message: &common.MessageData{
+	return e.Record(common.Event{Type: common.MessageReceived, Message: &common.MessageData{
 		Actor: common.ActorHuman, Parts: common.PartList{common.TextPart{Text: text}},
 	}})
 }
@@ -60,7 +60,7 @@ func (e *Engine) Say(text string) error {
 // about classification made concrete: the capture site does not know, and
 // cannot know, what an arriving message means.
 func (e *Engine) Attach(text string) error {
-	return e.record(common.Event{Type: common.MessageReceived, Message: &common.MessageData{
+	return e.Record(common.Event{Type: common.MessageReceived, Message: &common.MessageData{
 		Actor: common.ActorSystem, Parts: common.PartList{common.TextPart{Text: text}},
 	}})
 }
@@ -83,7 +83,7 @@ func (e *Engine) Turn() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err := e.record(common.Event{Type: common.RequestSent, Request: &common.RequestData{To: common.Provenance{
+	if err := e.Record(common.Event{Type: common.RequestSent, Request: &common.RequestData{To: common.Provenance{
 		Vendor: e.Cfg.Vendor, Model: e.Cfg.Model, Surface: e.Cfg.Surface,
 	}}}); err != nil {
 		return "", err
@@ -92,7 +92,7 @@ func (e *Engine) Turn() (string, error) {
 	status, body, err := e.send(req)
 	if err != nil {
 		// A transport failure is infrastructure: it ends the turn.
-		_ = e.record(common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{Message: err.Error()}})
+		_ = e.Record(common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{Message: err.Error()}})
 		return "", err
 	}
 
@@ -102,7 +102,7 @@ func (e *Engine) Turn() (string, error) {
 	}
 	var vendorErr error
 	for _, ev := range events {
-		if err := e.record(ev); err != nil {
+		if err := e.Record(ev); err != nil {
 			return "", err
 		}
 		if ev.Type == common.ErrorOccurred && ev.Error != nil {
@@ -160,13 +160,13 @@ func (e *Engine) Ask(text string) (string, error) {
 		// and one message can carry both prose and a request to run something.
 		// An implementation that walks the list looking only at text never
 		// sees the call, reports the prose, and silently does nothing.
-		calls := e.pendingCalls()
+		calls := e.PendingCalls()
 		if len(calls) == 0 {
 			break
 		}
 
 		if round >= MaxToolRounds {
-			if err := e.record(common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{
+			if err := e.Record(common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{
 				Message: fmt.Sprintf("stopped after %d rounds of tool calls", MaxToolRounds),
 			}}); err != nil {
 				return "", err
@@ -191,13 +191,13 @@ func (e *Engine) Ask(text string) (string, error) {
 	return reply, nil
 }
 
-// pendingCalls returns the tool calls that have been asked for and not yet
+// PendingCalls returns the tool calls that have been asked for and not yet
 // answered, in the order they were asked.
 //
 // It is computed from the dialogue rather than stored, for the same reason
 // everything else in Chapter 2 is computed from the dialogue: the log is the
 // truth, and a second copy of the truth is a second thing to get wrong.
-func (e *Engine) pendingCalls() []common.ToolCallPart {
+func (e *Engine) PendingCalls() []common.ToolCallPart {
 	answered := map[string]bool{}
 	var calls []common.ToolCallPart
 	for _, entry := range e.Ctx.Dialogue {
@@ -251,7 +251,7 @@ func (e *Engine) Execute(call common.ToolCallPart) error {
 	if err != nil || tool.NoJob {
 		// The dispatch record: the agent decided to run this. It carries no
 		// dialogue content of its own — the model already knows it asked.
-		if err := e.record(common.Event{Type: common.ToolCalled, Tool: &common.ToolData{
+		if err := e.Record(common.Event{Type: common.ToolCalled, Tool: &common.ToolData{
 			CallID: call.CallID, Name: call.Name, Args: call.Args,
 		}}); err != nil {
 			return err
@@ -268,14 +268,14 @@ func (e *Engine) Execute(call common.ToolCallPart) error {
 		if fromPending {
 			out = pendingNote(call.Name, limits) + out
 		}
-		if err := e.record(common.Event{Type: common.ToolReturned, Tool: &common.ToolData{
+		if err := e.Record(common.Event{Type: common.ToolReturned, Tool: &common.ToolData{
 			CallID: call.CallID, Name: call.Name, Args: call.Args,
 			Parts: common.PartList{common.TextPart{Text: out}}, IsError: isError,
 		}}); err != nil {
 			return err
 		}
 		for _, ev := range c.Events {
-			if err := e.record(ev); err != nil {
+			if err := e.Record(ev); err != nil {
 				return err
 			}
 		}
@@ -290,7 +290,7 @@ func (e *Engine) Execute(call common.ToolCallPart) error {
 	if err != nil {
 		return err
 	}
-	if err := e.record(common.Event{Type: common.ToolCalled, Tool: &common.ToolData{
+	if err := e.Record(common.Event{Type: common.ToolCalled, Tool: &common.ToolData{
 		CallID: call.CallID, Name: call.Name, Args: call.Args, Job: job.Data(),
 	}}); err != nil {
 		return err
@@ -313,7 +313,7 @@ func (e *Engine) Execute(call common.ToolCallPart) error {
 	}
 	isError := job.Status() == common.StatusDone && job.Err() != nil
 
-	return e.record(common.Event{Type: common.ToolReturned, Tool: &common.ToolData{
+	return e.Record(common.Event{Type: common.ToolReturned, Tool: &common.ToolData{
 		CallID:  call.CallID,
 		Name:    call.Name,
 		Args:    call.Args,
@@ -346,7 +346,7 @@ func (e *Engine) Shutdown() error {
 		}
 		data := j.Data()
 		data.Reason = "shutdown"
-		if err := e.record(common.Event{Type: common.JobKilled, Job: data}); err != nil {
+		if err := e.Record(common.Event{Type: common.JobKilled, Job: data}); err != nil {
 			return err
 		}
 	}
