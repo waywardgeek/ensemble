@@ -536,9 +536,18 @@ is the one lock.
 This is not accidental minimalism. Every lock is a place where two
 goroutines disagree about what is happening. Two goroutines can
 disagree in testable ways. Ten goroutines with a shared map disagree
-in ways that show up in production at 3 AM on a Saturday. The goal
-is the smallest number of goroutines that fixes the deafness, and
-that number is two.
+in ways that show up in production at 3 AM on a Saturday.
+
+> CodeRhapsody's Chapter 4 grader exposed five real concurrency bugs
+> in 120 parallel test runs. The root cause of every one was a parent
+> holding stale facts about a child: reading a field on one goroutine
+> while the actor goroutine wrote it. The fix each time was the same:
+> move the read to the actor goroutine, or make the mailbox the only
+> path between them. Two goroutines with one lock is not a style
+> preference. It is what survived the race detector.
+
+The goal is the smallest number of goroutines that fixes the
+deafness, and that number is two.
 
 ## §6.6 The Wait primitive
 
