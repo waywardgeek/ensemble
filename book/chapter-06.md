@@ -1,13 +1,23 @@
 # Chapter 6: Two Seams and a Loop
 
-Your agent has the right package structure. Every component has one
-job, imports flow in one direction, and a twenty-line program can
-import the framework and register a tool it has never seen. Now make
-it a framework that cannot hear. Ask a question while a tool runs and
-the agent does not notice until the tool finishes. Send a hint and it
-arrives one round too late. Run two agents at once and the second one
-blocks until the first is done. The shape is right and the engine is
-deaf.
+The agent framework from Chapter 5 is good enough to write an
+author-editor orchestrator. Imagine what it could do with a GUI
+built exactly the way you want it. Your layout, your keybindings,
+your idea of what coding with AI should feel like. That is where this
+book is headed. But the tools that shipped GUI-first paid for it:
+the GUI imported the framework, the framework imported the GUI, and
+by the time anyone noticed the cycle it was load-bearing.
+CodeRhapsody made the same mistake, and refactoring it out took weeks
+of focused work. This chapter exists so you do not repeat it. By the
+end, your framework will have an API clean enough to host any GUI,
+any gateway, any agentic application. The GUI chapter comes next.
+This one builds the surface it plugs into.
+
+That surface is two seams and a loop. Right now, ask a question while
+a tool runs and the agent does not notice until the tool finishes.
+Send a hint and it arrives one round too late. Run two agents at once
+and the second one blocks until the first is done. The package
+structure is right and the engine is deaf.
 
 This chapter fixes the deafness. Three additions, no existing code
 removed: an outbound seam so the framework tells the world what
@@ -837,9 +847,9 @@ transitions:
 ```
 {"agent":"author","from":"idle","to":"input_pending"}
 {"agent":"author","from":"input_pending","to":"in_flight"}
-{"agent":"author","index":0,"chunk":"Let me write about "}
-{"agent":"author","index":0,"chunk":"refactoring..."}
-{"agent":"author","seq":3,"index":0,"part":{"type":"text","text":"Let me write about refactoring..."}}
+{"agent":"author","part_id":1,"chunk":"Let me write about "}
+{"agent":"author","part_id":1,"chunk":"refactoring..."}
+{"agent":"author","seq":3,"part_id":1,"part":{"type":"text","text":"Let me write about refactoring..."}}
 {"agent":"author","from":"in_flight","to":"tools_pending"}
 ...
 {"agent":"author","from":"tools_pending","to":"idle"}
@@ -856,3 +866,21 @@ happened, in order, and you decide what it means. A logger writes
 it to a file. A GUI renders it as a chat. A parent agent uses it to
 decide when to send the next prompt. The observer seam carries all
 three without knowing about any of them.
+
+Now try it with a real vendor. Set `LLM_BASE_URL` and `LLM_API_KEY`
+for Claude, Gemini, or OpenAI, and start an interactive chat:
+
+```
+echo '{"kind":"prompt","text":"You are a pirate. Respond only in pirate speak."}' | ./agent/cmd/agent
+```
+
+While the model is responding, type a hint:
+
+```
+{"kind":"hint","text":"Actually, make it a space pirate."}
+```
+
+And this hint can arrive mid-turn. The model receives it attached to
+the next tool result or woven into the current context, and the
+observation stream shows exactly when it landed. The agent was deaf.
+Now it listens.
