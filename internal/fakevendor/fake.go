@@ -303,6 +303,10 @@ func jsonStr(s string) string {
 // total = cache_read + cache_creation + input.
 func anthropicBody(r Reply) string {
 	var blocks []string
+	if r.Thinking != "" {
+		blocks = append(blocks, fmt.Sprintf(`{"type":"thinking","thinking":%s,"signature":%s}`,
+			jsonStr(r.Thinking), jsonStr("sig-fake-thinking")))
+	}
 	if r.Text != "" {
 		blocks = append(blocks, fmt.Sprintf(`{"type":"text","text":%s}`, jsonStr(r.Text)))
 	}
@@ -365,6 +369,9 @@ func openAIBody(r Reply) string {
 // works on both other vendors — silently never calls a tool.
 func geminiBody(r Reply) string {
 	var parts []string
+	if r.Thinking != "" {
+		parts = append(parts, fmt.Sprintf(`{"text":%s,"thought":true}`, jsonStr(r.Thinking)))
+	}
 	if r.Text != "" {
 		parts = append(parts, fmt.Sprintf(`{"text":%s}`, jsonStr(r.Text)))
 	}
