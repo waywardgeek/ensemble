@@ -17,12 +17,19 @@ testdata/mutants/
 # not prefix-match without a wildcard, so `/ch0` matches only a root entry
 # named exactly "ch0". Three 9MB binaries were committed while that rule
 # looked like it was working.
-ch0*/ch0*
-ch0*/bin
-agent/bin
-solutions/*/bin
-solutions/*/ch0*/ch0*
-solutions/*/agent/bin
+#
+# These patterns are deliberately depth-independent. From Chapter 5 on, a
+# submission is repo-root-shaped (agent/ + chNN/), so a snapshot under
+# solutions/ nests a SECOND copy of the whole layout: solutions/ch07/ch05/bin
+# is a real path. Depth-anchored spellings like `solutions/*/bin` cannot keep
+# up with that, and two binaries were staged before this was fixed. A pattern
+# with no slash matches at any depth; `**/` means the same thing explicitly.
+#
+# The graders BUILD these binaries into the submission tree every time they
+# run, so deleting them by hand does not keep them gone. Only the ignore rule
+# does.
+bin
+**/ch0*/ch0*
 
 # Agent working directories: tool output and scratch, created by any manual
 # run. Run OUTPUT, not source.
