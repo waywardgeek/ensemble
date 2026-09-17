@@ -29,6 +29,8 @@ type Ch5Result struct {
 }
 
 func Ch5Run(dir string) (*Ch5Result, error) {
+	// Resolve to absolute path so sub-processes find the right directories.
+	dir, _ = filepath.Abs(dir)
 	r := &Ch5Result{ImportGraph: make(map[string][]string)}
 	agentDir := filepath.Join(dir, "agent")
 	exDir := filepath.Join(dir, "ch05")
