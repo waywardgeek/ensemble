@@ -42,6 +42,7 @@ type Mailbox = common.Mailbox
 type Media = common.Media
 type ModelFeatures = common.ModelFeatures
 type TurnState = common.TurnState
+type TextPart = common.TextPart
 
 const (
 	VendorAnthropic = common.VendorAnthropic

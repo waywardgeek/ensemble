@@ -475,7 +475,7 @@ func (f *Framework) Add(id common.AgentID, actor *Actor) {
 	f.mu.Unlock()
 
 	// Bridge: tag observations with the agent ID and forward to merged.
-	actor.Attach(observerFunc(func(obs common.Observation) {
+	actor.Attach(ObserverFunc(func(obs common.Observation) {
 		tagged := tagObservation(obs, id)
 		select {
 		case f.merged <- tagged:
@@ -519,10 +519,11 @@ func (f *Framework) Shutdown() error {
 	return firstErr
 }
 
-// observerFunc adapts a plain function to the Observer interface.
-type observerFunc func(common.Observation)
+// ObserverFunc adapts a plain function to the Observer interface.
+type ObserverFunc func(common.Observation)
 
-func (f observerFunc) Observe(o common.Observation) { f(o) }
+// Observe implements common.Observer.
+func (f ObserverFunc) Observe(o common.Observation) { f(o) }
 
 // tagObservation sets the Agent field on an observation.
 func tagObservation(obs common.Observation, id common.AgentID) common.Observation {
