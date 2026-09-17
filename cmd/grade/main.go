@@ -30,7 +30,7 @@ func main() {
 	// Ch5 handles its own build (agent/cmd/ and ch05/).
 	var bin string
 	var cleanup func()
-	if *chapter != 5 {
+	if *chapter != 5 && *chapter != 6 {
 		var err error
 		bin, cleanup, err = grade.Build(path)
 		if err != nil {
@@ -84,6 +84,15 @@ func main() {
 		report = grade.NewTitledReport(
 			"Chapter 5 — The Big Refactor",
 			grade.Ch5Evaluate(res), res.HelpersErr)
+	case 6:
+		res, err := grade.Ch6Run(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
+			os.Exit(2)
+		}
+		report = grade.NewTitledReport(
+			"Chapter 6 — Two Seams and a Loop",
+			grade.Ch6Evaluate(res), res.HelpersErr)
 	default:
 		fmt.Fprintf(os.Stderr, "grader: no grader for chapter %d yet\n", *chapter)
 		os.Exit(2)

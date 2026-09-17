@@ -114,21 +114,40 @@ func main() {
 		go a.Run(ctx)
 	}
 
-	// Read stdin.
-	in := bufio.NewScanner(os.Stdin)
-	in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
+	// Read stdin on a SEPARATE goroutine so hints can arrive during pipeline execution.
+	// Messages are sent through a channel to the main processing loop.
+	type stdinLine struct {
+		msg inputMsg
+		err error
+	}
+	lines := make(chan stdinLine, 16)
+	go func() {
+		defer close(lines)
+		in := bufio.NewScanner(os.Stdin)
+		in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
+		for in.Scan() {
+			line := strings.TrimSpace(in.Text())
+			if line == "" {
+				continue
+			}
+			var msg inputMsg
+			if err := json.Unmarshal([]byte(line), &msg); err != nil {
+				lines <- stdinLine{err: err}
+				continue
+			}
+			lines <- stdinLine{msg: msg}
+		}
+	}()
 
-	for in.Scan() {
-		line := strings.TrimSpace(in.Text())
-		if line == "" {
+	// Process messages. Prompts launch the pipeline in the background,
+	// hints and interrupts are delivered immediately.
+	var pipelineDone sync.WaitGroup
+	for sl := range lines {
+		if sl.err != nil {
+			emit(map[string]string{"error": "bad input: " + sl.err.Error()})
 			continue
 		}
-
-		var msg inputMsg
-		if err := json.Unmarshal([]byte(line), &msg); err != nil {
-			emit(map[string]string{"error": "bad input: " + err.Error()})
-			continue
-		}
+		msg := sl.msg
 
 		// Chapter 6 protocol.
 		if msg.Kind != nil {
@@ -138,7 +157,11 @@ func main() {
 					emit(map[string]string{"error": "prompt requires text"})
 					continue
 				}
-				runPipeline(ctx, fw, *msg.Text, emit, logEvent)
+				pipelineDone.Add(1)
+				go func(text string) {
+					defer pipelineDone.Done()
+					runPipeline(ctx, fw, text, emit, logEvent)
+				}(*msg.Text)
 			case "hint":
 				if msg.Text == nil {
 					emit(map[string]string{"error": "hint requires text"})
@@ -151,7 +174,6 @@ func main() {
 						a.Send(agent.Hint{Text: *msg.Text})
 					}
 				} else {
-					// Deliver to all.
 					for _, act := range actors {
 						act.Send(agent.Hint{Text: *msg.Text})
 					}
@@ -168,13 +190,19 @@ func main() {
 
 		// Backward compat: {"user":"..."}
 		if msg.User != nil {
-			runPipeline(ctx, fw, *msg.User, emit, logEvent)
+			pipelineDone.Add(1)
+			go func(text string) {
+				defer pipelineDone.Done()
+				runPipeline(ctx, fw, text, emit, logEvent)
+			}(*msg.User)
 			continue
 		}
 
 		emit(map[string]string{"error": "no recognized field"})
 	}
 
+	// Wait for all pipelines to finish.
+	pipelineDone.Wait()
 	_ = fw.Shutdown()
 	out.Flush()
 }

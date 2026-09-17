@@ -64,6 +64,12 @@ func models() map[string]ModelFeatures {
 
 	// Fake model used by the grader — images only, to test loud refusal.
 	"fake-model":        {Media: MediaImage},
+
+	// Course/test models used by graders in various chapters.
+	"claude-fake-course-1":     {Media: MediaImage | MediaDocument},
+	"claude-sonnet-5-course":   {Media: MediaImage | MediaDocument},
+	"gpt-5-course":             {Media: MediaImage | MediaDocument},
+	"gemini-3.5-flash-course":  {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument},
 	}
 }
 

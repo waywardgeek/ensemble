@@ -21,6 +21,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/creack/pty"
 
@@ -151,6 +152,14 @@ func builtinTools() map[string]common.Tool {
 			"context_lines":{"type":"integer","description":"Lines of context to return before and after each match. Default 0."}},
 			"required":["pattern"]}`),
 		Run: ToolSearchFiles,
+	},
+	"think": {
+		Name:        "think",
+		Description: "Pause to think or deliberate. Takes a duration in seconds (default 1) and an optional thought description. Returns the thought as output.",
+		Schema: json.RawMessage(`{"type":"object","properties":{
+			"seconds":{"type":"number","description":"How long to think, in seconds. Default 1."},
+			"thought":{"type":"string","description":"What you are thinking about. Returned as the output."}}}`),
+		Run: toolThink,
 	},
 	}
 }
@@ -653,6 +662,29 @@ func withContext(path string, lines []string, hits []int, ctx int, precededBy bo
 		last = hi
 	}
 	return out
+}
+
+// toolThink pauses for a given duration. It is NOT a NoJob tool, so it runs
+// on a goroutine and the actor can process hints during the pause.
+func toolThink(c *common.Call, args json.RawMessage) (string, error) {
+	var a struct {
+		Seconds float64 `json:"seconds"`
+		Thought string  `json:"thought"`
+	}
+	if err := json.Unmarshal(args, &a); err != nil {
+		return "", err
+	}
+	if a.Seconds <= 0 {
+		a.Seconds = 1
+	}
+	if a.Seconds > 30 {
+		a.Seconds = 30 // cap
+	}
+	time.Sleep(time.Duration(a.Seconds * float64(time.Second)))
+	if a.Thought == "" {
+		return "Done thinking.", nil
+	}
+	return "Thought about: " + a.Thought, nil
 }
 
 // Reg is the agent's tool registry — the entire capability surface, and

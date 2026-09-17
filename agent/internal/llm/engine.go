@@ -67,6 +67,13 @@ func (e *Engine) Attach(text string) error {
 
 // Turn renders the current context, sends it, and folds the response back in.
 func (e *Engine) Turn() (string, error) {
+	// Loud refusal: reject unknown models before doing anything else.
+	if _, known := common.LookupModel(e.Cfg.Model); !known {
+		err := fmt.Errorf("unknown model %q: not in the supported model table; refusing to proceed", e.Cfg.Model)
+		_ = e.Record(common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{Message: err.Error()}})
+		return "", err
+	}
+
 	renderer, parser, err := SeamFor(e.Cfg.Vendor)
 	if err != nil {
 		return "", err
