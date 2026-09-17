@@ -1,0 +1,50 @@
+Tower of Hanoi with 3 disks: A -> C
+
+  ===      |       |   
+ =====     |       |   
+=======    |       |   
+   A       B       C   
+Move 1: disk 1 from A to C
+
+   |       |       |   
+ =====     |       |   
+=======    |      ===  
+   A       B       C   
+Move 2: disk 2 from A to B
+
+   |       |       |   
+   |       |       |   
+=======  =====    ===  
+   A       B       C   
+Move 3: disk 1 from C to B
+
+   |       |       |   
+   |      ===      |   
+=======  =====     |   
+   A       B       C   
+Move 4: disk 3 from A to C
+
+   |       |       |   
+   |      ===      |   
+   |     =====  =======
+   A       B       C   
+Move 5: disk 1 from B to A
+
+   |       |       |   
+   |       |       |   
+  ===    =====  =======
+   A       B       C   
+Move 6: disk 2 from B to C
+
+   |       |       |   
+   |       |     ===== 
+  ===      |    =======
+   A       B       C   
+Move 7: disk 1 from A to C
+
+   |       |      ===  
+   |       |     ===== 
+   |       |    =======
+   A       B       C   
+Solved in 7 moves.
+exit_code: 0

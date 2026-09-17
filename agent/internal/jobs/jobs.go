@@ -51,7 +51,9 @@ type Jobs struct {
 func NewJobs(host common.Host) *Jobs { return &Jobs{host: host, all: map[int]*Job{}} }
 
 // Logf satisfies common.Host via the parent chain.
-func (js *Jobs) Logf(format string, args ...any) { js.host.Logf(format, args...) }
+func (js *Jobs) Logf(format string, args ...any)    { js.host.Logf(format, args...) }
+func (js *Jobs) APILogf(format string, args ...any) { js.host.APILogf(format, args...) }
+func (js *Jobs) Debugf(format string, args ...any)  { js.host.Debugf(format, args...) }
 
 // Start allocates a handle and its output file. It is called by the
 // dispatcher for every job-creating tool before the tool runs.

@@ -123,6 +123,17 @@ func (e *Engine) Turn() (string, error) {
 }
 
 func (e *Engine) send(req *http.Request) (int, []byte, error) {
+	// Log the outbound JSON request.
+	if req.Body != nil {
+		reqBody, err := io.ReadAll(req.Body)
+		if err != nil {
+			return 0, nil, err
+		}
+		req.Body.Close()
+		e.Host.APILogf(">>> %s %s\n%s", req.Method, req.URL, string(reqBody))
+		req.Body = io.NopCloser(strings.NewReader(string(reqBody)))
+	}
+
 	resp, err := e.HTTP.Do(req)
 	if err != nil {
 		return 0, nil, err
@@ -132,6 +143,10 @@ func (e *Engine) send(req *http.Request) (int, []byte, error) {
 	if err != nil {
 		return 0, nil, err
 	}
+
+	// Log the inbound JSON response.
+	e.Host.APILogf("<<< %d\n%s", resp.StatusCode, string(body))
+
 	return resp.StatusCode, body, nil
 }
 

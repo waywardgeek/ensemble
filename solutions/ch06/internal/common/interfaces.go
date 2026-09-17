@@ -133,6 +133,10 @@ type ToolRegistry interface {
 // It provides access to the logger and any other top-level facilities.
 type Host interface {
 	Logf(format string, args ...any)
+	// APILogf logs LLM API wire traffic (JSON requests and responses).
+	APILogf(format string, args ...any)
+	// Debugf logs to both the terminal and the debug log file.
+	Debugf(format string, args ...any)
 }
 
 // ToolFunc executes one tool call and returns text the model will see.

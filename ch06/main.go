@@ -315,6 +315,11 @@ func (cliHost) Logf(format string, args ...any) {
 	fmt.Fprintf(os.Stderr, format+"\n", args...)
 }
 
+func (cliHost) APILogf(format string, args ...any) {}
+func (cliHost) Debugf(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, format+"\n", args...)
+}
+
 func envOr(k, def string) string {
 	if v := os.Getenv(k); v != "" {
 		return v

@@ -106,9 +106,9 @@ func (a *Agent) RegisterTool(name, description string, schema json.RawMessage, h
 
 // Logf logs a message through the agent's logger. This makes Agent satisfy
 // common.Host, so any code that holds a Host can log.
-func (a *Agent) Logf(format string, args ...any) {
-	a.Logger.Logf(format, args...)
-}
+func (a *Agent) Logf(format string, args ...any)    { a.Logger.Logf(format, args...) }
+func (a *Agent) APILogf(format string, args ...any) { a.Logger.APILogf(format, args...) }
+func (a *Agent) Debugf(format string, args ...any)  { a.Logger.Debugf(format, args...) }
 
 // Ask sends a prompt and runs the full tool loop until the model replies.
 func (a *Agent) Ask(prompt string) (string, error) {

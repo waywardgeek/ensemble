@@ -19,6 +19,7 @@ import (
 	"strings"
 	"sync"
 
+	agent "github.com/waywardgeek/coding-agents-course/agent"
 	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 	"github.com/waywardgeek/coding-agents-course/agent/internal/jobs"
 	"github.com/waywardgeek/coding-agents-course/agent/internal/llm"
@@ -120,11 +121,35 @@ func main() {
 	}
 }
 
-// cliHost implements common.Host for the CLI.
-type cliHost struct{}
+// cliHost implements common.Host for the CLI with three log destinations.
+type cliHost struct {
+	logger *agent.Logger
+}
 
-func (cliHost) Logf(format string, args ...any) {
-	fmt.Fprintf(os.Stderr, format+"\n", args...)
+func newCLIHost() *cliHost {
+	logger := agent.DefaultLogger()
+
+	// API log: raw JSON wire traffic.
+	if f, err := os.Create("api.log"); err == nil {
+		logger.SetAPILog(f)
+	}
+
+	// Debug log: arbitrary text, also printed to stderr.
+	if f, err := os.Create("debug.log"); err == nil {
+		logger.SetDebugLog(f)
+	}
+
+	return &cliHost{logger: logger}
+}
+
+func (h *cliHost) Logf(format string, args ...any) {
+	h.logger.Logf(format, args...)
+}
+func (h *cliHost) APILogf(format string, args ...any) {
+	h.logger.APILogf(format, args...)
+}
+func (h *cliHost) Debugf(format string, args ...any) {
+	h.logger.Debugf(format, args...)
 }
 
 // ----------------------------------------------------------------
@@ -143,7 +168,7 @@ type stdinMsg struct {
 }
 
 func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg) (vendorFailed bool) {
-	host := cliHost{}
+	host := newCLIHost()
 	j := jobs.NewJobs(host)
 	eng := llm.NewEngine(cfg, logPath, j, reg, host)
 	actor := llm.NewActor(eng, host)
@@ -316,7 +341,7 @@ func observationJSON(obs common.Observation) map[string]any {
 // ----------------------------------------------------------------
 
 func runLoop(cfg common.Config, logPath string, interactive bool, reg *tools.Reg) (vendorFailed bool) {
-	host := cliHost{}
+	host := newCLIHost()
 	j := jobs.NewJobs(host)
 	eng := llm.NewEngine(cfg, logPath, j, reg, host)
 	in := bufio.NewScanner(os.Stdin)

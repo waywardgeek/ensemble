@@ -1,0 +1,10 @@
+.:
+file  agent.go (6753 bytes)
+file  bin (9114322 bytes)
+file  bin.log (704 bytes)
+dir   cmd/
+dir   cr/
+file  go.mod (105 bytes)
+file  go.sum (163 bytes)
+dir   internal/
+file  logger.go (761 bytes)
