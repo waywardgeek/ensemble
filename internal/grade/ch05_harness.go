@@ -16,16 +16,18 @@ import (
 
 // Ch5Result holds evidence for the ch5 checks.
 type Ch5Result struct {
-	AgentBuildOK  bool
-	AgentBuildErr string
-	ExBuildOK     bool
-	ExBuildErr    string
-	ImportGraph   map[string][]string
-	ExToolCalled  bool
-	ExToolOutput  string
-	Base          string
-	Ch4Result     *Ch4Result
-	HelpersErr    string
+	AgentBuildOK   bool
+	AgentBuildErr  string
+	ExBuildOK      bool
+	ExBuildErr     string
+	ImportGraph    map[string][]string
+	ExToolCalled   bool
+	ExToolOutput   string
+	Base           string
+	HasLogf        bool
+	MutableGlobals []string
+	Ch4Result      *Ch4Result
+	HelpersErr     string
 }
 
 func Ch5Run(dir string) (*Ch5Result, error) {
@@ -84,6 +86,12 @@ func Ch5Run(dir string) (*Ch5Result, error) {
 				strings.Split(strings.TrimSpace(parts[1]), ",")
 		}
 	}
+
+	// Check for Host interface with Logf in common, and embedded in Call.
+	r.HasLogf = detectLogf(agentDir)
+
+	// Check for mutable package-level vars.
+	r.MutableGlobals = detectMutableGlobals(agentDir)
 
 	// Drive exercise binary.
 	if r.ExBuildOK {
@@ -178,4 +186,46 @@ func driveCh5Ex(bin, workDir string) (toolCalled bool, toolOutput string) {
 		}
 	}
 	return
+}
+
+
+// detectLogf checks whether the student's common package declares a Host
+// interface with Logf and embeds it in the Call struct.
+func detectLogf(agentDir string) bool {
+	commonDir := filepath.Join(agentDir, "internal", "common")
+	// Check for Logf declaration in common/
+	cmd := exec.Command("grep", "-rl", "Logf", commonDir)
+	if out, err := cmd.Output(); err != nil || len(out) == 0 {
+		return false
+	}
+	// Check that Call struct references Host (embedding or field).
+	cmd = exec.Command("grep", "-rl", "Host", commonDir)
+	out, err := cmd.Output()
+	return err == nil && len(out) > 0
+}
+
+// detectMutableGlobals finds package-level var declarations that are mutable
+// state (not immutable lookup maps). Returns the list of offending locations.
+func detectMutableGlobals(agentDir string) []string {
+	// Find all "var " declarations at the start of a line in non-test Go files.
+	cmd := exec.Command("grep", "-rn", "^var ", agentDir, "--include=*.go")
+	out, _ := cmd.Output()
+	var globals []string
+	for _, line := range strings.Split(string(out), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		// Skip test files.
+		if strings.Contains(line, "_test.go:") {
+			continue
+		}
+		// Skip immutable name-lookup maps (effectively constants).
+		lower := strings.ToLower(line)
+		if strings.Contains(lower, "names") || strings.Contains(lower, "name =") {
+			continue
+		}
+		globals = append(globals, line)
+	}
+	return globals
 }

@@ -96,6 +96,35 @@ func Ch5Evaluate(r *Ch5Result) []Check {
 		checks = append(checks, c)
 	}
 
+	// ---- logger-accessible (10 pts) ----------------------------------------
+	{
+		c := Check{ID: "logger-accessible", Title: "Logger reachable through parent interface chain", Points: 10}
+		if !r.AgentBuildOK {
+			c.failf("agent binary did not build")
+		} else if r.HasLogf {
+			c.Passed = true
+			c.Earned = c.Points
+			c.notef("Host interface with Logf found in common, embedded in Call")
+		} else {
+			c.failf("no Host interface with Logf found in common, or not embedded in Call")
+		}
+		checks = append(checks, c)
+	}
+
+	// ---- no-mutable-globals (10 pts) --------------------------------------
+	{
+		c := Check{ID: "no-mutable-globals", Title: "No mutable package-level variables", Points: 10}
+		if !r.AgentBuildOK {
+			c.failf("agent binary did not build")
+		} else if len(r.MutableGlobals) == 0 {
+			c.Passed = true
+			c.Earned = c.Points
+		} else {
+			c.failf("mutable globals found: %s", strings.Join(r.MutableGlobals, ", "))
+		}
+		checks = append(checks, c)
+	}
+
 	// ---- ch4-parity (30 pts) ----------------------------------------------
 	{
 		c := Check{ID: "ch4-parity", Title: "Agent passes ch4 behavioral checks", Points: 30}
