@@ -20,6 +20,7 @@ func Ch7Evaluate(r *Ch7Result) []Check {
 		ch7DeltasMatchFinal(r),
 		ch7ThinkingStreamed(r),
 		ch7ToolParamsStreamed(r),
+		ch7DeliveryNotContent(r),
 		ch7Parity(r),
 	}
 }
@@ -54,7 +55,7 @@ func ch7Ready(c *Check, r *Ch7Result) bool {
 
 // stream-deltas: content arrives in pieces, not in one lump.
 func ch7StreamDeltas(r *Ch7Result) Check {
-	c := Check{ID: "stream-deltas", Title: "content streams as many deltas", Points: 25, Passed: true, Earned: 25}
+	c := Check{ID: "stream-deltas", Title: "content streams as many deltas", Points: 20, Passed: true, Earned: 20}
 	if !ch7Ready(&c, r) {
 		return c
 	}
@@ -69,22 +70,6 @@ func ch7StreamDeltas(r *Ch7Result) Check {
 		return c
 	}
 	c.notef("saw %d text deltas across %d parts", n, len(r.Stream.TextByPart()))
-
-	// The same script with streaming disabled must still produce deltas, and
-	// FEWER of them. This is the "streaming is not a mode" claim: a caller
-	// downstream cannot tell the two apart except by counting.
-	if r.Plain.Ran && r.Plain.ExitErr == "" {
-		p := r.Plain.KindCount("text")
-		switch {
-		case p == 0:
-			c.failf("with streaming disabled the agent emitted NO text deltas")
-			c.notef("a non-streamed response is a stream of length one; it still reports one delta per part, or every observer breaks when streaming is turned off")
-		case p >= n:
-			c.failf("streaming disabled produced %d text deltas, streaming produced %d: the flag changed nothing", p, n)
-		default:
-			c.notef("streaming disabled produced %d text deltas (length-one stream), streaming produced %d", p, n)
-		}
-	}
 	return c
 }
 
@@ -235,9 +220,83 @@ func ch7ToolParamsStreamed(r *Ch7Result) Check {
 	return c
 }
 
+// delivery-not-content: streaming changes the chunk count and nothing else.
+//
+// This is the chapter's thesis stated as a check. A scripted reply exercised
+// twice — once streamed, once not — must produce identical finalized content
+// and a different number of deltas. "The response is the same response
+// whether it trickles or lands."
+func ch7DeliveryNotContent(r *Ch7Result) Check {
+	c := Check{ID: "delivery-not-content", Title: "streaming changes delivery, not content", Points: 10, Passed: true, Earned: 10}
+	if !ch7Ready(&c, r) {
+		return c
+	}
+
+	// The plain run must have completed.
+	if !r.Plain.Ran {
+		c.failf("plain (non-streaming) run did not execute")
+		return c
+	}
+	if r.Plain.ExitErr != "" {
+		c.failf("plain run exited with an error: %s", r.Plain.ExitErr)
+		return c
+	}
+
+	// 1. Finalized reply text must be identical, byte for byte.
+	if r.Stream.Assistant != r.Plain.Assistant {
+		c.failf("assistant text differs between streaming and plain runs")
+		c.notef("streaming: %s", truncate(r.Stream.Assistant, 120))
+		c.notef("plain:     %s", truncate(r.Plain.Assistant, 120))
+		return c
+	}
+	if r.Stream.Assistant == "" {
+		c.failf("neither run produced an assistant line")
+		return c
+	}
+
+	// 2. Same number of finalized parts, same kinds in order.
+	if len(r.Stream.Finals) != len(r.Plain.Finals) {
+		c.failf("streaming produced %d part finals, plain produced %d", len(r.Stream.Finals), len(r.Plain.Finals))
+		return c
+	}
+	for i := range r.Stream.Finals {
+		sk := r.Stream.Finals[i].Kind
+		pk := r.Plain.Finals[i].Kind
+		if sk != pk {
+			c.failf("part final %d: streaming kind %q, plain kind %q", i, sk, pk)
+			return c
+		}
+	}
+
+	// 3. Delta counts must differ — that is what streaming is FOR.
+	sn := len(r.Stream.Deltas)
+	pn := len(r.Plain.Deltas)
+	if sn == pn {
+		c.failf("streaming and plain runs both produced %d deltas; the flag changed nothing", sn)
+		return c
+	}
+
+	// Also verify the plain run produced sensible deltas (moved from stream-deltas).
+	pt := r.Plain.KindCount("text")
+	st := r.Stream.KindCount("text")
+	if pt == 0 {
+		c.failf("with streaming disabled the agent emitted NO text deltas")
+		c.notef("a non-streamed response is a stream of length one; it still reports one delta per part, or every observer breaks when streaming is turned off")
+		return c
+	}
+	if pt >= st {
+		c.failf("streaming disabled produced %d text deltas, streaming produced %d: the flag changed nothing", pt, st)
+		return c
+	}
+
+	c.notef("same text (%d bytes), same %d part kinds, different delta counts (%d streaming vs %d plain)",
+		len(r.Stream.Assistant), len(r.Stream.Finals), sn, pn)
+	return c
+}
+
 // ch6-parity: everything chapter 6 promised still holds.
 func ch7Parity(r *Ch7Result) Check {
-	c := Check{ID: "ch6-parity", Title: "chapter 6 behavior is unchanged", Points: 25, Passed: true, Earned: 25}
+	c := Check{ID: "ch6-parity", Title: "chapter 6 behavior is unchanged", Points: 20, Passed: true, Earned: 20}
 	if r.Ch6Err != "" {
 		c.failf("ch6 harness did not run: %s", r.Ch6Err)
 		return c

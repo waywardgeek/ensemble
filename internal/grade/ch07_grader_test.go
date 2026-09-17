@@ -129,7 +129,7 @@ func ch7Mutants() []ch7mutation {
 				"of arrival changed. Every delta-counting check should notice and " +
 				"nothing else should, which is the chapter's claim that streaming " +
 				"is a delivery property and not a content property.",
-			wantFail: []string{"deltas-match-final", "stream-deltas", "thinking-streamed", "tool-params-streamed"},
+			wantFail: []string{"deltas-match-final", "delivery-not-content", "stream-deltas", "thinking-streamed", "tool-params-streamed"},
 			edits: []ch7edit{{
 				relPath: "agent/internal/llm/claude.go",
 				find:    `Stream:\s+common\.StreamingFor\(cfg\) != 0,`,
@@ -244,8 +244,8 @@ func TestCh7PointsSumTo100(t *testing.T) {
 	if sum != 100 {
 		t.Fatalf("checks sum to %d, want exactly 100", sum)
 	}
-	if len(seen) != 5 {
-		t.Fatalf("got %d checks, want 5", len(seen))
+	if len(seen) != 6 {
+		t.Fatalf("got %d checks, want 6", len(seen))
 	}
 }
 

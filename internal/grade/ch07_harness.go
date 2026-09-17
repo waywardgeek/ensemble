@@ -28,6 +28,12 @@ type Ch7Delta struct {
 	Chunk  string
 }
 
+// Ch7PartFinal is one observed part_final, capturing the kind for ordering.
+type Ch7PartFinal struct {
+	PartID uint64
+	Kind   string // "text", "tool_call", or "thinking"
+}
+
 // Ch7Exec is one execution of the exercise binary.
 type Ch7Exec struct {
 	Ran       bool
@@ -38,6 +44,7 @@ type Ch7Exec struct {
 	Deltas    []Ch7Delta
 	FinalText map[uint64]string // part_id -> finalized text, text parts only
 	FinalTool map[uint64]string // part_id -> finalized tool name
+	Finals    []Ch7PartFinal    // ordered part finals, all kinds
 	Assistant string
 	Stats     []map[string]any
 }
@@ -238,12 +245,16 @@ func driveCh7(bin, tmp string, noStream bool) Ch7Exec {
 			run.Deltas = append(run.Deltas, d)
 		case "part_final":
 			id := uint64(numOf(m["part_id"]))
+			kind := "thinking" // default: neither text nor tool means thinking/opaque
 			if t, ok := m["text"].(string); ok {
 				run.FinalText[id] = t
+				kind = "text"
 			}
 			if t, ok := m["tool"].(string); ok {
 				run.FinalTool[id] = t
+				kind = "tool_call"
 			}
+			run.Finals = append(run.Finals, Ch7PartFinal{PartID: id, Kind: kind})
 		case "stream_stats":
 			run.Stats = append(run.Stats, m)
 		}
