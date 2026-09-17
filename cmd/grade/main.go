@@ -27,12 +27,18 @@ func main() {
 		path = fmt.Sprintf("./solutions/ch%02d", *chapter)
 	}
 
-	bin, cleanup, err := grade.Build(path)
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "grader: %v\n", err)
-		os.Exit(2)
+	// Ch5 handles its own build (agent/cmd/ and ch05/).
+	var bin string
+	var cleanup func()
+	if *chapter != 5 {
+		var err error
+		bin, cleanup, err = grade.Build(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
+			os.Exit(2)
+		}
+		defer cleanup()
 	}
-	defer cleanup()
 
 	var report grade.Report
 	switch *chapter {
@@ -69,6 +75,15 @@ func main() {
 		report = grade.NewTitledReport(
 			"Chapter 4 — Jobs: Containment, Not Cancellation",
 			grade.Ch4Evaluate(res), res.HelpersErr)
+	case 5:
+		res, err := grade.Ch5Run(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
+			os.Exit(2)
+		}
+		report = grade.NewTitledReport(
+			"Chapter 5 — The Big Refactor",
+			grade.Ch5Evaluate(res), res.HelpersErr)
 	default:
 		fmt.Fprintf(os.Stderr, "grader: no grader for chapter %d yet\n", *chapter)
 		os.Exit(2)

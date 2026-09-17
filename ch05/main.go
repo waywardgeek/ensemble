@@ -43,21 +43,17 @@ func main() {
 			if err := json.Unmarshal(args, &p); err != nil {
 				return "", err
 			}
-			// Dead-simple: we only need to prove the tool was called.
-			// A real calculator would parse and evaluate. For the exercise,
-			// the model sees the tool exists and will call it; the grader
-			// only checks that the output appeared.
 			result := evalSimple(p.Expression)
 			return fmt.Sprintf("Result: %s = %s", p.Expression, result), nil
 		},
 	)
 
-	cfg := agent.Config{
-		Vendor:       agent.VendorAnthropic,
-		Surface:      agent.DefaultSurface(agent.VendorAnthropic),
-		SystemPrompt: "You are a calculator assistant. Use the calculate tool for any arithmetic.",
-		MaxTokens:    1024,
+	cfg, err := agent.ConfigFromEnv()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "config:", err)
+		os.Exit(2)
 	}
+	cfg.SystemPrompt = "You are a calculator assistant. Use the calculate tool for any arithmetic."
 
 	a := agent.NewAgent(cfg, "ch05.log")
 	defer a.Shutdown()

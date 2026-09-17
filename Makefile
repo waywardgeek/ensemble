@@ -23,6 +23,8 @@ grade2:
 
 grade3:
 	go run ./cmd/grade -ch 3 ./solutions/ch03
+grade5:
+	go run ./cmd/grade -ch 5 .
 
 # Grade an arbitrary submission:
 #   make grade-dir DIR=/path/to/submission        (chapter 1)
