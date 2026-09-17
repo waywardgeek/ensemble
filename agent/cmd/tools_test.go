@@ -1,11 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 	"github.com/waywardgeek/coding-agents-course/agent/internal/jobs"
 	"github.com/waywardgeek/coding-agents-course/agent/internal/llm"
 	"github.com/waywardgeek/coding-agents-course/agent/internal/tools"
-	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -162,7 +162,7 @@ func TestSearchFilesContextLines(t *testing.T) {
 // proves the note is one-shot too.
 func TestToolLimitsConsumptionIsVisible(t *testing.T) {
 	t.Chdir(t.TempDir())
-	e := llm.NewEngine(common.Config{}, "log.jsonl", jobs.NewJobs(cliHost{}), tools.NewRegistry(), cliHost{})
+	e := llm.NewEngine(common.Config{}, "log.jsonl", jobs.NewJobs(&cliHost{}), tools.NewRegistry(), &cliHost{})
 	run := func(id, name, args string) string {
 		if err := e.Execute(common.ToolCallPart{CallID: id, Name: name, Args: json.RawMessage(args)}); err != nil {
 			t.Fatalf("%s: %v", name, err)
