@@ -75,6 +75,13 @@ type Reply struct {
 	ToolID   string
 	Usage    Canonical
 
+	// Thinking is reasoning content. Empty in every Chapter 2 fixture, so
+	// those responses stay byte-identical; set it to exercise the reasoning
+	// path, where the vendors differ most. Anthropic streams it as a
+	// thinking block whose SIGNATURE arrives last, Gemini as thought parts,
+	// and OpenAI not at all.
+	Thinking string
+
 	// Tools carries two or more calls. When it is empty the singular
 	// ToolName/ToolArgs/ToolID fields are used instead, so every Chapter 2
 	// fixture keeps producing byte-identical wire output.
@@ -251,10 +258,25 @@ func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// An error is JSON even when the request asked to stream, which is why
+	// the parsers decide by the response's content type rather than by what
+	// they asked for.
 	if reply.Status != 0 && reply.Status != http.StatusOK {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(reply.Status)
 		io.WriteString(w, reply.ErrBody)
+		return
+	}
+
+	if wantsStream(r, body, vendor) {
+		switch vendor {
+		case "anthropic":
+			anthropicStream(w, reply)
+		case "openai":
+			openAIStream(w, reply)
+		case "gemini":
+			geminiStream(w, reply)
+		}
 		return
 	}
 
