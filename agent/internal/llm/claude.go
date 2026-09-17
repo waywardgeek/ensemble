@@ -1,4 +1,4 @@
-package main
+package llm
 
 // Anthropic — Messages API.
 //
@@ -7,6 +7,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 	"fmt"
 	"net/http"
 )
@@ -33,7 +34,7 @@ type anthTool struct {
 	InputSchema json.RawMessage `json:"input_schema"`
 }
 
-func anthTools(decls []ToolDecl) []anthTool {
+func anthTools(decls []common.ToolDecl) []anthTool {
 	var out []anthTool
 	for _, d := range decls {
 		out = append(out, anthTool{Name: d.Name, Description: d.Description, InputSchema: d.Schema})
@@ -82,8 +83,8 @@ func (b anthBlock) MarshalJSON() ([]byte, error) {
 	return json.Marshal(wire{b.Type, b.Text, b.ID, b.Name, b.Input, b.ToolUseID, b.Content, b.IsError})
 }
 
-func (anthropicSeam) Render(c *Context, cfg Config) (*http.Request, error) {
-	target := Provenance{Vendor: VendorAnthropic, Model: cfg.Model, Surface: SurfaceMessages}
+func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request, error) {
+	target := common.Provenance{Vendor: common.VendorAnthropic, Model: cfg.Model, Surface: common.SurfaceMessages}
 
 	var msgs []anthMsg
 	// appendBlocks merges into the previous message when the role matches.
@@ -122,7 +123,7 @@ func (anthropicSeam) Render(c *Context, cfg Config) (*http.Request, error) {
 		}
 		// Anthropic references an uploaded file as a `source` of type "file"
 		// carrying a `file_id`, on an `image` or `document` block. That form is
-		// real, but mapping a Ref onto it needs a rule for which locators are
+		// real, but mapping a common.Ref onto it needs a rule for which locators are
 		// Anthropic file ids and which are something else, and Chapter 2 does
 		// not have one. Raising here is the honest answer: a guessed field name
 		// is worse than an unimplemented one, and dropping the blob would send
@@ -132,7 +133,7 @@ func (anthropicSeam) Render(c *Context, cfg Config) (*http.Request, error) {
 				"chapter (%s at %s)", r.Blobs[0].MIME, r.Blobs[0].Ref.Locator)
 		}
 		switch entry.Actor {
-		case ActorTool:
+		case common.ActorTool:
 			var blocks []anthBlock
 			for _, res := range r.Tools {
 				blocks = append(blocks, anthBlock{
@@ -144,10 +145,10 @@ func (anthropicSeam) Render(c *Context, cfg Config) (*http.Request, error) {
 			}
 			appendBlocks("user", blocks, true)
 
-		case ActorAgent:
+		case common.ActorAgent:
 			var blocks []anthBlock
 			// Opaque replay material goes back only to the EXACT model that
-			// issued it. Vendor is not a fine enough grain.
+			// issued it. common.Vendor is not a fine enough grain.
 			for _, op := range r.Raw {
 				if op.From.SameModel(target) {
 					blocks = append(blocks, anthBlock{Raw: op.Data})
@@ -166,7 +167,7 @@ func (anthropicSeam) Render(c *Context, cfg Config) (*http.Request, error) {
 			}
 			appendBlocks("assistant", blocks, false)
 
-		default: // ActorHuman
+		default: // common.ActorHuman
 			var blocks []anthBlock
 			for _, t := range r.Texts {
 				blocks = append(blocks, anthBlock{Type: "text", Text: t})
@@ -181,7 +182,7 @@ func (anthropicSeam) Render(c *Context, cfg Config) (*http.Request, error) {
 	if len(c.Ephemera) > 0 {
 		var blocks []anthBlock
 		for _, p := range c.Ephemera {
-			if t, ok := p.(TextPart); ok {
+			if t, ok := p.(common.TextPart); ok {
 				blocks = append(blocks, anthBlock{Type: "text", Text: t.Text})
 			}
 		}
@@ -231,9 +232,9 @@ type anthBlockHeader struct {
 	Input json.RawMessage `json:"input"`
 }
 
-func (anthropicSeam) Parse(status int, body []byte) ([]Event, error) {
+func (anthropicSeam) Parse(status int, body []byte) ([]common.Event, error) {
 	if status != http.StatusOK {
-		return []Event{{Type: ErrorOccurred, Error: &ErrorData{
+		return []common.Event{{Type: common.ErrorOccurred, Error: &common.ErrorData{
 			Status:  status,
 			Message: vendorErrorMessage(body),
 		}}}, nil
@@ -242,12 +243,12 @@ func (anthropicSeam) Parse(status int, body []byte) ([]Event, error) {
 	if err := json.Unmarshal(body, &resp); err != nil {
 		return nil, fmt.Errorf("anthropic: %w", err)
 	}
-	// Provenance comes from the RESPONSE, not from Config: the vendor tells
+	// common.Provenance comes from the RESPONSE, not from common.Config: the vendor tells
 	// you which model actually answered, and it is not always the one you
 	// asked for.
-	from := Provenance{Vendor: VendorAnthropic, Model: resp.Model, Surface: SurfaceMessages}
+	from := common.Provenance{Vendor: common.VendorAnthropic, Model: resp.Model, Surface: common.SurfaceMessages}
 
-	var parts PartList
+	var parts common.PartList
 	for _, raw := range resp.Content {
 		var h anthBlockHeader
 		if err := json.Unmarshal(raw, &h); err != nil {
@@ -255,25 +256,25 @@ func (anthropicSeam) Parse(status int, body []byte) ([]Event, error) {
 		}
 		switch h.Type {
 		case "text":
-			parts = append(parts, TextPart{Text: h.Text})
+			parts = append(parts, common.TextPart{Text: h.Text})
 		case "tool_use":
-			parts = append(parts, ToolCallPart{
+			parts = append(parts, common.ToolCallPart{
 				CallID: h.ID, From: from, Name: h.Name, Args: jsonObject(h.Input),
 			})
 		default:
 			// thinking, redacted_thinking, and anything shipped after this
 			// book went to print. Carried verbatim, tagged with the model that
 			// produced it, never interpreted.
-			parts = append(parts, OpaquePart{From: from, Data: raw})
+			parts = append(parts, common.OpaquePart{From: from, Data: raw})
 		}
 	}
 
-	return []Event{
-		{Type: ResponseStarted},
-		{Type: ResponseEnded, Response: &ResponseData{
+	return []common.Event{
+		{Type: common.ResponseStarted},
+		{Type: common.ResponseEnded, Response: &common.ResponseData{
 			Parts: parts,
 			From:  from,
-			Usage: Usage{
+			Usage: common.Usage{
 				Input:      resp.Usage.InputTokens,
 				CacheWrite: resp.Usage.CacheCreationTokens,
 				CacheRead:  resp.Usage.CacheReadTokens,
@@ -285,7 +286,7 @@ func (anthropicSeam) Parse(status int, body []byte) ([]Event, error) {
 
 // vendorErrorMessage digs a human-readable message out of whatever error shape
 // a vendor used, falling back to the raw body. An HTTP 429 is an
-// ErrorOccurred, not a response.
+// common.ErrorOccurred, not a response.
 func vendorErrorMessage(body []byte) string {
 	var e struct {
 		Error struct {

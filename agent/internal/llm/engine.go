@@ -1,4 +1,4 @@
-package main
+package llm
 
 // The engine: one turn, start to finish.
 //
@@ -12,50 +12,54 @@ import (
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 )
 
 type Engine struct {
-	Log  *Log
-	Ctx  *Context
-	Cfg  Config
-	HTTP *http.Client
-	Path string // where the log is persisted, so `dump` can find it
-	Jobs *Jobs  // every tool call that is a job, by handle
+	Log   *common.Log
+	Ctx   *common.Context
+	Cfg   common.Config
+	HTTP  *http.Client
+	Path  string // where the log is persisted, so `dump` can find it
+	Jobs  common.JobManager
+	Tools common.ToolRegistry
 }
 
-func NewEngine(cfg Config, path string) *Engine {
+func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools common.ToolRegistry) *Engine {
 	return &Engine{
-		Log:  NewLog(),
-		Ctx:  NewContext(),
-		Cfg:  cfg,
-		HTTP: &http.Client{Timeout: 120 * time.Second},
-		Path: path,
-		Jobs: NewJobs(),
+		Log:   common.NewLog(),
+		Ctx:   common.NewContext(),
+		Cfg:   cfg,
+		HTTP:  &http.Client{Timeout: 120 * time.Second},
+		Path:  path,
+		Jobs:  jobs,
+		Tools: tools,
 	}
 }
 
 // record appends to the log and advances the context. One path in.
-func (e *Engine) record(ev Event) error {
+func (e *Engine) record(ev common.Event) error {
 	stored := e.Log.Append(ev)
 	return e.Ctx.Apply(stored)
 }
 
 // Say records a human prompt.
 func (e *Engine) Say(text string) error {
-	return e.record(Event{Type: MessageReceived, Message: &MessageData{
-		Actor: ActorHuman, Parts: PartList{TextPart{Text: text}},
+	return e.record(common.Event{Type: common.MessageReceived, Message: &common.MessageData{
+		Actor: common.ActorHuman, Parts: common.PartList{common.TextPart{Text: text}},
 	}})
 }
 
 // Attach records volatile data — the time, the screen, live status.
 //
-// It is an ordinary MessageReceived with Actor: System. The reducer is what
+// It is an ordinary common.MessageReceived with Actor: System. The reducer is what
 // decides it is ephemeral rather than dialogue, which is the chapter's rule
 // about classification made concrete: the capture site does not know, and
 // cannot know, what an arriving message means.
 func (e *Engine) Attach(text string) error {
-	return e.record(Event{Type: MessageReceived, Message: &MessageData{
-		Actor: ActorSystem, Parts: PartList{TextPart{Text: text}},
+	return e.record(common.Event{Type: common.MessageReceived, Message: &common.MessageData{
+		Actor: common.ActorSystem, Parts: common.PartList{common.TextPart{Text: text}},
 	}})
 }
 
@@ -66,10 +70,10 @@ func (e *Engine) Turn() (string, error) {
 		return "", err
 	}
 
-	// RENDER BEFORE RECORDING RequestSent.
+	// RENDER BEFORE RECORDING common.RequestSent.
 	//
 	// Reverse these two lines and the bug is subtle and expensive: the reducer
-	// clears pending ephemera on RequestSent, so recording first means the
+	// clears pending ephemera on common.RequestSent, so recording first means the
 	// renderer never sees them and the volatile data is silently never
 	// delivered. Nothing errors. The model just quietly does not know what
 	// time it is. Chapter 4 hits the identical ordering trap with hints.
@@ -77,7 +81,7 @@ func (e *Engine) Turn() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	if err := e.record(Event{Type: RequestSent, Request: &RequestData{To: Provenance{
+	if err := e.record(common.Event{Type: common.RequestSent, Request: &common.RequestData{To: common.Provenance{
 		Vendor: e.Cfg.Vendor, Model: e.Cfg.Model, Surface: e.Cfg.Surface,
 	}}}); err != nil {
 		return "", err
@@ -86,7 +90,7 @@ func (e *Engine) Turn() (string, error) {
 	status, body, err := e.send(req)
 	if err != nil {
 		// A transport failure is infrastructure: it ends the turn.
-		_ = e.record(Event{Type: ErrorOccurred, Error: &ErrorData{Message: err.Error()}})
+		_ = e.record(common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{Message: err.Error()}})
 		return "", err
 	}
 
@@ -99,7 +103,7 @@ func (e *Engine) Turn() (string, error) {
 		if err := e.record(ev); err != nil {
 			return "", err
 		}
-		if ev.Type == ErrorOccurred && ev.Error != nil {
+		if ev.Type == common.ErrorOccurred && ev.Error != nil {
 			// The event is the record; this is the report. Without it a 404
 			// on the model name prints {"assistant":""} and exits 0 — measured
 			// live against Gemini, and invisible unless you read the log.
@@ -160,7 +164,7 @@ func (e *Engine) Ask(text string) (string, error) {
 		}
 
 		if round >= MaxToolRounds {
-			if err := e.record(Event{Type: ErrorOccurred, Error: &ErrorData{
+			if err := e.record(common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{
 				Message: fmt.Sprintf("stopped after %d rounds of tool calls", MaxToolRounds),
 			}}); err != nil {
 				return "", err
@@ -191,20 +195,20 @@ func (e *Engine) Ask(text string) (string, error) {
 // It is computed from the dialogue rather than stored, for the same reason
 // everything else in Chapter 2 is computed from the dialogue: the log is the
 // truth, and a second copy of the truth is a second thing to get wrong.
-func (e *Engine) pendingCalls() []ToolCallPart {
+func (e *Engine) pendingCalls() []common.ToolCallPart {
 	answered := map[string]bool{}
-	var calls []ToolCallPart
+	var calls []common.ToolCallPart
 	for _, entry := range e.Ctx.Dialogue {
 		for _, p := range entry.Parts {
 			switch v := p.(type) {
-			case ToolCallPart:
+			case common.ToolCallPart:
 				calls = append(calls, v)
-			case ToolResultPart:
+			case common.ToolResultPart:
 				answered[v.CallID] = true
 			}
 		}
 	}
-	var out []ToolCallPart
+	var out []common.ToolCallPart
 	for _, c := range calls {
 		if !answered[c.CallID] {
 			out = append(out, c)
@@ -215,7 +219,7 @@ func (e *Engine) pendingCalls() []ToolCallPart {
 
 // Execute runs one tool call and records its result.
 //
-// EVERY call records a ToolReturned event, including the ones that fail. A
+// EVERY call records a common.ToolReturned event, including the ones that fail. A
 // failure is a RESULT, not an absence: the model asked a question and the
 // answer is "that did not work, here is why". Dropping the result instead —
 // or panicking, or ending the turn — leaves the model waiting for an answer to
@@ -232,25 +236,25 @@ func (e *Engine) pendingCalls() []ToolCallPart {
 //
 // The supervision tools and tool_limits are the exception, marked NoJob: they
 // act on jobs rather than being jobs, and they run inline.
-func (e *Engine) Execute(call ToolCallPart) error {
-	// Limits are resolved BEFORE the ToolCalled record, so that a pending
+func (e *Engine) Execute(call common.ToolCallPart) error {
+	// common.Limits are resolved BEFORE the common.ToolCalled record, so that a pending
 	// tool_limits is consumed by this call whether or not the tool exists.
 	// A bad pattern is a tool error like any other: reported, not fatal.
 	limits, fromPending, limErr := e.Jobs.Take(call.Args)
 
-	tool, err := Lookup(call.Name)
+	tool, err := e.Tools.Lookup(call.Name)
 	if err == nil {
 		err = limErr
 	}
 	if err != nil || tool.NoJob {
 		// The dispatch record: the agent decided to run this. It carries no
 		// dialogue content of its own — the model already knows it asked.
-		if err := e.record(Event{Type: ToolCalled, Tool: &ToolData{
+		if err := e.record(common.Event{Type: common.ToolCalled, Tool: &common.ToolData{
 			CallID: call.CallID, Name: call.Name, Args: call.Args,
 		}}); err != nil {
 			return err
 		}
-		c := &Call{Jobs: e.Jobs, Limits: limits}
+		c := &common.Call{Jobs: e.Jobs, Limits: limits}
 		var out string
 		if err == nil {
 			out, err = tool.Run(c, call.Args)
@@ -262,9 +266,9 @@ func (e *Engine) Execute(call ToolCallPart) error {
 		if fromPending {
 			out = pendingNote(call.Name, limits) + out
 		}
-		if err := e.record(Event{Type: ToolReturned, Tool: &ToolData{
+		if err := e.record(common.Event{Type: common.ToolReturned, Tool: &common.ToolData{
 			CallID: call.CallID, Name: call.Name, Args: call.Args,
-			Parts: PartList{TextPart{Text: out}}, IsError: isError,
+			Parts: common.PartList{common.TextPart{Text: out}}, IsError: isError,
 		}}); err != nil {
 			return err
 		}
@@ -284,7 +288,7 @@ func (e *Engine) Execute(call ToolCallPart) error {
 	if err != nil {
 		return err
 	}
-	if err := e.record(Event{Type: ToolCalled, Tool: &ToolData{
+	if err := e.record(common.Event{Type: common.ToolCalled, Tool: &common.ToolData{
 		CallID: call.CallID, Name: call.Name, Args: call.Args, Job: job.Data(),
 	}}); err != nil {
 		return err
@@ -294,7 +298,7 @@ func (e *Engine) Execute(call ToolCallPart) error {
 	// no recover here: a panic in a tool is an invariant violation, and an
 	// invariant violation takes the process down loudly, as it should.
 	go func() {
-		out, err := tool.Run(&Call{Job: job, Jobs: e.Jobs, Limits: limits}, call.Args)
+		out, err := tool.Run(&common.Call{Job: job, Jobs: e.Jobs, Limits: limits}, call.Args)
 		job.Finish(out, err)
 	}()
 
@@ -305,13 +309,13 @@ func (e *Engine) Execute(call ToolCallPart) error {
 	if fromPending {
 		out = pendingNote(call.Name, limits) + out
 	}
-	isError := job.Status() == StatusDone && job.Err() != nil
+	isError := job.Status() == common.StatusDone && job.Err() != nil
 
-	return e.record(Event{Type: ToolReturned, Tool: &ToolData{
+	return e.record(common.Event{Type: common.ToolReturned, Tool: &common.ToolData{
 		CallID:  call.CallID,
 		Name:    call.Name,
 		Args:    call.Args,
-		Parts:   PartList{TextPart{Text: out}},
+		Parts:   common.PartList{common.TextPart{Text: out}},
 		IsError: isError,
 		Job:     job.Data(),
 	}})
@@ -323,7 +327,7 @@ func (e *Engine) Execute(call ToolCallPart) error {
 // call used to be silent: the model saw a truncated build two calls later
 // with no cause in sight. This line puts the cause in the very result it
 // produced. Loud, not different.
-func pendingNote(tool string, l Limits) string {
+func pendingNote(tool string, l common.Limits) string {
 	return fmt.Sprintf("[tool_limits consumed by this %s call: %s]\n", tool, l)
 }
 
@@ -340,7 +344,7 @@ func (e *Engine) Shutdown() error {
 		}
 		data := j.Data()
 		data.Reason = "shutdown"
-		if err := e.record(Event{Type: JobKilled, Job: data}); err != nil {
+		if err := e.record(common.Event{Type: common.JobKilled, Job: data}); err != nil {
 			return err
 		}
 	}
@@ -351,12 +355,12 @@ func (e *Engine) Save() error { return e.Log.SaveFile(e.Path) }
 
 func (e *Engine) lastAgentText() string {
 	for i := len(e.Ctx.Dialogue) - 1; i >= 0; i-- {
-		if e.Ctx.Dialogue[i].Actor != ActorAgent {
+		if e.Ctx.Dialogue[i].Actor != common.ActorAgent {
 			continue
 		}
 		var b strings.Builder
 		for _, p := range e.Ctx.Dialogue[i].Parts {
-			if t, ok := p.(TextPart); ok {
+			if t, ok := p.(common.TextPart); ok {
 				b.WriteString(t.Text)
 			}
 		}
@@ -369,8 +373,8 @@ func (e *Engine) lastAgentText() string {
 // This is what makes replay, redaction, ephemera and the seam into byte
 // comparisons — and if your architecture cannot offer it cheaply, your context
 // is not actually separate from your transport.
-func RenderOnly(path string, cfg Config) ([]byte, error) {
-	log, err := LoadLogFile(path)
+func RenderOnly(path string, cfg common.Config) ([]byte, error) {
+	log, err := common.LoadLogFile(path)
 	if err != nil {
 		return nil, err
 	}
@@ -386,5 +390,5 @@ func RenderOnly(path string, cfg Config) ([]byte, error) {
 	if err != nil {
 		return nil, fmt.Errorf("render: %w", err)
 	}
-	return BodyOf(req)
+	return common.BodyOf(req)
 }

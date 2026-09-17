@@ -1,6 +1,10 @@
 package main
 
 import (
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/jobs"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/llm"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/tools"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -23,7 +27,7 @@ func TestEditFileRefusesZeroAndManyMatches(t *testing.T) {
 	}
 	call := func(old string) (string, error) {
 		args, _ := json.Marshal(map[string]string{"path": path, "old_text": old, "new_text": "X"})
-		return toolEditFile(nil, args)
+		return tools.ToolEditFile(nil, args)
 	}
 	cases := []struct{ name, old, wantErr string }{
 		{"zero matches", "seven", "not found"},
@@ -70,7 +74,7 @@ func TestWriteFileRefusesSilentOverwrite(t *testing.T) {
 	}
 	call := func(m map[string]any) (string, error) {
 		args, _ := json.Marshal(m)
-		return toolWriteFile(nil, args)
+		return tools.ToolWriteFile(nil, args)
 	}
 
 	out, err := call(map[string]any{"path": path, "content": "X"})
@@ -127,7 +131,7 @@ func TestSearchFilesContextLines(t *testing.T) {
 	}
 	call := func(ctx int) string {
 		args, _ := json.Marshal(map[string]any{"pattern": "hit", "path": dir, "context_lines": ctx})
-		out, err := toolSearchFiles(nil, args)
+		out, err := tools.ToolSearchFiles(nil, args)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -158,19 +162,19 @@ func TestSearchFilesContextLines(t *testing.T) {
 // proves the note is one-shot too.
 func TestToolLimitsConsumptionIsVisible(t *testing.T) {
 	t.Chdir(t.TempDir())
-	e := NewEngine(Config{}, "log.jsonl")
+	e := llm.NewEngine(common.Config{}, "log.jsonl", jobs.NewJobs(), tools.NewRegistry())
 	run := func(id, name, args string) string {
-		if err := e.Execute(ToolCallPart{CallID: id, Name: name, Args: json.RawMessage(args)}); err != nil {
+		if err := e.Execute(common.ToolCallPart{CallID: id, Name: name, Args: json.RawMessage(args)}); err != nil {
 			t.Fatalf("%s: %v", name, err)
 		}
 		last := e.Log.Events[len(e.Log.Events)-1]
-		if last.Type != ToolReturned || last.Tool == nil || len(last.Tool.Parts) != 1 {
-			t.Fatalf("%s: last event is not a one-part ToolReturned: %+v", name, last)
+		if last.Type != common.ToolReturned || last.Tool == nil || len(last.Tool.Parts) != 1 {
+			t.Fatalf("%s: last event is not a one-part common.ToolReturned: %+v", name, last)
 		}
 		if last.Tool.IsError {
-			t.Fatalf("%s returned an error: %s", name, last.Tool.Parts[0].(TextPart).Text)
+			t.Fatalf("%s returned an error: %s", name, last.Tool.Parts[0].(common.TextPart).Text)
 		}
-		return last.Tool.Parts[0].(TextPart).Text
+		return last.Tool.Parts[0].(common.TextPart).Text
 	}
 
 	if out := run("c1", "tool_limits", `{"max_output_bytes":4096}`); !strings.Contains(out, "whichever tool that is") {

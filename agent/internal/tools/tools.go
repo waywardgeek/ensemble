@@ -1,4 +1,4 @@
-package main
+package tools
 
 // The tools. Six from Chapter 3, now dispatched as jobs, plus the four that
 // supervise jobs.
@@ -7,7 +7,7 @@ package main
 // JSON to text. What changed is not the tools but the DISPATCH: every call to
 // one of the six gets a handle, an output file and a status before it runs,
 // and the caller waits on it rather than in it. Five of the six did not
-// change at all beyond accepting a *Call they ignore. `run_command` changed,
+// change at all beyond accepting a *common.Call they ignore. `run_command` changed,
 // because it is the one tool whose output arrives over time, and streaming it
 // into the job is what makes it watchable.
 
@@ -23,44 +23,9 @@ import (
 	"strings"
 
 	"github.com/creack/pty"
+
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 )
-
-// Call is what a tool is handed besides its arguments. Job is the job this
-// call IS, for the tools that are jobs; it is nil for the supervision tools,
-// which act on OTHER jobs through Jobs. Limits is what the dispatcher will
-// wait on, resolved before the tool ran, so a supervision tool waits by the
-// same rules the dispatcher does. Events is where a tool may leave records
-// for the dispatcher to append after its result — kill_job uses it.
-type Call struct {
-	Job    *Job
-	Jobs   *Jobs
-	Limits Limits
-	Events []Event
-}
-
-// ToolFunc executes one call. It returns the text the model will see.
-//
-// The error return is the tool saying "this did not work". It is NOT a crash
-// and it is NOT the end of the turn: the caller turns a non-nil error into a
-// tool_result marked as an error and hands it straight back to the model.
-// Failure is a result, not an absence.
-type ToolFunc func(c *Call, args json.RawMessage) (string, error)
-
-type Tool struct {
-	Name string
-	// Description is read by the MODEL, not by a person. It is the only thing
-	// that tells the model when to reach for this tool instead of another one,
-	// so it says what the tool is FOR, not how it is implemented.
-	Description string
-	// Schema is the JSON Schema of the arguments object, exactly as it goes on
-	// the wire. Vendor-neutral: all three vendors take this subset verbatim.
-	Schema json.RawMessage
-	Run    ToolFunc
-	// NoJob marks the tools that do not become jobs: the ones that supervise
-	// jobs, and tool_limits. They run on the dispatcher's goroutine and
-	// return when they return. Everything else gets a handle.
-	NoJob bool
-}
 
 // argSpec is a human-readable summary of each tool's arguments, kept as plain
 // data so that an error message can describe a tool without depending on the
@@ -94,7 +59,7 @@ const limitProps = `"ai_callback_delay":{"type":"number","description":"Seconds 
 // properties, required, per-property type and description — and nothing
 // else. `additionalProperties`, `$schema`, `format` and friends are where
 // the vendors disagree, so they stay out.
-var Registry = map[string]Tool{
+var Registry = map[string]common.Tool{
 	"run_command": {
 		Name:        "run_command",
 		Description: "Run a shell command under a terminal, in the working directory or in cwd. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Nothing persists between calls: no cd, no exported variable, no shell. Use for builds, tests, debuggers, and anything the other tools cannot do.",
@@ -153,7 +118,7 @@ var Registry = map[string]Tool{
 			"end_line":{"type":"integer","description":"Last line to return, inclusive. Defaults to the end of the file."},
 			"max_bytes":{"type":"integer","description":"Truncate the result after this many bytes."}},
 			"required":["path"]}`),
-		Run: toolReadFile,
+		Run: ToolReadFile,
 	},
 	"write_file": {
 		Name:        "write_file",
@@ -164,7 +129,7 @@ var Registry = map[string]Tool{
 			"append":{"type":"boolean","description":"Append instead of overwrite. Never refused."},
 			"overwrite":{"type":"boolean","description":"Allow replacing a file that already exists. Without it the call is refused and the reply gives the existing file's size, so nothing is lost by asking."}},
 			"required":["path","content"]}`),
-		Run: toolWriteFile,
+		Run: ToolWriteFile,
 	},
 	"edit_file": {
 		Name:        "edit_file",
@@ -174,14 +139,14 @@ var Registry = map[string]Tool{
 			"old_text":{"type":"string","description":"The exact text to find. Must occur exactly once."},
 			"new_text":{"type":"string","description":"The text to put in its place."}},
 			"required":["path","old_text","new_text"]}`),
-		Run: toolEditFile,
+		Run: ToolEditFile,
 	},
 	"list_directory": {
 		Name:        "list_directory",
 		Description: "List the entries of a directory, one per line: subdirectories with a trailing slash, files with their size in bytes.",
 		Schema: json.RawMessage(`{"type":"object","properties":{
 			"path":{"type":"string","description":"Directory to list. Defaults to the working directory."}}}`),
-		Run: toolListDirectory,
+		Run: ToolListDirectory,
 	},
 	"search_files": {
 		Name:        "search_files",
@@ -192,7 +157,7 @@ var Registry = map[string]Tool{
 			"file_pattern":{"type":"string","description":"Glob restricting which file names are searched, e.g. *.go."},
 			"context_lines":{"type":"integer","description":"Lines of context to return before and after each match. Default 0."}},
 			"required":["pattern"]}`),
-		Run: toolSearchFiles,
+		Run: ToolSearchFiles,
 	},
 }
 
@@ -203,11 +168,11 @@ var Registry = map[string]Tool{
 // permission boundary rather than just a lookup table.
 //
 // An empty registry yields a nil slice, and a nil slice renders to no field.
-func Declarations() []ToolDecl {
-	var decls []ToolDecl
+func Declarations() []common.ToolDecl {
+	var decls []common.ToolDecl
 	for _, n := range ToolNames() {
 		t := Registry[n]
-		decls = append(decls, ToolDecl{
+		decls = append(decls, common.ToolDecl{
 			Name:        t.Name,
 			Description: t.Description,
 			Schema:      json.RawMessage(compactJSON(t.Schema)),
@@ -242,10 +207,10 @@ func ToolNames() []string {
 // Lookup finds a tool by name. An unknown name is an ERROR RESULT at the
 // dispatch site, not a panic and not a silent skip: the model asked for
 // something that does not exist, and the useful reply says what does.
-func Lookup(name string) (Tool, error) {
+func Lookup(name string) (common.Tool, error) {
 	tool, ok := Registry[name]
 	if !ok {
-		return Tool{}, fmt.Errorf("no such tool %q; available tools: %s",
+		return common.Tool{}, fmt.Errorf("no such tool %q; available tools: %s",
 			name, strings.Join(ToolNames(), ", "))
 	}
 	return tool, nil
@@ -297,11 +262,11 @@ func decode(name string, args json.RawMessage, into any) error {
 // question and got an answer, and "the tests failed" is the answer. Marking it
 // as a tool error would tell the model its CALL was malformed, which is a
 // different and false claim. Errors are reserved for "I could not run this."
-func toolRunCommand(c *Call, args json.RawMessage) (string, error) {
+func toolRunCommand(c *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Command string `json:"command"`
 		Cwd     string `json:"cwd"`
-		limitArgs
+		common.LimitArgs
 	}
 	if err := decode("run_command", args, &a); err != nil {
 		return "", err
@@ -364,7 +329,7 @@ func toolRunCommand(c *Call, args json.RawMessage) (string, error) {
 	_ = f.Close()
 
 	werr := cmd.Wait()
-	if c.Job.Status() == StatusKilled {
+	if c.Job.Status() == common.StatusKilled {
 		// kill_job got here first. The model was already told; the exit
 		// status of a process we killed is not news.
 		return "", nil
@@ -384,14 +349,14 @@ func toolRunCommand(c *Call, args json.RawMessage) (string, error) {
 
 const defaultMaxBytes = 64 * 1024
 
-// toolReadFile reads a file, or a range of its lines.
+// ToolReadFile reads a file, or a range of its lines.
 //
 // The line range and the size cap are the point of the tool, not a nicety.
 // `cat` on a four-thousand-line file floods the context window, and the
 // student pays for those tokens again on every subsequent turn of the
 // conversation. The tool that reads is also the tool that decides how much of
 // the window to spend.
-func toolReadFile(_ *Call, args json.RawMessage) (string, error) {
+func ToolReadFile(_ *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Path      string `json:"path"`
 		StartLine int    `json:"start_line"`
@@ -442,7 +407,7 @@ func toolReadFile(_ *Call, args json.RawMessage) (string, error) {
 
 // --- write_file ------------------------------------------------------------
 
-func toolWriteFile(_ *Call, args json.RawMessage) (string, error) {
+func ToolWriteFile(_ *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Path      string `json:"path"`
 		Content   string `json:"content"`
@@ -514,7 +479,7 @@ func lineCount(s string) int {
 
 // --- edit_file -------------------------------------------------------------
 
-// toolEditFile replaces an exact anchor with new text.
+// ToolEditFile replaces an exact anchor with new text.
 //
 // THIS IS THE CHAPTER'S DECLINED DECISION, and this file is where this
 // solution makes its choice. When the anchor does not match, three answers are
@@ -534,7 +499,7 @@ func lineCount(s string) int {
 // Ambiguity is refused for the same reason: an anchor matching three places
 // does not identify an edit site. Guessing the first is a coin flip the model
 // cannot see being tossed.
-func toolEditFile(_ *Call, args json.RawMessage) (string, error) {
+func ToolEditFile(_ *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Path    string `json:"path"`
 		OldText string `json:"old_text"`
@@ -586,11 +551,11 @@ func quoteAnchor(s string) string {
 
 // --- list_directory --------------------------------------------------------
 
-// toolListDirectory is the one tool in this set justified by judgement rather
+// ToolListDirectory is the one tool in this set justified by judgement rather
 // than by the measurement: it is well under one percent of real calls. It
 // stays because orientation is cheap, and an agent that cannot see the tree
 // guesses at paths.
-func toolListDirectory(_ *Call, args json.RawMessage) (string, error) {
+func ToolListDirectory(_ *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Path string `json:"path"`
 	}
@@ -624,9 +589,9 @@ func toolListDirectory(_ *Call, args json.RawMessage) (string, error) {
 
 const maxMatches = 200
 
-// toolSearchFiles is what makes read_file usable on a codebase bigger than one
+// ToolSearchFiles is what makes read_file usable on a codebase bigger than one
 // directory. An agent that cannot grep cannot find what to read.
-func toolSearchFiles(_ *Call, args json.RawMessage) (string, error) {
+func ToolSearchFiles(_ *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Pattern      string `json:"pattern"`
 		Path         string `json:"path"`
@@ -735,4 +700,26 @@ func withContext(path string, lines []string, hits []int, ctx int, precededBy bo
 		last = hi
 	}
 	return out
+}
+
+// Reg wraps the package-level registry as a common.ToolRegistry interface.
+type Reg struct{}
+
+func NewRegistry() *Reg { return &Reg{} }
+
+func (r *Reg) Lookup(name string) (common.Tool, error) { return Lookup(name) }
+func (r *Reg) Declarations() []common.ToolDecl                { return Declarations() }
+
+// Register adds a custom tool to the global registry. The handler receives
+// JSON arguments and returns the text output.
+func Register(name, description string, schema json.RawMessage, handler func(json.RawMessage) (string, error)) {
+	Registry[common.NormalizeName(name)] = common.Tool{
+		Name:        name,
+		Description: description,
+		Schema:      schema,
+		Run: func(c *common.Call, args json.RawMessage) (string, error) {
+			return handler(args)
+		},
+		NoJob: true,
+	}
 }

@@ -1,4 +1,4 @@
-package main
+package jobs
 
 // Jobs: a tool call is a job you start and supervise, for EVERY tool.
 //
@@ -15,11 +15,11 @@ package main
 
 import (
 	"bytes"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -33,119 +33,8 @@ import (
 // tool that can read a range of it.
 const IODir = "cr/io"
 
-// JobStatus is the whole life of a job: running, and then exactly one of done
-// or killed. There is no "abandoned" and no "timed out", because nothing here
-// times out. iota+1 so that the zero value is not a valid status.
-type JobStatus int
 
-const (
-	StatusRunning JobStatus = iota + 1
-	StatusDone
-	StatusKilled
-)
 
-func (s JobStatus) String() string {
-	switch s {
-	case StatusRunning:
-		return "running"
-	case StatusDone:
-		return "done"
-	case StatusKilled:
-		return "killed"
-	}
-	return fmt.Sprintf("JobStatus(%d)", int(s))
-}
-
-func (s JobStatus) MarshalJSON() ([]byte, error) { return json.Marshal(s.String()) }
-
-func (s *JobStatus) UnmarshalJSON(b []byte) error {
-	var str string
-	if err := json.Unmarshal(b, &str); err != nil {
-		return err
-	}
-	switch str {
-	case "running":
-		*s = StatusRunning
-	case "done":
-		*s = StatusDone
-	case "killed":
-		*s = StatusKilled
-	default:
-		return fmt.Errorf("unknown job status %q", str)
-	}
-	return nil
-}
-
-// Limits is what the model may set about the NEXT wait: how long to block
-// before being woken with whatever there is, a pattern in the output that
-// wakes it early, and how much of the result may enter the context inline.
-//
-// Sources, later wins: the defaults; a pending `tool_limits` call (one-shot,
-// consumed by the next tool call whatever it is); the call's own arguments.
-type Limits struct {
-	Delay     time.Duration
-	Pattern   *regexp.Regexp
-	MaxOutput int
-}
-
-const (
-	DefaultDelay     = 3 * time.Second
-	DefaultMaxOutput = 16 * 1024
-)
-
-func DefaultLimits() Limits { return Limits{Delay: DefaultDelay, MaxOutput: DefaultMaxOutput} }
-
-// limitArgs is the wire spelling of Limits. Every tool that waits on a job
-// declares these three in its schema; `tool_limits` accepts them for the
-// tools that do not.
-type limitArgs struct {
-	Delay     *float64 `json:"ai_callback_delay"`
-	Pattern   *string  `json:"ai_callback_pattern"`
-	MaxOutput *int     `json:"max_output_bytes"`
-}
-
-// overlay applies whichever of the three the arguments set.
-func (l Limits) overlay(a limitArgs) (Limits, error) {
-	if a.Delay != nil {
-		if *a.Delay < 0 {
-			return l, fmt.Errorf("ai_callback_delay must be >= 0, got %v", *a.Delay)
-		}
-		l.Delay = time.Duration(*a.Delay * float64(time.Second))
-	}
-	if a.Pattern != nil {
-		if *a.Pattern == "" {
-			l.Pattern = nil
-		} else {
-			re, err := regexp.Compile(*a.Pattern)
-			if err != nil {
-				return l, fmt.Errorf("ai_callback_pattern: bad pattern %q: %v", *a.Pattern, err)
-			}
-			l.Pattern = re
-		}
-	}
-	if a.MaxOutput != nil {
-		if *a.MaxOutput <= 0 {
-			return l, fmt.Errorf("max_output_bytes must be > 0, got %d", *a.MaxOutput)
-		}
-		l.MaxOutput = *a.MaxOutput
-	}
-	return l, nil
-}
-
-// limitsInArgs peeks at a call's arguments for the three limit keys. Tools
-// whose schema does not declare them will never be sent them by a model that
-// reads schemas, and `tool_limits` exists for exactly that case.
-func limitsInArgs(args json.RawMessage) (limitArgs, error) {
-	var a limitArgs
-	if len(args) == 0 {
-		return a, nil
-	}
-	if err := json.Unmarshal(args, &a); err != nil {
-		// Not this function's problem: the tool's own decoder will say so.
-		return limitArgs{}, nil
-	}
-	return a, nil
-}
 
 // --- the table -------------------------------------------------------------
 
@@ -155,14 +44,14 @@ type Jobs struct {
 	all  map[int]*Job
 	// pending is what `tool_limits` set for the next call. One-shot: Take
 	// clears it, and it is taken by the next call no matter which tool.
-	pending *Limits
+	pending *common.Limits
 }
 
 func NewJobs() *Jobs { return &Jobs{all: map[int]*Job{}} }
 
 // Start allocates a handle and its output file. It is called by the
 // dispatcher for every job-creating tool before the tool runs.
-func (js *Jobs) Start(tool, callID string) (*Job, error) {
+func (js *Jobs) Start(tool, callID string) (common.JobHandle, error) {
 	if err := os.MkdirAll(IODir, 0o755); err != nil {
 		return nil, fmt.Errorf("job output dir: %w", err)
 	}
@@ -178,7 +67,7 @@ func (js *Jobs) Start(tool, callID string) (*Job, error) {
 	}
 	j := &Job{
 		Handle: h, Tool: tool, CallID: callID, Started: time.Now(), Path: path,
-		file: f, status: StatusRunning, changed: make(chan struct{}),
+		file: f, status: common.StatusRunning, changed: make(chan struct{}),
 	}
 	js.mu.Lock()
 	js.all[h] = j
@@ -186,7 +75,7 @@ func (js *Jobs) Start(tool, callID string) (*Job, error) {
 	return j, nil
 }
 
-func (js *Jobs) Get(h int) (*Job, bool) {
+func (js *Jobs) Get(h int) (common.JobHandle, bool) {
 	js.mu.Lock()
 	defer js.mu.Unlock()
 	j, ok := js.all[h]
@@ -207,17 +96,17 @@ func (js *Jobs) Handles() []int {
 }
 
 // Running returns the jobs still running, lowest handle first.
-func (js *Jobs) Running() []*Job {
-	var out []*Job
+func (js *Jobs) Running() []common.JobHandle {
+	var out []common.JobHandle
 	for _, h := range js.Handles() {
-		if j, _ := js.Get(h); j != nil && j.Status() == StatusRunning {
+		if j, _ := js.Get(h); j != nil && j.Status() == common.StatusRunning {
 			out = append(out, j)
 		}
 	}
 	return out
 }
 
-func (js *Jobs) SetNext(l Limits) {
+func (js *Jobs) SetNext(l common.Limits) {
 	js.mu.Lock()
 	defer js.mu.Unlock()
 	js.pending = &l
@@ -227,8 +116,8 @@ func (js *Jobs) SetNext(l Limits) {
 // tool_limits if any (consumed), then the call's own arguments. The bool
 // says whether a pending tool_limits was consumed; the caller puts that in
 // the report, so limits that land on the wrong call are seen, not suffered.
-func (js *Jobs) Take(args json.RawMessage) (Limits, bool, error) {
-	l := DefaultLimits()
+func (js *Jobs) Take(args json.RawMessage) (common.Limits, bool, error) {
+	l := common.DefaultLimits()
 	consumed := false
 	js.mu.Lock()
 	if js.pending != nil {
@@ -237,23 +126,12 @@ func (js *Jobs) Take(args json.RawMessage) (Limits, bool, error) {
 		consumed = true
 	}
 	js.mu.Unlock()
-	a, err := limitsInArgs(args)
+	a, err := common.LimitsInArgs(args)
 	if err != nil {
 		return l, consumed, err
 	}
-	l, err = l.overlay(a)
+	l, err = l.Overlay(a)
 	return l, consumed, err
-}
-
-// String spells the three limits the way tool_limits and the consumption
-// note report them, so the model sees one vocabulary in both places.
-func (l Limits) String() string {
-	pat := "none"
-	if l.Pattern != nil {
-		pat = fmt.Sprintf("%q", l.Pattern.String())
-	}
-	return fmt.Sprintf("ai_callback_delay %s, ai_callback_pattern %s, max_output_bytes %d",
-		l.Delay, pat, l.MaxOutput)
 }
 
 // --- one job ---------------------------------------------------------------
@@ -268,7 +146,7 @@ type Job struct {
 	mu     sync.Mutex
 	out    bytes.Buffer // everything the job has produced, in order
 	file   *os.File     // the same bytes, on disk, as they arrive
-	status JobStatus
+	status common.JobStatus
 	err    error // a tool error, when the tool returned one
 	exit   *int  // process exit code, for jobs that are processes
 	// cursor is how many bytes the model has already been shown. Every
@@ -332,7 +210,7 @@ func (j *Job) SetExit(code int) {
 func (j *Job) Finish(result string, err error) {
 	j.mu.Lock()
 	defer j.mu.Unlock()
-	if j.status == StatusRunning {
+	if j.status == common.StatusRunning {
 		text := result
 		if err != nil {
 			j.err = err
@@ -344,7 +222,7 @@ func (j *Job) Finish(result string, err error) {
 				_, _ = j.file.WriteString(text)
 			}
 		}
-		j.status = StatusDone
+		j.status = common.StatusDone
 	}
 	if j.file != nil {
 		_ = j.file.Close()
@@ -353,7 +231,7 @@ func (j *Job) Finish(result string, err error) {
 	j.broadcast()
 }
 
-func (j *Job) Status() JobStatus {
+func (j *Job) Status() common.JobStatus {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	return j.status
@@ -371,42 +249,31 @@ func (j *Job) Bytes() int {
 	return j.out.Len()
 }
 
-// WakeReason says why a wait ended. The model is told which, because "here
-// is some output" means something different after three seconds than after
-// the process exited.
-type WakeReason int
-
-const (
-	WokeDone WakeReason = iota + 1
-	WokeDelay
-	WokePattern
-)
-
 // Wait blocks until the job is no longer running, or l.Delay passes, or the
 // output the model has not yet seen matches l.Pattern — whichever first.
 //
 // It works on a job that has already finished, and returns at once. A student
 // who implements this as "block on the channel" hangs forever on a completed
 // job and diagnoses it as a deadlock in their own code.
-func (j *Job) Wait(l Limits) WakeReason {
+func (j *Job) Wait(l common.Limits) common.WakeReason {
 	timer := time.NewTimer(l.Delay)
 	defer timer.Stop()
 	for {
 		j.mu.Lock()
-		if j.status != StatusRunning {
+		if j.status != common.StatusRunning {
 			j.mu.Unlock()
-			return WokeDone
+			return common.WokeDone
 		}
 		if l.Pattern != nil && l.Pattern.Match(j.out.Bytes()[j.cursor:]) {
 			j.mu.Unlock()
-			return WokePattern
+			return common.WokePattern
 		}
 		ch := j.changed
 		j.mu.Unlock()
 		select {
 		case <-ch:
 		case <-timer.C:
-			return WokeDelay
+			return common.WokeDelay
 		}
 	}
 }
@@ -420,13 +287,13 @@ func (j *Job) Wait(l Limits) WakeReason {
 func (j *Job) Kill(reason string) bool {
 	j.mu.Lock()
 	defer j.mu.Unlock()
-	if j.status != StatusRunning {
+	if j.status != common.StatusRunning {
 		return false
 	}
 	if j.proc != nil {
 		_ = syscall.Kill(-j.proc.Pid, syscall.SIGKILL)
 	}
-	j.status = StatusKilled
+	j.status = common.StatusKilled
 	note := fmt.Sprintf("\n[job %d killed: %s]\n", j.Handle, reason)
 	j.out.WriteString(note)
 	if j.file != nil {
@@ -442,7 +309,7 @@ func (j *Job) SendInput(text string) error {
 	j.mu.Lock()
 	st, w := j.status, j.stdin
 	j.mu.Unlock()
-	if st != StatusRunning {
+	if st != common.StatusRunning {
 		return fmt.Errorf("job %d is %s; it is not reading input", j.Handle, st)
 	}
 	if w == nil {
@@ -453,13 +320,19 @@ func (j *Job) SendInput(text string) error {
 }
 
 // Data is the job as the event log records it.
-func (j *Job) Data() *JobData {
+// HasProcess reports whether the job has a running process.
+func (j *Job) HasProcess() bool {
+	return j.proc != nil
+}
+
+func (j *Job) Data() *common.JobData {
 	j.mu.Lock()
 	defer j.mu.Unlock()
-	return &JobData{
+	return &common.JobData{
 		Handle:   j.Handle,
+		Tool:     j.Tool,
 		Status:   j.status,
-		Output:   Ref{Kind: RefHandle, Locator: j.Path},
+		Output:   common.Ref{Kind: common.RefHandle, Locator: j.Path},
 		Bytes:    j.out.Len(),
 		ExitCode: j.exit,
 		Cwd:      j.cwd,
@@ -483,7 +356,7 @@ func (j *Job) SetCwd(dir string) {
 // that fits, is reported as the bare result — byte for byte what Chapter 3
 // returned. Everything else gets a status line, because the model needs to
 // know whether it is looking at all of the answer or some of it.
-func (j *Job) Report(reason WakeReason, l Limits) string {
+func (j *Job) Report(reason common.WakeReason, l common.Limits) string {
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	all := j.out.Bytes()
@@ -492,13 +365,13 @@ func (j *Job) Report(reason WakeReason, l Limits) string {
 	j.cursor = len(all)
 
 	body := capText(unseen, l.MaxOutput, len(all), j.Path)
-	if reason == WokeDone && j.status == StatusDone && first {
+	if reason == common.WokeDone && j.status == common.StatusDone && first {
 		return body
 	}
 
 	var b strings.Builder
 	switch j.status {
-	case StatusDone:
+	case common.StatusDone:
 		if j.err != nil {
 			fmt.Fprintf(&b, "job %d done with error.", j.Handle)
 		} else if j.exit != nil {
@@ -506,11 +379,11 @@ func (j *Job) Report(reason WakeReason, l Limits) string {
 		} else {
 			fmt.Fprintf(&b, "job %d done.", j.Handle)
 		}
-	case StatusKilled:
+	case common.StatusKilled:
 		fmt.Fprintf(&b, "job %d killed.", j.Handle)
 	default:
 		switch reason {
-		case WokePattern:
+		case common.WokePattern:
 			fmt.Fprintf(&b, "job %d still running; ai_callback_pattern %q matched.", j.Handle, l.Pattern.String())
 		default:
 			fmt.Fprintf(&b, "job %d still running after %s.", j.Handle, l.Delay)
@@ -524,7 +397,7 @@ func (j *Job) Report(reason WakeReason, l Limits) string {
 			b.WriteString("\n")
 		}
 	}
-	if j.status == StatusRunning {
+	if j.status == common.StatusRunning {
 		fmt.Fprintf(&b, "[wait_for_job(%d) to keep waiting, send_input(%d, ...) to talk to it, kill_job(%d) to stop it]\n",
 			j.Handle, j.Handle, j.Handle)
 	}

@@ -1,4 +1,4 @@
-package main
+package common
 
 // Provenance: who produced a piece of content, and with which model.
 //
@@ -52,9 +52,9 @@ var surfaceNames = map[Surface]string{
 func (v Vendor) String() string  { return vendorNames[v] }
 func (s Surface) String() string { return surfaceNames[s] }
 
-// normalizeName lowercases and strips punctuation so that "ToolCalled",
+// NormalizeName lowercases and strips punctuation so that "ToolCalled",
 // "tool_called" and "TOOL-CALLED" are the same name. Spelling is not a lesson.
-func normalizeName(s string) string {
+func NormalizeName(s string) string {
 	var b strings.Builder
 	for _, r := range strings.ToLower(s) {
 		if r >= 'a' && r <= 'z' || r >= '0' && r <= '9' {
@@ -82,7 +82,7 @@ func (v *Vendor) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	for k, name := range vendorNames {
-		if normalizeName(name) == normalizeName(s) {
+		if NormalizeName(name) == NormalizeName(s) {
 			*v = k
 			return nil
 		}
@@ -104,7 +104,7 @@ func (s *Surface) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	for k, name := range surfaceNames {
-		if normalizeName(name) == normalizeName(str) {
+		if NormalizeName(name) == NormalizeName(str) {
 			*s = k
 			return nil
 		}

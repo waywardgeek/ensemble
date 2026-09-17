@@ -1,4 +1,4 @@
-package main
+package llm
 
 // OpenAI — Chat Completions.
 //
@@ -11,6 +11,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 	"fmt"
 	"net/http"
 )
@@ -40,7 +41,7 @@ type oaiFunction struct {
 	Parameters  json.RawMessage `json:"parameters"`
 }
 
-func oaiTools(decls []ToolDecl) []oaiTool {
+func oaiTools(decls []common.ToolDecl) []oaiTool {
 	var out []oaiTool
 	for _, d := range decls {
 		out = append(out, oaiTool{Type: "function", Function: oaiFunction{
@@ -78,8 +79,8 @@ type oaiFunc struct {
 
 func strptr(s string) *string { return &s }
 
-func (openAISeam) Render(c *Context, cfg Config) (*http.Request, error) {
-	target := Provenance{Vendor: VendorOpenAI, Model: cfg.Model, Surface: SurfaceChatCompletions}
+func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, error) {
+	target := common.Provenance{Vendor: common.VendorOpenAI, Model: cfg.Model, Surface: common.SurfaceChatCompletions}
 
 	msgs := []oaiMsg{}
 	if cfg.SystemPrompt != "" {
@@ -103,7 +104,7 @@ func (openAISeam) Render(c *Context, cfg Config) (*http.Request, error) {
 				"chapter (%s at %s)", r.Blobs[0].MIME, r.Blobs[0].Ref.Locator)
 		}
 		switch entry.Actor {
-		case ActorTool:
+		case common.ActorTool:
 			// Its own message, with a role that exists for exactly this.
 			// No merging: OpenAI imposes no alternation requirement, so the
 			// two honest, separate facts stay separate. The merge Anthropic
@@ -117,7 +118,7 @@ func (openAISeam) Render(c *Context, cfg Config) (*http.Request, error) {
 				})
 			}
 
-		case ActorAgent:
+		case common.ActorAgent:
 			m := oaiMsg{Role: "assistant"}
 			if text := joinTexts(r.Texts); text != "" {
 				m.Content = strptr(text)
@@ -158,7 +159,7 @@ func (openAISeam) Render(c *Context, cfg Config) (*http.Request, error) {
 			_ = target
 			msgs = append(msgs, m)
 
-		default: // ActorHuman
+		default: // common.ActorHuman
 			msgs = append(msgs, oaiMsg{Role: "user", Content: strptr(joinTexts(r.Texts))})
 		}
 	}
@@ -185,10 +186,10 @@ func joinTexts(texts []string) string {
 	return out
 }
 
-func ephemeraText(parts PartList) string {
+func ephemeraText(parts common.PartList) string {
 	var texts []string
 	for _, p := range parts {
-		if t, ok := p.(TextPart); ok {
+		if t, ok := p.(common.TextPart); ok {
 			texts = append(texts, t.Text)
 		}
 	}
@@ -231,9 +232,9 @@ type oaiUsage struct {
 	} `json:"prompt_tokens_details"`
 }
 
-func (openAISeam) Parse(status int, body []byte) ([]Event, error) {
+func (openAISeam) Parse(status int, body []byte) ([]common.Event, error) {
 	if status != http.StatusOK {
-		return []Event{{Type: ErrorOccurred, Error: &ErrorData{
+		return []common.Event{{Type: common.ErrorOccurred, Error: &common.ErrorData{
 			Status: status, Message: vendorErrorMessage(body),
 		}}}, nil
 	}
@@ -244,18 +245,18 @@ func (openAISeam) Parse(status int, body []byte) ([]Event, error) {
 	if len(resp.Choices) == 0 {
 		return nil, fmt.Errorf("openai: response had no choices")
 	}
-	from := Provenance{Vendor: VendorOpenAI, Model: resp.Model, Surface: SurfaceChatCompletions}
+	from := common.Provenance{Vendor: common.VendorOpenAI, Model: resp.Model, Surface: common.SurfaceChatCompletions}
 
-	var parts PartList
+	var parts common.PartList
 	choice := resp.Choices[0]
 	if choice.Message.Content != nil && *choice.Message.Content != "" {
-		parts = append(parts, TextPart{Text: *choice.Message.Content})
+		parts = append(parts, common.TextPart{Text: *choice.Message.Content})
 	}
 	for _, tc := range choice.Message.ToolCalls {
 		// arguments arrives as a JSON-encoded string; the context stores the
 		// decoded object, because "a string that happens to contain JSON" is
 		// OpenAI's encoding decision, not a fact about the conversation.
-		parts = append(parts, ToolCallPart{
+		parts = append(parts, common.ToolCallPart{
 			CallID: tc.ID, From: from, Name: tc.Function.Name,
 			Args: jsonObject(json.RawMessage(tc.Function.Arguments)),
 		})
@@ -268,12 +269,12 @@ func (openAISeam) Parse(status int, body []byte) ([]Event, error) {
 		uncached = 0
 	}
 
-	return []Event{
-		{Type: ResponseStarted},
-		{Type: ResponseEnded, Response: &ResponseData{
+	return []common.Event{
+		{Type: common.ResponseStarted},
+		{Type: common.ResponseEnded, Response: &common.ResponseData{
 			Parts: parts,
 			From:  from,
-			Usage: Usage{
+			Usage: common.Usage{
 				Input:      uncached,
 				CacheWrite: u.Details.CacheWriteTokens,
 				CacheRead:  u.Details.CachedTokens,

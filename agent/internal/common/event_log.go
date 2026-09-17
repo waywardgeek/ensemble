@@ -1,4 +1,4 @@
-package main
+package common
 
 // The log: append-only, JSON-lines, greppable with ordinary tools.
 //

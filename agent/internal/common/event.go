@@ -1,4 +1,4 @@
-package main
+package common
 
 // The event log. Append-only, ordered by Seq, never edited in place.
 //
@@ -70,7 +70,7 @@ func (t *EventType) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	for k, v := range eventTypeNames {
-		if normalizeName(v) == normalizeName(s) {
+		if NormalizeName(v) == NormalizeName(s) {
 			*t = k
 			return nil
 		}
@@ -112,7 +112,7 @@ func (a *Actor) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	for k, v := range actorNames {
-		if normalizeName(v) == normalizeName(s) {
+		if NormalizeName(v) == NormalizeName(s) {
 			*a = k
 			return nil
 		}
@@ -177,6 +177,7 @@ type ToolData struct {
 // path is what the model reads a range of when it wants more.
 type JobData struct {
 	Handle   int       `json:"handle"`
+	Tool     string    `json:"tool,omitempty"`
 	Status   JobStatus `json:"status"`
 	Output   Ref       `json:"output"`
 	Bytes    int       `json:"bytes"`
@@ -241,7 +242,7 @@ func (r *Redaction) UnmarshalJSON(b []byte) error {
 		return err
 	}
 	for k, v := range redactionNames {
-		if normalizeName(v) == normalizeName(s) {
+		if NormalizeName(v) == NormalizeName(s) {
 			*r = k
 			return nil
 		}

@@ -1,4 +1,4 @@
-package main
+package common
 
 // Content is Parts, not a string. A string is the Chapter 1 mistake wearing a
 // struct: it cannot express a tool call, a redaction, an image, or opaque
@@ -52,7 +52,7 @@ type Ref struct {
 	Locator string  `json:"locator"`
 }
 
-func (r Ref) zero() bool { return r.Kind == 0 && r.Locator == "" }
+func (r Ref) Zero() bool { return r.Kind == 0 && r.Locator == "" }
 
 // validate refuses a Ref that cannot be acted on. A kind of zero is the case
 // worth the most care: it is what an old log, a forgotten field, or a struct
@@ -209,7 +209,7 @@ func (p PartList) MarshalJSON() ([]byte, error) {
 			// A zero Ref is legitimate here: the superseded content had no
 			// locator. Only a NON-zero one is written, and a non-zero one must
 			// still be a valid one.
-			if !v.Ref.zero() {
+			if !v.Ref.Zero() {
 				if err := v.Ref.validate(); err != nil {
 					return nil, fmt.Errorf("redacted part: %w", err)
 				}
@@ -236,7 +236,7 @@ func (p *PartList) UnmarshalJSON(b []byte) error {
 	}
 	list := make(PartList, 0, len(raw))
 	for _, w := range raw {
-		switch normalizeName(w.Type) {
+		switch NormalizeName(w.Type) {
 		case "text":
 			list = append(list, TextPart{Text: w.Text})
 		case "blob":

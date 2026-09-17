@@ -1,4 +1,4 @@
-package main
+package tools
 
 // The supervision tools. None of them is a job: they act on jobs, on the
 // dispatcher's own goroutine, and return when they return.
@@ -12,12 +12,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 )
 
 // lookupJob resolves a handle argument, and on a miss says what the good
 // handles are — the model can only have got a handle from a result it was
 // shown, so a bad one is almost always a typo it can fix on the next turn.
-func lookupJob(c *Call, name string, handle int) (*Job, error) {
+func lookupJob(c *common.Call, name string, handle int) (common.JobHandle, error) {
 	j, ok := c.Jobs.Get(handle)
 	if !ok {
 		hs := c.Jobs.Handles()
@@ -42,10 +44,10 @@ func lookupJob(c *Call, name string, handle int) (*Job, error) {
 // It MUST work on a job that has already finished. That case is not an edge
 // case; it is the common one, because a job that finished a moment after the
 // dispatcher stopped waiting is still "running" as far as the model knows.
-func toolWaitForJob(c *Call, args json.RawMessage) (string, error) {
+func toolWaitForJob(c *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Handle int `json:"handle"`
-		limitArgs
+		common.LimitArgs
 	}
 	if err := decode("wait_for_job", args, &a); err != nil {
 		return "", err
@@ -64,12 +66,12 @@ func toolWaitForJob(c *Call, args json.RawMessage) (string, error) {
 // wait_for_job does, for whatever it says back. The two halves are one tool
 // because the model almost never wants one without the other: it typed a
 // command at a prompt and it wants the prompt back.
-func toolSendInput(c *Call, args json.RawMessage) (string, error) {
+func toolSendInput(c *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Handle        int    `json:"handle"`
 		Input         string `json:"input"`
 		AppendNewline *bool  `json:"append_newline"`
-		limitArgs
+		common.LimitArgs
 	}
 	if err := decode("send_input", args, &a); err != nil {
 		return "", err
@@ -98,7 +100,7 @@ func toolSendInput(c *Call, args json.RawMessage) (string, error) {
 //
 // Killing a job that has already ended is not an error. The model asked for
 // a state and the state holds; the reply says which way it got there.
-func toolKillJob(c *Call, args json.RawMessage) (string, error) {
+func toolKillJob(c *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Handle int `json:"handle"`
 	}
@@ -111,25 +113,19 @@ func toolKillJob(c *Call, args json.RawMessage) (string, error) {
 	}
 	if !j.Kill("kill_job") {
 		return fmt.Sprintf("job %d was already %s; nothing to kill. %d bytes of output at %s",
-			j.Handle, j.Status(), j.Bytes(), j.Path), nil
+			j.Data().Handle, j.Status(), j.Bytes(), j.Data().Output.Locator), nil
 	}
 	data := j.Data()
 	data.Reason = "kill_job"
-	c.Events = append(c.Events, Event{Type: JobKilled, Job: data})
+	c.Events = append(c.Events, common.Event{Type: common.JobKilled, Job: data})
 
-	if data.ExitCode == nil && !j.hasProcess() {
+	if data.ExitCode == nil && !j.HasProcess() {
 		return fmt.Sprintf("job %d marked killed. It is a %s call with no process, and Go cannot stop a goroutine: "+
 			"the call may still be running and its late result will be discarded. %d bytes of output at %s",
-			j.Handle, j.Tool, j.Bytes(), j.Path), nil
+			j.Data().Handle, j.Data().Tool, j.Bytes(), j.Data().Output.Locator), nil
 	}
 	return fmt.Sprintf("job %d killed (process group sent SIGKILL). %d bytes of output at %s",
-		j.Handle, j.Bytes(), j.Path), nil
-}
-
-func (j *Job) hasProcess() bool {
-	j.mu.Lock()
-	defer j.mu.Unlock()
-	return j.proc != nil
+		j.Data().Handle, j.Bytes(), j.Data().Output.Locator), nil
 }
 
 // --- tool_limits -----------------------------------------------------------
@@ -146,12 +142,12 @@ func (j *Job) hasProcess() bool {
 // One-shot, on purpose. A limit that persisted would be an escape hatch that
 // is always open: a 600-second delay set once for a build silently applies
 // to a read_file twenty calls later.
-func toolLimits(c *Call, args json.RawMessage) (string, error) {
-	var a limitArgs
+func toolLimits(c *common.Call, args json.RawMessage) (string, error) {
+	var a common.LimitArgs
 	if err := decode("tool_limits", args, &a); err != nil {
 		return "", err
 	}
-	l, err := DefaultLimits().overlay(a)
+	l, err := common.DefaultLimits().Overlay(a)
 	if err != nil {
 		return "", fmt.Errorf("tool_limits: %v", err)
 	}

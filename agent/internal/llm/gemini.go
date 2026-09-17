@@ -1,4 +1,4 @@
-package main
+package llm
 
 // Gemini — Gemini, generateContent.
 //
@@ -11,6 +11,7 @@ package main
 
 import (
 	"encoding/json"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 	"fmt"
 	"net/http"
 )
@@ -44,7 +45,7 @@ type gemFunctionDecl struct {
 	Parameters  json.RawMessage `json:"parameters,omitempty"`
 }
 
-func gemTools(decls []ToolDecl) []gemTool {
+func gemTools(decls []common.ToolDecl) []gemTool {
 	if len(decls) == 0 {
 		return nil
 	}
@@ -71,8 +72,8 @@ type gemPart struct {
 	// FileData is the REMOTE-reference form: it names bytes Gemini will fetch
 	// for itself. Three of Gemini's four file input methods arrive here — a
 	// File API uri, a registered gs:// object, and an external URL — and not
-	// one of them is expressible as a local path, which is why BlobPart
-	// carries a Ref.
+	// one of them is expressible as a local path, which is why common.BlobPart
+	// carries a common.Ref.
 	FileData         *gemFileData         `json:"fileData,omitempty"`
 	FunctionCall     *gemFunctionCall     `json:"functionCall,omitempty"`
 	FunctionResponse *gemFunctionResponse `json:"functionResponse,omitempty"`
@@ -99,8 +100,8 @@ type gemFileData struct {
 
 // geminiFileParts renders every locator in an entry to Gemini's remote form.
 //
-// Only RefURI can be sent. A RefPath names a file on the machine running the
-// agent, and a RefHandle names something the framework holds — possibly only in
+// Only common.RefURI can be sent. A RefPath names a file on the machine running the
+// agent, and a common.RefHandle names something the framework holds — possibly only in
 // memory. Gemini can fetch neither, so neither is guessed at: resolving one
 // into a uri is an upload, which is a job for the layer that owns the bytes.
 //
@@ -110,7 +111,7 @@ type gemFileData struct {
 func geminiFileParts(r renderable) ([]gemPart, error) {
 	var out []gemPart
 	for _, b := range r.Blobs {
-		if b.Ref.Kind != RefURI {
+		if b.Ref.Kind != common.RefURI {
 			return nil, fmt.Errorf("gemini: cannot send a blob of kind %s (%s): Gemini fetches "+
 				"remote references only, so this must be resolved to a uri before rendering",
 				b.Ref.Kind, b.Ref.Locator)
@@ -123,7 +124,7 @@ func geminiFileParts(r renderable) ([]gemPart, error) {
 	// stub has already said the content is gone, and failing the whole request
 	// over a recoverability hint would be worse than not offering it.
 	for _, ref := range r.Refs {
-		if ref.Kind == RefURI {
+		if ref.Kind == common.RefURI {
 			out = append(out, gemPart{FileData: &gemFileData{FileURI: ref.Locator}})
 		}
 	}
@@ -149,11 +150,11 @@ type gemOutput struct {
 	Output string `json:"output"`
 }
 
-func (geminiSeam) Render(c *Context, cfg Config) (*http.Request, error) {
-	target := Provenance{Vendor: VendorGemini, Model: cfg.Model, Surface: SurfaceGenerateContent}
+func (geminiSeam) Render(c *common.Context, cfg common.Config) (*http.Request, error) {
+	target := common.Provenance{Vendor: common.VendorGemini, Model: cfg.Model, Surface: common.SurfaceGenerateContent}
 
 	// Gemini's functionResponse requires the function NAME, and a
-	// ToolResultPart carries only the call id. The information is in the
+	// common.ToolResultPart carries only the call id. The information is in the
 	// context, just not adjacent to where this vendor wants it — so the
 	// renderer resolves it rather than the context duplicating it.
 	//
@@ -162,7 +163,7 @@ func (geminiSeam) Render(c *Context, cfg Config) (*http.Request, error) {
 	nameByCall := map[string]string{}
 	for _, entry := range c.Dialogue {
 		for _, p := range entry.Parts {
-			if call, ok := p.(ToolCallPart); ok {
+			if call, ok := p.(common.ToolCallPart); ok {
 				nameByCall[call.CallID] = call.Name
 			}
 		}
@@ -178,7 +179,7 @@ func (geminiSeam) Render(c *Context, cfg Config) (*http.Request, error) {
 		role := "user"
 
 		switch entry.Actor {
-		case ActorTool:
+		case common.ActorTool:
 			for _, res := range r.Tools {
 				payload, err := json.Marshal(gemOutput{Output: resultText(res)})
 				if err != nil {
@@ -191,7 +192,7 @@ func (geminiSeam) Render(c *Context, cfg Config) (*http.Request, error) {
 				}})
 			}
 
-		case ActorAgent:
+		case common.ActorAgent:
 			role = "model"
 			for _, op := range r.Raw {
 				if op.From.SameModel(target) {
@@ -214,7 +215,7 @@ func (geminiSeam) Render(c *Context, cfg Config) (*http.Request, error) {
 				parts = append(parts, p)
 			}
 
-		default: // ActorHuman
+		default: // common.ActorHuman
 			for _, t := range r.Texts {
 				parts = append(parts, gemPart{Text: t})
 			}
@@ -286,9 +287,9 @@ type gemUsage struct {
 	ThoughtsTokenCount      int `json:"thoughtsTokenCount"`
 }
 
-func (geminiSeam) Parse(status int, body []byte) ([]Event, error) {
+func (geminiSeam) Parse(status int, body []byte) ([]common.Event, error) {
 	if status != http.StatusOK {
-		return []Event{{Type: ErrorOccurred, Error: &ErrorData{
+		return []common.Event{{Type: common.ErrorOccurred, Error: &common.ErrorData{
 			Status: status, Message: vendorErrorMessage(body),
 		}}}, nil
 	}
@@ -299,9 +300,9 @@ func (geminiSeam) Parse(status int, body []byte) ([]Event, error) {
 	if len(resp.Candidates) == 0 {
 		return nil, fmt.Errorf("gemini: response had no candidates")
 	}
-	from := Provenance{Vendor: VendorGemini, Model: resp.ModelVersion, Surface: SurfaceGenerateContent}
+	from := common.Provenance{Vendor: common.VendorGemini, Model: resp.ModelVersion, Surface: common.SurfaceGenerateContent}
 
-	var parts PartList
+	var parts common.PartList
 	for _, p := range resp.Candidates[0].Content.Parts {
 		switch {
 		case p.FunctionCall != nil:
@@ -309,7 +310,7 @@ func (geminiSeam) Parse(status int, body []byte) ([]Event, error) {
 			// is no tool-call member in the enum at all. Detect tool calls by
 			// inspecting the parts — a parser keyed on the stop signal, as the
 			// other two vendors allow, silently never calls a tool.
-			parts = append(parts, ToolCallPart{
+			parts = append(parts, common.ToolCallPart{
 				CallID: p.FunctionCall.ID,
 				From:   from,
 				Name:   p.FunctionCall.Name,
@@ -318,9 +319,9 @@ func (geminiSeam) Parse(status int, body []byte) ([]Event, error) {
 			})
 		case p.Thought:
 			raw, _ := json.Marshal(p)
-			parts = append(parts, OpaquePart{From: from, Data: raw})
+			parts = append(parts, common.OpaquePart{From: from, Data: raw})
 		case p.Text != "":
-			parts = append(parts, TextPart{Text: p.Text})
+			parts = append(parts, common.TextPart{Text: p.Text})
 		}
 	}
 
@@ -330,12 +331,12 @@ func (geminiSeam) Parse(status int, body []byte) ([]Event, error) {
 		uncached = 0
 	}
 
-	return []Event{
-		{Type: ResponseStarted},
-		{Type: ResponseEnded, Response: &ResponseData{
+	return []common.Event{
+		{Type: common.ResponseStarted},
+		{Type: common.ResponseEnded, Response: &common.ResponseData{
 			Parts: parts,
 			From:  from,
-			Usage: Usage{
+			Usage: common.Usage{
 				Input:      uncached,
 				CacheWrite: 0, // Gemini reports no cache-write token count anywhere
 				CacheRead:  u.CachedContentTokenCount,

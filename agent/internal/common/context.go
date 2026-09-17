@@ -1,4 +1,4 @@
-package main
+package common
 
 // The context: the vendor-independent state you get by replaying the log.
 //
@@ -327,7 +327,7 @@ func stubFor(res ToolResultPart, r RedactData) (string, Ref) {
 			ref = v.Ref
 		}
 	}
-	if !ref.zero() {
+	if !ref.Zero() {
 		// The locator is NOT repeated in the stub text. It travels in the Ref,
 		// where a renderer can turn it into the vendor's own remote-reference
 		// form instead of a sentence the model has to parse out of prose.

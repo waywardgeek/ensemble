@@ -1,6 +1,7 @@
-package main
+package llm
 
 import (
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 	"encoding/json"
 	"io"
 	"testing"
@@ -34,16 +35,16 @@ import (
 // deleted. This test is therefore the only thing standing between the fix and
 // a silent regression that would only show up as an intermittent live 400.
 func TestOpenAIRenderAssistantContentShape(t *testing.T) {
-	cfg := Config{
-		Vendor:    VendorOpenAI,
-		Surface:   SurfaceChatCompletions,
+	cfg := common.Config{
+		Vendor:    common.VendorOpenAI,
+		Surface:   common.SurfaceChatCompletions,
 		Model:     "gpt-5",
 		APIKey:    "test-key",
 		BaseURL:   "https://api.openai.com/v1",
 		MaxTokens: 16,
 	}
 
-	contentOf := func(t *testing.T, c *Context) string {
+	contentOf := func(t *testing.T, c *common.Context) string {
 		t.Helper()
 		req, err := (openAISeam{}).Render(c, cfg)
 		if err != nil {
@@ -66,9 +67,9 @@ func TestOpenAIRenderAssistantContentShape(t *testing.T) {
 	}
 
 	t.Run("empty agent turn renders as empty string, not null", func(t *testing.T) {
-		c := &Context{Dialogue: []Entry{
-			{Seq: 1, Actor: ActorHuman, Parts: PartList{TextPart{Text: "hello"}}},
-			{Seq: 2, Actor: ActorAgent, Parts: nil},
+		c := &common.Context{Dialogue: []common.Entry{
+			{Seq: 1, Actor: common.ActorHuman, Parts: common.PartList{common.TextPart{Text: "hello"}}},
+			{Seq: 2, Actor: common.ActorAgent, Parts: nil},
 		}}
 		if got := contentOf(t, c); got != `""` {
 			t.Errorf("assistant content = %s, want \"\"\n"+
@@ -77,10 +78,10 @@ func TestOpenAIRenderAssistantContentShape(t *testing.T) {
 	})
 
 	t.Run("agent turn with tool calls still renders content null", func(t *testing.T) {
-		c := &Context{Dialogue: []Entry{
-			{Seq: 1, Actor: ActorHuman, Parts: PartList{TextPart{Text: "what time is it"}}},
-			{Seq: 2, Actor: ActorAgent, Parts: PartList{
-				ToolCallPart{CallID: "call_1", Name: "clock", Args: json.RawMessage(`{}`)},
+		c := &common.Context{Dialogue: []common.Entry{
+			{Seq: 1, Actor: common.ActorHuman, Parts: common.PartList{common.TextPart{Text: "what time is it"}}},
+			{Seq: 2, Actor: common.ActorAgent, Parts: common.PartList{
+				common.ToolCallPart{CallID: "call_1", Name: "clock", Args: json.RawMessage(`{}`)},
 			}},
 		}}
 		if got := contentOf(t, c); got != "null" {
