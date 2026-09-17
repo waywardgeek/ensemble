@@ -867,20 +867,48 @@ it to a file. A GUI renders it as a chat. A parent agent uses it to
 decide when to send the next prompt. The observer seam carries all
 three without knowing about any of them.
 
-Now try it with a real vendor. Set `LLM_BASE_URL` and `LLM_API_KEY`
-for Claude, Gemini, or OpenAI, and start an interactive chat:
+Now try it with a real vendor. Build the binary and export your
+credentials:
 
-```
-echo '{"kind":"prompt","text":"You are a pirate. Respond only in pirate speak."}' | ./agent/cmd/agent
-```
-
-While the model is responding, type a hint:
-
-```
-{"kind":"hint","text":"Actually, make it a space pirate."}
+```bash
+cd agent && go build -o bin ./cmd/
+export LLM_API_KEY="your-anthropic-api-key"
+export LLM_MODEL="claude-sonnet-4-20250514"
 ```
 
-And this hint can arrive mid-turn. The model receives it attached to
-the next tool result or woven into the current context, and the
-observation stream shows exactly when it landed. The agent was deaf.
-Now it listens.
+`LLM_VENDOR` defaults to `anthropic`. For Gemini, set it to `google`
+and point `LLM_BASE_URL` at the Gemini endpoint. For OpenAI, set it
+to `openai`.
+
+Start an interactive session. The binary reads one JSON line per
+stdin line and streams observations to stdout:
+
+```bash
+./bin
+```
+
+Type a prompt and press enter:
+
+```
+{"kind":"prompt","text":"You are a pirate. Respond only in pirate speak. Tell me about your ship."}
+```
+
+Observations stream back as JSON. While the model is still
+responding, type a hint on the next line and press enter:
+
+```
+{"kind":"hint","text":"Actually, make it a space pirate. Your ship is a starship."}
+```
+
+The hint lands mid-turn. Watch the observation stream: a `part_delta`
+containing `hint:` appears between the streaming chunks, proving
+the agent heard it while the model was still talking. The model
+picks it up on its next round and pivots to space piracy.
+
+When you are done, send an interrupt or press Ctrl-C:
+
+```
+{"kind":"interrupt"}
+```
+
+The agent was deaf. Now it listens.
