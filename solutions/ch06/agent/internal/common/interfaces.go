@@ -80,7 +80,7 @@ func (l Limits) String() string {
 type WakeReason int
 
 const (
-	WokeDone    WakeReason = iota + 1
+	WokeDone WakeReason = iota + 1
 	WokeDelay
 	WokePattern
 )

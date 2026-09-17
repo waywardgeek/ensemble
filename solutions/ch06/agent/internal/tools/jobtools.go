@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/common"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 )
 
 // lookupJob resolves a handle argument, and on a miss says what the good

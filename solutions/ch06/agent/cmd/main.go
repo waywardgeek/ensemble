@@ -19,11 +19,11 @@ import (
 	"strings"
 	"sync"
 
-	agent "github.com/waywardgeek/coding-agents-course/solutions/ch06"
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/common"
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/jobs"
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/llm"
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/tools"
+	agent "github.com/waywardgeek/coding-agents-course/agent"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/jobs"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/llm"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/tools"
 )
 
 const fallbackName = "ch06"
@@ -218,7 +218,13 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg) (vendorFail
 			emitLocked(map[string]string{"error": "bad input: " + err.Error()})
 			if !hinted {
 				hinted = true
+				// The guidance below also exists in the TTY banner, which a
+				// piped caller never sees. Someone feeding this binary the
+				// wrong thing is exactly the person who needs to be told
+				// what the right thing is, so say it here too.
 				fmt.Fprintf(os.Stderr, "\n%[1]s: that line is not JSON.\n", progName())
+				fmt.Fprintf(os.Stderr, "%[1]s reads a JSON-lines log on stdin, one message per line.\n", progName())
+				fmt.Fprintf(os.Stderr, "for an interactive chat run `%[1]s chat`; `%[1]s --help` lists every command\n", progName())
 			}
 			continue
 		}
@@ -303,7 +309,7 @@ func (f stdoutObserver) Observe(o common.Observation) { f(o) }
 func observationJSON(obs common.Observation) map[string]any {
 	switch v := obs.(type) {
 	case common.PartDelta:
-		m := map[string]any{"observation": "part_delta", "part_id": v.PartID, "chunk": v.Chunk}
+		m := map[string]any{"observation": "part_delta", "part_id": v.PartID, "kind": v.Kind.String(), "chunk": v.Chunk}
 		if v.Agent != "" {
 			m["agent"] = string(v.Agent)
 		}
@@ -313,8 +319,17 @@ func observationJSON(obs common.Observation) map[string]any {
 		if v.Agent != "" {
 			m["agent"] = string(v.Agent)
 		}
-		if tp, ok := v.Part.(common.TextPart); ok {
-			m["text"] = tp.Text
+		switch p := v.Part.(type) {
+		case common.TextPart:
+			m["text"] = p.Text
+		case common.ToolCallPart:
+			// Finals now fire for tool calls and reasoning, not just text.
+			// That content is what an Actions pane is made of, and the old
+			// text-only path emitted none of it.
+			m["tool"] = p.Name
+			m["args"] = string(p.Args)
+		case common.OpaquePart:
+			m["opaque"] = true
 		}
 		return m
 	case common.StateChanged:
@@ -363,15 +378,17 @@ func runLoop(cfg common.Config, logPath string, interactive bool, reg *tools.Reg
 			continue
 		}
 
-		reply, err := eng.Ask(line)
-		if err != nil {
+		if _, err := eng.AskWatching(line, chatStream(out)); err != nil {
 			vendorFailed = true
 			fmt.Fprintln(os.Stderr, "error:", err)
 			fmt.Fprint(os.Stderr, "> ")
 			continue
 		}
 
-		fmt.Fprintln(os.Stdout, reply)
+		// The reply already streamed to stdout through the callbacks above.
+		// Printing it again here is the obvious mistake: it duplicates every
+		// answer, and it looks correct until the first long one.
+		fmt.Fprintln(out)
 		out.Flush()
 		fmt.Fprint(os.Stderr, "> ")
 	}
@@ -427,6 +444,67 @@ func parseVendor(s string) (common.Vendor, error) {
 		return common.VendorGemini, nil
 	}
 	return 0, fmt.Errorf("unknown vendor %q (want anthropic, openai or gemini)", s)
+}
+
+// chatStream prints a turn as it arrives.
+//
+// Reply text goes to STDOUT, because that is the answer and stdout is where
+// an answer belongs. Reasoning and tool calls go to STDERR as commentary,
+// dimmed and yellow. Piping the binary therefore still yields exactly what
+// the assistant said and nothing else, while a human at a terminal sees the
+// whole turn being built.
+//
+// Colour is chosen by whether STDERR is a terminal, not by a flag. Writing
+// escape codes into a pipe is how a log file ends up full of \033[2m.
+func chatStream(out *bufio.Writer) common.StreamCallbacks {
+	const (
+		reset  = "\033[0m"
+		dim    = "\033[2m"
+		yellow = "\033[33m"
+	)
+	color := isTerminal(os.Stderr)
+	open := false
+
+	paint := func(code string) {
+		if color && !open {
+			fmt.Fprint(os.Stderr, code)
+			open = true
+		}
+	}
+	clear := func() {
+		if open {
+			fmt.Fprint(os.Stderr, reset)
+			open = false
+		}
+	}
+
+	return common.StreamCallbacks{
+		OnDelta: func(_ uint64, kind common.DeltaKind, chunk string) {
+			switch kind {
+			case common.DeltaText:
+				clear()
+				fmt.Fprint(out, chunk)
+				// Flush per chunk. Without it the buffer holds the whole
+				// answer and releases it in one lump at the end, which looks
+				// exactly like streaming having no effect.
+				out.Flush()
+			case common.DeltaThinking:
+				paint(dim)
+				fmt.Fprint(os.Stderr, chunk)
+			case common.DeltaToolCall:
+				paint(yellow)
+				fmt.Fprint(os.Stderr, chunk)
+			}
+		},
+		OnPartFinal: func(_ uint64, _ common.Part) {
+			// Only break the line if commentary was being written, so a
+			// plain text answer does not collect blank lines after it.
+			if open {
+				clear()
+				fmt.Fprintln(os.Stderr)
+			}
+		},
+	}
 }
 
 func isTerminal(f *os.File) bool {

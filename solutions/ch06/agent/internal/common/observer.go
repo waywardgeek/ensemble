@@ -34,9 +34,10 @@ type Observation interface{ isObservation() }
 // streaming later therefore adds NO new observation kinds — only a different
 // chunk count.
 type PartDelta struct {
-	Agent  AgentID `json:"agent,omitempty"`
-	PartID uint64  `json:"part_id"`
-	Chunk  string  `json:"chunk"`
+	Agent  AgentID   `json:"agent,omitempty"`
+	PartID uint64    `json:"part_id"`
+	Kind   DeltaKind `json:"kind"`
+	Chunk  string    `json:"chunk"`
 }
 
 // PartFinal is the authoritative, complete part.

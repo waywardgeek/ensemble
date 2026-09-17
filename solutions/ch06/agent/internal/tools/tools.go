@@ -25,22 +25,22 @@ import (
 
 	"github.com/creack/pty"
 
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/common"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 )
 
 // builtinArgSpec returns a human-readable summary of each builtin tool's arguments.
 func builtinArgSpec() map[string]string {
 	return map[string]string{
-	"run_command":    `{"command":string,"cwd":string?,"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
-	"read_file":      `{"path":string,"start_line":int?,"end_line":int?,"max_bytes":int?}`,
-	"write_file":     `{"path":string,"content":string,"append":bool?}`,
-	"edit_file":      `{"path":string,"old_text":string,"new_text":string}`,
-	"list_directory": `{"path":string?}`,
-	"search_files":   `{"pattern":string,"path":string?,"file_pattern":string?}`,
-	"wait_for_job":   `{"handle":int,"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
-	"send_input":     `{"handle":int,"input":string,"append_newline":bool?,"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
-	"kill_job":       `{"handle":int}`,
-	"tool_limits":    `{"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
+		"run_command":    `{"command":string,"cwd":string?,"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
+		"read_file":      `{"path":string,"start_line":int?,"end_line":int?,"max_bytes":int?}`,
+		"write_file":     `{"path":string,"content":string,"append":bool?}`,
+		"edit_file":      `{"path":string,"old_text":string,"new_text":string}`,
+		"list_directory": `{"path":string?}`,
+		"search_files":   `{"pattern":string,"path":string?,"file_pattern":string?}`,
+		"wait_for_job":   `{"handle":int,"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
+		"send_input":     `{"handle":int,"input":string,"append_newline":bool?,"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
+		"kill_job":       `{"handle":int}`,
+		"tool_limits":    `{"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
 	}
 }
 
@@ -54,117 +54,115 @@ const limitProps = `"ai_callback_delay":{"type":"number","description":"Seconds 
 // also the model's only documentation of the tool.
 func builtinTools() map[string]common.Tool {
 	return map[string]common.Tool{
-	"run_command": {
-		Name:        "run_command",
-		Description: "Run a shell command under a terminal, in the working directory or in cwd. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Nothing persists between calls: no cd, no exported variable, no shell. Use for builds, tests, debuggers, and anything the other tools cannot do.",
-		Schema: json.RawMessage(`{"type":"object","properties":{
+		"run_command": {
+			Name:        "run_command",
+			Description: "Run a shell command under a terminal, in the working directory or in cwd. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Nothing persists between calls: no cd, no exported variable, no shell. Use for builds, tests, debuggers, and anything the other tools cannot do.",
+			Schema: json.RawMessage(`{"type":"object","properties":{
 			"command":{"type":"string","description":"The command line to run, as you would type it in a shell."},
 			"cwd":{"type":"string","description":"Directory to run in, for this call only. Relative paths resolve against the working directory. A directory that does not exist is an error."},
 			` + limitProps + `},
 			"required":["command"]}`),
-		Run: toolRunCommand,
-	},
-	"wait_for_job": {
-		Name:        "wait_for_job",
-		Description: "Wait for a job to finish, or until ai_callback_delay passes or ai_callback_pattern appears in its new output. Returns the output you have not yet seen and the job's status. Works on a job that has already finished.",
-		Schema: json.RawMessage(`{"type":"object","properties":{
+			Run: toolRunCommand,
+		},
+		"wait_for_job": {
+			Name:        "wait_for_job",
+			Description: "Wait for a job to finish, or until ai_callback_delay passes or ai_callback_pattern appears in its new output. Returns the output you have not yet seen and the job's status. Works on a job that has already finished.",
+			Schema: json.RawMessage(`{"type":"object","properties":{
 			"handle":{"type":"integer","description":"The job handle from an earlier tool result."},
 			` + limitProps + `},
 			"required":["handle"]}`),
-		Run:   toolWaitForJob,
-		NoJob: true,
-	},
-	"send_input": {
-		Name:        "send_input",
-		Description: "Write to the standard input of a running job, then wait as wait_for_job does and return what it said in reply. Use for debuggers, REPLs, and anything that prompts.",
-		Schema: json.RawMessage(`{"type":"object","properties":{
+			Run:   toolWaitForJob,
+			NoJob: true,
+		},
+		"send_input": {
+			Name:        "send_input",
+			Description: "Write to the standard input of a running job, then wait as wait_for_job does and return what it said in reply. Use for debuggers, REPLs, and anything that prompts.",
+			Schema: json.RawMessage(`{"type":"object","properties":{
 			"handle":{"type":"integer","description":"The job handle of a running process."},
 			"input":{"type":"string","description":"The text to send."},
 			"append_newline":{"type":"boolean","description":"Send a newline after the text, as pressing Enter would. Default true."},
 			` + limitProps + `},
 			"required":["handle","input"]}`),
-		Run:   toolSendInput,
-		NoJob: true,
-	},
-	"kill_job": {
-		Name:        "kill_job",
-		Description: "Stop a running job. Its process and everything the process started are killed; its output so far stays in its file.",
-		Schema: json.RawMessage(`{"type":"object","properties":{
+			Run:   toolSendInput,
+			NoJob: true,
+		},
+		"kill_job": {
+			Name:        "kill_job",
+			Description: "Stop a running job. Its process and everything the process started are killed; its output so far stays in its file.",
+			Schema: json.RawMessage(`{"type":"object","properties":{
 			"handle":{"type":"integer","description":"The job handle to kill."}},
 			"required":["handle"]}`),
-		Run:   toolKillJob,
-		NoJob: true,
-	},
-	"tool_limits": {
-		Name:        "tool_limits",
-		Description: "Set ai_callback_delay, ai_callback_pattern and max_output_bytes for the NEXT tool call only, whichever tool that is. The very next call consumes them even if it is not the one you meant, and its result says so. For tools whose own arguments do not include them; run_command, wait_for_job and send_input take these directly. Call this immediately before the target tool.",
-		Schema: json.RawMessage(`{"type":"object","properties":{
+			Run:   toolKillJob,
+			NoJob: true,
+		},
+		"tool_limits": {
+			Name:        "tool_limits",
+			Description: "Set ai_callback_delay, ai_callback_pattern and max_output_bytes for the NEXT tool call only, whichever tool that is. The very next call consumes them even if it is not the one you meant, and its result says so. For tools whose own arguments do not include them; run_command, wait_for_job and send_input take these directly. Call this immediately before the target tool.",
+			Schema: json.RawMessage(`{"type":"object","properties":{
 			` + limitProps + `}}`),
-		Run:   toolLimits,
-		NoJob: true,
-	},
-	"read_file": {
-		Name:        "read_file",
-		Description: "Read a text file, or an inclusive range of lines from it. Ask for a range when the file is large; the result is truncated after max_bytes.",
-		Schema: json.RawMessage(`{"type":"object","properties":{
+			Run:   toolLimits,
+			NoJob: true,
+		},
+		"read_file": {
+			Name:        "read_file",
+			Description: "Read a text file, or an inclusive range of lines from it. Ask for a range when the file is large; the result is truncated after max_bytes.",
+			Schema: json.RawMessage(`{"type":"object","properties":{
 			"path":{"type":"string","description":"Path to the file, relative to the working directory."},
 			"start_line":{"type":"integer","description":"First line to return, 1-based. Defaults to the start of the file."},
 			"end_line":{"type":"integer","description":"Last line to return, inclusive. Defaults to the end of the file."},
 			"max_bytes":{"type":"integer","description":"Truncate the result after this many bytes."}},
 			"required":["path"]}`),
-		Run: ToolReadFile,
-	},
-	"write_file": {
-		Name:        "write_file",
-		Description: "Create a file with the given content. Refuses to replace a file that already exists unless overwrite is true; read it first, or use edit_file to change part of it. Set append to add to the end instead.",
-		Schema: json.RawMessage(`{"type":"object","properties":{
+			Run: ToolReadFile,
+		},
+		"write_file": {
+			Name:        "write_file",
+			Description: "Create a file with the given content. Refuses to replace a file that already exists unless overwrite is true; read it first, or use edit_file to change part of it. Set append to add to the end instead.",
+			Schema: json.RawMessage(`{"type":"object","properties":{
 			"path":{"type":"string","description":"Path to the file, relative to the working directory."},
 			"content":{"type":"string","description":"The complete new content, or the text to append."},
 			"append":{"type":"boolean","description":"Append instead of overwrite. Never refused."},
 			"overwrite":{"type":"boolean","description":"Allow replacing a file that already exists. Without it the call is refused and the reply gives the existing file's size, so nothing is lost by asking."}},
 			"required":["path","content"]}`),
-		Run: ToolWriteFile,
-	},
-	"edit_file": {
-		Name:        "edit_file",
-		Description: "Replace one exact occurrence of old_text in a file with new_text. Refuses if old_text is absent or matches more than once — include enough context to make it unique.",
-		Schema: json.RawMessage(`{"type":"object","properties":{
+			Run: ToolWriteFile,
+		},
+		"edit_file": {
+			Name:        "edit_file",
+			Description: "Replace one exact occurrence of old_text in a file with new_text. Refuses if old_text is absent or matches more than once — include enough context to make it unique.",
+			Schema: json.RawMessage(`{"type":"object","properties":{
 			"path":{"type":"string","description":"Path to the file, relative to the working directory."},
 			"old_text":{"type":"string","description":"The exact text to find. Must occur exactly once."},
 			"new_text":{"type":"string","description":"The text to put in its place."}},
 			"required":["path","old_text","new_text"]}`),
-		Run: ToolEditFile,
-	},
-	"list_directory": {
-		Name:        "list_directory",
-		Description: "List the entries of a directory, one per line: subdirectories with a trailing slash, files with their size in bytes.",
-		Schema: json.RawMessage(`{"type":"object","properties":{
+			Run: ToolEditFile,
+		},
+		"list_directory": {
+			Name:        "list_directory",
+			Description: "List the entries of a directory, one per line: subdirectories with a trailing slash, files with their size in bytes.",
+			Schema: json.RawMessage(`{"type":"object","properties":{
 			"path":{"type":"string","description":"Directory to list. Defaults to the working directory."}}}`),
-		Run: ToolListDirectory,
-	},
-	"search_files": {
-		Name:        "search_files",
-		Description: "Search files for a regular expression and return matching lines as path:line:text. Set context_lines to also return the lines around each match (grep -C format: context lines as path-line-text, -- between separate groups).",
-		Schema: json.RawMessage(`{"type":"object","properties":{
+			Run: ToolListDirectory,
+		},
+		"search_files": {
+			Name:        "search_files",
+			Description: "Search files for a regular expression and return matching lines as path:line:text. Set context_lines to also return the lines around each match (grep -C format: context lines as path-line-text, -- between separate groups).",
+			Schema: json.RawMessage(`{"type":"object","properties":{
 			"pattern":{"type":"string","description":"Go regular expression to search for."},
 			"path":{"type":"string","description":"Directory to search under. Defaults to the working directory."},
 			"file_pattern":{"type":"string","description":"Glob restricting which file names are searched, e.g. *.go."},
 			"context_lines":{"type":"integer","description":"Lines of context to return before and after each match. Default 0."}},
 			"required":["pattern"]}`),
-		Run: ToolSearchFiles,
-	},
-	"think": {
-		Name:        "think",
-		Description: "Pause to think or deliberate. Takes a duration in seconds (default 1) and an optional thought description. Returns the thought as output.",
-		Schema: json.RawMessage(`{"type":"object","properties":{
+			Run: ToolSearchFiles,
+		},
+		"think": {
+			Name:        "think",
+			Description: "Pause to think or deliberate. Takes a duration in seconds (default 1) and an optional thought description. Returns the thought as output.",
+			Schema: json.RawMessage(`{"type":"object","properties":{
 			"seconds":{"type":"number","description":"How long to think, in seconds. Default 1."},
 			"thought":{"type":"string","description":"What you are thinking about. Returned as the output."}}}`),
-		Run: toolThink,
-	},
+			Run: toolThink,
+		},
 	}
 }
-
-
 
 // compactJSON strips the whitespace the source literals use for readability
 // so the bytes on the wire are canonical.
@@ -175,8 +173,6 @@ func compactJSON(raw json.RawMessage) []byte {
 	}
 	return buf.Bytes()
 }
-
-
 
 // decode parses a tool's arguments.
 //

@@ -15,9 +15,9 @@ package jobs
 
 import (
 	"bytes"
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/common"
 	"encoding/json"
 	"fmt"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 	"os"
 	"path/filepath"
 	"sort"
@@ -33,16 +33,13 @@ import (
 // tool that can read a range of it.
 const IODir = "cr/io"
 
-
-
-
 // --- the table -------------------------------------------------------------
 
 type Jobs struct {
-	host    common.Host
-	mu      sync.Mutex
-	next    int
-	all     map[int]*Job
+	host common.Host
+	mu   sync.Mutex
+	next int
+	all  map[int]*Job
 	// pending is what `tool_limits` set for the next call. One-shot: Take
 	// clears it, and it is taken by the next call no matter which tool.
 	pending *common.Limits

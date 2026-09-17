@@ -27,7 +27,7 @@ grade5:
 	go run ./cmd/grade -ch 5 .
 
 grade6:
-	go run ./cmd/grade -ch 6 .
+	go run ./cmd/grade -ch 6 solutions/ch06
 
 grade7:
 	go run ./cmd/grade -ch 7 .

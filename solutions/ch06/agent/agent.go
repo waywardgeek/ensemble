@@ -12,10 +12,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/common"
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/jobs"
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/llm"
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/tools"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/jobs"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/llm"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/tools"
 )
 
 // Re-export the types external programs need.
@@ -44,6 +44,23 @@ type ModelFeatures = common.ModelFeatures
 type TurnState = common.TurnState
 type TextPart = common.TextPart
 
+// ToolCallPart and OpaquePart are re-exported because PartFinal now reports
+// EVERY part, not just text. A consumer switching on a final needs the types
+// to switch on, and before streaming there was nothing but text to see. The
+// internal/ wall is what surfaced this: the ch07 exercise would not compile
+// without them, which is the whole reason the exercise lives outside the
+// module.
+type ToolCallPart = common.ToolCallPart
+type OpaquePart = common.OpaquePart
+
+// Streaming. DeltaKind says what sort of content a chunk is; Stream is the
+// set of kinds a model can actually deliver incrementally. StreamCallbacks is
+// the parse-side half of the seam, exported because a caller embedding this
+// framework may want to drive an Engine turn directly.
+type DeltaKind = common.DeltaKind
+type Stream = common.Stream
+type StreamCallbacks = common.StreamCallbacks
+
 const (
 	VendorAnthropic = common.VendorAnthropic
 	VendorOpenAI    = common.VendorOpenAI
@@ -52,11 +69,11 @@ const (
 
 // TurnState constants.
 const (
-	Idle         = common.Idle
-	InputPending = common.InputPending
-	InFlight     = common.InFlight
-	ToolsPending = common.ToolsPending
-	StateInterrupted  = common.Interrupted
+	Idle             = common.Idle
+	InputPending     = common.InputPending
+	InFlight         = common.InFlight
+	ToolsPending     = common.ToolsPending
+	StateInterrupted = common.Interrupted
 )
 
 // Media constants.
@@ -66,6 +83,24 @@ const (
 	MediaVideo    = common.MediaVideo
 	MediaDocument = common.MediaDocument
 )
+
+// DeltaKind constants.
+const (
+	DeltaThinking = common.DeltaThinking
+	DeltaText     = common.DeltaText
+	DeltaToolCall = common.DeltaToolCall
+)
+
+// Stream constants: the delta kinds a model can deliver incrementally.
+const (
+	StreamText     = common.StreamText
+	StreamThinking = common.StreamThinking
+	StreamToolArgs = common.StreamToolArgs
+	StreamAll      = common.StreamAll
+)
+
+// StreamingFor reports which delta kinds may be streamed for a config.
+func StreamingFor(cfg Config) Stream { return common.StreamingFor(cfg) }
 
 // DefaultSurface returns the default API surface for a vendor.
 func DefaultSurface(v Vendor) Surface { return common.DefaultSurface(v) }

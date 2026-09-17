@@ -11,9 +11,12 @@ package llm
 
 import (
 	"encoding/json"
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/common"
 	"fmt"
+	"io"
 	"net/http"
+	"strings"
+
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 )
 
 type geminiSeam struct{}
@@ -246,7 +249,17 @@ func (geminiSeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 		body.GenerationConfig = &gemGenConfig{MaxOutputTokens: cfg.MaxTokens}
 	}
 
-	url := fmt.Sprintf("%s/v1beta/models/%s:generateContent", cfg.BaseURL, cfg.Model)
+	// Gemini signals streaming in the URL, not the body: a different method
+	// and an `alt=sse` query parameter. Without alt=sse the streaming method
+	// returns a JSON ARRAY of response objects instead of SSE frames, which
+	// parses as neither. Two vendors put this in the request body; assuming
+	// the third does too produces a request that succeeds and streams nothing.
+	method := "generateContent"
+	query := ""
+	if common.StreamingFor(cfg) != 0 {
+		method, query = "streamGenerateContent", "?alt=sse"
+	}
+	url := fmt.Sprintf("%s/v1beta/models/%s:%s%s", cfg.BaseURL, cfg.Model, method, query)
 	return newJSONRequest("POST", url, body, map[string]string{
 		"x-goog-api-key": cfg.APIKey,
 	})
@@ -287,18 +300,39 @@ type gemUsage struct {
 	ThoughtsTokenCount      int `json:"thoughtsTokenCount"`
 }
 
-func (geminiSeam) Parse(status int, body []byte) ([]common.Event, error) {
-	if status != http.StatusOK {
-		return []common.Event{{Type: common.ErrorOccurred, Error: &common.ErrorData{
-			Status: status, Message: vendorErrorMessage(body),
-		}}}, nil
+func (geminiSeam) Parse(resp *http.Response, cb common.StreamCallbacks) error {
+	if resp.StatusCode != http.StatusOK {
+		return parseErrorResponse(resp, cb)
 	}
+	if isSSE(resp) {
+		return gemParseStream(resp, cb)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("gemini: read body: %w", err)
+	}
+	cb.Frame("", body)
+	parts, from, usage, err := gemAssemble(body)
+	if err != nil {
+		return err
+	}
+	emitLengthOneDeltas(parts, cb, gemThinkingText)
+	cb.Emit(common.Event{Type: common.ResponseStarted})
+	cb.Emit(common.Event{Type: common.ResponseEnded, Response: &common.ResponseData{
+		Parts: parts, From: from, Usage: usage,
+	}})
+	emitFinals(parts, cb)
+	return nil
+}
+
+func gemAssemble(body []byte) (common.PartList, common.Provenance, common.Usage, error) {
 	var resp gemResponse
 	if err := json.Unmarshal(body, &resp); err != nil {
-		return nil, fmt.Errorf("gemini: %w", err)
+		return nil, common.Provenance{}, common.Usage{}, fmt.Errorf("gemini: %w", err)
 	}
 	if len(resp.Candidates) == 0 {
-		return nil, fmt.Errorf("gemini: response had no candidates")
+		return nil, common.Provenance{}, common.Usage{}, fmt.Errorf("gemini: response had no candidates")
 	}
 	from := common.Provenance{Vendor: common.VendorGemini, Model: resp.ModelVersion, Surface: common.SurfaceGenerateContent}
 
@@ -324,24 +358,191 @@ func (geminiSeam) Parse(status int, body []byte) ([]common.Event, error) {
 			parts = append(parts, common.TextPart{Text: p.Text})
 		}
 	}
+	return parts, from, gemCanonicalUsage(resp.UsageMetadata), nil
+}
 
-	u := resp.UsageMetadata
+// gemCanonicalUsage converts Gemini's self-disagreeing accounting to the
+// disjoint form: subset on the input side, disjoint on the output side.
+func gemCanonicalUsage(u gemUsage) common.Usage {
 	uncached := u.PromptTokenCount - u.CachedContentTokenCount
 	if uncached < 0 {
 		uncached = 0
 	}
+	return common.Usage{
+		Input:      uncached,
+		CacheWrite: 0, // Gemini reports no cache-write token count anywhere
+		CacheRead:  u.CachedContentTokenCount,
+		Output:     u.CandidatesTokenCount + u.ThoughtsTokenCount,
+	}
+}
 
-	return []common.Event{
-		{Type: common.ResponseStarted},
-		{Type: common.ResponseEnded, Response: &common.ResponseData{
-			Parts: parts,
-			From:  from,
-			Usage: common.Usage{
-				Input:      uncached,
-				CacheWrite: 0, // Gemini reports no cache-write token count anywhere
-				CacheRead:  u.CachedContentTokenCount,
-				Output:     u.CandidatesTokenCount + u.ThoughtsTokenCount,
-			},
-		}},
-	}, nil
+// gemThinkingText pulls readable text out of a Gemini thought part.
+func gemThinkingText(p common.OpaquePart) string {
+	var b gemRespPart
+	if json.Unmarshal(p.Data, &b) != nil {
+		return ""
+	}
+	return b.Text
+}
+
+// --- streaming ---------------------------------------------------------
+
+// Gemini's stream has NO BLOCK INDEX.
+//
+// Anthropic numbers its content blocks and OpenAI numbers its tool calls.
+// Gemini sends a sequence of whole response objects, each carrying a `parts`
+// array, and says nothing about whether the text in this frame continues the
+// text in the last one or begins something new. Continuation has to be
+// INFERRED, and the rule is the only one available: a part continues the open
+// part when their kinds match, and starts a new part when they do not.
+//
+// This is also where the model table earns its keep. Gemini streams text and
+// thoughts in fragments, but a functionCall arrives complete in a single
+// frame — so its arguments never stream, no matter what the request asked
+// for. The parser does not need to be told that: it reports what arrives, and
+// a call that arrives whole simply produces one delta. The Stream bitmask
+// records the fact for everyone upstream who needs to PLAN for it.
+type gemOpenPart struct {
+	PartID    uint64
+	Kind      common.DeltaKind
+	Text      strings.Builder
+	Signature json.RawMessage
+	Call      *gemFunctionCall
+}
+
+func gemParseStream(resp *http.Response, cb common.StreamCallbacks) error {
+	from := common.Provenance{Vendor: common.VendorGemini, Surface: common.SurfaceGenerateContent}
+
+	var (
+		open    []*gemOpenPart
+		usage   common.Usage
+		nextID  uint64
+		started bool
+		perr    error
+	)
+	alloc := func() uint64 { nextID++; return nextID }
+
+	// openFor returns the part that a fragment of this kind continues, or a
+	// fresh one when the previous part was something else.
+	openFor := func(kind common.DeltaKind) *gemOpenPart {
+		if n := len(open); n > 0 && open[n-1].Kind == kind && open[n-1].Call == nil {
+			return open[n-1]
+		}
+		p := &gemOpenPart{PartID: alloc(), Kind: kind}
+		open = append(open, p)
+		return p
+	}
+
+	readErr := ReadSSE(resp.Body, func(eventType string, data []byte) {
+		cb.Frame(eventType, data)
+		if perr != nil {
+			return
+		}
+
+		var chunk gemResponse
+		if err := json.Unmarshal(data, &chunk); err != nil {
+			perr = fmt.Errorf("gemini: stream chunk: %w", err)
+			return
+		}
+		if chunk.ModelVersion != "" {
+			from.Model = chunk.ModelVersion
+		}
+		if !started {
+			started = true
+			cb.Emit(common.Event{Type: common.ResponseStarted})
+		}
+		// usageMetadata is CUMULATIVE on every frame, so the last one wins
+		// rather than the counts being summed.
+		if chunk.UsageMetadata != (gemUsage{}) {
+			usage = gemCanonicalUsage(chunk.UsageMetadata)
+		}
+		if len(chunk.Candidates) == 0 {
+			return
+		}
+
+		for _, p := range chunk.Candidates[0].Content.Parts {
+			switch {
+			case p.FunctionCall != nil:
+				// Arrives complete. One part, one pair of deltas, and the
+				// arguments are already whole — there is nothing to stream.
+				np := &gemOpenPart{
+					PartID:    alloc(),
+					Kind:      common.DeltaToolCall,
+					Call:      p.FunctionCall,
+					Signature: p.ThoughtSignature,
+				}
+				open = append(open, np)
+				cb.Delta(np.PartID, common.DeltaToolCall, p.FunctionCall.Name)
+				if args := string(jsonObject(p.FunctionCall.Args)); args != "{}" {
+					cb.Delta(np.PartID, common.DeltaToolCall, args)
+				}
+
+			case p.Thought:
+				op := openFor(common.DeltaThinking)
+				op.Text.WriteString(p.Text)
+				if len(p.ThoughtSignature) > 0 {
+					op.Signature = p.ThoughtSignature
+				}
+				if p.Text != "" {
+					cb.Delta(op.PartID, common.DeltaThinking, p.Text)
+				}
+
+			case p.Text != "":
+				op := openFor(common.DeltaText)
+				op.Text.WriteString(p.Text)
+				cb.Delta(op.PartID, common.DeltaText, p.Text)
+			}
+		}
+	})
+
+	if perr != nil {
+		return perr
+	}
+	if readErr != nil {
+		return fmt.Errorf("gemini: stream: %w", readErr)
+	}
+
+	var parts common.PartList
+	var ids []uint64
+	for _, op := range open {
+		switch op.Kind {
+		case common.DeltaToolCall:
+			parts = append(parts, common.ToolCallPart{
+				CallID: op.Call.ID,
+				From:   from,
+				Name:   op.Call.Name,
+				Args:   jsonObject(op.Call.Args),
+				Opaque: op.Signature,
+			})
+		case common.DeltaThinking:
+			// Rebuilt through gemRespPart so the bytes match what the
+			// whole-document path would have stored. A thought replayed
+			// without its signature is a 400 on the next request, so this
+			// is not cosmetic.
+			raw, err := json.Marshal(gemRespPart{
+				Text:             op.Text.String(),
+				Thought:          true,
+				ThoughtSignature: op.Signature,
+			})
+			if err != nil {
+				return fmt.Errorf("gemini: rebuild thought: %w", err)
+			}
+			parts = append(parts, common.OpaquePart{From: from, Data: raw})
+		default:
+			if t := op.Text.String(); t != "" {
+				parts = append(parts, common.TextPart{Text: t})
+			} else {
+				continue
+			}
+		}
+		ids = append(ids, op.PartID)
+	}
+
+	cb.Emit(common.Event{Type: common.ResponseEnded, Response: &common.ResponseData{
+		Parts: parts, From: from, Usage: usage,
+	}})
+	for n, p := range parts {
+		cb.Final(ids[n], p)
+	}
+	return nil
 }

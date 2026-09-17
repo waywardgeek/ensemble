@@ -21,10 +21,12 @@ package llm
 
 import (
 	"encoding/json"
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/common"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
+
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 )
 
 // SeamFor returns the renderer and parser for a vendor. This function is the
@@ -41,8 +43,6 @@ func SeamFor(v common.Vendor) (common.Renderer, common.Parser, error) {
 	}
 	return nil, nil, fmt.Errorf("no seam for vendor %d", uint8(v))
 }
-
-
 
 // ---------------------------------------------------------------------------
 // Shared rendering helpers. Everything here is vendor-independent: it is the
@@ -65,7 +65,7 @@ type renderable struct {
 	// text has already said that something was removed.
 	Refs []common.Ref
 
-	Raw   []common.OpaquePart
+	Raw []common.OpaquePart
 }
 
 // classify splits an entry's parts by kind. Doing this once, here, is what
@@ -189,6 +189,95 @@ func jsonObject(raw json.RawMessage) json.RawMessage {
 		return json.RawMessage(`{}`)
 	}
 	return raw
+}
+
+// ---------------------------------------------------------------------------
+// Shared parsing helpers for the streaming seam.
+// ---------------------------------------------------------------------------
+
+// isSSE reports whether a response body is a Server-Sent Events stream.
+//
+// The CONTENT TYPE decides, not what we asked for. A vendor is free to answer
+// a streaming request with a single JSON document — an error almost always
+// comes back that way even when `stream: true` was sent — and a parser that
+// trusts the request instead of the response will try to read a JSON object
+// as SSE frames and find nothing at all.
+func isSSE(resp *http.Response) bool {
+	return strings.Contains(resp.Header.Get("Content-Type"), "text/event-stream")
+}
+
+// partID converts a zero-based vendor block index into a part id.
+//
+// One-based, because zero is a perfectly ordinary index and a perfectly
+// suspicious id. Deltas and the PartFinal that supersedes them must agree on
+// this number, so it is derived from the vendor's own block index and never
+// from a counter that advances per chunk.
+func partID(blockIndex int) uint64 { return uint64(blockIndex) + 1 }
+
+// emitLengthOneDeltas reports an already-complete part list as deltas.
+//
+// This is what makes "streaming is not a mode" true rather than aspirational.
+// A response that arrived as one JSON document still produces deltas — one
+// per part — so an observer downstream cannot tell, and does not need to
+// know, whether the bytes trickled or landed all at once. Only the chunk
+// count differs.
+//
+// thinking extracts the human-readable text from a vendor's opaque reasoning
+// block. It returns "" when there is nothing safe to show, which is the right
+// answer for redacted reasoning: the part is still carried in the event, it
+// simply has no display text.
+func emitLengthOneDeltas(parts common.PartList, cb common.StreamCallbacks, thinking func(common.OpaquePart) string) {
+	for i, p := range parts {
+		id := partID(i)
+		switch v := p.(type) {
+		case common.TextPart:
+			if v.Text != "" {
+				cb.Delta(id, common.DeltaText, v.Text)
+			}
+		case common.ToolCallPart:
+			// The concatenation of a tool call's chunks is its NAME followed
+			// by its arguments JSON, because that is the order the streaming
+			// path produces them in: the name arrives with the block header,
+			// the arguments in fragments after it. Both paths therefore
+			// reassemble to the same display string.
+			cb.Delta(id, common.DeltaToolCall, v.Name)
+			if args := string(jsonObject(v.Args)); args != "{}" {
+				cb.Delta(id, common.DeltaToolCall, args)
+			}
+		case common.OpaquePart:
+			if thinking == nil {
+				continue
+			}
+			if text := thinking(v); text != "" {
+				cb.Delta(id, common.DeltaThinking, text)
+			}
+		}
+	}
+}
+
+// emitFinals reports each part as complete, reusing the ids its deltas used.
+//
+// Called after the event that carries the parts, never before: an observer
+// that re-renders a widget when a part finalizes should be reading a log that
+// already has the part in it.
+func emitFinals(parts common.PartList, cb common.StreamCallbacks) {
+	for i, p := range parts {
+		cb.Final(partID(i), p)
+	}
+}
+
+// parseErrorResponse turns a non-200 into a single common.ErrorOccurred event.
+//
+// A 429 is not a response with an unfortunate mood. It is an error, and it
+// gets the loud event rather than being folded into an empty assistant turn.
+func parseErrorResponse(resp *http.Response, cb common.StreamCallbacks) error {
+	body, _ := io.ReadAll(resp.Body)
+	cb.Frame("error", body)
+	cb.Emit(common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{
+		Status:  resp.StatusCode,
+		Message: vendorErrorMessage(body),
+	}})
+	return nil
 }
 
 // newJSONRequest builds the HTTP request. Rendering produces a request that is

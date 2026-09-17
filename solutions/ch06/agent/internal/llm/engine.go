@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/common"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 )
 
 type Engine struct {
@@ -66,7 +66,14 @@ func (e *Engine) Attach(text string) error {
 }
 
 // Turn renders the current context, sends it, and folds the response back in.
-func (e *Engine) Turn() (string, error) {
+//
+// watch is the caller's half of the stream: set OnDelta to watch content
+// arrive and OnPartFinal to be told when a part is complete. Both are
+// optional, and a zero StreamCallbacks is the ordinary non-observing call.
+// The engine overwrites OnEvent and OnFrame with its own recording, because
+// the event log and the API log belong to it — there is deliberately no way
+// for a caller to intercept what gets logged.
+func (e *Engine) Turn(watch common.StreamCallbacks) (string, error) {
 	// Loud refusal: reject unknown models before doing anything else.
 	if _, known := common.LookupModel(e.Cfg.Model); !known {
 		err := fmt.Errorf("unknown model %q: not in the supported model table; refusing to proceed", e.Cfg.Model)
@@ -96,21 +103,30 @@ func (e *Engine) Turn() (string, error) {
 		return "", err
 	}
 
-	status, body, err := e.send(req)
+	resp, err := e.send(req)
 	if err != nil {
 		// A transport failure is infrastructure: it ends the turn.
 		_ = e.Record(common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{Message: err.Error()}})
 		return "", err
 	}
+	// The PARSER reads the body; the ENGINE owns closing it. Handing a live
+	// body to the seam and keeping the close here is what lets one Parse
+	// method serve a trickle and a whole document without caring which it got.
+	defer resp.Body.Close()
 
-	events, err := parser.Parse(status, body)
-	if err != nil {
-		return "", err
-	}
-	var vendorErr error
-	for _, ev := range events {
+	var vendorErr, recErr error
+
+	// The caller supplies the watching half of these callbacks (deltas and
+	// finals, which are observations). The engine supplies the recording
+	// half, because the event log and the API log are its responsibility and
+	// a stateless vendor parser has no Host to write to.
+	watch.OnEvent = func(ev common.Event) {
+		if recErr != nil {
+			return
+		}
 		if err := e.Record(ev); err != nil {
-			return "", err
+			recErr = err
+			return
 		}
 		if ev.Type == common.ErrorOccurred && ev.Error != nil {
 			// The event is the record; this is the report. Without it a 404
@@ -119,15 +135,33 @@ func (e *Engine) Turn() (string, error) {
 			vendorErr = fmt.Errorf("%s: %s", e.Cfg.Vendor, ev.Error.Message)
 		}
 	}
+	watch.OnFrame = func(eventType string, data []byte) {
+		// Per-frame, so the API log stays byte-complete under streaming. The
+		// body is consumed by the parser now, so logging it whole is no
+		// longer possible and the response half of the log would otherwise
+		// simply go dark.
+		if eventType != "" {
+			e.Host.APILogf("<<< [%s] %s", eventType, string(data))
+			return
+		}
+		e.Host.APILogf("<<< %s", string(data))
+	}
+
+	if err := parser.Parse(resp, watch); err != nil {
+		return "", err
+	}
+	if recErr != nil {
+		return "", recErr
+	}
 	return e.lastAgentText(), vendorErr
 }
 
-func (e *Engine) send(req *http.Request) (int, []byte, error) {
+func (e *Engine) send(req *http.Request) (*http.Response, error) {
 	// Log the outbound JSON request.
 	if req.Body != nil {
 		reqBody, err := io.ReadAll(req.Body)
 		if err != nil {
-			return 0, nil, err
+			return nil, err
 		}
 		req.Body.Close()
 		e.Host.APILogf(">>> %s %s\n%s", req.Method, req.URL, string(reqBody))
@@ -136,18 +170,15 @@ func (e *Engine) send(req *http.Request) (int, []byte, error) {
 
 	resp, err := e.HTTP.Do(req)
 	if err != nil {
-		return 0, nil, err
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return 0, nil, err
+		return nil, err
 	}
 
-	// Log the inbound JSON response.
-	e.Host.APILogf("<<< %d\n%s", resp.StatusCode, string(body))
+	// Only the status line here. The body is NOT read: reading it would
+	// consume the stream the parser is about to walk, and buffering it whole
+	// would give up streaming entirely while still looking like it worked.
+	e.Host.APILogf("<<< %d %s", resp.StatusCode, resp.Header.Get("Content-Type"))
 
-	return resp.StatusCode, body, nil
+	return resp, nil
 }
 
 // MaxToolRounds bounds how many times one prompt may bounce through tools.
@@ -165,6 +196,16 @@ const MaxToolRounds = 16
 // turn, it is the middle of one. The turn ends when the model replies without
 // asking for anything.
 func (e *Engine) Ask(text string) (string, error) {
+	return e.AskWatching(text, common.StreamCallbacks{})
+}
+
+// AskWatching is Ask with a caller-supplied view of the stream.
+//
+// A separate method rather than a parameter on Ask, because Ask is the
+// signature every chapter before this one calls and the exercises still do.
+// Adding a parameter would have made this chapter's change reach backwards
+// into code that has nothing to do with streaming.
+func (e *Engine) AskWatching(text string, watch common.StreamCallbacks) (string, error) {
 	if err := e.Say(text); err != nil {
 		return "", err
 	}
@@ -172,7 +213,7 @@ func (e *Engine) Ask(text string) (string, error) {
 	var reply string
 	for round := 0; ; round++ {
 		var err error
-		reply, err = e.Turn()
+		reply, err = e.Turn(watch)
 		if err != nil {
 			return "", err
 		}

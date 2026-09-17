@@ -1,8 +1,8 @@
 package llm
 
 import (
-	"github.com/waywardgeek/coding-agents-course/solutions/ch06/internal/common"
 	"encoding/json"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 	"io"
 	"testing"
 )
