@@ -43,20 +43,17 @@ type Observer interface {
 type Observation interface{ observation() }
 
 type PartDelta struct {          // streaming chunk
-    Agent  AgentID `json:"agent,omitempty"`
-    Index  int     `json:"index"`
-    Chunk  string  `json:"chunk"`
+    PartID uint64 `json:"part_id"`
+    Chunk  string `json:"chunk"`
 }
 
 type PartFinal struct {          // completed part
-    Agent  AgentID `json:"agent,omitempty"`
-    Seq    Seq     `json:"seq"`
-    Index  int     `json:"index"`
-    Part   Part    `json:"part"`
+    Seq    Seq      `json:"seq"`
+    PartID uint64   `json:"part_id"`
+    Part   TextPart `json:"part"`
 }
 
 type StateChanged struct {       // turn-state transition
-    Agent  AgentID `json:"agent,omitempty"`
     From   TurnState `json:"from"`
     To     TurnState `json:"to"`
 }
@@ -64,20 +61,20 @@ type StateChanged struct {       // turn-state transition
 type AgentID string
 ```
 
-`AgentID` is a string, empty for a single agent. The `omitempty` tag
-keeps single-agent logs unchanged from Chapter 5. `Observe` must not
-block: a slow observer that holds up the loop recreates the deafness
-this chapter exists to fix.
+`Observe` must not block: a slow observer that holds up the loop
+recreates the deafness this chapter exists to fix. Single-agent logs
+stay unchanged from Chapter 5; the framework tags agent identity
+externally when coordinating multiple agents.
 
 **The mailbox.** One inbound queue carries everything:
 
 ```go
 type Inbound interface{ inbound() }
 
-type Prompt    struct{ Text string }
-type Hint      struct{ Text string }
-type Interrupt struct{}
-type ToolDone  struct {
+type UserMessage struct{ Text string }
+type Hint        struct{ Text string }
+type Interrupt   struct{}
+type ToolCompleted struct {
     CallID  string
     Result  string
     IsError bool
@@ -92,21 +89,21 @@ nothing in it is clever.
 **The actor loop.** The engine runs on its own goroutine. When the
 mailbox has a message, the loop drains it:
 
-- `Prompt`: start a new turn (render context, send to vendor, record
+- `UserMessage`: start a new turn (render context, send to vendor, record
   events).
 - `Hint`: attach to the current turn's pending context.
-- `ToolDone`: record the result, check for outstanding calls, continue
+- `ToolCompleted`: record the result, check for outstanding calls, continue
   the turn or go idle.
 - `Interrupt`: set state to `Interrupted`, stop processing.
 
 The synchronous `Ask(text) (string, error)` still exists. It posts a
-`Prompt` and waits for the turn to end. Callers that do not need
+`UserMessage` and waits for the turn to end. Callers that do not need
 blocking use `Post` directly and watch through an observer.
 
 **The Wait primitive.**
 
 ```go
-func (a *Agent) Wait(ctx context.Context,
+func (a *Actor) Wait(ctx context.Context,
     pred func(Observation) bool) (Observation, error)
 ```
 
@@ -308,14 +305,13 @@ code cannot add new ones. Three types carry the information:
 
 ```go
 type PartDelta struct {          // streaming chunk
-    Agent  AgentID `json:"agent,omitempty"`
-    Index  int     `json:"index"`
-    Chunk  string  `json:"chunk"`
+    PartID uint64 `json:"part_id"`
+    Chunk  string `json:"chunk"`
 }
 ```
 
 A `PartDelta` arrives for every streaming chunk the vendor sends.
-`Index` identifies which part is being streamed so that an observer
+`PartID` identifies which part is being streamed so that an observer
 can assemble the complete response without buffering. `Chunk` is a
 string, not `[]byte`, because the event log is JSON and base64
 doubles the size of everything.
@@ -339,10 +335,9 @@ sent to the vendor.
 
 ```go
 type PartFinal struct {          // completed part
-    Agent  AgentID `json:"agent,omitempty"`
-    Seq    Seq     `json:"seq"`
-    Index  int     `json:"index"`
-    Part   Part    `json:"part"`
+    Seq    Seq      `json:"seq"`
+    PartID uint64   `json:"part_id"`
+    Part   TextPart `json:"part"`
 }
 ```
 
@@ -353,7 +348,6 @@ events alone, the observer seam is complete.
 
 ```go
 type StateChanged struct {       // turn-state transition
-    Agent  AgentID `json:"agent,omitempty"`
     From   TurnState `json:"from"`
     To     TurnState `json:"to"`
 }
@@ -365,11 +359,10 @@ A `StateChanged` fires on every transition: `Idle` to
 to show a spinner. The parent uses this to know when a child finished.
 The grader uses this to verify the observer seam works.
 
-`AgentID` is a string. For a single agent it is empty, and
-`omitempty` keeps the JSON unchanged from Chapter 5. For a
-multi-agent framework it names which agent fired. The type is defined
-in the hub because observer types live there, and it costs nothing
-because a string is a string.
+The observation types carry no agent identity. For a single agent,
+that is all you need. For a multi-agent framework, the coordinator
+tags agent identity externally when it routes observations. The type
+is cheap because external tagging is just a wrapper.
 
 The observer is told, never asked. The engine calls `Observe` after
 every action: after recording a response, after transitioning state,
@@ -407,9 +400,9 @@ hear:
 ```go
 type Inbound interface{ inbound() }
 
-type Prompt    struct{ Text string }
-type Hint      struct{ Text string }
-type ToolDone  struct {
+type UserMessage   struct{ Text string }
+type Hint          struct{ Text string }
+type ToolCompleted struct {
     CallID  string
     Result  string
     IsError bool
@@ -473,7 +466,7 @@ calls `Execute(call)` and blocks until the tool finishes. The return
 value is the tool result, and the engine records it immediately.
 
 In Chapter 6, the engine dispatches the tool call on a separate
-goroutine. When the tool finishes, it posts a `ToolDone` to the
+goroutine. When the tool finishes, it posts a `ToolCompleted` to the
 mailbox. The engine is back at its mailbox drain loop, free to
 process hints and interrupts while the tool runs. The tool result
 arrives as a message, not a return value, and the engine processes it
@@ -492,11 +485,11 @@ func (e *Engine) run() {
 
         for _, msg := range e.box.Drain() {
             switch m := msg.(type) {
-            case Prompt:
+            case UserMessage:
                 e.startTurn(m.Text)
             case Hint:
                 e.applyHint(m.Text)
-            case ToolDone:
+            case ToolCompleted:
                 e.recordResult(m)
             case Interrupt:
                 e.interrupt()
@@ -602,7 +595,7 @@ condition when one matches.
 
 Every higher-level wait derives from this.
 
-**Blocking send**: post a `Prompt`, then `Wait` for `StateChanged`
+**Blocking send**: post a `UserMessage`, then `Wait` for `StateChanged`
 where `To` is `Idle` or `Interrupted`.
 
 **Wait for agent**: `Wait` for `StateChanged` where `To` is `Idle`
@@ -646,7 +639,7 @@ the turn, and the turn state is the reducer's business.
 
 The interrupt is simpler. An `Interrupt` message arrives, the engine
 sets the turn state to `Interrupted`, and the loop exits. Tools that
-are still running will complete, and their `ToolDone` messages will
+are still running will complete, and their `ToolCompleted` messages will
 arrive at a mailbox that nobody is draining. That is fine. A killed
 goroutine's output is garbage, and treating it otherwise is a
 different bug.
@@ -680,21 +673,22 @@ a coordinator that tracks which agents exist and routes observations.
 
 ```go
 type Framework struct {
-    agents    map[AgentID]*Agent
-    observers []Observer
+    actors    map[AgentID]*Actor
+    host      Host
+    merged    chan Observation
 }
 
-func (f *Framework) Add(id AgentID, cfg Config) *Agent
+func (f *Framework) Add(id AgentID, actor *Actor)
 func (f *Framework) Remove(id AgentID)
-func (f *Framework) Wait(ctx context.Context,
+func (f *Framework) WaitAny(ctx context.Context,
     pred func(Observation) bool) (Observation, error)
 ```
 
-`Add` creates an agent with its own mailbox and its own actor
+`Add` registers an actor with its own mailbox and its own actor
 goroutine. The framework attaches itself as an observer on every
-agent it creates, multiplexing their observations into a single
-stream. `Wait` on the framework blocks until any agent fires an
-observation that satisfies the predicate.
+actor it manages, multiplexing their observations into a single
+merged channel. `WaitAny` on the framework blocks until any actor
+fires an observation that satisfies the predicate.
 
 A Go program constructing three agents and passing messages between
 them is not an agent spawning children through its own tool surface.
