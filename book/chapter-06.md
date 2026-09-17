@@ -320,6 +320,23 @@ can assemble the complete response without buffering. `Chunk` is a
 string, not `[]byte`, because the event log is JSON and base64
 doubles the size of everything.
 
+The streaming rule: do not model streaming as a mode. Model
+non-streaming as a stream of length one. A non-streaming vendor emits
+one delta plus the finalizer. Observers that care about liveness
+render deltas; observers that do not ignore them and act on
+finalizers. Adding streaming later therefore adds no new event kinds.
+
+Tool results are the proof the rule is right: they are observable but
+never stream, which needs no special case. They are always length one.
+
+Deltas are transient. They are never appended to the durable log;
+only finalized parts are recorded. The log is the state. The stream
+is the experience. Replaying the log must produce the same context
+as the live run, minus the animation. The `replay-is-live` check
+tests exactly this: truncate the log at the last `request_sent`,
+replay it, and compare byte for byte against what the live engine
+sent to the vendor.
+
 ```go
 type PartFinal struct {          // completed part
     Agent  AgentID `json:"agent,omitempty"`
@@ -376,7 +393,16 @@ queue. The engine never waits.
 
 ## §6.4 The inbound seam
 
-The mailbox carries everything the engine can hear:
+The agent is deaf, but the obvious explanation is wrong. It is not
+that the tool runs inline. The tool already runs on its own goroutine
+since Chapter 4. It is that the engine parks in a `select` awaiting
+the tool's result, and that engine is the same loop that would drain
+inbound events. The drainer is parked. Hints arrive and sit in a
+channel that nobody reads until the tool finishes.
+
+The fix: deliver tool completions INTO the queue instead of awaiting
+them in a `select`. The mailbox carries everything the engine can
+hear:
 
 ```go
 type Inbound interface{ inbound() }
@@ -672,6 +698,11 @@ prompts to each one, and waits for each to finish in sequence.
 > agent that spawns another watches it through this same observer
 > seam and decides what to do based on what it sees. Nothing needs
 > to be added to the observer interface. Everything is already here.
+> The alternative is reading the child's history file. One
+> supervision call built that way returned 307,984 bytes, roughly
+> 13% of a context window, because it had no volume contract. The
+> observer seam, delivering events as they happen, returned 3,447
+> bytes for the same purpose.
 
 Three agents prove the cost was paid once. The first agent might work
 because the framework was tested with it. The second agent might work
@@ -780,7 +811,8 @@ Sub-agent spawning, where one agent creates and supervises another
 through the observer seam, uses everything built here and adds
 nothing to the framework's interfaces. The observer is already the
 parent's view of the child. The mailbox is already the child's
-inbox. The Wait primitive is already the join.
+inbox. The Wait primitive is already the join. You now have a hint
+channel and nowhere to type into it.
 
 ## Taking it for a spin
 
