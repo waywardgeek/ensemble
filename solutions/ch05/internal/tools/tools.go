@@ -27,10 +27,9 @@ import (
 	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
 )
 
-// argSpec is a human-readable summary of each tool's arguments, kept as plain
-// data so that an error message can describe a tool without depending on the
-// registry that holds the tool's code.
-var argSpec = map[string]string{
+// builtinArgSpec returns a human-readable summary of each builtin tool's arguments.
+func builtinArgSpec() map[string]string {
+	return map[string]string{
 	"run_command":    `{"command":string,"cwd":string?,"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
 	"read_file":      `{"path":string,"start_line":int?,"end_line":int?,"max_bytes":int?}`,
 	"write_file":     `{"path":string,"content":string,"append":bool?}`,
@@ -41,6 +40,7 @@ var argSpec = map[string]string{
 	"send_input":     `{"handle":int,"input":string,"append_newline":bool?,"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
 	"kill_job":       `{"handle":int}`,
 	"tool_limits":    `{"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
+	}
 }
 
 // limitProps is the schema text for the three limit arguments, shared by
@@ -49,17 +49,10 @@ const limitProps = `"ai_callback_delay":{"type":"number","description":"Seconds 
 			"ai_callback_pattern":{"type":"string","description":"Return as soon as the output not yet shown to you matches this Go regular expression, e.g. a prompt such as \"\\(dlv\\) \"."},
 			"max_output_bytes":{"type":"integer","description":"Largest result to return inline; more than this is cut to head and tail with the full output left in the job's file. Default 16384."}`
 
-// Registry is the agent's entire capability surface, and therefore its
-// permission boundary. A capability you do not put in this map is one the
-// model cannot reach — which is the argument for having tools at all rather
-// than only a shell.
-//
-// Each entry is also the model's only documentation of the tool. The schemas
-// use the subset of JSON Schema every vendor accepts unmodified — object,
-// properties, required, per-property type and description — and nothing
-// else. `additionalProperties`, `$schema`, `format` and friends are where
-// the vendors disagree, so they stay out.
-var Registry = map[string]common.Tool{
+// builtinTools returns the agent's builtin coding tools. Each entry is
+// also the model's only documentation of the tool.
+func builtinTools() map[string]common.Tool {
+	return map[string]common.Tool{
 	"run_command": {
 		Name:        "run_command",
 		Description: "Run a shell command under a terminal, in the working directory or in cwd. Returns its output so far and, when it has exited, its exit status; if it is still running after ai_callback_delay you get a job handle to wait on, talk to, or kill. Nothing persists between calls: no cd, no exported variable, no shell. Use for builds, tests, debuggers, and anything the other tools cannot do.",
@@ -159,27 +152,10 @@ var Registry = map[string]common.Tool{
 			"required":["pattern"]}`),
 		Run: ToolSearchFiles,
 	},
+	}
 }
 
-// Declarations is the registry as the model will be told about it: the
-// request-direction half of the tool protocol, in the same stable order as
-// ToolNames. It is the ONLY place the agent converts "a tool I can run" into
-// "a tool the model may ask for", which is what makes the registry the
-// permission boundary rather than just a lookup table.
-//
-// An empty registry yields a nil slice, and a nil slice renders to no field.
-func Declarations() []common.ToolDecl {
-	var decls []common.ToolDecl
-	for _, n := range ToolNames() {
-		t := Registry[n]
-		decls = append(decls, common.ToolDecl{
-			Name:        t.Name,
-			Description: t.Description,
-			Schema:      json.RawMessage(compactJSON(t.Schema)),
-		})
-	}
-	return decls
-}
+
 
 // compactJSON strips the whitespace the source literals use for readability
 // so the bytes on the wire are canonical.
@@ -191,30 +167,7 @@ func compactJSON(raw json.RawMessage) []byte {
 	return buf.Bytes()
 }
 
-// ToolNames returns the registry in a stable order. Map iteration order is
-// random in Go, and a tool schema that reorders itself between requests
-// changes the prompt bytes for no reason — which defeats prompt caching and
-// makes the byte-identity tests of Chapter 2 flap.
-func ToolNames() []string {
-	names := make([]string, 0, len(Registry))
-	for n := range Registry {
-		names = append(names, n)
-	}
-	sort.Strings(names)
-	return names
-}
 
-// Lookup finds a tool by name. An unknown name is an ERROR RESULT at the
-// dispatch site, not a panic and not a silent skip: the model asked for
-// something that does not exist, and the useful reply says what does.
-func Lookup(name string) (common.Tool, error) {
-	tool, ok := Registry[name]
-	if !ok {
-		return common.Tool{}, fmt.Errorf("no such tool %q; available tools: %s",
-			name, strings.Join(ToolNames(), ", "))
-	}
-	return tool, nil
-}
 
 // decode parses a tool's arguments.
 //
@@ -223,7 +176,7 @@ func Lookup(name string) (common.Tool, error) {
 // the model can tell which of several calls it got wrong.
 func decode(name string, args json.RawMessage, into any) error {
 	if len(args) == 0 {
-		return fmt.Errorf("%s: no arguments given, want %s", name, argSpec[name])
+		return fmt.Errorf("%s: no arguments given, want %s", name, builtinArgSpec()[name])
 	}
 	dec := json.NewDecoder(strings.NewReader(string(args)))
 	dec.DisallowUnknownFields()
@@ -232,7 +185,7 @@ func decode(name string, args json.RawMessage, into any) error {
 		// the model being wrong, and refusing the whole call over a spurious
 		// key costs a round trip to discover.
 		if err2 := json.Unmarshal(args, into); err2 != nil {
-			return fmt.Errorf("%s: arguments did not parse: %v (want %s)", name, err2, argSpec[name])
+			return fmt.Errorf("%s: arguments did not parse: %v (want %s)", name, err2, builtinArgSpec()[name])
 		}
 	}
 	return nil
@@ -702,18 +655,33 @@ func withContext(path string, lines []string, hits []int, ctx int, precededBy bo
 	return out
 }
 
-// Reg wraps the package-level registry as a common.ToolRegistry interface.
-type Reg struct{}
+// Reg is the agent's tool registry — the entire capability surface, and
+// therefore its permission boundary. A capability you do not put in this
+// registry is one the model cannot reach.
+//
+// Each Reg is per-agent: sub-agents can load skills declaring different tools
+// without affecting other agents.
+type Reg struct {
+	tools   map[string]common.Tool
+	argSpec map[string]string
+}
 
-func NewRegistry() *Reg { return &Reg{} }
+// NewRegistry creates a registry pre-loaded with the builtin coding tools.
+func NewRegistry() *Reg {
+	r := &Reg{
+		tools:   make(map[string]common.Tool),
+		argSpec: builtinArgSpec(),
+	}
+	for name, tool := range builtinTools() {
+		r.tools[name] = tool
+	}
+	return r
+}
 
-func (r *Reg) Lookup(name string) (common.Tool, error) { return Lookup(name) }
-func (r *Reg) Declarations() []common.ToolDecl                { return Declarations() }
-
-// Register adds a custom tool to the global registry. The handler receives
-// JSON arguments and returns the text output.
-func Register(name, description string, schema json.RawMessage, handler func(json.RawMessage) (string, error)) {
-	Registry[common.NormalizeName(name)] = common.Tool{
+// Register adds a custom tool. The handler receives JSON arguments and
+// returns the text output.
+func (r *Reg) Register(name, description string, schema json.RawMessage, handler func(json.RawMessage) (string, error)) {
+	r.tools[common.NormalizeName(name)] = common.Tool{
 		Name:        name,
 		Description: description,
 		Schema:      schema,
@@ -722,4 +690,35 @@ func Register(name, description string, schema json.RawMessage, handler func(jso
 		},
 		NoJob: true,
 	}
+}
+
+func (r *Reg) Lookup(name string) (common.Tool, error) {
+	tool, ok := r.tools[name]
+	if !ok {
+		return common.Tool{}, fmt.Errorf("no such tool %q; available tools: %s",
+			name, strings.Join(r.toolNames(), ", "))
+	}
+	return tool, nil
+}
+
+func (r *Reg) Declarations() []common.ToolDecl {
+	var decls []common.ToolDecl
+	for _, n := range r.toolNames() {
+		t := r.tools[n]
+		decls = append(decls, common.ToolDecl{
+			Name:        t.Name,
+			Description: t.Description,
+			Schema:      json.RawMessage(compactJSON(t.Schema)),
+		})
+	}
+	return decls
+}
+
+func (r *Reg) toolNames() []string {
+	names := make([]string, 0, len(r.tools))
+	for n := range r.tools {
+		names = append(names, n)
+	}
+	sort.Strings(names)
+	return names
 }

@@ -162,7 +162,7 @@ func TestSearchFilesContextLines(t *testing.T) {
 // proves the note is one-shot too.
 func TestToolLimitsConsumptionIsVisible(t *testing.T) {
 	t.Chdir(t.TempDir())
-	e := llm.NewEngine(common.Config{}, "log.jsonl", jobs.NewJobs(), tools.NewRegistry())
+	e := llm.NewEngine(common.Config{}, "log.jsonl", jobs.NewJobs(cliHost{}), tools.NewRegistry(), cliHost{})
 	run := func(id, name, args string) string {
 		if err := e.Execute(common.ToolCallPart{CallID: id, Name: name, Args: json.RawMessage(args)}); err != nil {
 			t.Fatalf("%s: %v", name, err)

@@ -32,15 +32,18 @@ const (
 )
 
 // DefaultSurface returns the default API surface for a vendor.
-var DefaultSurface = common.DefaultSurface
+func DefaultSurface(v Vendor) Surface { return common.DefaultSurface(v) }
 
 // ToolHandler is the signature for a custom tool: given JSON arguments,
 // return the text the model will see.
 type ToolHandler func(args json.RawMessage) (string, error)
 
-// Agent is the public handle to a running agent.
+// Agent is the public handle to a running agent. It implements common.Host,
+// providing the logger that all internal code reaches through parent interfaces.
 type Agent struct {
-	eng *llm.Engine
+	eng    *llm.Engine
+	reg    *tools.Reg
+	Logger *Logger
 }
 
 // NewAgent creates a new agent with the given config and log path. It wires
@@ -49,15 +52,26 @@ type Agent struct {
 // engine receives the job manager and tool registry as interfaces, not
 // concrete types.
 func NewAgent(cfg Config, logPath string) *Agent {
-	j := jobs.NewJobs()
-	reg := tools.NewRegistry()
-	return &Agent{eng: llm.NewEngine(cfg, logPath, j, reg)}
+	a := &Agent{Logger: DefaultLogger()}
+	j := jobs.NewJobs(a)
+	a.reg = tools.NewRegistry()
+	cfg.Tools = a.reg.Declarations()
+	a.eng = llm.NewEngine(cfg, logPath, j, a.reg, a)
+	return a
 }
 
-// RegisterTool adds a custom tool to the global registry. Call this before
-// NewAgent. The schema is the JSON Schema for the tool's input parameters.
-func RegisterTool(name, description string, schema json.RawMessage, handler ToolHandler) {
-	tools.Register(name, description, schema, handler)
+// RegisterTool adds a custom tool to this agent's registry. Call this before
+// the first Ask. The schema is the JSON Schema for the tool's input parameters.
+func (a *Agent) RegisterTool(name, description string, schema json.RawMessage, handler ToolHandler) {
+	a.reg.Register(name, description, schema, handler)
+	// Update the engine's config so declarations include the new tool.
+	a.eng.Cfg.Tools = a.reg.Declarations()
+}
+
+// Logf logs a message through the agent's logger. This makes Agent satisfy
+// common.Host, so any code that holds a Host can log.
+func (a *Agent) Logf(format string, args ...any) {
+	a.Logger.Logf(format, args...)
 }
 
 // Ask sends a prompt and runs the full tool loop until the model replies.
@@ -88,7 +102,6 @@ func ConfigFromEnv() (Config, error) {
 		Vendor:    vendor,
 		Surface:   common.DefaultSurface(vendor),
 		MaxTokens: 1024,
-		Tools:     tools.Declarations(),
 	}
 	switch vendor {
 	case VendorAnthropic:
