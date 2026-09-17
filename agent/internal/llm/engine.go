@@ -196,6 +196,16 @@ const MaxToolRounds = 16
 // turn, it is the middle of one. The turn ends when the model replies without
 // asking for anything.
 func (e *Engine) Ask(text string) (string, error) {
+	return e.AskWatching(text, common.StreamCallbacks{})
+}
+
+// AskWatching is Ask with a caller-supplied view of the stream.
+//
+// A separate method rather than a parameter on Ask, because Ask is the
+// signature every chapter before this one calls and the exercises still do.
+// Adding a parameter would have made this chapter's change reach backwards
+// into code that has nothing to do with streaming.
+func (e *Engine) AskWatching(text string, watch common.StreamCallbacks) (string, error) {
 	if err := e.Say(text); err != nil {
 		return "", err
 	}
@@ -203,7 +213,7 @@ func (e *Engine) Ask(text string) (string, error) {
 	var reply string
 	for round := 0; ; round++ {
 		var err error
-		reply, err = e.Turn(common.StreamCallbacks{})
+		reply, err = e.Turn(watch)
 		if err != nil {
 			return "", err
 		}

@@ -378,15 +378,17 @@ func runLoop(cfg common.Config, logPath string, interactive bool, reg *tools.Reg
 			continue
 		}
 
-		reply, err := eng.Ask(line)
-		if err != nil {
+		if _, err := eng.AskWatching(line, chatStream(out)); err != nil {
 			vendorFailed = true
 			fmt.Fprintln(os.Stderr, "error:", err)
 			fmt.Fprint(os.Stderr, "> ")
 			continue
 		}
 
-		fmt.Fprintln(os.Stdout, reply)
+		// The reply already streamed to stdout through the callbacks above.
+		// Printing it again here is the obvious mistake: it duplicates every
+		// answer, and it looks correct until the first long one.
+		fmt.Fprintln(out)
 		out.Flush()
 		fmt.Fprint(os.Stderr, "> ")
 	}
@@ -442,6 +444,67 @@ func parseVendor(s string) (common.Vendor, error) {
 		return common.VendorGemini, nil
 	}
 	return 0, fmt.Errorf("unknown vendor %q (want anthropic, openai or gemini)", s)
+}
+
+// chatStream prints a turn as it arrives.
+//
+// Reply text goes to STDOUT, because that is the answer and stdout is where
+// an answer belongs. Reasoning and tool calls go to STDERR as commentary,
+// dimmed and yellow. Piping the binary therefore still yields exactly what
+// the assistant said and nothing else, while a human at a terminal sees the
+// whole turn being built.
+//
+// Colour is chosen by whether STDERR is a terminal, not by a flag. Writing
+// escape codes into a pipe is how a log file ends up full of \033[2m.
+func chatStream(out *bufio.Writer) common.StreamCallbacks {
+	const (
+		reset  = "\033[0m"
+		dim    = "\033[2m"
+		yellow = "\033[33m"
+	)
+	color := isTerminal(os.Stderr)
+	open := false
+
+	paint := func(code string) {
+		if color && !open {
+			fmt.Fprint(os.Stderr, code)
+			open = true
+		}
+	}
+	clear := func() {
+		if open {
+			fmt.Fprint(os.Stderr, reset)
+			open = false
+		}
+	}
+
+	return common.StreamCallbacks{
+		OnDelta: func(_ uint64, kind common.DeltaKind, chunk string) {
+			switch kind {
+			case common.DeltaText:
+				clear()
+				fmt.Fprint(out, chunk)
+				// Flush per chunk. Without it the buffer holds the whole
+				// answer and releases it in one lump at the end, which looks
+				// exactly like streaming having no effect.
+				out.Flush()
+			case common.DeltaThinking:
+				paint(dim)
+				fmt.Fprint(os.Stderr, chunk)
+			case common.DeltaToolCall:
+				paint(yellow)
+				fmt.Fprint(os.Stderr, chunk)
+			}
+		},
+		OnPartFinal: func(_ uint64, _ common.Part) {
+			// Only break the line if commentary was being written, so a
+			// plain text answer does not collect blank lines after it.
+			if open {
+				clear()
+				fmt.Fprintln(os.Stderr)
+			}
+		},
+	}
 }
 
 func isTerminal(f *os.File) bool {

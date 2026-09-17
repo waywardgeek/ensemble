@@ -44,6 +44,15 @@ type ModelFeatures = common.ModelFeatures
 type TurnState = common.TurnState
 type TextPart = common.TextPart
 
+// ToolCallPart and OpaquePart are re-exported because PartFinal now reports
+// EVERY part, not just text. A consumer switching on a final needs the types
+// to switch on, and before streaming there was nothing but text to see. The
+// internal/ wall is what surfaced this: the ch07 exercise would not compile
+// without them, which is the whole reason the exercise lives outside the
+// module.
+type ToolCallPart = common.ToolCallPart
+type OpaquePart = common.OpaquePart
+
 // Streaming. DeltaKind says what sort of content a chunk is; Stream is the
 // set of kinds a model can actually deliver incrementally. StreamCallbacks is
 // the parse-side half of the seam, exported because a caller embedding this

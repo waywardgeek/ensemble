@@ -27,10 +27,14 @@ func main() {
 		path = fmt.Sprintf("./solutions/ch%02d", *chapter)
 	}
 
-	// Ch5 handles its own build (agent/cmd/ and ch05/).
+	// From ch5 on, a submission is repo-root-shaped: the agent is a library
+	// under agent/ and the exercise is a separate module under chNN/. Those
+	// chapters build both themselves, so there is nothing to build here.
+	selfBuilding := map[int]bool{5: true, 6: true, 7: true}
+
 	var bin string
 	var cleanup func()
-	if *chapter != 5 && *chapter != 6 {
+	if !selfBuilding[*chapter] {
 		var err error
 		bin, cleanup, err = grade.Build(path)
 		if err != nil {
@@ -93,6 +97,15 @@ func main() {
 		report = grade.NewTitledReport(
 			"Chapter 6 — Two Seams and a Loop",
 			grade.Ch6Evaluate(res), res.HelpersErr)
+	case 7:
+		res, err := grade.Ch7Run(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
+			os.Exit(2)
+		}
+		report = grade.NewTitledReport(
+			"Chapter 7 — Streaming",
+			grade.Ch7Evaluate(res), res.HelpersErr)
 	default:
 		fmt.Fprintf(os.Stderr, "grader: no grader for chapter %d yet\n", *chapter)
 		os.Exit(2)
