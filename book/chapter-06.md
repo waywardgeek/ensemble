@@ -582,6 +582,14 @@ deafness, and that number is two.
 
 ## §6.6 The Wait primitive
 
+This chapter does not introduce agent state. It exposes it. The
+reader has had a state machine since Chapter 2: `TurnState` with
+`Idle`, `InputPending`, `InFlight`, `ToolsPending`. Chapter 4 added
+`Interrupted`, deliberately as a state rather than a flag, because
+replay re-executes tool calls that were cancelled if `Interrupted`
+is not terminal. The state machine is a fact. The observer seam
+makes it visible. `Wait` makes it waitable.
+
 ```go
 func (a *Agent) Wait(ctx context.Context,
     pred func(Observation) bool) (Observation, error)
