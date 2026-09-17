@@ -880,11 +880,11 @@ export LLM_MODEL="claude-opus-5"
 and point `LLM_BASE_URL` at the Gemini endpoint. For OpenAI, set it
 to `openai`.
 
-Start an interactive session. The binary reads one JSON line per
+Start an interactive chat session. The binary reads one JSON line per
 stdin line and streams observations to stdout:
 
 ```bash
-./bin
+./bin chat
 ```
 
 Type a prompt and press enter:
