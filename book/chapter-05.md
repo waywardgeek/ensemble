@@ -484,3 +484,77 @@ any of these, and it does not need to.
 
 That is the payoff of a refactoring chapter. The code does the same
 thing. The codebase does not.
+
+
+## 5.9 The ambush
+
+How do you debug your agent?
+
+The engine calls tools, the tools call the shell, the shell runs
+builds that fail and tests that flap. When something goes wrong, the
+only evidence is the model's next response, which is the model's
+interpretation of the evidence, not the evidence itself. There is no
+logger. There has never been a logger. 5,047 lines of Go, and not one
+of them writes a debug message anywhere.
+
+This is not an accident. It is a set-up.
+
+A logger is a facility that every piece of code in the system needs
+access to. In a flat package, the solution is a global variable. In a
+system that will eventually run multiple agents in one process, a
+global variable is a collision waiting to happen. One agent's debug
+output interleaved with another's is worse than no debug output at all.
+
+The logger belongs on the top-level object: the Agent. Each agent
+gets its own logger. Internal code reaches it through the parent chain
+you just built. If the refactoring in §5.2 produced a star where every
+constructor takes an interface to its parent, adding the logger is
+four changes:
+
+1. Define a `Host` interface in `internal/common` with one method:
+   `Logf(format string, args ...any)`.
+2. Embed `Host` in the `Call` struct. Every tool function already
+   receives a `*Call`, so every tool can now log.
+3. Create a `Logger` type in the root package: a mutex-guarded
+   writer with timestamps. Put it on the Agent. Make `Agent.Logf`
+   delegate to the logger.
+4. Thread the `Host` into every constructor that needs it: the engine,
+   the job manager, the tool registry. Each one stores the host and
+   implements `Logf` by calling `host.Logf`.
+
+That is 72 lines. The parent chain carries the logger from the top of
+the tree to every leaf, and no leaf needs to know how the logger
+works. It only needs to know that `Logf` exists on its parent interface.
+
+## 5.10 Kill the globals
+
+While you are threading the Host, audit your package-level `var`
+declarations. The only globals that should survive are immutable
+lookup tables: the maps that convert an enum to a string. Everything
+else moves to a struct.
+
+The tool registry is the most important target. In the ch04 solution,
+the registry was a package-level map. In the refactored code, it
+becomes a `Reg` struct created by `NewRegistry()`, held by the Agent,
+and passed to the engine as a `ToolRegistry` interface. This is not
+cosmetic. When sub-agents arrive, each one will load skills that
+declare tools. A per-agent registry means one agent's skill tools do
+not leak into another agent's capability surface. A global map cannot
+make that guarantee.
+
+The grader now checks for both:
+
+| Check | Points | What it verifies |
+|-------|-------:|------------------|
+| `logger-accessible` | 10 | `Logf` declared in common, embedded in `Call` |
+| `no-mutable-globals` | 10 | zero mutable `var` declarations outside tests |
+
+If the star topology holds and every constructor takes a parent
+interface, both checks pass on the first try. If the refactoring
+skipped the interfaces, if constructors still reach up into package-
+level variables for their dependencies, the logger has nowhere to
+live and the globals have nowhere to go.
+
+That is the ambush. The refactoring was never about moving files into
+directories. It was about building the parent chain that makes
+everything after this chapter possible.
