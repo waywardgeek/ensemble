@@ -1,10 +1,32 @@
 /grade
 /fakevendor
-/ch0
 *.test
 .DS_Store
 testdata/slowtool/
 testdata/mutants/
+
+# Compiled binaries.
+#
+# `go build` names its output after the directory, so a build inside ch05/
+# leaves ch05/ch05, and `go build -o bin` leaves ch05/bin. The exercise SOURCE
+# under ch0* IS tracked -- the grader compiles and drives it, and it is the
+# only thing that proves the public API is usable from outside the module.
+# Only the build output belongs here.
+#
+# This was previously spelled `/ch0`, which matched NOTHING: gitignore does
+# not prefix-match without a wildcard, so `/ch0` matches only a root entry
+# named exactly "ch0". Three 9MB binaries were committed while that rule
+# looked like it was working.
+ch0*/ch0*
+ch0*/bin
+agent/bin
+solutions/*/bin
+solutions/*/ch0*/ch0*
+solutions/*/agent/bin
+
+# Agent working directories: tool output and scratch, created by any manual
+# run. Run OUTPUT, not source.
+cr/
 
 # Event logs are run OUTPUT, not source. Tracking one meant every manual run of
 # a solution showed up as a modification and added noise to every git status.
