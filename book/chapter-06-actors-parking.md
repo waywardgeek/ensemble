@@ -1,10 +1,16 @@
-# Parking file — material extracted from Chapter 2 Draft 3 for Chapter 5 (the agent framework)
+# Parking file — material for Chapter 6 (the agent framework / two seams and a loop)
 
 **Provenance:** these sections were written for Chapter 2 and survived Opus 5's review
 (findings M1, M2, M4, M8, E4, E7). When Chapter 2 became the LLM-seam chapter, hints
-and interrupts moved to Chapter 5, where turns have real middles because Chapter 4 gave
-them real tools. Nothing here is retracted — it is relocated. The `agent_status` toy tool
+and interrupts moved here, where turns have real middles because Chapter 4 gave them
+real tools. Nothing here is retracted — it is relocated. The `agent_status` toy tool
 is expected to DISSOLVE in the move: it existed only to give a Chapter 2 turn a middle.
+
+**Note (2026-09-17):** This was originally labeled "Chapter 5" parking. The
+refactoring chapter is now Chapter 5; the actor/framework chapter is Chapter 6.
+§2.6a (hints) and the deafness analysis are core Chapter 6 material. §2.8
+(stateful actors / deployment topology) may belong in a LATER chapter (gateway
+or deployment) — flag for Bill's ruling.
 
 ---
 

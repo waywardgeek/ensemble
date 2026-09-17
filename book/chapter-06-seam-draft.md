@@ -1,22 +1,27 @@
-# Chapter 5 — the seam, in Go (DRAFT)
+# Chapter 6 — the seam, in Go (DRAFT)
 
 Status: DRAFT for review. This is the source that ships INLINE in the chapter, so
 every type here is a promise in print. Rationale lives in
-`book/chapter-05-seed.md`; structure in `book/chapter-05-outline.md`.
+`book/chapter-06-seed.md`; structure in `book/chapter-06-outline.md`.
 
 Reviewed against the REAL Chapter 2 types in `solutions/ch02/` on 2026-09-13, so
 this is an amendment to code the reader already has, not a parallel invention.
+
+**Note (2026-09-17):** This was originally a Chapter 5 draft, before the
+refactoring was split into its own chapter (now Chapter 5). The types below go
+into `internal/common/` (Chapter 5's hub package), not a separate `seam/`
+directory — the star topology is already established.
 
 ---
 
 ## Two rules this file obeys
 
-1. **The seam package imports nothing outside the standard library.** Checkable:
-   `go list -deps` returns stdlib only. A package that imports nothing cannot
-   participate in a cycle — the `gui_independence` guard generalized from "do not
-   import the GUI" to "do not import anything."
-2. **Not under `internal/`.** Go forbids other modules from importing it there.
-   A framework nobody can import is not a framework.
+1. **The hub package imports nothing outside the standard library** (plus the
+   stdlib-only logger from ch5). Checkable: `go list -deps` returns stdlib and
+   first-party leaves only.
+2. **Types live in `internal/common/`, re-exported via aliases in `agent.go`.**
+   Chapter 5 established this pattern with `type Config = common.Config` etc.
+   New types follow the same pattern.
 
 Interfaces for behavior. For data, Chapter 2's existing pattern: a SEALED union
 (`isPart()`) plus an ordered-field JSON envelope. Note this corrects a too-strong

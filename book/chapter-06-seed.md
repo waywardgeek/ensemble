@@ -1,6 +1,14 @@
-# Chapter 5 seed — The Agent Framework
+# Chapter 6 seed — The Agent Framework (Two Seams and a Loop)
 
-Status: SEED. Content ruled by Bill 2026-09-13. Not an outline yet.
+Status: SEED. Content ruled by Bill 2026-09-13.
+
+**Note (2026-09-17):** This was originally the Chapter 5 seed, written before
+the refactoring was split into its own chapter. Chapter 5 now covers the star
+topology refactoring (internal/common hub, implementation spokes, public facade,
+Host parent chain, no mutable globals). Chapter 6 builds on that foundation to
+add observers, the mailbox, the actor loop, and state-machine exposure. Some
+content below references "Chapter 5" or §5.x; those refer to this chapter (now
+Chapter 6). The outline is in `book/chapter-06-outline.md`.
 
 Bill's ruling, verbatim:
 
