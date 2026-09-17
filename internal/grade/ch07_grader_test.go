@@ -161,6 +161,29 @@ func ch7Mutants() []ch7mutation {
 			}},
 		},
 
+		// ---- ids must not cross kinds ----------------------------------------
+		{
+			name: "cross-kind-part-ids",
+			why: "Thinking deltas are assigned the next block's part id, so " +
+				"they share an id with the text block. The stream still flows, " +
+				"every kind still arrives, the answer is still correct, and " +
+				"deltas-match-final passes because it groups text by kind before " +
+				"reassembly. What breaks is the cross-kind invariant: a part id " +
+				"must belong to exactly one kind.\n" +
+				"The author predicted (§7.2 ruling) that the per-chunk-part-ids " +
+				"mutant would fail more checks once this invariant was enforced. " +
+				"That prediction was false: per-chunk-part-ids only perturbs TEXT " +
+				"delta ids, and the per-kind checks are indifferent to it. This " +
+				"dedicated mutant exists because the deletion audit requires every " +
+				"enforced behaviour to have a mutant that deletes it.",
+			wantFail: []string{"thinking-streamed"},
+			edits: []ch7edit{{
+				relPath: "agent/internal/llm/claude.go",
+				find:    `cb\.Delta\(partID\(ev\.Index\), common\.DeltaThinking, ev\.Delta\.Thinking\)`,
+				replace: `cb.Delta(partID(ev.Index+1), common.DeltaThinking, ev.Delta.Thinking)`,
+			}},
+		},
+
 		// ---- reasoning is a kind, not an afterthought --------------------
 		{
 			name: "no-thinking-deltas",

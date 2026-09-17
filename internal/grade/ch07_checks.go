@@ -179,6 +179,23 @@ func ch7ThinkingStreamed(r *Ch7Result) Check {
 			}
 		}
 	}
+	// Part ids used by thinking deltas must not be shared with any other kind.
+	// Scoped to the first response (resp 0), which contains thinking.
+	byKind := r.Stream.IDsByKind(0)
+	if thinkIDs := byKind["thinking"]; len(thinkIDs) > 0 {
+		for otherKind, otherIDs := range byKind {
+			if otherKind == "thinking" {
+				continue
+			}
+			for id := range thinkIDs {
+				if otherIDs[id] {
+					c.failf("thinking delta part_id %d is also used by %q deltas; a part id must not cross kinds", id, otherKind)
+					return c
+				}
+			}
+		}
+	}
+
 	c.notef("saw %d thinking deltas, none leaking into reply text", n)
 	return c
 }
@@ -217,6 +234,23 @@ func ch7ToolParamsStreamed(r *Ch7Result) Check {
 		}
 	}
 	c.notef("saw %d tool_call deltas reassembling to %q", n, truncate(joined, 80))
+
+	// Part ids used by tool_call deltas must not be shared with any other kind.
+	// Scoped to the first response (resp 0), which contains tool calls.
+	byKind := r.Stream.IDsByKind(0)
+	if toolIDs := byKind["tool_call"]; len(toolIDs) > 0 {
+		for otherKind, otherIDs := range byKind {
+			if otherKind == "tool_call" {
+				continue
+			}
+			for id := range toolIDs {
+				if otherIDs[id] {
+					c.failf("tool_call delta part_id %d is also used by %q deltas; a part id must not cross kinds", id, otherKind)
+					return c
+				}
+			}
+		}
+	}
 	return c
 }
 

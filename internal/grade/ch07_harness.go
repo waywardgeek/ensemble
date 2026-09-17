@@ -26,6 +26,7 @@ type Ch7Delta struct {
 	PartID uint64
 	Kind   string
 	Chunk  string
+	Resp   int // response index (0-based), incremented on each turn
 }
 
 // Ch7PartFinal is one observed part_final, capturing the kind for ordering.
@@ -58,6 +59,23 @@ func (r Ch7Exec) KindCount(kind string) int {
 		}
 	}
 	return n
+}
+
+// IDsByKind returns the set of distinct part IDs used by each delta kind,
+// scoped to the given response index. Part IDs reset between responses, so
+// cross-kind checks must compare within a single response.
+func (r Ch7Exec) IDsByKind(resp int) map[string]map[uint64]bool {
+	m := map[string]map[uint64]bool{}
+	for _, d := range r.Deltas {
+		if d.Resp != resp {
+			continue
+		}
+		if m[d.Kind] == nil {
+			m[d.Kind] = map[uint64]bool{}
+		}
+		m[d.Kind][d.PartID] = true
+	}
+	return m
 }
 
 // TextByPart concatenates text deltas per part, in arrival order.
@@ -219,6 +237,8 @@ func driveCh7(bin, tmp string, noStream bool) Ch7Exec {
 
 	sc := bufio.NewScanner(strings.NewReader(run.Stdout))
 	sc.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
+	respIdx := 0
+	finalized := map[uint64]bool{} // part_ids finalized so far
 	for sc.Scan() {
 		line := strings.TrimSpace(sc.Text())
 		if line == "" || !strings.HasPrefix(line, "{") {
@@ -237,14 +257,22 @@ func driveCh7(bin, tmp string, noStream bool) Ch7Exec {
 
 		switch m["observation"] {
 		case "part_delta":
+			id := uint64(numOf(m["part_id"]))
+			// A delta whose part_id was already finalized starts a new response.
+			if finalized[id] {
+				respIdx++
+				finalized = map[uint64]bool{}
+			}
 			d := Ch7Delta{
-				PartID: uint64(numOf(m["part_id"])),
+				PartID: id,
 				Kind:   strOf(m["kind"]),
 				Chunk:  strOf(m["chunk"]),
+				Resp:   respIdx,
 			}
 			run.Deltas = append(run.Deltas, d)
 		case "part_final":
 			id := uint64(numOf(m["part_id"]))
+			finalized[id] = true
 			kind := "thinking" // default: neither text nor tool means thinking/opaque
 			if t, ok := m["text"].(string); ok {
 				run.FinalText[id] = t
