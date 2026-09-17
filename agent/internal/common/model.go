@@ -34,6 +34,13 @@ func (m Media) String() string {
 // ModelFeatures is one row: everything the seam needs to know about a model.
 type ModelFeatures struct {
 	Media Media
+
+	// Stream is the set of delta kinds this model actually streams.
+	//
+	// Capability belongs here and not in the seam code, for the same reason
+	// Media does: it is a fact about a model that changes on the vendor's
+	// schedule, not a branch in our logic.
+	Stream Stream
 }
 
 // models is keyed by MODEL, not by vendor.
@@ -47,26 +54,35 @@ type ModelFeatures struct {
 // so that the table is effectively immutable — no code can write to it.
 func models() map[string]ModelFeatures {
 	return map[string]ModelFeatures{
-	// Anthropic — no audio, no video.
-	"claude-opus-5":    {Media: MediaImage | MediaDocument},
-	"claude-sonnet-5":  {Media: MediaImage | MediaDocument},
+		// Anthropic — no audio, no video. Streams all three kinds.
+		"claude-opus-5":   {Media: MediaImage | MediaDocument, Stream: StreamAll},
+		"claude-sonnet-5": {Media: MediaImage | MediaDocument, Stream: StreamAll},
 
-	// OpenAI — images yes, audio and video NO (video APIs are generation).
-	"gpt-6-astra":      {Media: MediaImage | MediaDocument},
-	"gpt-5.6-sol":      {Media: MediaImage | MediaDocument},
+		// OpenAI — images yes, audio and video NO (video APIs are generation).
+		// Reasoning arrives as a summary rather than as incremental deltas,
+		// so thinking is not streamed.
+		"gpt-6-astra": {Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs},
+		"gpt-5.6-sol": {Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs},
 
-	// Gemini — images, audio, video, documents.
-	"gemini-3.8-flash":       {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument},
-	"gemini-3.1-pro-preview": {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument},
+		// Gemini — images, audio, video, documents. Text and thinking stream;
+		// FUNCTION-CALL ARGUMENTS DO NOT. They arrive complete, in one frame.
+		// This row is why Stream is a bitmask instead of a bool: the honest
+		// description of this model needs two of three bits set, and a bool
+		// would have forced us either to drop text streaming or to invent
+		// argument chunks that the vendor never sent.
+		"gemini-3.8-flash":       {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking},
+		"gemini-3.1-pro-preview": {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking},
 
-	// Fake model used by the grader — images only, to test loud refusal.
-	"fake-model":        {Media: MediaImage},
+		// Fake model used by the grader — images only, to test loud refusal.
+		// Streams everything, because the streaming checks need all three
+		// kinds to appear.
+		"fake-model": {Media: MediaImage, Stream: StreamAll},
 
-	// Course/test models used by graders in various chapters.
-	"claude-fake-course-1":     {Media: MediaImage | MediaDocument},
-	"claude-sonnet-5-course":   {Media: MediaImage | MediaDocument},
-	"gpt-5-course":             {Media: MediaImage | MediaDocument},
-	"gemini-3.5-flash-course":  {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument},
+		// Course/test models used by graders in various chapters.
+		"claude-fake-course-1":    {Media: MediaImage | MediaDocument, Stream: StreamAll},
+		"claude-sonnet-5-course":  {Media: MediaImage | MediaDocument, Stream: StreamAll},
+		"gpt-5-course":            {Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs},
+		"gemini-3.5-flash-course": {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking},
 	}
 }
 

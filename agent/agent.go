@@ -44,6 +44,14 @@ type ModelFeatures = common.ModelFeatures
 type TurnState = common.TurnState
 type TextPart = common.TextPart
 
+// Streaming. DeltaKind says what sort of content a chunk is; Stream is the
+// set of kinds a model can actually deliver incrementally. StreamCallbacks is
+// the parse-side half of the seam, exported because a caller embedding this
+// framework may want to drive an Engine turn directly.
+type DeltaKind = common.DeltaKind
+type Stream = common.Stream
+type StreamCallbacks = common.StreamCallbacks
+
 const (
 	VendorAnthropic = common.VendorAnthropic
 	VendorOpenAI    = common.VendorOpenAI
@@ -52,11 +60,11 @@ const (
 
 // TurnState constants.
 const (
-	Idle         = common.Idle
-	InputPending = common.InputPending
-	InFlight     = common.InFlight
-	ToolsPending = common.ToolsPending
-	StateInterrupted  = common.Interrupted
+	Idle             = common.Idle
+	InputPending     = common.InputPending
+	InFlight         = common.InFlight
+	ToolsPending     = common.ToolsPending
+	StateInterrupted = common.Interrupted
 )
 
 // Media constants.
@@ -66,6 +74,24 @@ const (
 	MediaVideo    = common.MediaVideo
 	MediaDocument = common.MediaDocument
 )
+
+// DeltaKind constants.
+const (
+	DeltaThinking = common.DeltaThinking
+	DeltaText     = common.DeltaText
+	DeltaToolCall = common.DeltaToolCall
+)
+
+// Stream constants: the delta kinds a model can deliver incrementally.
+const (
+	StreamText     = common.StreamText
+	StreamThinking = common.StreamThinking
+	StreamToolArgs = common.StreamToolArgs
+	StreamAll      = common.StreamAll
+)
+
+// StreamingFor reports which delta kinds may be streamed for a config.
+func StreamingFor(cfg Config) Stream { return common.StreamingFor(cfg) }
 
 // DefaultSurface returns the default API surface for a vendor.
 func DefaultSurface(v Vendor) Surface { return common.DefaultSurface(v) }

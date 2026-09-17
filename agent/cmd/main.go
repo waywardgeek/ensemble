@@ -218,7 +218,13 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg) (vendorFail
 			emitLocked(map[string]string{"error": "bad input: " + err.Error()})
 			if !hinted {
 				hinted = true
+				// The guidance below also exists in the TTY banner, which a
+				// piped caller never sees. Someone feeding this binary the
+				// wrong thing is exactly the person who needs to be told
+				// what the right thing is, so say it here too.
 				fmt.Fprintf(os.Stderr, "\n%[1]s: that line is not JSON.\n", progName())
+				fmt.Fprintf(os.Stderr, "%[1]s reads a JSON-lines log on stdin, one message per line.\n", progName())
+				fmt.Fprintf(os.Stderr, "for an interactive chat run `%[1]s chat`; `%[1]s --help` lists every command\n", progName())
 			}
 			continue
 		}
@@ -303,7 +309,7 @@ func (f stdoutObserver) Observe(o common.Observation) { f(o) }
 func observationJSON(obs common.Observation) map[string]any {
 	switch v := obs.(type) {
 	case common.PartDelta:
-		m := map[string]any{"observation": "part_delta", "part_id": v.PartID, "chunk": v.Chunk}
+		m := map[string]any{"observation": "part_delta", "part_id": v.PartID, "kind": v.Kind.String(), "chunk": v.Chunk}
 		if v.Agent != "" {
 			m["agent"] = string(v.Agent)
 		}
@@ -313,8 +319,17 @@ func observationJSON(obs common.Observation) map[string]any {
 		if v.Agent != "" {
 			m["agent"] = string(v.Agent)
 		}
-		if tp, ok := v.Part.(common.TextPart); ok {
-			m["text"] = tp.Text
+		switch p := v.Part.(type) {
+		case common.TextPart:
+			m["text"] = p.Text
+		case common.ToolCallPart:
+			// Finals now fire for tool calls and reasoning, not just text.
+			// That content is what an Actions pane is made of, and the old
+			// text-only path emitted none of it.
+			m["tool"] = p.Name
+			m["args"] = string(p.Args)
+		case common.OpaquePart:
+			m["opaque"] = true
 		}
 		return m
 	case common.StateChanged:

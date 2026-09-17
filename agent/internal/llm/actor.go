@@ -206,14 +206,11 @@ func (a *Actor) runTurnLoop() {
 	for round := 0; ; round++ {
 		a.setState(common.InFlight)
 
-		reply, err := a.eng.Turn()
+		reply, err := a.eng.Turn(a.streamWatch())
 		if err != nil {
 			a.finishTurn("", err)
 			return
 		}
-
-		// Notify observers about the response content.
-		a.notifyContent()
 
 		calls := a.eng.PendingCalls()
 		if len(calls) == 0 {
@@ -395,25 +392,45 @@ func (a *Actor) finishTurn(text string, err error) {
 	_ = a.eng.Save()
 }
 
-// notifyContent emits PartFinal observations for any new dialogue entries.
-func (a *Actor) notifyContent() {
+// notifyContent is gone, and its absence is the point.
+//
+// It walked the finished dialogue entry and emitted a PartFinal per text
+// part, minting a fresh PartID for each from a counter. That could never
+// correlate with anything: the deltas did not exist yet, and when they did
+// they would have had ids from the same counter, one per chunk. The parser
+// now reports both ends of the stream, so the id that labelled the chunks is
+// by construction the id that labels the finished part.
+//
+// It also emitted finals only for TextPart. Tool calls and reasoning got
+// nothing, which is exactly the content an Actions pane most wants.
+
+// streamWatch is the actor's half of the stream.
+//
+// The engine fills in the logging half. This half turns what the parser saw
+// into observations, and it runs on the actor goroutine because Parse is
+// called synchronously from the turn loop — the same reason it is safe to
+// read the context here.
+func (a *Actor) streamWatch() common.StreamCallbacks {
+	return common.StreamCallbacks{
+		OnDelta: func(partID uint64, kind common.DeltaKind, chunk string) {
+			a.notify(common.PartDelta{PartID: partID, Kind: kind, Chunk: chunk})
+		},
+		OnPartFinal: func(partID uint64, part common.Part) {
+			a.notify(common.PartFinal{Seq: a.entrySeq(), PartID: partID, Part: part})
+		},
+	}
+}
+
+// entrySeq is the Seq of the dialogue entry the response was folded into.
+//
+// Correct only because finals are reported AFTER the event that carries
+// them, so the entry exists by the time this is asked.
+func (a *Actor) entrySeq() common.Seq {
 	entries := a.eng.Ctx.Dialogue
 	if len(entries) == 0 {
-		return
+		return 0
 	}
-	last := entries[len(entries)-1]
-	if last.Actor != common.ActorAgent {
-		return
-	}
-	for _, p := range last.Parts {
-		if tp, ok := p.(common.TextPart); ok {
-			a.notify(common.PartFinal{
-				Seq:    last.Seq,
-				PartID: atomic.AddUint64(&a.partSeq, 1),
-				Part:   tp,
-			})
-		}
-	}
+	return entries[len(entries)-1].Seq
 }
 
 // Engine returns the underlying engine for log/context access.
