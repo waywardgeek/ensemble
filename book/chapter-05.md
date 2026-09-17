@@ -1,18 +1,21 @@
 # Chapter 5: The Big Refactor
 
-Your agent is 5,047 lines of Go in one directory. Everything can see
-everything. It works, and it will stop working the moment you try to
-let someone else use it. This chapter fixes the structure without
-adding a feature, without breaking a test, and at a cost of 123 lines.
-The result is a framework anyone can import.
+Every major AI coding agent, from Claude Code to Cursor, was built as
+a coding agent first and asked to do other things later. When SpaceX
+valued Cursor at $60 billion, the price was not for a code editor. It
+was for the harness: the tool loop, the vendor seam, the job
+supervision, the machinery that makes an LLM do real work in the
+world. A coding agent is the most valuable thing that harness can do
+today. It is not the only thing.
 
-The agent does not change what it does. It changes how the code is
-organized so that the next five chapters can add to it without the
-kind of pain that makes people rewrite from scratch. A refactoring
-chapter is the least exciting chapter in a book and the one whose
-absence is felt in every chapter after it. If you skip it, everything
-that follows compiles against a monolith, and every addition touches
-files it has no business touching.
+Your agent is 5,047 lines of Go in one directory. It reads files,
+writes code, drives a debugger. It is also a monolith that nobody
+else can use. This chapter turns it into a general-purpose agent
+framework by reorganizing the code into packages with clean import
+direction, at a cost of 123 lines and zero new features. At the end,
+a twenty-line program imports your framework, registers a custom tool
+the framework has never seen, and runs an agent that calls it. Your
+agent is no longer just a coding agent. It is a platform.
 
 **What you build.** The same agent, reorganized into packages with
 clean import direction. Two rules govern the split:
