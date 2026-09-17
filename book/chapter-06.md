@@ -688,10 +688,12 @@ agent it creates, multiplexing their observations into a single
 stream. `Wait` on the framework blocks until any agent fires an
 observation that satisfies the predicate.
 
-The exercise uses this to run three agents: an author, an editor,
-and a reviewer. Each has its own system prompt, its own tools, and
-its own vendor configuration. The framework creates them, posts
-prompts to each one, and waits for each to finish in sequence.
+A Go program constructing three agents and passing messages between
+them is not an agent spawning children through its own tool surface.
+Multi-agent does not require a sub-agent API. It requires a
+framework, a prompt, and tools. This exercise is just Go. The
+distinction matters because a sub-agent chapter adds a tool surface
+for spawning; this chapter proves it is not necessary.
 
 > A framework that manages agents is a parent. The
 > observation stream is how the parent watches its children. An
@@ -783,7 +785,17 @@ it. Its tool is `review` (returns accept or reject with notes).
 The workflow is sequential: author writes, editor edits, reviewer
 reviews. The framework coordinates them through `Post` and `Wait`.
 Each agent uses the same vendor (the fake from Chapter 2) with a
-different system prompt.
+different system prompt. The workflow is hardcoded Go. Every new
+collaboration pattern is a new Go program. That is the limit this
+chapter reaches and the next several chapters work to remove. The
+framework works; the rigidity is in the glue code, not in the
+framework itself.
+
+Three agents prove the cost was paid once. The first agent might work
+because the framework was tested with it. The second might work
+because the code was debugged for two. The third works because the
+framework is general. If adding the reviewer required a single line
+inside the framework package, the seam is wrong.
 
 The binary reads JSON events on stdin, writes observations as JSON
 lines on stdout, and logs to the path in `CH06_LOG`. The grader
