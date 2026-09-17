@@ -1,8 +1,6 @@
 /grade
 /fakevendor
-/ch01
-/ch02
-/ch03
+/ch0
 *.test
 .DS_Store
 testdata/slowtool/
