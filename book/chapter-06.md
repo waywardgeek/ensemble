@@ -201,6 +201,11 @@ make grade6
 
 ## §6.1 The idea in plain words
 
+Chapter 2 built a renderer that turned the event log into
+`history.md`. It watched the stream and produced a view. That is an
+observer. The reader who built it has already written one and can now
+name it.
+
 A deaf loop processes one request at a time. The model sends back a
 tool call, the engine runs the tool, and nothing else can happen
 until the tool finishes. A user typing a hint while a three-second
@@ -757,6 +762,25 @@ drives the fake vendor to script specific responses for each agent.
 CH06_LOG=/tmp/ch06.jsonl LLM_VENDOR=fake \
   LLM_BASE_URL=http://localhost:PORT ./ch06
 ```
+
+## §6.11 What this chapter does not build
+
+Streaming observations arrive as `PartDelta`, but the vendor seam
+from Chapter 2 does not stream yet. It returns a complete response in
+one block. The `PartDelta` type exists so that when streaming lands,
+observers get incremental updates without an interface change.
+
+The `Ref` type supports `RefURI` and `RefHandle` alongside `RefPath`,
+but the renderers only handle `RefPath` so far. A vendor that accepts
+a URL instead of inlined bytes needs the URI form; a tool whose
+output is too large for inline needs the handle form. Both are future
+extensions to the renderer, not to the Ref type.
+
+Sub-agent spawning, where one agent creates and supervises another
+through the observer seam, uses everything built here and adds
+nothing to the framework's interfaces. The observer is already the
+parent's view of the child. The mailbox is already the child's
+inbox. The Wait primitive is already the join.
 
 ## Taking it for a spin
 
