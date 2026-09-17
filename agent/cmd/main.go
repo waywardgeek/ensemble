@@ -63,7 +63,8 @@ func main() {
 		mode = args[0]
 	}
 
-	cfg, err := configFromEnv()
+	reg := tools.NewRegistry()
+	cfg, err := configFromEnv(reg)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "config:", err)
 		os.Exit(2)
@@ -101,12 +102,12 @@ func main() {
 		}
 
 	case "chat":
-		if runLoop(cfg, logPath, true) {
+		if runLoop(cfg, logPath, true, reg) {
 			os.Exit(1)
 		}
 
 	case "":
-		if runLoop(cfg, logPath, false) {
+		if runLoop(cfg, logPath, false, reg) {
 			os.Exit(1)
 		}
 
@@ -117,10 +118,17 @@ func main() {
 	}
 }
 
-func runLoop(cfg common.Config, logPath string, interactive bool) (vendorFailed bool) {
-	j := jobs.NewJobs()
-	reg := tools.NewRegistry()
-	eng := llm.NewEngine(cfg, logPath, j, reg)
+// cliHost implements common.Host for the CLI — a simple stderr logger.
+type cliHost struct{}
+
+func (cliHost) Logf(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, format+"\n", args...)
+}
+
+func runLoop(cfg common.Config, logPath string, interactive bool, reg *tools.Reg) (vendorFailed bool) {
+	host := cliHost{}
+	j := jobs.NewJobs(host)
+	eng := llm.NewEngine(cfg, logPath, j, reg, host)
 	in := bufio.NewScanner(os.Stdin)
 	in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
 	out := bufio.NewWriter(os.Stdout)
@@ -216,7 +224,7 @@ func emit(out *bufio.Writer, v any) {
 	out.Flush()
 }
 
-func configFromEnv() (common.Config, error) {
+func configFromEnv(reg *tools.Reg) (common.Config, error) {
 	vendor, err := parseVendor(envOr("LLM_VENDOR", "anthropic"))
 	if err != nil {
 		return common.Config{}, err
@@ -226,7 +234,7 @@ func configFromEnv() (common.Config, error) {
 		Surface:      common.DefaultSurface(vendor),
 		SystemPrompt: systemPrompt,
 		MaxTokens:    1024,
-		Tools:        tools.Declarations(),
+		Tools:        reg.Declarations(),
 	}
 	switch vendor {
 	case common.VendorAnthropic:

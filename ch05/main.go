@@ -20,10 +20,20 @@ import (
 )
 
 func main() {
-	// Register a custom tool before creating the agent. This is the whole
+	cfg, err := agent.ConfigFromEnv()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "config:", err)
+		os.Exit(2)
+	}
+	cfg.SystemPrompt = "You are a calculator assistant. Use the calculate tool for any arithmetic."
+
+	a := agent.NewAgent(cfg, "ch05.log")
+	defer a.Shutdown()
+
+	// Register a custom tool after creating the agent. This is the whole
 	// point of the refactoring: external code can extend the agent's
 	// capabilities without modifying the framework.
-	agent.RegisterTool(
+	a.RegisterTool(
 		"calculate",
 		"Evaluate a simple arithmetic expression and return the result.",
 		json.RawMessage(`{
@@ -47,16 +57,6 @@ func main() {
 			return fmt.Sprintf("Result: %s = %s", p.Expression, result), nil
 		},
 	)
-
-	cfg, err := agent.ConfigFromEnv()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "config:", err)
-		os.Exit(2)
-	}
-	cfg.SystemPrompt = "You are a calculator assistant. Use the calculate tool for any arithmetic."
-
-	a := agent.NewAgent(cfg, "ch05.log")
-	defer a.Shutdown()
 
 	in := bufio.NewScanner(os.Stdin)
 	in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)

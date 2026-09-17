@@ -39,15 +39,19 @@ const IODir = "cr/io"
 // --- the table -------------------------------------------------------------
 
 type Jobs struct {
-	mu   sync.Mutex
-	next int
-	all  map[int]*Job
+	host    common.Host
+	mu      sync.Mutex
+	next    int
+	all     map[int]*Job
 	// pending is what `tool_limits` set for the next call. One-shot: Take
 	// clears it, and it is taken by the next call no matter which tool.
 	pending *common.Limits
 }
 
-func NewJobs() *Jobs { return &Jobs{all: map[int]*Job{}} }
+func NewJobs(host common.Host) *Jobs { return &Jobs{host: host, all: map[int]*Job{}} }
+
+// Logf satisfies common.Host via the parent chain.
+func (js *Jobs) Logf(format string, args ...any) { js.host.Logf(format, args...) }
 
 // Start allocates a handle and its output file. It is called by the
 // dispatcher for every job-creating tool before the tool runs.

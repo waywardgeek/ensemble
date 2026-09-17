@@ -24,9 +24,10 @@ type Engine struct {
 	Path  string // where the log is persisted, so `dump` can find it
 	Jobs  common.JobManager
 	Tools common.ToolRegistry
+	Host  common.Host
 }
 
-func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools common.ToolRegistry) *Engine {
+func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools common.ToolRegistry, host common.Host) *Engine {
 	return &Engine{
 		Log:   common.NewLog(),
 		Ctx:   common.NewContext(),
@@ -35,6 +36,7 @@ func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools com
 		Path:  path,
 		Jobs:  jobs,
 		Tools: tools,
+		Host:  host,
 	}
 }
 
@@ -254,7 +256,7 @@ func (e *Engine) Execute(call common.ToolCallPart) error {
 		}}); err != nil {
 			return err
 		}
-		c := &common.Call{Jobs: e.Jobs, Limits: limits}
+		c := &common.Call{Host: e.Host, Jobs: e.Jobs, Limits: limits}
 		var out string
 		if err == nil {
 			out, err = tool.Run(c, call.Args)
@@ -298,7 +300,7 @@ func (e *Engine) Execute(call common.ToolCallPart) error {
 	// no recover here: a panic in a tool is an invariant violation, and an
 	// invariant violation takes the process down loudly, as it should.
 	go func() {
-		out, err := tool.Run(&common.Call{Job: job, Jobs: e.Jobs, Limits: limits}, call.Args)
+		out, err := tool.Run(&common.Call{Host: e.Host, Job: job, Jobs: e.Jobs, Limits: limits}, call.Args)
 		job.Finish(out, err)
 	}()
 

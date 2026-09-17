@@ -107,8 +107,10 @@ type JobHandle interface {
 	Finish(result string, err error)
 }
 
-// JobManager manages the set of running jobs.
+// JobManager manages the set of running jobs. It embeds Host so that job
+// supervision code can log through the parent chain.
 type JobManager interface {
+	Host
 	Start(tool, callID string) (JobHandle, error)
 	Get(h int) (JobHandle, bool)
 	Handles() []int
@@ -127,6 +129,12 @@ type ToolRegistry interface {
 // Tool types shared between engine and tool implementations.
 // ---------------------------------------------------------------------------
 
+// Host is the root interface every object can reach through its parent chain.
+// It provides access to the logger and any other top-level facilities.
+type Host interface {
+	Logf(format string, args ...any)
+}
+
 // ToolFunc executes one tool call and returns text the model will see.
 type ToolFunc func(c *Call, args json.RawMessage) (string, error)
 
@@ -139,8 +147,10 @@ type Tool struct {
 	NoJob       bool
 }
 
-// Call is what a tool is handed besides its arguments.
+// Call is what a tool is handed besides its arguments. The embedded Host
+// gives every tool trivial access to the logger through the parent chain.
 type Call struct {
+	Host
 	Job    JobHandle
 	Jobs   JobManager
 	Limits Limits
