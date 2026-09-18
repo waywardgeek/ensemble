@@ -9,15 +9,36 @@ import (
 
 // Ch6Evaluate scores the ch6 result.
 func Ch6Evaluate(r *Ch6Result) []Check {
-	return []Check{
+	return ch6EvaluateCore(r, false)
+}
+
+// Ch6EvaluateParity scores only the checks that apply when running as parity
+// from a later chapter. Multi-agent exercise checks are skipped.
+func Ch6EvaluateParity(r *Ch6Result) []Check {
+	return ch6EvaluateCore(r, true)
+}
+
+func ch6EvaluateCore(r *Ch6Result, parityOnly bool) []Check {
+	checks := []Check{
 		ch6Parity(r),
-		ch6NotDeaf(r),
-		ch6ReplayIsLive(r),
+	}
+	if !parityOnly {
+		checks = append(checks,
+			ch6NotDeaf(r),
+			ch6ReplayIsLive(r),
+		)
+	}
+	checks = append(checks,
 		ch6ObserverFires(r),
-		ch6WakeOnce(r),
+	)
+	if !parityOnly {
+		checks = append(checks, ch6WakeOnce(r))
+	}
+	checks = append(checks,
 		ch6LoudRefusal(r),
 		ch6HubClean(r),
-	}
+	)
+	return checks
 }
 
 // ch5-parity (10 pts): re-run ch5 grader, all checks must pass.
@@ -43,8 +64,8 @@ func ch6Parity(r *Ch6Result) Check {
 // not-deaf (25 pts): hint during slow tool → hint observed BEFORE tool completion.
 func ch6NotDeaf(r *Ch6Result) Check {
 	c := Check{ID: "not-deaf", Title: "not deaf", Points: 25}
-	if !r.ExBuildOK {
-		c.failf("exercise build failed: %s", r.ExBuildErr)
+	if !r.BuildOK {
+		c.failf("build failed: %s", r.BuildErr)
 		return c
 	}
 	if len(r.Observations) == 0 {
@@ -64,8 +85,8 @@ func ch6NotDeaf(r *Ch6Result) Check {
 // replay-is-live (15 pts): context from log replay == live context.
 func ch6ReplayIsLive(r *Ch6Result) Check {
 	c := Check{ID: "replay-is-live", Title: "replay is live", Points: 15}
-	if !r.ExBuildOK {
-		c.failf("exercise build failed: %s", r.ExBuildErr)
+	if !r.BuildOK {
+		c.failf("build failed: %s", r.BuildErr)
 		return c
 	}
 	if r.LogContent == "" {
@@ -109,8 +130,8 @@ func ch6ReplayIsLive(r *Ch6Result) Check {
 // observer-fires (15 pts): observations contain state changes AND content.
 func ch6ObserverFires(r *Ch6Result) Check {
 	c := Check{ID: "observer-fires", Title: "observer fires", Points: 15}
-	if !r.ExBuildOK {
-		c.failf("exercise build failed: %s", r.ExBuildErr)
+	if !r.BuildOK {
+		c.failf("build failed: %s", r.BuildErr)
 		return c
 	}
 	hasStateChanges := len(r.StateChanges) > 0
@@ -134,8 +155,8 @@ func ch6ObserverFires(r *Ch6Result) Check {
 // wake-once (15 pts): two agents finish → one wakeup (multi-agent).
 func ch6WakeOnce(r *Ch6Result) Check {
 	c := Check{ID: "wake-once", Title: "wake once", Points: 15}
-	if !r.ExBuildOK {
-		c.failf("exercise build failed: %s", r.ExBuildErr)
+	if !r.BuildOK {
+		c.failf("build failed: %s", r.BuildErr)
 		return c
 	}
 
@@ -171,8 +192,8 @@ func ch6WakeOnce(r *Ch6Result) Check {
 // loud-refusal (10 pts): unsupported media → error naming model+media.
 func ch6LoudRefusal(r *Ch6Result) Check {
 	c := Check{ID: "loud-refusal", Title: "loud refusal", Points: 10}
-	if !r.AgentBuildOK {
-		c.failf("agent build failed: %s", r.AgentBuildErr)
+	if !r.BuildOK {
+		c.failf("build failed: %s", r.BuildErr)
 		return c
 	}
 

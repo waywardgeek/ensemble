@@ -14,7 +14,10 @@ vet:
 fmt:
 	gofmt -l -w .
 
-# Grade the reference solutions.
+# Grade the reference solutions — all chapters grade from the student's
+# directory (solutions/chNN for frozen snapshots, ./agent for the live code).
+# The grade-dir target lets you point at any directory:
+#   make grade-dir CH=8 DIR=./agent
 grade:
 	go run ./cmd/grade -ch 1 ./solutions/ch01
 
@@ -23,26 +26,25 @@ grade2:
 
 grade3:
 	go run ./cmd/grade -ch 3 ./solutions/ch03
-grade5:
-	go run ./cmd/grade -ch 5 .
 
-grade6:
-	go run ./cmd/grade -ch 6 solutions/ch06
+grade5:
+	go run ./cmd/grade -ch 5 ./agent
+
+# Note: ch6 full grading requires the frozen solution (old repo-root shape).
+# From ch7 onward, ch6 features are tested via parity checks.
+# Use: make grade-dir CH=6 DIR=./solutions/ch06/agent
+# (scores 45/100 — exercise-specific multi-agent checks need the old shape)
 
 grade7:
-	go run ./cmd/grade -ch 7 .
+	go run ./cmd/grade -ch 7 ./agent
 
 grade8:
-	go run ./cmd/grade -ch 8 .
+	go run ./cmd/grade -ch 8 ./agent
 
-grade-ch07: grade7
-
-# Grade an arbitrary submission:
-#   make grade-dir DIR=/path/to/submission        (chapter 1)
-#   make grade-dir CH=3 DIR=/path/to/submission   (chapter 3)
-CH ?= 1
 grade-dir:
 	go run ./cmd/grade -ch $(CH) $(DIR)
+
+grade-ch07: grade7
 
 # Run a reference solution against the fake vendor and watch the loop turn.
 #   make fake                           chapter 3 REPL, Anthropic dialect

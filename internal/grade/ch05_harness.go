@@ -1,10 +1,12 @@
 package grade
 
 // Chapter 5 harness: verify the refactoring produced a reusable framework.
+//
+// Takes a single directory — the student's library tree. Builds the binary
+// from cmd/, inspects the import graph, and tests behavior.
 
 import (
 	"bytes"
-	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -18,11 +20,9 @@ import (
 type Ch5Result struct {
 	AgentBuildOK   bool
 	AgentBuildErr  string
-	ExBuildOK      bool
-	ExBuildErr     string
 	ImportGraph    map[string][]string
-	ExToolCalled   bool
-	ExToolOutput   string
+	ToolCalled     bool
+	ToolOutput     string
 	Base           string
 	HasLogf        bool
 	MutableGlobals []string
@@ -31,83 +31,40 @@ type Ch5Result struct {
 }
 
 func Ch5Run(dir string) (*Ch5Result, error) {
-	// Resolve to absolute path so sub-processes find the right directories.
 	dir, _ = filepath.Abs(dir)
 	r := &Ch5Result{ImportGraph: make(map[string][]string)}
-	agentDir := filepath.Join(dir, "agent")
-	exDir := filepath.Join(dir, "ch05")
 
 	// Discover module path.
-	if data, err := os.ReadFile(filepath.Join(agentDir, "go.mod")); err == nil {
-		for _, line := range strings.Split(string(data), "\n") {
-			line = strings.TrimSpace(line)
-			if strings.HasPrefix(line, "module ") {
-				r.Base = strings.TrimPrefix(line, "module ")
-				break
-			}
-		}
-	}
+	r.Base = DiscoverBase(dir)
 
-	// Build agent binary from cmd/ (use absolute paths for Ch4Run).
-	agentBin, _ := filepath.Abs(filepath.Join(agentDir, "bin"))
-	cmd := exec.Command("go", "build", "-o", agentBin, "./cmd/")
-	cmd.Dir = agentDir
-	if out, err := cmd.CombinedOutput(); err != nil {
-		r.AgentBuildErr = fmt.Sprintf("%s\n%s", err, out)
-	} else {
-		r.AgentBuildOK = true
+	// Build binary.
+	bin, cleanup, err := Build(dir)
+	if err != nil {
+		r.AgentBuildErr = err.Error()
+		return r, nil
 	}
-
-	// Build exercise binary.
-	if _, err := os.Stat(exDir); err == nil {
-		exBin, _ := filepath.Abs(filepath.Join(exDir, "bin"))
-		cmd = exec.Command("go", "build", "-o", exBin, ".")
-		cmd.Dir = exDir
-		if out, err := cmd.CombinedOutput(); err != nil {
-			r.ExBuildErr = fmt.Sprintf("%s\n%s", err, out)
-		} else {
-			r.ExBuildOK = true
-		}
-	} else {
-		r.ExBuildErr = "ch05/ directory not found"
-	}
+	defer cleanup()
+	r.AgentBuildOK = true
 
 	// Inspect import graph.
-	cmd = exec.Command("go", "list", "-f",
-		"{{.ImportPath}}: {{join .Imports \",\"}}", "./...")
-	cmd.Dir = agentDir
-	if out, err := cmd.Output(); err == nil {
-		for _, line := range strings.Split(string(out), "\n") {
-			parts := strings.SplitN(line, ": ", 2)
-			if len(parts) != 2 {
-				continue
-			}
-			r.ImportGraph[strings.TrimSpace(parts[0])] =
-				strings.Split(strings.TrimSpace(parts[1]), ",")
-		}
-	}
+	r.ImportGraph = DiscoverImportGraph(dir)
 
 	// Check for Host interface with Logf in common, and embedded in Call.
-	r.HasLogf = detectLogf(agentDir)
+	r.HasLogf = detectLogf(dir)
 
 	// Check for mutable package-level vars.
-	r.MutableGlobals = detectMutableGlobals(agentDir)
+	r.MutableGlobals = detectMutableGlobals(dir)
 
-	// Drive exercise binary.
-	if r.ExBuildOK {
-		exBin := filepath.Join(exDir, "bin")
-		r.ExToolCalled, r.ExToolOutput = driveCh5Ex(exBin, exDir)
-	}
+	// Drive the binary: fake vendor sends a tool call for "calculate",
+	// binary should execute it and return the result.
+	r.ToolCalled, r.ToolOutput = driveCh5Tool(bin, dir)
 
-	// ch4 parity: run ch4's harness on the built agent binary.
-	if r.AgentBuildOK {
-		agentBin := filepath.Join(agentDir, "bin")
-		ch4r, err := Ch4Run(agentBin)
-		if err != nil {
-			r.HelpersErr = err.Error()
-		} else {
-			r.Ch4Result = ch4r
-		}
+	// ch4 parity: run ch4's harness on the built binary.
+	ch4r, err := Ch4Run(bin)
+	if err != nil {
+		r.HelpersErr = err.Error()
+	} else {
+		r.Ch4Result = ch4r
 	}
 
 	return r, nil
@@ -121,9 +78,10 @@ func GradeCh5(dir string) ([]Check, string) {
 	return Ch5Evaluate(r), r.HelpersErr
 }
 
-func driveCh5Ex(bin, workDir string) (toolCalled bool, toolOutput string) {
-	// Two-turn conversation: first the fake asks the model to call calculate,
-	// then it replies with the final answer.
+// driveCh5Tool tests that the student's binary can execute a tool call.
+// The fake vendor tells the model to call "calculate", and the binary
+// should execute it and send the result back.
+func driveCh5Tool(bin, workDir string) (toolCalled bool, toolOutput string) {
 	replies := []fakevendor.Reply{
 		{ToolName: "calculate", ToolArgs: `{"expression":"6 * 7"}`, ToolID: "call_001"},
 		{Text: "The answer is 42."},
@@ -161,22 +119,18 @@ func driveCh5Ex(bin, workDir string) (toolCalled bool, toolOutput string) {
 		return false, ""
 	}
 
-	// The fake received at least two requests if the tool was called: the
-	// first is the user prompt, the second includes the tool result.
+	// The fake received at least two requests if the tool was called.
 	reqs := fake.Requests()
 	if len(reqs) >= 2 {
-		// The second request should contain the tool result.
 		s := string(reqs[1].Body)
 		if strings.Contains(s, "tool_result") || strings.Contains(s, "calculate") {
 			toolCalled = true
-			// Extract tool output from the request body.
 			if i := strings.Index(s, "Result:"); i >= 0 {
 				end := i + 40
 				if end > len(s) {
 					end = len(s)
 				}
 				toolOutput = s[i:end]
-				// Trim to the next quote.
 				if qi := strings.IndexByte(toolOutput, '"'); qi > 0 {
 					toolOutput = toolOutput[:qi]
 				}
@@ -188,27 +142,23 @@ func driveCh5Ex(bin, workDir string) (toolCalled bool, toolOutput string) {
 	return
 }
 
-
-// detectLogf checks whether the student's common package declares a Host
-// interface with Logf and embeds it in the Call struct.
-func detectLogf(agentDir string) bool {
-	commonDir := filepath.Join(agentDir, "internal", "common")
-	// Check for Logf declaration in common/
-	cmd := exec.Command("grep", "-rl", "Logf", commonDir)
+// detectLogf checks whether the student's code declares a Host-like
+// interface with Logf and references it from a Call-like struct.
+// Searches the entire tree, not just internal/common/.
+func detectLogf(dir string) bool {
+	cmd := exec.Command("grep", "-rl", "Logf", dir, "--include=*.go")
 	if out, err := cmd.Output(); err != nil || len(out) == 0 {
 		return false
 	}
-	// Check that Call struct references Host (embedding or field).
-	cmd = exec.Command("grep", "-rl", "Host", commonDir)
+	cmd = exec.Command("grep", "-rl", "Host", dir, "--include=*.go")
 	out, err := cmd.Output()
 	return err == nil && len(out) > 0
 }
 
 // detectMutableGlobals finds package-level var declarations that are mutable
 // state (not immutable lookup maps). Returns the list of offending locations.
-func detectMutableGlobals(agentDir string) []string {
-	// Find all "var " declarations at the start of a line in non-test Go files.
-	cmd := exec.Command("grep", "-rn", "^var ", agentDir, "--include=*.go")
+func detectMutableGlobals(dir string) []string {
+	cmd := exec.Command("grep", "-rn", "^var ", dir, "--include=*.go")
 	out, _ := cmd.Output()
 	var globals []string
 	for _, line := range strings.Split(string(out), "\n") {
@@ -216,11 +166,9 @@ func detectMutableGlobals(agentDir string) []string {
 		if line == "" {
 			continue
 		}
-		// Skip test files.
 		if strings.Contains(line, "_test.go:") {
 			continue
 		}
-		// Skip immutable name-lookup maps (effectively constants).
 		lower := strings.ToLower(line)
 		if strings.Contains(lower, "names") || strings.Contains(lower, "name =") {
 			continue

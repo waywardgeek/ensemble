@@ -14,7 +14,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -29,8 +28,8 @@ import (
 type Ch8Result struct {
 	Base string
 
-	ExBuildOK  bool
-	ExBuildErr string
+	BuildOK  bool
+	BuildErr string
 
 	// WebSocket observations.
 	Messages []Ch8WsMsg
@@ -128,13 +127,10 @@ func ch8PauseReplies() []fakevendor.Reply {
 // Main harness
 // ----------------------------------------------------------------
 
-// Ch8Run builds and drives the ch8 exercise.
-func Ch8Run(path string) (*Ch8Result, error) {
-	base, err := filepath.Abs(path)
-	if err != nil {
-		return nil, err
-	}
-	r := &Ch8Result{Base: base}
+// Ch8Run builds and drives the student's binary.
+func Ch8Run(dir string) (*Ch8Result, error) {
+	dir, _ = filepath.Abs(dir)
+	r := &Ch8Result{Base: dir}
 
 	tmp, err := os.MkdirTemp("", "ch8grade")
 	if err != nil {
@@ -142,32 +138,29 @@ func Ch8Run(path string) (*Ch8Result, error) {
 	}
 	defer os.RemoveAll(tmp)
 
-	// Build the ch08 exercise.
-	exDir := filepath.Join(base, "ch08")
-	if _, err := os.Stat(exDir); err != nil {
-		r.ExBuildErr = "ch08/ directory not found"
-	} else {
-		bin := filepath.Join(tmp, "ensemble")
-		cmd := exec.Command("go", "build", "-o", bin, ".")
-		cmd.Dir = exDir
-		if out, err := cmd.CombinedOutput(); err != nil {
-			r.ExBuildErr = strings.TrimSpace(string(out))
-		} else {
-			r.ExBuildOK = true
-
-			// Run the WebSocket streaming test.
-			ch8DriveWS(r, bin, exDir, tmp)
-
-			// Run the replay test.
-			ch8DriveReplay(r, bin, exDir, tmp)
-
-			// Run the pause test.
-			ch8DrivePause(r, bin, exDir, tmp)
-		}
+	// Build from the student's tree.
+	bin, cleanup, err := Build(dir)
+	if err != nil {
+		r.BuildErr = err.Error()
+		return r, nil
 	}
+	defer cleanup()
+	r.BuildOK = true
+
+	// Find GUI directory in the student's tree.
+	guiDir := filepath.Join(dir, "web", "gui")
+
+	// Run the WebSocket streaming test.
+	ch8DriveWS(r, bin, guiDir, tmp)
+
+	// Run the replay test.
+	ch8DriveReplay(r, bin, guiDir, tmp)
+
+	// Run the pause test.
+	ch8DrivePause(r, bin, guiDir, tmp)
 
 	// Ch7 parity.
-	ch7, err := Ch7Run(base)
+	ch7, err := Ch7Run(dir)
 	if err != nil {
 		r.Ch7Err = err.Error()
 	} else {
@@ -181,7 +174,7 @@ func Ch8Run(path string) (*Ch8Result, error) {
 // WebSocket streaming test
 // ----------------------------------------------------------------
 
-func ch8DriveWS(r *Ch8Result, bin, exDir, tmp string) {
+func ch8DriveWS(r *Ch8Result, bin, guiDir, tmp string) {
 	port := freePort()
 	if port == "" {
 		r.HelpersErr = "could not find free port"
@@ -194,7 +187,7 @@ func ch8DriveWS(r *Ch8Result, bin, exDir, tmp string) {
 	guiLogPath := filepath.Join(tmp, "gui.log")
 	r.GuiLogPath = guiLogPath
 
-	cmd := exec.Command(bin, "--port", port, "--gui-dir", filepath.Join(exDir, "web", "gui"))
+	cmd := exec.Command(bin, "--port", port, "--gui-dir", guiDir)
 	cmd.Dir = tmp
 	cmd.Env = append(os.Environ(),
 		"LLM_BASE_URL="+srv.URL(),
@@ -255,7 +248,7 @@ func ch8DriveWS(r *Ch8Result, bin, exDir, tmp string) {
 // Replay test — event-log based reconnection
 // ----------------------------------------------------------------
 
-func ch8DriveReplay(r *Ch8Result, bin, exDir, tmp string) {
+func ch8DriveReplay(r *Ch8Result, bin, guiDir, tmp string) {
 	port := freePort()
 	if port == "" {
 		r.ReplayErr = "could not find free port"
@@ -268,7 +261,7 @@ func ch8DriveReplay(r *Ch8Result, bin, exDir, tmp string) {
 	replayTmp := filepath.Join(tmp, "replay")
 	os.MkdirAll(replayTmp, 0755)
 
-	cmd := exec.Command(bin, "--port", port, "--gui-dir", filepath.Join(exDir, "web", "gui"))
+	cmd := exec.Command(bin, "--port", port, "--gui-dir", guiDir)
 	cmd.Dir = replayTmp
 	cmd.Env = append(os.Environ(),
 		"LLM_BASE_URL="+srv.URL(),
@@ -390,7 +383,7 @@ func ch8DriveReplay(r *Ch8Result, bin, exDir, tmp string) {
 // Pause test
 // ----------------------------------------------------------------
 
-func ch8DrivePause(r *Ch8Result, bin, exDir, tmp string) {
+func ch8DrivePause(r *Ch8Result, bin, guiDir, tmp string) {
 	port := freePort()
 	if port == "" {
 		r.PauseErr = "could not find free port"
@@ -403,7 +396,7 @@ func ch8DrivePause(r *Ch8Result, bin, exDir, tmp string) {
 	pauseTmp := filepath.Join(tmp, "pause")
 	os.MkdirAll(pauseTmp, 0755)
 
-	cmd := exec.Command(bin, "--port", port, "--gui-dir", filepath.Join(exDir, "web", "gui"))
+	cmd := exec.Command(bin, "--port", port, "--gui-dir", guiDir)
 	cmd.Dir = pauseTmp
 	cmd.Env = append(os.Environ(),
 		"LLM_BASE_URL="+srv.URL(),

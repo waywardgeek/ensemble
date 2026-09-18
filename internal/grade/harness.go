@@ -60,6 +60,9 @@ type RunResult struct {
 
 // Build compiles the submission if given a directory, and returns a path to an
 // executable. A path to an existing executable file is returned unchanged.
+//
+// For directories, Build tries to find a main package: first at cmd/, then at
+// the root. This supports both flat packages (ch1-4) and library layouts (ch5+).
 func Build(path string) (bin string, cleanup func(), err error) {
 	info, err := os.Stat(path)
 	if err != nil {
@@ -73,15 +76,59 @@ func Build(path string) (bin string, cleanup func(), err error) {
 	if err != nil {
 		return "", nil, err
 	}
+
+	// Determine the build target: prefer cmd/ if it exists, else root.
+	buildTarget := "."
+	if fi, err := os.Stat(filepath.Join(path, "cmd")); err == nil && fi.IsDir() {
+		buildTarget = "./cmd/"
+	}
+
 	bin = filepath.Join(tmp, "submission")
-	cmd := exec.Command("go", "build", "-o", bin, ".")
+	cmd := exec.Command("go", "build", "-o", bin, buildTarget)
 	cmd.Dir = path
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		os.RemoveAll(tmp)
-		return "", nil, fmt.Errorf("go build failed:\n%s", out)
+		return "", nil, fmt.Errorf("go build %s failed:\n%s", buildTarget, out)
 	}
 	return bin, func() { os.RemoveAll(tmp) }, nil
+}
+
+// DiscoverBase reads the module path from go.mod in the given directory.
+func DiscoverBase(dir string) string {
+	data, err := os.ReadFile(filepath.Join(dir, "go.mod"))
+	if err != nil {
+		return ""
+	}
+	for _, line := range strings.Split(string(data), "\n") {
+		line = strings.TrimSpace(line)
+		if strings.HasPrefix(line, "module ") {
+			return strings.TrimPrefix(line, "module ")
+		}
+	}
+	return ""
+}
+
+// DiscoverImportGraph runs go list on the directory and returns a map of
+// import path → imported paths.
+func DiscoverImportGraph(dir string) map[string][]string {
+	graph := make(map[string][]string)
+	cmd := exec.Command("go", "list", "-f",
+		"{{.ImportPath}}: {{join .Imports \",\"}}", "./...")
+	cmd.Dir = dir
+	out, err := cmd.Output()
+	if err != nil {
+		return graph
+	}
+	for _, line := range strings.Split(string(out), "\n") {
+		parts := strings.SplitN(line, ": ", 2)
+		if len(parts) != 2 {
+			continue
+		}
+		graph[strings.TrimSpace(parts[0])] =
+			strings.Split(strings.TrimSpace(parts[1]), ",")
+	}
+	return graph
 }
 
 // Run starts the fake server, executes the submission against it, and returns

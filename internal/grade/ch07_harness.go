@@ -92,8 +92,8 @@ func (r Ch7Exec) TextByPart() map[uint64]string {
 type Ch7Result struct {
 	Base string
 
-	ExBuildOK  bool
-	ExBuildErr string
+	BuildOK  bool
+	BuildErr string
 
 	Stream Ch7Exec
 	Plain  Ch7Exec
@@ -127,13 +127,10 @@ func ch7Replies() []fakevendor.Reply {
 	}
 }
 
-// Ch7Run builds and drives the ch7 exercise.
-func Ch7Run(path string) (*Ch7Result, error) {
-	base, err := filepath.Abs(path)
-	if err != nil {
-		return nil, err
-	}
-	r := &Ch7Result{Base: base}
+// Ch7Run builds and drives the student's binary.
+func Ch7Run(dir string) (*Ch7Result, error) {
+	dir, _ = filepath.Abs(dir)
+	r := &Ch7Result{Base: dir}
 
 	tmp, err := os.MkdirTemp("", "ch7grade")
 	if err != nil {
@@ -141,26 +138,20 @@ func Ch7Run(path string) (*Ch7Result, error) {
 	}
 	defer os.RemoveAll(tmp)
 
-	// Build the exercise. A separate module with its own replace directive,
-	// so this also proves the public API is reachable from outside.
-	exDir := filepath.Join(base, "ch07")
-	if _, err := os.Stat(exDir); err != nil {
-		r.ExBuildErr = "ch07/ directory not found"
-	} else {
-		bin := filepath.Join(tmp, "ch07bin")
-		cmd := exec.Command("go", "build", "-o", bin, ".")
-		cmd.Dir = exDir
-		if out, err := cmd.CombinedOutput(); err != nil {
-			r.ExBuildErr = strings.TrimSpace(string(out))
-		} else {
-			r.ExBuildOK = true
-			r.Stream = driveCh7(bin, tmp, false)
-			r.Plain = driveCh7(bin, tmp, true)
-		}
+	// Build from the student's tree.
+	bin, cleanup, err := Build(dir)
+	if err != nil {
+		r.BuildErr = err.Error()
+		return r, nil
 	}
+	defer cleanup()
+	r.BuildOK = true
 
-	// ch6 parity, against the same submission.
-	ch6, err := Ch6Run(base)
+	r.Stream = driveCh7(bin, tmp, false)
+	r.Plain = driveCh7(bin, tmp, true)
+
+	// ch6 parity.
+	ch6, err := Ch6Run(dir)
 	if err != nil {
 		r.Ch6Err = err.Error()
 	} else {
@@ -196,7 +187,7 @@ func driveCh7(bin, tmp string, noStream bool) Ch7Exec {
 		"CH07_AGENT_LOG="+filepath.Join(tmp, name+"-agent.log"),
 	)
 	if noStream {
-		cmd.Env = append(cmd.Env, "CH07_NO_STREAM=1")
+		cmd.Env = append(cmd.Env, "EN_DISABLE_STREAMING=1")
 	}
 
 	var stdout, stderr strings.Builder

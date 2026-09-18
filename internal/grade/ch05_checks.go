@@ -12,59 +12,43 @@ func Ch5Evaluate(r *Ch5Result) []Check {
 
 	// ---- agent-builds (10 pts) --------------------------------------------
 	{
-		c := Check{ID: "agent-builds", Title: "Agent builds from ./cmd/", Points: 10}
+		c := Check{ID: "agent-builds", Title: "Binary builds", Points: 10}
 		if r.AgentBuildOK {
 			c.Passed = true
 			c.Earned = c.Points
 		} else {
-			c.failf("agent binary failed to build: %s", r.AgentBuildErr)
-		}
-		checks = append(checks, c)
-	}
-
-	// ---- exercise-builds (10 pts) -----------------------------------------
-	{
-		c := Check{ID: "exercise-builds", Title: "Exercise binary imports and builds", Points: 10}
-		if r.ExBuildOK {
-			c.Passed = true
-			c.Earned = c.Points
-		} else {
-			c.failf("exercise binary failed to build: %s", r.ExBuildErr)
+			c.failf("binary failed to build: %s", r.AgentBuildErr)
 		}
 		checks = append(checks, c)
 	}
 
 	// ---- star-topology (25 pts) -------------------------------------------
 	{
-		c := Check{ID: "star-topology", Title: "Star topology: impl packages import only common", Points: 25}
+		c := Check{ID: "star-topology", Title: "Star topology: impl packages import only the hub", Points: 25}
 		if r.Base == "" {
-			c.failf("could not determine module path from agent/go.mod")
+			c.failf("could not determine module path from go.mod")
 		} else {
-			commonPkg := ""
-			// Find the common package (whatever it's called).
-			for pkg := range r.ImportGraph {
-				if strings.HasSuffix(pkg, "/common") && strings.Contains(pkg, "/internal/") {
-					commonPkg = pkg
-					break
-				}
-			}
-			if commonPkg == "" {
-				c.failf("no internal/common package found in import graph")
+			// Find the hub package: the internal package imported by the most
+			// other internal packages. This discovers the student's layout
+			// rather than assuming "internal/common".
+			hubPkg := discoverHub(r.Base, r.ImportGraph)
+			if hubPkg == "" {
+				c.failf("no hub package found (an internal package imported by ≥2 others)")
 			} else {
-				// Find all internal implementation packages.
 				var violations []string
 				for pkg, imports := range r.ImportGraph {
-					if !strings.Contains(pkg, "/internal/") || pkg == commonPkg {
+					if !strings.Contains(pkg, "/internal/") || pkg == hubPkg {
 						continue
 					}
+					// Skip cmd packages.
 					if strings.HasSuffix(pkg, "/cmd") || strings.Contains(pkg, "/cmd/") {
 						continue
 					}
 					for _, imp := range imports {
-						if imp == commonPkg || imp == pkg {
+						if imp == hubPkg || imp == pkg {
 							continue
 						}
-						if strings.Contains(imp, r.Base+"/internal/") && imp != commonPkg {
+						if strings.Contains(imp, r.Base+"/internal/") && imp != hubPkg {
 							violations = append(violations, fmt.Sprintf("%s imports %s", pkg, imp))
 						}
 					}
@@ -74,24 +58,24 @@ func Ch5Evaluate(r *Ch5Result) []Check {
 				} else {
 					c.Passed = true
 					c.Earned = c.Points
-					c.notef("all implementation packages import only %s", commonPkg)
+					c.notef("hub=%s, all impl packages import only the hub", hubPkg)
 				}
 			}
 		}
 		checks = append(checks, c)
 	}
 
-	// ---- custom-tool-called (25 pts) --------------------------------------
+	// ---- tool-called (25 pts) ---------------------------------------------
 	{
-		c := Check{ID: "custom-tool-called", Title: "Custom tool is called by exercise binary", Points: 25}
-		if !r.ExBuildOK {
-			c.failf("exercise binary did not build")
-		} else if !r.ExToolCalled {
-			c.failf("the custom tool was never called")
+		c := Check{ID: "tool-called", Title: "Binary executes a tool call", Points: 25}
+		if !r.AgentBuildOK {
+			c.failf("binary did not build")
+		} else if !r.ToolCalled {
+			c.failf("the tool call was never executed")
 		} else {
 			c.Passed = true
 			c.Earned = c.Points
-			c.notef("tool returned: %s", r.ExToolOutput)
+			c.notef("tool returned: %s", r.ToolOutput)
 		}
 		checks = append(checks, c)
 	}
@@ -100,13 +84,13 @@ func Ch5Evaluate(r *Ch5Result) []Check {
 	{
 		c := Check{ID: "logger-accessible", Title: "Logger reachable through parent interface chain", Points: 10}
 		if !r.AgentBuildOK {
-			c.failf("agent binary did not build")
+			c.failf("binary did not build")
 		} else if r.HasLogf {
 			c.Passed = true
 			c.Earned = c.Points
-			c.notef("Host interface with Logf found in common, embedded in Call")
+			c.notef("Host interface with Logf found, embedded in Call")
 		} else {
-			c.failf("no Host interface with Logf found in common, or not embedded in Call")
+			c.failf("no Host interface with Logf found, or not embedded in Call")
 		}
 		checks = append(checks, c)
 	}
@@ -115,7 +99,7 @@ func Ch5Evaluate(r *Ch5Result) []Check {
 	{
 		c := Check{ID: "no-mutable-globals", Title: "No mutable package-level variables", Points: 10}
 		if !r.AgentBuildOK {
-			c.failf("agent binary did not build")
+			c.failf("binary did not build")
 		} else if len(r.MutableGlobals) == 0 {
 			c.Passed = true
 			c.Earned = c.Points
@@ -125,11 +109,11 @@ func Ch5Evaluate(r *Ch5Result) []Check {
 		checks = append(checks, c)
 	}
 
-	// ---- ch4-parity (30 pts) ----------------------------------------------
+	// ---- ch4-parity (40 pts) ----------------------------------------------
 	{
-		c := Check{ID: "ch4-parity", Title: "Agent passes ch4 behavioral checks", Points: 30}
+		c := Check{ID: "ch4-parity", Title: "Passes ch4 behavioral checks", Points: 40}
 		if !r.AgentBuildOK {
-			c.failf("agent binary did not build")
+			c.failf("binary did not build")
 		} else if r.Ch4Result == nil {
 			c.failf("ch4 parity test did not run")
 		} else {
@@ -161,4 +145,35 @@ func Ch5Evaluate(r *Ch5Result) []Check {
 	}
 
 	return checks
+}
+
+// discoverHub finds the internal package imported by the most other internal
+// packages. This is the student's hub/common package, whatever they named it.
+func discoverHub(base string, graph map[string][]string) string {
+	importedBy := make(map[string]int)
+	internalPrefix := base + "/internal/"
+
+	for pkg, imports := range graph {
+		if !strings.HasPrefix(pkg, internalPrefix) {
+			continue
+		}
+		for _, imp := range imports {
+			if strings.HasPrefix(imp, internalPrefix) {
+				importedBy[imp]++
+			}
+		}
+	}
+
+	best := ""
+	bestCount := 0
+	for pkg, count := range importedBy {
+		if count > bestCount {
+			best = pkg
+			bestCount = count
+		}
+	}
+	if bestCount >= 2 {
+		return best
+	}
+	return ""
 }

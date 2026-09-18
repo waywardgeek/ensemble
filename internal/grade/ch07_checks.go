@@ -35,8 +35,8 @@ func Ch7Evaluate(r *Ch7Result) []Check {
 const ch7MinTextChunks = 8
 
 func ch7Ready(c *Check, r *Ch7Result) bool {
-	if !r.ExBuildOK {
-		c.failf("exercise did not build: %s", r.ExBuildErr)
+	if !r.BuildOK {
+		c.failf("build failed: %s", r.BuildErr)
 		return false
 	}
 	if !r.Stream.Ran {
@@ -340,7 +340,7 @@ func ch7Parity(r *Ch7Result) Check {
 		return c
 	}
 	var failed []string
-	for _, sub := range Ch6Evaluate(r.Ch6Result) {
+	for _, sub := range Ch6EvaluateParity(r.Ch6Result) {
 		if !sub.Passed {
 			failed = append(failed, fmt.Sprintf("%s (%s)", sub.ID, firstOr(sub.Details, "no detail")))
 		}

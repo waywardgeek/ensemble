@@ -1,8 +1,11 @@
 package grade
 
-// Chapter 6 harness: drive the exercise binary as a subprocess, collecting
+// Chapter 6 harness: drive the student's binary as a subprocess, collecting
 // observations, testing hint delivery during tool execution, and verifying
 // multi-agent orchestration.
+//
+// Takes a single directory — the student's library tree. Builds the binary
+// from cmd/, runs it, and tests behavior.
 
 import (
 	"bytes"
@@ -12,7 +15,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -22,10 +24,8 @@ import (
 
 // Ch6Result holds evidence for the ch6 checks.
 type Ch6Result struct {
-	AgentBuildOK  bool
-	AgentBuildErr string
-	ExBuildOK     bool
-	ExBuildErr    string
+	BuildOK  bool
+	BuildErr string
 
 	// Observations collected from stdout.
 	Observations []Ch6Observation
@@ -65,7 +65,7 @@ type Ch6Result struct {
 	HelpersErr string
 }
 
-// Ch6Observation is a single observation line from the exercise binary.
+// Ch6Observation is a single observation line from the binary.
 type Ch6Observation struct {
 	Observation string `json:"observation"`
 	Agent       string `json:"agent"`
@@ -86,101 +86,54 @@ func Ch6Run(dir string) (*Ch6Result, error) {
 		ImportGraph: make(map[string][]string),
 		AgentsSeen:  make(map[string]bool),
 	}
-	agentDir := filepath.Join(dir, "agent")
-	exDir := filepath.Join(dir, "ch06")
 
 	// Discover module path.
-	if data, err := os.ReadFile(filepath.Join(agentDir, "go.mod")); err == nil {
-		for _, line := range strings.Split(string(data), "\n") {
-			line = strings.TrimSpace(line)
-			if strings.HasPrefix(line, "module ") {
-				r.Base = strings.TrimPrefix(line, "module ")
-				break
-			}
-		}
-	}
+	r.Base = DiscoverBase(dir)
 
-	// Build agent binary.
-	agentBin, _ := filepath.Abs(filepath.Join(agentDir, "bin"))
-	cmd := exec.Command("go", "build", "-o", agentBin, "./cmd/")
-	cmd.Dir = agentDir
-	if out, err := cmd.CombinedOutput(); err != nil {
-		r.AgentBuildErr = fmt.Sprintf("%s\n%s", err, out)
-	} else {
-		r.AgentBuildOK = true
+	// Build binary.
+	bin, cleanup, err := Build(dir)
+	if err != nil {
+		r.BuildErr = err.Error()
+		return r, nil
 	}
-
-	// Build exercise binary.
-	if _, err := os.Stat(exDir); err == nil {
-		exBin, _ := filepath.Abs(filepath.Join(exDir, "bin"))
-		cmd = exec.Command("go", "build", "-o", exBin, ".")
-		cmd.Dir = exDir
-		if out, err := cmd.CombinedOutput(); err != nil {
-			r.ExBuildErr = fmt.Sprintf("%s\n%s", err, out)
-		} else {
-			r.ExBuildOK = true
-		}
-	} else {
-		r.ExBuildErr = "ch06/ directory not found"
-	}
+	defer cleanup()
+	r.BuildOK = true
 
 	// Inspect import graph.
-	cmd = exec.Command("go", "list", "-f",
-		"{{.ImportPath}}: {{join .Imports \",\"}}", "./...")
-	cmd.Dir = agentDir
-	if out, err := cmd.Output(); err == nil {
-		for _, line := range strings.Split(string(out), "\n") {
-			parts := strings.SplitN(line, ": ", 2)
-			if len(parts) != 2 {
-				continue
-			}
-			r.ImportGraph[strings.TrimSpace(parts[0])] =
-				strings.Split(strings.TrimSpace(parts[1]), ",")
-		}
-	}
+	r.ImportGraph = DiscoverImportGraph(dir)
 
 	// Check for mutable globals.
-	r.MutableGlobals = detectMutableGlobals(agentDir)
+	r.MutableGlobals = detectMutableGlobals(dir)
 
-	// Drive the exercise binary with a specially crafted fake that includes
+	// Drive the binary with a specially crafted fake that includes
 	// a slow tool to test hint delivery.
-	if r.ExBuildOK {
-		exBin := filepath.Join(exDir, "bin")
-		ch6DriveExercise(r, exBin, exDir)
-	}
+	ch6DriveExercise(r, bin, dir)
 
-	// Test loud refusal: use the agent binary with an unknown model.
-	if r.AgentBuildOK {
-		testLoudRefusal(r, agentBin, agentDir)
-	}
+	// Test loud refusal: use the binary with an unknown model.
+	testLoudRefusal(r, bin, dir)
 
 	// ch5 parity.
-	if r.AgentBuildOK {
-		ch5r, err := Ch5Run(dir)
-		if err != nil {
-			r.Ch5Err = err.Error()
-		} else {
-			r.Ch5Result = ch5r
-		}
+	ch5r, err := Ch5Run(dir)
+	if err != nil {
+		r.Ch5Err = err.Error()
+	} else {
+		r.Ch5Result = ch5r
 	}
 
 	return r, nil
 }
 
-// ch6DriveExercise runs the exercise binary and tests hint delivery,
+// ch6DriveExercise runs the binary and tests hint delivery,
 // observation collection, and multi-agent coordination.
-func ch6DriveExercise(r *Ch6Result, exBin, workDir string) {
-	// The fake vendor serves replies for three agents (author, editor, reviewer).
-	// The author's first reply is a tool call for "think" which sleeps 3 seconds,
-	// creating a window for the hint to arrive during tool execution.
+func ch6DriveExercise(r *Ch6Result, bin, workDir string) {
 	replies := []fakevendor.Reply{
-		// Author turn 1: tool call for "think" (will sleep 3s)
+		// Turn 1: tool call for "think" (will sleep 3s)
 		{ToolName: "think", ToolArgs: `{"seconds":3,"thought":"composing draft"}`, ToolID: "call_a1"},
-		// Author turn 1 continued: final text after tool
+		// Turn 1 continued: final text after tool
 		{Text: "I have written a draft about the topic."},
-		// Editor turn 1: just text
+		// Turn 2: just text (for multi-agent, the student may wire multiple actors)
 		{Text: "I have improved the draft with better flow."},
-		// Reviewer turn 1: just text
+		// Turn 3: just text
 		{Text: "APPROVED. The draft is excellent."},
 	}
 	fake := fakevendor.New(replies)
@@ -189,14 +142,14 @@ func ch6DriveExercise(r *Ch6Result, exBin, workDir string) {
 	logPath := filepath.Join(workDir, "test_ch06.log")
 	r.LogPath = logPath
 
-	cmd := exec.Command(exBin)
+	cmd := exec.Command(bin)
 	cmd.Dir = workDir
 	cmd.Env = append(os.Environ(),
 		"LLM_VENDOR=anthropic",
 		"LLM_MODEL=fake-model",
 		"LLM_API_KEY=fake-key",
 		"LLM_BASE_URL="+fake.URL(),
-		"CH06_LOG="+logPath,
+		"CH02_LOG="+logPath,
 	)
 
 	stdinPipe, err := cmd.StdinPipe()
@@ -217,12 +170,11 @@ func ch6DriveExercise(r *Ch6Result, exBin, workDir string) {
 	// Send the initial prompt.
 	fmt.Fprintf(stdinPipe, `{"kind":"prompt","text":"Write about the ocean"}`+"\n")
 
-	// Wait for the tool to be dispatched (the fake will delay the response),
-	// then send a hint during the tool execution window.
+	// Wait for the tool to be dispatched, then send a hint.
 	time.Sleep(1500 * time.Millisecond)
 	fmt.Fprintf(stdinPipe, `{"kind":"hint","text":"make it vivid","agent":"author"}`+"\n")
 
-	// Close stdin to signal EOF so the binary can exit cleanly.
+	// Close stdin to signal EOF.
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
@@ -243,10 +195,8 @@ func ch6DriveExercise(r *Ch6Result, exBin, workDir string) {
 	}
 	wg.Wait()
 
-	// Parse observations from stdout.
 	parseObservations(r, outBuf.String())
 
-	// Read log file.
 	if data, err := os.ReadFile(logPath); err == nil {
 		r.LogContent = string(data)
 	}
@@ -277,8 +227,6 @@ func parseObservations(r *Ch6Result, output string) {
 		}
 	}
 
-	// Check hint-before-tool ordering: a hint observation (part_delta with
-	// "hint:" prefix) should appear before the tool's part_final.
 	hintSeen := false
 	for _, obs := range r.Observations {
 		if obs.Observation == "part_delta" && strings.HasPrefix(obs.Chunk, "hint:") {
@@ -291,18 +239,15 @@ func parseObservations(r *Ch6Result, output string) {
 	}
 }
 
-// testLoudRefusal sends a message with an audio blob to a model that
-// doesn't support audio, expecting an error naming the model and media type.
-func testLoudRefusal(r *Ch6Result, agentBin, agentDir string) {
-	// Use a model that doesn't support audio.
+func testLoudRefusal(r *Ch6Result, bin, workDir string) {
 	replies := []fakevendor.Reply{
 		{Text: "Should not reach here."},
 	}
 	fake := fakevendor.New(replies)
 	defer fake.Close()
 
-	cmd := exec.Command(agentBin)
-	cmd.Dir = agentDir
+	cmd := exec.Command(bin)
+	cmd.Dir = workDir
 	cmd.Env = append(os.Environ(),
 		"LLM_VENDOR=anthropic",
 		"LLM_MODEL=unknown-model-xyz",
@@ -331,7 +276,6 @@ func testLoudRefusal(r *Ch6Result, agentBin, agentDir string) {
 		return
 	}
 
-	// The error should name the model and indicate refusal.
 	combined := outBuf.String() + errBuf.String()
 	if strings.Contains(combined, "unknown-model-xyz") ||
 		strings.Contains(combined, "unsupported") ||
@@ -347,22 +291,6 @@ func GradeCh6(dir string) ([]Check, string) {
 		return nil, err.Error()
 	}
 	return Ch6Evaluate(r), r.HelpersErr
-}
-
-// DirHasFile returns true if the directory contains a file matching pattern.
-func dirHasFile(dir, pattern string) bool {
-	matches, _ := filepath.Glob(filepath.Join(dir, pattern))
-	return len(matches) > 0
-}
-
-// sortedKeys returns sorted keys from a map.
-func sortedKeys(m map[string][]string) []string {
-	keys := make([]string, 0, len(m))
-	for k := range m {
-		keys = append(keys, k)
-	}
-	sort.Strings(keys)
-	return keys
 }
 
 // unused but keeps the import happy

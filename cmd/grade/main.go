@@ -1,8 +1,11 @@
 // Command grade runs a student submission against the course auto-grader.
 //
-//	grade [-ch N] [-json] [DIR_OR_BINARY]
+//	grade [-ch N] [-json] [DIR]
 //
-// With no path it grades the reference solution for the chosen chapter.
+// DIR is the student's code directory. For ch1-4 it's a flat package; for
+// ch5+ it's a library tree. With no path, it grades the reference solution
+// for the chosen chapter.
+//
 // Exit status: 0 pass, 1 fail, 2 the grader itself could not run.
 package main
 
@@ -27,26 +30,15 @@ func main() {
 		path = fmt.Sprintf("./solutions/ch%02d", *chapter)
 	}
 
-	// From ch5 on, a submission is repo-root-shaped: the agent is a library
-	// under agent/ and the exercise is a separate module under chNN/. Those
-	// chapters build both themselves, so there is nothing to build here.
-	selfBuilding := map[int]bool{5: true, 6: true, 7: true, 8: true}
-
-	var bin string
-	var cleanup func()
-	if !selfBuilding[*chapter] {
-		var err error
-		bin, cleanup, err = grade.Build(path)
+	var report grade.Report
+	switch *chapter {
+	case 1:
+		bin, cleanup, err := grade.Build(path)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
 			os.Exit(2)
 		}
 		defer cleanup()
-	}
-
-	var report grade.Report
-	switch *chapter {
-	case 1:
 		res, err := grade.Run(bin)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
@@ -54,6 +46,12 @@ func main() {
 		}
 		report = grade.NewReport(grade.Evaluate(res), res.Stderr)
 	case 2:
+		bin, cleanup, err := grade.Build(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
+			os.Exit(2)
+		}
+		defer cleanup()
 		res, err := grade.Ch2Run(bin)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
@@ -62,6 +60,12 @@ func main() {
 		report = grade.NewTitledReport(
 			"Chapter 2 — One Log, Three Vendors", grade.Ch2Evaluate(res), res.Stderr)
 	case 3:
+		bin, cleanup, err := grade.Build(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
+			os.Exit(2)
+		}
+		defer cleanup()
 		res, err := grade.Ch3Run(bin)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
@@ -71,6 +75,12 @@ func main() {
 			"Chapter 3 — Six Tools: Ninety-Two Percent of an AI Coding Agent",
 			grade.Ch3Evaluate(res), "")
 	case 4:
+		bin, cleanup, err := grade.Build(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
+			os.Exit(2)
+		}
+		defer cleanup()
 		res, err := grade.Ch4Run(bin)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "grader: %v\n", err)

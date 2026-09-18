@@ -23,8 +23,8 @@ func Ch8Evaluate(r *Ch8Result) []Check {
 }
 
 func ch8Ready(c *Check, r *Ch8Result) bool {
-	if !r.ExBuildOK {
-		c.failf("exercise did not build: %s", r.ExBuildErr)
+	if !r.BuildOK {
+		c.failf("build failed: %s", r.BuildErr)
 		return false
 	}
 	return true
