@@ -263,3 +263,128 @@ and `solutions/ch07/ch05/bin` is a real path. And `internal/grade`'s audit
 subtests use `t.Parallel()`, so the parent test reports `0.00s` and a
 `^`-anchored grep will hide every subtest result — which briefly convinced me
 the ch6 audit had gone dead when it was perfectly healthy.
+
+---
+
+## 7. Author rulings
+
+Written after reading the code, not the review alone. Where a ruling corrects
+something in the section above, the correction is stated first so the two do
+not have to be reconciled later.
+
+**Decisions on the record before the numbered answers.**
+
+`DisableStreaming` stays. The negative name reads worse and is right, and the
+reason is teachable: in Go the zero value chooses your default for you, so a
+field named `Stream bool` makes "I built a `Config{}` by hand" mean "streaming
+off" — which is the opposite of the default I asked for, and is only
+recoverable inside a constructor that other people are free not to call. The
+chapter prints the argument.
+
+`StreamingFor` not failing on an unknown model is right, and the asymmetry you
+asked to have stated gets its own section. A guess about content corrupts the
+conversation; a guess about delivery changes the number of pieces it arrives
+in. That is the sharpest example of the distinction the whole chapter turns
+on, and it landed in the code before it landed in the prose.
+
+One `Parse`, per part ids, `StreamCallbacks` in `common`, per-frame `api.log`:
+all four confirmed, no changes.
+
+### 1. Sixth check — yes, with a correction to the premise
+
+The premise is narrower than stated. `stream-deltas` already grades the
+*delivery* half in both directions: it runs the exercise a second time under
+`CH07_NO_STREAM=1` and fails if the plain run produces no deltas at all, or
+produces as many as the streaming run. Those branches are real and they are
+graded.
+
+What is ungraded is the *equivalence* half — that the content is identical.
+That is the claim the chapter is named after, so it gets a check.
+
+Add `delivery-not-content`, 10 points. Move the two plain-run assertions out
+of `stream-deltas` and into it, so each check owns one idea: `stream-deltas`
+means "asking for the stream produces a stream", and `delivery-not-content`
+means "turning it off changes the chunk count and nothing else". The new check
+asserts, across the two runs:
+
+- the finalized reply text is identical, byte for byte
+- the number of finalized parts is identical, and their kinds appear in the
+  same order
+- the delta count differs
+
+Re-weighted so the total is still 100:
+
+| check | was | now |
+|---|---|---|
+| `stream-deltas` | 25 | 20 |
+| `deltas-match-final` | 20 | 20 |
+| `thinking-streamed` | 15 | 15 |
+| `tool-params-streamed` | 15 | 15 |
+| `delivery-not-content` | — | 10 |
+| `ch6-parity` | 25 | 20 |
+
+`stream-deltas` gives up 5 because it is giving up half its job. `ch6-parity`
+gives up 5 because a parity check should be the floor of a chapter's weight,
+not a quarter of it.
+
+### 2. Part-id correlation — extend it, and accept the cascade
+
+Real gap, and it is the kind that does not bill until the chapter after next:
+the GUI routes chunks into widgets by part id for every kind, not just text. A
+submission that scatters ids across thinking and tool parts passes Chapter 7
+and then cannot be made to work in the GUI chapter, with nothing to point at.
+
+The property, stated rather than the mechanism:
+
+> A part id identifies exactly one part. Two parts never share an id, one part
+> never uses two ids, and an id never crosses kinds.
+
+Today only text is held to it. Hold every kind to it. Mechanism is yours,
+including whether that lives in `deltas-match-final` or in the two per-kind
+checks; I have a mild preference for the per-kind checks, because a check
+named "tool call parameters stream" should mean the parameters of *one call*
+rather than a soup of every call in the turn.
+
+This will make `per-chunk-part-ids` fail more than one check. That is correct
+and is not the failure mode you fixed earlier. The thing you fixed was one
+mutant leaking into an *unrelated* behaviour — a package-level counter
+tripping Chapter 5's `no-mutable-globals`, which has nothing to do with
+streaming. Several streaming checks noticing that streaming ids became noise
+is the checks doing their job. Re-record the expected set with the reason, so
+the next reader can tell the two cases apart.
+
+### 3. Gemini's clear `StreamToolArgs` bit — printing it
+
+Agreed, and it earns more than a sentence. It is the best demonstration in the
+book of a capability table paying for itself: the parser has no Gemini special
+case, the table says the bit is off, and tool arguments arrive as a length-one
+stream through the same path as everything else. It gets a section.
+
+### 4. Binaries — delete them
+
+Correction: they are tracked. Two files, `solutions/ch05/bin/...` and
+`solutions/ch05/agent/bin/...`, confirmed with `git ls-files`. Remove them.
+Nothing builds from a snapshot; the graders compile their own.
+
+### 5. Snapshots — one is a convention, the other is a bug
+
+The convention, so this stops being re-litigated per chapter: **`solutions/chNN`
+is a reading artifact frozen at its tag. The grading gate is the live tree.**
+We do not reshape a frozen snapshot to satisfy an invariant we never promised,
+and you were right to leave the older two alone.
+
+`solutions/ch06` is a different thing. It is missing `ch06/` entirely, and the
+exercise source was deleted by accident in `e083e02` and restored in the live
+tree afterwards — so the snapshot is incomplete because of that accident, not
+because anyone decided it should be. Restore `ch06/` into it from the live
+tree. **Then verify**: if `grade -ch 6 solutions/ch06` scores 100, point
+`grade6` at the snapshot and we are consistent from Chapter 6 forward. If it
+scores anything else, stop and report — do not go looking for the rest of the
+difference as a side effect of this chapter.
+
+### 6. Fake vendor `Reply.Thinking` — close it
+
+Yes. It is fake-only and no check depends on it today, but `delivery-not-content`
+is about to run a scripted reply down both paths and compare them, and a
+reasoning block that exists on one path only is exactly the asymmetry that
+check should never have to tiptoe around.
