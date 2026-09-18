@@ -94,23 +94,25 @@ func (h *Hub) Observe(obs common.Observation) {
 
 	h.guiLog.Log("<", data)
 
-	// For each live client, catch up on new event-log entries. Event-log
-	// entries cover finals, tool calls, messages, and errors. Only
-	// observations NOT represented in the event log need direct fan-out:
-	// PartDelta (streaming), StateChanged, and TurnEnded.
-	directFanOut := false
-	switch obs.(type) {
-	case common.PartDelta, common.StateChanged, common.TurnEnded:
-		directFanOut = true
+	// Live clients receive all observations directly — deltas, finals,
+	// tool events, state changes, and turn boundaries. catchUp is NOT
+	// called for live clients (it's reconnection-only, called from
+	// subscribe). Instead, lastSeq advances so reconnection starts from
+	// the right place. The user's prompt is delivered separately via the
+	// echo in handleClientMessage above.
+	var latestSeq common.Seq
+	if logLen > 0 {
+		latestSeq = h.log.Events[logLen-1].Seq
 	}
+
 	for _, c := range clients {
-		c.catchUp(h.log.Events[:logLen])
-		if directFanOut {
-			select {
-			case c.send <- data:
-			default:
-				// Slow client. Drop rather than block the actor.
-			}
+		select {
+		case c.send <- data:
+		default:
+			// Slow client. Drop rather than block the actor.
+		}
+		if latestSeq > c.lastSeq {
+			c.lastSeq = latestSeq
 		}
 	}
 }
@@ -222,6 +224,26 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 		h.subscribe(c)
 	case "prompt":
 		if msg.Text != "" {
+			// Echo the prompt back to all connected clients as a message
+			// event immediately, before forwarding to the actor. The event
+			// log will also record a MessageReceived event, but live clients
+			// need the prompt now — catchUp would deliver it too late.
+			echo, _ := json.Marshal(map[string]any{
+				"type":  "message",
+				"actor": "user",
+				"text":  msg.Text,
+			})
+			h.mu.Lock()
+			for cl := range h.clients {
+				if cl.live {
+					select {
+					case cl.send <- echo:
+					default:
+					}
+				}
+			}
+			h.mu.Unlock()
+			h.guiLog.Log("<", echo)
 			h.send(common.UserMessage{Text: msg.Text})
 		}
 	case "hint":
