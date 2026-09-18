@@ -125,6 +125,15 @@ func main() {
 		report = grade.NewTitledReport(
 			"Chapter 8 — Everything Is an Artifact",
 			grade.Ch8Evaluate(res), res.HelpersErr)
+	case 9:
+		res, err := grade.Ch9Run(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
+			os.Exit(2)
+		}
+		report = grade.NewTitledReport(
+			"Chapter 9 — Build Your Dream GUI",
+			grade.Ch9Evaluate(res), res.HelpersErr)
 	default:
 		fmt.Fprintf(os.Stderr, "grader: no grader for chapter %d yet\n", *chapter)
 		os.Exit(2)
