@@ -1,4 +1,4 @@
-# Chapter 0: The Blueprint
+# Chapter 0: The Perpetual Machine
 
 *The Singularity as it Happened*
 
