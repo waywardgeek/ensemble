@@ -36,6 +36,8 @@ fake LLM endpoint so all of it costs nothing until you plug in a real key.
 **The book will always be free here.** It will also be on Amazon for people
 who'd rather read on a Kindle or hold a paper copy — same text, your choice.
 
+**[Read the whole book →](book/the-self-wielding-agent.md)**
+
 Nine chapters are built. The agent streams to a three-pane browser GUI with
 drag bars, theming, TTS, and a settings panel that persists through the
 WebSocket — it pauses when the human needs to think, reconnects without

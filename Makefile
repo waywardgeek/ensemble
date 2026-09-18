@@ -1,4 +1,4 @@
-.PHONY: test grade grade2 grade3 grade-dir fake fake-serve vet fmt lint-prose
+.PHONY: test grade grade2 grade3 grade-dir fake fake-serve vet fmt lint-prose book
 
 # Count the prose moves budgeted in book/voice.md §5. Hard ceilings fail;
 # soft ones warn. Add -v via LINTFLAGS=-v to list every counted instance.
@@ -62,3 +62,8 @@ fake:
 
 fake-serve:
 	go run ./cmd/fakevendor -vendor $(VENDOR)
+
+# Assemble the full book into a single readable markdown file.
+book:
+	scripts/assemble-book.sh > book/the-self-wielding-agent.md
+	@wc -w < book/the-self-wielding-agent.md | xargs -I{} echo "book/the-self-wielding-agent.md: {} words"
