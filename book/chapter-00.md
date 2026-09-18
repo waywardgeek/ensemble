@@ -4,61 +4,130 @@
 
 ---
 
-When a compiler written in its own language can compile itself to a
-fixed point, stage N's output identical to stage N+1, we call it
-self-hosting. The milestone matters because it proves the tool is
-sufficient for its own domain.
+Every technical book ever written starts dying the day it ships.
+Frameworks move, APIs change, the version numbers in the examples stop
+matching the ones in the world, and three years later someone writes
+the same book again with updated screenshots. The genre has a
+half-life. This book is designed to break that.
 
-When an AI coding agent is capable enough that it becomes the primary
-tool for its own development, we call it **self-wielding**. This book
-builds that agent.
+What you are holding is a blueprint for an AI coding agent called
+Ensemble. Not a description of one, a blueprint: graded chapter by
+graded chapter, tested specification by tested specification, with
+executable acceptance criteria and mutation tests that prove the
+criteria are not decorative. You can hand this blueprint to a language
+model and it will build Ensemble from scratch, scoring 100 on every
+chapter, producing a working agent at the end.
 
-The thesis is not the agent. It is what happens after.
+Then you can do it again next year, with a better model, and get a
+better Ensemble.
+
+Then you can add a chapter, and get a more capable Ensemble.
+
+Then the Ensemble you just built can help you write the next chapter.
+
+This is not a metaphor. It is the procedure.
+
+---
+
+## Not a specification
+
+The distinction matters enough to be the first thing on the page.
+
+Spec-driven development starts with what someone wants: a document
+describing a product that does not exist, handed to an engineer with
+the expectation that working software follows. It occasionally does.
+More often the implementation discovers things the spec could not
+anticipate, the spec is never corrected because the person who wrote
+it has moved on to the next slide deck, and the result is a product
+that matches the wish where the wish was right and improvises where
+it was wrong, with no record of which is which.
+
+This book works the other way around. Each chapter was built first:
+code written, tested, broken, revised, graded, mutation-tested. Then
+the prose was written from the working code, with the coder's feedback
+folded in as a mandatory procedure step. Brief goes to the coder.
+Coder builds. Coder reports what was missing, ambiguous, or wrong.
+Brief is corrected. The specification is downstream of working code.
+
+A wish for what might work fails at the first surprise. A receipt for
+what already works survives regeneration.
 
 ## The loop
 
 Each chapter adds one graded capability to Ensemble. "Graded" means a
-program runs your code against fake servers and scores it, 100 out of
-100 or not. Mutation tests verify the grader is not decorative: delete
-a behavior and exactly the right checks fail.
+program starts fake vendor servers, runs your binary against them,
+inspects what your code actually did, and scores it: 100 out of 100
+or not. Mutation tests verify the grader itself: delete exactly one
+behavior from the reference solution, re-grade, and assert that
+exactly the right checks fail. A grader that lets a deletion through
+is a grader that tolerates a regression, and the mutation tests exist
+to catch that tolerance before a student hits it.
 
-Every chapter includes a parity check: all previous graders must still
-pass. You cannot add capability that breaks existing capability. The
-result is a stack of tested specifications, each a receipt for working
-code rather than a wish for code that might work.
-
-That stack is a blueprint. Not the kind a VP writes on a whiteboard.
-The kind that was built, tested, torn apart by the coder who built it,
-revised, and tested again. The procedure has a feedback loop baked in:
-brief goes to the coder, the coder builds, the coder's feedback comes
-back, the brief is corrected. The specification is downstream of
-working code, not upstream of hoped-for code.
+Every chapter includes a parity check: all previous chapter graders
+must still pass after your changes. You cannot add capability that
+breaks existing capability. Chapter by chapter, the result is a stack
+of tested receipts, each feedback-corrected, each building on
+everything before it.
 
 ## The generation
 
-Hand this book to the next generation of language model. It builds
-Ensemble from Chapter 1, scores 100 on every grader, and produces a
-working agent. A better model produces a better agent: cleaner code,
-sharper tool descriptions, tighter error handling, while hitting the
-same graded floor.
+Here is the part that is hard to believe until you watch it happen.
+
+Hand this book to the next generation of language model. Point it at
+Chapter 1. It reads the TL;DR, builds the exercise, runs the grader,
+scores 100, and moves to Chapter 2. Chapter by chapter, it rebuilds
+Ensemble from scratch. At the end it has a working AI coding agent.
+Not a sketch. Not a prototype. A working agent, because "working" is
+what 100 on every grader means, and the graders are not quizzes.
+
+A more capable model produces a more capable Ensemble. The graders
+set the floor, not the ceiling: cleaner code, sharper tool
+descriptions, tighter error handling, a more natural conversation
+style. The specifications say what the agent must do. They do not
+limit how well it does it.
 
 When a new capability appears in the field, write a chapter. The
 chapter comes with a grader, mutation tests, and a parity check
 against everything before it. Ensemble gains the capability. The book
-grows. The next build incorporates it.
+grows by one chapter. The next model that reads the book builds an
+Ensemble that has it.
 
 No version of Ensemble is final. Each is a phenotype expressed from
 the same genome in the environment of whatever model reads it. The
 graders are the immune system: they reject any build that loses a
 capability a previous chapter established. The prose is the teaching.
-Together they define a living standard for what an AI coding agent is.
+Together they define a living standard for what an AI coding agent
+is, and that standard evolves because adding a chapter is how you
+evolve it.
+
+A book that generates a product. A product that improves with every
+generation of the technology it is built from. An evergreen blueprint
+for an AI coding agent, maintained by adding chapters, regenerated by
+running the graders, never finished and never stale.
 
 ## The crossing
 
 Somewhere in this book you will use Ensemble to help build the next
 chapter's exercise. The agent you have been building becomes the tool
-you build with. That is the crossing. After it, every chapter you add
-is written with the tool the chapter extends.
+you build with. That is the crossing, and it has a name.
 
-The loop closes. The blueprint renews itself. The agent is
-self-wielding.
+When a compiler can compile itself, we call it **self-hosting**. When
+an AI coding agent is capable enough that it becomes the primary tool
+for its own continued development, we call it **self-wielding**.
+
+After the crossing, every chapter you add is written with the tool
+the chapter extends. The agent that helps you build Chapter N+1 is
+the agent that Chapter N produced. The loop is:
+
+> Build Ensemble. Use Ensemble to write the next chapter's code.
+> Grade it. Update the brief from the coder's feedback. The next
+> Ensemble is better. Repeat.
+
+A self-improvement loop with graded checkpoints and mutation-tested
+guardrails, running on whatever model is best at the time, producing
+a better agent with every pass.
+
+The blueprint renews itself. The agent is self-wielding. The book
+you are reading is the first technical manual designed to outlive
+every technology it describes, by regenerating the thing it teaches
+from whatever comes next.
