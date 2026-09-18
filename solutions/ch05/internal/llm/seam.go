@@ -21,7 +21,7 @@ package llm
 
 import (
 	"encoding/json"
-	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/internal/common"
 	"fmt"
 	"net/http"
 	"strings"

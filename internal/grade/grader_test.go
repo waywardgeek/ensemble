@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/waywardgeek/coding-agents-course/internal/grade"
+	"github.com/waywardgeek/ensemble/internal/grade"
 )
 
 // repoRoot walks up from the test's working directory to the module root.

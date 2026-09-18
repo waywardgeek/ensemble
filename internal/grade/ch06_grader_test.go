@@ -240,9 +240,9 @@ func ch6Mutants() []ch6mutation {
 			wantFail: []string{"ch5-parity", "hub-clean"},
 			edits: []ch6edit{{
 				relPath: "agent/internal/llm/engine.go",
-				find:    `"github\.com/waywardgeek/coding-agents-course/agent/internal/common"`,
-				replace: `"github.com/waywardgeek/coding-agents-course/agent/internal/common"
-	_ "github.com/waywardgeek/coding-agents-course/agent/internal/tools"`,
+				find:    `"github\.com/waywardgeek/ensemble/agent/internal/common"`,
+				replace: `"github.com/waywardgeek/ensemble/agent/internal/common"
+	_ "github.com/waywardgeek/ensemble/agent/internal/tools"`,
 			}},
 		},
 	}

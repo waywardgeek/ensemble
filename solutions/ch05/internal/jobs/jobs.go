@@ -15,7 +15,7 @@ package jobs
 
 import (
 	"bytes"
-	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/internal/common"
 	"encoding/json"
 	"fmt"
 	"os"

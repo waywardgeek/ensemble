@@ -1,6 +1,6 @@
 # Brief — Chapter 2 amendment: the `Ref` type
 
-You are the CODER. I am the author. Repo: `~/projects/coding-agents-course`.
+You are the CODER. I am the author. Repo: `~/projects/ensemble`.
 
 Read `book/chapter-05-seam-draft.md` §1 and §2 first — it states the design and
 the reasons. This brief states the PROPERTIES to achieve, not the mechanism; if
@@ -9,7 +9,7 @@ you find a better mechanism that satisfies them, take it and say so.
 ## Build and run
 
 ```bash
-cd ~/projects/coding-agents-course
+cd ~/projects/ensemble
 go build ./...
 go run ./cmd/grade -ch 2 solutions/ch02     # grader dir is POSITIONAL
 go run ./cmd/grade -ch 3 solutions/ch03     # must also still pass

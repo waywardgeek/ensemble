@@ -1,4 +1,4 @@
-module github.com/waywardgeek/coding-agents-course/agent
+module github.com/waywardgeek/ensemble/agent
 
 go 1.25
 

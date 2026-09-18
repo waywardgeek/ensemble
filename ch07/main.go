@@ -42,7 +42,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/waywardgeek/coding-agents-course/agent"
+	"github.com/waywardgeek/ensemble/agent"
 )
 
 func main() {

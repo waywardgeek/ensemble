@@ -16,7 +16,7 @@ import (
 	"os"
 	"strings"
 
-	agent "github.com/waywardgeek/coding-agents-course/agent"
+	agent "github.com/waywardgeek/ensemble/agent"
 )
 
 func main() {

@@ -24,7 +24,7 @@ import (
 
 	"github.com/creack/pty"
 
-	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
 
 // builtinArgSpec returns a human-readable summary of each builtin tool's arguments.

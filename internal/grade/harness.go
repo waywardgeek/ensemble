@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/waywardgeek/coding-agents-course/internal/fakeanthropic"
+	"github.com/waywardgeek/ensemble/internal/fakeanthropic"
 )
 
 // Timeouts. Generous enough that a correct program on a slow machine never

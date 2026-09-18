@@ -42,7 +42,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/waywardgeek/coding-agents-course/internal/fakevendor"
+	"github.com/waywardgeek/ensemble/internal/fakevendor"
 )
 
 func main() {

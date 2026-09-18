@@ -17,7 +17,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/waywardgeek/coding-agents-course/internal/fakevendor"
+	"github.com/waywardgeek/ensemble/internal/fakevendor"
 )
 
 // Ch6Result holds evidence for the ch6 checks.

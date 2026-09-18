@@ -15,7 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
 
 // Actor wraps an Engine with a mailbox-driven event loop.

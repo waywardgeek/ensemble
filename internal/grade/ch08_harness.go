@@ -18,7 +18,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
-	"github.com/waywardgeek/coding-agents-course/internal/fakevendor"
+	"github.com/waywardgeek/ensemble/internal/fakevendor"
 )
 
 // ----------------------------------------------------------------

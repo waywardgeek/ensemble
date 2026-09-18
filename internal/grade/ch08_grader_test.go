@@ -8,7 +8,7 @@ package grade_test
 import (
 	"testing"
 
-	"github.com/waywardgeek/coding-agents-course/internal/grade"
+	"github.com/waywardgeek/ensemble/internal/grade"
 )
 
 // The ch8 grader is expensive (starts subprocesses, WebSocket connections).

@@ -26,7 +26,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
 
 // SeamFor returns the renderer and parser for a vendor. This function is the

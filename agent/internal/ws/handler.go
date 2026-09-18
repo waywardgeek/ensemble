@@ -12,7 +12,7 @@ import (
 	"sync"
 
 	"github.com/gorilla/websocket"
-	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
 
 func newUpgrader() *websocket.Upgrader {

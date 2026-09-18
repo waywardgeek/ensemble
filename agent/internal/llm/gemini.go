@@ -16,7 +16,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
 
 type geminiSeam struct{}

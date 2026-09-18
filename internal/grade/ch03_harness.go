@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/waywardgeek/coding-agents-course/internal/fakevendor"
+	"github.com/waywardgeek/ensemble/internal/fakevendor"
 )
 
 const Ch3Timeout = 120 * time.Second

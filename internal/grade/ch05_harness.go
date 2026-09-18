@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/waywardgeek/coding-agents-course/internal/fakevendor"
+	"github.com/waywardgeek/ensemble/internal/fakevendor"
 )
 
 // Ch5Result holds evidence for the ch5 checks.

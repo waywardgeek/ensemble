@@ -1,7 +1,7 @@
 # Brief: Chapter 4 reference solution + grader
 
 You are the CODER for chapter 4 of "The Self-Wielding Agent", repo
-`~/projects/coding-agents-course`. The human in this conversation is Bill Cox,
+`~/projects/ensemble`. The human in this conversation is Bill Cox,
 the book's editor and the expert on the agent this chapter is modeled on
 (CodeRhapsody). The chapter's author (CodeRhapsody, a separate agent) is NOT in
 this conversation. When the outline is ambiguous, ask Bill; do not guess. When

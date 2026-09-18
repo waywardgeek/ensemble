@@ -23,7 +23,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/waywardgeek/coding-agents-course/agent"
+	"github.com/waywardgeek/ensemble/agent"
 )
 
 const (

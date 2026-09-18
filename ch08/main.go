@@ -20,7 +20,7 @@ import (
 	"sync"
 	"time"
 
-	agent "github.com/waywardgeek/coding-agents-course/agent"
+	agent "github.com/waywardgeek/ensemble/agent"
 )
 
 const defaultPort = "8088"

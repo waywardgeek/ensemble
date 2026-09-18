@@ -20,12 +20,12 @@ import (
 	"strings"
 	"sync"
 
-	agent "github.com/waywardgeek/coding-agents-course/agent"
-	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
-	"github.com/waywardgeek/coding-agents-course/agent/internal/jobs"
-	"github.com/waywardgeek/coding-agents-course/agent/internal/llm"
-	"github.com/waywardgeek/coding-agents-course/agent/internal/tools"
-	"github.com/waywardgeek/coding-agents-course/agent/internal/ws"
+	agent "github.com/waywardgeek/ensemble/agent"
+	"github.com/waywardgeek/ensemble/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/internal/jobs"
+	"github.com/waywardgeek/ensemble/agent/internal/llm"
+	"github.com/waywardgeek/ensemble/agent/internal/tools"
+	"github.com/waywardgeek/ensemble/agent/internal/ws"
 )
 
 const fallbackName = "ch06"

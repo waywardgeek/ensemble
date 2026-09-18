@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/waywardgeek/coding-agents-course/agent/internal/common"
-	"github.com/waywardgeek/coding-agents-course/agent/internal/jobs"
-	"github.com/waywardgeek/coding-agents-course/agent/internal/llm"
-	"github.com/waywardgeek/coding-agents-course/agent/internal/tools"
+	"github.com/waywardgeek/ensemble/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/internal/jobs"
+	"github.com/waywardgeek/ensemble/agent/internal/llm"
+	"github.com/waywardgeek/ensemble/agent/internal/tools"
 	"encoding/json"
 	"os"
 	"path/filepath"

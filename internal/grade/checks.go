@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/waywardgeek/coding-agents-course/internal/fakeanthropic"
+	"github.com/waywardgeek/ensemble/internal/fakeanthropic"
 )
 
 // Check is one graded property. Details explain the verdict in the student's

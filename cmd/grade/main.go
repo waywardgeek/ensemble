@@ -12,7 +12,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/waywardgeek/coding-agents-course/internal/grade"
+	"github.com/waywardgeek/ensemble/internal/grade"
 )
 
 func main() {
