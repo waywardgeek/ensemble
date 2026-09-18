@@ -1,12 +1,13 @@
 # Preface
 
-You are reading something that has never existed before: a book that
-generates its own subject. Chapter by graded chapter, it builds an AI
-coding agent. The agent it builds helps write the next edition. The
-next edition builds a better agent. If that loop works the way the
-evidence so far says it does, it changes how AI coding agents are
-built, maintained, and evolved, permanently. Chapter 0 explains the
-mechanism. The rest of the book is the proof.
+You are reading something that has never existed before: a
+self-evolving book. Chapter by graded chapter, it builds an AI coding
+agent. The agent it builds helps write the next edition. The next
+edition builds a better agent. The book and the agent feed each
+other — each generation of one improving the next generation of the
+other. As far as we know, this is the first time anyone has closed
+that loop. Chapter 0 explains the mechanism. The rest of the book is
+the proof.
 
 ## Sixty billion dollars
 

@@ -4,12 +4,14 @@
 
 **The Singularity as it Happened**
 
-This is a perpetual machine: a book that generates an AI coding agent,
-chapter by graded chapter, and the agent it generates helps write the next
-edition. Hand it to the next generation of LLM and it rebuilds the agent from
-scratch, better than before, scoring 100 on every chapter. Add a chapter when
-new capabilities appear, and the next agent has them. The loop never ends. The
-book never dies.
+This is, as far as we know, the world's first self-evolving book and agent.
+The book generates an AI coding agent, chapter by graded chapter. The agent
+helps write the next edition. The next edition builds a better agent. Each
+generation of one feeds the next generation of the other — the loop never
+ends, the book never dies. Hand it to the next generation of LLM and it
+rebuilds the agent from scratch, better than before, scoring 100 on every
+chapter. Add a chapter when new capabilities appear, and the next agent has
+them.
 
 When a compiler can compile itself, we call it self-hosting. When an AI coding
 agent becomes the primary tool for its own development, we call it
