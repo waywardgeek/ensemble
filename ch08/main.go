@@ -132,7 +132,11 @@ func runMain(cfg agent.Config, logPath, port, guiDir string) {
 	actor.Attach(hub)
 
 	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.Dir(guiDir)))
+	fs := http.FileServer(http.Dir(guiDir))
+	mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+		fs.ServeHTTP(w, r)
+	}))
 	mux.HandleFunc("/ws", hub.ServeWS)
 	srv := &http.Server{Addr: ":" + port, Handler: mux}
 	go srv.ListenAndServe()

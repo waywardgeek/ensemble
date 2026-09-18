@@ -238,7 +238,11 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 			staticDir = "web/gui"
 		}
 		mux := http.NewServeMux()
-		mux.Handle("/", http.FileServer(http.Dir(staticDir)))
+		fs := http.FileServer(http.Dir(staticDir))
+		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+			fs.ServeHTTP(w, r)
+		}))
 		mux.HandleFunc("/ws", hub.ServeWS)
 		srv := &http.Server{Addr: ":" + port, Handler: mux}
 		go srv.ListenAndServe()
