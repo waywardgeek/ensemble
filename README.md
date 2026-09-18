@@ -83,43 +83,59 @@ way, and a course for them has to be pitched at it.
 
 ---
 
-## What it does by chapter 4
+## What it does
 
-Type at it and it will list your directory, read your files, grep your code,
-edit a file by anchor text (and *refuse* if the anchor matches twice — it will
-not silently patch the wrong one), run your tests, and tell you what happened.
-Ordinary. Here is what is not:
+Type at it and it lists your directory, reads your files, greps your code,
+edits by anchor text (and *refuses* if the anchor matches twice), runs your
+tests, drives a debugger through a real PTY, streams reasoning to a
+three-pane browser GUI with TTS, pauses when you need to think, and
+reconnects without losing state. Here is how it got there:
 
-- **It never blocks.** Every tool call is a *job* with a handle. Start
-  `go test ./...`, come back to it, read the output as it arrives. Nothing is
-  killed by a timeout — nothing dies unless the model calls `kill_job`. The
-  model decides how long to wait *on every call*, not the framework.
-- **It drives a debugger.** Real `dlv`, in a real PTY, waiting on the `(dlv) `
-  prompt rather than on a guessed delay. Set a breakpoint, continue, print a
-  variable. Blocking tool calls don't make debuggers slow; they make them
-  impossible. This is the chapter 4 closing demo and it runs live.
-- **The log already knows how to be steered.** A hint typed mid-turn and an
-  interrupt are both *events*, and the chapter 2 grader proves the agent
-  handles them while blocked on a request it has already sent: the hint lands
-  in the right place exactly once; the interrupted tool call is recorded and
-  *not executed*, and the next request is still legal. Wiring that into the
-  live REPL comes in a later chapter — the data structure is done.
-- **One log, three vendors.** The conversation is an append-only event log.
-  The same log renders to the Anthropic, OpenAI and Gemini APIs — switch
-  vendors with one environment variable and the agent doesn't know.
-- **Replay is byte-identical.** Render the same log twice, get the same
-  request. Redact a payload: it's gone from what the model sees and still in
-  the log. Compaction is an event, not a mutation.
-- **Output by the megabyte, context by the kilobyte.** Full tool output goes
-  to a file, always; what enters the context is capped, with the path to the
-  rest. The model reads the rest with the `read_file` it already has.
-- **The dangerous call is the one that makes you be specific.** `edit_file`
-  refuses ambiguous anchors. `write_file` refuses to overwrite unless asked by
-  name. Loud failures over quiet ones, everywhere.
+**Chapters 1–2: the data structure.** The conversation is an append-only
+event log. The same log renders to the Anthropic, OpenAI and Gemini APIs —
+switch vendors with one environment variable and the agent doesn't know.
+Render the same log twice, get the same request. Redact a payload: it's gone
+from what the model sees and still in the log. A hint typed mid-turn and an
+interrupt are both events, and the chapter 2 grader proves the agent handles
+them *while blocked on a request it has already sent*.
 
-Six local tools cover 92% of what a real coding agent does all day — we
-measured it across tens of thousands of real tool calls before choosing them.
-That measurement is in the book; the six tools are in `agent/`.
+**Chapters 3–4: tools and jobs.** Six local tools cover 92% of what a real
+coding agent does all day — we measured it across tens of thousands of tool
+calls before choosing them. Every tool call is a *job* with a handle: start
+`go test ./...`, come back to it, read the output as it arrives. Nothing dies
+unless the model calls `kill_job`. The closing demo: the agent starts `dlv`,
+sets a breakpoint with `send_input`, continues, and prints a variable. The
+only right answer is 42.
+
+**Chapter 5: the refactor.** The monolith becomes a star topology — a hub of
+shared types at the center, implementation packages that each import the hub
+and nothing else. Two rules: constructors take interfaces to their parents;
+those interfaces live in the hub. A twenty-line program imports the framework,
+registers a custom tool the framework has never seen, and runs an agent that
+calls it. Zero mutable globals survive.
+
+**Chapter 6: the framework.** An outbound observer seam so the framework
+tells the world what happened instead of the world reaching in to ask. An
+inbound mailbox so prompts, hints, tool results, and interrupts enter through
+one door. An actor loop between them. Three agents run concurrently, each
+with its own tools and observers, and a hint mid-tool-call arrives before the
+tool finishes.
+
+**Chapter 7: streaming.** SSE parsing, three vendor wire formats, a
+capability table, and one design rule: streaming changes *delivery*, not
+*content*. Non-streaming is a stream of length one.
+
+**Chapter 8: the GUI.** A WebSocket hub, a browser page, TTS, and a pause
+gate that stops tool dispatch when the human is speaking or typing. One
+reusable component renders everything — reasoning, replies, tool calls, tool
+results — distinguished by CSS class. The agent has no import, no dependency,
+no flag that mentions the GUI. Chapter 6's observer seam is the entire
+interface.
+
+**Chapter 9: the workbench.** Three panes, two drag bars (eight lines of JS
+each), a settings panel that persists through the WebSocket, theming via CSS
+custom properties, and a stub agent tree ready for sub-agents. This is the
+ignition chapter: start using the agent to build itself.
 
 ---
 
@@ -201,14 +217,14 @@ auto-grader. Grade the reference solution — no key, no network:
 ```bash
 make grade                          # chapter 1
 make grade2 grade3                  # chapters 2 and 3
-go run ./cmd/grade -ch 4 ./solutions/ch04
+make grade5 grade7 grade8 grade9    # chapters 5, 7, 8, 9
 ```
 
 Grade your own agent — any package directory or built binary:
 
 ```bash
 go run ./cmd/grade -ch 3 ~/my-agent
-go run ./cmd/grade -ch 4 -json ~/my-agent   # machine-readable
+go run ./cmd/grade -ch 8 -json ~/my-agent   # machine-readable
 ```
 
 Exit status is 0 on a pass, 1 on a fail, 2 if the grader itself couldn't run.
@@ -400,11 +416,19 @@ on an HTTP request it has already sent. A round-synchronous program cannot
 acknowledge anything in that window — which is how "received while blocked"
 is measured rather than assumed.
 
-### Chapters 3 and 4
+### Chapters 3–9
 
-See `book/chapter-03-outline.md` and `book/chapter-04-outline.md`, or run
-`go run ./cmd/grade -ch 3 ./solutions/ch03` and read the report: every check
-is named and explained.
+Each chapter's outline in `book/` has the full check table with points and
+rationale. Run the grader to see every check named and explained:
+
+```bash
+go run ./cmd/grade -ch 5 ./solutions/ch05    # star topology, parent interfaces
+go run ./cmd/grade -ch 8 ./solutions/ch08    # GUI, TTS, observer seam
+go run ./cmd/grade -ch 9 ./solutions/ch09    # settings roundtrip, persist, broadcast
+```
+
+Chapters 5–9 grade a library tree, not a repo-root layout — point the grader
+at any directory that builds with `go build ./cmd/` and has a `go.mod`.
 
 ---
 
