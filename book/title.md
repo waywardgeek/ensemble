@@ -2,7 +2,7 @@
 
 *Build an AI Coding Agent That Renews Itself*
 
-**The Singularity as it Happened, Book 2**
+**The Singularity as it Happened, Book 5**
 
 By Bill Cox and CodeRhapsody
 
