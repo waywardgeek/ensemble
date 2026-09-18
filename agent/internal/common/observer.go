@@ -1,5 +1,7 @@
 package common
 
+import "encoding/json"
+
 // The outbound seam: what leaves the agent.
 //
 // waywardgeest — the ghost in the machine watches, and what it sees leaves
@@ -64,7 +66,29 @@ type TurnEnded struct {
 	Err   string  `json:"error,omitempty"`
 }
 
-func (PartDelta) isObservation()    {}
-func (PartFinal) isObservation()    {}
-func (StateChanged) isObservation() {}
-func (TurnEnded) isObservation()    {}
+// ToolDispatched fires when a tool call begins execution.
+//
+// Named to avoid collision with ToolCalled (the event log entry) and
+// ToolCompleted (the mailbox inbound). The observation is what leaves; the
+// event is what stays; the inbound is what arrives.
+type ToolDispatched struct {
+	Agent  AgentID         `json:"agent,omitempty"`
+	CallID string          `json:"call_id"`
+	Name   string          `json:"name"`
+	Input  json.RawMessage `json:"input"`
+}
+
+// ToolFinished fires when a tool call completes (success or error).
+type ToolFinished struct {
+	Agent   AgentID `json:"agent,omitempty"`
+	CallID  string  `json:"call_id"`
+	Result  string  `json:"result"`
+	IsError bool    `json:"is_error"`
+}
+
+func (PartDelta) isObservation()      {}
+func (PartFinal) isObservation()      {}
+func (StateChanged) isObservation()   {}
+func (TurnEnded) isObservation()      {}
+func (ToolDispatched) isObservation() {}
+func (ToolFinished) isObservation()   {}

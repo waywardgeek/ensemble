@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -24,6 +25,7 @@ import (
 	"github.com/waywardgeek/coding-agents-course/agent/internal/jobs"
 	"github.com/waywardgeek/coding-agents-course/agent/internal/llm"
 	"github.com/waywardgeek/coding-agents-course/agent/internal/tools"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/ws"
 )
 
 const fallbackName = "ch06"
@@ -62,6 +64,28 @@ const systemPrompt = "You are a helpful assistant."
 func main() {
 	args := os.Args[1:]
 	mode := ""
+	port := ""
+	guiDir := ""
+
+	// Parse flags manually to keep backward compat with positional commands.
+	var filtered []string
+	for i := 0; i < len(args); i++ {
+		switch {
+		case args[i] == "--port" && i+1 < len(args):
+			port = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--port="):
+			port = strings.TrimPrefix(args[i], "--port=")
+		case args[i] == "--gui-dir" && i+1 < len(args):
+			guiDir = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--gui-dir="):
+			guiDir = strings.TrimPrefix(args[i], "--gui-dir=")
+		default:
+			filtered = append(filtered, args[i])
+		}
+	}
+	args = filtered
 	if len(args) > 0 {
 		mode = args[0]
 	}
@@ -110,7 +134,7 @@ func main() {
 		}
 
 	case "":
-		if runActorLoop(cfg, logPath, reg) {
+		if runActorLoop(cfg, logPath, reg, port, guiDir) {
 			os.Exit(1)
 		}
 
@@ -167,11 +191,15 @@ type stdinMsg struct {
 	Ephemeral *string `json:"ephemeral"`
 }
 
-func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg) (vendorFailed bool) {
+func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string) (vendorFailed bool) {
 	host := newCLIHost()
 	j := jobs.NewJobs(host)
 	eng := llm.NewEngine(cfg, logPath, j, reg, host)
 	actor := llm.NewActor(eng, host)
+
+	// Pause gate: shared between the actor and the WS hub.
+	gate := common.NewPauseGate()
+	actor.SetPauseGate(gate)
 
 	out := bufio.NewWriter(os.Stdout)
 	defer out.Flush()
@@ -196,6 +224,26 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg) (vendorFail
 	actor.Attach(stdoutObserver(func(obs common.Observation) {
 		emitLocked(observationJSON(obs))
 	}))
+
+	// Start the HTTP/WebSocket server if --port is set.
+	if port != "" {
+		hub := ws.NewHub(gate, func(msg common.Inbound) {
+			actor.Send(msg)
+		}, "gui.log")
+		defer hub.Close()
+		actor.Attach(hub)
+
+		staticDir := guiDir
+		if staticDir == "" {
+			staticDir = "web/gui"
+		}
+		mux := http.NewServeMux()
+		mux.Handle("/", http.FileServer(http.Dir(staticDir)))
+		mux.HandleFunc("/ws", hub.ServeWS)
+		srv := &http.Server{Addr: ":" + port, Handler: mux}
+		go srv.ListenAndServe()
+		defer srv.Close()
+	}
 
 	// Start the actor loop.
 	ctx, cancel := context.WithCancel(context.Background())
@@ -345,6 +393,21 @@ func observationJSON(obs common.Observation) map[string]any {
 		}
 		if v.Err != "" {
 			m["error"] = v.Err
+		}
+		return m
+	case common.ToolDispatched:
+		m := map[string]any{"observation": "tool_dispatched", "call_id": v.CallID, "name": v.Name}
+		if v.Input != nil {
+			m["input"] = json.RawMessage(v.Input)
+		}
+		if v.Agent != "" {
+			m["agent"] = string(v.Agent)
+		}
+		return m
+	case common.ToolFinished:
+		m := map[string]any{"observation": "tool_finished", "call_id": v.CallID, "result": v.Result, "is_error": v.IsError}
+		if v.Agent != "" {
+			m["agent"] = string(v.Agent)
 		}
 		return m
 	}

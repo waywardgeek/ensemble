@@ -32,6 +32,9 @@ grade6:
 grade7:
 	go run ./cmd/grade -ch 7 .
 
+grade8:
+	go run ./cmd/grade -ch 8 .
+
 grade-ch07: grade7
 
 # Grade an arbitrary submission:

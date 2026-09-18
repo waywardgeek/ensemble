@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ensemble</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ansi_up@6/ansi_up.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <div id="status-bar">
+      <span id="agent-state">idle</span>
+      <span id="model-name"></span>
+    </div>
+    <div id="scroll-container"></div>
+    <div id="input-bar">
+      <input type="text" id="prompt-input" placeholder="Type a message..." autocomplete="off">
+    </div>
+  </div>
+
+  <script src="renderers.js"></script>
+  <script src="tts.js"></script>
+  <script src="artifact-scroll.js"></script>
+  <script>
+    const scroll = new ArtifactScroll(document.getElementById('scroll-container'));
+    const input = document.getElementById('prompt-input');
+    const stateEl = document.getElementById('agent-state');
+    let ws;
+    let agentState = 'idle';
+
+    function connect() {
+      const proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+      ws = new WebSocket(`${proto}//${location.host}/ws`);
+
+      ws.onopen = () => {
+        ws.send(JSON.stringify({type: 'subscribe', cursor: 0}));
+      };
+
+      ws.onmessage = (e) => {
+        const msg = JSON.parse(e.data);
+        scroll.handleMessage(msg);
+
+        if (msg.type === 'state_changed') {
+          agentState = msg.to;
+          stateEl.textContent = agentState;
+          input.placeholder = agentState === 'idle'
+            ? 'Type a message...'
+            : 'Type a hint...';
+        }
+        if (msg.type === 'turn_ended') {
+          agentState = 'idle';
+          stateEl.textContent = 'idle';
+          input.placeholder = 'Type a message...';
+        }
+      };
+
+      ws.onclose = () => {
+        setTimeout(connect, 2000);
+      };
+    }
+
+    input.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter') return;
+      const text = input.value.trim();
+      if (!text) return;
+      input.value = '';
+
+      if (agentState === 'idle') {
+        ws.send(JSON.stringify({type: 'prompt', text}));
+      } else {
+        ws.send(JSON.stringify({type: 'hint', text}));
+      }
+    });
+
+    connect();
+  </script>
+</body>
+</html>

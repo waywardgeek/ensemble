@@ -30,7 +30,7 @@ func main() {
 	// From ch5 on, a submission is repo-root-shaped: the agent is a library
 	// under agent/ and the exercise is a separate module under chNN/. Those
 	// chapters build both themselves, so there is nothing to build here.
-	selfBuilding := map[int]bool{5: true, 6: true, 7: true}
+	selfBuilding := map[int]bool{5: true, 6: true, 7: true, 8: true}
 
 	var bin string
 	var cleanup func()
@@ -106,6 +106,15 @@ func main() {
 		report = grade.NewTitledReport(
 			"Chapter 7 — Streaming",
 			grade.Ch7Evaluate(res), res.HelpersErr)
+	case 8:
+		res, err := grade.Ch8Run(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "grader: %v\n", err)
+			os.Exit(2)
+		}
+		report = grade.NewTitledReport(
+			"Chapter 8 — Everything Is an Artifact",
+			grade.Ch8Evaluate(res), res.HelpersErr)
 	default:
 		fmt.Fprintf(os.Stderr, "grader: no grader for chapter %d yet\n", *chapter)
 		os.Exit(2)

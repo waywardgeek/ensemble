@@ -9,6 +9,7 @@ package llm
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
@@ -23,12 +24,14 @@ type Actor struct {
 	eng  *Engine
 	mb   *common.Mailbox
 	host common.Host
+	gate *common.PauseGate // nil means never pause
 
 	mu        sync.Mutex
 	observers []observerEntry
 	obsIDSeq  uint64
 	state     common.TurnState
 	partSeq   uint64
+	ctx       context.Context // set by Run, used by WaitIfPaused
 
 	// obs is a buffered channel of observations that Wait can select on.
 	obs chan common.Observation
@@ -53,6 +56,12 @@ func NewActor(eng *Engine, host common.Host) *Actor {
 // Send delivers into the mailbox. It NEVER blocks.
 func (a *Actor) Send(msg common.Inbound) {
 	a.mb.Post(msg)
+}
+
+// SetPauseGate attaches a pause gate that is checked before each tool
+// dispatch. Pass nil to disable pausing.
+func (a *Actor) SetPauseGate(g *common.PauseGate) {
+	a.gate = g
 }
 
 // Attach registers an observer. Detach is by the returned func.
@@ -145,6 +154,7 @@ func (a *Actor) Ask(text string) (string, error) {
 
 // Run starts the actor loop. It blocks until ctx is cancelled.
 func (a *Actor) Run(ctx context.Context) {
+	a.ctx = ctx
 	for {
 		select {
 		case <-ctx.Done():
@@ -228,18 +238,26 @@ func (a *Actor) runTurnLoop() {
 
 		a.setState(common.ToolsPending)
 
-		// Dispatch tools sequentially but non-blockingly: each tool runs on
-		// its own goroutine and posts ToolCompleted to the mailbox.
+		// Dispatch and wait for tools one at a time. Serial dispatch lets
+		// the pause gate hold execution between tools: if a client pauses
+		// after the first tool finishes, the second never starts.
 		for _, call := range calls {
+			if a.gate != nil && !a.gate.WaitIfPaused(a.ctx) {
+				a.handleInterrupt()
+				return
+			}
+			a.notify(common.ToolDispatched{
+				CallID: call.CallID,
+				Name:   call.Name,
+				Input:  json.RawMessage(call.Args),
+			})
 			if err := a.dispatchTool(call); err != nil {
 				a.finishTurn("", err)
 				return
 			}
-		}
-
-		// Wait for all tool completions, processing hints along the way.
-		if !a.waitForTools(len(calls)) {
-			return // interrupted
+			if !a.waitForTools(1) {
+				return // interrupted
+			}
 		}
 	}
 }
@@ -346,6 +364,11 @@ func (a *Actor) waitForTools(count int) bool {
 				switch m := msg.(type) {
 				case common.ToolCompleted:
 					completed++
+					a.notify(common.ToolFinished{
+						CallID:  m.CallID,
+						Result:  m.Result,
+						IsError: m.IsError,
+					})
 					a.notify(common.PartFinal{
 						Seq:    common.Seq(len(a.eng.Log.Events)),
 						PartID: atomic.AddUint64(&a.partSeq, 1),
@@ -555,6 +578,12 @@ func tagObservation(obs common.Observation, id common.AgentID) common.Observatio
 		v.Agent = id
 		return v
 	case common.TurnEnded:
+		v.Agent = id
+		return v
+	case common.ToolDispatched:
+		v.Agent = id
+		return v
+	case common.ToolFinished:
 		v.Agent = id
 		return v
 	}
