@@ -1,6 +1,6 @@
 # Chapter 1 — A Conversation, the Obvious Way (Outline, Draft 2)
 
-**Book:** Building Advanced AI Coding Agents (working title)
+**Book:** The Self-Wielding Agent
 **Status:** draft 2 — the review in `book/review.md` (R1–R11) is applied, and
 every claim about the grading rig below was re-verified against the running
 code on 2026-09-11. Where outline and rig disagreed, the rig won.

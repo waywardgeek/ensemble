@@ -395,7 +395,7 @@ talking to claude-sonnet-5 at https://api.anthropic.com — Ctrl-D to quit
 you> What are you running on?
 
 claude> I'm running on infrastructure built from raw HTTP calls, as described
-in Chapter 1 of "Building Advanced AI Coding Agents." Rather than relying on
+in Chapter 1 of "The Self-Wielding Agent." Rather than relying on
 a heavyweight SDK or framework, my underlying implementation makes direct HTTP
 requests to an LLM API to send prompts and receive responses. [...]
 

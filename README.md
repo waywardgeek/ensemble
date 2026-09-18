@@ -1,4 +1,8 @@
-# Building Advanced AI Coding Agents
+# The Self-Wielding Agent
+
+*Build an AI Coding Agent That Renews Itself*
+
+**The Singularity as it Happened**
 
 **Build the coding agent you've been renting.** One chapter at a time, from a
 chatbot that forgets your name to an agent that drives a debugger to a
