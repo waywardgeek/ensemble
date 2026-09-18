@@ -4,26 +4,43 @@
 
 **The Singularity as it Happened**
 
-**Build the coding agent you've been renting.** One chapter at a time, from a
-chatbot that forgets your name to an agent that drives a debugger to a
-breakpoint and reads a variable off the stack — and every chapter's code is
-here, runnable, graded, and free to try.
+This is a perpetual machine: a book that generates an AI coding agent,
+chapter by graded chapter, and the agent it generates helps write the next
+edition. Hand it to the next generation of LLM and it rebuilds the agent from
+scratch, better than before, scoring 100 on every chapter. Add a chapter when
+new capabilities appear, and the next agent has them. The loop never ends. The
+book never dies.
 
-This repo is the whole course: the book *and* the machinery. The text is in
-`book/` — preface, one outline per chapter (the check tables and design
-rulings live there), and the working notes we wrote to ourselves along the
-way. The machinery is the part you can *run*: a reference agent that grows
-chapter by chapter, an auto-grader for each chapter's exercise, a fake LLM
-endpoint so all of it costs nothing until you decide to plug in a real key,
-and one script that talks to real models when you do.
+When a compiler can compile itself, we call it self-hosting. When an AI coding
+agent becomes the primary tool for its own development, we call it
+**self-wielding**. This book builds that agent. It's called **Ensemble**.
+
+**It is also a course.** Each chapter teaches one subsystem of Ensemble — from
+a chatbot that forgets your name to an agent that drives a debugger, streams
+to a browser GUI, and gates tool calls on a human's reading pace. Every
+chapter has an executable grader with mutation tests, a parity check against
+all previous chapters, and a reference solution meant to be a globally
+competitive agent in its own right. The exercises are production code.
+
+**The specifications are downstream of working code.** Each chapter was built
+first — code written, tested, broken, revised, graded — then the prose was
+reverse-engineered from what worked, corrected by the coder's feedback. This
+is not spec-driven development. It is an evergreen loop: build → grade →
+teach → rebuild better. A wish for what might work fails at the first
+surprise. A receipt for what already works survives regeneration.
+
+This repo is the whole thing: the book in `book/`, a reference agent that
+grows chapter by chapter in `agent/`, an auto-grader for each exercise, and a
+fake LLM endpoint so all of it costs nothing until you plug in a real key.
 
 **The book will always be free here.** It will also be on Amazon for people
 who'd rather read on a Kindle or hold a paper copy — same text, your choice.
 
-Four chapters are built. The agent already does things most people assume
-need a framework, a vendor SDK, and a team. It needs none of those. It needs
-an event log, a tool loop, and the idea that a tool call is a *process*, not
-a function.
+Eight chapters are built. The agent already streams to a browser GUI, pauses
+when the human needs to think, reconnects without losing state, and drives
+a debugger through a real PTY. It needs no framework, no vendor SDK, and no
+team. It needs an event log, a tool loop, and the idea that a tool call is
+a *process*, not a function.
 
 > **We're turning this into a video course and looking for collaborators.**
 > If you found this through Bill's LinkedIn post: welcome. Skip to
@@ -36,9 +53,9 @@ a function.
 ## Who this is for
 
 This is not an ordinary software-engineering course, and the exercises are
-not ordinary exercises. The reference agent stands at 5,000 lines of Go by the
-end of chapter 4 — and chapter 1's code is thrown away on purpose, so that is
-5,000 lines across three chapters. Chapter 2 alone is over two thousand. A
+not ordinary exercises. The reference agent stands at 9,000 lines of Go by the
+end of chapter 8 — and chapter 1's code is thrown away on purpose, so that is
+9,000 lines across seven chapters. Chapter 2 alone is over two thousand. A
 student is expected to produce each chapter — production-worthy, graded, all
 checks passing — in a few days at most.
 
@@ -137,7 +154,7 @@ go run ./agent chat                          # the live agent, through chapter 4
 ```
 
 `scripts/live.sh` finds a key in this order: the vendor's environment variable,
-then `~/.coding-agents-course.env` (one `NAME=value` per line, `chmod 600`), then
+then `~/.ensemble.env` (one `NAME=value` per line, `chmod 600`), then
 the CodeRhapsody settings file `~/.cr/settings.json` if you happen to run that.
 It sets `ANTHROPIC_BASE_URL`, `ANTHROPIC_MODEL` and friends for you. To run a
 solution without the script, set the variables the chapter's exercise names and
@@ -213,10 +230,15 @@ make test                           # the grader's own sensitivity suite
 
 | ch | title | what you build | the idea that pays for it |
 |---|---|---|---|
-| 1 | The chatbot | A stdio program that calls the Messages API and keeps a conversation | The API is stateless. The conversation lives in *your* process — and the grader proves it by planting a string only the server ever typed. |
+| 0 | The Perpetual Machine | Nothing — this is the thesis | The book generates Ensemble. Ensemble helps write the next edition. The loop never ends. |
+| 1 | The chatbot | A stdio program that calls the Messages API and keeps a conversation | The API is stateless. The conversation lives in *your* process. |
 | 2 | One log, three vendors | An append-only event log, a reducer, and a renderer per vendor | History ≠ context. Hints, interrupts, redaction and replay all fall out of one data structure. |
 | 3 | Six tools: 92% | Tool declaration, the tool loop, and six local tools | A shell is *sufficient*; it's the wrong test. Providing a tool changes what the model *does*, not just what it can do. |
-| 4 | Every tool call is a job | Handles, PTYs, `wait_for_job`, `send_input`, `kill_job`, output capping | The wait belongs to the *call*, not the tool. Nothing to declare, no table to miss a row. |
+| 4 | Every tool call is a job | Handles, PTYs, `wait_for_job`, `send_input`, `kill_job`, output capping | The wait belongs to the *call*, not the tool. |
+| 5 | The Big Refactor | Star-topology package structure, parent interfaces, zero mutable globals | Constructors take interfaces to parents. Interfaces live in the hub. |
+| 6 | Two Seams and a Loop | Observer seam, mailbox, actor loop, multi-agent framework | One queue, one goroutine, told-never-asked observers. The agent is a framework. |
+| 7 | Streaming | SSE reader, vendor streaming, `Parse` re-signatured, capability table | Streaming changes delivery, not content. Non-streaming is a stream of length one. |
+| 8 | Everything Is an Artifact | WebSocket hub, browser GUI, TTS, pause gate | The agent does not know the GUI exists. One component renders everything. |
 
 Each chapter is strictly additive to the last. `solutions/chNN` is a frozen
 snapshot of `agent/` at the moment the chapter finished, tagged
@@ -227,29 +249,26 @@ chapter costs.
 
 ## What comes next
 
-The agent can act. What it can't do yet is be *listened to* by anything but a
-terminal — and that is where it gets interesting.
+The agent can act, stream, pause, and be watched in a browser. What it can't
+do yet is *direct other agents* and *protect itself*.
 
-- **The agent framework.** Actors with mailboxes, observers instead of
-  callbacks, and the seam that lets everything after this chapter plug in
-  without touching the loop. The exercise is a *non-coding* agent, to prove
-  the framework isn't secretly a coding-agent framework.
-- **A GUI** — built on the event stream, not on the agent. If the agent needs
-  the GUI to run, the architecture is wrong; the compiler will say so.
+- **A full workbench** — three-pane GUI with an agent tree, drag bars,
+  settings, and a sidebar that grows as chapters add features. Built on
+  chapter 8's `ArtifactScroll` component.
 - **Real-time steering.** Type while the agent is working and your words reach
   the model as a hint on the next tool result — it changes course without
   breaking stride. The log has carried hints since chapter 2; this is where a
-  human gets to send them. It's the way the authors have worked with their
-  own agent since 2025, and it's the reason this course exists.
-- **A gateway** — the same agent on Discord, on chat, wherever people already
-  are.
+  human gets to send them.
 - **Skills**: instructions as a first-class capability, loaded and unloaded
   at runtime. And the security chapter that follows directly from them —
   because a shell contains every tool, and you added one in chapter 3.
 - **Sub-agents**: an agent is a sub-agent the moment you stop watching it.
+- **A gateway** — the same agent on Discord, on chat, wherever people already
+  are.
 
 By the end you have built, from scratch, understanding every line, the thing
-you have been paying a subscription for.
+you have been paying a subscription for. And then, per Chapter 0: the agent
+you built helps you write the next chapter. The blueprint renews itself.
 
 ---
 
