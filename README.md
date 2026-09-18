@@ -36,11 +36,12 @@ fake LLM endpoint so all of it costs nothing until you plug in a real key.
 **The book will always be free here.** It will also be on Amazon for people
 who'd rather read on a Kindle or hold a paper copy — same text, your choice.
 
-Eight chapters are built. The agent already streams to a browser GUI, pauses
-when the human needs to think, reconnects without losing state, and drives
-a debugger through a real PTY. It needs no framework, no vendor SDK, and no
-team. It needs an event log, a tool loop, and the idea that a tool call is
-a *process*, not a function.
+Nine chapters are built. The agent streams to a three-pane browser GUI with
+drag bars, theming, TTS, and a settings panel that persists through the
+WebSocket — it pauses when the human needs to think, reconnects without
+losing state, and drives a debugger through a real PTY. It needs no
+framework, no vendor SDK, and no team. It needs an event log, a tool loop,
+and the idea that a tool call is a *process*, not a function.
 
 > **We're turning this into a video course and looking for collaborators.**
 > If you found this through Bill's LinkedIn post: welcome. Skip to
@@ -53,9 +54,9 @@ a *process*, not a function.
 ## Who this is for
 
 This is not an ordinary software-engineering course, and the exercises are
-not ordinary exercises. The reference agent stands at 9,000 lines of Go by the
-end of chapter 8 — and chapter 1's code is thrown away on purpose, so that is
-9,000 lines across seven chapters. Chapter 2 alone is over two thousand. A
+not ordinary exercises. The reference agent stands at nearly 10,000 lines of
+Go and JavaScript by the end of chapter 9 — and chapter 1's code is thrown
+away on purpose. Chapter 2 alone is over two thousand. A
 student is expected to produce each chapter — production-worthy, graded, all
 checks passing — in a few days at most.
 
@@ -239,6 +240,7 @@ make test                           # the grader's own sensitivity suite
 | 6 | Two Seams and a Loop | Observer seam, mailbox, actor loop, multi-agent framework | One queue, one goroutine, told-never-asked observers. The agent is a framework. |
 | 7 | Streaming | SSE reader, vendor streaming, `Parse` re-signatured, capability table | Streaming changes delivery, not content. Non-streaming is a stream of length one. |
 | 8 | Everything Is an Artifact | WebSocket hub, browser GUI, TTS, pause gate | The agent does not know the GUI exists. One component renders everything. |
+| 9 | Build Your Dream GUI | Three-pane workbench, settings, theming, agent tree | This is the ignition chapter: start using the agent to build itself. |
 
 Each chapter is strictly additive to the last. `solutions/chNN` is a frozen
 snapshot of `agent/` at the moment the chapter finished, tagged
@@ -249,20 +251,26 @@ chapter costs.
 
 ## What comes next
 
-The agent can act, stream, pause, and be watched in a browser. What it can't
-do yet is *direct other agents* and *protect itself*.
+The agent can act, stream, pause, drive a debugger, and run inside a
+three-pane workbench the student designed themselves. What it can't do yet is
+*see its own GUI*, *load new capabilities at runtime*, or *direct other
+agents*.
 
-- **A full workbench** — three-pane GUI with an agent tree, drag bars,
-  settings, and a sidebar that grows as chapters add features. Built on
-  chapter 8's `ArtifactScroll` component.
-- **Real-time steering.** Type while the agent is working and your words reach
-  the model as a hint on the next tool result — it changes course without
-  breaking stride. The log has carried hints since chapter 2; this is where a
-  human gets to send them.
-- **Skills**: instructions as a first-class capability, loaded and unloaded
-  at runtime. And the security chapter that follows directly from them —
-  because a shell contains every tool, and you added one in chapter 3.
+- **MCP and skills** (chapter 10). Skills are instructions as a first-class
+  capability: loaded and unloaded at runtime, with dependencies that are
+  other skills, forming a hierarchy where loading one skill reveals not just
+  tools but more skills. An MCP server built into the GUI lets the LLM see
+  what the human sees — the current GUI state attached as markdown to every
+  round trip, one copy, always current, never flooding context. Progressive
+  tool disclosure: the agent starts with a few tools and gains more as skills
+  load.
+- **The agent fixes its own GUI** (chapter 11). The LLM pretends to be the
+  human: it reads the GUI through the MCP server, pokes the same buttons,
+  watches the page adapt, and files the bugs it finds. Then it fixes them.
+  This is where self-wielding goes live.
 - **Sub-agents**: an agent is a sub-agent the moment you stop watching it.
+- **Security**: a shell contains every tool, and you added one in chapter 3.
+  The security chapter follows directly from skills.
 - **A gateway** — the same agent on Discord, on chat, wherever people already
   are.
 
@@ -317,7 +325,7 @@ internal/fakevendor/    chapters 2+: deterministic stand-in for all three vendor
                         APIs, routed by request path; the grader mounts it
                         in-process, cmd/fakevendor serves it
 internal/grade/         scripts, process harnesses, checks, report
-solutions/ch01..ch04/   frozen reference solutions, one per finished chapter
+solutions/ch01..ch09/   frozen reference solutions, one per finished chapter
 scripts/live.sh         run a chapter's solution against a real vendor API
 testdata/students/      deliberately defective submissions (grader self-test)
 ```
