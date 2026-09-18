@@ -60,6 +60,12 @@ body {
   overflow-wrap: break-word;
 }
 
+.artifact.user-message {
+  background: var(--surface-raised);
+  border-left: 3px solid var(--accent);
+  color: var(--text);
+}
+
 .artifact.thinking {
   background: var(--thinking-bg);
   opacity: 0.7;

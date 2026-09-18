@@ -11,6 +11,9 @@ class ArtifactScroll {
 
   handleMessage(msg) {
     switch (msg.type) {
+      case 'message':
+        this._handleUserMessage(msg);
+        break;
       case 'part_delta':
         this._handleDelta(msg);
         break;
@@ -30,6 +33,14 @@ class ArtifactScroll {
         this._scrollToBottom();
         break;
     }
+  }
+
+  _handleUserMessage(msg) {
+    const el = document.createElement('div');
+    el.className = 'artifact user-message';
+    el.textContent = msg.text || '';
+    this.container.appendChild(el);
+    this._scrollToBottom();
   }
 
   _handleDelta(msg) {

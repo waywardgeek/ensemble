@@ -141,9 +141,9 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 	close(c.send)
 }
 
-// subscribe reports the available event-log range and marks the client
-// live so it receives new observations going forward. The client then
-// calls fetch to pull the events it needs.
+// subscribe reports the available event-log range, sends the full
+// renderable window, and marks the client live. The client can
+// optionally call fetch later for gap repair or older history.
 func (h *Hub) subscribe(c *Client) {
 	h.mu.Lock()
 	logLen := h.logLen
@@ -154,7 +154,7 @@ func (h *Hub) subscribe(c *Client) {
 		logLen = len(events)
 	}
 
-	// Report the available range so the client can decide what to fetch.
+	// Report the available range so the client knows what exists.
 	var firstSeq, lastSeq common.Seq
 	if logLen > 0 {
 		firstSeq = events[0].Seq
@@ -172,7 +172,30 @@ func (h *Hub) subscribe(c *Client) {
 	}
 	h.guiLog.Log("<", rangeMsg)
 
+	// Send the renderable event-log window.
+	for i := 0; i < logLen; i++ {
+		e := events[i]
+		if msgs := renderEvent(e); len(msgs) > 0 {
+			for _, data := range msgs {
+				select {
+				case c.send <- data:
+				default:
+				}
+			}
+		}
+	}
+
+	// Send in-flight partials so the client catches up to the live stream.
 	h.mu.Lock()
+	for partID, accumulated := range h.inflight {
+		data := marshalPartialState(partID, accumulated)
+		if data != nil {
+			select {
+			case c.send <- data:
+			default:
+			}
+		}
+	}
 	c.lastSeq = lastSeq
 	c.live = true
 	h.mu.Unlock()
@@ -248,26 +271,6 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 		h.fetch(c, msg.From, msg.To)
 	case "prompt":
 		if msg.Text != "" {
-			// Echo the prompt back to all connected clients as a message
-			// event immediately, before forwarding to the actor. The event
-			// log will also record a MessageReceived event, but live clients
-			// need the prompt now — catchUp would deliver it too late.
-			echo, _ := json.Marshal(map[string]any{
-				"type":  "message",
-				"actor": "user",
-				"text":  msg.Text,
-			})
-			h.mu.Lock()
-			for cl := range h.clients {
-				if cl.live {
-					select {
-					case cl.send <- echo:
-					default:
-					}
-				}
-			}
-			h.mu.Unlock()
-			h.guiLog.Log("<", echo)
 			h.send(common.UserMessage{Text: msg.Text})
 		}
 	case "hint":

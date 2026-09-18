@@ -76,6 +76,9 @@
       if (!text) return;
       input.value = '';
 
+      // Render the user's message locally (don't wait for server echo).
+      scroll.handleMessage({type: 'message', actor: 'user', text});
+
       if (agentState === 'idle') {
         ws.send(JSON.stringify({type: 'prompt', text}));
       } else {
