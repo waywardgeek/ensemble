@@ -9,11 +9,25 @@ TTS, and a pause mechanism. The agent's existing source changes only
 in two places: adding two new Observation types, and checking a pause
 gate between tool calls.
 
+Three things to know up front:
+
+- **Serial tool dispatch.** The actor dispatches tools one at a time
+  (dispatch → wait → dispatch → wait), not in parallel. This is what
+  makes pause meaningful — you can gate between dispatches only if
+  there *is* a "between."
+- **PauseGate is context-aware.** `WaitIfPaused(ctx)` returns `bool`:
+  `true` means unpaused, `false` means the context was cancelled
+  (interrupt). Interrupt must break through pause.
+- **PauseGate lives in `internal/common`.** Created in `cmd/main.go`,
+  passed to both the engine and the WebSocket hub at construction.
+  Neither imports the other — that's the reason it's in common, not
+  in `ws/`.
+
 The agent built in this book is called **Ensemble** (prefix `en`).
-Settings live in `~/.en/settings.json` (global, holds API keys) and
-can be overridden by `data/en/settings.json` (local). Flags for
-everything except credentials. No environment variables for
-configuration.
+Configuration uses flags (e.g. `--port`, `--model`). No environment
+variables for configuration. *(Future scope: `~/.en/settings.json`
+for global defaults and `data/en/settings.json` for local overrides
+— not built or graded in this chapter.)*
 
 This brief specifies both Go (graded) and JS/HTML/CSS (not graded but
 required for the exercise to be usable). The grader tests the
@@ -107,7 +121,7 @@ The engine's tool dispatch loop calls `g.WaitIfPaused(ctx)` before
 starting each tool. The WebSocket handler calls `g.Pause()` and
 `g.Unpause()`. Neither imports the other.
 
-The PauseGate is created in main.go and passed to both the engine
+The PauseGate is created in cmd/main.go and passed to both the engine
 (at construction) and the WebSocket hub. Interrupt still works while
 paused — `WaitIfPaused` returns false when the context is cancelled.
 
@@ -195,9 +209,9 @@ The gui.log path is passed at hub construction, alongside the other
 log paths (api.log, debug.log, event.log). Open the file in the hub
 constructor.
 
-### 7. HTTP server (agent/main.go)
+### 7. HTTP server (agent/cmd/main.go)
 
-Add an HTTP server to main.go:
+Add an HTTP server to cmd/main.go:
 
 - `GET /` and static files → serve from `web/gui/` directory
 - `GET /ws` → upgrade to WebSocket (hub.ServeWS)
@@ -207,11 +221,10 @@ The HTTP server runs alongside the existing CLI stdin loop. Both work
 simultaneously: the user can type prompts in the terminal OR in the
 browser. The hub and CLI both call Agent.Ask/Hint/Interrupt.
 
-Settings hierarchy:
-- `~/.en/settings.json` — global settings (API keys, default model)
-- `data/en/settings.json` — local overrides (project-specific)
-- Flags override both (e.g. `--port`, `--model`)
-- No environment variables for configuration
+Configuration: flags only (e.g. `--port`, `--model`). No environment
+variables. *(Future scope: `~/.en/settings.json` for global defaults,
+`data/en/settings.json` for local overrides — not built or graded in
+this chapter.)*
 
 ### 8. Client-side: ArtifactScroll (web/gui/artifact-scroll.js)
 
@@ -282,7 +295,7 @@ Single-pane layout:
 
 Imports the agent library. Starts one agent with standard tools.
 Starts HTTP server serving `ch08/web/gui/` and handling `/ws`.
-Same behaviour as the reference `agent/main.go`. Students who build
+Same behaviour as the reference `agent/cmd/main.go`. Students who build
 the full agent can also build a standalone exercise.
 
 Copy `agent/web/gui/` to `ch08/web/gui/` (or serve from agent/web/gui
@@ -376,7 +389,7 @@ internal/grade/ch08_grader_test.go    — mutation tests
 agent/internal/common/observer.go     — add ToolDispatched, ToolFinished
 agent/internal/common/pause.go        — PauseGate
 agent/internal/llm/actor.go           — fire tool observations; check PauseGate
-agent/main.go                         — add HTTP server, --port flag, settings
+agent/cmd/main.go                     — add HTTP server, --port flag
 cmd/grade/main.go                     — add case 8
 Makefile                              — add grade8, grade-dir for ch8
 ```
@@ -399,6 +412,7 @@ Makefile                              — add grade8, grade-dir for ch8
    directly, no mailbox messages.
 3. **No WebSocket-level sequence number** — cursor is a message count.
 4. **Static files in `web/gui/`**.
-5. **Flags for configuration, not env vars.** API keys in
-   `~/.en/settings.json`, overridable by `data/en/settings.json`.
+5. **Flags for configuration, not env vars.** *(Future scope:
+   `~/.en/settings.json` for global defaults, `data/en/settings.json`
+   for local overrides — not built or graded in this chapter.)*
 6. **Agent name: Ensemble** (prefix `en`).
