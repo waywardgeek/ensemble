@@ -43,6 +43,16 @@ type oaiRequest struct {
 	// reappears here because the streaming surface has its own opinion about
 	// what is optional.
 	StreamOptions *oaiStreamOptions `json:"stream_options,omitempty"`
+
+	// ReasoningEffort controls how much reasoning the model does.
+	// Accepted values: "low", "medium", "high". Omitted when thinking
+	// is off or the model doesn't support it.
+	//
+	// Chat Completions does NOT return reasoning content, only a summary.
+	// We do not fabricate thinking deltas to make it look symmetric —
+	// represent the real capability honestly, the way Gemini's clear
+	// StreamToolArgs bit does.
+	ReasoningEffort string `json:"reasoning_effort,omitempty"`
 }
 
 type oaiStreamOptions struct {
@@ -191,12 +201,22 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 		}
 	}
 
+	// Resolve thinking for OpenAI: reasoning_effort is a string, not a
+	// budget. Chat Completions does not return reasoning content, so we
+	// only set the effort level — no budget needed.
+	effort, _ := common.ThinkingFor(cfg)
+	var reasoningEffort string
+	if effort != common.ThinkingOff {
+		reasoningEffort = effort.String()
+	}
+
 	body := oaiRequest{
-		Model:     cfg.Model,
-		MaxTokens: cfg.MaxTokens,
-		Messages:  msgs,
-		Tools:     oaiTools(cfg.Tools),
-		Stream:    common.StreamingFor(cfg) != 0,
+		Model:           cfg.Model,
+		MaxTokens:       cfg.MaxTokens,
+		Messages:        msgs,
+		Tools:           oaiTools(cfg.Tools),
+		Stream:          common.StreamingFor(cfg) != 0,
+		ReasoningEffort: reasoningEffort,
 	}
 	if body.Stream {
 		body.StreamOptions = &oaiStreamOptions{IncludeUsage: true}

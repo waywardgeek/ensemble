@@ -60,7 +60,18 @@ func gemTools(decls []common.ToolDecl) []gemTool {
 }
 
 type gemGenConfig struct {
-	MaxOutputTokens int `json:"maxOutputTokens,omitempty"`
+	MaxOutputTokens int              `json:"maxOutputTokens,omitempty"`
+	ThinkingConfig  *gemThinkConfig  `json:"thinkingConfig,omitempty"`
+}
+
+// gemThinkConfig is Gemini's thinking configuration.
+//
+// includeThoughts is REQUIRED or you get billed for thinking you never
+// receive. thinkingBudget is the token ceiling, same concept as Anthropic's
+// budget_tokens.
+type gemThinkConfig struct {
+	ThinkingBudget  int  `json:"thinkingBudget"`
+	IncludeThoughts bool `json:"includeThoughts"`
 }
 
 // gemContent: `contents`, not `messages`; `parts`, not blocks; and the
@@ -245,8 +256,19 @@ func (geminiSeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 	if cfg.SystemPrompt != "" {
 		body.SystemInstruction = &gemContent{Parts: []gemPart{{Text: cfg.SystemPrompt}}}
 	}
-	if cfg.MaxTokens > 0 {
-		body.GenerationConfig = &gemGenConfig{MaxOutputTokens: cfg.MaxTokens}
+
+	// Resolve thinking: same ThinkingFor resolver as all vendors.
+	_, thinkingBudget := common.ThinkingFor(cfg)
+	maxTokens := common.EnsureMaxTokens(cfg.MaxTokens, thinkingBudget)
+
+	if maxTokens > 0 || thinkingBudget > 0 {
+		body.GenerationConfig = &gemGenConfig{MaxOutputTokens: maxTokens}
+		if thinkingBudget > 0 {
+			body.GenerationConfig.ThinkingConfig = &gemThinkConfig{
+				ThinkingBudget:  thinkingBudget,
+				IncludeThoughts: true,
+			}
+		}
 	}
 
 	// Gemini signals streaming in the URL, not the body: a different method

@@ -414,7 +414,7 @@ func configFromEnv(reg *tools.Reg) (common.Config, error) {
 		Vendor:       vendor,
 		Surface:      common.DefaultSurface(vendor),
 		SystemPrompt: systemPrompt,
-		MaxTokens:    1024,
+		MaxTokens:    16384,
 		Tools:        reg.Declarations(),
 	}
 	switch vendor {

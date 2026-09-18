@@ -31,6 +31,14 @@ type Config struct {
 	// Off is not merely slower. It is the only way to talk to a vendor whose
 	// streaming is broken for the thing you need, and there is always one.
 	DisableStreaming bool
+
+	// Thinking controls the reasoning effort level.
+	//
+	// Zero (unset) resolves to ThinkingHigh in ThinkingFor, because that
+	// is the default Bill wants and a hand-built Config{} must get it.
+	// Same design as DisableStreaming: make the zero value mean the right
+	// thing.
+	Thinking ThinkingEffort
 }
 
 // ToolDecl is a tool as the MODEL sees it.

@@ -33,6 +33,49 @@ type anthRequest struct {
 	// non-streaming request is byte-identical to one written before
 	// streaming existed.
 	Stream bool `json:"stream,omitempty"`
+
+	// Thinking requests extended reasoning from the model. Omitted when
+	// thinking is off so that a non-thinking request is byte-identical to
+	// one written before thinking existed.
+	//
+	// Two wire formats exist:
+	//   Manual (older models):   { "type": "enabled", "budget_tokens": N }
+	//   Adaptive (claude-5 era): { "type": "adaptive" }
+	// Adaptive models control depth via the separate OutputConfig field.
+	Thinking *anthThinking `json:"thinking,omitempty"`
+
+	// OutputConfig controls thinking effort for adaptive-thinking models.
+	// Omitted for manual-thinking models, where budget_tokens controls depth.
+	OutputConfig *anthOutputConfig `json:"output_config,omitempty"`
+
+	// Temperature must NOT be set when thinking is enabled — Anthropic
+	// rejects temperature != 1 with thinking. We never set it anywhere,
+	// so omitempty keeps it absent.
+	Temperature *float64 `json:"temperature,omitempty"`
+}
+
+// anthThinking is Anthropic's thinking configuration block.
+//
+// Manual (pre-adaptive) models:
+//
+//	{ "type": "enabled", "budget_tokens": N }
+//	budget_tokens must be >= 1024, and max_tokens must strictly exceed it.
+//
+// Adaptive models (claude-opus-5, claude-sonnet-5):
+//
+//	{ "type": "adaptive" }
+//	Thinking depth is controlled by the separate output_config.effort field.
+type anthThinking struct {
+	Type         string `json:"type"`
+	BudgetTokens int    `json:"budget_tokens,omitempty"`
+}
+
+// anthOutputConfig carries Anthropic's output_config block for adaptive
+// thinking models.
+//
+//	{ "effort": "high" | "medium" | "low" }
+type anthOutputConfig struct {
+	Effort string `json:"effort"`
 }
 
 // anthTool is Anthropic's declaration shape. The schema key is `input_schema`
@@ -198,13 +241,36 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 		appendBlocks("user", blocks, false)
 	}
 
+	// Resolve thinking before building the request body: the budget
+	// determines whether the thinking block is included, and it also
+	// constrains max_tokens (which must strictly exceed budget_tokens).
+	effort, thinkingBudget := common.ThinkingFor(cfg)
+	maxTokens := common.EnsureMaxTokens(cfg.MaxTokens, thinkingBudget)
+
+	// Determine whether this model uses adaptive or manual thinking.
+	features, _ := common.LookupModel(cfg.Model)
+
 	body := anthRequest{
 		Model:     cfg.Model,
-		MaxTokens: cfg.MaxTokens,
+		MaxTokens: maxTokens,
 		System:    cfg.SystemPrompt, // top-level. Store it and you have picked a vendor.
 		Messages:  msgs,
 		Tools:     anthTools(cfg.Tools),
 		Stream:    common.StreamingFor(cfg) != 0,
+	}
+	if effort != common.ThinkingOff && thinkingBudget > 0 {
+		if features.AdaptiveThinking {
+			// Adaptive models: type:"adaptive" + output_config.effort.
+			// No budget_tokens — the model manages its own thinking depth.
+			body.Thinking = &anthThinking{Type: "adaptive"}
+			body.OutputConfig = &anthOutputConfig{Effort: effortString(effort)}
+		} else {
+			// Manual models: type:"enabled" + budget_tokens.
+			body.Thinking = &anthThinking{
+				Type:         "enabled",
+				BudgetTokens: thinkingBudget,
+			}
+		}
 	}
 	return newJSONRequest("POST", cfg.BaseURL+"/v1/messages", body, map[string]string{
 		"x-api-key":         cfg.APIKey,
@@ -316,6 +382,19 @@ func anthEmitResponse(parts common.PartList, from common.Provenance, usage commo
 		From:  from,
 		Usage: usage,
 	}})
+}
+
+// effortString converts a ThinkingEffort enum to the wire string Anthropic
+// expects in output_config.effort for adaptive-thinking models.
+func effortString(e common.ThinkingEffort) string {
+	switch e {
+	case common.ThinkingLow:
+		return "low"
+	case common.ThinkingMedium:
+		return "medium"
+	default:
+		return "high"
+	}
 }
 
 // anthThinkingText pulls the readable text out of an Anthropic reasoning

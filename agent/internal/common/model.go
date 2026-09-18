@@ -41,6 +41,24 @@ type ModelFeatures struct {
 	// Media does: it is a fact about a model that changes on the vendor's
 	// schedule, not a branch in our logic.
 	Stream Stream
+
+	// MaxThinkingTokens is the model's ceiling for reasoning budget.
+	// Zero means the model does not support thinking. ThinkingFor uses
+	// this to compute the actual budget per effort level.
+	MaxThinkingTokens int
+
+	// MaxOutputTokens is the model's ceiling for output tokens, including
+	// any thinking budget. This is DATA about the model, not a default
+	// for the request — it tells the framework what ceiling is safe to
+	// request. Zero means "use whatever MaxTokens the caller set".
+	MaxOutputTokens int
+
+	// AdaptiveThinking indicates the model uses Anthropic's adaptive
+	// thinking API (type:"adaptive" + output_config.effort) instead of
+	// manual extended thinking (type:"enabled" + budget_tokens). This
+	// is a wire-format distinction: claude-opus-5 and claude-sonnet-5
+	// require adaptive; older models require manual.
+	AdaptiveThinking bool
 }
 
 // models is keyed by MODEL, not by vendor.
@@ -55,14 +73,18 @@ type ModelFeatures struct {
 func models() map[string]ModelFeatures {
 	return map[string]ModelFeatures{
 		// Anthropic — no audio, no video. Streams all three kinds.
-		"claude-opus-5":   {Media: MediaImage | MediaDocument, Stream: StreamAll},
-		"claude-sonnet-5": {Media: MediaImage | MediaDocument, Stream: StreamAll},
+		// Both Opus 5 and Sonnet 5 support extended thinking with a budget
+		// of at least 32768 tokens. MaxOutputTokens 16384 is a reasonable
+		// reply ceiling when thinking is enabled (total = budget + reply).
+		"claude-opus-5":   {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		"claude-sonnet-5": {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
 
 		// OpenAI — images yes, audio and video NO (video APIs are generation).
 		// Reasoning arrives as a summary rather than as incremental deltas,
-		// so thinking is not streamed.
-		"gpt-6-astra": {Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs},
-		"gpt-5.6-sol": {Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs},
+		// so thinking is not streamed. These models support reasoning_effort
+		// but do not return reasoning content on Chat Completions.
+		"gpt-6-astra": {Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gpt-5.6-sol": {Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Gemini — images, audio, video, documents. Text and thinking stream;
 		// FUNCTION-CALL ARGUMENTS DO NOT. They arrive complete, in one frame.
@@ -70,19 +92,19 @@ func models() map[string]ModelFeatures {
 		// description of this model needs two of three bits set, and a bool
 		// would have forced us either to drop text streaming or to invent
 		// argument chunks that the vendor never sent.
-		"gemini-3.8-flash":       {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking},
-		"gemini-3.1-pro-preview": {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking},
+		"gemini-3.8-flash":       {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gemini-3.1-pro-preview": {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Fake model used by the grader — images only, to test loud refusal.
 		// Streams everything, because the streaming checks need all three
-		// kinds to appear.
-		"fake-model": {Media: MediaImage, Stream: StreamAll},
+		// kinds to appear. Thinking enabled for testing.
+		"fake-model": {Media: MediaImage, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Course/test models used by graders in various chapters.
-		"claude-fake-course-1":    {Media: MediaImage | MediaDocument, Stream: StreamAll},
-		"claude-sonnet-5-course":  {Media: MediaImage | MediaDocument, Stream: StreamAll},
-		"gpt-5-course":            {Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs},
-		"gemini-3.5-flash-course": {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking},
+		"claude-fake-course-1":    {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		"claude-sonnet-5-course":  {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		"gpt-5-course":            {Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gemini-3.5-flash-course": {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 	}
 }
 
