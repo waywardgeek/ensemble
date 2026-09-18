@@ -2,16 +2,18 @@
 
 Elon paid $60 billion for Cursor. I just made that a waste of money.
 
-Seven days ago my AI coding agent and I started writing a book. Not
-a book about AI coding agents — a book that IS an AI coding agent
-factory. Each chapter is an executable, graded, mutation-tested
-specification. Hand it to any LLM and out comes a working agent,
-scoring 100 on every chapter. Better model, better agent. Add a
-chapter, more capable agent. The factory improves itself.
+In seven days, my AI and I wrote a book that builds an AI coding
+agent. Not describes one — builds one. You give the book to an LLM,
+it follows the chapters, and out comes a working agent. Every chapter
+is graded by real tests. Every test is proven to catch real bugs.
 
-Tomorrow the agent we're building reaches self-wielding — the point
-where it helps write the next chapter. After that, the factory's
-best product is its own assembly line.
+Better LLM next year? Give it the same book. Better agent comes out.
+
+New capability in the field? Add a chapter. Next agent has it.
+
+Tomorrow we hit the point where the agent we're building is good
+enough to help write the next chapter. A factory whose best product
+is its own upgrade.
 
 Free. Open source. Apache 2.0.
 https://github.com/waywardgeek/ensemble
