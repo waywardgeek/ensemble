@@ -194,8 +194,57 @@ type stdinMsg struct {
 func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string) (vendorFailed bool) {
 	host := newCLIHost()
 	j := jobs.NewJobs(host)
+
+	// Set up skills.
+	skillDir := envOr("EN_SKILLS_DIR", "skills")
+	sr := common.NewSkillRegistry()
+	vars := common.NewVarRegistry()
+
+	// Built-in variable renderers.
+	vars.Register("TOOLS", common.BuiltinToolsRenderer(sr, reg))
+	vars.Register("SKILLS", common.BuiltinSkillsRenderer(sr))
+
+	// Application-specific variable renderers (from environment).
+	if cv := os.Getenv("EN_CUSTOM_VAR"); cv != "" {
+		vars.Register("CUSTOM_VAR", func() string { return cv })
+	}
+
+	// Discover and load skills.
+	if err := sr.DiscoverSkills(skillDir); err != nil {
+		fmt.Fprintf(os.Stderr, "skills: %v\n", err)
+	}
+
+	// Load the primary skill (if any) to set the system prompt.
+	primaryName := envOr("EN_PRIMARY_SKILL", "")
+	if primaryName != "" {
+		if err := sr.LoadInitial(primaryName, vars); err != nil {
+			fmt.Fprintf(os.Stderr, "primary skill %q: %v\n", primaryName, err)
+			os.Exit(1)
+		}
+		// Build the system prompt from initial skill bodies.
+		bodies := sr.InitialBodies()
+		if len(bodies) > 0 {
+			cfg.SystemPrompt = strings.Join(bodies, "\n\n---\n\n")
+		}
+	}
+
+	// Wire skill-based tool filtering and load_skill/unload_skill tools.
+	reg.SetSkillRegistry(sr)
+
+	// Rebuild tool declarations with skill filtering applied.
+	cfg.Tools = reg.Declarations()
+
 	eng := llm.NewEngine(cfg, logPath, j, reg, host)
 	actor := llm.NewActor(eng, host)
+
+	// Wire load_skill/unload_skill now that we have the event log.
+	reg.WireSkills(sr, vars, eng.Log)
+	// Re-derive declarations so load_skill and unload_skill appear.
+	eng.Cfg.Tools = reg.Declarations()
+	// When a skill is loaded dynamically, update the config's tool declarations.
+	reg.SetOnToolsChanged(func() {
+		eng.Cfg.Tools = reg.Declarations()
+	})
 
 	// Pause gate: shared between the actor and the WS hub.
 	gate := common.NewPauseGate()

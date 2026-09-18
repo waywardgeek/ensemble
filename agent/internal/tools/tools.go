@@ -687,11 +687,29 @@ func toolThink(c *common.Call, args json.RawMessage) (string, error) {
 // therefore its permission boundary. A capability you do not put in this
 // registry is one the model cannot reach.
 //
+// ToolSource tracks whether a tool was declared at agent creation or
+// added dynamically by a skill load.
+type ToolSource string
+
+const (
+	SourceInitial ToolSource = "initial" // Declared at agent creation.
+	SourceDynamic ToolSource = "dynamic" // Added by a load_skill event.
+)
+
+// ToolMeta is provenance metadata for a registered tool.
+type ToolMeta struct {
+	Source   ToolSource
+	EventSeq int // 0 for initial; event seq for dynamic additions.
+}
+
 // Each Reg is per-agent: sub-agents can load skills declaring different tools
 // without affecting other agents.
 type Reg struct {
-	tools   map[string]common.Tool
-	argSpec map[string]string
+	tools          map[string]common.Tool
+	argSpec        map[string]string
+	meta           map[string]ToolMeta // provenance per tool name
+	skills         *common.SkillRegistry // nil until skills are wired
+	onToolsChanged func() // called when tool declarations change (e.g., skill loaded)
 }
 
 // NewRegistry creates a registry pre-loaded with the builtin coding tools.
@@ -699,9 +717,11 @@ func NewRegistry() *Reg {
 	r := &Reg{
 		tools:   make(map[string]common.Tool),
 		argSpec: builtinArgSpec(),
+		meta:    make(map[string]ToolMeta),
 	}
 	for name, tool := range builtinTools() {
 		r.tools[name] = tool
+		r.meta[name] = ToolMeta{Source: SourceInitial}
 	}
 	return r
 }
@@ -718,6 +738,32 @@ func (r *Reg) Register(name, description string, schema json.RawMessage, handler
 		},
 		NoJob: true,
 	}
+	r.meta[common.NormalizeName(name)] = ToolMeta{Source: SourceInitial}
+}
+
+// RegisterDynamic adds a tool from a dynamically loaded skill.
+func (r *Reg) RegisterDynamic(name, description string, schema json.RawMessage, handler func(json.RawMessage) (string, error), eventSeq int) {
+	r.tools[common.NormalizeName(name)] = common.Tool{
+		Name:        name,
+		Description: description,
+		Schema:      schema,
+		Run: func(c *common.Call, args json.RawMessage) (string, error) {
+			return handler(args)
+		},
+		NoJob: true,
+	}
+	r.meta[common.NormalizeName(name)] = ToolMeta{Source: SourceDynamic, EventSeq: eventSeq}
+}
+
+// SetSkillRegistry wires up the skill registry for tool filtering.
+func (r *Reg) SetSkillRegistry(sr *common.SkillRegistry) {
+	r.skills = sr
+}
+
+// Meta returns provenance metadata for a tool.
+func (r *Reg) Meta(name string) (ToolMeta, bool) {
+	m, ok := r.meta[name]
+	return m, ok
 }
 
 func (r *Reg) Lookup(name string) (common.Tool, error) {
@@ -729,9 +775,59 @@ func (r *Reg) Lookup(name string) (common.Tool, error) {
 	return tool, nil
 }
 
+// SetOnToolsChanged registers a callback invoked when tool declarations
+// change (e.g., after a skill is loaded). The agent uses this to update
+// its config for the next vendor request.
+func (r *Reg) SetOnToolsChanged(fn func()) { r.onToolsChanged = fn }
+
 func (r *Reg) Declarations() []common.ToolDecl {
 	var decls []common.ToolDecl
 	for _, n := range r.toolNames() {
+		// If a skill registry is wired, only include tools enabled by loaded skills
+		if r.skills != nil && !r.skills.IsToolEnabled(n) {
+			continue
+		}
+		t := r.tools[n]
+		decls = append(decls, common.ToolDecl{
+			Name:        t.Name,
+			Description: t.Description,
+			Schema:      json.RawMessage(compactJSON(t.Schema)),
+		})
+	}
+	return decls
+}
+
+// InitialDeclarations returns only tools marked as initial (for cache-stable
+// system prompt). The Anthropic renderer uses this for the first request.
+func (r *Reg) InitialDeclarations() []common.ToolDecl {
+	var decls []common.ToolDecl
+	for _, n := range r.toolNames() {
+		m, ok := r.meta[n]
+		if !ok || m.Source != SourceInitial {
+			continue
+		}
+		if r.skills != nil && !r.skills.IsToolEnabled(n) {
+			continue
+		}
+		t := r.tools[n]
+		decls = append(decls, common.ToolDecl{
+			Name:        t.Name,
+			Description: t.Description,
+			Schema:      json.RawMessage(compactJSON(t.Schema)),
+		})
+	}
+	return decls
+}
+
+// DynamicDeclarations returns tools added since agent creation, for
+// incremental tool declaration in Anthropic-style renderers.
+func (r *Reg) DynamicDeclarations() []common.ToolDecl {
+	var decls []common.ToolDecl
+	for _, n := range r.toolNames() {
+		m, ok := r.meta[n]
+		if !ok || m.Source != SourceDynamic {
+			continue
+		}
 		t := r.tools[n]
 		decls = append(decls, common.ToolDecl{
 			Name:        t.Name,
@@ -749,4 +845,119 @@ func (r *Reg) toolNames() []string {
 	}
 	sort.Strings(names)
 	return names
+}
+
+// WireSkills adds the load_skill and unload_skill tools to the registry,
+// wired to the given skill and variable registries. Call this after
+// NewRegistry and before the first Ask.
+func (r *Reg) WireSkills(sr *common.SkillRegistry, vars *common.VarRegistry, eventLog *common.Log) {
+	r.skills = sr
+
+	loadSchema := json.RawMessage(`{
+		"type": "object",
+		"properties": {
+			"name": {
+				"type": "string",
+				"description": "Name of the skill to load"
+			}
+		},
+		"required": ["name"]
+	}`)
+	r.tools["load_skill"] = common.Tool{
+		Name:        "load_skill",
+		Description: "Load a skill to gain new capabilities. Use $SKILLS in the system prompt to see available skills.",
+		Schema:      loadSchema,
+		Run: func(c *common.Call, args json.RawMessage) (string, error) {
+			var input struct {
+				Name string `json:"name"`
+			}
+			if err := json.Unmarshal(args, &input); err != nil {
+				return "", fmt.Errorf("invalid arguments: %w", err)
+			}
+			seq := 0
+			if eventLog != nil {
+				seq = eventLog.Len()
+			}
+			body, err := sr.LoadDynamic(input.Name, seq, vars)
+			if err != nil {
+				return "", err
+			}
+
+			// Enable the skill's declared tools
+			entry := sr.Get(input.Name)
+			if entry != nil {
+				for _, toolName := range entry.Props.Tools {
+					if _, lookupErr := r.Lookup(toolName); lookupErr != nil {
+						continue // Tool not in registry — skip
+					}
+					r.meta[toolName] = ToolMeta{Source: SourceDynamic, EventSeq: seq}
+				}
+			}
+
+			// Record the event
+			if eventLog != nil {
+				eventLog.Append(common.Event{
+					Type: common.SkillLoaded,
+					Skill: &common.SkillData{
+						Name: input.Name,
+						Body: body,
+					},
+				})
+			}
+
+			// Notify that tool declarations changed.
+			if r.onToolsChanged != nil {
+				r.onToolsChanged()
+			}
+
+			// Build response showing what was loaded
+			result := fmt.Sprintf("Loaded skill %q.\n\n", input.Name)
+			if body != "" {
+				result += "## Instructions\n\n" + body + "\n\n"
+			}
+
+			// Show newly available skills
+			loadable := sr.LoadableSkills()
+			if len(loadable) > 0 {
+				result += "## Available skills to load\n\n"
+				for _, s := range loadable {
+					result += fmt.Sprintf("- **%s**: %s\n", s.Name, s.Description)
+				}
+			}
+
+			return result, nil
+		},
+		NoJob: true,
+	}
+	r.meta["load_skill"] = ToolMeta{Source: SourceInitial}
+
+	unloadSchema := json.RawMessage(`{
+		"type": "object",
+		"properties": {
+			"name": {
+				"type": "string",
+				"description": "Name of the skill to unload (takes effect at next context compaction)"
+			}
+		},
+		"required": ["name"]
+	}`)
+	r.tools["unload_skill"] = common.Tool{
+		Name:        "unload_skill",
+		Description: "Mark a skill for removal at the next context compaction. Its tools remain callable until then.",
+		Schema:      unloadSchema,
+		Run: func(c *common.Call, args json.RawMessage) (string, error) {
+			var input struct {
+				Name string `json:"name"`
+			}
+			if err := json.Unmarshal(args, &input); err != nil {
+				return "", fmt.Errorf("invalid arguments: %w", err)
+			}
+			if err := sr.MarkUnload(input.Name); err != nil {
+				return "", err
+			}
+			return fmt.Sprintf("Skill %q marked for removal at next context compaction.", input.Name), nil
+		},
+		NoJob: true,
+	}
+	r.meta["unload_skill"] = ToolMeta{Source: SourceInitial}
 }

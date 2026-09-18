@@ -33,6 +33,10 @@ const (
 	// Shutdown. A job that finishes on its own needs no event of its own: its
 	// ToolReturned (or the wait_for_job that observed it) carries the status.
 	JobKilled
+	// SkillLoaded records that a skill was loaded dynamically via load_skill.
+	// The event carries the skill name and its rendered body so the GUI can
+	// display it.
+	SkillLoaded
 )
 
 var eventTypeNames = map[EventType]string{
@@ -45,6 +49,7 @@ var eventTypeNames = map[EventType]string{
 	Redacted:        "redacted",
 	ErrorOccurred:   "error_occurred",
 	JobKilled:       "job_killed",
+	SkillLoaded:     "skill_loaded",
 }
 
 func (t EventType) String() string {
@@ -135,6 +140,7 @@ type Event struct {
 	Redact   *RedactData   `json:"redact,omitempty"`
 	Error    *ErrorData    `json:"error,omitempty"`
 	Job      *JobData      `json:"job,omitempty"`
+	Skill    *SkillData    `json:"skill,omitempty"`
 }
 
 type MessageData struct {
@@ -189,6 +195,12 @@ type JobData struct {
 	// Recorded, never inferred: the log states where the command ran rather
 	// than leaving a reader to reconstruct it from the arguments.
 	Cwd string `json:"cwd,omitempty"`
+}
+
+// SkillData records a skill load/unload event.
+type SkillData struct {
+	Name string `json:"name"`
+	Body string `json:"body,omitempty"` // Rendered instructions (on load only).
 }
 
 // RedactData names a SPAN and a LEVEL. The span says where, the level says

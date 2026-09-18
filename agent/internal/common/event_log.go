@@ -45,6 +45,11 @@ func (l *Log) Append(e Event) Event {
 	return e
 }
 
+// Len returns the number of events in the log.
+func (l *Log) Len() int {
+	return len(l.Events)
+}
+
 // Replay rebuilds the context from nothing but the log. This is the whole
 // claim of the chapter in four lines.
 func (l *Log) Replay() (*Context, error) {

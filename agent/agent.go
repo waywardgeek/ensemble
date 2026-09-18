@@ -27,6 +27,12 @@ type Vendor = common.Vendor
 type Surface = common.Surface
 type Usage = common.Usage
 
+// Skill types.
+type SkillProperties = common.SkillProperties
+type SkillRegistry = common.SkillRegistry
+type VarRenderer = common.VarRenderer
+type VarRegistry = common.VarRegistry
+
 // Chapter 6: observer and mailbox types.
 type Observer = common.Observer
 type Observation = common.Observation
@@ -128,9 +134,11 @@ type ToolHandler func(args json.RawMessage) (string, error)
 // Agent is the public handle to a running agent. It implements common.Host,
 // providing the logger that all internal code reaches through parent interfaces.
 type Agent struct {
-	eng    *llm.Engine
-	reg    *tools.Reg
-	Logger *Logger
+	eng      *llm.Engine
+	reg      *tools.Reg
+	skills   *common.SkillRegistry
+	vars     *common.VarRegistry
+	Logger   *Logger
 }
 
 // NewAgent creates a new agent with the given config and log path. It wires
@@ -139,9 +147,18 @@ type Agent struct {
 // engine receives the job manager and tool registry as interfaces, not
 // concrete types.
 func NewAgent(cfg Config, logPath string) *Agent {
-	a := &Agent{Logger: DefaultLogger()}
+	a := &Agent{
+		Logger: DefaultLogger(),
+		skills: common.NewSkillRegistry(),
+		vars:   common.NewVarRegistry(),
+	}
 	j := jobs.NewJobs(a)
 	a.reg = tools.NewRegistry()
+
+	// Register built-in variable renderers.
+	a.vars.Register("TOOLS", common.BuiltinToolsRenderer(a.skills, a.reg))
+	a.vars.Register("SKILLS", common.BuiltinSkillsRenderer(a.skills))
+
 	cfg.Tools = a.reg.Declarations()
 	a.eng = llm.NewEngine(cfg, logPath, j, a.reg, a)
 	return a
@@ -153,6 +170,48 @@ func (a *Agent) RegisterTool(name, description string, schema json.RawMessage, h
 	a.reg.Register(name, description, schema, handler)
 	// Update the engine's config so declarations include the new tool.
 	a.eng.Cfg.Tools = a.reg.Declarations()
+}
+
+// RegisterVar adds a custom variable renderer for $VAR substitution in skill
+// bodies. Call this before DiscoverSkills / LoadSkill so variables are available
+// at render time. Built-in renderers ($TOOLS, $SKILLS) are registered automatically.
+func (a *Agent) RegisterVar(name string, renderer VarRenderer) {
+	a.vars.Register(name, renderer)
+}
+
+// DiscoverSkills scans a directory for skill subdirectories (each containing
+// a SKILL.md). Skills are registered as Available but not loaded.
+func (a *Agent) DiscoverSkills(dir string) error {
+	return a.skills.DiscoverSkills(dir)
+}
+
+// LoadSkill loads a skill by name, marking it as initial (loaded at creation).
+// Resolves depends: chain. Call after DiscoverSkills and before the first Ask
+// to set up the primary skill and any initial loadable skills. The rendered
+// body is appended to cfg.SystemPrompt.
+func (a *Agent) LoadSkill(name string) error {
+	if err := a.skills.LoadInitial(name, a.vars); err != nil {
+		return err
+	}
+	// Rebuild system prompt from initial skill bodies.
+	bodies := a.skills.InitialBodies()
+	if len(bodies) > 0 {
+		a.eng.Cfg.SystemPrompt = strings.Join(bodies, "\n\n---\n\n")
+	}
+	// Rebuild tool declarations with skill filtering.
+	a.eng.Cfg.Tools = a.reg.Declarations()
+	return nil
+}
+
+// WireSkillTools registers the load_skill and unload_skill tools. Call this
+// after DiscoverSkills and initial LoadSkill calls, before the first Ask.
+func (a *Agent) WireSkillTools() {
+	a.reg.WireSkills(a.skills, a.vars, a.eng.Log)
+	a.eng.Cfg.Tools = a.reg.Declarations()
+	// When a skill is loaded dynamically, update the config's tool declarations.
+	a.reg.SetOnToolsChanged(func() {
+		a.eng.Cfg.Tools = a.reg.Declarations()
+	})
 }
 
 // Logf logs a message through the agent's logger. This makes Agent satisfy
@@ -210,6 +269,16 @@ func NewMailbox() *Mailbox {
 // NewPauseGate creates an unpaused PauseGate.
 func NewPauseGate() *PauseGate {
 	return common.NewPauseGate()
+}
+
+// NewSkillRegistry creates an empty skill registry.
+func NewSkillRegistry() *SkillRegistry {
+	return common.NewSkillRegistry()
+}
+
+// NewVarRegistry creates an empty variable registry.
+func NewVarRegistry() *VarRegistry {
+	return common.NewVarRegistry()
 }
 
 // NewSettingsStore creates a settings store. If path is non-empty and the
