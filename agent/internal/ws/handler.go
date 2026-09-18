@@ -94,16 +94,23 @@ func (h *Hub) Observe(obs common.Observation) {
 
 	h.guiLog.Log("<", data)
 
-	// For each live client, first catch up on any new event-log entries,
-	// then deliver the observation itself. Reading h.log.Events[:logLen]
-	// outside the mutex is safe: elements before logLen are immutable,
-	// and logLen was snapshotted under mu above.
+	// For each live client, catch up on new event-log entries. Event-log
+	// entries cover finals, tool calls, messages, and errors. Only
+	// observations NOT represented in the event log need direct fan-out:
+	// PartDelta (streaming), StateChanged, and TurnEnded.
+	directFanOut := false
+	switch obs.(type) {
+	case common.PartDelta, common.StateChanged, common.TurnEnded:
+		directFanOut = true
+	}
 	for _, c := range clients {
 		c.catchUp(h.log.Events[:logLen])
-		select {
-		case c.send <- data:
-		default:
-			// Slow client. Drop rather than block the actor.
+		if directFanOut {
+			select {
+			case c.send <- data:
+			default:
+				// Slow client. Drop rather than block the actor.
+			}
 		}
 	}
 }
