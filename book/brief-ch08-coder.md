@@ -7,7 +7,13 @@ tool arguments as they arrive, in three colours with no layout.
 Chapter 8 builds the GUI: a WebSocket transport, a browser component,
 TTS, and a pause mechanism. The agent's existing source changes only
 in two places: adding two new Observation types, and checking a pause
-flag between tool calls.
+gate between tool calls.
+
+The agent built in this book is called **Ensemble** (prefix `en`).
+Settings live in `~/.en/settings.json` (global, holds API keys) and
+can be overridden by `data/en/settings.json` (local). Flags for
+everything except credentials. No environment variables for
+configuration.
 
 This brief specifies both Go (graded) and JS/HTML/CSS (not graded but
 required for the exercise to be usable). The grader tests the
@@ -77,29 +83,33 @@ processed): fire `ToolFinished` after each tool completes.
 The actor already calls `a.notify(obs)` for other observations. Same
 pattern.
 
-### 3. Pause gate (internal/llm/actor.go)
+### 3. Pause gate (internal/common/ + internal/llm/actor.go)
 
-Add a pausable interface or a direct mechanism:
+Pause bypasses the mailbox. A shared `PauseGate` in `internal/common`:
 
 ```go
-// Pauser is checked by the actor between tool calls.
-type Pauser interface {
-    Paused() bool
-    WaitUnpaused(ctx context.Context) // blocks until unpaused or ctx done
+type PauseGate struct {
+    mu     sync.Mutex
+    cond   *sync.Cond
+    paused bool
 }
+
+func NewPauseGate() *PauseGate { ... }
+func (g *PauseGate) Pause()    { g.mu.Lock(); g.paused = true; g.mu.Unlock() }
+func (g *PauseGate) Unpause()  { g.mu.Lock(); g.paused = false; g.cond.Broadcast(); g.mu.Unlock() }
+
+// WaitIfPaused blocks until unpaused or ctx is done. Returns false
+// if the context was cancelled (interrupted).
+func (g *PauseGate) WaitIfPaused(ctx context.Context) bool { ... }
 ```
 
-Between tool calls in the main loop (before `dispatchTool`), if
-`paused`, the actor calls `WaitUnpaused`. Interrupt must still work
-while paused — if the actor is interrupted while waiting for unpause,
-it should stop.
+The engine's tool dispatch loop calls `g.WaitIfPaused(ctx)` before
+starting each tool. The WebSocket handler calls `g.Pause()` and
+`g.Unpause()`. Neither imports the other.
 
-The hub implements Pauser. It sets/clears a flag on receiving
-`pause`/`unpause` WebSocket messages from any client. The WaitUnpaused
-method blocks on a condition variable or channel.
-
-The Pauser is passed to the Actor at construction or set via a method
-after creation.
+The PauseGate is created in main.go and passed to both the engine
+(at construction) and the WebSocket hub. Interrupt still works while
+paused — `WaitIfPaused` returns false when the context is cancelled.
 
 ### 4. WebSocket hub (new package: internal/ws/)
 
@@ -108,11 +118,9 @@ after creation.
 ```go
 type Hub struct {
     mu       sync.Mutex
-    seq      uint64
-    messages []Message       // append-only buffer
+    messages [][]byte        // append-only buffer of serialized JSON
     clients  map[*Client]bool
-    paused   bool
-    pauseCh  chan struct{}    // signaled on unpause
+    gate     *common.PauseGate
     guiLog   *GuiLogger
 }
 
@@ -121,22 +129,22 @@ func (h *Hub) Observe(obs common.Observation) { ... }
 
 // ServeWS upgrades an HTTP request to WebSocket.
 func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) { ... }
-
-// Paused / WaitUnpaused implement the Pauser interface.
-func (h *Hub) Paused() bool { ... }
-func (h *Hub) WaitUnpaused(ctx context.Context) { ... }
 ```
 
 Each Client has a write goroutine and a buffered send channel.
 Messages dropped if the channel is full (slow client does not block
 the hub).
 
+No sequence numbers on the wire. The hub maintains an append-only
+buffer. On `subscribe{cursor: N}`, the hub sends `messages[N:]` and
+then switches to live delivery. The cursor is a count of messages
+the client has already received.
+
 **Message format (on the wire):**
 
 ```go
 type Message struct {
-    Type string          `json:"type"`
-    Seq  uint64          `json:"seq,omitempty"`
+    Type string `json:"type"`
     // Remaining fields vary by type. Use either:
     // (a) json.RawMessage Data field, or
     // (b) embed observation structs and rely on JSON tags
@@ -145,27 +153,26 @@ type Message struct {
 
 ### 5. WebSocket protocol
 
-**Server → Client** (every message has `type` and `seq`):
+**Server → Client** (no sequence number on the wire):
 
-| type | additional fields | source |
+| type | fields | source |
 |---|---|---|
 | `part_delta` | part_id, kind, chunk, agent | PartDelta observation |
-| `part_final` | part_id, seq (the Part's seq), part | PartFinal observation |
+| `part_final` | part_id, seq (the Part's seq from the seam), part | PartFinal observation |
 | `state_changed` | from, to, agent | StateChanged observation |
 | `turn_ended` | text, error, agent | TurnEnded observation |
 | `tool_dispatched` | call_id, name, input, agent | ToolDispatched observation |
 | `tool_finished` | call_id, result, is_error, agent | ToolFinished observation |
 
-Note: the `seq` in the WebSocket envelope is the WebSocket message
-sequence number (monotonically increasing per hub). The `seq` in
-`part_final` is the Part's sequence number from the seam. Different
-sequences, different purposes.
+The only `seq` on the wire is the Part's sequence number in
+`part_final`, which is the seam's existing field. No WebSocket-level
+sequence number.
 
 **Client → Server** (no seq):
 
 | type | fields | action |
 |---|---|---|
-| `subscribe` | cursor (uint64, default 0) | replay from seq > cursor, then live |
+| `subscribe` | cursor (uint64, default 0) | replay messages[cursor:], then live |
 | `prompt` | text (string) | call Agent.Ask or Actor.Ask |
 | `hint` | text (string) | call Agent.Hint or Actor.Hint |
 | `interrupt` | (none) | call Agent.Interrupt or Actor.Interrupt |
@@ -178,7 +185,7 @@ One log line per WebSocket message, both directions:
 
 ```
 2026-09-17T14:32:01.123Z > {"type":"subscribe","cursor":0}
-2026-09-17T14:32:01.456Z < {"type":"part_delta","seq":1,"part_id":3,"kind":"text","chunk":"Hello"}
+2026-09-17T14:32:01.456Z < {"type":"part_delta","part_id":3,"kind":"text","chunk":"Hello"}
 ```
 
 `>` = client-to-server, `<` = server-to-client. ISO 8601 timestamps.
@@ -192,15 +199,21 @@ constructor.
 
 Add an HTTP server to main.go:
 
-- `GET /` and static files → serve from `static/` directory
+- `GET /` and static files → serve from `web/gui/` directory
 - `GET /ws` → upgrade to WebSocket (hub.ServeWS)
-- Port from `CH08_PORT` env var, default `8088`
+- `--port` flag, default `8088`
 
 The HTTP server runs alongside the existing CLI stdin loop. Both work
 simultaneously: the user can type prompts in the terminal OR in the
 browser. The hub and CLI both call Agent.Ask/Hint/Interrupt.
 
-### 8. Client-side: ArtifactScroll (static/artifact-scroll.js)
+Settings hierarchy:
+- `~/.en/settings.json` — global settings (API keys, default model)
+- `data/en/settings.json` — local overrides (project-specific)
+- Flags override both (e.g. `--port`, `--model`)
+- No environment variables for configuration
+
+### 8. Client-side: ArtifactScroll (web/gui/artifact-scroll.js)
 
 The reusable scroll view component. Not graded, but the exercise
 needs a working browser interface.
@@ -231,7 +244,7 @@ On `state_changed`: update a status indicator.
 
 On `turn_ended`: scroll to bottom, update status to idle.
 
-### 9. Built-in renderers (static/renderers.js)
+### 9. Built-in renderers (web/gui/renderers.js)
 
 - **Markdown**: Use marked.js via CDN. On each chunk, append to
   accumulated text and re-render the whole block (simple, correct).
@@ -242,7 +255,7 @@ On `turn_ended`: scroll to bottom, update status to idle.
 - **Diff** (finalized only): For edit_file results, show old/new text
   with red/green line styling.
 
-### 10. TTS (static/tts.js)
+### 10. TTS (web/gui/tts.js)
 
 - Auto-speak thinking and chat text as chunks arrive (queue sentences).
 - Auto-speak tool dispatches as abbreviated summaries:
@@ -256,7 +269,7 @@ On `turn_ended`: scroll to bottom, update status to idle.
   send `{"type":"pause"}`. When both clear, send `{"type":"unpause"}`.
 - `onerror` must mirror `onend` and continue the queue.
 
-### 11. Page (static/index.html)
+### 11. Page (web/gui/index.html)
 
 Single-pane layout:
 - ArtifactScroll container (full width, scrolling)
@@ -268,11 +281,11 @@ Single-pane layout:
 ### 12. Exercise binary (ch08/main.go)
 
 Imports the agent library. Starts one agent with standard tools.
-Starts HTTP server serving `ch08/static/` and handling `/ws`.
+Starts HTTP server serving `ch08/web/gui/` and handling `/ws`.
 Same behaviour as the reference `agent/main.go`. Students who build
 the full agent can also build a standalone exercise.
 
-Copy `agent/static/` to `ch08/static/` (or serve from agent/static
+Copy `agent/web/gui/` to `ch08/web/gui/` (or serve from agent/web/gui
 with a path override).
 
 ## Grading
@@ -281,8 +294,8 @@ with a path override).
 
 | check | points | what it tests |
 |---|---|---|
-| `websocket-streams` | 25 | subscribe, prompt via WS; receive part_delta, part_final, state_changed, turn_ended, tool_dispatched, tool_finished; seq is monotonically increasing |
-| `event-replay` | 20 | disconnect after events; reconnect with cursor = last-seen seq; receive exactly the missed messages; replayed + continued matches full replay |
+| `websocket-streams` | 25 | subscribe, prompt via WS; receive part_delta, part_final, state_changed, turn_ended, tool_dispatched, tool_finished with correct fields |
+| `event-replay` | 20 | disconnect after events; reconnect with cursor = count of received messages; receive exactly the missed messages; replayed + continued = complete |
 | `gui-log` | 15 | gui.log exists; contains JSON lines; timestamps present; both `>` and `<` directions present |
 | `pause-holds-tools` | 20 | during a multi-tool turn, pause prevents the next tool_dispatched; unpause resumes; all tools eventually complete |
 | `ch7-parity` | 20 | every Chapter 7 check still passes |
@@ -292,15 +305,15 @@ with a path override).
 
 The ch8 harness is new territory: it tests WebSocket, not CLI.
 
-1. Build the submission directory (`go build -o agent .`)
-2. Start the binary as a subprocess (with `CH08_PORT` set to a
-   random available port)
+1. Build the submission directory (`go build -o ensemble .`)
+2. Start the binary as a subprocess (`./ensemble --port <random>`)
 3. Wait for the HTTP server to be ready (poll `GET /` until 200)
 4. Connect via WebSocket to `ws://localhost:<port>/ws`
 5. Send `subscribe{cursor:0}`, then `prompt{text:"..."}` using the
    fake vendor
-6. Read messages, validate structure and seq ordering
-7. For replay: disconnect, reconnect with cursor, compare
+6. Read messages, validate structure and type fields
+7. For replay: disconnect, count messages received (N), reconnect
+   with cursor=N, verify correct replay
 8. For pause: send pause between tools, verify no tool_dispatched
    within a timeout, send unpause, verify completion
 9. Check gui.log file
@@ -332,11 +345,11 @@ At least 5 mutations, each deleting exactly one behaviour:
 
 | mutant | what it deletes | expected failing checks |
 |---|---|---|
-| `no-ws-seq` | remove seq from server messages | {event-replay} |
 | `no-tool-obs` | remove ToolDispatched/ToolFinished observations | {websocket-streams} |
-| `no-replay` | subscribe always replays from seq 0 | {event-replay} |
+| `no-replay` | subscribe ignores cursor, sends zero messages | {event-replay} |
 | `no-gui-log` | disable gui.log writing | {gui-log} |
-| `no-pause-gate` | ignore pause, always execute tools | {pause-holds-tools} |
+| `no-pause-gate` | ignore PauseGate, always execute tools | {pause-holds-tools} |
+| `no-turn-ended` | suppress TurnEnded observation on WebSocket | {websocket-streams} |
 
 Each must fail its targeted check(s) and pass the rest.
 
@@ -345,55 +358,47 @@ Each must fail its targeted check(s) and pass the rest.
 ```
 agent/internal/ws/handler.go          — Hub, Client, WebSocket handler
 agent/internal/ws/gui_log.go          — gui.log writer
-agent/static/index.html               — single-page GUI
-agent/static/artifact-scroll.js       — reusable scroll component
-agent/static/renderers.js             — markdown, ANSI, JSON, diff
-agent/static/tts.js                   — TTS + Chrome fix + pause
-agent/static/style.css                — dark theme
+agent/web/gui/index.html              — single-page GUI
+agent/web/gui/artifact-scroll.js      — reusable scroll component
+agent/web/gui/renderers.js            — markdown, ANSI, JSON, diff
+agent/web/gui/tts.js                  — TTS + Chrome fix + pause
+agent/web/gui/style.css               — dark theme
 ch08/main.go                          — exercise binary
-ch08/static/                          — exercise static files
+ch08/web/gui/                         — exercise static files
 internal/grade/ch08_checks.go         — grader checks
 internal/grade/ch08_harness.go        — WebSocket test harness
-internal/grade/ch08_grader_test.go     — mutation tests
+internal/grade/ch08_grader_test.go    — mutation tests
 ```
 
 ## Files to modify
 
 ```
 agent/internal/common/observer.go     — add ToolDispatched, ToolFinished
-agent/internal/llm/actor.go           — fire tool observations; check pause
-agent/main.go                         — add HTTP server
+agent/internal/common/pause.go        — PauseGate
+agent/internal/llm/actor.go           — fire tool observations; check PauseGate
+agent/main.go                         — add HTTP server, --port flag, settings
 cmd/grade/main.go                     — add case 8
 Makefile                              — add grade8, grade-dir for ch8
 ```
-
 ## Constraints
 
 - All ch1-ch7 graders must pass 100/100 after changes.
 - `go vet ./...` clean.
 - No existing agent package imports `internal/ws/`.
 - Observer.Observe must not block.
-- The pause check must not deadlock when combined with interrupt.
+- PauseGate.WaitIfPaused must respect context cancellation (interrupt).
 - gui.log uses `>` for client-to-server, `<` for server-to-client.
 - WebSocket library: gorilla/websocket (recommended) or equivalent.
   Add to go.mod.
+- No environment variables for configuration. Use flags (see Rulings).
 
-## Open questions for Bill
+## Rulings (from Bill)
 
-1. **Observation type names**: `ToolDispatched`/`ToolFinished` avoid
-   collision with mailbox `ToolCompleted` and event `ToolCalled`/
-   `ToolReturned`. Better names welcome.
-
-2. **Pause mechanism**: Should the actor check a `Pauser` interface
-   (clean, testable) or should `Pause`/`Unpause` be mailbox Inbound
-   types processed by the drain loop (consistent with existing hint/
-   interrupt pattern)?
-
-3. **WebSocket seq vs Part seq**: Two different sequences share the
-   name `seq`. The WebSocket envelope seq is the message counter. The
-   PartFinal seq is the part counter from the seam. Rename one?
-
-4. **Static file location**: `agent/static/` or `agent/web/` or
-   `static/` at repo root?
-
-5. **HTTP port**: env var only (`CH08_PORT`) or also a CLI flag?
+1. **ToolDispatched/ToolFinished** — confirmed.
+2. **Pause bypasses the mailbox** — shared PauseGate, engine checks
+   directly, no mailbox messages.
+3. **No WebSocket-level sequence number** — cursor is a message count.
+4. **Static files in `web/gui/`**.
+5. **Flags for configuration, not env vars.** API keys in
+   `~/.en/settings.json`, overridable by `data/en/settings.json`.
+6. **Agent name: Ensemble** (prefix `en`).

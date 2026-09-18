@@ -50,16 +50,15 @@ content, finalized parts, tool execution, and completion.
 ### The wire
 
 A WebSocket handler implements Observer, serializes each observation
-to JSON, and fans it out to every connected client. Every server
-message carries a monotonic `seq`:
+to JSON, and fans it out to every connected client:
 
 ```json
-{"type":"part_delta","seq":1,"part_id":3,"kind":"text","chunk":"Hello"}
-{"type":"state_changed","seq":2,"from":"idle","to":"thinking"}
-{"type":"tool_dispatched","seq":3,"call_id":"tc_1","name":"read_file","input":{"path":"main.go"}}
-{"type":"tool_finished","seq":4,"call_id":"tc_1","result":"package main...","is_error":false}
-{"type":"part_final","seq":5,"part_id":3,"part":{"type":"text","text":"The file contains..."}}
-{"type":"turn_ended","seq":6,"text":"The file contains..."}
+{"type":"part_delta","part_id":3,"kind":"text","chunk":"Hello"}
+{"type":"state_changed","from":"idle","to":"thinking"}
+{"type":"tool_dispatched","call_id":"tc_1","name":"read_file","input":{"path":"main.go"}}
+{"type":"tool_finished","call_id":"tc_1","result":"package main...","is_error":false}
+{"type":"part_final","part_id":3,"part":{"type":"text","text":"The file contains..."}}
+{"type":"turn_ended","text":"The file contains..."}
 ```
 
 Client messages carry no seq:
@@ -75,10 +74,11 @@ Client messages carry no seq:
 
 ### Reconnection
 
-A client subscribes with a cursor (last-seen `seq`). The server
-replays every message since that seq, then switches to live delivery.
-A fresh connection uses cursor 0. A client disconnected for an hour
-catches up in one burst. The agent does not pause, restart, or notice.
+A client subscribes with a cursor: the number of messages already
+received. The server skips that many from its buffer and sends the
+rest, then switches to live delivery. A fresh connection uses
+cursor 0. A client disconnected for an hour catches up in one burst.
+The agent does not pause, restart, or notice.
 
 ### The Artifact
 
@@ -117,8 +117,9 @@ student building TTS in Chrome will hit this.
 paused = tts_speaking OR user_typing
 ```
 
-Checked at every tool call boundary. The server holds the next tool
-call until the client sends `unpause`. Rules:
+Checked at every tool call boundary. The engine checks a shared
+pause gate before starting each tool; the server sets and clears it
+on receiving `pause`/`unpause` from any client. Rules:
 
 1. TTS queues an utterance: send `pause`. Set the flag when the
    utterance is queued, not when audio begins.
@@ -153,11 +154,14 @@ replace or augment the streamed view. How the speaker icon looks.
 
 ### The exercise
 
-`ch08/main.go`: one agent, one HTTP server on a port from `CH08_PORT`
-(default 8088), serving static files from `ch08/static/`. The binary
-accepts prompts over WebSocket, streams observations to all connected
-clients, supports reconnection, gates tool calls on pause, and logs
-to gui.log.
+`ch08/main.go`: one agent, one HTTP server on `--port` (default 8088),
+serving static files from `ch08/web/gui/`. The binary accepts prompts
+over WebSocket, streams observations to all connected clients,
+supports reconnection, gates tool calls on pause, and logs to gui.log.
+
+Settings hierarchy: `~/.en/settings.json` (global, holds API keys),
+overridden by `data/en/settings.json` (local). Flags for everything
+except credentials.
 
 ```
 make grade8
@@ -165,8 +169,8 @@ make grade8
 
 | check | points | what it tests |
 |---|---|---|
-| `websocket-streams` | 25 | subscribe, prompt via WS; receive part_delta, part_final, state_changed, turn_ended, tool_dispatched, tool_finished; seq is monotonically increasing |
-| `event-replay` | 20 | disconnect after events arrive; reconnect with cursor = last-seen seq; receive exactly the missed messages; replayed + continued = complete |
+| `websocket-streams` | 25 | subscribe, prompt via WS; receive part_delta, part_final, state_changed, turn_ended, tool_dispatched, tool_finished with correct fields |
+| `event-replay` | 20 | disconnect after events arrive; reconnect with cursor = count of received messages; receive exactly the missed messages; replayed + continued = complete |
 | `gui-log` | 15 | gui.log contains JSON lines with timestamps; both server-to-client and client-to-server messages present |
 | `pause-holds-tools` | 20 | during a multi-tool turn, pause prevents the next tool from starting; unpause resumes; all tools eventually complete |
 | `ch7-parity` | 20 | every Chapter 7 check still passes |
@@ -191,8 +195,8 @@ observations to the Observer interface from Chapter 6. A Go WebSocket
 handler implements that interface, serializes each observation to JSON,
 and fans it out to every connected browser. Attach zero browsers and
 the agent runs identically. Attach three and they all see the same
-stream. Close a tab, reopen it an hour later, subscribe with the
-last-seen sequence number, and catch up in one burst.
+stream. Close a tab, reopen it an hour later, subscribe with a message
+count, and catch up in one burst.
 
 **Everything is an Artifact.** Thinking text, chat text, tool call
 arguments, tool results, user messages: they differ in how they look,
