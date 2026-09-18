@@ -32,8 +32,9 @@ we needed a new word. We went with "self-wielding." It is slightly
 less dignified than "self-hosting" but considerably more consequential.
 
 Every technical book ever written starts dying the day it ships. This
-one regenerates. It is, as far as anyone can tell, the first technical
-manual designed to outlive everything it describes.
+one regenerates. It is, technically speaking, a prion: a
+self-replicating pattern that converts language models into coding
+agents. No machinery required. Just the pattern and the medium.
 
 Free. Open source. Apache 2.0.
 
