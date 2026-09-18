@@ -63,10 +63,18 @@ type anthRequest struct {
 //
 // Adaptive models (claude-opus-5, claude-sonnet-5):
 //
-//	{ "type": "adaptive" }
+//	{ "type": "adaptive", "display": "summarized" }
 //	Thinking depth is controlled by the separate output_config.effort field.
+//
+// DISPLAY IS NOT OPTIONAL, and omitting it is the expensive kind of mistake.
+// On adaptive models `display` defaults to "omitted": the response still
+// contains a thinking block, the block is still SIGNED, the thinking tokens
+// are still GENERATED AND BILLED, and the text is empty. The symptom is
+// indistinguishable from thinking being switched off, except on the invoice.
+// "summarized" asks for the text to actually be sent back.
 type anthThinking struct {
 	Type         string `json:"type"`
+	Display      string `json:"display,omitempty"`
 	BudgetTokens int    `json:"budget_tokens,omitempty"`
 }
 
@@ -262,7 +270,9 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 		if features.AdaptiveThinking {
 			// Adaptive models: type:"adaptive" + output_config.effort.
 			// No budget_tokens — the model manages its own thinking depth.
-			body.Thinking = &anthThinking{Type: "adaptive"}
+			// display:"summarized" is required to receive the thinking TEXT;
+			// without it the block arrives empty and is still billed.
+			body.Thinking = &anthThinking{Type: "adaptive", Display: "summarized"}
 			body.OutputConfig = &anthOutputConfig{Effort: effortString(effort)}
 		} else {
 			// Manual models: type:"enabled" + budget_tokens.

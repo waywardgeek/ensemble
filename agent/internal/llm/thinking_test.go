@@ -46,6 +46,7 @@ func TestAnthropicThinkingRendered(t *testing.T) {
 		MaxTokens int `json:"max_tokens"`
 		Thinking  *struct {
 			Type         string `json:"type"`
+			Display      string `json:"display"`
 			BudgetTokens int    `json:"budget_tokens"`
 		} `json:"thinking"`
 		OutputConfig *struct {
@@ -71,6 +72,16 @@ func TestAnthropicThinkingRendered(t *testing.T) {
 	if wire.Thinking.BudgetTokens != 0 {
 		t.Errorf("thinking.budget_tokens = %d, want 0 (adaptive models don't use budget_tokens)",
 			wire.Thinking.BudgetTokens)
+	}
+
+	// 3b. display MUST be "summarized", and this is the assertion most worth
+	// having. Its absence has no visible symptom: the response still carries
+	// a signed thinking block, the thinking tokens are still generated and
+	// BILLED, and only the text is missing. A regression here looks exactly
+	// like a model that chose not to think, and is discovered on the invoice.
+	if wire.Thinking.Display != "summarized" {
+		t.Errorf("thinking.display = %q, want %q — without it the thinking block comes back EMPTY and is still billed",
+			wire.Thinking.Display, "summarized")
 	}
 
 	// 4. output_config.effort must be present for adaptive models.
