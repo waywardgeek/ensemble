@@ -1,5 +1,22 @@
 # Chapter 9: Build Your Dream GUI
 
+Get ready for self-wielding. This is the ignition chapter, where you
+can finally start using your AI coding agent to write itself. At the
+end of this chapter your agent will not compete with Claude Code, and
+that is fine. What matters is making the switch as soon as you can be
+productive with the new system, because living inside your own agent
+is how you discover the bugs and the missing features. There is
+nothing like building software with a tool you built to help you
+figure out what you want that tool to be. This chapter gives you the
+freedom to create whatever GUI makes sense to you.
+
+In my case, text-to-speech is critical, and you will find it built
+into the reference solution. We are wandering into territory where
+the grader cannot help. This is an AI coding agent for you, not for
+the LLM, so you will have to drive. In the next chapter we will try
+to give control back to the LLM so it can test the entire system
+end-to-end, but for now, you are the one in control.
+
 Chapter 8 gave you one scroll pane on a dark page. It works. You can
 watch the agent think, see tool calls arrive, pause to read. As a
 safety floor it is complete: a human can watch, and that is the
