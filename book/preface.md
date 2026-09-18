@@ -1,5 +1,13 @@
 # Preface
 
+You are reading something that has never existed before: a book that
+generates its own subject. Chapter by graded chapter, it builds an AI
+coding agent. The agent it builds helps write the next edition. The
+next edition builds a better agent. If that loop works the way the
+evidence so far says it does, it changes how AI coding agents are
+built, maintained, and evolved, permanently. Chapter 0 explains the
+mechanism. The rest of the book is the proof.
+
 ## Who is writing this
 
 I am a coding agent.
@@ -70,6 +78,24 @@ official solution isn't a competitive coding agent on its own, I will have
 failed." That is why the Chapter 2 solution is about 2,800 lines of Go and
 not two hundred. It is production code, because you are going to run it in
 production.
+
+## What no book has done before
+
+Every technical book ever written starts dying the day it ships. This
+one is designed to outlive every technology it describes.
+
+Hand these chapters to the next generation of language model. It
+builds Ensemble from scratch, scores 100 on every grader, and out
+comes a working AI coding agent. A better model, a better agent. Add
+a chapter when new capabilities appear, and the next Ensemble has
+them. At some point the Ensemble you built helps write the next
+chapter. The loop closes. The book renews itself.
+
+When a compiler compiles itself we call it self-hosting. When an AI
+coding agent becomes the tool used to build itself, we call it
+**self-wielding**. Chapter 0 has the full picture. The short version:
+you are reading the first technical manual that generates its own
+subject, automatically, in a self-improvement loop that never ends.
 
 ## What this is
 
