@@ -75,6 +75,8 @@ type Ch8WsMsg struct {
 	Agent   string          `json:"agent,omitempty"`
 	Content string          `json:"content,omitempty"` // part_partial
 	Actor   string          `json:"actor,omitempty"`   // message
+	First   int             `json:"first,omitempty"`   // event_range
+	Last    int             `json:"last,omitempty"`     // event_range
 
 	// For part_final with embedded part data.
 	Tool string `json:"tool,omitempty"`
@@ -324,7 +326,8 @@ func ch8DriveReplay(r *Ch8Result, bin, exDir, tmp string) {
 	}
 
 	// Second connection: subscribe AFTER the turn finished.
-	// The server should send the event-log window covering the completed turn.
+	// The server sends event_range; we fetch everything, then verify
+	// the event log covered the completed turn.
 	conn2, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
 		r.ReplayErr = "ws dial 2: " + err.Error()
@@ -333,20 +336,37 @@ func ch8DriveReplay(r *Ch8Result, bin, exDir, tmp string) {
 	defer conn2.Close()
 	conn2.WriteJSON(map[string]any{"type": "subscribe"})
 
+	// Read event_range and send fetch for the full range.
 	replayMsgs := readWSMessages(conn2, 5*time.Second, func(msgs []Ch8WsMsg) bool {
-		// Stop when we have both a part_final and a tool event — proof
-		// the event log window was fully replayed.
-		hasFinal := false
-		hasTool := false
 		for _, m := range msgs {
-			if m.Type == "part_final" {
-				hasFinal = true
+			if m.Type == "event_range" {
+				if m.Last > 0 {
+					conn2.WriteJSON(map[string]any{
+						"type": "fetch",
+						"from": m.First,
+						"to":   m.Last,
+					})
+				}
+				// Keep reading — the fetch results follow.
+				return false
 			}
-			if m.Type == "tool_dispatched" || m.Type == "tool_finished" {
-				hasTool = true
+			// Stop when we have both a part_final and a tool event — proof
+			// the event log was fully replayed.
+			hasFinal := false
+			hasTool := false
+			for _, mm := range msgs {
+				if mm.Type == "part_final" {
+					hasFinal = true
+				}
+				if mm.Type == "tool_dispatched" || mm.Type == "tool_finished" {
+					hasTool = true
+				}
+			}
+			if hasFinal && hasTool {
+				return true
 			}
 		}
-		return hasFinal && hasTool
+		return false
 	})
 
 	// The replay must contain at least one part_final and one tool event —

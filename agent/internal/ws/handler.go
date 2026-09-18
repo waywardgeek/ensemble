@@ -141,13 +141,10 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 	close(c.send)
 }
 
-// subscribe sends the event-log window and in-flight partials, then marks
-// the client live so it receives new observations going forward.
+// subscribe reports the available event-log range and marks the client
+// live so it receives new observations going forward. The client then
+// calls fetch to pull the events it needs.
 func (h *Hub) subscribe(c *Client) {
-	// Read the known event log length under mu. This was set by Observe
-	// which runs on the engine goroutine, so it reflects all events that
-	// preceded the most recent observation. Elements before logLen are
-	// immutable — the event log needs no lock for reading them.
 	h.mu.Lock()
 	logLen := h.logLen
 	h.mu.Unlock()
@@ -156,30 +153,52 @@ func (h *Hub) subscribe(c *Client) {
 	if logLen > len(events) {
 		logLen = len(events)
 	}
-	events = events[:logLen]
-	n := logLen
 
-	// Determine the window start: last 100 renderable events, or all
-	// events in the last hour, whichever is more.
-	//
-	// TODO: make both thresholds configurable via settings.
-	const maxRenderable = 100
-	windowStart := n // default: nothing
-	renderable := 0
-	for i := n - 1; i >= 0; i-- {
-		if isRenderable(events[i]) {
-			renderable++
-			windowStart = i
-			if renderable >= maxRenderable {
-				break
-			}
-		}
+	// Report the available range so the client can decide what to fetch.
+	var firstSeq, lastSeq common.Seq
+	if logLen > 0 {
+		firstSeq = events[0].Seq
+		lastSeq = events[logLen-1].Seq
 	}
 
-	// Send the event-log window as wire messages.
-	var lastSeq common.Seq
-	for i := windowStart; i < n; i++ {
+	rangeMsg, _ := json.Marshal(map[string]any{
+		"type":  "event_range",
+		"first": firstSeq,
+		"last":  lastSeq,
+	})
+	select {
+	case c.send <- rangeMsg:
+	default:
+	}
+	h.guiLog.Log("<", rangeMsg)
+
+	h.mu.Lock()
+	c.lastSeq = lastSeq
+	c.live = true
+	h.mu.Unlock()
+}
+
+// fetch sends event-log entries in the requested seq range, followed by
+// any in-flight partials. The client calls this after receiving event_range.
+func (h *Hub) fetch(c *Client, fromSeq, toSeq common.Seq) {
+	h.mu.Lock()
+	logLen := h.logLen
+	h.mu.Unlock()
+
+	events := h.log.Events
+	if logLen > len(events) {
+		logLen = len(events)
+	}
+
+	// Send renderable events in [fromSeq, toSeq].
+	for i := 0; i < logLen; i++ {
 		e := events[i]
+		if e.Seq < fromSeq {
+			continue
+		}
+		if e.Seq > toSeq {
+			break
+		}
 		if msgs := renderEvent(e); len(msgs) > 0 {
 			for _, data := range msgs {
 				select {
@@ -188,7 +207,6 @@ func (h *Hub) subscribe(c *Client) {
 				}
 			}
 		}
-		lastSeq = e.Seq
 	}
 
 	// Send in-flight partials so the client catches up to the live stream.
@@ -202,8 +220,10 @@ func (h *Hub) subscribe(c *Client) {
 			}
 		}
 	}
-	c.lastSeq = lastSeq
-	c.live = true
+	// Advance lastSeq so the client doesn't re-fetch on the next subscribe.
+	if toSeq > c.lastSeq {
+		c.lastSeq = toSeq
+	}
 	h.mu.Unlock()
 }
 
@@ -212,8 +232,10 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 	h.guiLog.Log(">", raw)
 
 	var msg struct {
-		Type string `json:"type"`
-		Text string `json:"text"`
+		Type string     `json:"type"`
+		Text string     `json:"text"`
+		From common.Seq `json:"from"`
+		To   common.Seq `json:"to"`
 	}
 	if json.Unmarshal(raw, &msg) != nil {
 		return
@@ -222,6 +244,8 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 	switch msg.Type {
 	case "subscribe":
 		h.subscribe(c)
+	case "fetch":
+		h.fetch(c, msg.From, msg.To)
 	case "prompt":
 		if msg.Text != "" {
 			// Echo the prompt back to all connected clients as a message
@@ -274,45 +298,6 @@ type Client struct {
 	send    chan []byte
 	live    bool       // receives live messages only after subscribe
 	lastSeq common.Seq // last event-log Seq delivered to this client
-}
-
-// catchUp sends any event-log entries newer than the client's lastSeq.
-// Called from Observe after the hub has snapshotted the log length under mu.
-func (c *Client) catchUp(events []common.Event) {
-	n := len(events)
-	for i := n - 1; i >= 0; i-- {
-		if events[i].Seq <= c.lastSeq {
-			// Send everything after this point.
-			for j := i + 1; j < n; j++ {
-				e := events[j]
-				if msgs := renderEvent(e); len(msgs) > 0 {
-					for _, data := range msgs {
-						select {
-						case c.send <- data:
-						default:
-						}
-					}
-				}
-				c.lastSeq = e.Seq
-			}
-			return
-		}
-	}
-	// If we get here, all events are newer than lastSeq (or log is empty).
-	// Send everything.
-	for _, e := range events[:n] {
-		if e.Seq > c.lastSeq {
-			if msgs := renderEvent(e); len(msgs) > 0 {
-				for _, data := range msgs {
-					select {
-					case c.send <- data:
-					default:
-					}
-				}
-			}
-			c.lastSeq = e.Seq
-		}
-	}
 }
 
 // readPump reads messages from the WebSocket and dispatches them.

@@ -35,11 +35,20 @@
       ws = new WebSocket(`${proto}//${location.host}/ws`);
 
       ws.onopen = () => {
-        ws.send(JSON.stringify({type: 'subscribe', cursor: 0}));
+        ws.send(JSON.stringify({type: 'subscribe'}));
       };
 
       ws.onmessage = (e) => {
         const msg = JSON.parse(e.data);
+
+        // On event_range, fetch everything available.
+        if (msg.type === 'event_range') {
+          if (msg.last > 0) {
+            ws.send(JSON.stringify({type: 'fetch', from: msg.first, to: msg.last}));
+          }
+          return;
+        }
+
         scroll.handleMessage(msg);
 
         if (msg.type === 'state_changed') {
