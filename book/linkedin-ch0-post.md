@@ -5,9 +5,8 @@ It is less well known that the knowledge required to build the thing
 that cost sixty billion dollars can be written down in a book and
 given away for free, but this is the kind of universe we live in.
 
-My AI and I wrote that book in seven days. It builds an AI coding
-agent the way a recipe builds a cake, except the cake is graded by
-executable tests that prove it works, and the tests themselves are
+My AI and I wrote that book in seven days. Each chapter is an
+executable specification — graded by real tests, the tests themselves
 proven by mutation analysis to catch every regression they claim to.
 
 You give the book to a language model. It reads Chapter 1, builds
