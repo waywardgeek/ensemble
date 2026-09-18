@@ -9,6 +9,7 @@ package agent
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"strings"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/waywardgeek/coding-agents-course/agent/internal/jobs"
 	"github.com/waywardgeek/coding-agents-course/agent/internal/llm"
 	"github.com/waywardgeek/coding-agents-course/agent/internal/tools"
+	"github.com/waywardgeek/coding-agents-course/agent/internal/ws"
 )
 
 // Re-export the types external programs need.
@@ -43,6 +45,11 @@ type Media = common.Media
 type ModelFeatures = common.ModelFeatures
 type TurnState = common.TurnState
 type TextPart = common.TextPart
+
+// Chapter 8: GUI observations and pause gate.
+type ToolDispatched = common.ToolDispatched
+type ToolFinished = common.ToolFinished
+type PauseGate = common.PauseGate
 
 // ToolCallPart and OpaquePart are re-exported because PartFinal now reports
 // EVERY part, not just text. A consumer switching on a final needs the types
@@ -185,6 +192,11 @@ func NewMailbox() *Mailbox {
 	return common.NewMailbox()
 }
 
+// NewPauseGate creates an unpaused PauseGate.
+func NewPauseGate() *PauseGate {
+	return common.NewPauseGate()
+}
+
 // LookupModel returns model features.
 func LookupModel(model string) (ModelFeatures, bool) {
 	return common.LookupModel(model)
@@ -245,4 +257,29 @@ func pick(primary, secondary, def string) string {
 		return v
 	}
 	return envOr(secondary, def)
+}
+
+// ----------------------------------------------------------------
+// Chapter 8: WebSocket hub
+// ----------------------------------------------------------------
+
+// WSHub is the WebSocket fan-out hub. It implements Observer.
+type WSHub = ws.Hub
+
+// NewWSHub creates a hub that fans observations out to WebSocket clients.
+// send is called for every prompt/hint/interrupt from a browser; gate
+// controls tool-dispatch pausing; guiLogPath is the path to gui.log.
+func NewWSHub(gate *PauseGate, send func(Inbound), guiLogPath string) *WSHub {
+	return ws.NewHub(gate, send, guiLogPath)
+}
+
+// ServeHTTP starts an HTTP server that serves static files from staticDir
+// and upgrades /ws to a WebSocket connection handled by hub.
+func ServeHTTP(addr string, staticDir string, hub *WSHub) *http.Server {
+	mux := http.NewServeMux()
+	mux.Handle("/", http.FileServer(http.Dir(staticDir)))
+	mux.HandleFunc("/ws", hub.ServeWS)
+	srv := &http.Server{Addr: addr, Handler: mux}
+	go srv.ListenAndServe()
+	return srv
 }
