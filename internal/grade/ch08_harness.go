@@ -45,9 +45,9 @@ type Ch8Result struct {
 	GuiLogPath    string
 
 	// Pause test.
-	PauseOK        bool
-	PauseMessages  []Ch8WsMsg
-	PauseErr       string
+	PauseOK       bool
+	PauseMessages []Ch8WsMsg
+	PauseErr      string
 
 	// Ch7 parity.
 	Ch7Result *Ch7Result
@@ -73,6 +73,8 @@ type Ch8WsMsg struct {
 	Result  string          `json:"result,omitempty"`
 	IsError bool            `json:"is_error,omitempty"`
 	Agent   string          `json:"agent,omitempty"`
+	Content string          `json:"content,omitempty"` // part_partial
+	Actor   string          `json:"actor,omitempty"`   // message
 
 	// For part_final with embedded part data.
 	Tool string `json:"tool,omitempty"`
@@ -216,13 +218,11 @@ func ch8DriveWS(r *Ch8Result, bin, exDir, tmp string) {
 		cmd.Wait()
 	}()
 
-	// Wait for HTTP server to be ready.
 	if !waitForHTTP("http://localhost:"+port+"/", 10*time.Second) {
 		r.HelpersErr = "HTTP server did not start within 10s"
 		return
 	}
 
-	// Connect via WebSocket.
 	wsURL := "ws://localhost:" + port + "/ws"
 	conn, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
@@ -231,13 +231,10 @@ func ch8DriveWS(r *Ch8Result, bin, exDir, tmp string) {
 	}
 	defer conn.Close()
 
-	// Subscribe.
-	conn.WriteJSON(map[string]any{"type": "subscribe", "cursor": 0})
-
-	// Send prompt.
+	// Subscribe — no cursor. Server sends event-log window + in-flight state.
+	conn.WriteJSON(map[string]any{"type": "subscribe"})
 	conn.WriteJSON(map[string]any{"type": "prompt", "text": "show me the configuration"})
 
-	// Read messages until turn_ended or timeout.
 	r.Messages = readWSMessages(conn, 30*time.Second, func(msgs []Ch8WsMsg) bool {
 		for _, m := range msgs {
 			if m.Type == "turn_ended" {
@@ -247,20 +244,13 @@ func ch8DriveWS(r *Ch8Result, bin, exDir, tmp string) {
 		return false
 	})
 
-	// Read gui.log.
 	if data, err := os.ReadFile(guiLogPath); err == nil {
 		r.GuiLogContent = string(data)
 	}
-
-	// Close this connection.
-	conn.Close()
-	stdin.Close()
-	cmd.Process.Kill()
-	cmd.Wait()
 }
 
 // ----------------------------------------------------------------
-// Replay test
+// Replay test — event-log based reconnection
 // ----------------------------------------------------------------
 
 func ch8DriveReplay(r *Ch8Result, bin, exDir, tmp string) {
@@ -309,13 +299,13 @@ func ch8DriveReplay(r *Ch8Result, bin, exDir, tmp string) {
 
 	wsURL := "ws://localhost:" + port + "/ws"
 
-	// First connection: subscribe, prompt, read some messages.
+	// First connection: drive a full turn so the event log has content.
 	conn1, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
 		r.ReplayErr = "ws dial 1: " + err.Error()
 		return
 	}
-	conn1.WriteJSON(map[string]any{"type": "subscribe", "cursor": 0})
+	conn1.WriteJSON(map[string]any{"type": "subscribe"})
 	conn1.WriteJSON(map[string]any{"type": "prompt", "text": "test replay"})
 
 	firstBatch := readWSMessages(conn1, 30*time.Second, func(msgs []Ch8WsMsg) bool {
@@ -333,40 +323,47 @@ func ch8DriveReplay(r *Ch8Result, bin, exDir, tmp string) {
 		return
 	}
 
-	// Second connection: subscribe with cursor = count of first batch.
+	// Second connection: subscribe AFTER the turn finished.
+	// The server should send the event-log window covering the completed turn.
 	conn2, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
 	if err != nil {
 		r.ReplayErr = "ws dial 2: " + err.Error()
 		return
 	}
 	defer conn2.Close()
+	conn2.WriteJSON(map[string]any{"type": "subscribe"})
 
-	cursor := uint64(len(firstBatch))
-	conn2.WriteJSON(map[string]any{"type": "subscribe", "cursor": cursor})
-
-	// Read whatever arrives — should be zero if no new activity.
-	replayMsgs := readWSMessages(conn2, 2*time.Second, func(_ []Ch8WsMsg) bool { return false })
-
-	// Now subscribe with cursor=0 to get everything.
-	conn3, _, err := websocket.DefaultDialer.Dial(wsURL, nil)
-	if err != nil {
-		r.ReplayErr = "ws dial 3: " + err.Error()
-		return
-	}
-	defer conn3.Close()
-	conn3.WriteJSON(map[string]any{"type": "subscribe", "cursor": 0})
-	fullReplay := readWSMessages(conn3, 5*time.Second, func(msgs []Ch8WsMsg) bool {
-		return len(msgs) >= len(firstBatch)
+	replayMsgs := readWSMessages(conn2, 5*time.Second, func(msgs []Ch8WsMsg) bool {
+		// Stop when we have both a part_final and a tool event — proof
+		// the event log window was fully replayed.
+		hasFinal := false
+		hasTool := false
+		for _, m := range msgs {
+			if m.Type == "part_final" {
+				hasFinal = true
+			}
+			if m.Type == "tool_dispatched" || m.Type == "tool_finished" {
+				hasTool = true
+			}
+		}
+		return hasFinal && hasTool
 	})
 
-	// Verify fullReplay has the same count as firstBatch.
-	r.ReplayOK = len(fullReplay) >= len(firstBatch)
-	r.ReplayMessages = fullReplay
-	_ = replayMsgs
+	// The replay must contain at least one part_final and one tool event —
+	// proof the event log window was sent, not just live observations.
+	hasPartFinal := false
+	hasToolEvent := false
+	for _, m := range replayMsgs {
+		if m.Type == "part_final" {
+			hasPartFinal = true
+		}
+		if m.Type == "tool_dispatched" || m.Type == "tool_finished" {
+			hasToolEvent = true
+		}
+	}
 
-	stdin.Close()
-	cmd.Process.Kill()
-	cmd.Wait()
+	r.ReplayOK = hasPartFinal && hasToolEvent
+	r.ReplayMessages = replayMsgs
 }
 
 // ----------------------------------------------------------------
@@ -443,7 +440,7 @@ func ch8DrivePause(r *Ch8Result, bin, exDir, tmp string) {
 		}
 	}()
 
-	conn.WriteJSON(map[string]any{"type": "subscribe", "cursor": 0})
+	conn.WriteJSON(map[string]any{"type": "subscribe"})
 	conn.WriteJSON(map[string]any{"type": "prompt", "text": "run three steps"})
 
 	var allMsgs []Ch8WsMsg
@@ -579,7 +576,6 @@ func readWSMessages(conn *websocket.Conn, timeout time.Duration, done func([]Ch8
 	var msgs []Ch8WsMsg
 	deadline := time.After(timeout)
 
-	// Read in a goroutine so we can select on the timeout.
 	ch := make(chan Ch8WsMsg, 64)
 	errCh := make(chan error, 1)
 	go func() {

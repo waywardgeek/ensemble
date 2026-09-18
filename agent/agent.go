@@ -51,6 +51,10 @@ type ToolDispatched = common.ToolDispatched
 type ToolFinished = common.ToolFinished
 type PauseGate = common.PauseGate
 
+// Log is the append-only event log. Exported so the WebSocket hub can read
+// it for reconnection without copying.
+type Log = common.Log
+
 // ToolCallPart and OpaquePart are re-exported because PartFinal now reports
 // EVERY part, not just text. A consumer switching on a final needs the types
 // to switch on, and before streaming there was nothing but text to see. The
@@ -167,6 +171,12 @@ func (a *Agent) Usage() Usage {
 	return a.eng.Ctx.Usage
 }
 
+// EventLog returns the append-only event log. The hub reads this for
+// reconnection; callers must not mutate the returned log.
+func (a *Agent) EventLog() *Log {
+	return a.eng.Log
+}
+
 // ----------------------------------------------------------------
 // Chapter 6: Actor-based API
 // ----------------------------------------------------------------
@@ -268,9 +278,11 @@ type WSHub = ws.Hub
 
 // NewWSHub creates a hub that fans observations out to WebSocket clients.
 // send is called for every prompt/hint/interrupt from a browser; gate
-// controls tool-dispatch pausing; guiLogPath is the path to gui.log.
-func NewWSHub(gate *PauseGate, send func(Inbound), guiLogPath string) *WSHub {
-	return ws.NewHub(gate, send, guiLogPath)
+// controls tool-dispatch pausing; guiLogPath is the path to gui.log;
+// eventLog provides read access to the append-only event log for
+// reconnection.
+func NewWSHub(gate *PauseGate, send func(Inbound), guiLogPath string, eventLog *Log) *WSHub {
+	return ws.NewHub(gate, send, guiLogPath, eventLog)
 }
 
 // ServeHTTP starts an HTTP server that serves static files from staticDir

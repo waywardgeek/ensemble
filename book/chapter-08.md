@@ -61,10 +61,10 @@ to JSON, and fans it out to every connected client:
 {"type":"turn_ended","text":"The file contains..."}
 ```
 
-Client messages carry no seq:
+Client messages:
 
 ```json
-{"type":"subscribe","cursor":0}
+{"type":"subscribe"}
 {"type":"prompt","text":"Run the tests"}
 {"type":"hint","text":"Skip the slow ones"}
 {"type":"interrupt"}
@@ -74,11 +74,21 @@ Client messages carry no seq:
 
 ### Reconnection
 
-A client subscribes with a cursor: the number of messages already
-received. The server skips that many from its buffer and sends the
-rest, then switches to live delivery. A fresh connection uses
-cursor 0. A client disconnected for an hour catches up in one burst.
-The agent does not pause, restart, or notice.
+A client subscribes. The server sends two things: a window of recent
+events from the event log (the last hour or last 100 renderable
+events, whichever is larger), and the accumulated partial content for
+anything currently streaming. The client renders the event history as
+finalized Artifacts, replays the partial content to catch up to the
+live stream position, then switches to live delivery. A fresh
+connection and a reconnection after an hour use the same path. The
+agent does not pause, restart, or notice.
+
+No cursor. No sequence numbers. The event log has its own ordering
+(the Seq from Chapter 6). On each live observation, the hub checks
+for new event-log entries since the client's last-seen Seq and sends
+them alongside the streaming content. The client never parses SSE
+frames. Every message is a well-formatted JSON event with the
+artifact id, type, and payload ready to render.
 
 ### The Artifact
 
@@ -169,7 +179,7 @@ make grade8
 | check | points | what it tests |
 |---|---|---|
 | `websocket-streams` | 25 | subscribe, prompt via WS; receive part_delta, part_final, state_changed, turn_ended, tool_dispatched, tool_finished with correct fields |
-| `event-replay` | 20 | disconnect after events arrive; reconnect with cursor = count of received messages; receive exactly the missed messages; replayed + continued = complete |
+| `event-replay` | 20 | disconnect after a turn completes; reconnect with a fresh subscribe; receive event-log history covering the completed turn; tool and text events present |
 | `gui-log` | 15 | gui.log contains JSON lines with timestamps; both server-to-client and client-to-server messages present |
 | `pause-holds-tools` | 20 | during a multi-tool turn, pause prevents the next tool from starting; unpause resumes; all tools eventually complete |
 | `ch7-parity` | 20 | every Chapter 7 check still passes |
@@ -194,8 +204,7 @@ observations to the Observer interface from Chapter 6. A Go WebSocket
 handler implements that interface, serializes each observation to JSON,
 and fans it out to every connected browser. Attach zero browsers and
 the agent runs identically. Attach three and they all see the same
-stream. Close a tab, reopen it an hour later, subscribe with a message
-count, and catch up in one burst.
+stream. Close a tab, reopen it an hour later, subscribe, and catch up from the event log in one burst.
 
 **Everything is an Artifact.** Thinking text, chat text, tool call
 arguments, tool results, user messages: they differ in how they look,
@@ -289,10 +298,12 @@ time has no queue to wait in.
 
 ## 8.5 The receiver
 
-The hub implements `Observer`. Its `Observe` serializes the
-observation to JSON, appends to a buffer, and queues it for every
-connected client. Then it returns. If a client's send channel is
-full, the message is dropped for that client. The actor never blocks.
+The hub implements `Observer`. Its `Observe` method handles two
+tiers: streaming content (deltas) accumulates in an in-flight map
+keyed by part id; everything else fans out to connected clients as
+a well-formatted JSON message. Then it returns. If a client's send
+channel is full, the message is dropped for that client. The actor
+never blocks.
 
 Each client has a write goroutine draining a buffered channel.
 `Observe` iterates the set and does a non-blocking send on each.
@@ -308,35 +319,56 @@ distinguish the two, and that is the proof the seam works.
 
 ## 8.6 The wire
 
-No sequence numbers. A `subscribe` message carries a cursor: the
-count of messages the client has already received. The server skips
-that many from its buffer and sends the rest.
+No sequence numbers. No cursor. A `subscribe` message carries no
+state at all. The server decides what history to send based on its
+own event-log window (configurable: last hour or last 100 renderable
+events, whichever is larger), then sends any in-flight streaming
+content, then switches to live delivery.
 
-A sequence number invites comparison ("is this 48?"), which invites
-error handling when it is not, which invites state negotiation on
-reconnect. A cursor says "I have this many, send the rest." The
-server's job is subtraction.
+A reconnecting client and a fresh client use the same path. The
+server does not need to know whether this is a first connection or a
+tenth. The event-log window is the same either way. This is simpler
+than tracking per-connection offsets and produces a better result:
+the client always gets a useful amount of context, never an empty
+pane.
 
 ---
 
-## 8.7 The recording
+## 8.7 Two tiers of state
 
-The buffer is an append-only slice of serialized JSON. Every
-observation enters the buffer before fan-out, in the same order
-clients see it. On subscribe with cursor N, the hub sends `buffer[N:]`
-then switches to live delivery. A client disconnected for an hour
-catches up in one burst. The agent does not pause, restart, or notice.
+The hub holds two kinds of state, matching the two things a
+connecting client needs.
 
-For this chapter the buffer is unbounded. A ring buffer or eviction
-policy is future work, because it is a
-policy decision the chapter should not make for the student.
+**Tier 1: The event log.** Completed events from Chapter 6's
+append-only log. Finalized parts, tool calls and returns, state
+transitions, user messages. On subscribe, the hub reads the recent
+window and converts each event to a well-formatted wire message the
+client can render directly. These are durable: they survive
+disconnection, restart, anything.
+
+**Tier 2: In-flight partials.** Accumulated streaming content for
+anything the agent is currently producing. A map from part id to
+the concatenated chunks received so far. On subscribe, the hub sends
+the current partial for each active part. On `PartFinal`, the
+partial is cleared. These are ephemeral: they exist only while
+content is streaming.
+
+The event log is safe to read without locking. It is append-only:
+once an element is written, it never changes. The hub snapshots the
+current length during each `Observe` call (which runs on the engine
+goroutine) and stores it under its own mutex. Subscribers read that
+snapshot. A slow WebSocket send never blocks the engine.
+
+For this chapter the event-log window is hardcoded. A configurable
+window (time-based, count-based, or both) is future work, because it
+is a policy decision the chapter should not make for the student.
 
 ---
 
 ## 8.8 The fourth log
 
 ```
-2026-09-17T14:32:01.123Z > {"type":"subscribe","cursor":0}
+2026-09-17T14:32:01.123Z > {"type":"subscribe"}
 2026-09-17T14:32:01.456Z < {"type":"part_delta","part_id":3,"kind":"text","chunk":"Hello"}
 ```
 
@@ -432,7 +464,7 @@ for a tool and a card appears with the arguments, the result fills
 in, the reply continues.
 
 Open a second tab. Both show the same stream. Close one, reopen:
-catches up in a burst. Type a hint in the terminal; both tabs see
+it subscribes, receives the event-log window, catches up in a burst. Type a hint in the terminal; both tabs see
 it. Start typing in the browser: "paused," no new tool starts.
 Interrupt from the terminal: the agent stops even while paused.
 

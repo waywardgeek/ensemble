@@ -89,9 +89,9 @@ func ch8WebsocketStreams(r *Ch8Result) Check {
 	return c
 }
 
-// event-replay: disconnect, reconnect with cursor, receive missed messages.
+// event-replay: disconnect, reconnect; event log delivers completed turn.
 func ch8EventReplay(r *Ch8Result) Check {
-	c := Check{ID: "event-replay", Title: "replay from cursor delivers missed messages", Points: 20, Passed: true, Earned: 20}
+	c := Check{ID: "event-replay", Title: "reconnection delivers event-log window", Points: 20, Passed: true, Earned: 20}
 	if !ch8Ready(&c, r) {
 		return c
 	}
@@ -100,15 +100,19 @@ func ch8EventReplay(r *Ch8Result) Check {
 		return c
 	}
 	if !r.ReplayOK {
-		c.failf("replay did not return enough messages")
-		c.notef("expected at least as many messages as the first connection received")
+		c.failf("replay did not deliver event-log content")
+		c.notef("expected at least one part_final and one tool event from the event log")
 		if len(r.ReplayMessages) > 0 {
-			c.notef("replay returned %d messages", len(r.ReplayMessages))
+			var types []string
+			for _, m := range r.ReplayMessages {
+				types = append(types, m.Type)
+			}
+			c.notef("replay returned %d messages with types: %v", len(r.ReplayMessages), types)
 		}
 		return c
 	}
 
-	c.notef("replay returned %d messages, matching first connection", len(r.ReplayMessages))
+	c.notef("replay returned %d messages with event-log content", len(r.ReplayMessages))
 	return c
 }
 

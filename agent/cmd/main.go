@@ -229,7 +229,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	if port != "" {
 		hub := ws.NewHub(gate, func(msg common.Inbound) {
 			actor.Send(msg)
-		}, "gui.log")
+		}, "gui.log", eng.Log)
 		defer hub.Close()
 		actor.Attach(hub)
 

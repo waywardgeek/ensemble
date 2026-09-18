@@ -127,7 +127,7 @@ func runMain(cfg agent.Config, logPath, port, guiDir string) {
 	// Start HTTP/WebSocket server.
 	hub := agent.NewWSHub(gate, func(msg agent.Inbound) {
 		actor.Send(msg)
-	}, "gui.log")
+	}, "gui.log", a.EventLog())
 	defer hub.Close()
 	actor.Attach(hub)
 
