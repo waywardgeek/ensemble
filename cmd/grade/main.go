@@ -19,6 +19,15 @@ import (
 )
 
 func main() {
+	// --fake-mcp mode: run as a fake MCP server subprocess for ch13 grading.
+	// Must be checked before flag.Parse() because it uses raw stdin/stdout.
+	for _, arg := range os.Args[1:] {
+		if arg == "--fake-mcp" {
+			grade.FakeMCPServer()
+			return
+		}
+	}
+
 	var (
 		asJSON  = flag.Bool("json", false, "emit the report as JSON")
 		chapter = flag.Int("ch", 1, "which chapter's exercise to grade")
@@ -202,6 +211,11 @@ func main() {
 		report = grade.NewTitledReport(
 			"Chapter 12 — MCP: The Extension Protocol",
 			grade.Ch12Checks(r), "")
+	case 13:
+		r := grade.Ch13Run(path)
+		report = grade.NewTitledReport(
+			"Chapter 13 — The Agent Sees Itself",
+			grade.Ch13Checks(r), "")
 	default:
 		fmt.Fprintf(os.Stderr, "grader: no grader for chapter %d yet\n", *chapter)
 		os.Exit(2)
