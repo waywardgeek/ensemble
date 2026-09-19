@@ -114,6 +114,37 @@ func main() {
 	case "--help", "-h", "help":
 		usage(os.Stdout)
 
+	case "verify":
+		if savePath == "" {
+			fmt.Fprintln(os.Stderr, "verify requires --save=PATH to a save file")
+			os.Exit(2)
+		}
+		sf, err := common.Load(savePath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "load: %v\n", err)
+			os.Exit(2)
+		}
+		rebuilt, err2 := common.Rebuild(sf.Log)
+		if err2 != nil {
+			fmt.Fprintf(os.Stderr, "rebuild: %v\n", err2)
+			os.Exit(2)
+		}
+		savedJSON, _ := json.MarshalIndent(sf.Context, "", "  ")
+		rebuiltJSON, _ := json.MarshalIndent(rebuilt, "", "  ")
+		if string(savedJSON) == string(rebuiltJSON) {
+			fmt.Println("MATCH")
+		} else {
+			fmt.Println("MISMATCH")
+			// Find first difference
+			for i := 0; i < len(savedJSON) && i < len(rebuiltJSON); i++ {
+				if savedJSON[i] != rebuiltJSON[i] {
+					fmt.Fprintf(os.Stderr, "first diff at byte %d\n", i)
+					break
+				}
+			}
+			os.Exit(1)
+		}
+
 	case "render":
 		if len(args) < 2 {
 			fmt.Fprintf(os.Stderr, "usage: %s render LOG\n", progName())
