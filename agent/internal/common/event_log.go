@@ -50,6 +50,13 @@ func (l *Log) Len() int {
 	return len(l.Events)
 }
 
+// ResetSeq sets the next sequence number. Used when restoring
+// a log from a save file, so that new events don't collide
+// with the ones that were loaded.
+func (l *Log) ResetSeq(next Seq) {
+	l.next = next
+}
+
 // Replay rebuilds the context from nothing but the log. This is the whole
 // claim of the chapter in four lines.
 func (l *Log) Replay() (*Context, error) {

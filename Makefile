@@ -47,6 +47,9 @@ grade9:
 grade10:
 	go run ./cmd/grade -ch 10 ./agent
 
+grade11:
+	go run ./cmd/grade -ch 11 ./agent
+
 grade-dir:
 	go run ./cmd/grade -ch $(CH) $(DIR)
 

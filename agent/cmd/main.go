@@ -66,6 +66,8 @@ func main() {
 	mode := ""
 	port := ""
 	guiDir := ""
+	savePath := ""
+	loadPath := ""
 
 	// Parse flags manually to keep backward compat with positional commands.
 	var filtered []string
@@ -81,6 +83,16 @@ func main() {
 			i++
 		case strings.HasPrefix(args[i], "--gui-dir="):
 			guiDir = strings.TrimPrefix(args[i], "--gui-dir=")
+		case args[i] == "--save" && i+1 < len(args):
+			savePath = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--save="):
+			savePath = strings.TrimPrefix(args[i], "--save=")
+		case args[i] == "--load" && i+1 < len(args):
+			loadPath = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--load="):
+			loadPath = strings.TrimPrefix(args[i], "--load=")
 		default:
 			filtered = append(filtered, args[i])
 		}
@@ -134,7 +146,7 @@ func main() {
 		}
 
 	case "":
-		if runActorLoop(cfg, logPath, reg, port, guiDir) {
+		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, loadPath) {
 			os.Exit(1)
 		}
 
@@ -191,7 +203,7 @@ type stdinMsg struct {
 	Ephemeral *string `json:"ephemeral"`
 }
 
-func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string) (vendorFailed bool) {
+func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, loadPath string) (vendorFailed bool) {
 	host := newCLIHost()
 	j := jobs.NewJobs(host)
 
@@ -235,6 +247,23 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	cfg.Tools = reg.Declarations()
 
 	eng := llm.NewEngine(cfg, logPath, j, reg, host)
+
+	// If --load was given, restore context and log from the save file.
+	if loadPath != "" {
+		sf, err := common.Load(loadPath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "load: %v\n", err)
+			os.Exit(1)
+		}
+		// Restore the context.
+		eng.Ctx = sf.Context
+		// Restore the event log.
+		eng.Log.Events = sf.Log
+		if len(sf.Log) > 0 {
+			eng.Log.ResetSeq(sf.Log[len(sf.Log)-1].Seq + 1)
+		}
+	}
+
 	actor := llm.NewActor(eng, host)
 
 	// Wire load_skill/unload_skill now that we have the event log.
@@ -399,6 +428,14 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	}
 
 	_ = actor.Shutdown()
+
+	// Save state if --save was given.
+	if savePath != "" {
+		if err := common.Save(savePath, eng.Ctx, eng.Log, eng.Cfg); err != nil {
+			fmt.Fprintf(os.Stderr, "save: %v\n", err)
+		}
+	}
+
 	emitLocked(map[string]any{"usage": eng.Ctx.Usage})
 	out.Flush()
 	return vendorFailed
