@@ -710,6 +710,10 @@ type Reg struct {
 	meta           map[string]ToolMeta // provenance per tool name
 	skills         *common.SkillRegistry // nil until skills are wired
 	onToolsChanged func() // called when tool declarations change (e.g., skill loaded)
+
+	// Skill-based MCP lifecycle callbacks — set by the host (cmd/main.go).
+	onSkillMCPConnect    func(skill string, servers []common.MCPServerConfig) ([]string, error)
+	onSkillMCPDisconnect func(skill string) error
 }
 
 // NewRegistry creates a registry pre-loaded with the builtin coding tools.
@@ -785,6 +789,29 @@ func (r *Reg) Lookup(name string) (common.Tool, error) {
 // change (e.g., after a skill is loaded). The agent uses this to update
 // its config for the next vendor request.
 func (r *Reg) SetOnToolsChanged(fn func()) { r.onToolsChanged = fn }
+
+// SetOnSkillMCPConnect registers a callback invoked when a loaded skill
+// declares mcp_servers. The callback receives the skill name and the
+// server configs, connects to each MCP server, bridges its tools into
+// the registry, and returns the list of tool names that were added.
+func (r *Reg) SetOnSkillMCPConnect(fn func(string, []common.MCPServerConfig) ([]string, error)) {
+	r.onSkillMCPConnect = fn
+}
+
+// SetOnSkillMCPDisconnect registers a callback invoked when a skill with
+// MCP servers is unloaded. The callback closes the MCP clients and the
+// caller removes the bridged tools.
+func (r *Reg) SetOnSkillMCPDisconnect(fn func(string) error) {
+	r.onSkillMCPDisconnect = fn
+}
+
+// RemoveTool removes a tool from the registry by name.
+func (r *Reg) RemoveTool(name string) {
+	n := common.NormalizeName(name)
+	delete(r.tools, n)
+	delete(r.meta, n)
+	delete(r.argSpec, n)
+}
 
 func (r *Reg) Declarations() []common.ToolDecl {
 	var decls []common.ToolDecl
@@ -934,6 +961,17 @@ func (r *Reg) WireSkills(sr *common.SkillRegistry, vars *common.VarRegistry, eve
 				})
 			}
 
+			// Connect MCP servers declared by the skill.
+			if entry != nil && len(entry.Props.MCPServers) > 0 && r.onSkillMCPConnect != nil {
+				toolNames, mcpErr := r.onSkillMCPConnect(input.Name, entry.Props.MCPServers)
+				if mcpErr != nil {
+					return "", fmt.Errorf("MCP connect for skill %q: %w", input.Name, mcpErr)
+				}
+				for _, tn := range toolNames {
+					r.meta[common.NormalizeName(tn)] = ToolMeta{Source: SourceDynamic, EventSeq: seq}
+				}
+			}
+
 			// Notify that tool declarations changed.
 			if r.onToolsChanged != nil {
 				r.onToolsChanged()
@@ -983,6 +1021,16 @@ func (r *Reg) WireSkills(sr *common.SkillRegistry, vars *common.VarRegistry, eve
 			}
 			if err := sr.MarkUnload(input.Name); err != nil {
 				return "", err
+			}
+			// Disconnect MCP servers tied to this skill.
+			if r.onSkillMCPDisconnect != nil {
+				if mcpErr := r.onSkillMCPDisconnect(input.Name); mcpErr != nil {
+					return "", fmt.Errorf("MCP disconnect for skill %q: %w", input.Name, mcpErr)
+				}
+			}
+			// Notify that tool declarations changed.
+			if r.onToolsChanged != nil {
+				r.onToolsChanged()
 			}
 			return fmt.Sprintf("Skill %q marked for removal at next context compaction.", input.Name), nil
 		},
