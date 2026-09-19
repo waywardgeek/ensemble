@@ -1,14 +1,20 @@
 # Chapter 10: Skills
 
 Every chapter so far has added capability by adding code. That stops
-scaling. By chapter 9 the system prompt is a monolith, the tool list
-is a wall of forty declarations, and every edit trashes the prompt
-cache. The agent tries to call tools it has no business calling
-because it can see all of them. Skills fix this. A skill is a named
-unit of capability (instructions, tools, dependencies) in a single
-markdown file. Loading one changes what the agent can do. Unloading
-one marks it for removal at the next compaction. The system prompt is
-rendered once and never mutated.
+scaling. Right now you have eight tools. A production agent has forty
+or more, and the system prompt grows with every feature. We have
+deliberately deferred the system prompt until this chapter so we
+could build it properly. The system prompt is the most abused feature
+in LLM applications: teams stuff instructions, context, tool
+descriptions, and user preferences into a monolith that breaks
+cache on every edit. Skills fix this before the problem arrives.
+
+A skill is a named unit of capability (instructions, tools,
+dependencies) in a single markdown file. Loading one changes what the
+agent can do. Unloading one marks it for removal at the next
+compaction. The system prompt is rendered once from the primary skill
+at agent creation and never mutated. Dynamic capabilities flow
+through events.
 
 This is also where variable substitution enters. A skill body can
 contain `$TOOLS` or `$SKILLS` or any application-specific variable,

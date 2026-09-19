@@ -40,7 +40,7 @@ who'd rather read on a Kindle or hold a paper copy — same text, your choice.
 
 **[Read the whole book →](book/the-self-wielding-agent.md)**
 
-Nine chapters are built. The agent streams to a three-pane browser GUI with
+Ten chapters are built. The agent streams to a three-pane browser GUI with
 drag bars, theming, TTS, and a settings panel that persists through the
 WebSocket — it pauses when the human needs to think, reconnects without
 losing state, and drives a debugger through a real PTY. It needs no
@@ -141,6 +141,14 @@ each), a settings panel that persists through the WebSocket, theming via CSS
 custom properties, and a stub agent tree ready for sub-agents. This is the
 ignition chapter: start using the agent to build itself.
 
+**Chapter 10: skills.** Progressive tool disclosure via SKILL.md files.
+A skill declares its tools, its dependencies, and which skills it makes
+available next. Loading one changes the tool set without mutating the system
+prompt. Variable substitution (`$TOOLS`, `$SKILLS`, custom renderers)
+keeps skill bodies dynamic. Tool provenance tracking enables cache-aware
+rendering for Anthropic. The system prompt is a constitution: rendered once,
+never mutated. Everything dynamic flows through events.
+
 ---
 
 ## Kick the tires in five minutes
@@ -222,6 +230,7 @@ auto-grader. Grade the reference solution — no key, no network:
 make grade                          # chapter 1
 make grade2 grade3                  # chapters 2 and 3
 make grade5 grade7 grade8 grade9    # chapters 5, 7, 8, 9
+make grade10                        # chapter 10 (skills)
 ```
 
 Grade your own agent — any package directory or built binary:
@@ -261,6 +270,7 @@ make test                           # the grader's own sensitivity suite
 | 7 | Streaming | SSE reader, vendor streaming, `Parse` re-signatured, capability table | Streaming changes delivery, not content. Non-streaming is a stream of length one. |
 | 8 | Everything Is an Artifact | WebSocket hub, browser GUI, TTS, pause gate | The agent does not know the GUI exists. One component renders everything. |
 | 9 | Build Your Dream GUI | Three-pane workbench, settings, theming, agent tree | This is the ignition chapter: start using the agent to build itself. |
+| 10 | Skills | SKILL.md parsing, progressive disclosure, variable substitution, tool provenance | The system prompt is a constitution: rendered once, never mutated. |
 
 Each chapter is strictly additive to the last. `solutions/chNN` is a frozen
 snapshot of `agent/` at the moment the chapter finished, tagged
@@ -271,20 +281,16 @@ chapter costs.
 
 ## What comes next
 
-The agent can act, stream, pause, drive a debugger, and run inside a
-three-pane workbench the student designed themselves. What it can't do yet is
-*see its own GUI*, *load new capabilities at runtime*, or *direct other
-agents*.
+The agent can act, stream, pause, drive a debugger, load skills at runtime,
+and run inside a three-pane workbench the student designed themselves. What it
+can't do yet is *see its own GUI* or *direct other agents*.
 
-- **MCP and skills** (chapter 10). Skills are instructions as a first-class
-  capability: loaded and unloaded at runtime, with dependencies that are
-  other skills, forming a hierarchy where loading one skill reveals not just
-  tools but more skills. An MCP server built into the GUI lets the LLM see
-  what the human sees — the current GUI state attached as markdown to every
-  round trip, one copy, always current, never flooding context. Progressive
-  tool disclosure: the agent starts with a few tools and gains more as skills
-  load.
-- **The agent fixes its own GUI** (chapter 11). The LLM pretends to be the
+- **MCP** (chapter 11). An MCP server built into the GUI lets the LLM see
+  what the human sees: the current GUI state attached as markdown to every
+  round trip, one copy, always current, never flooding context. Skills
+  (chapter 10) already declare dependencies and form hierarchies; MCP servers
+  are declared by skills and bring external tools into the registry.
+- **The agent fixes its own GUI** (chapter 12). The LLM pretends to be the
   human: it reads the GUI through the MCP server, pokes the same buttons,
   watches the page adapt, and files the bugs it finds. Then it fixes them.
   This is where self-wielding goes live.
@@ -345,7 +351,7 @@ internal/fakevendor/    chapters 2+: deterministic stand-in for all three vendor
                         APIs, routed by request path; the grader mounts it
                         in-process, cmd/fakevendor serves it
 internal/grade/         scripts, process harnesses, checks, report
-solutions/ch01..ch09/   frozen reference solutions, one per finished chapter
+solutions/ch01..ch10/   frozen reference solutions, one per finished chapter
 scripts/live.sh         run a chapter's solution against a real vendor API
 testdata/students/      deliberately defective submissions (grader self-test)
 ```
