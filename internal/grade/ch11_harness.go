@@ -85,7 +85,7 @@ func Ch11Run(path string) Ch11Result {
 		return r
 	}
 
-	ch11CheckDeterministic(savePath, &r)
+	ch11CheckDeterministic(bin, savePath, &r)
 	ch11CheckSaveConfig(savePath, &r)
 	ch11CheckRoundtrip(savePath, &r)
 	ch11CheckResume(bin, savePath, skillsDir, guiDir, tmp, &r)
@@ -167,7 +167,7 @@ func ch11DriveAndSave(bin, savePath, skillsDir, guiDir, tmp string) string {
 	return ""
 }
 
-func ch11CheckDeterministic(savePath string, r *Ch11Result) {
+func ch11CheckDeterministic(bin, savePath string, r *Ch11Result) {
 	data, err := os.ReadFile(savePath)
 	if err != nil {
 		r.DeterministicErr = fmt.Sprintf("read save: %v", err)
@@ -220,6 +220,18 @@ func ch11CheckDeterministic(savePath string, r *Ch11Result) {
 	}
 	if len(raw.Log) < 6 {
 		r.DeterministicErr = fmt.Sprintf("expected ≥6 log events, got %d", len(raw.Log))
+		return
+	}
+
+	// Run the binary's verify command to test Rebuild determinism
+	verifyCmd := exec.Command(bin, "verify", "--save", savePath)
+	verifyOut, err := verifyCmd.CombinedOutput()
+	if err != nil {
+		r.DeterministicErr = fmt.Sprintf("verify command failed: %s (%v)", string(verifyOut), err)
+		return
+	}
+	if !strings.Contains(string(verifyOut), "MATCH") {
+		r.DeterministicErr = fmt.Sprintf("verify output: %s", string(verifyOut))
 		return
 	}
 
