@@ -207,6 +207,12 @@ func (a *Actor) handleUserMessage(m common.UserMessage) {
 		return
 	}
 
+	// "turn" ephemeral tools are called once when the turn starts.
+	if err := a.eng.CallEphemeral("turn"); err != nil {
+		a.finishTurn("", err)
+		return
+	}
+
 	a.runTurnLoop()
 }
 
@@ -215,6 +221,12 @@ func (a *Actor) handleUserMessage(m common.UserMessage) {
 func (a *Actor) runTurnLoop() {
 	for round := 0; ; round++ {
 		a.setState(common.InFlight)
+
+		// "round" ephemeral tools are called before every round.
+		if err := a.eng.CallEphemeral("round"); err != nil {
+			a.finishTurn("", err)
+			return
+		}
 
 		reply, err := a.eng.Turn(a.streamWatch())
 		if err != nil {

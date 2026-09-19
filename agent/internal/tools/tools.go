@@ -779,6 +779,11 @@ func (r *Reg) Meta(name string) (ToolMeta, bool) {
 func (r *Reg) Lookup(name string) (common.Tool, error) {
 	tool, ok := r.tools[name]
 	if !ok {
+		// Try normalized name (handles gui_click → guiclick).
+		norm := common.NormalizeName(name)
+		tool, ok = r.tools[norm]
+	}
+	if !ok {
 		return common.Tool{}, fmt.Errorf("no such tool %q; available tools: %s",
 			name, strings.Join(r.toolNames(), ", "))
 	}
@@ -968,7 +973,14 @@ func (r *Reg) WireSkills(sr *common.SkillRegistry, vars *common.VarRegistry, eve
 					return "", fmt.Errorf("MCP connect for skill %q: %w", input.Name, mcpErr)
 				}
 				for _, tn := range toolNames {
-					r.meta[common.NormalizeName(tn)] = ToolMeta{Source: SourceDynamic, EventSeq: seq}
+					norm := common.NormalizeName(tn)
+					r.meta[norm] = ToolMeta{Source: SourceDynamic, EventSeq: seq}
+				}
+				// Register MCP tools with the skill so IsToolEnabled returns true.
+				// Use normalized names since IsToolEnabled compares against
+				// normalized map keys.
+				for _, tn := range toolNames {
+					entry.Props.Tools = append(entry.Props.Tools, common.NormalizeName(tn))
 				}
 			}
 
