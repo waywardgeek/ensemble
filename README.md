@@ -240,6 +240,7 @@ make grade5 grade7 grade8 grade9    # chapters 5, 7, 8, 9
 make grade10                        # chapter 10 (skills)
 make grade11                        # chapter 11 (persistence)
 make grade12                        # chapter 12 (MCP)
+make grade13                        # chapter 13 (GUI debug)
 ```
 
 Grade your own agent — any package directory or built binary:
@@ -282,6 +283,7 @@ make test                           # the grader's own sensitivity suite
 | 10 | Skills | SKILL.md parsing, progressive disclosure, variable substitution, tool provenance | The system prompt is a constitution: rendered once, never mutated. |
 | 11 | Persistence | Save/load, deterministic rebuild, partial replay, context sufficiency | The event log is the truth; the context is what the truth means right now. |
 | 12 | MCP | JSON-RPC 2.0 client, transports, ephemeral tools, reverse calls, browser MCP server | The extension protocol: anything that speaks JSON-RPC is a tool server. |
+| 13 | GUI Debug | gui-debug skill, skill-based MCP lifecycle, RemoveTool, --gui-debug flag | A skill IS a debug mode: load it to see, unload to stop seeing. |
 
 Each chapter is strictly additive to the last. `solutions/chNN` is a frozen
 snapshot of `agent/` at the moment the chapter finished, tagged
@@ -293,14 +295,14 @@ chapter costs.
 ## What comes next
 
 The agent can act, stream, pause, drive a debugger, load skills at runtime,
-run inside a three-pane workbench, save and resume conversations, and connect
-to external tool servers over MCP. What it can't do yet is *see its own GUI*
-or *direct other agents*.
+run inside a three-pane workbench, save and resume conversations, connect
+to external tool servers over MCP, and see its own GUI through a debug skill.
+What it can't do yet is *fix what it sees* or *direct other agents*.
 
-- **The agent fixes its own GUI** (chapter 13). The LLM pretends to be the
-  human: it reads the GUI through the MCP server (chapter 12), pokes the same
-  buttons, watches the page adapt, and files the bugs it finds. Then it fixes
-  them. This is where self-wielding goes live.
+- **Self-wielding** (chapter 14). The agent reads the GUI through the
+  gui-debug skill (chapter 13), spots bugs the author deliberately left in,
+  and fixes them by editing its own source. This is where the perpetual
+  machine from Chapter 0 starts turning.
 - **Sub-agents**: an agent is a sub-agent the moment you stop watching it.
 - **Security**: a shell contains every tool, and you added one in chapter 3.
   The security chapter follows directly from skills.
