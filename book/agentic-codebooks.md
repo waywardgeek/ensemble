@@ -41,7 +41,7 @@ author and produces:
   and drives it through scripted scenarios using fake vendor servers
 - Checks that verify observable behavior (what the code does), never
   implementation details (how the code is structured)
-- A P9 deletion audit: systematically delete each protected behavior from the
+- A deletion audit: systematically delete each protected behavior from the
   reference implementation and verify the grader catches it with the exact
   expected failing check set
 - Mutation tests that prove the grader is sensitive, not decorative
