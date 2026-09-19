@@ -186,6 +186,7 @@ You are a helpful assistant.
 	cmd := exec.Command(bin, "--gui-debug",
 		"--skills-dir", filepath.Join(tmp, "skills"))
 	cmd.Dir = tmp
+	mcpCloseMarker := filepath.Join(tmp, "mcp-closed")
 	cmd.Env = append(os.Environ(),
 		"LLM_BASE_URL="+srv.URL(),
 		"LLM_MODEL=fake-model",
@@ -193,6 +194,7 @@ You are a helpful assistant.
 		"LLM_API_KEY=test-key",
 		"EN_SKILLS_DIR="+filepath.Join(tmp, "skills"),
 		"EN_PRIMARY_SKILL=ensemble",
+		"FAKE_MCP_CLOSE_MARKER="+mcpCloseMarker,
 	)
 
 	stdin, err := cmd.StdinPipe()
@@ -251,6 +253,14 @@ You are a helpful assistant.
 	// Inspect fakevendor requests.
 	reqs := srv.Requests()
 	ch13EvaluateRequests(reqs, r)
+
+	// Check skill-unload: verify the MCP subprocess stdin was closed,
+	// indicating the transport was properly shut down.
+	if _, err := os.Stat(mcpCloseMarker); err == nil {
+		r.SkillUnloadOK = true
+	} else {
+		r.SkillUnloadErr = "MCP transport was not closed on shutdown (marker file not written)"
+	}
 }
 
 // ch13EvaluateRequests inspects the recorded fakevendor requests to verify
@@ -339,10 +349,6 @@ func ch13EvaluateRequests(reqs []fakevendor.Recorded, r *Ch13Result) {
 		r.GUIInteractionErr = fmt.Sprintf("missing tool interactions: %s", strings.Join(missing, ", "))
 	}
 
-	// Check 6: skill-unload — verify the MCP connection was cleaned up.
-	// We check this via transport close detection in the fake MCP server logs.
-	// For now, we verify it at the source level (see ch13UnloadCheck).
-	r.SkillUnloadOK = true // Source-level check below will override if needed
 }
 
 // ch13ParityCheck verifies ch12 behavior is preserved.
@@ -573,5 +579,10 @@ func FakeMCPServer() {
 		default:
 			writeError(*msg.ID, -32601, "unknown method: "+msg.Method)
 		}
+	}
+
+	// stdin closed — write marker file to indicate clean transport shutdown.
+	if marker := os.Getenv("FAKE_MCP_CLOSE_MARKER"); marker != "" {
+		os.WriteFile(marker, []byte("closed"), 0644)
 	}
 }
