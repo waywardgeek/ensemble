@@ -741,6 +741,12 @@ func (r *Reg) Register(name, description string, schema json.RawMessage, handler
 	r.meta[common.NormalizeName(name)] = ToolMeta{Source: SourceInitial}
 }
 
+// RegisterTool adds a fully-formed Tool (e.g., from MCP bridge).
+func (r *Reg) RegisterTool(tool common.Tool) {
+	r.tools[common.NormalizeName(tool.Name)] = tool
+	r.meta[common.NormalizeName(tool.Name)] = ToolMeta{Source: SourceDynamic}
+}
+
 // RegisterDynamic adds a tool from a dynamically loaded skill.
 func (r *Reg) RegisterDynamic(name, description string, schema json.RawMessage, handler func(json.RawMessage) (string, error), eventSeq int) {
 	r.tools[common.NormalizeName(name)] = common.Tool{
@@ -788,6 +794,11 @@ func (r *Reg) Declarations() []common.ToolDecl {
 			continue
 		}
 		t := r.tools[n]
+		// Ephemeral tools are auto-called by the engine; the LLM never
+		// sees them as callable tools.
+		if t.Ephemeral != "" {
+			continue
+		}
 		decls = append(decls, common.ToolDecl{
 			Name:        t.Name,
 			Description: t.Description,
@@ -810,6 +821,9 @@ func (r *Reg) InitialDeclarations() []common.ToolDecl {
 			continue
 		}
 		t := r.tools[n]
+		if t.Ephemeral != "" {
+			continue
+		}
 		decls = append(decls, common.ToolDecl{
 			Name:        t.Name,
 			Description: t.Description,
@@ -829,6 +843,9 @@ func (r *Reg) DynamicDeclarations() []common.ToolDecl {
 			continue
 		}
 		t := r.tools[n]
+		if t.Ephemeral != "" {
+			continue
+		}
 		decls = append(decls, common.ToolDecl{
 			Name:        t.Name,
 			Description: t.Description,
@@ -845,6 +862,18 @@ func (r *Reg) toolNames() []string {
 	}
 	sort.Strings(names)
 	return names
+}
+
+// EphemeralTools returns tools with the given ephemeral mode ("round" or "turn").
+func (r *Reg) EphemeralTools(mode string) []common.Tool {
+	var result []common.Tool
+	for _, n := range r.toolNames() {
+		t := r.tools[n]
+		if t.Ephemeral == mode {
+			result = append(result, t)
+		}
+	}
+	return result
 }
 
 // WireSkills adds the load_skill and unload_skill tools to the registry,

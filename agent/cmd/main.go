@@ -24,6 +24,7 @@ import (
 	"github.com/waywardgeek/ensemble/agent/internal/common"
 	"github.com/waywardgeek/ensemble/agent/internal/jobs"
 	"github.com/waywardgeek/ensemble/agent/internal/llm"
+	"github.com/waywardgeek/ensemble/agent/internal/mcp"
 	"github.com/waywardgeek/ensemble/agent/internal/tools"
 	"github.com/waywardgeek/ensemble/agent/internal/ws"
 )
@@ -68,6 +69,7 @@ func main() {
 	guiDir := ""
 	savePath := ""
 	loadPath := ""
+	mcpPipe := false
 
 	// Parse flags manually to keep backward compat with positional commands.
 	var filtered []string
@@ -93,6 +95,8 @@ func main() {
 			i++
 		case strings.HasPrefix(args[i], "--load="):
 			loadPath = strings.TrimPrefix(args[i], "--load=")
+		case args[i] == "--mcp-pipe":
+			mcpPipe = true
 		default:
 			filtered = append(filtered, args[i])
 		}
@@ -177,7 +181,7 @@ func main() {
 		}
 
 	case "":
-		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, loadPath) {
+		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, loadPath, mcpPipe) {
 			os.Exit(1)
 		}
 
@@ -234,7 +238,7 @@ type stdinMsg struct {
 	Ephemeral *string `json:"ephemeral"`
 }
 
-func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, loadPath string) (vendorFailed bool) {
+func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, loadPath string, mcpPipe bool) (vendorFailed bool) {
 	host := newCLIHost()
 	j := jobs.NewJobs(host)
 
@@ -365,6 +369,47 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 	go actor.Run(ctx)
+
+	// MCP pipe mode: connect the MCP client to stdin/stdout.
+	// The grader (or another MCP server) drives the MCP protocol externally.
+	if mcpPipe {
+		t := mcp.NewRawTransport(os.Stdin, os.Stdout)
+		client := mcp.NewClient(t)
+		defer client.Close()
+
+		if err := client.Initialize(ctx); err != nil {
+			fmt.Fprintf(os.Stderr, "mcp init: %v\n", err)
+			os.Exit(1)
+		}
+		mcpTools, err := client.ListTools(ctx)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "mcp tools/list: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Bridge and register MCP tools.
+		for _, bt := range mcp.Bridge(client, mcpTools) {
+			reg.RegisterTool(bt)
+		}
+
+		// Set up reverse handler.
+		client.SetReverseHandler(func(name string, args json.RawMessage) (string, error) {
+			tool, lookupErr := reg.Lookup(name)
+			if lookupErr != nil {
+				return "", lookupErr
+			}
+			c := &common.Call{Host: host, Jobs: j}
+			return tool.Run(c, args)
+		})
+
+		// Update tool declarations.
+		eng.Cfg.Tools = reg.Declarations()
+
+		// Block until stdin closes (MCP transport EOF).
+		<-ctx.Done()
+		_ = actor.Shutdown()
+		return false
+	}
 
 	// Read stdin on this goroutine.
 	in := bufio.NewScanner(os.Stdin)

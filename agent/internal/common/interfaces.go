@@ -123,6 +123,7 @@ type JobManager interface {
 type ToolRegistry interface {
 	Lookup(name string) (Tool, error)
 	Declarations() []ToolDecl
+	EphemeralTools(mode string) []Tool
 }
 
 // ---------------------------------------------------------------------------
@@ -143,12 +144,17 @@ type Host interface {
 type ToolFunc func(c *Call, args json.RawMessage) (string, error)
 
 // Tool is a named, documented function the model can ask for.
+//
+// Ephemeral is "round", "turn", or "" — matching the ToolDecl field. It
+// controls whether the engine auto-calls this tool and routes its output to
+// context.Ephemera instead of dialogue.
 type Tool struct {
 	Name        string
 	Description string
 	Schema      json.RawMessage
 	Run         ToolFunc
 	NoJob       bool
+	Ephemeral   string // "round", "turn", or ""
 }
 
 // Call is what a tool is handed besides its arguments. The embedded Host

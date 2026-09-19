@@ -210,8 +210,18 @@ func (e *Engine) AskWatching(text string, watch common.StreamCallbacks) (string,
 		return "", err
 	}
 
+	// "turn" ephemeral tools are called once when the turn starts.
+	if err := e.callEphemeral("turn"); err != nil {
+		return "", err
+	}
+
 	var reply string
 	for round := 0; ; round++ {
+		// "round" ephemeral tools are called before every round.
+		if err := e.callEphemeral("round"); err != nil {
+			return "", err
+		}
+
 		var err error
 		reply, err = e.Turn(watch)
 		if err != nil {
@@ -417,6 +427,41 @@ func (e *Engine) Shutdown() error {
 }
 
 func (e *Engine) Save() error { return e.Log.SaveFile(e.Path) }
+
+// callEphemeral runs all tools with the given ephemeral mode ("round" or "turn"),
+// combines their output, and records it as a system message so the reducer puts
+// it into context.Ephemera.
+//
+// Ephemeral tools are NOT included in the tool declarations sent to the LLM —
+// the model never sees them as callable. It sees their output as context data.
+func (e *Engine) callEphemeral(mode string) error {
+	tools := e.Tools.EphemeralTools(mode)
+	if len(tools) == 0 {
+		return nil
+	}
+
+	var parts []string
+	for _, t := range tools {
+		c := &common.Call{Host: e.Host, Jobs: e.Jobs}
+		out, err := t.Run(c, nil)
+		if err != nil {
+			// Ephemeral tool errors are logged but not fatal —
+			// a snapshot failure should not abort the turn.
+			e.Host.Logf("ephemeral tool %s error: %v", t.Name, err)
+			continue
+		}
+		if out != "" {
+			parts = append(parts, fmt.Sprintf("## %s (auto-updated)\n\n%s", t.Name, out))
+		}
+	}
+
+	if len(parts) == 0 {
+		return nil
+	}
+
+	combined := strings.Join(parts, "\n\n")
+	return e.Attach(combined)
+}
 
 func (e *Engine) lastAgentText() string {
 	for i := len(e.Ctx.Dialogue) - 1; i >= 0; i-- {

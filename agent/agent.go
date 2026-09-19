@@ -7,8 +7,10 @@
 package agent
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strings"
@@ -16,6 +18,7 @@ import (
 	"github.com/waywardgeek/ensemble/agent/internal/common"
 	"github.com/waywardgeek/ensemble/agent/internal/jobs"
 	"github.com/waywardgeek/ensemble/agent/internal/llm"
+	"github.com/waywardgeek/ensemble/agent/internal/mcp"
 	"github.com/waywardgeek/ensemble/agent/internal/tools"
 	"github.com/waywardgeek/ensemble/agent/internal/ws"
 )
@@ -29,9 +32,37 @@ type Usage = common.Usage
 
 // Skill types.
 type SkillProperties = common.SkillProperties
+type MCPServerConfig = common.MCPServerConfig
 type SkillRegistry = common.SkillRegistry
 type VarRenderer = common.VarRenderer
 type VarRegistry = common.VarRegistry
+
+// MCP types.
+type MCPTransport = mcp.Transport
+type MCPClient = mcp.Client
+
+// NewMCPPipeTransport creates a pair of connected in-process transports.
+func NewMCPPipeTransport() (client MCPTransport, server MCPTransport) {
+	return mcp.NewPipeTransport()
+}
+
+// NewMCPStdioTransport spawns a subprocess and talks JSON-RPC over stdin/stdout.
+func NewMCPStdioTransport(command string, args []string, env []string) (MCPTransport, error) {
+	return mcp.NewStdioTransport(command, args, env)
+}
+
+// NewMCPWSTransport creates a transport tunneled over the WebSocket hub.
+func NewMCPWSTransport(hub *WSHub) MCPTransport {
+	wst := mcp.NewWSTransport(hub.BroadcastJSONRPC)
+	hub.SetMCPReceiver(wst.Deliver)
+	return wst
+}
+
+// NewMCPRawTransport creates a transport from raw io.Reader/io.Writer.
+// Used for --mcp-pipe mode where stdin/stdout become the MCP wire.
+func NewMCPRawTransport(r io.Reader, w io.Writer) MCPTransport {
+	return mcp.NewRawTransport(r, w)
+}
 
 // Chapter 6: observer and mailbox types.
 type Observer = common.Observer
@@ -134,11 +165,12 @@ type ToolHandler func(args json.RawMessage) (string, error)
 // Agent is the public handle to a running agent. It implements common.Host,
 // providing the logger that all internal code reaches through parent interfaces.
 type Agent struct {
-	eng      *llm.Engine
-	reg      *tools.Reg
-	skills   *common.SkillRegistry
-	vars     *common.VarRegistry
-	Logger   *Logger
+	eng        *llm.Engine
+	reg        *tools.Reg
+	skills     *common.SkillRegistry
+	vars       *common.VarRegistry
+	Logger     *Logger
+	mcpClients []*mcp.Client // active MCP connections for cleanup
 }
 
 // NewAgent creates a new agent with the given config and log path. It wires
@@ -225,9 +257,53 @@ func (a *Agent) Ask(prompt string) (string, error) {
 	return a.eng.Ask(prompt)
 }
 
-// Shutdown ends all running jobs and saves the log.
+// Shutdown ends all running jobs, closes MCP connections, and saves the log.
 func (a *Agent) Shutdown() error {
+	for _, c := range a.mcpClients {
+		c.Close()
+	}
+	a.mcpClients = nil
 	return a.eng.Shutdown()
+}
+
+// ConnectMCP connects to an MCP server over the given transport.
+// It performs the MCP handshake, discovers tools, bridges them into the
+// agent's registry, and sets up reverse tool handling.
+func (a *Agent) ConnectMCP(t mcp.Transport) error {
+	client := mcp.NewClient(t)
+
+	if err := client.Initialize(context.Background()); err != nil {
+		client.Close()
+		return fmt.Errorf("mcp connect: %w", err)
+	}
+
+	tools, err := client.ListTools(context.Background())
+	if err != nil {
+		client.Close()
+		return fmt.Errorf("mcp connect: %w", err)
+	}
+
+	// Bridge discovered tools into the agent's registry.
+	bridged := mcp.Bridge(client, tools)
+	for _, t := range bridged {
+		a.reg.RegisterTool(t)
+	}
+
+	// Set up reverse tool handler: MCP server can call agent tools.
+	client.SetReverseHandler(func(name string, args json.RawMessage) (string, error) {
+		tool, err := a.reg.Lookup(name)
+		if err != nil {
+			return "", err
+		}
+		c := &common.Call{Host: a, Jobs: a.eng.Jobs}
+		return tool.Run(c, args)
+	})
+
+	a.mcpClients = append(a.mcpClients, client)
+
+	// Update tool declarations for the engine.
+	a.eng.Cfg.Tools = a.reg.Declarations()
+	return nil
 }
 
 // Usage returns the token counts accumulated across all requests.
