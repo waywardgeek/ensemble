@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ensemble</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ansi_up@6/ansi_up.min.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Status bar -->
+    <div id="status-bar">
+      <button id="hamburger" title="Toggle sidebar">☰</button>
+      <span id="agent-state">idle</span>
+      <span id="model-name"></span>
+      <span class="spacer"></span>
+      <button id="settings-btn" title="Settings">⚙</button>
+    </div>
+
+    <!-- Main three-pane layout -->
+    <div id="panes">
+      <!-- Left sidebar -->
+      <div id="sidebar" class="pane">
+        <div id="sidebar-tabs">
+          <button class="tab active" data-tab="chats">Chats</button>
+          <button class="tab" data-tab="artifacts">Artifacts</button>
+        </div>
+        <div id="sidebar-content">
+          <div class="tab-panel active" data-panel="chats">
+            <div class="sidebar-item active">Main conversation</div>
+          </div>
+          <div class="tab-panel" data-panel="artifacts">
+            <div class="sidebar-empty">No artifacts yet</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Left drag bar -->
+      <div class="drag-bar" id="drag-left"></div>
+
+      <!-- Center: chat scroll -->
+      <div id="center" class="pane">
+        <div id="chat-scroll" class="scroll-container"></div>
+        <div id="input-bar">
+          <input type="text" id="prompt-input" placeholder="Type a message..." autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Right drag bar -->
+      <div class="drag-bar" id="drag-right"></div>
+
+      <!-- Right: actions + agent tree -->
+      <div id="right-pane" class="pane">
+        <div id="actions-scroll" class="scroll-container"></div>
+        <div id="agent-tree">
+          <div class="agent-node">
+            <span class="agent-dot idle">●</span>
+            <span class="agent-label">main</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings overlay -->
+    <div id="settings-overlay" class="hidden">
+      <div id="settings-panel">
+        <div class="settings-header">
+          <h2>Settings</h2>
+          <button id="settings-close">✕</button>
+        </div>
+        <div class="settings-body">
+          <fieldset>
+            <legend>AI</legend>
+            <label>Model <input type="text" id="set-model" placeholder="claude-sonnet-5"></label>
+            <label>Temperature <input type="number" id="set-temperature" min="0" max="2" step="0.1" value="0"></label>
+            <label>Max tokens <input type="number" id="set-max-tokens" min="1" max="128000" value="16384"></label>
+            <label>Thinking budget <input type="number" id="set-thinking-budget" min="0" max="128000" value="0"></label>
+            <label>Max tool rounds <input type="number" id="set-max-tool-rounds" min="1" max="200" value="100"></label>
+          </fieldset>
+          <fieldset>
+            <legend>Accessibility</legend>
+            <label><input type="checkbox" id="set-tts-enabled"> TTS enabled</label>
+            <label>TTS speed <input type="number" id="set-tts-speed" min="0.5" max="10" step="0.1" value="1.2"></label>
+            <label>Font size <input type="number" id="set-font-size" min="10" max="36" value="14"></label>
+          </fieldset>
+          <fieldset>
+            <legend>Appearance</legend>
+            <label>Theme
+              <select id="set-theme">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="system">System</option>
+              </select>
+            </label>
+          </fieldset>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderers.js"></script>
+  <script src="tts.js"></script>
+  <script src="artifact-scroll.js"></script>
+  <script src="gui.js"></script>
+</body>
+</html>
