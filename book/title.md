@@ -1,6 +1,6 @@
 # The Self-Wielding Agent
 
-*Build an AI Coding Agent That Renews Itself*
+*An Agentic Codebook*
 
 **The Singularity as it Happened, Book 5**
 
