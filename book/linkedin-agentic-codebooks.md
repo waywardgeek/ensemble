@@ -4,11 +4,21 @@ We coined a term today, which is always a sign that something has
 gone either very right or very wrong.
 
 An **agentic codebook** is a technical book whose exercises produce a
-working program, and whose program helps produce the next edition of
-the book. This sounds like a perpetual motion machine, and in most
-fields it would be, except that software has the unusual property of
-being able to write more of itself if you ask it nicely and grade it
-firmly.
+working program. A capable LLM reads the chapters, passes the
+graders, and out comes production software. This sounds like a
+perpetual motion machine, and in most fields it would be, except that
+software has the unusual property of being able to write more of
+itself if you ask it nicely and grade it firmly.
+
+Two varieties. **Closed-loop**: the program helps produce the next
+edition of the book (a coding agent book that builds a coding agent).
+**Open-loop**: the program serves a purpose outside the book's own
+authorship — a fiction editing pipeline, an email triage system, a
+security monitor — but shares the killer property: it **self-heals**.
+Technology changes? Update the chapter, re-run the grader, let the
+LLM fix the code. New requirements? Add a chapter. The expert's job
+shifts from writing programs to writing specifications that survive
+regeneration.
 
 The grading turns out to be the interesting part. Three agents do
 the work:

@@ -26,13 +26,19 @@ that loop. Chapter 0 explains the mechanism. The rest of the book is
 the proof.
 
 We call this an **agentic codebook**: a technical book whose graded
-exercises produce a working program, and whose program helps produce
-the next edition of the book. The graders are its immune system. The
-mutation tests are its self-checks. The next language model is its
-next generation. Hand the book to a capable model and it builds the
-agent. Hand the agent to the author and it writes the next chapter.
-The codebook has agency because the loop never requires a human to
-carry the code from one end to the other.
+exercises produce a working program. This one is **closed-loop** — the
+program it builds helps produce the next edition of the book. The
+graders are its immune system. The mutation tests are its self-checks.
+The next language model is its next generation.
+
+Not every agentic codebook needs to close the loop. An **open-loop**
+agentic codebook produces a program that serves a purpose outside the
+book's own authoring — a fiction editing pipeline, an email triage
+system, a security monitor. What makes it agentic is that it
+self-heals: when the technology changes, update the chapter, re-run the
+grader, and the LLM fixes the code. New requirements become new
+chapters. The expert's job shifts from writing code to writing
+specifications that survive regeneration.
 
 ## Sixty billion dollars
 
