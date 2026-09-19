@@ -166,6 +166,42 @@ func main() {
 		report = grade.NewTitledReport(
 			"Chapter 11 — Persistence",
 			grade.Ch11Checks(r), "")
+	case 12:
+		r := grade.Ch12Run(path)
+		// Run ch11 parity check.
+		ch11r := grade.Ch11Run(path)
+		res10, err := grade.Ch10Run(path)
+		if err != nil {
+			ch11r.Ch10ParityErr = err.Error()
+		} else {
+			ch10checks := grade.Ch10Evaluate(res10)
+			allPassed := true
+			for _, c := range ch10checks {
+				if !c.Passed {
+					allPassed = false
+					break
+				}
+			}
+			ch11r.Ch10Parity = allPassed
+			if !allPassed {
+				ch11r.Ch10ParityErr = "one or more ch10 checks failed"
+			}
+		}
+		ch11checks := grade.Ch11Checks(ch11r)
+		allPassed := true
+		for _, c := range ch11checks {
+			if !c.Passed {
+				allPassed = false
+				break
+			}
+		}
+		r.Ch11Parity = allPassed
+		if !allPassed {
+			r.Ch11ParityErr = "one or more ch11 checks failed"
+		}
+		report = grade.NewTitledReport(
+			"Chapter 12 — MCP: The Extension Protocol",
+			grade.Ch12Checks(r), "")
 	default:
 		fmt.Fprintf(os.Stderr, "grader: no grader for chapter %d yet\n", *chapter)
 		os.Exit(2)

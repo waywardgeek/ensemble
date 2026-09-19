@@ -192,6 +192,12 @@ func (c *Client) handleReverseCall(req Request) {
 	}
 }
 
+// Done returns a channel that is closed when the client's codec shuts down
+// (transport EOF or error). Use this to detect when the remote side disconnects.
+func (c *Client) Done() <-chan struct{} {
+	return c.codec.done
+}
+
 // Close shuts down the MCP client.
 func (c *Client) Close() error {
 	return c.codec.Close()
