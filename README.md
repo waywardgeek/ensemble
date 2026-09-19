@@ -40,7 +40,7 @@ who'd rather read on a Kindle or hold a paper copy — same text, your choice.
 
 **[Read the whole book →](book/the-self-wielding-agent.md)**
 
-Ten chapters are built. The agent streams to a three-pane browser GUI with
+Eleven chapters are built. The agent streams to a three-pane browser GUI with
 drag bars, theming, TTS, and a settings panel that persists through the
 WebSocket — it pauses when the human needs to think, reconnects without
 losing state, and drives a debugger through a real PTY. It needs no
@@ -149,6 +149,13 @@ keeps skill bodies dynamic. Tool provenance tracking enables cache-aware
 rendering for Anthropic. The system prompt is a constitution: rendered once,
 never mutated. Everything dynamic flows through events.
 
+**Chapter 11: persistence.** Save and load the full agent state: context,
+event log, and config. Rebuild the context from the log and prove they
+match byte for byte. Checkpoint mid-conversation, replay the remaining
+events, and verify the result is identical. The grader tests three
+invariants: deterministic reduction, partial replay, and context
+sufficiency (the LLM never needs the log).
+
 ---
 
 ## Kick the tires in five minutes
@@ -231,6 +238,7 @@ make grade                          # chapter 1
 make grade2 grade3                  # chapters 2 and 3
 make grade5 grade7 grade8 grade9    # chapters 5, 7, 8, 9
 make grade10                        # chapter 10 (skills)
+make grade11                        # chapter 11 (persistence)
 ```
 
 Grade your own agent — any package directory or built binary:
@@ -271,6 +279,7 @@ make test                           # the grader's own sensitivity suite
 | 8 | Everything Is an Artifact | WebSocket hub, browser GUI, TTS, pause gate | The agent does not know the GUI exists. One component renders everything. |
 | 9 | Build Your Dream GUI | Three-pane workbench, settings, theming, agent tree | This is the ignition chapter: start using the agent to build itself. |
 | 10 | Skills | SKILL.md parsing, progressive disclosure, variable substitution, tool provenance | The system prompt is a constitution: rendered once, never mutated. |
+| 11 | Persistence | Save/load, deterministic rebuild, partial replay, context sufficiency | The event log is the truth; the context is what the truth means right now. |
 
 Each chapter is strictly additive to the last. `solutions/chNN` is a frozen
 snapshot of `agent/` at the moment the chapter finished, tagged
@@ -351,7 +360,7 @@ internal/fakevendor/    chapters 2+: deterministic stand-in for all three vendor
                         APIs, routed by request path; the grader mounts it
                         in-process, cmd/fakevendor serves it
 internal/grade/         scripts, process harnesses, checks, report
-solutions/ch01..ch10/   frozen reference solutions, one per finished chapter
+solutions/ch01..ch11/   frozen reference solutions, one per finished chapter
 scripts/live.sh         run a chapter's solution against a real vendor API
 testdata/students/      deliberately defective submissions (grader self-test)
 ```
