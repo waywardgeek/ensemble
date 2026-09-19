@@ -9,6 +9,8 @@ import (
 func Ch10Evaluate(r *Ch10Result) []Check {
 	checks := []Check{
 		ch10InitialTools(r),
+		ch10SystemPrompt(r),
+		ch10EnsembleTools(r),
 		ch10LoadSkill(r),
 		ch10ProgressiveDisclosure(r),
 		ch10DependsAutoload(r),
@@ -19,9 +21,9 @@ func Ch10Evaluate(r *Ch10Result) []Check {
 	return checks
 }
 
-// initial-tools (15 pts): Agent starts with only primary skill's tools.
+// initial-tools (10 pts): Agent starts with only primary skill's tools.
 func ch10InitialTools(r *Ch10Result) Check {
-	c := Check{ID: "initial-tools", Title: "Initial tool declarations match primary skill", Points: 15, Earned: 15, Passed: true}
+	c := Check{ID: "initial-tools", Title: "Initial tool declarations match primary skill", Points: 10, Earned: 10, Passed: true}
 
 	if !r.BuildOK {
 		c.failf("build failed: %s", r.BuildErr)
@@ -78,9 +80,85 @@ func ch10InitialTools(r *Ch10Result) Check {
 	return c
 }
 
-// load-skill (20 pts): Loading code-tools adds its tools.
+// system-prompt (10 pts): System prompt contains primary skill's rendered body.
+func ch10SystemPrompt(r *Ch10Result) Check {
+	c := Check{ID: "system-prompt", Title: "System prompt contains primary skill body", Points: 10, Earned: 10, Passed: true}
+
+	if !r.BuildOK {
+		c.failf("build failed: %s", r.BuildErr)
+		return c
+	}
+
+	if r.SystemPromptErr != "" {
+		c.failf("%s", r.SystemPromptErr)
+		return c
+	}
+
+	if !r.SystemPromptOK {
+		c.failf("system prompt does not contain primary skill body text")
+		return c
+	}
+
+	c.notef("system prompt contains base skill body (len=%d)", len(r.SystemPrompt))
+	return c
+}
+
+// ensemble-tools (10 pts): With EN_PRIMARY_SKILL=ensemble, all core tools visible.
+func ch10EnsembleTools(r *Ch10Result) Check {
+	c := Check{ID: "ensemble-tools", Title: "Ensemble skill declares all core tools", Points: 10, Earned: 10, Passed: true}
+
+	if !r.BuildOK {
+		c.failf("build failed: %s", r.BuildErr)
+		return c
+	}
+
+	if r.EnsembleToolsErr != "" {
+		c.failf("%s", r.EnsembleToolsErr)
+		return c
+	}
+
+	if len(r.EnsembleTools) == 0 {
+		c.failf("no tools in ensemble request")
+		return c
+	}
+
+	// The ensemble skill declares all 12 core tools.
+	expected := []string{
+		"run_command", "wait_for_job", "send_input", "kill_job",
+		"read_file", "write_file", "edit_file", "list_directory",
+		"search_files", "think", "load_skill", "unload_skill",
+	}
+
+	toolSet := make(map[string]bool)
+	for _, t := range r.EnsembleTools {
+		toolSet[t] = true
+	}
+
+	var missing []string
+	for _, e := range expected {
+		if !toolSet[e] {
+			missing = append(missing, e)
+		}
+	}
+
+	if len(missing) > 0 {
+		c.failf("missing tools: %v (got %d: %v)", missing, len(r.EnsembleTools), r.EnsembleTools)
+		return c
+	}
+
+	// Also verify the system prompt contains the ensemble skill body.
+	if r.EnsemblePrompt != "" && !strings.Contains(r.EnsemblePrompt, "Ensemble agent") {
+		c.failf("ensemble system prompt does not contain expected body text")
+		return c
+	}
+
+	c.notef("all %d core tools present", len(expected))
+	return c
+}
+
+// load-skill (15 pts): Loading code-tools adds its tools.
 func ch10LoadSkill(r *Ch10Result) Check {
-	c := Check{ID: "load-skill", Title: "load_skill adds new tool declarations", Points: 20, Earned: 20, Passed: true}
+	c := Check{ID: "load-skill", Title: "load_skill adds new tool declarations", Points: 15, Earned: 15, Passed: true}
 
 	if !r.BuildOK {
 		c.failf("build failed: %s", r.BuildErr)
@@ -140,9 +218,9 @@ func ch10ProgressiveDisclosure(r *Ch10Result) Check {
 	return c
 }
 
-// depends-autoload (15 pts): Loading search-tools auto-loads search-helpers.
+// depends-autoload (10 pts): Loading search-tools auto-loads search-helpers.
 func ch10DependsAutoload(r *Ch10Result) Check {
-	c := Check{ID: "depends-autoload", Title: "Skill dependencies auto-loaded", Points: 15, Earned: 15, Passed: true}
+	c := Check{ID: "depends-autoload", Title: "Skill dependencies auto-loaded", Points: 10, Earned: 10, Passed: true}
 
 	if !r.BuildOK {
 		c.failf("build failed: %s", r.BuildErr)
@@ -192,9 +270,9 @@ func ch10VarSubstitution(r *Ch10Result) Check {
 	return c
 }
 
-// blocked-skill (10 pts): A skill not in any loadable-skills chain is rejected.
+// blocked-skill (5 pts): A skill not in any loadable-skills chain is rejected.
 func ch10BlockedSkill(r *Ch10Result) Check {
-	c := Check{ID: "blocked-skill", Title: "Unreachable skill rejected by load_skill", Points: 10, Earned: 10, Passed: true}
+	c := Check{ID: "blocked-skill", Title: "Unreachable skill rejected by load_skill", Points: 5, Earned: 5, Passed: true}
 
 	if !r.BuildOK {
 		c.failf("build failed: %s", r.BuildErr)

@@ -65,6 +65,14 @@ type Ch10Result struct {
 	BlockedErr string
 	BlockedResult string
 
+	// System prompt check.
+	SystemPromptOK  bool
+
+	// Ensemble primary skill test.
+	EnsembleTools    []string
+	EnsemblePrompt   string
+	EnsembleToolsErr string
+
 	// Ch9 parity.
 	Ch9Result *Ch9Result
 	Ch9Err    string
@@ -122,6 +130,17 @@ type: loadable
 tools: blocked_tool
 ---
 This skill should never be loadable.
+`,
+		"ensemble": `---
+name: ensemble
+description: Full Ensemble agent with all core tools
+type: primary
+tools: run_command wait_for_job send_input kill_job read_file write_file edit_file list_directory search_files think load_skill unload_skill
+loadable-skills: code-tools search-tools
+---
+You are the Ensemble agent. You have full access to all tools.
+
+Available skills to load: $SKILLS
 `,
 	}
 
@@ -220,6 +239,18 @@ func Ch10Run(dir string) (*Ch10Result, error) {
 	// Phase 1: Initial tools + load_skill.
 	ch10DriveInitialAndLoad(r, bin, guiDir)
 
+	// System prompt check — verify the primary skill's body is in the system prompt.
+	if r.SystemPrompt != "" {
+		// The base skill body starts with "You are a helpful agent."
+		if strings.Contains(r.SystemPrompt, "You are a helpful agent") {
+			r.SystemPromptOK = true
+		} else {
+			r.SystemPromptErr = fmt.Sprintf("system prompt does not contain base skill body (len=%d)", len(r.SystemPrompt))
+		}
+	} else if r.SystemPromptErr == "" {
+		r.SystemPromptErr = "system prompt not captured from first request"
+	}
+
 	// Phase 2: Progressive disclosure + depends.
 	ch10DriveDisclosure(r, bin, guiDir)
 
@@ -233,6 +264,9 @@ func Ch10Run(dir string) (*Ch10Result, error) {
 	} else {
 		r.Ch9Result = ch9r
 	}
+
+	// Phase 5: Ensemble primary skill — all core tools visible from the start.
+	ch10DriveEnsemble(r, bin, guiDir)
 
 	return r, nil
 }
@@ -633,3 +667,88 @@ func extractToolResultFromRequest(rec fakevendor.Recorded) string {
 	}
 	return ""
 }
+
+// ch10DriveEnsemble starts the binary with EN_PRIMARY_SKILL=ensemble and
+// verifies that all core tools are visible from the start.
+func ch10DriveEnsemble(r *Ch10Result, bin, guiDir string) {
+	replies := []fakevendor.Reply{
+		{Text: "Ensemble agent ready with all tools."},
+	}
+	srv := fakevendor.New(replies)
+	defer srv.Close()
+
+	tmp, err := os.MkdirTemp("", "ch10-ensemble-*")
+	if err != nil {
+		r.EnsembleToolsErr = fmt.Sprintf("temp dir: %v", err)
+		return
+	}
+	defer os.RemoveAll(tmp)
+
+	skillsDir := filepath.Join(tmp, "skills")
+	if err := ch10CreateFixtureSkills(skillsDir); err != nil {
+		r.EnsembleToolsErr = fmt.Sprintf("create skills: %v", err)
+		return
+	}
+
+	port := freePort()
+
+	cmd := exec.Command(bin, "--port", port, "--gui-dir", guiDir)
+	cmd.Dir = tmp
+	cmd.Env = append(os.Environ(),
+		"LLM_BASE_URL="+srv.URL(),
+		"LLM_VENDOR=anthropic",
+		"LLM_MODEL=fake-model",
+		"LLM_API_KEY=test-key",
+		"EN_LOG_DIR="+tmp,
+		"EN_SKILLS_DIR="+skillsDir,
+		"EN_PRIMARY_SKILL=ensemble",
+		"EN_CUSTOM_VAR=hello-from-grader",
+	)
+
+	stdin, err := cmd.StdinPipe()
+	if err != nil {
+		r.EnsembleToolsErr = fmt.Sprintf("stdin pipe: %v", err)
+		return
+	}
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Start(); err != nil {
+		r.EnsembleToolsErr = fmt.Sprintf("start: %v", err)
+		return
+	}
+	defer func() {
+		cmd.Process.Kill()
+		cmd.Wait()
+	}()
+
+	if !waitForHTTP("http://localhost:"+port+"/", 10*time.Second) {
+		r.EnsembleToolsErr = "GUI server did not start"
+		return
+	}
+
+	// Wait a moment for the actor loop to be ready.
+	time.Sleep(500 * time.Millisecond)
+
+	// Send a prompt via stdin.
+	fmt.Fprintln(stdin, `{"kind":"prompt","text":"hello"}`)
+
+	// Wait for the request to reach fakevendor.
+	deadline := time.Now().Add(10 * time.Second)
+	for time.Now().Before(deadline) {
+		if len(srv.Requests()) > 0 {
+			break
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	reqs := srv.Requests()
+	if len(reqs) == 0 {
+		r.EnsembleToolsErr = "no requests to fakevendor"
+		return
+	}
+
+	r.EnsembleTools = extractToolNamesFromRequest(reqs[0])
+	r.EnsemblePrompt = extractSystemPromptFromRequest(reqs[0])
+}
+
