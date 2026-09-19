@@ -405,8 +405,9 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		// Update tool declarations.
 		eng.Cfg.Tools = reg.Declarations()
 
-		// Block until stdin closes (MCP transport EOF).
-		<-ctx.Done()
+		// Block until the MCP transport closes (EOF from the other side).
+		<-client.Done()
+		cancel()
 		_ = actor.Shutdown()
 		return false
 	}
