@@ -40,7 +40,7 @@ who'd rather read on a Kindle or hold a paper copy — same text, your choice.
 
 **[Read the whole book →](book/the-self-wielding-agent.md)**
 
-Eleven chapters are built. The agent streams to a three-pane browser GUI with
+Twelve chapters are built. The agent streams to a three-pane browser GUI with
 drag bars, theming, TTS, and a settings panel that persists through the
 WebSocket — it pauses when the human needs to think, reconnects without
 losing state, and drives a debugger through a real PTY. It needs no
@@ -239,6 +239,7 @@ make grade2 grade3                  # chapters 2 and 3
 make grade5 grade7 grade8 grade9    # chapters 5, 7, 8, 9
 make grade10                        # chapter 10 (skills)
 make grade11                        # chapter 11 (persistence)
+make grade12                        # chapter 12 (MCP)
 ```
 
 Grade your own agent — any package directory or built binary:
@@ -280,6 +281,7 @@ make test                           # the grader's own sensitivity suite
 | 9 | Build Your Dream GUI | Three-pane workbench, settings, theming, agent tree | This is the ignition chapter: start using the agent to build itself. |
 | 10 | Skills | SKILL.md parsing, progressive disclosure, variable substitution, tool provenance | The system prompt is a constitution: rendered once, never mutated. |
 | 11 | Persistence | Save/load, deterministic rebuild, partial replay, context sufficiency | The event log is the truth; the context is what the truth means right now. |
+| 12 | MCP | JSON-RPC 2.0 client, transports, ephemeral tools, reverse calls, browser MCP server | The extension protocol: anything that speaks JSON-RPC is a tool server. |
 
 Each chapter is strictly additive to the last. `solutions/chNN` is a frozen
 snapshot of `agent/` at the moment the chapter finished, tagged
@@ -291,18 +293,14 @@ chapter costs.
 ## What comes next
 
 The agent can act, stream, pause, drive a debugger, load skills at runtime,
-and run inside a three-pane workbench the student designed themselves. What it
-can't do yet is *see its own GUI* or *direct other agents*.
+run inside a three-pane workbench, save and resume conversations, and connect
+to external tool servers over MCP. What it can't do yet is *see its own GUI*
+or *direct other agents*.
 
-- **MCP** (chapter 11). An MCP server built into the GUI lets the LLM see
-  what the human sees: the current GUI state attached as markdown to every
-  round trip, one copy, always current, never flooding context. Skills
-  (chapter 10) already declare dependencies and form hierarchies; MCP servers
-  are declared by skills and bring external tools into the registry.
-- **The agent fixes its own GUI** (chapter 12). The LLM pretends to be the
-  human: it reads the GUI through the MCP server, pokes the same buttons,
-  watches the page adapt, and files the bugs it finds. Then it fixes them.
-  This is where self-wielding goes live.
+- **The agent fixes its own GUI** (chapter 13). The LLM pretends to be the
+  human: it reads the GUI through the MCP server (chapter 12), pokes the same
+  buttons, watches the page adapt, and files the bugs it finds. Then it fixes
+  them. This is where self-wielding goes live.
 - **Sub-agents**: an agent is a sub-agent the moment you stop watching it.
 - **Security**: a shell contains every tool, and you added one in chapter 3.
   The security chapter follows directly from skills.
