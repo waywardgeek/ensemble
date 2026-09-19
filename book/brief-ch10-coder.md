@@ -167,6 +167,10 @@ Create test fixture skills in a `skills/` directory:
 skills/
 ├── base/
 │   └── SKILL.md        # type: primary, tools: read_file think
+│                        # loadable-skills: code-tools
+├── ensemble/
+│   └── SKILL.md        # type: primary, tools: all 12 core tools
+│                        # loadable-skills: code-tools search-tools
 ├── code-tools/
 │   └── SKILL.md        # type: loadable, tools: edit_file write_file
 │                        # loadable-skills: search-tools
@@ -179,23 +183,29 @@ skills/
     └── SKILL.md        # type: loadable (but NOT in any loadable-skills chain)
 ```
 
-The exercise binary starts with the `base` skill as primary. The agent can
-discover `code-tools` (listed in `base`'s loadable-skills). Loading
-`code-tools` reveals `search-tools`. Loading `search-tools` auto-loads
-`search-helpers`. `blocked` is never loadable because no loaded skill
-declares it.
+The exercise tests TWO primary skills:
+- `base`: minimal agent (read_file, think, load_skill, unload_skill).
+  Tests progressive disclosure — the agent starts small and loads more.
+- `ensemble`: full agent with all core tools. Tests that a production-
+  grade agent gets everything it needs from its primary skill.
 
-### 9. Grader checks (proposed, ~100 points)
+The system prompt sent to the vendor MUST contain the primary skill's
+body text with variables substituted. The grader inspects the `system`
+field of the first vendor request to verify this.
+
+### 9. Grader checks (~100 points)
 
 | Check | Points | What it tests |
 |---|---|---|
-| `skill-parse` | 15 | Parse a SKILL.md, verify name/description/tools/depends fields |
-| `initial-tools` | 15 | Agent starts with only primary skill's tools; others are unavailable |
-| `load-skill` | 20 | `load_skill("code-tools")` → new tools become callable |
-| `depends-autoload` | 15 | Loading a skill with `depends:` auto-loads the dependency |
-| `progressive-disclosure` | 15 | Loading `code-tools` makes `search-tools` loadable (wasn't before) |
+| `initial-tools` | 10 | Agent starts with only base skill's tools + load/unload |
+| `system-prompt` | 10 | System prompt contains primary skill's rendered body text |
+| `ensemble-tools` | 10 | With EN_PRIMARY_SKILL=ensemble, all 12 core tools visible |
+| `load-skill` | 15 | `load_skill("code-tools")` adds new tools to declarations |
+| `progressive-disclosure` | 15 | Loading code-tools makes search-tools loadable |
+| `depends-autoload` | 10 | Loading search-tools auto-loads search-helpers (list_directory appears) |
 | `var-substitution` | 10 | A skill body containing `$CUSTOM_VAR` renders the registered value |
-| `ch9-parity` | 10 | All ch9 checks pass (settings roundtrip, persist, etc.) |
+| `blocked-skill` | 5 | Non-loadable skills rejected with error |
+| `ch9-parity` | 15 | All ch9 checks pass |
 
 ### 10. Key design rules
 

@@ -12,7 +12,58 @@ Follow these steps in order. Each step has a rationale.
   the reference solution, grader, fixtures, mutation tests, and
   a post-build review for the author. Never edits `book/`.
 - **Bill**: Reviews outlines, rules on open questions, LGTMs
-  chapters. Push is always Bill's.
+  chapters. Push is always Bill's. **Bill never reports bugs
+  directly.** See below.
+
+### Bill never reports bugs
+
+If Bill sees a bug in the running agent, he does NOT report it.
+Reporting a bug means the fix happens outside the grader, which
+means the next LLM building from the book ships the same bug.
+The grader IS the specification. If it does not test for something,
+that something does not exist.
+
+Instead, Bill suggests improvements to the **TL;DR** — what the
+grader should check for, what behavior the exercise contract
+requires. The author updates the TL;DR accordingly. Then the
+**coder re-runs the chapter**: rebuilds from the updated brief,
+re-grades, and either the grader already catches the concern
+(good — the spec was already strong enough) or the grader needs
+a new check (add it, then fix the code to pass). Either way, the
+fix flows through the grader, and every future agent built from
+the book inherits it.
+
+This is the difference between a bug fix and a specification
+improvement. Bug fixes are local. Specification improvements
+propagate through regeneration.
+
+### The grader feedback loop
+
+When Bill raises a concern about behavior, the author and coder
+work it through a three-agent loop:
+
+1. **Author** updates the TL;DR and plain-English sections to
+   describe the required behavior clearly enough that a fresh
+   coder could implement it from the chapter text alone.
+
+2. **Grader coder** (Opus 5 sub-agent) reads the updated TL;DR
+   and enhances the grader: adds or strengthens checks, updates
+   fixtures, creates mutation tests. The grader coder never reads
+   the reference solution — it builds from the spec.
+
+3. **Student coder** (Opus 5 sub-agent) reads ONLY the chapter
+   (TL;DR + prose) and attempts to build a passing solution from
+   scratch, starting from `solutions/ch(N-1)`. If it struggles
+   or fails, that is a signal: the TL;DR has a gap. The author
+   fixes the gap and the student retries.
+
+The loop continues until the student passes 100/100 from the
+chapter text alone. At that point, the grader spec, the chapter
+prose, and the reference solution are all consistent — and the
+next LLM that reads the chapter will produce a working agent.
+
+This loop belongs in Phase 2 (after the initial draft) and in
+the review cycle (Phase 3) whenever Bill raises a new concern.
 
 ## The full arc
 

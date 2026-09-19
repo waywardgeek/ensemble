@@ -67,19 +67,63 @@ Available skills to load: $SKILLS
 - `loadable-skills`: skills this skill makes available for the agent
   to discover
 
+The primary skill defines the agent. Its body becomes the system
+prompt (rendered once at creation), and its `tools` list determines
+which tools are available at startup. A minimal `base` skill might
+declare only `read_file` and `think`. A full `ensemble` skill
+declares every tool the agent needs:
+
+```yaml
+---
+name: ensemble
+description: Full AI coding agent
+type: primary
+tools:
+  - read_file
+  - write_file
+  - edit_file
+  - list_directory
+  - search_files
+  - run_command
+  - wait_for_job
+  - send_input
+  - kill_job
+  - think
+  - load_skill
+  - unload_skill
+loadable-skills: code-tools search-tools
+---
+You are an autonomous AI coding agent.
+
+## Available Tools
+
+$TOOLS
+
+## Available Skills
+
+$SKILLS
+```
+
+The system prompt sent to the vendor must contain the primary
+skill's body text with variables substituted. The grader verifies
+this by inspecting the `system` field of the first vendor request.
+
 **Exercise contract:** `EN_SKILLS_DIR=path/to/skills EN_PRIMARY_SKILL=base ./ensemble prompt "load the code-tools skill"`
 
 The grader verifies:
 - Initial tool set matches primary skill's declared tools plus
-  `load_skill` and `unload_skill` (15 pts)
+  `load_skill` and `unload_skill` (10 pts)
+- The system prompt contains the primary skill's body text (10 pts)
+- When `EN_PRIMARY_SKILL=ensemble`, all 12 core tools appear in the
+  initial tool declarations (10 pts)
 - `load_skill("code-tools")` adds that skill's tools to
   declarations (15 pts)
 - Loading a skill with `loadable-skills` reveals those skills in
   `$SKILLS` (15 pts)
-- Dependencies auto-load and contribute their tools (15 pts)
+- Dependencies auto-load and contribute their tools (10 pts)
 - `$VAR` placeholders in skill body are substituted (10 pts)
-- Non-loadable skills are rejected with an error (10 pts)
-- All chapter 9 checks still pass (20 pts)
+- Non-loadable skills are rejected with an error (5 pts)
+- All chapter 9 checks still pass (15 pts)
 
 ## The Format
 
