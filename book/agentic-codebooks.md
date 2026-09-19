@@ -133,11 +133,39 @@ it produces is used to maintain the book's own codebase. Each chapter adds a
 capability; the accumulated capabilities make the next chapter easier to
 write.
 
+**LLM training programs.** A book that teaches how to build training
+pipelines, fine-tuning infrastructure, and evaluation harnesses. The trained
+models it produces become better student agents for the next edition of every
+other agentic codebook in the ecosystem — including this one. The training
+codebook improves the models; the improved models improve every codebook.
+
 The pattern requires three properties:
 1. **The exercises produce a runnable program** (not just understanding)
 2. **The program is useful for producing the book** (the loop closes)
 3. **The grader can verify correctness mechanically** (the specification is
    executable)
+
+## The Bootstrap
+
+Consider what a complete set of agentic codebooks implies. A coding agent
+codebook produces better coding agents. A compiler codebook produces better
+compilers. A training codebook produces better models. Each one feeds the
+others: better models produce better student agents, better student agents
+produce better tools, better tools produce better training data.
+
+Today the human expert is essential — they hold the domain knowledge that
+the agents lack, and they make the architectural rulings that keep the
+system coherent. But each generation of codebook captures more of that
+knowledge in executable form. The graders encode the specification. The
+deletion audits encode the quality standard. The chapter procedures encode
+the workflow.
+
+At some point an agent can do the human expert's job better than the human.
+When that happens, the only input the loop needs is compute. The codebooks
+are the bootstrap: a self-contained set of specifications, graders, and
+procedures that can regenerate every tool in the stack from scratch, each
+generation better than the last. Everything needed to ramp to the singularity
+fits in a repository.
 
 ## Implementation as a Skill
 
