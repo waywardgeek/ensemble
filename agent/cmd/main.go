@@ -70,6 +70,8 @@ func main() {
 	savePath := ""
 	loadPath := ""
 	mcpPipe := false
+	guiDebug := false
+	skillsDir := ""
 
 	// Parse flags manually to keep backward compat with positional commands.
 	var filtered []string
@@ -97,6 +99,13 @@ func main() {
 			loadPath = strings.TrimPrefix(args[i], "--load=")
 		case args[i] == "--mcp-pipe":
 			mcpPipe = true
+		case args[i] == "--gui-debug":
+			guiDebug = true
+		case args[i] == "--skills-dir" && i+1 < len(args):
+			skillsDir = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--skills-dir="):
+			skillsDir = strings.TrimPrefix(args[i], "--skills-dir=")
 		default:
 			filtered = append(filtered, args[i])
 		}
@@ -181,7 +190,7 @@ func main() {
 		}
 
 	case "":
-		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, loadPath, mcpPipe) {
+		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, loadPath, mcpPipe, guiDebug, skillsDir) {
 			os.Exit(1)
 		}
 
@@ -238,12 +247,15 @@ type stdinMsg struct {
 	Ephemeral *string `json:"ephemeral"`
 }
 
-func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, loadPath string, mcpPipe bool) (vendorFailed bool) {
+func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, loadPath string, mcpPipe bool, guiDebug bool, skillsDir string) (vendorFailed bool) {
 	host := newCLIHost()
 	j := jobs.NewJobs(host)
 
 	// Set up skills.
 	skillDir := envOr("EN_SKILLS_DIR", "skills")
+	if skillsDir != "" {
+		skillDir = skillsDir
+	}
 	sr := common.NewSkillRegistry()
 	vars := common.NewVarRegistry()
 
@@ -309,6 +321,90 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	reg.SetOnToolsChanged(func() {
 		eng.Cfg.Tools = reg.Declarations()
 	})
+
+	// Track MCP clients per skill for lifecycle management.
+	skillMCPClients := make(map[string][]*mcp.Client)
+	skillMCPToolNames := make(map[string][]string)
+
+	// Skill-based MCP lifecycle: connect when a skill is loaded.
+	reg.SetOnSkillMCPConnect(func(skill string, servers []common.MCPServerConfig) ([]string, error) {
+		var allToolNames []string
+		for _, srv := range servers {
+			var t mcp.Transport
+			var tErr error
+			switch srv.Transport {
+			case "stdio":
+				t, tErr = mcp.NewStdioTransport(srv.Command, srv.Args, srv.Env)
+			default:
+				host.Logf("skill %s: unsupported MCP transport %q, skipping", skill, srv.Transport)
+				continue
+			}
+			if tErr != nil {
+				return nil, fmt.Errorf("skill %s MCP %s: %w", skill, srv.Name, tErr)
+			}
+
+			client := mcp.NewClient(t)
+			if err := client.Initialize(context.Background()); err != nil {
+				client.Close()
+				return nil, fmt.Errorf("skill %s MCP %s init: %w", skill, srv.Name, err)
+			}
+
+			mcpTools, err := client.ListTools(context.Background())
+			if err != nil {
+				client.Close()
+				return nil, fmt.Errorf("skill %s MCP %s list: %w", skill, srv.Name, err)
+			}
+
+			bridged := mcp.Bridge(client, mcpTools)
+			for _, bt := range bridged {
+				reg.RegisterTool(bt)
+				allToolNames = append(allToolNames, bt.Name)
+			}
+
+			client.SetReverseHandler(func(name string, args json.RawMessage) (string, error) {
+				tool, lErr := reg.Lookup(name)
+				if lErr != nil {
+					return "", lErr
+				}
+				return tool.Run(&common.Call{Host: host, Jobs: j}, args)
+			})
+
+			skillMCPClients[skill] = append(skillMCPClients[skill], client)
+		}
+		skillMCPToolNames[skill] = allToolNames
+		return allToolNames, nil
+	})
+
+	// Skill-based MCP lifecycle: disconnect when a skill is unloaded.
+	reg.SetOnSkillMCPDisconnect(func(skill string) error {
+		// Remove bridged tools from registry.
+		for _, name := range skillMCPToolNames[skill] {
+			reg.RemoveTool(name)
+		}
+		delete(skillMCPToolNames, skill)
+
+		// Close MCP clients.
+		for _, client := range skillMCPClients[skill] {
+			client.Close()
+		}
+		delete(skillMCPClients, skill)
+		return nil
+	})
+
+	// --gui-debug: auto-load the gui-debug skill on startup.
+	if guiDebug {
+		loadTool, lErr := reg.Lookup("load_skill")
+		if lErr != nil {
+			fmt.Fprintf(os.Stderr, "gui-debug: load_skill not found: %v\n", lErr)
+			return true
+		}
+		args, _ := json.Marshal(map[string]string{"name": "gui-debug"})
+		if _, lErr = loadTool.Run(nil, args); lErr != nil {
+			fmt.Fprintf(os.Stderr, "gui-debug: %v\n", lErr)
+			return true
+		}
+		eng.Cfg.Tools = reg.Declarations()
+	}
 
 	// Pause gate: shared between the actor and the WS hub.
 	gate := common.NewPauseGate()
