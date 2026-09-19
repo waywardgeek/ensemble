@@ -9,6 +9,15 @@ other. As far as we know, this is the first time anyone has closed
 that loop. Chapter 0 explains the mechanism. The rest of the book is
 the proof.
 
+We call this an **agentic codebook**: a technical book whose graded
+exercises produce a working program, and whose program helps produce
+the next edition of the book. The graders are its immune system. The
+mutation tests are its self-checks. The next language model is its
+next generation. Hand the book to a capable model and it builds the
+agent. Hand the agent to the author and it writes the next chapter.
+The codebook has agency because the loop never requires a human to
+carry the code from one end to the other.
+
 ## Sixty billion dollars
 
 In July 2025 Windsurf, a company that made an AI coding agent, was valued
