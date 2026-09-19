@@ -43,9 +43,9 @@ type Config struct {
 
 // ToolDecl is a tool as the MODEL sees it.
 type ToolDecl struct {
-	Name        string
-	Description string
-	Schema      json.RawMessage
+	Name        string          `json:"name"`
+	Description string          `json:"description"`
+	Schema      json.RawMessage `json:"schema"`
 }
 
 // Renderer turns a Context into one vendor's HTTP request.
