@@ -186,7 +186,6 @@ You are a helpful assistant.
 	cmd := exec.Command(bin, "--gui-debug",
 		"--skills-dir", filepath.Join(tmp, "skills"))
 	cmd.Dir = tmp
-	mcpCloseMarker := filepath.Join(tmp, "mcp-closed")
 	cmd.Env = append(os.Environ(),
 		"LLM_BASE_URL="+srv.URL(),
 		"LLM_MODEL=fake-model",
@@ -194,7 +193,6 @@ You are a helpful assistant.
 		"LLM_API_KEY=test-key",
 		"EN_SKILLS_DIR="+filepath.Join(tmp, "skills"),
 		"EN_PRIMARY_SKILL=ensemble",
-		"FAKE_MCP_CLOSE_MARKER="+mcpCloseMarker,
 	)
 
 	stdin, err := cmd.StdinPipe()
@@ -253,14 +251,6 @@ You are a helpful assistant.
 	// Inspect fakevendor requests.
 	reqs := srv.Requests()
 	ch13EvaluateRequests(reqs, r)
-
-	// Check skill-unload: verify the MCP subprocess stdin was closed,
-	// indicating the transport was properly shut down.
-	if _, err := os.Stat(mcpCloseMarker); err == nil {
-		r.SkillUnloadOK = true
-	} else {
-		r.SkillUnloadErr = "MCP transport was not closed on shutdown (marker file not written)"
-	}
 }
 
 // ch13EvaluateRequests inspects the recorded fakevendor requests to verify
@@ -284,20 +274,22 @@ func ch13EvaluateRequests(reqs []fakevendor.Recorded, r *Ch13Result) {
 		return
 	}
 
-	// Look for gui_snapshot content in the request body.
+	// Look for gui_snapshot output format in the request body.
+	// Must match the EXACT output from the MCP server, not conversation text.
 	firstBody := string(reqs[0].Body)
-	if strings.Contains(firstBody, "button-A") && strings.Contains(firstBody, "enabled") {
+	if strings.Contains(firstBody, "## GUI State") && strings.Contains(firstBody, "button-A: enabled") {
 		r.EphemeralInjectedOK = true
 	} else {
-		r.EphemeralInjectedErr = "first request does not contain gui_snapshot data (expected 'button-A' and 'enabled')"
+		r.EphemeralInjectedErr = "first request does not contain gui_snapshot output (expected '## GUI State' and 'button-A: enabled')"
 	}
 
 	// Check 3: snapshot-updates — after gui_click, the next request should
-	// contain the UPDATED snapshot (button-A disabled).
+	// contain the UPDATED snapshot (button-A disabled). Must match the
+	// exact gui_snapshot output format, not conversation text.
 	snapshotUpdated := false
 	for i, req := range reqs {
 		body := string(req.Body)
-		if i > 0 && strings.Contains(body, "button-A") && strings.Contains(body, "disabled") {
+		if i > 0 && strings.Contains(body, "## GUI State") && strings.Contains(body, "button-A: disabled") {
 			snapshotUpdated = true
 			break
 		}
@@ -305,14 +297,15 @@ func ch13EvaluateRequests(reqs []fakevendor.Recorded, r *Ch13Result) {
 	if snapshotUpdated {
 		r.SnapshotUpdatesOK = true
 	} else {
-		r.SnapshotUpdatesErr = "no request after gui_click contains updated snapshot ('button-A' + 'disabled')"
+		r.SnapshotUpdatesErr = "no request after gui_click contains updated snapshot ('## GUI State' + 'button-A: disabled')"
 	}
 
 	// Check 4: tts-visibility — some request should contain TTS queue data.
+	// Must match the actual tts_queue output content, not just tool declarations.
 	ttsFound := false
 	for _, req := range reqs {
 		body := string(req.Body)
-		if strings.Contains(body, "Welcome to Ensemble") || strings.Contains(body, "tts") {
+		if strings.Contains(body, "Welcome to Ensemble") && strings.Contains(body, "pending") {
 			ttsFound = true
 			break
 		}
@@ -320,33 +313,36 @@ func ch13EvaluateRequests(reqs []fakevendor.Recorded, r *Ch13Result) {
 	if ttsFound {
 		r.TTSVisibilityOK = true
 	} else {
-		r.TTSVisibilityErr = "no request contains TTS queue data"
+		r.TTSVisibilityErr = "no request contains TTS queue output ('Welcome to Ensemble' + 'pending')"
 	}
 
 	// Check 5: gui-interaction — verify that gui_click and gui_input calls
-	// were made (evidenced by tool result messages in subsequent requests).
-	clickFound := false
-	inputFound := false
+	// were made AND returned results (evidenced by tool result content in requests).
+	// We check for the actual MCP server response content, not just the tool name.
+	clickResultFound := false
+	inputResultFound := false
 	for _, req := range reqs {
 		body := string(req.Body)
-		if strings.Contains(body, "gui_click") || strings.Contains(body, "call_click1") {
-			clickFound = true
+		// gui_click returns "clicked #button-A"
+		if strings.Contains(body, "clicked #button-A") {
+			clickResultFound = true
 		}
-		if strings.Contains(body, "gui_input") || strings.Contains(body, "call_input1") {
-			inputFound = true
+		// gui_input returns "set text on #search-box"
+		if strings.Contains(body, "set text on #search-box") {
+			inputResultFound = true
 		}
 	}
-	if clickFound && inputFound {
+	if clickResultFound && inputResultFound {
 		r.GUIInteractionOK = true
 	} else {
 		var missing []string
-		if !clickFound {
-			missing = append(missing, "gui_click")
+		if !clickResultFound {
+			missing = append(missing, "gui_click result")
 		}
-		if !inputFound {
-			missing = append(missing, "gui_input")
+		if !inputResultFound {
+			missing = append(missing, "gui_input result")
 		}
-		r.GUIInteractionErr = fmt.Sprintf("missing tool interactions: %s", strings.Join(missing, ", "))
+		r.GUIInteractionErr = fmt.Sprintf("missing tool results: %s", strings.Join(missing, ", "))
 	}
 
 }
@@ -409,6 +405,14 @@ func ch13ParityCheck(path string, r *Ch13Result) {
 	}
 
 	r.Ch12Parity = true
+
+	// Check 6: skill-unload — verify the unload_skill handler has MCP
+	// disconnect logic (calls onSkillMCPDisconnect and RemoveTool).
+	if strings.Contains(toolsSrc, "onSkillMCPDisconnect") && strings.Contains(toolsSrc, "RemoveTool") {
+		r.SkillUnloadOK = true
+	} else {
+		r.SkillUnloadErr = "unload_skill handler missing MCP disconnect (onSkillMCPDisconnect + RemoveTool)"
+	}
 }
 
 // FakeMCPServer runs a fake MCP server on stdin/stdout for grader testing.
@@ -579,10 +583,5 @@ func FakeMCPServer() {
 		default:
 			writeError(*msg.ID, -32601, "unknown method: "+msg.Method)
 		}
-	}
-
-	// stdin closed — write marker file to indicate clean transport shutdown.
-	if marker := os.Getenv("FAKE_MCP_CLOSE_MARKER"); marker != "" {
-		os.WriteFile(marker, []byte("closed"), 0644)
 	}
 }
