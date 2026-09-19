@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"sync"
 	"time"
@@ -30,6 +31,7 @@ func NewStdioTransport(command string, args []string, env []string) (*StdioTrans
 	if len(env) > 0 {
 		cmd.Env = env
 	}
+	cmd.Stderr = os.Stderr
 
 	stdin, err := cmd.StdinPipe()
 	if err != nil {

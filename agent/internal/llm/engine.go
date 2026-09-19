@@ -211,14 +211,14 @@ func (e *Engine) AskWatching(text string, watch common.StreamCallbacks) (string,
 	}
 
 	// "turn" ephemeral tools are called once when the turn starts.
-	if err := e.callEphemeral("turn"); err != nil {
+	if err := e.CallEphemeral("turn"); err != nil {
 		return "", err
 	}
 
 	var reply string
 	for round := 0; ; round++ {
 		// "round" ephemeral tools are called before every round.
-		if err := e.callEphemeral("round"); err != nil {
+		if err := e.CallEphemeral("round"); err != nil {
 			return "", err
 		}
 
@@ -428,13 +428,13 @@ func (e *Engine) Shutdown() error {
 
 func (e *Engine) Save() error { return e.Log.SaveFile(e.Path) }
 
-// callEphemeral runs all tools with the given ephemeral mode ("round" or "turn"),
+// CallEphemeral runs all tools with the given ephemeral mode ("round" or "turn"),
 // combines their output, and records it as a system message so the reducer puts
 // it into context.Ephemera.
 //
 // Ephemeral tools are NOT included in the tool declarations sent to the LLM —
 // the model never sees them as callable. It sees their output as context data.
-func (e *Engine) callEphemeral(mode string) error {
+func (e *Engine) CallEphemeral(mode string) error {
 	tools := e.Tools.EphemeralTools(mode)
 	if len(tools) == 0 {
 		return nil
