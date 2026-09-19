@@ -1,39 +1,59 @@
-# Ch10 Review — Skills
+# Chapter 10 Review — Skills
 
-## What was built
+## Decisions Record
 
-### Engine
-- `internal/common/skill.go`: SkillProps, ParseSkillMD, FlexibleList (space-sep + YAML)
-- `internal/common/skill_registry.go`: SkillRegistry (discover, load, dependency chain, cycle detect, progressive disclosure)
-- `internal/common/vars.go`: VarRegistry ($VAR substitution, built-in $TOOLS/$SKILLS, custom renderers via API)
-- `internal/tools/tools.go`: ToolMeta (provenance: Initial/Dynamic), WireSkills (load_skill/unload_skill tools), onToolsChanged callback, InitialDeclarations/DynamicDeclarations
-- `internal/common/event.go`: SkillLoaded event type + SkillData
-- `internal/common/event_log.go`: Len() method
+### System prompt is a constitution
+Rendered once at agent creation, never mutated. Dynamic skill loads flow as
+events in message history. Anthropic prompt cache prefix is never invalidated.
 
-### Public API
-- `agent.go`: RegisterVar, DiscoverSkills, LoadSkill, WireSkillTools
+### Tool provenance: Initial vs Dynamic
+Each tool entry carries Source (Initial/Dynamic) and EventSeq. Most renderers
+ignore this. The Anthropic renderer uses it to avoid re-sending initial tool
+declarations when new tools are added dynamically.
 
-### Fixtures
-- `agent/skills/`: base (primary), code-tools (loadable), search-tools (loadable, depends search-helpers), search-helpers (dependency), blocked (type: dependency, not loadable)
+### Variable substitution via registered callbacks
+`RegisterVar("NAME", func() string)` — called at render time. Built-in:
+`$TOOLS` (current tool list), `$SKILLS` (loadable skills). Application-specific
+renderers registered before `NewAgent()`.
 
-### Grader
-7 checks, 100/100. P9 audit: 4 mutants, all caught.
+### Unload is lazy
+`unload_skill` marks the skill `pending-unload`. No cache miss. The skill's
+tools remain callable until context compaction removes them.
 
-## Key decisions
+### Ensemble skill declares all 12 core tools
+The `ensemble` primary skill is the production configuration — all tools
+visible from agent creation. The `base` skill is the teaching configuration
+for progressive disclosure exercises.
 
-1. **System prompt is a constitution**: rendered once at creation, never mutated. Dynamic skill loads flow as tool results in message history.
-2. **Tool provenance**: Initial vs Dynamic tracking enables cache-aware Anthropic rendering without the renderer knowing about skills.
-3. **FlexibleList**: both space-separated and YAML list formats. Three-limit `SplitN("---")` protects against horizontal rules in body.
-4. **Unload is lazy**: `PendingUnload` state, removed at next compaction. No cache miss.
-5. **VarRegistry callbacks via API**: `RegisterVar` exposes application-specific renderers. Built-in $TOOLS and $SKILLS handle the common case.
-6. **onToolsChanged callback**: the bridge between tool handlers and cfg.Tools. Without it, `load_skill` runs but the next request sees stale tool declarations.
+## Grader: 9 checks, 100 points
 
-## Bugs found during build
+| Check | Points | Tests |
+|---|---|---|
+| initial-tools | 10 | Only base skill's tools + load/unload in first request |
+| system-prompt | 10 | System prompt contains primary skill's rendered body |
+| ensemble-tools | 10 | With ensemble skill, all 12 core tools visible |
+| load-skill | 15 | load_skill("code-tools") adds edit_file + write_file |
+| progressive-disclosure | 15 | Loading code-tools makes search-tools loadable |
+| depends-autoload | 10 | search-tools auto-loads search-helpers dependency |
+| var-substitution | 10 | $CUSTOM_VAR rendered in skill body |
+| blocked-skill | 5 | Non-loadable skill rejected with error |
+| ch9-parity | 15 | All ch9 checks still pass |
 
-1. **onToolsChanged never wired in cmd/main.go**: The Agent wrapper calls `SetOnToolsChanged` but `cmd/main.go` uses internal API directly. Load_skill ran but tools never updated. Fixed by adding callback in main.go.
-2. **Value vs pointer map entries**: `map[string]SkillEntry` vs `map[string]*SkillEntry` determines whether map mutations propagate. We use `*SkillEntry` (pointer) correctly.
+## P9 Deletion Audit: 4 mutants, all caught
 
-## Gotchas
+| Mutation | Failing checks |
+|---|---|
+| IsToolEnabled always true | {initial-tools, load-skill} |
+| Delete dependency resolution | {depends-autoload} |
+| Render returns text unchanged | {var-substitution} |
+| IsLoadable always true | {blocked-skill} |
 
-- Go build cache across worktrees with same module path serves stale binaries. Always `go clean -cache` for mutation testing.
-- `edit_file` matches first occurrence. When two methods have identical lines (e.g. `s.persist()` in both Apply and ApplyRaw), use `replace_lines` with exact line numbers.
+## Bill's procedure innovation (this chapter)
+Bill never reports bugs directly. Instead, he suggests TL;DR improvements.
+The grader is upgraded to catch the concern, and a student-coder sub-agent
+verifies the chapter text is sufficient. Bug fixes are local; specification
+improvements propagate through regeneration.
+
+## Open for Bill
+- Chapter title: currently "Skills" — final?
+- Ch11: MCP tools (the LLM gets eyes on the GUI)
