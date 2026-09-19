@@ -38,6 +38,7 @@ type Hub struct {
 	guiLog    *GuiLogger
 	log       *common.Log          // event log — read-only access for reconnection
 	settings  *common.SettingsStore // GUI-editable settings; nil = no settings
+	mcpRecv   func(json.RawMessage)  // delivers incoming JSON-RPC from browser; nil = no MCP
 }
 
 // NewHub creates a hub. send is called for every prompt/hint/interrupt
@@ -61,6 +62,39 @@ func NewHub(gate *common.PauseGate, send func(common.Inbound), guiLogPath string
 func (h *Hub) Close() {
 	if h.guiLog != nil {
 		h.guiLog.Close()
+	}
+}
+
+// SetMCPReceiver registers a callback for incoming JSON-RPC messages from
+// the browser. Called by the agent when wiring a WSTransport.
+func (h *Hub) SetMCPReceiver(recv func(json.RawMessage)) {
+	h.mu.Lock()
+	h.mcpRecv = recv
+	h.mu.Unlock()
+}
+
+// BroadcastJSONRPC sends a JSON-RPC message to all connected WebSocket
+// clients, wrapped as {"type":"jsonrpc","data":{...}}.
+func (h *Hub) BroadcastJSONRPC(data json.RawMessage) {
+	msg, _ := json.Marshal(map[string]any{
+		"type": "jsonrpc",
+		"data": json.RawMessage(data),
+	})
+
+	h.mu.Lock()
+	clients := make([]*Client, 0, len(h.clients))
+	for c := range h.clients {
+		if c.live {
+			clients = append(clients, c)
+		}
+	}
+	h.mu.Unlock()
+
+	for _, c := range clients {
+		select {
+		case c.send <- msg:
+		default:
+		}
 	}
 }
 
@@ -277,6 +311,7 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 		From     common.Seq      `json:"from"`
 		To       common.Seq      `json:"to"`
 		Settings json.RawMessage `json:"settings"`
+		Data     json.RawMessage `json:"data"` // for jsonrpc messages
 	}
 	if json.Unmarshal(raw, &msg) != nil {
 		return
@@ -309,6 +344,13 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 		if h.settings != nil && msg.Settings != nil {
 			updated := h.settings.ApplyRaw(msg.Settings)
 			h.broadcastSettings(updated)
+		}
+	case "jsonrpc":
+		h.mu.Lock()
+		recv := h.mcpRecv
+		h.mu.Unlock()
+		if recv != nil && msg.Data != nil {
+			recv(msg.Data)
 		}
 	}
 }

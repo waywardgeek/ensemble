@@ -37,17 +37,28 @@ const (
 	LoadAvailable     LoadState = "available"       // Parsed but not loaded.
 )
 
+// MCPServerConfig describes an MCP server declared in a skill's frontmatter.
+type MCPServerConfig struct {
+	Name      string   // server name (for logging/identification)
+	Transport string   // "stdio", "websocket", or "url"
+	Command   string   // for stdio: the command to run
+	Args      []string // for stdio: command arguments
+	Env       []string // for stdio: environment variables
+	URL       string   // for url: the server URL (future)
+}
+
 // SkillProperties is the parsed representation of a SKILL.md file.
 type SkillProperties struct {
-	Name           string    // kebab-case identifier
-	Description    string    // what the skill does
-	Type           SkillType // primary, loadable, or dependency
-	Tools          []string  // tool names this skill enables
-	Dependencies   []string  // skills auto-loaded when this loads
-	LoadableSkills []string  // skills this skill makes available for load_skill
-	Body           string    // markdown instructions (post variable substitution)
-	RawBody        string    // markdown instructions (pre variable substitution)
-	FilePath       string    // path to SKILL.md on disk
+	Name           string            // kebab-case identifier
+	Description    string            // what the skill does
+	Type           SkillType         // primary, loadable, or dependency
+	Tools          []string          // tool names this skill enables
+	Dependencies   []string          // skills auto-loaded when this loads
+	LoadableSkills []string          // skills this skill makes available for load_skill
+	MCPServers     []MCPServerConfig // MCP servers to start when skill loads
+	Body           string            // markdown instructions (post variable substitution)
+	RawBody        string            // markdown instructions (pre variable substitution)
+	FilePath       string            // path to SKILL.md on disk
 }
 
 // ParseSkillMD splits a SKILL.md into frontmatter fields and body.
@@ -71,9 +82,12 @@ func ParseSkillMD(content string) (*SkillProperties, error) {
 
 	// Parse frontmatter line by line (simple YAML subset: key: value).
 	// Handles both inline lists ("a b c") and indented lists ("- a\n- b").
+	// Also handles mcp_servers as nested object lists.
 	var currentKey string
 	var listItems []string
 	inList := false
+	var inMCPServers bool
+	var currentMCP *MCPServerConfig
 
 	flushList := func() {
 		if !inList || currentKey == "" {
@@ -92,10 +106,38 @@ func ParseSkillMD(content string) (*SkillProperties, error) {
 		currentKey = ""
 	}
 
+	flushMCP := func() {
+		if currentMCP != nil && currentMCP.Name != "" {
+			props.MCPServers = append(props.MCPServers, *currentMCP)
+		}
+		currentMCP = nil
+	}
+
 	for _, line := range strings.Split(frontmatter, "\n") {
 		trimmed := strings.TrimSpace(line)
 		if trimmed == "" {
 			continue
+		}
+
+		// Inside mcp_servers block: parse nested objects.
+		if inMCPServers {
+			// "- name: value" starts a new server entry.
+			if strings.HasPrefix(trimmed, "- ") {
+				flushMCP()
+				rest := strings.TrimPrefix(trimmed, "- ")
+				currentMCP = &MCPServerConfig{}
+				parseMCPField(currentMCP, rest)
+				continue
+			}
+			// Indented key: value adds to current entry.
+			if (strings.HasPrefix(line, " ") || strings.HasPrefix(line, "\t")) && currentMCP != nil {
+				parseMCPField(currentMCP, trimmed)
+				continue
+			}
+			// Non-indented line: end of mcp_servers block.
+			flushMCP()
+			inMCPServers = false
+			// Fall through to normal parsing.
 		}
 
 		// Check for list item: "  - value"
@@ -148,9 +190,12 @@ func ParseSkillMD(content string) (*SkillProperties, error) {
 				inList = true
 				listItems = nil
 			}
+		case "mcp_servers":
+			inMCPServers = true
 		}
 	}
 	flushList()
+	flushMCP()
 
 	if props.Name == "" {
 		return nil, fmt.Errorf("SKILL.md missing required field: name")
@@ -172,4 +217,46 @@ func FlexibleList(s string) []string {
 		return nil
 	}
 	return strings.Fields(s)
+}
+
+// parseMCPField parses a "key: value" line into an MCPServerConfig.
+func parseMCPField(c *MCPServerConfig, line string) {
+	idx := strings.Index(line, ":")
+	if idx < 0 {
+		return
+	}
+	key := strings.TrimSpace(line[:idx])
+	value := strings.TrimSpace(line[idx+1:])
+
+	switch key {
+	case "name":
+		c.Name = value
+	case "transport":
+		c.Transport = value
+	case "command":
+		c.Command = value
+	case "url":
+		c.URL = value
+	case "args":
+		// Parse ["arg1", "arg2"] or bare words.
+		value = strings.TrimPrefix(value, "[")
+		value = strings.TrimSuffix(value, "]")
+		for _, item := range strings.Split(value, ",") {
+			item = strings.TrimSpace(item)
+			item = strings.Trim(item, `"'`)
+			if item != "" {
+				c.Args = append(c.Args, item)
+			}
+		}
+	case "env":
+		value = strings.TrimPrefix(value, "[")
+		value = strings.TrimSuffix(value, "]")
+		for _, item := range strings.Split(value, ",") {
+			item = strings.TrimSpace(item)
+			item = strings.Trim(item, `"'`)
+			if item != "" {
+				c.Env = append(c.Env, item)
+			}
+		}
+	}
 }

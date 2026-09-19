@@ -42,10 +42,15 @@ type Config struct {
 }
 
 // ToolDecl is a tool as the MODEL sees it.
+//
+// Ephemeral tools ("round" or "turn") are auto-called by the engine — their
+// results flow into context.Ephemera rather than dialogue. The LLM never sees
+// them as callable tools.
 type ToolDecl struct {
 	Name        string          `json:"name"`
 	Description string          `json:"description"`
 	Schema      json.RawMessage `json:"schema"`
+	Ephemeral   string          `json:"ephemeral,omitempty"` // "round", "turn", or ""
 }
 
 // Renderer turns a Context into one vendor's HTTP request.
