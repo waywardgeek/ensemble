@@ -107,8 +107,25 @@ class ArtifactScroll {
       }
     }
 
-    el.innerHTML = `<span class="tool-name">${msg.name}</span> <code>${msg.call_id}</code>
-<pre>${Renderers.truncate(inputStr, 500)}</pre>`;
+    // Build these nodes rather than interpolating into innerHTML. Tool names and
+    // arguments carry attacker-influenceable text (a filename, a fetched URL, the
+    // contents of a file the agent just read), so string-building HTML here is an
+    // injection hole: a tool argument containing markup would execute in the GUI.
+    // textContent cannot be escaped out of.
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'tool-name';
+    nameSpan.textContent = msg.name;
+
+    const idCode = document.createElement('code');
+    idCode.textContent = msg.call_id;
+
+    const pre = document.createElement('pre');
+    pre.textContent = Renderers.truncate(inputStr, 500);
+    // The cap keeps the card readable, but the hidden remainder must stay reachable:
+    // hovering reads the full value, so nothing is permanently invisible.
+    if (inputStr.length > 500) pre.title = inputStr;
+
+    el.replaceChildren(nameSpan, document.createTextNode(' '), idCode, pre);
     this.container.appendChild(el);
     this.toolCards.set(msg.call_id, el);
     this._scrollToBottom();
@@ -123,7 +140,10 @@ class ArtifactScroll {
 
     const resultDiv = document.createElement('div');
     resultDiv.className = msg.is_error ? 'tool-result tool-error' : 'tool-result';
-    resultDiv.textContent = Renderers.truncate(msg.result || '', 1000);
+    const fullResult = msg.result || '';
+    resultDiv.textContent = Renderers.truncate(fullResult, 1000);
+    // Same rule as the input above: cap the display, keep the remainder reachable.
+    if (fullResult.length > 1000) resultDiv.title = fullResult;
     el.appendChild(resultDiv);
     this._scrollToBottom();
   }
