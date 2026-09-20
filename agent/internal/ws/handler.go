@@ -38,7 +38,8 @@ type Hub struct {
 	guiLog    *GuiLogger
 	log       *common.Log          // event log — read-only access for reconnection
 	settings     *common.SettingsStore                  // GUI-editable settings; nil = no settings
-	mcpReceivers map[string]func(json.RawMessage)       // source tag → JSON-RPC receiver
+	mcpReceivers map[string]func(json.RawMessage)       // source tag → JSON-RPC receiver (in-process agents)
+	mcpAgents    map[string]*Client                     // source tag → WebSocket client (remote agents like virtual user)
 }
 
 // NewHub creates a hub. send is called for every prompt/hint/interrupt
@@ -55,6 +56,7 @@ func NewHub(gate *common.PauseGate, send func(common.Inbound), guiLogPath string
 		log:          eventLog,
 		settings:     settings,
 		mcpReceivers: make(map[string]func(json.RawMessage)),
+		mcpAgents:    make(map[string]*Client),
 	}
 	return h
 }
@@ -188,6 +190,12 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 
 	h.mu.Lock()
 	delete(h.clients, c)
+	// Clean up any MCP agent registrations for this client.
+	for source, agent := range h.mcpAgents {
+		if agent == c {
+			delete(h.mcpAgents, source)
+		}
+	}
 	h.mu.Unlock()
 	close(c.send)
 }
@@ -361,11 +369,50 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 			h.broadcastSettings(updated)
 		}
 	case "jsonrpc":
+		// JSON-RPC routing between agents and the browser's MCP server.
+		//
+		// Three kinds of agents can send/receive jsonrpc:
+		// 1. In-process agents (coding agent): registered via SetMCPReceiver
+		// 2. Remote agents (virtual user): WebSocket clients, tracked in mcpAgents
+		// 3. Browser clients: host the MCP server (gui_snapshot, gui_click, etc.)
+		//
+		// Routing:
+		// - If a receiver exists for the source tag → deliver to it (browser → in-process agent)
+		// - If a mcpAgent exists for the source tag → deliver to it (browser → remote agent)
+		// - Otherwise this is an agent sending a request → forward to all browser clients
 		h.mu.Lock()
 		recv := h.mcpReceivers[msg.Source]
+		agentClient := h.mcpAgents[msg.Source]
 		h.mu.Unlock()
-		if recv != nil && msg.Payload != nil {
+
+		if msg.Payload == nil {
+			return
+		}
+
+		if recv != nil {
 			recv(msg.Payload)
+		} else if agentClient != nil && agentClient != c {
+			select {
+			case agentClient.send <- raw:
+			default:
+			}
+		} else {
+			// Agent request → forward to browser clients.
+			if msg.Source != "" {
+				h.mu.Lock()
+				h.mcpAgents[msg.Source] = c
+				h.mu.Unlock()
+			}
+			h.mu.Lock()
+			for cl := range h.clients {
+				if cl.live && cl != c {
+					select {
+					case cl.send <- raw:
+					default:
+					}
+				}
+			}
+			h.mu.Unlock()
 		}
 	}
 }

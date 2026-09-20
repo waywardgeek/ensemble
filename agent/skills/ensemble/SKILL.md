@@ -15,7 +15,7 @@ tools:
   - think
   - load_skill
   - unload_skill
-loadable-skills: code-tools search-tools gui-debug
+loadable-skills: code-tools search-tools gui-debug virtual-user
 ---
 # Ensemble Agent
 
