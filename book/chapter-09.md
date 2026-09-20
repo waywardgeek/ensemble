@@ -57,6 +57,27 @@ The client-side layout, theming, agent tree, and TTS settings are not
 graded. The grader runs Go. You know the client works because you can
 see it.
 
+Three obligations survive the absence of a grader. Each one shipped
+broken in this book's own reference implementation and stayed broken
+until Chapter 13 drove the GUI with a second agent.
+
+**Validate where the value enters.** A settings field arriving over the
+wire is untrusted input. Clamp it in the apply path and again on the
+load-from-disk path, rather than at the point of use. A temperature of
+-5 reached the engine because both paths trusted the sender.
+
+**Decide whether a settings message is a patch or a snapshot.** The two
+want opposite JSON encodings. A sparse patch needs `omitempty`, because
+a zero means "unset". A full snapshot forbids it, because a zero means
+zero. One struct serving both roles will clamp -5 to 0, drop the zero
+from the broadcast, and leave the client displaying the number the
+server already rejected. The same flaw makes it impossible to broadcast
+a boolean as false, so TTS can never be turned off from the server.
+
+**Put control state in an attribute, not a CSS class.** A class styles a
+toggle and tells a screen reader nothing, and an automated observer
+reads the same nothing.
+
 ## The Why
 
 An agent without preferences is a tool you configure by editing

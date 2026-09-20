@@ -109,6 +109,23 @@ chunks through the format-appropriate renderer, and replaces them
 with finalized HTML when the part completes. Different visual
 treatment comes from CSS classes, not separate component types.
 
+Two rules govern what a card is allowed to do with that text, and both
+were broken in this book's own implementation until Chapter 13.
+
+Build the card with `textContent`. Never assemble it by interpolating
+values into `innerHTML`. A tool call's name and arguments carry text the
+agent did not write: a filename, a fetched URL, the contents of a file
+it just read. Markup arriving inside any of those executes in the page.
+This is the prompt-injection surface from the security chapter, reaching
+the user through the renderer rather than through the model, and it is
+easy to miss because the insecure version is shorter and reads better.
+
+Cap what a card displays, and keep the remainder reachable. A cap with
+an ellipsis and no affordance deletes the rest permanently for a reader
+who cannot scroll past it. Put the full value in a `title` attribute or
+behind an expander, so the limit governs the display instead of the
+information.
+
 ### TTS
 
 Two channels. **Auto-speak** fires during streaming: full text for
