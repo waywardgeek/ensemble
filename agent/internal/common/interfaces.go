@@ -165,6 +165,11 @@ type Call struct {
 	Jobs   JobManager
 	Limits Limits
 	Events []Event
+	// DeferFinish tells the dispatcher not to call Job.Finish when the
+	// tool returns — the tool has spawned a background goroutine that
+	// will call Finish itself (e.g. an interactive PTY reader). When
+	// false (the default), the dispatcher calls Finish as usual.
+	DeferFinish bool
 }
 
 // ---------------------------------------------------------------------------
