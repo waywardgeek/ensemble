@@ -461,6 +461,19 @@ ways: the dispatcher would wait for an exit that never comes, and on pipes
 taste and becomes a capability boundary the reader can stand on either side
 of.
 
+Naming that trap is not the same as escaping it, so the rule deserves saying
+plainly. The tool function returns as soon as the process is running. From
+that moment the job owns the process, and a reader goroutine owns the output
+and the eventual exit status. A tool function that waits for exit is a
+blocking call wearing a handle.
+
+The dispatcher carries a matching obligation: it must leave the job alone.
+Finishing a job closes its output file, so a dispatcher that finishes the
+instant the tool returns will cut off a reader that is still writing. The
+failure looks like broken output capture and is really a lifetime bug. Watch
+for a job that reports success with an empty result and zero bytes on disk,
+which is what that mistake produces every time.
+
 It also teaches `ai_callback_pattern` honestly. You do not sleep for a guessed
 interval and hope the prompt has appeared. You wait for the string `(dlv) `,
 because that is the actual signal that the debugger is ready for input. A
