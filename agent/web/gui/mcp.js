@@ -189,8 +189,27 @@
               (label ? "(" + label + ")" : "")
           );
         } else {
+          // Report STATE, not just identity. A control whose on/off condition
+          // lives only in a CSS class is invisible to this snapshot, which
+          // forces the reader to guess, and it guesses confidently and wrongly.
+          var state = [];
+          var expanded = el.getAttribute("aria-expanded");
+          if (expanded !== null) state.push("aria-expanded=" + expanded);
+          var selected = el.getAttribute("aria-selected");
+          if (selected !== null) state.push("aria-selected=" + selected);
+          var checked = el.getAttribute("aria-checked");
+          if (checked !== null) state.push("aria-checked=" + checked);
+          if (el.classList && el.classList.contains("active")) {
+            state.push("active");
+          }
+          if (el.disabled) state.push("disabled");
           lines.push(
-            "- `" + sel + "` " + tag + (label ? ' "' + label + '"' : "")
+            "- `" +
+              sel +
+              "` " +
+              tag +
+              (label ? ' "' + label + '"' : "") +
+              (state.length ? " [" + state.join(", ") + "]" : "")
           );
         }
         count++;
@@ -205,16 +224,30 @@
     if (artifacts.length > 0) {
       lines.push("### Artifacts");
       var ac = 0;
+      var shown = 0;
       artifacts.forEach(function (el) {
         if (ac >= 10) return;
         var type =
           el.getAttribute("data-artifact") || el.className || el.tagName;
         var text = (el.textContent || "").trim();
         var preview = text.substring(0, 120);
-        if (text.length > 120) preview += "...";
+        // Say how much was withheld, not just that something was. An observer
+        // that hides content silently will report "looks fine" about a screen
+        // it never actually saw.
+        if (text.length > 120) {
+          preview += "... (" + (text.length - 120) + " more chars)";
+        }
         lines.push("- **" + type + "**: " + preview);
         ac++;
+        shown++;
       });
+      if (artifacts.length > shown) {
+        lines.push(
+          "- _(" +
+            (artifacts.length - shown) +
+            " more artifacts not shown; this snapshot caps at 10)_"
+        );
+      }
       lines.push("");
     }
 

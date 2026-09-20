@@ -176,16 +176,32 @@
   });
 
   // ── Sidebar toggle ──
-  document.getElementById('hamburger').addEventListener('click', () => {
-    sidebar.classList.toggle('collapsed');
+  // Derive the initial attribute from the actual class rather than trusting the
+  // markup default: anything that collapses the sidebar at startup would leave a
+  // hardcoded aria-expanded lying, and a lying label is worse than none.
+  document
+    .getElementById('hamburger')
+    .setAttribute('aria-expanded', String(!sidebar.classList.contains('collapsed')));
+  document.getElementById('hamburger').addEventListener('click', (e) => {
+    const collapsed = sidebar.classList.toggle('collapsed');
+    // A CSS class is invisible to a screen reader and to a DOM snapshot alike.
+    // Mirror the state onto the button so the control reports what it just did.
+    e.currentTarget.setAttribute('aria-expanded', String(!collapsed));
   });
 
   // Sidebar tabs.
   document.querySelectorAll('#sidebar-tabs .tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('#sidebar-tabs .tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('#sidebar-tabs .tab').forEach(t => {
+        t.classList.remove('active');
+        // The 'active' class styles the tab but says nothing to a screen reader
+        // or a DOM snapshot. Mirror it onto aria-selected so which panel is
+        // showing is a readable fact rather than something to be inferred.
+        t.setAttribute('aria-selected', 'false');
+      });
       document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
       tab.classList.add('active');
+      tab.setAttribute('aria-selected', 'true');
       const panel = document.querySelector(`.tab-panel[data-panel="${tab.dataset.tab}"]`);
       if (panel) panel.classList.add('active');
     });

@@ -12,7 +12,7 @@
   <div id="app">
     <!-- Status bar -->
     <div id="status-bar">
-      <button id="hamburger" title="Toggle sidebar">☰</button>
+      <button id="hamburger" title="Toggle sidebar" aria-controls="sidebar" aria-expanded="true">☰</button>
       <span id="agent-state">idle</span>
       <span id="model-name"></span>
       <span class="spacer"></span>
@@ -23,9 +23,9 @@
     <div id="panes">
       <!-- Left sidebar -->
       <div id="sidebar" class="pane">
-        <div id="sidebar-tabs">
-          <button class="tab active" data-tab="chats">Chats</button>
-          <button class="tab" data-tab="artifacts">Artifacts</button>
+        <div id="sidebar-tabs" role="tablist">
+          <button class="tab active" data-tab="chats" role="tab" aria-selected="true">Chats</button>
+          <button class="tab" data-tab="artifacts" role="tab" aria-selected="false">Artifacts</button>
         </div>
         <div id="sidebar-content">
           <div class="tab-panel active" data-panel="chats">
