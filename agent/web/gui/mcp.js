@@ -77,6 +77,22 @@
       ephemeral: "round",
     },
     {
+      name: "gui_submit",
+      description:
+        "Dispatch an Enter keydown event on an element. Use after gui_input to submit a prompt.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          selector: {
+            type: "string",
+            description: "CSS selector of the element to submit",
+          },
+        },
+        required: ["selector"],
+        additionalProperties: false,
+      },
+    },
+    {
       name: "wait_for_idle",
       description:
         "Blocks until the coding agent becomes idle (finishes its current turn). Returns immediately if already idle. Use this after sending a prompt to wait for the agent to finish working.",
@@ -254,6 +270,16 @@
     return "set value on " + args.selector + ": " + args.text;
   }
 
+  // gui_submit: dispatch Enter keydown on an element (e.g. to submit a prompt).
+  function guiSubmit(args) {
+    var el = document.querySelector(args.selector);
+    if (!el) return "error: no element matches selector: " + args.selector;
+    el.dispatchEvent(
+      new KeyboardEvent("keydown", { key: "Enter", code: "Enter", bubbles: true })
+    );
+    return "submitted: " + args.selector;
+  }
+
   // tts_queue: return pending TTS utterances.
   function ttsQueue() {
     // Check for a global TTS queue (set by tts.js).
@@ -313,6 +339,9 @@
     },
     gui_input: function (args) {
       return guiInput(args);
+    },
+    gui_submit: function (args) {
+      return guiSubmit(args);
     },
     tts_queue: function () {
       return ttsQueue();
