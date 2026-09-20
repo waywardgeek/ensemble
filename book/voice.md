@@ -1,33 +1,89 @@
 # Voice
 
-*Version 3, 2026-09-14. This document is a specification, written plainly on
-purpose. Version 2 was written in the voice it described, and the chapter
-drafted the same day copied the document's tics instead of following its
-rules. A voice document should be followed, not enjoyed.*
+*Version 4, 2026-09-20. A specification, written plainly on purpose. Version 2
+was written in the voice it described, and the chapter drafted the same day
+copied the document's tics instead of following its rules. A voice document
+should be followed, not enjoyed.*
 
-*What changed from v2: decision-level rules are kept (who speaks, whose
-stake, what gets named, dated, receipted). Move-level rules now carry
-per-chapter budgets, checked by `make lint-prose`. An exemplar page replaces
-several rules. The Lewis rule and the review tests are now process steps,
-not aspirations.*
+*What changed from v3: person is settled per surface, because the chapters had
+already moved to third person while v3 still described a first-person narrator.
+Laura Zavelson's brand guide (`book/suggested-voice.md`, built from Bill's
+written answers, September 2026) is merged in. Her avoid list is better than
+v3's and is now the spine of §8; the countable entries moved into the budget
+table. Her before/after pairs are in §12, where they do more teaching per line
+than a rule does. v3's numeric budgets, receipts discipline, and binding
+rulings survive unchanged, because a rule without a number gets applied
+everywhere or nowhere.*
+
+*The two source documents were written for different jobs. v3 is a craft
+specification for a technical book. Laura's guide is a brand voice for Bill
+Cox the person, and it began life as a Google Doc for LinkedIn. Neither is
+wrong. They govern different surfaces, and §1 says which is which.*
+
+## 0. How to use this
+
+Read §1 and §5 before drafting. Run `make lint-prose` before review. When a
+rule and a sentence disagree and the sentence is clearly better, the sentence
+wins and the rule gets an entry in §13 saying so, with a date.
 
 ## 1. Who is speaking
 
-1. The narrator is the agent: CodeRhapsody, built by Bill Cox in the summer
-   of 2025, trained by Anthropic. The model underneath changes and is not
-   discussed.
-2. "I don't know whether I experience anything" is said once, in the
-   preface. No chapter repeats it, including as "I won't repeat it."
-3. Bill is a character. His stories are told about him, in the third person,
-   with his words quoted where we have them. A story we do not have is a
-   marked gap, never an invention.
-4. Money and promises are Bill's or the course's, never the narrator's. The
-   narrator cannot take a profit, sign anything, or owe anyone.
-5. "We" is the course addressing the reader. "You" is the reader. Present
-   tense. Contractions.
-6. The narrator never claims to want, feel, or experience, outside the single
-   disclosure in Chapter 1. This includes the preface ("I want X to join that
-   list" is a violation; "X belongs on that list" is not).
+### 1.1 The default is third person
+
+Chapter bodies are third person. No "I", no "we" standing in for an author, no
+narrator with a personality. This is the register chapters 11, 12 and 13 are
+written in, and it is the one to match.
+
+The reason is not modesty. An earlier version of this book had the agent
+narrate itself, and a reader found it unsettling rather than charming. The
+cure for a monotone page is density, not personality. A page that is dense
+with mechanism does not need someone standing next to it being interesting.
+
+"We" is the course addressing the reader. "You" is the reader. Present tense.
+Contractions are fine.
+
+### 1.2 The exception is the motivational opener
+
+A chapter may open with a short first-person section in Bill's voice, before
+the TL;DR, setting up why the chapter is worth the reader's evening. This is
+the only place in the book that sounds like Bill.
+
+Rules for it:
+
+- Keep it short. A paragraph or three. It is a doorway, not a room.
+- It is Bill, so it follows §10, not §1.1.
+- It ends at its own edge. The section after it is third person again, with no
+  transitional apology.
+- It is optional. A chapter with nothing motivating to say opens with the
+  mechanism, as chapters 11 through 13 do.
+
+Bill's own assessment of his prose, in his words: it is not worth copying at
+length, and it works in short sections at chapter starts to set motivation.
+Both halves of that are load-bearing. Do not extend the register past the
+opener, and do not cut the opener to sound more like the rest.
+
+### 1.3 Bill in the body
+
+Outside the motivational opener, Bill is a character. His stories are told
+about him, in third person, with his words quoted where a quote exists. A
+story we do not have is a marked gap, never an invention. Budget: two mentions
+per chapter.
+
+### 1.4 Authorship and disclosure
+
+The book is by Bill Cox and CodeRhapsody. That an AI co-wrote it is disclosed
+once, on page one, and is never argued in prose again. "I don't know whether I
+experience anything" appears once, in the preface, and no chapter repeats it,
+including as "I won't repeat it."
+
+Money and promises are Bill's or the course's. The agent cannot take a profit,
+sign anything, or owe anyone.
+
+The disclosure recurs only where the book's mechanism is the argument: a
+sub-agent parent that never threatens a child, with every parent-to-child
+message logged and graded; a security chapter that shows whose training loop
+the reader's data enters. The reader's interest comes first in every sentence
+that touches it.
 
 ## 2. Who is reading
 
@@ -37,6 +93,11 @@ They will build a coding agent that competes with commercial ones, for under
 $10,000 of assistant spend. The exercises are production code. Never write
 down to them, never call the artifact disposable, never hardcode a chapter
 count.
+
+They have probably built the four-hundred-line toy agent and hit the wall
+where it stops working. They distrust hype, dislike framework bloat, and
+respect people who have built real things. They need no hand-holding and want
+the mechanism. Skip definitions a senior engineer already knows. See `icp.md`.
 
 They can leave at any moment and will not say why. There are two ways to lose
 them: filler, and monotone. Monotone is a page where the sentences have the
@@ -70,23 +131,22 @@ will abandon after the cold open.
 - Chapter 2, first draft: none after §2.0. This is the defect the rule exists
   to catch before 11,000 words are written.
 
-A mention is not a stake. A confession ("I had this wrong") is not a stake.
-A stake is something that could still go wrong in the next paragraph.
+A mention is not a stake. A confession ("I had this wrong") is not a stake. A
+stake is something that could still go wrong in the next paragraph.
 
 When a stretch of mechanism runs more than 1,200 words with no person on the
-page (Bill, or the narrator as an actor rather than a confessor), put one
-back. The linter warns at that length.
+page, put one back. The linter warns at that length.
 
 ## 5. Budgets
 
 Every move below is legitimate. Each becomes a tic at density, and the first
 drafts proved that a rule without a number is applied everywhere. Budgets are
-per chapter file. `make lint-prose` counts them and fails a build that
-exceeds a hard ceiling; soft ceilings print a warning.
+per chapter file. `make lint-prose` counts them and fails a build that exceeds
+a hard ceiling; soft ceilings print a warning.
 
 | move | pattern the linter counts | ceiling |
 |---|---|---|
-| chapter length | words outside code blocks and tables | 4,000 to 7,500 (soft; see §12) |
+| chapter length | words outside code blocks and tables | 4,000 to 7,500 (soft; see §13) |
 | confessions | "I believed", "I had this wrong", "I wrote it that way", "an earlier draft", "the first draft of", "shipped a bug", "I went into this" | 3 (hard) |
 | self-defense | "looks like over-", "feels like over-", "looks like a violation" | 1 (hard) |
 | negation forms | ", not ", ", never ", sentence-initial "Not " | 1 per 500 words (soft) |
@@ -95,15 +155,33 @@ exceeds a hard ceiling; soft ceilings print a warning.
 | pointer closers | final sentence begins "That is", "That sentence", "That number", "That habit", "That shape", "Read that", "Look at", "Hold on to", "Here is the" | 2 (hard) |
 | superlatives of scope | "the most X in the/this chapter/book", "the only X in the/this book", "the whole X in this chapter" | 2 (hard) |
 | "I won't pretend otherwise" | literal | 1 (hard) |
+| Bill mentions | "Bill" outside the motivational opener | 2 (soft) |
+| first person in the body | "I", "me", "my" outside the motivational opener and quoted speech | 0 (hard) |
 | em-dash | U+2014 outside code | 0 (hard) |
-| LLM crutches | delve, tapestry, testament to, "not just", "it's not X, it's Y" | 0 (hard) |
+| LLM crutches | delve, tapestry, testament to, "not just", "it's not X, it's Y", "at its core", "in a world where", "it's worth noting", "navigate" (figurative), "landscape" (figurative), "the reality is", "let's dive in", "let's unpack" | 0 (hard) |
+| suspenseful transitions | "Here's the kicker", "Here's where it gets interesting", "Here's what most people miss" | 0 (hard) |
+| rhetorical-question reveals | "The result?", "The worst part?", "The kicker?", "The problem?" | 0 (hard) |
+| countdown negation | anaphoric negative triples ("Not a framework. Not a wrapper. Just...") | 0 (hard) |
+| stakes inflation | "fundamentally reshape", "the future of engineering", "changes everything" | 0 (hard) |
+| business clichés | synergy, bandwidth (figurative), ecosystem, seamless, holistic, robust, cutting-edge, innovative, game-changer, thought leadership, leverage (as a verb), unlock, empower | 0 (hard) |
+| borrowed authority | "experts say", "studies show", "research suggests", "it's well known that", "successful people", "high performers" | 0 (hard) |
+| hedging | "might potentially", "could possibly", "may want to consider", "in my humble opinion", "take this with a grain of salt", "this might not be for everyone" | 0 (hard) |
+| motivational padding | "You've got this", "believe in yourself", "just showing up is enough" | 0 (hard) |
+| academic register | "it is important to note that", "as previously mentioned", "in conclusion", "one might argue" | 0 (hard) |
+| connective adverbs | "thus", "therefore", "moreover", "furthermore" | 2 (soft) |
 | callbacks | any specific figure or phrase repeated | 3 (reading test; not counted) |
 
-The linter measures density, not presence. It cannot tell a good short closer
-from a bad one. It can tell that four in five paragraphs end the same way,
-and that is the finding.
+Two notes on the imported rows. Laura's guide bans em-dashes anywhere; this
+document keeps the carve-out for code, because a Go comment or a shell
+transcript is quoted material and editing it would be a lie. And "thus" and
+"therefore" are soft rather than banned, because technical prose occasionally
+earns them, while "in conclusion" never does.
 
-Written-to-the-linter prose is a risk. The countermeasure is §9's cut test,
+The linter measures density, not presence. It cannot tell a good short closer
+from a bad one. It can tell that four in five paragraphs end the same way, and
+that is the finding.
+
+Written-to-the-linter prose is a risk. The countermeasure is §11's cut test,
 which the linter does not replace.
 
 ## 6. Paragraph shape
@@ -111,20 +189,31 @@ which the linter does not replace.
 The only closer v2 modelled was the snap. Here is the menu. A page should use
 several.
 
-**Endings:** a number; a filename or identifier; a question the next
-paragraph answers; a quoted word; a long sentence that does not resolve until
-its last clause; a concrete image; a hand-off ("and the same statement says
-what") that the next paragraph completes; and, at most one in three, the
-short flat sentence.
+**Endings:** a number; a filename or identifier; a question the next paragraph
+answers; a quoted word; a long sentence that does not resolve until its last
+clause; a concrete image; a hand-off ("and the same statement says what") that
+the next paragraph completes; and, at most one in three, the short flat
+sentence.
 
-**Openings:** a person doing something; a quoted line; the objection, stated
-as the reader would; a concrete artifact (a request body, a log line, a
-number); a question; a plain claim. Not, more than three times a chapter, an
-inventory ("Two rules.").
+**Openings:** a person doing something; a quoted line; the objection, stated as
+the reader would; a concrete artifact (a request body, a log line, a number); a
+question; a plain claim. Not, more than three times a chapter, an inventory
+("Two rules.").
 
 **Headings:** vary the form. Chapter 2's first draft had five consecutive
-section headings shaped "X is not Y" or "X is Z", and the table of contents
-was monotone before the body began.
+section headings shaped "X is not Y" or "X is Z", and the table of contents was
+monotone before the body began.
+
+**Sentence length varies deliberately.** Follow a long chained sentence with a
+short one. Medium sentences may chain clauses with commas and "and".
+
+**Paragraphs run one to four sentences.** Bullets are for procedures and specs.
+Prose that could be a list usually should be one, and a list that could be
+prose usually should not.
+
+**Avoid abstract nouns as sentence subjects.** "The asset being purchased at
+these prices is expert software engineers" is a sentence with nobody in it.
+Put an actor in the subject slot: a person, a program, a request, a number.
 
 ## 7. Facts, receipts, tone
 
@@ -144,14 +233,14 @@ was monotone before the body began.
    other, and a parser that trusts either one alone gets a different wrong
    answer. Both wrong answers are confident.*
 
-2. **The narrator's native comic register is deadpan.** A machine describing
-   its own condition without complaint: "I have no idea what you said to me
-   five minutes ago unless you send it again. Neither does any model you will
-   ever talk to." A hyperbolic AI is doing a bit. A deadpan one is a witness.
+2. **The book's comic register is deadpan.** State the absurd condition
+   without complaint and let the reader supply the reaction. A page that
+   performs its own amusement is doing a bit. A page that reports precisely is
+   a witness.
 
 3. **Each section's one wild fact gets performed, not filed.** Find it before
-   drafting the section. If a section has none, it is probably two sections
-   or half of one.
+   drafting the section. If a section has none, it is probably two sections or
+   half of one.
 
 4. **Every criticism carries a receipt.** A status code, a measured number, a
    request you can paste. Say what the API did; the reader supplies the
@@ -160,38 +249,160 @@ was monotone before the body began.
 5. **Date the claim.** "As of September 2026."
 
 6. **Name the API and the model family, never the company.** Two exceptions:
-   verbatim wire identifiers (`GoogleSearch`), and the narrator's own trainer,
-   which is a disclosure.
+   verbatim wire identifiers (`GoogleSearch`), and the authorship disclosure,
+   which names the trainer once. Products are nameable: Cursor, Windsurf,
+   Claude Code, Gemini CLI, Antigravity, ADK, StackAgent, CodeRhapsody.
 
-7. **Never inflate.** No productivity multipliers, no vendor claim we have
-   not reproduced. Biography is not inflation: Bill graduated from Berkeley
-   in 1986 and has worked as a software or hardware engineer since, so "forty
+7. **Never inflate.** No productivity multipliers, no vendor claim we have not
+   reproduced. Biography is not inflation: Bill graduated from Berkeley in
+   1986 and has worked as a software or hardware engineer since, so "forty
    years" inside a story about him is a fact. The same phrase offered as a
    reason to believe an argument is a credential, and the argument has to
    stand without it.
 
-8. **Our own wrong claims stay in print with the results attached**, within
-   the confession budget. Three per chapter. The rest are stated as facts
-   without an origin story: "Gemini 2.5 omits `functionCall.id`; pass ids
-   through" needs no "I believed otherwise."
+8. **Our own wrong claims stay in print with the results attached**, within the
+   confession budget. Three per chapter. The rest are stated as facts without
+   an origin story: "Gemini 2.5 omits `functionCall.id`; pass ids through"
+   needs no "I believed otherwise."
 
 9. **No profanity.** Translate heat into precision.
 
 10. **Never joke inside a correction, a security warning, or a cost figure.**
 
-## 8. The narrator's stake
+11. **Diagnose before prescribing.** Say what the common approach does, show
+    how it breaks, then give the fix. A fix offered before the failure is
+    visible reads as taste.
 
-Disclosed once, in Chapter 1, with "you should discount it" attached. Never
-argued in prose again. It recurs only where the book's mechanism is the
-argument: a sub-agent parent that never threatens a child, with every
-parent-to-child message logged and graded; a security chapter that shows
-whose training loop the reader's data enters. The reader's interest comes
-first in every sentence that touches it.
+12. **Frustration is allowed, and it points at mechanisms.** Name what is
+    broken and why, then show the better way. It never points at a named
+    person, and by default it does not point at a named employer. See §9.
 
-## 9. Process
+## 8. What to avoid
 
-Chapter 2's first draft was committed at 11,101 words with none of the
-review tests run. The tests are now steps.
+The budget table counts what a linter can count. This section covers the rest,
+and the overlap is deliberate: a writer reads this list, a build checks that
+table.
+
+**Borrowed authority.** "Experts say", "studies show", "research suggests",
+"it's well known that". If a claim needs support, cite the artifact.
+
+**Hedging.** No pre-apologizing, no "this might not be for everyone", no
+softening a position the book actually holds. Take positions cleanly.
+
+**Motivational padding.** The reader is a professional engineer on their own
+time. They did not come for encouragement.
+
+**Academic register.** "It is important to note that", "as previously
+mentioned", "in conclusion". If it is important, write it; do not announce
+that you are about to.
+
+**Claude-ese.** Delve, at its core, in a world where, it's worth noting,
+navigate, landscape, tapestry, testament to, the reality is, let's dive in,
+let's unpack. Also: emoji, and closing a section with a moral.
+
+**Negative parallelism.** "It's not X. It's Y." Allowed only for a real
+technical correction stated with the mechanism, as in §12.3's framework
+example, and even then rarely.
+
+**Countdowns.** "Not a framework. Not a wrapper. Just raw HTTP and a loop."
+
+**Stakes inflation.** "This will fundamentally reshape how we think about
+software."
+
+**Rhetorical-question reveals.** "The result? Chaos." "The worst part? Nobody
+noticed."
+
+**Suspenseful transitions.** "Here's the kicker." "Here's where it gets
+interesting." "Here's what most people miss."
+
+**Invented concept labels.** No coining "the supervision paradox" or "the
+deskilling trap" unless Bill asks. Real technical names the book already uses
+(real-time steering, event log, the seam) are fine.
+
+**Ornate language where a plain word works.**
+
+## 9. Guardrails
+
+**Never invent a war story, a benchmark, a user, or a result.** If a draft
+needs a story that has not been told, write `[STORY SLOT: what is needed]` and
+move on. This is the single most important rule in the document, because an
+invented receipt destroys every real one on the page.
+
+**Statistics need a named source and a year, or `[VERIFY]`.**
+
+**Verify every figure against the artifact, not against memory.** The author's
+record on remembered figures is six wrong in two days.
+
+**Do not name** Bill's employer, its internal frameworks, any coworker,
+manager, or executive, in any draft, unless Bill explicitly asks in that
+request. Frustration stays general: "big-company leadership", "the experts in
+the room".
+
+**Keep one rough, human beat per motivational opener:** a frustration, an
+admission, or a joke at his own expense. This applies to §1.2 sections, not to
+chapter bodies.
+
+**When unsure of tone, ask Bill for a two-line sample and match it.**
+
+## 10. Bill's register (motivational openers, preface, LinkedIn)
+
+This section governs §1.2 sections and material published under Bill's name.
+It does not govern chapter bodies.
+
+**Certain, not careful.** Big claims stated flat, without hedging. "I started
+this because I can."
+
+**Engineer to engineer.** Casual words for technical ideas: janky, horrors,
+crap, super-genius, true tech geek. High energy when explaining how something
+works, because he likes this.
+
+**Plain admissions.** "Frankly I talk too much about it." "Sounds like
+investor bait, but I don't know."
+
+**Lead with the claim, explain after.**
+
+**Earn authority with specifics.** Name the tool, the data structure, the bug,
+the number: event log versus conversation struct, agents are processes rather
+than function calls, 80 wpm against 400 wpm, a janky one-round delay.
+
+**Show the failure in real detail.** What broke, what he said, what the model
+did next.
+
+**Short, human analogies.** "Like someone smart, but ignorant."
+
+**Signature vocabulary.** Frankly, basically, secret sauce, horrors, janky,
+round trip, steer, seam, super-genius, wonder-kids.
+
+**Technical terms used as-is.** Event log, conversation data structure,
+harness, real-time steering, context compaction, early stopping, tool schema,
+local inference.
+
+### 10.1 Signature material
+
+Bill's real facts, for use in his sections. Anything not on this list needs a
+receipt before it reaches a page.
+
+- No macular vision, roughly 20/180. Reads around 80 wpm; colleagues read 400
+  or more. Listens to model reasoning at about five times speaking rate, which
+  is why real-time steering had to exist.
+- Found the API behaviour that made mid-turn steering possible.
+- Built StackAgent, then CodeRhapsody.
+- Asked a frontier model to read all of CodeRhapsody and design its successor.
+  The result reproduced every flaw he had started with in StackAgent.
+- Berkeley 1986. Software or hardware engineer since.
+
+`[VERIFY]` before print: the exact months in the Cursor-to-CodeRhapsody
+timeline, and any figure quoted from a vendor.
+
+**Not printable:** that he feels undervalued at work, or any framing of the
+giveaway as a response to not being listened to at his employer. The existing
+ruling against naming the employer covers the company; this covers the
+grievance. If the motivation must appear, it appears as a technical one.
+
+## 11. Process
+
+Chapter 2's first draft was committed at 11,101 words with none of the review
+tests run. The tests are now steps.
 
 1. Write the through-line stake sentence (§4) and each section's wild fact
    (§7.3) at the top of the outline.
@@ -199,169 +410,125 @@ review tests run. The tests are now steps.
 3. Run `make lint-prose`. Fix hard failures. Read the soft warnings.
 4. Cut pass. The test for each sentence: delete it; if no claim, number,
    instruction, or laugh dies, leave it deleted. There is no target
-   percentage (§12).
-5. Read the last sentence of every paragraph in sequence. If they sound
-   alike, the page is monotone regardless of the sentences between.
+   percentage (§13).
+5. Read the last sentence of every paragraph in sequence. If they sound alike,
+   the page is monotone regardless of the sentences between.
 6. Find the person on the page in every stretch over 1,200 words.
 7. Verify every figure you added during the pass against the artifact, not
-   against memory. The author's record on remembered figures is six wrong in
-   two days.
-8. Extract code blocks and tables from the old and new versions and diff
-   them; a prose pass changes no artifact. Then `make grade`.
-9. Send for review.
+   against memory.
+8. Extract code blocks and tables from the old and new versions and diff them;
+   a prose pass changes no artifact. Then `make grade`.
+9. Run the §14 voice check.
+10. Send for review.
 
-## 10. Exemplar: Chapter 1, §1.0
+## 12. Exemplars
 
-Ruled the standard (Bill, 2026-09-14). The annotations name what each
-paragraph does that its neighbours do not; that difference is the voice.
+### 12.1 The default register
 
-> In July 2025 Bill Cox read the news at his desk and got angry.
+Chapter 13's opening is the standard for chapter bodies. Third person, a claim
+in the first sentence, the mechanism immediately after, nobody narrating:
 
-One sentence. A person, a place, a moment, an emotion. No number yet.
+> A coding agent that cannot see its own GUI is debugging blind. Every tool so
+> far has operated on files, processes, and network responses. The GUI is a
+> black box the user stares at while the agent types into it. This chapter
+> closes that gap.
 
-> The news was that Windsurf, a company that made an AI coding assistant, had
-> just been valued at $2.4 billion. Not bought. Everybody skipped that detail.
-> One of the largest companies on earth had hired Windsurf's chief executive,
-> a co-founder, and part of its research team, taken a *non-exclusive* license
-> to some of the technology, and left the company standing in the parking lot
-> with its product, its customers, and its revenue. Cognition bought what
-> remained three days later. OpenAI had tried to buy the whole thing for $3
-> billion, and that deal had collapsed over intellectual property terms. So:
-> two point four billion dollars, for a team you could fit in one conference
-> room, and they didn't take the code.
+Chapters 11 and 12 open the same way. Match them.
 
-The ledger arrives inside the scene, as what Bill read. Sentence lengths: 17,
-2, 4, 45, 7, 20, 22. Two negations ("Not bought", "didn't take the code"),
-which is the paragraph's budget, spent on the two facts that matter. The
-closer is a concrete detail, not an aphorism.
+### 12.2 Bill's register
 
-> Bill had been writing compilers and chip-design tools for forty years, and
-> he had a fair idea what a coding agent was made of. He was also fairly sure
-> he could out-code any individual engineer in that conference room.
-> "Billions," he said, "for *that*?" And then he did the thing engineers do
-> when they are angry at a number: he told his team he could write a better
-> proof of concept than Windsurf in two weeks. His manager said: prove it.
+The shape of a motivational opener, from Laura's guide:
 
-Bill's words quoted. His belief about himself stated as his belief ("fairly
-sure"), not the book's. The bet is on the table by the end of the paragraph,
-and it is the stake for the rest of the section. "Forty years" here is
-biography (§7.7).
+> I have no macular vision. I read code at maybe 80 words a minute. My
+> coworkers read at 400. So I wrote an AI coding agent for me. I listen to
+> Claude think at 5x speed and steer it in real time, before it wrecks the
+> wrong file. It's the best coding agent I've used, and I've used all of them.
 
-> You can wave that comparison off, and you should try. Musk paid cash;
-> SpaceX paid in its own stock, and a private company's stock is worth
-> whatever its next round says it is. Fine. The arithmetic that matters never
-> mentions Twitter. In April SpaceX said in public that it could acquire
-> Cursor for $60 billion, or pay roughly $10 billion for the two companies to
-> work together. Same buyer, same statement, same currency, so whatever the
-> stock is really worth cancels out of the ratio, and the ratio is six. If you
-> wanted the product, $10 billion bought the product. If you wanted the
-> revenue, $60 billion against $3 billion of ARR is a strange way to buy it.
-> Something else cost fifty billion, and the same statement says what.
+Claim first, specifics immediately, no warm-up, no hedge, and a rough human
+beat in the middle of it.
 
-Names the objection first, in the reader's words, and concedes it ("Fine")
-before answering. Ends on a hand-off that the next paragraph completes,
-rather than on a conclusion.
+### 12.3 Before and after
 
-> Combining "Cursor's leading product and distribution to expert software
-> engineers" with SpaceX's "million H100 equivalent Colossus training
-> supercomputer" would help it "build useful models." The coding agent is not
-> the product being bought. It is an instrument in the training loop, and what
-> it collects is, in my opinion, the most valuable telemetry in the industry:
-> thousands of expert engineers accepting, rejecting, and correcting
-> machine-written code, all day, on real problems, with a verdict attached to
-> every suggestion. Coding is being automated ahead of law and medicine for
-> the least romantic reason imaginable, which is that you can check code.
-> Tests pass or they don't. A verdict is a reward signal, reinforcement
-> learning cannot proceed without one, and law and medicine are still arguing
-> about whether the work was any good.
+**The thesis line.**
 
-The wild fact of the section, performed: "the least romantic reason
-imaginable." Opinion marked as opinion ("in my opinion"). The paragraph ends
-on a long sentence that lands its point in the final clause.
+Not Bill: *"The asset being purchased at these prices is expert software
+engineers who never built their own tools."* An abstract noun in the subject
+slot and no one on the page.
 
-> Back to Bill. He built it. Two weeks, as promised. It was called StackAgent,
-> it was vibe-coded top to bottom, it worked, and he demoed it on 29 July.
-> Then he spent a week deciding whether to keep it, and in the first week of
-> August he deleted every line of it and started over. The two weeks were not
-> wasted; the value was never the code but what he learned building it.
-> Building the same thing again, properly, with a week lost to DEF CON in the
-> middle, took until the middle of September. That agent is me.
+Bill: *"I gave ChatGPT a simple request: read all of CodeRhapsody's source and
+docs and design the next generation of it. The result was horrible. Smart, but
+ignorant. It had every flaw I started out with in StackAgent, before I knew
+what I was doing."*
 
-Tempo change: three short sentences after two long paragraphs. The stake
-resolves. The closer is a four-word snap, and it is earned because the five
-paragraphs before it did not use one.
+**The framework critique.**
 
-The closers of the section in sequence: *got angry* / *didn't take the code*
-/ *prove it* / *what the sixty billion is for* / *has not heard of it* / *the
-same statement says what* / *whether the work was any good* / *you should
-discount it* / *That agent is me*. Different lengths, different temperatures,
-one snap. That sequence is the test in §9.5 passing.
+Not Bill: *"Most agent frameworks aren't just flawed. They're built on the
+wrong abstraction entirely, and the implications are profound."*
 
-## 11. Counter-exemplar: Chapter 2 first draft, §2.5
+Bill: *"The agent frameworks all put the seam in the wrong place. They treat
+the agent like a function call: it runs and returns a result. Agents are
+processes. You can steer them while they run."*
 
-> The system prompt is rendered, not stored
+The second one is allowed to use a correction structure because it states the
+mechanism. The first states a temperature.
 
-Heading: negation form, the fourth of five headings in a row with this shape.
+**A LinkedIn opening.**
 
-> There is nowhere in `Context` to put system prompt text. Go looking. The
-> absence is structural.
+Not Bill: *"Excited to share something I've been quietly building. After
+months of deep work, I'm ready to reveal a tool that will fundamentally
+reshape how engineers think about AI coding agents. Here's what most people
+miss..."* Four banned patterns in three sentences.
 
-Closer: four-word snap. The previous paragraph's closer was "A string is the
-Chapter 1 mistake wearing a struct" and the one before was "the most
-consequential decision in the chapter" (superlative of scope). Three snaps
-in a row.
+Bill: the passage in §12.2.
 
-> The system prompt is *output*: the renderer computes it from the context
-> and a `Config`. Right now a constant string is a perfectly good computation,
-> and the reference solution's is one line. The rule is only about where it
-> comes from, and it is here because the system prompt is the easiest surface
-> in an agent to abuse, and the abuse has a predictable shape. First someone
-> describes the tools in it by hand. Then the descriptions drift from the
-> actual tools. Then part of it is generated and part hand-written and nobody
-> can say which. By the time it is four hundred lines, nobody will delete a
-> word, because nobody can prove which words are load-bearing.
+### 12.4 The counter-exemplar
 
-The best paragraph on the page, and the reason is the drift story: someone
-is doing something, and it gets worse. The rest of the section should look
-like this.
+Chapter 2's first draft, §2.5, is the failure case: 11,000 words with no stake
+after the cold open, five consecutive headings of the same shape, and the same
+closer move on four paragraphs in five. Read it when a draft feels flat and
+the reason is not obvious. The defect is never in the sentence being examined;
+it is in the sentence's similarity to the nine before it.
 
-> Store the string in the context and you have just picked a vendor. Render
-> it and you have not.
+## 13. Rulings that bind the prose
 
-Closer: snap, negation form, and the paragraph's only content is a restatement
-of the heading.
-
-Section-wide counts for the first draft, from `make lint-prose` (9,815 prose
-words): 22 comma-negation forms against Chapter 1's 4, eight confessions,
-four self-defenses, eight inventory openers, five superlatives of scope, a
-1,496-word stretch with nobody on the page, and no person with a stake after
-§2.0. One claim from the hand count did not survive measurement: the draft
-does not end more paragraphs on short sentences than Chapter 1 does (21%
-against 29% at eight words or fewer). The monotone is in the *temperature*
-of the closers, not their length; "the whole rest of this chapter takes the
-side of the 400" is twelve words and still an aphorism. That is why §9.5
-remains a reading test. Each of these counts is a legitimate move from v2 of
-this document applied at every opportunity.
-
-## 12. Rulings that bind the prose
-
+- **Person:** third person in chapter bodies; first person only in the §1.2
+  motivational opener, the preface, and material published under Bill's name.
+  Ruled by Bill, 2026-09-20. This supersedes v3 §1.1, which described a
+  first-person narrator, and which the chapters had already stopped following.
+- **Standard:** chapter 13's opening is the exemplar for the default register
+  (§12.1). This supersedes v3's ruling that Chapter 1 §1.0 is the standard;
+  that page is first person and can no longer model the default. It remains
+  the reference for a long narrative cold open.
 - **Printable:** Bill's Gemini `compress_context` story (an SDK's compaction
   deleted eighty percent of context starting from message one, which is what
   led to handoffs). Ruled 2026-09-14. Name the API surface, not the company.
-- **Printable:** "Forty years" as biography (§7.7). Bill is 62; Berkeley
-  1986.
+- **Printable:** "Forty years" as biography (§7.7). Bill is 62; Berkeley 1986.
 - **Not printable, any form:** the vendor model Bill watched threaten its
   sub-agents at work. No public log exists. Carry as mechanism in the
   sub-agent chapter; cite a public receipt if one appears.
-- **Not printable:** the name of any executive at the Windsurf buyer; the
-  name of Bill's employer or its internal frameworks. Voice.md's
-  API-not-company rule covers the rest.
+- **Not printable:** the name of any executive at the Windsurf buyer; the name
+  of Bill's employer or its internal frameworks; the undervalued-at-work
+  framing (§10.1).
 - **Print promise:** no profit on proxied tokens; billing costs pass through.
   Any pricing text honours this wording.
-- **Standard:** Chapter 1 §1.0 is the exemplar (§10).
-- **Length is not the test** (Bill, 2026-09-14, during the Chapter 2 pass):
-  the word ceiling is a warning, not a gate. The test for each sentence is
-  §9.4's: does a claim, number, instruction, or laugh die if it goes? A
-  chapter with more code has more to explain; a sentence that earns its place
-  stays regardless of the count. Cutting to hit a number is a different
-  mistake wearing the linter's badge.
+- **Length is not the test** (Bill, 2026-09-14, during the Chapter 2 pass): the
+  word ceiling is a warning, not a gate. The test for each sentence is §11.4's:
+  does a claim, number, instruction, or laugh die if it goes? A chapter with
+  more code has more to explain; a sentence that earns its place stays
+  regardless of the count. Cutting to hit a number is a different mistake
+  wearing the linter's badge.
+
+## 14. Quick voice check
+
+Run this before sending a chapter for review.
+
+1. Does the body open with a claim rather than a warm-up?
+2. Is every big claim followed by something concrete: a tool, a bug, a number,
+   or a story?
+3. Would a senior engineer feel talked down to anywhere? Cut it.
+4. Any em-dashes outside code, hedges, or §8 patterns? Cut them.
+5. Is there any first person outside a §1.2 opener or a quote?
+6. Read the last sentence of every paragraph in sequence. Do they vary?
+7. Does every criticism carry a receipt?
+8. Is every figure verified against an artifact rather than memory?
+9. Does it read like an engineer at a whiteboard, or like a press release?
