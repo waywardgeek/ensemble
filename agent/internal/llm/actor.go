@@ -333,8 +333,14 @@ func (a *Actor) dispatchTool(call common.ToolCallPart) error {
 	mb := a.mb
 	callCopy := call
 	go func() {
-		out, err := tool.Run(&common.Call{Host: a.eng.Host, Job: job, Jobs: a.eng.Jobs, Limits: limits}, callCopy.Args)
-		job.Finish(out, err)
+		c := &common.Call{Host: a.eng.Host, Job: job, Jobs: a.eng.Jobs, Limits: limits}
+		out, err := tool.Run(c, callCopy.Args)
+		// DeferFinish: the tool spawned a background goroutine that will
+		// call Finish itself (e.g. an interactive PTY reader). Skip it
+		// here so the job stays Running and Wait honours the delay/pattern.
+		if !c.DeferFinish {
+			job.Finish(out, err)
+		}
 
 		reason := job.Wait(limits)
 		result := job.Report(reason, limits)

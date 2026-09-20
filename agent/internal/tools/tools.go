@@ -211,10 +211,12 @@ func decode(name string, args json.RawMessage, into any) error {
 // to pipes; a job the model believes is interactive and is not would fail in
 // a way that looks like the program's fault.
 //
-// This function BLOCKS until the process exits. It does not know about the
-// delay, the pattern or the handle: the dispatcher is waiting on the job it
-// is writing into, and returns to the model without it when the delay
-// passes. Nothing in here was made asynchronous. It was made observable.
+// The PTY reader runs in a separate goroutine. This function returns as soon
+// as the process starts, setting DeferFinish so the dispatcher leaves the
+// job running. The reader goroutine calls job.Finish when the process exits.
+// Short commands finish before the dispatcher's Wait delay, so the model
+// sees no difference; interactive processes (dlv, python REPL) stay running
+// and the model gets a handle for send_input, wait_for_job, and kill_job.
 //
 // A non-zero exit is NOT an error return. The command ran; the agent asked a
 // question and got an answer, and "the tests failed" is the answer. Marking it
@@ -271,35 +273,44 @@ func toolRunCommand(c *common.Call, args json.RawMessage) (string, error) {
 	}
 	c.Job.Attach(cmd.Process, f)
 
-	// Copy until the terminal closes. On Linux that is an EIO once the last
-	// process holding the slave side exits; on macOS it is EOF. Either way the
-	// stream is over and the only thing left to learn is the exit status.
-	buf := make([]byte, 32*1024)
-	for {
-		n, rerr := f.Read(buf)
-		if n > 0 {
-			_, _ = c.Job.Write(bytes.ReplaceAll(buf[:n], []byte("\r\n"), []byte("\n")))
+	// The reader goroutine copies output from the PTY to the job until the
+	// terminal closes, then reaps the process and finishes the job. It runs
+	// independently of the dispatcher, so an interactive process that never
+	// exits (dlv, python) does not block the model from getting a handle.
+	job := c.Job
+	c.DeferFinish = true
+	go func() {
+		buf := make([]byte, 32*1024)
+		for {
+			n, rerr := f.Read(buf)
+			if n > 0 {
+				_, _ = job.Write(bytes.ReplaceAll(buf[:n], []byte("\r\n"), []byte("\n")))
+			}
+			if rerr != nil {
+				break
+			}
 		}
-		if rerr != nil {
-			break
-		}
-	}
-	_ = f.Close()
+		_ = f.Close()
 
-	werr := cmd.Wait()
-	if c.Job.Status() == common.StatusKilled {
-		// kill_job got here first. The model was already told; the exit
-		// status of a process we killed is not news.
-		return "", nil
-	}
-	exitCode := 0
-	if ee, ok := werr.(*exec.ExitError); ok {
-		exitCode = ee.ExitCode()
-	} else if werr != nil {
-		return "", fmt.Errorf("run_command: %v", werr)
-	}
-	c.Job.SetExit(exitCode)
-	fmt.Fprintf(c.Job, "exit_code: %d\n", exitCode)
+		werr := cmd.Wait()
+		if job.Status() == common.StatusKilled {
+			// kill_job got here first. The model was already told; the
+			// exit status of a process we killed is not news.
+			job.Finish("", nil)
+			return
+		}
+		exitCode := 0
+		if ee, ok := werr.(*exec.ExitError); ok {
+			exitCode = ee.ExitCode()
+		} else if werr != nil {
+			// Unexpected wait error — log it as the job's exit message.
+			fmt.Fprintf(job, "run_command: %v\n", werr)
+		}
+		job.SetExit(exitCode)
+		fmt.Fprintf(job, "exit_code: %d\n", exitCode)
+		job.Finish("", nil)
+	}()
+
 	return "", nil
 }
 

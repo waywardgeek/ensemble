@@ -372,9 +372,15 @@ func (e *Engine) Execute(call common.ToolCallPart) error {
 	// The tool runs on its own goroutine and reports into the job. There is
 	// no recover here: a panic in a tool is an invariant violation, and an
 	// invariant violation takes the process down loudly, as it should.
+	c := &common.Call{Host: e.Host, Job: job, Jobs: e.Jobs, Limits: limits}
 	go func() {
-		out, err := tool.Run(&common.Call{Host: e.Host, Job: job, Jobs: e.Jobs, Limits: limits}, call.Args)
-		job.Finish(out, err)
+		out, err := tool.Run(c, call.Args)
+		// DeferFinish: the tool spawned a background goroutine that will
+		// call Finish itself (e.g. an interactive PTY reader). Skip it
+		// here so the job stays Running and Wait honours the delay/pattern.
+		if !c.DeferFinish {
+			job.Finish(out, err)
+		}
 	}()
 
 	// The wait is on the job, not the tool. If the tool never returns, this
