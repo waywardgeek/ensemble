@@ -149,12 +149,18 @@
       } else {
         ws.send(JSON.stringify({type: 'hint', text}));
       }
+      // Clear typing state so the pause gate doesn't block.
+      if (userTyping) {
+        userTyping = false;
+        ws.send(JSON.stringify({type: 'unpause'}));
+      }
     }
   });
 
-  // Pause on typing.
+  // Pause on typing (skip programmatic input from MCP tools).
   let userTyping = false;
   input.addEventListener('input', () => {
+    if (window._mcpProgrammaticInput) return;
     const typing = input.value.trim().length > 0;
     if (typing && !userTyping) {
       userTyping = true;
