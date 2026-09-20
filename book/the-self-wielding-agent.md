@@ -6738,3 +6738,395 @@ user preferences, project notes) belongs in the message history as
 data, not in the system prompt as instructions. `save_memory` produces
 a data message. The system prompt stays clean and cacheable. Chapter
 12 will build the memory cascade on this foundation.
+
+---
+
+# Chapter 11: Persistence
+
+Every agent you have built so far forgets everything the moment it exits. The event log writes to disk, but the agent never reads it back. This chapter closes that gap and, in doing so, proves three invariants that have been implicit since Chapter 2:
+
+1. The context is deterministically derived from the event log.
+2. A checkpoint plus the remaining events produces the same context as the full log.
+3. The LLM never needs the log. The context alone is sufficient to continue.
+
+These are not aspirations. They are testable properties. The grader verifies all three.
+
+## §11.1 The Why
+
+The event log is the truth. The context is what the truth means right now. Save both and you have a conversation you can resume, audit, or replay from any point.
+
+But the deeper reason is verification. Every `Apply` call in every chapter has been an implicit claim: this reducer is deterministic, and the context it produces is the only thing the LLM needs. Save and load make that claim falsifiable. If the claim is wrong, you will find out now, not three chapters from now when memory compaction silently corrupts a conversation.
+
+## §11.2 The SaveFile
+
+Three fields:
+
+```go
+type SaveFile struct {
+    Context *Context   `json:"context"`
+    Log     *Log       `json:"log"`
+    Config  SaveConfig `json:"config"`
+}
+```
+
+The context is what the LLM sees. The log is the audit trail. The config is what built the system prompt and tools. Together they are a complete snapshot of an agent's state.
+
+The config subset captures what matters for resurrection:
+
+```go
+type SaveConfig struct {
+    Vendor       string     `json:"vendor"`
+    Model        string     `json:"model"`
+    SystemPrompt string     `json:"system_prompt"`
+    Tools        []ToolDecl `json:"tools"`
+}
+```
+
+Vendor, model, system prompt, tool declarations. Not API keys, not base URLs, not HTTP clients. The save file is portable. Load it on a different machine, with a different API key, against a different endpoint.
+
+## §11.3 Rebuild
+
+A function that proves the foundation:
+
+```go
+func Rebuild(events []Event) (*Context, error) {
+    ctx := NewContext()
+    for _, ev := range events {
+        if err := ctx.Apply(ev); err != nil {
+            return nil, err
+        }
+    }
+    return ctx, nil
+}
+```
+
+Replay the full event log from scratch. Marshal both contexts. Compare byte for byte. If the bytes differ, the reducer has a bug. This is the most valuable test in the chapter because it validates every `Apply` call you have written since Chapter 2, retroactively, in one comparison.
+
+## §11.4 Checkpoint and Partial Replay
+
+Save at event 5. Continue to event 10. Three things must be equal:
+
+1. The live context at event 10.
+2. `Rebuild(log.Events[:10])`.
+3. `Load(checkpoint_5).Context` with `Apply(events[5:10])`.
+
+If any pair disagrees, the reducer depends on something beyond (state, event). That hidden dependency will corrupt every conversation that resumes from a checkpoint. The grader tests this by saving mid-conversation, continuing, then comparing all three values.
+
+## §11.5 The LLM Never Sees the Log
+
+The renderer reads the Context. The Context contains Dialogue entries. The Dialogue entries contain Parts. At no point does the renderer read the Log.
+
+This means a loaded context with an empty log produces the exact same LLM request as one with a full log. The grader tests this directly: load a save file, send a new prompt, verify the vendor receives a well-formed request with the full conversation history. The log is for auditing and rebuild. It is not in the critical path.
+
+## §11.6 CLI Integration
+
+Two flags:
+
+```
+--save PATH    Persist state to PATH after the conversation
+--load PATH    Resume from a previously saved file
+```
+
+A loaded agent is indistinguishable from one that got there by running. Same tools, same system prompt, same conversation history. The only difference is startup time: load skips the events and starts from the result.
+
+The verify command tests determinism from the command line:
+
+```
+./agent verify SAVE_FILE
+```
+
+It loads the save file, rebuilds the context from the log, and compares. If they match, it prints OK. If they differ, it prints the byte offset of the first difference. The grader calls this command to verify the invariant without importing your internal packages.
+
+## §11.7 Looking Ahead
+
+With persistence in place, two capabilities become possible that were not before:
+
+1. Memory cascade: compaction that survives across sessions, compressing old memories while preserving the conversation.
+2. Agent resurrection: loading a saved agent with mock tools for interview, seeing exactly what it saw, asking what it was thinking.
+
+Both are later chapters. This one buys down the tech debt that makes them safe.
+
+---
+
+# Chapter 12: MCP -- The Extension Protocol
+
+Every tool the agent has used so far was compiled into the binary. Adding a new tool means writing Go, rebuilding, and restarting. The Model Context Protocol changes that. MCP is a JSON-RPC 2.0 wire protocol for connecting an agent to external tool servers: processes, browsers, remote services. This chapter builds the client, the transport layer, and a mechanism the MCP spec does not have -- ephemeral tools that the engine calls automatically, injecting their output into the context window without the LLM ever knowing they exist.
+
+## TL;DR
+
+MCP is JSON-RPC 2.0. The client sends `initialize`, receives capabilities, sends `notifications/initialized`, then calls `tools/list` to discover what the server offers. Each discovered tool becomes a normal tool in the agent's registry, callable by the LLM. The bidirectional channel means the server can also call agent tools back.
+
+### Transport
+
+One interface, multiple implementations:
+
+```go
+type Transport interface {
+    Send(msg json.RawMessage) error
+    Recv() (json.RawMessage, error)
+    Close() error
+}
+```
+
+**PipeTransport**: in-process connected pair, for testing.
+**StdioTransport**: spawns a subprocess, JSON-RPC over its stdin/stdout.
+**RawTransport**: wraps an `io.Reader` and `io.Writer` -- the `--mcp-pipe` flag uses this.
+**WSTransport**: tunnels JSON-RPC through the WebSocket hub to the browser.
+
+### Codec
+
+The `Codec` handles JSON-RPC correlation: outgoing requests get incrementing integer IDs, responses are matched by ID and delivered to the blocked caller. A background goroutine reads the transport and dispatches: responses go to pending callers, incoming requests go to an `onRequest` callback for reverse tool handling.
+
+```go
+type Codec struct {
+    transport Transport
+    nextID    int
+    pending   map[int]chan json.RawMessage
+    onRequest func(Request)
+    done      chan struct{}
+    mu        sync.Mutex
+}
+```
+
+### MCP Client
+
+```go
+func NewClient(t Transport) *Client
+func (c *Client) Initialize(ctx context.Context) error
+func (c *Client) ListTools(ctx context.Context) ([]ToolInfo, error)
+func (c *Client) CallTool(ctx context.Context, name string, args json.RawMessage) (*ToolResult, error)
+func (c *Client) SetReverseHandler(handler func(name string, args json.RawMessage) (string, error))
+func (c *Client) Done() <-chan struct{}
+func (c *Client) Close() error
+```
+
+`CallTool` runs the RPC in a goroutine so context cancellation works -- if the job is killed, the context is cancelled, and the client sends `$/cancelRequest` to the server. MCP tool calls are processes, not functions. They go through the same job infrastructure as `run_command`.
+
+### Ephemeral tools
+
+A discovered tool may carry an `ephemeral` field: `"round"` or `"turn"`. Ephemeral tools are NOT included in the tool declarations sent to the LLM. The model never sees them as callable. Instead, the engine calls them automatically:
+
+- **round**: called before every `RequestSent`. The GUI snapshot arrives fresh each round.
+- **turn**: called once when a new turn starts. Configuration data that does not change mid-conversation.
+
+Results are combined and injected via `Attach`, which puts them into `Context.Ephemera` -- the field the context already replaces on each round.
+
+```go
+func (e *Engine) callEphemeral(mode string) error {
+    tools := e.Tools.EphemeralTools(mode)
+    if len(tools) == 0 {
+        return nil
+    }
+    var parts []string
+    for _, t := range tools {
+        c := &common.Call{Host: e.Host, Jobs: e.Jobs}
+        out, err := t.Run(c, nil)
+        if err != nil {
+            e.Host.Logf("ephemeral tool %s error: %v", t.Name, err)
+            continue
+        }
+        if out != "" {
+            parts = append(parts, fmt.Sprintf("## %s (auto-updated)\n\n%s", t.Name, out))
+        }
+    }
+    if len(parts) == 0 {
+        return nil
+    }
+    return e.Attach(strings.Join(parts, "\n\n"))
+}
+```
+
+Ephemeral errors are logged but not fatal. A GUI snapshot failure should not abort a turn.
+
+### Bridge
+
+The bridge converts `ToolInfo` from MCP discovery into `common.Tool` entries. The handler closure captures the MCP client and routes calls through `CallTool`:
+
+```go
+func Bridge(client *Client, tools []ToolInfo) []common.Tool {
+    var result []common.Tool
+    for _, t := range tools {
+        info := t
+        tool := common.Tool{
+            Name:        info.Name,
+            Description: info.Description,
+            Schema:      info.InputSchema,
+            Ephemeral:   info.Ephemeral,
+            Run: func(c *common.Call, args json.RawMessage) (string, error) {
+                r, err := client.CallTool(context.Background(), info.Name, args)
+                // ...
+            },
+        }
+        result = append(result, tool)
+    }
+    return result
+}
+```
+
+### Reverse calls
+
+The MCP channel is bidirectional. When the server sends a `tools/call` request, the client's reverse handler looks up the tool in the agent's registry and executes it. The result goes back as a JSON-RPC response. This means an MCP server -- a browser, a Python script, a remote service -- can call `read_file`, `run_command`, or any tool the agent has loaded, subject to trust and skill boundaries.
+
+### WebSocket tunneling
+
+The browser cannot open a port or spawn a subprocess. The WebSocket hub already carries `prompt`, `hint`, `interrupt`, and `settings` messages. MCP adds one more type: `jsonrpc`. The hub routes `{"type": "jsonrpc", "payload": {...}}` messages between the Go MCP client and the browser's MCP server.
+
+On the browser side, `mcp.js` intercepts these frames and speaks the full MCP protocol: `initialize`, `tools/list`, `tools/call`. It registers four tools:
+
+- **gui_snapshot** (ephemeral/round): walks the visible DOM and returns a markdown summary -- pane layout, interactive elements with CSS selectors, artifact previews. Capped at 4KB.
+- **gui_click(selector)**: dispatches a click event on the matched element.
+- **gui_input(selector, text)**: sets the value and dispatches input/change events.
+- **tts_queue** (ephemeral/round): returns pending TTS utterances as JSON -- text, state, timing.
+
+The agent sees the GUI the way the user does: a snapshot of what is visible, updated every round. It can click buttons and fill text fields. And it hears what the TTS is saying, so it can catch bugs where the speech does not match the display.
+
+### SKILL.md integration
+
+Skills declare MCP servers in their frontmatter:
+
+```yaml
+mcp_servers:
+  - name: browser-debug
+    transport: websocket
+
+  - name: code-search
+    transport: stdio
+    command: python3
+    args: ["scripts/search_server.py"]
+```
+
+Loading a skill starts its MCP servers and discovers their tools. Unloading stops them. The `transport` field determines the wire: `stdio` spawns a subprocess, `websocket` tunnels through the hub.
+
+### Exercise
+
+The exercise contract:
+
+```
+./ensemble --mcp-pipe
+```
+
+Connects the MCP client to stdin/stdout. The grader acts as the MCP server on the other end: sends `initialize` response, `tools/list` response, and a reverse `tools/call` request. Seven checks:
+
+| Check | Points |
+|-------|--------|
+| mcp-handshake | 15 |
+| tool-discovery | 15 |
+| mcp-tool-call | 15 |
+| ephemeral-round | 20 |
+| reverse-call | 15 |
+| ws-tunnel | 10 |
+| ch11-parity | 10 |
+
+```
+make grade12
+```
+
+---
+
+# Chapter 13: The Agent Sees Itself
+
+A coding agent that cannot see its own GUI is debugging blind. Every tool so far has operated on files, processes, and network responses. The GUI is a black box the user stares at while the agent types into it. This chapter closes that gap. A single skill connects the agent to its running browser interface through the MCP infrastructure from Chapter 12, and the agent begins seeing what the user sees: the DOM, the buttons, the text being spoken aloud.
+
+## TL;DR
+
+A `gui-debug` skill activates browser MCP tools via the skill system from Chapter 10 and the MCP infrastructure from Chapter 12. Loading the skill triggers an MCP handshake, discovers four tools, and registers them. Two are ephemeral (auto-injected every round), two are callable.
+
+### The skill
+
+```yaml
+---
+name: gui-debug
+description: Debug the GUI through browser MCP tools
+depends:
+  - ensemble
+mcp_servers:
+  - name: browser-debug
+    transport: stdio
+    command: ./grader
+    args: ["--fake-mcp"]
+---
+```
+
+The `mcp_servers` field declares a server to connect when the skill loads. The `transport: stdio` entry spawns the command as a subprocess and speaks JSON-RPC 2.0 over its stdin/stdout. For grading, the command points at the grader binary itself running in fake MCP server mode. In production, the transport would be `websocket`, tunneling through the hub to the browser.
+
+### Skill-based MCP lifecycle
+
+Loading a skill with `mcp_servers`:
+
+1. For each server entry, create the transport (`StdioTransport` for `stdio`, `WSTransport` for `websocket`).
+2. Create an MCP `Client`, call `Initialize`, then `ListTools`.
+3. Bridge discovered tools into the agent's registry via `mcp.Bridge`.
+4. Store the client handle for cleanup.
+
+Unloading the skill:
+
+1. Remove bridged tools from the registry via `RemoveTool`.
+2. Close the MCP client.
+3. Close the transport (kills the subprocess for stdio).
+
+Two callbacks on the tool registry wire this lifecycle:
+
+```go
+type Reg struct {
+    // ...
+    onSkillMCPConnect    func(skill string, servers []common.MCPServerConfig) ([]string, error)
+    onSkillMCPDisconnect func(skill string)
+}
+```
+
+The `load_skill` handler calls `onSkillMCPConnect` after loading the skill's tools. The `unload_skill` handler calls `onSkillMCPDisconnect` before removing them. The callbacks live in `cmd/main.go` where the MCP client, transport factories, and registry are all in scope.
+
+### RemoveTool
+
+The registry gains a `RemoveTool(name)` method. Chapter 12 added tools dynamically via `RegisterTool`; this chapter removes them dynamically when a skill unloads. The tool is deleted from the map and its declaration is removed from the cached list. The `onToolsChanged` callback fires so the engine picks up the new tool set.
+
+### The four browser tools
+
+These are the same four tools from Chapter 12's `mcp.js`, now activated through the skill system:
+
+| Tool | Ephemeral | What it returns |
+|------|-----------|-----------------|
+| gui_snapshot | round | Markdown DOM: panes, interactive elements with selectors, artifacts |
+| tts_queue | round | JSON array of pending TTS utterances |
+| gui_click | no | Confirmation: "clicked #button-A" |
+| gui_input | no | Confirmation: "set text on #search-box" |
+
+The ephemeral tools are called automatically by the engine before each round. Their output appears in `Context.Ephemera`. The LLM sees the DOM snapshot and TTS queue as context data, refreshed every round, without having to ask for it.
+
+The callable tools (`gui_click`, `gui_input`) appear in the LLM's tool declarations. The LLM decides when to click or type based on what the snapshot shows.
+
+### --gui-debug flag
+
+A convenience flag that auto-loads the `gui-debug` skill on startup:
+
+```
+./ensemble --gui-debug --skills-dir ./skills
+```
+
+Equivalent to the agent calling `load_skill("gui-debug")` as its first action. The `--skills-dir` flag overrides the default skills directory, which is useful for grading with temp directories containing test fixtures.
+
+### Exercise
+
+```
+./ensemble --gui-debug --skills-dir SKILLS_DIR
+```
+
+The grader binary doubles as a fake MCP server (`--fake-mcp` flag). It writes a temporary `gui-debug` SKILL.md whose `command` points at itself. When the student binary loads the skill, it spawns the grader as a subprocess, establishing a JSON-RPC channel.
+
+The fake MCP server maintains state: `gui_snapshot` returns "button-A: enabled" initially, then "button-A: disabled" after a `gui_click` call. This simulates the DOM changing in response to interaction, and the grader verifies that the next round's ephemeral injection reflects the updated state.
+
+Seven checks:
+
+| Check | Points |
+|-------|--------|
+| skill-loads | 15 |
+| ephemeral-injected | 20 |
+| snapshot-updates | 15 |
+| tts-visibility | 10 |
+| gui-interaction | 15 |
+| skill-unload | 15 |
+| ch12-parity | 10 |
+
+```
+make grade13
+```
