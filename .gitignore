@@ -41,3 +41,15 @@ cr/
 # derived from the executable: a binary built from solutions/ch03 writes
 # ch03.log, and one you named yourself writes whatever you named it.
 *.log
+
+# Built binaries and runtime state in the live agent tree. Anchored to
+# /agent/ on purpose: solutions/chNN/ already tracks files with these
+# names, and an unanchored pattern would quietly shadow them.
+/agent/ensemble
+/agent/virtual-user
+/agent/settings.json
+/agent/virtual-user.jsonl
+
+# dlv drops these next to the package it builds. Slashless so it matches
+# at any depth, for the same reason as `bin` above.
+__debug_bin*

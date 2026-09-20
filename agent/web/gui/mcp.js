@@ -264,9 +264,11 @@
     var el = document.querySelector(args.selector);
     if (!el) return "error: no element matches selector: " + args.selector;
     el.value = args.text;
-    // Dispatch input event so frameworks pick up the change.
+    // Mark as programmatic so the pause handler ignores it.
+    window._mcpProgrammaticInput = true;
     el.dispatchEvent(new Event("input", { bubbles: true }));
     el.dispatchEvent(new Event("change", { bubbles: true }));
+    window._mcpProgrammaticInput = false;
     return "set value on " + args.selector + ": " + args.text;
   }
 
