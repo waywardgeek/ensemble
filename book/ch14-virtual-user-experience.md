@@ -150,22 +150,67 @@ field, and left the general case in place.
 ### Bug 6: GUI Truncates Content
 
 **Discovery:** Bill noted from a screenshot that tool cards on the right
-pane truncate command arguments and output. The virtual user sees the full
-DOM (gui_snapshot returns everything), but the actual human user sees
-truncated content.
+pane truncate command arguments and output.
 
-**Status:** Not yet fixed. The GUI needs expandable/scrollable tool cards.
+**The original diagnosis here was backwards, and the correction is the
+interesting part.** This section previously claimed the virtual user "sees
+the full DOM (gui_snapshot returns everything)" while only the human saw
+truncated content. Reading the code showed the opposite. There are four
+independent caps, and the observer's are the tightest:
+
+| Observer | What | Cap |
+|---|---|---|
+| Human (`artifact-scroll.js`) | tool input | 500 chars |
+| Human (`artifact-scroll.js`) | tool result | 1000 chars |
+| Virtual user (`mcp.js`) | artifact preview | 120 chars |
+| Virtual user (`mcp.js`) | whole snapshot | 4000 chars |
+
+The virtual user saw *less* than the human, not more, and nobody noticed
+because the assumption was never measured. Worse, the snapshot dropped
+every artifact past the tenth with no marker at all, so it could not
+distinguish "10 of 10" from "10 of 50."
+
+**Status:** Fixed (commit `cab1ee4`). The display caps remain, because a
+wall of text helps nobody, but the hidden remainder is now reachable via a
+`title` attribute, which suits reading by hover. The snapshot now reports
+how many characters and how many artifacts it withheld.
+
+Bill separately fixed the visual symptom: tool cards were a single line
+with horizontal scroll and now wrap (`white-space: pre-wrap`).
+
+**Also found while reading that code: an XSS hole.** The tool-call card
+built its header with `innerHTML`, interpolating the tool name and
+serialized arguments directly into markup. Tool arguments are
+attacker-influenceable text: a filename, a fetched URL, the contents of a
+file the agent just read. Markup in any of them would execute in the GUI.
+The result path a few lines below correctly used `textContent`. Fixed by
+building nodes instead of strings.
 
 ### Bug 7: Hamburger Menu Toggle Not Visible in Snapshot
 
 **Discovery:** The virtual user clicked the hamburger button and took a
-snapshot, but the DOM didn't visually indicate whether the sidebar was
-expanded or collapsed. Bill confirmed it works visually (the sidebar
-expands/collapses) but the state isn't reflected in the DOM attributes
-that gui_snapshot reads.
+snapshot, but the DOM didn't indicate whether the sidebar was expanded or
+collapsed. The state lived only in a CSS class, which neither a screen
+reader nor `gui_snapshot` can see. The sidebar tabs had the same defect.
 
-**Status:** Not yet fixed. The sidebar toggle could expose its state via
-an `aria-expanded` attribute or a class name change.
+**The consequence was not a blind spot but a false report.** Asked to test
+the tabs, the virtual user could not observe which panel was active, so it
+guessed, and reported confidently that clicking "Artifacts" opened the
+Settings panel. Checking the code showed `data-tab` and `data-panel` match
+correctly and there is no Settings tab at all. The bug report was fiction
+generated to fill an observability gap. An agent starved of state does not
+answer "I cannot tell"; it invents something plausible.
+
+**Status:** Fixed (commit `cab1ee4`). `aria-expanded` on the toggle and
+`aria-selected` on the tabs, kept in sync on every click, with the initial
+value derived from the live class rather than hardcoded in the markup (the
+two had already drifted apart). `gui_snapshot` now reports those
+attributes.
+
+Re-running the same test afterward, the virtual user produced a correct
+before/after table and wrote "no guessing was needed at any step." Where
+it still lacked information it wrote "not observable" instead of inventing
+an answer.
 
 ## The Successful Run (after fixes 1-3)
 
@@ -415,16 +460,67 @@ explicit way to say "this was not the human."
 
 ### Ch9 (GUI): the DOM is the accessibility surface and the test surface
 
-**The bugs.** Tool card content is truncated, so the human sees less than
-the virtual user reads. The hamburger toggle's state is invisible in a DOM
-snapshot.
+**The bugs.** The hamburger toggle and the sidebar tabs expressed their
+state only as a CSS class, invisible in a DOM snapshot. Tool card content
+was capped with no way to reach the remainder.
 
 **State in the TL;DR.** State expressed only in CSS or in a JavaScript
 variable is invisible to a screen reader and to any automated observer.
-Toggles carry `aria-expanded`; panels carry their state in attributes. This
-is one requirement, not two: what makes the GUI usable by speech is exactly
-what makes it observable by a virtual user. A GUI that cannot be read
-cannot be tested.
+Toggles carry `aria-expanded`; tabs carry `aria-selected`; both stay in
+sync on every change, and the initial value is derived from the live DOM
+rather than hardcoded in the markup, because the two drift. This is one
+requirement, not two: what makes the GUI usable by speech is exactly what
+makes it observable by a virtual user. A GUI that cannot be read cannot be
+tested.
+
+**The sharper version of this lesson.** Missing state does not degrade an
+agent into saying "I cannot tell." It degrades it into confident fiction.
+Asked to test the tabs before the fix, the virtual user reported that
+clicking "Artifacts" opened the Settings panel. There is no Settings tab in
+the markup at all. The report was invented to fill the gap. After the fix
+the same test produced a correct table, and where information was still
+missing the agent wrote "not observable." **An unobservable interface does
+not produce no data; it produces wrong data.** That is the argument for
+ARIA that a student who does not use a screen reader will actually feel.
+
+**Truncation must be reachable.** A cap with an ellipsis and no affordance
+deletes information permanently for a reader who cannot scroll past it.
+Cap the display, keep the full value reachable.
+
+### Ch9 (GUI): never build HTML by string interpolation from tool text
+
+**The bug.** The tool-call card assembled its header with `innerHTML`,
+interpolating the tool name and serialized arguments into markup. The
+result path a few lines below correctly used `textContent`, so the file
+demonstrated both the right and wrong pattern within twenty lines.
+
+**State in the TL;DR.** Tool arguments are not trusted input. They contain
+filenames, URLs, and the contents of files the agent just read, all of
+which an attacker may influence. This is the same prompt-injection threat
+surface the book raises elsewhere, arriving through the renderer instead of
+the model. Build nodes and assign `textContent`; never interpolate tool
+text into `innerHTML`. Worth stating in the chapter that first renders a
+tool call, because the insecure version is shorter and reads better, so it
+is what a student will write unprompted.
+
+### Ch12/Ch13 (MCP): an observer must report its own blind spots
+
+**The bug.** `gui_snapshot` capped previews at 120 characters, dropped
+every artifact past the tenth, and marked neither. The virtual user could
+not distinguish a complete picture from a tenth of one.
+
+**State in the TL;DR.** Any tool that summarizes state for a model must
+quantify what it withheld: how many characters, how many items. Silent
+truncation is worse than a low cap, because the consumer cannot tell that
+it is reasoning about a fragment, and will report "looks fine" about a
+screen it never saw. This compounds the ARIA lesson above: the observer was
+blind *and* did not know it was blind.
+
+**Measure the observer against the human.** The assumption that the
+snapshot showed more than the screen went unchecked until someone compared
+the four caps side by side and found the observer's were the tightest. When
+one component is meant to be a proxy for another, the fidelity of that
+proxy is a fact to measure, not to assume.
 
 ### The meta-lesson for the chapter
 
