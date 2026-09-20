@@ -350,9 +350,11 @@
               : envelope.payload;
           var response = handleMessage(rpcMsg);
           if (response) {
-            ws.send(
-              JSON.stringify({ type: "jsonrpc", payload: response })
-            );
+            var reply = { type: "jsonrpc", payload: response };
+            if (envelope.source) {
+              reply.source = envelope.source;
+            }
+            ws.send(JSON.stringify(reply));
           }
           return; // Consumed by MCP server.
         }

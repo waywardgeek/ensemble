@@ -37,8 +37,8 @@ type Hub struct {
 	send      func(common.Inbound) // forwards prompt/hint/interrupt to the actor
 	guiLog    *GuiLogger
 	log       *common.Log          // event log — read-only access for reconnection
-	settings  *common.SettingsStore // GUI-editable settings; nil = no settings
-	mcpRecv   func(json.RawMessage)  // delivers incoming JSON-RPC from browser; nil = no MCP
+	settings     *common.SettingsStore                  // GUI-editable settings; nil = no settings
+	mcpReceivers map[string]func(json.RawMessage)       // source tag → JSON-RPC receiver
 }
 
 // NewHub creates a hub. send is called for every prompt/hint/interrupt
@@ -47,13 +47,14 @@ type Hub struct {
 // settings provides the GUI-editable settings store (may be nil).
 func NewHub(gate *common.PauseGate, send func(common.Inbound), guiLogPath string, eventLog *common.Log, settings *common.SettingsStore) *Hub {
 	h := &Hub{
-		clients:  make(map[*Client]bool),
-		inflight: make(map[uint64][]byte),
-		gate:     gate,
-		send:     send,
-		guiLog:   NewGuiLogger(guiLogPath),
-		log:      eventLog,
-		settings: settings,
+		clients:      make(map[*Client]bool),
+		inflight:     make(map[uint64][]byte),
+		gate:         gate,
+		send:         send,
+		guiLog:       NewGuiLogger(guiLogPath),
+		log:          eventLog,
+		settings:     settings,
+		mcpReceivers: make(map[string]func(json.RawMessage)),
 	}
 	return h
 }
@@ -65,21 +66,34 @@ func (h *Hub) Close() {
 	}
 }
 
-// SetMCPReceiver registers a callback for incoming JSON-RPC messages from
-// the browser. Called by the agent when wiring a WSTransport.
-func (h *Hub) SetMCPReceiver(recv func(json.RawMessage)) {
+// SetMCPReceiver registers a callback for incoming JSON-RPC messages tagged
+// with the given source. The coding agent uses source "" (default); the
+// virtual user uses source "vu". Called when wiring a WSTransport.
+func (h *Hub) SetMCPReceiver(source string, recv func(json.RawMessage)) {
 	h.mu.Lock()
-	h.mcpRecv = recv
+	h.mcpReceivers[source] = recv
+	h.mu.Unlock()
+}
+
+// RemoveMCPReceiver unregisters the receiver for the given source tag.
+func (h *Hub) RemoveMCPReceiver(source string) {
+	h.mu.Lock()
+	delete(h.mcpReceivers, source)
 	h.mu.Unlock()
 }
 
 // BroadcastJSONRPC sends a JSON-RPC message to all connected WebSocket
-// clients, wrapped as {"type":"jsonrpc","data":{...}}.
-func (h *Hub) BroadcastJSONRPC(data json.RawMessage) {
-	msg, _ := json.Marshal(map[string]any{
-		"type": "jsonrpc",
-		"data": json.RawMessage(data),
-	})
+// clients, wrapped as {"type":"jsonrpc","source":"...","payload":{...}}.
+// The source tag lets mcp.js echo it back so the hub can route the response.
+func (h *Hub) BroadcastJSONRPC(data json.RawMessage, source string) {
+	envelope := map[string]any{
+		"type":    "jsonrpc",
+		"payload": json.RawMessage(data),
+	}
+	if source != "" {
+		envelope["source"] = source
+	}
+	msg, _ := json.Marshal(envelope)
 
 	h.mu.Lock()
 	clients := make([]*Client, 0, len(h.clients))
@@ -311,7 +325,8 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 		From     common.Seq      `json:"from"`
 		To       common.Seq      `json:"to"`
 		Settings json.RawMessage `json:"settings"`
-		Data     json.RawMessage `json:"data"` // for jsonrpc messages
+		Payload  json.RawMessage `json:"payload"` // JSON-RPC payload
+		Source   string          `json:"source"`   // MCP source tag ("vu", "", etc.)
 	}
 	if json.Unmarshal(raw, &msg) != nil {
 		return
@@ -347,10 +362,10 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 		}
 	case "jsonrpc":
 		h.mu.Lock()
-		recv := h.mcpRecv
+		recv := h.mcpReceivers[msg.Source]
 		h.mu.Unlock()
-		if recv != nil && msg.Data != nil {
-			recv(msg.Data)
+		if recv != nil && msg.Payload != nil {
+			recv(msg.Payload)
 		}
 	}
 }
