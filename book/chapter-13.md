@@ -114,7 +114,9 @@ make grade13
 
 Everything above this line is plumbing, and most of it is close to trivial. A skill declares an MCP server. The registry connects when the skill loads and disconnects when it unloads. A browser tab exposes four tools over a WebSocket that was already there. The interesting part is not the transport. The interesting part is what arrives the first time an agent can see a screen it did not render and press a button nobody told it about.
 
-What follows is one week of that, reported as it happened. Every bug in this section was found by pointing the machinery at a GUI nobody had audited. Every fix is in the repository, and every claim below was checked against the code rather than against the notes written at the time. Two of the notes turned out to be wrong, which is its own lesson and is recorded where it belongs.
+What follows took two days, and the commit log is specific about them. The driver and its transport were committed on the first, between 17:43 and 18:39. Every fix described below was committed on the second, four code commits and three documentation commits, between 14:34 and 15:31.
+
+The asymmetry in those timestamps is the finding underneath the findings. Not one of these defects was hard to repair once someone knew it was there. All of them had survived in a codebase under daily development, with a grader suite passing, because nothing in that codebase had ever tried to use the interface the way a user uses it. Every bug in this section was found by pointing the machinery at a GUI nobody had audited, and every claim below was checked against the code rather than against the notes written at the time. Two of the notes turned out to be wrong, which is its own lesson and is recorded where it belongs.
 
 ### The user that cannot read the source
 
