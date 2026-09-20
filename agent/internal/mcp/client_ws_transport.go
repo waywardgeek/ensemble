@@ -15,10 +15,10 @@ import (
 // Outgoing: wraps each message as {"type":"jsonrpc","source":"vu","payload":{...}}
 // Incoming: filters for matching source tag and delivers the payload.
 type ClientWSTransport struct {
-	conn     *websocket.Conn
-	source   string             // e.g. "vu"
-	incoming chan json.RawMessage
-	done     chan struct{}
+	conn      *websocket.Conn
+	source    string // e.g. "vu"
+	incoming  chan json.RawMessage
+	done      chan struct{}
 	closeOnce sync.Once
 }
 
@@ -99,7 +99,7 @@ func (t *ClientWSTransport) Recv() (json.RawMessage, error) {
 	}
 }
 
-// Close shuts down the transport and the underlying WebSocket connection.
+// Close terminates the WebSocket connection and stops the read loop.
 func (t *ClientWSTransport) Close() error {
 	t.closeOnce.Do(func() {
 		close(t.done)

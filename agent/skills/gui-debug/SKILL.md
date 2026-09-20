@@ -3,9 +3,6 @@ name: gui-debug
 description: Debug the GUI through browser MCP tools
 depends:
   - ensemble
-mcp_servers:
-  - name: browser-debug
-    transport: websocket
 ---
 
 ## GUI Debug Mode

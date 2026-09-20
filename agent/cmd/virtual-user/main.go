@@ -97,18 +97,18 @@ func main() {
 	)
 
 	// Connect to the hub WebSocket with source tag "vu".
-	// The hub routes our JSON-RPC messages to the browser's MCP server
-	// and delivers responses tagged with source:"vu" back to us.
+	log.Printf("connecting to %s...", *agentURL)
 	transport, err := agent.NewMCPClientWSTransport(*agentURL, "vu")
 	if err != nil {
 		log.Fatalf("connect to hub: %v", err)
 	}
+	log.Println("WebSocket connected, starting MCP handshake...")
 
 	if err := a.ConnectMCP(transport); err != nil {
 		log.Fatalf("MCP handshake: %v", err)
 	}
 
-	log.Printf("virtual user connected to %s", *agentURL)
+	log.Printf("virtual user connected, MCP tools discovered")
 	log.Printf("task: %s", taskText)
 
 	// Run the conversation loop. The agent discovers gui_snapshot,
