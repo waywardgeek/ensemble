@@ -53,8 +53,10 @@ func NewMCPStdioTransport(command string, args []string, env []string) (MCPTrans
 
 // NewMCPWSTransport creates a transport tunneled over the WebSocket hub.
 func NewMCPWSTransport(hub *WSHub) MCPTransport {
-	wst := mcp.NewWSTransport(hub.BroadcastJSONRPC)
-	hub.SetMCPReceiver(wst.Deliver)
+	wst := mcp.NewWSTransport(func(data json.RawMessage) {
+		hub.BroadcastJSONRPC(data, "")
+	})
+	hub.SetMCPReceiver("", wst.Deliver)
 	return wst
 }
 
@@ -62,6 +64,13 @@ func NewMCPWSTransport(hub *WSHub) MCPTransport {
 // Used for --mcp-pipe mode where stdin/stdout become the MCP wire.
 func NewMCPRawTransport(r io.Reader, w io.Writer) MCPTransport {
 	return mcp.NewRawTransport(r, w)
+}
+
+// NewMCPClientWSTransport dials a WebSocket hub and creates a transport
+// that tags all messages with the given source. Used by the virtual user
+// to connect to the browser's MCP server through the hub.
+func NewMCPClientWSTransport(url, source string) (MCPTransport, error) {
+	return mcp.NewClientWSTransport(url, source)
 }
 
 // Chapter 6: observer and mailbox types.
@@ -190,6 +199,23 @@ func NewAgent(cfg Config, logPath string) *Agent {
 	// Register built-in variable renderers.
 	a.vars.Register("TOOLS", common.BuiltinToolsRenderer(a.skills, a.reg))
 	a.vars.Register("SKILLS", common.BuiltinSkillsRenderer(a.skills))
+
+	cfg.Tools = a.reg.Declarations()
+	a.eng = llm.NewEngine(cfg, logPath, j, a.reg, a)
+	return a
+}
+
+// NewBareAgent creates an agent with NO builtin tools. All tools come from
+// MCP or explicit RegisterTool calls. Used for auxiliary agents like the
+// virtual user that interact only through GUI tools.
+func NewBareAgent(cfg Config, logPath string) *Agent {
+	a := &Agent{
+		Logger: DefaultLogger(),
+		skills: common.NewSkillRegistry(),
+		vars:   common.NewVarRegistry(),
+	}
+	j := jobs.NewJobs(a)
+	a.reg = tools.NewBareRegistry()
 
 	cfg.Tools = a.reg.Declarations()
 	a.eng = llm.NewEngine(cfg, logPath, j, a.reg, a)

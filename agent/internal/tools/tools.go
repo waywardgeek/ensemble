@@ -730,6 +730,16 @@ func NewRegistry() *Reg {
 	return r
 }
 
+// NewBareRegistry creates an empty registry with no builtin tools.
+// Used for agents that get all their tools from MCP or explicit registration.
+func NewBareRegistry() *Reg {
+	return &Reg{
+		tools:   make(map[string]common.Tool),
+		argSpec: make(map[string]string),
+		meta:    make(map[string]ToolMeta),
+	}
+}
+
 // Register adds a custom tool. The handler receives JSON arguments and
 // returns the text output.
 func (r *Reg) Register(name, description string, schema json.RawMessage, handler func(json.RawMessage) (string, error)) {
