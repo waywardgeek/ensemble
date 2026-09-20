@@ -18,6 +18,7 @@
 
   let ws;
   let agentState = 'idle';
+  window.agentState = 'idle';
 
   // ── WebSocket ──
   function connect() {
@@ -80,11 +81,13 @@
 
       case 'state_changed':
         agentState = msg.to;
+        window.agentState = agentState;
         updateStateUI();
         break;
 
       case 'turn_ended':
         agentState = 'idle';
+        window.agentState = 'idle';
         updateStateUI();
         chatScroll.handleMessage(msg);
         break;

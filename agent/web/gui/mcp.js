@@ -76,6 +76,36 @@
       },
       ephemeral: "round",
     },
+    {
+      name: "wait_for_idle",
+      description:
+        "Blocks until the coding agent becomes idle (finishes its current turn). Returns immediately if already idle. Use this after sending a prompt to wait for the agent to finish working.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          timeout_seconds: {
+            type: "number",
+            description: "Maximum seconds to wait before returning (default: 120)",
+          },
+        },
+        additionalProperties: false,
+      },
+    },
+    {
+      name: "sleep",
+      description:
+        "Pauses for the given number of seconds. Use as a simple delay between actions.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          seconds: {
+            type: "number",
+            description: "Number of seconds to sleep (default: 5)",
+          },
+        },
+        additionalProperties: false,
+      },
+    },
   ];
 
   // ---- Tool handlers ----
@@ -241,6 +271,39 @@
     return "[]";
   }
 
+  // wait_for_idle: block until the agent state becomes idle.
+  function waitForIdle(args) {
+    var timeout = (args.timeout_seconds || 120) * 1000;
+    return new Promise(function (resolve) {
+      if (window.agentState === "idle") {
+        resolve("agent is idle");
+        return;
+      }
+      var timer = null;
+      var check = setInterval(function () {
+        if (window.agentState === "idle") {
+          clearInterval(check);
+          if (timer) clearTimeout(timer);
+          resolve("agent is idle");
+        }
+      }, 500);
+      timer = setTimeout(function () {
+        clearInterval(check);
+        resolve("timeout: agent still " + (window.agentState || "unknown"));
+      }, timeout);
+    });
+  }
+
+  // sleep: block for a given number of seconds.
+  function sleepTool(args) {
+    var ms = (args.seconds || 5) * 1000;
+    return new Promise(function (resolve) {
+      setTimeout(function () {
+        resolve("slept " + args.seconds + " seconds");
+      }, ms);
+    });
+  }
+
   var TOOL_HANDLERS = {
     gui_snapshot: function () {
       return guiSnapshot();
@@ -254,12 +317,18 @@
     tts_queue: function () {
       return ttsQueue();
     },
+    wait_for_idle: function (args) {
+      return waitForIdle(args);
+    },
+    sleep: function (args) {
+      return sleepTool(args);
+    },
   };
 
   // ---- MCP Server Protocol ----
 
   // Handle incoming JSON-RPC message from the agent (via WebSocket hub).
-  function handleMessage(msg) {
+  function handleMessage(msg, sendResponse) {
     if (!msg || msg.jsonrpc !== "2.0") return null;
 
     switch (msg.method) {
@@ -291,7 +360,7 @@
         );
 
       case "tools/call":
-        return handleToolCall(msg);
+        return handleToolCall(msg, sendResponse);
 
       case "notifications/initialized":
         // Acknowledgement from client, no response needed.
@@ -305,7 +374,7 @@
     }
   }
 
-  function handleToolCall(msg) {
+  function handleToolCall(msg, sendResponse) {
     var params = msg.params || {};
     var name = params.name;
     var args = params.arguments || {};
@@ -320,6 +389,20 @@
 
     try {
       var result = handler(args);
+      // Async handler: returns a Promise. Response sent via callback.
+      if (result && typeof result.then === "function") {
+        result.then(function (text) {
+          sendResponse(jsonrpcResponse(msg.id, {
+            content: [{ type: "text", text: text }],
+          }));
+        }).catch(function (e) {
+          sendResponse(jsonrpcResponse(msg.id, {
+            content: [{ type: "text", text: "error: " + e.message }],
+            isError: true,
+          }));
+        });
+        return null; // No synchronous response.
+      }
       return jsonrpcResponse(msg.id, {
         content: [{ type: "text", text: result }],
       });
@@ -348,13 +431,17 @@
             typeof envelope.payload === "string"
               ? JSON.parse(envelope.payload)
               : envelope.payload;
-          var response = handleMessage(rpcMsg);
-          if (response) {
+          // Callback for async tool handlers to send responses later.
+          var sendAsyncResponse = function (response) {
             var reply = { type: "jsonrpc", payload: response };
             if (envelope.source) {
               reply.source = envelope.source;
             }
             ws.send(JSON.stringify(reply));
+          };
+          var response = handleMessage(rpcMsg, sendAsyncResponse);
+          if (response) {
+            sendAsyncResponse(response);
           }
           return; // Consumed by MCP server.
         }
@@ -390,5 +477,6 @@
   window.MCPServer = {
     handleMessage: handleMessage,
     tools: TOOLS,
+    handlers: TOOL_HANDLERS,
   };
 })();
