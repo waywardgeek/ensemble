@@ -14,22 +14,104 @@ import (
 //
 // Zero values mean "not set" — a patch with omitempty only overwrites
 // fields the client explicitly included.
+// Settings is the full, authoritative state of every user preference.
+//
+// No field is omitempty, deliberately. Settings travels to the client as
+// a complete snapshot, and a zero value is a real value: temperature 0,
+// TTS disabled, a font size the server reset after rejecting a bad one.
+// With omitempty those states vanish from the JSON and the client cannot
+// distinguish "the server set this to zero" from "the server said
+// nothing about this", so a corrected field silently keeps its old
+// displayed value. Patches are expressed by key presence in ApplyRaw,
+// never by zero, which is why nothing here needs to be omitted.
 type Settings struct {
 	// Agent behavior.
-	Model          string  `json:"model,omitempty"`
-	Temperature    float64 `json:"temperature,omitempty"`
-	MaxTokens      int     `json:"max_tokens,omitempty"`
-	ThinkingBudget int     `json:"thinking_budget,omitempty"`
-	MaxToolRounds  int     `json:"max_tool_rounds,omitempty"`
-	SystemPrompt   string  `json:"system_prompt,omitempty"`
+	Model          string  `json:"model"`
+	Temperature    float64 `json:"temperature"`
+	MaxTokens      int     `json:"max_tokens"`
+	ThinkingBudget int     `json:"thinking_budget"`
+	MaxToolRounds  int     `json:"max_tool_rounds"`
+	SystemPrompt   string  `json:"system_prompt"`
 
 	// Appearance.
-	Theme    string `json:"theme,omitempty"` // "dark", "light", "system"
-	FontSize int    `json:"font_size,omitempty"`
+	Theme    string `json:"theme"` // "dark", "light", "system"
+	FontSize int    `json:"font_size"`
 
 	// Accessibility.
-	TTSEnabled bool    `json:"tts_enabled,omitempty"`
-	TTSSpeed   float64 `json:"tts_speed,omitempty"`
+	TTSEnabled bool    `json:"tts_enabled"`
+	TTSSpeed   float64 `json:"tts_speed"`
+}
+
+// Bounds for settings that reach the model API or the renderer. A value
+// outside these ranges is not a preference, it is a bug or an attack: the
+// API rejects temperature -5, and font size 0 renders nothing.
+const (
+	MinTemperature    = 0.0
+	MaxTemperature    = 2.0
+	MaxTokensCeiling  = 1000000
+	MaxThinkingBudget = 200000
+	MaxToolRoundsCap  = 10000
+	MinFontSize       = 8
+	MaxFontSize       = 72
+	MinTTSSpeed       = 0.1
+	MaxTTSSpeed       = 10.0
+)
+
+// clamp forces every field into its legal range. It is called on every
+// path that can change settings: both merge functions and the load from
+// disk, so a hand-edited settings.json cannot smuggle a bad value past
+// the checks that the WebSocket patches go through.
+//
+// Zero means "not set" for most fields, and clamp preserves that. A
+// negative value collapses to zero (unset, so the default applies)
+// rather than to the minimum, because a client sending -5 has told us
+// nothing about what it actually wants.
+func (s *Settings) clamp() {
+	if s.Temperature < MinTemperature {
+		s.Temperature = MinTemperature
+	}
+	if s.Temperature > MaxTemperature {
+		s.Temperature = MaxTemperature
+	}
+	if s.MaxTokens < 0 {
+		s.MaxTokens = 0
+	}
+	if s.MaxTokens > MaxTokensCeiling {
+		s.MaxTokens = MaxTokensCeiling
+	}
+	if s.ThinkingBudget < 0 {
+		s.ThinkingBudget = 0
+	}
+	if s.ThinkingBudget > MaxThinkingBudget {
+		s.ThinkingBudget = MaxThinkingBudget
+	}
+	if s.MaxToolRounds < 0 {
+		s.MaxToolRounds = 0
+	}
+	if s.MaxToolRounds > MaxToolRoundsCap {
+		s.MaxToolRounds = MaxToolRoundsCap
+	}
+	if s.FontSize < 0 {
+		s.FontSize = 0
+	} else if s.FontSize > 0 && s.FontSize < MinFontSize {
+		s.FontSize = MinFontSize
+	}
+	if s.FontSize > MaxFontSize {
+		s.FontSize = MaxFontSize
+	}
+	if s.TTSSpeed < 0 {
+		s.TTSSpeed = 0
+	} else if s.TTSSpeed > 0 && s.TTSSpeed < MinTTSSpeed {
+		s.TTSSpeed = MinTTSSpeed
+	}
+	if s.TTSSpeed > MaxTTSSpeed {
+		s.TTSSpeed = MaxTTSSpeed
+	}
+	switch s.Theme {
+	case "", "dark", "light", "system":
+	default:
+		s.Theme = ""
+	}
 }
 
 // SettingsStore is a thread-safe, persistent settings holder.
@@ -47,6 +129,7 @@ func NewSettingsStore(path string) *SettingsStore {
 	if path != "" {
 		if raw, err := os.ReadFile(path); err == nil {
 			_ = json.Unmarshal(raw, &s.data)
+			s.data.clamp()
 		}
 	}
 	return s
@@ -59,47 +142,6 @@ func (s *SettingsStore) Get() Settings {
 	return s.data
 }
 
-// Apply merges a partial patch into the current settings and persists.
-// Returns the full settings after the merge.
-func (s *SettingsStore) Apply(patch Settings) Settings {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if patch.Model != "" {
-		s.data.Model = patch.Model
-	}
-	if patch.Temperature != 0 {
-		s.data.Temperature = patch.Temperature
-	}
-	if patch.MaxTokens != 0 {
-		s.data.MaxTokens = patch.MaxTokens
-	}
-	if patch.ThinkingBudget != 0 {
-		s.data.ThinkingBudget = patch.ThinkingBudget
-	}
-	if patch.MaxToolRounds != 0 {
-		s.data.MaxToolRounds = patch.MaxToolRounds
-	}
-	if patch.SystemPrompt != "" {
-		s.data.SystemPrompt = patch.SystemPrompt
-	}
-	if patch.Theme != "" {
-		s.data.Theme = patch.Theme
-	}
-	if patch.FontSize != 0 {
-		s.data.FontSize = patch.FontSize
-	}
-	// TTSEnabled is a bool — patch it if the JSON included it.
-	// Since omitempty skips false, we handle this via the raw patch.
-	// For simplicity, always apply.
-	s.data.TTSEnabled = patch.TTSEnabled
-	if patch.TTSSpeed != 0 {
-		s.data.TTSSpeed = patch.TTSSpeed
-	}
-
-	s.persist()
-	return s.data
-}
 
 // ApplyRaw merges a raw JSON patch. This preserves bool false values
 // that omitempty would skip in a struct-level merge.
@@ -174,6 +216,7 @@ func (s *SettingsStore) ApplyRaw(raw json.RawMessage) Settings {
 		}
 	}
 
+	s.data.clamp()
 	s.persist()
 	return s.data
 }
