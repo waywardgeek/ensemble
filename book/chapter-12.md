@@ -123,7 +123,7 @@ The browser cannot open a port or spawn a subprocess. The WebSocket hub already 
 
 On the browser side, `mcp.js` intercepts these frames and speaks the full MCP protocol: `initialize`, `tools/list`, `tools/call`. It registers four tools:
 
-- **gui_snapshot** (ephemeral/round): walks the visible DOM and returns a markdown summary -- pane layout, interactive elements with CSS selectors, artifact previews. Capped at 4KB.
+- **gui_snapshot** (ephemeral/round): walks the visible DOM and returns a markdown summary -- pane layout, interactive elements with CSS selectors, artifact previews. Capped at 4KB. The cap is reported rather than silent: the summary states how many characters it elided and how many artifacts it omitted, and it reports the state attributes of every control it lists. An observer that truncates in silence will tell you a screen looks fine when it never saw it, and a control whose state it cannot read is a control it will guess about.
 - **gui_click(selector)**: dispatches a click event on the matched element.
 - **gui_input(selector, text)**: sets the value and dispatches input/change events.
 - **tts_queue** (ephemeral/round): returns pending TTS utterances as JSON -- text, state, timing.
