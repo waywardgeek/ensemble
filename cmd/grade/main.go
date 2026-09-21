@@ -216,6 +216,23 @@ func main() {
 		report = grade.NewTitledReport(
 			"Chapter 13 — The Agent Sees Itself",
 			grade.Ch13Checks(r), "")
+	case 14:
+		r := grade.Ch14Run(path)
+		ch13r := grade.Ch13Run(path)
+		allPassed := true
+		for _, c := range grade.Ch13Checks(ch13r) {
+			if !c.Passed {
+				allPassed = false
+				break
+			}
+		}
+		r.Ch13Parity = allPassed
+		if !allPassed {
+			r.Ch13ParityErr = "one or more ch13 checks failed"
+		}
+		report = grade.NewTitledReport(
+			"Chapter 14 — The Channel Nobody Tested",
+			grade.Ch14Checks(r), "")
 	default:
 		fmt.Fprintf(os.Stderr, "grader: no grader for chapter %d yet\n", *chapter)
 		os.Exit(2)
