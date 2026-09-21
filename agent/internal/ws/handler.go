@@ -346,6 +346,8 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 		Payload  json.RawMessage `json:"payload"` // JSON-RPC payload
 		Source   string          `json:"source"`   // MCP source tag ("vu", "", etc.)
 		TTS      *TTSEvent       `json:"tts"`      // speech channel record
+		Typing   bool            `json:"typing"`   // gate: a person is typing
+		Speaking bool            `json:"speaking"` // gate: speech is playing
 	}
 	if json.Unmarshal(raw, &msg) != nil {
 		return
@@ -367,7 +369,7 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 	case "interrupt":
 		h.send(common.Interrupt{})
 	case "pause":
-		h.ttsLog.Log(TTSEvent{Kind: "pause"})
+		h.ttsLog.Log(TTSEvent{Kind: "pause", Cause: gateCause(msg.Typing, msg.Speaking)})
 		if h.gate != nil {
 			h.gate.Pause()
 		}
