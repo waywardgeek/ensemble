@@ -387,11 +387,15 @@ func (a *Actor) waitForTools(count int) bool {
 						Result:  m.Result,
 						IsError: m.IsError,
 					})
-					a.notify(common.PartFinal{
-						Seq:    common.Seq(len(a.eng.Log.Events)),
-						PartID: atomic.AddUint64(&a.partSeq, 1),
-						Part:   common.TextPart{Text: m.Result},
-					})
+					// A tool result is NOT model text, and it used to be
+					// announced twice: once above, correctly, and once more
+					// wrapped in a TextPart. Anything downstream reading
+					// that second event believed the model had said it.
+					// The speech channel believed it too, and read the
+					// contents of every file out loud.
+					//
+					// The tool card renders from ToolFinished above, so
+					// nothing visible depended on the duplicate.
 				case common.Hint:
 					a.handleHint(m)
 				case common.Interrupt:
