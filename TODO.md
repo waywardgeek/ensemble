@@ -20,6 +20,29 @@ Mark every entry VERIFIED (observed directly, with a date) or ASSUMED
 
 ## Open questions awaiting the author
 
+- [ ] **Env vars: Bill's ruling vs. the graders.** Ruling 2026-09-20: "stop
+      using environment variables except for the API key. I don't want to have
+      to deal with them."
+      Done so far: `EN_PRIMARY_SKILL` now defaults to `ensemble`, so a bare run
+      needs no env vars at all. `EN_SKILLS_DIR` already has a `--skills-dir`
+      flag.
+      CONSTRAINT FOUND, which is why the rest is not done yet. `LLM_BASE_URL`
+      is read by TWELVE grader harnesses (ch02, ch03, ch05-ch12, ch14) plus
+      `cmd/fakevendor` — it is the mechanism by which every grader points the
+      agent at a fake vendor, and it belongs to the same class as the API key
+      rather than being behaviour config. `EN_PRIMARY_SKILL`, `EN_SKILLS_DIR`
+      and `EN_CUSTOM_VAR` are set by the ch10, ch11 and ch13 harnesses (8 call
+      sites), and ch10 has a check that explicitly exercises `EN_CUSTOM_VAR`.
+      Converting those to flags ALSO breaks grading of the frozen
+      `solutions/ch10`-`ch14` snapshots, which only understand env vars.
+      PROPOSAL: keep `LLM_BASE_URL` and the API key as endpoint/credential
+      config; leave the three skill vars as overrides that only graders set,
+      now that the defaults make them unnecessary for a human. Still readable
+      by env var, never required. Say the word if you want them gone entirely
+      and I will migrate the harnesses and re-snapshot the solutions.
+      Remaining behaviour vars that could become flags cheaply, none of which a
+      human needs: `CH02_LOG`, `LLM_VENDOR`, `EN_DISABLE_STREAMING`.
+
 - [ ] **Seventh TTS defect: bullets are spoken with their dashes.**
       `"- a\n- b"` is heard as "a dash b". `queueChunk` flattens lone newlines to
       spaces *before* `_speakable` runs its `^`-anchored `/gm` bullet regex, so
@@ -29,41 +52,42 @@ Mark every entry VERIFIED (observed directly, with a date) or ASSUMED
       from one instance; this is arguably the better generalisation.
       Fixing it changes the reference solution, so it is the author's call.
 
-- [ ] **Eighth TTS defect: tool results are spoken aloud.** VERIFIED 2026-09-20
-      by the new ch14 grader, which failed the reference on first contact.
-      Plant a file containing `ZEBRAFISH`, script the model to read it and then
-      say a sentence containing `PELICAN`. What the speech log records is:
+- [x] **Eighth TTS defect: tool results are spoken aloud.** FIXED 2026-09-20 in
+      `bc7610d`. Found by the new ch14 grader, which failed the reference on
+      first contact: plant a file containing `ZEBRAFISH`, script the model to
+      read it and then say a sentence containing `PELICAN`, and the speech log
+      recorded the file's contents read out byte by byte between the two.
+      Root cause was provenance, not audio. On `ToolCompleted` the actor
+      announced the result twice: correctly as `ToolFinished`, and again
+      wrapped in a `TextPart`. There is no `tool_result` DeltaKind, so every
+      consumer downstream of the second event believed the model had spoken
+      those bytes. The tool card renders from `ToolFinished`, so the duplicate
+      was visually redundant and deleting it lost nothing.
+      Bill's ruling, confirmed 2026-09-20: tool results are not to be spoken.
 
-          "read file: notes.txt the file contains ZEBRAFISH and nothing else
-           The file mentions PELICAN in its only line."
+- [x] **Ninth TTS defect: a failed model endpoint is never spoken.** FIXED
+      2026-09-20 in `4dbb925`. Point `LLM_BASE_URL` at a server returning 500
+      and a listener heard the typing pause, then silence forever.
+      CORRECTION to the original diagnosis recorded here, which named the wrong
+      mechanism. It was NOT that "the producer never fires". No `ErrorOccurred`
+      event is emitted for an API failure at all; the reason travels as the
+      `error` FIELD on `turn_ended` (`handler.go:693` sets `m["error"]`, and
+      `TurnEnded.Err` carries it). The message did arrive. The client's
+      `turn_ended` handler called `_scrollToBottom()` and dropped the field, so
+      a failed turn was neither displayed nor spoken, while `speakError` sat two
+      hundred lines away with a comment explaining why errors above all must be
+      voiced. Fixed by routing a `turn_ended` carrying an error through the
+      existing `_handleError` path.
+      Same shape as the unwired pause gate that chapter 14 opens with: both
+      ends built, the wire never connected.
+      METHOD NOTE worth keeping: the wrong diagnosis came from grepping for
+      emitters instead of watching the wire. What settled it was running the
+      agent against a 500 endpoint and reading its own stdout, which showed
+      `{"error":"anthropic: ...","observation":"turn_ended"}` in one line.
+      A narrow grep for `ErrorOccurred{` also returns zero emitters and invites
+      a second wrong conclusion; the real form is `common.Event{Type: ...}` at
+      `agent/internal/llm/seam.go:276`, `engine.go`, and `actor.go`.
 
-      The dispatch announcement and the model's sentence are both correct. The
-      middle clause is the file's contents, read out byte by byte.
-      Chapter 14 prints a transcript asserting the opposite: line 184 says "No
-      tool result appears anywhere in the transcript" and line 190 says "Tool
-      results are not spoken, by design." So either the printed transcript is
-      wrong or the code is, and the ruling "I listen to your thinking, and that
-      is enough" says it is the code.
-      Reproduce: `go run ./cmd/grade -ch 14 ./agent` and read the
-      `tts-discrimination` detail.
-
-- [ ] **Ninth TTS defect: a failed model endpoint is never spoken.**
-      VERIFIED 2026-09-20. Point `LLM_BASE_URL` at a server that returns 500 and
-      send a prompt. The speech log records the typing pause and nothing else.
-      The turn simply ends. A listener asks a question, the endpoint is down,
-      and they hear silence forever.
-      Mechanism: the GUI is ready and the producer never fires. `speakError`
-      exists at `agent/web/gui/artifact-scroll.js:193`, and `handler.go:600`
-      will send `{"type":"error"}`, but the message never arrives. Instrumented
-      with `HARNESS_DEBUG=1`, the kinds that reach the browser are
-      `event_range, current_settings, settings_changed, state_changed,
-      turn_ended` — no `error` among them.
-      This is the same shape as the unwired pause gate, which is the defect
-      chapter 14 opens with: a fix applied at one end of a wire whose other end
-      was never connected.
-      NOTE a narrow grep for `ErrorOccurred{` returns zero emitters and invites
-      the wrong conclusion. The real emitters use `common.Event{Type: ...}` form
-      and live at `agent/internal/llm/seam.go:276`, `engine.go`, and `actor.go`.
       VERIFIED 2026-09-20 (found when a grader fixture failed against the
       reference).
 
@@ -87,6 +111,24 @@ Mark every entry VERIFIED (observed directly, with a date) or ASSUMED
 ---
 
 ## Agent code
+
+- [x] **A bare `./ensemble --port 8084` had only two tools.** FIXED 2026-09-20
+      in `6335237`. Bill hit this live: the agent truthfully reported that it
+      could not run a shell command, because its entire toolset was
+      `load_skill` and `unload_skill`.
+      Two independent causes. `IsToolEnabled` enforced "only tools a loaded
+      skill declares" over a set that was usually empty, and an empty set made
+      the loop never run, so every tool fell through to the default deny. A
+      filter over an empty set is vacuously true and catastrophic. Separately
+      the primary skill defaulted to `""`, so nothing was ever loaded unless
+      `EN_PRIMARY_SKILL` was set.
+      Measured before and after by capturing the declarations sent to the
+      model: 2 tools before, 12 including `run_command` after.
+      TRAP, hit and recorded: making a missing primary skill FATAL broke the
+      ch7/ch8/ch9 parity scenarios, which run the agent with no skills
+      directory at all and must keep unfiltered behaviour. It warns instead.
+      Hard-coding the name as a `const` also broke ch10/ch11 (which load
+      `base`) — it has to be a default, not a constant.
 
 - [ ] **`runActorLoop` takes eleven positional parameters** (`agent/cmd/main.go`),
       mostly strings and bools, with `mcpPipe bool, guiDebug bool` adjacent.
