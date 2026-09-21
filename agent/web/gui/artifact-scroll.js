@@ -92,6 +92,11 @@ class ArtifactScroll {
     } else if (msg.tool) {
       el.innerHTML = Renderers.json(`${msg.tool}: ${msg.args || ''}`);
     }
+
+    // End of a part is a phrase boundary. Streaming routinely stops on a colon or a
+    // bare clause, so text still buffered here would otherwise sit waiting for a
+    // period that never arrives, and never be heard at all.
+    TTS.flush();
   }
 
   _handleToolDispatched(msg) {
@@ -131,6 +136,9 @@ class ArtifactScroll {
     this._scrollToBottom();
 
     // TTS summary
+    // Flush first: narration buffered so far belongs ahead of the tool
+    // announcement, or the listener hears the two interleaved out of order.
+    TTS.flush();
     TTS.speakToolDispatch(msg.name, msg.input);
   }
 
