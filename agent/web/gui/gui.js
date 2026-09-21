@@ -123,16 +123,34 @@
     }
   }
 
+  // ── Pause gate ──
+  // Two independent causes block tool dispatch: the agent is speaking, and the user
+  // is typing. The gate is the OR of the two, and only a CHANGE in that OR goes on
+  // the wire. Clearing one cause therefore cannot resume the agent while the other
+  // still holds, whichever one happened to fire.
+  let userTyping = false;
+  let gatePaused = false;
+
+  function updateGate() {
+    const blocked = userTyping || TTS.speaking;
+    if (blocked === gatePaused) return;
+    gatePaused = blocked;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({type: blocked ? 'pause' : 'unpause'}));
+    }
+  }
+
+  // The speaking half of the gate. This subscription is the whole reason TTS state
+  // is exported: without it the agent runs tools while it is still talking.
+  TTS.onStateChange = updateGate;
+
   // ── Input handling ──
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
-      if (!input.value.trim()) {
-        TTS.cancel();
-        if (ws && ws.readyState === WebSocket.OPEN) {
-          ws.send(JSON.stringify({type: 'unpause'}));
-        }
-      }
+      TTS.cancel();          // Escape always silences speech, whatever is typed.
       input.value = '';
+      userTyping = false;    // assigning .value fires no input event
+      updateGate();
       return;
     }
 
@@ -149,30 +167,17 @@
       } else {
         ws.send(JSON.stringify({type: 'hint', text}));
       }
-      // Clear typing state so the pause gate doesn't block.
-      if (userTyping) {
-        userTyping = false;
-        ws.send(JSON.stringify({type: 'unpause'}));
-      }
     }
+    userTyping = false;      // assigning .value fires no input event
+    updateGate();
   });
 
-  // Pause on typing (skip programmatic input from MCP tools).
-  let userTyping = false;
+  // Any character counts, a space included: a half-typed hint is still in progress.
+  // (Programmatic input from MCP tools is excluded, or the driver gates itself.)
   input.addEventListener('input', () => {
     if (window._mcpProgrammaticInput) return;
-    const typing = input.value.trim().length > 0;
-    if (typing && !userTyping) {
-      userTyping = true;
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({type: 'pause'}));
-      }
-    } else if (!typing && userTyping) {
-      userTyping = false;
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({type: 'unpause'}));
-      }
-    }
+    userTyping = input.value.length > 0;
+    updateGate();
   });
 
   // ── Sidebar toggle ──
