@@ -36,6 +36,12 @@ const TTS = {
   // is why it went unimplemented for so long.
   onStateChange: null,
 
+  // Fired once per entry as it enters the speech channel. The browser cannot write
+  // files, so this is how the record leaves: the GUI forwards it to the server,
+  // which appends it to the speech log. Only the client can report this, because
+  // the decision about what is speakable is made here.
+  onRecord: null,
+
   // Invalidation token for in-flight utterance callbacks. speechSynthesis.cancel()
   // delivers onend/onerror asynchronously, so a callback from a cancelled utterance
   // can otherwise land after its replacement has already started and clear
@@ -93,6 +99,7 @@ const TTS = {
     this.transcript.push(entry);
     if (this.transcript.length > this._maxTranscript) this.transcript.shift();
     this.queue.push(entry);
+    if (this.onRecord) this.onRecord(entry);
     return entry;
   },
 

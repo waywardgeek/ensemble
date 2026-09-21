@@ -144,6 +144,21 @@
   // is exported: without it the agent runs tools while it is still talking.
   TTS.onStateChange = updateGate;
 
+  // The client half of the speech log. The browser cannot write files, so every
+  // entry that enters the speech channel is forwarded to the server, which appends
+  // it to the log. The gate's pause and resume lines already travel this wire; this
+  // adds the utterances themselves, so the log shows what was said and when it was
+  // held back.
+  TTS.onRecord = (entry) => {
+    if (ws && ws.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({
+        type: 'tts',
+        tts: {kind: 'utterance', seq: entry.seq, text: entry.text, raw: entry.raw || ''},
+      }));
+    }
+  };
+
+
   // ── Input handling ──
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
