@@ -67,6 +67,13 @@ Mark every entry VERIFIED (observed directly, with a date) or ASSUMED
 
 ## Repo hygiene
 
+- [ ] **`agent/bin` is a stray 10MB executable FILE, not a directory.**
+      Untracked, so it is a local build artifact. It collides with the
+      conventional `bin/` directory: any script doing `mkdir -p agent/bin`
+      fails with "File exists", which is how it was found. The ch14 harness
+      now builds into a scratch directory instead, so nothing depends on it.
+      Delete it, or rename whatever produces it. VERIFIED 2026-09-20.
+
 - [ ] **`solutions/ch09` through `ch13` track roughly 49MB of committed
       binaries**, plus logs and a `settings.json` carrying runtime state
       including a personal `tts_speed`. `solutions/ch14` excludes all of these
@@ -125,6 +132,21 @@ running identical commands with the session's work absent. Not regressions.
       they pin method names the TL;DR never promised, and `eval` cannot load ES
       modules, so a correct student using `export const TTS` scores zero.
       Replacement reads a speech log produced by a student-supplied harness.
-      `--tts-log` shipped 2026-09-20 (a4f47be). Remaining: reference harness
-      script, rewrite `internal/grade/ch14_*`, re-snapshot `solutions/ch14`,
-      move the `ch14-solution` tag, update `book/review-ch14.md`.
+
+      Done: `--tts-log` (a4f47be), gate cause in the log (fce3221), reference
+      harness `agent/scripts/tts-harness.sh` + `tts-browser.js` (38ec1eb).
+      The harness runs the real path end to end in about five seconds warm:
+      agent, WebSocket, `gui.js`, `artifact-scroll.js`, `tts.js`, back over the
+      socket, into the log.
+
+      Remaining: rewrite `internal/grade/ch14_*` around plant-file /
+      script-vendor / run-harness / read-log, delete `ch14_driver.js`, rewrite
+      `scripts/ch14-mutations.sh` and re-run the P9 audit, re-snapshot
+      `solutions/ch14`, move the `ch14-solution` tag, update
+      `book/review-ch14.md`.
+
+      Known gap for the grader author: the fake vendor's reply arrives in a
+      few hundred milliseconds, which is too fast to type into. The
+      pause-gate scenario needs a long scripted reply, or the check should
+      rely on the `cause:"typing"` line that sending the prompt already
+      produces.
