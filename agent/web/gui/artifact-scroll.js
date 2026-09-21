@@ -89,6 +89,13 @@ class ArtifactScroll {
 
     if (msg.text !== undefined) {
       el.innerHTML = Renderers.markdown(msg.text);
+
+      // A part that never streamed has never been spoken. Deltas are the only other
+      // feed into speech, and this.accumulated is populated by deltas alone, so its
+      // absence is an exact test for "arrived whole". Without this, disabling
+      // streaming, or using a model that cannot stream, leaves the agent SILENT
+      // while still looking perfectly healthy on screen.
+      if (!this.accumulated.has(id)) TTS.queueChunk(msg.text);
     } else if (msg.tool) {
       el.innerHTML = Renderers.json(`${msg.tool}: ${msg.args || ''}`);
     }
