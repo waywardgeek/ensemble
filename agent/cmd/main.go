@@ -72,7 +72,9 @@ func main() {
 	mcpPipe := false
 	guiDebug := false
 	skillsDir := ""
-	ttsLogPath := ""
+	// On by default, like api.log and debug.log. Speech is the one channel you
+	// cannot scroll back through, so it is the one that most needs a record.
+	ttsLogPath := "tts.log"
 
 	// Parse flags manually to keep backward compat with positional commands.
 	var filtered []string
