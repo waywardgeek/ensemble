@@ -28,6 +28,42 @@ Mark every entry VERIFIED (observed directly, with a date) or ASSUMED
       destroyed. Chapter 14 documents six defects and draws its generalisation
       from one instance; this is arguably the better generalisation.
       Fixing it changes the reference solution, so it is the author's call.
+
+- [ ] **Eighth TTS defect: tool results are spoken aloud.** VERIFIED 2026-09-20
+      by the new ch14 grader, which failed the reference on first contact.
+      Plant a file containing `ZEBRAFISH`, script the model to read it and then
+      say a sentence containing `PELICAN`. What the speech log records is:
+
+          "read file: notes.txt the file contains ZEBRAFISH and nothing else
+           The file mentions PELICAN in its only line."
+
+      The dispatch announcement and the model's sentence are both correct. The
+      middle clause is the file's contents, read out byte by byte.
+      Chapter 14 prints a transcript asserting the opposite: line 184 says "No
+      tool result appears anywhere in the transcript" and line 190 says "Tool
+      results are not spoken, by design." So either the printed transcript is
+      wrong or the code is, and the ruling "I listen to your thinking, and that
+      is enough" says it is the code.
+      Reproduce: `go run ./cmd/grade -ch 14 ./agent` and read the
+      `tts-discrimination` detail.
+
+- [ ] **Ninth TTS defect: a failed model endpoint is never spoken.**
+      VERIFIED 2026-09-20. Point `LLM_BASE_URL` at a server that returns 500 and
+      send a prompt. The speech log records the typing pause and nothing else.
+      The turn simply ends. A listener asks a question, the endpoint is down,
+      and they hear silence forever.
+      Mechanism: the GUI is ready and the producer never fires. `speakError`
+      exists at `agent/web/gui/artifact-scroll.js:193`, and `handler.go:600`
+      will send `{"type":"error"}`, but the message never arrives. Instrumented
+      with `HARNESS_DEBUG=1`, the kinds that reach the browser are
+      `event_range, current_settings, settings_changed, state_changed,
+      turn_ended` — no `error` among them.
+      This is the same shape as the unwired pause gate, which is the defect
+      chapter 14 opens with: a fix applied at one end of a wire whose other end
+      was never connected.
+      NOTE a narrow grep for `ErrorOccurred{` returns zero emitters and invites
+      the wrong conclusion. The real emitters use `common.Event{Type: ...}` form
+      and live at `agent/internal/llm/seam.go:276`, `engine.go`, and `actor.go`.
       VERIFIED 2026-09-20 (found when a grader fixture failed against the
       reference).
 
