@@ -36,6 +36,13 @@ class ArtifactScroll {
         // Handled by the main page
         break;
       case 'turn_ended':
+        // A turn that ends in failure has to say so. The reason arrives as a
+        // field on turn_ended rather than as a separate error message, so
+        // ignoring it here leaves a listener hearing the agent fall silent
+        // with no idea whether it finished, stalled, or died.
+        if (msg.error) {
+          this._handleError({ message: msg.error });
+        }
         this._scrollToBottom();
         break;
     }
