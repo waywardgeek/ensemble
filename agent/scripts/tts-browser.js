@@ -77,6 +77,17 @@ function makeElement(tag, id) {
     appendChild(c) { this.children.push(c); return c; },
     removeChild(c) { this.children = this.children.filter((x) => x !== c); return c; },
     insertBefore(c) { this.children.unshift(c); return c; },
+    replaceChildren(...kids) { this.children = kids; },
+    append(...kids) { for (const k of kids) this.children.push(k); },
+    prepend(...kids) { this.children.unshift(...kids); },
+    remove() {},
+    contains() { return false; },
+    closest() { return null; },
+    matches() { return false; },
+    scrollIntoView() {},
+    focus() {},
+    blur() {},
+    click() { this.dispatchEvent({ type: 'click', target: this }); },
     setAttribute(k, v) { this._attrs[k] = String(v); },
     getAttribute(k) { return Object.prototype.hasOwnProperty.call(this._attrs, k) ? this._attrs[k] : null; },
     removeAttribute(k) { delete this._attrs[k]; },
@@ -356,7 +367,13 @@ async function main() {
   let typedDuringTurn = false;
 
   while (Date.now() < deadline) {
-    if ((globalThis.__harnessKinds || {}).turn_ended) break;
+    if ((globalThis.__harnessKinds || {}).turn_ended) {
+      // Do not leave the instant the turn ends. A failure that arrives just
+      // behind the turn would otherwise never be recorded, and silence in
+      // the log would be blamed on the system rather than on this harness.
+      await sleep(600);
+      break;
+    }
 
     // The pause-gate scenario: type while the agent is still talking.
     if (args.typeDuringTurn && !typedDuringTurn && (globalThis.__harnessKinds || {}).part_delta) {
