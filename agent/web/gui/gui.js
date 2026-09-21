@@ -295,15 +295,19 @@
   });
 
   function applySettings(s) {
-    // Update form fields.
+    // The server is authoritative and, since Settings dropped omitempty, always
+    // sends every field. So test PRESENCE, not truthiness: a truthy test silently
+    // discards a legitimate zero, which is how a clamped value could be corrected
+    // on the server and still display the old number here. Strings keep the truthy
+    // test, because an empty one means "unset" and must not blank a live control.
     if (s.model) document.getElementById('set-model').value = s.model;
     if (s.temperature !== undefined) document.getElementById('set-temperature').value = s.temperature;
-    if (s.max_tokens) document.getElementById('set-max-tokens').value = s.max_tokens;
+    if (s.max_tokens !== undefined) document.getElementById('set-max-tokens').value = s.max_tokens;
     if (s.thinking_budget !== undefined) document.getElementById('set-thinking-budget').value = s.thinking_budget;
-    if (s.max_tool_rounds) document.getElementById('set-max-tool-rounds').value = s.max_tool_rounds;
+    if (s.max_tool_rounds !== undefined) document.getElementById('set-max-tool-rounds').value = s.max_tool_rounds;
     document.getElementById('set-tts-enabled').checked = !!s.tts_enabled;
-    if (s.tts_speed) document.getElementById('set-tts-speed').value = s.tts_speed;
-    if (s.font_size) document.getElementById('set-font-size').value = s.font_size;
+    if (s.tts_speed !== undefined) document.getElementById('set-tts-speed').value = s.tts_speed;
+    if (s.font_size !== undefined) document.getElementById('set-font-size').value = s.font_size;
     if (s.theme) document.getElementById('set-theme').value = s.theme;
 
     // Apply theme.
@@ -314,10 +318,11 @@
       document.documentElement.style.fontSize = s.font_size + 'px';
     }
 
-    // Apply TTS.
+    // Apply TTS. Speed is a float: Bill runs 2.5 or 3.8, so this must never be
+    // rounded or coerced to an integer anywhere along the path.
     if (typeof TTS !== 'undefined') {
       TTS.enabled = !!s.tts_enabled;
-      if (s.tts_speed) TTS.rate = s.tts_speed;
+      if (s.tts_speed !== undefined) TTS.rate = s.tts_speed;
     }
   }
 
