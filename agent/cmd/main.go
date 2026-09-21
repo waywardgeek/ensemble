@@ -279,18 +279,20 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		fmt.Fprintf(os.Stderr, "skills: %v\n", err)
 	}
 
-	// Load the primary skill (if any) to set the system prompt.
-	primaryName := envOr("EN_PRIMARY_SKILL", "")
-	if primaryName != "" {
-		if err := sr.LoadInitial(primaryName, vars); err != nil {
-			fmt.Fprintf(os.Stderr, "primary skill %q: %v\n", primaryName, err)
-			os.Exit(1)
-		}
-		// Build the system prompt from initial skill bodies.
-		bodies := sr.InitialBodies()
-		if len(bodies) > 0 {
-			cfg.SystemPrompt = strings.Join(bodies, "\n\n---\n\n")
-		}
+	// Load the primary skill to set the system prompt. Defaulting to "ensemble"
+	// means a bare `./ensemble --port 8084` gets a full toolset: the tool filter
+	// enables only what a loaded skill declares, so an agent with no skill
+	// loaded would be left with just load_skill and unload_skill. This is a
+	// warning rather than fatal because the agent is also run without any
+	// skills directory at all, where no filtering is the correct behaviour.
+	primaryName := envOr("EN_PRIMARY_SKILL", "ensemble")
+	if err := sr.LoadInitial(primaryName, vars); err != nil {
+		fmt.Fprintf(os.Stderr, "primary skill %q: %v\n", primaryName, err)
+	}
+	// Build the system prompt from initial skill bodies.
+	bodies := sr.InitialBodies()
+	if len(bodies) > 0 {
+		cfg.SystemPrompt = strings.Join(bodies, "\n\n---\n\n")
 	}
 
 	// Wire skill-based tool filtering and load_skill/unload_skill tools.
