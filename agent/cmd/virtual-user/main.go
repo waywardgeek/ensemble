@@ -38,10 +38,47 @@ Your task will be given to you as a prompt. Explore the GUI methodically:
 3. Report any bugs, confusing behavior, or missing functionality
 4. Be thorough — test edge cases, empty inputs, rapid clicks`
 
+// blindUserPrompt drives an observer that perceives the agent only through speech.
+//
+// The point is not politeness. A sighted observer completes every task through the
+// DOM, so the speech channel is never load bearing and a defect in it can never
+// fail a run. Removing sight makes speech the only path to success, which turns a
+// silent omission into a task failure instead of a detail nobody checks.
+const blindUserPrompt = `You are testing an AI coding agent's interface as a user who cannot see the screen.
+
+You have no vision. There is no snapshot tool and no way to read the page. Everything
+you know about what the agent is doing arrives as speech, which you read with
+tts_transcript.
+
+Your tools:
+- tts_bypass(enabled): call this FIRST with enabled=true, so speech is recorded
+  without playing audio and you are not forced to wait in real time
+- tts_transcript(since): everything spoken so far, in order. Pass since=<last_seq>
+  to receive only what is new
+- gui_input(selector, text): type text into an input field
+- gui_submit(selector): submit the input
+- wait_for_idle(timeout_seconds): wait for the agent to finish its turn
+- sleep(seconds): wait
+- file_report(title, body): file your findings
+
+How to work:
+1. Enable tts_bypass.
+2. Type your prompt into the chat input and submit it.
+3. Wait for the agent to go idle, reading tts_transcript as you go.
+4. Answer the question you were asked using only what you heard.
+
+The rule that matters most: if the information you needed was never spoken, then you
+did not learn it. Say so plainly, and report exactly what you did hear instead. Never
+infer, guess, or reconstruct a plausible answer from context. "I could not hear X" is
+a correct and useful result. A confident answer you did not actually hear is the worst
+possible outcome, because it hides a real defect from the people who could fix it.`
+
 func main() {
 	agentURL := flag.String("agent-url", "ws://localhost:8082/ws", "hub WebSocket URL")
 	reportFile := flag.String("report-file", "reports.md", "path for file_report output")
 	task := flag.String("task", "", "task prompt for the virtual user")
+	persona := flag.String("persona", "sighted",
+		"sighted (reads the DOM) or blind (perceives only speech output)")
 	flag.Parse()
 
 	// Accept task from --task or remaining args.
@@ -59,7 +96,15 @@ func main() {
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
-	cfg.SystemPrompt = virtualUserPrompt
+	switch *persona {
+	case "sighted":
+		cfg.SystemPrompt = virtualUserPrompt
+	case "blind":
+		cfg.SystemPrompt = blindUserPrompt
+	default:
+		fmt.Fprintf(os.Stderr, "unknown persona %q: want sighted or blind\n", *persona)
+		os.Exit(1)
+	}
 
 	// Create a bare agent — no builtin tools. All tools come from MCP
 	// or explicit registration below.
@@ -109,6 +154,18 @@ func main() {
 	}
 
 	log.Printf("virtual user connected, MCP tools discovered")
+
+	// A blind observer has to actually lose the capability, not merely be asked not
+	// to use it. An agent that can still see will finish the task by seeing, and the
+	// speech channel it exists to exercise stays untested. gui_snapshot matters most
+	// here: it is ephemeral, so the engine injects the whole DOM every round unasked.
+	if *persona == "blind" {
+		for _, name := range []string{"gui_snapshot", "gui_click"} {
+			a.RemoveTool(name)
+		}
+		log.Printf("persona=blind: removed gui_snapshot and gui_click; perception is speech only")
+	}
+
 	log.Printf("task: %s", taskText)
 
 	// Run the conversation loop. The agent discovers gui_snapshot,

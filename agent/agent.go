@@ -230,6 +230,15 @@ func (a *Agent) RegisterTool(name, description string, schema json.RawMessage, h
 	a.eng.Cfg.Tools = a.reg.Declarations()
 }
 
+// RemoveTool deletes a tool from this agent's registry, including tools bridged in
+// from an MCP server. Denying a capability means removing the tool rather than
+// instructing the model to avoid it: an observer that still holds a channel will
+// use it, and a task completed through the wrong channel tests the wrong channel.
+func (a *Agent) RemoveTool(name string) {
+	a.reg.RemoveTool(name)
+	a.eng.Cfg.Tools = a.reg.Declarations()
+}
+
 // RegisterVar adds a custom variable renderer for $VAR substitution in skill
 // bodies. Call this before DiscoverSkills / LoadSkill so variables are available
 // at render time. Built-in renderers ($TOOLS, $SKILLS) are registered automatically.
