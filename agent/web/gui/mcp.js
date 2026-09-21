@@ -79,6 +79,40 @@
       ephemeral: "round",
     },
     {
+      name: "tts_transcript",
+      description:
+        "Returns everything that has entered the speech channel, in order, as " +
+        "{heard: [{seq, text, status}], last_seq, count, bypass, enabled}. " +
+        "status is pending, speaking, spoken, bypassed or cancelled. Pass " +
+        "since=<last_seq> to get only what is new. This is what a listener hears; " +
+        "text that never appears here was never spoken to anyone.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          since: {
+            type: "number",
+            description: "Return only entries with seq greater than this.",
+          },
+        },
+        additionalProperties: false,
+      },
+    },
+    {
+      name: "tts_bypass",
+      description:
+        "Enable or disable bypass mode. When enabled, text is recorded to the " +
+        "transcript but no audio plays, so a driver reading the channel is not " +
+        "forced to run at talking speed.",
+      inputSchema: {
+        type: "object",
+        properties: {
+          enabled: { type: "boolean", description: "True to suppress audio." },
+        },
+        required: ["enabled"],
+        additionalProperties: false,
+      },
+    },
+    {
       name: "gui_submit",
       description:
         "Dispatch an Enter keydown event on an element. Use after gui_input to submit a prompt.",
@@ -323,9 +357,9 @@
       return JSON.stringify({ error: "TTS not loaded on this page" });
     }
 
-    var pending = TTS.queue.slice();
-    var spoken = TTS.current ? [TTS.current] : [];
-    var words = spoken.concat(pending).reduce(function (n, s) {
+    var pending = TTS.queue.map(function (e) { return e.text; });
+    var cur = TTS.current ? TTS.current.text : null;
+    var words = (cur ? [cur] : []).concat(pending).reduce(function (n, s) {
       return n + s.split(/\s+/).filter(Boolean).length;
     }, 0);
 
@@ -337,13 +371,45 @@
     return JSON.stringify({
       speaking: TTS.speaking,
       enabled: TTS.enabled,
+      bypass: TTS.bypass,
       rate: TTS.rate,
-      current: TTS.current,
+      current: cur,
       pending: pending,
       pending_count: pending.length,
       unspoken_words: words,
       est_seconds_remaining: wpm > 0 ? Math.round((words / wpm) * 60) : null,
     });
+  }
+
+  // tts_transcript: everything that has entered the speech channel, in order. For
+  // an observer that cannot see, this is its entire perceptual world.
+  function ttsTranscript(args) {
+    if (typeof TTS === "undefined") {
+      return JSON.stringify({ error: "TTS not loaded on this page" });
+    }
+    var since = (args && args.since) || 0;
+    var items = TTS.transcript.filter(function (e) {
+      return e.seq > since;
+    });
+    return JSON.stringify({
+      bypass: TTS.bypass,
+      enabled: TTS.enabled,
+      last_seq: TTS._seq,
+      count: items.length,
+      heard: items.map(function (e) {
+        return { seq: e.seq, text: e.text, status: e.status };
+      }),
+    });
+  }
+
+  // tts_bypass: record speech to the transcript without playing audio, so a driver
+  // reading the channel is not forced to run at talking speed.
+  function ttsBypass(args) {
+    if (typeof TTS === "undefined") {
+      return JSON.stringify({ error: "TTS not loaded on this page" });
+    }
+    TTS.bypass = !!(args && args.enabled);
+    return JSON.stringify({ bypass: TTS.bypass });
   }
 
   // wait_for_idle: block until the agent state becomes idle.
@@ -394,6 +460,12 @@
     },
     tts_queue: function () {
       return ttsQueue();
+    },
+    tts_transcript: function (args) {
+      return ttsTranscript(args);
+    },
+    tts_bypass: function (args) {
+      return ttsBypass(args);
     },
     wait_for_idle: function (args) {
       return waitForIdle(args);
