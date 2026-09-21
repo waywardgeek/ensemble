@@ -107,15 +107,36 @@ const TTS = {
     });
   },
 
+  // Resolve fenced code blocks against the whole buffer and report what must wait.
+  //
+  // Markdown is a property of the TEXT, but the phrase splitter breaks on newlines,
+  // so by the time a per-phrase filter runs, a fence has already been shattered into
+  // lone ``` lines that match no fence pattern. The listener then hears "backtick".
+  // Complete fences are therefore named here, and an unterminated one is held back:
+  // its contents are not speech, and the closing marker may still be streaming.
+  _resolveFences(s) {
+    const resolved = s.replace(/```[\s\S]*?```/g, ' code block. ');
+    const open = resolved.indexOf('```');
+    if (open < 0) return [resolved, ''];
+    return [resolved.slice(0, open), resolved.slice(open)];
+  },
+
   queueChunk(text) {
     if (!this.enabled || !('speechSynthesis' in window)) return;
     this._buffer += text;
 
+    const [eligible, held] = this._resolveFences(this._buffer);
+
+    // Newlines are whitespace, not phrase boundaries. Prose wraps, and splitting on
+    // the wrap put an unnatural pause inside a single sentence. A BLANK line is a
+    // real paragraph break and stays a boundary.
+    const flat = eligible.replace(/\n[ \t]*\n\s*/g, '\u0001').replace(/\n/g, ' ');
+
     // Emit only through the last COMPLETED boundary. split() leaves the trailing
     // fragment as its final element, which is exactly the part that may be half a
     // word, so it goes back in the buffer to wait for more input or a flush.
-    const parts = this._buffer.split(/(?<=[.!?])\s+|\n+/);
-    this._buffer = parts.pop();
+    const parts = flat.split(/(?<=[.!?])\s+|\u0001/);
+    this._buffer = parts.pop() + held;
     for (const p of parts) this._enqueue(p);
     this._processQueue();
   },
@@ -127,11 +148,14 @@ const TTS = {
   // phrase boundary, so callers must say so.
   flush() {
     if (!this.enabled || !('speechSynthesis' in window)) return;
-    const rest = this._buffer;
+    // End of stream closes any fence that never closed itself, or its contents
+    // would be held in the buffer forever and silently lost.
+    const rest = this._buffer.replace(/```/g, ' code block. ');
     this._buffer = '';
     if (rest.trim()) this._enqueue(rest);
     this._processQueue();
   },
+
 
   speakToolDispatch(name, input) {
     if (!this.enabled || !('speechSynthesis' in window)) return;
