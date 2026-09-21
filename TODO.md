@@ -88,17 +88,33 @@ running identical commands with the session's work absent. Not regressions.
       `TestCh6ReferenceScores100`, `TestCh6DeletionAudit`,
       `TestCh7ReferenceScores100`, `TestCh7DeletionAudit`, `TestCh8Grade`.
 
-- [ ] **UNDER INVESTIGATION — `TestCh4DeletionAudit`.** Appeared in the full
-      suite on 2026-09-20 *after* the `--tts-log` work (commit a4f47be), and was
-      NOT in that morning's verified baseline set of six. But it **passes when
-      run alone** (`go test ./internal/grade/ -run TestCh4DeletionAudit`, exit
-      0). That asymmetry points at test interference or a parallelism flake
-      rather than at the tts-log change, which touches `ws/`, `web/gui/` and
-      `main.go` only. NOT YET PROVEN EITHER WAY.
-      Next step: run the full `internal/grade` package twice to establish
-      whether it is intermittent, then compare against a worktree at `a4f47be^`.
-      Related history: ch4 had a real 13/120 flake earlier in the project,
-      traced to parents holding stale child facts and since fixed.
+- [ ] **`TestCh4DeletionAudit/kill-marks-but-does-not-kill` is FLAKY.**
+      RESOLVED 2026-09-20: intermittent and pre-existing, not a regression.
+      Two independent proofs.
+      *Scope*: the audit grades `solutions/ch04` (`ch4ReferenceDir`,
+      `internal/grade/ch04_grader_test.go:47`), a frozen snapshot. Nothing
+      committed on 2026-09-20 touches that tree.
+      *Behaviour*: three consecutive runs at HEAD gave exit 1, exit 1, exit 0,
+      with 3, 2 and 0 failing lines. It passes sometimes.
+
+      The underlying weakness is real and worth fixing. The mutant replaces the
+      `syscall.Kill(-pid, SIGKILL)` call with a no-op, so the child should
+      survive; the audit expects both `killjob` and `shutdown` to fail. Often
+      only `shutdown` fails, meaning **the `killjob` check cannot reliably tell
+      a real kill from a kill that only marks** — the child dies anyway, most
+      likely reaped during process-group teardown when the agent exits.
+      All 7 mutants run under `t.Parallel()`, so the suite puts a
+      timing-sensitive kill test under self-inflicted load.
+      Fix direction: have the `killjob` check observe liveness *before* the
+      agent exits, rather than from a pid file read afterwards.
+
+      Cautionary note on how this was nearly misdiagnosed: an earlier run of
+      `go test ... -run TestCh4DeletionAudit -v | head -25` reported exit 0 and
+      was recorded here as "passes when run alone". Both halves were wrong.
+      `$?` after a pipeline is **`head`'s** exit code, not `go test`'s, and
+      every subtest is `t.Parallel()` so `head` truncated the output before any
+      result line was printed. Redirect to a file and check the exit code
+      before the pipe.
 
 ---
 
