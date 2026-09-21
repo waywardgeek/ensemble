@@ -13,8 +13,11 @@ package grade
 //     cannot be satisfied by accident. The same string arrives twice, once
 //     as a tool result and once as the model's own words. Speak everything
 //     and half of it fails; speak nothing and the other half fails.
-//   - The checks derived from the six shipped defects keep substantial
-//     weight. The two that test pipeline niceties rather than defects
+//   - tts-gate-both-causes and tts-speaks-errors are worth ten each because
+//     they cover the same failure: a wire connected at one end. Both were
+//     found by reading the log rather than the pipeline, which is the whole
+//     argument for grading the channel.
+//   - The two checks that test pipeline niceties rather than shipped defects
 //     (boundaries, identifiers) are worth five each.
 
 func Ch14Checks(r Ch14Result) []Check {
@@ -81,8 +84,8 @@ func ch14BuffersFragments(r Ch14Result) Check {
 	c := Check{
 		ID:     "tts-buffers-fragments",
 		Title:  "fragments are assembled before they are spoken",
-		Points: 15,
-		Earned: 15,
+		Points: 10,
+		Earned: 10,
 		Passed: true,
 	}
 	if !r.BuffersOK {
@@ -123,8 +126,8 @@ func ch14SpeaksErrors(r Ch14Result) Check {
 	c := Check{
 		ID:     "tts-speaks-errors",
 		Title:  "a failure is spoken rather than leaving the listener waiting",
-		Points: 5,
-		Earned: 5,
+		Points: 10,
+		Earned: 10,
 		Passed: true,
 	}
 	if !r.ErrorsOK {
