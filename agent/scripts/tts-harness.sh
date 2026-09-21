@@ -17,6 +17,11 @@
 #     TTS_LOG       file to write the speech log to, one JSON object per line.
 #     WORKSPACE     the directory the agent should treat as its own, which is
 #                   where the grader plants any file it asks the agent to read.
+#     STREAMING     "on" (default) or "off". With it off, the system must
+#                   still speak: a reply that arrives whole rather than in
+#                   pieces is the case chapter 14 found silent. How you turn
+#                   streaming off is your business; this harness sets the
+#                   environment variable its own agent reads.
 #   Arguments
 #     "$1"          the prompt to send, as if a person had typed it.
 #     --type-during-turn TEXT
@@ -45,8 +50,9 @@ if [ "${1:-}" = "--describe" ]; then
   cat <<'JSON'
 {
   "read_file_tool": "read_file",
-  "read_file_arg": "file_path",
+  "read_file_arg": "path",
   "supports_type_during_turn": true,
+  "supports_streaming_off": true,
   "log_format": "jsonl"
 }
 JSON
@@ -129,9 +135,17 @@ exec 9<>"$tmp/stdin"
 
 : > "$TTS_LOG"
 
+# The contract speaks of STREAMING=on|off. Translating that into whatever
+# your own system understands is exactly the part that is yours to write.
+disable_streaming=""
+if [ "${STREAMING:-on}" = "off" ]; then
+  disable_streaming=1
+fi
+
 (
   cd "$workspace"
   LLM_BASE_URL="$LLM_BASE_URL" \
+  EN_DISABLE_STREAMING="$disable_streaming" \
     "$tmp/ensemble" --port "$port" --tts-log "$TTS_LOG" \
     > "$tmp/agent.log" 2>&1 < "$tmp/stdin"
 ) &

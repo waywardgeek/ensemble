@@ -1,231 +1,253 @@
 package grade
 
+// Chapter 14 is graded through the speech channel itself.
+//
+// Every other grader in this book reads the student's code. This one does
+// not, and the reason is worth stating plainly: the speech channel has no
+// single shape. One reader builds it in a browser with speechSynthesis,
+// another pipes text to a screen reader, another writes a terminal agent
+// whose output is already linear. A grader that loads their modules and
+// calls their methods would be grading whether they kept our names.
+//
+// So the contract is a log and a script. The student declares a way to run
+// their system with the speech engine replaced by a recorder, we script the
+// model's side of the conversation, and we read what came out. Nothing here
+// names a method, a module, a file layout, or a language.
+
 import (
-	"context"
+	"bufio"
 	"encoding/json"
-	_ "embed"
 	"fmt"
-	"io/fs"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"strings"
 	"time"
+
+	"github.com/waywardgeek/ensemble/internal/fakevendor"
 )
 
-// The driver runs under node, loads the student's own browser modules against a
-// stubbed speechSynthesis, and reports what reached the channel. Keeping it in a
-// real .js file rather than a Go string literal means it can be run by hand
-// during development, which is how it was built.
+// ch14Entry is one line of the speech log: one thing the system said, or one
+// moment it stopped saying things.
+type ch14Entry struct {
+	MS    int    `json:"ms"`
+	Kind  string `json:"kind"`
+	Seq   int    `json:"seq"`
+	Text  string `json:"text"`
+	Raw   string `json:"raw"`
+	Cause string `json:"cause"`
+}
+
+// ch14Manifest is what the student's harness prints for --describe. Every
+// field has a default that matches the reference, so a reader who kept our
+// tool names writes no manifest at all.
+type ch14Manifest struct {
+	ReadFileTool string `json:"read_file_tool"`
+	ReadFileArg  string `json:"read_file_arg"`
+	SupportsType bool   `json:"supports_type_during_turn"`
+	SupportsOff  bool   `json:"supports_streaming_off"`
+	LogFormat    string `json:"log_format"`
+}
+
+// ch14Scenario is one launch of the student's system.
 //
-//go:embed ch14_driver.js
-var ch14DriverJS string
-
-// Ch14Result is the raw observation set. One OK/Err pair per behavioural check,
-// matching the house pattern from chapters 12 and 13.
-type Ch14Result struct {
-	BuffersOK  bool
-	BuffersErr string
-
-	FiltersOK  bool
-	FiltersErr string
-
-	BoundariesOK  bool
-	BoundariesErr string
-
-	UnstreamedOK  bool
-	UnstreamedErr string
-
-	IdentifiersOK  bool
-	IdentifiersErr string
-
-	GateOK  bool
-	GateErr string
-
-	Ch13Parity    bool
-	Ch13ParityErr string
+// Scenarios are grouped by mode rather than one per check, because a launch
+// costs seconds and a mode costs nothing to share. The streamed-prose run
+// feeds four checks at once.
+type ch14Scenario struct {
+	name      string
+	prompt    string
+	replies   []fakevendor.Reply
+	streaming string            // "off" disables streaming; "" leaves it on
+	typeText  string            // typed mid-turn, for the gate
+	plant     map[string]string // files written into the workspace first
+	brokenLLM bool              // point the system at an endpoint that fails
 }
 
-// ch14Spec is the argument handed to the driver: which of the student's files
-// hold which role, and what each one calls itself.
-type ch14Spec struct {
-	TTSFile        string `json:"ttsFile"`
-	TTSGlobal      string `json:"ttsGlobal"`
-	ArtifactFile   string `json:"artifactFile"`
-	ArtifactGlobal string `json:"artifactGlobal"`
-	GUIFile        string `json:"guiFile"`
-}
-
-type ch14DriverOut struct {
-	Checks map[string]struct {
-		OK  bool   `json:"ok"`
-		Err string `json:"err"`
-	} `json:"checks"`
-}
-
-// Ch14Run loads the student's speech pipeline under node and exercises it.
-func Ch14Run(dir string) Ch14Result {
-	var r Ch14Result
-
-	node, err := exec.LookPath("node")
+// ch14Discover finds the student's harness script.
+func ch14Discover(dir string) (string, error) {
+	root, err := filepath.Abs(dir)
 	if err != nil {
-		return ch14Fail(fmt.Sprintf("prerequisite missing: node was not found on PATH. "+
-			"Chapter 14 grades a browser module, so the grader runs it under node. Install node and re-run. (%v)", err))
+		return "", err
 	}
-
-	spec, err := ch14Discover(dir)
-	if err != nil {
-		return ch14Fail(err.Error())
+	// The conventional location first, then anywhere in the tree, so a
+	// reader who filed it elsewhere is found rather than failed.
+	candidates := []string{
+		filepath.Join(root, "scripts", "tts-harness.sh"),
+		filepath.Join(root, "tts-harness.sh"),
 	}
-	work, err := os.MkdirTemp("", "ch14grade")
-	if err != nil {
-		return ch14Fail(fmt.Sprintf("could not create a temp dir: %v", err))
-	}
-	defer os.RemoveAll(work)
-
-	driver := filepath.Join(work, "ch14_driver.js")
-	if err := os.WriteFile(driver, []byte(ch14DriverJS), 0o644); err != nil {
-		return ch14Fail(fmt.Sprintf("could not write the driver: %v", err))
-	}
-
-	blob, err := json.Marshal(spec)
-	if err != nil {
-		return ch14Fail(fmt.Sprintf("could not encode the driver spec: %v", err))
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer cancel()
-
-	cmd := exec.CommandContext(ctx, node, driver, string(blob))
-	cmd.Dir = dir
-	var stdout, stderr strings.Builder
-	cmd.Stdout = &stdout
-	cmd.Stderr = &stderr
-	if err := cmd.Run(); err != nil {
-		return ch14Fail(fmt.Sprintf("the driver did not complete (%v). stderr: %s",
-			err, ch14Tail(stderr.String())))
-	}
-
-	var out ch14DriverOut
-	if err := json.Unmarshal([]byte(stdout.String()), &out); err != nil {
-		return ch14Fail(fmt.Sprintf("could not parse driver output (%v). stdout: %s stderr: %s",
-			err, ch14Tail(stdout.String()), ch14Tail(stderr.String())))
-	}
-
-	get := func(id string) (bool, string) {
-		c, ok := out.Checks[id]
-		if !ok {
-			return false, "the driver reported no result for " + id
+	for _, c := range candidates {
+		if st, err := os.Stat(c); err == nil && !st.IsDir() {
+			return c, nil
 		}
-		return c.OK, c.Err
 	}
-
-	r.BuffersOK, r.BuffersErr = get("tts-buffers-fragments")
-	r.FiltersOK, r.FiltersErr = get("tts-filters-markup")
-	r.BoundariesOK, r.BoundariesErr = get("tts-boundaries")
-	r.UnstreamedOK, r.UnstreamedErr = get("tts-speaks-unstreamed")
-	r.IdentifiersOK, r.IdentifiersErr = get("tts-expands-identifiers")
-	r.GateOK, r.GateErr = get("tts-gate-both-causes")
-	return r
-}
-
-// ch14Fail marks every behavioural check with the same setup failure, so the
-// report says what went wrong rather than reporting six mysterious zeroes.
-func ch14Fail(msg string) Ch14Result {
-	return Ch14Result{
-		BuffersErr:     msg,
-		FiltersErr:     msg,
-		BoundariesErr:  msg,
-		UnstreamedErr:  msg,
-		IdentifiersErr: msg,
-		GateErr:        msg,
-	}
-}
-
-func ch14Tail(s string) string {
-	s = strings.TrimSpace(s)
-	if len(s) > 600 {
-		return "..." + s[len(s)-600:]
-	}
-	return s
-}
-
-var (
-	ch14ObjDecl   = regexp.MustCompile(`(?m)^(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*\{`)
-	ch14ClassDecl = regexp.MustCompile(`(?m)^(?:class\s+([A-Za-z_$][\w$]*)|(?:const|let|var)\s+([A-Za-z_$][\w$]*)\s*=\s*class)`)
-)
-
-// ch14Discover finds the student's browser modules by what they contain rather
-// than by what they are called, and reads each module's chosen name out of its
-// own source. A student who renames the files or the objects still grades.
-func ch14Discover(root string) (ch14Spec, error) {
-	var spec ch14Spec
-	var files []string
-
-	// The driver runs with its working directory set to the student tree, so every
-	// path handed to it must be absolute.
-	if abs, err := filepath.Abs(root); err == nil {
-		root = abs
-	}
-
-	err := filepath.WalkDir(root, func(p string, d fs.DirEntry, err error) error {
-		if err != nil {
+	var found string
+	_ = filepath.WalkDir(root, func(p string, d os.DirEntry, err error) error {
+		if err != nil || found != "" || d.IsDir() {
 			return nil
 		}
-		if d.IsDir() {
-			switch d.Name() {
-			case ".git", "node_modules", "vendor", "testdata", "solutions":
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		if strings.HasSuffix(d.Name(), ".js") {
-			files = append(files, p)
+		if strings.Contains(d.Name(), "tts-harness") {
+			found = p
 		}
 		return nil
 	})
-	if err != nil {
-		return spec, fmt.Errorf("could not scan %s for JavaScript files: %v", root, err)
+	if found != "" {
+		return found, nil
 	}
-	if len(files) == 0 {
-		return spec, fmt.Errorf("found no .js files under %s; chapter 14 grades the browser-side speech pipeline", root)
+	return "", fmt.Errorf("no speech harness found: expected scripts/tts-harness.sh under %s", dir)
+}
+
+// ch14Describe asks the harness to describe itself, falling back to defaults
+// that match the reference implementation.
+func ch14Describe(script string) ch14Manifest {
+	man := ch14Manifest{
+		ReadFileTool: "read_file",
+		ReadFileArg:  "path",
+		SupportsType: true,
+		SupportsOff:  true,
+		LogFormat:    "jsonl",
+	}
+	cmd := exec.Command(script, "--describe")
+	out, err := cmd.Output()
+	if err != nil {
+		return man
+	}
+	var got ch14Manifest
+	if err := json.Unmarshal(out, &got); err != nil {
+		return man
+	}
+	if got.ReadFileTool != "" {
+		man.ReadFileTool = got.ReadFileTool
+	}
+	if got.ReadFileArg != "" {
+		man.ReadFileArg = got.ReadFileArg
+	}
+	if got.LogFormat != "" {
+		man.LogFormat = got.LogFormat
+	}
+	man.SupportsType = got.SupportsType
+	man.SupportsOff = got.SupportsOff
+	return man
+}
+
+// ch14Run performs one scenario: plant the files, script the model, run the
+// student's harness, and read back what was spoken.
+func ch14Run(script string, sc ch14Scenario) ([]ch14Entry, string, error) {
+	work, err := os.MkdirTemp("", "ch14-work-")
+	if err != nil {
+		return nil, "", err
+	}
+	defer os.RemoveAll(work)
+
+	for name, body := range sc.plant {
+		if err := os.WriteFile(filepath.Join(work, name), []byte(body), 0o644); err != nil {
+			return nil, "", err
+		}
 	}
 
-	for _, p := range files {
-		b, err := os.ReadFile(p)
+	// A scenario can ask for an endpoint that fails, which is how the
+	// grader provokes the error a listener would otherwise never hear
+	// about. It is a real failure on the real path, not a synthesized
+	// message injected behind the system's back.
+	var baseURL string
+	if sc.brokenLLM {
+		bad := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, `{"error":{"message":"upstream is on fire"}}`, http.StatusInternalServerError)
+		}))
+		defer bad.Close()
+		baseURL = bad.URL
+	} else {
+		srv := fakevendor.New(sc.replies)
+		defer srv.Close()
+		baseURL = srv.URL()
+	}
+
+	logFile := filepath.Join(work, "tts.log")
+
+	args := []string{sc.prompt}
+	if sc.typeText != "" {
+		args = append(args, "--type-during-turn", sc.typeText)
+	}
+
+	cmd := exec.Command(script, args...)
+	cmd.Env = append(os.Environ(),
+		"LLM_BASE_URL="+baseURL,
+		"TTS_LOG="+logFile,
+		"WORKSPACE="+work,
+	)
+	if sc.streaming != "" {
+		cmd.Env = append(cmd.Env, "STREAMING="+sc.streaming)
+	}
+
+	var stderr strings.Builder
+	cmd.Stderr = &stderr
+	cmd.Stdout = &stderr
+
+	done := make(chan error, 1)
+	if err := cmd.Start(); err != nil {
+		return nil, stderr.String(), err
+	}
+	go func() { done <- cmd.Wait() }()
+
+	select {
+	case err = <-done:
+	case <-time.After(90 * time.Second):
+		_ = cmd.Process.Kill()
+		<-done
+		return nil, stderr.String(), fmt.Errorf("harness did not finish within 90s")
+	}
+
+	entries, readErr := ch14ReadLog(logFile)
+	if readErr != nil {
 		if err != nil {
+			return nil, stderr.String(), fmt.Errorf("harness exited with %v and wrote no readable log: %v", err, readErr)
+		}
+		return nil, stderr.String(), readErr
+	}
+	return entries, stderr.String(), nil
+}
+
+// ch14ReadLog parses the speech log. Unparseable lines are skipped rather
+// than fatal: a log a human can also read may reasonably carry a comment.
+func ch14ReadLog(path string) ([]ch14Entry, error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return nil, fmt.Errorf("no speech log at %s: %v", path, err)
+	}
+	defer f.Close()
+
+	var entries []ch14Entry
+	sc := bufio.NewScanner(f)
+	sc.Buffer(make([]byte, 0, 64*1024), 4*1024*1024)
+	for sc.Scan() {
+		line := strings.TrimSpace(sc.Text())
+		if line == "" || !strings.HasPrefix(line, "{") {
 			continue
 		}
-		src := string(b)
-
-		// The speech pipeline is the module with a chunk entry point and a flush.
-		if spec.TTSFile == "" && strings.Contains(src, "queueChunk") && strings.Contains(src, "flush") &&
-			strings.Contains(src, "SpeechSynthesisUtterance") {
-			if m := ch14ObjDecl.FindStringSubmatch(src); m != nil {
-				spec.TTSFile, spec.TTSGlobal = p, m[1]
-			}
+		var e ch14Entry
+		if err := json.Unmarshal([]byte(line), &e); err != nil {
+			continue
 		}
+		entries = append(entries, e)
+	}
+	return entries, sc.Err()
+}
 
-		// The artifact stream is the module that dispatches part_final and feeds speech.
-		if spec.ArtifactFile == "" && strings.Contains(src, "part_final") && strings.Contains(src, "handleMessage") {
-			if m := ch14ClassDecl.FindStringSubmatch(src); m != nil {
-				name := m[1]
-				if name == "" {
-					name = m[2]
-				}
-				spec.ArtifactFile, spec.ArtifactGlobal = p, name
-			}
-		}
-
-		// The pause gate is wherever unpause is sent.
-		if spec.GUIFile == "" && strings.Contains(src, "unpause") && !strings.Contains(src, "queueChunk(") {
-			spec.GUIFile = p
+// ch14Spoken returns just the utterances, in order.
+func ch14Spoken(entries []ch14Entry) []string {
+	var out []string
+	for _, e := range entries {
+		if e.Kind == "utterance" {
+			out = append(out, e.Text)
 		}
 	}
+	return out
+}
 
-	if spec.TTSFile == "" {
-		return spec, fmt.Errorf("could not find the speech pipeline under %s: looked for a .js module declaring an object with a chunk entry point (queueChunk), a flush(), and a SpeechSynthesisUtterance", root)
-	}
-	return spec, nil
+// ch14AllSpeech joins every utterance, for checks that care about what was
+// said rather than how it was divided.
+func ch14AllSpeech(entries []ch14Entry) string {
+	return strings.Join(ch14Spoken(entries), " ")
 }
