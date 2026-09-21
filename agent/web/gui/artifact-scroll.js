@@ -172,5 +172,9 @@ class ArtifactScroll {
     el.textContent = msg.message || 'Unknown error';
     this.container.appendChild(el);
     this._scrollToBottom();
+    // Errors are spoken as well as shown. Displaying an error to a reader who works
+    // by speech and never voicing it means the one message class that most needs to
+    // interrupt is the only class that is silent.
+    TTS.speakError(msg.message || 'Unknown error');
   }
 }

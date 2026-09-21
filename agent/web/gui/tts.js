@@ -2,9 +2,27 @@
 
 const TTS = {
   queue: [],
+  current: null,     // utterance in flight; already shifted off `queue`
   speaking: false,
   enabled: true,
   rate: 1.2,
+
+  // Fired whenever `speaking` changes. The pause gate subscribes to this; without
+  // it the speaking half of the gate is unobservable from outside this file, which
+  // is why it went unimplemented for so long.
+  onStateChange: null,
+
+  // Invalidation token for in-flight utterance callbacks. speechSynthesis.cancel()
+  // delivers onend/onerror asynchronously, so a callback from a cancelled utterance
+  // can otherwise land after its replacement has already started and clear
+  // `speaking` while audio is still playing.
+  _gen: 0,
+
+  _setSpeaking(v) {
+    if (this.speaking === v) return;
+    this.speaking = v;
+    if (this.onStateChange) this.onStateChange();
+  },
 
   init() {
     // Chrome wake-up: zero-volume utterance on tab focus.
@@ -44,29 +62,44 @@ const TTS = {
 
   speakFull(text) {
     if (!('speechSynthesis' in window)) return;
+    this._gen++;                 // invalidate callbacks from the utterance we cancel
     speechSynthesis.cancel();
     this.queue = [text];
-    this.speaking = false;
+    this._setSpeaking(false);
+    this._processQueue();
+  },
+
+  // Errors are spoken, not merely displayed. A reader who works by speech would
+  // otherwise never learn an error occurred.
+  speakError(text) {
+    if (!this.enabled || !('speechSynthesis' in window)) return;
+    this.queue.push('Error. ' + text);
     this._processQueue();
   },
 
   cancel() {
+    this._gen++;                 // invalidate in-flight callbacks before clearing
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
     }
     this.queue = [];
-    this.speaking = false;
+    this.current = null;
+    this._setSpeaking(false);
   },
 
   _processQueue() {
     if (this.speaking || this.queue.length === 0) return;
-    this.speaking = true;
+    this._setSpeaking(true);
     const text = this.queue.shift();
+    this.current = text;
     const utt = new SpeechSynthesisUtterance(text);
     utt.rate = this.rate;
 
+    const gen = this._gen;
     const done = () => {
-      this.speaking = false;
+      if (gen !== this._gen) return;   // superseded by cancel() or speakFull()
+      this.current = null;
+      this._setSpeaking(false);
       this._processQueue();
     };
     utt.onend = done;

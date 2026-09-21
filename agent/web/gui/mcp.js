@@ -68,7 +68,9 @@
     {
       name: "tts_queue",
       description:
-        "Returns pending TTS utterances as a JSON array with text, state (playing/pending), and timing.",
+        "Returns live speech state as a JSON object: speaking, enabled, rate, " +
+        "current (the utterance in flight), pending (queued text), pending_count, " +
+        "unspoken_words, and est_seconds_remaining.",
       inputSchema: {
         type: "object",
         properties: {},
@@ -317,19 +319,31 @@
 
   // tts_queue: return pending TTS utterances.
   function ttsQueue() {
-    // Check for a global TTS queue (set by tts.js).
-    if (window._ttsQueue && Array.isArray(window._ttsQueue)) {
-      return JSON.stringify(window._ttsQueue);
+    if (typeof TTS === "undefined") {
+      return JSON.stringify({ error: "TTS not loaded on this page" });
     }
 
-    // Fallback: check speechSynthesis API.
-    if (window.speechSynthesis && window.speechSynthesis.speaking) {
-      return JSON.stringify([
-        { text: "(speaking)", state: "playing", startedAt: Date.now() },
-      ]);
-    }
+    var pending = TTS.queue.slice();
+    var spoken = TTS.current ? [TTS.current] : [];
+    var words = spoken.concat(pending).reduce(function (n, s) {
+      return n + s.split(/\s+/).filter(Boolean).length;
+    }, 0);
 
-    return "[]";
+    // 165 wpm is the conventional baseline for rate 1.0, scaling linearly. This is
+    // an estimate and is labelled as one: it is meant to distinguish "a sentence
+    // behind" from "two minutes behind", not to time anything.
+    var wpm = 165 * (TTS.rate || 1);
+
+    return JSON.stringify({
+      speaking: TTS.speaking,
+      enabled: TTS.enabled,
+      rate: TTS.rate,
+      current: TTS.current,
+      pending: pending,
+      pending_count: pending.length,
+      unspoken_words: words,
+      est_seconds_remaining: wpm > 0 ? Math.round((words / wpm) * 60) : null,
+    });
   }
 
   // wait_for_idle: block until the agent state becomes idle.
