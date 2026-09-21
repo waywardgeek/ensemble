@@ -72,6 +72,7 @@ func main() {
 	mcpPipe := false
 	guiDebug := false
 	skillsDir := ""
+	ttsLogPath := ""
 
 	// Parse flags manually to keep backward compat with positional commands.
 	var filtered []string
@@ -106,6 +107,11 @@ func main() {
 			i++
 		case strings.HasPrefix(args[i], "--skills-dir="):
 			skillsDir = strings.TrimPrefix(args[i], "--skills-dir=")
+		case args[i] == "--tts-log" && i+1 < len(args):
+			ttsLogPath = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--tts-log="):
+			ttsLogPath = strings.TrimPrefix(args[i], "--tts-log=")
 		default:
 			filtered = append(filtered, args[i])
 		}
@@ -190,7 +196,7 @@ func main() {
 		}
 
 	case "":
-		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, loadPath, mcpPipe, guiDebug, skillsDir) {
+		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, loadPath, mcpPipe, guiDebug, skillsDir, ttsLogPath) {
 			os.Exit(1)
 		}
 
@@ -247,7 +253,7 @@ type stdinMsg struct {
 	Ephemeral *string `json:"ephemeral"`
 }
 
-func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, loadPath string, mcpPipe bool, guiDebug bool, skillsDir string) (vendorFailed bool) {
+func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, loadPath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string) (vendorFailed bool) {
 	host := newCLIHost()
 	j := jobs.NewJobs(host)
 
@@ -443,6 +449,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 			actor.Send(msg)
 		}, "gui.log", eng.Log, settingsStore)
 		defer hub.Close()
+		hub.SetTTSLog(ttsLogPath)
 		actor.Attach(hub)
 
 		staticDir := guiDir
