@@ -136,7 +136,14 @@
     if (blocked === gatePaused) return;
     gatePaused = blocked;
     if (ws && ws.readyState === WebSocket.OPEN) {
-      ws.send(JSON.stringify({type: blocked ? 'pause' : 'unpause'}));
+      // Both halves of the gate produce the same pause, so the cause travels
+      // with it. Without that, a speech log shows that the agent stopped but
+      // never why, and the two causes need very different fixes.
+      ws.send(JSON.stringify({
+        type: blocked ? 'pause' : 'unpause',
+        typing: userTyping,
+        speaking: TTS.speaking,
+      }));
     }
   }
 

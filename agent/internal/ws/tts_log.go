@@ -50,6 +50,11 @@ type TTSEvent struct {
 	// it. This is the field that makes filter bugs visible: it shows what the
 	// listener would have heard next to what they actually heard.
 	Raw string `json:"raw,omitempty"`
+
+	// Why the gate closed, on pause lines. Both halves of the gate stop the
+	// agent the same way, so without this a log shows that it stopped but
+	// never why, and the two causes need very different fixes.
+	Cause string `json:"cause,omitempty"`
 }
 
 // NewTTSLogger opens the speech log for writing. An empty path silently
@@ -87,4 +92,21 @@ func (t *TTSLogger) Close() {
 		return
 	}
 	t.file.Close()
+}
+
+// gateCause names why the agent was told to wait. The gate closes for two
+// unrelated reasons and closing looks identical either way, so the log says
+// which one it was. A listener who hears the agent stop needs to know whether
+// it stopped because they were typing or because it was still talking.
+func gateCause(typing, speaking bool) string {
+	switch {
+	case typing && speaking:
+		return "typing+speaking"
+	case typing:
+		return "typing"
+	case speaking:
+		return "speaking"
+	default:
+		return ""
+	}
 }
