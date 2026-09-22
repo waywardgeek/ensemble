@@ -482,12 +482,13 @@ Numbered so they can be answered by reference.
    crossing? *Leaning framework*, because a threshold crossing is objective and
    the actor should not have to remember to tidy.
 7. Does `save_memory` remain the only writer of band 5?
-8. **Supersession.** Nothing in the current system ever deletes a memory or a
-   learning. Live evidence: the injected learnings list contains two exact
-   duplicate pairs and has never evicted anything. Does a memory write get to
-   name what it replaces? *Proposed: yes — a `supersedes` field, and compaction
-   drops superseded entries.* Without this, every band is an accumulator and the
-   64× tier eventually fills with contradictions.
+8. **Supersession. ANSWERED by §15.S.** Nothing in the current system ever
+   deletes a memory or a learning. Live evidence: the injected learnings list
+   contains two exact duplicate pairs and has never evicted anything. *Ruling:
+   a compaction event is a replacement mapping — naming what it replaces is the
+   entire content of the event — so supersession is structural rather than an
+   added field. Accumulation was only possible because compaction was a silent
+   mutation that left no record of what it consumed.*
 9. Provenance at write time: does every memory entry carry VERIFIED vs ASSUMED?
    The recurring failure in practice is that regenerated figures arrive with the
    confidence of copied ones, and a memory offers no way to tell them apart
@@ -737,3 +738,157 @@ visible stall into an invisible background cost, and converts an expensive
 model's time into a cheap model's time. Combined with §15.M, the effect is
 cumulative: self-curation lengthens the interval between compactions, and
 asynchrony removes the cost of the ones that remain.
+
+---
+
+## 15.S Compaction is described by events, never performed on the context
+
+**The ruling.** We never simply compact the context. We **create events that
+describe how the context is compacted.**
+
+A **memory graduation judge** emits, via a tool call, an event that states
+*which memories are replaced by which compressed version*. The context is then
+**deterministically derived** by replaying the log — including the compaction
+events.
+
+This is a sharper form of "record bytes, not intent," and the sharpening
+matters. The event is not an opaque blob of new text. It is a **replacement
+mapping**: these entries, identified by `Seq`, are superseded by this produced
+artifact. Four consequences fall out, and each one closes something that was
+open.
+
+**1. The context becomes a pure reduction over the log.** Not "mostly a
+reduction, except for memory." Compaction events are ordinary events, applied
+in order by an ordinary reducer. Replay produces the identical context because
+the LLM's judgment is *already recorded* rather than re-derived. The
+nondeterminism is quarantined into the event payload, at the boundary, where
+nondeterminism belongs. The reducer stays pure.
+
+**2. The tool call is the only door.** The graduation judge is an agent, and
+its output enters the log exactly the way every other agent action does. There
+is no privileged write path into memory. This is the same principle that killed
+`handoff_task`: a second way to write the same facts is a second way to get it
+wrong.
+
+**3. Supersession is solved structurally, not added as a feature.** Open
+question 8 asked whether a memory write may name what it replaces. Under this
+design, a compaction event *is* a supersedes record — naming what it replaces
+is the whole content of the event. Accumulation was only ever possible because
+compaction was a silent mutation with no record of what it consumed.
+
+**4. The memory files stop being sources of truth.** `MEMORY.md`, the bucket
+files, the session logs — these become **projections of the log**, rendered
+views, not storage. That kills the two-writer problem at its root rather than
+policing it: a file with two writers rots, but a file with *no* writers, derived
+on demand from a single append-only log, cannot.
+
+**The reducer must be total.** It may never refuse to replay a log. A
+compaction event naming an entry that a prior compaction already superseded is
+a **no-op with a diagnostic**, not an error. A malformed event is skipped and
+noted, not fatal. The reason is blunt: the log is the ground truth, so a reducer
+that can fail on bad input is a reducer that can brick the agent permanently.
+Totality is not robustness polish here, it is the difference between a bad
+event costing one memory and costing the entire past.
+
+**On the vendor's offer to do this for us.** The Anthropic API ships
+server-side context editing under the beta header
+`context-management-2025-06-27`, with strategies `clear_tool_uses_20250919` and
+`clear_thinking_20251015`. It is worth being precise about it, because it is
+*not* incompatible with this design the way stateful conversation APIs were in
+Chapter 2. Quoted from the provider documentation:
+
+> "Your client application maintains the full, unmodified conversation history.
+> **You do not need to sync your client state with the edited version.**
+> Continue managing your full conversation history locally as you normally
+> would."
+
+So it is stateless, non-destructive, a per-request rendering decision rather
+than a mutation of the thread, and it is even observable: the response carries
+`context_management.applied_edits` with `cleared_tool_uses`,
+`cleared_thinking_turns` and `cleared_input_tokens`.
+
+We still decline it as the primary mechanism, for three honest reasons rather
+than a slogan:
+
+- **Scope.** It clears tool results and thinking. It does not do memory
+  graduation, which is most of this chapter.
+- **Policy shape.** Its configuration is declarative — `trigger`, `keep`,
+  `clear_at_least`, `exclude_tools` — so it curates by position and rule. The
+  self-curation of §15.M is relevance-based judgment by the actor, which a
+  declarative trigger cannot express.
+- **Determinism, which is the decisive one.** If the server decides what to
+  clear, the rendered context depends on the server's behavior *at replay
+  time*, which is not guaranteed to match its behavior at record time. Our
+  replay property would become a claim about someone else's deployment.
+
+It remains useful as a **backstop** for vendors and situations where our own
+curation is unavailable, and the applied-edits field should be recorded in the
+log when it fires, so that even the backstop is observable.
+
+---
+
+## 15.T Crash-safe persistence: snapshot plus tail
+
+**The gap.** We do not currently write events to disk as they happen. That is
+the piece that has to exist before any of the above is trustworthy, because a
+design whose ground truth is an append-only log is only as good as the moment
+that log reaches storage.
+
+**The model.** Standard checkpoint-and-replay, with one detail that makes it
+work:
+
+- **Snapshot.** The actual rendered context, saved as of **a specific event in
+  the log.** The snapshot must name the `Seq` it corresponds to. Without that
+  anchor, replay cannot know where to resume and the snapshot is worthless.
+- **Tail.** Events appended to the log on the fly, as they occur. After a
+  crash, recovery is: load the most recent snapshot, replay every event after
+  its anchor, and the most recent state is back.
+- **Normal shutdown** also writes a snapshot, so the common case starts from a
+  current checkpoint with an empty tail.
+- **Prior events** — those from before the snapshot anchor — are needed only
+  for the GUI and the audit trail. They are not required for recovery. That
+  distinction sets the retention policy: retention is a *display and audit*
+  question, not a correctness question.
+
+**Retention.** The default today is roughly 100 events. That should be a
+**config setting**, joining the other thresholds in the Memory tab of §15.I.
+Time-based truncation of the log is a plausible later option, but for now keep
+it simple: retain the number of events the GUI wants to display, and no policy
+beyond that.
+
+**The save procedure.**
+
+1. **Save the current context to its own file**, first copying the prior
+   context file to a backup and overwriting the old backup. One generation of
+   history, so a corrupt write cannot destroy the last good snapshot.
+2. **Truncate the log to N events**, where N is the retention number configured
+   for the GUI in settings.
+
+**The context file must carry the event `Seq` it was taken at.** This is not
+bookkeeping, it is the entire recovery mechanism. On load, compare the
+snapshot's `Seq` against the head of the log:
+
+- equal — the snapshot is current, nothing to replay;
+- behind — replay every event after the snapshot's `Seq` to reach the most
+  recent state.
+
+That is how a crash is survived. The process dies mid-session, the snapshot on
+disk is from some earlier moment, the log has been accumulating since, and the
+difference between them is exactly the work to redo.
+
+**Ordering invariant: snapshot first, then truncate.** The two steps are not
+commutative. Snapshotting at the current head means there are, at that instant,
+no events after the anchor, so truncation can only remove events *before* it —
+and those are display-and-audit only (§15.T above), never needed for recovery.
+Reverse the order and a truncation can delete events that the not-yet-written
+snapshot would have needed. Same class of bug as the unwired cascade trigger:
+two steps that work individually and destroy data in the wrong sequence.
+
+**Safety rule on N.** Truncation must never cut past the snapshot anchor. If a
+snapshot is stale — say recovery has just happened and no new snapshot has been
+written — then a small N could otherwise delete events required to replay
+forward. So the rule is: **retain N events or everything back to the snapshot
+anchor, whichever is more.** N is a display preference; the anchor is a
+correctness boundary, and a preference must never be allowed to overrule a
+correctness boundary.
+
