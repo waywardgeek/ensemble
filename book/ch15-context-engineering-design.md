@@ -271,6 +271,31 @@ three. Bands are just watermarks:
 
 One knob per boundary, all configurable, all visible.
 
+**Proposal (pending ruling): what survives above the watermark.**
+
+- **Keep recent results, bounded in BYTES, not a percentage.** A percentage keeps
+  more when the context is larger, which is backwards: the biggest contexts are
+  exactly when a handoff should cut hardest. A byte budget matches the bands.
+  Starting guess 16 KiB, unmeasured.
+- **Why keep any.** The dominant risk after a handoff is not cost but
+  reconstruction: the actor re-deriving facts from its own narration instead of
+  re-reading them, which is the most reliably measured failure in this system.
+  The newest results are the ones most likely to be quoted next. Stripping them
+  either forces an immediate re-read (saving nothing) or invites a misquote.
+- **Why it is cheap.** With auto-redaction on, most results are already stubs by
+  handoff time; what remains full is the last round trip plus what the actor
+  chose with `keep_tool_results` — pre-curated bytes. Under redaction,
+  `micro_handoff`'s saving comes mostly from tool-call arguments, stubs, and old
+  thinking, not results. Kept bytes raise `S` in the break-even formula of the
+  micro-handoff design doc; they do not enlarge the cache miss, which starts near
+  the top either way.
+- **Capable models name what to keep.** An optional retain list on
+  `micro_handoff`: the actor knows which results the next stretch needs;
+  position does not. Weaker models get the positional watermark. Same
+  one-shape-or-two split as §15.M.
+- **Thinking is lost regardless.** The handoff document replaces it; kept results
+  spare the handoff from restating facts still on the page.
+
 ---
 
 ## 15.I Settings must be tabbed, not flat
