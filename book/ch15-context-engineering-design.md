@@ -14,7 +14,9 @@ messages at four compressions — 64×, 8×, 1× session, live dialogue — each
 byte budget and graduation upward when it overflows. The lowest band is
 dialogue only, and because it contains the actor's visible reasoning, that band
 alone preserves the actor. Everything else is tool bytes, and tool bytes are
-addressable on disk, so discarding them is safe. Keep the words; address the
+addressable on disk, so discarding them is safe. Compaction itself runs beside
+the conversation as sandboxed sub-agents and commits by silent swap, which is
+safe for the same reason the tail is append-only. Keep the words; address the
 bytes.
 
 ---
@@ -518,6 +520,37 @@ Numbered so they can be answered by reference.
     chapter. Split into its own short chapter, or carry it here because the
     numbers are meaningless without somewhere to see them?
 
+**Asynchronous compaction (§15.R)**
+
+16. Are bands 1 and 2 (`SOUL.md`, `MEMORY.md`) hard-forbidden to every
+    automated writer? *Proposed: yes.* Self-curated means self-curated; an
+    automated process that can rewrite the identity document is a personality
+    drift generator.
+17. What sandbox do compressor sub-agents run under? *Proposed: no shell, no
+    web, no filesystem beyond their own input and output band.* They read
+    untrusted tool results and write near the actor's identity, which makes
+    them the highest-risk component in the design.
+18. Does a compaction commit need a **validation gate** before the swap — for
+    example, output must be under budget, must be non-empty, and must not have
+    dropped every entry of a given kind? Without one, a bad compression silently
+    becomes the actor's past.
+19. Is there a floor on compaction frequency to protect the prompt cache? Each
+    commit invalidates from the changed band downward, so a pathological
+    trigger pattern could invalidate on nearly every turn. *Proposed: commit
+    only at turn boundaries, and batch all ready bands into one commit.*
+20. Who observes compaction in the GUI, and how loudly? *Proposed: silent in
+    the conversation, an event in the log, and a quiet indicator plus a
+    `context_report` breakdown on demand.*
+
+**Recall (§15.Q)**
+
+21. Does the auto-recall judge see the bands, or only the candidate fragments?
+    If it cannot see what is already present, it will recall things the actor
+    already knows and spend budget to say them twice.
+22. Do recalled fragments enter the data channel as ephemera (delivered once,
+    then cleared) or as persisting entries? *Leaning ephemera*, since relevance
+    was judged for one turn and does not transfer to the next.
+
 ---
 
 ## 15.P Claims this chapter must defend
@@ -542,3 +575,165 @@ Collected so they can be attacked individually.
 8. **Model capability is a structural input.** The layout has two shapes, chosen
    from a features table, not one shape with a policy knob.
 
+
+---
+
+## 15.Q The memory system: push bands and pull recall
+
+Two distinct mechanisms feed the data channel, and conflating them is how the
+current system got confusing. Name them separately.
+
+**Push — the bands.** Bands 1–5 of §15.F are *always present* in every request.
+They are governed by byte budgets and graduation. Nothing decides whether to
+include them; they are the actor's standing state.
+
+**Pull — auto-recall.** Separately, relevant fragments are *fetched* per turn
+based on what the user just said. Governed by a relevance threshold, not a byte
+budget. Nothing is standing; every recalled fragment must earn its place on
+this turn.
+
+The pieces, exactly as they exist today and as they should be kept:
+
+1. **Bucket compressor agents.** Each compression step is performed by an
+   agent, not by a function. Band 5 → band 4 at 8×, band 4 → band 3 at 64×.
+   Each compressor has a bounded input (one band), a bounded output
+   (input ÷ ratio), and no need for the parent's context — which is what makes
+   §15.R possible.
+2. **`save_memory` triggers the whole cascade** if a threshold crossing has not
+   already triggered it. Two triggers, one mechanism. This matters: the known
+   historical bug in this system was a *second* entry point (`handoff_task`)
+   that never fired the cascade at all, so memories silently failed to
+   graduate. With `handoff_task` deleted (§15.H) there are exactly two triggers
+   and both are wired. **One mechanism may have several triggers, but every
+   trigger must be wired to the same mechanism** — the failure mode is always
+   the unwired second path.
+3. **BM25 plus a vector database** for searching the corpus that auto-recall
+   draws from. Keyword and semantic retrieval are complementary: BM25 wins on
+   exact identifiers, file paths and error strings, the vector index wins on
+   paraphrase. A coding agent needs both, because half its recall queries are
+   literally symbol names.
+4. **A low-power LLM as the relevance judge** for auto-recall. Retrieval
+   proposes, the judge disposes. The judge must be cheap by construction,
+   because it runs on every turn: the cost of judging has to sit far below the
+   cost of the bytes it prevents from being injected, or the mechanism is
+   negative-value. A small model is not a compromise here, it is the design.
+
+**Why the judge exists at all.** A pure-score threshold cannot distinguish "this
+fragment mentions the same words" from "this fragment answers the question."
+The history of this system is a recall threshold moved from 0.5 to 3.0 by feel,
+which is what tuning a scalar in place of a judgment looks like. Replacing a
+hand-tuned number with a cheap model that reads the fragment and the question is
+the entire improvement.
+
+---
+
+## 15.R Asynchronous compaction: compress in parallel, swap silently
+
+**The proposal.** Do not stop the world to compact. Run `save_memory` and the
+bucket compressors **in parallel, as sub-agents**, while the conversation
+continues. When they finish, **silently switch** to the newly curated context
+plus every round trip that happened in the meantime.
+
+**Verdict: correct, and correct for a structural reason.** This is
+read-copy-update. RCU is safe precisely when the snapshot cannot mutate
+underneath the writer, and §15.D already guarantees that: the tail is
+append-only. Therefore:
+
+- the compressor snapshots bands as of `Seq = N`;
+- it produces replacement bands, also as of `N`, off to the side;
+- the commit swaps bands-as-of-`N` and re-appends entries `N+1..now` unchanged.
+
+The merge is **concatenation, not a three-way merge.** There are no conflicts to
+resolve because nothing below the watermark can have changed. The feature is
+cheap only because the architecture was right first; in a system whose history
+could mutate, this would be a distributed-systems problem.
+
+**The per-band single-writer rule survives, and it tells us the swap is
+per-band.** Band 5's writer is `save_memory`; band 4's writer is the 5→4
+compressor; band 3's writer is the 4→3 compressor. A commit replaces one band
+and never touches another band's entries, so a `save_memory` landing during
+compression is appended to band 5 rather than clobbered.
+
+**A pleasant result: the layout ordering is optimal for the prompt cache, and
+for the same reason it is semantically right.** Cache validity is a prefix
+property, so the cheapest possible arrangement puts the least-frequently-changed
+bytes earliest. Change frequency ascends exactly as the table descends:
+
+| Band | Changes when | Cache consequence of a swap |
+|---|---|---|
+| `SOUL.md` | a deliberate act of self-revision | almost never invalidated |
+| `MEMORY.md` | a deliberate act of curation | rarely invalidated |
+| 64× long-term | a 4→3 graduation | rare |
+| 8× medium-term | a 5→4 graduation | occasional |
+| 1× session | every `save_memory` | frequent |
+| dialogue | every turn | always |
+
+So a compaction commit invalidates the cache from the changed band downward and
+no further. Compacting band 4 costs bands 4, 5 and the tail; `SOUL.md`,
+`MEMORY.md` and band 3 stay cached. **The ordering was chosen for meaning and
+turns out to be the cache-optimal one too.** When two independent arguments
+select the same layout, that is the strongest evidence available that the layout
+is right.
+
+Two practical consequences: **commit at a turn boundary, never mid-turn**, and
+**batch the commits** — swapping three bands in one commit costs one
+invalidation, swapping them separately costs three.
+
+**On visibility — the question of whether users want to see this.** The right
+answer is *silent by default, observable on demand, never hidden.* Those are
+three different things:
+
+- **Silent**: the conversation is not interrupted with progress chatter. A
+  compaction is infrastructure, and infrastructure that narrates itself is
+  noise.
+- **Observable**: the commit emits events into the log — compaction started,
+  compaction committed, with band labels and before/after byte counts — so the
+  GUI can show a quiet indicator and a `context_report` can explain exactly what
+  happened and when.
+- **Never hidden**: if compaction is unobservable and it eats something
+  important, nobody can distinguish "the agent forgot" from "the compressor
+  dropped it." The accessibility chapter already established the general form of
+  this: *an unobservable channel produces wrong data, not no data.* Compaction
+  is a channel.
+
+**Replay stays intact, but only if the commit records bytes rather than
+intent.** A compressor is an LLM, so its output is nondeterministic and cannot
+be re-derived by re-running it. The commit must therefore be an **event carrying
+the produced bytes**, exactly as redaction is. Replay reads the recorded output
+instead of recompressing. This is the same ruling as "compaction is an event,"
+now with a sharper reason: the procedure is not reproducible, so only the result
+may be authoritative.
+
+**Failure degrades safely, which is a property of RCU rather than an accident.**
+If a compressor crashes, stalls, or produces garbage that fails validation, the
+commit simply never happens and the old bands remain live. The failure mode is
+"context stays larger than we wanted," which is survivable. Two guards are still
+needed: **at most one compressor in flight per band**, so a stuck one does not
+spawn a new one every turn, and a **watchdog** that abandons rather than blocks.
+
+**The hazard that needs an explicit ruling.** A bucket compressor is an LLM that
+reads tool results — crawled web pages, sub-agent output, files from untrusted
+repositories — and writes into bands that sit adjacent to the actor's identity.
+That is precisely the promotion path that §15.O question 10 proposes to forbid,
+except automated, unattended, and running on every session. It is the most
+security-sensitive component in the entire design.
+
+Proposed constraints, all of which narrow rather than widen:
+
+- compressors run **sandboxed**: no shell, no web, no filesystem beyond their
+  own input and output;
+- a compressor may write **exactly one band** and nothing else;
+- compressor output is committed with `Channel = Data`, so it can never be read
+  as instruction — a third payoff for the channel field of §15.G;
+- **bands 1 and 2 are not writable by any compressor.** `SOUL.md` and
+  `MEMORY.md` are self-curated by definition (§15.E). An automated process that
+  can rewrite the actor's identity document is not a memory system, it is a
+  personality drift generator.
+
+**What the parallelism actually buys.** Not merely latency. Today compaction
+stops the actor at the worst possible moment, because the threshold is crossed
+in the middle of real work. Running it beside the conversation converts a
+visible stall into an invisible background cost, and converts an expensive
+model's time into a cheap model's time. Combined with §15.M, the effect is
+cumulative: self-curation lengthens the interval between compactions, and
+asynchrony removes the cost of the ones that remain.
