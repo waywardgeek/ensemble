@@ -892,3 +892,45 @@ anchor, whichever is more.** N is a display preference; the anchor is a
 correctness boundary, and a preference must never be allowed to overrule a
 correctness boundary.
 
+
+---
+
+## 15.U Field notes from the first Opus 5.5 session (2026-09-22)
+
+Measured on the running system, not predicted.
+
+**1. The cost of a mutation is proportional to its distance from the tail.**
+Redaction currently stubs the previous round trip's tool result on every request.
+The prediction was that this would wreck the prompt cache, since it rewrites bytes
+already sent. It does not: the observed cumulative hit rate was 77% after a cold
+first request that missed on over 100K tokens, which implies a steady-state
+per-request rate well above that. The reason is that a prefix cache invalidates
+only from the first changed byte onward, and a just-finished result sits at the
+tail, so the miss is bounded by roughly one round trip of bytes.
+
+So the frozen-prefix rule of §15.D refines to a cost model rather than a ban:
+
+- **near the tail**: mutation is nearly free — redact freely;
+- **deep in the context**: mutation invalidates everything after it — do it
+  rarely and batch it (the `micro_handoff` watermark move, a compaction commit).
+
+This is the same monotonic argument as §15.R's band ordering, applied to the
+dialog: things that change often belong at the end, and changes that must reach
+deep are expensive in proportion to how deep they reach.
+
+**2. A redaction stub's address must outlive the process.** Stubs cite recovery
+paths like `cr/io/26`. The job handle counter resets on server restart, so after a
+restart the same path names a different command's output. §15.L's claim that
+dropped bytes are addressable is true only within one process lifetime today.
+Fix: session-scoped or content-addressed paths, so an address never gets reused.
+
+**3. Cumulative hit rate hides the steady state.** A cumulative figure is
+dominated by the cold start and converges slowly. Show last-request hit rate
+beside it.
+
+**4. Keep-tool gating works; the approval ratchet caught an unapproved flip.**
+With the model row set to support redaction, `keep_tool_results` appeared and
+retained a marked 5.1 KB result as designed. Thinking survived a four-step chain
+in which an in-chain result was redacted. But the model was not added to
+`redactionCapableModels`, so `TestRedactionCapableModelsAreExactlyTheApprovedSet`
+fails. The ratchet is doing its job: a capability claim needs a measurement.
