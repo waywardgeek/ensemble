@@ -1,9 +1,21 @@
 # Chapter 15 — The World's Best Context Engineering
 
-*Design record. Dictated by Bill, transcribed with commentary by the coder.
-Status: IN PROGRESS, live dictation. Nothing here is prose yet.*
+*Design record. Dictated by Bill 2026-09-22 before breakfast, transcribed with
+commentary and gap analysis by the coder.
+Status: DESIGN COMPLETE, awaiting rulings in §15.O. Nothing here is prose yet.*
 
 **Working title is the real title.** "The World's Best Context Engineering."
+
+**One-paragraph thesis.** The context window is not storage; it is a working set
+rendered from an append-only log. It has a frozen prefix (system prompt and
+fixed tools, built from skills, changed only by a deliberate full-refresh cache
+miss) and an append-only tail. Identity and memory ride in the tail as data
+messages at four compressions — 64×, 8×, 1× session, live dialogue — each with a
+byte budget and graduation upward when it overflows. The lowest band is
+dialogue only, and because it contains the actor's visible reasoning, that band
+alone preserves the actor. Everything else is tool bytes, and tool bytes are
+addressable on disk, so discarding them is safe. Keep the words; address the
+bytes.
 
 ---
 
@@ -283,20 +295,8 @@ subsystem with one owner.
 
 ## 15.J Open rulings needed from the author
 
-1. Are data-channel entries (bands 1–5) exempt from span redaction? Proposed:
-   yes, or compaction can redact the actor's own identity.
-2. Band 3/4/5 budgets: 12 KiB each, or does long-term get more given it is 64×?
-3. Does `save_memory` remain the only writer of band 5, and who triggers
-   graduation 5→4→3 — the actor, or the framework at a threshold crossing?
-4. **Supersession.** Nothing in the current system ever *deletes* a memory or a
-   learning. Live evidence: the injected learnings list contains two exact
-   duplicate pairs and has never evicted anything. Does a memory write get to
-   name what it replaces?
-5. Grader shape for ch15. Proposed unfakeable checks: a planted fact recalled
-   across a restart; a superseded fact answered with the new value and not the
-   old; no band exceeding its declared budget after a long session; a
-   "remember this" string arriving inside a *tool result* never reaching any
-   durable band (quarantine, which is also an injection test).
+Superseded by §15.O, which consolidates every open question in one numbered
+list. Left as a heading so section references stay stable.
 
 ---
 
@@ -363,4 +363,182 @@ Corollary, and it is the whole chapter in one line:
 
 ---
 
-*(dictation continues)*
+## 15.M The bottom of the layout has one section or two, by model capability
+
+The context layout diagram ends differently depending on what the model can do.
+
+**Weaker models: two sections.** First a band where tool results have been
+redacted and only the calls remain, then the bottom band with full tool calls
+and results intact. The split is mechanical — a watermark by position (15.H) —
+because the model cannot be trusted to decide what matters.
+
+**Stronger models: one unified section.** The two collapse into a single band,
+and the model **self-curates** which tool results are important enough to keep.
+Position stops being the criterion; relevance becomes the criterion, judged by
+the actor.
+
+This is the same capability axis as 15.E, now with a structural consequence
+rather than just a policy one: **the shape of the layout is a function of the
+model's features table.** A layout diagram in this chapter therefore needs two
+variants, and the framework needs to render both from one description.
+
+**Expected yield (author's estimate, not a measurement).** With a model capable
+of self-curation, the estimate is that **at least 80% of the tool data gets
+thrown away.** Flagged explicitly as a guesstimate so no later draft quotes it
+as instrumented. If the chapter prints a number, the number must come from a
+measured run — the band budgets and watermarks of 15.I make that measurable,
+and once the Memory tab exposes them, measuring it is cheap.
+
+**Why it is worth the friction.** Self-curation is not free: the actor
+occasionally discards something it then has to fetch back (safe, per 15.L, but
+it costs a round trip). It pays for itself twice over anyway:
+
+1. **Cost.** Eighty percent of the bulkiest category of bytes, not re-sent on
+   every subsequent request.
+2. **Runway — the bigger win.** The actor runs far longer between
+   `micro_handoff` calls. Every checkpoint is a discontinuity in the actor's
+   working state, so fewer checkpoints means longer coherent stretches of work.
+   Curation buys *continuity*, and continuity is the thing this whole chapter is
+   about. Cheaper is the side effect.
+
+---
+
+## 15.N The layout diagram
+
+Both variants of the steady-state context. This is the figure the chapter is
+built around.
+
+**Variant A — weaker model (mechanical curation, two bottom sections):**
+
+```
+┌─ FROZEN PREFIX ──────────────────────── never changes outside a refresh ─┐
+│  system prompt, rendered from skills, $VAR substituted, fixed at start   │
+│  fixed tool declarations                                                 │
+└──────────────────────────────────────────────────────────────────────────┘
+┌─ DATA CHANNEL ─────────────────────────────── re-rendered each request ──┐
+│  1  SOUL.md                              self-curated identity          │
+│  2  MEMORY.md                             self-curated permanent facts   │
+│  3  long-term memories        64x         <= 12 KiB                      │
+│  4  medium-term memories       8x         ~12 KiB                        │
+│  5  session memories           1x         ~12 KiB                        │
+└──────────────────────────────────────────────────────────────────────────┘
+┌─ DIALOG ─────────────────────────────────────────────── append-only ─────┐
+│  6  dialogue only: speech + visible reasoning. no tool calls at all.     │
+│                                                                          │
+│     ---- dialogue watermark ----                                         │
+│  7  tool CALLS kept, tool RESULTS stripped                               │
+│                                                                          │
+│     ---- full watermark ----                                             │
+│  8  everything: full tool calls and full tool results                    │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+**Variant B — capable model (self-curation, one bottom section):**
+
+```
+   ... bands 1-6 identical ...
+┌──────────────────────────────────────────────────────────────────────────┐
+│     ---- dialogue watermark ----                                         │
+│  7  UNIFIED: tool calls kept; tool results kept only where the actor     │
+│     judges them still relevant. position is not the criterion.           │
+│     estimated ~80% of tool bytes discarded (unmeasured).                 │
+└──────────────────────────────────────────────────────────────────────────┘
+```
+
+Read bottom-up, the ladder is one idea applied at five time scales: keep the
+words forever, keep the calls for a while, keep the results only while they are
+hot, and address everything else on disk.
+
+---
+
+## 15.O Consolidated open questions
+
+Numbered so they can be answered by reference.
+
+**Structure**
+
+1. Are data-channel entries (bands 1–5) exempt from span redaction?
+   *Proposed: yes.* `RedactData` names a span of `Seq`, and bands 1–5 are
+   re-rendered rather than appended once, so a compaction pass could otherwise
+   redact the actor's own identity.
+2. Band budgets: 12 KiB each, or does the 64× band get more, since it buys the
+   most history per byte?
+3. Does the sum of band budgets get expressed as an absolute byte count or as a
+   fraction of the model's window? Windows differ by an order of magnitude
+   across vendors.
+4. Where do **learnings** and **skills** live in this layout? Neither appears in
+   15.F. Learnings are currently injected into the system prompt, which 15.B–15.C
+   now forbids for anything that changes at conversational speed. Candidate:
+   learnings become a data-channel band; skills stay instruction-channel.
+5. Where does **project context** (per-repo instructions) live — frozen prefix,
+   or data channel? It changes when the repo changes, not when the turn changes,
+   so probably prefix.
+
+**Mechanism**
+
+6. Who triggers graduation 5 → 4 → 3: the actor, or the framework at a threshold
+   crossing? *Leaning framework*, because a threshold crossing is objective and
+   the actor should not have to remember to tidy.
+7. Does `save_memory` remain the only writer of band 5?
+8. **Supersession.** Nothing in the current system ever deletes a memory or a
+   learning. Live evidence: the injected learnings list contains two exact
+   duplicate pairs and has never evicted anything. Does a memory write get to
+   name what it replaces? *Proposed: yes — a `supersedes` field, and compaction
+   drops superseded entries.* Without this, every band is an accumulator and the
+   64× tier eventually fills with contradictions.
+9. Provenance at write time: does every memory entry carry VERIFIED vs ASSUMED?
+   The recurring failure in practice is that regenerated figures arrive with the
+   confidence of copied ones, and a memory offers no way to tell them apart
+   later.
+10. **Quarantine.** May content that arrived in a tool result — a crawled page,
+    a sub-agent's output, a file from an untrusted repo — ever be promoted into
+    a durable band? *Proposed: never without an explicit act by the actor.*
+    This is a context-engineering concern and an injection defense at the same
+    time.
+11. Does the self-curation capability flag belong in the existing model features
+    table? *Proposed: yes, with no default row*, matching streaming and media.
+
+**Deliverables**
+
+12. Is there a `context_report` tool that prints actual bytes per band against
+    budget? Today the actor can see its total token count but not the breakdown,
+    so it cannot tell which band is crowding the others.
+13. Grader shape. Proposed unfakeable checks:
+    - a planted fact recalled across a restart (planted token, unfakeable);
+    - a superseded fact answered with the new value, with the old value absent
+      from the current bands — both directions, so it cannot pass by ignoring
+      supersession;
+    - no band exceeding its declared budget after a long session;
+    - a "remember this" string arriving inside a *tool result* never reaching
+      any durable band (quarantine);
+    - an automated write to the identity band refused.
+14. Does the chapter need to describe visible reasoning from scratch, or does an
+    earlier chapter already cover it? Not yet checked against the manuscript.
+15. Chapter placement of the settings work (15.I). It is GUI work in a context
+    chapter. Split into its own short chapter, or carry it here because the
+    numbers are meaningless without somewhere to see them?
+
+---
+
+## 15.P Claims this chapter must defend
+
+Collected so they can be attacked individually.
+
+1. The context has a frozen prefix and an append-only tail, and **every byte
+   belongs to exactly one of them.** No clever middle ground.
+2. Identity and memory are **data in the dialog**, not instructions in the
+   prompt. Placement is a renderer decision.
+3. Memory is a **reduction over the log**, not a store. Bands are reductions at
+   different compressions. (Same thesis as one log, three vendors — here it is
+   one log, one self.)
+4. **Visible reasoning is the storage format of the self.** The dialogue-only
+   band plus narration is sufficient to preserve the actor.
+5. **Tool bytes are addressable, so discarding them is safe.** Addressability is
+   what buys the compression: a system where dropping is irreversible must hoard.
+6. Any artifact with **two writers will rot.** Single writer per band. The
+   deleted `handoff_task` and the never-wired cascade trigger are the receipt.
+7. Curation buys **runway**, not just cost. Fewer checkpoints means longer
+   coherent stretches of work.
+8. **Model capability is a structural input.** The layout has two shapes, chosen
+   from a features table, not one shape with a policy knob.
+
