@@ -959,3 +959,83 @@ retained a marked 5.1 KB result as designed. Thinking survived a four-step chain
 in which an in-chain result was redacted. But the model was not added to
 `redactionCapableModels`, so `TestRedactionCapableModelsAreExactlyTheApprovedSet`
 fails. The ratchet is doing its job: a capability claim needs a measurement.
+
+---
+
+## 15.V Rulings, 2026-09-22 afternoon
+
+**Scope: two chapters.**
+- **Chapter A — context management.** Layout, channels, compaction as events,
+  snapshot plus replay, the `micro_handoff` watermark. Settings: a **Context
+  Management tab**.
+- **Chapter B — memory.** Bucket compressors, graduation judge, auto-recall
+  (BM25, vector search, judge), `save_memory`. Settings: a **Memory tab**.
+  The accessibility tab split (§15.I) rides with whichever lands first.
+
+**Q16 (identity bands write-protected): deferred to the sandboxing chapter.**
+There, only top-level true actors can reach the level that contains
+`SOUL.md` and `MEMORY.md`. Not a concern of this design.
+
+**Q10 (quarantine): no restriction on content.** The actor may put anything it
+likes into memory. What protects the actor is the **channel**, not a filter:
+memory is always the data channel, never the instruction channel.
+
+**Q4 (learnings): a learnings block near the top, before `MEMORY.md`.** All
+learnings in the data channel as **one entry**. New learnings are added on the
+fly by appending learning entries to the dialog. Entry type: `DataAttached`
+with band label `learnings` — no new event type; the channel and band label
+already say what it is.
+
+**Q2/Q3: band budgets are absolute byte counts, configurable in settings.**
+
+**Q1: confirmed.** Bands are replaced by compaction events, never span-redacted.
+
+**Q6: nothing but `save_memory` starts the cascade.** And `save_memory` does a
+second job: **it deletes all conversation in the context window**, replacing it
+with the session memory it just wrote. Reason: conversation covered by more than
+one memory is confusing. Call it at major milestones.
+
+**The two compaction tools, by what they remove:**
+
+| Tool | Removes | When |
+|---|---|---|
+| `micro_handoff` | tool calls and results below the watermark | completed micro-goals |
+| `save_memory` | all conversation in the window; starts the cascade | major milestones |
+
+**`micro_handoff` retain proposal (§15.H): accepted.** Byte-bounded retention,
+optional actor-named retain list for capable models.
+
+**Consequences worked out:**
+
+- **Session memories only ever append.** Because `save_memory` deletes the
+  conversation it summarizes, its output lands directly after the previous
+  session memories. The "separate band vs interleaved" question from the
+  2026-09-12 notes dissolves: they are the same layout. Cost is one full
+  dialog-region cache miss per milestone, which is accepted.
+- **Two cuts, one per tool.** Conversation is cut at `save_memory`; tool bytes
+  are cut at the `micro_handoff` watermark.
+- **Channel decides fate at `save_memory` (proposed).** Dialogue-channel entries
+  are deleted; data-channel learning entries appended mid-session are folded
+  into the top learnings block. Otherwise a learning added mid-session would be
+  deleted with the conversation.
+
+**Grader: all five checks, two reshaped, plus two new.**
+
+| Check | Chapter | Note |
+|---|---|---|
+| planted fact recalled after `save_memory` wipes the conversation | B | unfakeable planted token |
+| superseded fact: new value answered, old absent from bands | B | both directions |
+| no band over its configured budget after a long session | A and B | |
+| memory content lands in the data channel, never instruction | A | reshaped from quarantine (Q10) |
+| automated write to identity band refused | — | moved to sandboxing chapter (Q16) |
+| log replay reproduces the saved snapshot byte-for-byte, compaction events included | A | new; ch11's Rebuild == saved, one level up |
+| kill mid-session, restart, latest state recovered | A | new; snapshot anchor + tail replay |
+
+**Still open before the TL;DRs:**
+1. Goal stack: the 2026-09-12 notes say "never the stack of goals, no matter how
+   much we compact." Does a goal band exist?
+2. Do `micro_handoff` documents survive `save_memory`, or does the session memory
+   absorb them?
+3. Learnings block order: `SOUL`, learnings, `MEMORY` as ruled — or after
+   `MEMORY`, since by §15.U learnings change more often? Minor; `save_memory`
+   already rewrites the dialog region, so the difference is small.
