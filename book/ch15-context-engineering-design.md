@@ -7,7 +7,10 @@ with corrections appended. The dictated version is in git history (last at
 `4caae30`) if the original wording is ever needed.*
 
 *Status: design ruled for Chapter A; Chapter B needs one name (§B.5) and the
-questions in Part VIII; Chapter C is scoped but not designed. Nothing here is prose.*
+questions in Part VIII; Chapter C is scoped but not designed. Nothing here is prose.
+Revised after the rewrite (same day) for typed entry kinds (§I.5a), the
+`micro_handoff` event sequence (§A.6) and `LearningAdded`; the Part VII ledger
+lists what those rulings superseded.*
 
 **This document supersedes** `book/chapter-context-engineering-notes.md`
 (2026-09-12). Everything in that file that still holds is integrated here, and
@@ -171,6 +174,57 @@ as a temporary condition: other vendors tend to copy each other. Vendors without
 it degrade gracefully by re-declaring and paying the cache miss, which is the old
 behavior rather than a broken one.
 
+## I.5a Entry kinds: what survives is never a tool call
+
+**RULED (2026-09-22, post-rewrite):** anything expected to survive tool
+clearing is its own entry kind, never a tool call/result pair. A tool call is
+the *door*; the entry is the *payload*.
+
+**Why (VERIFIED):** today a skill body rides inside the `load_skill` tool result
+(`agent/internal/tools/tools.go:1016`: `result += "## Instructions\n\n" + body`),
+and the reducer does not know skills exist (`context.go` has zero matches for
+"Skill"; `SkillLoaded` is a log marker only). The first ladder event that stubs
+tool results below the watermark would stub the skill's instructions: the actor
+would keep the tools and lose the manual. The `micro_handoff` document has the
+same defect from the other side of the pair: it is a tool-call *argument*, so
+removing tool calls removes the checkpoint with them.
+
+**The kinds (DERIVED shape; the survivor kinds RULED individually).** `Entry`
+gains a `Kind` (enum, `iota+1`, zero invalid), set by the reducer at write time:
+
+| Kind | Created by | Channel | Removed by |
+|---|---|---|---|
+| `User` | a prompt or hint | dialogue | `save_memory` |
+| `Assistant` | model text and visible reasoning | dialogue | `save_memory` |
+| `ToolCall` | model tool use | dialogue | ladder events, `micro_handoff` |
+| `ToolResult` | tool completion | dialogue | ladder events, per-round-trip redaction, `micro_handoff` |
+| `Handoff` | the `micro_handoff` event (§A.6) | dialogue | `save_memory`, which absorbs it |
+| `Memory` | `save_memory` (and graduation, per band) | data | graduation |
+| `Learning` | `add_learning` (RULED: its own entry type in the log) | data | `delete_learning`, lazily |
+| `Skill` | `load_skill` | instruction | `unload_skill`, or `save_memory` |
+| `Goal` | goal verbs (Chapter C) | not ruled | completion or deletion, lazily |
+
+Rules that come with the kinds:
+
+- **Naming rule (DERIVED):** a survivor kind is named after the tool that creates
+  it. The removal rule (§I.7) can then be read straight off the table.
+- **The channel is derived from the kind**, not stored beside it. That is one
+  field fewer and one way fewer to get it wrong. The renderer maps kind to wire
+  representation per vendor (§I.5).
+- **The tool result becomes an acknowledgement** ("saved as memory entry #N").
+  Once the entry exists, the reducer stubs the call's arguments, since the text
+  now lives in the entry. Otherwise every memory is carried twice until the next
+  clear.
+- **Tool-clearing events touch only tool kinds**, so survivors are safe *by
+  type*, not by care. This is the removal rule enforced by the type system, and
+  it retires the channel selector originally proposed in Q2.
+- **Placement at creation:** a new entry is appended at the tail, after the tool
+  result that announced it. On the Anthropic API it renders as a text block after
+  the `tool_result` blocks in the same user message, the same position user hints
+  ride in today. (ASSUMED for OpenAI and Gemini: a user message after tool
+  messages, and text after function responses in one turn, are accepted. Not
+  checked.)
+
 ## I.6 The steady-state layout
 
 This supersedes every earlier layout table (the dictated §15.F, §15.N and the
@@ -205,6 +259,14 @@ This supersedes every earlier layout table (the dictated §15.F, §15.N and the
 
 Rules that go with the figure:
 
+- **The figure is the state immediately after a `save_memory` (DERIVED).**
+  Between saves, every new entry, survivors included, is appended at the tail in
+  Seq order, interleaved with the conversation, because moving a mid-session
+  skill or learning ahead of the conversation would be the deep mutation Law 2
+  prices highest. `Handoff` entries sit in the conversation region with the rest
+  of the dialogue. Entries move into their regions only when `save_memory`
+  rewrites the area anyway (§B.3). **`save_memory` is the only event that
+  reorders.**
 - **The memory region is contiguous (RULED).** No learnings, skills or goals in
   the middle of it.
 - **Session memories only append (RULED consequence).** Because `save_memory`
@@ -248,8 +310,8 @@ rule applied to deletion.
 
 | Entry kind | Removed by | Ruling |
 |---|---|---|
-| conversation (dialogue channel) | `save_memory` | RULED |
-| tool calls and results | `micro_handoff` below the watermark; per-round-trip auto-redaction | RULED |
+| conversation (dialogue channel), including `Handoff` entries | `save_memory` | RULED |
+| tool calls and results | `micro_handoff` (all of them); ladder events below the watermark; per-round-trip auto-redaction | RULED |
 | memory bands | graduation events | RULED |
 | dynamically loaded skills | `unload_skill`, or `save_memory` (unloads all) | RULED |
 | learnings | `delete_learning` | RULED |
@@ -335,9 +397,9 @@ Collected so they can be attacked one at a time.
 
 ## A.1 Scope
 
-Chapter A delivers: the layout and the channels; `DataAttached` and
-`ToolsChanged`; the tool-bytes ladder (watermarks, `micro_handoff` retain,
-per-model self-curation); compaction as events with a total reducer; crash-safe
+Chapter A delivers: the layout and the channels; typed entry kinds (§I.5a) and
+`ToolsChanged`; the tool-bytes ladder (watermarks, `micro_handoff`, per-model
+self-curation); compaction as events with a total reducer; crash-safe
 persistence (snapshot plus tail); the Context Management settings tab. It does
 **not** deliver compressors, graduation, recall or `save_memory`'s semantics
 (Chapter B), or goals (Chapter C). Chapter A can still teach the layout with
@@ -393,6 +455,30 @@ only the policy that decides where each applies. `RedactDialogue` and
 `RedactSummary` are not used by the ladder; conversation leaves the window
 entirely at `save_memory` (§B.3).
 
+**The ladder is two events, and they already exist (DERIVED).** With typed
+entries (§I.5a), the ladder needs no new event type and no selector:
+
+- **clear tool results below the watermark** = `RedactData{Level: RedactResult,
+  To: w}`;
+- **remove tool calls and results below the watermark** =
+  `RedactData{Level: RedactTool, To: w}`.
+
+`RedactResult` touches only `ToolResult` entries and `RedactTool` only
+`ToolCall`/`ToolResult` entries, so survivors in the span are untouched by
+construction (VERIFIED levels: `event.go:228-229`).
+
+**The event records a Seq, never "the watermark" (DERIVED).** The watermark is a
+setting, and a setting can change between recording and replay. An event that
+says "below the watermark" makes replay depend on today's configuration. So the
+policy computes the number and the event records it (`To: 4127`). This is the
+same determinism argument that declined the vendor's context editing (§A.8).
+
+**Move the watermark in steps, not every round (DERIVED).** Advancing it every
+round rewrites bytes one band deep on every request. Use hysteresis: when the
+band above a watermark exceeds about twice its budget, cut it back to one budget
+in a single event. That is one cache miss per step rather than a trickle, which
+is Law 2 applied to the watermark itself.
+
 **Per-round-trip auto-redaction** already stubs each tool result after its round
 trip unless the actor keeps it (`keep_tool_results`). By Law 2 this is nearly
 free (§A.11). `keep_tool_results` survives because not every model handles it
@@ -430,38 +516,53 @@ a second write path to the same facts, and the known CodeRhapsody bug (the
 handoff path never triggered the memory cascade, so one write path was wired and
 the other was not) is what a redundant mechanism costs.
 
-**`micro_handoff` stays, with a watermark (RULED).** Today it strips every tool
-call and result before the checkpoint, which is too blunt. It now strips them
-**only below the watermark**; above it, recent work keeps its full results,
-because the newest work is the most likely to be re-read.
+**`micro_handoff` stays, close to what it is today (RULED, 2026-09-22,
+post-rewrite).** It removes **every** tool call and result in the context, not
+only those below a watermark, and it appends the handoff text as a `Handoff`
+entry (§I.5a). This supersedes the earlier "strip only below the watermark"
+ruling and the accepted retain proposal (byte budget plus actor-named retain
+list): both are withdrawn. The watermark ladder (§A.4) is a separate mechanism,
+not part of `micro_handoff`.
 
-**Retention above the watermark (RULED: proposal accepted):**
+**The sequence in the log (RULED):**
 
-- **Bounded in bytes, not a percentage.** A percentage keeps more when the
-  context is larger, which is backwards: the biggest contexts are when a handoff
-  should cut hardest. Starting value 16 KiB, UNMEASURED.
-- **Why keep any:** after a handoff, the main risk is reconstruction, not cost.
-  The actor re-derives facts from its own narration instead of re-reading them,
-  which is the most reliably observed failure in this system. The newest results
-  are the ones most likely to be quoted next.
-- **Why it is cheap:** with auto-redaction on, most results are already stubs by
-  handoff time. What remains full is the last round trip plus what the actor
-  kept. `micro_handoff`'s saving comes mostly from tool-call arguments, stubs and
-  old thinking.
-- **Capable models name what to keep:** an optional retain list. The actor knows
-  which results the next stretch needs; position does not. Weaker models get the
-  positional watermark. Same split as §A.5.
-- Thinking is lost either way; the handoff document replaces it.
+1. `ToolCalled` for `micro_handoff`, with the handoff text as its argument, like
+   any tool call.
+2. `ToolReturned`, a normal tool result (an acknowledgement).
+3. **A `MicroHandoff` event carrying the handoff text.** Its reducer does two
+   things in the context:
+   - removes every `ToolCall` and `ToolResult` entry, including the pair from
+     steps 1 and 2;
+   - appends a `Handoff` entry with the text at the tail.
+
+Consequences (DERIVED):
+
+- **The handoff text lives in exactly one entry.** The call that carried it is
+  gone after step 3, so there is no duplicate to stub.
+- **Pairing stays valid.** The event comes after the result, so no request ever
+  carries a result without its call, or a call without its result. An assistant
+  message left with no content once its tool uses are removed is dropped by the
+  renderer, never sent empty.
+- **The `Handoff` entry is dialogue.** It survives the ladder and later
+  `micro_handoff` calls, because neither touches non-tool kinds. It is removed at
+  the next `save_memory`, whose session memory absorbs it: the actor reads it
+  while writing the session memory, then the conversation, handoffs included, is
+  deleted (§B.3).
+- **The `MicroHandoff` event is the record.** Replay reproduces the removal and
+  the new entry from the event alone; the tool pair is only the door.
+- **Thinking is lost**; the handoff text replaces it, as today.
+- **The risk the retain list addressed has not gone away (DERIVED).** After a
+  handoff the actor may re-derive a fact from its own narration instead of
+  re-reading it, which is the most reliably observed failure in this system. The
+  mitigation is now addressability: a removed result must be one tool call away
+  (Q3), and the handoff text should cite where the facts live.
 
 **Two tools, two cuts (RULED):**
 
-| Tool | Removes | When |
-|---|---|---|
-| `micro_handoff` | tool calls and results below the watermark | completed micro-goals |
-| `save_memory` | all conversation in the window; starts the memory cascade | major milestones |
-
-`micro_handoff` documents are dialogue-channel narration and survive until the
-next `save_memory`, whose session memory absorbs them (RULED, §B.3).
+| Tool | Removes | Appends | When |
+|---|---|---|---|
+| `micro_handoff` | every tool call and result | one `Handoff` entry | completed micro-goals |
+| `save_memory` | all conversation, including `Handoff` entries; starts the memory cascade | one `Memory` entry, moved into the memory region | major milestones |
 
 ## A.7 Compaction is described by events, never performed
 
@@ -579,7 +680,7 @@ which today are the only on-disk copy of a redacted text result. See Q3.
 a tab claims that a group of settings is one subsystem with one owner.
 
 Context Management tab contents (DERIVED from the rulings above): the two
-watermarks; the `micro_handoff` retain budget; log retention N; the per-model
+watermarks and their hysteresis factor; log retention N; the per-model
 self-curation capability (display at least; editing is Q7). The accessibility
 tab split rides with this chapter if it lands first.
 
@@ -617,10 +718,11 @@ All VERIFIED against `agent/internal/common/` today.
 
 | Gap | Evidence | Proposed (additive only) |
 |---|---|---|
-| No channel on entries | `Entry{Seq, Actor, Parts}`, `context.go:38-42` | `Entry.Channel`, enum `iota+1` (zero invalid): `Dialogue`, `Instruction`, `Data`. Set by the reducer at write time. |
-| No way to attach data | ten event types, none carry data (`event.go:24-40`); `Ephemera` is delivered once then cleared (`context.go:62`), wrong semantics for bands | Event `DataAttached`: a data-channel entry with a band label (`soul`, `memory`, `64x`, `8x`, `session`, `learnings`). |
+| No kind on entries | `Entry{Seq, Actor, Parts}`, `context.go:38-42` | `Entry.Kind`, enum `iota+1` (zero invalid), per §I.5a. Set by the reducer at write time; the channel is derived from it. Replaces the earlier `Entry.Channel` proposal. |
+| Survivors ride inside tool pairs | skill body appended to the `load_skill` result, `tools.go:1016`; reducer ignores skills (`context.go`: zero matches for "Skill"); `micro_handoff` text is a call argument | One event per door, each following the §A.6 sequence (call, ordinary result, then the event): `SkillLoaded` gains the body and its reducer creates a `Skill` entry; new `LearningAdded`, `MemorySaved`, `MicroHandoff`. The earlier generic `DataAttached` proposal is withdrawn. |
+| No way to attach identity and bands at startup | ten event types, none carry data (`event.go:24-40`); `Ephemera` is delivered once then cleared (`context.go:62`), wrong semantics for bands | `Memory` entries with a band label (`soul`, `memory`, `64x`, `8x`, `session`). The event that attaches them on a fresh start is unnamed (Q24). |
 | No tool-declaration door | tools arrive only as a side effect of `SkillLoaded`; an MCP connect mid-session has no door | Event `ToolsChanged`: a declaration delta from a skill load, MCP connect or MCP disconnect. `SkillLoaded` keeps instruction text only. |
-| Span-only compaction | `summarizeSpan` folds the whole span, `context.go:285-305` | A selector on compaction; see Q2. |
+| Span-only compaction | `summarizeSpan` folds the whole span, `context.go:285-305` | Tool ladder: solved by kinds, no selector (§A.4). Graduation still needs a band-restricted fold; see Q2. |
 | Reducer not total | `save.go:64-68` | `Rebuild` never errors; skip-and-diagnose. |
 | No incremental persistence | `save.go:29` writes everything at once | Append-on-write log, anchored snapshot, backup generation, truncation. |
 | Text results unaddressable | `stubFor`, `context.go:319-336`: `Ref{}` unless `BlobPart` | See Q3. |
@@ -654,7 +756,7 @@ Chapter B delivers: `save_memory` and its full semantics; the three compressed
 bands and their budgets; compressor agents and the graduation judge; the
 graduation event; asynchronous commit; learnings as data; auto-recall (BM25 plus
 vectors, with a low-power relevance judge); the Memory settings tab. It builds on
-Chapter A's channels, `DataAttached`, compaction events and total reducer.
+Chapter A's channels, entry kinds, compaction events and total reducer.
 
 ## B.2 Push and pull: two mechanisms, named separately
 
@@ -696,8 +798,32 @@ All RULED unless marked.
   from the 2026-09-12 notes dissolves: under this rule they are the same layout.
 - **Cost:** one conversation-region cache miss per milestone. Accepted.
 
-Open edges: its own tool-call pairing (Q4), and what happens if the actor never
-calls it (Q23).
+**The sequence in the log (DERIVED, by analogy with the ruled `micro_handoff`
+sequence of §A.6):**
+
+1. `ToolCalled` for `save_memory`, with the session memory text as its argument.
+   The actor writes this text itself, in its own call: "self-curated" means the
+   session memory is in the actor's voice. Only the cascade above it runs
+   asynchronously in sub-agents (§B.7).
+2. `ToolReturned`, an acknowledgement.
+3. **A `MemorySaved` event carrying the text, applied at the end of the turn.**
+   Its reducer, in one pass:
+   - deletes every dialogue-kind entry (`User`, `Assistant`, `ToolCall`,
+     `ToolResult`, `Handoff`) before it;
+   - applies pending lazy removals (unloaded skills, deleted learnings,
+     completed goals) and unloads all dynamically loaded skills;
+   - appends a `Memory` entry (band `session`) with the text;
+   - stable-sorts what remains by region, then by Seq (§I.6), which moves the new
+     `Memory` entry to just after the previous memories and moves the survivors
+     added since the last save into the survivors region.
+
+**Why at the end of the turn (DERIVED; answers Q4).** Applied mid-turn, the
+deletion would remove the assistant message holding the `save_memory` call and
+the user's in-flight request, and the next request would carry an orphaned tool
+result. At the turn boundary nothing is in flight, and it is the same boundary
+§B.7 already requires for committing compactions.
+
+Open edge: what happens if the actor never calls it (Q23).
 
 ## B.4 Bands, budgets and graduation
 
@@ -815,9 +941,12 @@ All RULED unless marked.
 
 - At startup, all learnings enter the data channel as **one entry**: the startup
   learnings block, the first survivor (§I.6).
-- New learnings are appended mid-session as `DataAttached` entries with band
-  label `learnings`. **No new event type:** the channel and band label already
-  say what it is.
+- New learnings are appended mid-session as `Learning` entries, created by a
+  **`LearningAdded` event** in the log (RULED, 2026-09-22, post-rewrite: adding a
+  learning is its own entry type). It follows the §A.6 sequence: the
+  `add_learning` call, an acknowledging result, then the event that creates the
+  entry. This supersedes the earlier "no new event type, `DataAttached` with band
+  label `learnings`". The startup learnings block is one `Learning` entry.
 - A new learning appends at the tail and invalidates nothing, so adding learnings
   often is fine.
 - Learnings leave only through `delete_learning`, applied lazily at the next
@@ -951,7 +1080,6 @@ tempted to print.
 | cache: 77% cumulative after a cold 100K+ miss | **MEASURED** once, CodeRhapsody | repeat on the reference agent; report last-request rate too |
 | ≥80% of tool data discarded under self-curation | UNMEASURED (Bill's estimate) | long scripted session, Variant A vs B, bytes per band |
 | band budgets ≈12 KiB each | UNMEASURED | tune in the Memory tab, report chosen values |
-| `micro_handoff` retain 16 KiB | UNMEASURED | same |
 | log retention N ≈ 100 | a GUI default | none needed; it is a display preference |
 | 8x / 64x ratios | inherited from CodeRhapsody | Q10 |
 | BM25 recall@10 | never measured | labelled query set over the recall corpus |
@@ -995,6 +1123,11 @@ So nothing was dropped silently. "Old Qn" refers to the dictated §15.O list.
 | notes Q2 | does `keep_tool_results` survive | yes: kept beside auto-redaction because capability is uneven (§A.4) |
 | notes Q3 | goal stack as a Context field | superseded by the goal entry type ruling → Q5 to confirm |
 | notes Q4 | compression ratios | still open → Q10 |
+| rewrite §A.6 | `micro_handoff` strips only below a watermark; retain budget plus actor-named retain list | SUPERSEDED by RULING: removes every tool call and result, appends a `Handoff` entry via a `MicroHandoff` event (§A.6) |
+| rewrite §A.12 | `Entry.Channel` field; generic `DataAttached` event | SUPERSEDED: `Entry.Kind` with channel derived (§I.5a); one event per door |
+| rewrite §B.8 | learnings as `DataAttached`, no new event type | SUPERSEDED by RULING: `LearningAdded` event, `Learning` entry |
+| rewrite Q2 | channel/band selector for all compaction | NARROWED to graduation only; kinds solve the ladder |
+| rewrite Q4 | `save_memory` orphaning its own call | PROPOSED ANSWER: apply `MemorySaved` at end of turn (§B.3) |
 
 Dictated sections map as follows: A→I.2; B, D→I.4; C→I.5; E→I.2, I.6, A.5;
 F, N→I.6; G→A.12; H→A.6; I→A.10, B.11; J→this ledger; K→A.3; L→A.4, Q3; M→I.6,
@@ -1016,24 +1149,26 @@ after B, then B ships compressors that read untrusted content with only the
 channel as defense. Is that acceptable for one or two chapters, given that the
 channel is the ruled defense?
 
-**Q2. One compaction shape, or new event types?** (VERIFIED problem, DERIVED
-proposal.) `RedactSummary` over a Seq span folds everything in the span
-(`context.go:285-305`), which would eat interleaved survivors. Proposal: add a
-**selector** to `RedactData` (channel and/or band) so a compaction folds only the
-matching entries in the span. Then:
+**Q2. Graduation's event shape.** (Narrowed by §I.5a.) Entry kinds settled most
+of the original question: the tool ladder is `RedactData` with a recorded Seq
+and needs no selector (§A.4); `micro_handoff` and `save_memory` are their own
+events (§A.6, §B.3). What remains is graduation, which must fold the `Memory`
+entries of one band into one entry of the next band up, while `RedactSummary`
+over a span folds every entry in the span (`context.go:285-305`), survivors
+included. Options:
 
-- `save_memory` = `RedactSummary`, selector `Channel = Dialogue`, span = since the
-  last save, `Replacement` = the session memory (a `Data` entry);
-- graduation = `RedactSummary`, selector `band = session`, `Replacement` = one
-  8x entry (and so on up);
-- the tool-bytes ladder = `RedactTool` / `RedactResult`, selector
-  `Channel = Dialogue`.
+- (a) a **band selector** on `RedactData`: `RedactSummary`, selector
+  `band = session`, `Replacement` = one 8x `Memory` entry;
+- (b) a **`MemoryGraduated` event** listing the superseded entries by Seq and
+  carrying the replacement. More general, and grows with the number of entries
+  replaced, which is small by construction (one band);
+- (c) as (b), but naming the band instead of listing Seqs ("every `session`
+  entry at or before Seq N"), so the event stays constant-size.
 
-The span still says where, the level says what, and the selector says which. That
-is zero new event types for all of Chapter B's compaction, and the "one name" of
-§B.5 becomes a level or a selector value rather than a new event. The alternative
-is an explicit list of Seqs per event, which is more general but grows with the
-number of entries replaced. The shape is Bill's call; the naming is the author's.
+The coder leans (c): it matches the other per-door events, it is the judge's
+replacement mapping of §B.5 stated directly, and it cannot eat a survivor because
+it names a kind and a band, not a span. The shape is Bill's call; the naming is
+the author's.
 
 **Q3. Addressability is not true yet.** (VERIFIED.) §A.4's premise, "a dropped
 result is one tool call away", fails in ensemble for text results: `stubFor` gives
@@ -1049,13 +1184,11 @@ them `Ref{}` (`context.go:319-336`), and §A.9's truncation to N events deletes 
 Coder's recommendation: (a). Retention could be "until no live entry references
 it", which is garbage collection over a small set.
 
-**Q4. `save_memory` and its own tool call.** "Deletes all conversation" read
-literally deletes the assistant message that contains the `save_memory` call, and
-the user's in-flight request. The next request would carry a tool result with no
-matching call, which vendors reject (ASSUMED from the Anthropic API's pairing
-rule; not re-verified today). Proposal: apply the deletion at the end of the turn,
-consistent with §B.7's "commit at turn boundaries". Or: keep the current turn
-intact and delete everything before it.
+**Q4. `save_memory` and its own tool call.** PROPOSED ANSWER in §B.3, confirm:
+the `MemorySaved` event is applied at the end of the turn, so the deletion never
+orphans the `save_memory` call's result or the user's in-flight request. (The
+vendor pairing rule behind the problem is ASSUMED from the Anthropic API; not
+re-verified today.)
 
 **Q5. Goals: an entry type or a `Context` field?** The 2026-09-12 notes framed the
 goal stack as a first-class `Context` field (bounded by nesting depth, not time);
@@ -1064,8 +1197,9 @@ which favours the entry type. Confirm, so C does not start from two answers.
 
 **Q6. What exactly is Variant B's self-curation mechanism?** For the TL;DR, the
 author needs concrete verbs. Is it the existing set (auto-redaction after each
-round trip, `keep_tool_results`, and the `micro_handoff` retain list), or does the
-capable model also issue its own `RedactResult` on older results?
+round trip and `keep_tool_results`), or does the capable model also issue its
+own `RedactResult` on older results? (The `micro_handoff` retain list that used
+to be part of this answer was withdrawn with the §A.6 ruling.)
 
 **Q7. Is the self-curation capability editable in the Context Management tab?**
 If it is editable, a user can enable it on Sonnet 5, which Bill ruled should not
@@ -1076,8 +1210,8 @@ context". The coder reads that as the reducer's `Context` (vendor-independent,
 what ch11 already saves), not the vendor wire bytes, which are per-vendor and
 re-derivable. Confirm.
 
-**Q9. May the chapter print the starting values as defaults** (12 KiB bands, 16
-KiB retain, N = 100), labelled as defaults and not measurements, or must they be
+**Q9. May the chapter print the starting values as defaults** (12 KiB bands,
+N = 100), labelled as defaults and not measurements, or must they be
 measured first?
 
 **Q10. Are 8x and 64x principled or empirical?** (Carried from the 2026-09-12
@@ -1133,3 +1267,14 @@ Options: a framework hint reminding it near the limit (the ch5 hint door), a
 forced `save_memory`, or the vendor's context editing as a backstop (§A.8).
 Something must happen at the hard limit; a design with no answer here fails in
 exactly the weaker-model case that §A.5 already identifies as the risky one.
+
+**Q24. What attaches identity and bands on a fresh start?** (New, from §I.5a.)
+Every runtime survivor now has a door: a tool call followed by an event that
+creates the entry (`MemorySaved`, `LearningAdded`, `SkillLoaded`,
+`MicroHandoff`). A fresh agent with no snapshot still has to bring `SOUL.md`,
+`MEMORY.md`, the compressed bands and the startup learnings block into the log,
+and no tool call does that. Proposed: one startup event per entry, emitted by the
+framework rather than by a tool, recorded like any other event, so that replay
+from an empty log reproduces the startup state. Is that acceptable, and what is
+it called? After a crash or restart the snapshot carries these entries, so the
+event is needed only when there is no snapshot.
