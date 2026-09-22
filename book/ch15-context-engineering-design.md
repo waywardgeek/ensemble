@@ -487,11 +487,13 @@ band above a watermark exceeds about twice its budget, cut it back to one budget
 in a single event. That is one cache miss per step rather than a trickle, which
 is Law 2 applied to the watermark itself.
 
-**Per-round-trip auto-redaction** already stubs each tool result after its round
-trip unless the actor keeps it (`keep_tool_results`). By Law 2 this is nearly
-free (§A.11). `keep_tool_results` survives because not every model handles it
-well (2026-09-12 notes): better mechanisms ship beside worse ones because model
-capability is uneven.
+**Per-round-trip auto-redaction** stubs each tool result after its round trip
+unless the actor keeps it (`keep_tool_results`). **This exists in CodeRhapsody,
+not in ensemble** (VERIFIED, §A.12a): in ensemble it is new work for Chapter A
+if Q6 includes it. By Law 2 it is nearly free (§A.11, measured on
+CodeRhapsody). In CodeRhapsody, `keep_tool_results` survives because not every
+model handles it well (2026-09-12 notes): better mechanisms ship beside worse
+ones because model capability is uneven.
 
 ## A.5 Self-curation by model capability
 
@@ -743,21 +745,51 @@ All VERIFIED against `agent/internal/common/` today.
 New event types are appended, never renumbered (VERIFIED `event.go:22`: "a number
 once assigned is never reused").
 
+## A.12a What ships in Chapter A, and what waits for B
+
+VERIFIED 2026-09-22 against `agent/`: ensemble has **none** of `micro_handoff`,
+`keep_tool_results`, `save_memory` or `add_learning` (the only `.go` match for any
+of them is a comment in `internal/common/event.go`), and **no production code
+emits `RedactData`**: ch2 built the reducer's redaction levels, and nothing has
+used them since. Registered tools today: `read_file`, `write_file`, `edit_file`,
+`list_directory`, `search_files`, `run_command`, `wait_for_job`, `send_input`,
+`kill_job`, `tool_limits`, `think`, `load_skill`, `unload_skill`. So Chapter A
+builds the *policy* that emits redaction events, not just the layout.
+
+| | Chapter A | Chapter B |
+|---|---|---|
+| Entry kinds | `User`, `Assistant`, `ToolCall`, `ToolResult`, `Handoff`, `Skill` | `Memory`, `Learning` (appended to the enum; never renumber) |
+| Events | `MicroHandoff`; `SkillLoaded` gains the body; `ToolsChanged`; ladder emits existing `RedactData` with a recorded Seq; snapshot anchor | `MemorySaved`, `LearningAdded`, graduation (Q2), startup attach (Q24) |
+| Tools | `micro_handoff` (new); ladder policy (not a tool); `keep_tool_results` only if Q6 says so | `save_memory`, `add_learning`, `delete_learning` |
+| Reducer | total (skip and diagnose); tool clears touch only tool kinds | the reorder pass of `MemorySaved` |
+| Persistence | append-on-write log, anchored snapshot, backup, truncation | none new |
+| Settings tab | Context Management | Memory |
+
+Chapter A teaches the layout with an **empty memory region**, as §A.1 says. The
+figure's memory and learnings rows appear in A as "next chapter", with no forward
+preview in the prose (procedure rule).
+
 ## A.13 Grader checks (Chapter A)
 
-From the ruled grader table, filtered to A. Point weights are for the coder's
-brief.
+DERIVED 2026-09-22, replacing the earlier table, two of whose four checks
+("memory lands in the data channel", "no band over budget") needed Chapter B
+material; they move to §B.12. Each check below grades a Chapter A mechanism
+through behavior (the requests the fake vendor receives, the files on disk),
+never through names. Weights are for the coder's brief and sum to 100.
 
-| Check | Property | Note |
-|---|---|---|
-| replay equals snapshot | replaying the log reproduces the saved snapshot byte-for-byte, compaction events included | ch11's Rebuild == saved, one level up |
-| crash recovery | kill mid-session, restart, latest state recovered from snapshot plus tail | the anchor is the mechanism |
-| memory lands in the data channel | content written to memory is rendered as data, never instruction | reshaped from the old quarantine check (Q10 ruling) |
-| no band over budget | after a long scripted session, no band exceeds its configured budget | shared with B |
+| Check | Pts | Property | Why it cannot pass by accident |
+|---|---|---|---|
+| skill survives the ladder | 20 | after a scripted session pushes a `load_skill` below both watermarks, every later request still carries the skill's instruction text, while tool results in the same span are stubbed | the current code fails it: the body rides in the tool result (`tools.go:1016`) |
+| micro_handoff shape | 15 | the request after `micro_handoff` contains zero tool-call and tool-result blocks, contains the handoff text exactly once, and is accepted by the fake vendor's pairing check | an implementation that keeps the call argument carries the text twice; one that deletes mid-pair is rejected |
+| ladder is recorded, not recomputed | 15 | change the watermark setting after the session, replay the log, and the rendered context is identical | an event that says "below the watermark" instead of a Seq changes under replay |
+| frozen prefix unchanged | 10 | a mid-session skill load leaves the system prompt and fixed tool declarations byte-identical in the next request | re-declaring tools is the old, cache-missing behavior |
+| replay equals snapshot | 15 | replaying the log from the snapshot anchor reproduces the saved snapshot byte-for-byte, compaction events included | ch11's Rebuild==saved, one level up |
+| crash recovery | 15 | kill the agent mid-session, restart, and the next request equals what it would have been without the crash | needs append-on-write plus the anchor; a save-at-exit design loses the tail |
+| total reducer | 10 | a log with a malformed event and a redaction naming an already-removed entry still starts, and the diagnostic is observable | today's `Rebuild` returns an error on the first bad event (`save.go:64-68`) |
 
-Candidates the author may want in the TL;DR contract (DERIVED, not ruled): a
-malformed event in the log does not prevent startup (totality); a mid-session
-skill load leaves the frozen prefix byte-identical.
+The fake vendor must reject a request with an unpaired tool call or result, as
+the real API does; otherwise the micro_handoff check is decorative. (ASSUMED that
+the fake does not already; the coder should check.)
 
 ---
 
@@ -1028,6 +1060,7 @@ Chapter A, it ships here.
 | planted fact survives the wipe | a planted token is recalled after `save_memory` deletes the conversation | unfakeable |
 | supersession, both directions | the new value is answered and the old value is absent from the bands | cannot pass by ignoring supersession |
 | no band over budget | after a long scripted session, no band exceeds its configured budget | shared with A |
+| memory lands in the data channel | content written through `save_memory` is rendered as data, never as instruction, including text that reads as an instruction | moved from §A.13; reshaped from the old quarantine check (Q10 ruling) |
 | automated identity write refused | — | **moved to the sandboxing chapter** (Q16 ruling) |
 
 ---
@@ -1218,19 +1251,32 @@ author needs concrete verbs. Is it the existing set (auto-redaction after each
 round trip and `keep_tool_results`), or does the capable model also issue its
 own `RedactResult` on older results? (The `micro_handoff` retain list that used
 to be part of this answer was withdrawn with the §A.6 ruling.)
+*PROPOSED ANSWER (coder), override if wrong:* the existing CodeRhapsody set,
+new in ensemble: auto-redaction after each round trip, plus `keep_tool_results`.
+The keep decision is made while the result is fresh, which is when judgment is
+best. No model-issued `RedactResult` over older ranges: a model choosing a range
+of old entries to drop is the shape of `compress_context` (§I.8). Variant A is
+the watermark ladder alone, with no auto-redaction.
 
 **Q7. Is the self-curation capability editable in the Context Management tab?**
 If it is editable, a user can enable it on Sonnet 5, which Bill ruled should not
 be attempted. If it is display-only, it is a features-table fact like streaming.
+*PROPOSED ANSWER:* display-only. Changing it means editing the features table,
+exactly as with streaming.
 
 **Q8. What does the snapshot contain?** The ruling says "the actual rendered
 context". The coder reads that as the reducer's `Context` (vendor-independent,
 what ch11 already saves), not the vendor wire bytes, which are per-vendor and
 re-derivable. Confirm.
+*PROPOSED ANSWER:* the `Context`. The "replay equals snapshot" check (§A.13)
+compares `Context` bytes, which is the only form that is the same for every
+vendor.
 
 **Q9. May the chapter print the starting values as defaults** (12 KiB bands,
 N = 100), labelled as defaults and not measurements, or must they be
 measured first?
+*PROPOSED ANSWER:* print them as defaults, labelled as such, beside the setting
+that changes them.
 
 **Q10. Are 8x and 64x principled or empirical?** (Carried from the 2026-09-12
 notes.) The chapter should say which.
