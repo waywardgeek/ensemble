@@ -1039,3 +1039,95 @@ optional actor-named retain list for capable models.
 3. Learnings block order: `SOUL`, learnings, `MEMORY` as ruled — or after
    `MEMORY`, since by §15.U learnings change more often? Minor; `save_memory`
    already rewrites the dialog region, so the difference is small.
+
+---
+
+## 15.W Rulings, 2026-09-22 late afternoon: lifetimes
+
+**Open question 1 → a third chapter: goal-stack management (Chapter C, after A
+and B).**
+- A **goal entry type.**
+- Each goal implements **one phase of its parent goal**, so as work progresses
+  on a complex task, the goal hierarchy shows where in the top-level plan the
+  actor is.
+- Goals are **not** erased by `micro_handoff` or `save_memory` — only by goal
+  completion or goal deletion.
+- Goals are **small** and **reference where to find the full writeup**, which
+  may be an extensive design doc. A goal is an address plus a sentence, not a
+  document — the same "keep the words, address the bytes" rule as §15.L.
+
+**Open question 2: agreed.** `save_memory`'s session memory absorbs the
+`micro_handoff` documents written since the last save. One milestone, one
+record, no text covered twice.
+
+**Open question 3: memory stays contiguous — no learnings in the middle.** Adding
+learnings often is fine: a new learning is an entry appended to the dialog,
+which never invalidates the cache prefix. Learnings and skills leave the context
+only through `delete_learning` and `unload_skill`, both rare in practice.
+
+**Ruling: `save_memory` unloads all dynamically loaded skills.** Otherwise skills
+accumulate across a long session and clutter the context. It is free on the
+cache: `save_memory` is already rewriting that region. Refinement: the session
+memory records which skills were unloaded, so reloading is one call rather than
+something the actor must notice it lost.
+
+### The removal rule
+
+**Every entry that is not conversation is removed only by its own verb.** Each
+entry kind has exactly one remover — the single-writer rule of §15.P, applied to
+deletion.
+
+| Entry kind | Removed by |
+|---|---|
+| conversation (dialogue channel) | `save_memory` |
+| tool calls and results | `micro_handoff`, below the watermark |
+| memory bands | graduation events |
+| dynamically loaded skills | `unload_skill`, or `save_memory` (ruled above) |
+| learnings | `delete_learning` |
+| goals | goal completion or goal deletion |
+
+This replaces the "channel decides fate, fold learnings" proposal of §15.V:
+no fold is needed, because `save_memory` removes conversation and nothing else
+it has not been told to.
+
+### Steady-state layout (supersedes §15.F and §15.N ordering)
+
+```
+[frozen prefix: system prompt, fixed tools]
+[SOUL.md]
+[MEMORY.md]
+[64x long-term] [8x medium-term] [session memories, append-only]
+[survivors, in order added: startup learnings block, learnings, skills, goals]
+[conversation and tool bytes since the last save_memory]
+```
+
+On `save_memory`: the new session memory is inserted **immediately after the last
+memory entry**; survivors keep their order behind it. The cache miss starts at
+the survivors, which are small, and `save_memory` already rewrites that region.
+The startup learnings block is simply the first survivor.
+
+### Deep removals are lazy
+
+A goal completed an hour ago sits deep in the context. Deleting it immediately is
+a large cache miss (§15.U: cost is proportional to distance from the tail). So:
+
+- the removal is recorded **at once** as an event appended at the tail
+  (observable, replayable);
+- the physical removal from the rendered context is applied **at the next
+  `save_memory`**, when that region is being rewritten anyway.
+
+This generalizes an existing mechanism: Chapter 10's skill unload already works
+this way — `LoadPendingUnload` in `agent/internal/common/skill.go:36`, "Marked
+for removal at compaction." The same rule covers `delete_learning` and goal
+completion.
+
+### Status
+
+**Chapter A's TL;DR and plain-words section are unblocked.**
+Chapter B's need one name the author may propose in draft: the event that carries
+the graduation judge's replacement mapping.
+
+**Noted for Chapter B, not blocking:** learnings accumulate — removal is by
+`delete_learning` only, which is rare, and the injected list in this system holds
+duplicate pairs. The graduation judge could propose learning consolidations as
+replacement mappings, through the same event door.
