@@ -60,13 +60,18 @@ conversational speed lives in the tail, including the agent's identity and its
 memories, which ride there as data messages. The tail is ordered from least
 volatile to most volatile, and the same ordering makes sense semantically and is
 cheapest for the prompt cache. Tool bytes are the bulk of every session and carry
-almost none of its continuity; they are addressable on disk, so they are dropped
-aggressively and fetched back on demand. The dialogue, including the actor's
+almost none of its continuity; the actor can always regain them from the
+workspace, so they are dropped aggressively, and sometimes they are simply gone.
+The dialogue, including the actor's
 visible reasoning, is what preserves the actor, so it is kept longest. Nothing is
 ever compacted in place: compaction is an **event** in the log that says what
 replaced what, and the context is whatever replaying the log produces.
 
-> **Keep the words. Address the bytes.**
+> **Keep the words. Let the bytes go.**
+
+*(Tagline revised with the Q3 ruling; the earlier "Keep the words. Address the
+bytes." claimed a store the design no longer has. The wording is the author's
+call.)*
 
 ## I.2 Definition and the one question
 
@@ -360,7 +365,7 @@ matters more than the summary.
 **Reconciling the war story with self-curation (DERIVED).** Variant B hands a
 capable model discretion again, which could look like repeating
 `compress_context`. It is not, for two reasons: the discretion covers only **tool
-results**, which are addressable and can be fetched back, and never the dialogue,
+results**, which the actor can regain by re-reading or re-running, and never the dialogue,
 which cannot be regenerated; and it is **gated per model** in the features table,
 so the model that lobotomized itself never gets the flag. The lesson of the war
 story is not "never let models choose". It is "never let a model choose what
@@ -379,9 +384,12 @@ Collected so they can be attacked one at a time.
    projections of the log. One log, one self. (B)
 4. **Visible reasoning is the storage format of the self.** The dialogue-only
    band is enough to keep the actor itself. (A)
-5. **Tool bytes are addressable, so discarding them is safe.** A system where
-   dropping is irreversible must hoard. *Currently only partly true in the code:
-   see Q3.* (A)
+5. **Discarding tool bytes is safe because the actor can always regain
+   context**, not because the bytes are kept (RULED, Q3). Context-modifying
+   events are destructive and sometimes the information is simply gone; the
+   workspace, the tools, the user and memory are the backing store. This is
+   why visible reasoning carries so much (§A.3): a conclusion drawn from bytes
+   that will not come back survives only if it was said out loud. (A)
 6. **One remover per entry kind**, and **every trigger wired to one mechanism.**
    The unwired second path is always the failure. (A, B)
 7. **Curation buys runway, not just cost.** Fewer checkpoints mean longer
@@ -500,7 +508,7 @@ results ≈42% and tool-call arguments ≈30% of history, about 72% combined. An
 yield figure in the chapter must come from a measured run (Part VI).
 
 **Why the friction is worth it (DERIVED).** Self-curation occasionally discards
-something that must be fetched back (safe, one round trip). It still pays twice:
+something the actor then has to regain (safe: re-read or re-run it). It still pays twice:
 
 1. **Cost:** most of the bulkiest byte category is not re-sent on every
    subsequent request.
@@ -554,8 +562,9 @@ Consequences (DERIVED):
 - **The risk the retain list addressed has not gone away (DERIVED).** After a
   handoff the actor may re-derive a fact from its own narration instead of
   re-reading it, which is the most reliably observed failure in this system. The
-  mitigation is now addressability: a removed result must be one tool call away
-  (Q3), and the handoff text should cite where the facts live.
+  mitigation is regaining context from the source (Q3 ruling): the handoff text
+  should cite where the facts live (file paths, commands, commits), so re-reading
+  is one call rather than a search.
 
 **Two tools, two cuts (RULED):**
 
@@ -671,8 +680,10 @@ and the whole log at once (`save.go:29`); `Rebuild` replays every event
   anchor, whichever is more. N is a display preference; the anchor is a
   correctness boundary, and a preference must never overrule one.
 
-**Tension with addressability:** truncation deletes old `ToolReturned` events,
-which today are the only on-disk copy of a redacted text result. See Q3.
+**Truncation loses bytes, and that is accepted (RULED, Q3):** truncation deletes
+old `ToolReturned` events, which are the only on-disk copy of a redacted text
+result. No exemption: the actor regains context from the workspace, not from the
+log.
 
 ## A.10 Settings: the Context Management tab
 
@@ -699,10 +710,12 @@ are the only numbers in the arc that are measured.
    that missed on over 100K tokens, which implies a much higher steady-state
    rate. A just-finished result sits at the tail, so the miss is about one round
    trip.
-2. **Stub addresses must outlive the process.** CodeRhapsody stubs cite paths
-   like `cr/io/26`; the handle counter resets on restart, so the same path later
-   names a different command's output. Ensemble has a worse version of the gap:
-   text results get no address at all (Q3).
+2. **A stub must never cite an address that can be reused.** CodeRhapsody stubs
+   cite paths like `cr/io/26`; the handle counter resets on restart, so the same
+   path later names a different command's output. Losing bytes is accepted (Q3
+   ruling); pointing at *different* bytes is not, because it produces wrong data
+   rather than missing data (the ch14 rule). Ensemble's text stubs carry no
+   address at all, which is honest: the bytes are gone, and the stub says so.
 3. **Cumulative hit rate hides the steady state.** It is dominated by the cold
    start. Show the last-request rate next to it (a Context Management tab item).
 4. **The approval ratchet caught an unapproved capability flip.** With the model
@@ -725,7 +738,7 @@ All VERIFIED against `agent/internal/common/` today.
 | Span-only compaction | `summarizeSpan` folds the whole span, `context.go:285-305` | Tool ladder: solved by kinds, no selector (§A.4). Graduation still needs a band-restricted fold; see Q2. |
 | Reducer not total | `save.go:64-68` | `Rebuild` never errors; skip-and-diagnose. |
 | No incremental persistence | `save.go:29` writes everything at once | Append-on-write log, anchored snapshot, backup generation, truncation. |
-| Text results unaddressable | `stubFor`, `context.go:319-336`: `Ref{}` unless `BlobPart` | See Q3. |
+| Text results unaddressable | `stubFor`, `context.go:319-336`: `Ref{}` unless `BlobPart` | None: accepted (Q3 ruling). The loss is intended. |
 
 New event types are appended, never renumbered (VERIFIED `event.go:22`: "a number
 once assigned is never reused").
@@ -1031,8 +1044,9 @@ Scoped, not designed. The author should not outline C yet.
 - Goals survive both `micro_handoff` and `save_memory`; they are removed only by
   completion or deletion (§I.7, applied lazily).
 - Goals are **small and reference the full writeup**, which may be an extensive
-  design doc. A goal is an address plus a sentence, not a document: "keep the
-  words, address the bytes" again.
+  design doc. A goal is a sentence plus a path, not a document: the words stay in
+  the context, and the writeup stays in the workspace, where the actor re-reads it
+  (the Q3 ruling again).
 
 **Provenance:** the 2026-09-12 notes already required that compaction never drop
 the goal stack ("never the stack of goals, no matter how much we compact"), and
@@ -1062,7 +1076,7 @@ memory to state the current task explicitly.
 | "Automated identity write refused" grader check | sandboxing chapter | RULED |
 | Compressor sandbox profile | sandboxing chapter or B | open (Q15) |
 | `redactionCapableModels` approval for Opus 5.5 | CodeRhapsody, not the book | Bill's call |
-| CodeRhapsody stub paths reused after restart | CodeRhapsody | same fix as Q3 |
+| CodeRhapsody stub paths reused after restart | CodeRhapsody | not a store: stop citing reusable paths (§A.11 note 2) |
 
 ---
 
@@ -1128,6 +1142,7 @@ So nothing was dropped silently. "Old Qn" refers to the dictated §15.O list.
 | rewrite §B.8 | learnings as `DataAttached`, no new event type | SUPERSEDED by RULING: `LearningAdded` event, `Learning` entry |
 | rewrite Q2 | channel/band selector for all compaction | NARROWED to graduation only; kinds solve the ladder |
 | rewrite Q4 | `save_memory` orphaning its own call | PROPOSED ANSWER: apply `MemorySaved` at end of turn (§B.3) |
+| rewrite Q3 | content-addressed store for tool results (coder's recommendation) | FLIPPED by RULING: loss accepted; the actor regains context from the workspace; stubs must never cite reusable addresses |
 
 Dictated sections map as follows: A→I.2; B, D→I.4; C→I.5; E→I.2, I.6, A.5;
 F, N→I.6; G→A.12; H→A.6; I→A.10, B.11; J→this ledger; K→A.3; L→A.4, Q3; M→I.6,
@@ -1170,19 +1185,22 @@ replacement mapping of §B.5 stated directly, and it cannot eat a survivor becau
 it names a kind and a band, not a span. The shape is Bill's call; the naming is
 the author's.
 
-**Q3. Addressability is not true yet.** (VERIFIED.) §A.4's premise, "a dropped
-result is one tool call away", fails in ensemble for text results: `stubFor` gives
-them `Ref{}` (`context.go:319-336`), and §A.9's truncation to N events deletes the
-`ToolReturned` events that still hold the bytes. Options:
+**Q3. Addressability. RULED (flipped, 2026-09-22): accept the loss.** The
+problem was VERIFIED: text results get `Ref{}` from `stubFor`
+(`context.go:319-336`), and §A.9's truncation to N events deletes the
+`ToolReturned` events that still hold the bytes. The coder recommended a
+content-addressed store. Bill's ruling reverses that: **context-modifying events
+are destructive, and sometimes the information is simply gone. That is OK.** No
+matter what state the actor's context is in, it can always regain context: by
+re-reading files, re-running commands, asking the user, and reading its memory.
+That is how the system works today, including after a full history resend.
 
-- (a) a **content-addressed store** for tool results, with retention independent
-  of N. This also fixes CodeRhapsody's reused-handle problem, because a content
-  hash is never reused;
-- (b) truncation exempts events still referenced by a live stub;
-- (c) accept the loss and weaken the claim to "addressable until truncated".
-
-Coder's recommendation: (a). Retention could be "until no live entry references
-it", which is garbage collection over a small set.
+Consequences, folded into the body: no store, no truncation exemptions, and
+retention N stays a pure display setting (§A.9); discarding is safe because the
+actor can regain context, not because the bytes are kept (§I.1, §I.9 claim 5,
+§A.3); and one rule survives from the old question: **a stub may say the bytes are
+gone, but it must never cite an address that could later name different bytes**
+(§A.11 note 2).
 
 **Q4. `save_memory` and its own tool call.** PROPOSED ANSWER in §B.3, confirm:
 the `MemorySaved` event is applied at the end of the turn, so the deletion never
