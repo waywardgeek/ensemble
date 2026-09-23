@@ -17,9 +17,15 @@ add() {
     OUT="$OUT$(cat "$1")"
 }
 
+# Front matter in Chicago order: title page, copyright page, dedication,
+# contents, preface.
 add "$BOOK_DIR/title.md"
+add "$BOOK_DIR/copyright.md"
+add "$BOOK_DIR/dedication.md"
 # book-toc.py replaces this marker with a linked table of contents.
 OUT="$OUT
+
+---
 
 <!-- toc -->"
 add "$BOOK_DIR/preface.md"
