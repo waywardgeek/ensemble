@@ -1352,3 +1352,78 @@ framework rather than by a tool, recorded like any other event, so that replay
 from an empty log reproduces the startup state. Is that acceptable, and what is
 it called? After a crash or restart the snapshot carries these entries, so the
 event is needed only when there is no snapshot.
+
+
+---
+
+# Rulings, 2026-09-22 evening (supersede the sections they name)
+
+Recorded verbatim-in-substance from Bill; each names what it overrides.
+
+1. **Numbering (RULED).** Chapter A = ch15, B = ch16, C = ch17.
+2. **Q6 (RULED): build per-round-trip auto-redaction and `keep_tool_results` in
+   ch15.** Variant B (§I.6) now has a mechanism. §A.12a "only if Q6 says so" is
+   resolved: yes. Grader needs a check (proposal: a result not kept is stubbed in
+   the next request; a kept one is not; the call survives in both).
+3. **Correction to the opener story (RULED).** Bill did not "resend" the agent's
+   history; he **reset** it (typo). The real story is how most users manage
+   context today: use a chat until it degrades from poor context management,
+   then paste the context into a new chat and continue. Bill still does this,
+   several times on 2026-09-22 with Opus 5.5. His hypothesis, **UNMEASURED**:
+   per-round-trip auto-redaction may be interfering with the model's thinking.
+   This cuts against §A.11.4's single observation that thinking survived a
+   four-step chain. It is now a measurement owed (Part VI) and a risk to name in
+   ch15, since ruling 2 builds that exact mechanism.
+4. **`handoff_task` is added to ensemble (RULED), reversing §A.6's deletion.**
+   Its role relative to `micro_handoff` and `save_memory` is not yet ruled
+   (Q25 below).
+5. **Watermark thresholds, and a forced `save_memory` (RULED direction).** The
+   ladder needs thresholds; and because dialogue alone can overrun the window,
+   the framework may at some point *require* the actor to call `save_memory`.
+   This answers Q23's direction: the trigger is still `save_memory` (one door),
+   but the framework can demand it.
+6. **Model switching for compaction (RULED, answers Q23's weak-model case).**
+   The framework may **upgrade** to a more capable model to perform compaction,
+   then revert to the original model. Never the reverse: a weaker model is never
+   brought in to compact. (DERIVED why: the §I.8 war story; compaction is where a
+   weak model destroys what cannot be recovered, and a clean compacted context
+   is safe to hand back to the weaker model.) Model provenance is per model and
+   recorded at write time (ch2), so the switch is visible in the log.
+7. **Graduation is a measured chain of compactor launches (RULED, answers Q2's
+   trigger half).**
+   - `save_memory` measures the session band; if it is over threshold, it emits
+     an event launching the **8x compactor**.
+   - When the 8x compactor finishes, the framework measures the 8x band; if over
+     threshold, it launches the **64x compactor**.
+   - When the 64x compactor finishes, if the 64x band is over threshold, it
+     launches the **MEMORY.md curator**, which keeps `MEMORY.md` near a fixed
+     size.
+   - Events describe launching a particular compactor.
+
+   **Remaining half of Q2 (DERIVED proposal, for Bill):** a launch event alone
+   cannot drive replay, because replaying a launch would re-run an LLM (§A.7).
+   So each stage is two events: `CompactorLaunched{Band, AsOf Seq}` (observable;
+   on crash recovery, a launch with no finish is relaunched or abandoned) and
+   `MemoryCompacted{Band, Replaces []Seq, Text}`, the replacement mapping the
+   reducer applies. The chain is "measure after each finish", so every stage has
+   exactly one trigger, and only `save_memory` starts it (claim 6 intact). The
+   swap is the read-copy-update of §B.7.
+
+   **Flag:** the MEMORY.md curator is an automated writer of an identity band.
+   Write protection was deferred to the sandboxing chapter (Q16); this ruling
+   makes the curator the one sanctioned automated writer, and the sandboxing
+   chapter should name it.
+
+## Q25 (open): what does `handoff_task` do in ensemble?
+
+Three tools now cut the context. A proposal for Bill to confirm or replace:
+
+| Tool | Removes | Keeps | Starts cascade | Use |
+|---|---|---|---|---|
+| `micro_handoff` | all tool calls and results | dialogue, survivors, memory | no | completed micro-goals |
+| `save_memory` | all conversation | survivors, memory (+ new session memory) | yes | major milestones |
+| `handoff_task` | **everything but the frozen prefix and the memory region**, dialogue and survivors included | memory + one handoff document | ? | the context has *gone bad*, not merely full: the user's reset-and-paste workflow, made a tool |
+
+Open: does `handoff_task` also save a session memory (then it is `save_memory`
+plus dropping survivors), or not (then the handoff document is the only record,
+and §A.6's two-write-paths bug returns)?
