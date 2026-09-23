@@ -22,6 +22,28 @@ const (
 	ExitTimeout  = 15 * time.Second
 )
 
+// freshRunDir returns an empty directory for ONE launch of the agent,
+// and a function that removes it.
+//
+// From chapter 11 on, the agent loads ./save.json at start and writes
+// it at exit, with no flag involved either way. Two launches sharing a
+// working directory therefore load each other's conversations, and a
+// check begins to pass or fail for reasons that have nothing to do
+// with what it tests. A launch whose working directory is the
+// student's source tree is worse still: it leaves a save.json sitting
+// in the submission, and the next grading run reads it.
+//
+// So every launch gets its own directory. Harnesses for chapters
+// before 11 need this as much as chapter 11 does, because they are all
+// run as parity checks against agents that do have persistence.
+func freshRunDir(name string) (string, func()) {
+	d, err := os.MkdirTemp("", "en-run-"+name+"-*")
+	if err != nil {
+		return os.TempDir(), func() {}
+	}
+	return d, func() { os.RemoveAll(d) }
+}
+
 // graderLine is what the grader writes to the program's stdin.
 type graderLine struct {
 	User string `json:"user"`
@@ -144,7 +166,11 @@ func Run(bin string) (*RunResult, error) {
 
 	res := &RunResult{}
 
+	runDir, cleanupDir := freshRunDir("ch1")
+	defer cleanupDir()
+
 	cmd := exec.Command(bin)
+	cmd.Dir = runDir
 	cmd.Env = append(os.Environ(),
 		"ANTHROPIC_BASE_URL="+baseURL,
 		"ANTHROPIC_API_KEY="+fakeanthropic.ExpectedAPIKey,

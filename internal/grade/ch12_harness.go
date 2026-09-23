@@ -81,6 +81,12 @@ func Ch12Run(path string) Ch12Result {
 // tools/call, and tests the reverse handler.
 func ch12ProtocolTests(bin string, r *Ch12Result) {
 	cmd := exec.Command(bin, "--mcp-pipe")
+	// Without this the agent runs in the grader's own working
+	// directory — the repository root — where a chapter-11 agent both
+	// reads and writes ./save.json.
+	runDir, cleanupDir := freshRunDir("ch12-mcp")
+	defer cleanupDir()
+	cmd.Dir = runDir
 	cmd.Env = append(os.Environ(),
 		"LLM_BASE_URL=http://127.0.0.1:1/unused",
 		"LLM_MODEL=fake-model",

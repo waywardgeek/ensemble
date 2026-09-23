@@ -1,70 +1,75 @@
 package grade
 
-// ch11Checks returns the check list for the persistence chapter.
+// ch11_checks.go — the Chapter 11 check table.
+//
+// The names, points and order below are the contract printed in the
+// chapter's TL;DR. Total 100.
+
+// Ch11Checks returns the check list for the persistence chapter.
 func Ch11Checks(r Ch11Result) []Check {
 	return []Check{
-		ch11Deterministic(r),
-		ch11SaveConfig(r),
-		ch11Roundtrip(r),
-		ch11Resume(r),
+		ch11SaveShape(r),
+		ch11DefaultLoad(r),
+		ch11ReplayEqualsSnapshot(r),
+		ch11TailAppliedOnce(r),
 		ch11LogNotNeeded(r),
-		ch11PartialReplay(r),
+		ch11BadSaveRefused(r),
 		ch11Ch10Parity(r),
 	}
 }
 
-func ch11Deterministic(r Ch11Result) Check {
+func ch11SaveShape(r Ch11Result) Check {
 	c := Check{
-		ID:     "deterministic-context",
-		Title:  "Context is deterministically built from the event log",
-		Points: 20,
-		Earned: 20,
-		Passed: true,
-	}
-	if !r.DeterministicOK {
-		c.failf("deterministic rebuild: %s", r.DeterministicErr)
-	}
-	return c
-}
-
-func ch11SaveConfig(r Ch11Result) Check {
-	c := Check{
-		ID:     "save-config",
-		Title:  "Save file captures model, vendor, system prompt, and tools",
+		ID:     "save-shape",
+		Title:  "Save file records config, anchors at the last log Seq, numbers strictly up",
 		Points: 15,
 		Earned: 15,
 		Passed: true,
 	}
-	if !r.SaveConfigOK {
-		c.failf("save config: %s", r.SaveConfigErr)
+	if !r.SaveShapeOK {
+		c.failf("save-shape: %s", r.SaveShapeErr)
 	}
 	return c
 }
 
-func ch11Roundtrip(r Ch11Result) Check {
+func ch11DefaultLoad(r Ch11Result) Check {
 	c := Check{
-		ID:     "save-roundtrip",
-		Title:  "Save file survives JSON roundtrip",
-		Points: 10,
-		Earned: 10,
-		Passed: true,
-	}
-	if !r.RoundtripOK {
-		c.failf("roundtrip: %s", r.RoundtripErr)
-	}
-	return c
-}
-
-func ch11Resume(r Ch11Result) Check {
-	c := Check{
-		ID:     "resume-continues",
-		Title:  "Agent resumes conversation from loaded save file",
+		ID:     "default-load",
+		Title:  "A second start in the same directory, no flags, resumes the conversation",
 		Points: 20,
 		Earned: 20,
 		Passed: true,
 	}
-	if !r.ResumeOK {
-		c.failf("resume: %s", r.ResumeErr)
+	if !r.DefaultLoadOK {
+		c.failf("default-load: %s", r.DefaultLoadErr)
+	}
+	return c
+}
+
+func ch11ReplayEqualsSnapshot(r Ch11Result) Check {
+	c := Check{
+		ID:     "replay-equals-snapshot",
+		Title:  "Loading a save, and loading it with context null, render identical requests",
+		Points: 20,
+		Earned: 20,
+		Passed: true,
+	}
+	if !r.ReplayEqualsSnapshotOK {
+		c.failf("replay-equals-snapshot: %s", r.ReplayEqualsSnapshotErr)
+	}
+	return c
+}
+
+func ch11TailAppliedOnce(r Ch11Result) Check {
+	c := Check{
+		ID:     "tail-applied-once",
+		Title:  "An older snapshot spliced onto a newer log replays the tail exactly once",
+		Points: 15,
+		Earned: 15,
+		Passed: true,
+	}
+	if !r.TailAppliedOnceOK {
+		c.failf("tail-applied-once: %s", r.TailAppliedOnceErr)
 	}
 	return c
 }
@@ -72,9 +77,9 @@ func ch11Resume(r Ch11Result) Check {
 func ch11LogNotNeeded(r Ch11Result) Check {
 	c := Check{
 		ID:     "log-not-needed",
-		Title:  "Context alone (no event log) is sufficient to continue",
-		Points: 15,
-		Earned: 15,
+		Title:  "A snapshot with an empty log is a complete save, and numbering continues",
+		Points: 10,
+		Earned: 10,
 		Passed: true,
 	}
 	if !r.LogNotNeededOK {
@@ -83,16 +88,16 @@ func ch11LogNotNeeded(r Ch11Result) Check {
 	return c
 }
 
-func ch11PartialReplay(r Ch11Result) Check {
+func ch11BadSaveRefused(r Ch11Result) Check {
 	c := Check{
-		ID:     "partial-replay",
-		Title:  "Event log maintains monotonic sequence ordering",
+		ID:     "bad-save-refused",
+		Title:  "A save file that does not parse is fatal, and its bytes are left alone",
 		Points: 5,
 		Earned: 5,
 		Passed: true,
 	}
-	if !r.PartialReplayOK {
-		c.failf("partial replay: %s", r.PartialReplayErr)
+	if !r.BadSaveRefusedOK {
+		c.failf("bad-save-refused: %s", r.BadSaveRefusedErr)
 	}
 	return c
 }

@@ -90,7 +90,12 @@ func driveCh5Tool(bin, workDir string) (toolCalled bool, toolOutput string) {
 	defer fake.Close()
 
 	cmd := exec.Command(bin)
-	cmd.Dir = workDir
+	// Not workDir: this launch must not load or leave a save.json in
+	// the student's source tree (chapter 11). Nothing here reads a
+	// file, so an empty directory is all the agent needs.
+	runDir, cleanupDir := freshRunDir("ch5-tool")
+	defer cleanupDir()
+	cmd.Dir = runDir
 	cmd.Env = append(os.Environ(),
 		"LLM_VENDOR=anthropic",
 		"LLM_MODEL=fake-model",
