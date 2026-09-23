@@ -140,12 +140,24 @@ type ToolResultPart struct {
 	IsError bool // a tool that ran and failed is CONTENT, not ErrorOccurred
 }
 
+// ToolDeclPart carries a change to the tool declarations, made mid-session.
+//
+// It is not a tool part in the sense Chapter 15 cares about: it is neither a
+// call nor a result, so no tool clearing looks at it. It lives only in a
+// KindTools entry, which is a survivor, because the model must go on knowing
+// a tool exists for as long as the tool does.
+type ToolDeclPart struct {
+	Added   []ToolDecl
+	Removed []string
+}
+
 func (TextPart) isPart()       {}
 func (BlobPart) isPart()       {}
 func (OpaquePart) isPart()     {}
 func (RedactedPart) isPart()   {}
 func (ToolCallPart) isPart()   {}
 func (ToolResultPart) isPart() {}
+func (ToolDeclPart) isPart()   {}
 
 // PartList exists so a []Part round-trips as JSON without a type registry.
 type PartList []Part
@@ -186,6 +198,8 @@ type partJSON struct {
 	Opaque  json.RawMessage `json:"opaque,omitempty"`
 	Parts   PartList        `json:"parts,omitempty"`
 	IsError bool            `json:"is_error,omitempty"`
+	Added   []ToolDecl      `json:"added,omitempty"`
+	Removed []string        `json:"removed,omitempty"`
 }
 
 func (p PartList) MarshalJSON() ([]byte, error) {
@@ -221,6 +235,8 @@ func (p PartList) MarshalJSON() ([]byte, error) {
 			w = partJSON{Type: "tool_call", CallID: v.CallID, From: &from, Name: v.Name, Args: v.Args, Opaque: v.Opaque}
 		case ToolResultPart:
 			w = partJSON{Type: "tool_result", CallID: v.CallID, Parts: PartList(v.Parts), IsError: v.IsError}
+		case ToolDeclPart:
+			w = partJSON{Type: "tool_decls", Added: v.Added, Removed: v.Removed}
 		default:
 			return nil, fmt.Errorf("refusing to marshal unknown part type %T", part)
 		}
@@ -280,6 +296,8 @@ func (p *PartList) UnmarshalJSON(b []byte) error {
 			list = append(list, ToolCallPart{CallID: w.CallID, From: from, Name: w.Name, Args: w.Args, Opaque: w.Opaque})
 		case "toolresult":
 			list = append(list, ToolResultPart{CallID: w.CallID, Parts: w.Parts, IsError: w.IsError})
+		case "tooldecls":
+			list = append(list, ToolDeclPart{Added: w.Added, Removed: w.Removed})
 		default:
 			// Same discipline as an unknown event type: a value you silently
 			// coerce is a value you will debug in production.

@@ -123,6 +123,9 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 	}
 
 	for _, entry := range c.Dialogue {
+		if entry.Kind == common.KindTools {
+			continue // no in-dialog declarations here: see EffectiveTools
+		}
 		r, err := classify(entry, cfg)
 		if err != nil {
 			return nil, err
@@ -214,7 +217,7 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 		Model:           cfg.Model,
 		MaxTokens:       cfg.MaxTokens,
 		Messages:        msgs,
-		Tools:           oaiTools(cfg.Tools),
+		Tools:           oaiTools(common.EffectiveTools(cfg.Tools, c)),
 		Stream:          common.StreamingFor(cfg) != 0,
 		ReasoningEffort: reasoningEffort,
 	}

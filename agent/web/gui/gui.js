@@ -292,6 +292,8 @@
     'set-max-tokens': {key: 'max_tokens', type: 'int'},
     'set-thinking-budget': {key: 'thinking_budget', type: 'int'},
     'set-max-tool-rounds': {key: 'max_tool_rounds', type: 'int'},
+    'set-context-target': {key: 'context_target', type: 'int'},
+    'set-log-retention': {key: 'log_retention', type: 'int'},
     'set-tts-enabled': {key: 'tts_enabled', type: 'bool'},
     'set-tts-speed': {key: 'tts_speed', type: 'float'},
     'set-font-size': {key: 'font_size', type: 'int'},
@@ -327,6 +329,8 @@
     if (s.max_tokens !== undefined) document.getElementById('set-max-tokens').value = s.max_tokens;
     if (s.thinking_budget !== undefined) document.getElementById('set-thinking-budget').value = s.thinking_budget;
     if (s.max_tool_rounds !== undefined) document.getElementById('set-max-tool-rounds').value = s.max_tool_rounds;
+    if (s.context_target !== undefined) document.getElementById('set-context-target').value = s.context_target || 400000;
+    if (s.log_retention !== undefined) document.getElementById('set-log-retention').value = s.log_retention;
     document.getElementById('set-tts-enabled').checked = !!s.tts_enabled;
     if (s.tts_speed !== undefined) document.getElementById('set-tts-speed').value = s.tts_speed;
     if (s.font_size !== undefined) document.getElementById('set-font-size').value = s.font_size;

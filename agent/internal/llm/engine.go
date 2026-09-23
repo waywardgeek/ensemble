@@ -25,6 +25,12 @@ type Engine struct {
 	Jobs  common.JobManager
 	Tools common.ToolRegistry
 	Host  common.Host
+	// Journal, when set, receives every event as it is recorded (ch15).
+	Journal *common.Journal
+	// Target is the context-size target in bytes (ch15 rule 10); zero
+	// means DefaultContextTarget. Read on every request, so a settings
+	// change takes effect at the next cut and never rewrites a past one.
+	Target func() int
 }
 
 func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools common.ToolRegistry, host common.Host) *Engine {
@@ -41,9 +47,31 @@ func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools com
 }
 
 // Record appends to the log and advances the context. One path in.
+//
+// Chapter 15 adds two things, both here because this is the only door. The
+// event reaches the journal before anything else happens to it, so a crash a
+// microsecond later still has it on disk (rule 9). And the reducer is total
+// (rule 8): an event that cannot be applied is kept in the log, skipped by
+// the context, and reported in the agent's log. The same skip happens on
+// every replay, because replay runs the same Apply, so live and restored
+// contexts cannot drift apart over it.
 func (e *Engine) Record(ev common.Event) error {
 	stored := e.Log.Append(ev)
-	return e.Ctx.Apply(stored)
+	if e.Journal != nil {
+		if err := e.Journal.Append(stored); err != nil {
+			return err
+		}
+	}
+	if err := e.Ctx.Apply(stored); err != nil {
+		e.logf("reducer: skipped event %d (%s): %v", stored.Seq, stored.Type, err)
+	}
+	return nil
+}
+
+func (e *Engine) logf(format string, args ...any) {
+	if e.Host != nil {
+		e.Host.Logf(format, args...)
+	}
 }
 
 // Say records a human prompt.
@@ -83,6 +111,12 @@ func (e *Engine) Turn(watch common.StreamCallbacks) (string, error) {
 
 	renderer, parser, err := SeamFor(e.Cfg.Vendor)
 	if err != nil {
+		return "", err
+	}
+
+	// Chapter 15: decide this request's cuts and record them as events
+	// BEFORE rendering, so the request carries exactly what the log says.
+	if err := e.curate(); err != nil {
 		return "", err
 	}
 

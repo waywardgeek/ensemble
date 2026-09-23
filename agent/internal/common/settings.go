@@ -40,6 +40,14 @@ type Settings struct {
 	// Accessibility.
 	TTSEnabled bool    `json:"tts_enabled"`
 	TTSSpeed   float64 `json:"tts_speed"`
+
+	// Context management (Chapter 15 rule 10). ContextTarget is the one
+	// knob: the target context size in bytes, from which the stub
+	// threshold and both ladder bands derive (see BudgetsFor); zero means
+	// DefaultContextTarget. LogRetention is how many events the save file
+	// keeps; zero keeps them all.
+	ContextTarget int `json:"context_target"`
+	LogRetention  int `json:"log_retention"`
 }
 
 // Bounds for settings that reach the model API or the renderer. A value
@@ -106,6 +114,14 @@ func (s *Settings) clamp() {
 	}
 	if s.TTSSpeed > MaxTTSSpeed {
 		s.TTSSpeed = MaxTTSSpeed
+	}
+	if s.ContextTarget < 0 {
+		s.ContextTarget = 0
+	} else if s.ContextTarget > 0 && s.ContextTarget < MinContextTarget {
+		s.ContextTarget = MinContextTarget
+	}
+	if s.LogRetention < 0 {
+		s.LogRetention = 0
 	}
 	switch s.Theme {
 	case "", "dark", "light", "system":
@@ -213,6 +229,18 @@ func (s *SettingsStore) ApplyRaw(raw json.RawMessage) Settings {
 		var f float64
 		if json.Unmarshal(v, &f) == nil {
 			s.data.TTSSpeed = f
+		}
+	}
+	if v, ok := patch["context_target"]; ok {
+		var n int
+		if json.Unmarshal(v, &n) == nil {
+			s.data.ContextTarget = n
+		}
+	}
+	if v, ok := patch["log_retention"]; ok {
+		var n int
+		if json.Unmarshal(v, &n) == nil {
+			s.data.LogRetention = n
 		}
 	}
 
