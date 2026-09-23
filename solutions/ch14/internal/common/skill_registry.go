@@ -257,6 +257,21 @@ func (r *SkillRegistry) IsToolEnabled(name string) bool {
 	if name == "load_skill" || name == "unload_skill" {
 		return true
 	}
+	// A filter over an empty set denies every tool. When no skill is loaded
+	// there is no skill-based policy to enforce, so enable everything rather
+	// than nothing: an agent built before skills exist, or started without a
+	// skills directory, must keep its full toolset instead of silently being
+	// left with only load_skill and unload_skill.
+	loaded := false
+	for _, e := range r.skills {
+		if e.State == LoadInitial || e.State == LoadDynamic {
+			loaded = true
+			break
+		}
+	}
+	if !loaded {
+		return true
+	}
 	for _, e := range r.skills {
 		if e.State != LoadInitial && e.State != LoadDynamic {
 			continue

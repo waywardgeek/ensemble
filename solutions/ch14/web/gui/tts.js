@@ -36,6 +36,12 @@ const TTS = {
   // is why it went unimplemented for so long.
   onStateChange: null,
 
+  // Fired once per entry as it enters the speech channel. The browser cannot write
+  // files, so this is how the record leaves: the GUI forwards it to the server,
+  // which appends it to the speech log. Only the client can report this, because
+  // the decision about what is speakable is made here.
+  onRecord: null,
+
   // Invalidation token for in-flight utterance callbacks. speechSynthesis.cancel()
   // delivers onend/onerror asynchronously, so a callback from a cancelled utterance
   // can otherwise land after its replacement has already started and clear
@@ -93,6 +99,7 @@ const TTS = {
     this.transcript.push(entry);
     if (this.transcript.length > this._maxTranscript) this.transcript.shift();
     this.queue.push(entry);
+    if (this.onRecord) this.onRecord(entry);
     return entry;
   },
 
@@ -157,18 +164,43 @@ const TTS = {
   },
 
 
+  // Announce a tool call in English, not in the code it is about to run. A
+  // twenty-line shell pipeline is announced as "run command cd agent": enough
+  // to follow what the agent is doing, without reading the mechanism aloud.
   speakToolDispatch(name, input) {
     if (!this.enabled || !('speechSynthesis' in window)) return;
     let summary = name;
     if (input) {
       try {
         const obj = typeof input === 'string' ? JSON.parse(input) : input;
-        if (obj.file || obj.path) summary += ': ' + (obj.file || obj.path);
-        if (obj.start_line) summary += ', line ' + obj.start_line;
+        if (obj.file || obj.path) {
+          summary += ': ' + (obj.file || obj.path);
+          if (obj.start_line) summary += ', line ' + obj.start_line;
+        } else {
+          const gist = this._gist(obj.command || obj.pattern || obj.query);
+          if (gist) summary += ' ' + gist;
+        }
       } catch(e) { /* ignore */ }
     }
     this._enqueue(summary);
     this._processQueue();
+  },
+
+  // The opening words of a command, which is all a listener needs to know what
+  // is happening. Stops at the first shell metacharacter, so that
+  // "cd agent && go build ./... | tee out.log" is announced as "cd agent", and
+  // at the first flag, because a flag is mechanism rather than intent.
+  _gist(cmd, maxWords = 3) {
+    if (!cmd) return '';
+    const head = String(cmd).split(/[\n;|&><]/)[0];
+    const out = [];
+    for (const w of head.trim().split(/\s+/)) {
+      if (!w) continue;
+      if (out.length && w.startsWith('-')) break;
+      out.push(w);
+      if (out.length >= maxWords) break;
+    }
+    return out.join(' ');
   },
 
   speakFull(text) {

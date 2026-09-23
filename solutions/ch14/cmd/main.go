@@ -77,6 +77,9 @@ func main() {
 	mcpPipe := false
 	guiDebug := false
 	skillsDir := ""
+	// On by default, like api.log and debug.log. Speech is the one channel you
+	// cannot scroll back through, so it is the one that most needs a record.
+	ttsLogPath := "tts.log"
 
 	// Parse flags manually to keep backward compat with positional commands.
 	var filtered []string
@@ -106,6 +109,11 @@ func main() {
 			i++
 		case strings.HasPrefix(args[i], "--skills-dir="):
 			skillsDir = strings.TrimPrefix(args[i], "--skills-dir=")
+		case args[i] == "--tts-log" && i+1 < len(args):
+			ttsLogPath = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--tts-log="):
+			ttsLogPath = strings.TrimPrefix(args[i], "--tts-log=")
 		default:
 			filtered = append(filtered, args[i])
 		}
@@ -192,7 +200,7 @@ func main() {
 		}
 
 	case "":
-		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir) {
+		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath) {
 			os.Exit(1)
 		}
 
@@ -249,7 +257,7 @@ type stdinMsg struct {
 	Ephemeral *string `json:"ephemeral"`
 }
 
-func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, mcpPipe bool, guiDebug bool, skillsDir string) (vendorFailed bool) {
+func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string) (vendorFailed bool) {
 	host := newCLIHost()
 	j := jobs.NewJobs(host)
 
@@ -275,18 +283,20 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		fmt.Fprintf(os.Stderr, "skills: %v\n", err)
 	}
 
-	// Load the primary skill (if any) to set the system prompt.
-	primaryName := envOr("EN_PRIMARY_SKILL", "")
-	if primaryName != "" {
-		if err := sr.LoadInitial(primaryName, vars); err != nil {
-			fmt.Fprintf(os.Stderr, "primary skill %q: %v\n", primaryName, err)
-			os.Exit(1)
-		}
-		// Build the system prompt from initial skill bodies.
-		bodies := sr.InitialBodies()
-		if len(bodies) > 0 {
-			cfg.SystemPrompt = strings.Join(bodies, "\n\n---\n\n")
-		}
+	// Load the primary skill to set the system prompt. Defaulting to "ensemble"
+	// means a bare `./ensemble --port 8084` gets a full toolset: the tool filter
+	// enables only what a loaded skill declares, so an agent with no skill
+	// loaded would be left with just load_skill and unload_skill. This is a
+	// warning rather than fatal because the agent is also run without any
+	// skills directory at all, where no filtering is the correct behaviour.
+	primaryName := envOr("EN_PRIMARY_SKILL", "ensemble")
+	if err := sr.LoadInitial(primaryName, vars); err != nil {
+		fmt.Fprintf(os.Stderr, "primary skill %q: %v\n", primaryName, err)
+	}
+	// Build the system prompt from initial skill bodies.
+	bodies := sr.InitialBodies()
+	if len(bodies) > 0 {
+		cfg.SystemPrompt = strings.Join(bodies, "\n\n---\n\n")
 	}
 
 	// Wire skill-based tool filtering and load_skill/unload_skill tools.
@@ -465,6 +475,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 			actor.Send(msg)
 		}, "gui.log", eng.Log, settingsStore)
 		defer hub.Close()
+		hub.SetTTSLog(ttsLogPath)
 		actor.Attach(hub)
 
 		staticDir := guiDir

@@ -36,6 +36,7 @@ type Hub struct {
 	gate      *common.PauseGate
 	send      func(common.Inbound) // forwards prompt/hint/interrupt to the actor
 	guiLog    *GuiLogger
+	ttsLog    *TTSLogger           // speech channel record; nil-safe when unset
 	log       *common.Log          // event log — read-only access for reconnection
 	settings     *common.SettingsStore                  // GUI-editable settings; nil = no settings
 	mcpReceivers map[string]func(json.RawMessage)       // source tag → JSON-RPC receiver (in-process agents)
@@ -66,6 +67,15 @@ func (h *Hub) Close() {
 	if h.guiLog != nil {
 		h.guiLog.Close()
 	}
+	h.ttsLog.Close()
+}
+
+// SetTTSLog opens a speech log at path. Empty path disables it.
+//
+// Optional rather than a constructor parameter: most runs do not want one, and
+// a nil logger is safe to call.
+func (h *Hub) SetTTSLog(path string) {
+	h.ttsLog = NewTTSLogger(path)
 }
 
 // SetMCPReceiver registers a callback for incoming JSON-RPC messages tagged
@@ -335,6 +345,9 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 		Settings json.RawMessage `json:"settings"`
 		Payload  json.RawMessage `json:"payload"` // JSON-RPC payload
 		Source   string          `json:"source"`   // MCP source tag ("vu", "", etc.)
+		TTS      *TTSEvent       `json:"tts"`      // speech channel record
+		Typing   bool            `json:"typing"`   // gate: a person is typing
+		Speaking bool            `json:"speaking"` // gate: speech is playing
 	}
 	if json.Unmarshal(raw, &msg) != nil {
 		return
@@ -356,12 +369,25 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 	case "interrupt":
 		h.send(common.Interrupt{})
 	case "pause":
+		h.ttsLog.Log(TTSEvent{Kind: "pause", Cause: gateCause(msg.Typing, msg.Speaking)})
 		if h.gate != nil {
 			h.gate.Pause()
 		}
 	case "unpause":
+		h.ttsLog.Log(TTSEvent{Kind: "resume"})
 		if h.gate != nil {
 			h.gate.Unpause()
+		}
+	// The browser reports what it handed to the speech channel. Only the client
+	// knows this: the decision about what is speakable is made there, so the
+	// server cannot derive these lines, only be told them.
+	case "tts":
+		if msg.TTS != nil {
+			ev := *msg.TTS
+			if ev.Kind == "" {
+				ev.Kind = "utterance"
+			}
+			h.ttsLog.Log(ev)
 		}
 	case "update_settings":
 		if h.settings != nil && msg.Settings != nil {
