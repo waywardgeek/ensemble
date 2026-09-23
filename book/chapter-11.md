@@ -1,12 +1,91 @@
 # Chapter 11: Persistence
 
-Every agent you have built so far forgets everything the moment it exits. The event log writes to disk, but the agent never reads it back. This chapter closes that gap and, in doing so, proves three invariants that have been implicit since Chapter 2:
+Every agent in this book so far is a goldfish. It reasons, calls tools,
+drives its own GUI and loads skills on demand, and the moment the
+process exits it forgets the user's name, the project, the afternoon of
+work and every decision made along the way. The next start meets a
+stranger. This chapter ends that. Nothing else in the book changes more
+about what the agent is: a program that runs becomes a colleague that
+stays.
 
-1. The context is deterministically derived from the event log.
-2. A checkpoint plus the remaining events produces the same context as the full log.
-3. The LLM never needs the log. The context alone is sufficient to continue.
+## TL;DR
 
-These are not aspirations. They are testable properties. The grader verifies all three.
+The agent saves itself on exit and loads itself on start. Neither needs
+a flag. The save file is one JSON object: the configuration that shaped
+the wire, the ch2 context as a snapshot, the Seq that snapshot was taken
+at, and the event log. A load installs the snapshot and replays only the
+events after its anchor. A snapshot with no log is a complete save. So
+is a log with no snapshot.
+
+```go
+// SaveFile is the whole agent on disk.
+type SaveFile struct {
+    Config  SaveConfig `json:"config"`
+    AsOf    Seq        `json:"as_of"`   // last event folded into Context
+    Context *Context   `json:"context"` // ch2 Context as-is; null = rebuild
+    Log     []Event    `json:"log"`     // ch2 events, oldest first
+}
+
+// SaveConfig records what shaped the wire. Never the API key.
+type SaveConfig struct {
+    Model        string     `json:"model"`
+    Vendor       string     `json:"vendor"` // "anthropic", "gemini", "openai"
+    SystemPrompt string     `json:"system_prompt"`
+    Tools        []ToolDecl `json:"tools"`
+}
+
+// ToolDecl gains JSON tags so tools[].name reads cleanly on disk.
+type ToolDecl struct {
+    Name        string          `json:"name"`
+    Description string          `json:"description"`
+    Schema      json.RawMessage `json:"schema"`
+}
+```
+
+1. **Default location.** The save file is `save.json` in the working
+   directory, beside `settings.json`. `--save PATH` names a different
+   file. The flag changes where, never whether: the same path is loaded
+   at start and written at exit.
+2. **Load at start.** A missing file means a fresh start. A file that
+   exists but does not parse as a `SaveFile` is a fatal error: exit
+   non-zero, name the file, leave its bytes untouched. Starting fresh
+   over a save that failed to load would overwrite the user's history
+   at exit.
+3. **Snapshot plus tail.** If `context` is non-null, install it, then
+   apply in order every log event with `seq > as_of`. If `context` is
+   null, apply every log event to a fresh context. Events at or below
+   `as_of` are already inside the snapshot; applying one twice is a bug.
+4. **The log is not needed.** `"log": []` with a non-null `context` is a
+   complete save. The vendor sees the context, never the log.
+5. **Numbering continues.** The first new event gets the Seq one past
+   the larger of `as_of` and the last log event's Seq.
+6. **Save at exit.** When stdin closes, write the file and exit within
+   10 seconds. `as_of` is the Seq of the last event folded into the
+   saved context. The saved log is the loaded log plus every event
+   created since, oldest first, Seq strictly increasing.
+7. **Config is a record, not a restore.** On load the running agent's
+   own model, vendor, prompt and tools win. The context is
+   vendor-independent (ch2); the save must not pin a model.
+8. **Replay is deterministic.** Loading a save as written, and loading
+   the same save with `context` set to null, must produce byte-identical
+   vendor requests for the next prompt.
+
+Yours: indentation, whether to write through a temporary file and rename
+(recommended; a crash mid-write otherwise destroys the only copy), a
+`verify` subcommand for debugging, and what to print on load.
+
+**Exercise.** Start from your ch10 agent. Add save and load until
+`make grade-dir CH=11 DIR=path/to/agent` scores 100/100.
+
+| Check | Points | Proves |
+|---|---|---|
+| save-shape | 15 | config fields present, `as_of` equals the last log Seq, log Seq strictly increasing |
+| default-load | 20 | a second start in the same directory, no flags, sends the first session's prompts to the vendor |
+| replay-equals-snapshot | 20 | rule 8 |
+| tail-applied-once | 15 | turn-2 snapshot spliced onto the turn-3 log yields the same next request as the turn-3 save |
+| log-not-needed | 10 | rules 4 and 5 |
+| bad-save-refused | 5 | rule 2 |
+| ch10-parity | 15 | chapter 10 still passes |
 
 ## §11.1 The Why
 
