@@ -18,10 +18,14 @@ add() {
 }
 
 add "$BOOK_DIR/title.md"
+# book-toc.py replaces this marker with a linked table of contents.
+OUT="$OUT
+
+<!-- toc -->"
 add "$BOOK_DIR/preface.md"
 
 for ch in "$BOOK_DIR"/chapter-[0-9][0-9].md; do
     [ -f "$ch" ] && add "$ch"
 done
 
-printf '%s\n' "$OUT"
+printf '%s\n' "$OUT" | python3 "$(dirname "$0")/book-toc.py"
