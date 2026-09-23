@@ -1,0 +1,945 @@
+package main
+
+// ch06 — the actor upgrade: two seams and a loop.
+//
+//	./ch06              grader mode: JSON-lines protocol on stdin/stdout
+//	./ch06 chat         the interactive loop
+//	./ch06 render LOG   play LOG -> context -> render; print the request JSON
+//	./ch06 dump         write the event log as JSON-lines
+//	./ch06 --help       print the commands table
+
+import (
+	"bufio"
+	"context"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+
+	agent "github.com/waywardgeek/ensemble/agent"
+	"github.com/waywardgeek/ensemble/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/internal/jobs"
+	"github.com/waywardgeek/ensemble/agent/internal/llm"
+	"github.com/waywardgeek/ensemble/agent/internal/mcp"
+	"github.com/waywardgeek/ensemble/agent/internal/tools"
+	"github.com/waywardgeek/ensemble/agent/internal/ws"
+)
+
+const fallbackName = "ch06"
+
+func progName() string {
+	base := filepath.Base(os.Args[0])
+	if base == "." || base == string(os.PathSeparator) || base == "" {
+		return fallbackName
+	}
+	return base
+}
+
+func defaultLogPath() string { return progName() + ".log" }
+
+func usage(w io.Writer) {
+	p := progName()
+	fmt.Fprintf(w, `%[1]s — two seams and a loop.
+
+usage:
+  %[1]s                grader mode: JSON-lines protocol on stdin/stdout
+  %[1]s chat           interactive loop; type a message, ctrl-D to exit
+  %[1]s render LOG     play LOG -> context -> render; print the request JSON
+  %[1]s dump           write the event log as JSON-lines
+  %[1]s --help         print this table
+
+environment:
+  LLM_VENDOR           anthropic (default), openai or gemini
+  LLM_MODEL            model id; overrides the vendor default
+  LLM_API_KEY          API key (or ANTHROPIC_/OPENAI_/GEMINI_API_KEY)
+  CH02_LOG             event log path (default %[2]s)
+`, p, defaultLogPath())
+}
+
+const systemPrompt = "You are a helpful assistant."
+
+func main() {
+	args := os.Args[1:]
+	mode := ""
+	port := ""
+	guiDir := ""
+	// Rule 1: the save file is save.json in the working directory,
+	// beside settings.json. --save PATH names a different file. The
+	// flag changes WHERE, never WHETHER: this one path is both the
+	// file loaded at start and the file written at exit. There is no
+	// --load, because a flag that loads without saving (or saves
+	// without loading) is how you lose an afternoon of conversation.
+	savePath := "save.json"
+	mcpPipe := false
+	guiDebug := false
+	skillsDir := ""
+	// On by default, like api.log and debug.log. Speech is the one channel you
+	// cannot scroll back through, so it is the one that most needs a record.
+	ttsLogPath := "tts.log"
+
+	// Parse flags manually to keep backward compat with positional commands.
+	var filtered []string
+	for i := 0; i < len(args); i++ {
+		switch {
+		case args[i] == "--port" && i+1 < len(args):
+			port = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--port="):
+			port = strings.TrimPrefix(args[i], "--port=")
+		case args[i] == "--gui-dir" && i+1 < len(args):
+			guiDir = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--gui-dir="):
+			guiDir = strings.TrimPrefix(args[i], "--gui-dir=")
+		case args[i] == "--save" && i+1 < len(args):
+			savePath = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--save="):
+			savePath = strings.TrimPrefix(args[i], "--save=")
+		case args[i] == "--mcp-pipe":
+			mcpPipe = true
+		case args[i] == "--gui-debug":
+			guiDebug = true
+		case args[i] == "--skills-dir" && i+1 < len(args):
+			skillsDir = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--skills-dir="):
+			skillsDir = strings.TrimPrefix(args[i], "--skills-dir=")
+		case args[i] == "--tts-log" && i+1 < len(args):
+			ttsLogPath = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--tts-log="):
+			ttsLogPath = strings.TrimPrefix(args[i], "--tts-log=")
+		default:
+			filtered = append(filtered, args[i])
+		}
+	}
+	args = filtered
+	if len(args) > 0 {
+		mode = args[0]
+	}
+
+	reg := tools.NewRegistry()
+	cfg, err := configFromEnv(reg)
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "config:", err)
+		os.Exit(2)
+	}
+	logPath := envOr("CH02_LOG", defaultLogPath())
+
+	switch mode {
+	case "--help", "-h", "help":
+		usage(os.Stdout)
+
+	case "verify":
+		sf, err := common.Load(savePath)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "load: %v\n", err)
+			os.Exit(2)
+		}
+		// Rebuild from the log alone and compare against the saved
+		// snapshot. A save with a snapshot and a trimmed log has
+		// nothing to compare, so this only means something for a save
+		// that still carries its whole history. verify is a debugging
+		// aid and no part of the contract: nothing grades it.
+		full := &common.SaveFile{Log: sf.Log}
+		rebuilt := full.Restore(func(err error) {
+			fmt.Fprintf(os.Stderr, "rebuild: %v\n", err)
+		})
+		savedJSON, _ := json.MarshalIndent(sf.Context, "", "  ")
+		rebuiltJSON, _ := json.MarshalIndent(rebuilt, "", "  ")
+		if string(savedJSON) == string(rebuiltJSON) {
+			fmt.Println("MATCH")
+		} else {
+			fmt.Println("MISMATCH")
+			// Find first difference
+			for i := 0; i < len(savedJSON) && i < len(rebuiltJSON); i++ {
+				if savedJSON[i] != rebuiltJSON[i] {
+					fmt.Fprintf(os.Stderr, "first diff at byte %d\n", i)
+					break
+				}
+			}
+			os.Exit(1)
+		}
+
+	case "render":
+		if len(args) < 2 {
+			fmt.Fprintf(os.Stderr, "usage: %s render LOG\n", progName())
+			os.Exit(2)
+		}
+		body, err := llm.RenderOnly(args[1], cfg)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "render:", err)
+			os.Exit(1)
+		}
+		os.Stdout.Write(body)
+		if len(body) > 0 && body[len(body)-1] != '\n' {
+			fmt.Println()
+		}
+
+	case "dump":
+		log, err := common.LoadLogFile(logPath)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "dump:", err)
+			os.Exit(1)
+		}
+		if err := log.Write(os.Stdout); err != nil {
+			fmt.Fprintln(os.Stderr, "dump:", err)
+			os.Exit(1)
+		}
+
+	case "chat":
+		if runLoop(cfg, logPath, true, reg) {
+			os.Exit(1)
+		}
+
+	case "":
+		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath) {
+			os.Exit(1)
+		}
+
+	default:
+		fmt.Fprintf(os.Stderr, "unknown command %q\n\n", mode)
+		usage(os.Stderr)
+		os.Exit(2)
+	}
+}
+
+// cliHost implements common.Host for the CLI with three log destinations.
+type cliHost struct {
+	logger *agent.Logger
+}
+
+func newCLIHost() *cliHost {
+	logger := agent.DefaultLogger()
+
+	// API log: raw JSON wire traffic.
+	if f, err := os.Create("api.log"); err == nil {
+		logger.SetAPILog(f)
+	}
+
+	// Debug log: arbitrary text, also printed to stderr.
+	if f, err := os.Create("debug.log"); err == nil {
+		logger.SetDebugLog(f)
+	}
+
+	return &cliHost{logger: logger}
+}
+
+func (h *cliHost) Logf(format string, args ...any) {
+	h.logger.Logf(format, args...)
+}
+func (h *cliHost) APILogf(format string, args ...any) {
+	h.logger.APILogf(format, args...)
+}
+func (h *cliHost) Debugf(format string, args ...any) {
+	h.logger.Debugf(format, args...)
+}
+
+// ----------------------------------------------------------------
+// Actor-based loop for grader mode. Reads stdin on its own goroutine
+// and processes messages through the mailbox.
+// ----------------------------------------------------------------
+
+// stdinMsg is the unified JSON input format.
+type stdinMsg struct {
+	// Chapter 6 protocol.
+	Kind *string `json:"kind"`
+	Text *string `json:"text"`
+	// Backward compat with ch1–5.
+	User      *string `json:"user"`
+	Ephemeral *string `json:"ephemeral"`
+}
+
+func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string) (vendorFailed bool) {
+	host := newCLIHost()
+	j := jobs.NewJobs(host)
+
+	// Set up skills.
+	skillDir := envOr("EN_SKILLS_DIR", "skills")
+	if skillsDir != "" {
+		skillDir = skillsDir
+	}
+	sr := common.NewSkillRegistry()
+	vars := common.NewVarRegistry()
+
+	// Built-in variable renderers.
+	vars.Register("TOOLS", common.BuiltinToolsRenderer(sr, reg))
+	vars.Register("SKILLS", common.BuiltinSkillsRenderer(sr))
+
+	// Application-specific variable renderers (from environment).
+	if cv := os.Getenv("EN_CUSTOM_VAR"); cv != "" {
+		vars.Register("CUSTOM_VAR", func() string { return cv })
+	}
+
+	// Discover and load skills.
+	if err := sr.DiscoverSkills(skillDir); err != nil {
+		fmt.Fprintf(os.Stderr, "skills: %v\n", err)
+	}
+
+	// Load the primary skill to set the system prompt. Defaulting to "ensemble"
+	// means a bare `./ensemble --port 8084` gets a full toolset: the tool filter
+	// enables only what a loaded skill declares, so an agent with no skill
+	// loaded would be left with just load_skill and unload_skill. This is a
+	// warning rather than fatal because the agent is also run without any
+	// skills directory at all, where no filtering is the correct behaviour.
+	primaryName := envOr("EN_PRIMARY_SKILL", "ensemble")
+	if err := sr.LoadInitial(primaryName, vars); err != nil {
+		fmt.Fprintf(os.Stderr, "primary skill %q: %v\n", primaryName, err)
+	}
+	// Build the system prompt from initial skill bodies.
+	bodies := sr.InitialBodies()
+	if len(bodies) > 0 {
+		cfg.SystemPrompt = strings.Join(bodies, "\n\n---\n\n")
+	}
+
+	// Wire skill-based tool filtering and load_skill/unload_skill tools.
+	reg.SetSkillRegistry(sr)
+
+	// keep_tool_results means nothing on a model whose features row does
+	// not enable per-round-trip stubbing (ch15 rule 6), so it is not
+	// declared there: a tool that silently does nothing is a lie in the
+	// prompt.
+	if f, _ := common.LookupModel(cfg.Model); !f.StubsToolResults {
+		reg.RemoveTool(common.KeepToolResults)
+	}
+
+	// Rebuild tool declarations with skill filtering applied.
+	cfg.Tools = reg.Declarations()
+
+	eng := llm.NewEngine(cfg, logPath, j, reg, host)
+
+	// Load at start (rule 2). No flag decides this; the files' existence
+	// does. Chapter 15 adds the journal: every event recorded since the
+	// last snapshot, so a session that was killed resumes where it died.
+	// Recover assembles snapshot + log + journal tail; Restore applies the
+	// tail, skipping (and logging) any event it cannot apply.
+	sf, err := common.Recover(savePath, func(err error) { host.Logf("load: %v", err) })
+	if err != nil {
+		// A file that exists but does not parse is fatal. We must
+		// NOT start fresh over it: the agent saves at exit, and a
+		// fresh start would write an empty conversation over the
+		// user's history. Name the file, touch none of its bytes,
+		// and let a human look at it.
+		fmt.Fprintf(os.Stderr, "agent: cannot load save file %s: %v\n", savePath, err)
+		os.Exit(1)
+	}
+	if len(sf.Log) > 0 || sf.Context != nil {
+		// Rule 3: install the snapshot, then apply only the tail above
+		// its anchor. Restore handles the null-snapshot case too.
+		eng.Ctx = sf.Restore(func(err error) { host.Logf("load: %v", err) })
+		// The loaded log is kept whole: rule 6 saves it back plus
+		// whatever this session adds. Restoring the context consumed
+		// the tail; it did not consume the history.
+		eng.Log.Events = sf.Log
+		// Rule 5: numbering continues past both the anchor and the log,
+		// which is why NextSeq looks at both.
+		eng.Log.ResetSeq(sf.NextSeq())
+		// Rule 7 is enforced by what is ABSENT here: nothing copies
+		// sf.Config back into cfg. The save records what shaped the
+		// wire so a human can read it; the running agent's own model,
+		// vendor, prompt and tools win. The ch2 context is
+		// vendor-independent, so a conversation saved against one
+		// vendor resumes against another.
+	}
+	journal, err := common.OpenJournal(common.JournalPath(savePath))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "agent: %v\n", err)
+		os.Exit(1)
+	}
+	defer journal.Close()
+	eng.Journal = journal
+
+	// Chapter 15 rule 10: the context target comes from settings.json,
+	// read whether or not the GUI is up, and re-read on every request so a
+	// change applies to the next cut and never to a recorded one.
+	settingsStore := common.NewSettingsStore(filepath.Join(".", "settings.json"))
+	eng.Target = func() int { return settingsStore.Get().ContextTarget }
+
+	actor := llm.NewActor(eng, host)
+
+	// Wire load_skill/unload_skill now that we have the event log.
+	reg.WireSkills(sr, vars, eng.Log)
+	// Re-derive declarations so load_skill and unload_skill appear. This is
+	// the last time eng.Cfg.Tools is written once a session can start:
+	// Chapter 15 rule 1 freezes the startup declarations. A skill loaded
+	// later records ToolsChanged instead, and the renderer carries the
+	// change in the dialog (rule 2). Chapter 10 used to rewrite
+	// eng.Cfg.Tools here on every load, which changed the prefix and
+	// missed the cache on every request after it.
+	eng.Cfg.Tools = reg.Declarations()
+
+	// Track MCP clients per skill for lifecycle management.
+	skillMCPClients := make(map[string][]*mcp.Client)
+	skillMCPToolNames := make(map[string][]string)
+
+	// Skill-based MCP lifecycle: connect when a skill is loaded.
+	reg.SetOnSkillMCPConnect(func(skill string, servers []common.MCPServerConfig) ([]string, error) {
+		var allToolNames []string
+		for _, srv := range servers {
+			var t mcp.Transport
+			var tErr error
+			switch srv.Transport {
+			case "stdio":
+				t, tErr = mcp.NewStdioTransport(srv.Command, srv.Args, srv.Env)
+			default:
+				host.Logf("skill %s: unsupported MCP transport %q, skipping", skill, srv.Transport)
+				continue
+			}
+			if tErr != nil {
+				return nil, fmt.Errorf("skill %s MCP %s: %w", skill, srv.Name, tErr)
+			}
+
+			client := mcp.NewClient(t)
+			if err := client.Initialize(context.Background()); err != nil {
+				client.Close()
+				return nil, fmt.Errorf("skill %s MCP %s init: %w", skill, srv.Name, err)
+			}
+
+			mcpTools, err := client.ListTools(context.Background())
+			if err != nil {
+				client.Close()
+				return nil, fmt.Errorf("skill %s MCP %s list: %w", skill, srv.Name, err)
+			}
+
+			bridged := mcp.Bridge(client, mcpTools)
+			for _, bt := range bridged {
+				reg.RegisterTool(bt)
+				allToolNames = append(allToolNames, bt.Name)
+			}
+
+			client.SetReverseHandler(func(name string, args json.RawMessage) (string, error) {
+				tool, lErr := reg.Lookup(name)
+				if lErr != nil {
+					return "", lErr
+				}
+				return tool.Run(&common.Call{Host: host, Jobs: j}, args)
+			})
+
+			skillMCPClients[skill] = append(skillMCPClients[skill], client)
+		}
+		skillMCPToolNames[skill] = allToolNames
+		return allToolNames, nil
+	})
+
+	// Skill-based MCP lifecycle: disconnect when a skill is unloaded.
+	reg.SetOnSkillMCPDisconnect(func(skill string) error {
+		// Remove bridged tools from registry.
+		for _, name := range skillMCPToolNames[skill] {
+			reg.RemoveTool(name)
+		}
+		delete(skillMCPToolNames, skill)
+
+		// Close MCP clients.
+		for _, client := range skillMCPClients[skill] {
+			client.Close()
+		}
+		delete(skillMCPClients, skill)
+		return nil
+	})
+
+	// --gui-debug: auto-load the gui-debug skill on startup.
+	if guiDebug {
+		loadTool, lErr := reg.Lookup("load_skill")
+		if lErr != nil {
+			fmt.Fprintf(os.Stderr, "gui-debug: load_skill not found: %v\n", lErr)
+			return true
+		}
+		args, _ := json.Marshal(map[string]string{"name": "gui-debug"})
+		// A real Call, so the skill's SkillLoaded event goes through
+		// Record like every other event (ch15: the reducer turns it into
+		// the Skill entry). Its ToolsChanged is dropped: this is startup,
+		// the prefix is not frozen yet, and the declarations are simply
+		// re-derived below.
+		c := &common.Call{Host: host, Jobs: j}
+		if _, lErr = loadTool.Run(c, args); lErr != nil {
+			fmt.Fprintf(os.Stderr, "gui-debug: %v\n", lErr)
+			return true
+		}
+		for _, ev := range c.Events {
+			if ev.Type == common.ToolsChanged {
+				continue
+			}
+			if rErr := eng.Record(ev); rErr != nil {
+				fmt.Fprintf(os.Stderr, "gui-debug: %v\n", rErr)
+				return true
+			}
+		}
+		eng.Cfg.Tools = reg.Declarations()
+	}
+
+	// Pause gate: shared between the actor and the WS hub.
+	gate := common.NewPauseGate()
+	actor.SetPauseGate(gate)
+
+	out := bufio.NewWriter(os.Stdout)
+	defer out.Flush()
+
+	var outMu sync.Mutex
+
+	emitLocked := func(v any) {
+		outMu.Lock()
+		defer outMu.Unlock()
+		b, _ := json.Marshal(v)
+		out.Write(b)
+		out.WriteByte('\n')
+		out.Flush()
+	}
+
+	if isTerminal(os.Stdin) {
+		fmt.Fprintf(os.Stderr, "%[1]s: reading JSON-lines on stdin\n", progName())
+		fmt.Fprintf(os.Stderr, "for an interactive chat run `%[1]s chat`; `%[1]s --help` lists every command\n", progName())
+	}
+
+	// Attach an observer that emits observations as JSON on stdout.
+	actor.Attach(stdoutObserver(func(obs common.Observation) {
+		emitLocked(observationJSON(obs))
+	}))
+
+	// Start the HTTP/WebSocket server if --port is set.
+	if port != "" {
+		// The same store the context policy reads, so a target changed in
+		// the Context Management tab applies from the next request.
+
+		hub := ws.NewHub(gate, func(msg common.Inbound) {
+			actor.Send(msg)
+		}, "gui.log", eng.Log, settingsStore)
+		defer hub.Close()
+		hub.SetTTSLog(ttsLogPath)
+		actor.Attach(hub)
+
+		staticDir := guiDir
+		if staticDir == "" {
+			staticDir = "web/gui"
+		}
+		mux := http.NewServeMux()
+		fs := http.FileServer(http.Dir(staticDir))
+		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+			fs.ServeHTTP(w, r)
+		}))
+		mux.HandleFunc("/ws", hub.ServeWS)
+		srv := &http.Server{Addr: ":" + port, Handler: mux}
+		go srv.ListenAndServe()
+		defer srv.Close()
+	}
+
+	// Start the actor loop.
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go actor.Run(ctx)
+
+	// MCP pipe mode: connect the MCP client to stdin/stdout.
+	// The grader (or another MCP server) drives the MCP protocol externally.
+	if mcpPipe {
+		t := mcp.NewRawTransport(os.Stdin, os.Stdout)
+		client := mcp.NewClient(t)
+		defer client.Close()
+
+		if err := client.Initialize(ctx); err != nil {
+			fmt.Fprintf(os.Stderr, "mcp init: %v\n", err)
+			os.Exit(1)
+		}
+		mcpTools, err := client.ListTools(ctx)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "mcp tools/list: %v\n", err)
+			os.Exit(1)
+		}
+
+		// Bridge and register MCP tools.
+		for _, bt := range mcp.Bridge(client, mcpTools) {
+			reg.RegisterTool(bt)
+		}
+
+		// Set up reverse handler.
+		client.SetReverseHandler(func(name string, args json.RawMessage) (string, error) {
+			tool, lookupErr := reg.Lookup(name)
+			if lookupErr != nil {
+				return "", lookupErr
+			}
+			c := &common.Call{Host: host, Jobs: j}
+			return tool.Run(c, args)
+		})
+
+		// Update tool declarations.
+		eng.Cfg.Tools = reg.Declarations()
+
+		// Block until the MCP transport closes (EOF from the other side).
+		<-client.Done()
+		cancel()
+		_ = actor.Shutdown()
+		return false
+	}
+
+	// Read stdin on this goroutine.
+	in := bufio.NewScanner(os.Stdin)
+	in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
+	hinted := false
+
+	for in.Scan() {
+		line := strings.TrimSpace(in.Text())
+		if line == "" {
+			continue
+		}
+
+		var msg stdinMsg
+		if err := json.Unmarshal([]byte(line), &msg); err != nil {
+			emitLocked(map[string]string{"error": "bad input: " + err.Error()})
+			if !hinted {
+				hinted = true
+				// The guidance below also exists in the TTY banner, which a
+				// piped caller never sees. Someone feeding this binary the
+				// wrong thing is exactly the person who needs to be told
+				// what the right thing is, so say it here too.
+				fmt.Fprintf(os.Stderr, "\n%[1]s: that line is not JSON.\n", progName())
+				fmt.Fprintf(os.Stderr, "%[1]s reads a JSON-lines log on stdin, one message per line.\n", progName())
+				fmt.Fprintf(os.Stderr, "for an interactive chat run `%[1]s chat`; `%[1]s --help` lists every command\n", progName())
+			}
+			continue
+		}
+
+		// Chapter 6 protocol: {"kind":"prompt","text":"..."}
+		if msg.Kind != nil {
+			switch *msg.Kind {
+			case "prompt":
+				if msg.Text == nil {
+					emitLocked(map[string]string{"error": "prompt requires text"})
+					continue
+				}
+				actor.Send(common.UserMessage{Text: *msg.Text})
+				// Wait for turn to end.
+				obs, err := actor.Wait(ctx, func(o common.Observation) bool {
+					_, ok := o.(common.TurnEnded)
+					return ok
+				})
+				if err != nil {
+					vendorFailed = true
+					emitLocked(map[string]string{"error": err.Error()})
+					continue
+				}
+				ended := obs.(common.TurnEnded)
+				if ended.Err != "" {
+					vendorFailed = true
+					emitLocked(map[string]string{"error": ended.Err})
+				} else {
+					emitLocked(map[string]string{"assistant": ended.Text})
+				}
+			case "hint":
+				if msg.Text == nil {
+					emitLocked(map[string]string{"error": "hint requires text"})
+					continue
+				}
+				actor.Send(common.Hint{Text: *msg.Text})
+			case "interrupt":
+				actor.Send(common.Interrupt{})
+			default:
+				emitLocked(map[string]string{"error": "unknown kind: " + *msg.Kind})
+			}
+			continue
+		}
+
+		// Backward compat: {"ephemeral":"..."}
+		if msg.Ephemeral != nil {
+			if err := eng.Attach(*msg.Ephemeral); err != nil {
+				emitLocked(map[string]string{"error": err.Error()})
+				continue
+			}
+			emitLocked(map[string]string{"ack": "ephemeral"})
+			continue
+		}
+
+		// Backward compat: {"user":"..."}
+		if msg.User != nil {
+			reply, err := eng.Ask(*msg.User)
+			if err != nil {
+				vendorFailed = true
+				emitLocked(map[string]string{"error": err.Error()})
+				continue
+			}
+			emitLocked(map[string]string{"assistant": reply})
+			continue
+		}
+
+		emitLocked(map[string]string{"error": "no recognized field"})
+	}
+
+	_ = actor.Shutdown()
+
+	// Save state if --save was given.
+	// Save at exit (rule 6). Every event the engine records is folded
+	// into Ctx as it is appended, so the last event in the log is
+	// exactly the last event inside the snapshot: that is the anchor.
+	// An empty log means nothing has been folded in, so the anchor is
+	// whatever it was when we loaded — which ResetSeq left one below
+	// the next Seq.
+	asOf := common.Seq(0)
+	if n := len(eng.Log.Events); n > 0 {
+		asOf = eng.Log.Events[n-1].Seq
+	} else {
+		asOf = eng.Log.NextSeq() - 1
+	}
+	// Chapter 15 rule 9: snapshot first, then empty the journal, and only
+	// if the snapshot landed. The other order loses the tail to a crash
+	// between the two; a failed save that still emptied the journal loses
+	// it outright.
+	if err := common.SaveRetaining(savePath, asOf, eng.Ctx, eng.Log, eng.Cfg, settingsStore.Get().LogRetention); err != nil {
+		fmt.Fprintf(os.Stderr, "save: %v\n", err)
+	} else if err := journal.Reset(); err != nil {
+		fmt.Fprintf(os.Stderr, "save: %v\n", err)
+	}
+
+	emitLocked(map[string]any{"usage": eng.Ctx.Usage})
+	out.Flush()
+	return vendorFailed
+}
+
+// stdoutObserver adapts a func to common.Observer.
+type stdoutObserver func(common.Observation)
+
+func (f stdoutObserver) Observe(o common.Observation) { f(o) }
+
+// observationJSON converts an Observation to a JSON-friendly map.
+func observationJSON(obs common.Observation) map[string]any {
+	switch v := obs.(type) {
+	case common.PartDelta:
+		m := map[string]any{"observation": "part_delta", "part_id": v.PartID, "kind": v.Kind.String(), "chunk": v.Chunk}
+		if v.Agent != "" {
+			m["agent"] = string(v.Agent)
+		}
+		return m
+	case common.PartFinal:
+		m := map[string]any{"observation": "part_final", "part_id": v.PartID, "seq": v.Seq}
+		if v.Agent != "" {
+			m["agent"] = string(v.Agent)
+		}
+		switch p := v.Part.(type) {
+		case common.TextPart:
+			m["text"] = p.Text
+		case common.ToolCallPart:
+			// Finals now fire for tool calls and reasoning, not just text.
+			// That content is what an Actions pane is made of, and the old
+			// text-only path emitted none of it.
+			m["tool"] = p.Name
+			m["args"] = string(p.Args)
+		case common.OpaquePart:
+			m["opaque"] = true
+		}
+		return m
+	case common.StateChanged:
+		m := map[string]any{"observation": "state_changed", "from": v.From.String(), "to": v.To.String()}
+		if v.Agent != "" {
+			m["agent"] = string(v.Agent)
+		}
+		return m
+	case common.TurnEnded:
+		m := map[string]any{"observation": "turn_ended", "text": v.Text}
+		if v.Agent != "" {
+			m["agent"] = string(v.Agent)
+		}
+		if v.Err != "" {
+			m["error"] = v.Err
+		}
+		return m
+	case common.ToolDispatched:
+		m := map[string]any{"observation": "tool_dispatched", "call_id": v.CallID, "name": v.Name}
+		if v.Input != nil {
+			m["input"] = json.RawMessage(v.Input)
+		}
+		if v.Agent != "" {
+			m["agent"] = string(v.Agent)
+		}
+		return m
+	case common.ToolFinished:
+		m := map[string]any{"observation": "tool_finished", "call_id": v.CallID, "result": v.Result, "is_error": v.IsError}
+		if v.Agent != "" {
+			m["agent"] = string(v.Agent)
+		}
+		return m
+	}
+	return map[string]any{"observation": "unknown"}
+}
+
+// ----------------------------------------------------------------
+// Interactive chat mode (same as ch05, uses synchronous Ask).
+// ----------------------------------------------------------------
+
+func runLoop(cfg common.Config, logPath string, interactive bool, reg *tools.Reg) (vendorFailed bool) {
+	host := newCLIHost()
+	j := jobs.NewJobs(host)
+	eng := llm.NewEngine(cfg, logPath, j, reg, host)
+	in := bufio.NewScanner(os.Stdin)
+	in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
+	out := bufio.NewWriter(os.Stdout)
+	defer out.Flush()
+
+	if interactive {
+		fmt.Fprintf(os.Stderr, "%s — type a message, ctrl-D to exit\n", progName())
+		fmt.Fprint(os.Stderr, "> ")
+	}
+
+	for in.Scan() {
+		line := strings.TrimSpace(in.Text())
+		if line == "" {
+			if interactive {
+				fmt.Fprint(os.Stderr, "> ")
+			}
+			continue
+		}
+
+		if _, err := eng.AskWatching(line, chatStream(out)); err != nil {
+			vendorFailed = true
+			fmt.Fprintln(os.Stderr, "error:", err)
+			fmt.Fprint(os.Stderr, "> ")
+			continue
+		}
+
+		// The reply already streamed to stdout through the callbacks above.
+		// Printing it again here is the obvious mistake: it duplicates every
+		// answer, and it looks correct until the first long one.
+		fmt.Fprintln(out)
+		out.Flush()
+		fmt.Fprint(os.Stderr, "> ")
+	}
+
+	_ = eng.Shutdown()
+	out.Flush()
+	return vendorFailed
+}
+
+func emit(out *bufio.Writer, v any) {
+	b, _ := json.Marshal(v)
+	out.Write(b)
+	out.WriteByte('\n')
+	out.Flush()
+}
+
+func configFromEnv(reg *tools.Reg) (common.Config, error) {
+	vendor, err := parseVendor(envOr("LLM_VENDOR", "anthropic"))
+	if err != nil {
+		return common.Config{}, err
+	}
+	cfg := common.Config{
+		Vendor:       vendor,
+		Surface:      common.DefaultSurface(vendor),
+		SystemPrompt: systemPrompt,
+		MaxTokens:    16384,
+		Tools:        reg.Declarations(),
+	}
+	switch vendor {
+	case common.VendorAnthropic:
+		cfg.Model = pick("LLM_MODEL", "ANTHROPIC_MODEL", "claude-sonnet-5")
+		cfg.BaseURL = pick("LLM_BASE_URL", "ANTHROPIC_BASE_URL", "https://api.anthropic.com")
+		cfg.APIKey = pick("LLM_API_KEY", "ANTHROPIC_API_KEY", "")
+	case common.VendorOpenAI:
+		cfg.Model = pick("LLM_MODEL", "OPENAI_MODEL", "gpt-5")
+		cfg.BaseURL = pick("LLM_BASE_URL", "OPENAI_BASE_URL", "https://api.openai.com")
+		cfg.APIKey = pick("LLM_API_KEY", "OPENAI_API_KEY", "")
+	case common.VendorGemini:
+		cfg.Model = pick("LLM_MODEL", "GEMINI_MODEL", "gemini-3.8-flash")
+		cfg.BaseURL = pick("LLM_BASE_URL", "GEMINI_BASE_URL", "https://generativelanguage.googleapis.com")
+		cfg.APIKey = pick("LLM_API_KEY", "GEMINI_API_KEY", "")
+	}
+
+	// Allow disabling streaming for testing.
+	if os.Getenv("EN_DISABLE_STREAMING") == "1" {
+		cfg.DisableStreaming = true
+	}
+
+	return cfg, nil
+}
+
+func parseVendor(s string) (common.Vendor, error) {
+	switch common.NormalizeName(s) {
+	case "anthropic", "claude":
+		return common.VendorAnthropic, nil
+	case "openai":
+		return common.VendorOpenAI, nil
+	case "gemini":
+		return common.VendorGemini, nil
+	}
+	return 0, fmt.Errorf("unknown vendor %q (want anthropic, openai or gemini)", s)
+}
+
+// chatStream prints a turn as it arrives.
+//
+// Reply text goes to STDOUT, because that is the answer and stdout is where
+// an answer belongs. Reasoning and tool calls go to STDERR as commentary,
+// dimmed and yellow. Piping the binary therefore still yields exactly what
+// the assistant said and nothing else, while a human at a terminal sees the
+// whole turn being built.
+//
+// Colour is chosen by whether STDERR is a terminal, not by a flag. Writing
+// escape codes into a pipe is how a log file ends up full of \033[2m.
+func chatStream(out *bufio.Writer) common.StreamCallbacks {
+	const (
+		reset  = "\033[0m"
+		dim    = "\033[2m"
+		yellow = "\033[33m"
+	)
+	color := isTerminal(os.Stderr)
+	open := false
+
+	paint := func(code string) {
+		if color && !open {
+			fmt.Fprint(os.Stderr, code)
+			open = true
+		}
+	}
+	clear := func() {
+		if open {
+			fmt.Fprint(os.Stderr, reset)
+			open = false
+		}
+	}
+
+	return common.StreamCallbacks{
+		OnDelta: func(_ uint64, kind common.DeltaKind, chunk string) {
+			switch kind {
+			case common.DeltaText:
+				clear()
+				fmt.Fprint(out, chunk)
+				// Flush per chunk. Without it the buffer holds the whole
+				// answer and releases it in one lump at the end, which looks
+				// exactly like streaming having no effect.
+				out.Flush()
+			case common.DeltaThinking:
+				paint(dim)
+				fmt.Fprint(os.Stderr, chunk)
+			case common.DeltaToolCall:
+				paint(yellow)
+				fmt.Fprint(os.Stderr, chunk)
+			}
+		},
+		OnPartFinal: func(_ uint64, _ common.Part) {
+			// Only break the line if commentary was being written, so a
+			// plain text answer does not collect blank lines after it.
+			if open {
+				clear()
+				fmt.Fprintln(os.Stderr)
+			}
+		},
+	}
+}
+
+func isTerminal(f *os.File) bool {
+	fi, err := f.Stat()
+	return err == nil && fi.Mode()&os.ModeCharDevice != 0
+}
+
+func envOr(k, def string) string {
+	if v := os.Getenv(k); v != "" {
+		return v
+	}
+	return def
+}
+
+func pick(primary, secondary, def string) string {
+	if v := os.Getenv(primary); v != "" {
+		return v
+	}
+	return envOr(secondary, def)
+}
