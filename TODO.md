@@ -120,6 +120,13 @@ Mark every entry VERIFIED (observed directly, with a date) or ASSUMED
       60 reads in one prompt stopped at 16 rounds with `max_tool_rounds: 100`.
       Not ch15's contract. Fix belongs to ch9's settings path; the ch15
       grader's longest turn is 13 rounds, so fixing it moves no ch15 score.
+- [ ] **Anthropic renderer never sets `cache_control`.** VERIFIED 2026-09-23.
+      `grep -rn cache_control agent --include=*.go` finds nothing. A real
+      `claude-opus-5` run (ch15 §15.15, `context_target` 20000, 11 requests)
+      reported `cache_creation_input_tokens` 0 and `cache_read_input_tokens` 0
+      on every request. The byte-stable prefix ch15 protects earns no discount
+      on this vendor until a breakpoint is sent. Which chapter owns it (ch2
+      renderer or ch15) is the author's call.
 
 - [x] **A bare `./ensemble --port 8084` had only two tools.** FIXED 2026-09-20
       in `6335237`. Bill hit this live: the agent truthfully reported that it
