@@ -42,29 +42,12 @@ purpose: no chapter count is fixed until a chapter is built.
   design): auth, credential flow, and what the agent may touch.
 - **Gateway.** Channels (chat, webhooks, voice) and a scheduler: the agent
   acting with no human at the keyboard. Must follow sandboxing.
-- **Live state without breaking the cache.** AI Native ch7 "An Agent That
-  Sees the Board": inject the current state of the user's screen or work
-  item per turn, at the tail, so the prefix stays cached.
-- **Prompt layout and the cache bill.** AI Native ch6 "Only the Prefix Is
-  Cached". May fold into ch15 rather than stand alone.
 - **Workflows.** AI Native ch9-10: a skill is advice, a workflow is a
   program; then workflows the agent writes for itself. Also where the ch5
   three-agent exercise and the wake-once check were deferred.
-- **Prompt injection and provenance.** AI Native ch11-12: loading a skill
-  is loading code; trace where every instruction came from. May pair with
-  sandboxing.
 - **Sub-agents.** Spawn, sync/async, structured submit that survives
   shutdown, join, blocking child-to-parent messages. "Submitted" is not
   "succeeded".
-- **Orchestration.** Fleets, supervision, worktrees, cherry-picking results.
-- **Measurement.** AI Native ch13-14 "Prove It Got Better" and "Improve
-  the Loop, Not the Model": acceptance loops, benchmarks, the tool-call
-  audit, and the numbers ch15 owes (80% discard, band budgets, recall@10,
-  the auto-redaction-versus-thinking question).
-- **Autonomy you can audit.** AI Native ch15: unattended agents that leave
-  evidence. Likely merges with the gateway.
-- **A session, live.** AI Native ch3: one real morning with the finished
-  agent, as a showcase near the end.
 - **Self-wielding capstone.** The agent writes and grades a new chapter
   itself.
 
