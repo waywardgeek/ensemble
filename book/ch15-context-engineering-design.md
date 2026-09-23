@@ -101,7 +101,7 @@ lean on this hard: the reader has already paid for most of the machinery.
 | `RedactData` names a span and a level; its comment already names "every tool result older than the last `save_memory`" as the compaction that matters most | VERIFIED `event.go:205-215` | That sentence is now literally the ruled policy (§B.3). |
 | `RedactDialogue` survivors deferred: "Survivors are defined by the compaction policy, which is a later chapter's problem" | VERIFIED `context.go:258-260` | **This arc is that later chapter.** The removal rule (§I.7) defines the survivors. |
 | System prompt as an immutable constitution; dynamic skills arrive in the dialog; lazy unload `LoadPendingUnload`, "Marked for removal at compaction" | ch10; VERIFIED `skill.go:36`, `skill_registry.go:166` | Generalized into the frozen-prefix law (§I.4) and lazy deep removal (§I.7). |
-| `Save`/`Load`/`Rebuild`: whole context plus whole log, rebuilt by replaying every event | ch11; VERIFIED `save.go:29`, `save.go:64` | Chapter A adds the Seq anchor, on-the-fly append, truncation and a total reducer (§A.9). |
+| `Save`/`Load`/`Rebuild`: whole context plus whole log. Since the 2026-09-22 ch11 TL;DR rewrite also: `as_of` anchor, load = snapshot plus tail, null context = full replay, default load from `./save.json` | ch11 TL;DR rules 1-8; `save.go` line cites predate the rewrite, RE-VERIFY | Chapter A adds on-the-fly append, a backup generation, truncation and a total reducer (§A.9). The anchor and snapshot-plus-tail load are ch11's. |
 | "An unobservable channel produces wrong data, not no data" | ch14 | Applied to compaction visibility (§B.7). |
 | Model features as a data table with no default row | ch6/ch7 | Self-curation capability is one more column (§A.5). |
 
@@ -658,17 +658,22 @@ Kept as a **backstop** where our curation is unavailable; when it fires, record
 
 **The gap (RULED as a gap, VERIFIED in code):** events are not written to disk as
 they happen. A design whose ground truth is an append-only log is only as good as
-the moment the log reaches storage. Chapter 11's `Save` writes the whole context
-and the whole log at once (`save.go:29`); `Rebuild` replays every event
-(`save.go:64`). There is no anchor, no incremental append, no truncation.
+the moment the log reaches storage. Chapter 11 (TL;DR rewritten 2026-09-22)
+already saves the context with its `as_of` anchor and loads snapshot plus tail,
+but it writes everything once, at exit. A crash loses every event since the last
+clean exit. There is no incremental append, no backup, no truncation. Chapter A
+adds exactly those; it must not re-teach the anchor.
 
 **The model (RULED):**
 
 - **Tail:** events are appended to the on-disk log as they occur.
-- **Snapshot:** the context saved **as of a specific event**, carrying the `Seq`
-  it was taken at. Without the anchor, recovery cannot know where to resume.
-- **Recovery:** load the latest snapshot; if its `Seq` equals the log head,
-  nothing to replay; if behind, replay every event after the anchor.
+- **Snapshot (ch11 builds this):** the context saved **as of a specific event**,
+  carrying the `Seq` it was taken at (`as_of`). Without the anchor, recovery
+  cannot know where to resume.
+- **Recovery (ch11 builds the load half):** load the latest snapshot; if its
+  `Seq` equals the log head, nothing to replay; if behind, replay every event
+  after the anchor. What Chapter A adds is a tail that exists on disk after a
+  crash.
 - **Normal shutdown** also snapshots, so the common start is a current snapshot
   with an empty tail.
 - **Events before the anchor** are needed only for the GUI and audit, never for
@@ -750,7 +755,7 @@ All VERIFIED against `agent/internal/common/` today.
 | No tool-declaration door | tools arrive only as a side effect of `SkillLoaded`; an MCP connect mid-session has no door | Event `ToolsChanged`: a declaration delta from a skill load, MCP connect or MCP disconnect. `SkillLoaded` keeps instruction text only. |
 | Span-only compaction | `summarizeSpan` folds the whole span, `context.go:285-305` | Tool ladder: solved by kinds, no selector (§A.4). Graduation still needs a band-restricted fold; see Q2. |
 | Reducer not total | `save.go:64-68` | `Rebuild` never errors; skip-and-diagnose. |
-| No incremental persistence | `save.go:29` writes everything at once | Append-on-write log, anchored snapshot, backup generation, truncation. |
+| No incremental persistence | ch11 writes everything once, at exit | Append-on-write log, backup generation, truncation. (Anchored snapshot is ch11's.) |
 | Text results unaddressable | `stubFor`, `context.go:319-336`: `Ref{}` unless `BlobPart` | None: accepted (Q3 ruling). The loss is intended. |
 
 New event types are appended, never renumbered (VERIFIED `event.go:22`: "a number
@@ -770,10 +775,10 @@ builds the *policy* that emits redaction events, not just the layout.
 | | Chapter A | Chapter B |
 |---|---|---|
 | Entry kinds | `Dialogue`, `Handoff`, `Skill` | `Memory`, `Learning` (appended to the enum; never renumber) |
-| Events | `MicroHandoff`; `SkillLoaded` reducer creates the `Skill` entry (body already in the event); `ToolsChanged`; ladder emits existing `RedactData` with a recorded Seq; snapshot anchor | `MemorySaved`, `LearningAdded`, graduation (Q2), startup attach (Q24) |
+| Events | `MicroHandoff`; `SkillLoaded` reducer creates the `Skill` entry (body already in the event); `ToolsChanged`; ladder emits existing `RedactData` with a recorded Seq | `MemorySaved`, `LearningAdded`, graduation (Q2), startup attach (Q24) |
 | Tools | `micro_handoff` (new); ladder policy (not a tool); `keep_tool_results` only if Q6 says so | `save_memory`, `add_learning`, `delete_learning` |
 | Reducer | total (skip and diagnose); tool clears touch only tool parts | the reorder pass of `MemorySaved` |
-| Persistence | append-on-write log, anchored snapshot, backup, truncation | none new |
+| Persistence | append-on-write log, backup, truncation (anchor is ch11's) | none new |
 | Settings tab | Context Management | Memory |
 
 Chapter A teaches the layout with an **empty memory region**, as §A.1 says. The
@@ -794,8 +799,8 @@ never through names. Weights are for the coder's brief and sum to 100.
 | micro_handoff shape | 15 | the request after `micro_handoff` contains zero tool-call and tool-result blocks, contains the handoff text exactly once, and is accepted by the fake vendor's pairing check | an implementation that keeps the call argument carries the text twice; one that deletes mid-pair is rejected |
 | ladder is recorded, not recomputed | 15 | change the watermark setting after the session, replay the log, and the rendered context is identical | an event that says "below the watermark" instead of a Seq changes under replay |
 | frozen prefix unchanged | 10 | a mid-session skill load leaves the system prompt and fixed tool declarations byte-identical in the next request | re-declaring tools is the old, cache-missing behavior |
-| replay equals snapshot | 15 | replaying the log from the snapshot anchor reproduces the saved snapshot byte-for-byte, compaction events included | ch11's Rebuild==saved, one level up |
-| crash recovery | 15 | kill the agent mid-session, restart, and the next request equals what it would have been without the crash | needs append-on-write plus the anchor; a save-at-exit design loses the tail |
+| replay equals snapshot | 15 | loading as snapshot and loading with `context: null` produce byte-identical next requests, with ch15's new events (redactions, `MicroHandoff`, `ToolsChanged`) in the log | ch11 grades the same property (replay-equals-snapshot, tail-applied-once) over ch10's event set; ch15's new events must keep it |
+| crash recovery | 15 | kill the agent mid-session, restart, and the next request equals what it would have been without the crash | the anchor exists (ch11); ch11's save-at-exit still loses the tail, so this needs append-on-write |
 | total reducer | 10 | a log with a malformed event and a redaction naming an already-removed entry still starts, and the diagnostic is observable | today's `Rebuild` returns an error on the first bad event (`save.go:64-68`) |
 
 The fake vendor must reject a request with an unpaired tool call or result, as
@@ -1279,8 +1284,8 @@ context". The coder reads that as the reducer's `Context` (vendor-independent,
 what ch11 already saves), not the vendor wire bytes, which are per-vendor and
 re-derivable. Confirm.
 *PROPOSED ANSWER:* the `Context`. The "replay equals snapshot" check (§A.13)
-compares `Context` bytes, which is the only form that is the same for every
-vendor.
+compares the next vendor request bytes, as ch11's does, so the grader never
+depends on the student's `Context` JSON layout.
 
 **Q9. May the chapter print the starting values as defaults** (12 KiB bands,
 N = 100), labelled as defaults and not measurements, or must they be
