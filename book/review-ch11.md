@@ -189,9 +189,16 @@ load-bearing behaviour rather than a flag.
   `solutions/ch14` and `./agent` after the forward port.
 - Full sweep of every chapter grader after the change is **byte-identical** to
   the sweep before it. No regressions.
-- Pre-existing failures, unchanged and untouched (all reproduce at the parent
-  commit): ch5 on `./agent` NOSCORE, ch6 45/100, ch14 on `./solutions/ch14`
-  5/100, and the `TestCh3PointsSumTo100` / `TestCh4DeletionAudit` unit tests.
+- Pre-existing failures, unchanged and untouched: ch5 on `./agent` NOSCORE,
+  ch6 45/100, ch14 on `./solutions/ch14` 5/100. `go test ./... -count=1`
+  fails 19 tests under six top-level cases — `TestCh3PointsSumTo100`,
+  `TestCh6ReferenceScores100`, `TestCh6DeletionAudit`,
+  `TestCh7ReferenceScores100`, `TestCh7DeletionAudit`, `TestCh8Grade`. The
+  failure set is **identical, name for name, at my parent commit** (`7a0ddd9`,
+  checked in a clean worktree), so none of it is fallout from this work. It
+  does mean the repo's test suite was already red before this chapter, which
+  someone should look at — ch6 and ch7 are the two chapters whose harnesses I
+  touched, and it would be easy to blame the wrong change later.
 
 ## Voice
 
