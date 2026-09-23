@@ -745,7 +745,7 @@ All VERIFIED against `agent/internal/common/` today.
 | Gap | Evidence | Proposed (additive only) |
 |---|---|---|
 | No kind on entries | `Entry{Seq, Actor, Parts}`, `context.go:38-42` | `Entry.Kind`, enum `iota+1` (zero invalid), per §I.5a. Set by the reducer at write time; the channel is derived from it. Replaces the earlier `Entry.Channel` proposal. |
-| Survivors ride inside tool pairs | skill body appended to the `load_skill` result, `tools.go:1016`; reducer ignores skills (`context.go`: zero matches for "Skill"); `micro_handoff` text is a call argument | One event per door, each following the §A.6 sequence (call, ordinary result, then the event): `SkillLoaded` gains the body and its reducer creates a `Skill` entry; new `LearningAdded`, `MemorySaved`, `MicroHandoff`. The earlier generic `DataAttached` proposal is withdrawn. |
+| Survivors ride inside tool pairs | skill body appended to the `load_skill` result, `tools.go:1016`; reducer ignores skills (`context.go`: zero matches for "Skill"); `micro_handoff` text is a call argument | One event per door, each following the §A.6 sequence (call, ordinary result, then the event): `SkillLoaded` already carries the body (`SkillData{Name, Body}`, `event.go:201-204`, "so the GUI can display it"), so only its reducer is new: it creates a `Skill` entry; new `LearningAdded`, `MemorySaved`, `MicroHandoff`. The earlier generic `DataAttached` proposal is withdrawn. |
 | No way to attach identity and bands at startup | ten event types, none carry data (`event.go:24-40`); `Ephemera` is delivered once then cleared (`context.go:62`), wrong semantics for bands | `Memory` entries with a band label (`soul`, `memory`, `64x`, `8x`, `session`). The event that attaches them on a fresh start is unnamed (Q24). |
 | No tool-declaration door | tools arrive only as a side effect of `SkillLoaded`; an MCP connect mid-session has no door | Event `ToolsChanged`: a declaration delta from a skill load, MCP connect or MCP disconnect. `SkillLoaded` keeps instruction text only. |
 | Span-only compaction | `summarizeSpan` folds the whole span, `context.go:285-305` | Tool ladder: solved by kinds, no selector (§A.4). Graduation still needs a band-restricted fold; see Q2. |
@@ -770,7 +770,7 @@ builds the *policy* that emits redaction events, not just the layout.
 | | Chapter A | Chapter B |
 |---|---|---|
 | Entry kinds | `Dialogue`, `Handoff`, `Skill` | `Memory`, `Learning` (appended to the enum; never renumber) |
-| Events | `MicroHandoff`; `SkillLoaded` gains the body; `ToolsChanged`; ladder emits existing `RedactData` with a recorded Seq; snapshot anchor | `MemorySaved`, `LearningAdded`, graduation (Q2), startup attach (Q24) |
+| Events | `MicroHandoff`; `SkillLoaded` reducer creates the `Skill` entry (body already in the event); `ToolsChanged`; ladder emits existing `RedactData` with a recorded Seq; snapshot anchor | `MemorySaved`, `LearningAdded`, graduation (Q2), startup attach (Q24) |
 | Tools | `micro_handoff` (new); ladder policy (not a tool); `keep_tool_results` only if Q6 says so | `save_memory`, `add_learning`, `delete_learning` |
 | Reducer | total (skip and diagnose); tool clears touch only tool parts | the reorder pass of `MemorySaved` |
 | Persistence | append-on-write log, anchored snapshot, backup, truncation | none new |
