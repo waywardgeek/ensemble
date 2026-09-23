@@ -172,7 +172,7 @@ Apache License 2.0 — see LICENSE.
   - [14.8 What a program cannot verify](#148-what-a-program-cannot-verify)
   - [14.9 Exercise, graded](#149-exercise-graded)
   - [14.10 Taking it for a spin](#1410-taking-it-for-a-spin)
-- [Chapter 15: Keep the Words](#chapter-15-keep-the-words)
+- [Chapter 15: The World's Best Context Engineering, Before Breakfast](#chapter-15-the-worlds-best-context-engineering-before-breakfast)
   - [TL;DR](#tldr-9)
   - [§15.1 In Plain Words](#151-in-plain-words)
   - [§15.2 Why Is This Byte Here?](#152-why-is-this-byte-here)
@@ -8024,19 +8024,34 @@ The same command with `--persona sighted` produces a report about the DOM and sa
 
 ---
 
-# Chapter 15: Keep the Words
+# Chapter 15: The World's Best Context Engineering, Before Breakfast
 
-Every long session with a coding agent ends the same way. The answers
-get vaguer. The agent re-reads a file it read an hour ago, then forgets
-a decision made before lunch. Eventually the human gives up on the
-conversation, copies out the parts worth keeping, pastes them into a
-fresh chat, and starts again. That manual reset is how most people
-manage context today, including the people who build these agents:
-Bill did it several times on the day this chapter was designed. The
-reset works because a human decides what to keep. This chapter moves
-that decision inside the agent, makes it continuous instead of
-catastrophic, and records every cut as an event, so nothing leaves the
-window without a record of what removed it.
+This may be the most important chapter in the book.
+
+If you've ever started a new chat because your agent seemed confused,
+well, that's yesterday's context engineering. I did it myself, several
+times, on the day I designed this chapter. As of September 2026, what
+follows is tomorrow's. The book is evergreen, so I hope it always has
+modern advice.
+
+The design had been in my head for a couple of months. On a Tuesday
+morning I typed it out for about twenty minutes while CodeRhapsody
+turned it into a design record and checked it against the code. Then I
+took a shower. The first commit landed at 7:42, before breakfast, and
+frankly it felt good to get it out.
+
+This is how long-running actors should work: what the actor knows,
+organized by section at several levels of detail, with the most
+critical parts kept longest, instead of some lame summary of the first
+half of the context.
+
+Every long session with a coding agent degrades the same way. The
+answers get vaguer. The agent re-reads a file it read an hour ago, then
+forgets a decision made before lunch. A fresh chat fixes it because a
+human decides what to carry over. This chapter moves that decision
+inside the agent, makes it continuous instead of catastrophic, and
+records every cut as an event, so nothing leaves the window without a
+record of what removed it.
 
 ## TL;DR
 

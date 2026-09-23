@@ -344,7 +344,10 @@ Coder must verify before building:
 ## Open questions for Bill
 
 1. ~~Chapter numbers~~ RULED: A = 15, B = 16, C = 17.
-2. **Title:** "Keep the Words" recommended.
+2. ~~**Title:** "Keep the Words" recommended.~~ RULED (Bill, 2026-09-23):
+   "The World's Best Context Engineering, Before Breakfast", with a
+   motivational opener in Bill's voice. "Keep the words" stays as §15.11's
+   tagline.
 3. ~~Q6~~ RULED: build per-round-trip auto-redaction and `keep_tool_results` in
    ch15 (coder list items 10-11). The grader needs a check for it; weights must be
    rebalanced to stay at 100 (author's call; proposal: `keep` 10, taken 5 from
