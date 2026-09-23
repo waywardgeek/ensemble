@@ -57,16 +57,23 @@ func (l *Log) ResetSeq(next Seq) {
 	l.next = next
 }
 
+// NextSeq is the Seq the next appended event will get. A save whose log
+// was trimmed away has no last event to read the anchor off, so the
+// anchor has to come from here instead.
+func (l *Log) NextSeq() Seq {
+	return l.next
+}
+
 // Replay rebuilds the context from nothing but the log. This is the whole
 // claim of the chapter in four lines.
+//
+// Chapter 11 generalises this to snapshot-plus-tail, and there must be
+// exactly one replay loop in the agent or the two will drift apart and
+// disagree about some event nobody thought to test. So this is now the
+// special case it always was: a save with no snapshot and no anchor.
 func (l *Log) Replay() (*Context, error) {
-	c := NewContext()
-	for _, e := range l.Events {
-		if err := c.Apply(e); err != nil {
-			return nil, err
-		}
-	}
-	return c, nil
+	sf := &SaveFile{Log: l.Events}
+	return sf.Restore()
 }
 
 // header is the first line of a log file. It is not an event; it carries the

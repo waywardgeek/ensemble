@@ -67,8 +67,13 @@ func main() {
 	mode := ""
 	port := ""
 	guiDir := ""
-	savePath := ""
-	loadPath := ""
+	// Rule 1: the save file is save.json in the working directory,
+	// beside settings.json. --save PATH names a different file. The
+	// flag changes WHERE, never WHETHER: this one path is both the
+	// file loaded at start and the file written at exit. There is no
+	// --load, because a flag that loads without saving (or saves
+	// without loading) is how you lose an afternoon of conversation.
+	savePath := "save.json"
 	mcpPipe := false
 	guiDebug := false
 	skillsDir := ""
@@ -95,11 +100,6 @@ func main() {
 			i++
 		case strings.HasPrefix(args[i], "--save="):
 			savePath = strings.TrimPrefix(args[i], "--save=")
-		case args[i] == "--load" && i+1 < len(args):
-			loadPath = args[i+1]
-			i++
-		case strings.HasPrefix(args[i], "--load="):
-			loadPath = strings.TrimPrefix(args[i], "--load=")
 		case args[i] == "--mcp-pipe":
 			mcpPipe = true
 		case args[i] == "--gui-debug":
@@ -136,16 +136,18 @@ func main() {
 		usage(os.Stdout)
 
 	case "verify":
-		if savePath == "" {
-			fmt.Fprintln(os.Stderr, "verify requires --save=PATH to a save file")
-			os.Exit(2)
-		}
 		sf, err := common.Load(savePath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "load: %v\n", err)
 			os.Exit(2)
 		}
-		rebuilt, err2 := common.Rebuild(sf.Log)
+		// Rebuild from the log alone and compare against the saved
+		// snapshot. A save with a snapshot and a trimmed log has
+		// nothing to compare, so this only means something for a save
+		// that still carries its whole history. verify is a debugging
+		// aid and no part of the contract: nothing grades it.
+		full := &common.SaveFile{Log: sf.Log}
+		rebuilt, err2 := full.Restore()
 		if err2 != nil {
 			fmt.Fprintf(os.Stderr, "rebuild: %v\n", err2)
 			os.Exit(2)
@@ -198,7 +200,7 @@ func main() {
 		}
 
 	case "":
-		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, loadPath, mcpPipe, guiDebug, skillsDir, ttsLogPath) {
+		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath) {
 			os.Exit(1)
 		}
 
@@ -255,7 +257,7 @@ type stdinMsg struct {
 	Ephemeral *string `json:"ephemeral"`
 }
 
-func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, loadPath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string) (vendorFailed bool) {
+func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string) (vendorFailed bool) {
 	host := newCLIHost()
 	j := jobs.NewJobs(host)
 
@@ -305,20 +307,40 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 
 	eng := llm.NewEngine(cfg, logPath, j, reg, host)
 
-	// If --load was given, restore context and log from the save file.
-	if loadPath != "" {
-		sf, err := common.Load(loadPath)
+	// Load at start (rule 2). No flag decides this; the file's
+	// existence does. A missing file is an ordinary fresh start.
+	if _, statErr := os.Stat(savePath); statErr == nil {
+		sf, err := common.Load(savePath)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "load: %v\n", err)
+			// A file that exists but does not parse is fatal. We must
+			// NOT start fresh over it: the agent saves at exit, and a
+			// fresh start would write an empty conversation over the
+			// user's history. Name the file, touch none of its bytes,
+			// and let a human look at it.
+			fmt.Fprintf(os.Stderr, "agent: cannot load save file %s: %v\n", savePath, err)
 			os.Exit(1)
 		}
-		// Restore the context.
-		eng.Ctx = sf.Context
-		// Restore the event log.
-		eng.Log.Events = sf.Log
-		if len(sf.Log) > 0 {
-			eng.Log.ResetSeq(sf.Log[len(sf.Log)-1].Seq + 1)
+		// Rule 3: install the snapshot, then apply only the tail above
+		// its anchor. Restore handles the null-snapshot case too.
+		ctx, rerr := sf.Restore()
+		if rerr != nil {
+			fmt.Fprintf(os.Stderr, "agent: cannot restore save file %s: %v\n", savePath, rerr)
+			os.Exit(1)
 		}
+		eng.Ctx = ctx
+		// The loaded log is kept whole: rule 6 saves it back plus
+		// whatever this session adds. Restoring the context consumed
+		// the tail; it did not consume the history.
+		eng.Log.Events = sf.Log
+		// Rule 5: numbering continues past both the anchor and the log,
+		// which is why NextSeq looks at both.
+		eng.Log.ResetSeq(sf.NextSeq())
+		// Rule 7 is enforced by what is ABSENT here: nothing copies
+		// sf.Config back into cfg. The save records what shaped the
+		// wire so a human can read it; the running agent's own model,
+		// vendor, prompt and tools win. The ch2 context is
+		// vendor-independent, so a conversation saved against one
+		// vendor resumes against another.
 	}
 
 	actor := llm.NewActor(eng, host)
@@ -614,10 +636,20 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	_ = actor.Shutdown()
 
 	// Save state if --save was given.
-	if savePath != "" {
-		if err := common.Save(savePath, eng.Ctx, eng.Log, eng.Cfg); err != nil {
-			fmt.Fprintf(os.Stderr, "save: %v\n", err)
-		}
+	// Save at exit (rule 6). Every event the engine records is folded
+	// into Ctx as it is appended, so the last event in the log is
+	// exactly the last event inside the snapshot: that is the anchor.
+	// An empty log means nothing has been folded in, so the anchor is
+	// whatever it was when we loaded — which ResetSeq left one below
+	// the next Seq.
+	asOf := common.Seq(0)
+	if n := len(eng.Log.Events); n > 0 {
+		asOf = eng.Log.Events[n-1].Seq
+	} else {
+		asOf = eng.Log.NextSeq() - 1
+	}
+	if err := common.Save(savePath, asOf, eng.Ctx, eng.Log, eng.Cfg); err != nil {
+		fmt.Fprintf(os.Stderr, "save: %v\n", err)
 	}
 
 	emitLocked(map[string]any{"usage": eng.Ctx.Usage})
