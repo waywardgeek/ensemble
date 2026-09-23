@@ -89,97 +89,172 @@ Yours: indentation, whether to write through a temporary file and rename
 | bad-save-refused | 5 | rule 2 |
 | ch10-parity | 15 | chapter 10 still passes |
 
-## §11.1 The Why
+## §11.1 In Plain Words
 
-The event log is the truth. The context is what the truth means right now. Save both and you have a conversation you can resume, audit, or replay from any point.
+The event log is the truth. The context is what the truth means right
+now. Chapter 2 split them on purpose: events are appended and never
+edited, and the context is whatever `Apply` makes of them. Ten
+chapters later the split has carried streaming, jobs, artifacts, and
+skills without once being tested for the one thing it was built for.
 
-But the deeper reason is verification. Every `Apply` call in every chapter has been an implicit claim: this reducer is deterministic, and the context it produces is the only thing the LLM needs. Save and load make that claim falsifiable. If the claim is wrong, you will find out now, not three chapters from now when memory compaction silently corrupts a conversation.
+That thing is this: the context must be a pure function of the events.
+No clock, no map iteration order, no field set by the engine behind the
+reducer's back. Every chapter since has assumed it. Nothing has checked
+it. An agent that runs start to finish in one process can violate it
+forever and never notice, because the live context is the only copy
+anyone ever looks at.
 
-## §11.2 The SaveFile
+Saving creates a second copy. Once a snapshot sits on disk next to the
+log that produced it, the claim becomes falsifiable: rebuild from the
+log, compare with the snapshot, and any difference is a reducer bug
+with a name. Persistence is the feature a user sees. Verification is
+the reason it belongs this early in the book.
 
-Three fields:
+## §11.2 The Save File
+
+Four fields:
 
 ```go
 type SaveFile struct {
-    Context *Context   `json:"context"`
-    Log     *Log       `json:"log"`
     Config  SaveConfig `json:"config"`
+    AsOf    Seq        `json:"as_of"`
+    Context *Context   `json:"context"`
+    Log     []Event    `json:"log"`
 }
 ```
 
-The context is what the LLM sees. The log is the audit trail. The config is what built the system prompt and tools. Together they are a complete snapshot of an agent's state.
+`Context` is the snapshot: exactly what the renderer reads. `Log` is
+the audit trail. `AsOf` joins them. It is the Seq of the last event
+already folded into the snapshot, and it is the field everything else
+in the chapter hangs on. Without it, a loader holding a snapshot and a
+log cannot tell which events the snapshot already contains, so it has
+two choices and both are wrong: apply the whole log and duplicate every
+turn, or apply none of it and lose whatever came after the snapshot.
 
-The config subset captures what matters for resurrection:
+`Config` records vendor, model, system prompt, and tool declarations.
+It is a record only. The running agent's own configuration
+wins on load, so a save made with one model resumes under whatever
+model the user starts with today. A save that pinned its model would
+turn every model retirement into a pile of unloadable files. API keys
+and base URLs never enter the file at all; it is portable across
+machines and endpoints.
+
+## §11.3 Snapshot Plus Tail
+
+Loading has one loop:
 
 ```go
-type SaveConfig struct {
-    Vendor       string     `json:"vendor"`
-    Model        string     `json:"model"`
-    SystemPrompt string     `json:"system_prompt"`
-    Tools        []ToolDecl `json:"tools"`
-}
-```
-
-Vendor, model, system prompt, tool declarations. Not API keys, not base URLs, not HTTP clients. The save file is portable. Load it on a different machine, with a different API key, against a different endpoint.
-
-## §11.3 Rebuild
-
-A function that proves the foundation:
-
-```go
-func Rebuild(events []Event) (*Context, error) {
-    ctx := NewContext()
-    for _, ev := range events {
-        if err := ctx.Apply(ev); err != nil {
-            return nil, err
+func (sf *SaveFile) Restore() (*Context, error) {
+    ctx, after := sf.Context, sf.AsOf
+    if ctx == nil {
+        ctx, after = NewContext(), 0
+    }
+    for _, e := range sf.Log {
+        if e.Seq <= after {
+            continue
+        }
+        if err := ctx.Apply(e); err != nil {
+            return nil, fmt.Errorf("restore: event %d: %w", e.Seq, err)
         }
     }
     return ctx, nil
 }
 ```
 
-Replay the full event log from scratch. Marshal both contexts. Compare byte for byte. If the bytes differ, the reducer has a bug. This is the most valuable test in the chapter because it validates every `Apply` call you have written since Chapter 2, retroactively, in one comparison.
+With a snapshot, install it and apply only the tail: events whose Seq
+is strictly greater than `AsOf`. Without one, start from an empty
+context and apply everything. The same loop serves both, which leaves
+one replay path to get right instead of two.
 
-## §11.4 Checkpoint and Partial Replay
+The tail looks unnecessary. A save the agent writes itself always has
+`AsOf` equal to the last Seq in its log, so the tail is empty and a
+loader that skips it passes every test built from its own output. The
+tail matters the moment a snapshot and a log come from different
+moments: a snapshot kept from an earlier save, with a newer log written
+after it. That is the shape a crash leaves behind, once the log is
+written event by event and the snapshot only now and then. The grader
+builds that shape on purpose, splicing an old snapshot onto a newer
+log, because it is the only fixture that tells a correct loader from
+one that ignores its anchor.
 
-Save at event 5. Continue to event 10. Three things must be equal:
+The `<=` is the other half. An event at or below the anchor is already
+inside the snapshot. Applying it again gives the conversation a
+duplicate turn, and the model answers a question it has already
+answered.
 
-1. The live context at event 10.
-2. `Rebuild(log.Events[:10])`.
-3. `Load(checkpoint_5).Context` with `Apply(events[5:10])`.
+## §11.4 Replay Equals Snapshot
 
-If any pair disagrees, the reducer depends on something beyond (state, event). That hidden dependency will corrupt every conversation that resumes from a checkpoint. The grader tests this by saving mid-conversation, continuing, then comparing all three values.
+The chapter's central claim fits in one sentence. For a save whose log
+is complete, loading it as written and loading it with `context` set
+to null must produce byte-identical vendor requests for the next
+prompt.
+
+The first load takes the snapshot path. The second takes the rebuild
+path, replaying every event from nothing. If the reducer is a pure
+function of the events, the two paths land on the same context and the
+renderer turns that context into the same bytes. If they differ, the
+reducer is reading something besides its input, and that dependency
+will corrupt every conversation that resumes from disk.
+
+The comparison is made on vendor requests.
+A request is the only thing the model ever sees, and it is a format
+every student's agent already produces, so the grader can compare two
+of them without knowing anything about how a particular solution
+stores its context. Two contexts that differ in some field the renderer
+never reads are the same conversation. Two requests that differ by one
+byte are not.
+
+The precondition is real. A save with a trimmed log (§11.5) has
+nothing to rebuild from, so nulling its context leaves an empty agent.
+Every save the agent writes itself carries its whole history, which is
+where the claim applies and where the grader tests it.
 
 ## §11.5 The LLM Never Sees the Log
 
-The renderer reads the Context. The Context contains Dialogue entries. The Dialogue entries contain Parts. At no point does the renderer read the Log.
+The renderer reads the context. The context holds dialogue entries,
+the entries hold parts, and at no point does the renderer consult the
+log. A save with `"log": []` and a non-null context is therefore
+complete: it loads, it resumes, and the next request carries the full
+conversation.
 
-This means a loaded context with an empty log produces the exact same LLM request as one with a full log. The grader tests this directly: load a save file, send a new prompt, verify the vendor receives a well-formed request with the full conversation history. The log is for auditing and rebuild. It is not in the critical path.
+This is what makes the log trimmable later without touching behavior.
+It also creates one small trap. Numbering must continue after the
+loaded events, and a save with an empty log knows its anchor and
+nothing else. The next Seq is one past the larger of `AsOf` and the
+last event in the log; neither alone is enough.
 
-## §11.6 CLI Integration
+## §11.6 Default Load, and Refusing a Bad File
 
-Two flags:
+The first design had a `--load` flag. Bill's review of it was one
+line: "Let's load by default without a flag." The agent now loads
+`./save.json` at startup if it exists and writes it when stdin closes.
+`--save PATH` names a different file for both directions and leaves
+loading on.
+The file sits beside `settings.json`, in the directory the agent runs
+from, so a project directory remembers its own conversation.
 
-```
---save PATH    Persist state to PATH after the conversation
---load PATH    Resume from a previously saved file
-```
+Loading by default makes one failure mode dangerous. If `save.json`
+exists but cannot be read, the agent exits with an error and leaves the
+file untouched. Starting fresh instead looks friendlier and is worse:
+the fresh session saves on exit and overwrites the history the user
+came back for. A refusal costs one confusing startup. A silent reset
+costs the conversation.
 
-A loaded agent is indistinguishable from one that got there by running. Same tools, same system prompt, same conversation history. The only difference is startup time: load skips the events and starts from the result.
+## §11.7 Taking It for a Spin
 
-The verify command tests determinism from the command line:
+Run the agent in an empty directory, ask it to remember a word, and
+close stdin. `save.json` appears. Run it again in the same directory
+and ask for the word. The second process never saw the first one's
+turn; it answers from a context rebuilt out of a file.
 
-```
-./agent verify SAVE_FILE
-```
+Then break things on purpose. Delete `"log"` down to `[]` and the agent
+still remembers, because the log was never on the rendering path. Set
+`"context"` to `null` and it still remembers, because the log alone
+rebuilds the same context. Truncate the file to half its bytes and the
+agent refuses to start, which is the correct answer.
 
-It loads the save file, rebuilds the context from the log, and compares. If they match, it prints OK. If they differ, it prints the byte offset of the first difference. The grader calls this command to verify the invariant without importing your internal packages.
-
-## §11.7 Looking Ahead
-
-With persistence in place, two capabilities become possible that were not before:
-
-1. Memory cascade: compaction that survives across sessions, compressing old memories while preserving the conversation.
-2. Agent resurrection: loading a saved agent with mock tools for interview, seeing exactly what it saw, asking what it was thinking.
-
-Both are later chapters. This one buys down the tech debt that makes them safe.
+The reference solution also ships a `verify` subcommand that rebuilds
+from the log and prints `MATCH` or `MISMATCH` against the saved
+snapshot. It is a debugging aid outside the contract, and nothing
+grades it. The grader never trusts an agent's opinion of its own
+determinism; it compares the requests.
