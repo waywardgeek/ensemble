@@ -46,7 +46,7 @@ figure reconstructed from memory.
 | 15.10 | The vendor's server-side context editing tells clients "You do not need to sync your client state with the edited version" | design doc §A.8 (quote verified from `cr/docs/provider-context-management.md`) |
 | 15.10 | Chapter 11's `Rebuild` refuses the whole past on the first bad event | `agent/internal/common/save.go:64-68` |
 | 15.11 | A stub citing `cr/io/26` names a different command's output after a restart | design doc §A.11.2 |
-| 15.13 | A recall threshold was moved from 0.5 to 3.0 by feel, with no way to see the effect | design doc §A.10 |
+| 15.13 | (moved) The 0.5→3.0 recall-threshold fact belongs to the auto-recall chapter (ch16 late ruling 1); §15.13 needs a replacement fact or none | design doc §A.10 |
 
 ## Voice plan
 
