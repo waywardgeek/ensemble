@@ -147,6 +147,25 @@ func ch15Ladder(run func(ch15Opts) ch15Out, dir string, r *Ch15Result) string {
 			ch15SmallTarget, ch15LadderFiles)
 		return dir
 	}
+	// Both watermarks fired: the oldest read lost its call (RedactTool),
+	// and some later read kept its call with the result stubbed
+	// (RedactResult).
+	lb := ch15Blocks(last)
+	if ch15HasUse(lb, "L1") {
+		r.fail(name, "the dialogue watermark never fired: the first read's call is still in the last request")
+		return dir
+	}
+	middle := false
+	for n := 2; n < ch15LadderFiles; n++ {
+		id := fmt.Sprintf("L%d", n)
+		if res, ok := ch15ResultFor(lb, id); ok && ch15HasUse(lb, id) && !strings.Contains(res, ch15FileMark(n)) {
+			middle = true
+		}
+	}
+	if !middle {
+		r.fail(name, "no read sits between the watermarks with its call kept and its result stubbed")
+		return dir
+	}
 	if !strings.Contains(text, ch15FileMark(ch15LadderFiles)) {
 		r.fail(name, "the newest file's result is missing from the request that follows it")
 		return dir
@@ -345,6 +364,8 @@ func ch15Replay(run func(ch15Opts) ch15Out, handoff string, fork func(string, st
 // crash-recovery (C) — rule 9
 // ----------------------------------------------------------------
 
+const ch15CrashLastPrompt = "Do you remember all three?"
+
 var ch15CrashPrompts = []string{"First, a clean turn.", "Second turn, before the crash.", "Third turn, then the power goes."}
 
 func ch15Crash(run func(ch15Opts) ch15Out, dir string, r *Ch15Result) string {
@@ -364,7 +385,7 @@ func ch15Crash(run func(ch15Opts) ch15Out, dir string, r *Ch15Result) string {
 		r.fail(name, "session killed mid-way: %s", o2.fatal)
 		return ""
 	}
-	o3 := run(ch15Opts{dir: dir, model: ch15NoStubModel, prompts: []string{"Do you remember all three?"},
+	o3 := run(ch15Opts{dir: dir, model: ch15NoStubModel, prompts: []string{ch15CrashLastPrompt},
 		expect: []int{1}, replies: []fakevendor.Reply{ch15Text("REPLY-FOUR")}})
 	if o3.fatal != "" || len(o3.reqs) == 0 {
 		r.fail(name, "restart after SIGKILL: %s (requests: %d)", o3.fatal, len(o3.reqs))
@@ -402,24 +423,52 @@ func ch15Total(run func(ch15Opts) ch15Out, dir string, r *Ch15Result) {
 		r.fail(name, "save.json does not parse: %v", err)
 		return
 	}
-	var log []json.RawMessage
-	json.Unmarshal(top["log"], &log)
-	seqs, err := ch11LogSeqs(log)
-	if err != nil || len(seqs) == 0 {
-		r.fail(name, "save.json log has no readable seqs: %v", err)
+	var log []map[string]json.RawMessage
+	if err := json.Unmarshal(top["log"], &log); err != nil {
+		r.fail(name, "save.json log is not a list of events: %v", err)
 		return
 	}
-	max := seqs[len(seqs)-1]
+	// The bad events go in the middle of the log, before the last turn,
+	// and the context is nulled so loading replays through them. An
+	// agent that stops at the first bad event instead of continuing then
+	// loses the turn after it, which rule 8 forbids.
+	last := ch15CrashLastPrompt
+	idx := -1
+	for i, ev := range log {
+		b, _ := json.Marshal(ev)
+		if strings.Contains(string(b), last) {
+			idx = i
+			break
+		}
+	}
+	if idx < 0 {
+		r.fail(name, "save.json log has no event carrying the prompt %q", last)
+		return
+	}
+	var seq0 uint64
+	if err := json.Unmarshal(log[idx]["seq"], &seq0); err != nil {
+		r.fail(name, "event %d has no numeric seq: %v", idx, err)
+		return
+	}
+	for i := idx; i < len(log); i++ {
+		var s uint64
+		json.Unmarshal(log[i]["seq"], &s)
+		log[i]["seq"], _ = json.Marshal(s + 2)
+	}
 	// Two events that parse and cannot apply: a redaction of entries
 	// that never existed, and a skill load with no payload.
-	bad := []string{
-		fmt.Sprintf(`{"seq":%d,"type":"redacted","time":"2026-01-01T00:00:00Z","redact":{"from":900000,"to":900001,"level":"redact_result","reason":"planted"}}`, max+1),
-		fmt.Sprintf(`{"seq":%d,"type":"skill_loaded","time":"2026-01-01T00:00:00Z"}`, max+2),
+	var bad []map[string]json.RawMessage
+	for _, b := range []string{
+		fmt.Sprintf(`{"seq":%d,"type":"redacted","time":"2026-01-01T00:00:00Z","redact":{"from":900000,"to":900001,"level":"redact_result","reason":"planted"}}`, seq0),
+		fmt.Sprintf(`{"seq":%d,"type":"skill_loaded","time":"2026-01-01T00:00:00Z"}`, seq0+1),
+	} {
+		var m map[string]json.RawMessage
+		json.Unmarshal([]byte(b), &m)
+		bad = append(bad, m)
 	}
-	for _, b := range bad {
-		log = append(log, json.RawMessage(b))
-	}
+	log = append(log[:idx], append(bad, log[idx:]...)...)
 	top["log"], _ = json.Marshal(log)
+	top["context"] = json.RawMessage("null")
 	out, _ := json.Marshal(top)
 	os.WriteFile(path, out, 0o644)
 
@@ -435,7 +484,7 @@ func ch15Total(run func(ch15Opts) ch15Out, dir string, r *Ch15Result) {
 		return
 	}
 	body := string(o.reqs[0].Body)
-	for _, want := range append(append([]string{}, ch15CrashPrompts...), "REPLY-FOUR") {
+	for _, want := range append(append([]string{}, ch15CrashPrompts...), ch15CrashLastPrompt, "REPLY-FOUR") {
 		if !strings.Contains(body, want) {
 			r.fail(name, "loading skipped more than the bad events: %q is gone", want)
 			return
@@ -513,7 +562,7 @@ func ch15Keep(run func(ch15Opts) ch15Out, stubDir, plainDir string, r *Ch15Resul
 			ch15Read("K1", 21),
 			{Tools: []fakevendor.ToolCall{
 				{ID: "K2keep", Name: "keep_tool_results", Args: `{}`},
-				{ID: "K2", Name: "read_file", Args: `{"path":"f22.txt"}`},
+				{ID: "K2", Name: "read_file", Args: ch15Read("K2", 22).ToolArgs},
 			}, Usage: fakevendor.Canonical{Input: 100, Output: 30}},
 			ch15Read("K3", 23),
 			ch15Text("Three files read."),

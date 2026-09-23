@@ -50,7 +50,19 @@ func ch15WriteFile(dir string, n, size int) error {
 	for b.Len() < size {
 		fmt.Fprintf(&b, "%sline %04d of planted file %02d\n", ch15FileMark(n), b.Len(), n)
 	}
-	return os.WriteFile(filepath.Join(dir, fmt.Sprintf("f%02d.txt", n)), []byte(b.String()), 0o644)
+	full := filepath.Join(dir, ch15Path(n))
+	if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
+		return err
+	}
+	return os.WriteFile(full, []byte(b.String()), 0o644)
+}
+
+// ch15Path is planted file n's workspace-relative path. It is long on
+// purpose: the calls band measures call bytes, and a dozen short paths
+// never fill it, so without long paths the RedactTool watermark would
+// never be reached and rule 7's second band would go ungraded.
+func ch15Path(n int) string {
+	return filepath.Join("notes-"+strings.Repeat("d", 190), fmt.Sprintf("f%02d-%s.txt", n, strings.Repeat("x", 180)))
 }
 
 // ch15CreateSkills writes the fixture skills. "base" is the primary
@@ -322,7 +334,8 @@ func ch15Call(id, name, args string) fakevendor.Reply {
 }
 
 func ch15Read(id string, n int) fakevendor.Reply {
-	return ch15Call(id, "read_file", fmt.Sprintf(`{"path":"f%02d.txt"}`, n))
+	args, _ := json.Marshal(map[string]string{"path": ch15Path(n)})
+	return ch15Call(id, "read_file", string(args))
 }
 
 // ch15CopyDir copies a run directory's regular files (save.json, its
