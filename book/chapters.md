@@ -1,0 +1,78 @@
+# Chapters
+
+One line per chapter that exists or is planned. Titles are copied from each
+chapter file's first heading. Candidates at the bottom are unnumbered on
+purpose: no chapter count is fixed until a chapter is built.
+
+## Written
+
+- 0. The Perpetual Machine
+- 1. One Loop, Sixty Billion Dollars
+- 2. One Log, Three Vendors
+- 3. Six Tools, Ninety-Two Percent of an AI Coding Agent
+- 4. Jobs, or Why a Tool Call Is a Process You Supervise
+- 5. The Big Refactor
+- 6. Two Seams and a Loop
+- 7. Streaming, or the Same Answer in Pieces
+- 8. Everything Is an Artifact
+- 9. Build Your Dream GUI
+- 10. Skills
+- 11. Persistence (TL;DR rewritten on the snapshot-anchor contract; body pending)
+- 12. MCP -- The Extension Protocol
+- 13. The Agent Sees Itself
+- 14. The Channel Nobody Tested
+
+## Planned
+
+- 15. Context management (outline: chapter-15-outline.md)
+- 16. Memory (bands, save_memory, graduation chain)
+- 17. Goal stack (needs a design session)
+
+## Candidates
+
+- **Sandboxing** (decided: one chapter). Owed by the ch15 design, Part V:
+  identity-band write protection, the identity-write refusal check, the
+  compressor sandbox profile. Also the capability rule that sub-agents need
+  (a child may narrow, never widen), secrets that never enter context, and
+  the ch3 writeguard grown into a policy.
+- **Artifacts, deep dive.** Ch8 introduced the artifact; this goes further:
+  renderers, addressable bytes, the content-addressed store that ch15 Q3
+  needs, and sandboxed untrusted renderers.
+- **Connections.** Connectors to outside systems (deferred from the GUI
+  design): auth, credential flow, and what the agent may touch.
+- **Gateway.** Channels (chat, webhooks, voice) and a scheduler: the agent
+  acting with no human at the keyboard. Must follow sandboxing.
+- **Live state without breaking the cache.** AI Native ch7 "An Agent That
+  Sees the Board": inject the current state of the user's screen or work
+  item per turn, at the tail, so the prefix stays cached.
+- **Prompt layout and the cache bill.** AI Native ch6 "Only the Prefix Is
+  Cached". May fold into ch15 rather than stand alone.
+- **Workflows.** AI Native ch9-10: a skill is advice, a workflow is a
+  program; then workflows the agent writes for itself. Also where the ch5
+  three-agent exercise and the wake-once check were deferred.
+- **Prompt injection and provenance.** AI Native ch11-12: loading a skill
+  is loading code; trace where every instruction came from. May pair with
+  sandboxing.
+- **Sub-agents.** Spawn, sync/async, structured submit that survives
+  shutdown, join, blocking child-to-parent messages. "Submitted" is not
+  "succeeded".
+- **Orchestration.** Fleets, supervision, worktrees, cherry-picking results.
+- **Measurement.** AI Native ch13-14 "Prove It Got Better" and "Improve
+  the Loop, Not the Model": acceptance loops, benchmarks, the tool-call
+  audit, and the numbers ch15 owes (80% discard, band budgets, recall@10,
+  the auto-redaction-versus-thinking question).
+- **Autonomy you can audit.** AI Native ch15: unattended agents that leave
+  evidence. Likely merges with the gateway.
+- **A session, live.** AI Native ch3: one real morning with the finished
+  agent, as a showcase near the end.
+- **Self-wielding capstone.** The agent writes and grades a new chapter
+  itself.
+
+## AI Native chapters already covered here
+
+- AI Native ch1 (goldfish): ensemble ch11 opener.
+- AI Native ch4 (actors): ensemble ch6.
+- AI Native ch5 (talking to an agent while it works): ensemble ch5-6 hints.
+- AI Native ch8 (memory): ensemble ch16, planned.
+- AI Native ch16-17 (the applied recipe, shipping in a quarter): no
+  counterpart; this book's recipe is the agent itself.
