@@ -20,17 +20,18 @@ redaction events. Each round trip's results are stubbed unless the
 model keeps them. The actor can checkpoint with `micro_handoff`. Loaded
 skills survive as entries instead of as tool results. The system
 prompt and fixed tools never change mid-session. The log reaches disk
-as it grows, so a crash loses nothing.
+as it grows, so a process crash loses nothing.
 
 ```go
 // EntryKind says why an entry is in the context and which verb
 // removes it. Anything that must outlive tool clearing is its own kind.
-type EntryKind int
+type EntryKind uint8
 
 const (
     KindDialogue EntryKind = iota + 1 // prompts, hints, output, tool parts
     KindHandoff                       // from MicroHandoff
     KindSkill                         // from SkillLoaded
+    KindTools                         // from ToolsChanged
 )
 
 type Entry struct {
@@ -40,14 +41,23 @@ type Entry struct {
     Parts PartList  `json:"parts"`
 }
 
-// Appended after SkillLoaded. A number once assigned is never reused.
+// Appended to the EventType list after SkillLoaded. A number once
+// assigned is never reused.
 const (
-    MicroHandoff EventType = iota + SkillLoaded + 1
-    ToolsChanged
+    // ...
+    SkillLoaded
+    MicroHandoff // new
+    ToolsChanged // new
 )
 
 type MicroHandoffData struct {
     Text string `json:"text"`
+}
+
+// A delta against the declarations in force just before it.
+type ToolsChangedData struct {
+    Added   []ToolDecl `json:"added,omitempty"`   // full declarations, ch10's shape
+    Removed []string   `json:"removed,omitempty"` // names only
 }
 ```
 
@@ -58,48 +68,67 @@ Body}`, which already carries the skill's body.
 
 1. **Frozen prefix.** The system prompt and the startup tool
    declarations are byte-identical on every request of a session. Only
-   a full refresh changes them.
-2. **Tools arrive through the dialog.** A skill load or MCP connect
-   mid-session emits `ToolsChanged`. On the Anthropic API the new
-   declarations ride in a dialog entry; a vendor that cannot carry
-   tools in the dialog re-declares and pays the cache miss.
-3. **Survivors carry no tool parts.** A `Handoff` or `Skill` entry never
-   holds a tool call or a tool result, so no tool clearing can touch it.
+   a full refresh changes them, and, on a model that cannot carry tools
+   in the dialog, a tool change (rule 2).
+2. **Tools arrive through the dialog.** A skill load, a skill unload,
+   or an MCP connect mid-session emits `ToolsChanged`, and the reducer
+   turns it into a `Tools` entry. On a model whose features row sets
+   `InlineTools` (today, the Anthropic API), that entry carries the
+   declarations in the dialog. A model without it folds every delta
+   into the startup set and re-declares, paying the cache miss.
+3. **Survivors carry no tool parts.** A `Handoff`, `Skill` or `Tools`
+   entry never holds a tool call or a tool result, so no tool clearing
+   can touch it.
 4. **Skills are entries.** The reducer turns `SkillLoaded` into a
    `Skill` entry holding the body. The `load_skill` tool result is an
-   acknowledgement only.
+   acknowledgement only. `unload_skill` removes the skill's tools
+   through `ToolsChanged` and leaves the `Skill` entry where it is:
+   deleting old bytes would miss the cache, and ch10's unload is lazy.
+   A later chapter's verb removes it.
 5. **`micro_handoff` is three records:** the tool call, an ordinary
-   result, then a `MicroHandoff` event. Its reducer removes every tool
-   call and tool result part from the context, drops entries left
-   empty, and appends one `Handoff` entry. The text appears in the next
+   result, then a `MicroHandoff` event. Its reducer waits until the
+   batch's last result has arrived, so a call made alongside
+   `micro_handoff` is cleared with it. Then it removes every tool call
+   and tool result part from the context, drops entries left empty,
+   and appends one `Handoff` entry. The text appears in the next
    request exactly once, and no call is ever left without its result or
    a result without its call.
-6. **Keep or stub, per round trip.** On a model whose features row
-   enables it, every tool result above the stub threshold is replaced by
-   a stub in the request after the one that carried it, unless the
-   actor's next message calls `keep_tool_results`, which keeps that
-   whole batch. The call survives either way. The stub is an ordinary
-   `RedactResult` event, so replay reproduces it. Models without the
-   feature get no per-round-trip stubbing; the ladder alone applies.
-7. **The ladder records a Seq.** Tool bytes older than the dialogue
-   watermark get `RedactTool`; between the two watermarks, `RedactResult`.
-   Each event stores `To` as a number, never as "the watermark", so a
-   later settings change cannot rewrite the past. The watermark moves in
-   steps: when a band passes about twice its budget, one event cuts it
-   back to one budget.
+6. **Keep or stub, per round trip.** On a model whose features row sets
+   `StubsToolResults`, every tool result above the stub threshold is
+   replaced by a stub in the request after the one that carried it,
+   unless the actor's next message calls `keep_tool_results`, which
+   keeps that whole batch. The keep governs the batch before the message
+   that calls it: called alongside other tools, it keeps the previous
+   batch, not the one it rides in, and its own result is never stubbed.
+   The call survives either way. The stub is an ordinary `RedactResult`
+   event, so replay reproduces it. Other models get no per-round-trip
+   stubbing; the ladder alone applies.
+7. **The ladder records a Seq.** With target size T, the newest T/8
+   bytes of tool traffic (the results band) stay whole. Older than that,
+   results become stubs (`RedactResult`) and their calls stay, for T/16
+   bytes of calls and stubs (the calls band). Tool bytes older than both
+   bands go entirely (`RedactTool`). A band is cut in steps: when it
+   passes twice its budget, one event cuts it back to its budget. Each
+   event stores `To` as a number, never as "the watermark", so a later
+   settings change cannot rewrite the past.
 8. **The reducer is total.** A save file that does not parse is still
    refused (ch11 rule 2). An event that parses but cannot be applied,
    such as a malformed payload or a redaction naming an entry already
    gone, is skipped with a diagnostic in the agent's log, and loading
    continues.
-9. **Crash-safe.** Events reach disk as they happen, so a crash leaves a
-   tail after ch11's `as_of` anchor, and recovery is ch11's load:
-   snapshot plus tail. Write the new snapshot before truncating the log;
-   never truncate past the anchor; keep one backup of the previous
-   snapshot. A normal shutdown snapshots.
-10. **One knob.** The Context Management settings tab sets a target
-    context size in bytes. The watermarks and the stub threshold derive
-    from it. Log retention is the tab's other setting.
+9. **Crash-safe.** Events reach disk as they happen, so a process crash
+   leaves a tail after ch11's `as_of` anchor, and recovery is ch11's
+   load: snapshot plus tail. A normal shutdown snapshots. Power loss is
+   out of scope; the log is never fsynced. Ungraded, but
+   do it anyway: write the new snapshot before truncating the log, never
+   truncate past the anchor, and keep one backup of the previous
+   snapshot.
+10. **One knob.** The Context Management settings tab sets
+    `context_target` in `settings.json`: T in bytes, 0 for the default
+    of 400,000, clamped to at least 20,000. The stub threshold is T/100
+    and the bands are rule 7's, so the default gives 4,000, 50,000 and
+    25,000. The tab's other setting, `log_retention`, is the number of
+    events kept in the saved log, 0 for all.
 
 Yours: the on-disk layout of the log, what a diagnostic says, and the
 settings tab's appearance.
@@ -107,6 +136,10 @@ settings tab's appearance.
 **Exercise.** Start from your ch14 agent. Add context management until
 `make grade-dir CH=15 DIR=path/to/agent` scores 100/100. The grader
 reads only the requests its fake vendor receives and the files on disk.
+It launches the agent as `claude-opus-5-course`, whose features row
+sets `StubsToolResults` and `InlineTools`, and as
+`claude-sonnet-5-course`, whose row sets neither. Add both rows to your
+model table.
 
 | Check | Points | Proves |
 |---|---|---|
@@ -118,14 +151,6 @@ reads only the requests its fake vendor receives and the files on disk.
 | replay-equals-snapshot | 15 | rules 8, 9 |
 | crash-recovery | 15 | rule 9: kill mid-session, restart, nothing lost |
 | total-reducer | 5 | rule 8 |
-
-> **Draft, for the coder (remove after review).** (a) Final shape of
-> `ToolsChangedData` (declaration delta; types follow ch10's
-> `ToolDecl`). (b) How the watermarks and stub threshold derive from the
-> target size; the TL;DR prints the formula after review. (c) Point
-> weights are provisional until the P9 audit. (d) The model features
-> column name for rule 6. (e) Whether `keep_tool_results` itself is
-> exempt from rule 6 (it must not stub its own batch).
 
 ## §15.1 In Plain Words
 

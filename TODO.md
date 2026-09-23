@@ -112,6 +112,15 @@ Mark every entry VERIFIED (observed directly, with a date) or ASSUMED
 
 ## Agent code
 
+- [ ] **`max_tool_rounds` is a dead setting (ch9).** VERIFIED 2026-09-23.
+      Added in `8fd790f` (ch9); `agent/internal/common/settings.go` stores and
+      clamps it, and nothing else reads `.MaxToolRounds`. Both dispatchers stop
+      at `const MaxToolRounds = 16` (`agent/internal/llm/engine.go:224`, checked
+      at `engine.go:275` and `actor.go:243`). Found by the ch15 measurement:
+      60 reads in one prompt stopped at 16 rounds with `max_tool_rounds: 100`.
+      Not ch15's contract. Fix belongs to ch9's settings path; the ch15
+      grader's longest turn is 13 rounds, so fixing it moves no ch15 score.
+
 - [x] **A bare `./ensemble --port 8084` had only two tools.** FIXED 2026-09-20
       in `6335237`. Bill hit this live: the agent truthfully reported that it
       could not run a shell command, because its entire toolset was
