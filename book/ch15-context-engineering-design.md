@@ -195,18 +195,25 @@ same defect from the other side of the pair: it is a tool-call *argument*, so
 removing tool calls removes the checkpoint with them.
 
 **The kinds (DERIVED shape; the survivor kinds RULED individually).** `Entry`
-gains a `Kind` (enum, `iota+1`, zero invalid), set by the reducer at write time:
+gains a `Kind` (enum, `iota+1`, zero invalid), set by the reducer at write time.
+
+**Level correction (VERIFIED 2026-09-22):** an earlier draft of this table listed
+`User`, `Assistant`, `ToolCall` and `ToolResult` as kinds. That is the wrong
+level. Tool calls and results are **parts** inside an entry, not entries:
+`ToolCallPart` (`agent/internal/common/part.go:120`) and `ToolResultPart`
+(`part.go:137`) sit in `Entry{Seq, Actor, Parts}` (`context.go:38-42`), and
+`Actor` (human / model / tool, `event.go:88-101`) already says who spoke. So
+every ordinary conversation entry is one kind, `Dialogue`, and `Actor` plus
+`Parts` keep distinguishing prompt, model speech, tool use and tool result
+exactly as they do today.
 
 | Kind | Created by | Channel | Removed by |
 |---|---|---|---|
-| `User` | a prompt or hint | dialogue | `save_memory` |
-| `Assistant` | model text and visible reasoning | dialogue | `save_memory` |
-| `ToolCall` | model tool use | dialogue | ladder events, `micro_handoff` |
-| `ToolResult` | tool completion | dialogue | ladder events, per-round-trip redaction, `micro_handoff` |
+| `Dialogue` | prompts, hints, model text and tool use, tool results (every entry the book has built so far) | dialogue | text: `save_memory`. Tool parts: ladder events, per-round-trip redaction, `micro_handoff` |
 | `Handoff` | the `micro_handoff` event (§A.6) | dialogue | `save_memory`, which absorbs it |
+| `Skill` | `load_skill` | instruction | `unload_skill`, or `save_memory` |
 | `Memory` | `save_memory` (and graduation, per band) | data | graduation |
 | `Learning` | `add_learning` (RULED: its own entry type in the log) | data | `delete_learning`, lazily |
-| `Skill` | `load_skill` | instruction | `unload_skill`, or `save_memory` |
 | `Goal` | goal verbs (Chapter C) | not ruled | completion or deletion, lazily |
 
 Rules that come with the kinds:
@@ -220,9 +227,11 @@ Rules that come with the kinds:
   Once the entry exists, the reducer stubs the call's arguments, since the text
   now lives in the entry. Otherwise every memory is carried twice until the next
   clear.
-- **Tool-clearing events touch only tool kinds**, so survivors are safe *by
-  type*, not by care. This is the removal rule enforced by the type system, and
-  it retires the channel selector originally proposed in Q2.
+- **Tool-clearing events touch only tool parts, and survivor entries contain
+  none**, so survivors are safe *by construction*, not by care. `RedactResult`
+  and `RedactTool` already operate on tool parts (`event.go:228-229`); the only
+  new rule is that a survivor entry never carries a `ToolCallPart` or
+  `ToolResultPart`. This retires the channel selector originally proposed in Q2.
 - **Placement at creation:** a new entry is appended at the tail, after the tool
   result that announced it. On the Anthropic API it renders as a text block after
   the `tool_result` blocks in the same user message, the same position user hints
@@ -471,8 +480,9 @@ entries (§I.5a), the ladder needs no new event type and no selector:
 - **remove tool calls and results below the watermark** =
   `RedactData{Level: RedactTool, To: w}`.
 
-`RedactResult` touches only `ToolResult` entries and `RedactTool` only
-`ToolCall`/`ToolResult` entries, so survivors in the span are untouched by
+`RedactResult` touches only `ToolResultPart`s and `RedactTool` only
+`ToolCallPart`/`ToolResultPart`s, and survivor entries carry neither, so
+survivors in the span are untouched by
 construction (VERIFIED levels: `event.go:228-229`).
 
 **The event records a Seq, never "the watermark" (DERIVED).** The watermark is a
@@ -541,7 +551,8 @@ not part of `micro_handoff`.
 2. `ToolReturned`, a normal tool result (an acknowledgement).
 3. **A `MicroHandoff` event carrying the handoff text.** Its reducer does two
    things in the context:
-   - removes every `ToolCall` and `ToolResult` entry, including the pair from
+   - removes every tool call and tool result part (and any `Dialogue` entry
+     left empty by that), including the pair from
      steps 1 and 2;
    - appends a `Handoff` entry with the text at the tail.
 
@@ -758,10 +769,10 @@ builds the *policy* that emits redaction events, not just the layout.
 
 | | Chapter A | Chapter B |
 |---|---|---|
-| Entry kinds | `User`, `Assistant`, `ToolCall`, `ToolResult`, `Handoff`, `Skill` | `Memory`, `Learning` (appended to the enum; never renumber) |
+| Entry kinds | `Dialogue`, `Handoff`, `Skill` | `Memory`, `Learning` (appended to the enum; never renumber) |
 | Events | `MicroHandoff`; `SkillLoaded` gains the body; `ToolsChanged`; ladder emits existing `RedactData` with a recorded Seq; snapshot anchor | `MemorySaved`, `LearningAdded`, graduation (Q2), startup attach (Q24) |
 | Tools | `micro_handoff` (new); ladder policy (not a tool); `keep_tool_results` only if Q6 says so | `save_memory`, `add_learning`, `delete_learning` |
-| Reducer | total (skip and diagnose); tool clears touch only tool kinds | the reorder pass of `MemorySaved` |
+| Reducer | total (skip and diagnose); tool clears touch only tool parts | the reorder pass of `MemorySaved` |
 | Persistence | append-on-write log, anchored snapshot, backup, truncation | none new |
 | Settings tab | Context Management | Memory |
 
@@ -853,8 +864,7 @@ sequence of §A.6):**
 2. `ToolReturned`, an acknowledgement.
 3. **A `MemorySaved` event carrying the text, applied at the end of the turn.**
    Its reducer, in one pass:
-   - deletes every dialogue-kind entry (`User`, `Assistant`, `ToolCall`,
-     `ToolResult`, `Handoff`) before it;
+   - deletes every `Dialogue` and `Handoff` entry before it;
    - applies pending lazy removals (unloaded skills, deleted learnings,
      completed goals) and unloads all dynamically loaded skills;
    - appends a `Memory` entry (band `session`) with the text;
