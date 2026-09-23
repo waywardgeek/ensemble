@@ -147,11 +147,9 @@ func main() {
 		// that still carries its whole history. verify is a debugging
 		// aid and no part of the contract: nothing grades it.
 		full := &common.SaveFile{Log: sf.Log}
-		rebuilt, err2 := full.Restore()
-		if err2 != nil {
-			fmt.Fprintf(os.Stderr, "rebuild: %v\n", err2)
-			os.Exit(2)
-		}
+		rebuilt := full.Restore(func(err error) {
+			fmt.Fprintf(os.Stderr, "rebuild: %v\n", err)
+		})
 		savedJSON, _ := json.MarshalIndent(sf.Context, "", "  ")
 		rebuiltJSON, _ := json.MarshalIndent(rebuilt, "", "  ")
 		if string(savedJSON) == string(rebuiltJSON) {
@@ -302,32 +300,38 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	// Wire skill-based tool filtering and load_skill/unload_skill tools.
 	reg.SetSkillRegistry(sr)
 
+	// keep_tool_results means nothing on a model whose features row does
+	// not enable per-round-trip stubbing (ch15 rule 6), so it is not
+	// declared there: a tool that silently does nothing is a lie in the
+	// prompt.
+	if f, _ := common.LookupModel(cfg.Model); !f.StubsToolResults {
+		reg.RemoveTool(common.KeepToolResults)
+	}
+
 	// Rebuild tool declarations with skill filtering applied.
 	cfg.Tools = reg.Declarations()
 
 	eng := llm.NewEngine(cfg, logPath, j, reg, host)
 
-	// Load at start (rule 2). No flag decides this; the file's
-	// existence does. A missing file is an ordinary fresh start.
-	if _, statErr := os.Stat(savePath); statErr == nil {
-		sf, err := common.Load(savePath)
-		if err != nil {
-			// A file that exists but does not parse is fatal. We must
-			// NOT start fresh over it: the agent saves at exit, and a
-			// fresh start would write an empty conversation over the
-			// user's history. Name the file, touch none of its bytes,
-			// and let a human look at it.
-			fmt.Fprintf(os.Stderr, "agent: cannot load save file %s: %v\n", savePath, err)
-			os.Exit(1)
-		}
+	// Load at start (rule 2). No flag decides this; the files' existence
+	// does. Chapter 15 adds the journal: every event recorded since the
+	// last snapshot, so a session that was killed resumes where it died.
+	// Recover assembles snapshot + log + journal tail; Restore applies the
+	// tail, skipping (and logging) any event it cannot apply.
+	sf, err := common.Recover(savePath, func(err error) { host.Logf("load: %v", err) })
+	if err != nil {
+		// A file that exists but does not parse is fatal. We must
+		// NOT start fresh over it: the agent saves at exit, and a
+		// fresh start would write an empty conversation over the
+		// user's history. Name the file, touch none of its bytes,
+		// and let a human look at it.
+		fmt.Fprintf(os.Stderr, "agent: cannot load save file %s: %v\n", savePath, err)
+		os.Exit(1)
+	}
+	if len(sf.Log) > 0 || sf.Context != nil {
 		// Rule 3: install the snapshot, then apply only the tail above
 		// its anchor. Restore handles the null-snapshot case too.
-		ctx, rerr := sf.Restore()
-		if rerr != nil {
-			fmt.Fprintf(os.Stderr, "agent: cannot restore save file %s: %v\n", savePath, rerr)
-			os.Exit(1)
-		}
-		eng.Ctx = ctx
+		eng.Ctx = sf.Restore(func(err error) { host.Logf("load: %v", err) })
 		// The loaded log is kept whole: rule 6 saves it back plus
 		// whatever this session adds. Restoring the context consumed
 		// the tail; it did not consume the history.
@@ -342,17 +346,32 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		// vendor-independent, so a conversation saved against one
 		// vendor resumes against another.
 	}
+	journal, err := common.OpenJournal(common.JournalPath(savePath))
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "agent: %v\n", err)
+		os.Exit(1)
+	}
+	defer journal.Close()
+	eng.Journal = journal
+
+	// Chapter 15 rule 10: the context target comes from settings.json,
+	// read whether or not the GUI is up, and re-read on every request so a
+	// change applies to the next cut and never to a recorded one.
+	settingsStore := common.NewSettingsStore(filepath.Join(".", "settings.json"))
+	eng.Target = func() int { return settingsStore.Get().ContextTarget }
 
 	actor := llm.NewActor(eng, host)
 
 	// Wire load_skill/unload_skill now that we have the event log.
 	reg.WireSkills(sr, vars, eng.Log)
-	// Re-derive declarations so load_skill and unload_skill appear.
+	// Re-derive declarations so load_skill and unload_skill appear. This is
+	// the last time eng.Cfg.Tools is written once a session can start:
+	// Chapter 15 rule 1 freezes the startup declarations. A skill loaded
+	// later records ToolsChanged instead, and the renderer carries the
+	// change in the dialog (rule 2). Chapter 10 used to rewrite
+	// eng.Cfg.Tools here on every load, which changed the prefix and
+	// missed the cache on every request after it.
 	eng.Cfg.Tools = reg.Declarations()
-	// When a skill is loaded dynamically, update the config's tool declarations.
-	reg.SetOnToolsChanged(func() {
-		eng.Cfg.Tools = reg.Declarations()
-	})
 
 	// Track MCP clients per skill for lifecycle management.
 	skillMCPClients := make(map[string][]*mcp.Client)
@@ -431,9 +450,24 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 			return true
 		}
 		args, _ := json.Marshal(map[string]string{"name": "gui-debug"})
-		if _, lErr = loadTool.Run(nil, args); lErr != nil {
+		// A real Call, so the skill's SkillLoaded event goes through
+		// Record like every other event (ch15: the reducer turns it into
+		// the Skill entry). Its ToolsChanged is dropped: this is startup,
+		// the prefix is not frozen yet, and the declarations are simply
+		// re-derived below.
+		c := &common.Call{Host: host, Jobs: j}
+		if _, lErr = loadTool.Run(c, args); lErr != nil {
 			fmt.Fprintf(os.Stderr, "gui-debug: %v\n", lErr)
 			return true
+		}
+		for _, ev := range c.Events {
+			if ev.Type == common.ToolsChanged {
+				continue
+			}
+			if rErr := eng.Record(ev); rErr != nil {
+				fmt.Fprintf(os.Stderr, "gui-debug: %v\n", rErr)
+				return true
+			}
 		}
 		eng.Cfg.Tools = reg.Declarations()
 	}
@@ -468,8 +502,8 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 
 	// Start the HTTP/WebSocket server if --port is set.
 	if port != "" {
-		settingsPath := filepath.Join(".", "settings.json")
-		settingsStore := common.NewSettingsStore(settingsPath)
+		// The same store the context policy reads, so a target changed in
+		// the Context Management tab applies from the next request.
 
 		hub := ws.NewHub(gate, func(msg common.Inbound) {
 			actor.Send(msg)
@@ -648,7 +682,13 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	} else {
 		asOf = eng.Log.NextSeq() - 1
 	}
-	if err := common.Save(savePath, asOf, eng.Ctx, eng.Log, eng.Cfg); err != nil {
+	// Chapter 15 rule 9: snapshot first, then empty the journal, and only
+	// if the snapshot landed. The other order loses the tail to a crash
+	// between the two; a failed save that still emptied the journal loses
+	// it outright.
+	if err := common.SaveRetaining(savePath, asOf, eng.Ctx, eng.Log, eng.Cfg, settingsStore.Get().LogRetention); err != nil {
+		fmt.Fprintf(os.Stderr, "save: %v\n", err)
+	} else if err := journal.Reset(); err != nil {
 		fmt.Fprintf(os.Stderr, "save: %v\n", err)
 	}
 

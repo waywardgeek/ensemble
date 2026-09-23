@@ -40,6 +40,24 @@ type SaveFile struct {
 // through leaves the previous save intact rather than a truncated file
 // where the only copy of the conversation used to be.
 func Save(path string, asOf Seq, ctx *Context, log *Log, cfg Config) error {
+	return SaveRetaining(path, asOf, ctx, log, cfg, 0)
+}
+
+// SaveRetaining is Save with log retention (Chapter 15 rule 10): keep > 0
+// keeps only the newest keep events in the saved log. The snapshot is in the
+// same file, written by the same rename, so the new snapshot always exists
+// before the old events are gone; and the kept events are the newest, ending
+// at the anchor, so nothing past the anchor is ever truncated.
+//
+// The previous save is kept as path+".bak" (rule 9: one backup of the previous
+// snapshot). It is copied, not renamed: a rename would leave a moment with no
+// save.json at all, and a crash in that moment would start the next session
+// fresh.
+func SaveRetaining(path string, asOf Seq, ctx *Context, log *Log, cfg Config, keep int) error {
+	events := log.Events
+	if keep > 0 && len(events) > keep {
+		events = events[len(events)-keep:]
+	}
 	sf := SaveFile{
 		Config: SaveConfig{
 			Model:        cfg.Model,
@@ -49,12 +67,23 @@ func Save(path string, asOf Seq, ctx *Context, log *Log, cfg Config) error {
 		},
 		AsOf:    asOf,
 		Context: ctx,
-		Log:     log.Events,
+		Log:     events,
 	}
 	data, err := json.MarshalIndent(sf, "", "  ")
 	if err != nil {
 		return fmt.Errorf("save: marshal: %w", err)
 	}
+	if old, err := os.ReadFile(path); err == nil {
+		if err := writeAtomic(path+".bak", old); err != nil {
+			return fmt.Errorf("save: backup: %w", err)
+		}
+	}
+	return writeAtomic(path, data)
+}
+
+// writeAtomic writes data to path through a temp file and a rename, so a
+// crash leaves either the old file or the new one, never half of either.
+func writeAtomic(path string, data []byte) error {
 	dir := filepath.Dir(path)
 	tmp, err := os.CreateTemp(dir, ".save-*.json")
 	if err != nil {
@@ -109,7 +138,15 @@ func Load(path string) (*SaveFile, error) {
 // Both paths must land on the same Context for the same save. That
 // equivalence is the chapter's falsifiable claim, and the grader
 // checks it by comparing the vendor requests the two produce.
-func (sf *SaveFile) Restore() (*Context, error) {
+//
+// Chapter 15 rule 8 makes the loop TOTAL. An event that parsed but cannot
+// be applied — a missing payload, a redaction naming an entry that is not
+// there — is skipped, and diag is told why. The file already parsed, so the
+// loader has done its refusing (ch11 rule 2); what is left is one bad event
+// in an otherwise good history, and throwing away the whole history for it
+// is the worse failure. Apply rejects such an event before mutating
+// anything, so a skip is a clean skip. A nil diag discards the reasons.
+func (sf *SaveFile) Restore(diag func(error)) *Context {
 	ctx, after := sf.Context, sf.AsOf
 	if ctx == nil {
 		ctx, after = NewContext(), 0
@@ -118,11 +155,11 @@ func (sf *SaveFile) Restore() (*Context, error) {
 		if e.Seq <= after {
 			continue
 		}
-		if err := ctx.Apply(e); err != nil {
-			return nil, fmt.Errorf("restore: event %d: %w", e.Seq, err)
+		if err := ctx.Apply(e); err != nil && diag != nil {
+			diag(fmt.Errorf("restore: skipped event %d: %w", e.Seq, err))
 		}
 	}
-	return ctx, nil
+	return ctx
 }
 
 // NextSeq is the Seq the first new event should get: one past the

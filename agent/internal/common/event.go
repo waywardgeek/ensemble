@@ -37,6 +37,16 @@ const (
 	// The event carries the skill name and its rendered body so the GUI can
 	// display it.
 	SkillLoaded
+	// MicroHandoff is the actor's checkpoint: the note it writes to its
+	// future self. It follows the micro_handoff tool call's ordinary result.
+	// The reducer clears every answered tool call and result from the
+	// context and appends one KindHandoff entry holding the note.
+	MicroHandoff
+	// ToolsChanged records a change to the tool declarations after the
+	// session started: a skill load, an unload, an MCP connect. The startup
+	// declarations are frozen (Chapter 15 rule 1); later changes ride in the
+	// dialog as a KindTools entry.
+	ToolsChanged
 )
 
 var eventTypeNames = map[EventType]string{
@@ -50,6 +60,8 @@ var eventTypeNames = map[EventType]string{
 	ErrorOccurred:   "error_occurred",
 	JobKilled:       "job_killed",
 	SkillLoaded:     "skill_loaded",
+	MicroHandoff:    "micro_handoff",
+	ToolsChanged:    "tools_changed",
 }
 
 func (t EventType) String() string {
@@ -133,14 +145,31 @@ type Event struct {
 	Type EventType `json:"type"`
 	Time time.Time `json:"time"`
 
-	Message  *MessageData  `json:"message,omitempty"`
-	Request  *RequestData  `json:"request,omitempty"`
-	Response *ResponseData `json:"response,omitempty"`
-	Tool     *ToolData     `json:"tool,omitempty"`
-	Redact   *RedactData   `json:"redact,omitempty"`
-	Error    *ErrorData    `json:"error,omitempty"`
-	Job      *JobData      `json:"job,omitempty"`
-	Skill    *SkillData    `json:"skill,omitempty"`
+	Message  *MessageData      `json:"message,omitempty"`
+	Request  *RequestData      `json:"request,omitempty"`
+	Response *ResponseData     `json:"response,omitempty"`
+	Tool     *ToolData         `json:"tool,omitempty"`
+	Redact   *RedactData       `json:"redact,omitempty"`
+	Error    *ErrorData        `json:"error,omitempty"`
+	Job      *JobData          `json:"job,omitempty"`
+	Skill    *SkillData        `json:"skill,omitempty"`
+	Handoff  *MicroHandoffData `json:"handoff,omitempty"`
+	Tools    *ToolsChangedData `json:"tools_changed,omitempty"`
+}
+
+// MicroHandoffData is the checkpoint note, verbatim.
+type MicroHandoffData struct {
+	Text string `json:"text"`
+}
+
+// ToolsChangedData is a DELTA against the declarations in force just before
+// it: what became callable, and what stopped being callable. A delta rather
+// than the full set, because the startup set is already in the frozen prefix
+// and repeating it in the dialog would pay for it twice. Added entries are
+// the same ToolDecl the prefix uses, so a renderer declares them the same way.
+type ToolsChangedData struct {
+	Added   []ToolDecl `json:"added,omitempty"`
+	Removed []string   `json:"removed,omitempty"`
 }
 
 type MessageData struct {

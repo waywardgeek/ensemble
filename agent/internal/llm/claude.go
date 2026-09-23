@@ -121,6 +121,9 @@ type anthBlock struct {
 	ToolUseID string
 	Content   string
 	IsError   bool
+	// Tool is the payload of a tool_addition or tool_removal block
+	// (Chapter 15 rule 2). Pre-marshalled so its shape lives in one place.
+	Tool json.RawMessage
 }
 
 func (b anthBlock) MarshalJSON() ([]byte, error) {
@@ -139,14 +142,51 @@ func (b anthBlock) MarshalJSON() ([]byte, error) {
 		ToolUseID string          `json:"tool_use_id,omitempty"`
 		Content   string          `json:"content,omitempty"`
 		IsError   bool            `json:"is_error,omitempty"`
+		Tool      json.RawMessage `json:"tool,omitempty"`
 	}
-	return json.Marshal(wire{b.Type, b.Text, b.ID, b.Name, b.Input, b.ToolUseID, b.Content, b.IsError})
+	return json.Marshal(wire{b.Type, b.Text, b.ID, b.Name, b.Input, b.ToolUseID, b.Content, b.IsError, b.Tool})
+}
+
+// Chapter 15 rule 2 on the Anthropic API: a tool declared mid-session rides
+// in a role:"system" message of tool_addition blocks, whose tool_definition
+// carries the same object the top-level tools array would (inline-tools
+// beta). The tools array, and with it the cached prefix, never changes.
+// Verified against the API documentation, 2026-09-22:
+// build-with-claude/mid-conversation-system-messages.
+const anthInlineToolsBeta = "mid-conversation-tool-changes-2026-07-01,inline-tools-2026-09-15"
+
+func inlineToolBlocks(entry common.Entry) []anthBlock {
+	var out []anthBlock
+	for _, p := range entry.Parts {
+		d, ok := p.(common.ToolDeclPart)
+		if !ok {
+			continue
+		}
+		for _, t := range d.Added {
+			def, _ := json.Marshal(anthTool{Name: t.Name, Description: t.Description, InputSchema: t.Schema})
+			tool, _ := json.Marshal(struct {
+				Type       string          `json:"type"`
+				Definition json.RawMessage `json:"definition"`
+			}{"tool_definition", def})
+			out = append(out, anthBlock{Type: "tool_addition", Tool: tool})
+		}
+		for _, name := range d.Removed {
+			tool, _ := json.Marshal(struct {
+				Type string `json:"type"`
+				Name string `json:"name"`
+			}{"tool_reference", name})
+			out = append(out, anthBlock{Type: "tool_removal", Tool: tool})
+		}
+	}
+	return out
 }
 
 func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request, error) {
 	target := common.Provenance{Vendor: common.VendorAnthropic, Model: cfg.Model, Surface: common.SurfaceMessages}
 
 	var msgs []anthMsg
+	features, _ := common.LookupModel(cfg.Model)
+	inlined := false
 	// appendBlocks merges into the previous message when the role matches.
 	//
 	// Client-side merging is REQUIRED here, but not for the reason most people
@@ -159,7 +199,15 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 		if len(blocks) == 0 {
 			return
 		}
-		if n := len(msgs); n > 0 && msgs[n-1].Role == role {
+		n := len(msgs)
+		// A system message must be the last message or be followed by an
+		// assistant turn. User content that arrives after one (a hint, the
+		// ephemera) joins the user turn the system message follows.
+		if role == "user" && n >= 2 && msgs[n-1].Role == "system" && msgs[n-2].Role == "user" {
+			msgs[n-2].Content = append(msgs[n-2].Content, blocks...)
+			return
+		}
+		if n > 0 && msgs[n-1].Role == role {
 			if resultsFirst {
 				// Splice tool results ahead of existing text in this message.
 				at := 0
@@ -177,6 +225,18 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 	}
 
 	for _, entry := range c.Dialogue {
+		if entry.Kind == common.KindTools {
+			if !features.InlineTools {
+				continue // re-declared in the tools array below instead
+			}
+			if n := len(msgs); n == 0 || msgs[n-1].Role != "user" {
+				return nil, fmt.Errorf("anthropic: tool declarations at seq %d do not follow a user turn, "+
+					"and a system message may only follow one", entry.Seq)
+			}
+			msgs = append(msgs, anthMsg{Role: "system", Content: inlineToolBlocks(entry)})
+			inlined = true
+			continue
+		}
 		r, err := classify(entry, cfg)
 		if err != nil {
 			return nil, err
@@ -255,15 +315,20 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 	effort, thinkingBudget := common.ThinkingFor(cfg)
 	maxTokens := common.EnsureMaxTokens(cfg.MaxTokens, thinkingBudget)
 
-	// Determine whether this model uses adaptive or manual thinking.
-	features, _ := common.LookupModel(cfg.Model)
+	// The tools array is the frozen startup set. Only a vendor that cannot
+	// carry declarations in the dialog folds the later changes in here, and
+	// pays the cache miss for it (rule 2).
+	tools := cfg.Tools
+	if !features.InlineTools {
+		tools = common.EffectiveTools(cfg.Tools, c)
+	}
 
 	body := anthRequest{
 		Model:     cfg.Model,
 		MaxTokens: maxTokens,
 		System:    cfg.SystemPrompt, // top-level. Store it and you have picked a vendor.
 		Messages:  msgs,
-		Tools:     anthTools(cfg.Tools),
+		Tools:     anthTools(tools),
 		Stream:    common.StreamingFor(cfg) != 0,
 	}
 	if effort != common.ThinkingOff && thinkingBudget > 0 {
@@ -282,10 +347,14 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 			}
 		}
 	}
-	return newJSONRequest("POST", cfg.BaseURL+"/v1/messages", body, map[string]string{
+	headers := map[string]string{
 		"x-api-key":         cfg.APIKey,
 		"anthropic-version": "2023-06-01",
-	})
+	}
+	if inlined {
+		headers["anthropic-beta"] = anthInlineToolsBeta
+	}
+	return newJSONRequest("POST", cfg.BaseURL+"/v1/messages", body, headers)
 }
 
 // --- response ----------------------------------------------------------

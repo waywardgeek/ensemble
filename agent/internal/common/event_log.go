@@ -8,6 +8,7 @@ package common
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -73,7 +74,16 @@ func (l *Log) NextSeq() Seq {
 // special case it always was: a save with no snapshot and no anchor.
 func (l *Log) Replay() (*Context, error) {
 	sf := &SaveFile{Log: l.Events}
-	return sf.Restore()
+	// The loop is total (Chapter 15 rule 8), but a caller that asks for a
+	// replay of a log FILE — render, verify — still hears about every event
+	// that could not be applied, as an error, so a bad log is not quietly
+	// rendered as if it were a good one.
+	var skipped []error
+	ctx := sf.Restore(func(err error) { skipped = append(skipped, err) })
+	if len(skipped) > 0 {
+		return nil, errors.Join(skipped...)
+	}
+	return ctx, nil
 }
 
 // header is the first line of a log file. It is not an event; it carries the

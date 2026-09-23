@@ -80,6 +80,11 @@
             <label>Max tool rounds <input type="number" id="set-max-tool-rounds" min="1" max="200" value="100"></label>
           </fieldset>
           <fieldset>
+            <legend>Context management</legend>
+            <label>Target context bytes <input type="number" id="set-context-target" min="20000" step="10000" value="400000"></label>
+            <label>Saved log events (0 = all) <input type="number" id="set-log-retention" min="0" step="100" value="0"></label>
+          </fieldset>
+          <fieldset>
             <legend>Accessibility</legend>
             <label><input type="checkbox" id="set-tts-enabled"> TTS enabled</label>
             <label>TTS speed <input type="number" id="set-tts-speed" min="0.5" max="10" step="0.1" value="1.2"></label>

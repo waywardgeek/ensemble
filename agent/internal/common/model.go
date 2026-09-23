@@ -59,6 +59,24 @@ type ModelFeatures struct {
 	// is a wire-format distinction: claude-opus-5 and claude-sonnet-5
 	// require adaptive; older models require manual.
 	AdaptiveThinking bool
+
+	// StubsToolResults enables Chapter 15's per-round-trip stubbing: every
+	// tool result above the stub threshold becomes a stub in the request
+	// after the one that carried it, unless the model's next message calls
+	// keep_tool_results. It is a column because it is a judgement about the
+	// model: a model that curates its own context well gains from it, and
+	// one that does not (Sonnet 5, in Bill's use) loses results it needed.
+	// Without it, only the ladder applies.
+	StubsToolResults bool
+
+	// InlineTools says the vendor can carry a tool declaration inside the
+	// dialog, so a skill loaded mid-session adds tools without touching the
+	// frozen prefix (Chapter 15 rule 2). On the Anthropic API this is a
+	// role:"system" message of tool_addition blocks (betas
+	// mid-conversation-tool-changes-2026-07-01 and inline-tools-2026-09-15);
+	// Sonnet 5 does not accept those messages. Without it, the renderer
+	// re-declares the tools array and pays the cache miss.
+	InlineTools bool
 }
 
 // models is keyed by MODEL, not by vendor.
@@ -76,7 +94,7 @@ func models() map[string]ModelFeatures {
 		// Both Opus 5 and Sonnet 5 support extended thinking with a budget
 		// of at least 32768 tokens. MaxOutputTokens 16384 is a reasonable
 		// reply ceiling when thinking is enabled (total = budget + reply).
-		"claude-opus-5":   {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		"claude-opus-5":   {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
 		"claude-sonnet-5": {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
 
 		// OpenAI — images yes, audio and video NO (video APIs are generation).
@@ -101,8 +119,13 @@ func models() map[string]ModelFeatures {
 		"fake-model": {Media: MediaImage, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Course/test models used by graders in various chapters.
-		"claude-fake-course-1":    {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
-		"claude-sonnet-5-course":  {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		"claude-fake-course-1":   {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		"claude-sonnet-5-course": {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		// Chapter 15's grader model: the claude-opus-5 row, course-named.
+		// A new row rather than a changed one, so every earlier chapter's
+		// grader, which runs fake-model or claude-fake-course-1, sees
+		// exactly the wire it saw before.
+		"claude-opus-5-course":    {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
 		"gpt-5-course":            {Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 		"gemini-3.5-flash-course": {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 	}

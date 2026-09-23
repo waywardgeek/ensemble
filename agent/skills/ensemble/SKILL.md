@@ -13,6 +13,8 @@ tools:
   - send_input
   - kill_job
   - think
+  - keep_tool_results
+  - micro_handoff
   - load_skill
   - unload_skill
 loadable-skills: code-tools search-tools gui-debug virtual-user

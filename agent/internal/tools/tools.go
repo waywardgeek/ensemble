@@ -161,6 +161,28 @@ func builtinTools() map[string]common.Tool {
 			"thought":{"type":"string","description":"What you are thinking about. Returned as the output."}}}`),
 			Run: toolThink,
 		},
+		// Chapter 15. Both act on the context rather than being jobs, so
+		// they run inline like tool_limits.
+		common.KeepToolResults: {
+			Name:        common.KeepToolResults,
+			Description: "Keep the tool results you just received. Large results are replaced by a short stub in the request after the one that carried them; calling this in your next message keeps that whole batch in full. Takes no arguments. Call it only when you will need to quote those results again.",
+			Schema:      json.RawMessage(`{"type":"object","properties":{}}`),
+			NoJob:       true,
+			Run: func(*common.Call, json.RawMessage) (string, error) {
+				// The decision is the call itself, which is in the log;
+				// the policy reads it there when it builds the next
+				// request. Nothing to do here but acknowledge.
+				return "kept: the previous batch of tool results stays in full", nil
+			},
+		},
+		"micro_handoff": {
+			Name:        "micro_handoff",
+			Description: "Checkpoint. Write a note to your future self: the goal, what is done, what you learned, what is next. Every tool call and tool result so far is then removed from your context and replaced by this note, which stays. Call it when a sub-task is finished and nothing is in flight.",
+			Schema: json.RawMessage(`{"type":"object","properties":{
+			"text":{"type":"string","description":"The note. It replaces all tool traffic so far, so put in it everything you still need from that traffic."}},"required":["text"]}`),
+			NoJob: true,
+			Run:   toolMicroHandoff,
+		},
 	}
 }
 
@@ -673,6 +695,26 @@ func withContext(path string, lines []string, hits []int, ctx int, precededBy bo
 
 // toolThink pauses for a given duration. It is NOT a NoJob tool, so it runs
 // on a goroutine and the actor can process hints during the pause.
+// toolMicroHandoff records the checkpoint. Three records, in order: the call
+// (already in the log), this ordinary result, then the MicroHandoff event,
+// which the dispatcher records after the result because it rides in c.Events.
+func toolMicroHandoff(c *common.Call, args json.RawMessage) (string, error) {
+	var a struct {
+		Text string `json:"text"`
+	}
+	if err := json.Unmarshal(args, &a); err != nil {
+		return "", fmt.Errorf("micro_handoff: bad arguments: %v", err)
+	}
+	if strings.TrimSpace(a.Text) == "" {
+		return "", fmt.Errorf("micro_handoff: text is required; it replaces every tool call and result so far")
+	}
+	if c == nil {
+		return "", fmt.Errorf("micro_handoff: no call context to record the checkpoint in")
+	}
+	c.Events = append(c.Events, common.Event{Type: common.MicroHandoff, Handoff: &common.MicroHandoffData{Text: a.Text}})
+	return "checkpoint recorded: tool traffic so far is replaced by your note", nil
+}
+
 func toolThink(c *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Seconds float64 `json:"seconds"`
@@ -839,6 +881,49 @@ func (r *Reg) RemoveTool(name string) {
 	delete(r.argSpec, n)
 }
 
+// declared snapshots the current declarations by name, so a skill load or
+// unload can report what it changed.
+func (r *Reg) declared() map[string]common.ToolDecl {
+	m := map[string]common.ToolDecl{}
+	for _, d := range r.Declarations() {
+		m[d.Name] = d
+	}
+	return m
+}
+
+// toolsChanged builds the ToolsChanged event for the difference between
+// before and now. Both lists are in declaration order (sorted by name), so the
+// event is deterministic. ok is false when nothing changed.
+func (r *Reg) toolsChanged(before map[string]common.ToolDecl) (common.Event, bool) {
+	var d common.ToolsChangedData
+	now := r.Declarations()
+	have := map[string]bool{}
+	for _, t := range now {
+		have[t.Name] = true
+		if _, was := before[t.Name]; !was {
+			d.Added = append(d.Added, t)
+		}
+	}
+	for _, name := range sortedKeys(before) {
+		if !have[name] {
+			d.Removed = append(d.Removed, name)
+		}
+	}
+	if len(d.Added) == 0 && len(d.Removed) == 0 {
+		return common.Event{}, false
+	}
+	return common.Event{Type: common.ToolsChanged, Tools: &d}, true
+}
+
+func sortedKeys(m map[string]common.ToolDecl) []string {
+	out := make([]string, 0, len(m))
+	for k := range m {
+		out = append(out, k)
+	}
+	sort.Strings(out)
+	return out
+}
+
 func (r *Reg) Declarations() []common.ToolDecl {
 	var decls []common.ToolDecl
 	for _, n := range r.toolNames() {
@@ -956,10 +1041,18 @@ func (r *Reg) WireSkills(sr *common.SkillRegistry, vars *common.VarRegistry, eve
 			if err := json.Unmarshal(args, &input); err != nil {
 				return "", fmt.Errorf("invalid arguments: %w", err)
 			}
+			// The events ride in c.Events so the dispatcher records them
+			// AFTER this call's result, through Record, like every other
+			// event. Chapter 10 appended SkillLoaded to the log directly,
+			// which put it before the result and past the reducer.
+			if c == nil {
+				return "", fmt.Errorf("load_skill: no call context to record the load in")
+			}
 			seq := 0
 			if eventLog != nil {
 				seq = eventLog.Len()
 			}
+			before := r.declared()
 			body, err := sr.LoadDynamic(input.Name, seq, vars)
 			if err != nil {
 				return "", err
@@ -976,16 +1069,13 @@ func (r *Reg) WireSkills(sr *common.SkillRegistry, vars *common.VarRegistry, eve
 				}
 			}
 
-			// Record the event
-			if eventLog != nil {
-				eventLog.Append(common.Event{
-					Type: common.SkillLoaded,
-					Skill: &common.SkillData{
-						Name: input.Name,
-						Body: body,
-					},
-				})
-			}
+			// Rule 4: the body becomes a Skill entry, built by the reducer
+			// from this event. It is not in the tool result, where the
+			// first tool clearing would delete it.
+			c.Events = append(c.Events, common.Event{
+				Type:  common.SkillLoaded,
+				Skill: &common.SkillData{Name: input.Name, Body: body},
+			})
 
 			// Connect MCP servers declared by the skill.
 			if entry != nil && len(entry.Props.MCPServers) > 0 && r.onSkillMCPConnect != nil {
@@ -1005,21 +1095,20 @@ func (r *Reg) WireSkills(sr *common.SkillRegistry, vars *common.VarRegistry, eve
 				}
 			}
 
-			// Notify that tool declarations changed.
+			// Rule 2: the declarations that changed, as a delta, in the
+			// dialog. The startup declarations are never touched.
+			if ev, ok := r.toolsChanged(before); ok {
+				c.Events = append(c.Events, ev)
+			}
 			if r.onToolsChanged != nil {
 				r.onToolsChanged()
 			}
 
-			// Build response showing what was loaded
-			result := fmt.Sprintf("Loaded skill %q.\n\n", input.Name)
-			if body != "" {
-				result += "## Instructions\n\n" + body + "\n\n"
-			}
-
-			// Show newly available skills
+			// An acknowledgement, and what can be loaded next.
+			result := fmt.Sprintf("Loaded skill %q. Its instructions are now in your context as a skill entry, and stay there when tool results are cleared.\n", input.Name)
 			loadable := sr.LoadableSkills()
 			if len(loadable) > 0 {
-				result += "## Available skills to load\n\n"
+				result += "\n## Available skills to load\n\n"
 				for _, s := range loadable {
 					result += fmt.Sprintf("- **%s**: %s\n", s.Name, s.Description)
 				}
@@ -1052,6 +1141,7 @@ func (r *Reg) WireSkills(sr *common.SkillRegistry, vars *common.VarRegistry, eve
 			if err := json.Unmarshal(args, &input); err != nil {
 				return "", fmt.Errorf("invalid arguments: %w", err)
 			}
+			before := r.declared()
 			if err := sr.MarkUnload(input.Name); err != nil {
 				return "", err
 			}
@@ -1060,6 +1150,16 @@ func (r *Reg) WireSkills(sr *common.SkillRegistry, vars *common.VarRegistry, eve
 				if mcpErr := r.onSkillMCPDisconnect(input.Name); mcpErr != nil {
 					return "", fmt.Errorf("MCP disconnect for skill %q: %w", input.Name, mcpErr)
 				}
+			}
+			// Tools that stopped being callable leave through the dialog
+			// too (ch15 rule 2). The skill's own tools stay callable until
+			// compaction (ch10's lazy unload), so usually only MCP tools
+			// are in the delta.
+			if ev, ok := r.toolsChanged(before); ok {
+				if c == nil {
+					return "", fmt.Errorf("unload_skill: no call context to record the change in")
+				}
+				c.Events = append(c.Events, ev)
 			}
 			// Notify that tool declarations changed.
 			if r.onToolsChanged != nil {

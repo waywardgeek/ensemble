@@ -185,6 +185,9 @@ func (geminiSeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 
 	var contents []gemContent
 	for _, entry := range c.Dialogue {
+		if entry.Kind == common.KindTools {
+			continue // no in-dialog declarations here: see EffectiveTools
+		}
 		r, err := classify(entry, cfg)
 		if err != nil {
 			return nil, err
@@ -252,7 +255,7 @@ func (geminiSeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 		}
 	}
 
-	body := gemRequest{Contents: contents, Tools: gemTools(cfg.Tools)}
+	body := gemRequest{Contents: contents, Tools: gemTools(common.EffectiveTools(cfg.Tools, c))}
 	if cfg.SystemPrompt != "" {
 		body.SystemInstruction = &gemContent{Parts: []gemPart{{Text: cfg.SystemPrompt}}}
 	}
