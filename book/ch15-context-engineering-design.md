@@ -1427,3 +1427,18 @@ Three tools now cut the context. A proposal for Bill to confirm or replace:
 Open: does `handoff_task` also save a session memory (then it is `save_memory`
 plus dropping survivors), or not (then the handoff document is the only record,
 and §A.6's two-write-paths bug returns)?
+
+## Later the same evening (RULED; overrides ruling 4 and closes Q25)
+
+- **`handoff_task` is NOT added to ensemble.** Ruling 4 was a slip. §A.6 stands:
+  `micro_handoff` only. Q25 is closed.
+- **The context averages a user-chosen target size.** With `micro_handoff` and
+  `save_memory` as the only cuts, context size oscillates around a target the
+  user sets: more context and memory for more money, less when the cost hurts.
+  The target belongs in the Context Management tab (ch15) and should drive the
+  watermark and forced-`save_memory` thresholds rather than sitting beside them
+  as an unrelated knob.
+- **Direction (context, not a chapter ruling):** Bill intends to move the
+  CodeRhapsody identity and history into ensemble once it is usable, with the
+  agent primarily an orchestrator; per-project agents may be ephemeral or
+  long-lived with their own history. The design should keep both easy.
