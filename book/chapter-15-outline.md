@@ -4,8 +4,8 @@ Source of truth: `book/ch15-context-engineering-design.md`, Parts I and II. This
 outline turns that design into chapter structure. Where they disagree, the design
 doc wins until Bill rules; flag the conflict, never resolve it silently.
 
-Numbering is provisional: A = 15, B = 16 (memory), C = 17 (goal stack). Bill has
-not assigned numbers.
+Numbering RULED: A = ch15, B = ch16 (memory), C = ch17 (goal stack). Evening
+rulings of 2026-09-22 are at the end of the design doc and override it.
 
 Workflow for this chapter (Bill's, supersedes the outline-first order in
 `chapter-writing-procedure.md`): design doc → author writes TL;DR + §15.1 plain
@@ -55,12 +55,16 @@ figure reconstructed from memory.
   LinkedIn only).
 - **Bill moments (≤2):** (1) the `compress_context` war story, quoted verbatim
   from §I.8; (2) the opener, see story slot.
-- **[STORY SLOT — opener]:** mid-session on 2026-09-22 Bill resent the agent's
-  entire history, and the agent recovered from the workspace and its own
-  narration. Bill's framing: "It's nothing compared to what we do today." This is
-  NOT on file as a quote; the author asks Bill to supply or confirm wording before
-  printing. It is the chapter's best receipt for "the actor can always regain
-  context."
+- **[STORY SLOT — opener] (RULED substance, wording from Bill):** how most
+  users manage context today. They use a chat until it degrades from poor
+  context management, then paste the context into a new chat and carry on. Bill
+  still does this, several times on 2026-09-22, with Opus 5.5. That manual reset
+  is the baseline every mechanism in this chapter competes with. The author gets
+  Bill's own wording before printing; nothing here is a quote.
+- **Risk to name, not hide (UNMEASURED):** Bill's hypothesis for why Opus 5.5
+  degraded is that per-round-trip auto-redaction interferes with its thinking,
+  and this chapter builds that exact mechanism. Print it as an open risk with
+  the measurement that would settle it (design doc Part VI), not as a finding.
 - **Confession (on file):** the prediction that per-round-trip redaction would
   wreck the prompt cache was wrong (77%, §A.11.1). Print it in §15.3 as a failed
   prediction, with the number.
@@ -81,6 +85,8 @@ figure reconstructed from memory.
   the context and appends one `Handoff` entry.
 - A **tool-bytes ladder**: a policy that emits Chapter 2's `RedactData` events
   below two watermarks, each event recording the exact Seq it cuts at.
+- **Per-round-trip auto-redaction** with a **`keep_tool_results`** tool, gated
+  per model: the actor-curated band of the layout (Variant B).
 - **Skills that survive**: the reducer turns `SkillLoaded` into a `Skill` entry;
   the `load_skill` result becomes an acknowledgement.
 - A **frozen prefix**: system prompt and fixed tool declarations are
@@ -183,9 +189,9 @@ Each section has one thesis sentence. Word budget is a symptom detector only
 (4,000–7,500 soft); never cut to hit it.
 
 ### §15.0 Opener (first person allowed, short)
-Thesis: the agent survives having its history thrown away because the words
-were said out loud and the workspace still exists. Story slot above. Ends on the
-stake.
+Thesis: today's context management is a human pasting a degraded chat into a
+fresh one, and this chapter makes the agent do that job continuously and
+deliberately instead. Story slot above. Ends on the stake.
 
 ### TL;DR (above)
 
@@ -313,7 +319,14 @@ LGTM on this outline. Starts from `solutions/ch14`.
    truncation to max(N, anchor), snapshot on shutdown, recovery on start.
 8. Context Management tab (settings over WebSocket, fixed struct fields, ch9
    rules).
-9. Grader `internal/grade/ch15_*` with the seven checks; P9 deletion audit.
+9. Grader `internal/grade/ch15_*` with the seven checks (eight once `keep` is
+   added); P9 deletion audit.
+10. Per-round-trip auto-redaction: after each round trip, stub every tool result
+    the actor did not keep (Chapter 2's `RedactResult` on that round's results,
+    recorded as an event). Gated per model in the features table (Variant B).
+11. `keep_tool_results` tool: no arguments; keeps every result of the batch just
+    received (CodeRhapsody's semantics). Its effect must be a recorded event so
+    replay reproduces it.
 
 Coder must verify before building:
 - Does the fake vendor reject an unpaired tool call or result? If not, add it, or
@@ -326,14 +339,18 @@ Coder must verify before building:
 
 ## Open questions for Bill
 
-1. **Chapter numbers** for A, B, C.
+1. ~~Chapter numbers~~ RULED: A = 15, B = 16, C = 17.
 2. **Title:** "Keep the Words" recommended.
-3. **Q6, still unruled:** does Chapter A build per-round-trip auto-redaction plus
-   `keep_tool_results`? Without it, Variant B (actor-curated band) has no
-   mechanism in ensemble, and §15.6 can only describe it. No check grades it
-   either way. Recommendation: build it; it is nearly free by Law 2 and it is the
-   capable-model half of the layout.
-4. **Opener story:** supply or confirm the wording of the history-resend moment.
-5. **`handoff_task` in §15.9:** ensemble never had it; it is CodeRhapsody
-   history. Print it as history of the system this book grew from? (Voice rule:
-   name the system, not the company.)
+3. ~~Q6~~ RULED: build per-round-trip auto-redaction and `keep_tool_results` in
+   ch15 (coder list items 10-11). The grader needs a check for it; weights must be
+   rebalanced to stay at 100 (author's call; proposal: `keep` 10, taken 5 from
+   `frozen prefix` and 5 from `total reducer`).
+4. ~~Opener story~~ RULED correction: it is a *reset*, not a resend; see the
+   story slot.
+5. **`handoff_task`**: RULED that ensemble gets it (reversing the design doc's
+   §A.6 deletion). Its role is open: design doc Q25. §15.9 cannot be finalized
+   until that is ruled.
+6. **Watermark thresholds and a forced `save_memory`**: RULED direction (design
+   doc evening rulings 5-6), mostly ch16 material. What ch15 needs: the
+   thresholds on the tool ladder (already rule 6) and, if Bill wants it in ch15,
+   the upgrade-to-compact model switch.
