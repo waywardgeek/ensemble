@@ -467,12 +467,26 @@ func ch10DriveDisclosure(r *Ch10Result, bin, guiDir string) {
 			r.PostDisclosureTools)
 	}
 
-	// Check variable substitution in the search-tools tool result.
-	if strings.Contains(r.DisclosureResult, "hello-from-grader") {
+	// Check variable substitution in the search-tools skill body.
+	//
+	// The check reads the whole next request, not the load_skill tool
+	// result: Chapter 15 rule 4 moves a loaded skill's body out of the tool
+	// result into an entry of its own, and this check grades RENDERING, not
+	// where the body is delivered (Bill's ruling, 2026-09-23). It stays
+	// specific to the search-tools load because only that body contains
+	// $CUSTOM_VAR, and the value must be absent from the request before it.
+	req2 := string(reqs[2].Body)
+	switch {
+	case strings.Contains(string(reqs[1].Body), "hello-from-grader"):
+		r.VarSubErr = "the rendered $CUSTOM_VAR value appears before search-tools was loaded"
+	case strings.Contains(req2, "$CUSTOM_VAR"):
+		r.VarSubErr = "the request after loading search-tools still carries the literal $CUSTOM_VAR — not rendered"
+	case strings.Contains(req2, "hello-from-grader"):
 		r.VarSubOK = true
-		r.VarSubBody = r.DisclosureResult
-	} else {
-		r.VarSubErr = fmt.Sprintf("$CUSTOM_VAR not rendered — got: %s", r.DisclosureResult)
+		r.VarSubBody = req2
+	default:
+		r.VarSubErr = fmt.Sprintf("$CUSTOM_VAR not rendered — the request after loading search-tools "+
+			"does not carry its value; tool result was: %s", r.DisclosureResult)
 	}
 }
 
