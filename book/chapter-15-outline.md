@@ -93,7 +93,8 @@ figure reconstructed from memory.
   byte-identical on every request; mid-session tools arrive as a `ToolsChanged`
   entry.
 - A **total reducer** and **crash-safe persistence**: append-on-write log,
-  anchored snapshot, one backup generation, bounded truncation.
+  one backup generation, bounded truncation, on top of ch11's anchored
+  snapshot.
 - A **Context Management** settings tab.
 
 ### Contracts (additive only; shapes DERIVED, coder confirms)
@@ -159,10 +160,11 @@ declaration type is. The TL;DR prints the final shape after the review.
 7. **The reducer is total.** A malformed event, or a redaction naming an entry
    already removed, is skipped with an observable diagnostic. `Rebuild` never
    returns an error for log content.
-8. **Persistence.** Events are appended to disk as they happen. A snapshot
-   carries the Seq it was taken at. Recovery = latest snapshot plus replay of
-   later events. Snapshot before truncate; never truncate past the anchor; keep
-   one backup of the previous snapshot. Normal shutdown snapshots.
+8. **Persistence.** Events are appended to disk as they happen, so a crash
+   leaves a tail after ch11's `as_of` anchor. Recovery is ch11's load (snapshot
+   plus tail), now fed by the on-disk tail. Snapshot before truncate; never
+   truncate past the anchor; keep one backup of the previous snapshot. Normal
+   shutdown snapshots.
 9. **Settings.** The watermarks, the hysteresis factor and log retention N live
    in a Context Management tab.
 
@@ -279,8 +281,10 @@ that could later name different bytes (wild fact: `cr/io/26`; ch14's rule:
 wrong data, not no data).
 
 ### §15.12 Crash-safe persistence
-Thesis: a log is only ground truth from the moment it reaches the disk. Tail,
-anchored snapshot, recovery. Save procedure with one backup generation. The two
+Thesis: a log is only ground truth from the moment it reaches the disk. Ch11
+already anchors the snapshot and loads snapshot plus tail; its gap is that the
+tail lives only in memory until a clean exit. Append-on-write, save procedure
+with one backup generation. The two
 invariants: snapshot before truncate (not commutative), never truncate past the
 anchor (a display preference never overrules a correctness boundary). Truncation
 loses old tool results, and that is accepted.
@@ -315,8 +319,8 @@ LGTM on this outline. Starts from `solutions/ch14`.
    renderer carries it in the dialog; other renderers re-declare.
 6. Total reducer: `Rebuild` skip-and-diagnose; diagnostic observable (log line or
    event the grader can read).
-7. Persistence: append-on-write log, snapshot with anchor Seq, backup generation,
-   truncation to max(N, anchor), snapshot on shutdown, recovery on start.
+7. Persistence: append-on-write log, backup generation, truncation to
+   max(N, anchor), snapshot on shutdown; recovery reuses ch11's load path.
 8. Context Management tab (settings over WebSocket, fixed struct fields, ch9
    rules).
 9. Grader `internal/grade/ch15_*` with the seven checks (eight once `keep` is
