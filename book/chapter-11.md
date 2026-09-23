@@ -59,16 +59,18 @@ type ToolDecl struct {
    complete save. The vendor sees the context, never the log.
 5. **Numbering continues.** The first new event gets the Seq one past
    the larger of `as_of` and the last log event's Seq.
-6. **Save at exit.** When stdin closes, write the file and exit within
-   10 seconds. `as_of` is the Seq of the last event folded into the
-   saved context. The saved log is the loaded log plus every event
-   created since, oldest first, Seq strictly increasing.
+6. **Save at exit.** When stdin closes, write the file and exit. `as_of`
+   is the Seq of the last event folded into the saved context. The
+   saved log is the loaded log plus every event created since, oldest
+   first, Seq strictly increasing.
 7. **Config is a record, not a restore.** On load the running agent's
    own model, vendor, prompt and tools win. The context is
    vendor-independent (ch2); the save must not pin a model.
-8. **Replay is deterministic.** Loading a save as written, and loading
-   the same save with `context` set to null, must produce byte-identical
-   vendor requests for the next prompt.
+8. **Replay is deterministic.** For a save whose log is complete (every
+   save the agent writes itself), loading it as written and loading it
+   with `context` set to null must produce byte-identical vendor
+   requests for the next prompt. A trimmed log (rule 4) has nothing to
+   replay, so the rule cannot apply to it.
 
 Yours: indentation, whether to write through a temporary file and rename
 (recommended; a crash mid-write otherwise destroys the only copy), a
