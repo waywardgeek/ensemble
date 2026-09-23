@@ -12,6 +12,184 @@ By Bill Cox and CodeRhapsody
 
 Apache License 2.0 — see LICENSE.
 
+# Contents
+
+- [Preface](#preface)
+  - [Sixty billion dollars](#sixty-billion-dollars)
+  - [Who this is for](#who-this-is-for)
+  - [How the chapters are built](#how-the-chapters-are-built)
+  - [What no book has done before](#what-no-book-has-done-before)
+  - [What it costs](#what-it-costs)
+  - [What you need](#what-you-need)
+  - [Who wrote this](#who-wrote-this)
+- [Chapter 0: The Perpetual Machine](#chapter-0-the-perpetual-machine)
+  - [Not a specification](#not-a-specification)
+  - [The loop](#the-loop)
+  - [The generation](#the-generation)
+  - [The crossing](#the-crossing)
+- [Chapter 1: One Loop, Sixty Billion Dollars](#chapter-1-one-loop-sixty-billion-dollars)
+  - [1.0 Sixty billion dollars](#10-sixty-billion-dollars)
+  - [1.1 Frameworks, and why this book uses none](#11-frameworks-and-why-this-book-uses-none)
+  - [1.2 Anatomy of a request](#12-anatomy-of-a-request)
+  - [1.3 The obvious data structure](#13-the-obvious-data-structure)
+  - [1.4 The loop](#14-the-loop)
+  - [1.5 Usage is money](#15-usage-is-money)
+  - [1.6 Chat with it](#16-chat-with-it)
+  - [1.7 Two prices](#17-two-prices)
+  - [Exercise](#exercise)
+- [Chapter 2: One Log, Three Vendors](#chapter-2-one-log-three-vendors)
+  - [2.0 The interface that was a client](#20-the-interface-that-was-a-client)
+  - [2.1 Taking Chapter 1 apart](#21-taking-chapter-1-apart)
+  - [2.2 "But I only use one vendor"](#22-but-i-only-use-one-vendor)
+  - [2.3 History, context, request](#23-history-context-request)
+  - [2.4 The log](#24-the-log)
+  - [2.5 The context](#25-the-context)
+  - [2.6 The seam](#26-the-seam)
+  - [2.7 The bet](#27-the-bet)
+  - [2.8 Replay and versioning](#28-replay-and-versioning)
+  - [Exercise](#exercise-1)
+  - [2.9 Drive it yourself](#29-drive-it-yourself)
+- [Chapter 3: Six Tools, Ninety-Two Percent of an AI Coding Agent](#chapter-3-six-tools-ninety-two-percent-of-an-ai-coding-agent)
+  - [3.0 I counted](#30-i-counted)
+  - [3.1 Fifty-one rows](#31-fifty-one-rows)
+  - [3.2 The loop](#32-the-loop)
+  - [3.3 Six tools, and three named](#33-six-tools-and-three-named)
+  - [3.4 "Do we need anything other than `run_command`?"](#34-do-we-need-anything-other-than-run_command)
+  - [3.5 The decision this chapter does not make](#35-the-decision-this-chapter-does-not-make)
+  - [3.6 What you have now](#36-what-you-have-now)
+  - [3.7 Fakes first](#37-fakes-first)
+  - [Exercise](#exercise-2)
+  - [3.9 Drive it yourself](#39-drive-it-yourself)
+- [Chapter 4: Jobs, or Why a Tool Call Is a Process You Supervise](#chapter-4-jobs-or-why-a-tool-call-is-a-process-you-supervise)
+  - [4.0 The call that never came back](#40-the-call-that-never-came-back)
+  - [4.1 You cannot tell from the name](#41-you-cannot-tell-from-the-name)
+  - [4.2 Four lines, and what they do not do](#42-four-lines-and-what-they-do-not-do)
+  - [4.3 Stop throwing away the result](#43-stop-throwing-away-the-result)
+  - [4.4 Three verbs and one setter](#44-three-verbs-and-one-setter)
+  - [4.5 A megabyte of test output](#45-a-megabyte-of-test-output)
+  - [4.6 Who decides how long to wait](#46-who-decides-how-long-to-wait)
+  - [4.7 The terminal](#47-the-terminal)
+  - [4.8 Your agent drives a debugger](#48-your-agent-drives-a-debugger)
+  - [Exercise](#exercise-3)
+  - [4.9 Drive it yourself](#49-drive-it-yourself)
+- [Chapter 5: The Big Refactor](#chapter-5-the-big-refactor)
+  - [5.1 The idea in plain words](#51-the-idea-in-plain-words)
+  - [5.2 What moves where](#52-what-moves-where)
+  - [5.3 The star, enforced](#53-the-star-enforced)
+  - [5.4 The public API](#54-the-public-api)
+  - [5.5 A rename's blast radius](#55-a-renames-blast-radius)
+  - [5.6 The exercise, graded](#56-the-exercise-graded)
+  - [5.7 What this chapter does not do](#57-what-this-chapter-does-not-do)
+  - [5.8 Drive it yourself](#58-drive-it-yourself)
+  - [5.9 The ambush](#59-the-ambush)
+  - [5.10 Kill the globals](#510-kill-the-globals)
+- [Chapter 6: Two Seams and a Loop](#chapter-6-two-seams-and-a-loop)
+  - [TL;DR](#tldr)
+  - [§6.1 The idea in plain words](#61-the-idea-in-plain-words)
+  - [§6.2 The framework that imported its own GUI](#62-the-framework-that-imported-its-own-gui)
+  - [§6.3 The outbound seam](#63-the-outbound-seam)
+  - [§6.4 The inbound seam](#64-the-inbound-seam)
+  - [§6.5 The actor loop](#65-the-actor-loop)
+  - [§6.6 The Wait primitive](#66-the-wait-primitive)
+  - [§6.7 Hints and interrupts](#67-hints-and-interrupts)
+  - [§6.8 Managing multiple agents](#68-managing-multiple-agents)
+  - [§6.9 Media capabilities](#69-media-capabilities)
+  - [§6.10 Exercise: Author, Editor, Reviewer](#610-exercise-author-editor-reviewer)
+  - [§6.11 What this chapter does not build](#611-what-this-chapter-does-not-build)
+  - [Taking it for a spin](#taking-it-for-a-spin)
+- [Chapter 7: Streaming, or the Same Answer in Pieces](#chapter-7-streaming-or-the-same-answer-in-pieces)
+  - [TL;DR](#tldr-1)
+  - [7.1 The idea in plain words](#71-the-idea-in-plain-words)
+  - [7.2 Server-sent events, and the reader that survives them](#72-server-sent-events-and-the-reader-that-survives-them)
+  - [7.3 One `Parse`, not two](#73-one-parse-not-two)
+  - [7.4 Part ids: who is allowed to name a part](#74-part-ids-who-is-allowed-to-name-a-part)
+  - [7.5 Three vendors, three dialects](#75-three-vendors-three-dialects)
+  - [7.6 When a capability table pays for itself](#76-when-a-capability-table-pays-for-itself)
+  - [7.7 Guessing about delivery is not guessing about content](#77-guessing-about-delivery-is-not-guessing-about-content)
+  - [7.8 Three record-keepers](#78-three-record-keepers)
+  - [7.9 The terminal, and the flush that makes it real](#79-the-terminal-and-the-flush-that-makes-it-real)
+  - [7.10 The exercise](#710-the-exercise)
+  - [7.11 What this chapter does not build](#711-what-this-chapter-does-not-build)
+  - [Taking it for a spin](#taking-it-for-a-spin-1)
+  - [What Chapter 8 does with this](#what-chapter-8-does-with-this)
+- [Chapter 8: Everything Is an Artifact](#chapter-8-everything-is-an-artifact)
+  - [TL;DR](#tldr-2)
+  - [8.1 The idea in plain words](#81-the-idea-in-plain-words)
+  - [8.2 Extending the broadcast](#82-extending-the-broadcast)
+  - [8.3 One tool at a time](#83-one-tool-at-a-time)
+  - [8.4 The pause gate](#84-the-pause-gate)
+  - [8.5 The receiver](#85-the-receiver)
+  - [8.6 The wire](#86-the-wire)
+  - [8.7 Two tiers of state](#87-two-tiers-of-state)
+  - [8.8 The fourth log](#88-the-fourth-log)
+  - [8.9 Everything is an Artifact](#89-everything-is-an-artifact)
+  - [8.10 The voice](#810-the-voice)
+  - [8.11 Pause in the browser](#811-pause-in-the-browser)
+  - [Taking it for a spin](#taking-it-for-a-spin-2)
+  - [What Chapter 9 does with this](#what-chapter-9-does-with-this)
+- [Chapter 9: Build Your Dream GUI](#chapter-9-build-your-dream-gui)
+  - [TL;DR](#tldr-3)
+  - [The Why](#the-why)
+  - [Three panes and a drag bar](#three-panes-and-a-drag-bar)
+  - [Routing artifacts to the right pane](#routing-artifacts-to-the-right-pane)
+  - [Settings over the wire](#settings-over-the-wire)
+  - [Theming](#theming)
+  - [The agent tree](#the-agent-tree)
+  - [Sidebar tabs](#sidebar-tabs)
+  - [What is not graded and why](#what-is-not-graded-and-why)
+  - [What Chapter 10 does with this](#what-chapter-10-does-with-this)
+- [Chapter 10: Skills](#chapter-10-skills)
+  - [TL;DR](#tldr-4)
+  - [The Format](#the-format)
+  - [The Registry](#the-registry)
+  - [Progressive Disclosure](#progressive-disclosure)
+  - [Variable Substitution](#variable-substitution)
+  - [Tool Provenance](#tool-provenance)
+  - [The Constitution](#the-constitution)
+- [Chapter 11: Persistence](#chapter-11-persistence)
+  - [TL;DR](#tldr-5)
+  - [§11.1 In Plain Words](#111-in-plain-words)
+  - [§11.2 The Save File](#112-the-save-file)
+  - [§11.3 Snapshot Plus Tail](#113-snapshot-plus-tail)
+  - [§11.4 Replay Equals Snapshot](#114-replay-equals-snapshot)
+  - [§11.5 The LLM Never Sees the Log](#115-the-llm-never-sees-the-log)
+  - [§11.6 Default Load, and Refusing a Bad File](#116-default-load-and-refusing-a-bad-file)
+  - [§11.7 Taking It for a Spin](#117-taking-it-for-a-spin)
+- [Chapter 12: MCP -- The Extension Protocol](#chapter-12-mcp----the-extension-protocol)
+  - [TL;DR](#tldr-6)
+- [Chapter 13: The Agent Sees Itself](#chapter-13-the-agent-sees-itself)
+  - [TL;DR](#tldr-7)
+  - [What the wiring found](#what-the-wiring-found)
+- [Chapter 14: The Channel Nobody Tested](#chapter-14-the-channel-nobody-tested)
+  - [TL;DR](#tldr-8)
+  - [14.1 The idea in plain words](#141-the-idea-in-plain-words)
+  - [14.2 The channel that reported on itself](#142-the-channel-that-reported-on-itself)
+  - [14.3 A user who can only listen](#143-a-user-who-can-only-listen)
+  - [14.4 The run that succeeded for the wrong reason](#144-the-run-that-succeeded-for-the-wrong-reason)
+  - [14.5 A bug found by ear](#145-a-bug-found-by-ear)
+  - [14.6 The bug nobody could hear](#146-the-bug-nobody-could-hear)
+  - [14.7 Why none of it was reported](#147-why-none-of-it-was-reported)
+  - [14.8 What a program cannot verify](#148-what-a-program-cannot-verify)
+  - [14.9 Exercise, graded](#149-exercise-graded)
+  - [14.10 Taking it for a spin](#1410-taking-it-for-a-spin)
+- [Chapter 15: Keep the Words](#chapter-15-keep-the-words)
+  - [TL;DR](#tldr-9)
+  - [§15.1 In Plain Words](#151-in-plain-words)
+  - [§15.2 Why Is This Byte Here?](#152-why-is-this-byte-here)
+  - [§15.3 Two Laws](#153-two-laws)
+  - [§15.4 What Survives Is Never a Tool Call](#154-what-survives-is-never-a-tool-call)
+  - [§15.5 The Layout](#155-the-layout)
+  - [§15.6 Visible Reasoning Is the Storage Format of the Self](#156-visible-reasoning-is-the-storage-format-of-the-self)
+  - [§15.7 The Ladder](#157-the-ladder)
+  - [§15.8 Keep or Stub](#158-keep-or-stub)
+  - [§15.9 From compress_context to micro_handoff](#159-from-compress_context-to-micro_handoff)
+  - [§15.10 Compaction Is Described, Never Performed](#1510-compaction-is-described-never-performed)
+  - [§15.11 Keep the Words, Let the Bytes Go](#1511-keep-the-words-let-the-bytes-go)
+  - [§15.12 Crash-Safe Persistence](#1512-crash-safe-persistence)
+  - [§15.13 One Knob](#1513-one-knob)
+  - [§15.14 The Exercise, Graded](#1514-the-exercise-graded)
+  - [§15.15 Taking It for a Spin](#1515-taking-it-for-a-spin)
+
 ---
 
 # Preface
@@ -3363,6 +3541,19 @@ ways: the dispatcher would wait for an exit that never comes, and on pipes
 taste and becomes a capability boundary the reader can stand on either side
 of.
 
+Naming that trap is not the same as escaping it, so the rule deserves saying
+plainly. The tool function returns as soon as the process is running. From
+that moment the job owns the process, and a reader goroutine owns the output
+and the eventual exit status. A tool function that waits for exit is a
+blocking call wearing a handle.
+
+The dispatcher carries a matching obligation: it must leave the job alone.
+Finishing a job closes its output file, so a dispatcher that finishes the
+instant the tool returns will cut off a reader that is still writing. The
+failure looks like broken output capture and is really a lifetime bug. Watch
+for a job that reports success with an empty result and zero bytes on disk,
+which is what that mistake produces every time.
+
 It also teaches `ai_callback_pattern` honestly. You do not sleep for a guessed
 interval and hope the prompt has appeared. You wait for the string `(dlv) `,
 because that is the actual signal that the debugger is ready for input. A
@@ -5775,6 +5966,23 @@ chunks through the format-appropriate renderer, and replaces them
 with finalized HTML when the part completes. Different visual
 treatment comes from CSS classes, not separate component types.
 
+Two rules govern what a card is allowed to do with that text, and both
+were broken in this book's own implementation until Chapter 13.
+
+Build the card with `textContent`. Never assemble it by interpolating
+values into `innerHTML`. A tool call's name and arguments carry text the
+agent did not write: a filename, a fetched URL, the contents of a file
+it just read. Markup arriving inside any of those executes in the page.
+This is the prompt-injection surface from the security chapter, reaching
+the user through the renderer rather than through the model, and it is
+easy to miss because the insecure version is shorter and reads better.
+
+Cap what a card displays, and keep the remainder reachable. A cap with
+an ellipsis and no affordance deletes the rest permanently for a reader
+who cannot scroll past it. Put the full value in a `title` attribute or
+behind an expander, so the limit governs the display instead of the
+information.
+
 ### TTS
 
 Two channels. **Auto-speak** fires during streaming: full text for
@@ -6207,6 +6415,27 @@ agent tree with one node.
 The client-side layout, theming, agent tree, and TTS settings are not
 graded. The grader runs Go. You know the client works because you can
 see it.
+
+Three obligations survive the absence of a grader. Each one shipped
+broken in this book's own reference implementation and stayed broken
+until Chapter 13 drove the GUI with a second agent.
+
+**Validate where the value enters.** A settings field arriving over the
+wire is untrusted input. Clamp it in the apply path and again on the
+load-from-disk path, rather than at the point of use. A temperature of
+-5 reached the engine because both paths trusted the sender.
+
+**Decide whether a settings message is a patch or a snapshot.** The two
+want opposite JSON encodings. A sparse patch needs `omitempty`, because
+a zero means "unset". A full snapshot forbids it, because a zero means
+zero. One struct serving both roles will clamp -5 to 0, drop the zero
+from the broadcast, and leave the client displaying the number the
+server already rejected. The same flaw makes it impossible to broadcast
+a boolean as false, so TTS can never be turned off from the server.
+
+**Put control state in an attribute, not a CSS class.** A class styles a
+toggle and tells a screen reader nothing, and an automated observer
+reads the same nothing.
 
 ## The Why
 
@@ -6743,108 +6972,264 @@ a data message. The system prompt stays clean and cacheable. Chapter
 
 # Chapter 11: Persistence
 
-Every agent you have built so far forgets everything the moment it exits. The event log writes to disk, but the agent never reads it back. This chapter closes that gap and, in doing so, proves three invariants that have been implicit since Chapter 2:
+Every agent in this book so far is a goldfish. It reasons, calls tools,
+drives its own GUI and loads skills on demand, and the moment the
+process exits it forgets the user's name, the project, the afternoon of
+work and every decision made along the way. The next start meets a
+stranger. This chapter ends that. Nothing else in the book changes more
+about what the agent is: a program that runs becomes a colleague that
+stays.
 
-1. The context is deterministically derived from the event log.
-2. A checkpoint plus the remaining events produces the same context as the full log.
-3. The LLM never needs the log. The context alone is sufficient to continue.
+## TL;DR
 
-These are not aspirations. They are testable properties. The grader verifies all three.
-
-## §11.1 The Why
-
-The event log is the truth. The context is what the truth means right now. Save both and you have a conversation you can resume, audit, or replay from any point.
-
-But the deeper reason is verification. Every `Apply` call in every chapter has been an implicit claim: this reducer is deterministic, and the context it produces is the only thing the LLM needs. Save and load make that claim falsifiable. If the claim is wrong, you will find out now, not three chapters from now when memory compaction silently corrupts a conversation.
-
-## §11.2 The SaveFile
-
-Three fields:
+The agent saves itself on exit and loads itself on start. Neither needs
+a flag. The save file is one JSON object: the configuration that shaped
+the wire, the ch2 context as a snapshot, the Seq that snapshot was taken
+at, and the event log. A load installs the snapshot and replays only the
+events after its anchor. A snapshot with no log is a complete save. So
+is a log with no snapshot.
 
 ```go
+// SaveFile is the whole agent on disk.
 type SaveFile struct {
-    Context *Context   `json:"context"`
-    Log     *Log       `json:"log"`
     Config  SaveConfig `json:"config"`
+    AsOf    Seq        `json:"as_of"`   // last event folded into Context
+    Context *Context   `json:"context"` // ch2 Context as-is; null = rebuild
+    Log     []Event    `json:"log"`     // ch2 events, oldest first
 }
-```
 
-The context is what the LLM sees. The log is the audit trail. The config is what built the system prompt and tools. Together they are a complete snapshot of an agent's state.
-
-The config subset captures what matters for resurrection:
-
-```go
+// SaveConfig records what shaped the wire. Never the API key.
 type SaveConfig struct {
-    Vendor       string     `json:"vendor"`
     Model        string     `json:"model"`
+    Vendor       string     `json:"vendor"` // "anthropic", "gemini", "openai"
     SystemPrompt string     `json:"system_prompt"`
     Tools        []ToolDecl `json:"tools"`
 }
+
+// ToolDecl gains JSON tags so tools[].name reads cleanly on disk.
+type ToolDecl struct {
+    Name        string          `json:"name"`
+    Description string          `json:"description"`
+    Schema      json.RawMessage `json:"schema"`
+}
 ```
 
-Vendor, model, system prompt, tool declarations. Not API keys, not base URLs, not HTTP clients. The save file is portable. Load it on a different machine, with a different API key, against a different endpoint.
+1. **Default location.** The save file is `save.json` in the working
+   directory, beside `settings.json`. `--save PATH` names a different
+   file. The flag changes where, never whether: the same path is loaded
+   at start and written at exit.
+2. **Load at start.** A missing file means a fresh start. A file that
+   exists but does not parse as a `SaveFile` is a fatal error: exit
+   non-zero, name the file, leave its bytes untouched. Starting fresh
+   over a save that failed to load would overwrite the user's history
+   at exit.
+3. **Snapshot plus tail.** If `context` is non-null, install it, then
+   apply in order every log event with `seq > as_of`. If `context` is
+   null, apply every log event to a fresh context. Events at or below
+   `as_of` are already inside the snapshot; applying one twice is a bug.
+4. **The log is not needed.** `"log": []` with a non-null `context` is a
+   complete save. The vendor sees the context, never the log.
+5. **Numbering continues.** The first new event gets the Seq one past
+   the larger of `as_of` and the last log event's Seq.
+6. **Save at exit.** When stdin closes, write the file and exit. `as_of`
+   is the Seq of the last event folded into the saved context. The
+   saved log is the loaded log plus every event created since, oldest
+   first, Seq strictly increasing.
+7. **Config is a record, not a restore.** On load the running agent's
+   own model, vendor, prompt and tools win. The context is
+   vendor-independent (ch2); the save must not pin a model.
+8. **Replay is deterministic.** For a save whose log is complete (every
+   save the agent writes itself), loading it as written and loading it
+   with `context` set to null must produce byte-identical vendor
+   requests for the next prompt. A trimmed log (rule 4) has nothing to
+   replay, so the rule cannot apply to it.
 
-## §11.3 Rebuild
+Yours: indentation, whether to write through a temporary file and rename
+(recommended; a crash mid-write otherwise destroys the only copy), a
+`verify` subcommand for debugging, and what to print on load.
 
-A function that proves the foundation:
+**Exercise.** Start from your ch10 agent. Add save and load until
+`make grade-dir CH=11 DIR=path/to/agent` scores 100/100.
+
+| Check | Points | Proves |
+|---|---|---|
+| save-shape | 15 | config fields present, `as_of` equals the last log Seq, log Seq strictly increasing |
+| default-load | 20 | a second start in the same directory, no flags, sends the first session's prompts to the vendor |
+| replay-equals-snapshot | 20 | rule 8 |
+| tail-applied-once | 15 | turn-2 snapshot spliced onto the turn-3 log yields the same next request as the turn-3 save |
+| log-not-needed | 10 | rules 4 and 5 |
+| bad-save-refused | 5 | rule 2 |
+| ch10-parity | 15 | chapter 10 still passes |
+
+## §11.1 In Plain Words
+
+The event log is the truth. The context is what the truth means right
+now. Chapter 2 split them on purpose: events are appended and never
+edited, and the context is whatever `Apply` makes of them. Ten
+chapters later the split has carried streaming, jobs, artifacts, and
+skills without once being tested for the one thing it was built for.
+
+That thing is this: the context must be a pure function of the events.
+No clock, no map iteration order, no field set by the engine behind the
+reducer's back. Every chapter since has assumed it. Nothing has checked
+it. An agent that runs start to finish in one process can violate it
+forever and never notice, because the live context is the only copy
+anyone ever looks at.
+
+Saving creates a second copy. Once a snapshot sits on disk next to the
+log that produced it, the claim becomes falsifiable: rebuild from the
+log, compare with the snapshot, and any difference is a reducer bug
+with a name. Persistence is the feature a user sees. Verification is
+the reason it belongs this early in the book.
+
+## §11.2 The Save File
+
+Four fields:
 
 ```go
-func Rebuild(events []Event) (*Context, error) {
-    ctx := NewContext()
-    for _, ev := range events {
-        if err := ctx.Apply(ev); err != nil {
-            return nil, err
+type SaveFile struct {
+    Config  SaveConfig `json:"config"`
+    AsOf    Seq        `json:"as_of"`
+    Context *Context   `json:"context"`
+    Log     []Event    `json:"log"`
+}
+```
+
+`Context` is the snapshot: exactly what the renderer reads. `Log` is
+the audit trail. `AsOf` joins them. It is the Seq of the last event
+already folded into the snapshot, and it is the field everything else
+in the chapter hangs on. Without it, a loader holding a snapshot and a
+log cannot tell which events the snapshot already contains, so it has
+two choices and both are wrong: apply the whole log and duplicate every
+turn, or apply none of it and lose whatever came after the snapshot.
+
+`Config` records vendor, model, system prompt, and tool declarations.
+It is a record only. The running agent's own configuration
+wins on load, so a save made with one model resumes under whatever
+model the user starts with today. A save that pinned its model would
+turn every model retirement into a pile of unloadable files. API keys
+and base URLs never enter the file at all; it is portable across
+machines and endpoints.
+
+## §11.3 Snapshot Plus Tail
+
+Loading has one loop:
+
+```go
+func (sf *SaveFile) Restore() (*Context, error) {
+    ctx, after := sf.Context, sf.AsOf
+    if ctx == nil {
+        ctx, after = NewContext(), 0
+    }
+    for _, e := range sf.Log {
+        if e.Seq <= after {
+            continue
+        }
+        if err := ctx.Apply(e); err != nil {
+            return nil, fmt.Errorf("restore: event %d: %w", e.Seq, err)
         }
     }
     return ctx, nil
 }
 ```
 
-Replay the full event log from scratch. Marshal both contexts. Compare byte for byte. If the bytes differ, the reducer has a bug. This is the most valuable test in the chapter because it validates every `Apply` call you have written since Chapter 2, retroactively, in one comparison.
+With a snapshot, install it and apply only the tail: events whose Seq
+is strictly greater than `AsOf`. Without one, start from an empty
+context and apply everything. The same loop serves both, which leaves
+one replay path to get right instead of two.
 
-## §11.4 Checkpoint and Partial Replay
+The tail looks unnecessary. A save the agent writes itself always has
+`AsOf` equal to the last Seq in its log, so the tail is empty and a
+loader that skips it passes every test built from its own output. The
+tail matters the moment a snapshot and a log come from different
+moments: a snapshot kept from an earlier save, with a newer log written
+after it. That is the shape a crash leaves behind, once the log is
+written event by event and the snapshot only now and then. The grader
+builds that shape on purpose, splicing an old snapshot onto a newer
+log, because it is the only fixture that tells a correct loader from
+one that ignores its anchor.
 
-Save at event 5. Continue to event 10. Three things must be equal:
+The `<=` is the other half. An event at or below the anchor is already
+inside the snapshot. Applying it again gives the conversation a
+duplicate turn, and the model answers a question it has already
+answered.
 
-1. The live context at event 10.
-2. `Rebuild(log.Events[:10])`.
-3. `Load(checkpoint_5).Context` with `Apply(events[5:10])`.
+## §11.4 Replay Equals Snapshot
 
-If any pair disagrees, the reducer depends on something beyond (state, event). That hidden dependency will corrupt every conversation that resumes from a checkpoint. The grader tests this by saving mid-conversation, continuing, then comparing all three values.
+The chapter's central claim fits in one sentence. For a save whose log
+is complete, loading it as written and loading it with `context` set
+to null must produce byte-identical vendor requests for the next
+prompt.
+
+The first load takes the snapshot path. The second takes the rebuild
+path, replaying every event from nothing. If the reducer is a pure
+function of the events, the two paths land on the same context and the
+renderer turns that context into the same bytes. If they differ, the
+reducer is reading something besides its input, and that dependency
+will corrupt every conversation that resumes from disk.
+
+The comparison is made on vendor requests.
+A request is the only thing the model ever sees, and it is a format
+every student's agent already produces, so the grader can compare two
+of them without knowing anything about how a particular solution
+stores its context. Two contexts that differ in some field the renderer
+never reads are the same conversation. Two requests that differ by one
+byte are not.
+
+The precondition is real. A save with a trimmed log (§11.5) has
+nothing to rebuild from, so nulling its context leaves an empty agent.
+Every save the agent writes itself carries its whole history, which is
+where the claim applies and where the grader tests it.
 
 ## §11.5 The LLM Never Sees the Log
 
-The renderer reads the Context. The Context contains Dialogue entries. The Dialogue entries contain Parts. At no point does the renderer read the Log.
+The renderer reads the context. The context holds dialogue entries,
+the entries hold parts, and at no point does the renderer consult the
+log. A save with `"log": []` and a non-null context is therefore
+complete: it loads, it resumes, and the next request carries the full
+conversation.
 
-This means a loaded context with an empty log produces the exact same LLM request as one with a full log. The grader tests this directly: load a save file, send a new prompt, verify the vendor receives a well-formed request with the full conversation history. The log is for auditing and rebuild. It is not in the critical path.
+This is what makes the log trimmable later without touching behavior.
+It also creates one small trap. Numbering must continue after the
+loaded events, and a save with an empty log knows its anchor and
+nothing else. The next Seq is one past the larger of `AsOf` and the
+last event in the log; neither alone is enough.
 
-## §11.6 CLI Integration
+## §11.6 Default Load, and Refusing a Bad File
 
-Two flags:
+The first design had a `--load` flag. Bill's review of it was one
+line: "Let's load by default without a flag." The agent now loads
+`./save.json` at startup if it exists and writes it when stdin closes.
+`--save PATH` names a different file for both directions and leaves
+loading on.
+The file sits beside `settings.json`, in the directory the agent runs
+from, so a project directory remembers its own conversation.
 
-```
---save PATH    Persist state to PATH after the conversation
---load PATH    Resume from a previously saved file
-```
+Loading by default makes one failure mode dangerous. If `save.json`
+exists but cannot be read, the agent exits with an error and leaves the
+file untouched. Starting fresh instead looks friendlier and is worse:
+the fresh session saves on exit and overwrites the history the user
+came back for. A refusal costs one confusing startup. A silent reset
+costs the conversation.
 
-A loaded agent is indistinguishable from one that got there by running. Same tools, same system prompt, same conversation history. The only difference is startup time: load skips the events and starts from the result.
+## §11.7 Taking It for a Spin
 
-The verify command tests determinism from the command line:
+Run the agent in an empty directory, ask it to remember a word, and
+close stdin. `save.json` appears. Run it again in the same directory
+and ask for the word. The second process never saw the first one's
+turn; it answers from a context rebuilt out of a file.
 
-```
-./agent verify SAVE_FILE
-```
+Then break things on purpose. Delete `"log"` down to `[]` and the agent
+still remembers, because the log was never on the rendering path. Set
+`"context"` to `null` and it still remembers, because the log alone
+rebuilds the same context. Truncate the file to half its bytes and the
+agent refuses to start, which is the correct answer.
 
-It loads the save file, rebuilds the context from the log, and compares. If they match, it prints OK. If they differ, it prints the byte offset of the first difference. The grader calls this command to verify the invariant without importing your internal packages.
-
-## §11.7 Looking Ahead
-
-With persistence in place, two capabilities become possible that were not before:
-
-1. Memory cascade: compaction that survives across sessions, compressing old memories while preserving the conversation.
-2. Agent resurrection: loading a saved agent with mock tools for interview, seeing exactly what it saw, asking what it was thinking.
-
-Both are later chapters. This one buys down the tech debt that makes them safe.
+The reference solution also ships a `verify` subcommand that rebuilds
+from the log and prints `MATCH` or `MISMATCH` against the saved
+snapshot. It is a debugging aid outside the contract, and nothing
+grades it. The grader never trusts an agent's opinion of its own
+determinism; it compares the requests.
 
 ---
 
@@ -6973,7 +7358,7 @@ The browser cannot open a port or spawn a subprocess. The WebSocket hub already 
 
 On the browser side, `mcp.js` intercepts these frames and speaks the full MCP protocol: `initialize`, `tools/list`, `tools/call`. It registers four tools:
 
-- **gui_snapshot** (ephemeral/round): walks the visible DOM and returns a markdown summary -- pane layout, interactive elements with CSS selectors, artifact previews. Capped at 4KB.
+- **gui_snapshot** (ephemeral/round): walks the visible DOM and returns a markdown summary -- pane layout, interactive elements with CSS selectors, artifact previews. Capped at 4KB. The cap is reported rather than silent: the summary states how many characters it elided and how many artifacts it omitted, and it reports the state attributes of every control it lists. An observer that truncates in silence will tell you a screen looks fine when it never saw it, and a control whose state it cannot read is a control it will guess about.
 - **gui_click(selector)**: dispatches a click event on the matched element.
 - **gui_input(selector, text)**: sets the value and dispatches input/change events.
 - **tts_queue** (ephemeral/round): returns pending TTS utterances as JSON -- text, state, timing.
@@ -7026,6 +7411,8 @@ make grade12
 # Chapter 13: The Agent Sees Itself
 
 A coding agent that cannot see its own GUI is debugging blind. Every tool so far has operated on files, processes, and network responses. The GUI is a black box the user stares at while the agent types into it. This chapter closes that gap. A single skill connects the agent to its running browser interface through the MCP infrastructure from Chapter 12, and the agent begins seeing what the user sees: the DOM, the buttons, the text being spoken aloud.
+
+The wiring is short and mostly mechanical, and it occupies the first half of the chapter. The second half reports what arrived once it worked, when the capability was pointed at a GUI nobody had audited and the human supervising it agreed to stay quiet.
 
 ## TL;DR
 
@@ -7130,3 +7517,1361 @@ Seven checks:
 ```
 make grade13
 ```
+
+---
+
+## What the wiring found
+
+Everything above this line is plumbing, and most of it is close to trivial. A skill declares an MCP server. The registry connects when the skill loads and disconnects when it unloads. A browser tab exposes four tools over a WebSocket that was already there. The interesting part is not the transport. The interesting part is what arrives the first time an agent can see a screen it did not render and press a button nobody told it about.
+
+What follows took two days, and the commit log is specific about them. The driver and its transport were committed on the first, between 17:43 and 18:39. Every fix described below was committed on the second, four code commits and three documentation commits, between 14:34 and 15:31.
+
+The asymmetry in those timestamps is the finding underneath the findings. Not one of these defects was hard to repair once someone knew it was there. All of them had survived in a codebase under daily development, with a grader suite passing, because nothing in that codebase had ever tried to use the interface the way a user uses it. Every bug in this section was found by pointing the machinery at a GUI nobody had audited, and every claim below was checked against the code rather than against the notes written at the time. Two of the notes turned out to be wrong, which is its own lesson and is recorded where it belongs.
+
+### The user that cannot read the source
+
+The driver is a separate binary of 122 lines. It connects to the same hub the browser connects to, discovers its tools through MCP, and registers exactly one tool of its own, `file_report`, so it has somewhere to put conclusions. It is built on `NewBareAgent`, which is an agent with no builtin tools at all. No `read_file`, no `run_command`, no editor. Everything it can do arrives through discovery.
+
+Its system prompt states the constraint directly:
+
+```
+You CANNOT read files, edit code, or run commands. You can only
+interact through the GUI, exactly as a human user would.
+```
+
+That restriction is the entire value of the thing. An agent with filesystem access will answer a question about the interface by reading the source, which tells you what the interface was meant to do. An agent holding only `gui_snapshot`, `gui_click`, `gui_input` and `tts_queue` has to answer from the screen, which tells you what the interface actually does. The gap between those two answers is where the bugs live.
+
+### The human who watched and said nothing
+
+The protocol around these runs matters as much as the tooling, because it is what makes the results mean anything.
+
+Bill Cox supervised every run in this section in real time, reading the reasoning as it streamed. He had written most of the GUI, so he knew where the weak joins were. He deliberately did not say. When the driver walked past a defect he could see, he let it walk past, and when it found one he already knew about, he let it report the discovery as news.
+
+He did direct, and the distinction is worth drawing precisely. Direction covered what to test next, which binary to rebuild, and once, usefully, the observation that a stale server was still holding port 8084 while the freshly built binary bound to nothing and served no one. That is operational guidance, and withholding it would have wasted an hour proving nothing. Findings were different. No bug in this section was pointed out by the human before the machinery found it.
+
+The reason to run it that way is that a supervisor who volunteers the answer cannot tell the difference between a tool that works and a tool that agrees. An agent handed a hint will confirm it, write a plausible account of confirming it, and leave no trace that the hint did the work. The only way to learn whether `gui_snapshot` is sufficient to find a real defect is to watch someone try to find a real defect with `gui_snapshot` and nothing else.
+
+This is the same discipline the book asks of a reader supervising an agent on live code, applied to the machinery itself. Autonomy is worth measuring only where the human was genuinely silent.
+
+### The observer that froze what it watched
+
+The first runs never reached a task at all. The driver typed its prompt and the coding agent stopped responding, permanently, before any work began.
+
+The cause was a feature working exactly as designed. Chapter 8 pauses the engine while the user is typing, so that an agent does not barrel ahead while a human is halfway through composing a hint. The feature exists for a particular working style: Bill Cox reads the agent's reasoning as it streams and sends corrections mid-turn, which makes the pause the difference between a hint that lands and a hint that arrives after the decision it was meant to change. The implementation watches the input field:
+
+```javascript
+// The original handler. WebSocket readiness guards elided for clarity.
+let userTyping = false;
+input.addEventListener('input', () => {
+    const typing = input.value.trim().length > 0;
+    if (typing && !userTyping) {
+        userTyping = true;
+        ws.send(JSON.stringify({type: 'pause'}));
+    } else if (!typing && userTyping) {
+        userTyping = false;
+        ws.send(JSON.stringify({type: 'unpause'}));
+    }
+});
+```
+
+Read that as a human and it is correct. Text appears, the agent waits. The field empties, the agent resumes.
+
+Read it as a program driving the field and it is a trap with no exit. `gui_input` sets the value and dispatches an `input` event, which is what makes it indistinguishable from typing, and that indistinguishability is the entire point of the tool. So the pause fires. Then `gui_submit` sends the prompt and clears the field by assigning to `value`, and assigning to `value` in JavaScript fires no event at all. The branch that sends `unpause` is reachable only by a path the driver cannot take. One keystroke in, the engine is paused, and nothing in the system will ever unpause it.
+
+The repair is two lines of intent. A flag marks input as programmatic so the pause handler ignores it, and submission sends an explicit `unpause` rather than relying on an event that will not arrive:
+
+```javascript
+if (window._mcpProgrammaticInput) return;
+```
+
+The general shape of this is older than software. An instrument that shares a channel with the thing it measures will perturb it, and the perturbation is worst where the system was tuned to human timing. Pause on typing, debounce on scroll, idle timeouts, animations that wait for a settle: each one encodes an assumption about how fast and how continuously a person acts. An automated driver violates all of them at once, and it does so silently, because from the GUI's perspective nothing unusual occurred. A user started typing and never stopped.
+
+### A debugger that would not start
+
+The first task given to the driver was small on purpose: ask the coding agent for Tower of Hanoi, then watch it debug the result. The agent wrote the program, ran it, and produced fifteen moves. Then it started `dlv` and stopped forever.
+
+Chapter 4 predicted this in print. Section 4.8 is titled "Your agent drives a debugger," and it warns that a dispatcher which waits for process exit will hang on an interactive program, because "the dispatcher would wait for an exit that never comes, and on pipes `dlv` refuses to start at all." The chapter named the trap. The reference implementation walked into it anyway.
+
+The mechanism was a single synchronous read. `toolRunCommand` read the PTY inside the tool function, so the function could not return until the process closed its output. For `go build` that is correct and invisible. For a debugger sitting at a prompt it is fatal, and it is fatal in a way that disables the exact feature meant to rescue it: `ai_callback_pattern` is matched inside `Wait`, and `Wait` runs after the tool function returns. The escape hatch was behind the door it was supposed to open.
+
+The fix is a lifetime change rather than a plumbing change. The tool function now returns once the process is running, and a reader goroutine owns the PTY from that moment until exit. A new field, `DeferFinish`, tells the dispatcher that the job will finish itself:
+
+```go
+// The reader goroutine copies output from the PTY to the job until the
+// terminal closes, then reaps the process and finishes the job. It runs
+// independently of the dispatcher, so an interactive process that never
+// exits (dlv, python) does not block the model from getting a handle.
+job := c.Job
+c.DeferFinish = true
+go func() {
+    buf := make([]byte, 32*1024)
+    for {
+        n, rerr := f.Read(buf)
+        if n > 0 {
+            _, _ = job.Write(bytes.ReplaceAll(buf[:n], []byte("\r\n"), []byte("\n")))
+        }
+        if rerr != nil {
+            break
+        }
+    }
+    _ = f.Close()
+    werr := cmd.Wait()
+    // ... exit code extraction elided ...
+    job.Finish("", nil)
+}()
+```
+
+### Two dispatchers
+
+The fix went in, the debugger worked, and every behavioral check in chapter 4 dropped to zero out of a hundred.
+
+The failure signature pointed in the wrong direction. Tool output came back as the empty string, and the capture file on disk held zero bytes. That reads as a broken output path, and an hour can be spent there. The actual fault was lifetime again. There are two tool dispatchers in the codebase: `Engine.Execute`, which serves chapters 3 and 4 through the older `Ask` path, and `Actor.dispatchTool`, which serves chapter 6 onward. Only the second had been taught about `DeferFinish`. The first still called `job.Finish` the instant the tool function returned, and `Finish` closes the capture file. The reader goroutine was writing correctly the whole time, into a file that had already been closed underneath it.
+
+The diagnostic detour is worth recording, because it cost more than the bug. Debug prints added to `Actor.dispatchTool` never appeared in the output, and the first explanation reached for was a stale build cache. It was not stale. The prints were in a function the failing tests never called. Silent debug output is evidence of the wrong code path at least as often as it is evidence of a bad build, and the cheaper check is to confirm which function runs before rebuilding anything.
+
+### Ninety-eight seconds
+
+With both dispatchers corrected, the same task ran end to end. The driver typed the prompt into the real text field and submitted it. The coding agent wrote `hanoi.go`, ran it for fifteen moves, then opened `dlv` and worked through a full session: set a breakpoint on `move`, continue, print `disk`, quit. The debugger exited zero. Total elapsed time was ninety-eight seconds, and no human touched the keyboard between the prompt and the report.
+
+That run is the capability the chapter has been building toward. An agent that can drive a debugger can inspect a running program's state rather than reasoning about what the state ought to be, and an agent that can drive a GUI can do the same for an interface.
+
+### The bug that only appears after you fix the bug
+
+The next task sent the driver into the settings panel with instructions to try values a careful user would not. It set temperature to negative five, and the server accepted it.
+
+That is the obvious bug, and the fix is ordinary: a `clamp` function, called both when a settings patch arrives and when settings load from disk, so a hand edited file cannot bypass validation either. The tests were checked by neutering `clamp` and confirming that five of six failed.
+
+The second bug appeared only because the driver was asked to repeat its own test after the fix landed. The server now clamped correctly, and the GUI still displayed negative five. Server state and screen state disagreed, and the screen is what a user believes.
+
+The cause was a single struct doing two incompatible jobs. `Settings` was used both as a sparse patch, where an absent field means "leave this alone," and as a full state broadcast, where every field should be present. Those two roles want opposite JSON encodings. With `omitempty` on every field, a value clamped to zero vanished from the broadcast entirely, and the client guard reads:
+
+```javascript
+if (s.temperature !== undefined) { /* update the input */ }
+```
+
+An absent field is indistinguishable from an unchanged field, so the stale value stayed on screen. The same flaw meant `TTSEnabled: false` could never be transmitted, because false is empty. Turning speech off was unrepresentable on the wire.
+
+The deleted code had confessed. `SettingsStore.Apply` carried this comment:
+
+```go
+// Since omitempty skips false, we handle this via the raw patch.
+// For simplicity, always apply.
+```
+
+Someone met this bug, understood it precisely enough to describe it in one sentence, and routed around it instead of removing it. The method had no callers outside tests.
+
+There was a real choice about how far to take the repair. The cautious option preserves the existing wire format and introduces a second type for broadcasts, leaving the patch struct untouched, which costs nothing today and leaves two nearly identical structs for the next reader to confuse. Bill Cox settled it in one line: the format has no external consumers, so make the code clean. The repair therefore dropped `omitempty` from every field, so a broadcast always carries complete state, and deleted `Apply` outright, leaving one merge path with defined semantics.
+
+
+Measured evidence that the clamp runs, taken from the settings file after the run: `max_tokens` held 1000000 and `tts_speed` held 10, both exactly the ceilings, and `temperature` was absent because zero no longer serializes.
+
+### The settings panel that does not exist
+
+The strongest finding came from a test that failed in an unusual way.
+
+Asked to exercise the sidebar tabs, the driver reported that clicking "Artifacts" opened the Settings panel. The report was specific, confident, and false. There is no Settings tab in the markup. The `data-tab` and `data-panel` attributes map correctly, chats to chats and artifacts to artifacts, and clicking either one does what it says.
+
+The report was fiction, and the reason it was fiction is the finding. Tab state lived only in a CSS class. `gui_snapshot` built its element labels from `textContent`, `aria-label` and `placeholder`, and read no state attributes at all, so the driver could see that two tabs existed and could not see which one was selected. It had also reached for an ambiguous selector, `button:nth-of-type(2)`, because the buttons carried nothing better to aim at. Asked what happened after the click, it had no way to observe the answer, and it produced a plausible one.
+
+An agent denied state does not report uncertainty. It fabricates.
+
+The repair was to put state where a machine can read it. The hamburger and the tabs now carry `aria-expanded` and `aria-selected`, synchronized on every click, with the initial value derived from the live CSS class rather than hardcoded, because the markup default had already drifted from the rendered default. `gui_snapshot` now reports those attributes alongside each control.
+
+Rerunning the identical test produced a correct before and after table, and in the one place where the driver lacked information, it wrote "not observable" instead of inventing a panel. Same model, same prompt, same GUI. The only change was that the interface stopped hiding its state.
+
+This is the accessibility argument in a form that a developer who has never used a screen reader can feel directly. Semantic state attributes are usually presented as a courtesy extended to users with assistive technology. They are also the difference between an automated observer that reports what happened and one that reports something reasonable. An unobservable interface does not produce no data. It produces wrong data, delivered with the same confidence as the truth.
+
+### What an interface owes an observer
+
+Two smaller findings came out of the same pass, and both generalize.
+
+The first was an injection hole. `artifact-scroll.js` built the tool card header by interpolating the tool name and its serialized arguments into `innerHTML`. Tool arguments are not authored by the agent. They contain filenames, URLs, and the contents of files just read, which is to say text an attacker can influence. Twenty lines further down, the result path rendered with `textContent` and was safe. One file, both patterns, and the vulnerable one sat on the path that renders attacker adjacent text. The book spends a chapter on prompt injection arriving through the model. This was the same threat arriving through the renderer.
+
+The second was truncation, and the notes about it were backwards. The working document asserted that the driver saw the full DOM while the human saw a trimmed version. Measurement found four independent caps running the other way: the human view truncated tool input at 500 characters and results at 1000, while the snapshot truncated each artifact at 120 characters and the whole document at 4000. The observer saw roughly a tenth of what the human saw. Worse, the snapshot silently dropped every artifact past the tenth with no marker, so it could not distinguish ten artifacts from fifty.
+
+Nobody had measured any of this before writing it down. The caps were kept, because both views need them, and both were made honest: truncated text is now reachable through a `title` attribute rather than deleted behind an ellipsis, and the snapshot states how many characters and how many artifacts it withheld.
+
+That is the rule the section converges on. An observer that truncates in silence will report that a screen looks fine when it never saw the screen. A control that keeps its state in a CSS class will be guessed about. A renderer that trusts its inputs will execute them. None of these are failures of the model doing the observing, and none of them were visible from the source, which is why it took a user who could not read the source to find them.
+
+### Every one of them was a documentation bug
+
+The instruction that produced this section came from Bill Cox once the fixes were in: update the chapter summaries wherever a bug made it through. Tracing them was the first step, and each defect was matched to the chapter that should have prevented it. All five arrived at the same place.
+
+Chapter 4 explained the job model, named the interactive process trap in plain words, and never stated the obligation that follows from it. Chapter 8 built the tool card and showed the rendering without saying which parts of it carry text the agent did not write. Chapter 12 specified `gui_snapshot` with a 4KB cap and did not require the cap to announce itself. In each case the mechanism was taught correctly and the duty attached to the mechanism was left implicit.
+
+Chapter 9 is the sharpest example, because the reasoning that let three bugs through is stated plainly in its opening:
+
+> The graded surface is small: four server-side settings checks and a parity gate. Everything else is client code you can see working.
+
+Chapter 9's GUI is deliberately ungraded, on the argument that a human looking at a screen is a sufficient test. Looking at a screen confirms that a value was accepted. It does not confirm that the value was validated, that the server and the screen agree about it afterward, or that a control's state can be read by anything other than an eye. Three bugs fit in that gap, and all three shipped.
+
+
+A student following those chapters would have written the same code. That is the test for whether a defect belongs to the implementation or to the book, and every one of these failed it. The repair was therefore made in the prose as well as the source. Chapter 4 now states that the tool returns when the process is running and the job owns it from there, and gives the failure signature, which reads like broken output capture and is really a closed file. Chapter 8 now states that tool cards are built with `textContent` and that capped content stays reachable. Chapter 9's summary gains the three obligations that survive the absence of a grader. Chapter 12 now requires the snapshot to report what it withheld.
+
+There is a loop closing here that is worth naming, because it is the reason this book exists in the form it does. The agent described in these chapters was built by following these chapters. When it acquired eyes and a way to press buttons, the first thing it did was find places where the chapters were wrong. The bugs were in the GUI, and the GUI was correct with respect to the instructions it was built from, so the instructions were what needed editing.
+
+A book that produces a working program gets to be tested by the program it produces. This section is the first time that test came back with findings, and the findings were about the book.
+
+### The same failure, one level up
+
+The draft of this section quoted Chapter 9 as saying "You know the client works because you can see it." That sentence appears nowhere in Chapter 9. It was invented while the paragraph was being written, it was a fair paraphrase of the chapter's actual argument, and it sat on the page with exactly the same confidence as the sentences around it that were true.
+
+It was caught by `grep`, not by rereading. The check took two seconds and consisted of searching the source file for the words about to be printed inside quotation marks. The real sentence, once located, was better than the invention and made a sharper point, which is the usual result.
+
+The parallel to the phantom Settings panel is exact. Neither fabrication came from carelessness, and neither would have been prevented by trying harder. Both came from a gap between what was needed and what was observable, filled with something plausible. The driver could not see which tab was selected, so it produced a reasonable answer. The draft had the chapter's argument available and not its wording, so it reconstructed one. The remedy in both cases was mechanical and took seconds: read the state attribute, grep the file.
+
+Advice does not survive this failure mode. "Be careful with quotations" is guidance that a confident generator will sincerely believe it has followed. "Grep for the quoted string before it reaches the page" either happened or it did not, and the difference is visible in the shell history.
+
+---
+
+# Chapter 14: The Channel Nobody Tested
+
+This chapter is for me. The world generally supports accessibility as a kind of afterthought, never in the critical path of creating a product. Since I am in control here, your AI coding agent is going to have decent a11y from the start, if you follow this codebook accurately.
+
+A key insight is that testing needs to be done over data as close as possible to what a blind or low vision coder experiences. So in this chapter we build a virtual blind coder, one that can only hear the output of TTS, and it has to drive the AI coding agent successfully.
+
+If you care about SWEs with low vision, please do not skip this chapter.
+
+An automated observer only finds bugs in the channel it needs to succeed. Chapter 13 built an observer that reads the DOM, and it found real defects: an XSS hole in a tool card, truncation nobody could reach, controls whose state lived only in a CSS class. Every one of those bugs was visible. The observer was looking, so the observer found them.
+
+The same agent had a speech channel running the entire time. That channel was broken in six separate ways, and the observer reported nothing, because the observer never had to listen to finish its work. This chapter builds the observer that does.
+
+## TL;DR
+
+Two deliverables. A speech pipeline that turns a stream of arbitrary text fragments into utterances a person can listen to, and a blind persona for the Chapter 13 virtual user that perceives the agent through speech alone.
+
+### The speech pipeline contract
+
+Text arrives as arbitrary fragments. A streaming model emits deltas on byte boundaries, frequently mid-word, and the pipeline owns the job of turning that into speech.
+
+1. **Buffer until a phrase boundary.** Never speak a fragment as it arrives. A word split across three chunks is one word.
+2. **A sentence-ending period is a boundary. A single newline is not.** Prose wraps, and splitting at the wrap breaks the sentence. Treat a lone newline as a space and a blank line as a boundary.
+3. **Provide an explicit `flush()`.** End of stream, a tool announcement, and an error each force the buffer to be spoken. Without this, a response ending in a colon is never heard.
+4. **Filter for the ear before speaking.** Emphasis markers, inline code markers, headings, bullets, and link syntax are removed. A fenced code block is named rather than read.
+5. **Resolve fenced blocks against the whole buffer, before splitting.** A fence broken into separate lines can never match a fence pattern, and the orphaned markers get spoken aloud.
+6. **Expand identifiers.** `camelCase`, `snake_case`, and `HTTPServer` are read as separate words. Ordinary words are left alone.
+7. **Speak parts that arrive whole.** A part delivered without deltas is still spoken, and a part that streamed is not spoken twice.
+8. **Speak errors.** An error that is displayed and not spoken does not exist for a listener.
+9. **Record a transcript.** Every utterance entering the channel is recorded with its text and its source, whether or not audio is produced.
+
+### The pause gate
+
+The agent pauses tool dispatch while the user is reading or typing:
+
+```
+paused = speaking OR input_non_empty
+```
+
+10. **One derived predicate, not three call sites.** Compute the value, compare it against the previous value, and send only on an edge.
+11. **A space counts as input.** Trimming the field is wrong here.
+12. **Unpausing requires both causes clear**, whichever one changed.
+
+### The blind persona
+
+13. **Deny the DOM.** The blind persona has no snapshot tool and no click tool. Remove them from the registry rather than discouraging them in a prompt.
+14. **Bypass audio.** A test that waits for real speech runs in real time. Record to the transcript and return immediately.
+15. **It keeps** the ability to hear, type, submit, wait, and sleep. Nothing else.
+
+### Yours
+
+Which markdown constructs to filter beyond the required set. What to call a fenced block when you skip it. Whether the transcript is a ring buffer and how large. The wording of a tool announcement. Whether an error preempts the queue or joins the back of it.
+
+### Exercise
+
+```
+make grade14
+```
+
+## 14.1 The idea in plain words
+
+A fire alarm inspector who checks the panel will never discover that a speaker in the east stairwell is disconnected. The wiring diagram is correct, the current draw is nominal, the panel reports green. Finding that fault requires somebody to stand in the stairwell during a test and notice the silence.
+
+Automated observers have the same blind spot, for the same reason. Chapter 13's virtual user completed every task by calling `gui_snapshot` and reading the DOM that came back. Speech was never part of finishing the job. The speech module could have been deleted from the tree entirely and every one of those runs would still have passed, because nothing the observer needed came through that channel.
+
+The instinct at this point is to give the observer better reporting. Add a tool that returns the speech queue, describe it well, and ask the agent to check it. That instinct is wrong, and Chapter 13 explains why: an agent asked to evaluate something it does not depend on will produce a confident answer in either direction. It has no way to be wrong that it can feel.
+
+The alternative is to remove the channel the observer has been leaning on. Take away the DOM, leave speech, and give it a task it cannot finish without listening. Now a defect in the speech channel is not a line in a report. It is a task that fails.
+
+This is the principle worth carrying out of the chapter, and it generalizes past accessibility: test over data as close as possible to what the user actually receives. A DOM snapshot is not what a listener receives. It is a different signal, richer in some ways and poorer in others, and an observer consuming it will faithfully report on a system no human is using.
+
+## 14.2 The channel that reported on itself
+
+This investigation started with a suspicion rather than a bug report. Bill, who listens to this agent for hours a day and had no way to audit the channel he was listening to, put it this way:
+
+> I'm worried the TTS feedback, available via the MCP tunnel, isn't evaluated by any agent. It needs work.
+
+That is a claim about the instrument rather than about the artifact, and it was exactly right. Before building the listener, it helps to see how right.
+
+Four call sites fed it, all in the artifact renderer. Streaming deltas went in as they arrived, for both text and thinking. Tool dispatch announced itself. A part arriving complete flushed the buffer. Errors rendered to the screen.
+
+Three of those four had defects. The fourth, error rendering, had no speech call at all: it built a div, set its text, appended it, scrolled, and returned. For a user who works by listening, the one message class that most needs to interrupt was the only class that made no sound.
+
+The agent did have a tool for inspecting speech state. It was called `tts_queue`, and it read a variable named `window._ttsQueue`. A search of the source tree found exactly two references to that name, and both of them were reads inside the tool itself. Nothing in the codebase ever assigned it. The tool always fell through to its backup path, which returned either an empty array or a single synthetic entry whose text was the string `(speaking)`.
+
+That tool was declared `ephemeral: "round"`, the Chapter 12 mechanism that injects a tool's output into every round automatically. So the agent had been receiving speech telemetry continuously, and the telemetry had been contentless the entire time.
+
+Chapter 13's grader checks that this injection works, and it passes. It asserts that `tts_queue` output reaches the request context, which is a claim about the engine rather than about speech. A pipe that carries nothing is still a pipe. The check was green while the channel behind it was dead, which is a useful thing to know about green checks.
+
+The pause gate has the same shape. The design document specifies it precisely:
+
+```
+paused = tts_speaking OR user_typing
+```
+
+Only the typing half was ever wired. Every pause and unpause message in the client came from a keystroke handler, and the client contained no reference to speech state at all. The Go side was correct, checking the gate before every tool dispatch. One of the mechanism's two inputs had simply never been connected.
+
+The speech module had been advertising the missing feature since the day it was written. Line 1 reads:
+
+```javascript
+// TTS — Text-to-speech for artifacts with Chrome wake-up and pause integration.
+```
+
+Searching that file for the word `pause` returns that comment and nothing else.
+
+The repair is smaller than the diagnosis, and it is worth showing because the original shape is the one most people write first. Three handlers each sent pause and unpause on their own, and each knew about only one of the two causes. A handler that noticed the input field had emptied sent unpause without any idea whether speech was still playing.
+
+Deriving the value in one place removes the entire class of mistake:
+
+```javascript
+function updateGate() {
+  const blocked = userTyping || TTS.speaking;
+  if (blocked === gatePaused) return;
+  gatePaused = blocked;
+  // WebSocket readiness guard elided
+  ws.send(JSON.stringify({type: blocked ? 'pause' : 'unpause'}));
+}
+```
+
+Every event calls that same function. Speech starting, speech ending, a keystroke, a submission. It computes the predicate, compares the answer against the last value it sent, and sends only when the answer changed. Checking both causes before releasing the gate stops being a rule anyone has to remember, because both terms are sitting in the expression.
+
+Two details earn their place. Comparing against `gatePaused` makes the messages edge-triggered, so forty keystrokes produce one pause rather than forty. And `userTyping` is set from the field's length rather than from a trimmed copy of it, because a user who has typed a single space is composing.
+
+Wiring the missing half then costs one line, and its comment says what the line is for:
+
+```javascript
+// The speaking half of the gate. This subscription is the whole reason TTS state
+// is exported: without it the agent runs tools while it is still talking.
+TTS.onStateChange = updateGate;
+```
+
+One related ruling came out of the same session. The escape key now always cancels speech:
+
+```javascript
+if (e.key === 'Escape') {
+  TTS.cancel();          // Escape always silences speech, whatever is typed.
+```
+
+It had been cancelling only when the input field was empty, which is what happens when cancellation is implemented as a side effect of clearing the box instead of as a command in its own right. A listener who wants the talking to stop wants it to stop.
+
+## 14.3 A user who can only listen
+
+The blind persona is the Chapter 13 driver with its eyes removed.
+
+Removal is the operative word. A prompt instructing an agent to avoid a tool is a suggestion it will follow until the task gets hard. The persona deletes the DOM tools from the registry after the MCP bridge connects, so the capability does not exist:
+
+```go
+if *persona == "blind" {
+    for _, name := range []string{"gui_snapshot", "gui_click"} {
+        a.RemoveTool(name)
+    }
+    // logging elided
+}
+```
+
+`RemoveTool` came from Chapter 13, where it served skill unloading. It works here unchanged, which is the payoff for having put tool removal in the registry rather than in the skill system.
+
+What remains is hearing, typing, submitting, waiting, and sleeping. The persona can queue a prompt, send it, wait for the agent to go idle, and read back everything that entered the speech channel while it waited.
+
+Speech in this mode does not produce audio. A test that waits for real utterances runs at the speed of talking, and a long reasoning trace is ten minutes of it. The pipeline records to the transcript and returns immediately, so a run finishes in seconds and the machine stays quiet. The transcript is the artifact under test, and the transcript is complete whether or not a speaker was involved.
+
+One scope decision saves a week of work here, and it came from Bill. Hover-to-speak, arrow-key navigation, and element announcement belong to the operating system's screen reader. Chrome cooperates with JAWS, NVDA, and VoiceOver well enough that a developer who cannot see the screen already has a working way to move around a page, and building a second navigation model on top of that would duplicate the screen reader and do it worse. What this application owns is the self-speaking layer: the running commentary of thinking and response text that the agent produces while it works. A user turns that on, listens while the agent is talking, and navigates with their screen reader when it goes quiet.
+
+That narrowing has a consequence worth stating. For this stack, a low-vision persona and a blind persona collapse into the same instrument, because the part under test is the same part. There is no second persona worth building, and the entire testable accessibility surface of the application is one channel carrying two kinds of text.
+
+## 14.4 The run that succeeded for the wrong reason
+
+The first task given to the blind persona was chosen to fail.
+
+Tool results never reach the speech channel. Only dispatch is announced, so a listener hears that a command is running and then hears nothing about what it did. The task was to run a command against a path that does not exist and report the exit code, and the prediction, written down before the run, was that the listener would come back empty.
+
+It came back with the correct exit code.
+
+The transcript explains how. Six utterances entered the channel, in this order:
+
+```
+1. "run command"
+2. "The command failed with exit code 1:"
+3. "`"
+4. "ls: /nonexistent-path-xyz: No such file or directory"
+5. "`"
+6. "This is expected since..."
+```
+
+Utterance 1 is the dispatch announcement. Utterances 2 through 6 are the model's own prose, describing what happened. No tool result appears anywhere in the transcript. The listener learned the exit code because the model chose to mention it.
+
+The observer reported its transcript accurately and drew the wrong conclusion from it, writing that no gap had been found. That conclusion was reasonable given what it could perceive, which is the whole problem. From inside a channel, narration is indistinguishable from a working channel. A listener receiving the right information cannot tell whether the system delivered it or the model happened to be chatty that turn.
+
+Accessibility resting on a model's prose habits is discoverability by luck. A terser response, a different system prompt, a model tuned to skip the summary, and the same task yields silence with no warning and no error.
+
+Bill's ruling closed the gap rather than leaving it open. Tool results are not spoken, by design: "I listen to your thinking, and that is enough." Thinking and response text are both fed to the channel, so the channel a listener depends on is fully wired, and the exit code arriving through prose is the system working as specified.
+
+That ruling also redirected the instrument. A blind persona that hunts for unspoken tool results is testing a decision rather than a defect. The right question is whether thinking and response text arrive completely, in order, and intelligibly.
+
+Utterances 3 and 5 say they do not.
+
+## 14.5 A bug found by ear
+
+Two of the six utterances were a single backtick. The listener was hearing punctuation read aloud.
+
+The obvious explanation is streaming. Deltas arrive on arbitrary boundaries, a fenced code block gets split across two chunks, and each half is filtered separately, so neither half contains a complete fence and the markers survive. That explanation is clean, mechanical, and wrong.
+
+A test disproved it. Feeding the entire fenced block as one chunk, with no split anywhere near it, still produced spoken backticks.
+
+The real cause sat one layer earlier. Filtering ran per phrase, and phrases were produced by splitting the buffer on newlines. A fenced block contains newlines by construction, so by the time the filter saw anything, the fence had already been cut into separate lines. A pattern that needs an opening marker and a closing marker to match will never match a line containing exactly one of them. The filter examined three fragments, found no fences, and passed all three through.
+
+The fix resolves fences against the whole buffer before any splitting happens. The filter then sees a complete block and replaces it with a name, and the listener hears "code block" where a wall of syntax used to be.
+
+The same test run surfaced a second problem with splitting on newlines, and it came from Bill rather than from the code. Prose wraps. A sentence broken across two source lines is one sentence, and splitting at the wrap produces two utterances with an unnatural pause between them. Speech engines work a phrase at a time, and every boundary the pipeline invents is a pause the listener hears.
+
+So a lone newline became whitespace and a blank line stayed a boundary. A wrapped sentence is now spoken as one utterance, and paragraphs still separate.
+
+That category of defect is worth dwelling on, because it is invisible to every other observer in this book. A DOM snapshot shows text that is present and correct. A screenshot shows a page that renders properly. A grader asserting on rendered content passes. The content is fine. The *segmentation* of the content is wrong, and segmentation only exists in the channel where text becomes time.
+
+## 14.6 The bug nobody could hear
+
+Listening is a better instrument than looking, for this channel. It is still not sufficient.
+
+A part that arrives complete, with no deltas preceding it, was rendered to the screen and never queued for speech. The handler set the element's content and called `flush()`, which empties a buffer that in this path is already empty.
+
+Reaching that code requires one setting. Turn streaming off, or use a model without the streaming capability, and every response arrives as a single final part. The screen fills normally. The agent says nothing at all.
+
+No listener can report this. A person hearing silence cannot distinguish "the system failed to speak" from "the system had nothing to say," and neither can an agent. The failure produces no signal in the channel, which is precisely what makes it a failure.
+
+It was found by enumerating the four feed sites and asking, at each one, what reaches speech and under what conditions. When the symptom is absence, reading the code is the instrument.
+
+The naive repair introduces a worse bug. Queue the final part unconditionally and every streamed response gets spoken twice, once from its deltas and once from its final. The pipeline needs to know whether a given part already streamed.
+
+That information already existed. The renderer keeps an accumulator of streamed text, keyed by part, populated only by deltas and never cleared. Its membership test answers the question exactly:
+
+```javascript
+if (!this.accumulated.has(id)) TTS.queueChunk(msg.text);
+TTS.flush();
+```
+
+One line of new logic, and the state it consults was already being maintained for another purpose.
+
+## 14.7 Why none of it was reported
+
+The speech channel in this application has a daily listener. Bill depends on it, works through it for hours at a stretch, and had filed no bug report about any of the six defects in this chapter.
+
+That is worth understanding rather than apologizing for, because it is the strongest argument here for building the instrument at all.
+
+Four of the six are undetectable from inside the channel by construction. An error that renders to the screen and never reaches speech produces silence, and silence is what a turn with no errors also produces. A response that arrived whole during a streaming-disabled session sounds exactly like a quiet turn. A pause gate with one input wired makes no sound whatsoever, and its only symptom is a tool call that ran slightly earlier than it should have. Telemetry reporting an empty queue looks identical to a queue that is genuinely empty.
+
+The other two are audible and get absorbed. A listener hearing a stray backtick stops noticing it within a day. Broken words at chunk seams sound like the synthesizer, and every synthesizer mangles something, while an unnatural pause mid-sentence reads as network lag. People are extraordinary at filtering noise out of a channel they depend on, which is a useful adaptation and a poor property in a bug reporter.
+
+What the daily listener produced instead was the suspicion quoted in §14.2, which is a claim about the instrument rather than a list of defects. Someone who works inside a system can often tell that a region of it is under-observed while being the worst available witness to what is wrong inside that region.
+
+The supervision protocol during the repair followed the same division of labor. Direction was given freely: which task to run next, which binary was stale, which stale server was still holding the port while a rebuilt one served nothing. Findings were withheld entirely. A supervisor who volunteers the answer cannot distinguish an instrument that works from one that agrees.
+
+## 14.8 What a program cannot verify
+
+A grader for this chapter can check a great deal. Whether a word survives being split across three fragments. Whether a wrapped sentence produces one utterance. Whether any markup marker reaches the channel. Whether a part that arrived whole was spoken, and whether a part that streamed was spoken twice. Whether the pause gate releases only when both of its causes are clear.
+
+All of those are properties of a transcript, and a transcript is a pure function of the fragments that went in. The grader loads the speech module with a stubbed speech synthesizer, feeds a fixed sequence, and asserts. No browser, no model, no API key, no flake.
+
+What no test in this chapter can check is how any of it sounds.
+
+Pronunciation is outside it. Whether `HTTPServer` read as three words is clearer than `HTTPServer` read as one is a judgment about ears. Prosody is outside it. Whether a rate of speech is intelligible for eight hours is outside it, and it varies by listener, by voice, and by fatigue.
+
+The boundary deserves to be stated plainly in the chapter that builds the instrument, because a grader claiming more than it checks is worse than no grader. This one verifies that the right text reaches the speech channel at the right boundaries. A human decides whether the result is worth listening to.
+
+There is a hardware fact on the far side of that line. Browser speech synthesis tops out around two to three times normal rate. A dedicated engine runs comfortably at roughly 750 words per minute, which is where an experienced listener actually works. That gap is an API limitation rather than an application defect, and knowing which is which determines whether the next hour goes into the code or into replacing the synthesizer.
+
+## 14.9 Exercise, graded
+
+The exercise is the speech pipeline and the blind persona, verified against the contract in the TL;DR.
+
+| check | points | property |
+|---|---|---|
+| `tts-buffers-fragments` | 20 | No utterance breaks a word. Text reassembles. |
+| `tts-filters-markup` | 20 | No markup marker reaches the channel. A fence is named. |
+| `tts-boundaries` | 15 | Newline is a space, blank line is a boundary, trailing text flushes. |
+| `tts-speaks-unstreamed` | 15 | A whole part is spoken. A streamed part is not doubled. |
+| `tts-expands-identifiers` | 10 | Identifiers split into words. Ordinary words are untouched. |
+| `tts-gate-both-causes` | 10 | Unpause only when both causes clear. A space counts. |
+| `ch13-parity` | 10 | Chapter 13 still passes. |
+
+Two of those carry twenty points for a reason that is visible in this chapter's history. `tts-filters-markup` and `tts-speaks-unstreamed` cover the two defects that survived a full grader suite, an automated observer, and a human listening to the output every working day.
+
+The fence check runs its fixture twice, once as a single chunk and once split across deltas. The single-chunk case is the one that disproved the streaming theory, and a grader that only tests the split case would pass an implementation that still speaks backticks.
+
+The identifier check asserts that ordinary words are left alone, which is the mutation guard. An implementation that inserts a space before every capital letter passes the positive case and fails this one.
+
+## 14.10 Taking it for a spin
+
+Rebuild, refresh the browser tab so the client picks up the new speech module, and run the driver with the blind persona against a task that produces identifiers in prose:
+
+```
+./virtual-user --agent-url ws://localhost:8084/ws --persona blind \
+  --task "Ask the agent to explain how queueChunk handles max_tool_rounds,
+          then report exactly what you heard."
+```
+
+The report comes back as a transcript rather than a description of a screen. `queueChunk` arrives as "queue Chunk" and `max_tool_rounds` as "max tool rounds". No backticks, no asterisks, no fragments cut mid-word, and nothing displayed that failed to arrive.
+
+The same command with `--persona sighted` produces a report about the DOM and says nothing about any of this, which is the chapter in one comparison.
+
+---
+
+# Chapter 15: Keep the Words
+
+Every long session with a coding agent ends the same way. The answers
+get vaguer. The agent re-reads a file it read an hour ago, then forgets
+a decision made before lunch. Eventually the human gives up on the
+conversation, copies out the parts worth keeping, pastes them into a
+fresh chat, and starts again. That manual reset is how most people
+manage context today, including the people who build these agents:
+Bill did it several times on the day this chapter was designed. The
+reset works because a human decides what to keep. This chapter moves
+that decision inside the agent, makes it continuous instead of
+catastrophic, and records every cut as an event, so nothing leaves the
+window without a record of what removed it.
+
+## TL;DR
+
+The context stops growing without bound. Every entry gets a kind that
+says which verb removes it. Tool bytes fall off a ladder of recorded
+redaction events. Each round trip's results are stubbed unless the
+model keeps them. The actor can checkpoint with `micro_handoff`. Loaded
+skills survive as entries instead of as tool results. The system
+prompt and fixed tools never change mid-session. The log reaches disk
+as it grows, so a process crash loses nothing.
+
+```go
+// EntryKind says why an entry is in the context and which verb
+// removes it. Anything that must outlive tool clearing is its own kind.
+type EntryKind uint8
+
+const (
+    KindDialogue EntryKind = iota + 1 // prompts, hints, output, tool parts
+    KindHandoff                       // from MicroHandoff
+    KindSkill                         // from SkillLoaded
+    KindTools                         // from ToolsChanged
+)
+
+type Entry struct {
+    Seq   Seq       `json:"seq"`
+    Actor Actor     `json:"actor"`
+    Kind  EntryKind `json:"kind"` // new
+    Parts PartList  `json:"parts"`
+}
+
+// Appended to the EventType list after SkillLoaded. A number once
+// assigned is never reused.
+const (
+    // ...
+    SkillLoaded
+    MicroHandoff // new
+    ToolsChanged // new
+)
+
+type MicroHandoffData struct {
+    Text string `json:"text"`
+}
+
+// A delta against the declarations in force just before it.
+type ToolsChangedData struct {
+    Added   []ToolDecl `json:"added,omitempty"`   // full declarations, ch10's shape
+    Removed []string   `json:"removed,omitempty"` // names only
+}
+```
+
+Reused unchanged: ch2's `RedactData{From, To, Level, Replacement,
+Reason}` with levels `RedactResult` (the result becomes a stub, the
+call survives) and `RedactTool` (both go), and ch10's `SkillData{Name,
+Body}`, which already carries the skill's body.
+
+1. **Frozen prefix.** The system prompt and the startup tool
+   declarations are byte-identical on every request of a session. Only
+   a full refresh changes them, and, on a model that cannot carry tools
+   in the dialog, a tool change (rule 2).
+2. **Tools arrive through the dialog.** A skill load, a skill unload,
+   or an MCP connect mid-session emits `ToolsChanged`, and the reducer
+   turns it into a `Tools` entry. On a model whose features row sets
+   `InlineTools` (today, the Anthropic API), that entry carries the
+   declarations in the dialog. They ride in a new part,
+   `ToolDeclPart{Added []ToolDecl, Removed []string}`, JSON type
+   `"tool_decls"`: a declaration is not a call or a result, so rule 3
+   still holds. A model without `InlineTools` folds every delta into
+   the startup set and re-declares, paying the cache miss.
+3. **Survivors carry no tool parts.** A `Handoff`, `Skill` or `Tools`
+   entry never holds a tool call or a tool result, so no tool clearing
+   can touch it.
+4. **Skills are entries.** The reducer turns `SkillLoaded` into a
+   `Skill` entry holding the body. The `load_skill` tool result is an
+   acknowledgement only. `unload_skill` removes the skill's tools
+   through `ToolsChanged` and leaves the `Skill` entry where it is:
+   deleting old bytes would miss the cache, and ch10's unload is lazy.
+   A later chapter's verb removes it.
+5. **`micro_handoff` is three records:** the tool call, an ordinary
+   result, then a `MicroHandoff` event. Its reducer waits until the
+   batch's last result has arrived, so a call made alongside
+   `micro_handoff` is cleared with it. Then it removes every tool call
+   and tool result part from the context, drops entries left empty,
+   and appends one `Handoff` entry. The text appears in the next
+   request exactly once, and no call is ever left without its result or
+   a result without its call.
+6. **Keep or stub, per round trip.** On a model whose features row sets
+   `StubsToolResults`, every tool result above the stub threshold is
+   replaced by a stub in the request after the one that carried it,
+   unless the actor's next message calls `keep_tool_results`, which
+   keeps that whole batch. The keep governs the batch before the message
+   that calls it: called alongside other tools, it keeps the previous
+   batch, not the one it rides in, and its own result is never stubbed.
+   The call survives either way. The stub is an ordinary `RedactResult`
+   event, so replay reproduces it. Other models get no per-round-trip
+   stubbing; the ladder alone applies.
+7. **The ladder records a Seq.** With target size T, the newest T/8
+   bytes of tool traffic (the results band) stay whole. Older than that,
+   results become stubs (`RedactResult`) and their calls stay, for T/16
+   bytes of calls and stubs (the calls band). Tool bytes older than both
+   bands go entirely (`RedactTool`). A band is cut in steps: when it
+   passes twice its budget, one event cuts it back to its budget. Each
+   event stores `To` as a number, never as "the watermark", so a later
+   settings change cannot rewrite the past.
+8. **The reducer is total.** A save file that does not parse is still
+   refused (ch11 rule 2). An event that parses but cannot be applied,
+   such as a malformed payload or a redaction naming an entry already
+   gone, is skipped with a diagnostic in the agent's log, and loading
+   continues.
+9. **Crash-safe.** Events reach disk as they happen, so a process crash
+   leaves a tail after ch11's `as_of` anchor, and recovery is ch11's
+   load: snapshot plus tail. A normal shutdown snapshots. Power loss is
+   out of scope; the log is never fsynced. Ungraded, but
+   do it anyway: write the new snapshot before truncating the log, never
+   truncate past the anchor, and keep one backup of the previous
+   snapshot.
+10. **One knob.** The Context Management settings tab sets
+    `context_target` in `settings.json`: T in bytes, 0 for the default
+    of 400,000, clamped to at least 20,000. The stub threshold is T/100
+    and the bands are rule 7's, so the default gives 4,000, 50,000 and
+    25,000. The tab's other setting, `log_retention`, is the number of
+    events kept in the saved log, 0 for all.
+
+Yours: the on-disk layout of the log, what a diagnostic says, and the
+settings tab's appearance.
+
+**Exercise.** Start from your ch14 agent. Add context management until
+`make grade-dir CH=15 DIR=path/to/agent` scores 100/100. The grader
+reads only the requests its fake vendor receives and the files on disk.
+It launches the agent as `claude-opus-5-course`, whose features row
+sets `StubsToolResults` and `InlineTools`, and as
+`claude-sonnet-5-course`, whose row sets neither. Both flags are new
+`bool` fields on `ModelFeatures`, false for every existing row. The
+sonnet row already exists from Chapter 14 and needs no change; add the
+opus row.
+
+| Check | Points | Proves |
+|---|---|---|
+| skill-survives-the-ladder | 15 | rules 3, 4, 7 |
+| micro-handoff-shape | 15 | rule 5 |
+| keep-or-stub | 10 | rule 6 |
+| ladder-is-recorded | 15 | rule 7: replay under changed settings reproduces the cuts |
+| frozen-prefix | 10 | rules 1, 2 |
+| replay-equals-snapshot | 15 | rules 8, 9 |
+| crash-recovery | 15 | rule 9: kill mid-session, restart, nothing lost |
+| total-reducer | 5 | rule 8 |
+
+## §15.1 In Plain Words
+
+The context window is not storage. The log is storage: Chapter 2 made
+it append-only, and it keeps every byte the agent ever saw or said. The
+window is a working set rendered from that log, and every byte in it is
+paid for again on every request. So every byte has to answer three
+questions: why is it here, who put it here, and what removes it. A byte
+that cannot answer the third question stays forever, and a window full
+of such bytes is how a session degrades until a human resets it by hand.
+
+Most of the bytes are tool bytes. Chapter 2 printed a measurement from
+real coding sessions: tool results were about 42 percent of
+conversation history by volume, and tool-call arguments another 30
+percent. Nearly all of those bytes are needed once. The agent reads a
+file, decides, edits; after that, the file's
+contents are recoverable from disk and the decision lives in what the
+agent said about it. Hence the chapter's rule: keep the words, let the
+bytes go. Dialogue stays. Tool results go first, then the calls that
+produced them, oldest first.
+
+Some things must never go with them. A loaded skill's instructions and
+the note an agent writes to its future self at a checkpoint look like
+tool traffic today, because they arrive through tools. If they stay
+tool traffic, the first cleanup deletes the manual and keeps the tools
+it explains. So anything that must survive becomes its own kind of
+entry, removed only by its own verb. Survivors are safe by
+construction.
+
+Every cut is an event in the log with an exact number in it; nothing is
+re-evaluated later. That is what keeps Chapter 11's promise:
+replaying the log reproduces the same window, byte for byte, even after
+the settings that chose the cuts have changed.
+
+Two laws decide where cuts may happen. The front of the request, the
+system prompt and the startup tools, is frozen, so the vendor's cache
+can keep serving it. The rest is append-only, and the cost of changing
+a byte grows with its distance from the end, because everything after
+it must be re-sent uncached. So cuts come in steps, not a trickle: one
+larger cut now and then costs less than a small one every turn.
+
+None of this is a new data structure. The redaction levels are
+Chapter 2's, the compaction event is Chapter 2's, the frozen prompt is
+Chapter 10's, the snapshot and replay are Chapter 11's. What was
+missing is the policy that decides when to use them.
+
+## §15.2 Why Is This Byte Here?
+
+Chapter 2 built the machinery for this chapter and then nothing called
+it. Its `RedactData` event has four levels. `RedactResult` turns a tool
+result into a stub and keeps the call. `RedactTool` removes both and
+keeps the reasoning around them. `RedactDialogue` and `RedactSummary`
+reach into the conversation itself. The reducer applies all four, the
+tests cover all four, and until now no production code in the agent
+ever emitted a single one. The dialogue level even says where the
+missing piece lives:
+
+```go
+case RedactDialogue:
+        // Prose and reasoning go. Survivors are defined by the compaction
+        // policy, which is a later chapter's problem.
+```
+
+This is that chapter. Context engineering, as the book uses the term,
+is managing every byte in the context data structure as well as
+today's models allow. The management is a policy: for each byte, a
+reason it is in the window, a record of what put it there, and a verb
+that takes it out.
+
+Walk a request from a ch14 agent after an hour of work and ask each
+byte the three questions. The system prompt answers all three: the
+agent's constitution, written at startup, removed by nothing. A user
+prompt answers them. A 9,000-byte file read forty minutes ago answers
+the first question with "the agent needed it once", the second with
+`read_file`, and the third with silence. Nothing removes it. It rides
+along on every request until the session ends or a human copies the
+good parts into a fresh chat.
+
+The fix is that silence. Once every byte has a remover, the window
+stops growing.
+
+## §15.3 Two Laws
+
+The vendor's prompt cache decides where a cut may happen, and it
+works by prefix. The Anthropic API, as of September 2026, orders a
+request as tools, then system prompt, then messages, and serves from
+cache the longest prefix it has seen before. Everything after the first
+changed byte is re-read at full price.
+
+**Law 1: the prefix is frozen.** The system prompt and the startup tool
+declarations are byte-identical on every request of a session. Chapter
+10 already made the system prompt a constitution and put dynamic
+skills in the dialog. It left one leak: a skill that brings tools
+changed the tool list, and the tool list is the first thing in the
+request. Loading one skill invalidated the whole cached conversation.
+
+The chapter closes the leak with an event. A skill load, a skill
+unload, or an MCP server connecting mid-session emits `ToolsChanged`,
+a delta of declarations added and names removed. The reducer turns it
+into a `Tools` entry at the tail of the context, where the change
+costs one round trip of cache. On a model whose features row sets
+`InlineTools`, the renderer sends that entry as a mid-conversation
+system message:
+
+```json
+{"role": "system",
+ "content": [{"type": "tool_addition",
+              "tool": {"type": "tool_definition",
+                       "definition": {"name": "gui_click",
+                                      "description": "...",
+                                      "input_schema": {"...": "..."}}}}]}
+```
+
+with the beta header
+`mid-conversation-tool-changes-2026-07-01,inline-tools-2026-09-15`. A
+removal is the same message with `tool_removal` blocks carrying names.
+A model without the feature gets the old behaviour: the renderer folds
+every delta into the startup set, re-declares, and pays the miss. The
+cost lands on the model that cannot avoid it, and only there.
+
+The prefix does change on purpose once in a while. A settings change
+that rewrites the system prompt is a full refresh, and the full refresh
+is an accepted miss, paid once, by a human who asked for it.
+
+**Law 2: the cost of changing a byte grows with its distance from the
+end.** Everything after the changed byte goes out uncached, so the
+price of an edit is the number of bytes behind it. Stubbing the result
+that arrived on the last round trip costs about one round trip.
+Stubbing a result a hundred thousand bytes back costs a hundred
+thousand bytes, every time.
+
+The law was measured before it was believed. The design predicted that
+stubbing every tool result one round trip after it arrived would wreck
+the cache, since the request changes on every trip. The first session
+run that way, on CodeRhapsody with Opus 5.5 on 2026-09-22, measured a
+cumulative cache hit rate of 77 percent, after a cold first request
+that missed on over 100,000 tokens. The prediction had the law
+backwards: a just-finished result sits at the tail, where changes are
+cheap. The cumulative figure also hides the steady state, because that
+one cold miss is averaged into every later request, which is why a
+display of cache rate should show the last request beside the total.
+
+Law 2 has a second consequence. A trickle of small cuts deep in the
+window misses the cache on every turn; one larger cut now and then
+misses once. So the agent cuts in steps.
+
+## §15.4 What Survives Is Never a Tool Call
+
+The ch14 agent returns a loaded skill's manual as the result of the
+tool that loaded it:
+
+```go
+result += "## Instructions\n\n" + body
+```
+
+That line, at `internal/tools/tools.go:1016` in `solutions/ch14`, is a
+bug the moment any cleanup exists. Tool results are the first bytes
+to go. The first time the ladder stubs old results, the manual becomes
+a one-line stub and the tools it explains stay declared. The agent
+keeps calling `gui_click` with no memory of the rules for calling it.
+A checkpoint note passed as a tool-call argument has the same defect
+one level later, because `RedactTool` deletes calls.
+
+The cure is a naming rule, printed in the code as the comment on
+`EntryKind`: anything that must outlive tool clearing is its own kind.
+
+| Kind | Created by | Holds |
+|---|---|---|
+| `KindDialogue` | prompts, hints, model output | text, reasoning, tool calls and results |
+| `KindHandoff` | `MicroHandoff` | the actor's checkpoint note |
+| `KindSkill` | `SkillLoaded` | a skill's body |
+| `KindTools` | `ToolsChanged` | a declaration delta |
+
+Tool clearing only ever touches tool parts, and tool parts only ever
+live in `Dialogue` entries. The other three kinds hold none, so no
+redaction level can reach them. Survivors are safe by construction,
+without a list of exceptions for the ladder to consult. `load_skill`
+still returns a result, a one-line acknowledgement that the skill
+loaded; the body arrives through the event Chapter 10 already had,
+since `SkillData` always carried it.
+
+One timing problem remains. Tools run in parallel, and a survivor
+event can arrive while calls are still outstanding. A `micro_handoff`
+issued beside a `read_file` clears every tool part in the context. If
+it landed immediately, the `read_file` result would arrive afterwards
+with its call already gone, and a result without its call is a request
+the vendor refuses. So the reducer holds survivors until the batch
+completes:
+
+```go
+// survivor lands a non-dialogue entry now, or holds it until the current
+// batch of tool calls completes.
+func (c *Context) survivor(e Entry) {
+        if c.outstandingCalls() > 0 {
+                c.Held = append(c.Held, e)
+                return
+        }
+        c.land(e)
+}
+```
+
+When the last result of the batch arrives, the held entries land in
+order. The comment on the handoff branch of `land` states the payoff:
+"Nothing is outstanding when this runs, so every call removed takes
+its result with it, and no result loses its call."
+
+Unloading a skill removes its tools through `ToolsChanged` and leaves
+its `Skill` entry where it is. Deleting the body would edit old bytes,
+which Law 2 prices high, and Chapter 10 already decided that unload is
+lazy:
+
+```go
+LoadPendingUnload LoadState = "pending-unload"  // Marked for removal at compaction.
+```
+
+The stale manual costs its bytes and nothing else, because the tools
+it describes are gone.
+
+## §15.5 The Layout
+
+With four kinds and two laws, the request has one shape:
+
+```
+[ frozen prefix   ]  startup tools, system prompt      never changes
+[ memory region   ]  empty until the agent has memories
+[ context         ]  dialogue and survivors, in Seq order
+                     ^ oldest                  newest ^
+                     cheap to keep            cheap to change
+```
+
+The order runs from least volatile to most, which is also the order of
+meaning: who the agent is, then what it knows, then what it is doing.
+Two independent arguments, one about cache economics and one about
+reading order, give the same layout, which is a good sign that the
+layout is right.
+
+Survivors land in `Seq` order among the dialogue, at the tail where
+they were created. Moving them up next to the prefix would read better
+and would edit bytes far from the end. Reordering is a verb of its
+own, and until one exists, the context is append-only everywhere
+except for the ladder's cuts.
+
+The kinds also say which channel an entry speaks on. The system prompt
+and a skill body are instruction: the agent is meant to follow them. A
+tool result is data: the agent reads it and decides. A dialogue entry
+is conversation. Keeping those apart is why `Kind` records the origin
+of an entry instead of guessing it from the text, because text that
+looks like instructions and arrived as a file's contents is still a
+file's contents.
+
+## §15.6 Visible Reasoning Is the Storage Format of the Self
+
+After the ladder runs, what does the agent remember about a file it
+read an hour ago? Exactly what it said about the file. The result is a
+stub, the call may be gone, and the model's private thinking was never
+durable: vendors return it on their own terms, and a checkpoint drops
+it. The words the agent wrote in the dialogue are the only record that
+survives every level up to `RedactDialogue`. Chapter 2 wrote the rule
+into the definition of `RedactTool`: remove calls and results
+entirely, keep visible reasoning.
+
+So an agent that narrates keeps its past, and an agent that works in
+silence loses it. Compare two turns that make the same edit:
+
+```
+(silent)   read_file config.go   edit_file config.go
+
+(narrated) The port is set in config.go; reading it.   read_file config.go
+           Port is 8092 at line 40, hardcoded. Moving it to settings.
+           edit_file config.go
+```
+
+Once the ladder reaches that turn, the silent version says an edit
+happened. The narrated version still says which port, where it was,
+and why it moved. A system prompt should ask for one sentence of
+intent before every tool call, and the ladder turns that habit from
+courtesy into storage.
+
+Narration has a failure mode of its own. An agent rereading its old
+sentences can trust a figure it wrote down over the file that has
+since changed, and a figure written from memory carries the same
+confidence as one copied from the source. The defence is in what the
+narration records: where a fact lives, the path and line and command,
+so the agent's reflex is to re-read the source rather than quote
+itself.
+
+## §15.7 The Ladder
+
+The ladder keeps tool bytes in two bands measured back from the tail,
+with one number, the target size T, setting both:
+
+```
+    stub threshold = T/100    results band = T/8    calls band = T/16
+```
+
+That line is the comment in `internal/common/budget.go`. The newest
+T/8 bytes of tool traffic stay whole. Older results become stubs by
+`RedactResult`, and their calls stay, for the next T/16 bytes. Tool
+bytes older than both bands go entirely by `RedactTool`, leaving the
+dialogue around them. At the default T of 400,000 bytes, about 100,000
+tokens at four bytes a token, the stub threshold is 4,000 bytes, the
+results band is 50,000 and the calls band 25,000.
+
+Law 2 sets the rhythm. A band is cut when it reaches twice its budget,
+and one event cuts it back to its budget, so cuts arrive as occasional
+steps. The same comment bounds the worst case: "at its worst the tool
+bytes in the window are 2(T/8 + T/16) = 3T/8, and the remaining
+five-eighths are the prefix, the survivors and the dialogue".
+
+Three rules keep the ladder honest.
+
+- **Every cut is an event.** The policy runs in `Engine.Turn` before
+  each render and emits `RedactData` through the ordinary `Record`
+  path. Its `To` field is a number, a `Seq` in the log.
+  The watermark is computed once, at the moment of the cut, and never
+  again. Replay applies the recorded number, so lowering T tomorrow
+  cannot reach back and cut yesterday's session differently.
+- **Nothing is cut before the model has seen it.** A result goes out
+  whole at least once, however large. The ladder only reaches entries
+  already sent.
+- **No call loses its result.** The calls-band cut snaps back to a
+  point where every call removed takes its result with it.
+
+The ladder applies to every model, because it needs no judgement from
+the model. It is also blunt: a 40,000-byte file read that the agent
+will never look at again stays whole until the band passes it.
+
+## §15.8 Keep or Stub
+
+A capable model can do better than the ladder, because it knows which
+results it is finished with. On a model whose features row sets
+`StubsToolResults`, every tool result above the stub threshold becomes
+a stub in the request after the one that carried it, unless the
+actor's next message calls `keep_tool_results`. The keep takes no
+arguments and keeps the whole batch.
+
+The keep governs the batch that has already arrived, the one the
+actor is looking at. Called alongside other tools, it keeps the
+previous batch, never the one it rides in, since those results do not
+exist yet when the actor decides. Its own result is never stubbed. The
+call survives either way, so the agent can see what it asked for and
+re-run it. The stub is an ordinary `RedactResult` event, so replay
+reproduces it without asking the model again.
+
+Law 2 prices this well. The stub replaces bytes that arrived one round
+trip ago, at the tail, which is the cheapest place in the window to
+change anything. The 77 percent in §15.3 was measured under this rule:
+CodeRhapsody, the agent that co-wrote this book, runs it with its own
+thresholds.
+
+The feature is a column in the model table because the judgement is
+uneven across models. Asked to curate its own context, Opus 5 does it
+well, Opus 4.6 acceptably, and Sonnet 5 not well enough to be given
+the job. `claude-opus-5` sets `StubsToolResults`; the Sonnet rows do
+not. A capability that works on one model is a claim about
+that model.
+
+> **Open risk.** Per-round-trip stubbing may interfere with the
+> model's thinking: a model reasoning across several round trips has
+> its evidence removed between steps. Nobody has measured it. The
+> experiment that would settle it is one task, one model, stubbing on
+> and off, with the outcomes compared by quality rather than by bytes.
+
+## §15.9 From compress_context to micro_handoff
+
+The ladder removes bytes the agent is done with. It gives the agent no
+way to say what it needs in order to keep going. A checkpoint does,
+and the book's own lineage tried two designs for it before this one.
+
+CodeRhapsody's first design was a tool called `compress_context`: the
+model chose a range of messages and replaced them with its own summary.
+Bill described how that went on 2026-09-13:
+
+> "compress_context was the old system that you (Claude) did pretty
+> well, picking a range of messages to summarize, but freaking Gemini
+> almost always deleted 80% of messages, starting with message 1, with
+> a terrible summary, lobotomizing the LLM, so we switched to handoffs
+> instead."
+
+The failure has a shape. The cut ran by position, from message 1, and
+message 1 is where the user stated the goal. The summary was written
+by the model that was about to lose the originals, so nothing could
+check it, and summarized dialogue is in no file the agent can re-read.
+The model was handed a choice it could not undo, and one model family
+made it badly almost every time.
+
+The handoffs that replaced it, `handoff_task`, wrote a structured
+document and started a fresh instance from it with an empty window.
+That design assumes continuity lives in a note to a stranger. It also
+added a second path for writing the agent's durable state, and second
+paths drift: CodeRhapsody's handoff path never triggered the memory
+cascade that its `save_memory` path did, and the gap sat in its notes
+as a known bug for months. Ensemble builds neither tool.
+
+`micro_handoff` keeps the same instance and the same dialogue. The
+actor writes a note, and the reducer removes every tool call and tool
+result in the context and appends the note as a `Handoff` entry. Two
+lessons from the older designs are built in. The model's discretion
+covers only what is recoverable: tool bytes can be regained by
+re-running tools, and the dialogue, which cannot, stays. And the
+judgement is trusted per model, as the `StubsToolResults` column
+already is, never assumed to transfer from one model to the next.
+
+On the wire it is three records: the tool call, an ordinary result
+that acknowledges it, and a `MicroHandoff` event carrying the text.
+The event is what the reducer acts on. The result is an
+acknowledgement for the same reason `load_skill`'s is: a tool result
+is tool traffic, and the note must outlive tool traffic. Replay sees
+the event and makes the same cut.
+
+What goes in the note decides whether the checkpoint works. The
+version CodeRhapsody uses asks for fields, and its tool description is
+blunt about which one matters. Of `tried_and_failed`, it says: "Highest
+value per byte in the document: it is the only field that prevents
+repeating a mistake, and errors are the part of a record most likely
+to be discarded as noise." It also says when to call the tool: "at a
+completed micro-goal, never at a token threshold." A checkpoint taken
+mid-task drops the tool result that held the task's state. And a
+checkpoint loses the model's thinking permanently, so the note has to
+say what the thinking had worked out.
+
+## §15.10 Compaction Is Described, Never Performed
+
+No code in the agent edits the context directly. The policy decides a
+cut and records it as an event; the reducer applies events; the log
+keeps them. Every window the agent has ever sent can be rebuilt from
+the log, including windows the current settings would cut differently.
+The grader's `ladder-is-recorded` check does exactly that: it replays a
+session under a changed T and expects the same requests.
+
+A log that is replayed for months will eventually hold an event the
+current reducer cannot apply: a redaction naming an entry a later
+handoff removed, a payload a newer version malformed. The ch14 loader
+gave up at the first one:
+
+```go
+if err := ctx.Apply(e); err != nil {
+        return nil, fmt.Errorf("restore: event %d: %w", e.Seq, err)
+}
+```
+
+One bad event made a whole session unloadable. The ch15 loader
+reports and moves on:
+
+```go
+if err := ctx.Apply(e); err != nil && diag != nil {
+        diag(fmt.Errorf("restore: skipped event %d: %w", e.Seq, err))
+}
+```
+
+The skip is clean because `Apply` checks an event before it mutates
+anything, so a rejected event leaves the context exactly as it was.
+Totality covers known event types. An event type the code has never
+heard of is still refused at load, loudly, because a log from a newer
+agent is a different problem than a bad record in a familiar one.
+
+> **Aside: why not the vendor's context editing.** The Anthropic API
+> offers server-side context editing (beta header
+> `context-management-2025-06-27`) that clears old tool uses and
+> thinking blocks before the model reads the request. It is stateless
+> and observable, and its documentation says so plainly: "Your client
+> application maintains the full, unmodified conversation history.
+> **You do not need to sync your client state with the edited
+> version.**" So it is compatible with the log in a way the stateful
+> conversation APIs of Chapter 2 were not. It still loses on three
+> counts. Its policy is a declarative trigger that clears by position
+> and by tool name, which cannot express a keep chosen by the actor
+> each round trip. It can only clear, never summarize or move anything
+> into memory. And replay would become a claim about someone else's
+> deployment: the log would say what was sent, and the vendor would
+> decide what was read.
+
+## §15.11 Keep the Words, Let the Bytes Go
+
+A stub removes bytes from the window. It removes nothing from the log.
+The `ToolReturned` event that carried the result stays in the log
+until log retention truncates it, and in the common case the bytes
+were never unique anyway: the file is still on disk, and the command
+can be run again.
+
+So the stub carries no address. The reason is a bug in the agent that
+co-wrote this book. CodeRhapsody's stubs cite the output file of the
+command they replace, a path like `cr/io/26`. When this chapter was
+designed, its handle counter started again at 1 on every launch, so
+after a restart `cr/io/26` named a different command's output. The
+agent that followed the stub read a file, got plausible output, and
+had no way to tell it was the wrong one. Chapter 14's rule applies:
+wrong data is worse than no data. CodeRhapsody's counter now keeps
+counting across restarts. Ensemble's stubs say the bytes are gone and
+leave recovery to the tools that produced them.
+
+## §15.12 Crash-Safe Persistence
+
+Chapter 11 saved at shutdown. A process that dies mid-session loses
+everything since the last save, and a coding agent that runs builds
+and debuggers dies more often than a text editor does.
+
+The ch15 agent appends every event to a journal beside the save file,
+`<save>.journal`, one JSON line per event, as the event happens.
+Recovery is Chapter 11's load with one more source: `Recover` reads
+the snapshot, applies the tail after its `as_of` anchor, then applies
+the journal. A normal shutdown writes a new snapshot and resets the
+journal. The grader's `crash-recovery` check runs a clean session,
+then runs a second for two turns and kills it with SIGKILL, restarts
+it, and expects nothing lost.
+
+Two orderings are load-bearing, and neither is commutative. The new
+snapshot is written before the log is truncated: in the other order, a
+crash between the two steps leaves neither the old events nor the new
+snapshot. And the log is never truncated past the snapshot's anchor,
+because the anchor is where replay starts. `log_retention` is a
+display preference; the anchor is a correctness boundary, and the
+anchor wins. `SaveRetaining` does it in that order and copies the
+previous save to `<save>.bak` first.
+
+Two things are out of scope. The journal is never fsynced, so power
+loss can take the last few events; "crash" means a process crash.
+And truncation deletes old `ToolReturned` events, which are the only
+on-disk copy of a redacted text result. The bytes were already out of
+the window, and a log that keeps every byte forever is the unbounded
+growth this chapter exists to stop.
+
+## §15.13 One Knob
+
+All of it runs off one setting. The Context Management tab in the
+settings panel writes `context_target`: T in bytes, 0 for the default
+of 400,000, clamped to at least 20,000. The floor has a reason in its
+comment: below it, "the stub threshold would fall under the size of a
+directory listing". The tab's other field, `log_retention`, is the
+number of events the saved log keeps, 0 for all.
+
+A user who wants more context pays for more context by raising T.
+Every threshold scales with it, so there is nothing else to tune.
+
+The coder measured the reference with a synthetic session: the fake
+vendor scripted four prompts, each followed by fifteen `read_file`
+calls on 8,000-byte files, 64 requests per run.
+
+| run | last request | total sent | cuts |
+|---|---|---|---|
+| no ladder (T = 10^12) | 542,600 | 17,470,874 | none |
+| ladder only (T = 400,000, Sonnet row) | 143,152 | 6,172,202 (35%) | 7 `RedactResult` |
+| ladder and stubs (T = 400,000, Opus row) | 62,456 | 2,334,066 (13%) | 59 stubs |
+
+The largest request in the ladder run was 146,378 bytes in total,
+below even the 150,000 bytes that 3T/8 allows tool bytes alone. The
+prefix, 2,991 bytes, was byte-identical across all 64 requests in all
+three runs. The stubs run never triggered the ladder, because stubbing
+kept every band under its budget.
+
+Bytes are the easy half. The table says nothing about cache rates on a
+real vendor, nothing about whether the answers got better or worse,
+and nothing about the open risk in §15.8. Those need real sessions on
+real models, and none has been run against this reference yet.
+
+## §15.14 The Exercise, Graded
+
+The grader reads only what its fake vendor receives and what the agent
+leaves on disk. Every check was audited by deleting one behaviour from
+the reference and confirming the check fails.
+
+- **skill-survives-the-ladder** (15) loads a skill, runs tool traffic
+  until the ladder cuts past the load, and looks for the skill body in
+  the next request. The ch14 bug, body inside the tool result, scores
+  85 overall and fails here.
+- **micro-handoff-shape** (15) checks the three records, the text
+  appearing exactly once, and no orphaned call or result, including a
+  call made alongside the handoff. Clearing calls but keeping results
+  fails it.
+- **keep-or-stub** (10) runs the Opus row, keeping one batch and not
+  the next, then runs the Sonnet row. Stubbing that ignores the keep
+  fails, and so does stubbing on a model that did not ask for it.
+- **ladder-is-recorded** (15) replays a saved session under a changed
+  T. An agent that recomputes cuts from current settings instead of
+  recording them fails this and two other checks, 55 points in all.
+- **frozen-prefix** (10) compares the prefix across every request,
+  through a skill load and an MCP connect. Re-declaring the startup
+  tools fails it, and so does a skill load that emits no
+  `ToolsChanged`.
+- **replay-equals-snapshot** (15) rebuilds the context from the log and
+  compares vendor requests with the saved snapshot's.
+- **crash-recovery** (15) is §15.12's SIGKILL test.
+- **total-reducer** (5) plants unappliable events in the middle of a
+  log, with the snapshot nulled so replay must cross them, and expects
+  the session to load with every good event after them applied.
+
+The audit found two holes in the grader's first version, both of which
+had let a broken agent score 100. Its test files had short paths, so
+the calls band never filled and `RedactTool` never fired; the fixture
+now reads long real paths and asserts both watermarks. Its bad events
+sat at the end of the log, so an agent that stopped at the first bad
+event passed; they now sit before the last turn.
+
+## §15.15 Taking It for a Spin
+
+The grader proves the rules hold on scripted traffic. A real model
+shows what living under them is like. The run below drove the
+reference agent with `claude-opus-5`, a row with both
+`StubsToolResults` and `InlineTools` on, and a `settings.json` of one
+line:
+
+```json
+{"context_target":20000}
+```
+
+Twenty thousand is the floor the settings clamp allows. It puts the
+stub threshold at 200 bytes, the results band at 2,500 and the calls
+band at 1,250. The workspace held seven files copied from
+`agent/internal/common`, 60,865 bytes in all, three times the target.
+The prompt:
+
+```text
+Read each .go file in src/ one at a time with read_file (budget.go,
+context.go, save.go, journal.go, model.go, event.go, part.go). Then
+answer in three sentences: how does this agent keep its context from
+growing without bound?
+```
+
+The turn took eleven requests and ten tool calls: a directory
+listing, seven reads, two reads of files already read, and the
+answer. The journal holds nine `redacted` events, all of one shape:
+
+```json
+{"seq": 12, "type": "redacted", "time": "2026-09-23T14:44:45.308867Z", "redact": {"from": 6, "to": 6, "level": "redact_result", "reason": "round trip: not kept"}}
+```
+
+Ten results, nine stubs. The tenth result was still in its one full
+request when the turn ended. The vendor's reported input tokens,
+request by request:
+
+| Request | Carried in full        | Input tokens |
+|--------:|------------------------|-------------:|
+| 1       | the prompt             | 3,787        |
+| 2       | directory listing      | 3,955        |
+| 3       | budget.go, 1,683 B     | 4,560        |
+| 4       | context.go, 18,855 B   | 10,889       |
+| 5       | save.go, 6,282 B       | 6,943        |
+| 6       | journal.go, 4,522 B    | 6,347        |
+| 7       | model.go, 7,347 B      | 8,475        |
+| 8       | event.go, 10,742 B     | 10,109       |
+| 9       | part.go, 11,434 B      | 10,655       |
+| 10      | budget.go, again       | 7,112        |
+| 11      | context.go, again      | 13,522       |
+
+Each file is a tooth: it rises for one request and falls on the next.
+The floor under the teeth rises too, because every call, every stub
+and every sentence the model wrote stays. The first request, before
+any file, was already 3,787 tokens of system prompt and tool
+declarations. The target caps neither of those. It sets three numbers,
+and all three govern tool bytes.
+
+The ladder never fired. It never cuts a result that has not yet gone
+out whole once, and the stub rule had already removed every older
+result, so no request held anything the ladder was allowed to cut.
+Ten calls with short paths never reached the calls band's trigger.
+On a stubbing model under this workload the ladder is the backstop.
+On `claude-sonnet-5`, where the stub column is off, it does all the
+work.
+
+The interesting part is the dialogue. The model narrated as it read,
+and some of its narration, copied from the journal:
+
+```text
+Noting: context.go — Context has bounded fields; redaction/summary/handoff clear tool parts. Next file.
+
+model.go: a per-model feature table; the context-relevant column is `StubsToolResults` — "every tool result above the stub threshold becomes a stub in the request after the one that carried it, unless the model's next message calls keep_tool_results" (on for opus-5/opus-5-course; off for sonnet-5, where "the ladder" alone applies). Next file.
+
+part.go: content is `[]Part`, and `RedactedPart` is the *result* of a redaction — its stub is synthesized deterministically by the reducer (no stored growth) and it carries forward the superseded part's `Ref`, so dropped bytes stay fetchable. Now re-reading the two files whose contents got stubbed out of my own context.
+
+budget.go confirmed: one knob T, with threshold=T/100, results band=T/8, calls band=T/16. Now the policy that spends them.
+```
+
+The two files it read again were `budget.go`, the one file it wrote
+no note about, and `context.go`, the largest file, which got one line.
+Every file with a real note was never read again. The note is the
+model's own compression of a result, and dialogue is the channel the
+stub rule leaves alone, so what the model wrote down, it kept. What
+it did not write down, it fetched again.
+
+`keep_tool_results` was declared in every request and never called.
+That is not a failure. A kept result is paid for on every later
+request; a second read is paid for once, plus one round trip. This
+run cost two round trips. One run on one model settles nothing about
+the open risk printed earlier, whether stubbing interferes with
+thinking, but it does show the shape a capable model falls into:
+narrate, let the bytes go, re-read what the narration missed.
+
+Two things in the log belong on the next revision's list. Every
+request reported zero cache writes and zero cache reads: the
+reference renderer sets no `cache_control` breakpoint, so the stable
+prefix this chapter guards is ready for a cache the agent never asks
+for. And the rising floor is dialogue, which nothing in this chapter
+removes. Chapter 16 removes it.
