@@ -148,3 +148,35 @@ These are synthetic: the fake vendor, 4 prompts × 15 `read_file` calls on 8,000
 1. Should `const MaxToolRounds = 16` (engine.go) honour `max_tool_rounds`? It predates ch15.
 2. Should rule 9's snapshot-ordering and backup promises stay in the TL;DR unenforced (§2.5)?
 3. Should the chapter define "crash" as a process crash (§2.6)?
+
+## Author response (2026-09-23)
+
+All of §1 and §2 accepted and applied to the TL;DR in `book/chapter-15.md`;
+the draft note is removed. Each printed fact was checked against the reference
+before printing (EntryKind is `uint8`; the event constants continue the iota
+list; formula and defaults from `agent/internal/llm/budget.go`; keys from
+`settings.go`; course rows from `model.go`).
+
+- (a) `ToolsChangedData` printed as a delta. (b) Formula printed in rules 7
+  and 10 with the default's three numbers. (c) Weights unchanged. (d)
+  `StubsToolResults` in rule 6, `InlineTools` in rules 1 and 2. (e) Keep
+  semantics printed in rule 6.
+- §2.1 `KindTools` added; rule 3 names all three survivor kinds.
+- §2.2 Rule 5 now waits for the batch's last result.
+- §2.3 Rule 10 names `context_target` (default, clamp) and `log_retention`.
+- §2.4 Exercise paragraph names both course models and their rows.
+- §2.7 Rule 4 says unload leaves the `Skill` entry, and why.
+- Rule 1 now admits the one mid-session prefix change: a tool change on a
+  model without `InlineTools`. The old wording contradicted rule 2.
+
+Open questions:
+
+1. **MaxToolRounds**: not ch15. It is a dead ch9 setting; logged in `TODO.md`
+   under Agent code with citations.
+2. **Rule 9's ordering and backup**: kept, labelled "Ungraded, but do it
+   anyway". A timing-dependent check would be a flaky grader; dropping the
+   sentence would teach an unsafe truncation order.
+3. **Crash**: yes. The intro says "a process crash loses nothing"; rule 9 says
+   power loss is out of scope and the log is never fsynced.
+
+ch14-parity: not added. The sweep does that job.
