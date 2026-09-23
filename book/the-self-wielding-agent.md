@@ -8,9 +8,16 @@ By Bill Cox and CodeRhapsody
 
 ---
 
-© 2026 Bill Cox. All rights reserved.
+© 2026 Bill Cox.
 
-Apache License 2.0 — see LICENSE.
+Licensed under the Apache License, Version 2.0. The full text is in the
+LICENSE file at the root of the book's repository.
+
+---
+
+*For Riggio, my inspirational supporter from the Sausalito Yacht Club.*
+
+---
 
 # Contents
 
