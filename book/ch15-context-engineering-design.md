@@ -1447,3 +1447,16 @@ and §A.6's two-write-paths bug returns)?
   CodeRhapsody identity and history into ensemble once it is usable, with the
   agent primarily an orchestrator; per-project agents may be ephemeral or
   long-lived with their own history. The design should keep both easy.
+
+## Late rulings for Chapter B (RULED, 2026-09-22; recorded in chapter-16-outline.md)
+
+1. **Auto-recall (§B.9) is its own chapter.** Chapter B (ch16) is push only.
+2. **Event names:** `MemorySaved`, `CompactorLaunched`, `MemoryCompacted`,
+   `LearningAdded`. Closes the naming half of Q2.
+3. **A `CompactorLaunched` with no matching finish at restart is abandoned.**
+   The old band stays live; the next `save_memory` measures and relaunches.
+4. **Graduation is oldest-first and watermark-based, not one memory at a
+   time.** Answers Q11 (the budget decides, not a judge). DERIVED reading, to
+   confirm: crossing a band's high watermark graduates the oldest entries as
+   one batch until the band is below its low watermark. Open: whole entries
+   only, or may a session memory be split across batches?
