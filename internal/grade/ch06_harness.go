@@ -139,11 +139,22 @@ func ch6DriveExercise(r *Ch6Result, bin, workDir string) {
 	fake := fakevendor.New(replies)
 	defer fake.Close()
 
-	logPath := filepath.Join(workDir, "test_ch06.log")
+	// The log path must be absolute: the agent runs in a directory of
+	// its own (so a chapter-11 agent neither loads nor leaves a
+	// save.json in the student's source tree), and workDir may be
+	// relative to the grader's working directory rather than the
+	// agent's.
+	logPath, err := filepath.Abs(filepath.Join(workDir, "test_ch06.log"))
+	if err != nil {
+		logPath = filepath.Join(workDir, "test_ch06.log")
+	}
 	r.LogPath = logPath
 
+	runDir, cleanupDir := freshRunDir("ch6-exercise")
+	defer cleanupDir()
+
 	cmd := exec.Command(bin)
-	cmd.Dir = workDir
+	cmd.Dir = runDir
 	cmd.Env = append(os.Environ(),
 		"LLM_VENDOR=anthropic",
 		"LLM_MODEL=fake-model",
@@ -246,8 +257,11 @@ func testLoudRefusal(r *Ch6Result, bin, workDir string) {
 	fake := fakevendor.New(replies)
 	defer fake.Close()
 
+	runDir, cleanupDir := freshRunDir("ch6-refusal")
+	defer cleanupDir()
+
 	cmd := exec.Command(bin)
-	cmd.Dir = workDir
+	cmd.Dir = runDir
 	cmd.Env = append(os.Environ(),
 		"LLM_VENDOR=anthropic",
 		"LLM_MODEL=unknown-model-xyz",

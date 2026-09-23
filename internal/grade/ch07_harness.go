@@ -178,6 +178,12 @@ func driveCh7(bin, tmp string, noStream bool) Ch7Exec {
 	logPath := filepath.Join(tmp, name+".log")
 
 	cmd := exec.Command(bin)
+	// One directory per drive. Both drives share tmp for their logs,
+	// but a chapter-11 agent loads ./save.json from its working
+	// directory, so the second drive would otherwise resume the first.
+	runDir, cleanupDir := freshRunDir("ch7-" + name)
+	defer cleanupDir()
+	cmd.Dir = runDir
 	cmd.Env = append(os.Environ(),
 		"LLM_BASE_URL="+srv.URL(),
 		"LLM_VENDOR=anthropic",
