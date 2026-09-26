@@ -42,6 +42,12 @@ type Engine struct {
 	// switching a band off takes effect at the next sync instead of the
 	// next restart.
 	Bands func() common.BandConfig
+
+	// warned is advisory only: it keeps the ninety percent notice from
+	// repeating every turn. The authoritative fact, which tools are
+	// withdrawn, lives in the log as a ToolsChanged event and survives a
+	// restart. This does not need to.
+	warned bool
 }
 
 func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools common.ToolRegistry, host common.Host) *Engine {
@@ -131,6 +137,11 @@ func (e *Engine) Turn(watch common.StreamCallbacks) (string, error) {
 	// ladder on a span that is about to become a memory, and a span that
 	// survives compaction is exactly the span worth curating.
 	e.maybeCompact()
+
+	// ...and then check whether that was enough. Compaction first, because
+	// it is what usually brings the context back under the line; forcing is
+	// for when there is nothing checkpointed left to compact.
+	e.maybeForce()
 
 	// Chapter 15: decide this request's cuts and record them as events
 	// BEFORE rendering, so the request carries exactly what the log says.

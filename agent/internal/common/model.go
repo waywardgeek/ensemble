@@ -69,6 +69,17 @@ type ModelFeatures struct {
 	// Without it, only the ladder applies.
 	StubsToolResults bool
 
+	// ContextWindow is how many tokens the model will accept in one
+	// request, prompt and all. Zero means nobody filled the column in.
+	//
+	// Zero is not a default, it is an admission, and the forcing rule
+	// treats it as one: with no window there is no such thing as ninety
+	// percent of it, so nothing is forced and the agent is left alone.
+	// Guessing a window here would be worse than not knowing, because the
+	// consequence of guessing low is taking every tool away from an agent
+	// that was doing fine.
+	ContextWindow int
+
 	// InlineTools says the vendor can carry a tool declaration inside the
 	// dialog, so a skill loaded mid-session adds tools without touching the
 	// frozen prefix (Chapter 15 rule 2). On the Anthropic API this is a
@@ -94,15 +105,15 @@ func models() map[string]ModelFeatures {
 		// Both Opus 5 and Sonnet 5 support extended thinking with a budget
 		// of at least 32768 tokens. MaxOutputTokens 16384 is a reasonable
 		// reply ceiling when thinking is enabled (total = budget + reply).
-		"claude-opus-5":   {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
-		"claude-sonnet-5": {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		"claude-opus-5":   {ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
+		"claude-sonnet-5": {ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
 
 		// OpenAI — images yes, audio and video NO (video APIs are generation).
 		// Reasoning arrives as a summary rather than as incremental deltas,
 		// so thinking is not streamed. These models support reasoning_effort
 		// but do not return reasoning content on Chat Completions.
-		"gpt-6-astra": {Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
-		"gpt-5.6-sol": {Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gpt-6-astra": {ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gpt-5.6-sol": {ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Gemini — images, audio, video, documents. Text and thinking stream;
 		// FUNCTION-CALL ARGUMENTS DO NOT. They arrive complete, in one frame.
@@ -110,24 +121,29 @@ func models() map[string]ModelFeatures {
 		// description of this model needs two of three bits set, and a bool
 		// would have forced us either to drop text streaming or to invent
 		// argument chunks that the vendor never sent.
-		"gemini-3.8-flash":       {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
-		"gemini-3.1-pro-preview": {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gemini-3.8-flash":       {ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gemini-3.1-pro-preview": {ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Fake model used by the grader — images only, to test loud refusal.
 		// Streams everything, because the streaming checks need all three
 		// kinds to appear. Thinking enabled for testing.
-		"fake-model": {Media: MediaImage, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"fake-model": {ContextWindow: 200000, Media: MediaImage, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Course/test models used by graders in various chapters.
-		"claude-fake-course-1":   {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
-		"claude-sonnet-5-course": {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		"claude-fake-course-1":   {ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		"claude-sonnet-5-course": {ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
 		// Chapter 15's grader model: the claude-opus-5 row, course-named.
 		// A new row rather than a changed one, so every earlier chapter's
 		// grader, which runs fake-model or claude-fake-course-1, sees
 		// exactly the wire it saw before.
-		"claude-opus-5-course":    {Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
-		"gpt-5-course":            {Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
-		"gemini-3.5-flash-course": {Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"claude-opus-5-course": {ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
+		"gpt-5-course":         {ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		// Chapter 16's grader model: the opus row with a deliberately tiny
+		// window, so a grader can reach ninety percent of it in a handful of
+		// turns instead of a hundred thousand. A NEW row rather than a
+		// changed one, so no earlier chapter's grader sees a different wire.
+		"claude-ch16-course":      {ContextWindow: 4096, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
+		"gemini-3.5-flash-course": {ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 	}
 }
 
