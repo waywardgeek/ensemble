@@ -136,7 +136,60 @@ the conversation, `BandPopulated` adds the memory. `summarizeSpan` is untouched.
 
 ## 5. The mutation audit
 
-(filled in below once all nine runs complete)
+Nine mutants, each deleting exactly one behaviour the chapter promises. Full
+detail in `book/ch16-mutation-audit.md`.
+
+| Mutant | Behaviour deleted | Score | Checks that failed |
+|---|---|---|---|
+| M1 | compressor writes in the third person | 95 | `memory-is-data` |
+| M2 | never measure after a checkpoint | 23 | 8 checks |
+| M4 | forcing warns but never removes tools | 88 | `forced-handoff` |
+| M7 | replay re-runs the compressor | 83 | `disable-enable-idempotent`, `fresh-start-populates` |
+| M9 | graduate into a disabled band | 92 | `disabled-neighbour-refused` |
+| M5 | a disabled band still compacts | 88 | `disable-enable-idempotent` |
+| M6 | re-enable replays a snapshot instead of re-reading disk | 88 | `disable-enable-idempotent` |
+| M3 | graduation folds the newest memories | 100 | **equivalent — see below** |
+| M8 | an abandoned graduation is retried on restart | 100 | **open hole** |
+
+Five died on the first pass. Four survived, which under P9 makes them holes
+in the grader rather than successes. Two of the four now die after
+strengthening three checks; the other two are reported rather than papered
+over.
+
+**M3 is an equivalent mutant.** Folding the oldest and folding the newest are
+the same operation whenever a fold consumes the whole band, and here a fold
+always does: graduation triggers on a byte watermark and then folds
+`min(FoldFactor, len(files))`. Instrumenting the reference showed folds
+firing with five files and taking all five, and the first fold request was
+byte-identical under the mutation. Making the difference observable would
+mean requiring a full batch before folding, which is the behaviour deleted
+earlier in this chapter because a band over budget that cannot fill a batch
+would then never fold at all.
+
+**M8 is an open hole, and the reason is worth reading.** The abandon
+scenario answers every compressor with a 500, so no memory is ever written,
+the session band stays empty, and graduation — the only thing the
+abandonment guard protects — is never attempted. The scenario cannot observe
+the behaviour it exists for. Closing it needs a compressor that fails folds
+while letting session memories succeed; that router flag was written and
+then reverted, because a failed fold makes the harness's cumulative request
+counts unpredictable and destabilising a passing grader to chase one mutant
+was the worse trade.
+
+**One finding that is not about a mutant.** M7 kills two checks but not
+`replay-needs-no-llm`, the check named for exactly the property it violates.
+That check counts vendor requests over a window that does not include the
+startup sync, so it cannot see the call it forbids. A separate hole, not yet
+closed.
+
+**Two checks were found to be blind while strengthening.** The disabled-band
+check asked the harness whether an extra request had appeared; the harness
+counts turns, and a compressor is not a turn, so the compaction it was
+looking for was invisible to it. And the hand-edit check originally searched
+for a memory by its text, which after folding finds the superseded original
+rather than the compressed copy the context is actually showing — editing
+the wrong file correctly changed nothing. Both are the same mistake in
+different clothes: inferring a thing from a proxy that does not track it.
 
 ---
 
@@ -208,4 +261,36 @@ was not the property.
 
 ## 9. Measurements
 
-(filled in below)
+From `agent/internal/llm/measure_test.go`, which runs the real compaction
+path against a scripted session: 40 turns, a checkpoint every 4 turns, 400
+bytes of talk per turn, conversation budget 3000 bytes (high 6000), session
+band budget 1500 bytes (high 3000).
+
+| | memory ON | memory OFF |
+|---|---|---|
+| conversation | 1,600 bytes | 16,000 bytes |
+| session band | 27 bytes | — |
+| 8x band | 22 bytes | — |
+| **total context** | **1,649 bytes** | **16,000 bytes** |
+| memories written | 4 | 0 |
+| cascade launches | 1 | 0 |
+
+Cascade launches per checkpoint: 0.10.
+
+**What this measures, and what it does not.** The structural numbers are
+real: the conversation is held at 1,600 bytes against 16,000 unbounded, four
+memories were written, and one fold fired. That is the property the chapter
+claims — a context that stops growing with the length of the session.
+
+The band sizes are **not** a compression measurement and must not be read as
+one. The compressor here is a fake that returns a short fixed string, so 27
+bytes and 22 bytes are artifacts of the fake's reply length. For the same
+reason the headline "memory ON is 10.3% the size of memory OFF" is
+**UNMEASURED** as a compression ratio: it is dominated by the fake's reply
+size, not by any real summarisation. The 2x / 8x / 64x targets in the design
+notes cannot be verified without a real model, and nothing here should be
+cited as evidence for them.
+
+What can be said honestly: the ladder fires when it should, folds when it
+should, and the conversation stays bounded. The ratios wait for a real
+compressor.
