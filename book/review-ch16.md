@@ -320,3 +320,59 @@ cited as evidence for them.
 What can be said honestly: the ladder fires when it should, folds when it
 should, and the conversation stays bounded. The ratios wait for a real
 compressor.
+
+
+---
+
+## 10. The regression chapter 16 introduced, and why its own grader could not see it
+
+Chapter 16 scored 100 out of 100 for most of a day while quietly breaking
+chapters 5, 6, 7 and 8.
+
+The damage was two structural violations of invariants that earlier chapters
+had established and still grade:
+
+**The star topology.** Chapter 5 arranged the agent as a hub and spokes:
+`internal/common` is the hub, and `internal/llm`, `internal/tools` and
+`internal/jobs` are spokes. A spoke may import the hub and the standard
+library, and nothing else. Chapter 16's memory store arrived as its own
+package, `internal/memory`, and `internal/llm` imported it. That is a spoke
+reaching sideways to another spoke. The chapter 6 grader has a mutation named
+`spoke-imports-spoke` whose expected failure set is exactly `ch5-parity` and
+`hub-clean` — the two checks that failed. The grader had been waiting for this
+mistake since chapter 6 was written.
+
+**Mutable package-level state.** Chapter 5 forbids mutable globals and grades
+it as `no-mutable-package-vars`, worth ten points. The store compiled its two
+filename patterns into package-level `var`s, which is what almost all Go code
+does and what this architecture specifically rejects. They are fields on the
+store now, compiled by the constructor.
+
+The cost was twenty points spread across chapters 6, 7 and 8, plus ten in
+chapter 5. The fix was to move the store into the spoke that owns it: the
+memory store is not a second subsystem, it is how the model spoke reaches the
+disk.
+
+The part worth keeping is why chapter 16's own grader never noticed. Every one
+of its eleven checks is behavioural — it drives the agent through a fake vendor
+and reads the save file. The agent behaved correctly throughout. Behaviour was
+never what broke. **A chapter's own grader cannot see the invariants earlier
+chapters established, because those invariants are precisely what the chapter
+is not thinking about.** The sweep across all chapters is the only instrument
+that can, which is an argument for running it before declaring a chapter done
+rather than after.
+
+There is a second-order finding here. Until this work, `scripts/gradesweep.sh`
+stopped at chapter 14 — chapter 15 had never been added to it. A chapter that
+is not in the sweep cannot regress anything in a way anyone will notice, and
+cannot be noticed regressing. Chapters 15 and 16 are in it now.
+
+### A methodological hazard worth printing
+
+Grader scores measured while another grader is running are meaningless.
+Chapter 16 scored 11 out of 100 inside a concurrent sweep and 100 out of 100
+run alone; chapters 6 and 7 produced low scores that were partly real and
+partly contention, which nearly produced a wrong diagnosis in both directions.
+The graders build binaries, bind ports and race the same CPU. They must be run
+one at a time, and any number measured alongside other work must be discarded
+rather than reasoned about.
