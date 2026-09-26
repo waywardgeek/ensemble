@@ -6,15 +6,20 @@ import (
 	"sync"
 )
 
-// Settings holds GUI-editable configuration. Fields that affect agent
-// behavior (Model, Temperature, MaxTokens, ThinkingBudget, MaxToolRounds,
-// SystemPrompt) are applied to the engine's Config on change. Fields that
-// are purely cosmetic (Theme, TTS*, FontSize) are stored and broadcast
-// to clients but do not touch the agent.
-//
-// Zero values mean "not set" — a patch with omitempty only overwrites
-// fields the client explicitly included.
 // Settings is the full, authoritative state of every user preference.
+//
+// What is actually wired, as of 2026-09-26: ContextTarget and LogRetention
+// reach the agent, both as live pulls set up in cmd/main.go. Theme, FontSize
+// and the TTS fields are broadcast to clients and never touch the agent. The
+// remaining six — Model, Temperature, MaxTokens, ThinkingBudget,
+// MaxToolRounds and SystemPrompt — are stored, clamped and persisted, and
+// nothing reads them. SettingsStore holds no engine reference and ApplyRaw
+// cannot reach one, so changing those six has no effect; see TODO.md.
+//
+// An earlier version of this comment claimed those six were "applied to the
+// engine's Config on change". That was never true, and it is recorded here
+// because a comment asserting wiring that does not exist is worse than no
+// comment: it stops the reader from checking.
 //
 // No field is omitempty, deliberately. Settings travels to the client as
 // a complete snapshot, and a zero value is a real value: temperature 0,

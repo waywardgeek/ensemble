@@ -120,6 +120,32 @@ Mark every entry VERIFIED (observed directly, with a date) or ASSUMED
       60 reads in one prompt stopped at 16 rounds with `max_tool_rounds: 100`.
       Not ch15's contract. Fix belongs to ch9's settings path; the ch15
       grader's longest turn is 13 rounds, so fixing it moves no ch15 score.
+- [ ] **Six of the twelve settings are dead, and the doc comment claims
+      otherwise.** VERIFIED 2026-09-26. `Model`, `Temperature`, `MaxTokens`,
+      `ThinkingBudget`, `MaxToolRounds` (the entry above) and `SystemPrompt`
+      are stored, clamped and persisted, but nothing reads them.
+      `SettingsStore` is `{mu, data, path}` with no engine reference, and
+      `ApplyRaw` only mutates `s.data` and calls `persist()`, so no settings
+      change can reach the engine. The store is built at `cmd/main.go:360`,
+      after the engine, so it does not feed the boot config either. The only
+      three readers of `settings.Get()` are `cmd/main.go:361`
+      (`ContextTarget`), `cmd/main.go:689` (`LogRetention`) and
+      `internal/ws/handler.go:274` (snapshot to a newly connected client).
+      Grep for post-startup mutation of the engine config finds nothing, and
+      there is no model picker in the GUI.
+      The stale comment at `internal/common/settings.go` is corrected in this
+      commit; the wiring itself is still open, and which chapter owns it
+      (ch9 built the panel) is the author's call.
+- [ ] **`Model` is not a renderer-only setting — hazard if it is ever wired.**
+      VERIFIED 2026-09-26. It gates log *content* through
+      `LookupModel(e.Cfg.Model).StubsToolResults` (`internal/llm/policy.go:36`,
+      which decides whether rule 6 writes `Redacted` events) and the tool set
+      through `cmd/main.go:307` (`RemoveTool(KeepToolResults)`). Both resolve
+      against the startup model today, so they agree. Wiring live model
+      switching without re-resolving both together reproduces the bug fixed in
+      CodeRhapsody on 2026-09-26: stubbing stays on while `keep_tool_results`
+      is absent, so the model is redacted with no way to keep anything. The
+      invariant is currently prose in a comment, not structure.
 - [ ] **Anthropic renderer never sets `cache_control`.** VERIFIED 2026-09-23.
       `grep -rn cache_control agent --include=*.go` finds nothing. A real
       `claude-opus-5` run (ch15 §15.15, `context_target` 20000, 11 requests)
