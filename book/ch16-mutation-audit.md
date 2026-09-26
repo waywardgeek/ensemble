@@ -54,6 +54,67 @@ startup sync, so it does not yet see the call it exists to forbid.
 
 ## Round 2
 
-Four checks strengthened, then M3, M5, M6, M8 re-run.
+Three checks strengthened. Two of the four survivors now die, one is an
+equivalent mutant, and one remains an open hole with a known recipe.
 
-(results below)
+| Mutant | Behaviour deleted | Round 1 | Round 2 | Now killed by |
+|---|---|---|---|---|
+| M5 | a disabled band still compacts | 100 survived | **88 killed** | `disable-enable-idempotent` |
+| M6 | re-enable replays a stored snapshot instead of re-reading disk | 100 survived | **88 killed** | `disable-enable-idempotent` |
+| M3 | graduation folds the newest memories | 100 survived | 100 **equivalent** | — see below |
+| M8 | an abandoned graduation is retried on restart | 100 survived | not re-run | — see below |
+
+### What killed M5, and why it took two attempts
+
+The first attempt drove the conversation past its high watermark with the
+session band switched off and relied on the harness's request-count
+assertion to notice the extra call. It did not notice. The harness counts
+*turn* requests, and a compressor is not a turn, so a compaction that should
+never have happened was invisible to the very mechanism meant to catch it.
+
+Counting the router's own calls across the phase kills it immediately. The
+lesson generalises: a check that infers a background activity from a
+foreground count can be blind to the thing it is named for. Count the thing
+itself.
+
+### What killed M6
+
+Nothing in the disable-and-restore path could see it, because disabling a
+band empties it and the restore then has nothing to compare against. The
+check now also edits a memory file and *restarts without disabling
+anything*. That is the case where a stored snapshot and a fresh read of the
+disk disagree, and it is also the case a user actually hits: edit a memory
+by hand, restart, expect the edit to count.
+
+### M3 is equivalent, and the diagnostics say why
+
+Folding from the oldest end and folding from the newest end are the same
+operation whenever a fold consumes the whole band, and under this design a
+fold always does. Graduation triggers on a byte watermark and then folds
+`min(FoldFactor, len(files))`. Instrumenting the reference showed a fold
+firing with five files in the band and taking all five; raising the turn
+count to 32 produced five folds, each still taking everything it found, and
+the first fold request was byte-identical under the mutation.
+
+So there is no observable difference to grade. Making one would mean
+changing the product — requiring a full batch before folding — which is
+exactly the behaviour removed earlier in this chapter, because a band over
+budget that cannot fill a batch would then never fold at all.
+
+The check retains a first-fold assertion anyway. It costs nothing, and it
+catches wrong-end folding in any implementation whose fold policy leaves
+more behind than it takes.
+
+### M8 remains open
+
+The abandon scenario answers every compressor with a 500, so no memory is
+ever written, the session band stays empty, and graduation — the only thing
+the abandonment guard protects — is never attempted. The scenario cannot
+observe the behaviour it was written for.
+
+Closing it needs a compressor that fails *folds* while letting session
+memories succeed. That router flag was written and then reverted: once a
+fold fails, the harness's cumulative request counts stop being predictable,
+and destabilising a passing grader to chase one mutant was the worse trade.
+The recipe is recorded here rather than left implicit.
+

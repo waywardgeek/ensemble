@@ -91,11 +91,12 @@ type ch16Router struct {
 	mu     sync.Mutex
 	n      int
 	bodies [][]byte
-	// foldAt, when non-zero, means: from this call onward, answer with a
-	// fold label instead of a session memory. Graduation compressors ask
-	// later than conversation compressors, so this is how the grader
-	// tells the two apart without reading the student's events.
-	folds int
+	// folds counts graduation compressors, and foldBodies keeps what each
+	// one was asked to fold. Graduation compressors are recognisable by
+	// what they carry rather than by when they arrive, so this is how the
+	// grader tells the two kinds apart without reading the student's events.
+	folds     int
+	foldBodies [][]byte
 	// fail, when true, answers every compressor with a 500.
 	fail bool
 }
@@ -116,6 +117,7 @@ func (r *ch16Router) route(body []byte) *fakevendor.Reply {
 	text := string(body)
 	if strings.Count(text, "MEMO-") >= 4 {
 		r.folds++
+		r.foldBodies = append(r.foldBodies, body)
 		return &fakevendor.Reply{
 			ToolName: "submit",
 			ToolID:   fmt.Sprintf("fold-%d", r.folds),
@@ -136,6 +138,13 @@ func (r *ch16Router) seen() [][]byte {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	return r.bodies
+}
+
+// folded returns what each graduation compressor was handed, in order.
+func (r *ch16Router) folded() [][]byte {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.foldBodies
 }
 
 func mustJSONArgs(memory string) string {
@@ -497,6 +506,24 @@ func ch16Graduate(bin, skills, gui string, res *Ch16Result) {
 		return
 	}
 
+	// The first fold is the decisive evidence, and the only evidence that
+	// cannot be faked by folding twice. Which end a band graduates from is
+	// invisible in the end state of a band that folds repeatedly: take the
+	// oldest enough times and you have taken everything, and take the newest
+	// enough times and you have also taken everything. The difference shows
+	// up exactly once, in the first fold, which either carries the oldest
+	// memory or does not.
+	if folds := r.folded(); len(folds) > 0 {
+		if first := string(folds[0]); !strings.Contains(first, ch16Memo(1)) {
+			res.fail("graduation-fires-oldest-first",
+				"the first fold did not include memory %q. Graduation takes the OLDEST "+
+					"memories in a band, because those are the ones whose detail has had "+
+					"the longest chance to stop mattering. Folding from the other end "+
+					"compresses what was just written and leaves the stalest memories "+
+					"sitting uncompressed at the bottom of the band.", ch16Memo(1))
+		}
+	}
+
 	turns := ch16Turns(out.reqs)
 	last, ok := ch16Last(turns)
 	if !ok {
@@ -665,11 +692,19 @@ func ch16Restore(bin, skills, gui string, res *Ch16Result) {
 		offp = append(offp, fmt.Sprintf("Step %d. %s", i+1, pad))
 		offe = append(offe, i+1)
 	}
+	before := len(r.seen())
 	if quiet, ok := run(ch16SettingsNoSession, offp, offe); !ok {
 		res.fail("disable-enable-idempotent",
 			"with the session band switched off, talking past the conversation's high watermark still "+
 				"produced an extra call: %s\n"+
 				"A band that is switched off must not be written to.", quiet.fatal)
+	} else if got := len(r.seen()) - before; got != 0 {
+		res.fail("disable-enable-idempotent",
+			"with the session band switched off, talking past the conversation's high watermark "+
+				"still ran %d compressor call(s).\n"+
+				"Switching a band off must stop the writing, not merely hide the result. A "+
+				"compressor that runs anyway costs a model call, and either throws the answer "+
+				"away or writes to a band the user has asked to be left alone.", got)
 	}
 }
 
