@@ -25,7 +25,6 @@ import (
 	"github.com/waywardgeek/ensemble/agent/internal/jobs"
 	"github.com/waywardgeek/ensemble/agent/internal/llm"
 	"github.com/waywardgeek/ensemble/agent/internal/mcp"
-	"github.com/waywardgeek/ensemble/agent/internal/memory"
 	"github.com/waywardgeek/ensemble/agent/internal/tools"
 	"github.com/waywardgeek/ensemble/agent/internal/ws"
 )
@@ -366,7 +365,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	// the process. Bands are re-read on every check for the same reason
 	// the context target is, so switching a band off in the GUI takes
 	// effect on the next turn rather than on the next launch.
-	eng.Memory = memory.New(filepath.Join(".", "memory"))
+	eng.Memory = llm.NewStore(filepath.Join(".", "memory"))
 	eng.Bands = func() common.BandConfig { return settingsStore.Get().Memory.Normalized() }
 
 	// Populate the bands from what is on disk before the first turn, so a

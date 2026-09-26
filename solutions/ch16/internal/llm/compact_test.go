@@ -10,7 +10,6 @@ import (
 	"testing"
 
 	"github.com/waywardgeek/ensemble/agent/internal/common"
-	"github.com/waywardgeek/ensemble/agent/internal/memory"
 )
 
 // fakeCompressor stands in for the vendor during compaction.
@@ -52,10 +51,10 @@ func newFakeCompressor(t *testing.T) *fakeCompressor {
 
 // compactEngine builds an engine wired to a fake vendor and a real memory
 // directory, with watermarks low enough that a handful of turns trips them.
-func compactEngine(t *testing.T, f *fakeCompressor, cfg common.BandConfig) (*Engine, *memory.Store, string) {
+func compactEngine(t *testing.T, f *fakeCompressor, cfg common.BandConfig) (*Engine, *Store, string) {
 	t.Helper()
 	dir := t.TempDir()
-	store := memory.New(dir)
+	store := NewStore(dir)
 	e := &Engine{
 		Log:  common.NewLog(),
 		Ctx:  common.NewContext(),
