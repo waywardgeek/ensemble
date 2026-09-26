@@ -321,8 +321,11 @@ risk than one merely unmeasured, and it should be printed as such.
 
 ## 13. Open questions
 
-1. Handoff schema: adopt the one-document-with-sections synthesis (§6)?
-2. Compressor voice: first person (§8)?
+1. ~~Handoff schema~~: **RULED 2026-09-26: sections-in-one-prose-document (§6).**
+   One string param; the tool description asks the questions (env,
+   tried_and_failed, etc.) as structural prompting rather than required fields.
+2. ~~Compressor voice~~: **RULED 2026-09-26: first person (§8).** The
+   compressing sub-agent writes as "I", not as a report about someone else.
 3. ~~Does a prefix change strip thinking?~~ **ANSWERED 2026-09-26: no, for a
    system-prompt rewrite on Opus 5 (§12). §4's forcing design is unblocked.**
    Remaining sliver: the tool-declarations half of the prefix, isolated.
