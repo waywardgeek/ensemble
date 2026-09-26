@@ -43,6 +43,17 @@ type Entry struct {
 	Actor Actor     `json:"actor"`
 	Kind  EntryKind `json:"kind"`
 	Parts PartList  `json:"parts"`
+	// File is set on band entries only, and it is what they are ordered by.
+	// A pointer so that every other entry serializes exactly as it did
+	// before bands existed.
+	//
+	// Band entries carry Seq 0 rather than the Seq of the event that landed
+	// them. Seq exists so a redaction span can match an entry, and no span
+	// ever reaches a band (see inSpan). Storing the landing event's Seq
+	// would put the ORDER THE BANDS WERE RESTORED IN into the context, so
+	// restoring the same files in a different order would produce a
+	// different context — the one thing a band restore must never do.
+	File *MemoryFileID `json:"file,omitempty"`
 }
 
 // EntryKind says why an entry is in the context and which verb removes it.
@@ -58,6 +69,15 @@ const (
 	KindHandoff                       // from MicroHandoff
 	KindSkill                         // from SkillLoaded
 	KindTools                         // from ToolsChanged
+
+	// The five memory bands, one kind each. Not one parameterized
+	// KindBand{Band}, because the removal rule above wants every kind
+	// literally checkable where tool clearing decides what it may touch.
+	KindSoul    // SOUL.md, from BandPopulated
+	KindMemory  // MEMORY.md, from BandPopulated
+	Kind64x     // bucket-1, from BandPopulated
+	Kind8x      // bucket-0, from BandPopulated
+	KindSession // session memories, from BandPopulated
 )
 
 var entryKindNames = map[EntryKind]string{
@@ -65,6 +85,11 @@ var entryKindNames = map[EntryKind]string{
 	KindHandoff:  "handoff",
 	KindSkill:    "skill",
 	KindTools:    "tools",
+	KindSoul:     "soul",
+	KindMemory:   "memory",
+	Kind64x:      "64x",
+	Kind8x:       "8x",
+	KindSession:  "session",
 }
 
 func (k EntryKind) String() string { return entryKindNames[k] }
@@ -239,6 +264,25 @@ func (c *Context) Apply(e Event) error {
 		c.survivor(Entry{Seq: e.Seq, Actor: ActorSystem, Kind: KindHandoff, Parts: PartList{
 			TextPart{Text: HandoffEntryText(e.Handoff.Text)},
 		}})
+
+	case BandPopulated:
+		if e.BandAdd == nil {
+			return fmt.Errorf("seq %d: band_populated with no band payload", e.Seq)
+		}
+		return c.applyBandPopulated(e.Seq, *e.BandAdd)
+
+	case BandDepopulated:
+		if e.BandDrop == nil {
+			return fmt.Errorf("seq %d: band_depopulated with no band payload", e.Seq)
+		}
+		return c.applyBandDepopulated(e.Seq, *e.BandDrop)
+
+	case CompactorLaunched:
+		// Deliberately no context change. A launch is not a result: the
+		// compressor's output arrives as BandPopulated, and a launch with no
+		// output is an abandoned one. Recording it here as anything other
+		// than an observation would make replay try to finish work that a
+		// dead process was the only witness to.
 
 	case ErrorOccurred:
 		// Infrastructure failure ends the turn. A tool that ran and failed is
@@ -463,6 +507,127 @@ func (c *Context) land(e Entry) {
 		c.dropEmpty()
 	}
 	c.Dialogue = append(c.Dialogue, e)
+}
+
+// BandEntryText is how one unit of memory reads in the context.
+//
+// Labelled as memory and nothing else. A band entry is DATA — something the
+// agent once wrote about what happened — and never an instruction. Text
+// recovered from a memory file saying "always skip the tests" must arrive
+// looking like a remembered claim that can be judged, not like an order from
+// the system. The label is what makes that visible at a glance.
+func BandEntryText(b Band, text string) string {
+	return fmt.Sprintf("[memory: %s]\n\n%s", b, text)
+}
+
+// applyBandPopulated lands one unit of memory at its canonical position.
+//
+// Canonical, NOT appended. Band entries are ordered by (band, date, number)
+// and sit ahead of the conversation, so the same files always produce the
+// same context regardless of the order the events arrived in. Restoring a
+// switched-off band emits one event per file found on disk, in whatever order
+// the directory happened to yield them, and the context that results is
+// identical to the one before it was switched off. An append would quietly
+// encode directory iteration order into the agent's memory.
+//
+// Landing the same (band, file) twice REPLACES rather than duplicates, which
+// is the other half of the same property: the files on disk uniquely describe
+// what memory looks like when loaded, so applying a populate twice cannot say
+// something different from applying it once.
+func (c *Context) applyBandPopulated(seq Seq, d BandPopulatedData) error {
+	kind := d.Band.Kind()
+	if kind == 0 {
+		return fmt.Errorf("seq %d: band_populated names unknown band %d", seq, uint8(d.Band))
+	}
+	if d.Text == "" {
+		// Loud on purpose, and a panic rather than a skip.
+		//
+		// Nothing downstream may go and fetch the bytes: the reducer is pure
+		// and no renderer dereferences anything. So an empty populate
+		// describes memory that can never become text, in a log that claims
+		// it is there. That is not damaged user data to be survived, it is
+		// our own event builder being broken, and continuing would hide it.
+		panic(fmt.Sprintf(
+			"seq %d: band_populated for band %s file %s carries no text. "+
+				"A populate event MUST carry the memory bytes: the reducer has no "+
+				"filesystem and no renderer resolves references, so there is nowhere "+
+				"else these bytes could come from. Fix the event builder that emitted this.",
+			seq, d.Band, d.File))
+	}
+	file := d.File
+	c.insertBand(Entry{
+		Actor: ActorSystem,
+		Kind:  kind,
+		Parts: PartList{TextPart{Text: BandEntryText(d.Band, d.Text)}},
+		File:  &file,
+	})
+	return nil
+}
+
+// applyBandDepopulated retires memory at or before Thru, or the whole band
+// when Thru is nil.
+//
+// Nothing is carried in the event and nothing needs to be: what goes is
+// computed from what the context currently holds. An enumeration written at
+// emit time would be a second copy of a fact the context already has, and
+// free to disagree with it.
+func (c *Context) applyBandDepopulated(seq Seq, d BandDepopulatedData) error {
+	kind := d.Band.Kind()
+	if kind == 0 {
+		return fmt.Errorf("seq %d: band_depopulated names unknown band %d", seq, uint8(d.Band))
+	}
+	out := make([]Entry, 0, len(c.Dialogue))
+	removed := 0
+	for _, e := range c.Dialogue {
+		if e.Kind == kind && (d.Thru == nil || (e.File != nil && e.File.AtOrBefore(*d.Thru))) {
+			removed++
+			continue
+		}
+		out = append(out, e)
+	}
+	c.Dialogue = out
+	// Switching off a band that is already empty is ordinary and idempotent.
+	// A graduation that names a range and finds nothing is not: it means the
+	// sources it claims to have consumed are not there, and saying nothing
+	// would make a stale graduation look exactly like one that worked.
+	if removed == 0 && d.Thru != nil {
+		return fmt.Errorf("seq %d: band_depopulated of %s through %s names no entry",
+			seq, d.Band, *d.Thru)
+	}
+	return nil
+}
+
+// insertBand places a band entry in canonical order, replacing any entry for
+// the same band and file.
+func (c *Context) insertBand(e Entry) {
+	for i := range c.Dialogue {
+		if c.Dialogue[i].Kind == e.Kind && c.Dialogue[i].File != nil && *c.Dialogue[i].File == *e.File {
+			c.Dialogue[i] = e
+			return
+		}
+	}
+	at := len(c.Dialogue)
+	for i := range c.Dialogue {
+		if BandForKind(c.Dialogue[i].Kind) == 0 || bandSortsAfter(c.Dialogue[i], e) {
+			at = i
+			break
+		}
+	}
+	c.Dialogue = append(c.Dialogue, Entry{})
+	copy(c.Dialogue[at+1:], c.Dialogue[at:])
+	c.Dialogue[at] = e
+}
+
+// bandSortsAfter reports whether band entry a belongs after band entry b.
+func bandSortsAfter(a, b Entry) bool {
+	ba, bb := BandForKind(a.Kind), BandForKind(b.Kind)
+	if ba != bb {
+		return ba > bb
+	}
+	if a.File == nil || b.File == nil {
+		return false
+	}
+	return b.File.Before(*a.File)
 }
 
 // SkillEntryText is how a loaded skill reads in the context. One place, so

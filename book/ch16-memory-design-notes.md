@@ -348,26 +348,72 @@ than forced into a uniform shape for one case.
 
 **Two events, not ten.**
 
+> **CORRECTED 2026-09-26 (Bill, during the coder session).** The shapes below
+> originally gave `BandPopulated` a `Ref` and said "never embedded text". That
+> was wrong, and §1 of this same document had it right all along: a compaction
+> event **carries bytes**. Three findings forced the correction, all VERIFIED
+> in the code:
+>
+> 1. **The reducer cannot resolve a reference.** `Apply` is a pure function
+>    over `(context, event)`; `context.go` imports `encoding/json` and `fmt`
+>    and nothing else. It has no filesystem.
+> 2. **No renderer resolves one either.** `os.ReadFile`/`os.Open` appear
+>    nowhere in `internal/llm/` or `internal/vendor/`, and `geminiFileParts`
+>    refuses on purpose — "resolving one into a uri is an upload, which is a
+>    job for the layer that owns the bytes."
+> 3. **So a `Ref` had nowhere to become text.** Memory would never reach the
+>    model at all.
+>
+> Bill's ruling: "There can be no actual refs that require the emitter or
+> renderer to go read state to generate the output." The event builder reads
+> the memory files and assembles the bytes; the emitter stays dumb; the
+> reducer stays pure. A stub that *tells* the model where full output lives
+> (`cr/io/24`) is helpful prose and stays — that is not a reference anything
+> dereferences.
+>
+> This costs log bytes and buys determinism, which §9 already accepted: "ON is
+> expensive in log bytes but *cheap* in cache." It also matches the precedent
+> ch15 set in code, where `summarizeSpan` STORES its replacement "because only
+> here is the new content something an LLM wrote and nobody can recompute."
+
 ```go
-// BandPopulated adds one immutable unit to a band. Every instance carries a
-// Ref, never embedded text: startup load, graduation output, and re-enable
-// all resolve to the same on-disk file, so there is one mechanism, not three.
+// BandPopulated adds one unit of memory to a band, bytes included. Text is
+// the memory itself, verbatim: the event builder read the file and put its
+// contents here, because nothing downstream is allowed to go and look.
 type BandPopulatedData struct {
     Band   Band         `json:"band"`
-    Ref    Ref          `json:"ref"`
-    Thru   MemoryFileID `json:"thru,omitempty"` // graduation/curator only
-    Source string       `json:"source"` // "startup","compaction","graduation","curator","reenable"
+    File   MemoryFileID `json:"file"`
+    Text   string       `json:"text"`
+    Thru   MemoryFileID `json:"thru,omitempty"` // cascade only
+    Source string       `json:"source,omitempty"` // provenance for a reader, never a switch
 }
 
 // BandDepopulated retires everything in a band at or before Thru. For
 // "disabled" it names nothing further — the reducer wipes every live entry
 // of that Kind, computed at apply time, never enumerated in the event.
+//
+// The asymmetry with BandPopulated is the point: removing need only say what
+// goes, while adding must say what arrives.
 type BandDepopulatedData struct {
     Band   Band          `json:"band"`
     Thru   *MemoryFileID `json:"thru,omitempty"` // nil + reason=disabled means all
     Reason string        `json:"reason"` // "graduation", "disabled"
 }
 ```
+
+**Band entries are ordered canonically, never appended (RULED 2026-09-26).**
+Band entries sort by `(band, date, num)` and sit ahead of the conversation.
+Bill's test: switching every band off and restoring them **out of order** must
+produce the identical context. An append encodes directory iteration order
+into the agent's memory; canonical placement makes the property true by
+construction. Corollary, same ruling: restoring `MEMORY.md` lands it ahead of
+newer memories and costs a full cache miss, and that is accepted.
+
+DERIVED, and load-bearing: band entries carry `Seq: 0`, not the Seq of the
+event that landed them. `Seq` exists so a redaction span can match an entry,
+and no span ever reaches a band. Storing the landing event's Seq would put the
+restore ORDER into the context — the one thing a restore must never do.
+
 
 A graduation is one of each, both naming the same `Thru`. Disabling a band is
 one `BandDepopulated` with no `Thru` at all — this is the structural answer to
@@ -435,17 +481,24 @@ ch15's removal rule ("every entry not dialogue is removed only by its own
 verb") wants each kind literally checkable in the tool-clearing path, the same
 way `KindSkill`/`KindTools` already are.
 
-**OPEN, flagged for the coder rather than resolved here:**
-- Whether a band `Entry`'s `Parts` reuses the existing `BlobPart{Ref}` (already
-  in the codebase for job output and referenced in `stubFor`) or needs a new
-  Part type. Depends on whether `BlobPart` already resolves to bytes at render
-  time for every vendor path — unverified this session.
-- Session-band `BandPopulated` provenance is `Source:"compaction"`, sourced
-  from a conversation Seq range rather than a prior memory file, so `Thru`
-  (a `MemoryFileID`) does not quite fit its provenance the way it does for
-  graduation. Coder's call whether to add `FromSeq`/`ToSeq common.Seq` fields
-  for this one source value or to let the file's own identity double as
-  `Thru`.
+**RESOLVED 2026-09-26 during the coder session:**
+- ~~Whether a band `Entry`'s `Parts` reuses `BlobPart{Ref}`~~ — **No.** VERIFIED:
+  a non-empty `r.Blobs` returns a hard error on Claude (`claude.go:251`) and
+  OpenAI (`openai.go:136`), and `geminiFileParts` accepts only an
+  already-remote `RefURI`, erroring on local paths. `BlobPart` is constructed
+  in exactly one place, `part.go:275`, which is wire unmarshalling — nothing
+  in the agent ever produces one. Memory in a `BlobPart` would crash the
+  request on two vendors of three. Band entries are `TextPart`, which every
+  renderer already handles.
+- ~~Session-band `Thru` vs `FromSeq`/`ToSeq`~~ — **Neither.** The new file's
+  own `File` identity carries it, and `Thru` is left to the cascade, where it
+  genuinely means "the newest source folded into this one." Adding
+  `FromSeq`/`ToSeq` would put an event-log coordinate inside a corpus that is
+  supposed to outlive any one log — the exact coupling `MemoryFileID` was
+  introduced to remove. What span of conversation a session memory came from
+  is answered by the `Redacted` event that removed that span, which already
+  records it in the only coordinate system where it means anything.
+
 
 ## 14. Open questions
 

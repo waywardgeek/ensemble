@@ -47,21 +47,36 @@ const (
 	// declarations are frozen (Chapter 15 rule 1); later changes ride in the
 	// dialog as a KindTools entry.
 	ToolsChanged
+	// BandPopulated adds one unit of memory to a band, carrying its bytes.
+	// Every source uses this one event: the startup load, the compressor's
+	// output, a graduation, and restoring a band that was switched off.
+	BandPopulated
+	// BandDepopulated retires memory from a band — a graduation consuming
+	// its sources, or a band being switched off. It names no content.
+	BandDepopulated
+	// CompactorLaunched records that a compressor was started. It is
+	// observable, never replayed as work: a launch with no matching
+	// BandPopulated is an abandoned one, and the next checkpoint measures
+	// again rather than resuming it.
+	CompactorLaunched
 )
 
 var eventTypeNames = map[EventType]string{
-	MessageReceived: "message_received",
-	RequestSent:     "request_sent",
-	ResponseStarted: "response_started",
-	ResponseEnded:   "response_ended",
-	ToolCalled:      "tool_called",
-	ToolReturned:    "tool_returned",
-	Redacted:        "redacted",
-	ErrorOccurred:   "error_occurred",
-	JobKilled:       "job_killed",
-	SkillLoaded:     "skill_loaded",
-	MicroHandoff:    "micro_handoff",
-	ToolsChanged:    "tools_changed",
+	MessageReceived:   "message_received",
+	RequestSent:       "request_sent",
+	ResponseStarted:   "response_started",
+	ResponseEnded:     "response_ended",
+	ToolCalled:        "tool_called",
+	ToolReturned:      "tool_returned",
+	Redacted:          "redacted",
+	ErrorOccurred:     "error_occurred",
+	JobKilled:         "job_killed",
+	SkillLoaded:       "skill_loaded",
+	MicroHandoff:      "micro_handoff",
+	ToolsChanged:      "tools_changed",
+	BandPopulated:     "band_populated",
+	BandDepopulated:   "band_depopulated",
+	CompactorLaunched: "compactor_launched",
 }
 
 func (t EventType) String() string {
@@ -155,6 +170,10 @@ type Event struct {
 	Skill    *SkillData        `json:"skill,omitempty"`
 	Handoff  *MicroHandoffData `json:"handoff,omitempty"`
 	Tools    *ToolsChangedData `json:"tools_changed,omitempty"`
+
+	BandAdd  *BandPopulatedData   `json:"band_populated,omitempty"`
+	BandDrop *BandDepopulatedData `json:"band_depopulated,omitempty"`
+	Compact  *CompactorLaunchData `json:"compactor_launched,omitempty"`
 }
 
 // MicroHandoffData is the checkpoint note, verbatim.
