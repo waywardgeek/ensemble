@@ -717,3 +717,65 @@ func reasonOr(s string) string {
 	}
 	return s
 }
+
+// BandEntries returns the live entries of one band, oldest first.
+func (c *Context) BandEntries(b Band) []Entry {
+	kind := b.Kind()
+	var out []Entry
+	for _, e := range c.Dialogue {
+		if e.Kind == kind {
+			out = append(out, e)
+		}
+	}
+	return out
+}
+
+// BandHas reports whether a band already holds a given file.
+func (c *Context) BandHas(b Band, id MemoryFileID) bool {
+	kind := b.Kind()
+	for _, e := range c.Dialogue {
+		if e.Kind == kind && e.File != nil && *e.File == id {
+			return true
+		}
+	}
+	return false
+}
+
+// BandBytes measures a band as it actually sits in the context, label and
+// all, because that is what the budget is spent on.
+func (c *Context) BandBytes(b Band) int {
+	n := 0
+	for _, e := range c.BandEntries(b) {
+		for _, p := range e.Parts {
+			if t, ok := p.(TextPart); ok {
+				n += len(t.Text)
+			}
+		}
+	}
+	return n
+}
+
+// ConversationBytes measures the dialogue band: everything still being
+// talked about, excluding memory, skills, checkpoints and tool declarations.
+// This is the number micro_handoff compares against its threshold.
+func (c *Context) ConversationBytes() int {
+	n := 0
+	for _, e := range c.Dialogue {
+		if e.Kind != KindDialogue {
+			continue
+		}
+		for _, p := range e.Parts {
+			switch v := p.(type) {
+			case TextPart:
+				n += len(v.Text)
+			case ToolResultPart:
+				for _, q := range v.Parts {
+					if t, ok := q.(TextPart); ok {
+						n += len(t.Text)
+					}
+				}
+			}
+		}
+	}
+	return n
+}

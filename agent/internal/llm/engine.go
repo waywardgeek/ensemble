@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/waywardgeek/ensemble/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/internal/memory"
 )
 
 type Engine struct {
@@ -31,6 +32,16 @@ type Engine struct {
 	// means DefaultContextTarget. Read on every request, so a settings
 	// change takes effect at the next cut and never rewrites a past one.
 	Target func() int
+
+	// Memory is the store band events are built from: the one component
+	// that reads the memory directory. Nil disables the memory system
+	// entirely, which is what every chapter before this one wants.
+	Memory *memory.Store
+
+	// Bands is the per-band settings, read fresh rather than captured, so
+	// switching a band off takes effect at the next sync instead of the
+	// next restart.
+	Bands func() common.BandConfig
 }
 
 func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools common.ToolRegistry, host common.Host) *Engine {

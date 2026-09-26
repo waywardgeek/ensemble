@@ -202,3 +202,103 @@ type CompactorLaunchData struct {
 	Band Band         `json:"band"`
 	Thru MemoryFileID `json:"thru"`
 }
+
+// BandSettings controls one band: whether it is in the context at all, how
+// many bytes it should occupy, and when the cascade should move its oldest
+// contents up a tier.
+//
+// Watermarks rather than a single threshold, because compaction that fires at
+// exactly its budget fires on almost every checkpoint. The band is allowed to
+// grow to High, and when it does, enough of its oldest content graduates to
+// bring it back down to Low. The gap is what stops an expensive LLM call from
+// running every time a memory is written.
+type BandSettings struct {
+	Enabled       bool `json:"enabled"`
+	Budget        int  `json:"budget,omitempty"`
+	HighWatermark int  `json:"high_watermark,omitempty"` // 0 means 2x budget
+	LowWatermark  int  `json:"low_watermark,omitempty"`  // 0 means 1x budget
+}
+
+// High is the size at which this band graduates its oldest contents.
+func (s BandSettings) High() int {
+	if s.HighWatermark > 0 {
+		return s.HighWatermark
+	}
+	return 2 * s.Budget
+}
+
+// Low is the size a graduation brings this band back down to.
+func (s BandSettings) Low() int {
+	if s.LowWatermark > 0 {
+		return s.LowWatermark
+	}
+	return s.Budget
+}
+
+// BandConfig is one settings row per band.
+//
+// BandSoul's watermarks are present and unused: soul never graduates
+// anywhere. Kept as one type rather than splitting leaf bands from cascading
+// ones, because a second type would exist to describe a single member and
+// every consumer would then have to handle both. The asymmetry is documented
+// instead of designed around.
+type BandConfig struct {
+	Soul    BandSettings `json:"soul"`
+	Memory  BandSettings `json:"memory"`
+	B64x    BandSettings `json:"64x"`
+	B8x     BandSettings `json:"8x"`
+	Session BandSettings `json:"session"`
+}
+
+// For returns the settings row for a band.
+func (c BandConfig) For(b Band) BandSettings {
+	switch b {
+	case BandSoul:
+		return c.Soul
+	case BandMemory:
+		return c.Memory
+	case Band64x:
+		return c.B64x
+	case Band8x:
+		return c.B8x
+	case BandSession:
+		return c.Session
+	}
+	return BandSettings{}
+}
+
+// Up is the band one tier coarser, where this band's oldest contents go when
+// it crosses its high watermark. Zero for bands that graduate nowhere.
+func (b Band) Up() Band {
+	switch b {
+	case BandSession:
+		return Band8x
+	case Band8x:
+		return Band64x
+	case Band64x:
+		return BandMemory
+	}
+	return 0
+}
+
+// DefaultBandConfig is every band on, sized so the whole memory system fits
+// comfortably inside a normal context budget.
+//
+// The numbers are a starting point and nothing more. They were chosen to be
+// obviously adjustable rather than tuned: nothing here has been measured
+// against recall quality, and pretending otherwise would be worse than saying
+// so.
+func DefaultBandConfig() BandConfig {
+	return BandConfig{
+		Soul:    BandSettings{Enabled: true, Budget: 4 * 1024},
+		Memory:  BandSettings{Enabled: true, Budget: 12 * 1024},
+		B64x:    BandSettings{Enabled: true, Budget: 12 * 1024},
+		B8x:     BandSettings{Enabled: true, Budget: 12 * 1024},
+		Session: BandSettings{Enabled: true, Budget: 12 * 1024},
+	}
+}
+
+// AllBands lists the bands in context order, coarsest and most stable first.
+func AllBands() []Band {
+	return []Band{BandSoul, BandMemory, Band64x, Band8x, BandSession}
+}
