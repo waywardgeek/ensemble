@@ -108,6 +108,32 @@ that **tells** the model where full output lives (`cr/io/24`) is helpful prose
 and stays; what is banned is any ref the emitter or renderer must
 **dereference**. I audited for those. There are none.
 
+### 3.3 The two open items the notes handed the coder, both now closed
+
+**Whether a band entry's `Parts` should reuse `BlobPart{Ref}` — no, and it
+could not have.** A non-empty `r.Blobs` returns a hard error on Claude
+(`claude.go:251`) and on OpenAI (`openai.go:136`), and `geminiFileParts`
+accepts only an already-remote `RefURI`, erroring on a local path. `BlobPart`
+is constructed in exactly one place, `part.go:275`, which is wire
+unmarshalling — nothing in the agent ever produces one. Memory carried that
+way would crash the request on two vendors out of three. Band entries are
+`TextPart`, which every renderer already handles.
+
+This deserves a line in the chapter rather than living as an implementation
+detail, because it is the concrete reason the design note's original
+"carries a `Ref`, never embedded text" could not work. The reducer is pure
+and imports only `encoding/json` and `fmt`; the renderers dereference
+nothing; so there is no point anywhere in the pipeline where a `Ref` would
+have become bytes a model could read.
+
+**Session-band `Thru` versus `FromSeq`/`ToSeq` — neither.** The new file's
+own identity carries what is needed, and `Thru` is left to the cascade,
+where it genuinely means "the newest source folded into this one." Putting
+`FromSeq`/`ToSeq` on a memory would bury an event-log coordinate inside a
+corpus meant to outlive any particular log. Which span of conversation a
+memory came from is already answered by the `Redacted` event that removed
+that span, in the only coordinate system where the question means anything.
+
 ---
 
 ## 4. The brief's one defect
