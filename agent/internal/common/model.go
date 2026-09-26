@@ -142,7 +142,7 @@ func models() map[string]ModelFeatures {
 		// window, so a grader can reach ninety percent of it in a handful of
 		// turns instead of a hundred thousand. A NEW row rather than a
 		// changed one, so no earlier chapter's grader sees a different wire.
-		"claude-ch16-course":      {ContextWindow: 4096, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
+		"claude-ch16-course":      {ContextWindow: 4096, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true},
 		"gemini-3.5-flash-course": {ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 	}
 }

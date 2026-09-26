@@ -137,7 +137,24 @@ func (e *Engine) graduate(b common.Band, cfg common.BandConfig) {
 		e.warn("memory: could not read the %s band: %v", b, err)
 		return
 	}
-	if len(files) < FoldFactor {
+	// Fold a full batch when there is one, and whatever is there when there
+	// is not.
+	//
+	// Requiring a full batch looks tidier and is wrong. A band is folded
+	// because it is over its budget, and how many files that took depends
+	// on how big they are. A band holding five large memories is over
+	// budget and can never reach eight, so a strict batch means the one
+	// band that most needs folding is the one band that never folds. The
+	// grader found this by giving a band a small budget and watching it
+	// grow forever.
+	//
+	// Two is the floor. Folding one file into one file is just compressing
+	// the same memory again, which loses detail without reducing the count.
+	n := FoldFactor
+	if len(files) < n {
+		n = len(files)
+	}
+	if n < 2 {
 		return
 	}
 
@@ -154,7 +171,7 @@ func (e *Engine) graduate(b common.Band, cfg common.BandConfig) {
 		return
 	}
 
-	src := files[:FoldFactor]
+	src := files[:n]
 	from, thru := src[0].ID, src[len(src)-1].ID
 
 	if e.abandonedSince(b, thru) {
