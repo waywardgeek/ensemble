@@ -60,7 +60,7 @@ func (e *Engine) SyncBands(source string) error {
 			return fmt.Errorf("reading band %s: %w", b, err)
 		}
 		for _, p := range populates {
-			if e.Ctx.BandHas(b, p.File) {
+			if e.Ctx.BandHas(b, p.File, p.Text) {
 				continue
 			}
 			data := p
