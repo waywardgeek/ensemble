@@ -14,7 +14,6 @@ import (
 	"time"
 
 	"github.com/waywardgeek/ensemble/agent/internal/common"
-	"github.com/waywardgeek/ensemble/agent/internal/memory"
 )
 
 type Engine struct {
@@ -36,7 +35,7 @@ type Engine struct {
 	// Memory is the store band events are built from: the one component
 	// that reads the memory directory. Nil disables the memory system
 	// entirely, which is what every chapter before this one wants.
-	Memory *memory.Store
+	Memory *Store
 
 	// Bands is the per-band settings, read fresh rather than captured, so
 	// switching a band off takes effect at the next sync instead of the

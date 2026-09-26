@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/waywardgeek/ensemble/agent/internal/common"
-	"github.com/waywardgeek/ensemble/agent/internal/memory"
 )
 
 func bandFixture(t *testing.T) (*Engine, string) {
@@ -33,7 +32,7 @@ func bandFixture(t *testing.T) (*Engine, string) {
 	e := &Engine{
 		Log:    common.NewLog(),
 		Ctx:    common.NewContext(),
-		Memory: memory.New(dir),
+		Memory: NewStore(dir),
 	}
 	return e, dir
 }

@@ -1,4 +1,4 @@
-package memory
+package llm
 
 // The memory store: the one component that touches the memory directory.
 //
@@ -49,10 +49,23 @@ type File struct {
 type Store struct {
 	root string
 	now  func() time.Time
+
+	// The two filename shapes, compiled once. These would be package-level
+	// vars in most Go code, but a package-level var is exactly the mutable
+	// global this architecture forbids: anyone could reassign them, and
+	// nothing would say which store had been sabotaged. On the struct they
+	// belong to one store and die with it.
+	plainName *regexp.Regexp
+	rangeName *regexp.Regexp
 }
 
-func New(root string) *Store {
-	return &Store{root: root, now: time.Now}
+func NewStore(root string) *Store {
+	return &Store{
+		root:      root,
+		now:       time.Now,
+		plainName: regexp.MustCompile(`^(\d{4}-\d{2}-\d{2})-(\d+)\.md$`),
+		rangeName: regexp.MustCompile(`^(\d{4}-\d{2}-\d{2})-(\d+)_(\d{4}-\d{2}-\d{2})-(\d+)\.md$`),
+	}
 }
 
 // SetClock exists so a test can produce predictable filenames. Production
@@ -77,12 +90,7 @@ func (s *Store) dirFor(b common.Band) (path string, single bool) {
 	return "", false
 }
 
-var (
-	// 2026-09-26-1.md
-	plainName = regexp.MustCompile(`^(\d{4}-\d{2}-\d{2})-(\d+)\.md$`)
-	// 2026-09-20-1_2026-09-26-3.md
-	rangeName = regexp.MustCompile(`^(\d{4}-\d{2}-\d{2})-(\d+)_(\d{4}-\d{2}-\d{2})-(\d+)\.md$`)
-)
+
 
 // Files lists one band's LIVE memory, oldest first, with contents read.
 //
@@ -170,7 +178,7 @@ func (s *Store) allFiles(b common.Band) ([]File, error) {
 		if e.IsDir() {
 			continue
 		}
-		f, ok := parseName(e.Name())
+		f, ok := s.parseName(e.Name())
 		if !ok {
 			continue // not ours; leave it alone
 		}
@@ -189,8 +197,8 @@ func (s *Store) allFiles(b common.Band) ([]File, error) {
 	return out, nil
 }
 
-func parseName(name string) (File, bool) {
-	if m := rangeName.FindStringSubmatch(name); m != nil {
+func (s *Store) parseName(name string) (File, bool) {
+	if m := s.rangeName.FindStringSubmatch(name); m != nil {
 		n1, _ := strconv.Atoi(m[2])
 		n2, _ := strconv.Atoi(m[4])
 		return File{
@@ -198,7 +206,7 @@ func parseName(name string) (File, bool) {
 			Thru: common.MemoryFileID{Date: m[3], Num: n2},
 		}, true
 	}
-	if m := plainName.FindStringSubmatch(name); m != nil {
+	if m := s.plainName.FindStringSubmatch(name); m != nil {
 		n, _ := strconv.Atoi(m[2])
 		id := common.MemoryFileID{Date: m[1], Num: n}
 		return File{ID: id, Thru: id}, true

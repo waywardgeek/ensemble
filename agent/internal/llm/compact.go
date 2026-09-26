@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/waywardgeek/ensemble/agent/internal/common"
-	"github.com/waywardgeek/ensemble/agent/internal/memory"
 )
 
 // FoldFactor is how many memory files one compressor folds into one file.
@@ -220,7 +219,7 @@ func (e *Engine) graduate(b common.Band, cfg common.BandConfig) {
 		err = e.Memory.WriteCurated(text)
 		landed = common.MemoryFileID{}
 	} else {
-		var nf memory.File
+		var nf File
 		nf, err = e.Memory.WriteBucket(up, from, thru, text)
 		landed = nf.ID
 	}
