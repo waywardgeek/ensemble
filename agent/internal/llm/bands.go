@@ -42,7 +42,7 @@ func (e *Engine) SyncBands(source string) error {
 	for _, b := range common.AllBands() {
 		settings := cfg.For(b)
 
-		if !settings.Enabled {
+		if settings.Disabled {
 			if len(e.Ctx.BandEntries(b)) == 0 {
 				continue
 			}

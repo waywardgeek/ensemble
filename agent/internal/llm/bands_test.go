@@ -98,7 +98,7 @@ func TestSyncBandsDisableRestoreReflectsDisk(t *testing.T) {
 	e, dir := bandFixture(t)
 	on := common.DefaultBandConfig()
 	off := common.DefaultBandConfig()
-	off.Session.Enabled = false
+	off.Session.Disabled = true
 	cfg := on
 	e.Bands = func() common.BandConfig { return cfg }
 

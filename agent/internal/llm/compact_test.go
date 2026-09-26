@@ -241,7 +241,7 @@ func TestGraduationFoldsEightIntoOne(t *testing.T) {
 func TestGraduationRefusesWhenTheBandAboveIsOff(t *testing.T) {
 	f := newFakeCompressor(t)
 	cfg := common.DefaultBandConfig()
-	cfg.B8x.Enabled = false
+	cfg.B8x.Disabled = true
 	e, store, _ := compactEngine(t, f, cfg)
 
 	for i := 0; i < FoldFactor; i++ {

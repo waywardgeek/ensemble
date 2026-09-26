@@ -44,7 +44,7 @@ func (e *Engine) maybeCompact() {
 // compactConversation turns the oldest finished work into one memory, and
 // keeps going until the conversation is back under its low watermark.
 func (e *Engine) compactConversation(cfg common.BandConfig) {
-	if !cfg.Session.Enabled {
+	if cfg.Session.Disabled {
 		return
 	}
 	if e.Ctx.ConversationBytes() <= cfg.Conversation.High() {
@@ -139,7 +139,7 @@ func (e *Engine) graduate(b common.Band, cfg common.BandConfig) {
 	// the band grow without bound, which is the condition the whole
 	// chapter exists to prevent. Neither failure announces itself, so
 	// this one does.
-	if !cfg.For(up).Enabled {
+	if cfg.For(up).Disabled {
 		e.warn("memory: the %s band is full but %s is switched off, so nothing can graduate; "+
 			"switch %s back on or these memories will stay where they are", b, up, up)
 		return

@@ -212,8 +212,12 @@ type CompactorLaunchData struct {
 // grow to High, and when it does, enough of its oldest content graduates to
 // bring it back down to Low. The gap is what stops an expensive LLM call from
 // running every time a memory is written.
+// The switch is negative so that the zero value is a working band. A
+// settings file that has never heard of chapter 16 deserializes into a
+// config with every band on and every budget defaulted, rather than into
+// an agent that has silently lost its memory.
 type BandSettings struct {
-	Enabled       bool `json:"enabled"`
+	Disabled      bool `json:"disabled,omitempty"`
 	Budget        int  `json:"budget,omitempty"`
 	HighWatermark int  `json:"high_watermark,omitempty"` // 0 means 2x budget
 	LowWatermark  int  `json:"low_watermark,omitempty"`  // 0 means 1x budget
@@ -275,6 +279,24 @@ func (c BandConfig) For(b Band) BandSettings {
 	return BandSettings{}
 }
 
+// Set replaces the settings row for a band. It exists so that code which
+// walks AllBands can write as well as read, rather than repeating the
+// switch every time a row has to change.
+func (c *BandConfig) Set(b Band, s BandSettings) {
+	switch b {
+	case BandSoul:
+		c.Soul = s
+	case BandMemory:
+		c.Memory = s
+	case Band64x:
+		c.B64x = s
+	case Band8x:
+		c.B8x = s
+	case BandSession:
+		c.Session = s
+	}
+}
+
 // Up is the band one tier coarser, where this band's oldest contents go when
 // it crosses its high watermark. Zero for bands that graduate nowhere.
 func (b Band) Up() Band {
@@ -298,20 +320,42 @@ func (b Band) Up() Band {
 // so.
 func DefaultBandConfig() BandConfig {
 	return BandConfig{
-		Soul:    BandSettings{Enabled: true, Budget: 4 * 1024},
-		Memory:  BandSettings{Enabled: true, Budget: 12 * 1024},
-		B64x:    BandSettings{Enabled: true, Budget: 12 * 1024},
-		B8x:     BandSettings{Enabled: true, Budget: 12 * 1024},
-		Session: BandSettings{Enabled: true, Budget: 12 * 1024},
+		Soul:    BandSettings{Budget: 4 * 1024},
+		Memory:  BandSettings{Budget: 12 * 1024},
+		B64x:    BandSettings{Budget: 12 * 1024},
+		B8x:     BandSettings{Budget: 12 * 1024},
+		Session: BandSettings{Budget: 12 * 1024},
 
 		// The conversation is allowed to be much larger than any single
 		// band, because it is where the work actually happens. The bands
 		// are what is left of the work after it stops being current.
-		Conversation: BandSettings{Enabled: true, Budget: 64 * 1024},
+		Conversation: BandSettings{Budget: 64 * 1024},
 	}
 }
 
 // AllBands lists the bands in context order, coarsest and most stable first.
 func AllBands() []Band {
 	return []Band{BandSoul, BandMemory, Band64x, Band8x, BandSession}
+}
+
+// Normalized fills in the zeros. A settings file is allowed to say only
+// the part it cares about, so a config that mentions one budget and no
+// others must still produce a working ladder rather than a set of bands
+// with a budget of zero, which would fold every band on every turn.
+//
+// Disabled is deliberately not normalized: false is a real answer there,
+// and it is the answer we want from silence.
+func (c BandConfig) Normalized() BandConfig {
+	d := DefaultBandConfig()
+	for _, b := range AllBands() {
+		if c.For(b).Budget <= 0 {
+			s := c.For(b)
+			s.Budget = d.For(b).Budget
+			(&c).Set(b, s)
+		}
+	}
+	if c.Conversation.Budget <= 0 {
+		c.Conversation.Budget = d.Conversation.Budget
+	}
+	return c
 }

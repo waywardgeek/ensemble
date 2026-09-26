@@ -53,6 +53,14 @@ type Settings struct {
 	// keeps; zero keeps them all.
 	ContextTarget int `json:"context_target"`
 	LogRetention  int `json:"log_retention"`
+
+	// Memory is the per-band configuration from chapter 16: which bands
+	// are on, and how many bytes each may hold before it folds upward. A
+	// settings file written before chapter 16 existed has no "memory" key,
+	// so it deserializes to the zero value, which normalizes to every band
+	// on at its default budget. That is why BandSettings says Disabled
+	// rather than Enabled.
+	Memory BandConfig `json:"memory"`
 }
 
 // Bounds for settings that reach the model API or the renderer. A value
