@@ -570,6 +570,12 @@ func ch16Restore(bin, skills, gui string, res *Ch16Result) {
 		return
 	}
 
+	// While the band is off, edit a memory on disk. Re-enabling has to
+	// re-read the files rather than restore a snapshot it kept in the log:
+	// the files are the memory, and editing one is how a person corrects
+	// something the agent got wrong.
+	edited := ch16EditMemoryFile(dir, ch16Memo(1), "MEMO-01 CORRECTED-BY-HAND and rewritten on disk.")
+
 	// Back on, but the upper band first, so the restore order differs from
 	// the order they were switched off in.
 	mid, ok := run(ch16Settings8xOnly, []string{"Carry on."}, []int{1})
@@ -585,8 +591,22 @@ func ch16Restore(bin, skills, gui string, res *Ch16Result) {
 	backLast, _ := ch16Last(ch16Turns(back.reqs))
 	got := ch16Conversation(backLast.Body)
 
+	if edited && !strings.Contains(got, "CORRECTED-BY-HAND") {
+		res.fail("disable-enable-idempotent",
+			"a memory file was edited on disk while its band was switched off, and switching the band "+
+				"back on restored the old text. Re-enabling has to re-read the files. Keeping a copy in "+
+				"the log and replaying that makes the files on disk decorative.")
+		return
+	}
+
 	wantMem := ch16OnlyMemories(want)
 	gotMem := ch16OnlyMemories(got)
+	if edited {
+		// The edited memo no longer matches its original text, so compare
+		// only the memories that were not touched.
+		wantMem = ch16DropFirst(wantMem)
+		gotMem = ch16DropFirst(gotMem)
+	}
 	if wantMem != gotMem {
 		res.fail("disable-enable-idempotent",
 			"switching the bands off and back on - in a different order - did not restore the same memory.\n"+
@@ -832,4 +852,45 @@ func ch16Parity(path string, res *Ch16Result) {
 				strings.Join(detail, "; "))
 		}
 	}
+}
+
+// ch16EditMemoryFile finds the file under dir whose contents include old,
+// and rewrites it to replacement. It does not assume a directory layout or
+// a naming scheme: it looks for the text, because the text is the part the
+// chapter promises is on disk.
+func ch16EditMemoryFile(dir, old, replacement string) bool {
+	found := false
+	_ = filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
+		if err != nil || info.IsDir() || found {
+			return nil
+		}
+		if info.Size() > 1<<20 {
+			return nil
+		}
+		b, err := os.ReadFile(p)
+		if err != nil || !strings.Contains(string(b), old) {
+			return nil
+		}
+		// Skip the event log and the save file: editing those is editing
+		// the history, which is a different thing entirely.
+		switch filepath.Base(p) {
+		case "events.jsonl", "save.json", "settings.json":
+			return nil
+		}
+		out := strings.ReplaceAll(string(b), old, replacement)
+		if os.WriteFile(p, []byte(out), 0o644) == nil {
+			found = true
+		}
+		return nil
+	})
+	return found
+}
+
+// ch16DropFirst removes the first entry from a comma separated list.
+func ch16DropFirst(s string) string {
+	parts := strings.Split(s, ",")
+	if len(parts) <= 1 {
+		return ""
+	}
+	return strings.Join(parts[1:], ",")
 }

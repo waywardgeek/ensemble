@@ -730,12 +730,29 @@ func (c *Context) BandEntries(b Band) []Entry {
 	return out
 }
 
-// BandHas reports whether a band already holds a given file.
-func (c *Context) BandHas(b Band, id MemoryFileID) bool {
+// BandHas reports whether a band already holds a given file WITH THE SAME
+// TEXT.
+//
+// Comparing the identifier alone is not enough, and the difference is the
+// whole point of keeping memories in files. The log remembers what a file
+// said when it was first loaded; the file remembers what it says now. When
+// somebody corrects a memory by editing it - which is the ordinary way to
+// fix something the agent believes and should not - the identifier does
+// not change. An agent that matches on the identifier decides it already
+// has that memory, keeps replaying the stale copy out of its log, and the
+// file on disk becomes decorative.
+func (c *Context) BandHas(b Band, id MemoryFileID, text string) bool {
 	kind := b.Kind()
+	want := BandEntryText(b, text)
 	for _, e := range c.Dialogue {
 		if e.Kind == kind && e.File != nil && *e.File == id {
-			return true
+			got := ""
+			for _, p := range e.Parts {
+				if t, ok := p.(TextPart); ok {
+					got += t.Text
+				}
+			}
+			return got == want
 		}
 	}
 	return false
