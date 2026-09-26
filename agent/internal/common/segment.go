@@ -116,6 +116,24 @@ func (c *Context) SelectForCompression(want int) (Selection, bool) {
 		closed = segs[:len(segs)-1]
 	}
 
+	// Nothing is closed: the agent has been talking without ever
+	// checkpointing. The live segment is work in progress, and compacting
+	// it would take away the detail being reasoned with right now. So
+	// nothing happens here, and nothing needs to: the forcing rule takes
+	// away every tool but micro_handoff before the window runs out, which
+	// turns this case into the ordinary one before it can become a crisis.
+	if len(closed) == 0 {
+		return Selection{}, false
+	}
+
+	// A single closed segment can be so large that handing it to a
+	// compressor whole is its own failure: the span has to fit in the
+	// compressor's own context, and a segment written over days need not.
+	// This is the degraded path, and the only one that cuts.
+	if closed[0].Bytes > maxSpan*want {
+		return c.splitSegment(closed[0], want)
+	}
+
 	total := 0
 	for i, s := range closed {
 		total += s.Bytes
@@ -131,11 +149,12 @@ func (c *Context) SelectForCompression(want int) (Selection, bool) {
 		return Selection{From: closed[0].From, To: closed[len(closed)-1].To, Bytes: total}, true
 	}
 
-	// Nothing is closed: the agent has been talking without ever
-	// checkpointing. Cut the live segment rather than let the context grow
-	// without bound, and say that is what happened.
-	return c.splitLive(want)
+	return Selection{}, false
 }
+
+// maxSpan is how many times the target a single segment may be before it is
+// cut rather than taken whole.
+const maxSpan = 8
 
 // endsWithCheckpoint reports whether the newest conversation entry is closed
 // by a checkpoint.
@@ -153,11 +172,19 @@ func (c *Context) endsWithCheckpoint() bool {
 
 // splitLive is the degraded path: cut the only segment there is, at the entry
 // that reaches the target.
-func (c *Context) splitLive(want int) (Selection, bool) {
+// splitSegment cuts inside one closed segment, taking entries from its start
+// until the target is reached.
+//
+// This is the only path that breaks the whole-segment rule, and it reports
+// that it did by setting Split. A memory made this way covers a piece of a
+// session rather than a session, so the summary it produces begins in the
+// middle of something. That is a real cost, and it is still better than
+// handing a compressor a span that will not fit in its own context.
+func (c *Context) splitSegment(seg Segment, want int) (Selection, bool) {
 	var from, to Seq
 	n, started := 0, false
 	for _, e := range c.Dialogue {
-		if e.Kind != KindDialogue {
+		if e.Kind != KindDialogue || e.Seq < seg.From || e.Seq > seg.To {
 			continue
 		}
 		if !started {
@@ -169,5 +196,8 @@ func (c *Context) splitLive(want int) (Selection, bool) {
 			return Selection{From: from, To: to, Bytes: n, Split: true}, true
 		}
 	}
-	return Selection{}, false
+	if !started {
+		return Selection{}, false
+	}
+	return Selection{From: from, To: to, Bytes: n, Split: true}, true
 }

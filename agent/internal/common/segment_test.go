@@ -78,17 +78,40 @@ func TestSelectTakesWholeSegmentsOldestFirst(t *testing.T) {
 
 // With no checkpoint anywhere, there is no whole segment to take. Cutting one
 // is the degraded path and must be reported, not hidden.
-func TestSelectSplitsOnlyWhenNothingIsClosed(t *testing.T) {
+// TestSelectRefusesWhenNothingIsClosed pins the rule that work in progress
+// is never compacted.
+//
+// An earlier version of this test asserted the opposite: that a conversation
+// with no checkpoint would be cut rather than allowed to grow. That was the
+// wrong trade. The live segment holds the detail the agent is reasoning with
+// right now, and summarising it takes away the thing being used. Nothing has
+// to be cut here, because the forcing rule removes every tool but
+// micro_handoff before the window runs out, which turns this case into the
+// ordinary one.
+func TestSelectRefusesWhenNothingIsClosed(t *testing.T) {
 	c := convo(t, 100, 100, 100)
-	sel, ok := c.SelectForCompression(150)
+	if sel, ok := c.SelectForCompression(150); ok {
+		t.Fatalf("compacted work in progress: took %d bytes from %d to %d", sel.Bytes, sel.From, sel.To)
+	}
+}
+
+// TestSelectCutsASegmentTooBigToCompressWhole covers the one path that
+// breaks the whole-segment rule, and checks that it admits to it.
+func TestSelectCutsASegmentTooBigToCompressWhole(t *testing.T) {
+	c := convo(t, 100, 100, 100, "cp")
+
+	// One closed segment of 300 bytes, asked for a target so small that
+	// taking the segment whole would mean handing the compressor far more
+	// than it asked for.
+	sel, ok := c.SelectForCompression(10)
 	if !ok {
 		t.Fatal("expected a selection")
 	}
 	if !sel.Split {
-		t.Error("cutting a live segment was not reported as a split")
+		t.Error("cutting inside a segment was not reported as a split")
 	}
-	if sel.Bytes < 150 {
-		t.Errorf("split selection took %d bytes, want at least 150", sel.Bytes)
+	if sel.Bytes < 10 {
+		t.Errorf("split selection took %d bytes, want at least 10", sel.Bytes)
 	}
 }
 

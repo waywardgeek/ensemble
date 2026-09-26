@@ -84,12 +84,60 @@ var (
 	rangeName = regexp.MustCompile(`^(\d{4}-\d{2}-\d{2})-(\d+)_(\d{4}-\d{2}-\d{2})-(\d+)\.md$`)
 )
 
-// Files lists one band's memory, oldest first, with contents read.
+// Files lists one band's LIVE memory, oldest first, with contents read.
+//
+// Live means "still in the band", which for session memories is not the same
+// as "still on disk". Every uncompressed memory stays in one directory
+// forever, because a later chapter searches that directory and a corpus with
+// holes in it is worth much less. So a session memory leaves the band by
+// being covered by a bucket file, not by being deleted, and this function is
+// where that distinction is applied.
 //
 // Ordering is by (date, number) and comes from the FILENAMES, never from
 // directory iteration order or modification time. That is what makes a
 // restore reproducible: the same files always describe the same memory.
 func (s *Store) Files(b common.Band) ([]File, error) {
+	all, err := s.allFiles(b)
+	if err != nil || b != common.BandSession {
+		return all, err
+	}
+
+	// A session memory is in the session band exactly when no bucket file
+	// has folded it. The bucket names carry their ranges, so this is
+	// derivable from the directory alone, with no index to keep in step and
+	// nothing to go stale. That is what makes the files on disk a complete
+	// description of the memory that loads from them.
+	folded, err := s.allFiles(common.Band8x)
+	if err != nil {
+		return nil, err
+	}
+	var live []File
+	for _, f := range all {
+		covered := false
+		for _, b := range folded {
+			if !f.ID.Before(b.ID) && !b.Thru.Before(f.ID) {
+				covered = true
+				break
+			}
+		}
+		if !covered {
+			live = append(live, f)
+		}
+	}
+	return live, nil
+}
+
+// AllSessions returns every uncompressed memory ever written, folded or not.
+//
+// Nothing in this chapter calls it. It is here because it is the reason the
+// session directory is append-only, and a reader who wonders why folded
+// memories are kept should be able to find the answer in the code rather
+// than only in a commit message.
+func (s *Store) AllSessions() ([]File, error) {
+	return s.allFiles(common.BandSession)
+}
+
+func (s *Store) allFiles(b common.Band) ([]File, error) {
 	path, single := s.dirFor(b)
 	if path == "" {
 		return nil, fmt.Errorf("no directory for band %s", b)
@@ -187,7 +235,10 @@ func (s *Store) PopulateEvents(b common.Band, source string) ([]common.BandPopul
 // continuing the numbering that is already there rather than inventing a
 // second scheme over the same files.
 func (s *Store) NextSessionID() (common.MemoryFileID, error) {
-	files, err := s.Files(common.BandSession)
+	// allFiles, not Files: numbering must not collide with a memory that
+	// has been folded into a bucket. Those memories are still on disk and
+	// still own their numbers, even though they have left the band.
+	files, err := s.allFiles(common.BandSession)
 	if err != nil {
 		return common.MemoryFileID{}, err
 	}

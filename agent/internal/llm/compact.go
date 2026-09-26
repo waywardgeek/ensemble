@@ -222,12 +222,18 @@ func (e *Engine) graduate(b common.Band, cfg common.BandConfig) {
 		},
 	})
 
-	// Retiring happens last, and only after the event that carries the new
-	// bytes is in the log. The files on disk and the events in the log
-	// describe the same memory, and the order here is what keeps a crash
-	// from landing between them in the direction that loses something.
-	if err := e.Memory.Retire(src); err != nil {
-		e.warn("memory: the %s memories were graduated but could not be retired: %v", b, err)
+	// Retiring happens last, and only after the event carrying the new
+	// bytes is in the log, so a crash between the two loses nothing.
+	//
+	// Bucket files are retired; uncompressed memories never are. A folded
+	// session memory leaves the BAND but stays in the directory, because
+	// every uncompressed memory lives in one place and a later chapter
+	// searches it. Membership is derived from bucket coverage rather than
+	// from deletion, so keeping the band the right size costs nothing.
+	if b != common.BandSession {
+		if err := e.Memory.Retire(src); err != nil {
+			e.warn("memory: the %s memories were graduated but could not be retired: %v", b, err)
+		}
 	}
 }
 
