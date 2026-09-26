@@ -282,10 +282,35 @@ micro_handoff exists to salvage.
 *dialogue content*; the prefix is `[system prompt][tool declarations]`. So what
 is measured is: **mid-conversation content mutation preserves thinking.**
 
-**UNMEASURED:** whether a real prefix change does. ch15 performs one —
-`ToolsChanged` alters tool declarations mid-session — and §4's forcing
-mechanism is another. Protocol is the same with a `load_skill` in place of the
-second tool call.
+**UNMEASURED:** whether a real prefix change does.
+
+**MEASURED 2026-09-26 — thinking also survives a system-prompt rewrite on
+Opus 5.** Same protocol, with `load_skill` substituted for the second tool
+call: fix a second random sentence in thinking only, call an ordinary tool,
+then `load_skill` (which appends the skill's instructions to the system
+prompt), then recall. Recall succeeded, verified by Bill against the thinking
+summary he reads live.
+
+This is a **conservative** test in two ways. CodeRhapsody's `load_skill`
+rewrites the system prompt directly, whereas ensemble's ch10 skills ride in
+message history specifically to preserve the cache — so the gentler mechanism
+is safe a fortiori. And the system prompt sits at position zero of the prefix,
+so mutating it invalidates strictly more than a tool-array change would.
+
+Consequence: **§4's forcing mechanism is safe.** Narrowing the tool set to
+compel a handoff will not destroy the thinking it exists to salvage.
+`ToolsChanged` is safe on the same grounds.
+
+Still not isolated: the *tool declarations* half of the prefix. The skill used
+depended on MCP tools already present, so the tool array may have been
+unchanged. Isolating it needs a skill contributing tools not already declared.
+
+**Methodological note worth printing.** In the failure case the agent's
+self-report is unreliable — the likely failure is not reporting a blank but
+confabulating a plausible sentence with confidence, indistinguishable from the
+inside. The experiment is only valid because a human holds the ground truth
+independently. Any future version of this measurement needs an external
+record, not the model's own assurance.
 
 **Standing caveat for the chapter:** Anthropic blocked this probe on Opus 5.5,
 so the result is model-dependent and unverifiable going forward. An
@@ -298,7 +323,9 @@ risk than one merely unmeasured, and it should be printed as such.
 
 1. Handoff schema: adopt the one-document-with-sections synthesis (§6)?
 2. Compressor voice: first person (§8)?
-3. Does a prefix change strip thinking (§12)? Blocks §4's forcing design.
+3. ~~Does a prefix change strip thinking?~~ **ANSWERED 2026-09-26: no, for a
+   system-prompt rewrite on Opus 5 (§12). §4's forcing design is unblocked.**
+   Remaining sliver: the tool-declarations half of the prefix, isolated.
 4. Memory on/off: build it, or leave the analysis in §9 as recorded and skip
    the feature?
 5. Does ch16 pay any of the ch9 dead-settings debt (§10), or only log it?
