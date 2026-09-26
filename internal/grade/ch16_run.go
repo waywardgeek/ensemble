@@ -574,7 +574,7 @@ func ch16Restore(bin, skills, gui string, res *Ch16Result) {
 	// re-read the files rather than restore a snapshot it kept in the log:
 	// the files are the memory, and editing one is how a person corrects
 	// something the agent got wrong.
-	edited := ch16EditMemoryFile(dir, ch16Memo(1), "MEMO-01 CORRECTED-BY-HAND and rewritten on disk.")
+	edited := ch16MarkLiveMemory(dir, want)
 
 	// Back on, but the upper band first, so the restore order differs from
 	// the order they were switched off in.
@@ -854,21 +854,24 @@ func ch16Parity(path string, res *Ch16Result) {
 	}
 }
 
-// ch16EditMemoryFile finds the file under dir whose contents include old,
-// and rewrites it to replacement. It does not assume a directory layout or
-// a naming scheme: it looks for the text, because the text is the part the
-// chapter promises is on disk.
-func ch16EditMemoryFile(dir, old, replacement string) bool {
-	found := false
+// ch16MarkLiveMemory rewrites one memory file that is currently visible in
+// the context, appending a line a human might add when correcting something
+// the agent believes and should not.
+//
+// It does not assume a directory layout, a naming scheme, or which band the
+// memory ended up in. It looks for a file whose text is present in live,
+// which is the context as the model sees it, because that is the only
+// property the chapter promises: what is on disk is what is in the context.
+//
+// Choosing a visible file matters. Uncompressed memories are never deleted,
+// so once a memory has been folded upward its original stays on disk while
+// the context shows the compressed version instead. Editing that superseded
+// copy would correctly change nothing, and a check that did so would be
+// testing the wrong file.
+func ch16MarkLiveMemory(dir, live string) bool {
+	var found string
 	_ = filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
-		if err != nil || info.IsDir() || found {
-			return nil
-		}
-		if info.Size() > 1<<20 {
-			return nil
-		}
-		b, err := os.ReadFile(p)
-		if err != nil || !strings.Contains(string(b), old) {
+		if err != nil || info.IsDir() || info.Size() > 1<<20 || found != "" {
 			return nil
 		}
 		// Skip the event log and the save file: editing those is editing
@@ -877,14 +880,36 @@ func ch16EditMemoryFile(dir, old, replacement string) bool {
 		case "events.jsonl", "save.json", "settings.json":
 			return nil
 		}
-		out := strings.ReplaceAll(string(b), old, replacement)
-		if os.WriteFile(p, []byte(out), 0o644) == nil {
-			found = true
+		b, err := os.ReadFile(p)
+		if err != nil {
+			return nil
+		}
+		// Match on the longest line in the file. A whole-body match is
+		// brittle if the renderer adds a label or trims trailing space,
+		// and a short line risks matching something unrelated.
+		best := ""
+		for _, ln := range strings.Split(string(b), "\n") {
+			ln = strings.TrimSpace(ln)
+			if len(ln) > len(best) {
+				best = ln
+			}
+		}
+		if len(best) >= 16 && strings.Contains(live, best) {
+			found = p
 		}
 		return nil
 	})
-	return found
+	if found == "" {
+		return false
+	}
+	b, err := os.ReadFile(found)
+	if err != nil {
+		return false
+	}
+	out := string(b) + "\nCORRECTED-BY-HAND and rewritten on disk.\n"
+	return os.WriteFile(found, []byte(out), 0o644) == nil
 }
+
 
 // ch16DropFirst removes the first entry from a comma separated list.
 func ch16DropFirst(s string) string {
