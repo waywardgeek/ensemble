@@ -164,6 +164,18 @@ type Options struct {
 	// Addr, if set, is a fixed listen address such as "127.0.0.1:8089".
 	// Empty picks a free port, as httptest does.
 	Addr string
+	// Route, if set, is offered every request before the script is
+	// consulted. Returning a reply answers that request and does not
+	// advance the script; returning nil falls through to the script.
+	//
+	// This exists because from chapter 16 an agent makes requests that are
+	// not turns: a compressor asks the model to fold a span of work into a
+	// memory, in the middle of somebody else's turn. A positional script
+	// cannot answer two interleaved conversations, and a grader that
+	// guesses the interleaving is testing its own arithmetic. Route lets a
+	// caller answer a request by what it IS - a request whose only tool is
+	// submit is a compressor - rather than by when it arrived.
+	Route func(body []byte) *Reply
 }
 
 func New(replies []Reply) *Server {
@@ -226,18 +238,31 @@ func (s *Server) handle(w http.ResponseWriter, r *http.Request) {
 	s.mu.Lock()
 	s.requests = append(s.requests, Recorded{Vendor: vendor, Path: r.URL.Path, Body: body})
 	seq := s.n + 1
-	idx := s.n
-	if s.opt.Cycle && len(s.replies) > 0 {
-		idx = s.n % len(s.replies)
-	}
+
+	// A routed request is answered without touching the script, so that a
+	// compressor arriving mid-turn does not shift every later reply by one.
 	var reply Reply
-	if idx < len(s.replies) {
-		reply = s.replies[idx]
-	} else if len(s.replies) > 0 {
-		idx = len(s.replies) - 1
-		reply = s.replies[idx]
+	routed := false
+	if s.opt.Route != nil {
+		if rp := s.opt.Route(body); rp != nil {
+			reply = *rp
+			routed = true
+		}
 	}
-	s.n++
+
+	idx := s.n
+	if !routed {
+		if s.opt.Cycle && len(s.replies) > 0 {
+			idx = s.n % len(s.replies)
+		}
+		if idx < len(s.replies) {
+			reply = s.replies[idx]
+		} else if len(s.replies) > 0 {
+			idx = len(s.replies) - 1
+			reply = s.replies[idx]
+		}
+		s.n++
+	}
 	s.mu.Unlock()
 
 	if s.opt.Cycle {

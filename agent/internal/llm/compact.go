@@ -29,6 +29,15 @@ func (e *Engine) maybeCompact() {
 	if e.Memory == nil || e.Bands == nil {
 		return
 	}
+
+	// Make the context agree with the settings before deciding anything.
+	// SyncBands is idempotent, so the common case - nothing changed - costs
+	// a directory read and emits no events. Doing it here is what lets a
+	// band be switched off in the GUI and take effect on the next turn
+	// rather than on the next launch.
+	if err := e.SyncBands("settings"); err != nil {
+		e.Host.Logf("memory: could not sync bands: %v", err)
+	}
 	cfg := e.Bands()
 
 	e.compactConversation(cfg)
