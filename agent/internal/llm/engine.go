@@ -125,6 +125,13 @@ func (e *Engine) Turn(watch common.StreamCallbacks) (string, error) {
 		return "", err
 	}
 
+	// Chapter 16: turn finished work into memory before deciding what to
+	// cut. Compaction is the coarse move and curation is the fine one, so
+	// compaction goes first: there is no point spending the redaction
+	// ladder on a span that is about to become a memory, and a span that
+	// survives compaction is exactly the span worth curating.
+	e.maybeCompact()
+
 	// Chapter 15: decide this request's cuts and record them as events
 	// BEFORE rendering, so the request carries exactly what the log says.
 	if err := e.curate(); err != nil {

@@ -248,6 +248,14 @@ type BandConfig struct {
 	B64x    BandSettings `json:"64x"`
 	B8x     BandSettings `json:"8x"`
 	Session BandSettings `json:"session"`
+
+	// Conversation is not a band. It is the live dialogue, and it gets the
+	// same two watermarks for the same reason: something has to say when
+	// there is too much of it and how much to leave behind. Giving it the
+	// same shape as a band means the compaction loop reads the same way at
+	// every rung, rather than special-casing the one rung that feeds all
+	// the others.
+	Conversation BandSettings `json:"conversation"`
 }
 
 // For returns the settings row for a band.
@@ -295,6 +303,11 @@ func DefaultBandConfig() BandConfig {
 		B64x:    BandSettings{Enabled: true, Budget: 12 * 1024},
 		B8x:     BandSettings{Enabled: true, Budget: 12 * 1024},
 		Session: BandSettings{Enabled: true, Budget: 12 * 1024},
+
+		// The conversation is allowed to be much larger than any single
+		// band, because it is where the work actually happens. The bands
+		// are what is left of the work after it stops being current.
+		Conversation: BandSettings{Enabled: true, Budget: 64 * 1024},
 	}
 }
 
