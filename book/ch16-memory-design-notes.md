@@ -319,7 +319,135 @@ risk than one merely unmeasured, and it should be printed as such.
 
 ---
 
-## 13. Open questions
+## 13. The band model (RULED 2026-09-26, supersedes §9's event shapes)
+
+§9 proposed a single `MemoryOff`/`MemoryOn` pair for one undifferentiated
+memory toggle. This session generalized it to five independently-controlled
+bands, following ch15's `Redacted`+`Redaction` precedent — one event type, an
+enum field selecting the variant — rather than inventing an event per band.
+
+**The bands.**
+
+```go
+type Band uint8
+
+const (
+    BandSoul    Band = iota + 1 // SOUL.md — identity, no cascade
+    BandMemory                  // MEMORY.md — curated, terminal
+    Band64x                     // 64x compression tier
+    Band8x                      // 8x compression tier
+    BandSession                 // session memories, from micro_handoff
+)
+```
+
+Each gets its own row in the settings memory tab: enabled or not, a budget,
+and — for the four that cascade — high and low watermarks. `BandSoul` is the
+one exception: it never graduates anywhere and has no watermark, only
+enabled/disabled and refresh-on-edit. Flagged as an accepted asymmetry rather
+than forced into a uniform shape for one case.
+
+**Two events, not ten.**
+
+```go
+// BandPopulated adds one immutable unit to a band. Every instance carries a
+// Ref, never embedded text: startup load, graduation output, and re-enable
+// all resolve to the same on-disk file, so there is one mechanism, not three.
+type BandPopulatedData struct {
+    Band   Band         `json:"band"`
+    Ref    Ref          `json:"ref"`
+    Thru   MemoryFileID `json:"thru,omitempty"` // graduation/curator only
+    Source string       `json:"source"` // "startup","compaction","graduation","curator","reenable"
+}
+
+// BandDepopulated retires everything in a band at or before Thru. For
+// "disabled" it names nothing further — the reducer wipes every live entry
+// of that Kind, computed at apply time, never enumerated in the event.
+type BandDepopulatedData struct {
+    Band   Band          `json:"band"`
+    Thru   *MemoryFileID `json:"thru,omitempty"` // nil + reason=disabled means all
+    Reason string        `json:"reason"` // "graduation", "disabled"
+}
+```
+
+A graduation is one of each, both naming the same `Thru`. Disabling a band is
+one `BandDepopulated` with no `Thru` at all — this is the structural answer to
+"does not mention what was wiped": the event doesn't enumerate anything
+because "all of it" is computable from whatever the context currently holds.
+
+**`MemoryFileID` replaces event-log `Seq` as the range identifier.**
+
+```go
+// MemoryFileID identifies one memory file by the convention save_memory
+// already uses on disk: a date and a same-day sequence number. Independent
+// of the event log's Seq, because the memory corpus outlives any one log —
+// the same files can be read by a different session or a different agent.
+type MemoryFileID struct {
+    Date string `json:"date"` // "2026-09-26"
+    Num  int    `json:"num"`  // 1, 2, 3... within that date
+}
+```
+
+Event.Seq orders events within one log. Thru names a position in the memory
+corpus, which is a different axis, and keying a compressed file's range to a
+number meaningful only inside one specific log was the wrong coupling — a
+bucket-0 file should be readable as "Sept 20's first memory through Sept 26's
+third" with no log in hand at all.
+
+**On-disk layout, idempotency-driven.** Bucket-0 and bucket-1 are
+directories of immutable range files, not single mutable files that get
+rewritten in place:
+
+```
+memory/                # session band — one permanent file per micro_handoff-
+  2026-09-26-1.md        triggered compression, same directory + naming
+  2026-09-26-2.md        save_memory already uses
+memory/bucket-0/        # 8x band — one immutable file per graduation,
+  2026-09-20-1_2026-09-26-3.md   named by the file range it spans
+memory/bucket-1/        # 64x band — same idea, coarser range
+MEMORY.md               # terminal — the one band with a real writer; the
+                          curator edits it in place, unlike the other four
+```
+
+Disable = stop rendering that Kind; files untouched. Re-enable = re-scan the
+directory, emit one `BandPopulated` per file found. Idempotent by
+construction, and Bill's ruling makes the corollary explicit: if a human
+hand-edits a range file between disable and re-enable, re-enable reflects the
+edit — "if they do, fine, they will be restored with those changes." This
+only holds because these files are immutable-by-convention (a compression
+event always writes a NEW file, never edits an old one); MEMORY.md is exempt
+from the claim for the same reason it's exempt from the directory-of-files
+shape.
+
+**Ratios, unchanged from the shipped cascade:** session → bucket-0 at 8x,
+bucket-0 → bucket-1 at 8x (64x against the original). Bucket-0/bucket-1 files
+are retired (not archived) once folded upward, matching the existing design's
+"remove the oldest sections... discarded." Uncompressed session files are
+never retired — they stay on disk forever.
+
+**Fresh-start resolves outline's open question 5.** At construction, if
+`BandSoul.Enabled`, read `SOUL.md` once and emit `BandPopulated{BandSoul, ...,
+Source:"startup"}`; same for `BandMemory`/`MEMORY.md`. No special-casing
+elsewhere — every later band arrives through the identical event.
+
+**EntryKind grows by five specific kinds** (`KindSoul`, `KindMemory`,
+`Kind64x`, `Kind8x`, `KindSession`), not one parameterized `KindBand{Band}` —
+ch15's removal rule ("every entry not dialogue is removed only by its own
+verb") wants each kind literally checkable in the tool-clearing path, the same
+way `KindSkill`/`KindTools` already are.
+
+**OPEN, flagged for the coder rather than resolved here:**
+- Whether a band `Entry`'s `Parts` reuses the existing `BlobPart{Ref}` (already
+  in the codebase for job output and referenced in `stubFor`) or needs a new
+  Part type. Depends on whether `BlobPart` already resolves to bytes at render
+  time for every vendor path — unverified this session.
+- Session-band `BandPopulated` provenance is `Source:"compaction"`, sourced
+  from a conversation Seq range rather than a prior memory file, so `Thru`
+  (a `MemoryFileID`) does not quite fit its provenance the way it does for
+  graduation. Coder's call whether to add `FromSeq`/`ToSeq common.Seq` fields
+  for this one source value or to let the file's own identity double as
+  `Thru`.
+
+## 14. Open questions
 
 1. ~~Handoff schema~~: **RULED 2026-09-26: sections-in-one-prose-document (§6).**
    One string param; the tool description asks the questions (env,
@@ -329,7 +457,20 @@ risk than one merely unmeasured, and it should be printed as such.
 3. ~~Does a prefix change strip thinking?~~ **ANSWERED 2026-09-26: no, for a
    system-prompt rewrite on Opus 5 (§12). §4's forcing design is unblocked.**
    Remaining sliver: the tool-declarations half of the prefix, isolated.
-4. Memory on/off: build it, or leave the analysis in §9 as recorded and skip
-   the feature?
+4. ~~Memory on/off~~: **RULED 2026-09-26: build it, generalized to five
+   independent bands (§13).**
 5. Does ch16 pay any of the ch9 dead-settings debt (§10), or only log it?
 6. Which chapter owns wiring `Model`/`SystemPrompt` as prefix settings?
+7. Should the sub-agents chapter come before ch16? **RULED 2026-09-26: no.**
+   The cascade compressors are bounded input/output, one-shot, no tools — a
+   direct LLM call suffices for ch16. The sub-agents chapter later upgrades
+   them to real sub-agents with inherited settings and skill overrides, using
+   ch16's compressors as the motivating before/after example.
+8. `BandSoul`'s watermark fields: unused-but-present, or a distinct type for
+   leaf (non-cascading) bands vs. cascading bands?
+9. What happens when a band's upward neighbor is disabled but the source band
+   is enabled and crosses its high watermark? **RULED 2026-09-26: refuse and
+   surface a configuration warning, not silent unbounded growth or silent
+   drop.**
+10. `BlobPart` reuse for band entries — verify its render-time resolution
+    before deciding (§13).
