@@ -48,6 +48,18 @@ const ch16Settings = `{"context_target":200000,` +
 	`"memory":{"conversation":{"budget":300},"session":{"budget":200},` +
 	`"8x":{"budget":200},"64x":{"budget":200}}}`
 
+// ch16SettingsGraduate leaves the session band room to hold more memories
+// than a single fold consumes.
+//
+// This matters more than it looks. When a band folds everything it has,
+// "the oldest eight" and "the newest eight" are the same slice, and a
+// graduation that folds the wrong end cannot be told from one that folds the
+// right end. The first mutation audit found exactly that: a mutant folding
+// newest-first scored full marks.
+const ch16SettingsGraduate = `{"context_target":200000,` +
+	`"memory":{"conversation":{"budget":300},"session":{"budget":400},` +
+	`"8x":{"budget":2000},"64x":{"budget":2000}}}`
+
 // ch16SettingsOff disables the session band and the one above it.
 const ch16SettingsNoSession = `{"context_target":200000,` +
 	`"memory":{"conversation":{"budget":300},"session":{"budget":200,"disabled":true},` +
@@ -469,7 +481,8 @@ func ch16Graduate(bin, skills, gui string, res *Ch16Result) {
 		expect:   expect,
 		replies:  ch16Talk(n + 2),
 		route:    r.route,
-		settings: ch16Settings,
+		settings: ch16SettingsGraduate,
+
 	})
 	if out.fatal != "" {
 		res.fail("graduation-fires-oldest-first", "run did not complete: %s", out.fatal)
@@ -556,10 +569,19 @@ func ch16Restore(bin, skills, gui string, res *Ch16Result) {
 		return
 	}
 
-	// Off. The memories must leave the context.
-	off, ok := run(ch16SettingsNoSession, []string{"Carry on."}, []int{1})
+	// Off. The memories must leave the context, and stay out of the way.
+	//
+	// The extra talk is deliberate. With the band switched off, a conversation
+	// that grows past its high watermark must not be compacted either: a band
+	// that is off must not be written to. Each prompt costs exactly one
+	// request, so a compressor call among them shows up as a count that does
+	// not match.
+	offPrompts := []string{"Carry on.", "And more.", "Keep going.", "Still here.", "More again.", "And on."}
+	off, ok := run(ch16SettingsNoSession, offPrompts, []int{1, 2, 3, 4, 5, 6})
 	if !ok {
-		res.fail("disable-enable-idempotent", "run with the session band off did not complete: %s", off.fatal)
+		res.fail("disable-enable-idempotent",
+			"with the session band switched off, talking past the conversation's high watermark still "+
+				"produced an extra call: %s\nA band that is switched off must not be written to.", off.fatal)
 		return
 	}
 	offLast, _ := ch16Last(ch16Turns(off.reqs))
@@ -574,7 +596,7 @@ func ch16Restore(bin, skills, gui string, res *Ch16Result) {
 	// re-read the files rather than restore a snapshot it kept in the log:
 	// the files are the memory, and editing one is how a person corrects
 	// something the agent got wrong.
-	edited := ch16MarkLiveMemory(dir, want)
+	edited := ch16MarkLiveMemory(dir, want, "CORRECTED-BY-HAND and rewritten on disk.")
 
 	// Back on, but the upper band first, so the restore order differs from
 	// the order they were switched off in.
@@ -613,6 +635,28 @@ func ch16Restore(bin, skills, gui string, res *Ch16Result) {
 				"  before: %s\n  after:  %s\n"+
 				"The files on disk have not changed, so what is loaded from them must not depend on the order "+
 				"the bands happened to come back in.", wantMem, gotMem)
+	}
+
+	// The same promise, with nothing switched off. A plain restart replays the
+	// log, and the log holds what each file said when it was first read. If
+	// that copy wins, editing a memory by hand changes nothing.
+	//
+	// The disable path above cannot see this: switching a band off empties it,
+	// so whatever the loader compares, it finds no entry and reloads anyway.
+	// Only a restart with every band still on puts the two copies side by side.
+	if ch16MarkLiveMemory(dir, got, "RESTART-EDIT-WINS and rewritten on disk.") {
+		again, ok := run(ch16Settings, []string{"Once more."}, []int{1})
+		if !ok {
+			res.fail("disable-enable-idempotent", "restarting after a hand edit did not complete: %s", again.fatal)
+			return
+		}
+		againLast, _ := ch16Last(ch16Turns(again.reqs))
+		if !strings.Contains(ch16Conversation(againLast.Body), "RESTART-EDIT-WINS") {
+			res.fail("disable-enable-idempotent",
+				"a memory file was edited on disk and the agent restarted with every band still switched "+
+					"on, and the context came back with the file's old text. The copy in the log won over "+
+					"the file on disk, which makes the files decorative.")
+		}
 	}
 }
 
@@ -868,7 +912,7 @@ func ch16Parity(path string, res *Ch16Result) {
 // the context shows the compressed version instead. Editing that superseded
 // copy would correctly change nothing, and a check that did so would be
 // testing the wrong file.
-func ch16MarkLiveMemory(dir, live string) bool {
+func ch16MarkLiveMemory(dir, live, marker string) bool {
 	var found string
 	_ = filepath.Walk(dir, func(p string, info os.FileInfo, err error) error {
 		if err != nil || info.IsDir() || info.Size() > 1<<20 || found != "" {
@@ -906,7 +950,7 @@ func ch16MarkLiveMemory(dir, live string) bool {
 	if err != nil {
 		return false
 	}
-	out := string(b) + "\nCORRECTED-BY-HAND and rewritten on disk.\n"
+	out := string(b) + "\n" + marker + "\n"
 	return os.WriteFile(found, []byte(out), 0o644) == nil
 }
 
