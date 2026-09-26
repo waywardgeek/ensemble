@@ -177,9 +177,9 @@ func builtinTools() map[string]common.Tool {
 		},
 		"micro_handoff": {
 			Name:        "micro_handoff",
-			Description: "Checkpoint. Write a note to your future self: the goal, what is done, what you learned, what is next. Every tool call and tool result so far is then removed from your context and replaced by this note, which stays. Call it when a sub-task is finished and nothing is in flight.",
+			Description: "Checkpoint, and the moment memory is made. Write a note to your future self covering the goal, what is done, what you learned, and what is next. Every tool call and tool result so far is then removed from your context and replaced by this note, which stays. If the conversation is still over its target after that, the oldest finished work is compressed into a memory file and replaced by a single memory entry, written in the first person by a compressor that sees what you see. Call it when a sub-task is finished and nothing is in flight.",
 			Schema: json.RawMessage(`{"type":"object","properties":{
-			"text":{"type":"string","description":"The note. It replaces all tool traffic so far, so put in it everything you still need from that traffic."}},"required":["text"]}`),
+			"text":{"type":"string","description":"The note. It replaces all tool traffic so far, so put in it everything you still need from that traffic. Cover the goal, what is done, what you learned, and what is next; write them as prose sections rather than expecting fields."}},"required":["text"]}`),
 			NoJob: true,
 			Run:   toolMicroHandoff,
 		},
