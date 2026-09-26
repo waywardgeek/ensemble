@@ -26,10 +26,14 @@ run 11 ./agent
 run 12 ./agent
 run 13 ./agent
 run 14 ./agent
+run 15 ./agent
+run 16 ./agent
 # Per-chapter reference trees that also get graded.
 run 10 ./solutions/ch10
 run 11 ./solutions/ch11
 run 12 ./solutions/ch12
 run 13 ./solutions/ch13
 run 14 ./solutions/ch14
+run 15 ./solutions/ch15
+run 16 ./solutions/ch16
 echo "SWEEP-DONE" >> "$OUT"
