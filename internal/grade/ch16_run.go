@@ -57,7 +57,7 @@ const ch16Settings = `{"context_target":200000,` +
 // right end. The first mutation audit found exactly that: a mutant folding
 // newest-first scored full marks.
 const ch16SettingsGraduate = `{"context_target":200000,` +
-	`"memory":{"conversation":{"budget":300},"session":{"budget":400},` +
+	`"memory":{"conversation":{"budget":300},"session":{"budget":700},` +
 	`"8x":{"budget":2000},"64x":{"budget":2000}}}`
 
 // ch16SettingsOff disables the session band and the one above it.
@@ -569,19 +569,10 @@ func ch16Restore(bin, skills, gui string, res *Ch16Result) {
 		return
 	}
 
-	// Off. The memories must leave the context, and stay out of the way.
-	//
-	// The extra talk is deliberate. With the band switched off, a conversation
-	// that grows past its high watermark must not be compacted either: a band
-	// that is off must not be written to. Each prompt costs exactly one
-	// request, so a compressor call among them shows up as a count that does
-	// not match.
-	offPrompts := []string{"Carry on.", "And more.", "Keep going.", "Still here.", "More again.", "And on."}
-	off, ok := run(ch16SettingsNoSession, offPrompts, []int{1, 2, 3, 4, 5, 6})
+	// Off. The memories must leave the context.
+	off, ok := run(ch16SettingsNoSession, []string{"Carry on."}, []int{1})
 	if !ok {
-		res.fail("disable-enable-idempotent",
-			"with the session band switched off, talking past the conversation's high watermark still "+
-				"produced an extra call: %s\nA band that is switched off must not be written to.", off.fatal)
+		res.fail("disable-enable-idempotent", "run with the session band off did not complete: %s", off.fatal)
 		return
 	}
 	offLast, _ := ch16Last(ch16Turns(off.reqs))
@@ -657,6 +648,28 @@ func ch16Restore(bin, skills, gui string, res *Ch16Result) {
 					"on, and the context came back with the file's old text. The copy in the log won over "+
 					"the file on disk, which makes the files decorative.")
 		}
+	}
+
+	// Last: a band that is switched off must stay out of the way, not merely
+	// out of sight. The talk here carries the conversation well past the point
+	// where it would normally be compacted, and with the session band off
+	// nothing may compact it. Otherwise "off" means "invisible but still
+	// running", which is the cost without the benefit.
+	//
+	// This runs after every comparison above, because it deliberately changes
+	// what the bands hold.
+	pad := strings.Repeat("and so on, at some length, ", 12)
+	var offp []string
+	var offe []int
+	for i := 0; i < 6; i++ {
+		offp = append(offp, fmt.Sprintf("Step %d. %s", i+1, pad))
+		offe = append(offe, i+1)
+	}
+	if quiet, ok := run(ch16SettingsNoSession, offp, offe); !ok {
+		res.fail("disable-enable-idempotent",
+			"with the session band switched off, talking past the conversation's high watermark still "+
+				"produced an extra call: %s\n"+
+				"A band that is switched off must not be written to.", quiet.fatal)
 	}
 }
 
