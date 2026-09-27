@@ -26,6 +26,7 @@ import (
 	"github.com/waywardgeek/ensemble/agent/internal/llm"
 	"github.com/waywardgeek/ensemble/agent/internal/mcp"
 	"github.com/waywardgeek/ensemble/agent/internal/recall"
+	"github.com/waywardgeek/ensemble/agent/internal/settings"
 	"github.com/waywardgeek/ensemble/agent/internal/skills"
 	"github.com/waywardgeek/ensemble/agent/internal/tools"
 	"github.com/waywardgeek/ensemble/agent/internal/ws"
@@ -359,7 +360,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	// Chapter 15 rule 10: the context target comes from settings.json,
 	// read whether or not the GUI is up, and re-read on every request so a
 	// change applies to the next cut and never to a recorded one.
-	settingsStore := common.NewSettingsStore(filepath.Join(".", "settings.json"))
+	settingsStore := settings.NewSettingsStore(filepath.Join(".", "settings.json"))
 	eng.Target = func() int { return settingsStore.Get().ContextTarget }
 
 	// Chapter 16. The memory directory sits beside the save file, because

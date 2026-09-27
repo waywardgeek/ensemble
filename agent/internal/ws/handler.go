@@ -38,7 +38,7 @@ type Hub struct {
 	guiLog    *GuiLogger
 	ttsLog    *TTSLogger           // speech channel record; nil-safe when unset
 	log       *common.Log          // event log — read-only access for reconnection
-	settings     *common.SettingsStore                  // GUI-editable settings; nil = no settings
+	settings     common.SettingsSource                  // GUI-editable settings; nil = no settings
 	mcpReceivers map[string]func(json.RawMessage)       // source tag → JSON-RPC receiver (in-process agents)
 	mcpAgents    map[string]*Client                     // source tag → WebSocket client (remote agents like virtual user)
 }
@@ -47,7 +47,7 @@ type Hub struct {
 // received from a browser; gate controls tool-dispatch pausing; eventLog
 // provides read access to the append-only event log for reconnection;
 // settings provides the GUI-editable settings store (may be nil).
-func NewHub(gate *common.PauseGate, send func(common.Inbound), guiLogPath string, eventLog *common.Log, settings *common.SettingsStore) *Hub {
+func NewHub(gate *common.PauseGate, send func(common.Inbound), guiLogPath string, eventLog *common.Log, settings common.SettingsSource) *Hub {
 	h := &Hub{
 		clients:      make(map[*Client]bool),
 		inflight:     make(map[uint64][]byte),

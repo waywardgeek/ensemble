@@ -1,10 +1,12 @@
-package common
+package settings
 
 import (
 	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
 
 // A client can send anything. These are values a hostile or buggy client
@@ -22,8 +24,8 @@ func TestApplyRawClampsOutOfRangeValues(t *testing.T) {
 		"theme": "'; DROP TABLE settings;--"
 	}`))
 
-	if got.Temperature != MinTemperature {
-		t.Errorf("Temperature = %v, want %v", got.Temperature, MinTemperature)
+	if got.Temperature != common.MinTemperature {
+		t.Errorf("Temperature = %v, want %v", got.Temperature, common.MinTemperature)
 	}
 	if got.MaxTokens != 0 {
 		t.Errorf("MaxTokens = %v, want 0", got.MaxTokens)
@@ -57,23 +59,23 @@ func TestApplyRawClampsAboveMaximum(t *testing.T) {
 		"tts_speed": 1000
 	}`))
 
-	if got.Temperature != MaxTemperature {
-		t.Errorf("Temperature = %v, want %v", got.Temperature, MaxTemperature)
+	if got.Temperature != common.MaxTemperature {
+		t.Errorf("Temperature = %v, want %v", got.Temperature, common.MaxTemperature)
 	}
-	if got.MaxTokens != MaxTokensCeiling {
-		t.Errorf("MaxTokens = %v, want %v", got.MaxTokens, MaxTokensCeiling)
+	if got.MaxTokens != common.MaxTokensCeiling {
+		t.Errorf("MaxTokens = %v, want %v", got.MaxTokens, common.MaxTokensCeiling)
 	}
-	if got.ThinkingBudget != MaxThinkingBudget {
-		t.Errorf("ThinkingBudget = %v, want %v", got.ThinkingBudget, MaxThinkingBudget)
+	if got.ThinkingBudget != common.MaxThinkingBudget {
+		t.Errorf("ThinkingBudget = %v, want %v", got.ThinkingBudget, common.MaxThinkingBudget)
 	}
-	if got.MaxToolRounds != MaxToolRoundsCap {
-		t.Errorf("MaxToolRounds = %v, want %v", got.MaxToolRounds, MaxToolRoundsCap)
+	if got.MaxToolRounds != common.MaxToolRoundsCap {
+		t.Errorf("MaxToolRounds = %v, want %v", got.MaxToolRounds, common.MaxToolRoundsCap)
 	}
-	if got.FontSize != MaxFontSize {
-		t.Errorf("FontSize = %v, want %v", got.FontSize, MaxFontSize)
+	if got.FontSize != common.MaxFontSize {
+		t.Errorf("FontSize = %v, want %v", got.FontSize, common.MaxFontSize)
 	}
-	if got.TTSSpeed != MaxTTSSpeed {
-		t.Errorf("TTSSpeed = %v, want %v", got.TTSSpeed, MaxTTSSpeed)
+	if got.TTSSpeed != common.MaxTTSSpeed {
+		t.Errorf("TTSSpeed = %v, want %v", got.TTSSpeed, common.MaxTTSSpeed)
 	}
 }
 
@@ -84,18 +86,18 @@ func TestApplyRawRaisesSmallPositivesToMinimum(t *testing.T) {
 	s := NewSettingsStore("")
 	got := s.ApplyRaw(json.RawMessage(`{"font_size": 3, "tts_speed": 0.01}`))
 
-	if got.FontSize != MinFontSize {
-		t.Errorf("FontSize = %v, want %v", got.FontSize, MinFontSize)
+	if got.FontSize != common.MinFontSize {
+		t.Errorf("FontSize = %v, want %v", got.FontSize, common.MinFontSize)
 	}
-	if got.TTSSpeed != MinTTSSpeed {
-		t.Errorf("TTSSpeed = %v, want %v", got.TTSSpeed, MinTTSSpeed)
+	if got.TTSSpeed != common.MinTTSSpeed {
+		t.Errorf("TTSSpeed = %v, want %v", got.TTSSpeed, common.MinTTSSpeed)
 	}
 }
 
 // Legal values must survive untouched, or the clamp is just breakage.
 func TestApplyRawLeavesLegalValuesAlone(t *testing.T) {
 	s := NewSettingsStore("")
-	want := Settings{
+	want := common.Settings{
 		Model:          "claude-sonnet-4-5",
 		Temperature:    0.7,
 		MaxTokens:      4096,
@@ -154,7 +156,7 @@ func TestApplyRawAcceptsMeaningfulZeroes(t *testing.T) {
 // from "server said nothing", and would keep displaying the bad value the
 // user typed.
 func TestSettingsJSONAlwaysIncludesEveryField(t *testing.T) {
-	raw, err := json.Marshal(Settings{})
+	raw, err := json.Marshal(common.Settings{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -169,7 +171,7 @@ func TestSettingsJSONAlwaysIncludesEveryField(t *testing.T) {
 		"tts_enabled", "tts_speed",
 	} {
 		if _, ok := fields[key]; !ok {
-			t.Errorf("zero-valued Settings omits %q from JSON; the client "+
+			t.Errorf("zero-valued common.Settings omits %q from JSON; the client "+
 				"cannot learn the server reset this field", key)
 		}
 	}
@@ -194,11 +196,11 @@ func TestLoadFromDiskClamps(t *testing.T) {
 
 	got := NewSettingsStore(path).Get()
 
-	if got.Temperature != MinTemperature {
-		t.Errorf("Temperature = %v, want %v", got.Temperature, MinTemperature)
+	if got.Temperature != common.MinTemperature {
+		t.Errorf("Temperature = %v, want %v", got.Temperature, common.MinTemperature)
 	}
-	if got.FontSize != MaxFontSize {
-		t.Errorf("FontSize = %v, want %v", got.FontSize, MaxFontSize)
+	if got.FontSize != common.MaxFontSize {
+		t.Errorf("FontSize = %v, want %v", got.FontSize, common.MaxFontSize)
 	}
 	if got.Theme != "" {
 		t.Errorf("Theme = %q, want \"\"", got.Theme)

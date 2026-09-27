@@ -19,6 +19,7 @@ import (
 	"github.com/waywardgeek/ensemble/agent/internal/jobs"
 	"github.com/waywardgeek/ensemble/agent/internal/llm"
 	"github.com/waywardgeek/ensemble/agent/internal/mcp"
+	"github.com/waywardgeek/ensemble/agent/internal/settings"
 	"github.com/waywardgeek/ensemble/agent/internal/skills"
 	"github.com/waywardgeek/ensemble/agent/internal/tools"
 	"github.com/waywardgeek/ensemble/agent/internal/ws"
@@ -101,7 +102,7 @@ type PauseGate = common.PauseGate
 // Settings and SettingsStore are re-exported for the WebSocket hub
 // constructor and the settings management protocol.
 type Settings = common.Settings
-type SettingsStore = common.SettingsStore
+type SettingsStore = settings.SettingsStore
 
 // Log is the append-only event log. Exported so the WebSocket hub can read
 // it for reconnection without copying.
@@ -396,7 +397,7 @@ func NewVarRegistry() *VarRegistry {
 // NewSettingsStore creates a settings store. If path is non-empty and the
 // file exists, settings are loaded from it.
 func NewSettingsStore(path string) *SettingsStore {
-	return common.NewSettingsStore(path)
+	return settings.NewSettingsStore(path)
 }
 
 // LookupModel returns model features.
