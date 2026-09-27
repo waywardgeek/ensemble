@@ -104,9 +104,9 @@ chapter tells you which decisions are structural and which are taste, and asks
 what you would do differently. By the end you will have answered, in code.
 
 One prerequisite. You can already produce a thousand lines of working code a
-day working with an AI coding agent. The Chapter 2 solution alone is about 2,800
-lines of Go, and the exercises assume you can specify, review, and steer at
-that rate. If you are not there yet, read the book anyway; the design is the
+day working with an AI coding agent. The Chapter 2 solution alone is about
+3,000 lines of Go, and the exercises assume you can specify, review, and steer
+at that rate. If you are not there yet, read the book anyway; the design is the
 point. Skip the exercises until you are.
 
 ## How the chapters are built
