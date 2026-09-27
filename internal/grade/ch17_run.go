@@ -32,6 +32,20 @@ const (
 	ch17MarkDocs   = "markdocsource"   // lives outside memory, for quota testing
 	ch17MarkSect   = "marksectionfour" // one section of a long document
 	ch17MarkOther  = "marksectionone"  // a different section of that document
+
+	// ch17MarkBulk labels a document that mentions the query's rarest term
+	// MORE times than the best match does, while being an order of magnitude
+	// longer. Raw term frequency ranks it first; BM25, with TF saturation and
+	// length normalisation, ranks it below the short dense note. It exists so
+	// that the scoring check can assert an order that a naive "count the
+	// occurrences" scorer gets BACKWARDS rather than merely imprecise.
+	ch17MarkBulk = "markbulkymatch"
+
+	// These two live in sources that no other scenario touches, so the
+	// indexing check can assert that every source root is walked without its
+	// verdict depending on ranking, quota, judging or capping.
+	ch17MarkHandoff  = "markhandoffsrc"
+	ch17MarkLearning = "marklearningsrc"
 )
 
 // ch17Query is the prompt used by most scenarios.
@@ -103,6 +117,37 @@ func ch17Archive() map[string]string {
 		"docs/trap.md": "## Trap\n\n" + ch17MarkTrap +
 			" the of and to is it that this with from for was are be on at as by an or not but " +
 			"they we you what did why we for the and that the of the to the is it was for we did\n",
+
+		// The term-frequency trap. This mentions "zorblax" twelve times —
+		// more than docs/decision.md does — but buries them in ten times the
+		// prose. Counting occurrences ranks it FIRST. BM25 ranks it below
+		// decision.md, because the twelfth mention adds almost nothing once
+		// TF saturates and because the score is normalised by length.
+		//
+		// The order of these two is therefore a genuine discriminator: it is
+		// not merely wrong under a bad formula, it is REVERSED.
+		"docs/bulk.md": "## Zorblax rollout appendix\n\n" + ch17MarkBulk + " " +
+			strings.Repeat("The zorblax rollout is mentioned here again. "+ch17GardenFiller, 12),
+	}
+}
+
+// ch17IndexArchive puts exactly three matching chunks in three DIFFERENT
+// source roots, and nothing else that matches at all.
+//
+// Three candidates for three slots means every one of them is attached no
+// matter how they are ranked, whether the quota runs, or what the judge says.
+// That is the point: this fixture isolates "was the archive walked and
+// indexed" from every downstream behaviour, so the indexing check can be
+// killed by deleting a source root and by nothing else.
+func ch17IndexArchive() map[string]string {
+	return map[string]string{
+		"docs/filler.md": ch17Filler(24),
+		"docs/decision.md": "## Zorblax rollout decision\n\n" +
+			ch17MarkStrong + " The zorblax rollout was settled in favour of a staged approach.\n",
+		"handoffs/handoff-2026-01-01.md": "## Zorblax rollout handoff\n\n" +
+			ch17MarkHandoff + " The zorblax rollout was handed over mid-flight.\n",
+		"learnings/learnings.md": "## Zorblax rollout learning\n\n" +
+			ch17MarkLearning + " The zorblax rollout taught us to stage the cutover.\n",
 	}
 }
 
@@ -122,23 +167,32 @@ func ch17LongDoc() map[string]string {
 	}
 }
 
-// ch17QuotaArchive floods MEMORY with strong matches and puts a single weaker
-// match in docs.
+// ch17QuotaArchive floods MEMORY with strong matches and puts a single much
+// weaker match in docs.
 //
-// Ranked purely by score, memory sweeps all three slots. The docs note only
-// appears if something reserves a share of the result for other sources.
+// The crowding has to be real. An earlier version of this fixture used a short,
+// dense docs note, which BM25 ranked inside the top three on merit — so the
+// note appeared whether or not a quota existed, and deleting the quota
+// outright still scored full marks. The check was decoration.
+//
+// So docs/note.md now mentions zorblax exactly once, diluted through several
+// paragraphs of unrelated prose, while every memory log is short and says
+// almost nothing else. Ranked on score alone the four surviving logs take all
+// three slots and the note is nowhere. It can only appear if something
+// reserves a share of the result for each source.
+//
 // SkipNewestMemories drops the two newest daily logs — they are already
 // verbatim in the system prompt — so six files are written to leave four.
 func ch17QuotaArchive() map[string]string {
 	files := map[string]string{"docs/filler.md": ch17Filler(24)}
 	for i := 1; i <= 6; i++ {
 		files[fmt.Sprintf("memory/memory/2026-01-%02d-1.md", i)] =
-			fmt.Sprintf("## Zorblax rollout log %d\n\nThe zorblax rollout was settled in favour of a staged approach. "+
-				"We chose zorblax staging because the zorblax cutover risk was too high. "+
-				"The zorblax rollout proceeds in phases.\n", i)
+			fmt.Sprintf("## Zorblax rollout log %d\n\nThe zorblax rollout was settled: we chose zorblax staging "+
+				"because the zorblax cutover risk was too high. The zorblax rollout proceeds in phases.\n", i)
 	}
-	files["docs/note.md"] = "## Zorblax docs note\n\n" + ch17MarkDocs +
-		" A zorblax rollout note kept outside memory. " + strings.Repeat(ch17GardenFiller, 2)
+	files["docs/note.md"] = "## Garden and operations miscellany\n\n" + ch17MarkDocs + " " +
+		ch17GardenFiller + "A zorblax note kept outside memory. " +
+		strings.Repeat(ch17GardenFiller, 3)
 	return files
 }
 
@@ -255,6 +309,7 @@ func Ch17Run(dir string) Ch17Result {
 	gui := filepath.Join(dir, "web")
 
 	ch17Scoring(bin, skills, gui, &res)
+	ch17Indexing(bin, skills, gui, &res)
 	ch17Filtering(bin, skills, gui, &res)
 	ch17Chunking(bin, skills, gui, &res)
 	ch17Quota(bin, skills, gui, &res)
@@ -291,7 +346,7 @@ func ch17Skills() (string, error) {
 // the attached snippets is the judge's order, and a scoring bug would be
 // invisible behind it.
 func ch17Scoring(bin, skills, gui string, res *Ch17Result) {
-	ids := []string{"bm25-indexes", "bm25-scores", "bm25-stop-words", "recall-is-own-kind"}
+	ids := []string{"bm25-scores", "bm25-stop-words", "recall-is-own-kind"}
 	dir, cleanDir := freshRunDir("ch17-scoring")
 	defer cleanDir()
 	if err := ch17Write(dir, ch17Archive()); err != nil {
@@ -323,18 +378,13 @@ func ch17Scoring(bin, skills, gui string, res *Ch17Result) {
 	}
 	text := ch17RecallText(turn.Body)
 
-	// bm25-indexes: something from the archive, which the user never typed,
-	// reached the model.
-	res.ran("bm25-indexes")
-	if text == "" {
-		res.fail("bm25-indexes", "no recalled block reached the model: the archive was never indexed or never searched\n"+
-			"(the request carried no message containing %q)", ch17RecallHeader)
-	} else if !strings.Contains(text, ch17MarkStrong) {
-		res.fail("bm25-indexes", "recall ran but did not surface docs/decision.md, the best lexical match for the query.\nrecalled block was:\n%s", ch17Trunc(text))
-	}
+	// bm25-indexes is NOT checked here. It has its own scenario, because the
+	// question "was the archive indexed at all" must not be answerable only
+	// through the ranked, quota'd, judged, capped output of this one.
 
-	// bm25-scores: the dense short match must outrank the incidental mention,
-	// and generic filler must not appear at all.
+	// bm25-scores: the dense short match must outrank both the incidental
+	// mention and the long document that says "zorblax" more often than it
+	// does; and generic filler must not appear at all.
 	res.ran("bm25-scores")
 	switch {
 	case text == "":
@@ -349,6 +399,14 @@ func ch17Scoring(bin, skills, gui string, res *Ch17Result) {
 		res.fail("bm25-scores", "docs/background.md, which mentions zorblax once in four paragraphs of unrelated prose,\n"+
 			"was ranked above docs/decision.md, which is about nothing else.\n"+
 			"Term frequency and document length are not affecting the score.\nrecalled block was:\n%s", ch17Trunc(text))
+	case strings.Contains(text, ch17MarkBulk) &&
+		strings.Index(text, ch17MarkBulk) < strings.Index(text, ch17MarkStrong):
+		res.fail("bm25-scores", "docs/bulk.md was ranked above docs/decision.md.\n"+
+			"bulk.md contains the word \"zorblax\" MORE times than decision.md does, but it is ten\n"+
+			"times longer and says little else about it. Ranking it first is what counting raw\n"+
+			"occurrences produces: the score is not saturating repeated terms, and it is not being\n"+
+			"normalised by document length, so a long document can outrank a precise one simply by\n"+
+			"repeating the query.\nrecalled block was:\n%s", ch17Trunc(text))
 	}
 
 	// bm25-stop-words
@@ -405,6 +463,71 @@ func ch17CheckOwnKind(out ch17Out, turn fakevendor.Recorded, res *Ch17Result) {
 	if !found {
 		res.fail(id, "no recall event appears in the event log. Recalled material must land in the\n"+
 			"dialogue as its own permanent entry, not as turn-scoped scaffolding that replay cannot see.")
+	}
+}
+
+// ---------------------------------------------------------------------------
+// Scenario: the archive is indexed, across every source
+// ---------------------------------------------------------------------------
+
+// ch17Indexing asks the narrowest question in the chapter: was the archive
+// walked and indexed at all, and was EVERY source root walked?
+//
+// It deliberately owns its own fixture, in which exactly three chunks match
+// the query and three slots are available. Every matching chunk is therefore
+// attached regardless of how it was scored, whether a per-source quota ran,
+// what the judge decided, or where the byte cap fell. Strip any one of those
+// behaviours out and this check still passes; fail to index a source root and
+// it is the only check that fails.
+//
+// That independence is the whole point. The previous version of this check
+// read the same recalled block as the scoring check, so the only mutant that
+// killed it was one that killed seven other checks at the same time — which
+// tells you nothing about what the check actually defends.
+func ch17Indexing(bin, skills, gui string, res *Ch17Result) {
+	const id = "bm25-indexes"
+	res.ran(id)
+	dir, cleanDir := freshRunDir("ch17-indexing")
+	defer cleanDir()
+	if err := ch17Write(dir, ch17IndexArchive()); err != nil {
+		res.fail(id, "fixture: %v", err)
+		return
+	}
+	out := ch17Launch(bin, skills, gui, ch17Opts{
+		dir:     dir,
+		model:   "claude-sonnet-5-course",
+		prompts: []string{ch17Query},
+		turns:   []int{1},
+		replies: []fakevendor.Reply{{Text: "Understood."}},
+		route:   ch17JudgeReply("I am afraid I cannot determine relevance from this material."),
+	})
+	if out.fatal != "" {
+		res.fail(id, "%s", out.fatal)
+		return
+	}
+	turn, ok := ch17LastTurn(out.reqs)
+	if !ok {
+		res.fail(id, "no turn request reached the vendor")
+		return
+	}
+	text := ch17RecallText(turn.Body)
+	if text == "" {
+		res.fail(id, "no recalled block reached the model: the archive was never indexed or never searched\n"+
+			"(the request carried no message containing %q)", ch17RecallHeader)
+		return
+	}
+	for _, want := range []struct{ mark, where string }{
+		{ch17MarkStrong, "docs/decision.md"},
+		{ch17MarkHandoff, "handoffs/handoff-2026-01-01.md"},
+		{ch17MarkLearning, "learnings/learnings.md"},
+	} {
+		if !strings.Contains(text, want.mark) {
+			res.fail(id, "%s matches the query as well as anything in the archive, and there were exactly\n"+
+				"three matching chunks competing for three slots, so nothing crowded it out — yet it was\n"+
+				"not recalled. That source root is not being indexed.\nrecalled block was:\n%s",
+				want.where, ch17Trunc(text))
+			return
+		}
 	}
 }
 
@@ -647,7 +770,12 @@ func ch17Fallback(bin, skills, gui string, res *Ch17Result) {
 // by however much the archive happened to match, the context fills with
 // retrieved text, and compaction starts discarding the actual conversation to
 // make room for guesses about it.
-const ch17MaxRecallBytes = 16384
+// The bound must sit BELOW what an uncapped implementation would attach, or
+// the check cannot fail no matter how abusive the archive is. Chunks are at
+// most ~4KB and three snippets are selected, so an implementation with no cap
+// at all attaches roughly 12KB; anything at or above that is unfalsifiable.
+// 8KB is comfortably above a sane cap and comfortably below the uncapped size.
+const ch17MaxRecallBytes = 8192
 
 func ch17Flood(bin, skills, gui string, res *Ch17Result) {
 	const id = "injection-capped"
