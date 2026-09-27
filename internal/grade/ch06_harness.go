@@ -49,6 +49,11 @@ type Ch6Result struct {
 	// Multi-agent: observation agent IDs seen.
 	AgentsSeen map[string]bool
 
+	// ExerciseBuilt reports whether the section 6.10 pipeline program
+	// (ch06/main.go) was found and built, rather than falling back to the
+	// agent binary.
+	ExerciseBuilt bool
+
 	// State changes observed.
 	StateChanges []Ch6Observation
 	// Content observations (part_delta, part_final).
@@ -153,14 +158,31 @@ func ch6DriveExercise(r *Ch6Result, bin, workDir string) {
 	runDir, cleanupDir := freshRunDir("ch6-exercise")
 	defer cleanupDir()
 
-	cmd := exec.Command(bin)
+	// Section 6.10 asks for the author/editor/reviewer pipeline as its own
+	// program (ch06/main.go), which is a sibling of the agent module rather
+	// than part of it. Build() compiles the agent binary and so never sees
+	// it. Prefer the exercise program when it exists; fall back to the agent
+	// binary so a student who wired the pipeline into the agent itself is
+	// still graded rather than silently zeroed.
+	exeBin := bin
+	if p, cleanupEx, ok := buildCh06Exercise(workDir); ok {
+		defer cleanupEx()
+		exeBin = p
+		r.ExerciseBuilt = true
+	}
+
+	cmd := exec.Command(exeBin)
 	cmd.Dir = runDir
 	cmd.Env = append(os.Environ(),
 		"LLM_VENDOR=anthropic",
 		"LLM_MODEL=fake-model",
 		"LLM_API_KEY=fake-key",
 		"LLM_BASE_URL="+fake.URL(),
+		// CH02_LOG keeps its name in the agent (see cmd/cli_test.go). The
+		// exercise is a separate program and section 6.10 documents CH06_LOG
+		// for it, so set both to the same file and accept either convention.
 		"CH02_LOG="+logPath,
+		"CH06_LOG="+logPath,
 	)
 
 	stdinPipe, err := cmd.StdinPipe()
@@ -309,3 +331,39 @@ func GradeCh6(dir string) ([]Check, string) {
 
 // unused but keeps the import happy
 var _ = io.Discard
+
+// buildCh06Exercise builds the section 6.10 pipeline program.
+//
+// The chapter asks for it as its own program at ch06/main.go with its own
+// go.mod that replaces the agent module with the sibling ./agent directory.
+// Build() compiles the agent binary from cmd/, so the exercise is invisible
+// to it. Look for the exercise both inside the student directory and beside
+// it, since the student directory is the agent module itself.
+//
+// Returns ok=false when no exercise is present, so the caller can fall back
+// to the agent binary rather than fail the student outright.
+func buildCh06Exercise(workDir string) (string, func(), bool) {
+	candidates := []string{
+		filepath.Join(workDir, "ch06"),
+		filepath.Join(workDir, "..", "ch06"),
+	}
+	for _, dir := range candidates {
+		if _, err := os.Stat(filepath.Join(dir, "main.go")); err != nil {
+			continue
+		}
+		out, err := os.MkdirTemp("", "ch06ex")
+		if err != nil {
+			continue
+		}
+		bin := filepath.Join(out, "ch06exercise")
+		cmd := exec.Command("go", "build", "-o", bin, ".")
+		cmd.Dir = dir
+		if b, err := cmd.CombinedOutput(); err != nil {
+			fmt.Fprintf(os.Stderr, "ch06 exercise build failed in %s: %v\n%s\n", dir, err, b)
+			os.RemoveAll(out)
+			continue
+		}
+		return bin, func() { os.RemoveAll(out) }, true
+	}
+	return "", func() {}, false
+}

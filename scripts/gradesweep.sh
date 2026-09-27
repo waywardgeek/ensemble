@@ -8,7 +8,7 @@ OUT="${1:-/tmp/gradesweep.txt}"
 run() {
   CH="$1"; DIR="$2"
   if [ ! -d "$DIR" ]; then echo "ch$CH $DIR MISSING" >> "$OUT"; return; fi
-  S=$(go run ./cmd/grade -ch "$CH" "$DIR" 2>/dev/null | grep -Eo 'score: [0-9]+/100' | tail -1)
+  S=$(go run ./cmd/grade -ch "$CH" "$DIR" 2>/dev/null | grep -Eo 'score: [0-9]+/[0-9]+' | tail -1)
   echo "ch$CH $DIR ${S:-NOSCORE}" >> "$OUT"
   echo "ch$CH $DIR ${S:-NOSCORE}"
 }
@@ -16,6 +16,7 @@ run() {
 run 1  ./solutions/ch01
 run 2  ./solutions/ch02
 run 3  ./solutions/ch03
+run 4  ./solutions/ch04
 run 5  ./agent
 run 6  ./solutions/ch06/agent
 run 7  ./agent
@@ -37,4 +38,5 @@ run 13 ./solutions/ch13
 run 14 ./solutions/ch14
 run 15 ./solutions/ch15
 run 16 ./solutions/ch16
+run 17 ./solutions/ch17
 echo "SWEEP-DONE" >> "$OUT"

@@ -30,6 +30,14 @@ testdata/mutants/
 # does.
 bin
 **/ch0*/ch0*
+# ...but the same shape names SOURCE as well as binaries: the chapter
+# exercises live in directories like solutions/ch06/ch06/ (section 6.10's
+# author/editor/reviewer pipeline, with its own go.mod). The rule above
+# swallowed those whole, so a fresh clone had no exercise and Chapter 6
+# scored 45/100. A trailing slash matches directories only, so this
+# re-includes the exercise source while the built binaries -- which are
+# files, not directories -- stay ignored.
+!**/ch0*/ch0*/
 
 # Agent working directories: tool output and scratch, created by any manual
 # run. Run OUTPUT, not source.
@@ -53,3 +61,6 @@ cr/
 # dlv drops these next to the package it builds. Slashless so it matches
 # at any depth, for the same reason as `bin` above.
 __debug_bin*
+
+# Python bytecode from helper scripts
+__pycache__/
