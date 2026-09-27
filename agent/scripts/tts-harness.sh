@@ -144,8 +144,12 @@ fi
 
 (
   cd "$workspace"
-  LLM_BASE_URL="$LLM_BASE_URL" \
-  EN_DISABLE_STREAMING="$disable_streaming" \
+  # exec so this subshell BECOMES the agent and $! below is the agent's own
+  # pid. Without it the subshell forks, $! names the subshell, and cleanup's
+  # kill hits the wrapper while the agent is reparented to init and keeps its
+  # port forever. That leaked one agent per scenario on every ordinary run.
+  exec env LLM_BASE_URL="$LLM_BASE_URL" \
+    EN_DISABLE_STREAMING="$disable_streaming" \
     "$tmp/ensemble" --port "$port" --tts-log "$TTS_LOG" \
     > "$tmp/agent.log" 2>&1 < "$tmp/stdin"
 ) &

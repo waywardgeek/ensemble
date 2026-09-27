@@ -24,6 +24,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/waywardgeek/ensemble/internal/fakevendor"
@@ -185,6 +186,16 @@ func ch14Run(script string, sc ch14Scenario) ([]ch14Entry, string, error) {
 	cmd.Stderr = &stderr
 	cmd.Stdout = &stderr
 
+	// Put the script in its own process group so the timeout below can kill
+	// everything it started, not just the shell.
+	//
+	// The script mktemp's a directory, builds an agent into it, runs the agent
+	// in the background, and removes both in a `trap cleanup EXIT`. Killing
+	// the shell alone sends SIGKILL, which cannot be trapped, so cleanup never
+	// runs and the agent is reparented to init and lives forever holding its
+	// port. This session reaped 35 of them, the oldest 4 days 19 hours.
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+
 	done := make(chan error, 1)
 	if err := cmd.Start(); err != nil {
 		return nil, stderr.String(), err
@@ -194,7 +205,7 @@ func ch14Run(script string, sc ch14Scenario) ([]ch14Entry, string, error) {
 	select {
 	case err = <-done:
 	case <-time.After(90 * time.Second):
-		_ = cmd.Process.Kill()
+		ch14KillGroup(cmd)
 		<-done
 		return nil, stderr.String(), fmt.Errorf("harness did not finish within 90s")
 	}
@@ -250,4 +261,39 @@ func ch14Spoken(entries []ch14Entry) []string {
 // said rather than how it was divided.
 func ch14AllSpeech(entries []ch14Entry) string {
 	return strings.Join(ch14Spoken(entries), " ")
+}
+
+// ch14KillGroup stops the harness script and everything it started.
+//
+// The process is its own group leader (Setpgid above), so a negative pid
+// signals the whole group. SIGTERM goes first because the script's
+// `trap cleanup EXIT` kills the agent it launched and removes its temp
+// directory, and a trap cannot run in response to SIGKILL. SIGKILL follows as
+// a backstop for a script wedged somewhere a trap will not reach.
+func ch14KillGroup(cmd *exec.Cmd) {
+	if cmd.Process == nil {
+		return
+	}
+	pgid := -cmd.Process.Pid
+	if err := syscall.Kill(pgid, syscall.SIGTERM); err != nil {
+		// No group to signal, so fall back to the process itself.
+		_ = cmd.Process.Kill()
+		return
+	}
+	// Give cleanup a moment to run before insisting.
+	deadline := time.After(3 * time.Second)
+	tick := time.NewTicker(50 * time.Millisecond)
+	defer tick.Stop()
+	for {
+		select {
+		case <-deadline:
+			_ = syscall.Kill(pgid, syscall.SIGKILL)
+			return
+		case <-tick.C:
+			// Signal 0 tests for existence without delivering anything.
+			if err := syscall.Kill(pgid, 0); err != nil {
+				return
+			}
+		}
+	}
 }
