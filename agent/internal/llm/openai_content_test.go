@@ -2,9 +2,10 @@ package llm
 
 import (
 	"encoding/json"
-	"github.com/waywardgeek/ensemble/agent/internal/common"
 	"io"
 	"testing"
+
+	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
 
 // An assistant turn can legitimately end up carrying nothing at all.

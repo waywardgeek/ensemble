@@ -1,45 +1,47 @@
-package common
+package llm
 
 import (
 	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
 
 // SaveConfig captures everything the renderer needs to reproduce
 // exactly the same wire format: model, vendor, system prompt, and
 // tool declarations. The API key is deliberately absent.
 type SaveConfig struct {
-	Model        string     `json:"model"`
-	Vendor       string     `json:"vendor"` // stored as string for readability
-	SystemPrompt string     `json:"system_prompt"`
-	Tools        []ToolDecl `json:"tools"`
+	Model        string            `json:"model"`
+	Vendor       string            `json:"vendor"` // stored as string for readability
+	SystemPrompt string            `json:"system_prompt"`
+	Tools        []common.ToolDecl `json:"tools"`
 }
 
 // SaveFile is the on-disk representation of a persisted agent.
 // It contains enough information to reconstruct the agent's
 // exact state, resume the conversation, or interview a snapshot.
 //
-// AsOf is the anchor: the Seq of the last event already folded into
-// Context. Everything in Log above it is the tail still to apply. A
+// AsOf is the anchor: the common.Seq of the last event already folded into
+// common.Context. Everything in Log above it is the tail still to apply. A
 // snapshot with no log is a complete save; so is a log with no
 // snapshot.
 type SaveFile struct {
-	Config  SaveConfig `json:"config"`
-	AsOf    Seq        `json:"as_of"`
-	Context *Context   `json:"context"`
-	Log     []Event    `json:"log"`
+	Config  SaveConfig      `json:"config"`
+	AsOf    common.Seq      `json:"as_of"`
+	Context *common.Context `json:"context"`
+	Log     []common.Event  `json:"log"`
 }
 
 // Save writes the agent's complete state to a JSON file.
 //
-// asOf is the Seq of the last event folded into ctx. The write goes to
+// asOf is the common.Seq of the last event folded into ctx. The write goes to
 // a temporary file in the same directory and is then renamed over the
 // target, because rename is atomic within a directory: a crash halfway
 // through leaves the previous save intact rather than a truncated file
 // where the only copy of the conversation used to be.
-func Save(path string, asOf Seq, ctx *Context, log *Log, cfg Config) error {
+func Save(path string, asOf common.Seq, ctx *common.Context, log *common.Log, cfg common.Config) error {
 	return SaveRetaining(path, asOf, ctx, log, cfg, 0)
 }
 
@@ -53,7 +55,7 @@ func Save(path string, asOf Seq, ctx *Context, log *Log, cfg Config) error {
 // snapshot). It is copied, not renamed: a rename would leave a moment with no
 // save.json at all, and a crash in that moment would start the next session
 // fresh.
-func SaveRetaining(path string, asOf Seq, ctx *Context, log *Log, cfg Config, keep int) error {
+func SaveRetaining(path string, asOf common.Seq, ctx *common.Context, log *common.Log, cfg common.Config, keep int) error {
 	events := log.Events
 	if keep > 0 && len(events) > keep {
 		events = events[len(events)-keep:]
@@ -65,7 +67,7 @@ func SaveRetaining(path string, asOf Seq, ctx *Context, log *Log, cfg Config, ke
 			SystemPrompt: cfg.SystemPrompt,
 			Tools:        cfg.Tools,
 		},
-		AsOf:    asOf,
+		AsOf:           asOf,
 		Context: ctx,
 		Log:     events,
 	}
@@ -125,17 +127,17 @@ func Load(path string) (*SaveFile, error) {
 	return &sf, nil
 }
 
-// Restore turns a save file back into a live Context. It is the only
+// Restore turns a save file back into a live common.Context. It is the only
 // replay loop in the agent, and it implements rule 3 of the chapter:
 //
-//   - Context non-null: install it, then apply every log event whose
-//     Seq is strictly greater than AsOf. Events at or below AsOf are
+//   - common.Context non-null: install it, then apply every log event whose
+//     common.Seq is strictly greater than AsOf. Events at or below AsOf are
 //     already inside the snapshot, and applying one twice is a bug —
 //     the conversation would grow a duplicate turn.
-//   - Context null: there is no anchor to respect, so rebuild from
+//   - common.Context null: there is no anchor to respect, so rebuild from
 //     nothing by applying the whole log to a fresh context.
 //
-// Both paths must land on the same Context for the same save. That
+// Both paths must land on the same common.Context for the same save. That
 // equivalence is the chapter's falsifiable claim, and the grader
 // checks it by comparing the vendor requests the two produce.
 //
@@ -146,27 +148,27 @@ func Load(path string) (*SaveFile, error) {
 // in an otherwise good history, and throwing away the whole history for it
 // is the worse failure. Apply rejects such an event before mutating
 // anything, so a skip is a clean skip. A nil diag discards the reasons.
-func (sf *SaveFile) Restore(diag func(error)) *Context {
+func (sf *SaveFile) Restore(diag func(error)) *common.Context {
 	ctx, after := sf.Context, sf.AsOf
 	if ctx == nil {
-		ctx, after = NewContext(), 0
+		ctx, after = common.NewContext(), 0
 	}
 	for _, e := range sf.Log {
 		if e.Seq <= after {
 			continue
 		}
-		if err := ctx.Apply(e); err != nil && diag != nil {
+		if err := Apply(ctx, e); err != nil && diag != nil {
 			diag(fmt.Errorf("restore: skipped event %d: %w", e.Seq, err))
 		}
 	}
 	return ctx
 }
 
-// NextSeq is the Seq the first new event should get: one past the
+// NextSeq is the common.Seq the first new event should get: one past the
 // larger of the anchor and the last event in the log (rule 5). The two
 // can disagree — a save with a snapshot and an empty log knows its
 // anchor and nothing else — so neither alone is enough.
-func (sf *SaveFile) NextSeq() Seq {
+func (sf *SaveFile) NextSeq() common.Seq {
 	last := sf.AsOf
 	for _, e := range sf.Log {
 		if e.Seq > last {

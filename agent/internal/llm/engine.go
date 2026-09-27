@@ -26,7 +26,7 @@ type Engine struct {
 	Tools common.ToolRegistry
 	Host  common.Host
 	// Journal, when set, receives every event as it is recorded (ch15).
-	Journal *common.Journal
+	Journal *Journal
 	// Target is the context-size target in bytes (ch15 rule 10); zero
 	// means DefaultContextTarget. Read on every request, so a settings
 	// change takes effect at the next cut and never rewrites a past one.
@@ -64,7 +64,7 @@ type Engine struct {
 
 func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools common.ToolRegistry, host common.Host) *Engine {
 	return &Engine{
-		Log:   common.NewLog(),
+		Log:   NewLog(),
 		Ctx:   common.NewContext(),
 		Cfg:   cfg,
 		HTTP:  &http.Client{Timeout: 120 * time.Second},
@@ -85,13 +85,13 @@ func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools com
 // every replay, because replay runs the same Apply, so live and restored
 // contexts cannot drift apart over it.
 func (e *Engine) Record(ev common.Event) error {
-	stored := e.Log.Append(ev)
+	stored := Append(e.Log, ev)
 	if e.Journal != nil {
 		if err := e.Journal.Append(stored); err != nil {
 			return err
 		}
 	}
-	if err := e.Ctx.Apply(stored); err != nil {
+	if err := Apply(e.Ctx, stored); err != nil {
 		e.logf("reducer: skipped event %d (%s): %v", stored.Seq, stored.Type, err)
 	}
 	return nil
@@ -519,7 +519,7 @@ func (e *Engine) Shutdown() error {
 	return e.Save()
 }
 
-func (e *Engine) Save() error { return e.Log.SaveFile(e.Path) }
+func (e *Engine) Save() error { return SaveLogFile(e.Log, e.Path) }
 
 // CallEphemeral runs all tools with the given ephemeral mode ("round" or "turn"),
 // combines their output, and records it as a system message so the reducer puts
@@ -577,11 +577,11 @@ func (e *Engine) lastAgentText() string {
 // comparisons — and if your architecture cannot offer it cheaply, your context
 // is not actually separate from your transport.
 func RenderOnly(path string, cfg common.Config) ([]byte, error) {
-	log, err := common.LoadLogFile(path)
+	log, err := LoadLogFile(path)
 	if err != nil {
 		return nil, err
 	}
-	ctx, err := log.Replay()
+	ctx, err := Replay(log)
 	if err != nil {
 		return nil, err
 	}

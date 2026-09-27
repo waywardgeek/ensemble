@@ -14,7 +14,7 @@ const ch16Window = 4096
 func forcingEngine(t *testing.T, model string) *Engine {
 	t.Helper()
 	return &Engine{
-		Log:  common.NewLog(),
+		Log:  NewLog(),
 		Ctx:  common.NewContext(),
 		Host: testHost{t},
 		Cfg: common.Config{

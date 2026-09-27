@@ -255,7 +255,7 @@ func liveResultBytes(e *common.Entry) int {
 	n := 0
 	for _, p := range e.Parts {
 		r, ok := p.(common.ToolResultPart)
-		if !ok || common.IsStubbed(r) {
+		if !ok || IsStubbed(r) {
 			continue
 		}
 		for _, q := range r.Parts {
@@ -273,7 +273,7 @@ func callBandBytes(d []common.Entry) []int {
 	stubbed := map[string]bool{}
 	for _, e := range d {
 		for _, p := range e.Parts {
-			if r, ok := p.(common.ToolResultPart); ok && common.IsStubbed(r) {
+			if r, ok := p.(common.ToolResultPart); ok && IsStubbed(r) {
 				stubbed[r.CallID] = true
 			}
 		}
@@ -290,7 +290,7 @@ func callBandBytes(d []common.Entry) []int {
 					out[i] += len(v.Args)
 				}
 			case common.ToolResultPart:
-				if common.IsStubbed(v) {
+				if IsStubbed(v) {
 					out[i] += len(v.Parts[0].(common.RedactedPart).Stub)
 				}
 			}

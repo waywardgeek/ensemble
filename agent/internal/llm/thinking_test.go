@@ -11,8 +11,9 @@ import (
 // contains a thinking block and the correct wire format for the model.
 //
 // Claude-sonnet-5 and claude-opus-5 use ADAPTIVE thinking:
-//   thinking: { "type": "adaptive" }
-//   output_config: { "effort": "high" }
+//
+//	thinking: { "type": "adaptive" }
+//	output_config: { "effort": "high" }
 //
 // This is a regression guard for the bug where Claude showed NO thinking
 // because anthRequest had no thinking field. The fake vendor concealed it

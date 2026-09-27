@@ -1,4 +1,4 @@
-package common
+package llm
 
 // The journal: events reach disk as they happen (Chapter 15 rule 9).
 //
@@ -24,6 +24,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
 
 // JournalPath is where the journal for a save file lives.
@@ -44,7 +46,7 @@ func OpenJournal(path string) (*Journal, error) {
 }
 
 // Append writes one event as one line, in one write.
-func (j *Journal) Append(e Event) error {
+func (j *Journal) Append(e common.Event) error {
 	b, err := json.Marshal(e)
 	if err != nil {
 		return fmt.Errorf("journal: marshal event %d: %w", e.Seq, err)
@@ -73,7 +75,7 @@ func (j *Journal) Close() error { return j.f.Close() }
 // is an empty one. A line that does not parse is skipped and reported to
 // diag: the last line of a journal written by a process that died mid-write
 // is the expected case, and one bad line must not cost the lines around it.
-func ReadJournal(path string, diag func(error)) ([]Event, error) {
+func ReadJournal(path string, diag func(error)) ([]common.Event, error) {
 	data, err := os.ReadFile(path)
 	if errors.Is(err, os.ErrNotExist) {
 		return nil, nil
@@ -81,12 +83,12 @@ func ReadJournal(path string, diag func(error)) ([]Event, error) {
 	if err != nil {
 		return nil, fmt.Errorf("journal: %w", err)
 	}
-	var out []Event
+	var out []common.Event
 	r := bufio.NewReader(bytes.NewReader(data))
 	for n := 1; ; n++ {
 		line, err := r.ReadBytes('\n')
 		if len(bytes.TrimSpace(line)) > 0 {
-			var e Event
+			var e common.Event
 			if uerr := json.Unmarshal(line, &e); uerr != nil {
 				if diag != nil {
 					diag(fmt.Errorf("journal %s line %d: skipped: %v", path, n, uerr))
@@ -130,7 +132,7 @@ func Recover(savePath string, diag func(error)) (*SaveFile, error) {
 	for _, e := range tail {
 		// Events already in the snapshot's log are in the journal too when
 		// the process died after writing the snapshot and before resetting
-		// the journal. Seq says which is which.
+		// the journal. common.Seq says which is which.
 		if e.Seq <= last {
 			continue
 		}

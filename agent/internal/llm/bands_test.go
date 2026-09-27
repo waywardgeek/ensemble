@@ -30,7 +30,7 @@ func bandFixture(t *testing.T) (*Engine, string) {
 	write("memory/bucket-0/2026-09-01-1_2026-09-20-3.md", "September, compressed once.")
 
 	e := &Engine{
-		Log:    common.NewLog(),
+		Log:    NewLog(),
 		Ctx:    common.NewContext(),
 		Memory: NewStore(dir),
 	}
@@ -45,11 +45,11 @@ func TestSyncBandsLoadsMemoryAtStartup(t *testing.T) {
 		t.Fatalf("sync: %v", err)
 	}
 	for _, b := range []common.Band{common.BandSoul, common.BandMemory, common.Band8x} {
-		if got := len(e.Ctx.BandEntries(b)); got != 1 {
+		if got := len(BandEntries(e.Ctx, b)); got != 1 {
 			t.Errorf("band %s holds %d entries, want 1", b, got)
 		}
 	}
-	if got := len(e.Ctx.BandEntries(common.BandSession)); got != 2 {
+	if got := len(BandEntries(e.Ctx, common.BandSession)); got != 2 {
 		t.Errorf("session band holds %d entries, want 2", got)
 	}
 	// Bands sit ahead of the conversation, coarsest first.
@@ -110,7 +110,7 @@ func TestSyncBandsDisableRestoreReflectsDisk(t *testing.T) {
 	if err := e.SyncBands("settings"); err != nil {
 		t.Fatalf("disable: %v", err)
 	}
-	if got := len(e.Ctx.BandEntries(common.BandSession)); got != 0 {
+	if got := len(BandEntries(e.Ctx, common.BandSession)); got != 0 {
 		t.Fatalf("session band still holds %d entries after being switched off", got)
 	}
 
@@ -136,7 +136,7 @@ func TestSyncBandsDisableRestoreReflectsDisk(t *testing.T) {
 		t.Fatalf("restore after edit: %v", err)
 	}
 	found := false
-	for _, entry := range e.Ctx.BandEntries(common.BandSession) {
+	for _, entry := range BandEntries(e.Ctx, common.BandSession) {
 		for _, p := range entry.Parts {
 			if tp, ok := p.(common.TextPart); ok && contains(tp.Text, "Bill deleted them") {
 				found = true
@@ -165,14 +165,14 @@ func TestBandEventsCarryTheirBytes(t *testing.T) {
 	// Replay the log into a fresh context with the files gone.
 	replayed := common.NewContext()
 	for _, ev := range e.Log.Events {
-		if err := replayed.Apply(ev); err != nil {
+		if err := Apply(replayed, ev); err != nil {
 			t.Fatalf("replay: %v", err)
 		}
 	}
 	if mustMarshal(t, replayed) != mustMarshal(t, e.Ctx) {
 		t.Error("replaying the log without the memory files produced a different context")
 	}
-	if replayed.BandBytes(common.BandSession) == 0 {
+	if BandBytes(replayed, common.BandSession) == 0 {
 		t.Error("session memory vanished on replay: the events did not carry their bytes")
 	}
 }

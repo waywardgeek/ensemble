@@ -60,8 +60,8 @@ func gemTools(decls []common.ToolDecl) []gemTool {
 }
 
 type gemGenConfig struct {
-	MaxOutputTokens int              `json:"maxOutputTokens,omitempty"`
-	ThinkingConfig  *gemThinkConfig  `json:"thinkingConfig,omitempty"`
+	MaxOutputTokens int             `json:"maxOutputTokens,omitempty"`
+	ThinkingConfig  *gemThinkConfig `json:"thinkingConfig,omitempty"`
 }
 
 // gemThinkConfig is Gemini's thinking configuration.

@@ -139,7 +139,7 @@ func main() {
 		usage(os.Stdout)
 
 	case "verify":
-		sf, err := common.Load(savePath)
+		sf, err := llm.Load(savePath)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "load: %v\n", err)
 			os.Exit(2)
@@ -149,7 +149,7 @@ func main() {
 		// nothing to compare, so this only means something for a save
 		// that still carries its whole history. verify is a debugging
 		// aid and no part of the contract: nothing grades it.
-		full := &common.SaveFile{Log: sf.Log}
+		full := &llm.SaveFile{Log: sf.Log}
 		rebuilt := full.Restore(func(err error) {
 			fmt.Fprintf(os.Stderr, "rebuild: %v\n", err)
 		})
@@ -185,12 +185,12 @@ func main() {
 		}
 
 	case "dump":
-		log, err := common.LoadLogFile(logPath)
+		log, err := llm.LoadLogFile(logPath)
 		if err != nil {
 			fmt.Fprintln(os.Stderr, "dump:", err)
 			os.Exit(1)
 		}
-		if err := log.Write(os.Stdout); err != nil {
+		if err := llm.Write(log, os.Stdout); err != nil {
 			fmt.Fprintln(os.Stderr, "dump:", err)
 			os.Exit(1)
 		}
@@ -321,7 +321,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	// last snapshot, so a session that was killed resumes where it died.
 	// Recover assembles snapshot + log + journal tail; Restore applies the
 	// tail, skipping (and logging) any event it cannot apply.
-	sf, err := common.Recover(savePath, func(err error) { host.Logf("load: %v", err) })
+	sf, err := llm.Recover(savePath, func(err error) { host.Logf("load: %v", err) })
 	if err != nil {
 		// A file that exists but does not parse is fatal. We must
 		// NOT start fresh over it: the agent saves at exit, and a
@@ -341,7 +341,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		eng.Log.Events = sf.Log
 		// Rule 5: numbering continues past both the anchor and the log,
 		// which is why NextSeq looks at both.
-		eng.Log.ResetSeq(sf.NextSeq())
+		llm.ResetSeq(eng.Log, sf.NextSeq())
 		// Rule 7 is enforced by what is ABSENT here: nothing copies
 		// sf.Config back into cfg. The save records what shaped the
 		// wire so a human can read it; the running agent's own model,
@@ -349,7 +349,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		// vendor-independent, so a conversation saved against one
 		// vendor resumes against another.
 	}
-	journal, err := common.OpenJournal(common.JournalPath(savePath))
+	journal, err := llm.OpenJournal(llm.JournalPath(savePath))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "agent: %v\n", err)
 		os.Exit(1)
@@ -729,13 +729,13 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	if n := len(eng.Log.Events); n > 0 {
 		asOf = eng.Log.Events[n-1].Seq
 	} else {
-		asOf = eng.Log.NextSeq() - 1
+		asOf = llm.NextSeq(eng.Log) - 1
 	}
 	// Chapter 15 rule 9: snapshot first, then empty the journal, and only
 	// if the snapshot landed. The other order loses the tail to a crash
 	// between the two; a failed save that still emptied the journal loses
 	// it outright.
-	if err := common.SaveRetaining(savePath, asOf, eng.Ctx, eng.Log, eng.Cfg, settingsStore.Get().LogRetention); err != nil {
+	if err := llm.SaveRetaining(savePath, asOf, eng.Ctx, eng.Log, eng.Cfg, settingsStore.Get().LogRetention); err != nil {
 		fmt.Fprintf(os.Stderr, "save: %v\n", err)
 	} else if err := journal.Reset(); err != nil {
 		fmt.Fprintf(os.Stderr, "save: %v\n", err)

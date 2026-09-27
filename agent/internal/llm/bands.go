@@ -43,7 +43,7 @@ func (e *Engine) SyncBands(source string) error {
 		settings := cfg.For(b)
 
 		if settings.Disabled {
-			if len(e.Ctx.BandEntries(b)) == 0 {
+			if len(BandEntries(e.Ctx, b)) == 0 {
 				continue
 			}
 			if err := e.Record(common.Event{
@@ -60,7 +60,7 @@ func (e *Engine) SyncBands(source string) error {
 			return fmt.Errorf("reading band %s: %w", b, err)
 		}
 		for _, p := range populates {
-			if e.Ctx.BandHas(b, p.File, p.Text) {
+			if BandHas(e.Ctx, b, p.File, p.Text) {
 				continue
 			}
 			data := p

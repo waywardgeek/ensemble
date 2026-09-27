@@ -55,13 +55,13 @@ func (e *Engine) compactConversation(cfg common.BandConfig) {
 	if cfg.Session.Disabled {
 		return
 	}
-	if e.Ctx.ConversationBytes() <= cfg.Conversation.High() {
+	if ConversationBytes(e.Ctx) <= cfg.Conversation.High() {
 		return
 	}
 
 	low := cfg.Conversation.Low()
-	for e.Ctx.ConversationBytes() > low {
-		sel, ok := SelectForCompression(e.Ctx, e.Ctx.ConversationBytes() - low)
+	for ConversationBytes(e.Ctx) > low {
+		sel, ok := SelectForCompression(e.Ctx, ConversationBytes(e.Ctx)-low)
 		if !ok {
 			// Everything that is left is the live segment. Refusing to
 			// touch it is the correct outcome, not a failure: the work in

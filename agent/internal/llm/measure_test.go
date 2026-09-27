@@ -57,13 +57,13 @@ func TestMeasureMemory(t *testing.T) {
 
 		r := result{
 			bands:     map[common.Band]int{},
-			convo:     e.Ctx.ConversationBytes(),
+			convo:     ConversationBytes(e.Ctx),
 			turns:     turns,
 			budgetSes: cfg.For(common.BandSession).Budget,
 			budgetCon: cfg.Conversation.Budget,
 		}
 		for _, b := range common.AllBands() {
-			r.bands[b] = e.Ctx.BandBytes(b)
+			r.bands[b] = BandBytes(e.Ctx, b)
 		}
 		for _, ev := range e.Log.Events {
 			switch ev.Type {

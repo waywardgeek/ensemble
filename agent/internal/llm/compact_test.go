@@ -56,7 +56,7 @@ func compactEngine(t *testing.T, f *fakeCompressor, cfg common.BandConfig) (*Eng
 	dir := t.TempDir()
 	store := NewStore(dir)
 	e := &Engine{
-		Log:  common.NewLog(),
+		Log:  NewLog(),
 		Ctx:  common.NewContext(),
 		Host: testHost{t},
 		Cfg: common.Config{
@@ -85,7 +85,7 @@ func (h testHost) Debugf(format string, args ...any)  { h.t.Logf(format, args...
 // actually sees.
 func bandText(c *common.Context, b common.Band) []string {
 	var out []string
-	for _, e := range c.BandEntries(b) {
+	for _, e := range BandEntries(c, b) {
 		for _, p := range e.Parts {
 			if tp, ok := p.(common.TextPart); ok {
 				out = append(out, tp.Text)
@@ -128,9 +128,9 @@ func TestCompactionSwapsConversationForMemory(t *testing.T) {
 	checkpoint(e)
 	say(e, 400) // the live segment, which must survive
 
-	before := e.Ctx.ConversationBytes()
+	before := ConversationBytes(e.Ctx)
 	e.maybeCompact()
-	after := e.Ctx.ConversationBytes()
+	after := ConversationBytes(e.Ctx)
 
 	if after >= before {
 		t.Fatalf("conversation did not shrink: %d then %d", before, after)
@@ -171,11 +171,11 @@ func TestCompactionWillNotEatTheLiveSegment(t *testing.T) {
 	}
 	// No checkpoint has ever landed.
 
-	before := e.Ctx.ConversationBytes()
+	before := ConversationBytes(e.Ctx)
 	e.maybeCompact()
 
-	if e.Ctx.ConversationBytes() != before {
-		t.Fatalf("compacted unfinished work: %d became %d", before, e.Ctx.ConversationBytes())
+	if ConversationBytes(e.Ctx) != before {
+		t.Fatalf("compacted unfinished work: %d became %d", before, ConversationBytes(e.Ctx))
 	}
 	if len(f.bodies) != 0 {
 		t.Fatalf("called the compressor with nothing safe to compress: %d calls", len(f.bodies))

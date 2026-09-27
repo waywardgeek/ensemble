@@ -90,8 +90,6 @@ func (s *Store) dirFor(b common.Band) (path string, single bool) {
 	return "", false
 }
 
-
-
 // Files lists one band's LIVE memory, oldest first, with contents read.
 //
 // Live means "still in the band", which for session memories is not the same

@@ -1050,7 +1050,7 @@ func (r *Reg) WireSkills(sr common.Skills, vars common.Vars, eventLog *common.Lo
 			}
 			seq := 0
 			if eventLog != nil {
-				seq = eventLog.Len()
+				seq = len(eventLog.Events)
 			}
 			before := r.declared()
 			body, err := sr.LoadDynamic(input.Name, seq, vars)

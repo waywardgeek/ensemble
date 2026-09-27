@@ -15,7 +15,7 @@ func convo(t *testing.T, spec ...any) *common.Context {
 		seq++
 		switch v := item.(type) {
 		case string: // a checkpoint note
-			if err := c.Apply(common.Event{Seq: seq, Type: common.MicroHandoff, Handoff: &common.MicroHandoffData{Text: v}}); err != nil {
+			if err := Apply(c, common.Event{Seq: seq, Type: common.MicroHandoff, Handoff: &common.MicroHandoffData{Text: v}}); err != nil {
 				t.Fatalf("handoff: %v", err)
 			}
 		case int: // a dialogue entry of v bytes
@@ -23,7 +23,7 @@ func convo(t *testing.T, spec ...any) *common.Context {
 			for i := range text {
 				text[i] = 'x'
 			}
-			if err := c.Apply(common.Event{Seq: seq, Type: common.MessageReceived, Message: &common.MessageData{
+			if err := Apply(c, common.Event{Seq: seq, Type: common.MessageReceived, Message: &common.MessageData{
 				Actor: common.ActorHuman, Parts: common.PartList{common.TextPart{Text: string(text)}},
 			}}); err != nil {
 				t.Fatalf("message: %v", err)
@@ -132,7 +132,7 @@ func TestSelectDeclinesWhenThereIsNothingToTake(t *testing.T) {
 // it is removed only by its own verb.
 func TestSelectIgnoresMemoryBands(t *testing.T) {
 	c := common.NewContext()
-	if err := c.Apply(common.Event{Seq: 1, Type: common.BandPopulated, BandAdd: &common.BandPopulatedData{
+	if err := Apply(c, common.Event{Seq: 1, Type: common.BandPopulated, BandAdd: &common.BandPopulatedData{
 		Band: common.BandSession, File: common.MemoryFileID{Date: "2026-09-26", Num: 1},
 		Text: "a large and ancient memory that must not be recompressed",
 	}}); err != nil {
