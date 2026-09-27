@@ -19,6 +19,7 @@ import (
 	"github.com/waywardgeek/ensemble/agent/internal/jobs"
 	"github.com/waywardgeek/ensemble/agent/internal/llm"
 	"github.com/waywardgeek/ensemble/agent/internal/mcp"
+	"github.com/waywardgeek/ensemble/agent/internal/skills"
 	"github.com/waywardgeek/ensemble/agent/internal/tools"
 	"github.com/waywardgeek/ensemble/agent/internal/ws"
 )
@@ -33,9 +34,9 @@ type Usage = common.Usage
 // Skill types.
 type SkillProperties = common.SkillProperties
 type MCPServerConfig = common.MCPServerConfig
-type SkillRegistry = common.SkillRegistry
-type VarRenderer = common.VarRenderer
-type VarRegistry = common.VarRegistry
+type SkillRegistry = skills.SkillRegistry
+type VarRenderer = skills.VarRenderer
+type VarRegistry = skills.VarRegistry
 
 // MCP types.
 type MCPTransport = mcp.Transport
@@ -176,8 +177,8 @@ type ToolHandler func(args json.RawMessage) (string, error)
 type Agent struct {
 	eng        *llm.Engine
 	reg        *tools.Reg
-	skills     *common.SkillRegistry
-	vars       *common.VarRegistry
+	skills     *skills.SkillRegistry
+	vars       *skills.VarRegistry
 	Logger     *Logger
 	mcpClients []*mcp.Client // active MCP connections for cleanup
 }
@@ -190,15 +191,15 @@ type Agent struct {
 func NewAgent(cfg Config, logPath string) *Agent {
 	a := &Agent{
 		Logger: DefaultLogger(),
-		skills: common.NewSkillRegistry(),
-		vars:   common.NewVarRegistry(),
+		skills: skills.NewSkillRegistry(),
+		vars:   skills.NewVarRegistry(),
 	}
 	j := jobs.NewJobs(a)
 	a.reg = tools.NewRegistry()
 
 	// Register built-in variable renderers.
-	a.vars.Register("TOOLS", common.BuiltinToolsRenderer(a.skills, a.reg))
-	a.vars.Register("SKILLS", common.BuiltinSkillsRenderer(a.skills))
+	a.vars.Register("TOOLS", skills.BuiltinToolsRenderer(a.skills, a.reg))
+	a.vars.Register("SKILLS", skills.BuiltinSkillsRenderer(a.skills))
 
 	cfg.Tools = a.reg.Declarations()
 	a.eng = llm.NewEngine(cfg, logPath, j, a.reg, a)
@@ -211,8 +212,8 @@ func NewAgent(cfg Config, logPath string) *Agent {
 func NewBareAgent(cfg Config, logPath string) *Agent {
 	a := &Agent{
 		Logger: DefaultLogger(),
-		skills: common.NewSkillRegistry(),
-		vars:   common.NewVarRegistry(),
+		skills: skills.NewSkillRegistry(),
+		vars:   skills.NewVarRegistry(),
 	}
 	j := jobs.NewJobs(a)
 	a.reg = tools.NewBareRegistry()
@@ -384,12 +385,12 @@ func NewPauseGate() *PauseGate {
 
 // NewSkillRegistry creates an empty skill registry.
 func NewSkillRegistry() *SkillRegistry {
-	return common.NewSkillRegistry()
+	return skills.NewSkillRegistry()
 }
 
 // NewVarRegistry creates an empty variable registry.
 func NewVarRegistry() *VarRegistry {
-	return common.NewVarRegistry()
+	return skills.NewVarRegistry()
 }
 
 // NewSettingsStore creates a settings store. If path is non-empty and the

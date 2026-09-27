@@ -2,14 +2,15 @@ package main
 
 import (
 	"encoding/json"
-	"github.com/waywardgeek/ensemble/agent/internal/common"
-	"github.com/waywardgeek/ensemble/agent/internal/jobs"
-	"github.com/waywardgeek/ensemble/agent/internal/llm"
-	"github.com/waywardgeek/ensemble/agent/internal/tools"
 	"os"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/waywardgeek/ensemble/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/internal/jobs"
+	"github.com/waywardgeek/ensemble/agent/internal/llm"
+	"github.com/waywardgeek/ensemble/agent/internal/tools"
 )
 
 // The reference REFUSES an anchor it cannot resolve to exactly one place —

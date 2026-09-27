@@ -1,4 +1,4 @@
-package common
+package skills
 
 import (
 	"fmt"
@@ -6,24 +6,19 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
-)
 
-// SkillEntry is a skill in the registry with its runtime load state.
-type SkillEntry struct {
-	Props    *SkillProperties
-	State    LoadState
-	EventSeq int // 0 for initial/available; event seq for dynamic loads
-}
+	"github.com/waywardgeek/ensemble/agent/internal/common"
+)
 
 // SkillRegistry manages all known skills and their load states.
 type SkillRegistry struct {
-	skills map[string]*SkillEntry
+	skills map[string]*common.SkillEntry
 }
 
 // NewSkillRegistry creates an empty registry.
 func NewSkillRegistry() *SkillRegistry {
 	return &SkillRegistry{
-		skills: make(map[string]*SkillEntry),
+		skills: make(map[string]*common.SkillEntry),
 	}
 }
 
@@ -53,9 +48,9 @@ func (r *SkillRegistry) DiscoverSkills(dir string) error {
 			return fmt.Errorf("parsing %s: %w", skillPath, err)
 		}
 		props.FilePath = skillPath
-		r.skills[props.Name] = &SkillEntry{
+		r.skills[props.Name] = &common.SkillEntry{
 			Props: props,
-			State: LoadAvailable,
+			State: common.LoadAvailable,
 		}
 	}
 	return nil
@@ -63,36 +58,36 @@ func (r *SkillRegistry) DiscoverSkills(dir string) error {
 
 // Register adds a skill to the registry. Used for programmatic registration
 // (e.g., in tests or for embedded skills).
-func (r *SkillRegistry) Register(props *SkillProperties) {
-	r.skills[props.Name] = &SkillEntry{
+func (r *SkillRegistry) Register(props *common.SkillProperties) {
+	r.skills[props.Name] = &common.SkillEntry{
 		Props: props,
-		State: LoadAvailable,
+		State: common.LoadAvailable,
 	}
 }
 
 // Get returns a skill entry by name, or nil if not found.
-func (r *SkillRegistry) Get(name string) *SkillEntry {
+func (r *SkillRegistry) Get(name string) *common.SkillEntry {
 	return r.skills[name]
 }
 
-// LoadInitial loads a skill and marks it as initial (loaded at creation).
+// common.LoadInitial loads a skill and marks it as initial (loaded at creation).
 // Resolves depends: chain. Panics on circular dependencies.
-func (r *SkillRegistry) LoadInitial(name string, vars *VarRegistry) error {
-	return r.load(name, LoadInitial, 0, vars, nil)
+func (r *SkillRegistry) LoadInitial(name string, vars common.Vars) error {
+	return r.load(name, common.LoadInitial, 0, vars, nil)
 }
 
 // LoadDynamic loads a skill and marks it as dynamic (loaded via load_skill).
 // Resolves depends: chain. Returns the rendered body.
-func (r *SkillRegistry) LoadDynamic(name string, eventSeq int, vars *VarRegistry) (string, error) {
+func (r *SkillRegistry) LoadDynamic(name string, eventSeq int, vars common.Vars) (string, error) {
 	// Check the skill is loadable
 	entry := r.skills[name]
 	if entry == nil {
 		return "", fmt.Errorf("unknown skill %q", name)
 	}
-	if entry.Props.Type == SkillPrimary {
+	if entry.Props.Type == common.SkillPrimary {
 		return "", fmt.Errorf("skill %q is primary and cannot be loaded dynamically", name)
 	}
-	if entry.State == LoadDynamic || entry.State == LoadInitial {
+	if entry.State == common.LoadDynamic || entry.State == common.LoadInitial {
 		return "", fmt.Errorf("skill %q is already loaded", name)
 	}
 
@@ -101,7 +96,7 @@ func (r *SkillRegistry) LoadDynamic(name string, eventSeq int, vars *VarRegistry
 		return "", fmt.Errorf("skill %q is not available for loading (not declared by any loaded skill's loadable-skills)", name)
 	}
 
-	if err := r.load(name, LoadDynamic, eventSeq, vars, nil); err != nil {
+	if err := r.load(name, common.LoadDynamic, eventSeq, vars, nil); err != nil {
 		return "", err
 	}
 	return entry.Props.Body, nil
@@ -109,7 +104,7 @@ func (r *SkillRegistry) LoadDynamic(name string, eventSeq int, vars *VarRegistry
 
 // load is the internal loader. visiting tracks the dependency chain for
 // cycle detection.
-func (r *SkillRegistry) load(name string, state LoadState, eventSeq int, vars *VarRegistry, visiting map[string]bool) error {
+func (r *SkillRegistry) load(name string, state common.LoadState, eventSeq int, vars common.Vars, visiting map[string]bool) error {
 	if visiting == nil {
 		visiting = make(map[string]bool)
 	}
@@ -129,7 +124,7 @@ func (r *SkillRegistry) load(name string, state LoadState, eventSeq int, vars *V
 	}
 
 	// Already loaded — skip (dependency pulled in by multiple paths)
-	if entry.State == LoadInitial || entry.State == LoadDynamic {
+	if entry.State == common.LoadInitial || entry.State == common.LoadDynamic {
 		return nil
 	}
 
@@ -160,10 +155,10 @@ func (r *SkillRegistry) MarkUnload(name string) error {
 	if entry == nil {
 		return fmt.Errorf("unknown skill %q", name)
 	}
-	if entry.State != LoadDynamic && entry.State != LoadInitial {
+	if entry.State != common.LoadDynamic && entry.State != common.LoadInitial {
 		return fmt.Errorf("skill %q is not loaded", name)
 	}
-	entry.State = LoadPendingUnload
+	entry.State = common.LoadPendingUnload
 	return nil
 }
 
@@ -175,12 +170,12 @@ func (r *SkillRegistry) IsLoadable(name string) bool {
 	if entry == nil {
 		return false
 	}
-	if entry.Props.Type != SkillLoadable {
+	if entry.Props.Type != common.SkillLoadable {
 		return false
 	}
 	// Check if any loaded skill declares this in its loadable-skills
 	for _, e := range r.skills {
-		if e.State != LoadInitial && e.State != LoadDynamic {
+		if e.State != common.LoadInitial && e.State != common.LoadDynamic {
 			continue
 		}
 		for _, ls := range e.Props.LoadableSkills {
@@ -194,11 +189,11 @@ func (r *SkillRegistry) IsLoadable(name string) bool {
 
 // LoadableSkills returns the names and descriptions of skills currently
 // available for load_skill, sorted by name.
-func (r *SkillRegistry) LoadableSkills() []SkillSummary {
+func (r *SkillRegistry) LoadableSkills() []common.SkillSummary {
 	// First, collect all names declared loadable by loaded skills
 	available := make(map[string]bool)
 	for _, e := range r.skills {
-		if e.State != LoadInitial && e.State != LoadDynamic {
+		if e.State != common.LoadInitial && e.State != common.LoadDynamic {
 			continue
 		}
 		for _, ls := range e.Props.LoadableSkills {
@@ -206,20 +201,20 @@ func (r *SkillRegistry) LoadableSkills() []SkillSummary {
 		}
 	}
 
-	var result []SkillSummary
+	var result []common.SkillSummary
 	for name := range available {
 		entry := r.skills[name]
 		if entry == nil {
 			continue
 		}
 		// Only show skills that are loadable type and not already loaded
-		if entry.Props.Type != SkillLoadable {
+		if entry.Props.Type != common.SkillLoadable {
 			continue
 		}
-		if entry.State == LoadInitial || entry.State == LoadDynamic {
+		if entry.State == common.LoadInitial || entry.State == common.LoadDynamic {
 			continue // Already loaded
 		}
-		result = append(result, SkillSummary{
+		result = append(result, common.SkillSummary{
 			Name:        entry.Props.Name,
 			Description: entry.Props.Description,
 		})
@@ -235,7 +230,7 @@ func (r *SkillRegistry) LoadableSkills() []SkillSummary {
 func (r *SkillRegistry) LoadedTools() []string {
 	seen := make(map[string]bool)
 	for _, e := range r.skills {
-		if e.State != LoadInitial && e.State != LoadDynamic {
+		if e.State != common.LoadInitial && e.State != common.LoadDynamic {
 			continue
 		}
 		for _, t := range e.Props.Tools {
@@ -264,7 +259,7 @@ func (r *SkillRegistry) IsToolEnabled(name string) bool {
 	// left with only load_skill and unload_skill.
 	loaded := false
 	for _, e := range r.skills {
-		if e.State == LoadInitial || e.State == LoadDynamic {
+		if e.State == common.LoadInitial || e.State == common.LoadDynamic {
 			loaded = true
 			break
 		}
@@ -273,7 +268,7 @@ func (r *SkillRegistry) IsToolEnabled(name string) bool {
 		return true
 	}
 	for _, e := range r.skills {
-		if e.State != LoadInitial && e.State != LoadDynamic {
+		if e.State != common.LoadInitial && e.State != common.LoadDynamic {
 			continue
 		}
 		for _, t := range e.Props.Tools {
@@ -285,18 +280,12 @@ func (r *SkillRegistry) IsToolEnabled(name string) bool {
 	return false
 }
 
-// SkillSummary is a lightweight representation for listing.
-type SkillSummary struct {
-	Name        string
-	Description string
-}
-
 // InitialBodies returns the rendered bodies of all initially-loaded skills,
 // in alphabetical order by name. Used to build the system prompt at creation.
 func (r *SkillRegistry) InitialBodies() []string {
-	var entries []*SkillEntry
+	var entries []*common.SkillEntry
 	for _, e := range r.skills {
-		if e.State == LoadInitial {
+		if e.State == common.LoadInitial {
 			entries = append(entries, e)
 		}
 	}
@@ -311,3 +300,4 @@ func (r *SkillRegistry) InitialBodies() []string {
 	}
 	return bodies
 }
+

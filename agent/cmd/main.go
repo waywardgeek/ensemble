@@ -26,6 +26,7 @@ import (
 	"github.com/waywardgeek/ensemble/agent/internal/llm"
 	"github.com/waywardgeek/ensemble/agent/internal/mcp"
 	"github.com/waywardgeek/ensemble/agent/internal/recall"
+	"github.com/waywardgeek/ensemble/agent/internal/skills"
 	"github.com/waywardgeek/ensemble/agent/internal/tools"
 	"github.com/waywardgeek/ensemble/agent/internal/ws"
 )
@@ -265,12 +266,12 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	if skillsDir != "" {
 		skillDir = skillsDir
 	}
-	sr := common.NewSkillRegistry()
-	vars := common.NewVarRegistry()
+	sr := skills.NewSkillRegistry()
+	vars := skills.NewVarRegistry()
 
 	// Built-in variable renderers.
-	vars.Register("TOOLS", common.BuiltinToolsRenderer(sr, reg))
-	vars.Register("SKILLS", common.BuiltinSkillsRenderer(sr))
+	vars.Register("TOOLS", skills.BuiltinToolsRenderer(sr, reg))
+	vars.Register("SKILLS", skills.BuiltinSkillsRenderer(sr))
 
 	// Application-specific variable renderers (from environment).
 	if cv := os.Getenv("EN_CUSTOM_VAR"); cv != "" {

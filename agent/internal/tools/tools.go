@@ -761,7 +761,7 @@ type Reg struct {
 	tools          map[string]common.Tool
 	argSpec        map[string]string
 	meta           map[string]ToolMeta // provenance per tool name
-	skills         *common.SkillRegistry // nil until skills are wired
+	skills         common.Skills // nil until skills are wired
 	onToolsChanged func() // called when tool declarations change (e.g., skill loaded)
 
 	// Skill-based MCP lifecycle callbacks — set by the host (cmd/main.go).
@@ -829,7 +829,7 @@ func (r *Reg) RegisterDynamic(name, description string, schema json.RawMessage, 
 }
 
 // SetSkillRegistry wires up the skill registry for tool filtering.
-func (r *Reg) SetSkillRegistry(sr *common.SkillRegistry) {
+func (r *Reg) SetSkillRegistry(sr common.Skills) {
 	r.skills = sr
 }
 
@@ -1017,7 +1017,7 @@ func (r *Reg) EphemeralTools(mode string) []common.Tool {
 // WireSkills adds the load_skill and unload_skill tools to the registry,
 // wired to the given skill and variable registries. Call this after
 // NewRegistry and before the first Ask.
-func (r *Reg) WireSkills(sr *common.SkillRegistry, vars *common.VarRegistry, eventLog *common.Log) {
+func (r *Reg) WireSkills(sr common.Skills, vars common.Vars, eventLog *common.Log) {
 	r.skills = sr
 
 	loadSchema := json.RawMessage(`{

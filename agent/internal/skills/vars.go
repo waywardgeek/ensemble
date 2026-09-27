@@ -1,9 +1,11 @@
-package common
+package skills
 
 import (
 	"fmt"
 	"sort"
 	"strings"
+
+	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
 
 // VarRenderer produces the current value of a template variable.
@@ -82,7 +84,7 @@ func isVarChar(c byte) bool {
 
 // BuiltinToolsRenderer creates a VarRenderer for $TOOLS that lists
 // the currently-enabled tool declarations.
-func BuiltinToolsRenderer(skills *SkillRegistry, toolReg interface{ Declarations() []ToolDecl }) VarRenderer {
+func BuiltinToolsRenderer(skills *SkillRegistry, toolReg interface{ Declarations() []common.ToolDecl }) VarRenderer {
 	return func() string {
 		enabled := skills.LoadedTools()
 		if len(enabled) == 0 {
@@ -119,3 +121,4 @@ func BuiltinSkillsRenderer(skills *SkillRegistry) VarRenderer {
 		return strings.Join(lines, "\n")
 	}
 }
+
