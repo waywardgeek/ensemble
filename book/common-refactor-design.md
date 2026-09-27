@@ -90,12 +90,34 @@ job.
 
 Result: hub 4,917 to 4,310 lines, behavior 51% to 45%, new spoke 652 lines.
 
+## What was done: settings becomes a spoke
+
+Same shape, smaller. `SettingsStore` is a mutex, `settings.json` file I/O and
+clamping: behavior, consumed by exactly one spoke (`ws`) through two methods,
+`Get` and `ApplyRaw`.
+
+- **Moved to `internal/settings`**: `SettingsStore`, `NewSettingsStore`,
+  `LoadFromDisk`, `ApplyRaw`, persistence, and `clamp`. The tests moved with
+  the code they exercise.
+- **Stayed in `common`**: the `Settings` struct and its bound constants
+  (`MinTemperature`, `MaxTokensCeiling` and the rest). That struct is the wire
+  contract the GUI speaks, and the new `SettingsSource` interface mentions it.
+
+This one illustrates the escape from method pinning. `clamp` was a method on
+`Settings`, so it could not follow the store while `Settings` stayed behind.
+It became a free function `clamp(s *common.Settings)` in the spoke. That
+conversion is exactly what `segment.go` would need, at larger scale.
+
+Result after both extractions: hub **4,917 to 4,071 lines**, behavior
+**51% to 43%**.
+
+
 ## Verified
 
 - `go build ./...`, `go vet ./...`, `go test ./...` all clean.
-- Star topology re-checked with seven spokes: no spoke imports a spoke, hub
+- Star topology re-checked with eight spokes: no spoke imports a spoke, hub
   imports no first-party package.
-- Grader sweep, run serially, one at a time:
+- Grader sweep, run serially, one at a time, after each extraction:
   ch5 120/120, ch7 through ch17 all 100/100.
 
 ## Two incidental findings
@@ -115,7 +137,7 @@ removed rather than weaken the check, but the check is over-broad.
 
 | file(s) | lines | sole consumer | recommendation |
 |---|---|---|---|
-| `settings.go` | 275 | ws | **Promote to `internal/settings`.** `SettingsStore` is file I/O, clamping and a mutex: behavior. The `Settings` struct is wire vocabulary and stays. |
+| `settings.go` | 275 | ws | **Done.** Promoted to `internal/settings`; see above. |
 | `segment.go` | 203 | llm | **Needs a design decision.** Blocked by method pinning above. Requires converting methods on `common.Context` to free functions in `llm`. |
 | `band.go`, `journal.go` | 502 | llm | `journal.go` is persistence behavior. `band.go` is mostly enum and config vocabulary and may legitimately belong in the hub. Note ch16 deliberately folded the memory store into `llm` to avoid a spoke-to-spoke edge; these are the residue of that decision. |
 | `thinking.go`, `delta.go`, `model.go` | 398 | llm | **Keep in the hub.** Proven by compiler: `ThinkingEffort` and `DeltaKind` are used by the hub's own `config.go` and `observer.go`, and both consult `LookupModel`. The hub holds policy functions over the model table. Whether those policy functions should be in a hub at all is the open question. |
