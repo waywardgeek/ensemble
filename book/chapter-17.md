@@ -549,31 +549,4 @@ conversation moves into a domain where a skill exists. The user does not
 need to know which skills are installed. The skills surface when they are
 relevant.
 
-## §17.9 The Existing Code
 
-The CodeRhapsody codebase contains a complete, production-tested
-implementation of everything in this chapter. The coder should read it
-for inspiration:
-
-- `internal/memory/bm25.go` (BM25 engine, 386 lines): tokenization,
-  stop words, indexing, scoring, chunking. Note: an off-by-one error in
-  this file went undetected for weeks and recall quality improved
-  noticeably when it was fixed. Test your scoring carefully.
-- `internal/memory/recall.go` (recall pipeline, 483 lines): source
-  loading, per-source quotas, formatting, injection.
-- `internal/agent/smart_recall.go` (judge, 195 lines): prompt
-  construction and defensive JSON parsing.
-- `internal/skills/builtin/recall-judge/SKILL.md` (the judge's skill
-  definition, 25 lines).
-
-Read it for the problems it solved, then check which of them exist here.
-Per-source quotas and defensive parsing transfer directly. Others do not:
-CodeRhapsody runs its judge as a persistent sub-agent, so it needs history
-resets, a disabled recall provider, and settings flags to keep the judge from
-recalling while it judges. A stateless judge has none of those problems,
-because it has no context to fill.
-
-That is worth taking as a general caution about reference code. An
-implementation shows you the problems its own architecture created alongside
-the problems inherent to the task, and it cannot tell you which is which.
-Copying the shape imports both.
