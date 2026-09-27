@@ -252,8 +252,32 @@ quickly additional occurrences stop mattering.
 
 **Inverse document frequency.** A word that appears in every document is
 worthless as a discriminator. A word that appears in one document is
-a strong signal. IDF is floored at zero to prevent common terms from
-producing negative scores.
+a strong signal.
+
+Use the smoothed form, `ln(1 + (N - df + 0.5) / (df + 0.5))`, and not the
+classic one clamped at zero. The difference looks cosmetic and is not. The
+classic form goes negative once a term appears in more than half the chunks,
+so implementations clamp it, and the clamp produces exactly zero for every
+such term. On a small archive, which is every archive on day one, most terms
+appear in more than half the chunks. Every one of them scores zero, the
+totals collapse below any sensible threshold, and retrieval returns nothing.
+
+The failure is worth dwelling on because of how it presents. Nothing errors.
+The index builds, the search runs, the scores are computed correctly
+according to the formula, and the agent simply never remembers anything. It
+reads as "recall is broken" when it is in fact "IDF is the wrong variant,"
+and those two diagnoses send you to opposite ends of the codebase. The
+smoothed form is non-negative by construction, which makes the clamp
+unreachable and the failure impossible.
+
+A related trap waits in testing. IDF measures rarity *against the corpus*, so
+in an archive of two or three chunks nothing is rare, every score collapses
+toward zero, and a perfectly correct implementation looks broken. A three
+chunk fixture scores around 1.7 in total, well under a threshold of 3.0. Any
+worked example or test fixture needs roughly twenty five chunks of padding
+before the numbers mean anything. This is the same failure as the IDF variant
+above, arriving from a different direction: both make correct code look
+broken, which is the most expensive kind of wrong.
 
 **Document length normalization.** A long document is expected to contain
 more term matches than a short one. The `b` parameter (standard value:
@@ -287,13 +311,32 @@ technical terminology would outscore a 500-byte daily log that contained
 the relevant decision, because BM25 rewards term density and the design
 doc had more surface area for keyword matches.
 
-The fix is structural, not algorithmic. Run independent BM25 searches per
-source and allocate guaranteed slots:
+The fix is structural, not algorithmic. Give each source its own BM25 index
+and search them independently, then allocate guaranteed slots:
 
-1. Memory files get 50% of candidate slots (rounded up).
+1. Memory files get 50% of the slots (rounded up).
 2. Remaining slots are split evenly among other sources.
 3. Unused slots from sources with fewer results than their quota flow to
    sources with overflow.
+
+Separate indexes matter on their own. IDF is computed per source, so a term
+that is unremarkable across the memory archive can still be rare within the
+documents, and a large source no longer distorts what counts as rare for
+everyone else.
+
+**Apply the quota to the final selection, not to the candidate pool.** This
+distinction is the whole mechanism, and getting it backwards produces code
+that looks right and does nothing. Candidates arrive already sorted by score
+within each source, so capping a source's contribution to the candidate pool
+only ever discards its weakest hits, which were never going to be selected
+anyway. Implement it that way and the quota is dead code: delete it entirely
+and not one recalled snippet changes.
+
+**The quota must not overrule the judge.** It governs the mechanical paths,
+where no judge ran or the judge failed and selection falls back to score
+order. When a judge has actually assessed relevance, its verdict stands.
+Discarding the opinion of the only component that read the conversation, in
+order to satisfy a ratio, would trade the good signal for the crude one.
 
 This is a policy decision, not a BM25 improvement. The agent's personal
 memories are the highest-value source. They contain decisions, context,
@@ -339,6 +382,18 @@ sometimes quote the numbers), falls back to `[]json.RawMessage` for
 mixed types. It extracts the first `[` to last `]` from the response
 to handle models that wrap JSON in explanation text. Out-of-range
 indices are silently filtered.
+
+**One component owns the reply format, and it is the one that parses.**
+Nothing else may restate it. This sounds like housekeeping and is the most
+dangerous rule in the chapter, because the model layer holds the client and
+will feel like the natural place to describe what a good answer looks like,
+while the recall layer holds the parser. Let both describe it and they will
+drift. Then the model receives two specifications in one request, obeys one
+of them, and the parser rejects a reply that was perfectly well formed by the
+other. Recall falls back to raw scores on every single turn, with no error,
+no log line, and a judge that appears from the outside to be working
+normally. The only symptom is that results are slightly worse than they
+should be, forever. Whoever reads the bytes decides what the bytes look like.
 
 When the judge fails or times out (15 seconds), the system falls back
 to the top N BM25 results by score. The agent gets noisier recall, not
@@ -394,6 +449,21 @@ Because the entries persist, the same memory could be recalled on three
 separate turns and appear three times. Skip any snippet whose content is
 already in the conversation. Retrieval should surface what the agent does not
 already have in front of it.
+
+One wiring hazard deserves naming, because it costs hours and announces
+nothing. An agent of this shape has more than one way to begin a turn. There
+is the interactive path, where a prompt arrives on standard input and is
+handled synchronously, and there is the actor path, where a message arrives
+in the mailbox and is handled by the loop. The graphical client uses the
+second. So does any harness that drives the agent like a real client. The two
+do not delegate to one another.
+
+Hook recall into only one of them and the result is an agent whose memory
+works perfectly whenever it is poked by hand, and never runs once in the
+actual product. No error is raised, because nothing is wrong: a function that
+was never called cannot complain. Find every entry point into a turn and
+attach to all of them, then verify through the path a real client uses rather
+than the one that is convenient to test.
 
 
 ## §17.6 Tuning: What the Numbers Mean

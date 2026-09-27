@@ -304,11 +304,11 @@ spoke wrongly is the precise mistake that cost twenty points in chapter 16.
 Update the TL;DR table when you make the change.
 
 Two more the chapter promises and you must therefore grade honestly:
-`injection-attached` must prove the recalled text reaches the model in the
-request; `injection-capped` must prove the 6KB ceiling holds when snippets
-would exceed it. Rename `injection-ephemeral` to `injection-attached` in the
-TL;DR table: with recall landing in `Dialogue`, "ephemeral" is no longer what
-the check proves.
+`recall-is-own-kind` must prove the recalled text reaches the model as its
+own entry, carrying its bytes, and never merged into the user message;
+`injection-capped` must prove the 6KB ceiling holds when snippets would
+exceed it. The TL;DR table is authoritative for names and weights, and its
+ten rows sum to exactly 100.
 
 ---
 
