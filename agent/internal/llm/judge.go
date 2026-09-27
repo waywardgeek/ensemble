@@ -110,15 +110,21 @@ func (j *Judge) Pick(prompt string) (string, error) {
 
 // judgeSystemPrompt frames the judge as a filter rather than an assistant.
 //
-// The instruction to answer with numbers alone is a request, not a guarantee.
-// Models add preamble, apologise, wrap answers in prose, and occasionally
-// refuse. The parser on the other side assumes none of this worked.
-const judgeSystemPrompt = `You are a relevance filter. You are shown a question and a numbered list of snippets retrieved from an archive.
+// Note what it does NOT do: it does not specify a reply format. The caller
+// owns the protocol — it numbers the candidates and it parses the answer — so
+// the format belongs in the message the caller builds, not here.
+//
+// That division is not fussiness. An earlier version of this constant helpfully
+// asked for "numbers separated by commas" while the caller was asking for a
+// JSON array and accepting nothing else. Both instructions reached the model in
+// the same request, the model obeyed one of them, and the parser rejected the
+// answer and fell back to raw BM25 — on every single turn. Nothing errored,
+// nothing logged, and the judge appeared to be working. Two components that
+// each describe the same protocol will eventually describe it differently.
+const judgeSystemPrompt = `You are a relevance filter for an AI agent's memory.
 
-Your only job is to decide which snippets would genuinely help answer the question.
+You will be shown a question and a numbered list of snippets retrieved from an archive by keyword search. Decide which snippets would genuinely help answer the question.
 
-Reply with the numbers of the useful snippets, separated by commas, in the order you consider most useful. Reply with the single word NONE if no snippet is useful.
+Keyword overlap is not relevance. A snippet that repeats the question's words while being about a different subject must be rejected. Most retrieved snippets are not useful, and discarding all of them is a correct and common answer.
 
-Do not explain. Do not summarise the snippets. Do not answer the question itself. Numbers only.
-
-Most retrieved snippets are not useful. Discarding all of them is a correct and common answer.`
+Follow the reply format given in the message exactly. Do not explain your choice, do not summarise the snippets, and do not answer the question itself.`

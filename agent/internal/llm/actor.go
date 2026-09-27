@@ -207,6 +207,15 @@ func (a *Actor) handleUserMessage(m common.UserMessage) {
 		return
 	}
 
+	// Recall runs here as well as in Engine.AskWatching, because these are
+	// two genuinely disjoint entry points into a turn and neither delegates
+	// to the other. AskWatching is the synchronous path used by the plain
+	// stdin REPL; this is the actor path, and it is the one the GUI and the
+	// actor protocol actually use. Hooking only the tidier-looking one gives
+	// an agent whose recall demonstrably works when tested by hand and never
+	// runs a single time in the shipped product.
+	a.eng.attachRecall(m.Text)
+
 	// "turn" ephemeral tools are called once when the turn starts.
 	if err := a.eng.CallEphemeral("turn"); err != nil {
 		a.finishTurn("", err)

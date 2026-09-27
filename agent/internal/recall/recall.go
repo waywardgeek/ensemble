@@ -287,15 +287,15 @@ func sortHits(h []Hit) {
 // noisier recall beats no recall, and either beats a turn that does not run.
 func (r *Recaller) pick(query string, convo []string, cands []Hit) []Hit {
 	if r.judge == nil {
-		return topN(cands, r.cfg.MaxSnippets)
+		return r.topNWithQuota(cands, r.cfg.MaxSnippets)
 	}
 	reply, err := r.askJudge(r.judgePrompt(query, convo, cands))
 	if err != nil {
-		return topN(cands, r.cfg.MaxSnippets)
+		return r.topNWithQuota(cands, r.cfg.MaxSnippets)
 	}
 	idx, ok := parseIndices(reply, len(cands))
 	if !ok {
-		return topN(cands, r.cfg.MaxSnippets)
+		return r.topNWithQuota(cands, r.cfg.MaxSnippets)
 	}
 	// An empty array is a judgment, not a failure: the judge looked and
 	// found nothing worth surfacing. Obeying it is the point of having one.
@@ -341,6 +341,71 @@ func (r *Recaller) askJudge(prompt string) (string, error) {
 }
 
 // topN takes the first n hits, which are already the best-scoring ones.
+// topNWithQuota selects up to n hits, best first, but refuses to let a single
+// source take every slot.
+//
+// This runs on the MECHANICAL paths only — no judge configured, or a judge
+// that errored, timed out, or answered nonsense. On those paths the ranking is
+// pure lexical overlap, and pure lexical overlap has a pathology: whichever
+// source happens to hold the most text about a topic sweeps the board. An
+// agent with nine months of daily logs and one design document will surface
+// daily logs forever, and the document it should have quoted never gets a
+// seat, because it was outnumbered rather than outranked.
+//
+// It deliberately does NOT run after a judge has spoken. If a judge actually
+// read the candidates and concluded that the three relevant ones all came from
+// memory, then they did, and forcing in a document to satisfy a ratio would be
+// overruling the only component that assessed relevance rather than counted
+// words. Diversity is a tie-breaker for a mechanism that cannot tell, not a
+// correction to one that can.
+//
+// Note the second pass. A quota may leave seats empty when a source has fewer
+// hits than its share — and an empty seat helps nobody, so anything unfilled
+// is handed back to the best remaining hit regardless of source. The quota
+// caps the greedy case; it never shrinks the result.
+func (r *Recaller) topNWithQuota(hits []Hit, n int) []Hit {
+	if n <= 0 || len(hits) == 0 {
+		return nil
+	}
+	avail := map[string]int{}
+	var order []string
+	for _, h := range hits {
+		if _, seen := avail[h.Source]; !seen {
+			order = append(order, h.Source)
+		}
+		avail[h.Source]++
+	}
+	if len(order) < 2 {
+		// A single source is not crowding anybody out.
+		return topN(hits, n)
+	}
+	quota := r.allocate(n, order, avail)
+
+	out := make([]Hit, 0, n)
+	used := map[string]int{}
+	taken := make([]bool, len(hits))
+	for i, h := range hits {
+		if len(out) >= n {
+			break
+		}
+		if used[h.Source] >= quota[h.Source] {
+			continue
+		}
+		used[h.Source]++
+		taken[i] = true
+		out = append(out, h)
+	}
+	for i, h := range hits {
+		if len(out) >= n {
+			break
+		}
+		if !taken[i] {
+			out = append(out, h)
+		}
+	}
+	return out
+}
+
 func topN(h []Hit, n int) []Hit {
 	if n < 0 {
 		n = 0

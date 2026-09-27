@@ -117,6 +117,17 @@ func parseIndices(raw string, n int) ([]int, bool) {
 	start := strings.Index(raw, "[")
 	end := strings.LastIndex(raw, "]")
 	if start < 0 || end < start {
+		// No array at all. Before giving up, accept a bare list of numbers
+		// ("0, 3"), because that is overwhelmingly the most common way a
+		// model ignores a JSON instruction while still answering correctly.
+		//
+		// The guard is that the reply must contain NOTHING but digits,
+		// commas and whitespace. Prose that merely happens to contain a digit
+		// is not an answer, and treating it as one would attach whichever
+		// snippet that digit landed on.
+		if nums, ok := parseBareNumbers(raw); ok {
+			return clampIndices(nums, n), true
+		}
 		return nil, false
 	}
 	body := raw[start : end+1]
@@ -168,6 +179,45 @@ func parseIndices(raw string, n int) ([]int, bool) {
 // Silently, because a hallucinated index 47 against 12 candidates is not an
 // error worth surfacing — it is a small model being a small model, and the
 // eleven good indices around it are still good.
+// parseBareNumbers accepts a reply that is nothing but numbers, commas and
+// whitespace, such as "0, 3" or "2".
+//
+// It returns ok=false for anything else, including an empty reply and any
+// reply containing a word. That strictness is the point: this is a salvage
+// path for a model that answered correctly in the wrong syntax, not a licence
+// to mine prose for digits.
+func parseBareNumbers(raw string) ([]int, bool) {
+	trimmed := strings.TrimSpace(raw)
+	if trimmed == "" {
+		return nil, false
+	}
+	for _, r := range trimmed {
+		if r >= '0' && r <= '9' {
+			continue
+		}
+		if r == ',' || r == ' ' || r == '\t' || r == '\n' || r == '\r' {
+			continue
+		}
+		return nil, false
+	}
+	var out []int
+	for _, f := range strings.Split(trimmed, ",") {
+		f = strings.TrimSpace(f)
+		if f == "" {
+			continue
+		}
+		v, err := strconv.Atoi(f)
+		if err != nil {
+			return nil, false
+		}
+		out = append(out, v)
+	}
+	if len(out) == 0 {
+		return nil, false
+	}
+	return out, true
+}
+
 func clampIndices(in []int, n int) []int {
 	seen := make(map[int]bool, len(in))
 	out := make([]int, 0, len(in))
