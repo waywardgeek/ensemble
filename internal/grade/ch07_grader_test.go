@@ -47,8 +47,27 @@ func ch7ProjectRoot(t *testing.T) string {
 	if !ok {
 		t.Fatal("cannot locate this test file")
 	}
-	// thisFile is in internal/grade/; project root is two levels up.
-	return filepath.Join(filepath.Dir(thisFile), "..", "..")
+	// ch7 grades the LIVE agent tree, which is its canonical target.
+	//
+	// scripts/gradesweep.sh holds the canonical target list: ch1-ch4 grade
+	// solutions/chNN, ch6 alone grades a frozen snapshot (it needs the ch05/
+	// and ch06/ exercise pair as siblings), and ch5 plus ch7-ch17 all grade
+	// ./agent. A chapter's score is only meaningful at its canonical target.
+	//
+	// What was broken: this copied root-level ch05/, ch06/ and ch07/, which
+	// stopped existing at 34ef50b ("Unify grading: every chapter grades one
+	// directory"), and then handed the repo root to Ch7Run, which wants the
+	// agent module dir. `go build ./cmd/` ran in the repo root and failed with
+	// "no Go files", zeroing every check at once.
+	//
+	// Note solutions/ch07 is NOT the target and is not graded by anything; it
+	// is a stale snapshot predating EN_DISABLE_STREAMING. Pointing this test
+	// there scores 90/100 on delivery-not-content and is the wrong fix.
+	root := filepath.Join(filepath.Dir(thisFile), "..", "..")
+	if _, err := os.Stat(filepath.Join(root, "agent", "go.mod")); err != nil {
+		t.Fatalf("ch7 target %s/agent has no go.mod: %v", root, err)
+	}
+	return root
 }
 
 // buildCh7Mutant copies the reference into a temp dir and applies the edits.
@@ -66,8 +85,18 @@ func buildCh7Mutant(t *testing.T, m ch7mutation) string {
 	dir := t.TempDir()
 
 	// ch6-parity re-runs Chapter 6's grader, which drives ch06/ and reads
-	// ch05/ for its own parity check, so the mutant needs all four trees.
-	for _, sub := range []string{"agent", "ch05", "ch06", "ch07"} {
+	// ch05/ for its own parity check, so the mutant historically needed all
+	// four trees. Since 34ef50b those exercise trees live under solutions/ and
+	// ch6-parity resolves them itself, which is why grading ./agent alone
+	// scores 100. They are copied when present and skipped when not, rather
+	// than being a hard requirement that fails the run.
+	if err := copyDir(filepath.Join(root, "agent"), filepath.Join(dir, "agent")); err != nil {
+		t.Fatalf("copy agent: %v", err)
+	}
+	for _, sub := range []string{"ch05", "ch06", "ch07"} {
+		if _, err := os.Stat(filepath.Join(root, sub)); err != nil {
+			continue
+		}
 		if err := copyDir(filepath.Join(root, sub), filepath.Join(dir, sub)); err != nil {
 			t.Fatalf("copy %s: %v", sub, err)
 		}
@@ -97,7 +126,11 @@ func buildCh7Mutant(t *testing.T, m ch7mutation) string {
 
 func scoreCh7(t *testing.T, dir string) (total int, failed []string) {
 	t.Helper()
-	res, err := Ch7Run(dir)
+	// Ch7Run wants the AGENT MODULE directory, not the snapshot root: it runs
+	// DiscoverBase and Build against what it is given, and the snapshot root
+	// has no go.mod. The exercise dirs ch05/, ch06/ and ch07/ still have to be
+	// copied as siblings, which is why dir is the root everywhere else here.
+	res, err := Ch7Run(filepath.Join(dir, "agent"))
 	if err != nil {
 		t.Fatalf("Ch7Run: %v", err)
 	}

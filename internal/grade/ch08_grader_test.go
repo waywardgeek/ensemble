@@ -6,6 +6,9 @@ package grade_test
 // asserts the expected set of failing checks.
 
 import (
+	"os"
+	"path/filepath"
+	"runtime"
 	"testing"
 
 	"github.com/waywardgeek/ensemble/internal/grade"
@@ -16,9 +19,31 @@ import (
 // the real grader and examining the results.
 
 func TestCh8Grade(t *testing.T) {
-	t.Parallel()
+	// Deliberately NOT t.Parallel(). This grader starts subprocesses and
+	// WebSocket connections, and grader runs that overlap produce false scores:
+	// ch16 once measured 11/100 under a concurrent sweep and 100/100 alone. A
+	// number measured alongside other graders is not a measurement.
 
-	r, err := grade.Ch8Run(".")
+	// Ch8Run wants the agent module directory. This passed ".", which under
+	// `go test` is the package directory internal/grade, not an agent tree, so
+	// DiscoverBase found no go.mod and every check collapsed. Stale since
+	// 34ef50b ("Unify grading: every chapter grades one directory").
+	//
+	// The canonical target is ./agent, per scripts/gradesweep.sh: ch1-ch4
+	// grade solutions/chNN, ch6 alone grades a frozen snapshot, and ch5 plus
+	// ch7-ch17 grade the live tree. solutions/ch08 also scores 100 here, but it
+	// is not the canonical target and grading it would let the live tree rot
+	// unnoticed.
+	_, thisFile, _, ok := runtime.Caller(0)
+	if !ok {
+		t.Fatal("cannot locate this test file")
+	}
+	target := filepath.Join(filepath.Dir(thisFile), "..", "..", "agent")
+	if _, err := os.Stat(filepath.Join(target, "go.mod")); err != nil {
+		t.Fatalf("ch8 target %s has no go.mod: %v", target, err)
+	}
+
+	r, err := grade.Ch8Run(target)
 	if err != nil {
 		t.Fatalf("Ch8Run: %v", err)
 	}

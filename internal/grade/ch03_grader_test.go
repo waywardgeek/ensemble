@@ -485,8 +485,15 @@ func TestCh3PointsSumTo100(t *testing.T) {
 	if sum != 100 {
 		t.Fatalf("checks sum to %d, want exactly 100", sum)
 	}
-	if len(seen) != 9 {
-		t.Fatalf("got %d checks, want 9", len(seen))
+	// Ten checks since writeguard (5 pts) was added; the other weights were
+	// rebalanced so the total is still exactly 100. This count guards against
+	// silently LOSING a check, so it has to track reality: it sat at 9 from the
+	// day writeguard landed, which is the "got 10 checks, want 9" failure the
+	// TODO carried as pre-existing. Verified 2026-09-27 by listing the IDs:
+	// promises, six-tools, writeguard, run-command, read-file, write-file,
+	// edit-file, search-files, list-files, tool-errors.
+	if len(seen) != 10 {
+		t.Fatalf("got %d checks, want 10", len(seen))
 	}
 }
 
