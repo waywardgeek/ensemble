@@ -79,6 +79,7 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"time"
 )
 
 func main() {
@@ -90,6 +91,22 @@ func main() {
 			fmt.Println("ECHO_BYE")
 			return
 		}
+		// Deliberate pause before answering, so that waiting for the reply and
+		// merely finding the previous prompt are distinguishable events.
+		//
+		// send_input here waits for the pattern ECHO_READY. A correct
+		// implementation scans only output produced AFTER the input was
+		// written, so it blocks here and then sees the reply. An
+		// implementation that rescans the whole buffer matches the ECHO_READY
+		// printed before the input was ever sent, and returns at once.
+		//
+		// Without this pause both return within a millisecond of each other,
+		// so the check meant to catch a stale cursor can pass by accident. A
+		// check that can pass by accident is decoration. The pause is far
+		// longer than the scheduling noise it has to beat and far shorter than
+		// the 10s callback delay the correct path is given, so the outcome is
+		// decided by the implementation rather than by the machine.
+		time.Sleep(500 * time.Millisecond)
 		fmt.Printf("echo: %s\nECHO_READY\n", line)
 	}
 }

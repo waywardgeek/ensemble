@@ -471,7 +471,18 @@ func TestCh4DeletionAudit(t *testing.T) {
 	for _, m := range ch4Mutants() {
 		m := m
 		t.Run(m.name, func(t *testing.T) {
-			t.Parallel()
+			// Deliberately NOT parallel. Every mutant builds an agent and runs
+			// it against live child processes, and several checks assert on
+			// what happened before a deadline. Running 28 of those at once
+			// starves them and the results stop describing the code: measured
+			// here, cursor-never-advances lost its sendinput kill and two
+			// other mutants lost their shutdown kill, all three passing alone.
+			// It is the same effect that once scored a chapter 11/100 in a
+			// concurrent sweep and 100/100 by itself.
+			//
+			// This costs about six minutes. That is the price of an audit
+			// whose failures mean something, and this audit is what stops the
+			// grader from being decoration.
 			bin := buildCh4Mutant(t, m)
 			total, failed := scoreCh4(t, bin)
 			t.Logf("AUDIT %-40s score=%3d/100 failing=%v", m.name, total, failed)
