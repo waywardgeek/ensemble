@@ -245,14 +245,35 @@ Mark every entry VERIFIED (observed directly, with a date) or ASSUMED
       with every chapter at 100 (ch5 at 120/120), re-confirmed 2026-09-27 after
       the history rewrite.
 
-- [ ] **`TestCh4DeletionAudit/kill-marks-but-does-not-kill` is FLAKY.** The
-      underlying weakness is real even though the suite passes. The mutant
-      replaces `syscall.Kill(-pid, SIGKILL)` with a no-op, so the child should
-      survive, but often only `shutdown` fails, meaning **the `killjob` check
-      cannot reliably tell a real kill from a kill that only marks**: the child
-      dies anyway, most likely reaped during process-group teardown when the
-      agent exits. All 7 mutants run under `t.Parallel()`, putting a
-      timing-sensitive kill test under self-inflicted load.
+- [x] **The ch4 deletion audit was flaky under its own parallelism.** FIXED
+      2026-09-27 in `fcf9a2b`. All 28 mutants ran under `t.Parallel()`. Each
+      builds an agent and drives live child processes, and several checks
+      assert on what happened before a deadline, so they starved each other and
+      the results described the machine rather than the code. Measured:
+      `cursor-never-advances` failed in the suite and passed 3/3 alone;
+      widening the margin moved the flake to `job-verbs-are-jobs-too` and
+      `handle-issued-after-the-tool-ran` losing their `shutdown` kill, and both
+      of those passed alone too. Contention was reaching several unrelated
+      checks, not one. `t.Parallel()` is gone; the audit went from about 90s to
+      5m55s and now passes as a whole. That is the price of failures that mean
+      something, and this audit is what stops the ch4 grader being decoration.
+
+      Also fixed the latent race the flake exposed. `send_input` waits for the
+      pattern `ECHO_READY`, which the echo fixture printed both at startup and
+      after each reply, so an implementation that rescans the whole buffer
+      matched the startup banner and returned at once. Correct and broken were
+      a millisecond apart, so the check could pass against a stale cursor by
+      luck. The fixture now pauses 500ms before answering, far longer than the
+      scheduling noise it must beat and far shorter than the 10s callback delay
+      the correct path is given.
+
+- [ ] **`killjob` may not distinguish a real kill from a kill that only
+      marks.** Separate from the flakiness fixed above, and still open. The
+      `kill-marks-but-does-not-kill` mutant replaces
+      `syscall.Kill(-pid, SIGKILL)` with a no-op, so the child should survive,
+      yet the child often dies anyway, most likely reaped during process-group
+      teardown when the agent exits. Removing the parallelism removed the false
+      failures but did not prove the check can tell the two cases apart.
       Fix direction: observe liveness *before* the agent exits, rather than
       from a pid file read afterwards.
 
@@ -260,23 +281,69 @@ Mark every entry VERIFIED (observed directly, with a date) or ASSUMED
       `go test ... -run TestCh4DeletionAudit -v | head -25` reported exit 0 and
       was recorded here as "passes when run alone". Both halves were wrong.
       `$?` after a pipeline is **`head`'s** exit code, not `go test`'s, and
-      every subtest is `t.Parallel()` so `head` truncated the output before any
+      every subtest was `t.Parallel()` so `head` truncated the output before any
       result line was printed. Redirect to a file and check the exit code
       before the pipe.
 
-- [ ] **The star-topology check governs three spokes out of ten, and never
-      runs against live code.** VERIFIED 2026-09-27.
-      `internal/grade/ch06_checks.go` hardcodes `llm`, `tools` and `jobs`. The
-      tree now has `common, engine, jobs, llm, mcp, recall, settings, skills,
-      tools, ws`, so `mcp`, `recall`, `ws`, `skills` and `settings` are
-      ungoverned. The loop is `if !ok { continue }`, so an unknown spoke is
-      silently skipped rather than flagged. Worse, the check only executes
-      against `solutions/ch06/agent`, so the live `./agent` tree is never
-      star-checked by the canonical sweep.
-      This is the invariant the book's central architectural argument rests on,
-      and it is unenforced on the code students actually read. It is also why
-      the `common` refactor could have gone wrong undetected: the graders would
-      have stayed green either way.
+- [x] **The star-topology check governed three spokes out of nine, and never
+      ran against live code.** FIXED 2026-09-27 in `cd10cd1`.
+      `internal/grade/ch06_checks.go` hardcoded `llm`, `tools` and `jobs`, and
+      the loop was `if !ok { continue }`, so every spoke added since was
+      skipped in silence. It now derives the spoke set from the import graph:
+      every non-hub package under `internal/` is a spoke, so a new one is
+      governed the day it appears rather than the day someone remembers to
+      edit the list.
+      Two further defects found while fixing it. `DiscoverImportGraph` returns
+      an empty map when `go list` fails, and an empty spoke set made the scan
+      vacuously clean, so a tree that did not compile scored full marks for
+      architecture; that is now an explicit failure. And the check only ever
+      ran against `solutions/ch06/agent`, so the live tree was unchecked; a new
+      `internal/grade/star_live_test.go` enforces the invariant on `./agent`
+      directly. It is not decoration: adding an import of `internal/jobs` to
+      `internal/recall/bm25.go` fails it, and the mutation was reverted.
+
+- [x] **Three grader tests had been failing continuously since `34ef50b`.**
+      FIXED 2026-09-27 in `cd10cd1` and `8654f47`. "Unify grading: every
+      chapter grades one directory" moved the exercise trees under `solutions/`
+      and left ch6, ch7 and ch8 pointing at the repo root. ch6 and ch7 copied
+      root-level `ch05/`, `ch06/`, `ch07/` that no longer exist there; ch8
+      passed `"."`, which under `go test` is `internal/grade`, so the grader
+      graded its own package directory. All three then handed the wrong path to
+      a `ChNRun` that wants the agent module dir, `go build ./cmd/` failed with
+      "no Go files", and every check reported 0. The result looked like
+      catastrophic architecture failure while `gradesweep.sh` reported 100 from
+      the correct target. Also fixed a stale `ch3` check count of 9, which has
+      been 10 since `writeguard` landed, and dropped a `t.Parallel()` from
+      `TestCh8Grade`.
+
+      The rule this cost us: **a chapter's score is meaningless anywhere but
+      its canonical target**, and that list lives in `scripts/gradesweep.sh`.
+      ch1-ch4 grade `solutions/chNN`, ch6 alone grades a frozen snapshot, ch5
+      and ch7-ch17 grade the live `./agent`. Do not generalise from one
+      chapter: pointing ch7 at `solutions/ch07` scores 90/100, because that
+      snapshot is stale and graded by nothing, and "fix" it by re-snapshotting
+      and you have hidden a wrong target behind a correct-looking number.
+
+- [x] **The ch14 harness leaked one agent per scenario, forever.** FIXED
+      2026-09-27 in `2c1a379`. Found 35 orphaned agents on this machine, the
+      oldest 4 days 19 hours, each holding a port and a temp directory, and a
+      plausible cause of a session freeze. Two independent defects.
+      Ordinary path: the script starts the agent in a subshell, which forks
+      because it runs `cd` first, so `$!` named the subshell and cleanup killed
+      the wrapper while the agent was reparented to init. Five scenarios, five
+      leaks, every run. Fixed with `exec`.
+      Timeout path: `ch14_harness.go` called `cmd.Process.Kill()`, sending
+      SIGKILL to the script. SIGKILL cannot be trapped, so `trap cleanup EXIT`
+      never ran. The harness now uses `Setpgid` and signals the whole group,
+      SIGTERM first so cleanup can run. `Setpgid` appeared nowhere in
+      `internal/grade` before this, and ~20 other `Process.Kill()` sites remain
+      unaudited for the same shape.
+      Verified by reproduction: a fixture of the same shape leaks under
+      `cmd.Process.Kill()` and is clean under the group signal. The first
+      attempt proved nothing because it copied `/bin/sleep`, and macOS kills a
+      copied signed binary on sight, so the canary never ran and both arms
+      looked clean. **Verify a fixture produces the condition under test before
+      trusting either result.**
 
 - [ ] **`no-mutable-globals` false-positives on compile-time interface
       assertions.** `var _ common.Skills = (*SkillRegistry)(nil)` is the
