@@ -163,7 +163,7 @@ them, and surface the best matches. BM25, a formula from 1994, does
 this in microseconds on a corpus of a few hundred files. No vector
 database, no embedding model, no infrastructure. Keywords and arithmetic.
 
-But BM25 is a blunt instrument. It matches words, not meaning. A query
+But BM25 is a blunt instrument. It matches words. A query
 about "authentication" will not find a memory about "login flow." And it
 is biased toward long documents full of technical vocabulary. A design
 doc that mentions "memory" seventeen times will outscore a short daily
@@ -184,11 +184,13 @@ load-bearing.
 
 The judge is the difference between "here are some memories that mention
 the same words" and "here is something you need to know right now." Without
-it, auto-recall is retrieval. With it, auto-recall is recall.
+it, a developer asks about authentication and gets every memory that
+mentions a password. With it, the developer gets the one where the team
+decided to use OAuth.
 
 The obvious lifetime for a recalled snippet is ephemeral. Relevance is local:
 a memory about database schema is useful when the user mentions the database
-and noise when the conversation moves to the GUI. Show it, then drop it.
+and noise when the conversation moves to the GUI. Show it, drop it.
 
 That intuition is expensive, and the reason is that a prompt cache is a
 prefix property. Dropping a block deletes bytes from the middle of the
@@ -480,8 +482,9 @@ Note: this threshold applies only to plain recall (no judge). When the
 judge is enabled, BM25 uses a low threshold (0.5) to cast a wide net,
 and the judge handles false-positive filtering.
 
-**MinQueryLength went from 15 to 50 to 80.** "Fix it," "run tests,"
-and "looks good" contain no signal for keyword matching. Raising the
+**MinQueryLength went from 15 to 50 to 80.** A user who types "fix it,"
+"run tests," or "looks good" is giving a command, and commands contain no
+signal for keyword matching. Raising the
 threshold progressively eliminated recall on messages that could never
 produce useful results. At 80 characters, the user has typed enough to
 contain a searchable concept.
@@ -501,7 +504,7 @@ fallback to unfiltered BM25 results is noisier.
 
 ## §17.7 What BM25 Cannot Do
 
-BM25 matches words, not meaning. Three limitations follow:
+BM25 matches words. Three limitations follow:
 
 **Vocabulary mismatch.** If the user says "authentication" and the memory
 says "login flow," BM25 will not connect them. Vector search (embedding-based
@@ -521,7 +524,8 @@ turns will keep surfacing if it scores well on BM25. Tracking usage patterns
 and adjusting retrieval is a natural next step that this implementation does
 not take.
 
-These are honest limitations, not roadmap items. BM25 with a judge works
+These are honest limitations, listed as what they are rather than as a
+roadmap. BM25 with a judge works
 well enough for daily use. The system is simple, fast, and debuggable. A
 more sophisticated retrieval system would be harder to debug when it
 recalled the wrong thing, and debugging recall errors is already hard.
