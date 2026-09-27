@@ -59,6 +59,17 @@ const (
 	// BandPopulated is an abandoned one, and the next checkpoint measures
 	// again rather than resuming it.
 	CompactorLaunched
+	// RecallAttached records that auto-recall ran and what text it
+	// produced. It carries its bytes, exactly as BandPopulated does, and
+	// for the same reason: a small model chose which snippets survived, so
+	// recall is nondeterministic and cannot be recomputed at render time
+	// without two replays of one log disagreeing. Replay applies the
+	// snippets this event recorded and never re-runs BM25 or the judge.
+	//
+	// There is deliberately no reference here for the reducer to resolve.
+	// A reducer that has to go and fetch bytes is no longer a pure function
+	// over events, and the moment it can fetch, replay can drift.
+	RecallAttached
 )
 
 var eventTypeNames = map[EventType]string{
@@ -77,6 +88,7 @@ var eventTypeNames = map[EventType]string{
 	BandPopulated:     "band_populated",
 	BandDepopulated:   "band_depopulated",
 	CompactorLaunched: "compactor_launched",
+	RecallAttached:    "recall_attached",
 }
 
 func (t EventType) String() string {
@@ -174,6 +186,18 @@ type Event struct {
 	BandAdd  *BandPopulatedData   `json:"band_populated,omitempty"`
 	BandDrop *BandDepopulatedData `json:"band_depopulated,omitempty"`
 	Compact  *CompactorLaunchData `json:"compactor_launched,omitempty"`
+	Recall   *RecallData          `json:"recall_attached,omitempty"`
+}
+
+// RecallData is the formatted snippets auto-recall chose, as TEXT.
+//
+// Parts, not a file path and not a list of chunk IDs. The judge is a language
+// model, so the same query can survive different snippets on different runs;
+// if this held a reference the reducer had to resolve, replaying a log would
+// call a model and two replays of one log could disagree. Recording the bytes
+// at the moment they are chosen is what makes replay exact and free.
+type RecallData struct {
+	Parts PartList `json:"parts"`
 }
 
 // MicroHandoffData is the checkpoint note, verbatim.

@@ -78,6 +78,20 @@ const (
 	Kind64x     // bucket-1, from BandPopulated
 	Kind8x      // bucket-0, from BandPopulated
 	KindSession // session memories, from BandPopulated
+
+	// Auto-recalled memories, from RecallAttached. Its own kind rather
+	// than a flavour of KindDialogue for three reasons that all point the
+	// same way: the user's typed words stay distinguishable from
+	// machine-retrieved text, the log records who produced each byte, and
+	// a checkpoint can delete recall by kind without touching a user turn.
+	//
+	// Note what it is NOT. It is not ephemera. Ephemera is cleared on
+	// every request, including every tool round, which is right for a
+	// timestamp and wrong for a memory. Recall is attached once per user
+	// message and then left alone, because a prompt cache is a prefix
+	// property: bytes added once are paid for once, and bytes deleted from
+	// the middle invalidate everything after them.
+	KindRecall // auto-recalled memories, from RecallAttached
 )
 
 var entryKindNames = map[EntryKind]string{
@@ -90,6 +104,7 @@ var entryKindNames = map[EntryKind]string{
 	Kind64x:      "64x",
 	Kind8x:       "8x",
 	KindSession:  "session",
+	KindRecall:   "recall",
 }
 
 func (k EntryKind) String() string { return entryKindNames[k] }
@@ -283,6 +298,38 @@ func (c *Context) Apply(e Event) error {
 		// output is an abandoned one. Recording it here as anything other
 		// than an observation would make replay try to finish work that a
 		// dead process was the only witness to.
+
+	case RecallAttached:
+		// Auto-recalled memories land in the conversation as an entry of
+		// their own kind, appended after the user message that triggered
+		// them — never folded into that message's Parts.
+		//
+		// Never folded, because fusing the two would cost three things at
+		// once: the user's actual words would stop being distinguishable
+		// from machine-retrieved text, the log would lose track of who
+		// produced which byte, and a checkpoint could not remove the recall
+		// without editing a user turn, which is kept verbatim by definition.
+		//
+		// Permanent, because a prompt cache is a prefix property. Deleting
+		// this block next turn would invalidate every byte after it;
+		// re-sending it per tool round would pay for it ten times over in a
+		// single turn. Appending once and leaving it alone is the only
+		// placement where the prefix grows monotonically and the bytes are
+		// paid for exactly once. micro_handoff removes it, at a moment that
+		// is already paying for a cache miss anyway.
+		//
+		// Where it goes on the WIRE is the renderer's decision, not this
+		// one. The context records that recall happened and what bytes it
+		// produced; turning that into a mid-conversation system block or a
+		// role-tagged message is a vendor question.
+		if e.Recall != nil && len(e.Recall.Parts) > 0 {
+			c.Dialogue = append(c.Dialogue, Entry{
+				Seq:   e.Seq,
+				Actor: ActorSystem,
+				Kind:  KindRecall,
+				Parts: e.Recall.Parts,
+			})
+		}
 
 	case ErrorOccurred:
 		// Infrastructure failure ends the turn. A tool that ran and failed is
@@ -490,6 +537,24 @@ func (c *Context) flushHeld() {
 // removed takes its result with it, and no result loses its call.
 func (c *Context) land(e Entry) {
 	if e.Kind == KindHandoff {
+		// Auto-recalled memories go at a checkpoint, entirely.
+		//
+		// They are the same category of thing as the tool traffic stripped
+		// just below: an input to thinking rather than the thinking itself,
+		// and by the time a checkpoint is written, whatever mattered about
+		// them is in the checkpoint document. Removal belongs HERE rather
+		// than on a schedule of its own because a checkpoint already
+		// rewrites the prefix, so it is already paying for a cache miss.
+		// Deleting recall here costs nothing extra; deleting it anywhere
+		// else would buy a second invalidation for no benefit.
+		kept := make([]Entry, 0, len(c.Dialogue))
+		for _, d := range c.Dialogue {
+			if d.Kind == KindRecall {
+				continue
+			}
+			kept = append(kept, d)
+		}
+		c.Dialogue = kept
 		for i := range c.Dialogue {
 			if c.Dialogue[i].Kind != KindDialogue {
 				continue
