@@ -296,24 +296,26 @@ Mark every entry VERIFIED (observed directly, with a date) or ASSUMED
 
 ## Book prose
 
-- [ ] **`chapter-05.md` licenses the very hub drift that ch05 forbids.**
-      VERIFIED 2026-09-27. It states the rule correctly ("Everything in it is
-      vocabulary: types, constants, interfaces. It has no behavior of its
-      own") but never says what to do when behavior *operates on* a hub type.
-      Go forbids defining a method on a non-local type, so a coder hits
-      `cannot define new methods on non-local type common.Context` and the
-      shortest path out is to dump the function in `common`. That is precisely
-      how the hub grew to 4,917 lines at 51% function bodies.
-      The chapter also asserts the hub is "1,455 lines, seven files" (it was 24
-      files before the refactor, 19 after) and contains the sentence "This is
-      the largest package because the vocabulary is large, and that is
-      correct", which reads as permission.
-      Fix: keep the rule, ADD the mechanism (free functions over hub types,
-      `Apply(c, e)` not `c.Apply(e)`), name the stdlib-interface exception
-      (`MarshalJSON`, `String`, `Error` must stay methods), and replace the
-      absolute line counts with the invariant. Bill's ruling 2026-09-27: "It is
-      simply better to give up on method call syntax." Full argument in
-      `book/common-refactor-design.md`.
+- [x] **`chapter-05.md` licensed the very hub drift that ch05 forbids.** FIXED
+      by the author in `f5d38c9`, verified 2026-09-27.
+      The problem: the chapter stated the rule correctly ("Everything in it is
+      vocabulary: types, constants, interfaces. It has no behavior of its own")
+      but never said what to do when behavior *operates on* a hub type. Go
+      forbids defining a method on a non-local type, so a coder hit `cannot
+      define new methods on non-local type common.Context` and the shortest
+      path out was to dump the function in `common`. That is how the hub grew
+      to 4,917 lines at 51% function bodies. The chapter also carried stale
+      counts ("1,455 lines, seven files") and the sentence "This is the largest
+      package because the vocabulary is large, and that is correct", which read
+      as permission.
+      All three are now gone: `chapter-05.md:227-232` gives the mechanism
+      (free functions over hub types, `Apply(c, e)` not `c.Apply(e)`), and both
+      the stale counts and the permission sentence are absent.
+      Bill's ruling 2026-09-27: "It is simply better to give up on method call
+      syntax." Full argument in `book/common-refactor-design.md`.
+      STILL OPEN, and the reason this entry is worth keeping: the chapter now
+      teaches the rule, but nothing *enforces* it. See the star-topology entry
+      under Graders.
 
 ---
 
