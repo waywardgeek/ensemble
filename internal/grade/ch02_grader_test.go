@@ -135,9 +135,9 @@ var mutations = []mutation{
 		wantFail: []string{"ch1parity", "seam-render"},
 	},
 	{
-		name:     "dump-prints-nothing",
-		why:      "a log that cannot be dumped cannot be replayed, and the parse check reads the dump",
-		edits:    []edit{{"main.go", `if err := log\.Write\(os\.Stdout\); err != nil \{`, `if _ = log; false {`}},
+		name:  "dump-prints-nothing",
+		why:   "a log that cannot be dumped cannot be replayed, and the parse check reads the dump",
+		edits: []edit{{"main.go", `if err := log\.Write\(os\.Stdout\); err != nil \{`, `if _ = log; false {`}},
 		// ref-roundtrip too: it is graded on `dump`, because the three RefKinds
 		// are a property of OUR log format and no vendor's opinion of them
 		// should be able to make it pass. A dump that prints nothing takes the

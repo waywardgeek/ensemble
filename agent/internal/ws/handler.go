@@ -29,18 +29,18 @@ func newUpgrader() *websocket.Upgrader {
 // written). The only mutable shared state is the in-flight partial map and
 // the client set, which are guarded by mu.
 type Hub struct {
-	mu        sync.Mutex
-	clients   map[*Client]bool
-	inflight  map[uint64][]byte // part_id → accumulated partial JSON
-	logLen    int                // last-observed len(log.Events), updated under mu
-	gate      *common.PauseGate
-	send      func(common.Inbound) // forwards prompt/hint/interrupt to the actor
-	guiLog    *GuiLogger
-	ttsLog    *TTSLogger           // speech channel record; nil-safe when unset
-	log       *common.Log          // event log — read-only access for reconnection
-	settings     common.SettingsSource                  // GUI-editable settings; nil = no settings
-	mcpReceivers map[string]func(json.RawMessage)       // source tag → JSON-RPC receiver (in-process agents)
-	mcpAgents    map[string]*Client                     // source tag → WebSocket client (remote agents like virtual user)
+	mu           sync.Mutex
+	clients      map[*Client]bool
+	inflight     map[uint64][]byte // part_id → accumulated partial JSON
+	logLen       int               // last-observed len(log.Events), updated under mu
+	gate         *common.PauseGate
+	send         func(common.Inbound) // forwards prompt/hint/interrupt to the actor
+	guiLog       *GuiLogger
+	ttsLog       *TTSLogger                       // speech channel record; nil-safe when unset
+	log          *common.Log                      // event log — read-only access for reconnection
+	settings     common.SettingsSource            // GUI-editable settings; nil = no settings
+	mcpReceivers map[string]func(json.RawMessage) // source tag → JSON-RPC receiver (in-process agents)
+	mcpAgents    map[string]*Client               // source tag → WebSocket client (remote agents like virtual user)
 }
 
 // NewHub creates a hub. send is called for every prompt/hint/interrupt
@@ -343,7 +343,7 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 		From     common.Seq      `json:"from"`
 		To       common.Seq      `json:"to"`
 		Settings json.RawMessage `json:"settings"`
-		Payload  json.RawMessage `json:"payload"` // JSON-RPC payload
+		Payload  json.RawMessage `json:"payload"`  // JSON-RPC payload
 		Source   string          `json:"source"`   // MCP source tag ("vu", "", etc.)
 		TTS      *TTSEvent       `json:"tts"`      // speech channel record
 		Typing   bool            `json:"typing"`   // gate: a person is typing

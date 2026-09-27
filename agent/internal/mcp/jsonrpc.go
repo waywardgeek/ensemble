@@ -60,7 +60,7 @@ type Codec struct {
 	onRequest func(Request)
 
 	done chan struct{} // closed when readLoop exits
-	err  error        // first error from readLoop
+	err  error         // first error from readLoop
 }
 
 // NewCodec wraps a transport with correlation tracking.

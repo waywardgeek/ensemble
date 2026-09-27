@@ -121,4 +121,3 @@ func BuiltinSkillsRenderer(skills *SkillRegistry) VarRenderer {
 		return strings.Join(lines, "\n")
 	}
 }
-

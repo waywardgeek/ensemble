@@ -761,8 +761,8 @@ type Reg struct {
 	tools          map[string]common.Tool
 	argSpec        map[string]string
 	meta           map[string]ToolMeta // provenance per tool name
-	skills         common.Skills // nil until skills are wired
-	onToolsChanged func() // called when tool declarations change (e.g., skill loaded)
+	skills         common.Skills       // nil until skills are wired
+	onToolsChanged func()              // called when tool declarations change (e.g., skill loaded)
 
 	// Skill-based MCP lifecycle callbacks — set by the host (cmd/main.go).
 	onSkillMCPConnect    func(skill string, servers []common.MCPServerConfig) ([]string, error)

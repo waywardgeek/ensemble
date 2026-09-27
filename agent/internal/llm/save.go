@@ -67,7 +67,7 @@ func SaveRetaining(path string, asOf common.Seq, ctx *common.Context, log *commo
 			SystemPrompt: cfg.SystemPrompt,
 			Tools:        cfg.Tools,
 		},
-		AsOf:           asOf,
+		AsOf:    asOf,
 		Context: ctx,
 		Log:     events,
 	}

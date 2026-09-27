@@ -39,17 +39,17 @@ type Ch10Result struct {
 	SystemPromptErr string
 
 	// load_skill("code-tools") — verify new tools appear.
-	LoadSkillOK       bool
-	LoadSkillErr      string
-	PostLoadTools     []string // tools after loading code-tools
-	LoadSkillResult   string   // tool result content
+	LoadSkillOK     bool
+	LoadSkillErr    string
+	PostLoadTools   []string // tools after loading code-tools
+	LoadSkillResult string   // tool result content
 
 	// Progressive disclosure — loading code-tools makes search-tools loadable.
 	// Then loading search-tools auto-loads search-helpers (depends chain).
-	DisclosureOK       bool
-	DisclosureErr      string
+	DisclosureOK        bool
+	DisclosureErr       string
 	PostDisclosureTools []string
-	DisclosureResult   string
+	DisclosureResult    string
 
 	// depends-autoload — search-helpers' tools appear after loading search-tools.
 	DependsOK  bool
@@ -61,12 +61,12 @@ type Ch10Result struct {
 	VarSubBody string
 
 	// Blocked skill — "blocked" is not loadable.
-	BlockedOK  bool
-	BlockedErr string
+	BlockedOK     bool
+	BlockedErr    string
 	BlockedResult string
 
 	// System prompt check.
-	SystemPromptOK  bool
+	SystemPromptOK bool
 
 	// Ensemble primary skill test.
 	EnsembleTools    []string
@@ -765,4 +765,3 @@ func ch10DriveEnsemble(r *Ch10Result, bin, guiDir string) {
 	r.EnsembleTools = extractToolNamesFromRequest(reqs[0])
 	r.EnsemblePrompt = extractSystemPromptFromRequest(reqs[0])
 }
-

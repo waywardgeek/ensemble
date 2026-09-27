@@ -31,9 +31,9 @@ type ContentItem struct {
 // Client drives the MCP protocol: handshake, tool discovery, tool calls,
 // and reverse tool handling.
 type Client struct {
-	codec    *Codec
-	tools    []ToolInfo
-	reverse  func(name string, args json.RawMessage) (string, error)
+	codec   *Codec
+	tools   []ToolInfo
+	reverse func(name string, args json.RawMessage) (string, error)
 }
 
 // NewClient creates an MCP client on the given transport.

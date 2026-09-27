@@ -75,7 +75,7 @@ type Ch8WsMsg struct {
 	Content string          `json:"content,omitempty"` // part_partial
 	Actor   string          `json:"actor,omitempty"`   // message
 	First   int             `json:"first,omitempty"`   // event_range
-	Last    int             `json:"last,omitempty"`     // event_range
+	Last    int             `json:"last,omitempty"`    // event_range
 
 	// For part_final with embedded part data.
 	Tool string `json:"tool,omitempty"`

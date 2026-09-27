@@ -300,4 +300,3 @@ func (r *SkillRegistry) InitialBodies() []string {
 	}
 	return bodies
 }
-

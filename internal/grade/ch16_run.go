@@ -95,7 +95,7 @@ type ch16Router struct {
 	// one was asked to fold. Graduation compressors are recognisable by
 	// what they carry rather than by when they arrive, so this is how the
 	// grader tells the two kinds apart without reading the student's events.
-	folds     int
+	folds      int
 	foldBodies [][]byte
 	// fail, when true, answers every compressor with a 500.
 	fail bool
@@ -491,7 +491,6 @@ func ch16Graduate(bin, skills, gui string, res *Ch16Result) {
 		replies:  ch16Talk(n + 2),
 		route:    r.route,
 		settings: ch16SettingsGraduate,
-
 	})
 	if out.fatal != "" {
 		res.fail("graduation-fires-oldest-first", "run did not complete: %s", out.fatal)
@@ -1001,7 +1000,6 @@ func ch16MarkLiveMemory(dir, live, marker string) bool {
 	out := string(b) + "\n" + marker + "\n"
 	return os.WriteFile(found, []byte(out), 0o644) == nil
 }
-
 
 // ch16DropFirst removes the first entry from a comma separated list.
 func ch16DropFirst(s string) string {
