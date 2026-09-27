@@ -86,8 +86,8 @@ type Message struct {
 type Conversation []Message
 ```
 
-I meant it. That struct carried a working agent, and you have talked to it. Now
-list what it cannot say.
+That struct carried a working agent, and you have talked to it. Now list what
+it cannot say.
 
 It cannot say what the model actually returned as opposed to what you decided
 to send back. It cannot hold a tool call, or the result of one, or tell them
@@ -129,8 +129,7 @@ This chapter is the exception, and it is worth saying once so that the rest
 of it does not have to apologize. The data structures below model things no
 code in this chapter uses: a blob reference nothing dereferences, four
 redaction levels for a chapter that stubs one tool result, a `Tool` actor
-before there are tools. The reason is one of Bill's rules: data structures are
-destiny. If they are wrong, every line written against them is wrong, and the
+before there are tools. The governing rule: data structures are destiny. If they are wrong, every line written against them is wrong, and the
 fix is the rewrite §2.0 just described. So the shape gets built before the
 capability, fully, one time. Everything after this chapter is code, and code
 is cheap to add.
@@ -141,7 +140,7 @@ preface says the rest.
 
 ## 2.2 "But I only use one vendor"
 
-I know. Most people do, and the seam is for you more than for anyone.
+Most readers do. The seam is for you more than for anyone.
 
 You do not have to add a competitor for the wire format underneath you to
 change. As of September 2026, the Gemini surface this chapter teaches,
@@ -156,9 +155,10 @@ told you how it goes.
 
 There is also no event to subscribe to. The deprecation shipped without any
 way to learn when the new surface reaches Vertex AI, so the migration path is
-a polling loop with a human in it. I checked a week before writing this. The
-correct interval for polling a vendor's roadmap is left as an exercise, and it
-is the only exercise in this book with no defensible answer.
+a polling loop with a human in it. A check the week before this chapter's
+draft found nothing new. The correct interval for polling a vendor's roadmap
+is left as an exercise, and it is the only exercise in this book with no
+defensible answer.
 
 This is why the data structures below record a *surface* and not merely a
 vendor. One company, one model, two incompatible wire formats is an ordinary
@@ -261,8 +261,8 @@ plausible wrong reading each.
 `ErrorOccurred` is for infrastructure: the HTTP 429, the connection reset, the
 body that would not parse. A tool that ran and failed is ordinary tool
 *content*, a result with a flag on it. Conflate the two and you get an agent
-that retries a compile error as if it were a network outage, which I have
-watched happen and which is less funny than it sounds.
+that retries a compile error as if it were a network outage, which happens in
+practice and is less funny than it sounds.
 
 Thinking text is log-only. The reasoning can be recorded, and the *context*
 carries only opaque replay material, a signature or a redacted block, tagged
@@ -481,10 +481,10 @@ derivable from anything else in the context. Miss it at capture and the
 information is gone.
 
 The reason the grain has to be this fine is thinking signatures, the encrypted
-reasoning material a model hands you so that you can hand it back. I went into
-this chapter believing a clean story about them: Gemini rejects another model's
-signature, Anthropic silently drops it. Measured on 2026-09-12, both halves are
-false, and the truth is better.
+reasoning material a model hands you so that you can hand it back. The clean
+story was tempting: Gemini rejects another model's signature, Anthropic
+silently drops it. Measured on 2026-09-12, both halves are false, and the truth
+is better.
 
 Signatures harvested from four Gemini models and replayed across all sixteen
 pairings were accepted without error. Sixteen of sixteen. Gemini does not care
@@ -601,11 +601,12 @@ discards whatever happens to be old, valuable or not, and what it loses is
 unpredictable, because a summary is lossy in ways nobody enumerated.
 
 Compaction by *category* discards a kind of content wherever it appears, and
-the categories are wildly unequal. Measured across my own coding sessions in
-2026: tool results were about 42% of conversation history by volume, and
-tool-call arguments another 30%. Roughly three-quarters of the tokens, carrying
-almost none of the continuity. My reasoning, my decisions, my sense of what I
-am doing: cheap, and the part nobody can regenerate. So know what you are
+the categories are wildly unequal. Measured across CodeRhapsody's coding
+sessions in 2026: tool results were about 42% of conversation history by
+volume, and tool-call arguments another 30%. Roughly three-quarters of the
+tokens, carrying almost none of the continuity. The agent's reasoning, its
+decisions, its sense of what it is doing: cheap, and the part nobody can
+regenerate. So know what you are
 throwing away. Purge categories first, summarize last. A category purge is
 lossy in a way you can name and have measured. A summary is lossy in a way you
 discover later, in production, as a personality change.
@@ -623,8 +624,8 @@ A summary is a fold; the other three levels are filters. `RedactResult`,
 `RedactTool` and `RedactDialogue` rewrite each entry in the span independently,
 N entries in and N entries out. `RedactSummary` collapses the span to one entry
 carrying the `Replacement`. The tidy implementation is the wrong one: four
-levels, one loop over the span, one `case` each. I wrote it that way. Written
-that way, the summary gets copied into every entry it was meant to replace,
+levels, one loop over the span, one `case` each. The reference solution was
+built that way. Written like that, the summary gets copied into every entry it was meant to replace,
 and compaction *grows* the context it was called to shrink. On the reference
 solution, before the fix, a three-entry span produced three copies of its own
 summary. The collapsed entry takes `Seq = From`, which the event already
@@ -962,9 +963,9 @@ The context had `OpaquePart` for replay material, and `OpaquePart` floats in
 the parts list associated with nothing, which is right for a thinking block
 that belongs to the turn and useless for material bound to one call. Nothing in
 the context could say "this opaque blob goes with that call." So the field went
-in. `ToolCallPart.Opaque` is the price of the seam bet, in full, and I would
-rather ship it in the struct and tell you it lost than let you meet it as a 400
-on a Tuesday.
+in. `ToolCallPart.Opaque` is the price of the seam bet, in full, and it is
+better to ship the field and say so than to let you meet it as a 400 on a
+Tuesday.
 
 Two points always fit a line. You can shape an interface around vendor A, bend
 vendor B to fit it, and call the result a seam. The third implementation is
@@ -1027,8 +1028,8 @@ protocol.
 
 **Build the renderers in this order: Anthropic, then OpenAI, then Gemini.** The
 order is what makes §2.7's prediction a test rather than a flattering one. Note
-what each one costs you in context changes. Mine cost one field; yours is the
-number that matters.
+what each one costs you in context changes. The reference solution cost one
+field; yours is the number that matters.
 
 ### The log on disk
 
@@ -1091,7 +1092,7 @@ The ones you cannot infer from the table:
   main exhibit is Anthropic-authored, so rendering it to Gemini correctly
   withholds the signature and proves nothing.
 
-### What would still pass if I deleted this?
+### What would still pass if you deleted this?
 
 One story about the grader, because you will write graders.
 
@@ -1103,7 +1104,7 @@ for the standalone thinking block, which was thoroughly graded. The distinction
 the field exists for, a signature bound to one *call* rather than to the
 *turn*, was exactly the distinction the tests did not draw.
 
-The question that finds these is: what would still pass if I deleted this?
+The question that finds these is: what would still pass if you deleted this?
 That is mutation testing pointed at the spec instead of at the code, and it is
 the first pass to run against any grader, including the ones already written.
 A check that cannot fail is a green dashboard with a schema around it.
@@ -1183,5 +1184,5 @@ git tag ch02-pass
 
 You now own a record of every conversation your agent will ever have that no
 vendor's schema can reach into, and it will replay through renderers you have
-not written yet, for wire formats that do not exist yet. Mine cost a year and
-is still being paid for. Yours cost one field.
+not written yet, for wire formats that do not exist yet. The one in §2.0 cost
+a year and is still being paid for. Yours cost one field.

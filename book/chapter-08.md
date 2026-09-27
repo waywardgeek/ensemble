@@ -215,8 +215,8 @@ The agent is the station. Observations are the broadcast: streaming
 chunks, finalized parts, state changes, tool starts, tool completions.
 The GUI is a radio. The observation buffer is the recording.
 
-**The agent does not know the GUI exists.** No WebSocket import, no
-rendering code, no GUI flag in the configuration. The agent writes
+**The agent has no GUI code.** No WebSocket import, no rendering
+dependency, no display flag in its configuration. The agent writes
 observations to the Observer interface from Chapter 6. A Go WebSocket
 handler implements that interface, serializes each observation to JSON,
 and fans it out to every connected browser. Attach zero browsers and
@@ -267,8 +267,8 @@ and produces a conversation about why something fired twice.
 ## 8.3 One tool at a time
 
 The actor dispatches tools serially: start one, wait for completion,
-start the next. This was true in Chapter 6 and the code has not
-changed. What changes is that the property now matters.
+start the next. It has worked this way since Chapter 6. What changes
+is that the property now matters.
 
 A pause gate that checks before each dispatch needs a gap between
 dispatches in which to check. Parallel dispatch closes that gap:
@@ -290,8 +290,8 @@ serial loop.
 
 ## 8.4 The pause gate
 
-Pausing is not a message. There is no `Pause` in the mailbox, no
-event in the log, no observation. A paused agent is one whose actor
+Pausing is not a message. The mailbox, the event log, and the
+observer all ignore it. A paused agent is one whose actor
 is blocked on a condition variable before starting the next tool.
 
 `PauseGate` lives in `internal/common`. Three methods: `Pause`,
@@ -318,15 +318,14 @@ time has no queue to wait in.
 The hub implements `Observer`. Its `Observe` method handles two
 tiers: streaming content (deltas) accumulates in an in-flight map
 keyed by part id; everything else fans out to connected clients as
-a well-formatted JSON message. Then it returns. If a client's send
+a JSON message. Then it returns. If a client's send
 channel is full, the message is dropped for that client. The actor
 never blocks.
 
 Each client has a write goroutine draining a buffered channel.
 `Observe` iterates the set and does a non-blocking send on each.
-The hub is a broadcaster, and the design that makes
-it safe is the one the opening metaphor promised: the station does
-not wait for the radio.
+The hub is a broadcaster: the station does not wait for the
+radio.
 
 Prompts and hints from the browser reach the agent through the same
 `Ask` and `Hint` methods the terminal calls. The agent cannot
@@ -336,8 +335,8 @@ distinguish the two, and that is the proof the seam works.
 
 ## 8.6 The wire
 
-No sequence numbers. No cursor. A `subscribe` message carries no
-state at all. The server decides what history to send based on its
+The protocol has no sequence numbers and no cursor. A `subscribe`
+message arrives empty. The server decides what history to send based on its
 own event-log window (configurable: last hour or last 100 renderable
 events, whichever is larger), then sends any in-flight streaming
 content, then switches to live delivery.
@@ -345,7 +344,7 @@ content, then switches to live delivery.
 A reconnecting client and a fresh client use the same path. The
 server does not need to know whether this is a first connection or a
 tenth. The event-log window is the same either way. This is simpler
-than tracking per-connection offsets and produces a better result:
+than tracking per-connection offsets, and better:
 the client always gets a useful amount of context, never an empty
 pane.
 
@@ -359,8 +358,8 @@ connecting client needs.
 **Tier 1: The event log.** Completed events from Chapter 6's
 append-only log. Finalized parts, tool calls and returns, state
 transitions, user messages. On subscribe, the hub reads the recent
-window and converts each event to a well-formatted wire message the
-client can render directly. These are durable: they survive
+window and converts each event to a wire message the
+client renders directly. These are durable: they survive
 disconnection, restart, anything.
 
 **Tier 2: In-flight partials.** Accumulated streaming content for
@@ -402,12 +401,9 @@ invisible in the record because the record only shows one side.
 
 ## 8.9 Everything is an Artifact
 
-The chapter is named for this.
-
-An Artifact streams, then finalizes. Thinking is an Artifact. Chat
-is an Artifact. A tool call's arguments, a tool's result, a user
-message: all Artifacts. They differ in CSS class and renderer, not
-in kind.
+An Artifact streams, then finalizes. Thinking, chat, tool
+arguments, tool results, user messages: all Artifacts. They differ
+in CSS class and renderer, not in kind.
 
 `ArtifactScroll` manages them. On `part_delta`: find or create by
 part id, stream through the format renderer (markdown for thinking

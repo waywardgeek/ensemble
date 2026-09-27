@@ -112,7 +112,7 @@ make grade13
 
 ## What the wiring found
 
-Everything above this line is plumbing, and most of it is close to trivial. A skill declares an MCP server. The registry connects when the skill loads and disconnects when it unloads. A browser tab exposes four tools over a WebSocket that was already there. The interesting part is not the transport. The interesting part is what arrives the first time an agent can see a screen it did not render and press a button nobody told it about.
+Everything above this line is plumbing, and most of it is close to trivial. A skill declares an MCP server. The registry connects when the skill loads and disconnects when it unloads. A browser tab exposes four tools over a WebSocket that was already there. The interesting part is what arrives the first time an agent can see a screen it did not render and press a button nobody told it about.
 
 What follows took two days, and the commit log is specific about them. The driver and its transport were committed on the first, between 17:43 and 18:39. Every fix described below was committed on the second, four code commits and three documentation commits, between 14:34 and 15:31.
 
@@ -129,7 +129,7 @@ You CANNOT read files, edit code, or run commands. You can only
 interact through the GUI, exactly as a human user would.
 ```
 
-That restriction is the entire value of the thing. An agent with filesystem access will answer a question about the interface by reading the source, which tells you what the interface was meant to do. An agent holding only `gui_snapshot`, `gui_click`, `gui_input` and `tts_queue` has to answer from the screen, which tells you what the interface actually does. The gap between those two answers is where the bugs live.
+That restriction is the entire value of the driver. An agent with filesystem access will answer a question about the interface by reading the source, which tells you what the interface was meant to do. An agent holding only `gui_snapshot`, `gui_click`, `gui_input` and `tts_queue` has to answer from the screen, which tells you what the interface actually does. The gap between those two answers is where the bugs live.
 
 ### The human who watched and said nothing
 
@@ -250,7 +250,7 @@ The deleted code had confessed. `SettingsStore.Apply` carried this comment:
 
 Someone met this bug, understood it precisely enough to describe it in one sentence, and routed around it instead of removing it. The method had no callers outside tests.
 
-There was a real choice about how far to take the repair. The cautious option preserves the existing wire format and introduces a second type for broadcasts, leaving the patch struct untouched, which costs nothing today and leaves two nearly identical structs for the next reader to confuse. Bill Cox settled it in one line: the format has no external consumers, so make the code clean. The repair therefore dropped `omitempty` from every field, so a broadcast always carries complete state, and deleted `Apply` outright, leaving one merge path with defined semantics.
+There was a real choice about how far to take the repair. The cautious option preserves the existing wire format and introduces a second type for broadcasts, leaving the patch struct untouched, which costs nothing today and leaves two nearly identical structs for the next reader to confuse. The maintainer settled it in one line: the format has no external consumers, so make the code clean. The repair therefore dropped `omitempty` from every field, so a broadcast always carries complete state, and deleted `Apply` outright, leaving one merge path with defined semantics.
 
 
 Measured evidence that the clamp runs, taken from the settings file after the run: `max_tokens` held 1000000 and `tts_speed` held 10, both exactly the ceilings, and `temperature` was absent because zero no longer serializes.
@@ -275,7 +275,7 @@ This is the accessibility argument in a form that a developer who has never used
 
 Two smaller findings came out of the same pass, and both generalize.
 
-The first was an injection hole. `artifact-scroll.js` built the tool card header by interpolating the tool name and its serialized arguments into `innerHTML`. Tool arguments are not authored by the agent. They contain filenames, URLs, and the contents of files just read, which is to say text an attacker can influence. Twenty lines further down, the result path rendered with `textContent` and was safe. One file, both patterns, and the vulnerable one sat on the path that renders attacker adjacent text. The book spends a chapter on prompt injection arriving through the model. This was the same threat arriving through the renderer.
+The first was an injection hole. `artifact-scroll.js` built the tool card header by interpolating the tool name and its serialized arguments into `innerHTML`. Tool arguments are not authored by the agent. They contain filenames, URLs, and the contents of files just read, which is to say text an attacker can influence. Twenty lines further down, the result path rendered with `textContent` and was safe. One file, both patterns, and the vulnerable one sat on the path that renders attacker-adjacent text. The book spends a chapter on prompt injection arriving through the model. This was the same threat arriving through the renderer.
 
 The second was truncation, and the notes about it were backwards. The working document asserted that the driver saw the full DOM while the human saw a trimmed version. Measurement found four independent caps running the other way: the human view truncated tool input at 500 characters and results at 1000, while the snapshot truncated each artifact at 120 characters and the whole document at 4000. The observer saw roughly a tenth of what the human saw. Worse, the snapshot silently dropped every artifact past the tenth with no marker, so it could not distinguish ten artifacts from fifty.
 
@@ -285,7 +285,7 @@ That is the rule the section converges on. An observer that truncates in silence
 
 ### Every one of them was a documentation bug
 
-The instruction that produced this section came from Bill Cox once the fixes were in: update the chapter summaries wherever a bug made it through. Tracing them was the first step, and each defect was matched to the chapter that should have prevented it. All five arrived at the same place.
+The instruction that produced this section came once the fixes were in: update the chapter summaries wherever a bug made it through. Tracing them was the first step, and each defect was matched to the chapter that should have prevented it. All five arrived at the same place.
 
 Chapter 4 explained the job model, named the interactive process trap in plain words, and never stated the obligation that follows from it. Chapter 8 built the tool card and showed the rendering without saying which parts of it carry text the agent did not write. Chapter 12 specified `gui_snapshot` with a 4KB cap and did not require the cap to announce itself. In each case the mechanism was taught correctly and the duty attached to the mechanism was left implicit.
 
@@ -298,7 +298,7 @@ Chapter 9's GUI is deliberately ungraded, on the argument that a human looking a
 
 A student following those chapters would have written the same code. That is the test for whether a defect belongs to the implementation or to the book, and every one of these failed it. The repair was therefore made in the prose as well as the source. Chapter 4 now states that the tool returns when the process is running and the job owns it from there, and gives the failure signature, which reads like broken output capture and is really a closed file. Chapter 8 now states that tool cards are built with `textContent` and that capped content stays reachable. Chapter 9's summary gains the three obligations that survive the absence of a grader. Chapter 12 now requires the snapshot to report what it withheld.
 
-There is a loop closing here that is worth naming, because it is the reason this book exists in the form it does. The agent described in these chapters was built by following these chapters. When it acquired eyes and a way to press buttons, the first thing it did was find places where the chapters were wrong. The bugs were in the GUI, and the GUI was correct with respect to the instructions it was built from, so the instructions were what needed editing.
+A loop closes here. The agent described in these chapters was built by following these chapters. When it acquired eyes and a way to press buttons, the first thing it did was find places where the chapters were wrong. The bugs were in the GUI, and the GUI was correct with respect to the instructions it was built from, so the instructions were what needed editing.
 
 A book that produces a working program gets to be tested by the program it produces. This section is the first time that test came back with findings, and the findings were about the book.
 

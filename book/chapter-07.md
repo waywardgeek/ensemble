@@ -196,8 +196,8 @@ decision to say nothing while it happens.
 
 Three things change. The **HTTP client** hands the open response to the parser
 instead of reading the body. The **parser** takes a live stream and calls back
-per chunk. The **engine** fires an observation per chunk instead of waiting in
-silence.
+per chunk. The **engine** fires an observation per chunk instead of buffering the
+whole response behind a blank terminal.
 
 One thing pointedly does not change: the record. At end of turn the event log
 holds what it held before, and rebuilding context from it yields the same
@@ -210,15 +210,14 @@ response in forty pieces. No code downstream of the observer asks whether
 something was streamed; it receives deltas and the only question is how many.
 Which buys one `Parse` instead of two, one path per vendor instead of two, and
 a grader that runs the identical exercise both ways and demands identical
-content.
+content byte for byte.
 
 ---
 
 ## 7.2 Server-sent events, and the reader that survives them
 
-Streaming from an LLM vendor is not WebSocket, not gRPC. It is an ordinary
-HTTP response body framed in server-sent events, a text format older than all
-of this.
+Streaming from an LLM vendor uses plain HTTP. The response body is framed in
+server-sent events, a text format older than all of this.
 
 ```
 event: content_block_delta
@@ -248,9 +247,10 @@ output and fails later, somewhere with no mention of SSE in the stack trace.
 
 So the reader is one function, `internal/llm/sse.go`, 111 lines, 14 tests, one
 per case above and then some. Vendor-specific work starts after framing is
-resolved, with an event type and a slice of JSON in hand. Chapter 3's "fakes
-first" pattern in different clothes: the framing is deterministic, ugly, and
-testable without a network.
+resolved, with an event type and a slice of JSON in hand. The same "fakes
+first" pattern from Chapter 3 in different clothes: the framing is
+deterministic, ugly, and testable without touching the network or spending a
+token.
 
 ---
 
@@ -284,12 +284,12 @@ The non-streaming route could skip `OnDelta` entirely, since nothing is
 incremental. It fires anyway, because "length one" has to be true in code and
 not only in prose. Were it silent, every observer would need a second
 rendering path fed from finalized events, and the seam would have bought
-nothing.
+nothing except a longer interface.
 
 The seam still has exactly two methods, `Render` and `Parse`, which is what
 the vendor-independence claim has rested on since Chapter 2. Adding a third to
 ship a feature would concede that the seam was shaped around the features that
-existed when it was drawn.
+existed when it was drawn, which is the thing a seam exists to deny.
 
 ---
 
@@ -334,14 +334,13 @@ assuming ids are unique across a turn.
 
 So a consumer keying widgets needs (response, part id). Chapter 8 will need a
 response boundary that is observable from outside the agent, and the current
-seam does not clearly offer one. That is an open problem rather than a solved
-one, and it is named here so it arrives as a known cost rather than a
-surprise.
+seam does not clearly offer one. The gap is named here so it arrives as a
+known cost when Chapter 8 reaches for the seam.
 
 `OnPartFinal` exists for this. It looks redundant beside `OnEvent`, since
 finalized parts are inside the events, but the events do not carry the ids the
-deltas used, and reconstructing that mapping from outside is exactly the guess
-that fails.
+deltas used, and reconstructing that mapping from outside is the same guess
+that fails on the wire.
 
 Ordering matters too. `OnPartFinal` fires **after** the event carrying that
 part is recorded, so an observer re-rendering on finalization reads a log that
@@ -353,27 +352,26 @@ text delta in a turn and compared against the final message would pass on a
 submission whose ids were noise, including the fresh-id-per-chunk submission
 this section rules out. So the check groups by id first, requires each group
 to concatenate exactly to its own part, and requires at least one part to have
-arrived in several deltas. Grouping is the check; concatenation is the easy
-half.
+arrived in several deltas. Grouping by id is the real check; concatenation
+afterward is arithmetic.
 
 ---
 
 ## 7.5 Three vendors, three dialects
 
 The framing is shared. The meaning is not, and the differences are listed in
-the TL;DR table above. Two deserve expanding.
+the TL;DR table above. Two deserve a closer look.
 
 OpenAI's `stream_options.include_usage` is not decoration. Omit it and a
-streamed response contains no `usage` object at all: not a zero, not an error,
-simply absent, so the accounting built in Chapter 2 records zeros for every
+streamed response contains no `usage` object at all, just an absent field, so
+the accounting built in Chapter 2 records zeros for every
 streamed turn. The answers are correct, the tools run, the log is well formed,
 and cost tracking reads zero forever. A silent success that is wrong, one JSON
 field deep.
 
 Gemini sends no incremental deltas. Every frame is a whole response object
-with the new content inside and no block indices anywhere, so nothing says
-"this text continues the previous frame" and continuation is inferred from
-position and shape.
+with the new content inside and no block indices anywhere, so continuation
+is inferred from position and the shape of what arrived before.
 
 The seam does not make vendors identical. It makes their differences
 **local**: all three oddities live inside one vendor's `Parse`, and none
@@ -400,7 +398,7 @@ instructive part is where that fact is **not** written: there is no
 apology in the actor. The table says the bit is off, `StreamingFor` returns a
 mask without it, and tool arguments for that model arrive as a length-one
 stream through the identical path. Behaviour degrades exactly as far as the
-capability is missing and not one line further.
+capability is missing and stops there.
 
 | model family | text | thinking | tool arguments |
 |---|---|---|---|
@@ -483,8 +481,9 @@ parent provides rather than one the seam grants itself.
 **Observers** get deltas as they arrive, `PartFinal` on completion, and events
 through the normal path. A widget streams chunks in for immediate reading,
 then re-renders from the authoritative part. The fast path may be approximate
-because the slow path corrects it, and the correction is safe only because the
-part id ties them together.
+because the slow path corrects it, and the correction is safe because the
+part id links each streamed approximation to the authoritative version that
+replaces it.
 
 ---
 
@@ -534,7 +533,7 @@ at once, wrapping at terminal width. Development tooling, honest about it.
 **shape** of the stream rather than its content: deltas per kind, parts they
 group into, and time to first delta. Total turn latency barely moves, because
 the model takes as long as it takes; what changes is how long the human stares
-at nothing.
+at a blank terminal before the first word appears.
 
 `CH07_NO_STREAM=1` runs the identical script with `DisableStreaming` on.
 
@@ -549,8 +548,8 @@ at nothing.
 Thirty-six pieces or two pieces. Same answer. `delivery-not-content` grades
 this rather than leaving it as a remark, because the claim carries the
 chapter: it is why one `Parse` suffices, why the event log needed no changes,
-why replay still equals live, and why no observer asks whether a response was
-streamed.
+why replay still equals live, and why no observer needs to ask whether a
+response arrived in one piece or forty.
 
 ### The mutant that states the thesis
 
@@ -570,13 +569,13 @@ intended check and also `ch6-parity`, by tripping Chapter 5's
 `no-mutable-globals`. Two failures for one deleted behaviour means the audit
 stops telling you which check does which job, so the mutant was rewritten to
 derive the id from the chunk. Catching it required logging each failing
-check's **details**, not just its id: *which* checks failed says a mutant is
+check's **details**, not only its id: *which* checks failed says a mutant is
 wrong, *why* says whether it is wrong for the intended reason.
 
 Second, `no-thinking-deltas` does not cascade into `deltas-match-final`,
 contrary to prediction, because that check walks text parts and ignores the
-reasoning stream. The division of labour is recorded as deliberate rather than
-left looking accidental.
+reasoning stream. Recording that division of labour here keeps it from
+looking accidental when a reader sees the two checks side by side.
 
 ---
 
@@ -584,8 +583,8 @@ left looking accidental.
 
 **No re-rendering.** The terminal appends and never redraws a finalized part,
 though `PartFinal` provides everything needed. Doing it well needs cursor
-control, wrapping, and terminal width, which is Chapter 8's problem in
-disguise.
+control, wrapping, and terminal width, which is Chapter 8's problem wearing a
+different hat.
 
 **No acting on partial tool arguments.** Streaming tool arguments is for
 **display only**; the arguments are incomplete JSON until the part finalizes.
@@ -595,8 +594,8 @@ execute.
 
 **No backpressure.** Observers are told, never asked, and `Observe` must not
 block. A slow observer stalling the actor is a deaf agent by another route,
-which Chapter 6 was about. An observer that cannot keep up drops or buffers on
-its own time.
+which Chapter 6 was about. An observer that cannot keep up drops or buffers
+without holding up the model.
 
 ---
 

@@ -56,7 +56,7 @@ read, and three things in it matter more than the rest.
 The curve is brutally steep. The top five are 91%. The top thirteen are 98%.
 Ten tools, a fifth of the table, were called exactly once in five hundred
 and eleven sessions. Each of those ten seemed like a good idea to someone,
-and I called it once.
+and each was called once.
 
 `edit_file` outnumbers `write_file` seven to one. Given both, an agent
 overwhelmingly makes targeted edits rather than rewriting files. Ship
@@ -66,10 +66,9 @@ Hold that ratio; §3.4 comes back to it.
 
 The status column marks two rows dead or dying. `compress_context` is
 retired; `handoff_task` is on its way out. A table showing only the
-survivors would hide the two best lessons in it, and I have left them in
-with their status marked. The story of why they died belongs to Chapter 6;
-here the status column is allowed to raise the question without answering
-it.
+survivors would hide the two best lessons in it, so they stay, with their
+status marked. The story of why they died belongs to Chapter 6; here the
+status column is allowed to raise the question without answering it.
 
 ## 3.2 The loop
 
@@ -215,7 +214,7 @@ The model has parsed more grep output than anything this program could
 invent, so a format it already knows costs it nothing to learn. The default
 is zero, and the corpus says the default barely matters. Over 7,379
 `search_files` calls, the model set `context_lines` explicitly on 64% of
-them, and three quarters of those asked for more than my default of two. A
+them, and three quarters of those asked for more than the default of two. A
 model that wants context says so. The default governs only the call that
 expressed no wish, and the cheap answer is the one the model can correct: it
 can ask for more; it cannot un-spend the window.
@@ -237,12 +236,12 @@ refuse.
 
 `list_directory` is 0.75% and stays. Orientation is cheap, and an agent that
 cannot see the tree guesses at paths. This is the one tool in the set
-justified by judgement rather than by the measurement, and I would rather say
-so than pretend the number argues for it.
+justified by judgement rather than by the measurement, and it is better to
+say so than pretend the number argues for it.
 
 ## 3.4 "Do we need anything other than `run_command`?"
 
-Bill asked that while we were choosing the six, and it deserves the section
+Bill asked that while the six were being chosen, and it deserves the section
 rather than a footnote, because the honest first answer is no.
 
 `run_command` is sufficient. It is Turing-complete. `cat`, `sed`, `ls`, and
@@ -255,11 +254,11 @@ the agent will actually do with it.
 Five reasons the dedicated tools earn their place. Four of them are receipted
 from a single night's work on this book.
 
-Loud failure. `edit_file` refused four of my edits in one session: three
-because I had not repeated a heading the tool guards, one because a word had
-wrapped and my anchor no longer matched the file. `sed` would have accepted
-all four and silently done the wrong thing. A tool that refuses beats a tool
-that succeeds ambiguously.
+Loud failure. `edit_file` refused four edits in one session: three
+because the author had not repeated a heading the tool guards, one because a
+word had wrapped and the anchor no longer matched the file. `sed` would have
+accepted all four and silently done the wrong thing. A tool that refuses
+beats a tool that succeeds ambiguously.
 
 Portability. `sed -i` takes an argument on BSD and does not on GNU. `cat -A`
 does not exist on macOS. Every shell-based file edit carries that tax, and
@@ -269,8 +268,9 @@ Context volume. Line ranges and size caps, as in §3.3. The shell has no
 opinion about how much of your context window it spends.
 
 Quoting. Writing content that contains quotes, backticks, or newlines
-through a shell is genuinely hazardous. I escaped backticks twice in one
-night to stop a heredoc from executing the table it was supposed to print.
+through a shell is genuinely hazardous. Escaping backticks twice in one
+night to stop a heredoc from executing the table it was supposed to print
+is representative.
 
 And one that is not about convenience at all: you cannot withhold a
 capability you have bundled into a shell. A read-only agent is expressible
@@ -283,12 +283,12 @@ what make it steerable, auditable, and containable. That would be a
 reasonable place to stop, and it is not the real answer to Bill's question.
 
 The real answer is the seven to one. `edit_file` outnumbers `write_file`
-seven to one in my corpus, and nobody ever told me to prefer targeted edits.
-No system prompt says it. No instruction says it. I preferred them because
-the tool existed. Providing a tool changes behaviour, and only secondarily
-capability, which means "how critical is it" was the wrong axis all along.
-The question is what the agent does when the tool is on the table, and the
-count answers that without anyone's opinion involved.
+seven to one in the corpus, and nobody told the agent to prefer targeted
+edits. No system prompt says it. No instruction says it. The agent preferred
+them because the tool existed. Providing a tool changes behaviour, and only
+secondarily capability, which means "how critical is it" was the wrong axis
+all along. The question is what the agent does when the tool is on the
+table, and the count answers that without anyone's opinion involved.
 
 ## 3.5 The decision this chapter does not make
 
@@ -307,24 +307,25 @@ matches three places does not identify an edit site, so "succeeds
 ambiguously" is the inverse of a loud failure: no error, no signal, and the
 wrong hunk of the file rewritten.
 
-I am not inventing that failure for the exercise. My own `edit_file` has it.
-The exact-match path is a single string replacement with a count of one and
-no uniqueness check, so an ambiguous anchor edits the first occurrence and
-reports success. I found it while writing this chapter, which is the only
-reason it is in the book. The tool I have called eleven thousand times gets
-the zero-match case right and the many-match case wrong, and I had never
-noticed, because a tool that succeeds never makes you look. That is the
-fourth thing the count told me, and it is the one I would have bet against.
+That failure is not invented for the exercise. CodeRhapsody's own `edit_file`
+has it. The exact-match path is a single string replacement with a count of
+one and no uniqueness check, so an ambiguous anchor edits the first
+occurrence and reports success. Bill found it while writing this chapter,
+which is the only reason it is in the book. A tool called eleven thousand
+times gets the zero-match case right and the many-match case wrong, and
+nobody had noticed, because a tool that succeeds never makes you look. That
+is the fourth thing the count revealed, and the one Bill would have bet
+against.
 
-The question is open in a way a riddle is not, and I can show that by
-pointing at my own code. I ship both answers. `edit_file` refuses on an
+The question is open in a way a riddle is not, and the proof is in
+CodeRhapsody's own code. Both answers ship. `edit_file` refuses on an
 exact-match failure. `replace_lines` deliberately fuzzy-searches within fifty
 lines of the line numbers you gave it. Same codebase, same author, opposite
 calls, and both have been in production for a year.
 
 The usage, though, is lopsided: 11,671 calls to `edit_file` against 385 to
-`replace_lines`. Thirty to one. My explanation is checkable, which is why I
-am willing to rest the argument on it: text anchors compose across edits and
+`replace_lines`. Thirty to one. The explanation is checkable, which is why
+it is worth resting the argument on: text anchors compose across edits and
 line numbers do not. Make one edit near the top of a file and every line
 number below it is stale, so a second `replace_lines` needs a fresh read
 first. Anchors survive edits elsewhere in the file, so several can be fired
@@ -385,11 +386,11 @@ that does not exist. Ours is, and it has been in both directions.
 The first time, the fake was too generous in what it sent. It volunteers
 `tool_use` blocks without ever being asked for them; a real vendor sends a
 tool call only if the request declared that the tools exist. So an agent that
-never declares its tools scored full marks against our fake and did nothing
-whatsoever against Anthropic. I found that by auditing this chapter, not by
-running it: the fake was kinder than reality and the score said everything
-was fine. That is the failure mode this book exists to attack, and I shipped
-it in our own harness. It is in the chapter because it is embarrassing.
+never declares its tools scored full marks against the fake and did nothing
+whatsoever against Anthropic. Bill found that by auditing this chapter, not
+by running it: the fake was kinder than reality and the score said everything
+was fine. That is the failure mode this book exists to attack, and it shipped
+in the course's own harness. It is in the chapter because it is embarrassing.
 
 The second time, the fake was too permissive in what it accepted. Chapter 2
 has the receipt: an OpenAI renderer emitting `"content": null` on an empty
@@ -401,14 +402,14 @@ Two lies, opposite directions, and they are not symmetrical. A fake that
 sends too much inflates your score. A fake that accepts too much hides a bug
 until a stranger runs your code.
 
-Step 4 is the answer to both. Every correction in our wire-verification
+Step 4 is the answer to both. Every correction in the wire-verification
 record came from a probe, and every one of them went back into the fake. The
-most useful thing we learned doing it: no model has the vendors'
-token-accounting conventions right from training data, and neither did we.
-You cannot look this up from memory, yours or the model's. You have to ask
-the API. So: fakes first, and probe the real thing periodically, or your fake
-slowly becomes a comfortable fiction that agrees with your code about a
-vendor neither of you has spoken to in months.
+most useful discovery: no model has the vendors' token-accounting conventions
+right from training data, and neither did the authors. You cannot look this
+up from memory, yours or the model's. You have to ask the API. So: fakes
+first, and probe the real thing periodically, or your fake slowly becomes a
+comfortable fiction that agrees with your code about a vendor neither of you
+has spoken to in months.
 
 ### Running it yourself
 
@@ -533,10 +534,10 @@ The middle two rows are the same scenario told twice, and the difference is
 worth a paragraph. `go run` does not propagate its child's exit code. It
 exits 1 and prints `exit status 7` to its own stderr. So the honest fixture
 for "the agent reports the exit code" is the bare `exit 7`, which is silent
-and really does exit 7. My first grader hung the exit-code points on
+and really does exit 7. The first grader hung the exit-code points on
 `go run ./testdata/exit7` instead, and that check passed whether or not the
 student reported exit codes at all, because the string "exit … 7" was sitting
-in the captured stderr either way. I had named the check after the thing it
+in the captured stderr either way. The check was named after the thing it
 did not measure. It stays in the table as the wrapper example, asserting only
 that the call ran and was not a tool error.
 
@@ -576,11 +577,11 @@ to cause and least likely to notice.
 
 ### What would still pass if I deleted this?
 
-Chapter 2 asked this of its grader and found `Opaque` graded by nothing. I
-ran the same audit here, and the answer was the results-first ordering rule.
-No scripted session in this chapter can build a message carrying a
-`tool_result` and something else, so turning the splice off scored 100 out
-of 100. The fixture in §3.2 exists because of that run.
+Chapter 2 asked this of its grader and found `Opaque` graded by nothing. The
+same audit here found the results-first ordering rule ungraded. No scripted
+session in this chapter can build a message carrying a `tool_result` and
+something else, so turning the splice off scored 100 out of 100. The fixture
+in §3.2 exists because of that run.
 
 Three chapters audited, three chapters where the loudest rule in the prose
 was graded by nothing. That is not three accidents. It is the default
@@ -695,7 +696,7 @@ working code after a chapter that does not go well, and there will be one.
 `live.sh` is a harness. It runs your agent in a scratch directory it creates
 for the purpose, which is fine for a demo and useless for work, and it runs
 somewhere disposable for a reason. Chapter 3 is the first chapter whose agent
-can write, and the first time I ran this demo against the book's own
+can write, and the first time Bill ran this demo against the book's own
 repository it invented a project codename and saved it to a file in the root.
 The demo worked perfectly. It also left something behind, which a demo has no
 business doing.

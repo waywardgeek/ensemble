@@ -209,9 +209,8 @@ make grade6
 ## §6.1 The idea in plain words
 
 Chapter 2 built a renderer that turned the event log into
-`history.md`. It watched the stream and produced a view. That is an
-observer. The reader who built it has already written one and can now
-name it.
+`history.md`. It watched the stream and produced a view: an
+observer. The reader has already built one and can now name it.
 
 A deaf loop processes one request at a time. The model sends back a
 tool call, the engine runs the tool, and nothing else can happen
@@ -226,10 +225,9 @@ The fix is three pieces that work together.
 when something happens: a state transition, a completed response, a
 streaming chunk. Observers cannot call back into the engine. They
 watch and react. A logger is an observer. A GUI is an observer. A
-parent managing a child agent is an observer. The observer pattern
-itself is nothing new. What matters is that the framework defines the
-interface, observers implement it, and nothing inside the framework
-knows what the observers do. A GUI, a gateway, and a sub-agent
+parent managing a child agent is an observer. What matters is that
+the framework defines the interface, observers implement it, and
+nothing inside the framework knows what the observers do. A GUI, a gateway, and a sub-agent
 supervisor all plug in here without any of them changing a line of
 framework code.
 
@@ -256,8 +254,8 @@ These three pieces are independent additions to the star topology
 from Chapter 5. The observer interface and the mailbox message types
 go into `internal/common/` as two new interfaces in the hub. The
 mailbox implementation goes into a new spoke or an existing one. The
-actor loop replaces the engine's synchronous ask. No existing spoke
-changes.
+actor loop replaces the engine's synchronous ask, and no existing
+spoke changes its contract.
 
 ## §6.2 The framework that imported its own GUI
 
@@ -379,8 +377,7 @@ every action: after recording a response, after transitioning state,
 after a tool completes. Observers see the same events whether they
 are attached to a running agent or to a freshly started one, because
 the events are generated from the same code path that updates the
-context. Replay and live are the same sequence, and the
-`replay-is-live` check tests exactly that.
+context.
 
 ### Why Observe must not block
 
@@ -453,7 +450,7 @@ func (b *Box) Drain() []Inbound {
 `Post` never blocks. If the channel is full, the signal is already
 pending and the loop will drain the queue. `Drain` returns everything
 and clears the queue. The mutex protects the slice; the channel is
-just a wake signal. No priorities, no reordering, no cleverness.
+just a wake signal. The queue preserves arrival order and nothing else.
 
 ### Why one queue
 
@@ -567,7 +564,7 @@ creation and never modified. There is no shared mutable state between
 the actor and the tool except the mailbox itself, and the mailbox
 is the one lock.
 
-This is not accidental minimalism. Every lock is a place where two
+The minimalism is deliberate. Every lock is a place where two
 goroutines disagree about what is happening. Two goroutines can
 disagree in testable ways. Ten goroutines with a shared map disagree
 in ways that show up in production at 3 AM on a Saturday.
@@ -640,9 +637,9 @@ the turn, and the turn state is the reducer's business.
 
 > Bill's ruling on callbacks is absolute: a callback added to break
 > a Go dependency cycle is a red flag. The mailbox breaks no cycles.
-> It is not a workaround for a dependency the compiler rejected. It
-> is the mechanism by which concurrent events enter a sequential
-> loop. The engine has one goroutine, one queue, and one notify step.
+> It is the mechanism by which concurrent events enter a sequential
+> loop, not a workaround for a dependency the compiler rejected.
+> The engine has one goroutine, one queue, and one notify step.
 > If you find yourself adding function-pointer fields to break a
 > compile error, the dependency is real, and the fix is to move the
 > interface to the hub.
@@ -702,8 +699,8 @@ fires an observation that satisfies the predicate.
 
 A Go program constructing three agents and passing messages between
 them is not an agent spawning children through its own tool surface.
-Multi-agent does not require a sub-agent API. It requires a
-framework, a prompt, and tools. This exercise is just Go. The
+Multi-agent requires nothing beyond a framework, a prompt, and
+tools. This exercise is just Go. The
 distinction matters because a sub-agent chapter adds a tool surface
 for spawning; this chapter proves it is not necessary.
 
@@ -718,10 +715,8 @@ for spawning; this chapter proves it is not necessary.
 > observer seam, delivering events as they happen, returned 3,447
 > bytes for the same purpose.
 
-Three agents prove the cost was paid once. The first agent might work
-because the framework was tested with it. The second agent might work
-because the code was debugged for two. The third agent works because
-the framework is general.
+The third agent is the proof. If adding it requires a single
+change inside the framework package, the seam is incomplete.
 
 ## §6.9 Media capabilities
 
@@ -860,9 +855,8 @@ transitions:
 {"agent":"reviewer","from":"in_flight","to":"idle"}
 ```
 
-The observation stream is the whole story. No polling, no callbacks,
-no reaching into agent internals. The framework tells you what
-happened, in order, and you decide what it means. A logger writes
+The observation stream is the whole story. The framework tells you
+what happened, in order, and you decide what it means. A logger writes
 it to a file. A GUI renders it as a chat. A parent agent uses it to
 decide when to send the next prompt. The observer seam carries all
 three without knowing about any of them.

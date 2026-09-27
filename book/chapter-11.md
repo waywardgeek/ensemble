@@ -5,8 +5,8 @@ drives its own GUI and loads skills on demand, and the moment the
 process exits it forgets the user's name, the project, the afternoon of
 work and every decision made along the way. The next start meets a
 stranger. This chapter ends that. Nothing else in the book changes more
-about what the agent is: a program that runs becomes a colleague that
-stays.
+about what the agent is: a program that runs becomes one that
+remembers.
 
 ## TL;DR
 
@@ -196,7 +196,7 @@ renderer turns that context into the same bytes. If they differ, the
 reducer is reading something besides its input, and that dependency
 will corrupt every conversation that resumes from disk.
 
-The comparison is made on vendor requests.
+The grader compares vendor requests.
 A request is the only thing the model ever sees, and it is a format
 every student's agent already produces, so the grader can compare two
 of them without knowing anything about how a particular solution

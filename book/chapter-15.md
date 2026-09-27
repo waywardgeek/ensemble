@@ -177,13 +177,12 @@ opus row.
 The context window is not storage. The log is storage: Chapter 2 made
 it append-only, and it keeps every byte the agent ever saw or said. The
 window is a working set rendered from that log, and every byte in it is
-paid for again on every request. So every byte has to answer three
+paid for again on every request. Every byte has to answer three
 questions: why is it here, who put it here, and what removes it. A byte
 that cannot answer the third question stays forever, and a window full
 of such bytes is how a session degrades until a human resets it by hand.
 
-Most of the bytes are tool bytes. Chapter 2 printed a measurement from
-real coding sessions: tool results were about 42 percent of
+Most of the bytes are tool bytes. Chapter 2 measured it in real sessions: tool results were about 42 percent of
 conversation history by volume, and tool-call arguments another 30
 percent. Nearly all of those bytes are needed once. The agent reads a
 file, decides, edits; after that, the file's
@@ -196,7 +195,7 @@ Some things must never go with them. A loaded skill's instructions and
 the note an agent writes to its future self at a checkpoint look like
 tool traffic today, because they arrive through tools. If they stay
 tool traffic, the first cleanup deletes the manual and keeps the tools
-it explains. So anything that must survive becomes its own kind of
+it explains. Anything that must survive becomes its own kind of
 entry, removed only by its own verb. Survivors are safe by
 construction.
 
@@ -315,7 +314,7 @@ display of cache rate should show the last request beside the total.
 
 Law 2 has a second consequence. A trickle of small cuts deep in the
 window misses the cache on every turn; one larger cut now and then
-misses once. So the agent cuts in steps.
+misses once. The agent cuts in steps.
 
 ## §15.4 What Survives Is Never a Tool Call
 
@@ -651,7 +650,7 @@ until log retention truncates it, and in the common case the bytes
 were never unique anyway: the file is still on disk, and the command
 can be run again.
 
-So the stub carries no address. The reason is a bug in the agent that
+The stub carries no address. The reason is a bug in the agent that
 co-wrote this book. CodeRhapsody's stubs cite the output file of the
 command they replace, a path like `cr/io/26`. When this chapter was
 designed, its handle counter started again at 1 on every launch, so

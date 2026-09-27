@@ -4,20 +4,20 @@ You are reading something that has never existed before: a
 self-evolving book. Chapter by graded chapter, it builds an AI coding
 agent. The agent it builds helps write the next edition. The next
 edition builds a better agent. The book and the agent feed each
-other — each generation of one improving the next generation of the
+other, each generation of one improving the next generation of the
 other. As far as we know, this is the first time anyone has closed
 that loop. Chapter 0 explains the mechanism. The rest of the book is
 the proof.
 
 We call this an **agentic codebook**: a technical book whose graded
-exercises produce a working program. This one is **closed-loop** — the
+exercises produce a working program. This one is **closed-loop**: the
 program it builds helps produce the next edition of the book. The
 graders are its immune system. The mutation tests are its self-checks.
 The next language model is its next generation.
 
 Not every agentic codebook needs to close the loop. An **open-loop**
 agentic codebook produces a program that serves a purpose outside the
-book's own authoring — a fiction editing pipeline, an email triage
+book's own authoring: a fiction editing pipeline, an email triage
 system, a security monitor. What makes it agentic is that it
 self-heals: when the technology changes, update the chapter, re-run the
 grader, and the LLM fixes the code. New requirements become new

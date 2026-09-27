@@ -2,25 +2,24 @@
 
 Every chapter so far has added capability by adding code. That stops
 scaling. Right now you have eight tools. A production agent has forty
-or more, and the system prompt grows with every feature. We have
-deliberately deferred the system prompt until this chapter so we
-could build it properly. The system prompt is the most abused feature
-in LLM applications: teams stuff instructions, context, tool
-descriptions, and user preferences into a monolith that breaks
-cache on every edit. Skills fix this before the problem arrives.
+or more, and the system prompt grows with every feature. The system
+prompt was deliberately deferred until now. It is the most abused
+feature in LLM applications: teams stuff instructions, context, tool
+descriptions, and user preferences into a monolith that breaks cache
+on every edit. Skills fix this before the problem arrives.
 
-A skill is a named unit of capability (instructions, tools,
-dependencies) in a single markdown file. Loading one changes what the
-agent can do. Unloading one marks it for removal at the next
-compaction. The system prompt is rendered once from the primary skill
-at agent creation and never mutated. Dynamic capabilities flow
-through events.
+A skill is a named unit of capability: instructions, tools, and
+dependencies, in a single markdown file. Loading one changes what the
+agent can do; unloading one marks it for removal at the next
+compaction. The system prompt renders once from the primary skill at
+agent creation and stays fixed. Capabilities added after creation
+reach the agent through the event stream.
 
-This is also where variable substitution enters. A skill body can
-contain `$TOOLS` or `$SKILLS` or any application-specific variable,
-and the renderer replaces them at the point of use. The initial
-system prompt gets creation-time values. A dynamically loaded skill
-gets load-time values. No retroactive updates, no invalidation logic.
+Variable substitution lives here too. A skill body can contain
+`$TOOLS` or `$SKILLS` or any application-specific variable, and the
+renderer replaces them at the point of use. The initial system prompt
+gets creation-time values; a dynamically loaded skill gets the values
+current at load time.
 
 ## TL;DR
 
@@ -173,15 +172,14 @@ loaded skills' `loadable-skills` lists, minus anything already loaded.
 
 ## Progressive Disclosure
 
-This is the payoff. Loading a skill reveals more skills. The agent's
-`$SKILLS` variable updates to show what it can load next. After
-loading `code-tools`, it might see `refactor-tools`. After loading
-`refactor-tools`, it might see `architecture-tools`. The tree unfolds
-as the agent explores.
+Loading a skill reveals more skills. The `$SKILLS` variable updates
+to show what the agent can load next: `code-tools` might reveal
+`refactor-tools`, which in turn reveals `architecture-tools`. The
+tree unfolds as the agent explores.
 
-The agent never sees the full tree. It sees one level ahead: the skills
-the skills it has loaded make available. This keeps the context
-focused and the tool list manageable.
+The agent sees only one level ahead: the skills made available by
+the ones already loaded. Context stays focused and the tool list
+stays manageable.
 
 ## Variable Substitution
 
@@ -207,9 +205,9 @@ Built-in renderers handle `$TOOLS` and `$SKILLS`. The API exposes
 environment, user context, anything the skill body needs to reference
 without hardcoding.
 
-Variables are rendered at point of use. The initial system prompt gets
-creation-time tool and skill lists. A skill loaded mid-conversation
-gets the current lists at load time. No retroactive updates.
+Variables render at point of use: the initial system prompt gets
+creation-time lists, and a skill loaded mid-conversation gets
+whatever the lists contain at load time.
 
 ## Tool Provenance
 
@@ -230,14 +228,13 @@ makes this possible without the renderer needing to know about skills.
 
 ## The Constitution
 
-The system prompt is rendered once at agent creation and never
-mutated. When `load_skill` runs, the skill's instructions arrive as
-the tool result. They flow through the message history, not the
-system prompt. The agent's capabilities grow but the constitution is
-stable.
+When `load_skill` runs, the skill's instructions arrive as the tool
+result. They flow through the message history, not the system prompt.
+Capabilities grow while the system prompt stays frozen at its
+creation-time content.
 
-This has a consequence for memory. Pre-loaded context (memories,
+That separation matters for memory. Pre-loaded context (memories,
 user preferences, project notes) belongs in the message history as
-data, not in the system prompt as instructions. `save_memory` produces
-a data message. The system prompt stays clean and cacheable. Chapter
-12 will build the memory cascade on this foundation.
+data rather than the system prompt as instructions. `save_memory`
+produces a data message. The system prompt stays clean and cacheable.
+Chapter 12 builds the memory cascade on this foundation.

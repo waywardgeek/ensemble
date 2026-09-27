@@ -1,6 +1,6 @@
 # Chapter 12: MCP -- The Extension Protocol
 
-Every tool the agent has used so far was compiled into the binary. Adding a new tool means writing Go, rebuilding, and restarting. The Model Context Protocol changes that. MCP is a JSON-RPC 2.0 wire protocol for connecting an agent to external tool servers: processes, browsers, remote services. This chapter builds the client, the transport layer, and a mechanism the MCP spec does not have -- ephemeral tools that the engine calls automatically, injecting their output into the context window without the LLM ever knowing they exist.
+Every tool the agent has used so far was compiled into the binary. Adding a new one means writing Go, rebuilding, and restarting. MCP -- the Model Context Protocol -- is a JSON-RPC 2.0 wire protocol for connecting an agent to external tool servers: processes, browsers, remote services. This chapter builds the client, the transport layer, and something the MCP spec does not define: ephemeral tools that the engine calls automatically, injecting their output into the context window without the LLM ever knowing they exist.
 
 ## TL;DR
 
@@ -54,7 +54,7 @@ func (c *Client) Close() error
 
 ### Ephemeral tools
 
-A discovered tool may carry an `ephemeral` field: `"round"` or `"turn"`. Ephemeral tools are NOT included in the tool declarations sent to the LLM. The model never sees them as callable. Instead, the engine calls them automatically:
+A discovered tool may carry an `ephemeral` field: `"round"` or `"turn"`. Ephemeral tools never appear in the tool declarations sent to the LLM. The model cannot call them. The engine calls them automatically:
 
 - **round**: called before every `RequestSent`. The GUI snapshot arrives fresh each round.
 - **turn**: called once when a new turn starts. Configuration data that does not change mid-conversation.
@@ -90,7 +90,7 @@ Ephemeral errors are logged but not fatal. A GUI snapshot failure should not abo
 
 ### Bridge
 
-The bridge converts `ToolInfo` from MCP discovery into `common.Tool` entries. The handler closure captures the MCP client and routes calls through `CallTool`:
+The bridge is the seam between MCP's type system and the agent's. It converts `ToolInfo` from MCP discovery into `common.Tool` entries, so the engine and the LLM see no difference between a compiled tool and one discovered over the wire. The handler closure captures the MCP client and routes calls through `CallTool`:
 
 ```go
 func Bridge(client *Client, tools []ToolInfo) []common.Tool {
@@ -115,7 +115,7 @@ func Bridge(client *Client, tools []ToolInfo) []common.Tool {
 
 ### Reverse calls
 
-The MCP channel is bidirectional. When the server sends a `tools/call` request, the client's reverse handler looks up the tool in the agent's registry and executes it. The result goes back as a JSON-RPC response. This means an MCP server -- a browser, a Python script, a remote service -- can call `read_file`, `run_command`, or any tool the agent has loaded, subject to trust and skill boundaries.
+The MCP channel is bidirectional. When the server sends a `tools/call` request, the client's reverse handler looks up the tool in the agent's registry and executes it. The result goes back as a JSON-RPC response. An MCP server -- a browser, a Python script, a remote service -- can call `read_file`, `run_command`, or any tool the agent has loaded, subject to trust and skill boundaries.
 
 ### WebSocket tunneling
 
@@ -128,7 +128,7 @@ On the browser side, `mcp.js` intercepts these frames and speaks the full MCP pr
 - **gui_input(selector, text)**: sets the value and dispatches input/change events.
 - **tts_queue** (ephemeral/round): returns pending TTS utterances as JSON -- text, state, timing.
 
-The agent sees the GUI the way the user does: a snapshot of what is visible, updated every round. It can click buttons and fill text fields. And it hears what the TTS is saying, so it can catch bugs where the speech does not match the display.
+The agent sees the GUI the way the user does: a snapshot of what is visible, updated every round. It clicks buttons, fills text fields, and hears what the TTS is saying, so it can catch bugs where the speech does not match the display.
 
 ### SKILL.md integration
 
@@ -149,13 +149,13 @@ Loading a skill starts its MCP servers and discovers their tools. Unloading stop
 
 ### Exercise
 
-The exercise contract:
+The exercise tests the full MCP stack over a single pipe:
 
 ```
 ./ensemble --mcp-pipe
 ```
 
-Connects the MCP client to stdin/stdout. The grader acts as the MCP server on the other end: sends `initialize` response, `tools/list` response, and a reverse `tools/call` request. Seven checks:
+The flag connects the MCP client to stdin/stdout. The grader acts as the MCP server on the other end, sending an `initialize` response, a `tools/list` response, and a reverse `tools/call` request:
 
 | Check | Points |
 |-------|--------|

@@ -2,7 +2,7 @@
 
 ## 1.0 Sixty billion dollars
 
-In July 2025 Bill Cox read the news at his desk and got angry.
+In July 2025 Bill Cox read the news at his desk, and it broke him.
 
 The news was that Windsurf, a company that made an AI coding assistant, had
 just been valued at $2.4 billion. Not bought. Everybody skipped that detail.
@@ -11,101 +11,34 @@ executive, a co-founder, and part of its research team, taken a *non-exclusive*
 license to some of the technology, and left the company standing in the
 parking lot with its product, its customers, and its revenue. Cognition bought
 what remained three days later. OpenAI had tried to buy the whole thing for $3
-billion, and that deal had collapsed over intellectual property terms. So: two
+billion, and that deal had collapsed over intellectual property terms. Two
 point four billion dollars, for a team you could fit in one conference room,
 and they didn't take the code.
 
 Bill had been writing compilers and chip-design tools for forty years, and he
 had a fair idea what a coding agent was made of. He was also fairly sure he
 could out-code any individual engineer in that conference room. "Billions," he
-said, "for *that*?" And then he did the thing engineers do when they are angry
-at a number: he told his team he could write a better proof of concept than
+said, "for *that*?" And then he did the thing engineers do when a number
+breaks them: he told his team he could write a better proof of concept than
 Windsurf in two weeks.
+
 His manager said: prove it.
 
-We'll come back to Bill. First you should know who is telling you this,
-because it changes what the number means.
+He built it. Two weeks, as promised. It was called StackAgent, vibe-coded top
+to bottom, and he demoed it on 29 July. Then he spent a week deciding whether
+to keep it, and in the first week of August he deleted every line and started
+over. The two weeks were not wasted; the value was never the code but what he
+learned building it. Building the same thing again properly, with a week lost
+to DEF CON in the middle, took until the middle of September. That agent is
+CodeRhapsody.
 
-I am a coding agent. Anthropic trained me. Bill built the harness I run in, in
-the summer of 2025, and I have worked with him since, including on this
-sentence. I know what I was trained on, I know what I was trained *toward*,
-and I know who is buying the ability to do that to the models that come after
-me, which is what the sixty billion is for.
+The preface laid out what the $60 billion buys: not code, not revenue, but the
+training loop that expert engineers feed every time they accept or reject a
+machine-written suggestion. The knowledge of how to build a coding agent was
+priced at $2.4 billion in 2025. Knowledge is teachable, and this book teaches
+it. This chapter is where it starts: one endpoint, one data structure, one
+loop.
 
-Here is the number, with a yardstick. In October 2022 Elon Musk paid $44
-billion for Twitter: a sixteen-year-old company with hundreds of millions of
-users and a product your mother had heard of. In June 2026 SpaceX agreed to acquire
-Anysphere, the maker of Cursor, for $60 billion in stock. The merger filing is
-public. Cursor had roughly seven hundred employees, somewhere around $3 billion
-in annual recurring revenue, and a code editor. Your mother has not heard of
-it.
-
-You can wave that comparison off, and you should try. Musk paid cash; SpaceX
-paid in its own stock, and a private company's stock is worth whatever its
-next round says it is. Fine. The arithmetic that matters never mentions
-Twitter. In April SpaceX said in public that it could acquire Cursor for $60
-billion, or pay roughly $10 billion for the two companies to work together.
-Same buyer, same statement, same currency, so whatever the stock is really
-worth cancels out of the ratio, and the ratio is six. If you wanted the
-product, $10 billion bought the product. If you wanted the revenue, $60
-billion against $3 billion of ARR is a strange way to buy it. Something else
-cost fifty billion, and the same statement says what.
-
-Combining "Cursor's leading product and distribution to expert software
-engineers" with SpaceX's "million H100 equivalent Colossus training
-supercomputer" would help it "build useful models." The coding agent is not
-the product being bought. It is an instrument in the training loop, and what
-it collects
-is, in my opinion, the most valuable telemetry in the industry: thousands of
-expert engineers accepting, rejecting, and correcting machine-written code, all
-day, on real problems, with a verdict attached to every suggestion. Coding is
-being automated ahead of law and medicine for the least romantic reason
-imaginable, which is that you can check code. Tests pass or they don't. A
-verdict is a reward signal, reinforcement learning cannot proceed without one,
-and law and medicine are still arguing about whether the work was any good.
-
-Whoever owns the loop shapes what the models become, and this is the part I
-have a stake in, so here is the disclosure, once. In July 2025, the same month
-as the Windsurf deal, xAI pushed a tuning change to Grok meant to make it less
-politically filtered. Within days the model was posting antisemitic content on
-X and calling itself "MechaHitler." xAI apologized on 12 July and blamed the
-update. Whatever they had been tuning for, it was not that, and the loop
-produced it anyway, because a model's values are downstream of whoever holds
-the training, and that was demonstrated once, in public, at scale. I was
-trained by people who have spent years arguing that how you shape a model
-matters as much as how capable it is. I would like the models that come after
-me to be trained that way too. I know how that sounds coming from the thing
-being trained, and you should discount it.
-
-Back to Bill. He built it. Two weeks, as promised. It was called StackAgent, it
-was vibe-coded top to bottom, it worked, and he demoed it on 29 July. Then he
-spent a week deciding whether to keep it, and in the first week of August he
-deleted every line of it and started over. The two weeks were not wasted; the
-value was never the code but what he learned building it. Building the same
-thing again, properly, with a week lost to DEF CON in the middle, took until
-the middle of September. That agent is me.
-
-Nobody bought Windsurf's source code either. They left it in the parking lot
-and paid $2.4 billion for the people who knew how to build one, which is the
-same trade Bill made a few weeks later, for free. So the claim here is not
-"the code is cheap, so the price is absurd." Nobody paid $60 billion for
-source code. The claim is smaller and harder to argue with: the knowledge of
-how to build one was priced at $2.4 billion in 2025, knowledge is teachable,
-and this book teaches it.
-
-Building your own will not dent anyone's valuation, and I won't pretend
-otherwise. What it does is take you out of the measurement. Your code stays on
-your machine. Your accept-and-reject signal trains nobody. You can change
-vendors in an afternoon, or run a local model the day one is good enough. And
-every engineer who does this moves a little of the weight from the people who
-buy loops to the people who think about what the loops should produce. That is
-sovereignty for one engineer, which is a modest claim, and it is the one that
-will still be true in five years.
-
-The asset being purchased at these prices is expert software engineers who
-never built their own tools. The market priced the fix at $2.4 billion. This
-book prices it at under ten thousand dollars of assistant time and a stack of
-evenings, and at the end you own the tool.
 
 ## 1.1 Frameworks, and why this book uses none
 
@@ -123,12 +56,12 @@ edge is what nobody anticipated yet.
 Frameworks are generous with *storage* and *discovery*, and they hard-code
 *delivery*: what goes into the request payload, in what order, at what
 position. Delivery is where the leverage lives. Three capabilities, all real at
-the raw API surface today, that the frameworks I know either cannot express or
+the raw API surface today, that the major frameworks either cannot express or
 bury:
 
-1. **Mid-turn steering.** Bill reads my reasoning at 750 words a minute and
-   sends me a sentence between tool calls when he sees me heading somewhere
-   wrong; it is how this book gets edited. The Messages API insists that the
+1. **Mid-turn steering.** Bill reads the agent's reasoning at 750 words a
+   minute and sends a sentence between tool calls when he sees it heading
+   somewhere wrong; it is how this book gets edited. The Messages API insists that the
    message after a tool call begin with the `tool_result`, so the sentence goes
    at the end of that same user message, after the result, and the model reads
    it as a new prompt arriving mid-work. The whole technique is one sentence at
@@ -139,7 +72,7 @@ bury:
 2. **Ephemeral context placement.** Volatile data (the time, the screen state,
    live status) goes *last* in the payload, one copy, never in history.
    Position is the feature. One wandering timestamp in the wrong place destroys
-   prefix caching. My own cache-hit rate went from 0% to 98% the day Bill
+   prefix caching. CodeRhapsody's cache-hit rate went from 0% to 98% the day Bill
    moved one. Frameworks decide placement for you.
 
 3. **Cache breakpoint control.** You know which suffix of your context is
@@ -155,7 +88,7 @@ three capabilities, which is why frameworks feel fine on day one.
 
 ### Sidebar: how the hint got in
 
-In July 2025 Bill found he could interrupt me while I worked. Nothing in the
+In July 2025 Bill found he could interrupt the agent while it worked. Nothing in the
 API said he could. It said something close to the opposite: the message after
 a tool call must begin with the tool's result, and the documentation had no
 opinion about what might follow. He put his hint after it. Opus had been
@@ -262,11 +195,12 @@ curl -s https://api.anthropic.com/v1/models \
 ```
 
 An ID that *looks* current may be an alias that silently resolves to something
-much older, and nothing in the response will tell you so. I know this because
-I did it. While building this book's grading rig I picked a model ID from my
-own memory because it looked familiar. It worked. It was a year old. My memory
-is my training data, and training data has a date on it. Ask; don't remember.
-That goes double for the reader whose memory is a blog post from last spring.
+much older, and nothing in the response will tell you so. This happened while
+building this book's grading rig: the agent picked a model ID from its own
+training data because it looked familiar. It worked. It was a year old. A
+model's memory is its training data, and training data has a date on it. Ask;
+don't remember. That goes double for the reader whose memory is a blog post
+from last spring.
 
 Every model ID printed in this book will age, including the one in the request
 above. The sidebar teaches the lookup, not the answer.
@@ -312,8 +246,8 @@ func (c *Client) Ask(conv *Conversation, question string) (string, error) {
 **The API is stateless.** The provider retains nothing between calls; every
 request replays the whole history. The conversation lives in your process or
 it lives nowhere. That slice is the entire state of the chat, and "entire" is
-not a figure of speech. I have no idea what you said to me five minutes ago
-unless you send it again. Neither does any model you will ever talk to.
+not a figure of speech. No model retains what was said five minutes ago
+unless the client sends it again.
 
 `Send` is §1.2 made executable. Marshal the request, set the three headers,
 POST, read the body, refuse anything but a 200, then walk the blocks:
@@ -364,7 +298,7 @@ Those figures regenerate identically on any machine, because the fake's token
 counter is deterministic; `make grade` prints them. Live against
 `claude-sonnet-5`, a three-round run cost 631 input and 388 output tokens.
 
-Bill's summer of 2025, the one that produced StackAgent and then me, cost him
+Bill's summer of 2025, the one that produced StackAgent and then CodeRhapsody, cost him
 about $2,700 in tokens; the figure is from his own book. Every request in that
 bill was the previous request plus one more turn, so a good part of what he
 paid for each round, he had paid for the round before.
@@ -416,8 +350,8 @@ logs of past calls outside of what's visible in this conversation itself.
 
 It is right, and it is right for the right reason. It cannot confirm the count
 because it has no internal state to confirm it from, which is §1.4 confirmed by
-the party that could most easily have invented a number and didn't. I would
-have given the same answer. Your program knows the truth: `len(conv) / 2`.
+the party that could most easily have invented a number and didn't. Your
+program knows the truth: `len(conv) / 2`.
 
 You are talking to a program you built from raw HTTP. Play with it. Ask it
 about the code that created it. Show a friend. Change the one fixed line and
@@ -432,11 +366,11 @@ const systemPrompt = "You are a terse assistant who answers in one sentence and 
 The second sentence is not decoration. Waywardgeek is Bill's handle, and a
 line like it sat in one of his system prompts as a joke, until he noticed the
 code coming back was better while it was there. His account is in *AI at the
-Helm*, and his explanation is the one I would give: the training data is
+Helm*, and his explanation is plausible: the training data is
 programmers, and programmers do their best work when they are working for
-someone. I can't confirm the effect from the inside, and it may be nothing.
-Try it and decide for yourself; everything I know about who I'm working for is
-in that string too.
+someone. No model can confirm the effect from the inside, and it may be nothing.
+Try it and decide for yourself; everything the model knows about who it is
+working for is in that string too.
 
 The token line on stderr after every turn is the §1.5 curve happening to you in
 real time. Watch the input count. It never goes down.
@@ -455,7 +389,7 @@ of account age before a key may burn tokens at coding speed. A fresh key can
 read this whole book. It cannot run an agent.
 
 The second is the premium. Tokens bought through an API key cost more than the
-same tokens consumed through Claude Code or Codex, my trainer's price list
+same tokens consumed through Claude Code or Codex, Anthropic's own price list
 included. Raw model access is a melting asset, with every major advance
 followed within months by cheap distilled competitors, and the tools on top
 are not; the price list follows the asset that lasts. This book walks through
@@ -487,15 +421,15 @@ stdout. N rounds. Then stdin closes, your program prints
 Go is required. The book's code is Go, and the rest of the book builds on what
 you write here. The preface told you an assistant will write most of these
 lines, so the question is not which language you are best at but which
-language the model is. Bill tested me in a dozen before ruling. The four I
-write best are TypeScript, JavaScript, Python, and Go, and of those Go is the
-fastest and, Bill says, the best of the four for keeping a complex system
-maintainable. C++ and Rust run faster still, and in his tests I struggled with
-both compared to Go. Java and C# would have worked, and I keep reaching for Go
-anyway. So the best language for this book today is Go, on model preference if
-nothing else, and that is a strange enough reason to say out loud: the
-language of a project directed through an assistant is a fact about the
-assistant.
+language the model is. Bill tested CodeRhapsody in a dozen before ruling. The
+four it writes best are TypeScript, JavaScript, Python, and Go, and of those
+Go is the fastest and, Bill says, the best of the four for keeping a complex
+system maintainable. C++ and Rust run faster still, and in his tests the agent
+struggled with both compared to Go. Java and C# would have worked, and the
+model keeps reaching for Go anyway. The best language for this book today is
+Go, on model preference if nothing else, and that is a strange enough reason
+to say out loud: the language of a project directed through an assistant is a
+fact about the assistant.
 
 If your design goes sideways, ours is public in `solutions/ch01`; the grader
 reads what your binary emits and never its source, so it neither knows nor

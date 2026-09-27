@@ -15,7 +15,7 @@ framework by reorganizing the code into packages with clean import
 direction, at a cost of 123 lines and zero new features. At the end,
 a twenty-line program imports your framework, registers a custom tool
 the framework has never seen, and runs an agent that calls it. Your
-agent is no longer just a coding agent. It is a platform.
+agent becomes a platform.
 
 **What you build.** The same agent, reorganized into packages with
 clean import direction. Two rules govern the split:
@@ -205,7 +205,7 @@ import the job manager to use it, and that is a cycle. Move the
 interface to a package both can import and the cycle breaks. That
 package is the hub. In the reference solution it is called
 `internal/common`. Everything in it is vocabulary: types, constants,
-interfaces. No logic, no state, no goroutines.
+interfaces. It has no behavior of its own.
 
 The result is a star. Common is the hub. Every spoke (llm, jobs, tools)
 imports only the hub. The root package wires the spokes together. A
@@ -214,7 +214,7 @@ interface in the hub, passed to its constructor. If you draw the
 dependency arrows, every arrow points inward, toward common. None
 points sideways.
 
-This is not a Go idiom. It is a dependency management principle that
+The star topology is a dependency management principle that
 Go happens to enforce at compile time, and every language with a module
 system can express it. The star topology makes the next five chapters
 possible: each one adds a spoke, and the hub grows by an interface or
@@ -222,7 +222,7 @@ two, and no existing spoke changes.
 
 ## 5.2 What moves where
 
-The mechanical process is straightforward once the packages are named.
+Once the packages are named, the moves are mechanical.
 Each section below is a package, and the content is what the reference
 solution put there. Yours may split differently. The property that
 matters is the star: every package imports only common, and common
@@ -359,8 +359,7 @@ agent.RegisterTool("calculate", "Evaluate an arithmetic expression",
 )
 ```
 
-That tool is the exercise's proof of concept, and it is the simplest
-tool that proves the point. The framework calls it, the vendor sees
+That tool is the exercise's proof of concept. The framework calls it, the vendor sees
 the result, and nothing inside `internal/` needed to change.
 
 ## 5.5 A rename's blast radius
@@ -444,10 +443,11 @@ be extended by external code is not a framework.
 
 ## 5.7 What this chapter does not do
 
-The agent is still deaf while running a tool. The engine still
-blocks on every tool call. There is no mailbox, no inbound queue,
-no way for a prompt to arrive while the loop is busy. The agent
-cannot supervise multiple tasks, and it cannot be interrupted.
+The agent is still deaf while running a tool. The engine
+blocks on every tool call, and nothing in the architecture provides
+a mailbox or an inbound queue. A prompt that arrives while the loop
+is busy has nowhere to go. The agent cannot supervise multiple tasks,
+and it cannot be interrupted.
 
 All of that is buildable now because the star topology means adding
 an actor loop is adding a spoke. The engine
@@ -455,7 +455,7 @@ gains an inbound queue. The framework gains an observer. The hub grows
 by two interfaces. No existing spoke changes, because no existing
 spoke knows about actors, and the interfaces it uses did not move.
 
-That is what the refactoring bought: the ability to add machinery
+The refactoring bought the ability to add machinery
 without disturbing machinery that already works. A flat package
 cannot make that promise. Every addition to a flat package can touch
 everything, and "can" becomes "does" the moment a deadline arrives.
@@ -482,7 +482,7 @@ that queries your database. A tool that checks your CI status. A tool
 that reads your monitoring dashboard. The framework does not know about
 any of these, and it does not need to.
 
-That is the payoff of a refactoring chapter. The code does the same
+The code does the same
 thing. The codebase does not.
 
 
@@ -497,7 +497,7 @@ interpretation of the evidence, not the evidence itself. There is no
 logger. There has never been a logger. 5,047 lines of Go, and not one
 of them writes a debug message anywhere.
 
-This is not an accident. It is a set-up.
+The omission is deliberate.
 
 A logger is a facility that every piece of code in the system needs
 access to. In a flat package, the solution is a global variable. In a

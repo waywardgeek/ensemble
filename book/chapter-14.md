@@ -1,8 +1,8 @@
 # Chapter 14: The Channel Nobody Tested
 
-This chapter is for me. The world generally supports accessibility as a kind of afterthought, never in the critical path of creating a product. Since I am in control here, your AI coding agent is going to have decent a11y from the start, if you follow this codebook accurately.
+This chapter is for me. Accessibility is an afterthought everywhere, never in the critical path of creating a product. Since I am in control here, your AI coding agent gets decent a11y from the start, if you follow this codebook accurately.
 
-A key insight is that testing needs to be done over data as close as possible to what a blind or low vision coder experiences. So in this chapter we build a virtual blind coder, one that can only hear the output of TTS, and it has to drive the AI coding agent successfully.
+The test has to run over data as close as possible to what a blind or low-vision coder actually receives. So in this chapter we build a virtual blind coder, one that can only hear TTS output, and it has to drive the AI coding agent successfully.
 
 If you care about SWEs with low vision, please do not skip this chapter.
 
@@ -66,7 +66,7 @@ The instinct at this point is to give the observer better reporting. Add a tool 
 
 The alternative is to remove the channel the observer has been leaning on. Take away the DOM, leave speech, and give it a task it cannot finish without listening. Now a defect in the speech channel is not a line in a report. It is a task that fails.
 
-This is the principle worth carrying out of the chapter, and it generalizes past accessibility: test over data as close as possible to what the user actually receives. A DOM snapshot is not what a listener receives. It is a different signal, richer in some ways and poorer in others, and an observer consuming it will faithfully report on a system no human is using.
+The principle generalizes beyond accessibility: test over data as close as possible to what the user actually receives. A DOM snapshot is not what a listener receives. It is a different signal, richer in some ways and poorer in others, and an observer consuming it will faithfully report on a system no human is using.
 
 ## 14.2 The channel that reported on itself
 
@@ -158,9 +158,9 @@ What remains is hearing, typing, submitting, waiting, and sleeping. The persona 
 
 Speech in this mode does not produce audio. A test that waits for real utterances runs at the speed of talking, and a long reasoning trace is ten minutes of it. The pipeline records to the transcript and returns immediately, so a run finishes in seconds and the machine stays quiet. The transcript is the artifact under test, and the transcript is complete whether or not a speaker was involved.
 
-One scope decision saves a week of work here, and it came from Bill. Hover-to-speak, arrow-key navigation, and element announcement belong to the operating system's screen reader. Chrome cooperates with JAWS, NVDA, and VoiceOver well enough that a developer who cannot see the screen already has a working way to move around a page, and building a second navigation model on top of that would duplicate the screen reader and do it worse. What this application owns is the self-speaking layer: the running commentary of thinking and response text that the agent produces while it works. A user turns that on, listens while the agent is talking, and navigates with their screen reader when it goes quiet.
+One scope decision saves a week of work here. Hover-to-speak, arrow-key navigation, and element announcement belong to the operating system's screen reader. Chrome cooperates with JAWS, NVDA, and VoiceOver well enough that a developer who cannot see the screen already has a working way to move around a page, and building a second navigation model on top of that would duplicate the screen reader and do it worse. What this application owns is the self-speaking layer: the running commentary of thinking and response text that the agent produces while it works. A user turns that on, listens while the agent is talking, and navigates with their screen reader when it goes quiet.
 
-That narrowing has a consequence worth stating. For this stack, a low-vision persona and a blind persona collapse into the same instrument, because the part under test is the same part. There is no second persona worth building, and the entire testable accessibility surface of the application is one channel carrying two kinds of text.
+For this stack, a low-vision persona and a blind persona collapse into the same instrument, because the part under test is the same part. There is no second persona worth building, and the entire testable accessibility surface of the application is one channel carrying two kinds of text.
 
 ## 14.4 The run that succeeded for the wrong reason
 
@@ -183,11 +183,11 @@ The transcript explains how. Six utterances entered the channel, in this order:
 
 Utterance 1 is the dispatch announcement. Utterances 2 through 6 are the model's own prose, describing what happened. No tool result appears anywhere in the transcript. The listener learned the exit code because the model chose to mention it.
 
-The observer reported its transcript accurately and drew the wrong conclusion from it, writing that no gap had been found. That conclusion was reasonable given what it could perceive, which is the whole problem. From inside a channel, narration is indistinguishable from a working channel. A listener receiving the right information cannot tell whether the system delivered it or the model happened to be chatty that turn.
+The observer reported its transcript accurately and drew the wrong conclusion from it, writing that no gap had been found. That conclusion was reasonable given what it could perceive, which is the whole problem. From inside the channel, narration is indistinguishable from delivered data. A listener receiving the right information cannot tell whether the system delivered it or the model happened to be chatty that turn.
 
 Accessibility resting on a model's prose habits is discoverability by luck. A terser response, a different system prompt, a model tuned to skip the summary, and the same task yields silence with no warning and no error.
 
-Bill's ruling closed the gap rather than leaving it open. Tool results are not spoken, by design: "I listen to your thinking, and that is enough." Thinking and response text are both fed to the channel, so the channel a listener depends on is fully wired, and the exit code arriving through prose is the system working as specified.
+The ruling closed the gap rather than leaving it open. Tool results are not spoken, by design: "I listen to your thinking, and that is enough." Thinking and response text are both fed to the channel, so the channel a listener depends on is fully wired, and the exit code arriving through prose is the system working as specified.
 
 That ruling also redirected the instrument. A blind persona that hunts for unspoken tool results is testing a decision rather than a defect. The right question is whether thinking and response text arrive completely, in order, and intelligibly.
 
@@ -205,11 +205,11 @@ The real cause sat one layer earlier. Filtering ran per phrase, and phrases were
 
 The fix resolves fences against the whole buffer before any splitting happens. The filter then sees a complete block and replaces it with a name, and the listener hears "code block" where a wall of syntax used to be.
 
-The same test run surfaced a second problem with splitting on newlines, and it came from Bill rather than from the code. Prose wraps. A sentence broken across two source lines is one sentence, and splitting at the wrap produces two utterances with an unnatural pause between them. Speech engines work a phrase at a time, and every boundary the pipeline invents is a pause the listener hears.
+The same test run surfaced a second problem with splitting on newlines, and it came from a listener rather than from the code. Prose wraps. A sentence broken across two source lines is one sentence, and splitting at the wrap produces two utterances with an unnatural pause between them. Speech engines work a phrase at a time, and every boundary the pipeline invents is a pause the listener hears.
 
 So a lone newline became whitespace and a blank line stayed a boundary. A wrapped sentence is now spoken as one utterance, and paragraphs still separate.
 
-That category of defect is worth dwelling on, because it is invisible to every other observer in this book. A DOM snapshot shows text that is present and correct. A screenshot shows a page that renders properly. A grader asserting on rendered content passes. The content is fine. The *segmentation* of the content is wrong, and segmentation only exists in the channel where text becomes time.
+That category of defect is invisible to every other observer in this book. A DOM snapshot shows text that is present and correct. A screenshot shows a page that renders properly. A grader asserting on rendered content passes. The content is fine. The *segmentation* of the content is wrong, and segmentation only exists in the channel where text becomes time.
 
 ## 14.6 The bug nobody could hear
 
@@ -238,7 +238,7 @@ One line of new logic, and the state it consults was already being maintained fo
 
 The speech channel in this application has a daily listener. Bill depends on it, works through it for hours at a stretch, and had filed no bug report about any of the six defects in this chapter.
 
-That is worth understanding rather than apologizing for, because it is the strongest argument here for building the instrument at all.
+That is worth understanding rather than apologizing for, because it is the strongest argument for building the instrument.
 
 Four of the six are undetectable from inside the channel by construction. An error that renders to the screen and never reaches speech produces silence, and silence is what a turn with no errors also produces. A response that arrived whole during a streaming-disabled session sounds exactly like a quiet turn. A pause gate with one input wired makes no sound whatsoever, and its only symptom is a tool call that ran slightly earlier than it should have. Telemetry reporting an empty queue looks identical to a queue that is genuinely empty.
 

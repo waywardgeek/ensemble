@@ -5,9 +5,7 @@ can finally start using your AI coding agent to write itself. At the
 end of this chapter your agent will not compete with Claude Code, and
 that is fine. What matters is making the switch as soon as you can be
 productive with the new system, because living inside your own agent
-is how you discover the bugs and the missing features. There is
-nothing like building software with a tool you built to help you
-figure out what you want that tool to be. This chapter gives you the
+is how you discover the bugs and the missing features. This chapter gives you the
 freedom to create whatever GUI makes sense to you.
 
 In my case, text-to-speech is critical, and you will find it built
@@ -22,10 +20,10 @@ watch the agent think, see tool calls arrive, pause to read. As a
 safety floor it is complete: a human can watch, and that is the
 threshold that matters.
 
-Nobody customizes a safety floor. Nobody opens a second tab to check
-whether their preferences survived a restart. Nobody drags a divider
-to put chat on one side and tool calls on the other, unless the tool
-they are watching is one they intend to use every day. This chapter
+Nobody customizes a safety floor, checks whether their preferences
+survived a restart, or drags a divider to put chat on one side and
+tool calls on the other, unless the tool they are watching is one
+they intend to use every day. This chapter
 crosses that line. By the end, the page has three panes, a settings
 panel that persists through the same WebSocket, theming that redraws
 in fifteen CSS variables, and a sidebar with an agent tree that
@@ -349,7 +347,7 @@ change, that a restart preserves the file. It cannot verify that the
 center pane is wider than 300 pixels or that the drag bar feels
 smooth.
 
-This is not a gap. It is a division of labor. The grader tests what a
+The grader tests what a
 machine can test. The student tests what a human can see. Both are
 necessary, and pretending one replaces the other is how codebases end
 up with a green dashboard and a broken product.

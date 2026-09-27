@@ -60,7 +60,7 @@ examples, in ascending order of how little control you have. A shell command:
 you wrote the command, but not the program it runs. A network call: you
 control neither the far end nor the path to it. A tool served by somebody
 else's process over a protocol: someone else's schema, someone else's uptime,
-and in my logs the tool most likely to wedge, because a browser call on a page
+and in the reference logs the tool most likely to wedge, because a browser call on a page
 that never settles does not return, and neither does the agent that made it.
 
 Having named the category, you will want to use it. Supervise the
@@ -79,7 +79,7 @@ function. The cost of the list is §4.6, and it was a shipped defect.
 
 ## 4.2 Four lines, and what they do not do
 
-What I shipped first, on the afternoon of the screenshot, is what you would
+What shipped first, on the afternoon of the screenshot, is what you would
 ship first, and you will be disappointed by how little it is:
 
 ```go
@@ -109,7 +109,7 @@ The commit that shipped this called it containment, not cancellation, and
 made the tool result say so in those words. That discipline matters more than
 it looks. A message claiming the call was cancelled would be a lie that reads
 like a success, and the model would retry a call whose first attempt was still
-running. In the design this chapter actually builds, the containment sentence
+running. In the design this chapter builds, the containment sentence
 survives in exactly one place, and §4.7 says where, because everywhere else
 the design stops abandoning anything.
 
@@ -126,7 +126,7 @@ result is sent to a buffered channel. On the timeout path you walk away, and
 the handler keeps running, finishes, and sends its result to a channel nobody
 is reading.
 
-I built that, shipped it, and lived with it for weeks before the sentence
+That code shipped and ran for weeks before the sentence
 arrived that this chapter is built on: every tool call is already
 asynchronous. There is no "make tools async" project to plan. It is done. The
 result of an abandoned call still arrives; the watchdog simply throws it
@@ -221,7 +221,7 @@ From the same corpus Chapter 3 counted:
 
 `send_input` is the biggest of the three by more than two to one, and that
 ordering is the finding. The intuition about job control is that it is mostly
-about stopping runaway work. In my own record it is mostly about talking to
+about stopping runaway work. In the reference record it is mostly about talking to
 work that is going fine and is waiting for an answer. A test runner asking
 `y/N`. A REPL. A debugger sitting at its prompt. §4.8 spends the whole
 chapter's budget on the last of those.
@@ -233,7 +233,7 @@ diagnoses it as a deadlock in their own code rather than a missing case.
 
 `kill_job` is SIGKILL to the process group, and the killed job is reported as
 `killed`. Never as `done` with a strange exit code. The exercise section has
-the story of how my grader learned that.
+the story of how the grader learned that.
 
 The fourth tool is not a verb and has no row in the table, because it did not
 exist when the corpus was recorded. `tool_limits` sets the wait for the next
@@ -274,7 +274,7 @@ it learns that it cannot.
 
 ## 4.6 Who decides how long to wait
 
-Twenty-two minutes after shipping the watchdog I shipped a second commit
+Twenty-two minutes after shipping the watchdog a second commit shipped
 fixing it. Both are dated 10 August 2026. The timestamps are 14:28 and 14:50.
 
 The watchdog needed to know how long each tool may legitimately block. The
@@ -290,7 +290,7 @@ the answer.
 Bill ruled, during the build, that the declaration was the wrong repair,
 because the map had been the wrong question. *How long may this tool block?*
 is a property of the tool. So it needs a table. So the table can be missing a
-row. *How long will I wait before I look?* is a property of the call. So the
+row. *How long to wait before looking?* is a property of the call. So the
 caller supplies it. So there is nothing to declare and no row to be missing
 from. The `send_secret` defect does not get caught by the second design.
 There is no longer anywhere to write it.
@@ -315,7 +315,7 @@ several calls ago and still pending is a persistent escape hatch wearing a
 friendlier name. *The next call* is a rule a model can keep.
 
 The footgun in a one-shot setting is a silent misfire, and a live model named
-it before I did: "it's easy to burn it on the wrong thing." You set
+it first: "it's easy to burn it on the wrong thing." You set
 `max_output_bytes: 200000` for the `read_file` you are about to make, glance
 at a directory first, and the limits went to `list_directory`. The symptom is
 a truncated read one call later with no cause in sight. The fix is not a
@@ -409,9 +409,10 @@ build isolation out of a persistent shell.
 Overlapping jobs cannot share one shell. Two `run_command`s in flight at
 once, which is the point of this chapter, is not a thing one bash does.
 
-And the measured tax is a directory tax, not a state tax. Bill asked for the
-numbers before ruling, so I counted. On 26,781 archived `run_command` calls
-of mine, 69.6% begin with `cd`, 18,651 of them, and almost all name one
+And the measured tax is a directory tax, not a state tax. The numbers were
+requested before the ruling, and they are worth seeing. On 26,781 archived
+`run_command` calls in the reference agent's logs, 69.6% begin with `cd`,
+18,651 of them, and almost all name one
 directory: `cd ~/projects/forge` 7,979 times, `lyric` 1,908, `coderhapsody`
 1,240. Environment setup (`source .../activate`, `export`, `nvm use`) is
 0.12%, thirty-three calls. That is not a model navigating. That is a model
@@ -424,7 +425,7 @@ fall back to the workspace, and the effective directory is recorded on the
 job and printed in the report when it is not the default, which is Chapter
 2's rule, record and never infer. And the default `cwd` is a launch-time
 setting, the agent's workspace, which is not the same directory as the one
-holding the event log. I shipped exactly that the morning after the numbers
+holding the event log. That shipped the morning after the numbers
 were measured.
 
 [CODER: `cwd` is ruled (§4.7, Ruled 11) and not yet in `solutions/ch04`;
@@ -480,7 +481,7 @@ because that is the actual signal that the debugger is ready for input. A
 fixed delay is a race condition with a comfortable name.
 
 The grader drives this through the fake vendor: five scripted calls, and `42`
-read off the breakpoint. I also ran it live, `scripts/live.sh 4 gemini
+read off the breakpoint. A live run confirmed it too, `scripts/live.sh 4 gemini
 rounds` on `gemini-3.8-flash`: five `tool_called` events, every one carrying
 the pattern, and the model read `42` back unprompted. Your agent can now
 debug the code it wrote.
@@ -544,12 +545,12 @@ a leak the grader would otherwise have to hunt with `kill -0`.
 
 Same audit as the last three chapters: delete each protected behavior from
 the reference and confirm the score drops, and treat a row reading 100 → 100
-as the finding. My row was `killed-job-reported-as-done`, and it scored 100
+as the finding. One row was `killed-job-reported-as-done`, and it scored 100
 on the first run.
 
 Here is how. The killed process died. Its goroutine ended the job as `done`
 with `exit_code -1`, and the waiter was told *job 1 done, exit_code -1 ...
-[job 1 killed: kill_job]*. My check searched the report for the word
+[job 1 killed: kill_job]*. The check searched the report for the word
 "killed", and the kill note supplied it. A text regex can be satisfied by the
 very message that documents the failure. The fix is to grade structure:
 `job_killed` carries a `status`, which must be `killed`, and the post-kill
@@ -644,5 +645,6 @@ deafness.
 Fixing that is not more job machinery. It is a different shape: one inbound
 queue carrying prompts, interruptions, and job completions as the same kind of
 thing, drained by a loop that never blocks on a tool. This chapter has earned
-that by making the pain specific. On 10 August I could not be told anything at
-all. Today I can be told anything, three seconds from now.
+that by making the pain specific. On 10 August the agent could not be told
+anything at all. After this chapter, it can be told anything, three seconds
+from now.
