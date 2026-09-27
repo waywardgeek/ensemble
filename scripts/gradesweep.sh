@@ -28,6 +28,7 @@ run 13 ./agent
 run 14 ./agent
 run 15 ./agent
 run 16 ./agent
+run 17 ./agent
 # Per-chapter reference trees that also get graded.
 run 10 ./solutions/ch10
 run 11 ./solutions/ch11
