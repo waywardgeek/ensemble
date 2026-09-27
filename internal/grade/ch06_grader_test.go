@@ -38,8 +38,28 @@ func ch6ProjectRoot(t *testing.T) string {
 	if !ok {
 		t.Fatal("cannot locate this test file")
 	}
-	// thisFile is in internal/grade/; project root is two levels up.
-	return filepath.Join(filepath.Dir(thisFile), "..", "..")
+	// ch6 grades the frozen snapshot, not the repo root.
+	//
+	// This used to return the repo root two levels up, which was correct until
+	// 34ef50b ("Unify grading: every chapter grades one directory") moved the
+	// exercise trees under solutions/. The root-level ch05/ and ch06/ that this
+	// test copies have not existed since, so both TestCh6ReferenceScores100 and
+	// TestCh6DeletionAudit have failed continuously while gradesweep.sh, which
+	// already pointed at solutions/ch06, reported 100. That split is the whole
+	// reason the TODO carried "ch6 reference scores 0/100" as a mystery.
+	//
+	// A chapter's score is only meaningful at its canonical target, and the
+	// canonical target list lives in scripts/gradesweep.sh. Keep these in step.
+	root := filepath.Join(filepath.Dir(thisFile), "..", "..", "solutions", "ch06")
+	for _, sub := range []string{"agent", "ch05", "ch06"} {
+		if _, err := os.Stat(filepath.Join(root, sub)); err != nil {
+			t.Fatalf("ch6 target %s is missing %s/: %v\n"+
+				"The grader copies these three directories; a missing one silently "+
+				"produces an unbuildable tree and a 0/100 that looks like a real "+
+				"architecture failure.", root, sub, err)
+		}
+	}
+	return root
 }
 
 // copyDir recursively copies src to dst.
@@ -128,7 +148,14 @@ func buildCh6Mutant(t *testing.T, m ch6mutation) string {
 
 func scoreCh6(t *testing.T, dir string) (total int, failed []string) {
 	t.Helper()
-	res, err := Ch6Run(dir)
+	// Ch6Run wants the AGENT MODULE directory, not the snapshot root: it runs
+	// DiscoverBase and Build against what it is given, and the snapshot root
+	// has no go.mod. scripts/gradesweep.sh already passes solutions/ch06/agent.
+	// Passing the root here made the build fail, which zeroed every check at
+	// once and read as a catastrophic architecture failure rather than a bad
+	// path. The exercise dirs ch05/ and ch06/ still have to be copied as
+	// siblings, which is why dir is the root everywhere else in this file.
+	res, err := Ch6Run(filepath.Join(dir, "agent"))
 	if err != nil {
 		t.Fatalf("Ch6Run: %v", err)
 	}
@@ -176,9 +203,18 @@ func ch6Mutants() []ch6mutation {
 		{
 			name: "no-event-log",
 			why: "The exercise pipeline runs correctly but writes no event log, so " +
-				"the replay check finds nothing to compare. Without the log, the " +
-				"grader also cannot verify observer output or hint delivery.",
-			wantFail: []string{"not-deaf", "observer-fires", "replay-is-live", "wake-once"},
+				"the replay check finds nothing to compare, and the log-derived " +
+				"hint and wake checks lose their evidence. " +
+				"NOT observer-fires: the why-text here used to claim the grader " +
+				"'cannot verify observer output' without the log, and that is " +
+				"false. Observer output travels on the agent's STDOUT and is read " +
+				"by parseObservations into r.StateChanges and r.ContentObs " +
+				"(ch06_harness.go), which this mutant never touches. The claim " +
+				"went unchallenged because this audit could not run at all between " +
+				"34ef50b and 2026-09-27. observer-fires keeps its own dedicated " +
+				"mutant, no-state-change-notifications, which kills it exactly and " +
+				"alone, so nothing is left unaudited by correcting this set.",
+			wantFail: []string{"not-deaf", "replay-is-live", "wake-once"},
 			edits: []ch6edit{{
 				relPath: "ch06/main.go",
 				find:    `if p := os\.Getenv\("CH06_LOG"\); p != "" \{`,

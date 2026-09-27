@@ -1,9 +1,10 @@
 package grade
 
-// Chapter 6 checks — seven properties, 100 points.
+// Chapter 6 checks - seven properties, 100 points.
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -171,7 +172,7 @@ func ch6WakeOnce(r *Ch6Result) Check {
 		return c
 	}
 
-	// Count turn_ended observations — should be at least 2 (one per agent).
+	// Count turn_ended observations - should be at least 2 (one per agent).
 	turnEndAgents := map[string]bool{}
 	for _, obs := range r.Observations {
 		if obs.Observation == "turn_ended" {
@@ -198,7 +199,7 @@ func ch6LoudRefusal(r *Ch6Result) Check {
 	}
 
 	if r.LoudRefusal == "" {
-		c.failf("no loud refusal for unknown model — expected error mentioning model name")
+		c.failf("no loud refusal for unknown model - expected error mentioning model name")
 		return c
 	}
 
@@ -241,7 +242,7 @@ func ch6HubClean(r *Ch6Result) Check {
 		}
 		// First-party: starts with the module base.
 		if strings.HasPrefix(dep, r.Base) {
-			// Must be a leaf — not another spoke like internal/llm.
+			// Must be a leaf - not another spoke like internal/llm.
 			if _, isSpokePackage := r.ImportGraph[dep]; isSpokePackage {
 				bad = append(bad, dep+" (spoke package)")
 			}
@@ -255,38 +256,42 @@ func ch6HubClean(r *Ch6Result) Check {
 	}
 
 	// Also verify spoke packages only import common (star topology).
-	spokes := []string{
-		r.Base + "/internal/llm",
-		r.Base + "/internal/tools",
-		r.Base + "/internal/jobs",
+	//
+	// The spoke set is DERIVED from the tree, never hardcoded. An earlier
+	// version listed llm, tools and jobs literally. That was accurate for ch06
+	// as frozen and quietly wrong everywhere else: by ch17 the live tree had
+	// eight spokes, so mcp, recall, ws, skills and settings were ungoverned.
+	// Worse, the old loop did `if !ok { continue }`, so a spoke the list had
+	// never heard of was skipped in silence rather than flagged - the check
+	// reported success precisely where it had checked nothing. Deriving the set
+	// means this governs whatever the student actually built, and grows with
+	// the tree instead of rotting behind it.
+	//
+	// A spoke is the first path segment under internal/ other than common.
+	// Packages nested inside a spoke (internal/llm/foo) belong to that spoke,
+	// so intra-spoke imports are fine; spoke-to-SPOKE edges are what break the
+	// star. Anything outside internal/ - cmd/ and the module root - is the
+	// composition root and may import every spoke; that is its whole job.
+	spokeNames, violations := starViolations(r.ImportGraph, r.Base)
+
+	// An empty spoke set would make the scan vacuously clean. That is the same
+	// shape as the IsToolEnabled bug: a filter over an empty set passes while
+	// protecting nothing. DiscoverImportGraph returns an empty map when
+	// `go list` fails, so without this guard a tree that does not even build
+	// scores full marks for architecture. Refuse to report success we did not
+	// verify.
+	if len(spokeNames) == 0 {
+		c.failf("no spoke packages found under %s/internal/: the import graph is empty or unreadable, so star topology was never actually checked", r.Base)
+		return c
 	}
-	for _, spoke := range spokes {
-		deps, ok := r.ImportGraph[spoke]
-		if !ok {
-			continue
-		}
-		for _, dep := range deps {
-			dep = strings.TrimSpace(dep)
-			if dep == "" || isStdlib(dep) {
-				continue
-			}
-			if dep == commonPkg {
-				continue
-			}
-			if strings.HasPrefix(dep, r.Base) && dep != spoke {
-				// A spoke importing another spoke — bad.
-				bad = append(bad, fmt.Sprintf("%s imports %s", spoke, dep))
-			}
-		}
-	}
-	if len(bad) > 0 {
-		c.failf("star topology violated: %v", bad)
+	if len(violations) > 0 {
+		c.failf("star topology violated, spoke imports spoke: %v", violations)
 		return c
 	}
 
 	c.Passed = true
 	c.Earned = c.Points
-	c.notef("internal/common deps clean, star topology preserved")
+	c.notef("internal/common deps clean, star topology preserved across %d spokes: %s", len(spokeNames), strings.Join(spokeNames, ", "))
 	return c
 }
 
@@ -302,3 +307,67 @@ func isStdlib(path string) bool {
 
 // Keep the import happy.
 var _ = fmt.Sprintf
+
+// starViolations reports spoke-to-spoke import edges in the module rooted at
+// base. It returns the derived spoke names and the violations, both sorted.
+//
+// The spoke set is DERIVED from the graph, never hardcoded. An earlier version
+// of the ch6 check listed llm, tools and jobs literally. That was accurate for
+// ch06 as frozen and quietly wrong everywhere else: by ch17 the live tree had
+// eight spokes, so mcp, recall, ws, skills and settings were ungoverned. Worse,
+// its loop did `if !ok { continue }`, so a spoke the list had never heard of
+// was skipped in silence rather than flagged, and the check reported success
+// precisely where it had checked nothing.
+//
+// A spoke is the first path segment under internal/ other than common.
+// Packages nested inside a spoke (internal/llm/foo) belong to that spoke, so
+// intra-spoke imports are fine; spoke-to-SPOKE edges are what break the star.
+// Anything outside internal/, meaning cmd/ and the module root, is the
+// composition root and may import every spoke. That is its whole job.
+//
+// A caller must treat an empty spoke list as a failure to verify rather than a
+// clean result: an empty graph makes the scan vacuously clean.
+func starViolations(graph map[string][]string, base string) (spokes, violations []string) {
+	internalPrefix := base + "/internal/"
+	spokeOf := func(pkg string) string {
+		if !strings.HasPrefix(pkg, internalPrefix) {
+			return ""
+		}
+		rest := strings.TrimPrefix(pkg, internalPrefix)
+		if i := strings.Index(rest, "/"); i >= 0 {
+			rest = rest[:i]
+		}
+		return rest
+	}
+
+	seen := map[string]bool{}
+	for pkg := range graph {
+		if s := spokeOf(pkg); s != "" && s != "common" {
+			seen[s] = true
+		}
+	}
+	for s := range seen {
+		spokes = append(spokes, s)
+	}
+	sort.Strings(spokes)
+
+	for pkg, deps := range graph {
+		from := spokeOf(pkg)
+		if from == "" || from == "common" {
+			continue
+		}
+		for _, dep := range deps {
+			dep = strings.TrimSpace(dep)
+			if dep == "" || isStdlib(dep) || !strings.HasPrefix(dep, base) {
+				continue
+			}
+			to := spokeOf(dep)
+			if to == "" || to == "common" || to == from {
+				continue
+			}
+			violations = append(violations, pkg+" imports "+dep)
+		}
+	}
+	sort.Strings(violations)
+	return spokes, violations
+}
