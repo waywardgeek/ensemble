@@ -214,11 +214,42 @@ interface in the hub, passed to its constructor. If you draw the
 dependency arrows, every arrow points inward, toward common. None
 points sideways.
 
+Go enforces the star with a rule that also undermines it. A method
+cannot be defined on a type declared in another package. The moment
+`Context` or `Event` lives in the hub, every operation on that type
+must also live in the hub, as a method, unless it is rewritten as
+something else. The compiler pins behavior to the type's home package.
+A hub that starts as vocabulary accumulates function bodies one method
+at a time, and no import rule is ever violated, because the methods
+are on the hub's own types. The hub drifts from vocabulary to God
+object while the star topology stays formally clean.
+
+The escape is to give up the method receiver. `Apply(c, e)` instead
+of `c.Apply(e)` costs nothing but syntax, and the free function lives
+in the spoke that calls it. Three cases cover every operation on a hub
+type:
+
+1. Used by one spoke: move it to that spoke as a free function. The
+   hub type appears as a parameter, not a receiver.
+2. Satisfying a stdlib interface: `MarshalJSON`, `UnmarshalJSON`,
+   `String`, and `Error` are reached by `encoding/json` and `fmt`
+   through interface dispatch. They must stay as methods on the type,
+   in the hub. This is a real floor.
+3. Used by several spokes: the behavior has nowhere to go in a strict
+   star. Turn the type into an interface in the hub, implement it in a
+   new spoke, and wire the spoke at the composition root.
+
+The invariant to watch is not a line count but a ratio. The hub should
+be mostly declarations. When function bodies approach half its lines,
+behavior is accumulating and should be moved to a spoke using one of
+the three cases above.
+
 The star topology is a dependency management principle that
 Go happens to enforce at compile time, and every language with a module
-system can express it. The star topology makes the next five chapters
-possible: each one adds a spoke, and the hub grows by an interface or
-two, and no existing spoke changes.
+system can express it. The star topology makes every chapter after this one
+possible. Each adds a spoke, and the hub grows by the types and
+interfaces the new spoke needs to share with the others. No existing
+spoke changes.
 
 ## 5.2 What moves where
 
@@ -228,12 +259,12 @@ solution put there. Yours may split differently. The property that
 matters is the star: every package imports only common, and common
 imports nothing inside the module.
 
-**internal/common** is the hub: 1,455 lines, seven files. Every type
-that appears in more than one package lives here. Events, parts,
-context, provenance, config, the event log reader, and the three
-interfaces that break the dependency loops. This is the largest package
-because the vocabulary is large, and that is correct. The vocabulary
-is what every package agrees on. It should be large.
+**internal/common** is the hub. Every type that appears in more than
+one package lives here: events, parts, context, provenance, config,
+the event log reader, and the three interfaces that break the
+dependency loops. It should be large in vocabulary and small in
+behavior. When function bodies start outnumbering declarations, the
+hub is doing work that belongs in a spoke.
 
 **internal/llm** is the engine and the three vendor implementations:
 1,516 lines, five files. `Engine` takes a `JobManager` and a
