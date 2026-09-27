@@ -18,7 +18,7 @@ had already rejected. The knowledge was there. The recall was not.
 
 The fix was embarrassingly simple. Before every user message reaches the
 model, run a keyword search over the memory files, filter the results
-through a cheap model, and inject the survivors as ephemeral context.
+through a cheap model, and attach the survivors to the conversation.
 The agent never asks for the memories. They arrive the way a relevant
 fact arrives when a colleague mentions a project name: unbidden, fast,
 and usually right.
@@ -31,8 +31,8 @@ with a past.
 
 Build passive memory retrieval. Every user message triggers a BM25 keyword
 search over the agent's memory files. A small language model filters the
-results for relevance. Surviving snippets are injected as ephemeral context
-that the agent sees but that is never persisted to history.
+results for relevance. Surviving snippets are attached to the conversation
+as their own kind of entry, where they stay until a checkpoint removes them.
 
 **Data structures.**
 
@@ -77,11 +77,11 @@ const (
    keyword matches. If the judge fails, times out (15 seconds), or is
    disabled, fall back to the top N results by BM25 score alone.
 
-3. **Injection.** Format the surviving snippets (up to `MaxSnippets`,
-   default 3) as blockquoted text with source attribution. Inject them
-   as ephemeral content alongside the user message. Cap total recalled
-   text at 6KB. The snippets are not persisted to history; next turn,
-   new recall results replace them.
+3. **Attachment.** Format the surviving snippets (up to `MaxSnippets`,
+   default 3) as blockquoted text with source attribution. Record them as
+   their own entry kind, never merged into the user's message. Cap total
+   recalled text at 6KB. Skip any snippet already present in the
+   conversation. The entry persists until a checkpoint removes it.
 
 **Sources searched:**
 
@@ -101,10 +101,17 @@ use breadcrumb format: `"Parent Header > Sub Header"`.
 2 characters. Filter stop words from queries only. Documents keep all terms
 for length normalization.
 
-**The recall judge** is a persistent sub-agent (not spawned fresh each time)
-with its conversation history reset before every evaluation. Its skill is
-minimal: pick up to N useful snippets, return a JSON array of indices.
-The judge's own auto-recall must be disabled to prevent infinite recursion.
+**The recall judge is one stateless model call**, not an agent. It takes a
+prompt and returns text. Because it holds no history and owns no context,
+it cannot recall, which makes the recursion problem structurally impossible
+rather than something to guard against.
+
+**Recall is a new spoke.** It imports the hub and the standard library,
+nothing else. Recall needs a model and the model layer needs recall, so
+both dependencies invert through interfaces on the hub: recall implements
+`Recaller` and consumes `SnippetJudge`; the model layer implements
+`SnippetJudge` and holds a nilable `Recaller`. Neither package imports
+the other. Wiring happens at the top, where everything is already visible.
 
 **Parse the judge's response defensively.** Small models are unreliable
 with output format. Try `[]int` first, fall back to `[]string` (models
@@ -135,8 +142,8 @@ models often wrap the JSON in explanation text.
 | `per-source-quota` | 10 | Memory files get at least 50% of candidate slots |
 | `judge-filters` | 15 | The SLM judge removes irrelevant BM25 hits |
 | `judge-fallback` | 10 | Judge failure falls back to top-N BM25 results |
-| `judge-no-recursion` | 10 | The judge's own auto-recall is disabled |
-| `injection-ephemeral` | 10 | Recalled text is injected but not persisted to history |
+| `recall-is-a-spoke` | 10 | `internal/recall` imports only the hub and stdlib |
+| `recall-is-own-kind` | 10 | Recalled text is its own entry, never merged into the user message |
 | `injection-capped` | 10 | Total recalled text does not exceed MaxRecallBytes |
 
 ## §17.1 The Idea in Plain Words
@@ -179,19 +186,37 @@ The judge is the difference between "here are some memories that mention
 the same words" and "here is something you need to know right now." Without
 it, auto-recall is retrieval. With it, auto-recall is recall.
 
-The recalled snippets are ephemeral. They appear alongside the user message,
-the agent sees them, and they vanish. Next turn, the system runs again and
-may surface different memories. Nothing is persisted. The agent does not
-accumulate recalled context across turns. Each turn gets fresh recall based
-on what the user just said.
+The obvious lifetime for a recalled snippet is ephemeral. Relevance is local:
+a memory about database schema is useful when the user mentions the database
+and noise when the conversation moves to the GUI. Show it, then drop it.
 
-This is the right design for two reasons. First, relevance is local. A memory
-about database schema design is useful when the user mentions the database and
-useless when the user asks about the GUI. Persisting it would waste context on
-every subsequent turn. Second, the memory files change. The cascade compresses
-and graduates memories between turns. A persisted snippet might refer to a
-memory that no longer exists in its original form. Ephemeral injection avoids
-staleness by re-searching on every turn.
+That intuition is expensive, and the reason is that a prompt cache is a
+prefix property. Dropping a block deletes bytes from the middle of the
+prefix, which invalidates everything after the deletion point. Keeping the
+block at the tail instead avoids the deletion but re-sends those bytes on
+every tool round, and a turn has many rounds. Attaching the block once and
+leaving it alone is the only option where the prefix grows monotonically and
+the bytes are paid for a single time. Rounds are many; turns are few.
+Anything re-sent per round is the expensive thing.
+
+So recalled snippets are permanent. They are not merged into the user's
+message, because the user's words must stay distinguishable from
+machine-retrieved text, and because anything fused into a user turn cannot
+later be removed without damaging it. They are their own kind of entry,
+which makes them addressable: a checkpoint can delete them by kind.
+
+That checkpoint is where removal belongs. A checkpoint already rewrites the
+prefix, so it is already paying for a cache miss, and deleting recall there
+costs nothing extra. Removing it on its own schedule would buy a second
+invalidation for no benefit. The rule generalizes past this chapter:
+**delete only at a moment that is already paying for a cache miss.**
+
+This is the second appearance of a shape worth naming. Chapter 16 found that
+switching a memory band off is more expensive than leaving it on, because
+disabling strips bytes from the front. Here, the transient-looking thing is
+cheaper to keep than to remove. In a system built on cached prefixes,
+retention is cheap and removal is dear, so the intuitive lifetime is usually
+the wrong one.
 
 The system degrades gracefully at every level. If the query is too short
 (under 80 characters), recall does not fire. Short messages like "fix it"
@@ -280,8 +305,8 @@ ensures they survive competition with larger, denser documents.
 BM25 finds documents that share words with the query. The recall judge
 finds documents that share *relevance* with the conversation.
 
-The judge is a persistent sub-agent running the cheapest model that can
-follow instructions, currently Gemini 2.5 Flash Lite, a model that costs
+The judge is a single stateless call to the cheapest model that can follow
+instructions, currently Gemini 2.5 Flash Lite, a model that costs
 fractions of a cent per call. It receives:
 
 1. The recent conversation (last 3 user and assistant messages).
@@ -294,17 +319,19 @@ fractions of a cent per call. It receives:
 The judge returns `[0, 7, 12]` or `[3]` or `[]`. Three details make
 this work reliably:
 
-**Persistent agent with history reset.** Creating an agent is expensive
-(loading skills, settings, building an AI client). The judge is created
-once and reused, with its conversation history cleared before each
-evaluation. This keeps each judgment independent without paying
-construction costs per turn.
+**It starts clean every time.** The judge holds no history. Note what that
+means about item 1 above: the recent conversation reaches the judge as *data
+inside the prompt*, not as history the judge carries between calls. Every
+judgment is independent, and nothing from the last one can color the next.
 
-**No recursive recall.** The judge is itself an agent. Without safeguards,
-it would trigger its own auto-recall, which would spawn another judge.
-The recursion is broken two ways: the judge's ephemeral provider is set
-to nil, and its settings disable both `smartRecallEnabled` and
-`autoRecallEnabled`.
+**Recursion is impossible rather than prevented.** An agent that could recall
+would trigger its own recall when judging, which would invoke another judge.
+A stateless call has no context of its own to fill, so the failure cannot be
+expressed. This is worth noticing as a design move: the strongest way to
+handle a failure mode is to build a thing that cannot exhibit it. An
+implementation that made the judge a full agent would need a nil provider and
+a settings flag to hold the same line, and would still be one refactor away
+from losing it.
 
 **Defensive JSON parsing.** Small models are unreliable with output
 format. The parser tries `[]int`, falls back to `[]string` (models
@@ -317,7 +344,7 @@ When the judge fails or times out (15 seconds), the system falls back
 to the top N BM25 results by score. The agent gets noisier recall, not
 no recall.
 
-## §17.5 Injection: Ephemeral, Not Persistent
+## §17.5 Attachment: Permanent Until a Checkpoint
 
 Recalled snippets are formatted as blockquoted text with source attribution:
 
@@ -332,24 +359,42 @@ From docs/auto-recall-design.md — The Pipeline:
 > BM25 keyword search over memory files, filtered through an SLM judge.
 ```
 
-This text is injected as ephemeral content alongside the user message.
-Ephemeral means:
+That text becomes its own kind of entry in the conversation. Three properties
+follow, and each one is load-bearing.
 
-- The agent sees it on this turn.
-- It is not persisted to conversation history.
-- Next turn, new recall results replace it.
-- Total recalled text is capped at 6KB.
+**It is never merged into the user's message.** The user's actual words must
+stay distinguishable from machine-retrieved text, both for the model reading
+them and for anyone auditing the log afterward. Fusing the two also makes the
+recall unremovable: a checkpoint keeps user turns verbatim, so anything
+welded into one survives with it forever.
 
-The ephemeral provider is a callback that fires on every user message.
-It returns the recalled text, the current time, and any other context
-(e.g., sender identity for multi-user systems). The AI client injects
-the combined result alongside the user message in the API request.
+**Where it lands on the wire is the renderer's decision, not the
+conversation's.** The conversation records that recall happened and what
+bytes it produced. Turning that into a request is a vendor question, and
+vendors disagree: one wants a system block mid-conversation, another a
+role-tagged message, another an extra part on a turn that already exists.
+Baking a wire shape into the stored conversation is the mistake Chapter 2
+exists to prevent. The renderer owes one guarantee in return: a stable
+position, so the prefix grows monotonically and stays cached.
 
-Ephemeral injection is the right choice because relevance is local and
-memories change. A snippet about database design is useful when the user
-mentions the database and noise when the conversation moves to the GUI.
-The cascade from Chapter 16 may have compressed or graduated the source
-memory between turns. Re-searching on every turn ensures freshness.
+**It carries its bytes.** Recall is nondeterministic, because a language
+model chose which snippets survived. If the text were recomputed while
+rendering, replaying a log would call a model, and two replays of the same
+log could disagree. So the snippets are recorded as text at the moment they
+are chosen. Replay then reproduces the conversation exactly, with no search
+and no model call.
+
+That last property is the same boundary Chapter 16 drew. A transform that is
+a pure function of the log can run at render time. Anything nondeterministic
+has to be recorded when it happens. Recall is the second thing in this book
+to land on the far side of that line, which is why Chapter 15 had to come
+first: without recorded events, there is nowhere to put it.
+
+Because the entries persist, the same memory could be recalled on three
+separate turns and appear three times. Skip any snippet whose content is
+already in the conversation. Retrieval should surface what the agent does not
+already have in front of it.
+
 
 ## §17.6 Tuning: What the Numbers Mean
 
@@ -442,12 +487,19 @@ for inspiration:
   noticeably when it was fixed. Test your scoring carefully.
 - `internal/memory/recall.go` (recall pipeline, 483 lines): source
   loading, per-source quotas, formatting, injection.
-- `internal/agent/smart_recall.go` (judge agent, 195 lines): persistent
-  sub-agent creation, prompt construction, defensive JSON parsing.
+- `internal/agent/smart_recall.go` (judge, 195 lines): prompt
+  construction and defensive JSON parsing.
 - `internal/skills/builtin/recall-judge/SKILL.md` (the judge's skill
   definition, 25 lines).
 
-The reference implementation does not need to replicate CodeRhapsody's
-architecture, but the problems it solved (per-source quotas, recursive
-recall prevention, defensive parsing, the persistent-agent-with-reset
-pattern) are the same problems any implementation will encounter.
+Read it for the problems it solved, then check which of them exist here.
+Per-source quotas and defensive parsing transfer directly. Others do not:
+CodeRhapsody runs its judge as a persistent sub-agent, so it needs history
+resets, a disabled recall provider, and settings flags to keep the judge from
+recalling while it judges. A stateless judge has none of those problems,
+because it has no context to fill.
+
+That is worth taking as a general caution about reference code. An
+implementation shows you the problems its own architecture created alongside
+the problems inherent to the task, and it cannot tell you which is which.
+Copying the shape imports both.
