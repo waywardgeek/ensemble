@@ -50,13 +50,31 @@ cr/
 # ch03.log, and one you named yourself writes whatever you named it.
 *.log
 
-# Built binaries and runtime state in the live agent tree. Anchored to
-# /agent/ on purpose: solutions/chNN/ already tracks files with these
-# names, and an unanchored pattern would quietly shadow them.
-/agent/ensemble
-/agent/virtual-user
-/agent/settings.json
-/agent/virtual-user.jsonl
+# Built binaries and runtime state. These were previously anchored to /agent/
+# because solutions/chNN/ tracked files with the same names, and an unanchored
+# pattern would have shadowed them. That is no longer true: 72MB of committed
+# binaries -- solutions/ch05, ch09-ch13 and ch17 -- were purged from history on
+# 2026-09-27, which is what makes the depth-independent spelling safe now.
+#
+# Depth-independence matters here for the same reason it does for `bin` above:
+# a snapshot under solutions/ nests a second copy of the whole repo layout, so
+# the binary can appear at solutions/ch17/ensemble or deeper, and a rule spelled
+# solutions/*/ensemble cannot keep up.
+#
+# CAREFUL: `ensemble` and `virtual-user` name DIRECTORIES as well as binaries --
+# agent/skills/ensemble/SKILL.md holds the primary skill, and agent/cmd/
+# virtual-user/ is source. A bare slashless pattern would ignore those whole,
+# silently untracking the primary skill. Trailing slash matches directories
+# only, so the re-includes below keep the source while the built files -- which
+# are files, not directories -- stay ignored. Same idiom as `!**/ch0*/ch0*/`.
+**/ensemble
+!**/ensemble/
+**/virtual-user
+!**/virtual-user/
+
+# Always files, never directories, so no re-include is needed.
+settings.json
+virtual-user.jsonl
 
 # dlv drops these next to the package it builds. Slashless so it matches
 # at any depth, for the same reason as `bin` above.
