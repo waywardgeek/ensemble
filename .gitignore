@@ -82,3 +82,4 @@ __debug_bin*
 
 # Python bytecode from helper scripts
 __pycache__/
+.nightly/

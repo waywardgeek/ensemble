@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!-- Nightly verification at 02:00.
+     Install:
+       cp scripts/nightly.plist ~/Library/LaunchAgents/ai.ensemble.nightly.plist
+       # edit the two absolute paths below to match your checkout, then:
+       launchctl load ~/Library/LaunchAgents/ai.ensemble.nightly.plist
+     Run once by hand:
+       launchctl start ai.ensemble.nightly
+     Uninstall:
+       launchctl unload ~/Library/LaunchAgents/ai.ensemble.nightly.plist -->
+<plist version="1.0">
+<dict>
+  <key>Label</key>              <string>ai.ensemble.nightly</string>
+  <key>WorkingDirectory</key>   <string>/Users/bill/projects/ensemble</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/bash</string>
+    <string>/Users/bill/projects/ensemble/scripts/nightly.sh</string>
+  </array>
+  <key>StartCalendarInterval</key>
+  <dict><key>Hour</key><integer>2</integer><key>Minute</key><integer>0</integer></dict>
+  <key>StandardOutPath</key>    <string>/tmp/ensemble-nightly.out</string>
+  <key>StandardErrorPath</key>  <string>/tmp/ensemble-nightly.err</string>
+  <key>EnvironmentVariables</key>
+  <dict><key>PATH</key><string>/usr/local/go/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>
+</dict>
+</plist>
