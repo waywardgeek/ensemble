@@ -61,7 +61,7 @@ func (e *Engine) compactConversation(cfg common.BandConfig) {
 
 	low := cfg.Conversation.Low()
 	for e.Ctx.ConversationBytes() > low {
-		sel, ok := e.Ctx.SelectForCompression(e.Ctx.ConversationBytes() - low)
+		sel, ok := SelectForCompression(e.Ctx, e.Ctx.ConversationBytes() - low)
 		if !ok {
 			// Everything that is left is the live segment. Refusing to
 			// touch it is the correct outcome, not a failure: the work in
@@ -76,7 +76,7 @@ func (e *Engine) compactConversation(cfg common.BandConfig) {
 
 // compactSpan compresses one span into one session memory file, then records
 // the two events that swap the span for the memory.
-func (e *Engine) compactSpan(sel common.Selection) bool {
+func (e *Engine) compactSpan(sel Selection) bool {
 	body := renderConversation(e.Ctx, sel.From, sel.To)
 	if body == "" {
 		return false

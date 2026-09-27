@@ -1,17 +1,21 @@
-package common
+package llm
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/waywardgeek/ensemble/agent/internal/common"
+)
 
 // build a context of alternating dialogue and checkpoints.
-func convo(t *testing.T, spec ...any) *Context {
+func convo(t *testing.T, spec ...any) *common.Context {
 	t.Helper()
-	c := NewContext()
-	seq := Seq(0)
+	c := common.NewContext()
+	seq := common.Seq(0)
 	for _, item := range spec {
 		seq++
 		switch v := item.(type) {
 		case string: // a checkpoint note
-			if err := c.Apply(Event{Seq: seq, Type: MicroHandoff, Handoff: &MicroHandoffData{Text: v}}); err != nil {
+			if err := c.Apply(common.Event{Seq: seq, Type: common.MicroHandoff, Handoff: &common.MicroHandoffData{Text: v}}); err != nil {
 				t.Fatalf("handoff: %v", err)
 			}
 		case int: // a dialogue entry of v bytes
@@ -19,8 +23,8 @@ func convo(t *testing.T, spec ...any) *Context {
 			for i := range text {
 				text[i] = 'x'
 			}
-			if err := c.Apply(Event{Seq: seq, Type: MessageReceived, Message: &MessageData{
-				Actor: ActorHuman, Parts: PartList{TextPart{Text: string(text)}},
+			if err := c.Apply(common.Event{Seq: seq, Type: common.MessageReceived, Message: &common.MessageData{
+				Actor: common.ActorHuman, Parts: common.PartList{common.TextPart{Text: string(text)}},
 			}}); err != nil {
 				t.Fatalf("message: %v", err)
 			}
@@ -31,7 +35,7 @@ func convo(t *testing.T, spec ...any) *Context {
 
 func TestSegmentsSplitAtCheckpoints(t *testing.T) {
 	c := convo(t, 100, 100, "first checkpoint", 50, "second checkpoint", 70)
-	segs := c.Segments()
+	segs := Segments(c)
 	if len(segs) != 3 {
 		t.Fatalf("got %d segments, want 3: %+v", len(segs), segs)
 	}
@@ -44,7 +48,7 @@ func TestSegmentsSplitAtCheckpoints(t *testing.T) {
 // working on. Compressing it would take away the detail in active use.
 func TestSelectNeverTakesTheLiveSegment(t *testing.T) {
 	c := convo(t, 100, "checkpoint", 5000)
-	sel, ok := c.SelectForCompression(50)
+	sel, ok := SelectForCompression(c, 50)
 	if !ok {
 		t.Fatal("expected a selection")
 	}
@@ -61,7 +65,7 @@ func TestSelectNeverTakesTheLiveSegment(t *testing.T) {
 // already met.
 func TestSelectTakesWholeSegmentsOldestFirst(t *testing.T) {
 	c := convo(t, 100, "a", 100, "b", 100, "c", 100, "d", 40)
-	sel, ok := c.SelectForCompression(150)
+	sel, ok := SelectForCompression(c, 150)
 	if !ok {
 		t.Fatal("expected a selection")
 	}
@@ -90,7 +94,7 @@ func TestSelectTakesWholeSegmentsOldestFirst(t *testing.T) {
 // ordinary one.
 func TestSelectRefusesWhenNothingIsClosed(t *testing.T) {
 	c := convo(t, 100, 100, 100)
-	if sel, ok := c.SelectForCompression(150); ok {
+	if sel, ok := SelectForCompression(c, 150); ok {
 		t.Fatalf("compacted work in progress: took %d bytes from %d to %d", sel.Bytes, sel.From, sel.To)
 	}
 }
@@ -103,7 +107,7 @@ func TestSelectCutsASegmentTooBigToCompressWhole(t *testing.T) {
 	// One closed segment of 300 bytes, asked for a target so small that
 	// taking the segment whole would mean handing the compressor far more
 	// than it asked for.
-	sel, ok := c.SelectForCompression(10)
+	sel, ok := SelectForCompression(c, 10)
 	if !ok {
 		t.Fatal("expected a selection")
 	}
@@ -118,8 +122,8 @@ func TestSelectCutsASegmentTooBigToCompressWhole(t *testing.T) {
 // An empty conversation has nothing to compress, which is the ordinary case
 // on most checkpoints.
 func TestSelectDeclinesWhenThereIsNothingToTake(t *testing.T) {
-	c := NewContext()
-	if _, ok := c.SelectForCompression(100); ok {
+	c := common.NewContext()
+	if _, ok := SelectForCompression(c, 100); ok {
 		t.Error("selected a span from an empty conversation")
 	}
 }
@@ -127,14 +131,14 @@ func TestSelectDeclinesWhenThereIsNothingToTake(t *testing.T) {
 // Memory must never be selected for compression: it is not conversation, and
 // it is removed only by its own verb.
 func TestSelectIgnoresMemoryBands(t *testing.T) {
-	c := NewContext()
-	if err := c.Apply(Event{Seq: 1, Type: BandPopulated, BandAdd: &BandPopulatedData{
-		Band: BandSession, File: MemoryFileID{Date: "2026-09-26", Num: 1},
+	c := common.NewContext()
+	if err := c.Apply(common.Event{Seq: 1, Type: common.BandPopulated, BandAdd: &common.BandPopulatedData{
+		Band: common.BandSession, File: common.MemoryFileID{Date: "2026-09-26", Num: 1},
 		Text: "a large and ancient memory that must not be recompressed",
 	}}); err != nil {
 		t.Fatalf("populate: %v", err)
 	}
-	if segs := c.Segments(); len(segs) != 0 {
+	if segs := Segments(c); len(segs) != 0 {
 		t.Errorf("memory produced %d conversation segments, want 0: %+v", len(segs), segs)
 	}
 }

@@ -1,4 +1,6 @@
-package common
+package llm
+
+import "github.com/waywardgeek/ensemble/agent/internal/common"
 
 // Choosing what to compress.
 //
@@ -17,35 +19,35 @@ package common
 
 // Segment is a run of conversation between two checkpoints.
 //
-// From and To are inclusive Seq bounds, which is what a Redacted span wants.
+// From and To are inclusive common.Seq bounds, which is what a Redacted span wants.
 // Bytes is what the segment costs in the context right now.
 type Segment struct {
-	From  Seq
-	To    Seq
+	From  common.Seq
+	To    common.Seq
 	Bytes int
 }
 
 // Segments splits the live conversation at checkpoint boundaries.
 //
-// Only KindDialogue entries are conversation. Memory, skills, tool
+// Only common.KindDialogue entries are conversation. Memory, skills, tool
 // declarations and the checkpoint notes themselves are survivors: they are
 // removed by their own verbs and are not anybody's to summarize.
 //
 // Anything still in the dialogue has never been summarized, because
 // compaction REMOVES the span it compressed. So there is no "already done"
 // bookkeeping to keep, and none to get wrong.
-func (c *Context) Segments() []Segment {
+func Segments(c *common.Context) []Segment {
 	var out []Segment
 	var cur *Segment
 	for _, e := range c.Dialogue {
-		if e.Kind == KindHandoff {
+		if e.Kind == common.KindHandoff {
 			if cur != nil {
 				out = append(out, *cur)
 				cur = nil
 			}
 			continue
 		}
-		if e.Kind != KindDialogue {
+		if e.Kind != common.KindDialogue {
 			continue
 		}
 		n := entryBytes(e)
@@ -62,15 +64,15 @@ func (c *Context) Segments() []Segment {
 	return out
 }
 
-func entryBytes(e Entry) int {
+func entryBytes(e common.Entry) int {
 	n := 0
 	for _, p := range e.Parts {
 		switch v := p.(type) {
-		case TextPart:
+		case common.TextPart:
 			n += len(v.Text)
-		case ToolResultPart:
+		case common.ToolResultPart:
 			for _, q := range v.Parts {
-				if t, ok := q.(TextPart); ok {
+				if t, ok := q.(common.TextPart); ok {
 					n += len(t.Text)
 				}
 			}
@@ -81,8 +83,8 @@ func entryBytes(e Entry) int {
 
 // Selection is a span chosen for compression.
 type Selection struct {
-	From Seq
-	To   Seq
+	From common.Seq
+	To   common.Seq
 	// Bytes is what the selected span currently costs.
 	Bytes int
 	// Split is true when no whole-segment range was large enough and a
@@ -100,11 +102,11 @@ type Selection struct {
 //
 // Returns ok=false when there is nothing worth compressing, which is the
 // ordinary case on most checkpoints.
-func (c *Context) SelectForCompression(want int) (Selection, bool) {
+func SelectForCompression(c *common.Context, want int) (Selection, bool) {
 	if want <= 0 {
 		return Selection{}, false
 	}
-	segs := c.Segments()
+	segs := Segments(c)
 	if len(segs) == 0 {
 		return Selection{}, false
 	}
@@ -112,7 +114,7 @@ func (c *Context) SelectForCompression(want int) (Selection, bool) {
 	// The last segment is the live one: it has no closing checkpoint yet,
 	// so it is what the agent is working on yet. Never compress it.
 	closed := segs
-	if len(segs) > 0 && !c.endsWithCheckpoint() {
+	if len(segs) > 0 && !endsWithCheckpoint(c) {
 		closed = segs[:len(segs)-1]
 	}
 
@@ -131,7 +133,7 @@ func (c *Context) SelectForCompression(want int) (Selection, bool) {
 	// compressor's own context, and a segment written over days need not.
 	// This is the degraded path, and the only one that cuts.
 	if closed[0].Bytes > maxSpan*want {
-		return c.splitSegment(closed[0], want)
+		return splitSegment(c, closed[0], want)
 	}
 
 	total := 0
@@ -158,12 +160,12 @@ const maxSpan = 8
 
 // endsWithCheckpoint reports whether the newest conversation entry is closed
 // by a checkpoint.
-func (c *Context) endsWithCheckpoint() bool {
+func endsWithCheckpoint(c *common.Context) bool {
 	for i := len(c.Dialogue) - 1; i >= 0; i-- {
 		switch c.Dialogue[i].Kind {
-		case KindHandoff:
+		case common.KindHandoff:
 			return true
-		case KindDialogue:
+		case common.KindDialogue:
 			return false
 		}
 	}
@@ -180,11 +182,11 @@ func (c *Context) endsWithCheckpoint() bool {
 // session rather than a session, so the summary it produces begins in the
 // middle of something. That is a real cost, and it is still better than
 // handing a compressor a span that will not fit in its own context.
-func (c *Context) splitSegment(seg Segment, want int) (Selection, bool) {
-	var from, to Seq
+func splitSegment(c *common.Context, seg Segment, want int) (Selection, bool) {
+	var from, to common.Seq
 	n, started := 0, false
 	for _, e := range c.Dialogue {
-		if e.Kind != KindDialogue || e.Seq < seg.From || e.Seq > seg.To {
+		if e.Kind != common.KindDialogue || e.Seq < seg.From || e.Seq > seg.To {
 			continue
 		}
 		if !started {
