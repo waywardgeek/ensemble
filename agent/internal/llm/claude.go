@@ -155,6 +155,19 @@ func (b anthBlock) MarshalJSON() ([]byte, error) {
 // build-with-claude/mid-conversation-system-messages.
 const anthInlineToolsBeta = "mid-conversation-tool-changes-2026-07-01,inline-tools-2026-09-15"
 
+// recallBlocks renders a recall entry's stored parts into content blocks.
+//
+// It reads the parts that were recorded in the event log and formats them. It
+// does NOT re-run retrieval, re-score anything, or consult the archive. The
+// bytes are already decided; this is pure presentation.
+func recallBlocks(entry common.Entry) []anthBlock {
+	text := recallText(entry)
+	if text == "" {
+		return nil
+	}
+	return []anthBlock{{Type: "text", Text: text}}
+}
+
 func inlineToolBlocks(entry common.Entry) []anthBlock {
 	var out []anthBlock
 	for _, p := range entry.Parts {
@@ -235,6 +248,36 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 			}
 			msgs = append(msgs, anthMsg{Role: "system", Content: inlineToolBlocks(entry)})
 			inlined = true
+			continue
+		}
+		if entry.Kind == common.KindRecall {
+			// Recalled material renders as its own system message, and this
+			// is the entire reason placement is the renderer's job rather
+			// than the retriever's.
+			//
+			// The retriever produced parts. It has no idea whether this
+			// vendor has a system role, whether a system message may appear
+			// mid-conversation, or whether the material should instead be
+			// folded into a user turn with a marker — all of which differ
+			// per vendor. Had the retriever formatted a finished message, it
+			// would have had to know all three, and it would have been wrong
+			// for every vendor but the one it was written against.
+			//
+			// What must NOT happen is appendBlocks with role "user", which
+			// would merge these blocks into the human's own message. The
+			// model would then see the retrieval system's guesses as words
+			// the user typed. Instructions inside recalled text would read as
+			// instructions from the user, which is a prompt-injection channel
+			// straight through the archive.
+			if n := len(msgs); n == 0 || (msgs[n-1].Role != "user" && msgs[n-1].Role != "system") {
+				return nil, fmt.Errorf("anthropic: recalled material at seq %d does not follow a user turn, "+
+					"and a system message may only follow one", entry.Seq)
+			}
+			blocks := recallBlocks(entry)
+			if len(blocks) == 0 {
+				continue
+			}
+			msgs = append(msgs, anthMsg{Role: "system", Content: blocks})
 			continue
 		}
 		r, err := classify(entry, cfg)

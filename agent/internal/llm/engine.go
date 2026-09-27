@@ -42,6 +42,19 @@ type Engine struct {
 	// next restart.
 	Bands func() common.BandConfig
 
+	// Recall, when set, is consulted once per human turn to pull archived
+	// material the user did not ask for by name. Nil disables recall
+	// completely, which is what every chapter before this one wants, and is
+	// also the honest state of a brand-new agent that has nothing archived
+	// yet.
+	//
+	// It is deliberately an interface held by the hub rather than a concrete
+	// type: the engine knows that something can answer a query with parts,
+	// and knows nothing whatsoever about BM25, chunking, or the existence of
+	// a judge. Swapping the whole retrieval strategy is a change to one
+	// constructor call at the top of the program.
+	Recall common.Recaller
+
 	// warned is advisory only: it keeps the ninety percent notice from
 	// repeating every turn. The authoritative fact, which tools are
 	// withdrawn, lives in the log as a ToolsChanged event and survives a
@@ -271,6 +284,18 @@ func (e *Engine) AskWatching(text string, watch common.StreamCallbacks) (string,
 	if err := e.Say(text); err != nil {
 		return "", err
 	}
+
+	// Recall runs AFTER the user's message has landed and BEFORE the model is
+	// asked anything. Both halves of that sentence are load-bearing.
+	//
+	// After, because the retrieved material is a response to what was just
+	// said, and an entry that landed first would read as context the user was
+	// replying to rather than context fetched on their behalf.
+	//
+	// Before, because the whole point is that the model sees the material on
+	// the turn where it is relevant. Attaching it afterwards would be an
+	// elaborate way of answering the previous question.
+	e.attachRecall(text)
 
 	// "turn" ephemeral tools are called once when the turn starts.
 	if err := e.CallEphemeral("turn"); err != nil {

@@ -126,6 +126,17 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 		if entry.Kind == common.KindTools {
 			continue // no in-dialog declarations here: see EffectiveTools
 		}
+		if entry.Kind == common.KindRecall {
+			// OpenAI accepts a system message anywhere in the list, so
+			// recalled material renders as one. Compare the Gemini renderer,
+			// which has no such role and must do something else entirely —
+			// that divergence is precisely why placement is the renderer's
+			// decision and not the retriever's.
+			if text := recallText(entry); text != "" {
+				msgs = append(msgs, oaiMsg{Role: "system", Content: &text})
+			}
+			continue
+		}
 		r, err := classify(entry, cfg)
 		if err != nil {
 			return nil, err

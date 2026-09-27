@@ -188,6 +188,35 @@ func (geminiSeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 		if entry.Kind == common.KindTools {
 			continue // no in-dialog declarations here: see EffectiveTools
 		}
+		if entry.Kind == common.KindRecall {
+			// Gemini's contents carry only "user" and "model" roles — there
+			// is no system role available mid-conversation, only the
+			// top-level systemInstruction, which is fixed for the request and
+			// cannot hold material that changes per turn.
+			//
+			// So this renderer does something the other two do not: it emits
+			// a separate user-role content block with an explicit marker, so
+			// the model can still tell retrieved material from what the human
+			// typed. The marker is doing the work the system role does
+			// elsewhere.
+			//
+			// This is the concrete reason placement belongs to the renderer.
+			// Had the retriever formatted a finished message, it would have
+			// had to know that Anthropic and OpenAI have a mid-conversation
+			// system role and Gemini does not — and it would have shipped
+			// whichever assumption its author happened to test against.
+			//
+			// Note what is still true here: this is its OWN content block. It
+			// is never appended to the human's block. Same role, different
+			// message.
+			if text := recallText(entry); text != "" {
+				contents = append(contents, gemContent{
+					Role:  "user",
+					Parts: []gemPart{{Text: recallGeminiMarker + text}},
+				})
+			}
+			continue
+		}
 		r, err := classify(entry, cfg)
 		if err != nil {
 			return nil, err

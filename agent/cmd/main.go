@@ -25,6 +25,7 @@ import (
 	"github.com/waywardgeek/ensemble/agent/internal/jobs"
 	"github.com/waywardgeek/ensemble/agent/internal/llm"
 	"github.com/waywardgeek/ensemble/agent/internal/mcp"
+	"github.com/waywardgeek/ensemble/agent/internal/recall"
 	"github.com/waywardgeek/ensemble/agent/internal/tools"
 	"github.com/waywardgeek/ensemble/agent/internal/ws"
 )
@@ -367,6 +368,36 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	// effect on the next turn rather than on the next launch.
 	eng.Memory = llm.NewStore(filepath.Join(".", "memory"))
 	eng.Bands = func() common.BandConfig { return settingsStore.Get().Memory.Normalized() }
+
+	// Chapter 17. Recall is assembled here, at the top, because this is the
+	// only place in the program that is allowed to know about both halves.
+	//
+	// internal/recall knows how to score text and nothing about models.
+	// internal/llm knows how to call a model and nothing about scoring. They
+	// do not import each other and could not — they are both spokes, and a
+	// spoke importing a spoke is how a star quietly becomes a graph. The two
+	// are joined by two interfaces that live in the hub: the engine accepts a
+	// common.Recaller, and the recaller accepts a common.SnippetJudge. Main
+	// is where the concrete types on either side of those interfaces are
+	// finally allowed to meet.
+	//
+	// The judge is a plain function call that happens to be evaluated by a
+	// language model. It is not a sub-agent: it has no dialogue, no tools, no
+	// memory of the last time it was asked, and no ability to do anything
+	// except return text. Every call starts from nothing.
+	recaller := recall.New(
+		recall.DefaultSources(".", skillDir),
+		llm.NewJudge(eng),
+		recall.DefaultConfig(),
+	)
+	if recaller.Indexed() > 0 {
+		// Left nil when there is nothing archived, which is the state of
+		// every agent on its first run. Nil is not a degraded mode to be
+		// apologised for: with an empty archive, every retrieval would score
+		// nothing and the only observable effect of wiring it up would be a
+		// judge call per turn that can only ever answer NONE.
+		eng.Recall = recaller
+	}
 
 	// Populate the bands from what is on disk before the first turn, so a
 	// restart comes back with the same memory it went down with. A failure
