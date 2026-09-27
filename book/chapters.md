@@ -22,13 +22,11 @@ purpose: no chapter count is fixed until a chapter is built.
 - 13. The Agent Sees Itself
 - 14. The Channel Nobody Tested
 - 15. The World's Best Context Engineering, Before Breakfast
+- 16. Forgetting on Purpose
 
 ## Planned
 
-- 16. Memory (bands, save_memory, graduation chain; outline: chapter-16-outline.md)
-- 17. Goal stack (needs a design session)
-- Auto-recall (split from ch16: BM25 + vectors + relevance judge; number TBD,
-  before or after the goal stack)
+- 17. Auto-Recall (BM25 + SLM relevance judge; design: auto-recall-design.md)
 
 ## Candidates
 
