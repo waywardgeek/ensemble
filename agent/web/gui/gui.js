@@ -101,6 +101,17 @@
         if (msg.settings) applySettings(msg.settings);
         break;
 
+      case 'conversation_reset':
+        // Clear both panes. The agent has already cleared its context; this
+        // is the screen catching up, and it arrives as an ordinary event so a
+        // reconnecting client replaying the log lands on the same empty page.
+        chatScroll.clear();
+        actionsScroll.clear();
+        agentState = 'idle';
+        window.agentState = 'idle';
+        updateStateUI();
+        break;
+
       case 'usage':
         renderUsage(msg);
         break;
@@ -292,6 +303,15 @@
 
   initDragBar('drag-left', sidebar, null, 0, 0);
   initDragBar('drag-right', document.getElementById('center'), rightPane, 300, 0);
+
+  // ── Reset ──
+  document.getElementById('reset-btn').addEventListener('click', () => {
+    // Confirm, because the gear is right next door and a misclick would throw
+    // away the conversation. What it does NOT throw away is worth saying out
+    // loud, since "reset" on an agent could plausibly mean amnesia.
+    if (!confirm('Clear this conversation?\n\nMemory, skills and checkpoints are kept.')) return;
+    ws.send(JSON.stringify({ type: 'reset' }));
+  });
 
   // ── Settings ──
   document.getElementById('settings-btn').addEventListener('click', () => {

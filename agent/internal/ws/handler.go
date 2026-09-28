@@ -483,6 +483,9 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 		}
 	case "interrupt":
 		h.send(common.Interrupt{})
+
+	case "reset":
+		h.send(common.Reset{})
 	case "pause":
 		h.ttsLog.Log(TTSEvent{Kind: "pause", Cause: gateCause(msg.Typing, msg.Speaking)})
 		if h.gate != nil {
@@ -624,7 +627,7 @@ func (c *Client) writePump() {
 func isRenderable(e common.Event) bool {
 	switch e.Type {
 	case common.ResponseEnded, common.ToolCalled, common.ToolReturned,
-		common.MessageReceived, common.ErrorOccurred:
+		common.MessageReceived, common.ErrorOccurred, common.ConversationReset:
 		return true
 	}
 	return false
@@ -636,6 +639,14 @@ func renderEvent(e common.Event) [][]byte {
 	var msgs [][]byte
 
 	switch e.Type {
+	case common.ConversationReset:
+		// The client clears its transcript on this and keeps everything else.
+		// It arrives through the ordinary event stream rather than as a reply
+		// to the button press, so a reconnecting client replaying the log
+		// rebuilds the same cleared screen instead of a stale one.
+		data, _ := json.Marshal(map[string]any{"type": "conversation_reset", "seq": e.Seq})
+		msgs = append(msgs, data)
+
 	case common.ResponseEnded:
 		if e.Response == nil {
 			break

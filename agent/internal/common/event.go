@@ -70,6 +70,22 @@ const (
 	// A reducer that has to go and fetch bytes is no longer a pure function
 	// over events, and the moment it can fetch, replay can drift.
 	RecallAttached
+
+	// ConversationReset clears the conversation and the recalled memories
+	// that fed it, leaving every other kind of entry in place.
+	//
+	// It is an EVENT rather than a direct edit of the context for the reason
+	// every other removal here is: the context is a projection of this log,
+	// so a mutation the log does not record is a mutation that the next
+	// replay silently undoes. Recording it also makes the reset durable for
+	// free, since the journal carries it across a restart.
+	//
+	// What it deliberately does NOT touch: the memory bands, the soul and
+	// memory documents, loaded skills, the tool roster, and checkpoints.
+	// Those live in the same slice as the conversation and are told apart
+	// only by their kind, so clearing that slice wholesale would destroy the
+	// agent's memory to clear its screen.
+	ConversationReset
 )
 
 var eventTypeNames = map[EventType]string{
@@ -89,6 +105,7 @@ var eventTypeNames = map[EventType]string{
 	BandDepopulated:   "band_depopulated",
 	CompactorLaunched: "compactor_launched",
 	RecallAttached:    "recall_attached",
+	ConversationReset: "conversation_reset",
 }
 
 func (t EventType) String() string {

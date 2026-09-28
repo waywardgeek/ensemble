@@ -31,10 +31,19 @@ type ToolCompleted struct {
 // Interrupt tells the actor loop to stop processing the current turn.
 type Interrupt struct{}
 
+// Reset clears the conversation and the memories recalled to serve it.
+//
+// It travels as an inbound message rather than as a direct call because the
+// actor owns the context; anything else would mutate it from another
+// goroutine. Like Interrupt, it is a bare struct: the instruction carries no
+// argument because there is nothing to choose.
+type Reset struct{}
+
 func (UserMessage) isInbound()   {}
 func (Hint) isInbound()          {}
 func (ToolCompleted) isInbound() {}
 func (Interrupt) isInbound()     {}
+func (Reset) isInbound()         {}
 
 // Mailbox is a mutex-guarded FIFO queue with a signal channel. Post never
 // blocks or drops.

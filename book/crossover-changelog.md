@@ -649,3 +649,77 @@ on the first user message. That one needs measurement first: the lens already
 computes predicted-versus-actual hit rate, so the question of whether a moving
 message breakpoint earns its slot should be answered with a number rather than
 an argument.
+
+## 16. A reset button that clears the screen, not the agent
+
+The GUI had no way to start a fresh conversation. Restarting the process was
+the only reset, which also threw away the running job table and every
+connected client.
+
+### The event, not the edit
+
+The obvious implementation clears the context and returns. It works, and then
+it silently undoes itself on the next restart, because the context is a
+projection of the event log: a mutation the log does not record is a mutation
+that replay does not reproduce. So the reset is an event, `ConversationReset`,
+recorded through `Engine.Record` like every other removal. Durability then
+comes for free rather than as a second step to remember, since the journal
+replays on load and re-applies the reset.
+
+This is the same rule the rest of the context obeys, and worth restating
+because the shortcut is so inviting: whoever changes the context owns adding an
+event that reproduces the change.
+
+### The safety property
+
+Every kind of entry lives in one slice. Memory bands, the soul and memory
+documents, loaded skills, the tool roster, checkpoints and the conversation are
+all `c.Dialogue`, told apart only by `Kind`. The one-line implementation,
+setting that slice to nil, would delete the agent's memory in order to clear
+its screen, and it would look like it worked.
+
+So the reducer filters by kind, removing `KindDialogue` and `KindRecall` and
+nothing else. Recall goes with the dialogue for the reason it also goes at a
+checkpoint: an auto-recalled memory is an input to a conversation, and once the
+conversation is gone it is answering a question nobody asked.
+
+### Two details that would have been bugs
+
+`ArtifactScroll.clear()` empties three correlation maps as well as the DOM.
+Those maps key streaming deltas to the elements they belong to, so an entry
+outliving its element would route the next turn's text into a node no longer on
+the page: text vanishing, no error anywhere.
+
+The reset reaches the screen as an ordinary rendered event rather than as a
+reply to the button press. A reconnecting client rebuilds its page by replaying
+the log, so anything delivered only as a reply would leave a reconnected client
+showing a transcript the agent no longer has.
+
+### Verified
+
+Four tests, four mutants, each killed by exactly the test that should kill it:
+clearing the whole slice, dropping the turn-state reset, unregistering the wire
+name, and dropping the event from the renderable set. ch9 and ch14 both 100/100.
+
+One mutant initially appeared to survive, which would have meant a decorative
+test. It was the mutation that was wrong, not the test: `perl` without `/g`
+rewrote the first of three identical lines in the file rather than the intended
+one. An invalid mutant and an insensitive test look identical in the output, so
+a surviving mutant is worth confirming before it is believed.
+
+### A measurement, from entry 15
+
+The ch9 grader run reports the lens output, and after the system breakpoint
+landed it reads:
+
+```
+tools:identical system:identical messages:appended
+cacheable prefix 13657 of 14213 bytes (96.1%)
+```
+
+`system:identical` is the breakpoint doing its job: the largest span in the
+request is byte-stable across turns. At 96.1% already cacheable on a short
+conversation, the second breakpoint inside `messages` has little left to buy
+here, though a long conversation would shift the balance since that is the only
+section that grows. Still open, and still a question for a measurement rather
+than an argument.

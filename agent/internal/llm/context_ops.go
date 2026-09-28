@@ -188,7 +188,35 @@ func Apply(c *common.Context, e common.Event) error {
 			c.Turn = common.Idle
 		}
 
+	case common.ConversationReset:
+		// Clear the conversation. Keep everything else.
+		//
+		// Filtering by KIND is the whole of the safety here. Memory bands, the
+		// soul and memory documents, loaded skills, the tool roster and
+		// checkpoints all share this one slice with the dialogue and are told
+		// apart only by their kind, so the obvious one-liner — setting
+		// c.Dialogue to nil — would wipe the agent's memory in order to clear
+		// its screen.
+		//
+		// Recall goes with the dialogue for the same reason it goes at a
+		// checkpoint (see land): an auto-recalled memory is an input to a
+		// conversation, and once that conversation is gone it is answering a
+		// question nobody asked.
+		kept := make([]common.Entry, 0, len(c.Dialogue))
+		for _, d := range c.Dialogue {
+			if d.Kind == common.KindDialogue || d.Kind == common.KindRecall {
+				continue
+			}
+			kept = append(kept, d)
+		}
+		c.Dialogue = kept
+
+		// A reset that arrives mid-turn must not leave the machine waiting for
+		// a turn whose conversation no longer exists.
+		c.Turn = common.Idle
+
 	default:
+
 		// EVERY PAIR NOT LISTED IS IDENTITY. This arm, not the length of the
 		// table above, is what makes the reducer total. A table enumerates the
 		// transitions we thought of; the default covers the ones we did not.

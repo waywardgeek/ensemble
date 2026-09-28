@@ -9,6 +9,19 @@ class ArtifactScroll {
     this.options = options;
   }
 
+  // clear removes every rendered artifact and forgets the correlation state.
+  //
+  // The three maps have to go with the DOM, not just the DOM. They key
+  // streaming deltas to the elements those deltas belong to, so a map entry
+  // that outlived its element would route the next turn's text into a node
+  // that is no longer on the page: text vanishing with no error anywhere.
+  clear() {
+    this.container.replaceChildren();
+    this.artifacts.clear();
+    this.toolCards.clear();
+    this.accumulated.clear();
+  }
+
   handleMessage(msg) {
     switch (msg.type) {
       case 'message':

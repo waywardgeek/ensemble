@@ -195,6 +195,8 @@ func (a *Actor) handle(msg common.Inbound) {
 		a.mb.Post(m)
 	case common.Interrupt:
 		a.handleInterrupt()
+	case common.Reset:
+		a.handleReset()
 	}
 }
 
@@ -430,6 +432,23 @@ func (a *Actor) handleHint(m common.Hint) {
 }
 
 // handleInterrupt sets the interrupted state.
+// handleReset clears the conversation and the memories recalled to serve it.
+//
+// The clearing itself is not done here. Record owns it, because the reducer is
+// what defines a ConversationReset means and the journal is what makes it
+// survive a restart: the journal replays on load, so the reset re-applies
+// without anyone having to remember to write a snapshot first. Clearing the
+// context directly would work until the next restart and then quietly undo
+// itself, which is the worst failure shape available.
+func (a *Actor) handleReset() {
+	if err := a.eng.Record(common.Event{Type: common.ConversationReset}); err != nil {
+		a.notify(common.TurnEnded{Err: "reset failed: " + err.Error()})
+		return
+	}
+	a.setState(common.Idle)
+	_ = a.eng.Save()
+}
+
 func (a *Actor) handleInterrupt() {
 	a.setState(common.Interrupted)
 	a.notify(common.TurnEnded{Err: "interrupted"})
