@@ -1,6 +1,19 @@
 #!/bin/bash
 # Assemble the book into a single markdown file from its parts.
 # Usage: scripts/assemble-book.sh > book/the-self-wielding-agent.md
+#
+# The output IS COMMITTED ON PURPOSE. Do not treat it as a disposable build
+# artifact and do not purge it to save repository space: README.md links to
+# it so the partial book is readable directly on the GitHub repo, and it is
+# published as the book is written.
+#
+# This has already gone wrong once. A git filter-repo pass aimed at large
+# binaries swept the assembled book up with them, judging files by size
+# rather than by value. Recovery was luck: an untracked working-tree copy.
+# Note that filter-repo rewrites every commit, so a purged path leaves NO
+# deletion commit behind and "git log -- <path>" returns empty. That empty
+# history is the signature of a purge, not proof the file was generated
+# scratch output. Being reproducible does not make it disposable.
 set -euo pipefail
 
 BOOK_DIR="$(cd "$(dirname "$0")/../book" && pwd)"
