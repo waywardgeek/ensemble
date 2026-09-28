@@ -1,6 +1,6 @@
 # The Art of Building AI Coding Agents
 
-*An agentic codebook: a book that builds what it teaches*
+*An agentic codebook: the book builds the agent, the agent builds the book*
 
 **The Singularity as it Happened, Book 5**
 

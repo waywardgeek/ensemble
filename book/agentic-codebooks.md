@@ -191,7 +191,7 @@ generators, or a web-development skill that knows about browser automation).
 ## Status
 
 *The Art of Building AI Coding Agents* is the first agentic codebook. As of September 2026
-it has ten chapters, approximately 50,000 words, and ~10,000 lines of
+it has eighteen chapters, approximately 76,000 words, and ~18,000 lines of
 graded Go code. The three-agent workflow was discovered and refined during its
 construction. The pattern is described here for the first time.
 
