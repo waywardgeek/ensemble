@@ -84,8 +84,15 @@ func ch18Skills() (string, func()) {
 	}
 	base := filepath.Join(dir, "base")
 	os.MkdirAll(base, 0o755)
+	// The skill declares several tools on purpose. prefix-is-stable claims the
+	// TOOL section is byte-identical across turns, and a fixture with no tools
+	// cannot exercise that half of the claim: shuffling declaration order in an
+	// empty array is unobservable, so the mutant that shuffles it survives and
+	// looks exactly like a check that is not load bearing. Five tools give 120
+	// orderings, so an unstable renderer is caught on the first turn.
 	os.WriteFile(filepath.Join(base, "SKILL.md"), []byte(
-		"---\nname: base\ndescription: baseline skill\n---\n\nAnswer briefly.\n"), 0o644)
+		"---\nname: base\ndescription: baseline skill\n"+
+			"tools: read_file write_file edit_file run_command think\n---\n\nAnswer briefly.\n"), 0o644)
 	return dir, func() { os.RemoveAll(dir) }
 }
 
