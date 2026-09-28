@@ -9,7 +9,7 @@ working program, and whose program helps produce the next edition of the book.
 The loop is closed: the book builds the agent, the agent builds the book. No
 human is required to carry code from one end to the other.
 
-The first agentic codebook is *The Self-Wielding Agent* (Ensemble), which
+The first agentic codebook is *How to Build an AI Coding Agent that Builds Itself* (Ensemble), which
 builds an AI coding agent chapter by chapter. The agent it produces is used to
 write and grade subsequent chapters, closing the self-evolution loop.
 
@@ -190,7 +190,7 @@ generators, or a web-development skill that knows about browser automation).
 
 ## Status
 
-*The Self-Wielding Agent* is the first agentic codebook. As of September 2026
+*How to Build an AI Coding Agent that Builds Itself* is the first agentic codebook. As of September 2026
 it has ten chapters, approximately 50,000 words, and ~10,000 lines of
 graded Go code. The three-agent workflow was discovered and refined during its
 construction. The pattern is described here for the first time.

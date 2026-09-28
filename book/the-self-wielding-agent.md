@@ -1,6 +1,6 @@
-# The Self-Wielding Agent
+# How to Build an AI Coding Agent that Builds Itself
 
-*An Agentic Codebook*
+*An agentic codebook: a book that builds what it teaches*
 
 **The Singularity as it Happened, Book 5**
 
