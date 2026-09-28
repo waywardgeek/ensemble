@@ -109,21 +109,31 @@ type Divergence struct {
 // cache_control last, so the leading-comma form is the production case; JSON
 // marshalled from a Go map sorts keys and puts it first. Exactly one separator,
 // never both, or a marker between two other keys would fuse them together.
-var breakpointRE = regexp.MustCompile(
-	`,\s*"cache_control"\s*:\s*\{[^{}]*\}` + `|` +
-		`\s*"cache_control"\s*:\s*\{[^{}]*\}\s*,` + `|` +
-		`\s*"cache_control"\s*:\s*\{[^{}]*\}`)
+// A const string compiled per call rather than a package-level compiled regexp,
+// because a compiled regexp has to live in a var and the architecture forbids
+// mutable package state. The ch5 no-mutable-globals check caught this, and it
+// was right to: a var here is a var, whatever we intend to do with it.
+// Compiling a pattern this small a dozen times per turn on a diagnostic path
+// costs microseconds, and the alternative is an exception to a rule that is
+// load bearing everywhere else.
+const breakpointPattern = `,\s*"cache_control"\s*:\s*\{[^{}]*\}` + `|` +
+	`\s*"cache_control"\s*:\s*\{[^{}]*\}\s*,` + `|` +
+	`\s*"cache_control"\s*:\s*\{[^{}]*\}`
 
 // stripBreakpoints removes markers, and returns the count it removed.
 func stripBreakpoints(s string) (string, int) {
-	locs := breakpointRE.FindAllStringIndex(s, -1)
+	re := regexp.MustCompile(breakpointPattern)
+	locs := re.FindAllStringIndex(s, -1)
 	if len(locs) == 0 {
 		return s, 0
 	}
-	return breakpointRE.ReplaceAllString(s, ""), len(locs)
+	return re.ReplaceAllString(s, ""), len(locs)
 }
 
-// dialogueSection is the one section expected to change every turn.
+// dialogueSection is the default name of the section holding the conversation,
+// which is the one section expected to change every turn. Sections.Dialogue
+// overrides it, because the name is vendor-specific; this is the fallback for a
+// Sections value built by hand rather than read off a request.
 const dialogueSection = "messages"
 
 // Compare produces a per-section verdict for two consecutive requests.
