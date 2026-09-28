@@ -1,4 +1,4 @@
-# How to Build an AI Coding Agent that Builds Itself
+# The Art of Building AI Coding Agents
 
 *An agentic codebook: a book that builds what it teaches*
 

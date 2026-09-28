@@ -1,6 +1,6 @@
 # Chapter Writing Procedure
 
-How to write a chapter for *How to Build an AI Coding Agent that Builds Itself*.
+How to write a chapter for *The Art of Building AI Coding Agents*.
 Follow these steps in order. Each step has a rationale.
 
 ## Roles
