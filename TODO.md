@@ -18,6 +18,91 @@ Mark every entry VERIFIED (observed directly, with a date) or ASSUMED
 
 ---
 
+## Crossover — what Ensemble needs before it replaces CodeRhapsody
+
+Bill is running both side by side as of 2026-09-27. This section is the list of
+things standing between "impressive demo" and "the agent I actually work in."
+Ordered by what blocks daily use, not by difficulty.
+
+Deliberately **not** on this list: sub-agents. Bill: *"I can live without
+sub-agents for a week."* Gateway-first is the agreed sequencing, since routing
+between agents and routing to a remote peer are the same infrastructure.
+
+### 1. Caching — the top blocker (VERIFIED 2026-09-27)
+
+`grep -rn 'cache_control' internal/ --include=*.go` returns **nothing**. No
+breakpoints, no measurement, no stats. Every request is a cold read of the whole
+prefix at full input price.
+
+Benchmark to beat: **CodeRhapsody currently runs at 91.3% cache hit rate**
+(VERIFIED 2026-09-27, Bill's live session). That is the bar, and it proves the
+number is achievable in an agent of this shape rather than aspirational.
+
+Full design in `book/caching-design.md`. The short version:
+
+- Capture `cache/request.json` + `cache/prior_request.json`, canonically
+  serialized **in wire order** (system → tools → messages) so a plain `diff`
+  lands on the first byte that broke the cache.
+- Classify every request as MATCH / PREFIX DIVERGED (our bug) / CACHE MISSED
+  ANYWAY (TTL, size floor, eviction). Collapsing the last two into one alert is
+  how the alarm gets ignored.
+- **Measure before optimizing.** A breakpoint on an unstable prefix buys
+  nothing and looks like it should have worked.
+
+Known structural blocker (VERIFIED 2026-09-27): `anthRequest.System` is a plain
+`string`; `cache_control` attaches to a content *block*, so it must become an
+array. This breaks the byte-identical-request property the surrounding comments
+defend, which is itself worth a chapter section.
+
+Known stability risk (ASSUMED, not yet measured): tool declaration order. Ensemble
+makes no ordering guarantee; CodeRhapsody sorts by `(skill_name, tool_name)`
+specifically for cache stability. Needs a test either way.
+
+### 2. Session stats in the GUI (VERIFIED 2026-09-27)
+
+Bill wants, scoped to one Ensemble restart: session cost, total input tokens,
+cache read tokens, and cache hit rate.
+
+The four token categories already exist and are already disjoint (`Input`,
+`CacheWrite`, `CacheRead`, `Output`) — the right shape. Two gaps:
+
+- Usage is emitted to **stdout only** and never sent over the WebSocket; the GUI
+  has no usage handling at all.
+- No price table, deliberately: `event.go` says *"Usage counts tokens and never
+  money. Prices change; counts are history."* Keep that. Cost is computed at
+  render time from a table beside the model catalog.
+
+### 3. Header controls (requested 2026-09-27)
+
+- Reset conversation. Design settled: travels as an inbound message like
+  `interrupt` so the actor clears its own state; clears `KindDialogue` and
+  `KindRecall` only, never the memory bands. **Must re-snapshot `save.json`** —
+  truncating only the journal leaves the old conversation in the snapshot and a
+  restart silently undoes the reset.
+- Interrupt button. Protocol already works end to end (hub accepts
+  `"interrupt"`, actor handles `common.Interrupt`) — this is a button only.
+- Model dropdown in the header, from the server-owned catalog.
+- "Don't be evil", tiny font, somewhere on screen.
+
+### 4. Memory lives in the source tree (VERIFIED 2026-09-27)
+
+193 daily logs + SOUL.md + MEMORY.md + 2 cascade buckets currently sit in
+`agent/memory/`, inside the git repo, because the code reads
+`filepath.Join(".", "memory")`. Should move to `~/.en/memory/` beside
+`~/.en/settings.json`.
+
+### 5. Gaps that are known and accepted for now
+
+- No learnings mechanism. CodeRhapsody has 50; they would have to fold into
+  MEMORY.md or become a feature.
+- No web search, no browser tools, no screenshots.
+- Browser only; no desktop wrapper.
+- The `ensemble` skill is the book's teaching persona, not a daily-driver
+  identity. SOUL.md and MEMORY.md are loaded, but the skill text around them
+  still describes the teaching agent.
+
+---
+
 ## Open questions awaiting the author
 
 - [ ] **Env vars: Bill's ruling vs. the graders.** Ruling 2026-09-20: "stop

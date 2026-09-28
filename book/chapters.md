@@ -23,10 +23,10 @@ purpose: no chapter count is fixed until a chapter is built.
 - 14. The Channel Nobody Tested
 - 15. The World's Best Context Engineering, Before Breakfast
 - 16. Forgetting on Purpose
+- 17. Auto-Recall (BM25 + SLM relevance judge; design: auto-recall-design.md)
 
 ## Planned
-
-- 17. Auto-Recall (BM25 + SLM relevance judge; design: auto-recall-design.md)
+- 18. Caching: I'd like to meaure what changed betwen requests and automatically detect unexpected cache misses for each LLM vendor.
 
 ## Candidates
 
