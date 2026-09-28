@@ -122,12 +122,22 @@ run_mutant() {
 M1_APPLY='perl -0pi -e "s/eng\.Cache = cachelens\.New\(\"\.\", func\(s string\) \{ host\.Debugf\(\"%s\", s\) \}\)/eng.Cache = common.NopCacheLens{}; _ = cachelens.New/g" agent/cmd/main.go'
 M1_VERIFY='grep -q "NopCacheLens{}; _ = cachelens.New" agent/cmd/main.go'
 
-# sortedKeys() is NOT the render path: it feeds toolsChanged(), which only
-# detects whether the tool set has changed between turns. Shuffling it produces a
-# mutant that compiles, lands, and changes nothing a request ever sees. The
-# render path is toolNames(), called by Declarations() on every turn.
-M2_APPLY='perl -0pi -e "s/\tsort\.Strings\(names\)/\trand.Shuffle(len(names), func(i, j int) { names[i], names[j] = names[j], names[i] })/g" agent/internal/tools/tools.go && perl -0pi -e "s/^\t\"sort\"$/\t\"math\/rand\"\n\t\"sort\"/m" agent/internal/tools/tools.go'
-M2_VERIFY='grep -q "rand.Shuffle(len(names)" agent/internal/tools/tools.go'
+# Destabilise the prefix with a per-request timestamp in the system prompt.
+#
+# The obvious mutant, shuffling tool declaration order, CANNOT work here, and
+# the reason is worth knowing. cfg.Tools is assigned from reg.Declarations() at
+# startup and again on a skill change (agent/cmd/main.go), never per request. So
+# a shuffled toolNames() produces one shuffled order that then stays put, the
+# prefix is byte-identical across turns anyway, and the mutant survives while
+# the check it targets is perfectly sound. Per-request tool instability is
+# impossible by construction in this architecture.
+#
+# A clock in the system prompt is the real defect this check exists to catch,
+# and the one the chapter warns about: it looks harmless, it is invisible in
+# behaviour, and it moves the first bytes of the prefix on every single request,
+# so nothing after it can ever be served from cache.
+M2_APPLY='perl -0pi -e "s/System:    systemBlocks\(cfg\.SystemPrompt\),/System:    systemBlocks(cfg.SystemPrompt + time.Now().String()),/g" agent/internal/llm/claude.go && perl -0pi -e "s/^\t\"strings\"$/\t\"strings\"\n\t\"time\"/m" agent/internal/llm/claude.go'
+M2_VERIFY='grep -q "cfg.SystemPrompt + time.Now().String()" agent/internal/llm/claude.go'
 
 # The marker literal is indented with TWO tabs, and there is exactly one of it.
 # The verify asserts the count is ZERO afterwards: a verify that is already
@@ -162,7 +172,7 @@ M8_VERIFY='sed -n "163p" agent/internal/llm/claude.go | grep -q "return false"'
 
 declare -a NAMES=(
 	"lens not wired: measurement silently absent"
-	"tool order shuffled per request: prefix never stable"
+	"clock in the system prompt: prefix moves every request"
 	"system prompt carries no cache_control"
 	"cost stored in Usage instead of computed"
 	"meter reports lifetime spend, not this session"
@@ -182,7 +192,7 @@ declare -a EXPECTS=(
 )
 declare -a FILES=(
 	"agent/cmd/main.go"
-	"agent/internal/tools/tools.go"
+	"agent/internal/llm/claude.go"
 	"agent/internal/llm/claude.go"
 	"agent/internal/common/event.go"
 	"agent/cmd/main.go"
