@@ -61,6 +61,42 @@ type Divergence struct {
 	// healthy case and must never raise an alarm, because it happens on every
 	// single turn.
 	DialogueChanged bool
+
+	// Breakpoints counts the cache_control markers in the current request.
+	// The comparison above is deliberately blind to markers, so this is the
+	// only place a lost breakpoint shows up. Report it: a request whose
+	// sections are all identical and whose breakpoint count just fell to zero
+	// is uncached, and every other number here looks perfect.
+	Breakpoints int
+}
+
+// breakpointMarker is the exact marker our renderer emits. Stripped before
+// comparison because a breakpoint is an instruction to the provider, not
+// conversation content: the cache key is the content of the prefix.
+//
+// This matters because the markers MOVE. The rolling breakpoint advances every
+// turn, so a block carrying a marker in one request carries none in the next.
+// Comparing raw bytes would find that difference deep inside the common
+// prefix, classify a healthy turn as "edited", and cut the reported cacheable
+// prefix off at the old marker. The instrument would then under-report the
+// cache on every single turn, which is the same false alarm the array-append
+// case exists to prevent.
+//
+// A targeted strip rather than a JSON round trip, and the distinction is the
+// point. Unmarshalling and re-marshalling would reorder object keys and
+// rewrite the byte counts, and those counts are reported as a property of the
+// real request and compared against the provider's own figures. Both sides
+// getting the same distortion would keep equality honest and make the
+// measurement a fiction. We control the emitter, so the exact string is known.
+const breakpointMarker = `,"cache_control":{"type":"ephemeral"}`
+
+// stripBreakpoints removes markers, and returns the count it removed.
+func stripBreakpoints(s string) (string, int) {
+	if !strings.Contains(s, breakpointMarker) {
+		return s, 0
+	}
+	n := strings.Count(s, breakpointMarker)
+	return strings.ReplaceAll(s, breakpointMarker, ""), n
 }
 
 // dialogueSection is the one section expected to change every turn.
@@ -75,14 +111,16 @@ func Compare(prior, current Sections) Divergence {
 	// formatting into a percentage reported as a property of the request.
 	d := Divergence{}
 	for _, name := range current.Order {
-		d.CurrentBytes += len(current.Raw[name])
+		stripped, n := stripBreakpoints(string(current.Raw[name]))
+		d.CurrentBytes += len(stripped)
+		d.Breakpoints += n
 	}
 	allIdentical := true
 	stillCacheable := true
 
 	for _, name := range current.Order {
-		p := string(prior.Raw[name])
-		c := string(current.Raw[name])
+		p, _ := stripBreakpoints(string(prior.Raw[name]))
+		c, _ := stripBreakpoints(string(current.Raw[name]))
 
 		sd := SectionDiff{
 			Name:         name,
@@ -178,7 +216,7 @@ func classify(p, c string, prefix int) string {
 // Describe renders a divergence as one line fit for a log.
 func Describe(d Divergence) string {
 	if d.Identical {
-		return fmt.Sprintf("identical (%d bytes)", d.CurrentBytes)
+		return fmt.Sprintf("identical (%d bytes, %d breakpoints)", d.CurrentBytes, d.Breakpoints)
 	}
 
 	parts := make([]string, 0, len(d.Sections))
@@ -189,6 +227,9 @@ func Describe(d Divergence) string {
 	if d.CurrentBytes > 0 {
 		pct = float64(d.CacheableBytes) / float64(d.CurrentBytes) * 100
 	}
-	return fmt.Sprintf("%s — cacheable prefix %d of %d bytes (%.1f%%)",
-		strings.Join(parts, " "), d.CacheableBytes, d.CurrentBytes, pct)
+	// The breakpoint count rides along because the comparison is blind to
+	// markers by design. Every section can read "identical" while the request
+	// carries no breakpoints at all, and that request is uncached.
+	return fmt.Sprintf("%s — cacheable prefix %d of %d bytes (%.1f%%), %d breakpoints",
+		strings.Join(parts, " "), d.CacheableBytes, d.CurrentBytes, pct, d.Breakpoints)
 }

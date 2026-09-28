@@ -147,6 +147,38 @@ func systemBlocks(prompt string) []anthSystemBlock {
 	}}
 }
 
+// markCache places a cache breakpoint on the newest block at or before the
+// position (msg, blocks), where blocks is a count rather than an index, and
+// walks backwards until it finds a block that can actually carry one.
+//
+// Replay material is skipped rather than marked. anthBlock.MarshalJSON returns
+// Raw verbatim, so a marker set on a replayed block exists in Go and never
+// reaches the wire; the request would look correct in a debugger, the cache
+// would miss, and the only symptom would be the invoice. Skipping backwards
+// costs a few blocks of cacheable prefix and cannot produce that failure.
+//
+// Returns false when no block in range can carry a marker, which is not an
+// error: an unmarked prefix is processed uncached, never rejected.
+func markCache(msgs []anthMsg, msg, blocks int) bool {
+	if msg < 0 || msg >= len(msgs) {
+		return false
+	}
+	for m := msg; m >= 0; m-- {
+		hi := len(msgs[m].Content)
+		if m == msg && blocks < hi {
+			hi = blocks
+		}
+		for b := hi - 1; b >= 0; b-- {
+			if len(msgs[m].Content[b].Raw) > 0 {
+				continue
+			}
+			msgs[m].Content[b].CacheControl = &anthCacheControl{Type: "ephemeral"}
+			return true
+		}
+	}
+	return false
+}
+
 // anthBlock marshals either a structured block or, for opaque replay material,
 // the vendor's own bytes verbatim. Opaque material is carried, never
 // interpreted — we could not reconstruct a thinking signature if we tried.
@@ -164,6 +196,11 @@ type anthBlock struct {
 	// Tool is the payload of a tool_addition or tool_removal block
 	// (Chapter 15 rule 2). Pre-marshalled so its shape lives in one place.
 	Tool json.RawMessage
+	// CacheControl carries a cache breakpoint. It is honoured only on blocks
+	// this type marshals itself: MarshalJSON returns Raw verbatim, so a marker
+	// set on replay material is present in Go and absent on the wire. Use
+	// markCache, which refuses to place a marker on a Raw block.
+	CacheControl *anthCacheControl
 }
 
 func (b anthBlock) MarshalJSON() ([]byte, error) {
@@ -183,8 +220,10 @@ func (b anthBlock) MarshalJSON() ([]byte, error) {
 		Content   string          `json:"content,omitempty"`
 		IsError   bool            `json:"is_error,omitempty"`
 		Tool      json.RawMessage `json:"tool,omitempty"`
+
+		CacheControl *anthCacheControl `json:"cache_control,omitempty"`
 	}
-	return json.Marshal(wire{b.Type, b.Text, b.ID, b.Name, b.Input, b.ToolUseID, b.Content, b.IsError, b.Tool})
+	return json.Marshal(wire{b.Type, b.Text, b.ID, b.Name, b.Input, b.ToolUseID, b.Content, b.IsError, b.Tool, b.CacheControl})
 }
 
 // Chapter 15 rule 2 on the Anthropic API: a tool declared mid-session rides
@@ -240,6 +279,13 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 	var msgs []anthMsg
 	features, _ := common.LookupModel(cfg.Model)
 	inlined := false
+	// anchorMsg/anchorBlocks record where the previous exchange ended: the
+	// position immediately before the newest human prompt. Everything up to
+	// there was in the previous request, so a breakpoint here reads a prefix
+	// that an earlier request already paid to write. It stays put for every
+	// round of a tool loop while the rolling breakpoint below advances, which
+	// is what keeps a long multi-round turn warm.
+	anchorMsg, anchorBlocks := -1, 0
 	// appendBlocks merges into the previous message when the role matches.
 	//
 	// Client-side merging is REQUIRED here, but not for the reason most people
@@ -375,8 +421,20 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 			for _, t := range r.Texts {
 				blocks = append(blocks, anthBlock{Type: "text", Text: t})
 			}
+			if len(blocks) > 0 && len(msgs) > 0 {
+				anchorMsg, anchorBlocks = len(msgs)-1, len(msgs[len(msgs)-1].Content)
+			}
 			appendBlocks("user", blocks, false)
 		}
+	}
+
+	// Captured BEFORE the ephemera are appended, and this ordering is the
+	// whole point. A breakpoint inside content that is about to be dropped
+	// from history caches bytes that will not be present next turn, which
+	// guarantees the miss it appears to prevent.
+	stableMsg, stableBlocks := -1, 0
+	if len(msgs) > 0 {
+		stableMsg, stableBlocks = len(msgs)-1, len(msgs[len(msgs)-1].Content)
 	}
 
 	// Ephemera go LAST, in exactly one copy, and are never part of the
@@ -391,6 +449,15 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 		}
 		appendBlocks("user", blocks, false)
 	}
+
+	// The rolling pair. The system prompt carries a third breakpoint, which
+	// is stable by construction; these two cover the part that grows.
+	//
+	// Placement is unconditional. A prefix below the vendor's minimum is
+	// processed uncached rather than rejected, so there is no size check and
+	// no setting to get wrong.
+	markCache(msgs, stableMsg, stableBlocks)
+	markCache(msgs, anchorMsg, anchorBlocks)
 
 	// Resolve thinking before building the request body: the budget
 	// determines whether the thinking block is included, and it also

@@ -125,3 +125,52 @@ func TestTruncatedDialogueIsNotAnEdit(t *testing.T) {
 		t.Errorf("Unstable = %q, want empty", d.Unstable)
 	}
 }
+
+// TestMovedBreakpointIsNotAnEdit guards the false alarm introduced by the
+// rolling breakpoint.
+//
+// The rolling marker advances every turn, so a block that carried one in the
+// previous request carries none in this one. That difference sits deep inside
+// the common prefix, where the trailing-append heuristic cannot reach it. A
+// byte-exact comparison would therefore classify a perfectly healthy turn as
+// an edit and cut the reported cacheable prefix off at the stale marker, on
+// every single turn. An instrument that cries wolf every turn is muted within
+// a day, and then the real cache break arrives unseen.
+func TestMovedBreakpointIsNotAnEdit(t *testing.T) {
+	const m = `,"cache_control":{"type":"ephemeral"}`
+	prior := sect("tools", `[{"name":"read"}]`, "system", `"be helpful"`,
+		"messages", `[{"role":"user","content":[{"type":"text","text":"first"`+m+`}]}]`)
+	current := sect("tools", `[{"name":"read"}]`, "system", `"be helpful"`,
+		"messages", `[{"role":"user","content":[{"type":"text","text":"first"}]},`+
+			`{"role":"user","content":[{"type":"text","text":"second"`+m+`}]}]`)
+
+	d := Compare(prior, current)
+
+	if got := find(d, "messages").Status; got == StatusEdited {
+		t.Errorf("messages classified as %v: a moved breakpoint is not a content edit", got)
+	}
+	if d.Unstable != "" {
+		t.Errorf("Unstable = %q, want empty: a rolling breakpoint must not raise an alarm", d.Unstable)
+	}
+	// The marker is stripped from the comparison, but its presence must still
+	// be reported. Otherwise a request that lost every breakpoint would show
+	// all sections identical and look better than one that kept them.
+	if d.Breakpoints != 1 {
+		t.Errorf("Breakpoints = %d, want 1", d.Breakpoints)
+	}
+}
+
+// TestBreakpointsAreCounted proves the count is reported rather than inferred,
+// so losing a marker remains visible even when every section is identical.
+func TestBreakpointsAreCounted(t *testing.T) {
+	const m = `,"cache_control":{"type":"ephemeral"}`
+	unmarked := sect("system", `"be helpful"`, "messages", `[{"role":"user","content":[{"type":"text","text":"hi"}]}]`)
+	marked := sect("system", `"be helpful"`+m, "messages", `[{"role":"user","content":[{"type":"text","text":"hi"`+m+`}]}]`)
+
+	if d := Compare(unmarked, unmarked); d.Breakpoints != 0 {
+		t.Errorf("Breakpoints = %d on an unmarked request, want 0", d.Breakpoints)
+	}
+	if d := Compare(unmarked, marked); d.Breakpoints != 2 {
+		t.Errorf("Breakpoints = %d, want 2", d.Breakpoints)
+	}
+}
