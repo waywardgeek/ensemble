@@ -420,3 +420,37 @@ func ch18CountMarkers(body []byte) int {
 	s := string(body)
 	return strings.Count(s, `"cache_control"`)
 }
+
+// ch18LastMarkedMessage returns the index of the last message carrying a
+// breakpoint, or -1 if the history carries none.
+//
+// The index is the interesting quantity rather than the count, because a marker
+// on the message history is only worth anything if it MOVES. Anthropic serves a
+// cache read for the span up to a marker, so one pinned to the first message
+// buys the few hundred bytes before it and leaves the growing conversation cold
+// on every turn. Comparing this index across consecutive requests is what
+// distinguishes a breakpoint that banks the conversation from one that is
+// merely present.
+func ch18LastMarkedMessage(body []byte) int {
+	var top struct {
+		Messages []struct {
+			Content json.RawMessage `json:"content"`
+		} `json:"messages"`
+	}
+	if json.Unmarshal(body, &top) != nil {
+		return -1
+	}
+	last := -1
+	for i, m := range top.Messages {
+		var blocks []map[string]any
+		if json.Unmarshal(m.Content, &blocks) != nil {
+			continue
+		}
+		for _, b := range blocks {
+			if cc, ok := b["cache_control"].(map[string]any); ok && cc["type"] == "ephemeral" {
+				last = i
+			}
+		}
+	}
+	return last
+}

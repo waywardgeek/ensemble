@@ -95,7 +95,7 @@ func ch18Skills() (string, func()) {
 
 func ch18Prefix(res *Ch18Result, bin, skills, gui string) {
 	ids := []string{
-		"cache-lens-exists", "prefix-is-stable", "system-has-breakpoint",
+		"cache-lens-exists", "prefix-is-stable", "request-has-breakpoints",
 		"cost-is-computed-not-stored", "cache-read-rate", "usage-is-session-scoped",
 	}
 	for _, id := range ids {
@@ -210,7 +210,7 @@ func ch18CheckStable(res *Ch18Result, out ch18Out) {
 }
 
 func ch18CheckSystemBreakpoint(res *Ch18Result, out ch18Out) {
-	const id = "system-has-breakpoint"
+	const id = "request-has-breakpoints"
 	turns := ch18TurnBodies(out.reqs)
 	if len(turns) == 0 {
 		res.fail(id, "no turn requests reached the vendor")
@@ -220,6 +220,29 @@ func ch18CheckSystemBreakpoint(res *Ch18Result, out ch18Out) {
 		res.fail(id, "the system section carries no cache_control marker on the wire. "+
 			"Without it the whole system prompt is re-read at full price every turn, "+
 			"and nothing in the agent's behaviour changes to say so")
+		return
+	}
+
+	// A marker on the system prompt caps the cacheable span at the end of the
+	// system prompt, so the conversation itself is still re-read at full price
+	// every turn, and it is the conversation that grows. The second marker has
+	// to advance along the history or it buys nothing the first did not.
+	if len(turns) < 2 {
+		res.fail(id, "only one turn request reached the vendor, so whether the history "+
+			"breakpoint advances could not be measured")
+		return
+	}
+	prior, cur := ch18LastMarkedMessage(turns[0]), ch18LastMarkedMessage(turns[1])
+	if cur < 0 {
+		res.fail(id, "the message history carries no cache_control marker. The system "+
+			"prompt is cached but the conversation is not, so the cost of a turn still "+
+			"grows with the length of the conversation")
+		return
+	}
+	if cur <= prior {
+		res.fail(id, "the history breakpoint did not advance between turns (message index %d "+
+			"then %d). A marker that stays put caches only the messages before it, so the "+
+			"newest exchange, which is the part that just grew, is never banked", prior, cur)
 	}
 }
 
