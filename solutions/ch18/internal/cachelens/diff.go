@@ -134,6 +134,15 @@ func Compare(prior, current Sections) Divergence {
 	// Using the canonical length here instead would fold this tool's own
 	// formatting into a percentage reported as a property of the request.
 	d := Divergence{}
+
+	// Which section is the conversation. Sections records it, because the name
+	// is vendor-specific; the constant is the fallback for a Sections value
+	// built by hand rather than read off a request.
+	dialogue := current.Dialogue
+	if dialogue == "" {
+		dialogue = dialogueSection
+	}
+
 	for _, name := range current.Order {
 		stripped, n := stripBreakpoints(string(current.Raw[name]))
 		d.CurrentBytes += len(stripped)
@@ -156,7 +165,7 @@ func Compare(prior, current Sections) Divergence {
 
 		if sd.Status != StatusIdentical {
 			allIdentical = false
-			if name == dialogueSection {
+			if name == dialogue {
 				d.DialogueChanged = true
 			} else if d.Unstable == "" {
 				// A section other than the dialogue changed. Record the first
