@@ -248,6 +248,11 @@ func main() {
 		report = grade.NewTitledReport(
 			"Chapter 17 — Auto-Recall",
 			grade.Ch17Checks(r), "")
+	case 18:
+		r := grade.Ch18Run(path)
+		report = grade.NewTitledReport(
+			"Chapter 18 — The Invisible Invoice",
+			grade.Ch18Checks(r), "")
 	default:
 		fmt.Fprintf(os.Stderr, "grader: no grader for chapter %d yet\n", *chapter)
 		os.Exit(2)

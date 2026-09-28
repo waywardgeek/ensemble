@@ -30,6 +30,12 @@ func newUpgrader() *websocket.Upgrader {
 // written). The only mutable shared state is the in-flight partial map and
 // the client set, which are guarded by mu.
 type Hub struct {
+	// Model reports the model currently in force, for pricing. A closure
+	// rather than a string because the operator can switch models mid-session,
+	// and a value captured at construction would price every later turn at the
+	// old rate while looking entirely correct.
+	Model func() string
+
 	mu           sync.Mutex
 	clients      map[*Client]bool
 	inflight     map[uint64][]byte // part_id → accumulated partial JSON
@@ -350,6 +356,27 @@ replay:
 // priced is carried separately because an unpriced model and a model that has
 // spent nothing both cost zero, and the GUI must be able to tell them apart:
 // one renders a dash, the other "$0.00".
+// effectiveModel names the model whose prices apply to this session.
+//
+// The settings store is consulted first, because switching the model in the
+// GUI is what the operator just did and rebuilds the client. But the store
+// starts EMPTY when the model came from the environment, and an empty name
+// looks up nothing: the meter then reported a fully priced model as unpriced
+// and its cost as zero. That is this chapter's failure mode wearing the
+// costume of its own instrument, so Model supplies the model actually in
+// force and the composition root fills it in.
+func (h *Hub) effectiveModel() string {
+	if h.settings != nil {
+		if m := h.settings.Get().Model; m != "" {
+			return m
+		}
+	}
+	if h.Model != nil {
+		return h.Model()
+	}
+	return ""
+}
+
 func (h *Hub) usageFrame() []byte {
 	if h.usage == nil {
 		return nil
@@ -360,11 +387,9 @@ func (h *Hub) usageFrame() []byte {
 		priced bool
 		cost   float64
 	)
-	if h.settings != nil {
-		if f, ok := common.LookupModel(h.settings.Get().Model); ok && f.Price.Priced() {
-			priced = true
-			cost = common.CostUSD(u, f.Price)
-		}
+	if f, ok := common.LookupModel(h.effectiveModel()); ok && f.Price.Priced() {
+		priced = true
+		cost = common.CostUSD(u, f.Price)
 	}
 
 	data, _ := json.Marshal(map[string]any{

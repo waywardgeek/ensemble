@@ -577,6 +577,11 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		hub := ws.NewHub(gate, func(msg common.Inbound) {
 			actor.Send(msg)
 		}, "gui.log", eng.Log, settingsStore, host)
+		// The engine's config is the authority on which model is serving
+		// turns: it is validated at startup and refuses a model it does not
+		// know. The settings store can be empty, and pricing an empty name
+		// silently reports a paid model as free.
+		hub.Model = func() string { return eng.Cfg.Model }
 		defer hub.Close()
 		hub.SetTTSLog(ttsLogPath)
 		actor.Attach(hub)
