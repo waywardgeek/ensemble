@@ -1,0 +1,850 @@
+package llm
+
+// Anthropic — Messages API.
+//
+// Wire format verified against platform.claude.com on 2026-09-12. Wire formats
+// drift; this file is the place that has to know, and it is the only place.
+
+import (
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"sort"
+	"strings"
+
+	"github.com/waywardgeek/ensemble/agent/internal/common"
+)
+
+type anthropicSeam struct{}
+
+// --- request -----------------------------------------------------------
+
+type anthRequest struct {
+	Model     string `json:"model"`
+	MaxTokens int    `json:"max_tokens"`
+	// System is a content-block array rather than a bare string. Both shapes are
+	// legal Anthropic requests and the API treats them identically, but only a
+	// block can carry cache_control, and the system prompt is the largest stable
+	// span in the request. That makes it the cache breakpoint that pays first.
+	System   []anthSystemBlock `json:"system,omitempty"` // TOP-LEVEL, not a message
+	Messages []anthMsg         `json:"messages"`
+	// Tools is omitted, not empty, when nothing is declared: a chapter 2
+	// request and a chapter 3 request with an empty registry are the same bytes.
+	Tools []anthTool `json:"tools,omitempty"`
+
+	// Stream asks for Server-Sent Events. Omitted when false so that a
+	// non-streaming request is byte-identical to one written before
+	// streaming existed.
+	Stream bool `json:"stream,omitempty"`
+
+	// Thinking requests extended reasoning from the model. Omitted when
+	// thinking is off so that a non-thinking request is byte-identical to
+	// one written before thinking existed.
+	//
+	// Two wire formats exist:
+	//   Manual (older models):   { "type": "enabled", "budget_tokens": N }
+	//   Adaptive (claude-5 era): { "type": "adaptive" }
+	// Adaptive models control depth via the separate OutputConfig field.
+	Thinking *anthThinking `json:"thinking,omitempty"`
+
+	// OutputConfig controls thinking effort for adaptive-thinking models.
+	// Omitted for manual-thinking models, where budget_tokens controls depth.
+	OutputConfig *anthOutputConfig `json:"output_config,omitempty"`
+
+	// Temperature must NOT be set when thinking is enabled — Anthropic
+	// rejects temperature != 1 with thinking. We never set it anywhere,
+	// so omitempty keeps it absent.
+	Temperature *float64 `json:"temperature,omitempty"`
+}
+
+// anthThinking is Anthropic's thinking configuration block.
+//
+// Manual (pre-adaptive) models:
+//
+//	{ "type": "enabled", "budget_tokens": N }
+//	budget_tokens must be >= 1024, and max_tokens must strictly exceed it.
+//
+// Adaptive models (claude-opus-5, claude-sonnet-5):
+//
+//	{ "type": "adaptive", "display": "summarized" }
+//	Thinking depth is controlled by the separate output_config.effort field.
+//
+// DISPLAY IS NOT OPTIONAL, and omitting it is the expensive kind of mistake.
+// On adaptive models `display` defaults to "omitted": the response still
+// contains a thinking block, the block is still SIGNED, the thinking tokens
+// are still GENERATED AND BILLED, and the text is empty. The symptom is
+// indistinguishable from thinking being switched off, except on the invoice.
+// "summarized" asks for the text to actually be sent back.
+type anthThinking struct {
+	Type         string `json:"type"`
+	Display      string `json:"display,omitempty"`
+	BudgetTokens int    `json:"budget_tokens,omitempty"`
+}
+
+// anthOutputConfig carries Anthropic's output_config block for adaptive
+// thinking models.
+//
+//	{ "effort": "high" | "medium" | "low" }
+type anthOutputConfig struct {
+	Effort string `json:"effort"`
+}
+
+// anthTool is Anthropic's declaration shape. The schema key is `input_schema`
+// — the one vendor of the three that does not call it `parameters`.
+type anthTool struct {
+	Name        string          `json:"name"`
+	Description string          `json:"description,omitempty"`
+	InputSchema json.RawMessage `json:"input_schema"`
+}
+
+func anthTools(decls []common.ToolDecl) []anthTool {
+	var out []anthTool
+	for _, d := range decls {
+		out = append(out, anthTool{Name: d.Name, Description: d.Description, InputSchema: d.Schema})
+	}
+	return out
+}
+
+type anthMsg struct {
+	Role    string      `json:"role"`
+	Content []anthBlock `json:"content"`
+}
+
+// anthCacheControl marks a cache breakpoint. Everything from the start of the
+// request up to and including the marked block becomes a reusable prefix, so a
+// breakpoint's value is the number of stable bytes that precede it.
+type anthCacheControl struct {
+	Type string `json:"type"` // "ephemeral" is the only value the API defines
+}
+
+// anthSystemBlock is the system prompt expressed as a content block, which is
+// what lets it carry a breakpoint. It is deliberately NOT an anthBlock: that
+// type returns its Raw bytes verbatim from MarshalJSON, so a cache_control set
+// on a replayed block would be silently dropped. A separate three-field type
+// cannot fail that way.
+type anthSystemBlock struct {
+	Type         string            `json:"type"`
+	Text         string            `json:"text"`
+	CacheControl *anthCacheControl `json:"cache_control,omitempty"`
+}
+
+// systemBlocks renders the system prompt as a one-element content-block array
+// carrying a cache breakpoint. The breakpoint is unconditional: a prefix below
+// the vendor's minimum cacheable length is processed uncached rather than
+// rejected, so there is no size to check and no setting to get wrong.
+//
+// An empty prompt returns nil, not an empty slice, so `omitempty` drops the
+// field entirely and a promptless request keeps the bytes it always had.
+func systemBlocks(prompt string) []anthSystemBlock {
+	if prompt == "" {
+		return nil
+	}
+	return []anthSystemBlock{{
+		Type:         "text",
+		Text:         prompt,
+		CacheControl: &anthCacheControl{Type: "ephemeral"},
+	}}
+}
+
+// markCache places a cache breakpoint on the newest block at or before the
+// position (msg, blocks), where blocks is a count rather than an index, and
+// walks backwards until it finds a block that can actually carry one.
+//
+// Replay material is skipped rather than marked. anthBlock.MarshalJSON returns
+// Raw verbatim, so a marker set on a replayed block exists in Go and never
+// reaches the wire; the request would look correct in a debugger, the cache
+// would miss, and the only symptom would be the invoice. Skipping backwards
+// costs a few blocks of cacheable prefix and cannot produce that failure.
+//
+// Returns false when no block in range can carry a marker, which is not an
+// error: an unmarked prefix is processed uncached, never rejected.
+func markCache(msgs []anthMsg, msg, blocks int) bool {
+	if msg < 0 || msg >= len(msgs) {
+		return false
+	}
+	for m := msg; m >= 0; m-- {
+		hi := len(msgs[m].Content)
+		if m == msg && blocks < hi {
+			hi = blocks
+		}
+		for b := hi - 1; b >= 0; b-- {
+			if len(msgs[m].Content[b].Raw) > 0 {
+				continue
+			}
+			msgs[m].Content[b].CacheControl = &anthCacheControl{Type: "ephemeral"}
+			return true
+		}
+	}
+	return false
+}
+
+// anthBlock marshals either a structured block or, for opaque replay material,
+// the vendor's own bytes verbatim. Opaque material is carried, never
+// interpreted — we could not reconstruct a thinking signature if we tried.
+type anthBlock struct {
+	Raw json.RawMessage
+
+	Type      string
+	Text      string
+	ID        string
+	Name      string
+	Input     json.RawMessage
+	ToolUseID string
+	Content   string
+	IsError   bool
+	// Tool is the payload of a tool_addition or tool_removal block
+	// (Chapter 15 rule 2). Pre-marshalled so its shape lives in one place.
+	Tool json.RawMessage
+	// CacheControl carries a cache breakpoint. It is honoured only on blocks
+	// this type marshals itself: MarshalJSON returns Raw verbatim, so a marker
+	// set on replay material is present in Go and absent on the wire. Use
+	// markCache, which refuses to place a marker on a Raw block.
+	CacheControl *anthCacheControl
+}
+
+func (b anthBlock) MarshalJSON() ([]byte, error) {
+	if len(b.Raw) > 0 {
+		return b.Raw, nil
+	}
+	// A struct with ordered fields, never a map: Go randomizes map iteration
+	// order, so a map here serializes differently on some future run, on some
+	// future machine, and never on the one where you tested it.
+	type wire struct {
+		Type      string          `json:"type"`
+		Text      string          `json:"text,omitempty"`
+		ID        string          `json:"id,omitempty"`
+		Name      string          `json:"name,omitempty"`
+		Input     json.RawMessage `json:"input,omitempty"`
+		ToolUseID string          `json:"tool_use_id,omitempty"`
+		Content   string          `json:"content,omitempty"`
+		IsError   bool            `json:"is_error,omitempty"`
+		Tool      json.RawMessage `json:"tool,omitempty"`
+
+		CacheControl *anthCacheControl `json:"cache_control,omitempty"`
+	}
+	return json.Marshal(wire{b.Type, b.Text, b.ID, b.Name, b.Input, b.ToolUseID, b.Content, b.IsError, b.Tool, b.CacheControl})
+}
+
+// Chapter 15 rule 2 on the Anthropic API: a tool declared mid-session rides
+// in a role:"system" message of tool_addition blocks, whose tool_definition
+// carries the same object the top-level tools array would (inline-tools
+// beta). The tools array, and with it the cached prefix, never changes.
+// Verified against the API documentation, 2026-09-22:
+// build-with-claude/mid-conversation-system-messages.
+const anthInlineToolsBeta = "mid-conversation-tool-changes-2026-07-01,inline-tools-2026-09-15"
+
+// recallBlocks renders a recall entry's stored parts into content blocks.
+//
+// It reads the parts that were recorded in the event log and formats them. It
+// does NOT re-run retrieval, re-score anything, or consult the archive. The
+// bytes are already decided; this is pure presentation.
+func recallBlocks(entry common.Entry) []anthBlock {
+	text := recallText(entry)
+	if text == "" {
+		return nil
+	}
+	return []anthBlock{{Type: "text", Text: text}}
+}
+
+func inlineToolBlocks(entry common.Entry) []anthBlock {
+	var out []anthBlock
+	for _, p := range entry.Parts {
+		d, ok := p.(common.ToolDeclPart)
+		if !ok {
+			continue
+		}
+		for _, t := range d.Added {
+			def, _ := json.Marshal(anthTool{Name: t.Name, Description: t.Description, InputSchema: t.Schema})
+			tool, _ := json.Marshal(struct {
+				Type       string          `json:"type"`
+				Definition json.RawMessage `json:"definition"`
+			}{"tool_definition", def})
+			out = append(out, anthBlock{Type: "tool_addition", Tool: tool})
+		}
+		for _, name := range d.Removed {
+			tool, _ := json.Marshal(struct {
+				Type string `json:"type"`
+				Name string `json:"name"`
+			}{"tool_reference", name})
+			out = append(out, anthBlock{Type: "tool_removal", Tool: tool})
+		}
+	}
+	return out
+}
+
+func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request, error) {
+	target := common.Provenance{Vendor: common.VendorAnthropic, Model: cfg.Model, Surface: common.SurfaceMessages}
+
+	var msgs []anthMsg
+	features, _ := common.LookupModel(cfg.Model)
+	inlined := false
+	// anchorMsg/anchorBlocks record where the previous exchange ended: the
+	// position immediately before the newest human prompt. Everything up to
+	// there was in the previous request, so a breakpoint here reads a prefix
+	// that an earlier request already paid to write. It stays put for every
+	// round of a tool loop while the rolling breakpoint below advances, which
+	// is what keeps a long multi-round turn warm.
+	anchorMsg, anchorBlocks := -1, 0
+	// appendBlocks merges into the previous message when the role matches.
+	//
+	// Client-side merging is REQUIRED here, but not for the reason most people
+	// give. The API does not reject consecutive same-role turns — it combines
+	// them server-side. The real constraint is narrower and sharper: a
+	// tool_result block must immediately follow the tool_use that produced it,
+	// and within the user message the tool_result blocks must come FIRST, with
+	// any text after them. Text first is a 400.
+	appendBlocks := func(role string, blocks []anthBlock, resultsFirst bool) {
+		if len(blocks) == 0 {
+			return
+		}
+		n := len(msgs)
+		// A system message must be the last message or be followed by an
+		// assistant turn. User content that arrives after one (a hint, the
+		// ephemera) joins the user turn the system message follows.
+		if role == "user" && n >= 2 && msgs[n-1].Role == "system" && msgs[n-2].Role == "user" {
+			msgs[n-2].Content = append(msgs[n-2].Content, blocks...)
+			return
+		}
+		if n > 0 && msgs[n-1].Role == role {
+			if resultsFirst {
+				// Splice tool results ahead of existing text in this message.
+				at := 0
+				for at < len(msgs[n-1].Content) && msgs[n-1].Content[at].Type == "tool_result" {
+					at++
+				}
+				rest := append([]anthBlock{}, msgs[n-1].Content[at:]...)
+				msgs[n-1].Content = append(append(msgs[n-1].Content[:at:at], blocks...), rest...)
+				return
+			}
+			msgs[n-1].Content = append(msgs[n-1].Content, blocks...)
+			return
+		}
+		msgs = append(msgs, anthMsg{Role: role, Content: blocks})
+	}
+
+	for _, entry := range c.Dialogue {
+		if entry.Kind == common.KindTools {
+			if !features.InlineTools {
+				continue // re-declared in the tools array below instead
+			}
+			if n := len(msgs); n == 0 || msgs[n-1].Role != "user" {
+				return nil, fmt.Errorf("anthropic: tool declarations at seq %d do not follow a user turn, "+
+					"and a system message may only follow one", entry.Seq)
+			}
+			msgs = append(msgs, anthMsg{Role: "system", Content: inlineToolBlocks(entry)})
+			inlined = true
+			continue
+		}
+		if entry.Kind == common.KindRecall {
+			// Recalled material renders as its own system message, and this
+			// is the entire reason placement is the renderer's job rather
+			// than the retriever's.
+			//
+			// The retriever produced parts. It has no idea whether this
+			// vendor has a system role, whether a system message may appear
+			// mid-conversation, or whether the material should instead be
+			// folded into a user turn with a marker — all of which differ
+			// per vendor. Had the retriever formatted a finished message, it
+			// would have had to know all three, and it would have been wrong
+			// for every vendor but the one it was written against.
+			//
+			// What must NOT happen is appendBlocks with role "user", which
+			// would merge these blocks into the human's own message. The
+			// model would then see the retrieval system's guesses as words
+			// the user typed. Instructions inside recalled text would read as
+			// instructions from the user, which is a prompt-injection channel
+			// straight through the archive.
+			if n := len(msgs); n == 0 || (msgs[n-1].Role != "user" && msgs[n-1].Role != "system") {
+				return nil, fmt.Errorf("anthropic: recalled material at seq %d does not follow a user turn, "+
+					"and a system message may only follow one", entry.Seq)
+			}
+			blocks := recallBlocks(entry)
+			if len(blocks) == 0 {
+				continue
+			}
+			msgs = append(msgs, anthMsg{Role: "system", Content: blocks})
+			continue
+		}
+		r, err := classify(entry, cfg)
+		if err != nil {
+			return nil, err
+		}
+		// Anthropic references an uploaded file as a `source` of type "file"
+		// carrying a `file_id`, on an `image` or `document` block. That form is
+		// real, but mapping a common.Ref onto it needs a rule for which locators are
+		// Anthropic file ids and which are something else, and Chapter 2 does
+		// not have one. Raising here is the honest answer: a guessed field name
+		// is worse than an unimplemented one, and dropping the blob would send
+		// a request that looks fine and is missing its attachment.
+		if len(r.Blobs) > 0 {
+			return nil, fmt.Errorf("anthropic: rendering a blob part is not implemented in this "+
+				"chapter (%s at %s)", r.Blobs[0].MIME, r.Blobs[0].Ref.Locator)
+		}
+		switch entry.Actor {
+		case common.ActorTool:
+			var blocks []anthBlock
+			for _, res := range r.Tools {
+				blocks = append(blocks, anthBlock{
+					Type:      "tool_result",
+					ToolUseID: res.CallID,
+					Content:   resultText(res),
+					IsError:   res.IsError,
+				})
+			}
+			appendBlocks("user", blocks, true)
+
+		case common.ActorAgent:
+			var blocks []anthBlock
+			// Opaque replay material goes back only to the EXACT model that
+			// issued it. common.Vendor is not a fine enough grain.
+			for _, op := range r.Raw {
+				if op.From.SameModel(target) {
+					blocks = append(blocks, anthBlock{Raw: op.Data})
+				}
+			}
+			for _, t := range r.Texts {
+				blocks = append(blocks, anthBlock{Type: "text", Text: t})
+			}
+			for i, call := range r.Calls {
+				blocks = append(blocks, anthBlock{
+					Type:  "tool_use",
+					ID:    callIDFor(call, "toolu", entry.Seq, i),
+					Name:  call.Name,
+					Input: jsonObject(call.Args),
+				})
+			}
+			appendBlocks("assistant", blocks, false)
+
+		default: // common.ActorHuman
+			var blocks []anthBlock
+			for _, t := range r.Texts {
+				blocks = append(blocks, anthBlock{Type: "text", Text: t})
+			}
+			if len(blocks) > 0 && len(msgs) > 0 {
+				anchorMsg, anchorBlocks = len(msgs)-1, len(msgs[len(msgs)-1].Content)
+			}
+			appendBlocks("user", blocks, false)
+		}
+	}
+
+	// Captured BEFORE the ephemera are appended, and this ordering is the
+	// whole point. A breakpoint inside content that is about to be dropped
+	// from history caches bytes that will not be present next turn, which
+	// guarantees the miss it appears to prevent.
+	stableMsg, stableBlocks := -1, 0
+	if len(msgs) > 0 {
+		stableMsg, stableBlocks = len(msgs)-1, len(msgs[len(msgs)-1].Content)
+	}
+
+	// Ephemera go LAST, in exactly one copy, and are never part of the
+	// dialogue. Volatile content at the front of a prefix converts the
+	// cheapest token category into the most expensive one on every request.
+	if len(c.Ephemera) > 0 {
+		var blocks []anthBlock
+		for _, p := range c.Ephemera {
+			if t, ok := p.(common.TextPart); ok {
+				blocks = append(blocks, anthBlock{Type: "text", Text: t.Text})
+			}
+		}
+		appendBlocks("user", blocks, false)
+	}
+
+	// The rolling pair. The system prompt carries a third breakpoint, which
+	// is stable by construction; these two cover the part that grows.
+	//
+	// Placement is unconditional. A prefix below the vendor's minimum is
+	// processed uncached rather than rejected, so there is no size check and
+	// no setting to get wrong.
+	markCache(msgs, stableMsg, stableBlocks)
+	markCache(msgs, anchorMsg, anchorBlocks)
+
+	// Resolve thinking before building the request body: the budget
+	// determines whether the thinking block is included, and it also
+	// constrains max_tokens (which must strictly exceed budget_tokens).
+	effort, thinkingBudget := common.ThinkingFor(cfg)
+	maxTokens := common.EnsureMaxTokens(cfg.MaxTokens, thinkingBudget)
+
+	// The tools array is the frozen startup set. Only a vendor that cannot
+	// carry declarations in the dialog folds the later changes in here, and
+	// pays the cache miss for it (rule 2).
+	tools := cfg.Tools
+	if !features.InlineTools {
+		tools = common.EffectiveTools(cfg.Tools, c)
+	}
+
+	body := anthRequest{
+		Model:     cfg.Model,
+		MaxTokens: maxTokens,
+		System:    systemBlocks(cfg.SystemPrompt), // top-level. Store it and you have picked a vendor.
+		Messages:  msgs,
+		Tools:     anthTools(tools),
+		Stream:    common.StreamingFor(cfg) != 0,
+	}
+	if effort != common.ThinkingOff && thinkingBudget > 0 {
+		if features.AdaptiveThinking {
+			// Adaptive models: type:"adaptive" + output_config.effort.
+			// No budget_tokens — the model manages its own thinking depth.
+			// display:"summarized" is required to receive the thinking TEXT;
+			// without it the block arrives empty and is still billed.
+			body.Thinking = &anthThinking{Type: "adaptive", Display: "summarized"}
+			body.OutputConfig = &anthOutputConfig{Effort: effortString(effort)}
+		} else {
+			// Manual models: type:"enabled" + budget_tokens.
+			body.Thinking = &anthThinking{
+				Type:         "enabled",
+				BudgetTokens: thinkingBudget,
+			}
+		}
+	}
+	headers := map[string]string{
+		"x-api-key":         cfg.APIKey,
+		"anthropic-version": "2023-06-01",
+	}
+	if inlined {
+		headers["anthropic-beta"] = anthInlineToolsBeta
+	}
+	return newJSONRequest("POST", cfg.BaseURL+"/v1/messages", body, headers)
+}
+
+// --- response ----------------------------------------------------------
+
+type anthResponse struct {
+	Model      string            `json:"model"`
+	Content    []json.RawMessage `json:"content"`
+	StopReason string            `json:"stop_reason"`
+	Usage      anthUsage         `json:"usage"`
+}
+
+// anthUsage is DISJOINT by documented definition: input_tokens counts only
+// tokens after the last cache breakpoint, so the billable input total is
+// input + cache_creation + cache_read. Verified 2026-09-12; the docs give the
+// formula and a worked example (200,000 read + 0 created + 50 input =
+// 200,050). Reading input_tokens alone does not double-count — it undercounts
+// by three orders of magnitude on a warm cache.
+type anthUsage struct {
+	InputTokens         int `json:"input_tokens"`
+	OutputTokens        int `json:"output_tokens"`
+	CacheCreationTokens int `json:"cache_creation_input_tokens"`
+	CacheReadTokens     int `json:"cache_read_input_tokens"`
+}
+
+type anthBlockHeader struct {
+	Type  string          `json:"type"`
+	Text  string          `json:"text"`
+	ID    string          `json:"id"`
+	Name  string          `json:"name"`
+	Input json.RawMessage `json:"input"`
+}
+
+// Parse handles a streamed response and a whole-document response through one
+// method, because they are the same thing at different chunk counts.
+func (anthropicSeam) Parse(resp *http.Response, cb common.StreamCallbacks) error {
+	if resp.StatusCode != http.StatusOK {
+		return parseErrorResponse(resp, cb)
+	}
+	if isSSE(resp) {
+		return anthParseStream(resp, cb)
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("anthropic: read body: %w", err)
+	}
+	cb.Frame("", body)
+	parts, from, usage, err := anthAssemble(body)
+	if err != nil {
+		return err
+	}
+	pm := newPartIDMapper(cb)
+	emitLengthOneDeltas(parts, pm, cb, anthThinkingText)
+	anthEmitResponse(parts, from, usage, cb)
+	emitFinals(parts, pm, cb)
+	return nil
+}
+
+// anthAssemble turns one complete JSON document into parts. Shared with the
+// streaming path only in its OUTPUT shape: both must produce parts that
+// render back to the same bytes, or replay stops matching.
+func anthAssemble(body []byte) (common.PartList, common.Provenance, common.Usage, error) {
+	var resp anthResponse
+	if err := json.Unmarshal(body, &resp); err != nil {
+		return nil, common.Provenance{}, common.Usage{}, fmt.Errorf("anthropic: %w", err)
+	}
+	// common.Provenance comes from the RESPONSE, not from common.Config: the vendor tells
+	// you which model actually answered, and it is not always the one you
+	// asked for.
+	from := common.Provenance{Vendor: common.VendorAnthropic, Model: resp.Model, Surface: common.SurfaceMessages}
+
+	var parts common.PartList
+	for _, raw := range resp.Content {
+		var h anthBlockHeader
+		if err := json.Unmarshal(raw, &h); err != nil {
+			return nil, from, common.Usage{}, fmt.Errorf("anthropic: content block: %w", err)
+		}
+		switch h.Type {
+		case "text":
+			parts = append(parts, common.TextPart{Text: h.Text})
+		case "tool_use":
+			parts = append(parts, common.ToolCallPart{
+				CallID: h.ID, From: from, Name: h.Name, Args: jsonObject(h.Input),
+			})
+		default:
+			// thinking, redacted_thinking, and anything shipped after this
+			// book went to print. Carried verbatim, tagged with the model that
+			// produced it, never interpreted.
+			parts = append(parts, common.OpaquePart{From: from, Data: raw})
+		}
+	}
+	usage := common.Usage{
+		Input:      resp.Usage.InputTokens,
+		CacheWrite: resp.Usage.CacheCreationTokens,
+		CacheRead:  resp.Usage.CacheReadTokens,
+		Output:     resp.Usage.OutputTokens,
+	}
+	return parts, from, usage, nil
+}
+
+func anthEmitResponse(parts common.PartList, from common.Provenance, usage common.Usage, cb common.StreamCallbacks) {
+	cb.Emit(common.Event{Type: common.ResponseStarted})
+	cb.Emit(common.Event{Type: common.ResponseEnded, Response: &common.ResponseData{
+		Parts: parts,
+		From:  from,
+		Usage: usage,
+	}})
+}
+
+// effortString converts a ThinkingEffort enum to the wire string Anthropic
+// expects in output_config.effort for adaptive-thinking models.
+func effortString(e common.ThinkingEffort) string {
+	switch e {
+	case common.ThinkingLow:
+		return "low"
+	case common.ThinkingMedium:
+		return "medium"
+	default:
+		return "high"
+	}
+}
+
+// anthThinkingText pulls the readable text out of an Anthropic reasoning
+// block. Returns "" for redacted_thinking, which has no text to show — the
+// part is still carried in the event, it just cannot be displayed.
+func anthThinkingText(p common.OpaquePart) string {
+	var b struct {
+		Thinking string `json:"thinking"`
+	}
+	if json.Unmarshal(p.Data, &b) != nil {
+		return ""
+	}
+	return b.Thinking
+}
+
+// --- streaming ---------------------------------------------------------
+
+// anthStreamBlock accumulates one content block as its fragments arrive.
+//
+// The signature field is the reason this cannot be a simple string builder.
+// A thinking block must be handed BACK to the vendor byte-identical on the
+// next request, signature included, or the request is refused. Streaming
+// therefore has to reassemble the exact JSON the non-streaming path would
+// have received, not merely the text a human wants to read.
+type anthStreamBlock struct {
+	Kind      string
+	Text      strings.Builder
+	Thinking  strings.Builder
+	Signature string
+	ToolID    string
+	ToolName  string
+	Args      strings.Builder
+	Raw       json.RawMessage
+}
+
+func (b *anthStreamBlock) finalize(from common.Provenance) common.Part {
+	switch b.Kind {
+	case "text":
+		return common.TextPart{Text: b.Text.String()}
+	case "tool_use":
+		return common.ToolCallPart{
+			CallID: b.ToolID,
+			From:   from,
+			Name:   b.ToolName,
+			Args:   jsonObject(json.RawMessage(b.Args.String())),
+		}
+	case "thinking":
+		// Rebuilt, not passed through: the fragments arrived separately and
+		// the vendor never sends the assembled block.
+		rebuilt, err := json.Marshal(map[string]string{
+			"type":      "thinking",
+			"thinking":  b.Thinking.String(),
+			"signature": b.Signature,
+		})
+		if err != nil {
+			return common.OpaquePart{From: from, Data: b.Raw}
+		}
+		return common.OpaquePart{From: from, Data: rebuilt}
+	default:
+		return common.OpaquePart{From: from, Data: b.Raw}
+	}
+}
+
+type anthStreamEvent struct {
+	Type         string          `json:"type"`
+	Index        int             `json:"index"`
+	Message      *anthResponse   `json:"message"`
+	ContentBlock json.RawMessage `json:"content_block"`
+	Delta        struct {
+		Type        string `json:"type"`
+		Text        string `json:"text"`
+		Thinking    string `json:"thinking"`
+		Signature   string `json:"signature"`
+		PartialJSON string `json:"partial_json"`
+	} `json:"delta"`
+	Usage *anthUsage `json:"usage"`
+}
+
+func anthParseStream(resp *http.Response, cb common.StreamCallbacks) error {
+	pm := newPartIDMapper(cb)
+	from := common.Provenance{Vendor: common.VendorAnthropic, Surface: common.SurfaceMessages}
+	var usage common.Usage
+	blocks := map[int]*anthStreamBlock{}
+	var order []int
+	var perr error
+
+	block := func(i int) *anthStreamBlock {
+		if b, ok := blocks[i]; ok {
+			return b
+		}
+		b := &anthStreamBlock{}
+		blocks[i] = b
+		order = append(order, i)
+		return b
+	}
+
+	readErr := ReadSSE(resp.Body, func(eventType string, data []byte) {
+		// Every frame goes to the API log before anything interprets it, so
+		// the log is complete even for the frame that causes a parse failure.
+		cb.Frame(eventType, data)
+		if perr != nil {
+			return
+		}
+
+		var ev anthStreamEvent
+		if err := json.Unmarshal(data, &ev); err != nil {
+			perr = fmt.Errorf("anthropic: stream frame: %w", err)
+			return
+		}
+
+		switch ev.Type {
+		case "message_start":
+			if ev.Message != nil {
+				from.Model = ev.Message.Model
+				usage.Input = ev.Message.Usage.InputTokens
+				usage.CacheWrite = ev.Message.Usage.CacheCreationTokens
+				usage.CacheRead = ev.Message.Usage.CacheReadTokens
+				usage.Output = ev.Message.Usage.OutputTokens
+			}
+			cb.Emit(common.Event{Type: common.ResponseStarted})
+
+		case "content_block_start":
+			b := block(ev.Index)
+			b.Raw = append(json.RawMessage(nil), ev.ContentBlock...)
+			var h anthBlockHeader
+			if err := json.Unmarshal(ev.ContentBlock, &h); err != nil {
+				perr = fmt.Errorf("anthropic: content_block_start: %w", err)
+				return
+			}
+			b.Kind = h.Type
+			switch h.Type {
+			case "text":
+				b.Text.WriteString(h.Text)
+				if h.Text != "" {
+					cb.Delta(pm.id(ev.Index), common.DeltaText, h.Text)
+				}
+			case "tool_use":
+				b.ToolID, b.ToolName = h.ID, h.Name
+				// The name is the first chunk of a tool call, which is why
+				// the reassembled display string is name-then-arguments.
+				cb.Delta(pm.id(ev.Index), common.DeltaToolCall, h.Name)
+			}
+
+		case "content_block_delta":
+			b := block(ev.Index)
+			switch ev.Delta.Type {
+			case "text_delta":
+				b.Text.WriteString(ev.Delta.Text)
+				cb.Delta(pm.id(ev.Index), common.DeltaText, ev.Delta.Text)
+			case "thinking_delta":
+				b.Thinking.WriteString(ev.Delta.Thinking)
+				cb.Delta(pm.id(ev.Index), common.DeltaThinking, ev.Delta.Thinking)
+			case "signature_delta":
+				// Accumulated, never displayed. It is a credential for the
+				// next request, not content.
+				b.Signature += ev.Delta.Signature
+			case "input_json_delta":
+				b.Args.WriteString(ev.Delta.PartialJSON)
+				// Display only. This JSON is INCOMPLETE until the block
+				// stops, and acting on it is how a tool runs with half its
+				// arguments.
+				cb.Delta(pm.id(ev.Index), common.DeltaToolCall, ev.Delta.PartialJSON)
+			}
+
+		case "message_delta":
+			// Output tokens are only final here: message_start reports zero.
+			if ev.Usage != nil && ev.Usage.OutputTokens > 0 {
+				usage.Output = ev.Usage.OutputTokens
+			}
+		}
+	})
+
+	if perr != nil {
+		return perr
+	}
+	if readErr != nil {
+		return fmt.Errorf("anthropic: stream: %w", readErr)
+	}
+
+	// Index order, not arrival order. They agree today, and relying on that
+	// is the sort of assumption that breaks quietly.
+	sort.Ints(order)
+	var parts common.PartList
+	for _, i := range order {
+		parts = append(parts, blocks[i].finalize(from))
+	}
+
+	// The finalized event still lands in the event log. The deltas were for
+	// watching; THIS is the authority, and it is what a reconnecting client
+	// re-renders from.
+	cb.Emit(common.Event{Type: common.ResponseEnded, Response: &common.ResponseData{
+		Parts: parts,
+		From:  from,
+		Usage: usage,
+	}})
+
+	// Finals carry the VENDOR's block id, which is the id the deltas carried.
+	// Not the position in the finished list: those agree here only because
+	// Anthropic numbers its blocks contiguously from zero, and depending on
+	// that would be depending on a coincidence.
+	for n, i := range order {
+		cb.Final(pm.id(i), parts[n])
+	}
+	return nil
+}
+
+// vendorErrorMessage digs a human-readable message out of whatever error shape
+// a vendor used, falling back to the raw body. An HTTP 429 is an
+// common.ErrorOccurred, not a response.
+func vendorErrorMessage(body []byte) string {
+	var e struct {
+		Error struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	if json.Unmarshal(body, &e) == nil && e.Error.Message != "" {
+		return e.Error.Message
+	}
+	if len(body) > 300 {
+		return string(body[:300])
+	}
+	return string(body)
+}

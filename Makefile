@@ -65,6 +65,14 @@ grade15:
 grade16:
 	go run ./cmd/grade -ch 16 ./agent
 
+grade18:
+	go run ./cmd/grade -ch 18 ./agent
+
+# Mutation audit for the chapter 18 checks. BATCH: eight agent runs, minutes
+# not seconds, and it mutates tracked files, so it refuses a dirty tree.
+grade18-audit:
+	./scripts/ch18-mutants.sh
+
 grade-dir:
 	go run ./cmd/grade -ch $(CH) $(DIR)
 
