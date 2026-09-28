@@ -576,3 +576,76 @@ flag parser rejects `09` as an invalid octal literal. Use `-ch 9`.
 Worse, wrapped in a watchdog subshell the failure reports **exit 0**, because
 the exit status belongs to the subshell rather than to the grader. A grader
 invocation that never ran looks exactly like a grader invocation that passed.
+
+## 15. The system prompt carries a cache breakpoint
+
+Ensemble sent zero cache breakpoints. Every request re-read the entire prefix at
+full price, while the same workload in a comparable agent runs at a 91.3% cache
+hit rate. The lens from entry 11 could measure the problem but not fix it.
+
+The apparent blocker, recorded in entry 14 as "chapter-sized": `cache_control`
+attaches to a content *block*, but `anthRequest.System` was a plain `string`.
+Converting it to an array changes the JSON shape of every request ever sent,
+including chapters that predate caching, which seemed to break the
+byte-identity property the surrounding comments maintain on purpose.
+
+That framing was wrong twice over, and both corrections came from looking at
+artifacts instead of reasoning from the struct.
+
+First, the property was never asserted by anything. The graders that read the
+system field already tolerate both shapes: `ch10_harness.go` type-switches with
+the comment "The system field can be a string or an array of content blocks",
+and ch15 through ch17 hold it as `json.RawMessage`. The invariant lived in
+comments, not in checks.
+
+Second, a production request settled the design in one read. The shape is not
+elaborate: one block, the whole prompt, one marker.
+
+```json
+"system": [{"type": "text", "text": "…", "cache_control": {"type": "ephemeral"}}]
+```
+
+No sectioning, no per-chunk markers. The system prompt is the largest stable
+span in the request, so the single breakpoint at its end covers tools and system
+together and pays for itself immediately.
+
+### Why a separate block type
+
+`anthSystemBlock` is deliberately not `anthBlock`. That type's `MarshalJSON`
+returns its `Raw` bytes verbatim for opaque replay material, so a
+`cache_control` set on a replayed block would be silently dropped: the marker
+would be present in Go, absent on the wire, and the only symptom would be a bill.
+A separate three-field struct cannot fail that way.
+
+### Two small decisions
+
+The breakpoint is unconditional. A prefix below the vendor's minimum cacheable
+length is processed uncached rather than rejected, so there is no size to check
+and no setting to get wrong.
+
+An empty prompt returns `nil`, not an empty slice, so `omitempty` drops the key
+entirely and a promptless request keeps exactly the bytes it always had.
+
+### Rejected
+
+A custom `MarshalJSON` emitting a bare string when no marker is set and an array
+when one is. It would preserve byte-identity exactly, but it adds a marshaller
+to protect a property that no check asserts and no reader depends on. The
+simpler shape is the one the vendor documents.
+
+### Verified
+
+Three tests in `internal/llm/caching_test.go` lock the wire shape. Both mutants
+were killed by exactly the tests that should kill them: dropping the marker
+failed the two breakpoint tests and left the omitempty test passing, and
+returning an empty slice instead of `nil` failed only the omitempty test. Build,
+vet, gofmt and all agent packages clean; ch10 and ch14 each 100/100, run alone.
+
+### Still open
+
+A second breakpoint inside `messages`, which would extend the cached prefix
+across the conversation as it grows. The production request uses one there too,
+on the first user message. That one needs measurement first: the lens already
+computes predicted-versus-actual hit rate, so the question of whether a moving
+message breakpoint earns its slot should be answered with a number rather than
+an argument.

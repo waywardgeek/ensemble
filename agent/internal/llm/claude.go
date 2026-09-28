@@ -21,10 +21,14 @@ type anthropicSeam struct{}
 // --- request -----------------------------------------------------------
 
 type anthRequest struct {
-	Model     string    `json:"model"`
-	MaxTokens int       `json:"max_tokens"`
-	System    string    `json:"system,omitempty"` // TOP-LEVEL, not a message
-	Messages  []anthMsg `json:"messages"`
+	Model     string `json:"model"`
+	MaxTokens int    `json:"max_tokens"`
+	// System is a content-block array rather than a bare string. Both shapes are
+	// legal Anthropic requests and the API treats them identically, but only a
+	// block can carry cache_control, and the system prompt is the largest stable
+	// span in the request. That makes it the cache breakpoint that pays first.
+	System   []anthSystemBlock `json:"system,omitempty"` // TOP-LEVEL, not a message
+	Messages []anthMsg         `json:"messages"`
 	// Tools is omitted, not empty, when nothing is declared: a chapter 2
 	// request and a chapter 3 request with an empty registry are the same bytes.
 	Tools []anthTool `json:"tools,omitempty"`
@@ -105,6 +109,42 @@ func anthTools(decls []common.ToolDecl) []anthTool {
 type anthMsg struct {
 	Role    string      `json:"role"`
 	Content []anthBlock `json:"content"`
+}
+
+// anthCacheControl marks a cache breakpoint. Everything from the start of the
+// request up to and including the marked block becomes a reusable prefix, so a
+// breakpoint's value is the number of stable bytes that precede it.
+type anthCacheControl struct {
+	Type string `json:"type"` // "ephemeral" is the only value the API defines
+}
+
+// anthSystemBlock is the system prompt expressed as a content block, which is
+// what lets it carry a breakpoint. It is deliberately NOT an anthBlock: that
+// type returns its Raw bytes verbatim from MarshalJSON, so a cache_control set
+// on a replayed block would be silently dropped. A separate three-field type
+// cannot fail that way.
+type anthSystemBlock struct {
+	Type         string            `json:"type"`
+	Text         string            `json:"text"`
+	CacheControl *anthCacheControl `json:"cache_control,omitempty"`
+}
+
+// systemBlocks renders the system prompt as a one-element content-block array
+// carrying a cache breakpoint. The breakpoint is unconditional: a prefix below
+// the vendor's minimum cacheable length is processed uncached rather than
+// rejected, so there is no size to check and no setting to get wrong.
+//
+// An empty prompt returns nil, not an empty slice, so `omitempty` drops the
+// field entirely and a promptless request keeps the bytes it always had.
+func systemBlocks(prompt string) []anthSystemBlock {
+	if prompt == "" {
+		return nil
+	}
+	return []anthSystemBlock{{
+		Type:         "text",
+		Text:         prompt,
+		CacheControl: &anthCacheControl{Type: "ephemeral"},
+	}}
 }
 
 // anthBlock marshals either a structured block or, for opaque replay material,
@@ -369,7 +409,7 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 	body := anthRequest{
 		Model:     cfg.Model,
 		MaxTokens: maxTokens,
-		System:    cfg.SystemPrompt, // top-level. Store it and you have picked a vendor.
+		System:    systemBlocks(cfg.SystemPrompt), // top-level. Store it and you have picked a vendor.
 		Messages:  msgs,
 		Tools:     anthTools(tools),
 		Stream:    common.StreamingFor(cfg) != 0,
