@@ -174,3 +174,79 @@ func TestBreakpointsAreCounted(t *testing.T) {
 		t.Errorf("Breakpoints = %d, want 2", d.Breakpoints)
 	}
 }
+
+// TestIndentedMarkersAreStrippedFromRealBodies is a regression test for a bug
+// that every other test in this file was blind to.
+//
+// The strip used to be a comparison against a constant holding the exact bytes
+// the renderer emits, `,"cache_control":{"type":"ephemeral"}`, justified on the
+// grounds that we control the emitter. The tests hand-built their sections as
+// compact JSON, matched that constant, and passed. Meanwhile the agent marshals
+// its request bodies with json.MarshalIndent (internal/llm/seam.go), so what
+// actually arrived carried spaces after the colons, nothing ever matched, and
+// the strip did nothing whatsoever on every real request.
+//
+// The visible symptom was not an error. It was the lens reporting "0
+// breakpoints" and calling a healthy turn "edited", on every turn, for every
+// request the agent sent. An instrument reporting a fault that is not there is
+// as useless as one reporting none that is, and it is harder to notice, because
+// nothing crashes and the number looks like a finding.
+//
+// So this test builds its input the way the agent does, with MarshalIndent,
+// rather than the way that is convenient to write by hand.
+func TestIndentedMarkersAreStrippedFromRealBodies(t *testing.T) {
+	body := func(msgs []any) []byte {
+		req := map[string]any{
+			"model":      "claude-sonnet-5",
+			"max_tokens": 1024,
+			"system": []any{map[string]any{
+				"type":          "text",
+				"text":          "you are a coding agent",
+				"cache_control": map[string]any{"type": "ephemeral"},
+			}},
+			"messages": msgs,
+			"tools":    []any{},
+		}
+		b, err := json.MarshalIndent(req, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		return b
+	}
+	msg := func(role, text string, mark bool) any {
+		block := map[string]any{"type": "text", "text": text}
+		if mark {
+			block["cache_control"] = map[string]any{"type": "ephemeral"}
+		}
+		return map[string]any{"role": role, "content": []any{block}}
+	}
+
+	// Turn one marks its only message. Turn two appends an exchange and the
+	// marker rolls forward onto the new tail, leaving the first message bare.
+	prior := body([]any{msg("user", "first", true)})
+	cur := body([]any{
+		msg("user", "first", false),
+		msg("assistant", "answer", false),
+		msg("user", "second", true),
+	})
+
+	ps, err := Split("claude-sonnet-5", prior)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cs, err := Split("claude-sonnet-5", cur)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	d := Compare(ps, cs)
+	if d.Breakpoints == 0 {
+		t.Errorf("counted 0 breakpoints in an indented body carrying 2; the strip is not matching the format the agent actually sends")
+	}
+	if got := find(d, "system").Status; got != StatusIdentical {
+		t.Errorf("system %v, want Identical: it is byte-for-byte the same text", got)
+	}
+	if got := find(d, "messages").Status; got != StatusAppended {
+		t.Errorf("messages %v, want Appended: the history only grew, and the marker moving along it is an instruction to the provider rather than a change of content", got)
+	}
+}

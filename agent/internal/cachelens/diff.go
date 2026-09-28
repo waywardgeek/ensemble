@@ -2,6 +2,7 @@ package cachelens
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
 
@@ -70,7 +71,8 @@ type Divergence struct {
 	Breakpoints int
 }
 
-// breakpointMarker is the exact marker our renderer emits. Stripped before
+// breakpointRE matches one cache_control marker, in any JSON formatting, along
+// with the comma that separates it from the key before it. Stripped before
 // comparison because a breakpoint is an instruction to the provider, not
 // conversation content: the cache key is the content of the prefix.
 //
@@ -87,16 +89,38 @@ type Divergence struct {
 // rewrite the byte counts, and those counts are reported as a property of the
 // real request and compared against the provider's own figures. Both sides
 // getting the same distortion would keep equality honest and make the
-// measurement a fiction. We control the emitter, so the exact string is known.
-const breakpointMarker = `,"cache_control":{"type":"ephemeral"}`
+// measurement a fiction.
+//
+// It is a pattern rather than a literal string for a reason worth keeping. The
+// first version of this was a constant holding the exact bytes our renderer
+// emits, on the argument that we control the emitter so the string is known.
+// We do control the emitter, but the lens does not compare what the emitter
+// wrote: it compares what the canonicalizer produced, and that is re-indented
+// for human diffing. So the marker arrives as `"cache_control": {` with spaces
+// the constant did not have, nothing ever matched, and the strip silently did
+// nothing for every request the agent ever sent. Match the shape, not a
+// rendering of it.
+//
+// The marker takes exactly ONE separator, and the whitespace on the same side,
+// because a key can be last in its object or first. Removing the key but
+// leaving its comma, or its indentation, turns an identical pair into an edited
+// one just as effectively as not removing it at all: the leftover is still a
+// byte that one request has and the other does not. Our renderers put
+// cache_control last, so the leading-comma form is the production case; JSON
+// marshalled from a Go map sorts keys and puts it first. Exactly one separator,
+// never both, or a marker between two other keys would fuse them together.
+var breakpointRE = regexp.MustCompile(
+	`,\s*"cache_control"\s*:\s*\{[^{}]*\}` + `|` +
+		`\s*"cache_control"\s*:\s*\{[^{}]*\}\s*,` + `|` +
+		`\s*"cache_control"\s*:\s*\{[^{}]*\}`)
 
 // stripBreakpoints removes markers, and returns the count it removed.
 func stripBreakpoints(s string) (string, int) {
-	if !strings.Contains(s, breakpointMarker) {
+	locs := breakpointRE.FindAllStringIndex(s, -1)
+	if len(locs) == 0 {
 		return s, 0
 	}
-	n := strings.Count(s, breakpointMarker)
-	return strings.ReplaceAll(s, breakpointMarker, ""), n
+	return breakpointRE.ReplaceAllString(s, ""), len(locs)
 }
 
 // dialogueSection is the one section expected to change every turn.
