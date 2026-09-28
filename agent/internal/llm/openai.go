@@ -224,11 +224,34 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 		reasoningEffort = effort.String()
 	}
 
+	tools := oaiTools(common.EffectiveTools(cfg.Tools, c))
+
+	// Some models reject a reasoning budget in the same request as function
+	// tools, and reject it with a 400 rather than a degraded answer. Since an
+	// agent always has tools, leaving the effort in place makes such a model
+	// unusable rather than merely unthinking: every turn fails.
+	//
+	// Drop the effort rather than the tools. An agent with no tools cannot do
+	// anything at all, while one with no declared reasoning budget still works.
+	// Of the two things that cannot travel together, tools are the one to keep.
+	//
+	// It must be sent AS "none" and not omitted, which is the part that cost a
+	// live run to learn. Omitting the field does not mean "no reasoning", it
+	// means "your default", and the default for these models is a reasoning
+	// effort, so the request is refused with the identical error while the
+	// field is nowhere in the body. The vendor's own message says to set it to
+	// 'none', and it means set.
+	if len(tools) > 0 {
+		if f, ok := common.LookupModel(cfg.Model); ok && f.NoThinkingWithTools {
+			reasoningEffort = "none"
+		}
+	}
+
 	body := oaiRequest{
 		Model:           cfg.Model,
 		MaxTokens:       cfg.MaxTokens,
 		Messages:        msgs,
-		Tools:           oaiTools(common.EffectiveTools(cfg.Tools, c)),
+		Tools:           tools,
 		Stream:          common.StreamingFor(cfg) != 0,
 		ReasoningEffort: reasoningEffort,
 	}

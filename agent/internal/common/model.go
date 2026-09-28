@@ -52,6 +52,25 @@ type ModelFeatures struct {
 	// this to compute the actual budget per effort level.
 	MaxThinkingTokens int
 
+	// NoThinkingWithTools says the model rejects a reasoning budget in the same
+	// request as function tools. It supports both, just not together on the
+	// endpoint we speak, and the API answers with a 400 rather than degrading:
+	//
+	//   Function tools with reasoning_effort are not supported for
+	//   gpt-5.6-sol in /v1/chat/completions. To use function tools, use
+	//   /v1/responses or set reasoning_effort to 'none'.
+	//
+	// Which makes it fatal rather than cosmetic for an agent, because an agent
+	// always has tools. Every request fails, so the model is unusable rather
+	// than merely unthinking.
+	//
+	// It is a field here and not a branch in the renderer for the reason the
+	// Stream comment gives: it is a fact about a model that changes on the
+	// vendor's schedule. The proper fix is to speak /v1/responses, which
+	// supports both at once; that is an endpoint migration, not a flag, so this
+	// records the constraint until someone does it.
+	NoThinkingWithTools bool
+
 	// MaxOutputTokens is the model's ceiling for output tokens, including
 	// any thinking budget. This is DATA about the model, not a default
 	// for the request — it tells the framework what ceiling is safe to
@@ -224,7 +243,7 @@ func models() map[string]ModelFeatures {
 		// so thinking is not streamed. These models support reasoning_effort
 		// but do not return reasoning content on Chat Completions.
 		"gpt-6-astra": {Price: Pricing{Input: 10, CacheWrite: 12.50, CacheRead: 1.0, Output: 50}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
-		"gpt-5.6-sol": {Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gpt-5.6-sol": {Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, NoThinkingWithTools: true},
 
 		// Gemini — images, audio, video, documents. Text and thinking stream;
 		// FUNCTION-CALL ARGUMENTS DO NOT. They arrive complete, in one frame.
