@@ -250,3 +250,59 @@ func TestIndentedMarkersAreStrippedFromRealBodies(t *testing.T) {
 		t.Errorf("messages %v, want Appended: the history only grew, and the marker moving along it is an instruction to the provider rather than a change of content", got)
 	}
 }
+
+// TestGeminiDialogueIsNotPrefixInstability pins a misdiagnosis found live.
+//
+// A growing conversation is the ONE section expected to change every turn, so
+// it is exempt from the instability alarm. The exemption matched a constant,
+// "messages", which is what Anthropic and OpenAI call it. Gemini calls it
+// "contents", so every ordinary Gemini turn fell through to the alarm and was
+// reported as a broken prefix, with a byte offset that differed run to run
+// because it was measuring an append rather than an edit.
+//
+// What made it convincing was that the same log line ALSO said contents was
+// merely appended to. Two halves of one instrument disagreeing, and the
+// confident half inventing a cause. The real reason Gemini served nothing from
+// cache is that we send it no caching directives at all; the prefix was fine.
+func TestGeminiDialogueIsNotPrefixInstability(t *testing.T) {
+	body := func(turns int) []byte {
+		var contents []any
+		for i := 0; i < turns; i++ {
+			contents = append(contents, map[string]any{
+				"role":  "user",
+				"parts": []any{map[string]any{"text": "question"}},
+			})
+		}
+		req := map[string]any{
+			"systemInstruction": map[string]any{"parts": []any{map[string]any{"text": "be brief"}}},
+			"tools":             []any{},
+			"generationConfig":  map[string]any{"maxOutputTokens": 256},
+			"contents":          contents,
+		}
+		b, err := json.MarshalIndent(req, "", "  ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		return b
+	}
+
+	ps, err := Split("gemini-3.8-flash", body(1))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cs, err := Split("gemini-3.8-flash", body(2))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ps.Dialogue != "contents" {
+		t.Errorf("Dialogue = %q, want \"contents\": a Gemini body keeps its conversation there", ps.Dialogue)
+	}
+
+	d := Compare(ps, cs)
+	if d.Unstable != "" {
+		t.Errorf("reported section %q unstable at +%d, but the only thing that changed was the conversation growing by one turn", d.Unstable, d.UnstableOffset)
+	}
+	if !d.DialogueChanged {
+		t.Error("DialogueChanged is false, yet the conversation grew; the change has to be attributed somewhere or it is silently lost")
+	}
+}

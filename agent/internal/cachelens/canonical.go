@@ -26,6 +26,20 @@ type Sections struct {
 	// today stays interpretable after the order changes.
 	Order []string
 	Raw   map[string]json.RawMessage
+
+	// Dialogue names the section holding the conversation, which is the one
+	// section EXPECTED to change every turn. Every other section changing is a
+	// problem worth an alarm; this one growing is just a conversation.
+	//
+	// It is a field because the name is vendor-specific and getting it wrong
+	// inverts the diagnosis. It was a constant, "messages", which is right for
+	// Anthropic and OpenAI and wrong for Gemini, where the conversation lives
+	// in "contents". So every ordinary Gemini turn was reported as prefix
+	// instability, complete with a fabricated byte offset that moved between
+	// runs, while the structural comparison in the same line said the section
+	// had merely been appended to. Two halves of one instrument contradicting
+	// each other, and the confident half was the wrong one.
+	Dialogue string
 }
 
 // cacheOrder returns the order in which the provider concatenates a request for
@@ -79,7 +93,16 @@ func Split(model string, body []byte) (Sections, error) {
 	sortStrings(rest)
 	order = append(order, rest...)
 
-	return Sections{Order: order, Raw: raw}, nil
+	// Which section holds the conversation, decided from the body's own shape
+	// rather than from a vendor table. Gemini calls it "contents"; Anthropic
+	// and OpenAI both call it "messages". Reading it off the request keeps the
+	// knowledge in one place and means a body speaks for itself.
+	dialogue := "messages"
+	if _, ok := raw["contents"]; ok {
+		dialogue = "contents"
+	}
+
+	return Sections{Order: order, Raw: raw, Dialogue: dialogue}, nil
 }
 
 // Canonical renders sections as the byte sequence used for prefix comparison:
