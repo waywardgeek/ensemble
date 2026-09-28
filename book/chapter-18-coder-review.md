@@ -150,15 +150,38 @@ Measured, three turns each, real APIs, `cache_read` per turn:
 |---|---|---|---|
 | Anthropic | `claude-sonnet-5` | 0, 3627, 3648 | explicit `cache_control` breakpoints |
 | OpenAI | `gpt-5.6-sol` | 1738, 1759, 1780 | nothing; caches prefixes automatically |
-| Gemini | `gemini-3.8-flash` | 0, 0, 0 | explicit cached-content API; **we send nothing** |
+| Gemini | `gemini-3.8-flash` | 0, 0, 0 | nothing; caches automatically **above 4096 tokens** |
 
 Two things in that table deserve prose. First, Anthropic and OpenAI both climb by
 **exactly 21 tokens per turn**, which is the size of the previous exchange: that
 is the rolling marker banking the conversation, and it is the direct evidence
-that a moving marker does not break caching. Second, Gemini is a **gap, not a
-bug**: its prefix held at 94.9% stable and we simply issue no caching directives
-to it. If the chapter promises three working vendors it is over-promising; I
-recommend it say plainly that Gemini caching is unimplemented and why.
+that a moving marker does not break caching.
+
+Second, **the Gemini row is a measurement error of mine, and it is the most
+instructive line in the chapter.** I read three zeroes and concluded Gemini
+caching was unimplemented. It is not. Gemini caches *implicitly*: it detects the
+repeated prefix itself, sending no directives is the entire interface rather
+than an omission, and our request path was already correct. The zeroes came from
+the prompts in that run being a few hundred tokens, under Gemini's documented
+**4096-token minimum**, so no request was ever a caching candidate.
+
+Re-measured against the live API with a 21,660-token prompt and no directives of
+any kind: **16,359 tokens served from cache on the second and every later send.**
+Note also that the first send always reports zero, because it is the send that
+*creates* the entry, so a three-turn run under the floor produces an all-zero
+column that is indistinguishable from an absent feature.
+
+> **Superseded in part.** That 21,660-token probe held the conversation fixed,
+> so it showed only one cold turn. A *growing* history has two, and the
+> chapter's "two cold turns" claim is correct. Full measurements, and the
+> separate warm-up times for the system prompt and the message history, are in
+> `book/chapter-18-gemini-review-for-author.md`. Read that one first.
+
+This is worth a paragraph of its own in the chapter, because the failure is
+exactly the one the lens exists to prevent: a zero that means *not eligible*
+read as a zero that means *broken*. The fix landed as two columns on
+`ModelFeatures` (`Caching` and `MinCacheTokens`) so the lens states which case
+it is instead of offering the reader three possible causes.
 
 ### 2.7 Mention the provider minimum, because a small fixture silently never caches
 
@@ -263,8 +286,11 @@ migration below.
   already says the next vendor will need a different one. For Gemini the reported
   section *order* is therefore wrong today. It affects where a prefix is said to
   break, not whether the alarm fires, so it wants its own measurement.
-- **Gemini caching itself.** Unimplemented, measured at zero, scoped as a
-  feature rather than a fix.
+- **Gemini caching.** Now understood and correctly reported: it is *implicit*,
+  it works, and we already do the right thing by sending no directives. What
+  remains open is narrower than the feature I wrongly scoped here before —
+  reading Gemini's `cachedContentTokenCount` is done, but we have not measured
+  whether a longer-lived conversation keeps the entry warm between turns.
 - **A messages-section breakpoint reported as "granted".** The 96.8% and 93.9%
   figures are **predicted from the request**, not read back from response
   headers. Reading the actual granted rate from the reply is still open.

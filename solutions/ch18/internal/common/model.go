@@ -32,6 +32,59 @@ func (m Media) String() string {
 }
 
 // ModelFeatures is one row: everything the seam needs to know about a model.
+// Caching says HOW a vendor caches a repeated prompt prefix.
+//
+// EVERY model we speak to supports prompt caching. What differs is who is
+// responsible for pointing at the reusable part, and that difference decides
+// what our renderer must emit:
+//
+//   - CacheExplicit: the prefix is cached only where we mark it. Anthropic
+//     works this way; a request with no cache_control marker is billed in
+//     full every turn, forever, in silence.
+//
+//   - CacheImplicit: the vendor finds the repeated prefix itself and bills
+//     it at the cached rate. OpenAI and Gemini work this way. Sending no
+//     directives is not an omission, it is the entire interface. There is
+//     nothing to mark and nothing to enable.
+//
+// Implicit is the better deal and, where a vendor offers both, the
+// recommended one: it costs no marker budget, it cannot be aimed at the
+// wrong byte, it needs no lifetime management, and it degrades to "no
+// discount" rather than to "wrong answer" when the prefix moves. Explicit
+// caching exists to buy control we mostly do not want.
+//
+// Implicit is not free of warm-up, and the shape is worth knowing because it
+// looks like a fault. Measured on gemini-3.8-flash against the live API:
+//
+//   - The fixed head, meaning the system prompt and the tool declarations, is
+//     served from the SECOND request. One sighting is enough for it.
+//
+//   - A conversation message must be stable across TWO successive requests
+//     before it is cached, so a growing history is served a turn later still.
+//     An agent therefore sees two cold turns at startup rather than one.
+//
+//   - The cached span commits in blocks of roughly four thousand tokens, so a
+//     turn that appends only a little text shows no increase at all. Measured
+//     counts land on multiples of the block size rather than on the true
+//     prefix length, which also caps the achievable hit rate well below 100%.
+//
+// The practical consequence for anything we build: put large stable content in
+// the system prompt rather than in the first user message, because the head
+// caches a full turn earlier than the history does.
+//
+// The consequence for a diagnostic is the whole reason this field exists:
+// "we sent no cache directives" is a DEFECT on an explicit model and CORRECT
+// BEHAVIOUR on an implicit one. Without this column a lens cannot tell the
+// two apart, and will report a healthy Gemini request as broken.
+type Caching int
+
+const (
+	// CacheExplicit means the prefix is cached only where we mark it.
+	CacheExplicit Caching = iota + 1
+	// CacheImplicit means the vendor detects the repeated prefix itself.
+	CacheImplicit
+)
+
 type ModelFeatures struct {
 	// Price is the dollar cost per million tokens for each of the four
 	// disjoint Usage categories. The zero sheet means unpriced, not free:
@@ -70,6 +123,26 @@ type ModelFeatures struct {
 	// supports both at once; that is an endpoint migration, not a flag, so this
 	// records the constraint until someone does it.
 	NoThinkingWithTools bool
+
+	// Caching is how this model caches a repeated prompt prefix. See the
+	// Caching type. Every model in the table below supports caching; none
+	// of them is CacheNone, because there is no such value.
+	Caching Caching
+
+	// MinCacheTokens is the smallest prompt, in tokens, the vendor will
+	// cache at all. A request below this floor is simply not eligible, and
+	// reports a zero hit that is byte-for-byte indistinguishable from a
+	// broken prefix unless you know the floor — which is exactly how we
+	// once concluded that a vendor had no caching at all, from three short
+	// requests that were never in the running.
+	//
+	// Provenance: Gemini's 4096 is documented and was confirmed by
+	// measurement (21,660-token prompt, 16,359 served from cache on the
+	// second and every later send, with no directives of any kind).
+	// Anthropic's and OpenAI's 1024 are the vendors' documented minimums;
+	// the OpenAI figure is consistent with a measured first-turn hit of
+	// 1,738 tokens.
+	MinCacheTokens int
 
 	// MaxOutputTokens is the model's ceiling for output tokens, including
 	// any thinking budget. This is DATA about the model, not a default
@@ -234,16 +307,16 @@ func models() map[string]ModelFeatures {
 	return map[string]ModelFeatures{
 		// Anthropic — no audio, no video. Streams all three kinds.
 		// All current Anthropic models have 1M context windows as of 2026.
-		"claude-opus-4-6": {Price: Pricing{Input: 5, CacheWrite: 6.25, CacheRead: 0.5, Output: 25}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
-		"claude-opus-5":   {Price: Pricing{Input: 5, CacheWrite: 6.25, CacheRead: 0.5, Output: 25}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
-		"claude-sonnet-5": {Price: Pricing{Input: 3, CacheWrite: 3.75, CacheRead: 0.3, Output: 15}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true},
+		"claude-opus-4-6": {Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 5, CacheWrite: 6.25, CacheRead: 0.5, Output: 25}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
+		"claude-opus-5":   {Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 5, CacheWrite: 6.25, CacheRead: 0.5, Output: 25}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
+		"claude-sonnet-5": {Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 3, CacheWrite: 3.75, CacheRead: 0.3, Output: 15}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true},
 
 		// OpenAI — images yes, audio and video NO (video APIs are generation).
 		// Reasoning arrives as a summary rather than as incremental deltas,
 		// so thinking is not streamed. These models support reasoning_effort
 		// but do not return reasoning content on Chat Completions.
-		"gpt-6-astra": {Price: Pricing{Input: 10, CacheWrite: 12.50, CacheRead: 1.0, Output: 50}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
-		"gpt-5.6-sol": {Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, NoThinkingWithTools: true},
+		"gpt-6-astra": {Caching: CacheImplicit, MinCacheTokens: 1024, Price: Pricing{Input: 10, CacheWrite: 12.50, CacheRead: 1.0, Output: 50}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gpt-5.6-sol": {Caching: CacheImplicit, MinCacheTokens: 1024, Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, NoThinkingWithTools: true},
 
 		// Gemini — images, audio, video, documents. Text and thinking stream;
 		// FUNCTION-CALL ARGUMENTS DO NOT. They arrive complete, in one frame.
@@ -251,29 +324,29 @@ func models() map[string]ModelFeatures {
 		// description of this model needs two of three bits set, and a bool
 		// would have forced us either to drop text streaming or to invent
 		// argument chunks that the vendor never sent.
-		"gemini-3.8-flash":       {Price: Pricing{Input: 0.75, CacheWrite: 0.75, CacheRead: 0.075, Output: 3.75}, ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
-		"gemini-3.1-pro-preview": {Price: Pricing{Input: 2, CacheWrite: 2.0, CacheRead: 0.20, Output: 12}, ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gemini-3.8-flash":       {Caching: CacheImplicit, MinCacheTokens: 4096, Price: Pricing{Input: 0.75, CacheWrite: 0.75, CacheRead: 0.075, Output: 3.75}, ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gemini-3.1-pro-preview": {Caching: CacheImplicit, MinCacheTokens: 4096, Price: Pricing{Input: 2, CacheWrite: 2.0, CacheRead: 0.20, Output: 12}, ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Fake model used by the grader — images only, to test loud refusal.
 		// Streams everything, because the streaming checks need all three
 		// kinds to appear. Thinking enabled for testing.
-		"fake-model": {ContextWindow: 200000, Media: MediaImage, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"fake-model": {Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 200000, Media: MediaImage, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Course/test models used by graders in various chapters.
-		"claude-fake-course-1":   {ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
-		"claude-sonnet-5-course": {ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		"claude-fake-course-1":   {Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		"claude-sonnet-5-course": {Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
 		// Chapter 15's grader model: the claude-opus-5 row, course-named.
 		// A new row rather than a changed one, so every earlier chapter's
 		// grader, which runs fake-model or claude-fake-course-1, sees
 		// exactly the wire it saw before.
-		"claude-opus-5-course": {ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
-		"gpt-5-course":         {ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"claude-opus-5-course": {Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
+		"gpt-5-course":         {Caching: CacheImplicit, MinCacheTokens: 1024, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 		// Chapter 16's grader model: the opus row with a deliberately tiny
 		// window, so a grader can reach ninety percent of it in a handful of
 		// turns instead of a hundred thousand. A NEW row rather than a
 		// changed one, so no earlier chapter's grader sees a different wire.
-		"claude-ch16-course":      {ContextWindow: 4096, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true},
-		"gemini-3.5-flash-course": {ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"claude-ch16-course":      {Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 4096, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true},
+		"gemini-3.5-flash-course": {Caching: CacheImplicit, MinCacheTokens: 4096, ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 	}
 }
 

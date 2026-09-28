@@ -28,6 +28,12 @@ type Lens struct {
 	last     Divergence
 	haveLast bool
 
+	// lastModel is the model that request was sent to, held for the same
+	// reason last is: the verdict needs the model's caching style and minimum
+	// cacheable size, and the model name arrives with the request while the
+	// counts arrive with the usage.
+	lastModel string
+
 	// report receives one line per analyzed request. Injected rather than
 	// hardcoded to a logger so this package depends on nothing but common.
 	report func(string)
@@ -65,6 +71,7 @@ func (l *Lens) ObserveRequest(model string, body []byte) {
 	l.mu.Lock()
 	prior, havePrior := l.prior, l.havePrior
 	l.prior, l.havePrior = cur, true
+	l.lastModel = model
 	l.mu.Unlock()
 
 	// Rotate on disk before writing the new capture, so the pair on disk is
@@ -105,6 +112,7 @@ func (l *Lens) ObserveRequest(model string, body []byte) {
 func (l *Lens) ObserveUsage(u common.Usage) {
 	l.mu.Lock()
 	d, have := l.last, l.haveLast
+	model := l.lastModel
 	l.haveLast = false
 	l.mu.Unlock()
 
@@ -140,9 +148,12 @@ func (l *Lens) ObserveUsage(u common.Usage) {
 	// byte, and it is worth waking someone for.
 	//
 	// The second is not ours: the prefix held and the provider still missed,
-	// because the entry expired, or nothing marks a breakpoint, or the prefix
-	// is under the model's minimum cacheable size. Normal, frequent, and
-	// nothing to fix in our code.
+	// because the entry expired, or the prefix is under the model's minimum
+	// cacheable size, or the model caches implicitly and simply has not seen
+	// this prefix before. Normal, frequent, and nothing to fix in our code.
+	// Which of those it was is decided below from the model table rather than
+	// listed as a set of guesses, because a diagnostic that offers three
+	// possible causes has not diagnosed anything.
 	//
 	// Note what is deliberately NOT an alarm: the dialogue growing. That
 	// happens every single turn, so firing on it would make the instrument
@@ -157,10 +168,65 @@ func (l *Lens) ObserveUsage(u common.Usage) {
 	}
 
 	const gapThreshold = 0.20
-	if possible-actual > gapThreshold {
-		l.report("cachelens: CACHE MISSED ANYWAY — the prefix held, so this is not a " +
-			"prefix bug. Likely no breakpoint is set, the entry expired, or the " +
-			"prefix is below the model's minimum cacheable size.")
+	if possible-actual <= gapThreshold {
+		return
+	}
+
+	// The prefix held and the provider still served less than it could have.
+	// Before guessing at a cause, consult what is actually known about this
+	// model, because two of the three "likely causes" a generic message would
+	// offer are decidable facts rather than guesses:
+	//
+	//   - Below the vendor's floor, the request was never a caching candidate.
+	//     Reporting that as a miss is how a healthy request gets read as broken.
+	//
+	//   - "No breakpoint is set" is a DEFECT on an explicit-caching model and
+	//     CORRECT BEHAVIOUR on an implicit one. Saying it unconditionally sends
+	//     someone hunting for a marker that should not exist.
+	f, known := common.LookupModel(model)
+	if !known {
+		l.report(fmt.Sprintf(
+			"cachelens: CACHE MISSED ANYWAY — the prefix held, so this is not a prefix "+
+				"bug, but %q is not in the model table, so its caching style and minimum "+
+				"cacheable size are unknown and no better diagnosis is available.", model))
+		return
+	}
+
+	if totalIn < f.MinCacheTokens {
+		l.report(fmt.Sprintf(
+			"cachelens: NOT ELIGIBLE — %d prompt tokens is under %s's %d-token minimum, "+
+				"so this request was never a caching candidate and a zero here is the "+
+				"correct answer. It means the prompt is too small, NOT that the model "+
+				"cannot cache.", totalIn, model, f.MinCacheTokens))
+		return
+	}
+
+	switch f.Caching {
+	case common.CacheImplicit:
+		l.report(fmt.Sprintf(
+			"cachelens: MISS ON AN IMPLICIT-CACHING MODEL — the prefix held, and %s finds "+
+				"the repeated prefix itself, so there is no marker we could have "+
+				"forgotten: sending no cache directives is correct here, not an omission. "+
+				"Expect up to TWO cold turns, not one. The fixed head (system prompt and "+
+				"tools) is served from the second turn, but a conversation message must "+
+				"be stable across two successive requests before it is cached, so a "+
+				"growing history lags by an extra turn. Caching also commits in blocks of "+
+				"a few thousand tokens, so a turn that adds only a little text may show no "+
+				"increase at all. Worry only if the count is still flat after that.",
+			model))
+	case common.CacheExplicit:
+		if d.Breakpoints == 0 {
+			l.report(fmt.Sprintf(
+				"cachelens: NO BREAKPOINT — the prefix held, but the request carries zero "+
+					"cache_control markers and %s caches only what we mark. This one is "+
+					"ours: an unmarked prefix is billed in full every turn, in silence.",
+				model))
+			return
+		}
+		l.report(fmt.Sprintf(
+			"cachelens: CACHE MISSED ANYWAY — the prefix held and %d breakpoint(s) are "+
+				"set, so this is not a prefix bug and not a missing marker. The entry "+
+				"most likely expired between turns.", d.Breakpoints))
 	}
 }
 

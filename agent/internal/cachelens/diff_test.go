@@ -262,8 +262,18 @@ func TestIndentedMarkersAreStrippedFromRealBodies(t *testing.T) {
 //
 // What made it convincing was that the same log line ALSO said contents was
 // merely appended to. Two halves of one instrument disagreeing, and the
-// confident half inventing a cause. The real reason Gemini served nothing from
-// cache is that we send it no caching directives at all; the prefix was fine.
+// confident half inventing a cause. The prefix was fine.
+//
+// The sentence that used to end this comment claimed Gemini served nothing
+// from cache "because we send it no caching directives at all". That was
+// wrong twice over, and is left recorded here because it is the exact shape of
+// mistake this package exists to prevent. Gemini caches IMPLICITLY: it finds
+// the repeated prefix itself, sending no directives is the whole interface
+// rather than an omission, and our request path was already correct. The
+// actual reason that run served nothing was that the prompt sat under the
+// 4096-token minimum, so it was never eligible. Measured afterwards on a
+// 21,660-token prompt with no directives of any kind: 16,359 tokens served
+// from cache on the second and every subsequent send.
 func TestGeminiDialogueIsNotPrefixInstability(t *testing.T) {
 	body := func(turns int) []byte {
 		var contents []any
