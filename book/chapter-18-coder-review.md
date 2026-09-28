@@ -265,7 +265,7 @@ migration below.
   break, not whether the alarm fires, so it wants its own measurement.
 - **Gemini caching itself.** Unimplemented, measured at zero, scoped as a
   feature rather than a fix.
-- **A messages-section breakpoint reported as "granted".** The 96.1%/93.9%
+- **A messages-section breakpoint reported as "granted".** The 96.8% and 93.9%
   figures are **predicted from the request**, not read back from response
   headers. Reading the actual granted rate from the reply is still open.
 - **`Makefile` has no `grade17`.** Pre-existing gap; `grade14`–`grade16` and now
