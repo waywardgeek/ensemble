@@ -61,7 +61,7 @@ body {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   padding: 6px 12px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -73,7 +73,7 @@ body {
   background: none;
   border: none;
   color: var(--text-dim);
-  font-size: 18px;
+  font-size: 1.125rem;
   cursor: pointer;
   padding: 2px 6px;
   border-radius: 4px;
@@ -91,6 +91,53 @@ body {
 
 .spacer { flex: 1; }
 
+/* ── Session usage meter ── */
+
+/* Monospace with tabular figures: without them every digit change shifts the
+   whole row sideways, and the meter updates on every single turn. */
+#usage-meter {
+  display: flex;
+  gap: 0.75rem;
+  align-items: baseline;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.u-item { color: var(--text-dim); }
+
+/* Cost and hit rate are the two numbers worth glancing at, so they get
+   contrast; the raw token counts are supporting detail. */
+#u-cost {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.u-hit {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Shown when the configured model has no price sheet, so that an unpriced
+   model cannot be mistaken for a free one. */
+#u-cost.unpriced {
+  color: var(--text-dim);
+  font-weight: 400;
+}
+
+/* ── Creed ── */
+
+/* Pinned to the foot of the sidebar and deliberately quiet. */
+#creed {
+  margin-top: auto;
+  flex-shrink: 0;
+  padding: 0.75rem 0.875rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.6875rem;
+  color: var(--text-dim);
+  opacity: 0.6;
+}
+
 /* ── Three-pane layout ── */
 #panes {
   flex: 1;
@@ -106,6 +153,8 @@ body {
 
 /* Left sidebar */
 #sidebar {
+  display: flex;
+  flex-direction: column;
   width: 220px;
   min-width: 0;
   background: var(--sidebar-bg);
@@ -131,7 +180,7 @@ body {
   border: none;
   color: var(--text-dim);
   padding: 8px 4px;
-  font-size: 12px;
+  font-size: 0.75rem;
   cursor: pointer;
   border-bottom: 2px solid transparent;
 }
@@ -155,7 +204,7 @@ body {
 .sidebar-item {
   padding: 8px 10px;
   border-radius: 4px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   cursor: pointer;
   color: var(--text-dim);
 }
@@ -165,7 +214,7 @@ body {
 
 .sidebar-empty {
   color: var(--text-dim);
-  font-size: 12px;
+  font-size: 0.75rem;
   padding: 16px 8px;
   text-align: center;
 }
@@ -213,7 +262,7 @@ body {
 #agent-tree {
   border-top: 1px solid var(--border);
   padding: 8px 12px;
-  font-size: 12px;
+  font-size: 0.75rem;
   flex-shrink: 0;
 }
 
@@ -225,7 +274,7 @@ body {
 }
 
 .agent-dot {
-  font-size: 10px;
+  font-size: 0.625rem;
 }
 
 .agent-dot.idle { color: #4caf50; }
@@ -246,14 +295,23 @@ body {
 
 #prompt-input {
   width: 100%;
+  box-sizing: border-box;
+  display: block;
   background: var(--surface-raised);
   color: var(--text);
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: 10px 14px;
-  font-size: 14px;
+  font-size: 0.875rem;
   font-family: inherit;
   outline: none;
+  /* Grow with the content up to this cap, then scroll. The cap is in rem so it
+     tracks the font-size slider instead of staying a fixed pixel box. JS
+     switches overflow-y to auto once the cap is reached. */
+  line-height: 1.45;
+  max-height: 11rem;
+  resize: none;
+  overflow-y: hidden;
 }
 
 #prompt-input:focus {
@@ -280,7 +338,7 @@ body {
   border: none;
   color: var(--text-dim);
   cursor: pointer;
-  font-size: 14px;
+  font-size: 0.875rem;
   opacity: 0;
   transition: opacity 0.15s;
 }
@@ -301,7 +359,7 @@ body {
 .artifact.tool-card {
   background: var(--tool-bg);
   font-family: 'Fira Code', 'Cascadia Code', monospace;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 .artifact.tool-card .tool-name {
@@ -333,7 +391,7 @@ body {
 }
 .artifact code {
   font-family: 'Fira Code', 'Cascadia Code', monospace;
-  font-size: 13px;
+  font-size: 0.8125rem;
 }
 
 /* ── Settings overlay ── */
@@ -368,7 +426,7 @@ body {
 }
 
 .settings-header h2 {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
 }
 
@@ -376,9 +434,37 @@ body {
   background: none;
   border: none;
   color: var(--text-dim);
-  font-size: 20px;
+  font-size: 1.25rem;
   cursor: pointer;
 }
+
+.settings-tabs {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+  padding: 0 20px;
+  gap: 0;
+}
+
+.settings-tab {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  padding: 10px 16px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.settings-tab:hover { color: var(--text); }
+.settings-tab.active {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.settings-tab-panel { display: none; }
+.settings-tab-panel.active { display: block; }
 
 .settings-body {
   padding: 16px 20px;
@@ -393,7 +479,7 @@ body {
 
 .settings-body legend {
   color: var(--accent);
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
   padding: 0 6px;
 }
@@ -403,7 +489,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 6px 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text);
   gap: 12px;
 }
@@ -416,13 +502,91 @@ body {
   border: 1px solid var(--border);
   border-radius: 4px;
   padding: 6px 10px;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-family: inherit;
   width: 160px;
 }
 
 .settings-body input[type="checkbox"] {
   accent-color: var(--accent);
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Range sliders */
+.settings-body input[type="range"] {
+  width: 160px;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.range-val {
+  color: var(--accent);
+  font-weight: 600;
+  min-width: 3em;
+  display: inline-block;
+}
+
+/* Vertical label (textarea) */
+.settings-body label.vertical {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.settings-body label.vertical textarea {
+  width: 100%;
+  margin-top: 6px;
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 10px;
+  font-size: 0.8125rem;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  resize: vertical;
+}
+
+/* Band settings grid */
+.band-fieldset {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 16px;
+  margin-top: 12px;
+}
+
+.band-fieldset legend {
+  color: var(--accent);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  padding: 0 6px;
+}
+
+.band-row {
+  display: grid;
+  grid-template-columns: 140px 40px 1fr;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0;
+  font-size: 0.8125rem;
+}
+
+.band-row.band-header {
+  color: var(--text-dim);
+  font-weight: 600;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.band-budget-input {
+  background: var(--surface-raised);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 0.8125rem;
+  width: 100%;
 }
 
 /* ── Scrollbar ── */

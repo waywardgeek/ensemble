@@ -176,6 +176,11 @@ type ToolHandler func(args json.RawMessage) (string, error)
 // Agent is the public handle to a running agent. It implements common.Host,
 // providing the logger that all internal code reaches through parent interfaces.
 type Agent struct {
+	// UsageCounter holds this run's token totals. Embedded so Agent satisfies
+	// the usage half of common.Host, which is how anything downstream reports
+	// spend without being handed a reporter.
+	common.UsageCounter
+
 	eng        *llm.Engine
 	reg        *tools.Reg
 	skills     *skills.SkillRegistry
@@ -474,8 +479,13 @@ type WSHub = ws.Hub
 // controls tool-dispatch pausing; guiLogPath is the path to gui.log;
 // eventLog provides read access to the append-only event log for
 // reconnection; settings provides the GUI-editable settings store (may be nil).
+//
+// The session usage meter is passed as nil here deliberately. This signature
+// is chapter 8's published API, and the meter arrived long afterwards; the
+// server in cmd/ calls ws.NewHub directly to supply one. Growing this
+// function's arity would rewrite a chapter's contract for a later feature.
 func NewWSHub(gate *PauseGate, send func(Inbound), guiLogPath string, eventLog *Log, settings *SettingsStore) *WSHub {
-	return ws.NewHub(gate, send, guiLogPath, eventLog, settings)
+	return ws.NewHub(gate, send, guiLogPath, eventLog, settings, nil)
 }
 
 // ServeHTTP starts an HTTP server that serves static files from staticDir

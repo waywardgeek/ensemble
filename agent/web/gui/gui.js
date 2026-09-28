@@ -93,11 +93,16 @@
         break;
 
       case 'current_settings':
+        if (msg.models) populateModelDropdown(msg.models);
         if (msg.settings) applySettings(msg.settings);
         break;
 
       case 'settings_changed':
         if (msg.settings) applySettings(msg.settings);
+        break;
+
+      case 'usage':
+        renderUsage(msg);
         break;
 
       case 'error':
@@ -167,19 +172,37 @@
 
 
   // ── Input handling ──
+
+  // Grow the composer to fit its content, then scroll. The cap comes from the
+  // stylesheet rather than a constant here, so it stays in rem and tracks the
+  // font-size slider. Setting height to auto first lets scrollHeight shrink
+  // again when text is deleted; without that the box would only ever grow.
+  function autoGrow() {
+    input.style.height = 'auto';
+    const maxH = parseFloat(getComputedStyle(input).maxHeight) || Infinity;
+    const full = input.scrollHeight;
+    input.style.height = Math.min(full, maxH) + 'px';
+    input.style.overflowY = full > maxH ? 'auto' : 'hidden';
+  }
+
+  input.addEventListener('input', autoGrow);
+
   input.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       TTS.cancel();          // Escape always silences speech, whatever is typed.
       input.value = '';
+      autoGrow();            // .value = '' fires no input event, so shrink by hand
       userTyping = false;    // assigning .value fires no input event
       updateGate();
       return;
     }
 
-    if (e.key !== 'Enter') return;
+    if (e.key !== 'Enter' || e.shiftKey) return;
+    e.preventDefault();
     const text = input.value.trim();
     if (!text) return;
     input.value = '';
+    autoGrow();
 
     chatScroll.handleMessage({type: 'message', actor: 'user', text});
 
@@ -285,20 +308,113 @@
     }
   });
 
-  // Settings change handlers — send update_settings on any change.
+  // Settings tabs.
+  document.querySelectorAll('.settings-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.settings-tab-panel').forEach(p => p.classList.remove('active'));
+      tab.classList.add('active');
+      const panel = document.querySelector(`.settings-tab-panel[data-panel="${tab.dataset.tab}"]`);
+      if (panel) panel.classList.add('active');
+    });
+  });
+
+  // Range slider live display — update the paired <span> as the slider moves.
+  function updateRangeDisplay(inputEl) {
+    const id = inputEl.id.replace('set-', 'rv-');
+    const span = document.getElementById(id);
+    if (span) span.textContent = inputEl.value;
+  }
+
+  document.querySelectorAll('.settings-tab-panel input[type="range"]').forEach(el => {
+    el.addEventListener('input', () => {
+      updateRangeDisplay(el);
+      // Apply font size immediately while dragging.
+      if (el.id === 'set-font-size') applyFontSize(parseInt(el.value, 10));
+    });
+  });
+
+  // Populate model dropdown from server's model catalog.
+  let modelCatalog = [];  // Saved for context-target slider range updates.
+
+  function populateModelDropdown(models) {
+    modelCatalog = models;
+    const sel = document.getElementById('set-model');
+    sel.innerHTML = '';
+    let currentVendor = '';
+    let group = null;
+    for (const m of models) {
+      if (m.vendor !== currentVendor) {
+        currentVendor = m.vendor;
+        group = document.createElement('optgroup');
+        group.label = currentVendor;
+        sel.appendChild(group);
+      }
+      const opt = document.createElement('option');
+      opt.value = m.id;
+      opt.textContent = m.display_name;
+      group.appendChild(opt);
+    }
+  }
+
+  // Update the context-target slider range when the model changes.
+  function updateContextSliderForModel(modelId) {
+    const m = modelCatalog.find(e => e.id === modelId);
+    const slider = document.getElementById('set-context-target');
+    if (m && m.context_window > 0) {
+      slider.max = m.context_window;
+      slider.step = Math.max(1000, Math.round(m.context_window / 100));
+    }
+  }
+
+  document.getElementById('set-model').addEventListener('change', (e) => {
+    updateContextSliderForModel(e.target.value);
+  });
+
+  // Send a settings patch to the server.
+  //
+  // Every control routes through here rather than calling ws.send itself, so
+  // there is one place that knows the message shape. Its absence was a real
+  // bug: the handlers below called sendPatch before it existed, so each one
+  // threw a ReferenceError and no setting was ever persisted. The dialog still
+  // looked correct, because the controls that change something visible — theme
+  // and font size — also apply locally on the way past. The visible half
+  // worked and the durable half never ran.
+  function sendPatch(patch) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({type: 'update_settings', settings: patch}));
+  }
+
+  // Settings change handlers — each sends a flat patch.
+  //
+  // Flat, not nested by tab, because this is the published WebSocket contract:
+  // a client sends {"theme":"dark"} and gets the whole settings object back
+  // with flat keys. The tabs are presentation only. The on-disk file groups
+  // these into sections, but that translation belongs to the server, which
+  // owns the file — not to the client, which owns neither.
+  //
+  // Map: element ID → {key, type}
   const settingFields = {
-    'set-model': {key: 'model', type: 'string'},
-    'set-temperature': {key: 'temperature', type: 'float'},
-    'set-max-tokens': {key: 'max_tokens', type: 'int'},
-    'set-thinking-budget': {key: 'thinking_budget', type: 'int'},
+    'set-model':           {key: 'model', type: 'string'},
     'set-max-tool-rounds': {key: 'max_tool_rounds', type: 'int'},
-    'set-context-target': {key: 'context_target', type: 'int'},
-    'set-log-retention': {key: 'log_retention', type: 'int'},
-    'set-tts-enabled': {key: 'tts_enabled', type: 'bool'},
-    'set-tts-speed': {key: 'tts_speed', type: 'float'},
-    'set-font-size': {key: 'font_size', type: 'int'},
-    'set-theme': {key: 'theme', type: 'string'},
+    'set-thinking-level':  {key: 'thinking_budget', type: 'thinking'},
+    'set-context-target':  {key: 'context_target', type: 'int'},
+    'set-log-retention':   {key: 'log_retention', type: 'int'},
+    'set-tts-enabled':     {key: 'tts_enabled', type: 'bool'},
+    'set-tts-speed':       {key: 'tts_speed', type: 'float'},
+    'set-font-size':       {key: 'font_size', type: 'int'},
+    'set-theme':           {key: 'theme', type: 'string'},
   };
+
+  // Map thinking dropdown to budget tokens.
+  const thinkingLevels = {low: 4096, medium: 16384, high: 32000, max: 200000};
+
+  function thinkingLevelFromBudget(budget) {
+    if (budget <= 4096) return 'low';
+    if (budget <= 16384) return 'medium';
+    if (budget <= 32000) return 'high';
+    return 'max';
+  }
 
   Object.entries(settingFields).forEach(([id, spec]) => {
     const el = document.getElementById(id);
@@ -308,48 +424,151 @@
       if (spec.type === 'bool') val = el.checked;
       else if (spec.type === 'int') val = parseInt(el.value, 10) || 0;
       else if (spec.type === 'float') val = parseFloat(el.value) || 0;
+      else if (spec.type === 'thinking') val = thinkingLevels[el.value] || 32000;
       else val = el.value;
 
       const patch = {};
       patch[spec.key] = val;
-      if (ws && ws.readyState === WebSocket.OPEN) {
-        ws.send(JSON.stringify({type: 'update_settings', settings: patch}));
-      }
+      sendPatch(patch);
     });
   });
 
-  function applySettings(s) {
-    // The server is authoritative and, since Settings dropped omitempty, always
-    // sends every field. So test PRESENCE, not truthiness: a truthy test silently
-    // discards a legitimate zero, which is how a clamped value could be corrected
-    // on the server and still display the old number here. Strings keep the truthy
-    // test, because an empty one means "unset" and must not blank a live control.
-    if (s.model) document.getElementById('set-model').value = s.model;
-    if (s.temperature !== undefined) document.getElementById('set-temperature').value = s.temperature;
-    if (s.max_tokens !== undefined) document.getElementById('set-max-tokens').value = s.max_tokens;
-    if (s.thinking_budget !== undefined) document.getElementById('set-thinking-budget').value = s.thinking_budget;
-    if (s.max_tool_rounds !== undefined) document.getElementById('set-max-tool-rounds').value = s.max_tool_rounds;
-    if (s.context_target !== undefined) document.getElementById('set-context-target').value = s.context_target || 400000;
-    if (s.log_retention !== undefined) document.getElementById('set-log-retention').value = s.log_retention;
-    document.getElementById('set-tts-enabled').checked = !!s.tts_enabled;
-    if (s.tts_speed !== undefined) document.getElementById('set-tts-speed').value = s.tts_speed;
-    if (s.font_size !== undefined) document.getElementById('set-font-size').value = s.font_size;
-    if (s.theme) document.getElementById('set-theme').value = s.theme;
+  // Band config change handlers.
+  document.querySelectorAll('.band-row[data-band]').forEach(row => {
+    const band = row.dataset.band;
+    const toggle = row.querySelector('.band-enabled');
+    const budget = row.querySelector('.band-budget-input');
 
-    // Apply theme.
-    applyTheme(s.theme || 'dark');
-
-    // Apply font size.
-    if (s.font_size) {
-      document.documentElement.style.fontSize = s.font_size + 'px';
+    function sendBandPatch() {
+      const mem = {};
+      mem[band] = {
+        disabled: !toggle.checked,
+        budget: parseInt(budget.value, 10) || 0,
+      };
+      sendPatch({memory: mem});
     }
 
-    // Apply TTS. Speed is a float: Bill runs 2.5 or 3.8, so this must never be
-    // rounded or coerced to an integer anywhere along the path.
+    toggle.addEventListener('change', sendBandPatch);
+    budget.addEventListener('change', sendBandPatch);
+  });
+
+  // ── Session usage meter ──
+
+  // Compact token counts. A working session runs to millions of tokens, and
+  // the raw digits are both hard to read and wide enough to reflow the bar
+  // every time they gain a place.
+  function fmtTokens(n) {
+    if (n >= 1e6) return (n / 1e6).toFixed(2) + 'M';
+    if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+    return String(n);
+  }
+
+  // Small amounts need more decimals, or the first several turns of a session
+  // all read a flat "$0.00" and the meter looks broken rather than cheap.
+  function fmtCost(d) {
+    if (d >= 1) return '$' + d.toFixed(2);
+    if (d > 0) return '$' + d.toFixed(4);
+    return '$0.00';
+  }
+
+  function renderUsage(u) {
+    const input = u.input || 0;
+    const cacheWrite = u.cache_write || 0;
+    const cacheRead = u.cache_read || 0;
+
+    // The three input categories are disjoint, so this is the true total the
+    // session was charged for on the way in. Cache read is a subset of it,
+    // which is what makes the pair readable: "187K in, 184K of it cached".
+    const totalIn = input + cacheWrite + cacheRead;
+
+    const cost = document.getElementById('u-cost');
+    if (u.priced) {
+      cost.textContent = fmtCost(u.cost_usd || 0);
+      cost.classList.remove('unpriced');
+      cost.title = 'Session cost so far';
+    } else {
+      // An unpriced model and a model that has spent nothing both cost zero
+      // dollars. A dash keeps the first from looking like the second.
+      cost.textContent = '$—';
+      cost.classList.add('unpriced');
+      cost.title = 'This model has no price sheet, so cost is unknown';
+    }
+
+    document.getElementById('u-in').textContent = 'in ' + fmtTokens(totalIn);
+    document.getElementById('u-cr').textContent = 'cache ' + fmtTokens(cacheRead);
+    document.getElementById('u-hit').textContent = ((u.hit_rate || 0) * 100).toFixed(1) + '%';
+
+    // Exact figures on hover, since the compact forms round.
+    document.getElementById('usage-meter').title =
+      'input ' + input.toLocaleString() +
+      ' · cache write ' + cacheWrite.toLocaleString() +
+      ' · cache read ' + cacheRead.toLocaleString() +
+      ' · output ' + (u.output || 0).toLocaleString();
+  }
+
+  function applySettings(s) {
+    // Flat keys: this is the wire contract. The settings dialog groups these
+    // into tabs and the file groups them into sections, but neither grouping
+    // appears here — the server sends one flat object with every field
+    // present, so "off" is distinguishable from "not mentioned".
+
+    // AI
+    if (s.model) {
+      document.getElementById('set-model').value = s.model;
+      updateContextSliderForModel(s.model);
+    }
+    if (s.max_tool_rounds !== undefined) document.getElementById('set-max-tool-rounds').value = s.max_tool_rounds;
+    if (s.thinking_budget !== undefined) {
+      document.getElementById('set-thinking-level').value = thinkingLevelFromBudget(s.thinking_budget);
+    }
+    if (s.context_target !== undefined) {
+      const slider = document.getElementById('set-context-target');
+      const val = s.context_target || Math.round(parseInt(slider.max, 10) / 2);
+      slider.value = val;
+      updateRangeDisplay(slider);
+    }
+    if (s.log_retention !== undefined) document.getElementById('set-log-retention').value = s.log_retention;
+
+    // Appearance
+    if (s.theme) document.getElementById('set-theme').value = s.theme;
+    if (s.font_size !== undefined) {
+      const size = s.font_size || 16;  // 0 means unset; default to 16px
+      document.getElementById('set-font-size').value = size;
+      updateRangeDisplay(document.getElementById('set-font-size'));
+    }
+    applyTheme(s.theme || 'dark');
+    applyFontSize(s.font_size);
+
+    // Accessibility
+    document.getElementById('set-tts-enabled').checked = !!s.tts_enabled;
+    if (s.tts_speed !== undefined) {
+      document.getElementById('set-tts-speed').value = s.tts_speed;
+      updateRangeDisplay(document.getElementById('set-tts-speed'));
+    }
     if (typeof TTS !== 'undefined') {
       TTS.enabled = !!s.tts_enabled;
       if (s.tts_speed !== undefined) TTS.rate = s.tts_speed;
     }
+
+    // Memory band config. This one really is nested on the wire, because the
+    // field itself is a struct of six bands rather than six sibling keys.
+    if (s.memory) {
+      const bands = {soul: s.memory.soul, memory: s.memory.memory,
+        '64x': s.memory['64x'], '8x': s.memory['8x'],
+        session: s.memory.session, conversation: s.memory.conversation};
+      Object.entries(bands).forEach(([name, band]) => {
+        if (!band) return;
+        const row = document.querySelector(`.band-row[data-band="${name}"]`);
+        if (!row) return;
+        row.querySelector('.band-enabled').checked = !band.disabled;
+        row.querySelector('.band-budget-input').value = band.budget || 0;
+      });
+    }
+  }
+
+  function applyFontSize(size) {
+    const px = size || 16;
+    document.documentElement.style.fontSize = px + 'px';
   }
 
   function applyTheme(theme) {

@@ -316,12 +316,13 @@ func (openAISeam) Parse(resp *http.Response, cb common.StreamCallbacks) error {
 		return err
 	}
 	// No thinking extractor: Chat Completions has no reasoning block to show.
-	emitLengthOneDeltas(parts, cb, nil)
+	pm := newPartIDMapper(cb)
+	emitLengthOneDeltas(parts, pm, cb, nil)
 	cb.Emit(common.Event{Type: common.ResponseStarted})
 	cb.Emit(common.Event{Type: common.ResponseEnded, Response: &common.ResponseData{
 		Parts: parts, From: from, Usage: usage,
 	}})
-	emitFinals(parts, cb)
+	emitFinals(parts, pm, cb)
 	return nil
 }
 
@@ -406,7 +407,6 @@ func oaiParseStream(resp *http.Response, cb common.StreamCallbacks) error {
 	var (
 		text    strings.Builder
 		textID  uint64
-		nextID  uint64
 		calls   = map[int]*oaiStreamCall{}
 		order   []int
 		usage   common.Usage
@@ -419,7 +419,12 @@ func oaiParseStream(resp *http.Response, cb common.StreamCallbacks) error {
 	// tool call's arguments can arrive before it is settled whether any text
 	// part exists at all. Because the same function reports the finals, the
 	// id only ever has to mean "the same part".
-	alloc := func() uint64 { nextID++; return nextID }
+	alloc := func() uint64 {
+		if cb.AllocPartID != nil {
+			return cb.AllocPartID()
+		}
+		return 0
+	}
 
 	readErr := ReadSSE(resp.Body, func(eventType string, data []byte) {
 		cb.Frame(eventType, data)

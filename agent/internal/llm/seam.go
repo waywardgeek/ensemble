@@ -206,13 +206,37 @@ func isSSE(resp *http.Response) bool {
 	return strings.Contains(resp.Header.Get("Content-Type"), "text/event-stream")
 }
 
-// partID converts a zero-based vendor block index into a part id.
+// partIDMapper allocates globally unique part IDs on demand, keyed by the
+// vendor's zero-based block index. Every call with the same blockIndex returns
+// the same ID; a new blockIndex allocates a fresh one from cb.AllocPartID.
 //
-// One-based, because zero is a perfectly ordinary index and a perfectly
-// suspicious id. Deltas and the PartFinal that supersedes them must agree on
-// this number, so it is derived from the vendor's own block index and never
-// from a counter that advances per chunk.
-func partID(blockIndex int) uint64 { return uint64(blockIndex) + 1 }
+// This replaces the old partID(blockIndex) function, which returned
+// blockIndex+1 — a per-response counter that collided across turns, causing
+// the GUI to route turn N's deltas into turn N-1's artifact.
+type partIDMapper struct {
+	alloc func() uint64
+	m     map[int]uint64
+}
+
+func newPartIDMapper(cb common.StreamCallbacks) partIDMapper {
+	alloc := cb.AllocPartID
+	if alloc == nil {
+		// Fallback for callers that don't set AllocPartID (e.g. graders,
+		// compressors). One-based to preserve the old behavior.
+		var seq uint64
+		alloc = func() uint64 { seq++; return seq }
+	}
+	return partIDMapper{alloc: alloc, m: make(map[int]uint64)}
+}
+
+func (p partIDMapper) id(blockIndex int) uint64 {
+	if id, ok := p.m[blockIndex]; ok {
+		return id
+	}
+	id := p.alloc()
+	p.m[blockIndex] = id
+	return id
+}
 
 // emitLengthOneDeltas reports an already-complete part list as deltas.
 //
@@ -226,9 +250,9 @@ func partID(blockIndex int) uint64 { return uint64(blockIndex) + 1 }
 // block. It returns "" when there is nothing safe to show, which is the right
 // answer for redacted reasoning: the part is still carried in the event, it
 // simply has no display text.
-func emitLengthOneDeltas(parts common.PartList, cb common.StreamCallbacks, thinking func(common.OpaquePart) string) {
+func emitLengthOneDeltas(parts common.PartList, pm partIDMapper, cb common.StreamCallbacks, thinking func(common.OpaquePart) string) {
 	for i, p := range parts {
-		id := partID(i)
+		id := pm.id(i)
 		switch v := p.(type) {
 		case common.TextPart:
 			if v.Text != "" {
@@ -260,9 +284,9 @@ func emitLengthOneDeltas(parts common.PartList, cb common.StreamCallbacks, think
 // Called after the event that carries the parts, never before: an observer
 // that re-renders a widget when a part finalizes should be reading a log that
 // already has the part in it.
-func emitFinals(parts common.PartList, cb common.StreamCallbacks) {
+func emitFinals(parts common.PartList, pm partIDMapper, cb common.StreamCallbacks) {
 	for i, p := range parts {
-		cb.Final(partID(i), p)
+		cb.Final(pm.id(i), p)
 	}
 }
 

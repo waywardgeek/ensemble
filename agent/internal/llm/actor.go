@@ -466,6 +466,9 @@ func (a *Actor) finishTurn(text string, err error) {
 // read the context here.
 func (a *Actor) streamWatch() common.StreamCallbacks {
 	return common.StreamCallbacks{
+		AllocPartID: func() uint64 {
+			return atomic.AddUint64(&a.partSeq, 1)
+		},
 		OnDelta: func(partID uint64, kind common.DeltaKind, chunk string) {
 			a.notify(common.PartDelta{PartID: partID, Kind: kind, Chunk: chunk})
 		},

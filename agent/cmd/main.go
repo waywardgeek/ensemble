@@ -16,11 +16,14 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/signal"
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 
 	agent "github.com/waywardgeek/ensemble/agent"
+	"github.com/waywardgeek/ensemble/agent/internal/cachelens"
 	"github.com/waywardgeek/ensemble/agent/internal/common"
 	"github.com/waywardgeek/ensemble/agent/internal/jobs"
 	"github.com/waywardgeek/ensemble/agent/internal/llm"
@@ -214,6 +217,11 @@ func main() {
 
 // cliHost implements common.Host for the CLI with three log destinations.
 type cliHost struct {
+	// UsageCounter holds this run's token totals. cliHost is the composition
+	// root for the server, so its lifespan is the process — which is exactly
+	// the session the header reports on.
+	common.UsageCounter
+
 	logger *agent.Logger
 }
 
@@ -315,6 +323,18 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	cfg.Tools = reg.Declarations()
 
 	eng := llm.NewEngine(cfg, logPath, j, reg, host)
+
+	// Cache analysis is on by default, like api.log and debug.log.
+	//
+	// A cache miss is the one failure in this program that produces a correct
+	// answer, so nothing else will ever report it: no error, no exception, no
+	// failing test. It shows up only on the invoice, thirty days later,
+	// aggregated past the point where you could tell which change caused it. A
+	// failure with no natural signal needs a manufactured one, and a signal
+	// that has to be switched on is off on the day you need it.
+	//
+	// The captures land in the working directory beside the other two logs.
+	eng.Cache = cachelens.New(".", func(s string) { host.Debugf("%s", s) })
 
 	// Load at start (rule 2). No flag decides this; the files' existence
 	// does. Chapter 15 adds the journal: every event recorded since the
@@ -556,7 +576,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 
 		hub := ws.NewHub(gate, func(msg common.Inbound) {
 			actor.Send(msg)
-		}, "gui.log", eng.Log, settingsStore)
+		}, "gui.log", eng.Log, settingsStore, host)
 		defer hub.Close()
 		hub.SetTTSLog(ttsLogPath)
 		actor.Attach(hub)
@@ -624,96 +644,116 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		return false
 	}
 
-	// Read stdin on this goroutine.
-	in := bufio.NewScanner(os.Stdin)
-	in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
-	hinted := false
+	// Read stdin on its own goroutine so the main goroutine can wait on
+	// either end-of-input or a signal. A blocking Scan cannot be cancelled,
+	// so on Ctrl-C we abandon this goroutine and leave through the normal
+	// path below — which is the whole point, because that path holds the save.
+	stdinDone := make(chan struct{})
+	go func() {
+		defer close(stdinDone)
 
-	for in.Scan() {
-		line := strings.TrimSpace(in.Text())
-		if line == "" {
-			continue
-		}
+		in := bufio.NewScanner(os.Stdin)
+		in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
+		hinted := false
 
-		var msg stdinMsg
-		if err := json.Unmarshal([]byte(line), &msg); err != nil {
-			emitLocked(map[string]string{"error": "bad input: " + err.Error()})
-			if !hinted {
-				hinted = true
-				// The guidance below also exists in the TTY banner, which a
-				// piped caller never sees. Someone feeding this binary the
-				// wrong thing is exactly the person who needs to be told
-				// what the right thing is, so say it here too.
-				fmt.Fprintf(os.Stderr, "\n%[1]s: that line is not JSON.\n", progName())
-				fmt.Fprintf(os.Stderr, "%[1]s reads a JSON-lines log on stdin, one message per line.\n", progName())
-				fmt.Fprintf(os.Stderr, "for an interactive chat run `%[1]s chat`; `%[1]s --help` lists every command\n", progName())
+		for in.Scan() {
+			line := strings.TrimSpace(in.Text())
+			if line == "" {
+				continue
 			}
-			continue
-		}
 
-		// Chapter 6 protocol: {"kind":"prompt","text":"..."}
-		if msg.Kind != nil {
-			switch *msg.Kind {
-			case "prompt":
-				if msg.Text == nil {
-					emitLocked(map[string]string{"error": "prompt requires text"})
+			var msg stdinMsg
+			if err := json.Unmarshal([]byte(line), &msg); err != nil {
+				emitLocked(map[string]string{"error": "bad input: " + err.Error()})
+				if !hinted {
+					hinted = true
+					// The guidance below also exists in the TTY banner, which a
+					// piped caller never sees. Someone feeding this binary the
+					// wrong thing is exactly the person who needs to be told
+					// what the right thing is, so say it here too.
+					fmt.Fprintf(os.Stderr, "\n%[1]s: that line is not JSON.\n", progName())
+					fmt.Fprintf(os.Stderr, "%[1]s reads a JSON-lines log on stdin, one message per line.\n", progName())
+					fmt.Fprintf(os.Stderr, "for an interactive chat run `%[1]s chat`; `%[1]s --help` lists every command\n", progName())
+				}
+				continue
+			}
+
+			// Chapter 6 protocol: {"kind":"prompt","text":"..."}
+			if msg.Kind != nil {
+				switch *msg.Kind {
+				case "prompt":
+					if msg.Text == nil {
+						emitLocked(map[string]string{"error": "prompt requires text"})
+						continue
+					}
+					actor.Send(common.UserMessage{Text: *msg.Text})
+					// Wait for turn to end.
+					obs, err := actor.Wait(ctx, func(o common.Observation) bool {
+						_, ok := o.(common.TurnEnded)
+						return ok
+					})
+					if err != nil {
+						vendorFailed = true
+						emitLocked(map[string]string{"error": err.Error()})
+						continue
+					}
+					ended := obs.(common.TurnEnded)
+					if ended.Err != "" {
+						vendorFailed = true
+						emitLocked(map[string]string{"error": ended.Err})
+					} else {
+						emitLocked(map[string]string{"assistant": ended.Text})
+					}
+				case "hint":
+					if msg.Text == nil {
+						emitLocked(map[string]string{"error": "hint requires text"})
+						continue
+					}
+					actor.Send(common.Hint{Text: *msg.Text})
+				case "interrupt":
+					actor.Send(common.Interrupt{})
+				default:
+					emitLocked(map[string]string{"error": "unknown kind: " + *msg.Kind})
+				}
+				continue
+			}
+
+			// Backward compat: {"ephemeral":"..."}
+			if msg.Ephemeral != nil {
+				if err := eng.Attach(*msg.Ephemeral); err != nil {
+					emitLocked(map[string]string{"error": err.Error()})
 					continue
 				}
-				actor.Send(common.UserMessage{Text: *msg.Text})
-				// Wait for turn to end.
-				obs, err := actor.Wait(ctx, func(o common.Observation) bool {
-					_, ok := o.(common.TurnEnded)
-					return ok
-				})
+				emitLocked(map[string]string{"ack": "ephemeral"})
+				continue
+			}
+
+			// Backward compat: {"user":"..."}
+			if msg.User != nil {
+				reply, err := eng.Ask(*msg.User)
 				if err != nil {
 					vendorFailed = true
 					emitLocked(map[string]string{"error": err.Error()})
 					continue
 				}
-				ended := obs.(common.TurnEnded)
-				if ended.Err != "" {
-					vendorFailed = true
-					emitLocked(map[string]string{"error": ended.Err})
-				} else {
-					emitLocked(map[string]string{"assistant": ended.Text})
-				}
-			case "hint":
-				if msg.Text == nil {
-					emitLocked(map[string]string{"error": "hint requires text"})
-					continue
-				}
-				actor.Send(common.Hint{Text: *msg.Text})
-			case "interrupt":
-				actor.Send(common.Interrupt{})
-			default:
-				emitLocked(map[string]string{"error": "unknown kind: " + *msg.Kind})
-			}
-			continue
-		}
-
-		// Backward compat: {"ephemeral":"..."}
-		if msg.Ephemeral != nil {
-			if err := eng.Attach(*msg.Ephemeral); err != nil {
-				emitLocked(map[string]string{"error": err.Error()})
+				emitLocked(map[string]string{"assistant": reply})
 				continue
 			}
-			emitLocked(map[string]string{"ack": "ephemeral"})
-			continue
-		}
 
-		// Backward compat: {"user":"..."}
-		if msg.User != nil {
-			reply, err := eng.Ask(*msg.User)
-			if err != nil {
-				vendorFailed = true
-				emitLocked(map[string]string{"error": err.Error()})
-				continue
-			}
-			emitLocked(map[string]string{"assistant": reply})
-			continue
+			emitLocked(map[string]string{"error": "no recognized field"})
 		}
+	}()
 
-		emitLocked(map[string]string{"error": "no recognized field"})
+	// Ctrl-C and SIGTERM have to reach the same save that a clean exit runs.
+	// Without this the process dies with the conversation live only in the
+	// journal, and save.json is never written at all.
+	sigCh := make(chan os.Signal, 1)
+	signal.Notify(sigCh, os.Interrupt, syscall.SIGTERM)
+
+	select {
+	case <-stdinDone:
+	case sig := <-sigCh:
+		fmt.Fprintf(os.Stderr, "\n%v received, saving conversation...\n", sig)
 	}
 
 	_ = actor.Shutdown()
@@ -983,6 +1023,9 @@ func envOr(k, def string) string {
 	if v := os.Getenv(k); v != "" {
 		return v
 	}
+	if v := homeSetting(k); v != "" {
+		return v
+	}
 	return def
 }
 
@@ -990,5 +1033,47 @@ func pick(primary, secondary, def string) string {
 	if v := os.Getenv(primary); v != "" {
 		return v
 	}
-	return envOr(secondary, def)
+	if v := os.Getenv(secondary); v != "" {
+		return v
+	}
+	if v := homeSetting(primary); v != "" {
+		return v
+	}
+	if v := homeSetting(secondary); v != "" {
+		return v
+	}
+	return def
+}
+
+// homeSetting reads one value from ~/.en/settings.json.
+//
+// This re-reads the file on every lookup rather than caching it in a package
+// variable, which is deliberate. A package-level var holding process-wide
+// configuration is the mutable global the architecture forbids: it makes tests
+// order-dependent, it cannot be overridden per agent, and it is invisible to
+// the composition root. The file holds a handful of keys and is consulted only
+// while assembling the startup config, so the cost of not caching it is a few
+// microseconds once. That is a good trade for keeping the global out.
+func homeSetting(key string) string {
+	if v, ok := loadHomeSettings()[strings.ToLower(key)]; ok {
+		return v
+	}
+	return ""
+}
+
+func loadHomeSettings() map[string]string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return nil
+	}
+	data, err := os.ReadFile(filepath.Join(home, ".en", "settings.json"))
+	if err != nil {
+		return nil
+	}
+	var raw map[string]string
+	if err := json.Unmarshal(data, &raw); err != nil {
+		fmt.Fprintf(os.Stderr, "warning: ~/.en/settings.json: %v\n", err)
+		return nil
+	}
+	return raw
 }

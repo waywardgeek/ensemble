@@ -81,6 +81,12 @@ func (h testHost) Logf(format string, args ...any)    { h.t.Logf(format, args...
 func (h testHost) APILogf(format string, args ...any) { h.t.Logf(format, args...) }
 func (h testHost) Debugf(format string, args ...any)  { h.t.Logf(format, args...) }
 
+// testHost is a value type, so it cannot embed common.UsageCounter: that would
+// copy a mutex on every assignment. These tests exercise compaction and assert
+// nothing about spend, so the counts are discarded rather than tracked.
+func (h testHost) RecordUsage(common.Usage)   {}
+func (h testHost) SessionUsage() common.Usage { return common.Usage{} }
+
 // bandText pulls the text of a band's entries, which is what the model
 // actually sees.
 func bandText(c *common.Context, b common.Band) []string {

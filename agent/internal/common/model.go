@@ -33,6 +33,11 @@ func (m Media) String() string {
 
 // ModelFeatures is one row: everything the seam needs to know about a model.
 type ModelFeatures struct {
+	// Price is the dollar cost per million tokens for each of the four
+	// disjoint Usage categories. The zero sheet means unpriced, not free:
+	// see Pricing.
+	Price Pricing
+
 	Media Media
 
 	// Stream is the set of delta kinds this model actually streams.
@@ -97,23 +102,129 @@ type ModelFeatures struct {
 // way to re-verify it, and no chapter's correctness depends on a particular
 // model ID still existing. The table is an example of a shape, not a reference
 // you should trust.
+// ModelEntry is a model with its ID, for ordered iteration.
+type ModelEntry struct {
+	ID       string
+	Features ModelFeatures
+}
+
+// ModelJSON is the JSON-friendly model descriptor sent to the GUI.
+type ModelJSON struct {
+	ID            string `json:"id"`
+	DisplayName   string `json:"display_name"`
+	Vendor        string `json:"vendor"`
+	ContextWindow int    `json:"context_window"`
+	MaxOutput     int    `json:"max_output"`
+}
+
+// ModelListJSON returns the model catalog for the GUI dropdown.
+func ModelListJSON() []ModelJSON {
+	entries := ModelList()
+	out := make([]ModelJSON, len(entries))
+	for i, e := range entries {
+		out[i] = ModelJSON{
+			ID:            e.ID,
+			DisplayName:   displayName(e.ID),
+			Vendor:        vendor(e.ID),
+			ContextWindow: e.Features.ContextWindow,
+			MaxOutput:     e.Features.MaxOutputTokens,
+		}
+	}
+	return out
+}
+
+// ModelList returns the user-facing models in display order, grouped by vendor.
+// Grader/test models are excluded. The GUI builds its dropdown from this.
+func ModelList() []ModelEntry {
+	return []ModelEntry{
+		// Anthropic
+		{ID: "claude-opus-4-6", Features: models()["claude-opus-4-6"]},
+		{ID: "claude-opus-5", Features: models()["claude-opus-5"]},
+		{ID: "claude-sonnet-5", Features: models()["claude-sonnet-5"]},
+		// OpenAI
+		{ID: "gpt-6-astra", Features: models()["gpt-6-astra"]},
+		{ID: "gpt-5.6-sol", Features: models()["gpt-5.6-sol"]},
+		// Google
+		{ID: "gemini-3.8-flash", Features: models()["gemini-3.8-flash"]},
+		{ID: "gemini-3.1-pro-preview", Features: models()["gemini-3.1-pro-preview"]},
+	}
+}
+
+// displayName returns a human-readable label for a model ID.
+func displayName(id string) string {
+	names := map[string]string{
+		"claude-opus-4-6":        "Claude Opus 4.6",
+		"claude-opus-5":          "Claude Opus 5",
+		"claude-sonnet-5":        "Claude Sonnet 5",
+		"gpt-6-astra":            "GPT-6 Astra",
+		"gpt-5.6-sol":            "GPT-5.6 Sol",
+		"gemini-3.8-flash":       "Gemini 3.8 Flash",
+		"gemini-3.1-pro-preview": "Gemini 3.1 Pro",
+	}
+	if n, ok := names[id]; ok {
+		return n
+	}
+	return id
+}
+
+// vendor returns the vendor group label for a model ID.
+func vendor(id string) string {
+	if len(id) >= 6 && id[:6] == "claude" {
+		return "Anthropic"
+	}
+	if len(id) >= 3 && id[:3] == "gpt" {
+		return "OpenAI"
+	}
+	if len(id) >= 6 && id[:6] == "gemini" {
+		return "Google"
+	}
+	return "Other"
+}
+
+// Pricing is dollars per million tokens, with one field per disjoint Usage
+// category. The categories do not overlap, so a cost is a plain dot product
+// of a tally against a sheet.
+//
+// The multipliers are NOT uniform across vendors, which is why these are
+// stored explicitly rather than derived from Input by a constant factor.
+// Anthropic charges 1.25x input to write a cache entry and 0.1x to read one;
+// one Anthropic model reads at 0.05x; Gemini charges no write premium at all
+// (CacheWrite == Input); and several models support no caching whatsoever.
+// A computed multiplier would be wrong for most rows in the table.
+//
+// Zero means UNPRICED, not free. Course and fake models used by graders have
+// no price sheet, and a renderer must show a dash for them rather than
+// "$0.00" — an unpriced model must not be able to masquerade as a free one.
+type Pricing struct {
+	Input      float64
+	CacheWrite float64
+	CacheRead  float64
+	Output     float64
+}
+
+// Priced reports whether a sheet has been filled in. Tested on the two
+// categories every paid model charges for, so a row cannot look priced
+// merely by declaring a cache rate.
+func (p Pricing) Priced() bool {
+	return p.Input > 0 || p.Output > 0
+}
+
 // models returns the feature table. A function rather than a package-level var
 // so that the table is effectively immutable — no code can write to it.
 func models() map[string]ModelFeatures {
 	return map[string]ModelFeatures{
 		// Anthropic — no audio, no video. Streams all three kinds.
-		// Both Opus 5 and Sonnet 5 support extended thinking with a budget
-		// of at least 32768 tokens. MaxOutputTokens 16384 is a reasonable
-		// reply ceiling when thinking is enabled (total = budget + reply).
-		"claude-opus-5":   {ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
-		"claude-sonnet-5": {ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		// All current Anthropic models have 1M context windows as of 2026.
+		"claude-opus-4-6": {Price: Pricing{Input: 5, CacheWrite: 6.25, CacheRead: 0.5, Output: 25}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
+		"claude-opus-5":   {Price: Pricing{Input: 5, CacheWrite: 6.25, CacheRead: 0.5, Output: 25}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
+		"claude-sonnet-5": {Price: Pricing{Input: 3, CacheWrite: 3.75, CacheRead: 0.3, Output: 15}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true},
 
 		// OpenAI — images yes, audio and video NO (video APIs are generation).
 		// Reasoning arrives as a summary rather than as incremental deltas,
 		// so thinking is not streamed. These models support reasoning_effort
 		// but do not return reasoning content on Chat Completions.
-		"gpt-6-astra": {ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
-		"gpt-5.6-sol": {ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gpt-6-astra": {Price: Pricing{Input: 10, CacheWrite: 12.50, CacheRead: 1.0, Output: 50}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gpt-5.6-sol": {Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Gemini — images, audio, video, documents. Text and thinking stream;
 		// FUNCTION-CALL ARGUMENTS DO NOT. They arrive complete, in one frame.
@@ -121,8 +232,8 @@ func models() map[string]ModelFeatures {
 		// description of this model needs two of three bits set, and a bool
 		// would have forced us either to drop text streaming or to invent
 		// argument chunks that the vendor never sent.
-		"gemini-3.8-flash":       {ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
-		"gemini-3.1-pro-preview": {ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gemini-3.8-flash":       {Price: Pricing{Input: 0.75, CacheWrite: 0.75, CacheRead: 0.075, Output: 3.75}, ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gemini-3.1-pro-preview": {Price: Pricing{Input: 2, CacheWrite: 2.0, CacheRead: 0.20, Output: 12}, ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Fake model used by the grader — images only, to test loud refusal.
 		// Streams everything, because the streaming checks need all three

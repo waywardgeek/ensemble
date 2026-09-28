@@ -10,6 +10,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/waywardgeek/ensemble/agent/internal/common"
@@ -39,6 +40,7 @@ type Hub struct {
 	ttsLog       *TTSLogger                       // speech channel record; nil-safe when unset
 	log          *common.Log                      // event log — read-only access for reconnection
 	settings     common.SettingsSource            // GUI-editable settings; nil = no settings
+	usage        common.UsageSource               // session token tally; nil = no meter
 	mcpReceivers map[string]func(json.RawMessage) // source tag → JSON-RPC receiver (in-process agents)
 	mcpAgents    map[string]*Client               // source tag → WebSocket client (remote agents like virtual user)
 }
@@ -46,8 +48,9 @@ type Hub struct {
 // NewHub creates a hub. send is called for every prompt/hint/interrupt
 // received from a browser; gate controls tool-dispatch pausing; eventLog
 // provides read access to the append-only event log for reconnection;
-// settings provides the GUI-editable settings store (may be nil).
-func NewHub(gate *common.PauseGate, send func(common.Inbound), guiLogPath string, eventLog *common.Log, settings common.SettingsSource) *Hub {
+// settings provides the GUI-editable settings store (may be nil); usage
+// provides the running session token tally for the status meter (may be nil).
+func NewHub(gate *common.PauseGate, send func(common.Inbound), guiLogPath string, eventLog *common.Log, settings common.SettingsSource, usage common.UsageSource) *Hub {
 	h := &Hub{
 		clients:      make(map[*Client]bool),
 		inflight:     make(map[uint64][]byte),
@@ -56,8 +59,17 @@ func NewHub(gate *common.PauseGate, send func(common.Inbound), guiLogPath string
 		guiLog:       NewGuiLogger(guiLogPath),
 		log:          eventLog,
 		settings:     settings,
+		usage:        usage,
 		mcpReceivers: make(map[string]func(json.RawMessage)),
 		mcpAgents:    make(map[string]*Client),
+	}
+	// logLen is the hub's notion of how much of the log is renderable. It was
+	// previously advanced only by Observe, so on a restored session — where the
+	// log is already full but no observation has arrived yet — it stayed at zero
+	// and subscribe replayed nothing at all. Seed it from the log we are handed
+	// so a connecting client sees the existing conversation immediately.
+	if eventLog != nil {
+		h.logLen = len(eventLog.Events)
 	}
 	return h
 }
@@ -126,6 +138,18 @@ func (h *Hub) BroadcastJSONRPC(data json.RawMessage, source string) {
 
 // Observe implements common.Observer. Must not block.
 func (h *Hub) Observe(obs common.Observation) {
+	// A turn just finished, so the session tally has moved: refresh the
+	// meter. This runs before the marshal below because that path returns
+	// early for observations with no wire representation, and before h.mu
+	// is taken because broadcastUsage acquires it itself.
+	//
+	// Usage is already recorded by the time this fires: the engine records
+	// on ResponseEnded, and a turn's last response always ends before the
+	// turn does.
+	if _, ok := obs.(common.TurnEnded); ok {
+		h.broadcastUsage()
+	}
+
 	// Update in-flight state and build the wire message for this observation.
 	data := marshalObservation(obs)
 	if data == nil {
@@ -213,6 +237,22 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 // subscribe reports the available event-log range, sends the full
 // renderable window, and marks the client live. The client can
 // optionally call fetch later for gap repair or older history.
+// sendReplay delivers one replayed message, waiting for room in the client's
+// buffer rather than dropping it. Live frames may be dropped safely because a
+// newer one supersedes them, but a replayed frame is never re-sent: dropping it
+// silently removes part of the conversation the user is trying to read. The
+// timeout keeps a dead or wedged client from pinning this goroutine forever.
+func sendReplay(c *Client, data []byte) bool {
+	t := time.NewTimer(5 * time.Second)
+	defer t.Stop()
+	select {
+	case c.send <- data:
+		return true
+	case <-t.C:
+		return false
+	}
+}
+
 func (h *Hub) subscribe(c *Client) {
 	h.mu.Lock()
 	logLen := h.logLen
@@ -241,14 +281,18 @@ func (h *Hub) subscribe(c *Client) {
 	}
 	h.guiLog.Log("<", rangeMsg)
 
-	// Send the renderable event-log window.
+	// Send the renderable event-log window. Unlike a live frame, a dropped
+	// replay message is never re-sent, so it leaves a permanent hole in the
+	// history the user sees. A long conversation renders to far more messages
+	// than the 256 slots c.send holds, so wait for room instead of dropping.
+	// The timeout bounds the wait so a dead client cannot pin this goroutine.
+replay:
 	for i := 0; i < logLen; i++ {
 		e := events[i]
 		if msgs := renderEvent(e); len(msgs) > 0 {
 			for _, data := range msgs {
-				select {
-				case c.send <- data:
-				default:
+				if !sendReplay(c, data) {
+					break replay
 				}
 			}
 		}
@@ -269,18 +313,89 @@ func (h *Hub) subscribe(c *Client) {
 	c.live = true
 	h.mu.Unlock()
 
-	// Send current settings so the client has the full state.
+	// Send current settings and the model catalog so the client has the full state.
 	if h.settings != nil {
 		s := h.settings.Get()
 		data, _ := json.Marshal(map[string]any{
 			"type":     "current_settings",
 			"settings": s,
+			"models":   common.ModelListJSON(),
 		})
 		select {
 		case c.send <- data:
 		default:
 		}
 		h.guiLog.Log("<", data)
+	}
+
+	// Send the session meter so a freshly loaded page shows the running
+	// total rather than zeros until the next turn happens to end.
+	if data := h.usageFrame(); data != nil {
+		select {
+		case c.send <- data:
+		default:
+		}
+		h.guiLog.Log("<", data)
+	}
+}
+
+// usageFrame builds the session meter frame, or returns nil if there is no
+// usage source to read.
+//
+// Cost is computed here rather than in the browser so that the price table has
+// exactly one home. The event log deliberately stores counts and never money
+// (prices change; counts are history), but this frame is a live display and
+// dollars are what the reader wants.
+//
+// priced is carried separately because an unpriced model and a model that has
+// spent nothing both cost zero, and the GUI must be able to tell them apart:
+// one renders a dash, the other "$0.00".
+func (h *Hub) usageFrame() []byte {
+	if h.usage == nil {
+		return nil
+	}
+	u := h.usage.SessionUsage()
+
+	var (
+		priced bool
+		cost   float64
+	)
+	if h.settings != nil {
+		if f, ok := common.LookupModel(h.settings.Get().Model); ok && f.Price.Priced() {
+			priced = true
+			cost = common.CostUSD(u, f.Price)
+		}
+	}
+
+	data, _ := json.Marshal(map[string]any{
+		"type":        "usage",
+		"input":       u.Input,
+		"cache_write": u.CacheWrite,
+		"cache_read":  u.CacheRead,
+		"output":      u.Output,
+		"hit_rate":    common.CacheHitRate(u),
+		"cost_usd":    cost,
+		"priced":      priced,
+	})
+	return data
+}
+
+// broadcastUsage pushes the session meter to every live client.
+func (h *Hub) broadcastUsage() {
+	data := h.usageFrame()
+	if data == nil {
+		return
+	}
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for c := range h.clients {
+		if !c.live {
+			continue
+		}
+		select {
+		case c.send <- data:
+		default:
+		}
 	}
 }
 

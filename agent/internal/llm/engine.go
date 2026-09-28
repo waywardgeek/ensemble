@@ -55,6 +55,17 @@ type Engine struct {
 	// constructor call at the top of the program.
 	Recall common.Recaller
 
+	// Cache, when set, observes every request and the usage it produced, and
+	// reports where the cacheable prefix stopped matching the previous turn.
+	// Nil disables the analysis, which is what every chapter before this one
+	// wants.
+	//
+	// It observes rather than participates: it cannot alter the request, and a
+	// failure inside it must never fail the turn. An agent that refuses to
+	// answer because its instrumentation is unhappy is worse than an
+	// uninstrumented one.
+	Cache common.CacheLens
+
 	// warned is advisory only: it keeps the ninety percent notice from
 	// repeating every turn. The authoritative fact, which tools are
 	// withdrawn, lives in the log as a ToolsChanged event and survives a
@@ -172,6 +183,25 @@ func (e *Engine) Turn(watch common.StreamCallbacks) (string, error) {
 	if err != nil {
 		return "", err
 	}
+
+	// Capture the exact bytes about to go on the wire.
+	//
+	// This hangs off the call site rather than off Render for two reasons.
+	// First, all three vendors route through here, so one hook covers them
+	// all. Second and more important, Render has other callers that build
+	// entirely different conversations: the relevance judge and the memory
+	// compressor. If those were captured, one of them landing between two
+	// turns would become the "previous request" and the diff would compare a
+	// judge prompt against a conversation. Hooking Turn excludes them by
+	// construction instead of by filtering.
+	//
+	// BodyOf reads from req.GetBody, which hands back a fresh reader, so the
+	// live body is not consumed.
+	if e.Cache != nil {
+		if body, bErr := common.BodyOf(req); bErr == nil {
+			e.Cache.ObserveRequest(e.Cfg.Model, body)
+		}
+	}
 	if err := e.Record(common.Event{Type: common.RequestSent, Request: &common.RequestData{To: common.Provenance{
 		Vendor: e.Cfg.Vendor, Model: e.Cfg.Model, Surface: e.Cfg.Surface,
 	}}}); err != nil {
@@ -208,6 +238,21 @@ func (e *Engine) Turn(watch common.StreamCallbacks) (string, error) {
 			// on the model name prints {"assistant":""} and exits 0 — measured
 			// live against Gemini, and invisible unless you read the log.
 			vendorErr = fmt.Errorf("%s: %s", e.Cfg.Vendor, ev.Error.Message)
+		}
+		// Usage arrives on this event and nowhere else, and it is the
+		// per-request figure rather than the running session total the reducer
+		// keeps. The lens needs the per-request one: the question is what this
+		// request was charged, not what the session has cost so far.
+		if ev.Type == common.ResponseEnded && ev.Response != nil {
+			if e.Cache != nil {
+				e.Cache.ObserveUsage(ev.Response.Usage)
+			}
+			// Report spend up the parent chain. The reducer's total is durable
+			// and spans every run the conversation has had; this one spans this
+			// process, which is what a human means by "this session".
+			if e.Host != nil {
+				e.Host.RecordUsage(ev.Response.Usage)
+			}
 		}
 	}
 	watch.OnFrame = func(eventType string, data []byte) {

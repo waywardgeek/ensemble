@@ -52,6 +52,13 @@ func (js *Jobs) Logf(format string, args ...any)    { js.host.Logf(format, args.
 func (js *Jobs) APILogf(format string, args ...any) { js.host.APILogf(format, args...) }
 func (js *Jobs) Debugf(format string, args ...any)  { js.host.Debugf(format, args...) }
 
+// Usage delegates up the chain rather than embedding a counter of its own.
+// Embedding one here would compile and silently swallow the counts: totals
+// recorded through this Jobs would land in a local struct nobody reads, and
+// the header would under-report forever with nothing to indicate it.
+func (js *Jobs) RecordUsage(u common.Usage) { js.host.RecordUsage(u) }
+func (js *Jobs) SessionUsage() common.Usage { return js.host.SessionUsage() }
+
 // Start allocates a handle and its output file. It is called by the
 // dispatcher for every job-creating tool before the tool runs.
 func (js *Jobs) Start(tool, callID string) (common.JobHandle, error) {

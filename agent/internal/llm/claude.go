@@ -449,9 +449,10 @@ func (anthropicSeam) Parse(resp *http.Response, cb common.StreamCallbacks) error
 	if err != nil {
 		return err
 	}
-	emitLengthOneDeltas(parts, cb, anthThinkingText)
+	pm := newPartIDMapper(cb)
+	emitLengthOneDeltas(parts, pm, cb, anthThinkingText)
 	anthEmitResponse(parts, from, usage, cb)
-	emitFinals(parts, cb)
+	emitFinals(parts, pm, cb)
 	return nil
 }
 
@@ -596,6 +597,7 @@ type anthStreamEvent struct {
 }
 
 func anthParseStream(resp *http.Response, cb common.StreamCallbacks) error {
+	pm := newPartIDMapper(cb)
 	from := common.Provenance{Vendor: common.VendorAnthropic, Surface: common.SurfaceMessages}
 	var usage common.Usage
 	blocks := map[int]*anthStreamBlock{}
@@ -650,13 +652,13 @@ func anthParseStream(resp *http.Response, cb common.StreamCallbacks) error {
 			case "text":
 				b.Text.WriteString(h.Text)
 				if h.Text != "" {
-					cb.Delta(partID(ev.Index), common.DeltaText, h.Text)
+					cb.Delta(pm.id(ev.Index), common.DeltaText, h.Text)
 				}
 			case "tool_use":
 				b.ToolID, b.ToolName = h.ID, h.Name
 				// The name is the first chunk of a tool call, which is why
 				// the reassembled display string is name-then-arguments.
-				cb.Delta(partID(ev.Index), common.DeltaToolCall, h.Name)
+				cb.Delta(pm.id(ev.Index), common.DeltaToolCall, h.Name)
 			}
 
 		case "content_block_delta":
@@ -664,10 +666,10 @@ func anthParseStream(resp *http.Response, cb common.StreamCallbacks) error {
 			switch ev.Delta.Type {
 			case "text_delta":
 				b.Text.WriteString(ev.Delta.Text)
-				cb.Delta(partID(ev.Index), common.DeltaText, ev.Delta.Text)
+				cb.Delta(pm.id(ev.Index), common.DeltaText, ev.Delta.Text)
 			case "thinking_delta":
 				b.Thinking.WriteString(ev.Delta.Thinking)
-				cb.Delta(partID(ev.Index), common.DeltaThinking, ev.Delta.Thinking)
+				cb.Delta(pm.id(ev.Index), common.DeltaThinking, ev.Delta.Thinking)
 			case "signature_delta":
 				// Accumulated, never displayed. It is a credential for the
 				// next request, not content.
@@ -677,7 +679,7 @@ func anthParseStream(resp *http.Response, cb common.StreamCallbacks) error {
 				// Display only. This JSON is INCOMPLETE until the block
 				// stops, and acting on it is how a tool runs with half its
 				// arguments.
-				cb.Delta(partID(ev.Index), common.DeltaToolCall, ev.Delta.PartialJSON)
+				cb.Delta(pm.id(ev.Index), common.DeltaToolCall, ev.Delta.PartialJSON)
 			}
 
 		case "message_delta":
@@ -717,7 +719,7 @@ func anthParseStream(resp *http.Response, cb common.StreamCallbacks) error {
 	// Anthropic numbers its blocks contiguously from zero, and depending on
 	// that would be depending on a coincidence.
 	for n, i := range order {
-		cb.Final(partID(i), parts[n])
+		cb.Final(pm.id(i), parts[n])
 	}
 	return nil
 }

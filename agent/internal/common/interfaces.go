@@ -138,6 +138,20 @@ type Host interface {
 	APILogf(format string, args ...any)
 	// Debugf logs to both the terminal and the debug log file.
 	Debugf(format string, args ...any)
+
+	// RecordUsage adds one request's token counts to this run's totals, and
+	// SessionUsage reads them back.
+	//
+	// These live on Host rather than being handed around because Host is
+	// already the thing every object can reach through its parent chain, and
+	// its lifespan is already exactly one run of the program — which is what a
+	// session is. Anything that spends tokens can therefore report them
+	// without being wired to a reporter, and anything that displays them can
+	// read them without being wired to a producer.
+	//
+	// Embed UsageCounter to satisfy both.
+	RecordUsage(u Usage)
+	SessionUsage() Usage
 }
 
 // ToolFunc executes one tool call and returns text the model will see.

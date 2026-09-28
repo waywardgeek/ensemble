@@ -81,6 +81,13 @@ type Parser interface {
 // Every field is optional. Call them through the methods below, which
 // nil-check, so a parser never has to.
 type StreamCallbacks struct {
+	// AllocPartID returns the next globally unique part ID. Vendor parsers
+	// MUST call this instead of maintaining a local counter, so that two
+	// turns never produce the same part_id. The GUI uses part_id to route
+	// streaming deltas to the correct artifact; a collision routes turn N's
+	// text into turn N-1's widget.
+	AllocPartID func() uint64
+
 	// OnDelta receives one incremental chunk.
 	//
 	// partID identifies the PART, not the chunk: every chunk belonging to
