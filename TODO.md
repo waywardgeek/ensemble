@@ -30,9 +30,15 @@ between agents and routing to a remote peer are the same infrastructure.
 
 ### 1. Caching — the top blocker (VERIFIED 2026-09-27)
 
-`grep -rn 'cache_control' internal/ --include=*.go` returns **nothing**. No
-breakpoints, no measurement, no stats. Every request is a cold read of the whole
-prefix at full input price.
+**Partly done (2026-09-28).** The system prompt now carries a breakpoint: it is
+a content-block array with `cache_control` on it, so tools and system together
+form one cacheable prefix. The lens reports `system:identical` and a cacheable
+prefix of 13,657 of 14,213 bytes (**96.1%**) on a short conversation.
+
+Still to do: a second breakpoint inside `messages` — the only section that
+grows, so the one that matters on a long conversation — and header stats
+reporting the *actual* hit rate read back from the response, rather than the
+predicted figure the lens computes from the request.
 
 Benchmark to beat: **CodeRhapsody currently runs at 91.3% cache hit rate**
 (VERIFIED 2026-09-27, Bill's live session). That is the bar, and it proves the
@@ -49,10 +55,14 @@ Full design in `book/caching-design.md`. The short version:
 - **Measure before optimizing.** A breakpoint on an unstable prefix buys
   nothing and looks like it should have worked.
 
-Known structural blocker (VERIFIED 2026-09-27): `anthRequest.System` is a plain
-`string`; `cache_control` attaches to a content *block*, so it must become an
-array. This breaks the byte-identical-request property the surrounding comments
-defend, which is itself worth a chapter section.
+~~Known structural blocker~~ **RESOLVED 2026-09-28.** `anthRequest.System` is
+now `[]anthSystemBlock`, so it can carry `cache_control`. The byte-identical
+property it was thought to break is asserted by nothing: `ch10_harness.go`
+already type-switches with the comment "The system field can be a string or an
+array of content blocks", and ch15–17 hold the field as `json.RawMessage`. The
+invariant lived in comments, not in checks. Rejected a custom `MarshalJSON`
+that would emit a string when unmarked, on the grounds that it adds machinery
+to protect a property no check asserts.
 
 Known stability risk (ASSUMED, not yet measured): tool declaration order. Ensemble
 makes no ordering guarantee; CodeRhapsody sorts by `(skill_name, tool_name)`
@@ -74,15 +84,18 @@ The four token categories already exist and are already disjoint (`Input`,
 
 ### 3. Header controls (requested 2026-09-27)
 
-- Reset conversation. Design settled: travels as an inbound message like
-  `interrupt` so the actor clears its own state; clears `KindDialogue` and
-  `KindRecall` only, never the memory bands. **Must re-snapshot `save.json`** —
-  truncating only the journal leaves the old conversation in the snapshot and a
-  restart silently undoes the reset.
+- ~~Reset conversation.~~ **DONE 2026-09-28** (`b3a2c75`). Travels as
+  `common.Reset` like `interrupt`; the reducer clears `KindDialogue` and
+  `KindRecall` only. The re-snapshot warning turned out not to apply: reset is
+  recorded as a `ConversationReset` **event** rather than a direct edit, so the
+  journal carries it and replay re-applies it on load. Nothing is truncated, so
+  there is no stale snapshot to undo it. Four mutants, each killed by exactly
+  one test.
 - Interrupt button. Protocol already works end to end (hub accepts
   `"interrupt"`, actor handles `common.Interrupt`) — this is a button only.
 - Model dropdown in the header, from the server-owned catalog.
-- "Don't be evil", tiny font, somewhere on screen.
+- ~~"Don't be evil", tiny font, somewhere on screen.~~ **DONE** —
+  `index.html:46`, `<div id="creed">`.
 
 ### 4. Memory lives in the source tree (VERIFIED 2026-09-27)
 
@@ -232,13 +245,15 @@ The four token categories already exist and are already disjoint (`Input`,
       CodeRhapsody on 2026-09-26: stubbing stays on while `keep_tool_results`
       is absent, so the model is redacted with no way to keep anything. The
       invariant is currently prose in a comment, not structure.
-- [ ] **Anthropic renderer never sets `cache_control`.** VERIFIED 2026-09-23.
-      `grep -rn cache_control agent --include=*.go` finds nothing. A real
-      `claude-opus-5` run (ch15 §15.15, `context_target` 20000, 11 requests)
-      reported `cache_creation_input_tokens` 0 and `cache_read_input_tokens` 0
-      on every request. The byte-stable prefix ch15 protects earns no discount
-      on this vendor until a breakpoint is sent. Which chapter owns it (ch2
-      renderer or ch15) is the author's call.
+- [x] ~~**Anthropic renderer never sets `cache_control`.**~~ **FIXED 2026-09-28**
+      (`9898053`). The system prompt is now a content block carrying an
+      ephemeral breakpoint, so tools and system form one cacheable prefix. The
+      byte-stable prefix ch15 protects finally earns its discount. Re-measure
+      the live figures that motivated this item (`cache_creation_input_tokens`
+      and `cache_read_input_tokens` were 0 on all 11 requests): the lens
+      predicts 96.1% cacheable, but only a real run reports what the vendor
+      actually granted. Which chapter owns the prose (ch2 renderer or ch15) is
+      still the author's call.
 
 - [x] **A bare `./ensemble --port 8084` had only two tools.** FIXED 2026-09-20
       in `6335237`. Bill hit this live: the agent truthfully reported that it
