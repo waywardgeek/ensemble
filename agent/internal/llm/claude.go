@@ -286,6 +286,14 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 	// round of a tool loop while the rolling breakpoint below advances, which
 	// is what keeps a long multi-round turn warm.
 	anchorMsg, anchorBlocks := -1, 0
+
+	// The compaction bound. handoffMsg/handoffBlocks record where the newest
+	// handoff ends: the oldest position whose prefix is guaranteed byte-for-byte
+	// identical on every later request, and therefore the one breakpoint that
+	// keeps paying after the rolling pair has moved on. See newestHandoffIndex
+	// for why this position is sound.
+	handoffIdx := newestHandoffIndex(c.Dialogue)
+	handoffMsg, handoffBlocks := -1, 0
 	// appendBlocks merges into the previous message when the role matches.
 	//
 	// Client-side merging is REQUIRED here, but not for the reason most people
@@ -323,7 +331,7 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 		msgs = append(msgs, anthMsg{Role: role, Content: blocks})
 	}
 
-	for _, entry := range c.Dialogue {
+	for idx, entry := range c.Dialogue {
 		if entry.Kind == common.KindTools {
 			if !features.InlineTools {
 				continue // re-declared in the tools array below instead
@@ -426,6 +434,14 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 			}
 			appendBlocks("user", blocks, false)
 		}
+
+		// Recorded as the handoff's own blocks land, not by searching msgs
+		// afterwards. By this point one context entry may have become a new
+		// message, extra blocks on an existing one, or nothing at all, and
+		// only the loop knows which.
+		if idx == handoffIdx && len(msgs) > 0 {
+			handoffMsg, handoffBlocks = len(msgs)-1, len(msgs[len(msgs)-1].Content)
+		}
 	}
 
 	// Captured BEFORE the ephemera are appended, and this ordering is the
@@ -450,12 +466,26 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 		appendBlocks("user", blocks, false)
 	}
 
-	// The rolling pair. The system prompt carries a third breakpoint, which
-	// is stable by construction; these two cover the part that grows.
+	// Three markers here, plus the one on the system block, is exactly the
+	// four Anthropic allows. They are ordered by how often the position they
+	// sit on changes: the handoff bound moves only when the conversation is
+	// compacted, the pair moves every turn.
+	//
+	// The handoff marker exists because a cache read does not discover that
+	// old content is stable. It walks backward from a breakpoint looking for
+	// an entry some earlier request actually wrote, and it gives up after a
+	// bounded number of positions. A turn that appends many blocks at once
+	// pushes the settled prefix out of that window, and history that has not
+	// changed since the last compaction gets re-billed in full. A marker
+	// sitting on the bound is found directly, at any distance.
 	//
 	// Placement is unconditional. A prefix below the vendor's minimum is
 	// processed uncached rather than rejected, so there is no size check and
-	// no setting to get wrong.
+	// no setting to get wrong. markCache ignores a position of -1, which is
+	// what a conversation that has never been compacted reports, and marking
+	// the same block twice is idempotent, which is what a conversation that
+	// was just compacted produces.
+	markCache(msgs, handoffMsg, handoffBlocks)
 	markCache(msgs, stableMsg, stableBlocks)
 	markCache(msgs, anchorMsg, anchorBlocks)
 
