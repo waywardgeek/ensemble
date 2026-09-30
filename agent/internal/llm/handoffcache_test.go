@@ -156,10 +156,14 @@ func TestHandoffPrefixSurvivesALaterHandoff(t *testing.T) {
 
 	before := prefixThrough(t, renderAnthWire(t, c), "HANDOFF-ONE")
 
-	// The session keeps going and compacts again.
+	// The session keeps going and compacts again. Two stretches after the
+	// second handoff, deliberately: with only one, the rolling anchor lands on
+	// the handoff message itself and would satisfy the "newest" check below by
+	// coincidence, whatever the bound actually did.
 	c.Dialogue = append(c.Dialogue, workEntries(30, "gamma")...)
 	applyHandoff(t, c, 40, "HANDOFF-TWO a later summary")
 	c.Dialogue = append(c.Dialogue, workEntries(50, "delta")...)
+	c.Dialogue = append(c.Dialogue, workEntries(60, "epsilon")...)
 
 	after := prefixThrough(t, renderAnthWire(t, c), "HANDOFF-ONE")
 
