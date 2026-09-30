@@ -49,3 +49,29 @@ func newestHandoffIndex(dialogue []common.Entry) int {
 	}
 	return -1
 }
+
+// usesExplicitBreakpoints reports whether requests to model should carry
+// explicit cache markers.
+//
+// Two vendors now implement nearly the same scheme, so WHERE to mark is shared
+// policy and only the encoding differs. What does not carry over is the cost of
+// getting it wrong, which is sharply asymmetric:
+//
+//   - Anthropic has no implicit caching. Placing no marker means no cache,
+//     which is exactly the position you were in already.
+//   - OpenAI caches implicitly by default, and opting into explicit mode turns
+//     that off. A request that declares explicit mode and then marks nothing
+//     caches NOTHING. Measured over two turns: 0 written, 0 read, where the
+//     same conversation left alone would have cached most of its prefix.
+//
+// So on OpenAI the opt-in has to be driven by whether a marker actually landed,
+// never by the intent to place one. renderOpenAI sets the request option only
+// after a marker is known to be attached.
+//
+// The predicate is a fact about the model, kept in the model table rather than
+// branched on here, because "which vendor is this" is the wrong question: the
+// same vendor answers differently across its own generations.
+func usesExplicitBreakpoints(model string) bool {
+	feat, ok := common.LookupModel(model)
+	return ok && feat.Caching == common.CacheExplicit
+}

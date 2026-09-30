@@ -316,7 +316,7 @@ func models() map[string]ModelFeatures {
 		// so thinking is not streamed. These models support reasoning_effort
 		// but do not return reasoning content on Chat Completions.
 		"gpt-6-astra": {Caching: CacheImplicit, MinCacheTokens: 1024, Price: Pricing{Input: 10, CacheWrite: 12.50, CacheRead: 1.0, Output: 50}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
-		"gpt-5.6-sol": {Caching: CacheImplicit, MinCacheTokens: 1024, Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, NoThinkingWithTools: true},
+		"gpt-5.6-sol": {Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 1050000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, NoThinkingWithTools: true},
 
 		// Gemini — images, audio, video, documents. Text and thinking stream;
 		// FUNCTION-CALL ARGUMENTS DO NOT. They arrive complete, in one frame.

@@ -53,6 +53,19 @@ type oaiRequest struct {
 	// represent the real capability honestly, the way Gemini's clear
 	// StreamToolArgs bit does.
 	ReasoningEffort string `json:"reasoning_effort,omitempty"`
+
+	// PromptCacheOptions opts this request into explicit cache breakpoints.
+	//
+	// It MUST stay omitted unless a marker actually landed on a message.
+	// Declaring explicit mode disables this vendor's implicit caching, so a
+	// request that asks for explicit mode and then marks nothing caches
+	// nothing at all — strictly worse than saying nothing. Anthropic has no
+	// equivalent trap, because it has no implicit cache to lose.
+	PromptCacheOptions *oaiCacheOptions `json:"prompt_cache_options,omitempty"`
+}
+
+type oaiCacheOptions struct {
+	Mode string `json:"mode"`
 }
 
 type oaiStreamOptions struct {
@@ -91,6 +104,78 @@ type oaiMsg struct {
 	Content    *string       `json:"content"`
 	ToolCalls  []oaiToolCall `json:"tool_calls,omitempty"`
 	ToolCallID string        `json:"tool_call_id,omitempty"`
+
+	// CacheBreak asks for a cache breakpoint at the end of this message. It is
+	// not a wire field of its own: the marker has to ride inside a content
+	// block, so setting this changes how Content is encoded. See MarshalJSON.
+	CacheBreak bool `json:"-"`
+}
+
+// oaiTextPart is the array-of-parts form of a message body. A breakpoint
+// attaches to a content block, so a marked message cannot send its content as
+// a bare string.
+type oaiTextPart struct {
+	Type       string          `json:"type"`
+	Text       string          `json:"text"`
+	Breakpoint *oaiCacheMarker `json:"prompt_cache_breakpoint,omitempty"`
+}
+
+type oaiCacheMarker struct {
+	Mode string `json:"mode"`
+}
+
+// MarshalJSON emits the plain string form unless a breakpoint was requested.
+//
+// Flipping a message between the two forms as the rolling marker moves past it
+// is safe, which is not obvious and was worth measuring. A message was sent
+// marked (array form), then the same conversation was sent again with the
+// marker removed and that message back in string form: 7,813 of 7,816 prompt
+// tokens still read from cache. The bytes on the wire differ; the tokens the
+// vendor hashes do not.
+func (m oaiMsg) MarshalJSON() ([]byte, error) {
+	type plain oaiMsg
+	if !m.CacheBreak || m.Content == nil {
+		return json.Marshal(plain(m))
+	}
+	return json.Marshal(struct {
+		Role       string        `json:"role"`
+		Content    []oaiTextPart `json:"content"`
+		ToolCalls  []oaiToolCall `json:"tool_calls,omitempty"`
+		ToolCallID string        `json:"tool_call_id,omitempty"`
+	}{
+		Role: m.Role,
+		Content: []oaiTextPart{{
+			Type:       "text",
+			Text:       *m.Content,
+			Breakpoint: &oaiCacheMarker{Mode: "explicit"},
+		}},
+		ToolCalls:  m.ToolCalls,
+		ToolCallID: m.ToolCallID,
+	})
+}
+
+// markOAICache attaches a breakpoint at pos, walking backward to the nearest
+// message that can carry one.
+//
+// An assistant message that only issues tool calls has null content and so has
+// no block to attach a marker to. Walking back lands the marker slightly
+// earlier in the prefix, which costs a little coverage; dropping it silently
+// would cost the whole cache entry at that boundary.
+//
+// Two positions resolving to the same message is fine and expected right after
+// a compaction, when the bound and the anchor coincide. Setting the flag twice
+// marks once.
+func markOAICache(msgs []oaiMsg, pos int) bool {
+	if pos < 0 || pos >= len(msgs) {
+		return false
+	}
+	for i := pos; i >= 0; i-- {
+		if msgs[i].Content != nil {
+			msgs[i].CacheBreak = true
+			return true
+		}
+	}
+	return false
 }
 
 type oaiToolCall struct {
@@ -122,7 +207,16 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 		msgs = append(msgs, oaiMsg{Role: "system", Content: strptr(cfg.SystemPrompt)})
 	}
 
-	for _, entry := range c.Dialogue {
+	// Breakpoint positions, mirroring the Anthropic renderer. Where to mark is
+	// shared policy; only the encoding below is vendor-specific.
+	systemMsg := -1
+	if len(msgs) > 0 {
+		systemMsg = 0
+	}
+	handoffIdx := newestHandoffIndex(c.Dialogue)
+	handoffMsg, stableMsg, anchorMsg := -1, -1, -1
+
+	for i, entry := range c.Dialogue {
 		if entry.Kind == common.KindTools {
 			continue // no in-dialog declarations here: see EffectiveTools
 		}
@@ -205,8 +299,23 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 			msgs = append(msgs, m)
 
 		default: // common.ActorHuman
+			// The anchor sits at the end of the previous exchange, so record
+			// it before this turn's message lands. The last human turn wins,
+			// which is what makes the pair roll forward.
+			if len(msgs) > 0 {
+				anchorMsg = len(msgs) - 1
+			}
 			msgs = append(msgs, oaiMsg{Role: "user", Content: strptr(joinTexts(r.Texts))})
 		}
+
+		if i == handoffIdx && len(msgs) > 0 {
+			handoffMsg = len(msgs) - 1
+		}
+	}
+
+	// Everything below is ephemeral and must stay outside the marked prefix.
+	if len(msgs) > 0 {
+		stableMsg = len(msgs) - 1
 	}
 
 	if len(c.Ephemera) > 0 {
@@ -247,6 +356,22 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 		}
 	}
 
+	// Explicit breakpoints: the compaction bound first, then the rolling pair,
+	// with the system prompt taking the fourth and last slot the vendor allows.
+	//
+	// marked records whether any of them actually attached. The request option
+	// below is driven by that evidence rather than by the intent to place a
+	// marker, because declaring explicit mode with nothing marked turns caching
+	// off entirely. See usesExplicitBreakpoints.
+	marked := false
+	if usesExplicitBreakpoints(cfg.Model) {
+		for _, pos := range []int{systemMsg, handoffMsg, stableMsg, anchorMsg} {
+			if markOAICache(msgs, pos) {
+				marked = true
+			}
+		}
+	}
+
 	body := oaiRequest{
 		Model:           cfg.Model,
 		MaxTokens:       cfg.MaxTokens,
@@ -257,6 +382,9 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 	}
 	if body.Stream {
 		body.StreamOptions = &oaiStreamOptions{IncludeUsage: true}
+	}
+	if marked {
+		body.PromptCacheOptions = &oaiCacheOptions{Mode: "explicit"}
 	}
 
 	return newJSONRequest("POST", cfg.BaseURL+"/v1/chat/completions",
