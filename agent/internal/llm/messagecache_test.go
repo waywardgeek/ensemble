@@ -61,15 +61,21 @@ func (w anthWireMsgs) marked() []string {
 	return out
 }
 
-// TestMessagesCarryRollingPair proves the messages array gets two breakpoints:
-// an anchor at the end of the previous exchange and a rolling marker at the
-// current end.
+// TestMessagesCarryOneRollingBreakpoint proves the messages array gets exactly
+// one breakpoint, at the current end.
 //
-// One marker is not enough and three is not better. The rolling marker writes
-// the prefix this turn extends; the anchor reads a prefix an earlier request
-// already paid for. Drop the anchor and a long tool loop goes cold as soon as
-// the conversation outgrows the vendor's automatic look-back.
-func TestMessagesCarryRollingPair(t *testing.T) {
+// An earlier design put a second one at the end of the previous exchange, on
+// the theory that it reads a prefix an earlier request already paid to write.
+// It is redundant: the rolling marker from the PREVIOUS round wrote an entry
+// at that very prefix, and the vendor's look-back finds it. The freed slot
+// goes to the tool array, which is a genuinely different boundary and the only
+// one that survives a change to the system prompt.
+//
+// The absent marker is also a bug detector. If one ever looked necessary at
+// the start of a turn, the cause would be the prefix below the newest prompt
+// being rewritten between rounds, and the cure is to stop rewriting it rather
+// than to pin it with one of four scarce slots.
+func TestMessagesCarryOneRollingBreakpoint(t *testing.T) {
 	ctx := &common.Context{
 		Dialogue: []common.Entry{
 			{Actor: common.ActorHuman, Parts: common.PartList{common.TextPart{Text: "first"}}},
@@ -78,17 +84,17 @@ func TestMessagesCarryRollingPair(t *testing.T) {
 		},
 	}
 	got := renderAnthWire(t, ctx).marked()
-	if len(got) != 2 {
-		t.Fatalf("want 2 breakpoints in messages, got %d: %q", len(got), got)
+	if len(got) != 1 {
+		t.Fatalf("want 1 breakpoint in messages, got %d: %q", len(got), got)
 	}
-	// The anchor sits at the end of the previous exchange, the rolling marker
-	// at the newest turn. Asserting WHICH blocks, not just how many: a pair of
-	// markers on the wrong blocks counts the same and caches nothing.
-	if !hasExact(got, "reply") {
-		t.Errorf("anchor breakpoint not at the end of the previous exchange; marked %q", got)
-	}
+	// Asserting WHICH block, not just how many: a marker on the wrong block
+	// counts the same and caches nothing.
 	if !hasExact(got, "second") {
 		t.Errorf("rolling breakpoint not at the newest turn; marked %q", got)
+	}
+	if hasExact(got, "reply") {
+		t.Errorf("breakpoint at the end of the previous exchange; that prefix is "+
+			"already covered by the previous round's rolling marker: %q", got)
 	}
 }
 

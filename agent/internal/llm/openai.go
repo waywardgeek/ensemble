@@ -163,7 +163,7 @@ func (m oaiMsg) MarshalJSON() ([]byte, error) {
 // would cost the whole cache entry at that boundary.
 //
 // Two positions resolving to the same message is fine and expected right after
-// a compaction, when the bound and the anchor coincide. Setting the flag twice
+// a compaction, when the bound and the rolling marker coincide. Setting the flag twice
 // marks once.
 func markOAICache(msgs []oaiMsg, pos int) bool {
 	if pos < 0 || pos >= len(msgs) {
@@ -214,7 +214,7 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 		systemMsg = 0
 	}
 	handoffIdx := newestHandoffIndex(c.Dialogue)
-	handoffMsg, stableMsg, anchorMsg := -1, -1, -1
+	handoffMsg, stableMsg := -1, -1
 
 	for i, entry := range c.Dialogue {
 		if entry.Kind == common.KindTools {
@@ -299,12 +299,6 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 			msgs = append(msgs, m)
 
 		default: // common.ActorHuman
-			// The anchor sits at the end of the previous exchange, so record
-			// it before this turn's message lands. The last human turn wins,
-			// which is what makes the pair roll forward.
-			if len(msgs) > 0 {
-				anchorMsg = len(msgs) - 1
-			}
 			msgs = append(msgs, oaiMsg{Role: "user", Content: strptr(joinTexts(r.Texts))})
 		}
 
@@ -356,8 +350,14 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 		}
 	}
 
-	// Explicit breakpoints: the compaction bound first, then the rolling pair,
-	// with the system prompt taking the fourth and last slot the vendor allows.
+	// Explicit breakpoints: the compaction bound and the rolling marker, with
+	// the system prompt taking the last slot the vendor allows.
+	//
+	// There is deliberately none at the start of a turn. The rolling marker
+	// from the previous round already wrote an entry at that prefix, so a
+	// start-of-turn marker buys nothing; and if one were ever needed there, it
+	// would mean the prefix is being rewritten mid-turn, which is a bug to fix
+	// rather than something to cache around.
 	//
 	// marked records whether any of them actually attached. The request option
 	// below is driven by that evidence rather than by the intent to place a
@@ -365,7 +365,7 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 	// off entirely. See usesExplicitBreakpoints.
 	marked := false
 	if usesExplicitBreakpoints(cfg.Model) {
-		for _, pos := range []int{systemMsg, handoffMsg, stableMsg, anchorMsg} {
+		for _, pos := range []int{systemMsg, handoffMsg, stableMsg} {
 			if markOAICache(msgs, pos) {
 				marked = true
 			}

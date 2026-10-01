@@ -96,12 +96,23 @@ type anthTool struct {
 	Name        string          `json:"name"`
 	Description string          `json:"description,omitempty"`
 	InputSchema json.RawMessage `json:"input_schema"`
+
+	// CacheControl marks the end of the tool array as a cache breakpoint. Only
+	// the last tool ever carries it; see anthTools.
+	CacheControl *anthCacheControl `json:"cache_control,omitempty"`
 }
 
 func anthTools(decls []common.ToolDecl) []anthTool {
 	var out []anthTool
 	for _, d := range decls {
 		out = append(out, anthTool{Name: d.Name, Description: d.Description, InputSchema: d.Schema})
+	}
+	// Breakpoint 1 of 4: the end of the tool array. Tools come first in the
+	// cache order (tools, then system, then messages), so marking the last one
+	// keeps the tool prefix warm even on a turn where the system prompt
+	// changes. Without it, editing the system prompt throws away the tools too.
+	if len(out) > 0 {
+		out[len(out)-1].CacheControl = &anthCacheControl{Type: "ephemeral"}
 	}
 	return out
 }
@@ -279,18 +290,11 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 	var msgs []anthMsg
 	features, _ := common.LookupModel(cfg.Model)
 	inlined := false
-	// anchorMsg/anchorBlocks record where the previous exchange ended: the
-	// position immediately before the newest human prompt. Everything up to
-	// there was in the previous request, so a breakpoint here reads a prefix
-	// that an earlier request already paid to write. It stays put for every
-	// round of a tool loop while the rolling breakpoint below advances, which
-	// is what keeps a long multi-round turn warm.
-	anchorMsg, anchorBlocks := -1, 0
 
 	// The compaction bound. handoffMsg/handoffBlocks record where the newest
 	// handoff ends: the oldest position whose prefix is guaranteed byte-for-byte
 	// identical on every later request, and therefore the one breakpoint that
-	// keeps paying after the rolling pair has moved on. See newestHandoffIndex
+	// keeps paying after the rolling marker has moved on. See newestHandoffIndex
 	// for why this position is sound.
 	handoffIdx := newestHandoffIndex(c.Dialogue)
 	handoffMsg, handoffBlocks := -1, 0
@@ -429,9 +433,6 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 			for _, t := range r.Texts {
 				blocks = append(blocks, anthBlock{Type: "text", Text: t})
 			}
-			if len(blocks) > 0 && len(msgs) > 0 {
-				anchorMsg, anchorBlocks = len(msgs)-1, len(msgs[len(msgs)-1].Content)
-			}
 			appendBlocks("user", blocks, false)
 		}
 
@@ -487,7 +488,6 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 	// was just compacted produces.
 	markCache(msgs, handoffMsg, handoffBlocks)
 	markCache(msgs, stableMsg, stableBlocks)
-	markCache(msgs, anchorMsg, anchorBlocks)
 
 	// Resolve thinking before building the request body: the budget
 	// determines whether the thinking block is included, and it also

@@ -86,16 +86,16 @@ func ctxWith(entries ...[]common.Entry) *common.Context {
 func TestHandoffCarriesItsOwnBreakpoint(t *testing.T) {
 	c := ctxWith(workEntries(1, "alpha"))
 	applyHandoff(t, c, 10, "HANDOFF-ONE summary of the work so far")
-	// Two stretches of work since the compaction, which is the situation the
-	// marker exists for. With only one, the rolling anchor lands on the
-	// handoff message itself and the positions coincide; see the test below.
+	// Work after the compaction, which is the situation the marker exists for.
+	// With no work after it the bound and the rolling marker land on the same
+	// block and collapse to one; see the test below.
 	c.Dialogue = append(c.Dialogue, workEntries(20, "beta")...)
 	c.Dialogue = append(c.Dialogue, workEntries(30, "gamma")...)
 
 	w := renderAnthWire(t, c)
 	marks := w.marked()
-	if len(marks) != 3 {
-		t.Fatalf("want 3 breakpoints (handoff bound + rolling pair), got %d: %q", len(marks), marks)
+	if len(marks) != 2 {
+		t.Fatalf("want 2 breakpoints (handoff bound + rolling marker), got %d: %q", len(marks), marks)
 	}
 	var onHandoff bool
 	for _, m := range marks {
@@ -108,20 +108,20 @@ func TestHandoffCarriesItsOwnBreakpoint(t *testing.T) {
 	}
 }
 
-// TestHandoffAtTheAnchorCollapses records that the three positions are allowed
-// to coincide. Immediately after a compaction the rolling anchor resolves to
-// the handoff message itself, both calls mark the same block, and the request
-// carries one marker rather than two. That is why the placement code needs no
-// "is this the same position" guard: setting the marker twice is idempotent,
-// and a guard would be untested code protecting against nothing.
-func TestHandoffAtTheAnchorCollapses(t *testing.T) {
+// TestHandoffAtTheRollingMarkerCollapses records that the two message
+// positions are allowed to coincide. When a compaction is the newest thing in
+// the context, the rolling marker resolves to the handoff message itself, both
+// calls mark the same block, and the request carries one marker rather than
+// two. That is why the placement code needs no "is this the same position"
+// guard: setting the marker twice is idempotent, and a guard would be untested
+// code protecting against nothing.
+func TestHandoffAtTheRollingMarkerCollapses(t *testing.T) {
 	c := ctxWith(workEntries(1, "alpha"))
 	applyHandoff(t, c, 10, "HANDOFF-ONE summary of the work so far")
-	c.Dialogue = append(c.Dialogue, workEntries(20, "beta")...)
 
 	marks := renderAnthWire(t, c).marked()
-	if len(marks) != 2 {
-		t.Fatalf("want 2 distinct breakpoints when the bound and the anchor "+
+	if len(marks) != 1 {
+		t.Fatalf("want 1 breakpoint when the bound and the rolling marker "+
 			"coincide, got %d: %q", len(marks), marks)
 	}
 	if !strings.Contains(strings.Join(marks, "\n"), "HANDOFF-ONE") {
@@ -129,13 +129,13 @@ func TestHandoffAtTheAnchorCollapses(t *testing.T) {
 	}
 }
 
-func TestNoHandoffLeavesTheRollingPairAlone(t *testing.T) {
+func TestNoHandoffLeavesOnlyTheRollingBreakpoint(t *testing.T) {
 	c := ctxWith(workEntries(1, "alpha"), workEntries(10, "beta"))
 
 	marks := renderAnthWire(t, c).marked()
-	if len(marks) != 2 {
+	if len(marks) != 1 {
 		t.Fatalf("a conversation that has never been compacted should carry only "+
-			"the rolling pair, got %d breakpoints: %q", len(marks), marks)
+			"the rolling marker, got %d breakpoints: %q", len(marks), marks)
 	}
 }
 
