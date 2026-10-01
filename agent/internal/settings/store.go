@@ -44,6 +44,16 @@ func clamp(s *common.Settings) {
 	if s.FontSize > common.MaxFontSize {
 		s.FontSize = common.MaxFontSize
 	}
+	// Unset resolves to the default here rather than in the client, so the
+	// broadcast always carries a concrete number and the GUI never has to
+	// keep its own copy of the default.
+	if s.MaxEvents <= 0 {
+		s.MaxEvents = common.DefaultMaxEvents
+	} else if s.MaxEvents < common.MinMaxEvents {
+		s.MaxEvents = common.MinMaxEvents
+	} else if s.MaxEvents > common.MaxMaxEventsCap {
+		s.MaxEvents = common.MaxMaxEventsCap
+	}
 	if s.TTSSpeed < 0 {
 		s.TTSSpeed = 0
 	} else if s.TTSSpeed > 0 && s.TTSSpeed < common.MinTTSSpeed {
@@ -153,6 +163,12 @@ func (s *SettingsStore) ApplyRaw(raw json.RawMessage) common.Settings {
 		var n int
 		if json.Unmarshal(v, &n) == nil {
 			s.data.FontSize = n
+		}
+	}
+	if v, ok := patch["max_events"]; ok {
+		var n int
+		if json.Unmarshal(v, &n) == nil {
+			s.data.MaxEvents = n
 		}
 	}
 	if v, ok := patch["tts_enabled"]; ok {

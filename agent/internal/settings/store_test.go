@@ -106,6 +106,7 @@ func TestApplyRawLeavesLegalValuesAlone(t *testing.T) {
 		SystemPrompt:   "be brief",
 		Theme:          "dark",
 		FontSize:       18,
+		MaxEvents:      250,
 		TTSEnabled:     true,
 		TTSSpeed:       1.5,
 	}

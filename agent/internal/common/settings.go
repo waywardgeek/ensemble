@@ -21,6 +21,13 @@ type Settings struct {
 	Theme    string `json:"theme"` // "dark", "light", "system"
 	FontSize int    `json:"font_size"`
 
+	// MaxEvents caps how many events the GUI keeps on screen, oldest
+	// discarded first. It is a view limit only: it does not change what the
+	// log replays, nor what is retained on disk, which is LogRetention's
+	// job. After a restart the GUI can therefore show no more than
+	// min(MaxEvents, LogRetention) events.
+	MaxEvents int `json:"max_events"`
+
 	// Accessibility.
 	TTSEnabled bool    `json:"tts_enabled"`
 	TTSSpeed   float64 `json:"tts_speed"`
@@ -53,6 +60,13 @@ const (
 	MaxFontSize       = 72
 	MinTTSSpeed       = 0.1
 	MaxTTSSpeed       = 10.0
+
+	// MinMaxEvents keeps the screen from being clamped to uselessness; the
+	// ceiling exists because the cap is there to bound rendering work, and a
+	// cap large enough to defeat that is the same as no cap at all.
+	MinMaxEvents     = 10
+	MaxMaxEventsCap  = 100000
+	DefaultMaxEvents = 100
 )
 
 // SettingsSource is the websocket layer's view of the settings store.

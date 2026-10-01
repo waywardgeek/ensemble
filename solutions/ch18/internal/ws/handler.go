@@ -381,7 +381,8 @@ func (h *Hub) usageFrame() []byte {
 	if h.usage == nil {
 		return nil
 	}
-	u := h.usage.SessionUsage()
+	session := h.usage.SessionUsage()
+	last := h.usage.LastUsage()
 
 	var (
 		priced bool
@@ -389,18 +390,22 @@ func (h *Hub) usageFrame() []byte {
 	)
 	if f, ok := common.LookupModel(h.effectiveModel()); ok && f.Price.Priced() {
 		priced = true
-		cost = common.CostUSD(u, f.Price)
+		cost = common.CostUSD(session, f.Price)
 	}
 
 	data, _ := json.Marshal(map[string]any{
-		"type":        "usage",
-		"input":       u.Input,
-		"cache_write": u.CacheWrite,
-		"cache_read":  u.CacheRead,
-		"output":      u.Output,
-		"hit_rate":    common.CacheHitRate(u),
-		"cost_usd":    cost,
-		"priced":      priced,
+		"type":                "usage",
+		"input":               last.Input,
+		"cache_write":         last.CacheWrite,
+		"cache_read":          last.CacheRead,
+		"output":              last.Output,
+		"hit_rate":            common.CacheHitRate(session),
+		"cost_usd":            cost,
+		"priced":              priced,
+		"session_input":       session.Input,
+		"session_cache_write": session.CacheWrite,
+		"session_cache_read":  session.CacheRead,
+		"session_output":      session.Output,
 	})
 	return data
 }

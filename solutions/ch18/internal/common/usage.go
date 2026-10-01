@@ -20,6 +20,7 @@ import "sync"
 type UsageCounter struct {
 	mu    sync.Mutex
 	usage Usage
+	last  Usage // most recent single-response usage
 }
 
 // RecordUsage adds one request's counts to the session total.
@@ -33,6 +34,7 @@ func (c *UsageCounter) RecordUsage(u Usage) {
 	c.usage.CacheWrite += u.CacheWrite
 	c.usage.CacheRead += u.CacheRead
 	c.usage.Output += u.Output
+	c.last = u
 }
 
 // SessionUsage returns a copy of the totals for this process.
@@ -40,6 +42,13 @@ func (c *UsageCounter) SessionUsage() Usage {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return c.usage
+}
+
+// LastUsage returns the token counts from the most recent response.
+func (c *UsageCounter) LastUsage() Usage {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.last
 }
 
 // CacheHitRate is the fraction of input tokens served from cache.
@@ -69,6 +78,7 @@ func CacheHitRate(u Usage) float64 {
 // the hub needs to read the tally, never to add to it.
 type UsageSource interface {
 	SessionUsage() Usage
+	LastUsage() Usage
 }
 
 // CostUSD is the dollar cost of a tally under a price sheet.

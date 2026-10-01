@@ -339,17 +339,19 @@ func ch18CheckCacheRead(res *Ch18Result, out ch18Out) {
 func ch18CheckSessionScope(res *Ch18Result, first ch18Out, bin, skills, gui, work string) {
 	const id = "usage-is-session-scoped"
 
-	// Guard the fixture: if usage never accumulated in the first place, a
-	// meter reading zero after restart would pass while proving nothing.
+	// Guard the fixture: if the meter never reported anything useful, a
+	// reading of zero after restart would pass while proving nothing.
 	if len(first.usage) == 0 {
 		res.fail(id, "the meter never reported usage during the first run")
 		return
 	}
 	before := first.usage[len(first.usage)-1]
-	wantFirst := ch18Cold.Input + ch18Warm.Input
-	if before.Input != wantFirst {
-		res.fail(id, "after two turns the meter reports %d input tokens, expected the session total %d. "+
-			"Session scoping cannot be judged until accumulation works", before.Input, wantFirst)
+	// The meter shows the most recent response's tokens, not a running total.
+	wantLast := ch18Warm.Input
+	if before.Input != wantLast {
+		res.fail(id, "after two turns the meter reports %d input tokens, expected the "+
+			"last response's %d. Session scoping cannot be judged until the meter works",
+			before.Input, wantLast)
 		return
 	}
 	if _, err := os.Stat(filepath.Join(work, "save.json")); err != nil {
@@ -375,10 +377,13 @@ func ch18CheckSessionScope(res *Ch18Result, first ch18Out, bin, skills, gui, wor
 	}
 	last := out.usage[len(out.usage)-1]
 	if last.Input == ch18Restart.Input {
-		return // session-scoped, as required
+		return // shows the restart response's tokens, as required
 	}
-	if last.Input >= wantFirst {
-		res.fail(id, "after a restart the meter reports %d input tokens, but this session spent only %d. "+
+	// If it shows more than this single response should, it may be
+	// accumulating across sessions via the lifetime total in save.json.
+	firstSessionTotal := ch18Cold.Input + ch18Warm.Input
+	if last.Input >= firstSessionTotal {
+		res.fail(id, "after a restart the meter reports %d input tokens, but this response had only %d. "+
 			"It is reading the lifetime total restored from save.json, so the number grows forever "+
 			"and never answers what this sitting cost", last.Input, ch18Restart.Input)
 		return

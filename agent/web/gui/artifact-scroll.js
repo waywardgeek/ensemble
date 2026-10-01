@@ -7,6 +7,8 @@ class ArtifactScroll {
     this.toolCards = new Map(); // call_id -> element
     this.accumulated = new Map(); // part_id -> accumulated text
     this.options = options;
+    // View cap, set from settings. Zero means no cap.
+    this.maxEvents = Number.isFinite(options.maxEvents) && options.maxEvents > 0 ? options.maxEvents : 0;
   }
 
   // clear removes every rendered artifact and forgets the correlation state.
@@ -58,6 +60,39 @@ class ArtifactScroll {
         }
         this._scrollToBottom();
         break;
+    }
+    this._enforceCap();
+  }
+
+  // setMaxEvents caps how many rendered items stay on screen. It is a view
+  // limit only: the log still holds every event, and a refresh replays them
+  // all. Zero or negative means no cap.
+  setMaxEvents(n) {
+    this.maxEvents = Number.isFinite(n) && n > 0 ? n : 0;
+    this._enforceCap();
+  }
+
+  // _enforceCap discards the oldest items until the screen is within the cap.
+  //
+  // The correlation maps are pruned along with the DOM, for the same reason
+  // clear() empties them: an entry that outlives its element routes the next
+  // delta into a node that is no longer on the page, and the text silently
+  // vanishes. The hazard is sharper here than in clear(), because trimming
+  // happens WHILE a turn is streaming. Only the oldest items are discarded,
+  // so a part still streaming is the newest and is never the one dropped.
+  _enforceCap() {
+    if (!this.maxEvents) return;
+    while (this.container.childElementCount > this.maxEvents) {
+      this.container.removeChild(this.container.firstElementChild);
+    }
+    for (const [id, el] of this.artifacts) {
+      if (!this.container.contains(el)) {
+        this.artifacts.delete(id);
+        this.accumulated.delete(id);
+      }
+    }
+    for (const [id, el] of this.toolCards) {
+      if (!this.container.contains(el)) this.toolCards.delete(id);
     }
   }
 

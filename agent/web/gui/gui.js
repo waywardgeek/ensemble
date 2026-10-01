@@ -423,6 +423,7 @@
     'set-tts-enabled':     {key: 'tts_enabled', type: 'bool'},
     'set-tts-speed':       {key: 'tts_speed', type: 'float'},
     'set-font-size':       {key: 'font_size', type: 'int'},
+    'set-max-events':      {key: 'max_events', type: 'int'},
     'set-theme':           {key: 'theme', type: 'string'},
   };
 
@@ -518,12 +519,12 @@
     document.getElementById('u-cr').textContent = 'cache ' + fmtTokens(cacheRead);
     document.getElementById('u-hit').textContent = ((u.hit_rate || 0) * 100).toFixed(1) + '%';
 
-    // Exact figures on hover, since the compact forms round.
+    // Tooltip shows session totals since the header shows per-response.
     document.getElementById('usage-meter').title =
-      'input ' + input.toLocaleString() +
-      ' · cache write ' + cacheWrite.toLocaleString() +
-      ' · cache read ' + cacheRead.toLocaleString() +
-      ' · output ' + (u.output || 0).toLocaleString();
+      'Session: input ' + (u.session_input || 0).toLocaleString() +
+      ' · cache write ' + (u.session_cache_write || 0).toLocaleString() +
+      ' · cache read ' + (u.session_cache_read || 0).toLocaleString() +
+      ' · output ' + (u.session_output || 0).toLocaleString();
   }
 
   function applySettings(s) {
@@ -558,6 +559,14 @@
     }
     applyTheme(s.theme || 'dark');
     applyFontSize(s.font_size);
+
+    // The server resolves an unset cap to the default, so this is always a
+    // concrete number and the GUI keeps no copy of the default itself.
+    if (s.max_events !== undefined) {
+      document.getElementById('set-max-events').value = s.max_events;
+      chatScroll.setMaxEvents(s.max_events);
+      actionsScroll.setMaxEvents(s.max_events);
+    }
 
     // Accessibility
     document.getElementById('set-tts-enabled').checked = !!s.tts_enabled;

@@ -76,7 +76,7 @@ type ch18Event struct {
 type ch18Out struct {
 	reqs []fakevendor.Recorded
 	// usage holds every meter frame seen, in order. The last one is the
-	// session total at the end of the run.
+	// most recent response's usage at the end of the run.
 	usage  []ch18UsageFrame
 	events []ch18Event
 	// rawUsage keeps the undecoded meter frames so a check can ask whether a

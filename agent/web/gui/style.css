@@ -104,10 +104,11 @@ body {
   white-space: nowrap;
 }
 
-.u-item { color: var(--text-dim); }
+/* Status indicators: all full contrast so nothing is unreadable for low-
+   vision users. Cost and hit rate get weight, not dimming, for emphasis. */
+.u-item { color: var(--text); }
 
-/* Cost and hit rate are the two numbers worth glancing at, so they get
-   contrast; the raw token counts are supporting detail. */
+/* Cost and hit rate get weight for emphasis within the full-contrast bar. */
 #u-cost {
   color: var(--text);
   font-weight: 600;
@@ -121,7 +122,7 @@ body {
 /* Shown when the configured model has no price sheet, so that an unpriced
    model cannot be mistaken for a free one. */
 #u-cost.unpriced {
-  color: var(--text-dim);
+  color: var(--text);
   font-weight: 400;
 }
 
