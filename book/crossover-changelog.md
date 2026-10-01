@@ -934,3 +934,94 @@ goroutine could land midway through rendering a request. Applied between turns,
 effect at the end of that turn. The question "must we rebuild on a model
 switch?" turns out to be a question about where features are resolved, and the
 answer was already written into the architecture.
+
+## 21. The breakpoint that paid for a prefix twice
+
+Four cache breakpoints is all either vendor allows, so the question of where
+they go is a question about which four boundaries in a request are worth
+money. Reading the renderer to check the answer turned up one slot spent on a
+prefix that was already paid for, and one boundary left unmarked.
+
+The rule they settled into, in cache order:
+
+1. the end of the tool array,
+2. the system prompt,
+3. the compaction bound, meaning the end of the newest micro_handoff,
+4. the most recent message carrying no ephemeral part.
+
+There is deliberately none at the start of a turn.
+
+### Why the start of a turn is the wrong place
+
+The removed marker sat at the end of the previous exchange, one message behind
+the newest prompt. The argument for it was that it reads a prefix an earlier
+request already paid to write, and that it stays put through a long tool loop
+while the rolling marker advances.
+
+Both halves are true and neither pays. The rolling marker from the *previous
+round* already wrote an entry at that very prefix, and both vendors look
+backward past a bounded number of positions to find a prior write. The slot was
+buying a second copy of something already in hand.
+
+Bill's framing is the sharper one, and it turns a tuning question into a
+correctness question: a start-of-turn breakpoint should never be *needed*, and
+if it ever were, that is a bug to go fix rather than a cost to cache around.
+The only way such a marker earns its slot is if the prefix below the newest
+prompt changes between rounds. That is prefix instability, and the cure is to
+stop rewriting the prefix.
+
+Ensemble cannot drift that way, for a structural reason: `land()`
+strips every tool call and tool result at reduce time, once, and the result is
+frozen into the projection. CodeRhapsody, by contrast, keeps the three most
+recent tool pairs across a handoff and counts them back from a boundary that
+moves, which is exactly the instability that would tempt someone into pinning
+the start of a turn. Same rule, different answer, because the two agents
+compact differently.
+
+### What the freed slot bought
+
+Tools sit at the very front of the cache order, ahead of the system prompt and
+the messages. A marker there is the only one that survives an edit to the
+system prompt: without it, changing a single word of the prompt discards the
+tool declarations too, and tool schemas are not small.
+
+It goes on the *last* declaration, never an earlier one. A breakpoint includes
+every byte before it, so marking the last tool closes a prefix containing all
+of them; marking any earlier one leaves the remainder outside.
+
+### The vendors disagree, and only one of them can be obeyed
+
+Anthropic takes `cache_control` on a tool definition, so it gets all four.
+
+OpenAI cannot. Its breakpoints attach to message *content blocks*, and Chat
+Completions supports them on `text`, `image_url`, `input_audio` and `file`.
+The tools array is not a content block, so the first breakpoint is not
+expressible there at all. Nothing is lost except independence: a breakpoint
+includes all prompt content before it, and tools precede the system prompt, so
+OpenAI's system marker already covers the tools. It simply cannot keep them
+when the prompt changes. OpenAI therefore writes three of its permitted four.
+
+Three further details of OpenAI's scheme are worth having on the record,
+because they bear on whether the budget is really full:
+
+- **Earlier turns' breakpoints are read-only.** They can match the cache but
+  are not written again, so the compaction bound costs a write slot once and is
+  free to read thereafter.
+- **Reads consider the latest fifty breakpoints**, far more than are written.
+- **On GPT-5.6 and later, cache writes can be charged.** The usage meter counts
+  tokens and applies prices at render time, so this is a pricing-table question
+  rather than a metering one, but it is no longer safe to assume a write is
+  free.
+
+### A test that asserts position, not text
+
+The guard against the start-of-turn marker coming back checks *where* markers
+are, not what they sit on. The first version compared block text and would have
+passed a restored anchor straight through, because a marker can land on a block
+whose wire text is empty, a tool result being the obvious case. The rewritten
+version asserts that in an uncompacted conversation no marker appears before
+the final message.
+
+Restoring the anchor as a mutant is caught by five tests. Dropping the tool
+marker, and moving it from the last declaration to the first, are each caught
+by one.
