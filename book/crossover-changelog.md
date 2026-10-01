@@ -723,3 +723,58 @@ conversation, the second breakpoint inside `messages` has little left to buy
 here, though a long conversation would shift the balance since that is the only
 section that grows. Still open, and still a question for a measurement rather
 than an argument.
+
+
+---
+
+## 17. GUI reconnect: assistant text and thinking vanish on restart
+
+**Symptom.** After restarting the server, the GUI showed Bill's chat messages
+(dark bubbles) and tool calls (right panel), but every model response and
+thinking block was gone — as if the agent had never spoken.
+
+**Root cause.** `partToWireMsg` produced `part_final` messages with no
+`part_id` field. The GUI's `_handleFinal` uses `msg.part_id` as a key in its
+`artifacts` Map. With `part_id === undefined`, every replayed `part_final`
+overwrote a single DOM element — the first one created, positioned after the
+first user message and scrolled off the top. 63 agent responses collapsed into
+one invisible div.
+
+User messages survived because `_handleUserMessage` always creates a new
+element without consulting the Map. Tool calls survived because
+`_handleToolDispatched` also always creates a new element.
+
+**Why it took tracing, not guessing.** The save file was correct: 392 events,
+63 `ResponseEnded`, all with proper `TextPart` content. The `PartList` JSON
+marshaling round-tripped every part type correctly. The subscribe handler sent
+events. The GUI received them. The rendering code handled `TextPart`. Every
+layer worked in isolation. The bug was a missing field at the boundary between
+the server's wire format and the client's DOM correlation.
+
+**Fix (a1eebb4).**
+
+1. `partToWireMsg` now takes a `partIndex` parameter and generates a unique
+   `part_id` from the event seq and part position (e.g. `r42.0`, `r42.1`).
+   Each response gets its own div.
+
+2. `OpaquePart` with `type: "thinking"` in its JSON data now renders as
+   `kind: "thinking"` on reconnect, extracting the thinking text. Previously
+   `partToWireMsg` returned `nil` for `OpaquePart`, so thinking was visible
+   during live streaming but gone after restart.
+
+3. `artifact-scroll.js` applies the `.thinking` CSS class when
+   `msg.kind === 'thinking'` in `_handleFinal`, matching the live-streaming
+   path that does the same in `_handleDelta`.
+
+**Tests.** `TestResponsesGetDistinctPartIDs` (multiple responses get distinct
+IDs) and `TestThinkingRendersOnReconnect` (opaque thinking parts render with
+correct kind and text).
+
+**Lesson for the chapter.** The live streaming path and the replay path are
+different code paths that must produce equivalent output. A field that is
+present in `marshalObservation` (the live path) but absent in `partToWireMsg`
+(the replay path) creates a class of bug that is invisible during development
+— it only appears after a restart, which is the one time the user most needs
+the transcript to be intact. The fix is not "add the field" but "share the
+correlation key": the `part_id` is the identity of a piece of content, and
+identity must survive both paths.
