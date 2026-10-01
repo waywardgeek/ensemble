@@ -424,19 +424,16 @@ func ConfigFromEnv() (Config, error) {
 		Surface:   common.DefaultSurface(vendor),
 		MaxTokens: 1024,
 	}
+	cfg.Endpoints = common.ResolveEndpoints(pick)
+	active := cfg.Endpoints[vendor]
+	cfg.BaseURL, cfg.APIKey = active.BaseURL, active.APIKey
 	switch vendor {
 	case VendorAnthropic:
 		cfg.Model = pick("LLM_MODEL", "ANTHROPIC_MODEL", "claude-sonnet-5")
-		cfg.BaseURL = pick("LLM_BASE_URL", "ANTHROPIC_BASE_URL", "https://api.anthropic.com")
-		cfg.APIKey = pick("LLM_API_KEY", "ANTHROPIC_API_KEY", "")
 	case VendorOpenAI:
 		cfg.Model = pick("LLM_MODEL", "OPENAI_MODEL", "gpt-5")
-		cfg.BaseURL = pick("LLM_BASE_URL", "OPENAI_BASE_URL", "https://api.openai.com")
-		cfg.APIKey = pick("LLM_API_KEY", "OPENAI_API_KEY", "")
 	case VendorGemini:
 		cfg.Model = pick("LLM_MODEL", "GEMINI_MODEL", "gemini-3.8-flash")
-		cfg.BaseURL = pick("LLM_BASE_URL", "GEMINI_BASE_URL", "https://generativelanguage.googleapis.com")
-		cfg.APIKey = pick("LLM_API_KEY", "GEMINI_API_KEY", "")
 	}
 	return cfg, nil
 }

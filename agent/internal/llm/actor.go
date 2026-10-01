@@ -476,9 +476,21 @@ func (a *Actor) handleSetModel(m common.SetModel) {
 		return
 	}
 
+	// The endpoint moves with the model. The renderer follows Vendor, so an
+	// endpoint left behind renders one vendor's dialect and posts it to
+	// another vendor's host, carrying that vendor's key. Resolve and refuse
+	// before mutating anything: a half applied switch is worse than none.
+	ep, ok := a.eng.Cfg.Endpoints[v]
+	if !ok {
+		a.notify(common.TurnEnded{Err: fmt.Sprintf("no endpoint configured for vendor %v, required by model %s", v, m.Model)})
+		return
+	}
+
 	a.eng.Cfg.Model = m.Model
 	a.eng.Cfg.Vendor = v
 	a.eng.Cfg.Surface = common.DefaultSurface(v)
+	a.eng.Cfg.BaseURL = ep.BaseURL
+	a.eng.Cfg.APIKey = ep.APIKey
 	if a.eng.Tools != nil {
 		a.eng.Tools.SyncModelGatedTools(m.Model)
 	}

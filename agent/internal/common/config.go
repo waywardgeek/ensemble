@@ -9,11 +9,25 @@ import (
 
 // Config is everything about a request that is not conversation.
 type Config struct {
-	Vendor       Vendor
-	Surface      Surface
-	Model        string
-	BaseURL      string
-	APIKey       string
+	Vendor  Vendor
+	Surface Surface
+	Model   string
+	BaseURL string
+	APIKey  string
+
+	// Endpoints is where each vendor is reached, resolved once by the
+	// composition root for every vendor rather than only the one we start
+	// on. Switching models must move the endpoint with the model: the
+	// renderer follows Vendor, so an endpoint left behind means we render
+	// one vendor's dialect and post it to another vendor's host, carrying
+	// the wrong key. BaseURL and APIKey above are simply the entry for the
+	// vendor currently selected.
+	//
+	// The composition root owns this because resolving it needs the
+	// lookup policy (environment, and for the binary the home settings
+	// file) that only the root knows. An empty map is not a licence to
+	// guess: a switch to a vendor with no entry is refused.
+	Endpoints    map[Vendor]Endpoint
 	SystemPrompt string
 	MaxTokens    int
 	Tools        []ToolDecl
@@ -177,5 +191,46 @@ func DefaultSurface(v Vendor) Surface {
 		return SurfaceGenerateContent
 	default:
 		return SurfaceMessages
+	}
+}
+
+// Endpoint is where one vendor is reached: its base URL and the key that
+// authenticates to it. The two travel together because they are useless
+// apart, and sending one vendor's key to another vendor's host is the exact
+// mistake this type exists to make impossible.
+type Endpoint struct {
+	BaseURL string
+	APIKey  string
+}
+
+// ResolveEndpoints resolves an Endpoint for every vendor, reading each setting
+// through look: a generic variable that overrides all vendors, a vendor
+// specific variable, and a default used when neither is set.
+//
+// It takes a lookup function rather than reading the environment itself
+// because the two composition roots are entitled to different policies. The
+// binary also consults the user's home settings file; the embeddable library
+// deliberately does not, since a library has no business reading its host's
+// home directory. Sharing the table while injecting the policy keeps one copy
+// of the vendor list, so adding a vendor cannot update one root and miss the
+// other.
+//
+// Every vendor is resolved up front, not just the one selected at startup, so
+// that switching models later is a lookup rather than a second copy of this
+// table resolved under a different policy.
+func ResolveEndpoints(look func(generic, specific, fallback string) string) map[Vendor]Endpoint {
+	return map[Vendor]Endpoint{
+		VendorAnthropic: {
+			BaseURL: look("LLM_BASE_URL", "ANTHROPIC_BASE_URL", "https://api.anthropic.com"),
+			APIKey:  look("LLM_API_KEY", "ANTHROPIC_API_KEY", ""),
+		},
+		VendorOpenAI: {
+			BaseURL: look("LLM_BASE_URL", "OPENAI_BASE_URL", "https://api.openai.com"),
+			APIKey:  look("LLM_API_KEY", "OPENAI_API_KEY", ""),
+		},
+		VendorGemini: {
+			BaseURL: look("LLM_BASE_URL", "GEMINI_BASE_URL", "https://generativelanguage.googleapis.com"),
+			APIKey:  look("LLM_API_KEY", "GEMINI_API_KEY", ""),
+		},
 	}
 }
