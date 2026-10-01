@@ -778,3 +778,159 @@ present in `marshalObservation` (the live path) but absent in `partToWireMsg`
 the transcript to be intact. The fix is not "add the field" but "share the
 correlation key": the `part_id` is the identity of a piece of content, and
 identity must survive both paths.
+
+## 18. The reset that cleared the screen for everyone except the operator
+
+Reset worked, and the operator could not tell. Clicking it cleared the screen,
+and the old conversation stayed on screen anyway. A browser refresh removed it.
+
+That asymmetry is the entire diagnosis, and it points the opposite way from
+intuition. Refresh is the path that goes all the way back to disk and rebuilds
+from scratch, so a bug that *survives* a refresh is a storage bug. A bug that a
+refresh *cures* is the reverse: the durable record is right and the live screen
+is the thing that is wrong.
+
+### The fix for one path was the gap in the other
+
+Section 16 made a deliberate choice, and it was the correct one:
+
+> The reset reaches the screen as an ordinary rendered event rather than as a
+> reply to the button press.
+
+That is exactly right for a reconnecting client, and it is exactly why a
+connected one saw nothing. The GUI is a projection of the event log fed by two
+different channels. Replay reads the log; a live screen never replays anything
+and learns about the agent only through observations. Delivering the reset as a
+rendered event served the first channel completely and the second not at all.
+
+`Engine.Record` appends to the log, writes the journal and applies the reducer.
+It does not notify the observer, so `handleReset` produced *zero* observations.
+Measured, not inferred: attaching a capture observer and calling the handler
+returns an empty list.
+
+Replay, meanwhile, was provably fine. Driving `Hub.subscribe` over a log of
+`[message, message, ConversationReset, message]` yields frames in that order,
+so a replaying client renders the stale transcript and then clears it. The
+self-healing refresh was the system working as designed.
+
+The fix is a `ConversationCleared` observation notified from `handleReset`,
+rendered into the frame `renderEvent` already produces, so both channels drive
+the client down one path. The sealed observation union turned the missing
+`isObservation` into a compile error rather than a silent no-op.
+
+**For the book:** this is a sibling of section 17's lesson, inverted. There the
+live and replay paths both existed and disagreed. Here the replay path was
+correct and the live path did not exist at all, which is harder to see, because
+every test of the durable behavior passes. The question to ask of any event is
+not "is it recorded" but "which of the two channels carries it, and who is
+listening to the other one."
+
+A note on scope that is itself a design argument: the event cap in section 19
+deliberately does not window replay. Had it done so, the reset frame could fall
+outside the window, and the refresh that currently cures this bug would stop
+curing it.
+
+## 19. A view limit is not a retention limit
+
+The GUI rendered every event it had ever seen. The new Appearance setting caps
+that at 100, discarding oldest first.
+
+The useful distinction is that three different limits want to live here and
+only two of them are the same question:
+
+- **`MaxEvents`** bounds rendering work. It is a view limit. It loses nothing,
+  because the log still holds every event and a refresh replays them all.
+- **`LogRetention`** bounds the file on disk, and already existed. It trims on a
+  clean save, keeping the newest events *after* the snapshot is written, so the
+  snapshot always exists before the old events are gone.
+- The **context window** is a third thing entirely, and the ladder owns it.
+
+Conflating the first two is the tempting error, and it would be lossy: a view
+preference would start deleting history. Keeping them separate costs one honest
+consequence worth stating in the GUI rather than hiding, which is that after a
+restart the screen can show no more than `min(MaxEvents, LogRetention)`.
+
+Unset resolves to the default on the *server*, so the broadcast always carries a
+concrete number and the client keeps no second copy of the default to drift
+from. Zero is not honored literally here, unlike `temperature` or
+`tts_enabled`, because a screen showing no events is not a choice anyone wants;
+effectively unlimited is spelled as the cap.
+
+**The bug that was avoided:** the trim prunes the three correlation maps along
+with the DOM, for the same reason `clear()` empties them. An entry outliving its
+element routes the next delta into a node no longer on the page, so text
+vanishes with no error anywhere. The hazard is sharper when trimming than when
+clearing, because trimming happens *while a turn is streaming*. Discarding only
+the oldest is what makes it safe: a part still streaming is the newest, so it is
+never the one dropped.
+
+## 20. The model selector that selected nothing
+
+The GUI offered a model dropdown. Choosing a different model changed nothing at
+all: every request went to the startup default.
+
+The dropdown wrote `settings.Model`. `cmd/main.go` set `cfg.Model` from
+environment variables. Nothing carried one to the other. It was a known-dead
+setting, and not the only inert one in that struct.
+
+### The readout confirmed the lie
+
+What makes this worth a section is not the dead wire but the instrument.
+`effectiveModel` consulted the settings store *first*, with a comment explaining
+that switching the model in the GUI is what the operator just did. So the GUI
+displayed the selected model while the engine dialed the old one, and the
+display was the thing that was wrong.
+
+A readout fed from *intent* always agrees with the operator. Only a readout fed
+from the *fact* can disagree, and disagreeing is the entire job. It now reports
+`Cfg.Model`, the model actually dialed.
+
+### Switching needs no rebuild, and that is a finding
+
+The intuition is that changing models means rebuilding the client. Here it does
+not, and the reason is a design property worth naming: the renderer and
+`curate()` both resolve features through `LookupModel` on every call rather than
+caching them at construction. Derive-per-use costs a map lookup and buys live
+reconfiguration for free.
+
+Two things do not follow automatically, and both would fail quietly:
+
+1. **Vendor and Surface** are separate config fields. Move the model alone and
+   the next request is rendered in one vendor's dialect and posted to another
+   vendor's endpoint.
+2. **The model-gated tool set.** `keep_tool_results` is withheld on models that
+   do not stub tool results. That gate was resolved once at startup, which was
+   correct right up until the operator switched. One function now decides, for
+   both startup and switch, so they cannot drift.
+
+Restoring a withheld builtin re-registers it with `Initial` provenance, because
+that is what it is. The ordinary `RegisterTool` stamps `Dynamic` and would have
+quietly falsified the provenance record.
+
+### Vendor is a property of the model
+
+The vendor was derived two ways: the engine dialed whatever `Cfg.Vendor` said,
+while the GUI labelled models by string-prefixing the ID. Two mappings that
+could disagree, and neither able to answer the question a switch actually asks,
+which is *which API do we dial for this model*.
+
+It now lives in the model table, with the display label derived from the same
+field. The zero value is deliberately invalid rather than defaulting to a
+vendor, so a row that forgets to declare one is detectable. A test asserts every
+row declares a vendor, and it earned its keep within a minute: it caught five
+rows a grep had reported clean, because `gofmt` aligns the map and the pattern
+required exactly one space after the colon.
+
+`fake-model` is driven against several vendors by environment prefix and so
+genuinely has no single answer. It leaves the field unset and `VendorFor`
+refuses, which callers must treat as a refusal. An unknown model is refused
+rather than guessed at: a prefix table would cheerfully resolve
+`claude-not-a-real-model` to Anthropic and dial the wrong API.
+
+**For the book:** the switch travels as a mailbox message, for the same reason
+`Reset` does. The actor owns the config, so applying a switch from the WebSocket
+goroutine could land midway through rendering a request. Applied between turns,
+"switch at any time" becomes safe including mid-turn, when it simply takes
+effect at the end of that turn. The question "must we rebuild on a model
+switch?" turns out to be a question about where features are resolved, and the
+answer was already written into the architecture.
