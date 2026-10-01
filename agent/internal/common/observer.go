@@ -86,9 +86,18 @@ type ToolFinished struct {
 	IsError bool    `json:"is_error"`
 }
 
-func (PartDelta) isObservation()      {}
-func (PartFinal) isObservation()      {}
-func (StateChanged) isObservation()   {}
-func (TurnEnded) isObservation()      {}
-func (ToolDispatched) isObservation() {}
-func (ToolFinished) isObservation()   {}
+// ConversationCleared fires when the operator resets the conversation. The
+// reset is recorded as an event, so a client that replays the log rebuilds the
+// cleared screen on its own. A client that is already connected replays
+// nothing, and so has to be told.
+type ConversationCleared struct {
+	Agent AgentID `json:"agent,omitempty"`
+}
+
+func (ConversationCleared) isObservation() {}
+func (PartDelta) isObservation()           {}
+func (PartFinal) isObservation()           {}
+func (StateChanged) isObservation()        {}
+func (TurnEnded) isObservation()           {}
+func (ToolDispatched) isObservation()      {}
+func (ToolFinished) isObservation()        {}

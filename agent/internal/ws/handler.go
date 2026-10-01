@@ -830,6 +830,14 @@ func marshalObservation(obs common.Observation) []byte {
 	var m map[string]any
 
 	switch v := obs.(type) {
+	case common.ConversationCleared:
+		// Must match the frame renderEvent produces for ConversationReset so
+		// that a live clear and a replayed one drive the client down the same
+		// path. The client does not track per-event seq, so none is sent.
+		m = map[string]any{"type": "conversation_reset"}
+		if v.Agent != "" {
+			m["agent"] = string(v.Agent)
+		}
 	case common.PartDelta:
 		m = map[string]any{
 			"type":    "part_delta",

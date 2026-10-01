@@ -445,6 +445,7 @@ func (a *Actor) handleReset() {
 		a.notify(common.TurnEnded{Err: "reset failed: " + err.Error()})
 		return
 	}
+	a.notify(common.ConversationCleared{})
 	a.setState(common.Idle)
 	_ = a.eng.Save()
 }
