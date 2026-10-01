@@ -86,6 +86,15 @@ const (
 )
 
 type ModelFeatures struct {
+	// Vendor is the API this model is served by. It is a fact about the
+	// model, not a deployment choice, so it belongs in the table rather than
+	// in configuration. The zero value is deliberately invalid: a row that
+	// forgets its vendor is detectable instead of silently Anthropic.
+	//
+	// Test models driven by a per-vendor env prefix genuinely have no single
+	// vendor and correctly leave this unset.
+	Vendor Vendor
+
 	// Price is the dollar cost per million tokens for each of the four
 	// disjoint Usage categories. The zero sheet means unpriced, not free:
 	// see Pricing.
@@ -259,15 +268,35 @@ func displayName(id string) string {
 	return id
 }
 
-// vendor returns the vendor group label for a model ID.
+// VendorFor reports which API serves a model. The mapping lives in the model
+// table, so there is exactly one of it: a model's vendor is a fact about the
+// model, not a deployment choice.
+//
+// ok is false for an unknown model, and also for a test model that is driven
+// against several vendors by env prefix and so has no single answer. A caller
+// that needs to dial an API must treat !ok as a refusal rather than guessing,
+// because every available guess is wrong for some model.
+func VendorFor(id string) (Vendor, bool) {
+	f, found := LookupModel(id)
+	if !found || f.Vendor == Vendor(0) {
+		return Vendor(0), false
+	}
+	return f.Vendor, true
+}
+
+// vendor returns the vendor group label for a model ID. It derives from the
+// table so the name shown in the GUI cannot drift from the API dialed.
 func vendor(id string) string {
-	if len(id) >= 6 && id[:6] == "claude" {
+	v, ok := VendorFor(id)
+	if !ok {
+		return "Other"
+	}
+	switch v {
+	case VendorAnthropic:
 		return "Anthropic"
-	}
-	if len(id) >= 3 && id[:3] == "gpt" {
+	case VendorOpenAI:
 		return "OpenAI"
-	}
-	if len(id) >= 6 && id[:6] == "gemini" {
+	case VendorGemini:
 		return "Google"
 	}
 	return "Other"
@@ -307,16 +336,16 @@ func models() map[string]ModelFeatures {
 	return map[string]ModelFeatures{
 		// Anthropic — no audio, no video. Streams all three kinds.
 		// All current Anthropic models have 1M context windows as of 2026.
-		"claude-opus-4-6": {Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 5, CacheWrite: 6.25, CacheRead: 0.5, Output: 25}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
-		"claude-opus-5":   {Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 5, CacheWrite: 6.25, CacheRead: 0.5, Output: 25}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
-		"claude-sonnet-5": {Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 3, CacheWrite: 3.75, CacheRead: 0.3, Output: 15}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true},
+		"claude-opus-4-6": {Vendor: VendorAnthropic, Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 5, CacheWrite: 6.25, CacheRead: 0.5, Output: 25}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
+		"claude-opus-5":   {Vendor: VendorAnthropic, Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 5, CacheWrite: 6.25, CacheRead: 0.5, Output: 25}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
+		"claude-sonnet-5": {Vendor: VendorAnthropic, Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 3, CacheWrite: 3.75, CacheRead: 0.3, Output: 15}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true},
 
 		// OpenAI — images yes, audio and video NO (video APIs are generation).
 		// Reasoning arrives as a summary rather than as incremental deltas,
 		// so thinking is not streamed. These models support reasoning_effort
 		// but do not return reasoning content on Chat Completions.
-		"gpt-6-astra": {Caching: CacheImplicit, MinCacheTokens: 1024, Price: Pricing{Input: 10, CacheWrite: 12.50, CacheRead: 1.0, Output: 50}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
-		"gpt-5.6-sol": {Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 1050000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, NoThinkingWithTools: true},
+		"gpt-6-astra": {Vendor: VendorOpenAI, Caching: CacheImplicit, MinCacheTokens: 1024, Price: Pricing{Input: 10, CacheWrite: 12.50, CacheRead: 1.0, Output: 50}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gpt-5.6-sol": {Vendor: VendorOpenAI, Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 1050000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, NoThinkingWithTools: true},
 
 		// Gemini — images, audio, video, documents. Text and thinking stream;
 		// FUNCTION-CALL ARGUMENTS DO NOT. They arrive complete, in one frame.
@@ -324,8 +353,8 @@ func models() map[string]ModelFeatures {
 		// description of this model needs two of three bits set, and a bool
 		// would have forced us either to drop text streaming or to invent
 		// argument chunks that the vendor never sent.
-		"gemini-3.8-flash":       {Caching: CacheImplicit, MinCacheTokens: 4096, Price: Pricing{Input: 0.75, CacheWrite: 0.75, CacheRead: 0.075, Output: 3.75}, ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
-		"gemini-3.1-pro-preview": {Caching: CacheImplicit, MinCacheTokens: 4096, Price: Pricing{Input: 2, CacheWrite: 2.0, CacheRead: 0.20, Output: 12}, ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gemini-3.8-flash":       {Vendor: VendorGemini, Caching: CacheImplicit, MinCacheTokens: 4096, Price: Pricing{Input: 0.75, CacheWrite: 0.75, CacheRead: 0.075, Output: 3.75}, ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gemini-3.1-pro-preview": {Vendor: VendorGemini, Caching: CacheImplicit, MinCacheTokens: 4096, Price: Pricing{Input: 2, CacheWrite: 2.0, CacheRead: 0.20, Output: 12}, ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Fake model used by the grader — images only, to test loud refusal.
 		// Streams everything, because the streaming checks need all three
@@ -333,20 +362,20 @@ func models() map[string]ModelFeatures {
 		"fake-model": {Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 200000, Media: MediaImage, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Course/test models used by graders in various chapters.
-		"claude-fake-course-1":   {Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
-		"claude-sonnet-5-course": {Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		"claude-fake-course-1":   {Vendor: VendorAnthropic, Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
+		"claude-sonnet-5-course": {Vendor: VendorAnthropic, Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true},
 		// Chapter 15's grader model: the claude-opus-5 row, course-named.
 		// A new row rather than a changed one, so every earlier chapter's
 		// grader, which runs fake-model or claude-fake-course-1, sees
 		// exactly the wire it saw before.
-		"claude-opus-5-course": {Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
-		"gpt-5-course":         {Caching: CacheImplicit, MinCacheTokens: 1024, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"claude-opus-5-course": {Vendor: VendorAnthropic, Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
+		"gpt-5-course":         {Vendor: VendorOpenAI, Caching: CacheImplicit, MinCacheTokens: 1024, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 		// Chapter 16's grader model: the opus row with a deliberately tiny
 		// window, so a grader can reach ninety percent of it in a handful of
 		// turns instead of a hundred thousand. A NEW row rather than a
 		// changed one, so no earlier chapter's grader sees a different wire.
-		"claude-ch16-course":      {Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 4096, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true},
-		"gemini-3.5-flash-course": {Caching: CacheImplicit, MinCacheTokens: 4096, ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"claude-ch16-course":      {Vendor: VendorAnthropic, Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 4096, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true},
+		"gemini-3.5-flash-course": {Vendor: VendorGemini, Caching: CacheImplicit, MinCacheTokens: 4096, ContextWindow: 1000000, Media: MediaImage | MediaAudio | MediaVideo | MediaDocument, Stream: StreamText | StreamThinking, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 	}
 }
 
