@@ -143,3 +143,138 @@ collect:
 		t.Fatalf("replayed %d of %d messages; %d were silently dropped", got, n, n-got)
 	}
 }
+
+
+// responseEvent builds a ResponseEnded event with the given parts.
+func responseEvent(seq common.Seq, parts ...common.Part) common.Event {
+	return common.Event{
+		Seq:  seq,
+		Type: common.ResponseEnded,
+		Time: time.Unix(0, 0).UTC(),
+		Response: &common.ResponseData{
+			Parts: common.PartList(parts),
+		},
+	}
+}
+
+// drainPartFinals collects part_final frames from a client, returning
+// their part_id, kind, and text fields.
+type partFinalMsg struct {
+	PartID string
+	Kind   string
+	Text   string
+}
+
+func drainPartFinals(c *Client) []partFinalMsg {
+	var out []partFinalMsg
+	for {
+		select {
+		case raw := <-c.send:
+			var m map[string]any
+			if err := json.Unmarshal(raw, &m); err != nil {
+				continue
+			}
+			if m["type"] != "part_final" {
+				continue
+			}
+			pf := partFinalMsg{}
+			if v, ok := m["part_id"].(string); ok {
+				pf.PartID = v
+			}
+			if v, ok := m["kind"].(string); ok {
+				pf.Kind = v
+			}
+			if v, ok := m["text"].(string); ok {
+				pf.Text = v
+			}
+			out = append(out, pf)
+		default:
+			return out
+		}
+	}
+}
+
+// Before the fix, every replayed part_final lacked a part_id, so the GUI's
+// artifact Map collapsed all agent responses into one DOM element. This test
+// verifies that multiple ResponseEnded events produce distinct part_id values
+// and that the text content survives.
+func TestResponsesGetDistinctPartIDs(t *testing.T) {
+	log := &common.Log{
+		Events: []common.Event{
+			msgEvent(1, common.ActorHuman, "hello"),
+			responseEvent(2, common.TextPart{Text: "first response"}),
+			msgEvent(3, common.ActorHuman, "more"),
+			responseEvent(4, common.TextPart{Text: "second response"}),
+		},
+		Next:  5,
+		Clock: time.Now,
+	}
+
+	h := NewHub(nil, nil, "", log, nil, nil)
+	c := &Client{send: make(chan []byte, 256)}
+	h.subscribe(c)
+
+	finals := drainPartFinals(c)
+	if len(finals) != 2 {
+		t.Fatalf("got %d part_finals, want 2: %+v", len(finals), finals)
+	}
+	if finals[0].PartID == finals[1].PartID {
+		t.Errorf("both responses share part_id %q — GUI will collapse them", finals[0].PartID)
+	}
+	if finals[0].Text != "first response" {
+		t.Errorf("first response text = %q, want %q", finals[0].Text, "first response")
+	}
+	if finals[1].Text != "second response" {
+		t.Errorf("second response text = %q, want %q", finals[1].Text, "second response")
+	}
+}
+
+// Thinking blocks (OpaquePart with type="thinking") should render as
+// kind="thinking" on reconnect, the same way they appear during live streaming.
+func TestThinkingRendersOnReconnect(t *testing.T) {
+	thinkingData, _ := json.Marshal(map[string]any{
+		"type":      "thinking",
+		"thinking":  "Let me analyze this problem...",
+		"signature": "abc123",
+	})
+	log := &common.Log{
+		Events: []common.Event{
+			responseEvent(1,
+				common.OpaquePart{Data: thinkingData},
+				common.TextPart{Text: "Here is my answer"},
+			),
+		},
+		Next:  2,
+		Clock: time.Now,
+	}
+
+	h := NewHub(nil, nil, "", log, nil, nil)
+	c := &Client{send: make(chan []byte, 256)}
+	h.subscribe(c)
+
+	finals := drainPartFinals(c)
+	if len(finals) != 2 {
+		t.Fatalf("got %d part_finals, want 2 (thinking + text): %+v", len(finals), finals)
+	}
+
+	// Thinking part comes first.
+	if finals[0].Kind != "thinking" {
+		t.Errorf("first part kind = %q, want %q", finals[0].Kind, "thinking")
+	}
+	if finals[0].Text != "Let me analyze this problem..." {
+		t.Errorf("thinking text = %q", finals[0].Text)
+	}
+
+	// Text part comes second.
+	if finals[1].Kind != "text" {
+		t.Errorf("second part kind = %q, want %q", finals[1].Kind, "text")
+	}
+	if finals[1].Text != "Here is my answer" {
+		t.Errorf("text content = %q", finals[1].Text)
+	}
+
+	// They must have distinct part_ids.
+	if finals[0].PartID == finals[1].PartID {
+		t.Errorf("thinking and text share part_id %q", finals[0].PartID)
+	}
+}

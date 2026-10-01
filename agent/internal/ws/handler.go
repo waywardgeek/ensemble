@@ -8,6 +8,7 @@ package ws
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"sync"
 	"time"
@@ -381,7 +382,8 @@ func (h *Hub) usageFrame() []byte {
 	if h.usage == nil {
 		return nil
 	}
-	u := h.usage.SessionUsage()
+	session := h.usage.SessionUsage()
+	last := h.usage.LastUsage()
 
 	var (
 		priced bool
@@ -389,18 +391,28 @@ func (h *Hub) usageFrame() []byte {
 	)
 	if f, ok := common.LookupModel(h.effectiveModel()); ok && f.Price.Priced() {
 		priced = true
-		cost = common.CostUSD(u, f.Price)
+		cost = common.CostUSD(session, f.Price)
 	}
 
 	data, _ := json.Marshal(map[string]any{
-		"type":        "usage",
-		"input":       u.Input,
-		"cache_write": u.CacheWrite,
-		"cache_read":  u.CacheRead,
-		"output":      u.Output,
-		"hit_rate":    common.CacheHitRate(u),
-		"cost_usd":    cost,
-		"priced":      priced,
+		"type": "usage",
+		// Per-response: the operator sees how large the current prompt is
+		// and how much of it was cached, not a running sum that only grows.
+		"input":       last.Input,
+		"cache_write": last.CacheWrite,
+		"cache_read":  last.CacheRead,
+		"output":      last.Output,
+		// Session-wide: cost and hit rate accumulate because that is what
+		// a developer means by "what has this session spent."
+		"hit_rate": common.CacheHitRate(session),
+		"cost_usd": cost,
+		"priced":   priced,
+		// Session totals for the tooltip, so the operator can still see
+		// the running sum on hover.
+		"session_input":       session.Input,
+		"session_cache_write": session.CacheWrite,
+		"session_cache_read":  session.CacheRead,
+		"session_output":      session.Output,
 	})
 	return data
 }
@@ -676,8 +688,8 @@ func renderEvent(e common.Event) [][]byte {
 		if e.Response == nil {
 			break
 		}
-		for _, p := range e.Response.Parts {
-			m := partToWireMsg(e.Seq, p)
+		for i, p := range e.Response.Parts {
+			m := partToWireMsg(e.Seq, i, p)
 			if m != nil {
 				data, _ := json.Marshal(m)
 				msgs = append(msgs, data)
@@ -760,23 +772,49 @@ func renderEvent(e common.Event) [][]byte {
 }
 
 // partToWireMsg converts a finalized Part into a wire message.
-func partToWireMsg(seq common.Seq, p common.Part) map[string]any {
+//
+// partIndex differentiates parts within one ResponseEnded event.
+// Without it, every replayed part_final shares part_id undefined and
+// the GUI's artifact Map collapses all agent responses into a single
+// DOM element — the root cause of "assistant text vanishes on restart".
+func partToWireMsg(seq common.Seq, partIndex int, p common.Part) map[string]any {
+	partID := fmt.Sprintf("r%d.%d", seq, partIndex)
 	switch v := p.(type) {
 	case common.TextPart:
 		return map[string]any{
-			"type": "part_final",
-			"seq":  seq,
-			"kind": "text",
-			"text": v.Text,
+			"type":    "part_final",
+			"seq":     seq,
+			"part_id": partID,
+			"kind":    "text",
+			"text":    v.Text,
 		}
 	case common.ToolCallPart:
 		return map[string]any{
 			"type":    "part_final",
 			"seq":     seq,
+			"part_id": partID,
 			"kind":    "tool_call",
 			"tool":    v.Name,
 			"call_id": v.CallID,
 			"args":    string(v.Args),
+		}
+	case common.OpaquePart:
+		// Thinking blocks are stored as OpaquePart with a "thinking" type
+		// field and the thinking text in the JSON data. Extract the text
+		// so the GUI can display it on reconnect — without this, thinking
+		// is visible during live streaming but vanishes after restart.
+		var opaque struct {
+			Type     string `json:"type"`
+			Thinking string `json:"thinking"`
+		}
+		if json.Unmarshal(v.Data, &opaque) == nil && opaque.Type == "thinking" && opaque.Thinking != "" {
+			return map[string]any{
+				"type":    "part_final",
+				"seq":     seq,
+				"part_id": partID,
+				"kind":    "thinking",
+				"text":    opaque.Thinking,
+			}
 		}
 	}
 	return nil

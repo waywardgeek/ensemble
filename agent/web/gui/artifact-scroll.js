@@ -103,6 +103,9 @@ class ArtifactScroll {
     if (!el) {
       el = document.createElement('div');
       el.className = 'artifact';
+      // Thinking blocks from reconnection carry kind="thinking" so the
+      // same styling applies as during live streaming.
+      if (msg.kind === 'thinking') el.classList.add('thinking');
       this.container.appendChild(el);
       this.artifacts.set(id, el);
     }
