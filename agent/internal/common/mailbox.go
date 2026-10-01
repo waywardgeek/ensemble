@@ -39,11 +39,22 @@ type Interrupt struct{}
 // argument because there is nothing to choose.
 type Reset struct{}
 
+// SetModel switches the model that subsequent requests are rendered for.
+//
+// It travels as an inbound message for the same reason Reset does: the actor
+// owns the config, and applying a switch from the WebSocket goroutine could
+// land midway through rendering a request. Delivered into the queue, it is
+// applied between turns, which is what makes "switch at any time" safe: ask
+// mid-turn and the change takes effect when that turn ends, never partway
+// through a render.
+type SetModel struct{ Model string }
+
 func (UserMessage) isInbound()   {}
 func (Hint) isInbound()          {}
 func (ToolCompleted) isInbound() {}
 func (Interrupt) isInbound()     {}
 func (Reset) isInbound()         {}
+func (SetModel) isInbound()      {}
 
 // Mailbox is a mutex-guarded FIFO queue with a signal channel. Post never
 // blocks or drops.

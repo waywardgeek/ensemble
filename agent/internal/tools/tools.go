@@ -873,6 +873,50 @@ func (r *Reg) SetOnSkillMCPDisconnect(fn func(string) error) {
 	r.onSkillMCPDisconnect = fn
 }
 
+// SyncModelGatedTools declares or withdraws the tools whose meaning depends
+// on which model is in use, so the advertised tool set stays honest when the
+// operator switches models.
+//
+// keep_tool_results only means something on a model whose tool results are
+// stubbed. Offering it on a model that never stubs invites the agent to call
+// a tool that cannot do anything, so it is withheld there.
+//
+// This is the single place that decides, called both at startup and on every
+// switch. It used to be resolved once during construction, which was correct
+// right up until the operator picked a different model: the gate then
+// described the model the process booted with rather than the one being
+// dialed.
+//
+// A withheld builtin is restored with Initial provenance, because that is
+// what it is: a builtin that was held back, not a tool added at runtime.
+// Registering it through RegisterTool would stamp it Dynamic and quietly
+// falsify the provenance record.
+//
+// The registry is per-agent and not concurrency-safe, so this must be called
+// from the actor goroutine. That is why a model switch travels as a mailbox
+// message rather than being applied from the WebSocket goroutine.
+func (r *Reg) SyncModelGatedTools(model string) {
+	feats, _ := common.LookupModel(model)
+	name := common.NormalizeName(common.KeepToolResults)
+
+	if !feats.StubsToolResults {
+		r.RemoveTool(common.KeepToolResults)
+		return
+	}
+	if _, ok := r.tools[name]; ok {
+		return
+	}
+	tool, ok := builtinTools()[name]
+	if !ok {
+		return
+	}
+	r.tools[name] = tool
+	r.meta[name] = ToolMeta{Source: SourceInitial}
+	if spec, ok := builtinArgSpec()[name]; ok {
+		r.argSpec[name] = spec
+	}
+}
+
 // RemoveTool removes a tool from the registry by name.
 func (r *Reg) RemoveTool(name string) {
 	n := common.NormalizeName(name)

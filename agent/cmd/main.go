@@ -315,9 +315,10 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	// not enable per-round-trip stubbing (ch15 rule 6), so it is not
 	// declared there: a tool that silently does nothing is a lie in the
 	// prompt.
-	if f, _ := common.LookupModel(cfg.Model); !f.StubsToolResults {
-		reg.RemoveTool(common.KeepToolResults)
-	}
+	//
+	// This is the same call the actor makes on a model switch, so startup
+	// and switch cannot drift apart: one function decides, in both cases.
+	reg.SyncModelGatedTools(cfg.Model)
 
 	// Rebuild tool declarations with skill filtering applied.
 	cfg.Tools = reg.Declarations()

@@ -124,6 +124,11 @@ type ToolRegistry interface {
 	Lookup(name string) (Tool, error)
 	Declarations() []ToolDecl
 	EphemeralTools(mode string) []Tool
+
+	// SyncModelGatedTools declares or withdraws the tools whose meaning
+	// depends on the model in use, so that switching models leaves the
+	// advertised tool set honest. Called at startup and on every switch.
+	SyncModelGatedTools(model string)
 }
 
 // ---------------------------------------------------------------------------

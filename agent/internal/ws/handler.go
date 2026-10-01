@@ -359,21 +359,25 @@ replay:
 // one renders a dash, the other "$0.00".
 // effectiveModel names the model whose prices apply to this session.
 //
-// The settings store is consulted first, because switching the model in the
-// GUI is what the operator just did and rebuilds the client. But the store
-// starts EMPTY when the model came from the environment, and an empty name
-// looks up nothing: the meter then reported a fully priced model as unpriced
-// and its cost as zero. That is this chapter's failure mode wearing the
-// costume of its own instrument, so Model supplies the model actually in
-// force and the composition root fills it in.
+// This reports the model the engine will actually dial, not the one most
+// recently picked in the GUI. The two used to differ, and silently: the GUI
+// wrote its choice to the settings store, nothing ever applied that to the
+// engine, and this readout consulted the store first. So the meter cheerfully
+// confirmed a model that every request ignored, which is a worse failure than
+// showing nothing at all.
+//
+// Now that a model switch is applied to the engine for real, Cfg.Model is the
+// single source of truth and the readout cannot drift from the wire. The
+// settings store remains only as a fallback for a hub wired without an
+// engine, as in tests.
 func (h *Hub) effectiveModel() string {
-	if h.settings != nil {
-		if m := h.settings.Get().Model; m != "" {
+	if h.Model != nil {
+		if m := h.Model(); m != "" {
 			return m
 		}
 	}
-	if h.Model != nil {
-		return h.Model()
+	if h.settings != nil {
+		return h.settings.Get().Model
 	}
 	return ""
 }
@@ -546,8 +550,19 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 		}
 	case "update_settings":
 		if h.settings != nil && msg.Settings != nil {
+			was := h.effectiveModel()
 			updated := h.settings.ApplyRaw(msg.Settings)
 			h.broadcastSettings(updated)
+
+			// A model switch is applied by the actor, between turns. The
+			// actor owns the config, so changing it from this goroutine
+			// could land midway through rendering a request. Compared
+			// against the model the engine is actually dialing, not against
+			// the previous setting, because the setting starts empty when
+			// the model came from the environment.
+			if h.send != nil && updated.Model != "" && updated.Model != was {
+				h.send(common.SetModel{Model: updated.Model})
+			}
 		}
 	case "jsonrpc":
 		// JSON-RPC routing between agents and the browser's MCP server.

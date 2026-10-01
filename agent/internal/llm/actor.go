@@ -197,6 +197,8 @@ func (a *Actor) handle(msg common.Inbound) {
 		a.handleInterrupt()
 	case common.Reset:
 		a.handleReset()
+	case common.SetModel:
+		a.handleSetModel(m)
 	}
 }
 
@@ -447,6 +449,39 @@ func (a *Actor) handleReset() {
 	}
 	a.notify(common.ConversationCleared{})
 	a.setState(common.Idle)
+	_ = a.eng.Save()
+}
+
+// handleSetModel switches the model that subsequent requests are rendered
+// for. It runs on the actor goroutine between turns, so it can never land
+// partway through rendering a request.
+//
+// Almost nothing needs rebuilding. The renderer and curate() both resolve
+// features from Cfg.Model on every call, so they follow a switch on their
+// own. Two things do not follow. Vendor and Surface are separate config
+// fields and must move with the model, or the next request is rendered in
+// one vendor's dialect and posted to another vendor's endpoint. And the
+// model-gated tool set has to be re-resolved.
+//
+// An unknown model is refused rather than guessed at. Guessing would dial
+// the wrong vendor and fail at the API with an error that says nothing
+// about the real cause.
+func (a *Actor) handleSetModel(m common.SetModel) {
+	if m.Model == a.eng.Cfg.Model {
+		return
+	}
+	v, ok := common.VendorFor(m.Model)
+	if !ok {
+		a.notify(common.TurnEnded{Err: "unknown model: " + m.Model})
+		return
+	}
+
+	a.eng.Cfg.Model = m.Model
+	a.eng.Cfg.Vendor = v
+	a.eng.Cfg.Surface = common.DefaultSurface(v)
+	if a.eng.Tools != nil {
+		a.eng.Tools.SyncModelGatedTools(m.Model)
+	}
 	_ = a.eng.Save()
 }
 
