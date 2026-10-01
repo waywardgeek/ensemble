@@ -71,28 +71,31 @@ prompt against a conversation prompt fires a false alarm.
 
 A `cache_control` marker on a content block tells the provider: everything
 before this is a cacheable prefix. Anthropic allows four markers per
-request, and OpenAI now allows four cache writes under nearly the same
-scheme. Place three:
+request, and OpenAI allows four cache writes under nearly the same scheme.
+Place four, in cache order:
 
-1. **System prompt.** One marker at the end of the system block. Stable
+1. **Tool array.** One marker on the last tool declaration. Tools sit at
+   the front of the cache order, ahead of the system prompt. This is the
+   only marker that survives a change to the system prompt.
+
+2. **System prompt.** One marker at the end of the system block. Stable
    by construction.
-
-2. **Rolling pair in the message history.** An anchor at the end of the
-   previous exchange, fixed for the turn so it scores reads while tool
-   rounds advance. A rolling marker at the current stable end of history.
-   On each new turn the anchor advances to where the rolling marker was.
 
 3. **The compaction bound.** One marker at the newest `micro_handoff`
    entry. Compaction rewrites everything above it and nothing below it,
    so that entry is the highest point in the conversation that survives
-   compaction untouched. The rolling pair chases the tail and is lost on
-   every compaction; this marker banks the part that does not move.
+   compaction untouched.
 
-That is four markers for three jobs, which is the entire budget. There is
-no room for a fifth idea.
+4. **Stable end of history.** One rolling marker at the most recent
+   message carrying no ephemeral part. It advances on each turn. Moving
+   a marker does not invalidate what it previously banked.
 
-The rolling design works because the marker is not part of the cache
-key. Moving a marker does not invalidate what it previously banked.
+That is four markers for four jobs, which is the entire Anthropic budget.
+OpenAI writes three: its breakpoints attach only to message content
+blocks, so the tool-array marker is not expressible there. The system
+marker already covers tools, but cannot keep them independently when the
+prompt changes. There is no room for a fifth idea.
+
 
 Two constraints:
 
@@ -100,11 +103,11 @@ Two constraints:
   after delivery. A marker placed after them caches bytes guaranteed to
   disappear, which guarantees a miss. Capture the stable boundary before
   the ephemera append.
-- **Strip markers before comparing.** The rolling marker moves between
-  turns, so a block carrying `cache_control` in one request carries none
-  in the next. Compare raw bytes and every healthy turn is classified as
-  edited. The comparison strips markers first: a breakpoint is an
-  instruction to the provider, not conversation content.
+- **Strip markers before comparing.** The stable-end marker moves
+  between turns, so a block carrying `cache_control` in one request
+  carries none in the next. Compare raw bytes and every healthy turn is
+  classified as edited. The comparison strips markers first: a breakpoint
+  is an instruction to the provider, not conversation content.
 
 ### Wire format
 
@@ -114,8 +117,11 @@ markers per request.
 
 OpenAI: explicit `prompt_cache_breakpoint` markers on content blocks,
 enabled by a request-level `prompt_cache_options: {mode: "explicit"}`.
-Up to four cache writes per request. GPT-5.6 and later only; earlier
-models cache implicitly and ignore the fields.
+Up to four cache writes per request. GPT-5.6 and later only. Breakpoints
+attach only to message content blocks (text, image, audio, file), not to
+the tool array. The agent therefore writes three markers rather than four;
+the system marker already covers tools, but cannot keep them independently
+when the prompt changes.
 
 The footgun: explicit mode disables implicit caching. A request that
 declares explicit mode but places no markers caches nothing at all,
@@ -263,7 +269,7 @@ diagnostic. Structured verdicts are the automation.
 
 ### Stripping the markers
 
-Because the rolling marker moves, a content block that carried
+Because the stable-end marker moves, a content block that carried
 `cache_control` in one request carries none in the next. That difference
 sits deep inside the prefix, where the trailing-append rule cannot reach.
 Comparing raw bytes classifies every healthy turn as edited, and the
@@ -340,41 +346,50 @@ first-message marker adds one message to the cached span and leaves the
 rest of the conversation cold on every turn, while the conversation is
 the part that grows and the part that costs.
 
-### The rolling pair
+### The tool array
 
-The implementation places two markers in the history: an anchor and a
-rolling boundary.
+Tools sit at the very front of the cache order, ahead of the system
+prompt and the messages. A marker on the last tool declaration closes a
+prefix containing all of them.
 
-The anchor sits at the end of the previous exchange, fixed for the
-duration of the current turn. Tool rounds may add new content after it,
-but the anchor does not move until the next turn starts. Because it is
-fixed, the provider can serve a cache read for the entire conversation
-prefix, including every prior exchange, on every tool round within the
-current turn.
+The tool-array marker is the only one that survives a change to the
+system prompt. Without it, editing a single word of the prompt discards
+the tool declarations along with it, and tool schemas are not small. With
+it, the declarations stay cached while the prompt rebuilds. The system
+marker covers tools under normal operation, but the tool-array marker
+is the one that matters under maintenance.
 
-The rolling marker sits at the current end of stable history, after the
-latest user message and before the assistant's in-progress response. On
-the next turn this position becomes the new anchor.
+### The stable end
 
-Anthropic allows four markers per request. OpenAI allows four cache
-writes. The system marker plus the two history markers use three of the
-four, which is the budget for the compaction bound below.
+One marker sits at the most recent message carrying no ephemeral part.
+It advances on each turn as the conversation grows. Because a marker is
+not part of the cache key, moving it does not invalidate the bytes it
+previously banked. Measured on Anthropic, the cache read count climbs by
+exactly the size of the previous exchange on each turn. That 21-token
+climb is the marker working: it is direct evidence that a moving marker
+does not break caching, measured rather than assumed.
 
-The property that makes the design work is that a marker is not part of
-the cache key. Moving the rolling marker does not invalidate the bytes
-it previously banked. Measured across three live vendors, the cache read
-count climbs by exactly the size of the previous exchange on each turn.
-That 21-token climb is the marker working.
+A start-of-turn anchor is unnecessary. The rolling marker from the
+previous turn already wrote a cache entry at exactly that prefix, and
+both vendors walk backward past a bounded number of positions to find a
+prior write. The anchor would buy a second copy of something already in
+hand, using one of only four slots.
+
+The framing that settles it: a breakpoint at the start of a turn should
+never be needed. If it ever is, the prefix below the newest prompt is
+changing between rounds, and that is prefix instability. The cure is to
+stop rewriting the prefix, not to cache around the rewriting. An
+optimisation that only helps when something else is broken is a
+diagnostic, not an optimisation.
 
 ### The compaction bound
 
-The rolling pair chases the tail of the conversation. A `micro_handoff`
-rewrites everything below it: tool calls are stripped, recall entries
-are removed, and the affected region settles into the redaction ladder's
-terminal state. The rolling pair's anchor, which sat somewhere in the
-middle of that region, now points at bytes that no longer exist. The
-pair rebuilds from the new tail and the old prefix is gone, along with
-the cache it banked.
+A `micro_handoff` rewrites the conversation above it: tool calls are
+stripped, recall entries are removed, and the affected region settles
+into the redaction ladder's terminal state. The stable-end marker, which
+sat somewhere in the middle of that region, now points at bytes that no
+longer exist. It rebuilds from the new tail and the old prefix is gone,
+along with the cache it banked.
 
 The newest `micro_handoff` entry is the highest point in the
 conversation that survives compaction untouched. Everything below it is
@@ -397,9 +412,32 @@ system prompt, takes a full cache miss. That is accepted. Band
 compactions are rarer than handoffs, and a marker cannot survive a
 rewritten system prompt regardless of where it sits in the history.
 
-Four markers for four jobs: system, compaction bound, stable end, and
-anchor. That is the entire Anthropic budget and the entire OpenAI
-budget. There is no room for a fifth idea.
+### The vendor asymmetry
+
+Anthropic takes `cache_control` on a tool definition, so it gets all
+four markers. OpenAI cannot. Its breakpoints attach to message content
+blocks, and the tools array is not a content block. OpenAI writes three
+of the four: system, compaction bound, and stable end.
+
+Nothing is lost except independence. A breakpoint includes all prompt
+content before it, and tools precede the system prompt in the cache
+order, so the system marker already covers the tool declarations. The
+system marker simply cannot keep them when the prompt changes. Under
+routine operation this makes no difference. Under maintenance, Anthropic
+holds its tool cache through a prompt edit while OpenAI does not.
+
+Three properties of OpenAI's scheme bear on whether the budget is really
+full. Earlier turns' breakpoints are read-only: they can match the cache
+but are not rewritten, so the compaction-bound marker costs a write slot
+once and is free to read on every subsequent turn. Reads consider the
+latest fifty breakpoints, far more than the four that can be written.
+And on GPT-5.6 and later, cache writes can be charged. This chapter is
+about an invisible invoice, and a write that is no longer free belongs in
+the accounting.
+
+That is four markers for four jobs on Anthropic, three on OpenAI. There
+is no room for a fifth idea.
+
 
 ### Ephemera
 
@@ -415,10 +453,10 @@ because the agent still works correctly.
 
 ### The provider minimum
 
-Every vendor has a floor. Anthropic will not cache a prefix below a
-minimum size. Gemini's is 4,096 tokens for 3.x Flash and 2,048 for 2.5
-and newer. A prompt below the floor reports zero cached tokens, which is
-exactly what a broken cache reports.
+Every vendor has a floor. Anthropic will not cache a prefix below 1,024
+tokens (2,048 for some model families). Gemini's floor is 4,096 tokens
+for 3.x Flash and 2,048 for 2.5. A prompt below the floor reports zero
+cached tokens, which is exactly what a broken cache reports.
 
 A zero can mean the cache failed, or it can mean the request was never
 eligible. An instrument that cannot tell those apart will eventually
@@ -447,7 +485,7 @@ real vendor APIs, cache read tokens per turn:
 Three findings in that table.
 
 Anthropic climbs by exactly 21 tokens per turn, which is the size of the
-previous exchange. That is the rolling marker banking the conversation
+previous exchange. That is the stable-end marker banking the conversation
 one exchange at a time. It is the direct evidence that a moving marker
 does not invalidate the cache, measured rather than assumed. The
 assumption held for two sessions before anyone thought to check.
@@ -457,8 +495,8 @@ names: `prompt_cache_breakpoint` on a content block and
 `prompt_cache_options: {mode: "explicit"}` on the request. It was
 documented only for the Responses API and never mentioned for Chat
 Completions; it works on both, measured. The end-to-end measurement,
-using the renderer's own output with four breakpoints placed at system,
-compaction bound, stable end, and anchor, reads 7,359 of 7,362 prompt
+using the renderer's own output with three breakpoints placed at system,
+compaction bound, and stable end, reads 7,359 of 7,362 prompt
 tokens from cache on the second turn. That is 99.96 percent of the
 prefix, which confirms the markers land and the prefix survives.
 
@@ -481,7 +519,9 @@ On OpenAI, explicit mode disables implicit caching, so a request
 that declares explicit mode and places no markers caches nothing at
 all, which is strictly worse than staying silent. The implementation
 must gate the opt-in on evidence: send `mode: "explicit"` only when
-at least one marker actually landed.
+at least one marker actually landed. GPT-5.6 also exposes a
+`prompt_cache_key` field that improves match quality across requests;
+it is not implemented here but worth knowing about.
 
 Gemini needs a fourth column. It caches implicitly, detecting the
 repeated prefix itself, so there are no markers to place. What it asks
@@ -500,7 +540,7 @@ The 16,349 and 24,531 are four blocks and six blocks of roughly 4,096
 tokens each. Caching commits at that granularity, so a turn that appends
 a sentence adds nothing to the cached count. The achievable rate depends
 on how the stable region divides into blocks: a prefix of 21,660 tokens
-with nothing moving cached 16,359 of them, or 75.5 percent, because the
+with nothing moving cached 16,349 of them, or 75.5 percent, because the
 remainder never completed a fifth block. Against the eligible portion of
 a growing conversation the rate is above ninety percent. The raw number
 looks lower because the last partial block is charged in full forever.
@@ -606,7 +646,8 @@ the grant was 99.4%.
 ## 18.6 Exercise, graded
 
 Build from `solutions/ch17`. Wire a `CacheLens` to `Engine.Turn`. Place
-breakpoints on the system prompt and in the message history. Build the
+breakpoints on the tool array (Anthropic only), the system prompt, the
+compaction bound, and the stable end of the message history. Build the
 meter. Verify prefix stability and cache reads.
 
 ```
