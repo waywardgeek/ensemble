@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"net"
-	"sync"
 	"time"
 )
 
@@ -55,13 +54,12 @@ func (h *Hub) serveMCPConn(conn net.Conn, source string) {
 	out := make(chan []byte, 64)
 	done := make(chan struct{})
 
-	// pending holds the ids of requests sent to the browsers and not yet
-	// answered. Every live tab answers a broadcast request, so without this
-	// set two open tabs would send the client two responses with one id.
-	var mu sync.Mutex
-	pending := map[string]bool{}
+	// Every live tab answers a broadcast request; the router lets only the
+	// first reply per id through, so two open tabs do not send the client two
+	// responses with one id.
+	replies := newReplyRouter()
 
-	reply := func(b []byte) {
+	reply := func(b json.RawMessage) {
 		select {
 		case out <- b:
 		case <-done:
@@ -75,14 +73,8 @@ func (h *Hub) serveMCPConn(conn net.Conn, source string) {
 			return
 		}
 		if head.ID != nil && head.Method == "" {
-			key := string(head.ID)
-			mu.Lock()
-			first := pending[key]
-			delete(pending, key)
-			mu.Unlock()
-			if !first {
-				return // a second tab answering a request already answered
-			}
+			replies.route(head.ID, payload) // false: a duplicate, dropped
+			return
 		}
 		reply(payload)
 	})
@@ -114,16 +106,12 @@ func (h *Hub) serveMCPConn(conn net.Conn, source string) {
 		}
 		isRequest := head.ID != nil && head.Method != ""
 		if isRequest {
-			mu.Lock()
-			pending[string(head.ID)] = true
-			mu.Unlock()
+			replies.expect(head.ID, reply)
 		}
 		if h.BroadcastJSONRPC(line, source) == 0 && isRequest {
 			// No browser is open, so nothing will ever answer. Say so now
 			// rather than leaving the client to wait out its timeout.
-			mu.Lock()
-			delete(pending, string(head.ID))
-			mu.Unlock()
+			replies.forget(head.ID)
 			reply(noGUIError(head.ID))
 		}
 	}
@@ -141,7 +129,7 @@ func noGUIError(id json.RawMessage) []byte {
 		"id":      id,
 		"error": map[string]any{
 			"code":    -32000,
-			"message": "no GUI connected: open the ensemble GUI in a browser",
+			"message": string(ErrNoGUI),
 		},
 	})
 	return b

@@ -1,24 +1,23 @@
 ---
 name: gui-debug
-description: Debug the GUI through browser MCP tools
+description: Look at your own GUI to debug it
 depends:
   - ensemble
 ---
 
 ## GUI Debug Mode
 
-Loading this skill connects to the browser's MCP server over the
-existing WebSocket connection. Four tools become available:
+Call `view_gui` to see the GUI as the user currently sees it in the browser.
+It returns a markdown snapshot: the panes, every interactive element with a
+CSS selector, and previews of the artifacts on screen. The tool exists
+whenever the agent runs with `--port`, loaded skill or not; if no browser has
+the GUI open, it says so.
 
-**Ephemeral (auto-injected every round trip):**
-- `gui_snapshot` — markdown summary of the current DOM: panes,
-  interactive elements with CSS selectors, artifact previews
-- `tts_queue` — pending TTS utterances as JSON
+Use it to spot layout problems, find broken or missing elements, and check
+that a change to the GUI took effect. Look again after each change rather
+than trusting an earlier snapshot.
 
-**Callable tools:**
-- `gui_click(selector)` — click an element by CSS selector
-- `gui_input(selector, text)` — set text on an input element
-
-The DOM snapshot appears in your context automatically. Use it to
-spot layout issues, find broken elements, verify that actions
-produced the expected UI change.
+What you cannot do from here yet: click, type, or read the speech queue. The
+browser's MCP server offers those tools (`gui_click`, `gui_input`,
+`tts_queue`), but this agent does not connect to it. An agent in another
+process can, through `--mcp-port` and `mcp-connect`.

@@ -611,6 +611,12 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		hub := ws.NewHub(gate, func(msg common.Inbound) {
 			actor.Send(msg)
 		}, "gui.log", eng.Log, settingsStore, host)
+		// view_gui: the agent looks at its own GUI when it chooses to. Registered
+		// here because it needs the hub, and before the actor starts, so it is in
+		// the startup declarations like every builtin (the --gui-debug load above
+		// re-derives them at this stage for the same reason).
+		reg.RegisterInitial(hub.ViewGUITool())
+		eng.Cfg.Tools = reg.Declarations()
 		// The engine's config is the authority on which model is serving
 		// turns: it is validated at startup and refuses a model it does not
 		// know. The settings store can be empty, and pricing an empty name

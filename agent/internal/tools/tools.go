@@ -808,6 +808,15 @@ func (r *Reg) Register(name, description string, schema json.RawMessage, handler
 	r.meta[common.NormalizeName(name)] = ToolMeta{Source: SourceInitial}
 }
 
+// RegisterInitial adds a fully-formed Tool that is part of the agent as created,
+// not brought in by a skill: a builtin the host can only build once it has
+// something the registry does not, such as the GUI hub behind view_gui. It
+// runs as a job like any builtin, unlike Register, which forces NoJob.
+func (r *Reg) RegisterInitial(tool common.Tool) {
+	r.tools[common.NormalizeName(tool.Name)] = tool
+	r.meta[common.NormalizeName(tool.Name)] = ToolMeta{Source: SourceInitial}
+}
+
 // RegisterTool adds a fully-formed Tool (e.g., from MCP bridge).
 func (r *Reg) RegisterTool(tool common.Tool) {
 	r.tools[common.NormalizeName(tool.Name)] = tool

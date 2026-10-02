@@ -49,7 +49,11 @@ func fakeBrowser(t *testing.T, url, name string) *websocket.Conn {
 				"payload": map[string]any{
 					"jsonrpc": "2.0",
 					"id":      req.ID,
-					"result":  map[string]string{"from": name, "method": req.Method},
+					"result": map[string]any{
+						"from":    name,
+						"method":  req.Method,
+						"content": []map[string]string{{"type": "text", "text": "snapshot from " + name}},
+					},
 				},
 			})
 		}
