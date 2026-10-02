@@ -7,9 +7,7 @@ import (
 	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
 
-// countingRecaller records whether retrieval was asked for at all. The count
-// is the point of the test: the requirement is not merely that recall fails to
-// reach the wire, but that we never pay to build it.
+// countingRecaller records whether retrieval was asked for at all.
 type countingRecaller struct{ calls int }
 
 func (r *countingRecaller) Recall(query string, convo []string) common.PartList {
@@ -32,36 +30,45 @@ func newRecallEngine(t *testing.T, model string, r common.Recaller) *Engine {
 	return eng
 }
 
-// A model that cannot take ephemera gets no auto recall, and the retrieval is
-// skipped rather than discarded.
+// Auto recall keeps running for a model that cannot take ephemera, and this
+// test exists to stop someone pairing the two.
 //
-// Recall is not ephemera in this design: it lands as a permanent dialogue
-// entry with its own kind, so the render time drop that removes ephemera
-// sails straight past it. It has to be refused at its source. Asserting the
-// call count rather than the absence of a recall entry is what distinguishes
-// "we did the work and threw it away" from "we never did it", and only the
-// second one saves a BM25 pass and a judge call on every turn.
-func TestNoAutoRecallForModelThatCannotTakeEphemera(t *testing.T) {
+// They look like the same category and they are not. The criterion is whether
+// the content survives into the next request. Ephemera appear once and vanish,
+// which rewrites a prefix the model has already seen. A recall entry is
+// appended to the dialogue, rendered inline in conversation order by every
+// vendor, and removed only at a checkpoint, which already rewrites the prefix
+// and is already paying for that cache miss. So recall only ever extends the
+// prefix, and a model that tolerates no change to it is unaffected.
+//
+// This is a property of THIS design, not of auto recall as an idea. The same
+// feature built as ephemera, delivered fresh each turn and gone by the next
+// round trip, would have to be switched off for such a model. Gating recall
+// here would have cost the feature for no caching benefit at all.
+func TestAutoRecallRunsForModelThatCannotTakeEphemera(t *testing.T) {
+	if f, ok := common.LookupModel("claude-opus-5-5"); !ok || !f.NoEphemera {
+		t.Fatalf("precondition: claude-opus-5-5 must declare NoEphemera, got ok=%v", ok)
+	}
+
 	r := &countingRecaller{}
 	eng := newRecallEngine(t, "claude-opus-5-5", r)
 
 	eng.attachRecall("some query")
 
-	if r.calls != 0 {
-		t.Errorf("Recall was called %d time(s); want 0 for a model that cannot take ephemera", r.calls)
+	if r.calls != 1 {
+		t.Errorf("Recall was called %d time(s); want 1. Recall is appended and permanent, so it does not destabilise the prefix and must not be gated on NoEphemera", r.calls)
 	}
 }
 
-// The companion case. Without this, deleting recall entirely would pass the
-// test above, and a gate that is always closed is indistinguishable from a
-// feature that was removed.
-func TestAutoRecallStillRunsForOtherModels(t *testing.T) {
+// The ordinary case, so that a recall feature deleted outright cannot pass the
+// test above by accident.
+func TestAutoRecallRunsForOtherModels(t *testing.T) {
 	r := &countingRecaller{}
 	eng := newRecallEngine(t, "claude-opus-5", r)
 
 	eng.attachRecall("some query")
 
 	if r.calls != 1 {
-		t.Errorf("Recall was called %d time(s); want 1 for a model that accepts recall", r.calls)
+		t.Errorf("Recall was called %d time(s); want 1", r.calls)
 	}
 }

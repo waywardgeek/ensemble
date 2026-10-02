@@ -68,19 +68,20 @@ func (e *Engine) attachRecall(query string) {
 	if e == nil || e.Recall == nil {
 		return
 	}
-	// A model that cannot take ephemera does not get recall either, and the
-	// check belongs here, before the work, rather than at render time.
+	// Recall is deliberately NOT gated on NoEphemera, although the two look
+	// alike and pairing them is the tempting move.
 	//
-	// Recall is not ephemera in this design: it lands as a permanent dialogue
-	// entry with its own kind, so the render time drop that removes ephemera
-	// would sail straight past it. It has to be refused at the source. Doing
-	// so also skips a BM25 pass and a judge call per turn, which is the
-	// difference between declining to send something and paying to build it
-	// and then throwing it away.
-	if f, ok := common.LookupModel(e.Cfg.Model); ok && f.NoEphemera {
-		return
-	}
-
+	// The criterion is whether the content survives into the next request.
+	// Ephemera do not: they appear in one request and are gone from the
+	// next, which rewrites a prefix the model has already seen, and a model
+	// that tolerates no such change cannot be sent them at all. A recall
+	// entry is appended to the dialogue and stays there, rendered inline in
+	// conversation order by every vendor, so it only ever extends the
+	// prefix. It is removed at a checkpoint, and a checkpoint already
+	// rewrites the prefix and is already paying for that cache miss.
+	//
+	// So recall is safe even for a model that tolerates no prefix change.
+	// Gating it here would have cost the feature for no caching benefit.
 	parts := e.Recall.Recall(query, e.recallConvo())
 	if len(parts) == 0 {
 		// Finding nothing is the expected outcome, not an error. Most turns
