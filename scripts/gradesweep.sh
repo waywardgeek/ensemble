@@ -118,6 +118,7 @@ run 15 ./agent
 run 16 ./agent
 run 17 ./agent
 run 18 ./agent
+run 19 ./agent
 # Per-chapter reference trees that also get graded.
 run 10 ./solutions/ch10
 run 11 ./solutions/ch11
@@ -128,6 +129,7 @@ run 15 ./solutions/ch15
 run 16 ./solutions/ch16
 run 17 ./solutions/ch17
 run 18 ./solutions/ch18
+run 19 ./solutions/ch19
 
 {
   echo "SWEEP-DONE breached=$BREACHED limit=${DEADLINE}s"
