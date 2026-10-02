@@ -1025,3 +1025,172 @@ the final message.
 Restoring the anchor as a mutant is caught by five tests. Dropping the tool
 marker, and moving it from the last declaration to the first, are each caught
 by one.
+
+## 22. An agent that could not see its own GUI
+
+Bill's observation started it: a student who passes every chapter ends up
+where we were on the morning of the switch. The agent has a GUI, the GUI has an
+MCP server built into it (`gui_snapshot`, `gui_click`, `gui_input` and
+more), and
+nothing can use it. The agent cannot look at its own screen, and no outside
+agent can connect to fix it. "We'll need you to see the Ensemble GUI and fix
+Ensemble until Ensemble can do it itself."
+
+**What was actually wired.** Less than the docs said. The gui-debug skill told
+the model it could inspect and drive the GUI, and that has been false in the
+shipping binary since chapter 12: `NewMCPWSTransport` had no caller. The
+chapter 13 grader never noticed, because it writes a temporary SKILL.md that
+launches a stdio fake MCP server, so it tested the MCP client and never the
+path from the agent to the browser.
+
+**Change.** Two doors, one per direction.
+
+- `--mcp-port N` (1d2cbfa) relays the GUI's MCP server onto a loopback TCP
+  port, one JSON-RPC message per line, with each connection tagged as its own
+  source so replies route back to the right caller. `cmd/mcp-connect` is a
+  stdio-to-TCP pipe, so any MCP client that spawns a stdio server, including
+  CodeRhapsody, can attach. `--mcp-port` without `--port` is refused, since
+  there is no GUI to relay.
+- `view_gui` (8e0c60b) is a builtin tool that asks the connected GUI for a
+  snapshot over the existing WebSocket (`Hub.CallGUI`, sharing a reply router
+  with the relay). It reports a missing GUI or a timeout as errors, not as an
+  empty screen. The gui-debug SKILL.md was rewritten to claim only what is
+  true: the agent can look; it cannot click or type from inside.
+
+**Verified live.** Headless Chrome on the GUI, the agent on the ChatGPT plan
+route with gpt-6.1-sol, prompt "Look at your own GUI and list the buttons you
+can see, with their selectors." It called `view_gui` and answered with
+`#hamburger` (expanded), `#reset-btn`, `#settings-btn` and the Chats/Artifacts
+tabs, which is what the snapshot contained. Getting there took the fixes in
+entries 23 and 24.
+
+**Not built.** Clicking and typing from inside. `view_gui` only looks; an
+external agent on `--mcp-port` can drive the GUI with `gui_click` and
+`gui_input`.
+
+**Still open.** The snapshot showed an artifact reading `{}{}{}` for a tool
+call whose arguments were `{}`, which suggests argument deltas are rendered
+once per delta plus once at the end. Cosmetic, not yet investigated.
+
+## 23. The underscore that hid a tool
+
+`view_gui` was registered, unit-tested, and never reached a request.
+
+The registry keys tools by `common.NormalizeName(name)`, which strips every
+non-alphanumeric, so `view_gui` is stored under `viewgui`. `Declarations()`
+then asked the skill registry `IsToolEnabled(key)`. The skill lists
+`view_gui`, the question was about `viewgui`, and the answer was no. Every
+non-builtin tool with an underscore in its name was silently filtered out of
+every request, whatever the loaded skills said. Builtins survived for a
+structural reason, measured on the pre-fix tree: `NewRegistry` stores them
+under their raw name, while `Register`, `RegisterInitial` and dynamic
+registration store the normalized one. One map, two key conventions; for
+builtins the key happens to be the name, so asking about the key worked.
+
+**Change** (e171c42). Ask about `r.tools[n].Name`, the name a skill author
+writes. `TestSkillFilterUsesTheDeclaredName` fails on the old code.
+
+**The fix broke something the chapter could not see.** The MCP connect path in
+`load_skill` records each MCP tool as enabled, and it recorded the normalized
+key, under a comment that said why: "IsToolEnabled compares against normalized
+map keys." The old convention was consistent; e171c42 moved one end of it. After
+that, `gui_click` from a skill-connected MCP server no longer reached the dialog.
+ch19 stayed at 100. The cross-chapter sweep caught it: ch15 `frozen-prefix`
+fell to 90 and ch16 to 97 through its ch15 parity check. Bisected in a worktree
+(3bfb494 ch15 100, e171c42 ch15 90), fixed in f35c94e by recording the declared
+name. `IsToolEnabled` has two callers, and every producer of enabled names now
+supplies the declared name.
+
+**Still open.** The registry map still has two key conventions (raw for
+builtins, normalized for everything else). The filter no longer mixes them, but
+the map invites the next comparison of a key to a name.
+
+**For the book:** the tests passed because they tested the tool, not the path
+a tool takes from registration through the skill filter into a request. The
+live run caught in one prompt what a green suite had hidden. A normalized key
+is an index, not an identity; any question about identity has to be asked in
+the name the other party used.
+
+## 24. The plan route is not the documented route
+
+Chapter 19 was built from OpenAI's documentation and scored 100/100 against a
+fake built from the same documentation. On the real ChatGPT-plan route of
+`POST /v1/responses`, every turn failed. The route differs from the metered
+(API-key) route in four ways the docs do not mention. They were found live,
+one at a time, because each masked the next:
+
+1. **No explicit caching.** `prompt_cache_options` and a bare
+   `prompt_cache_breakpoint` both return 400 "not supported on this model".
+   The message blames the model; the metered route accepts both for the same
+   model. Implicit caching is absent too: an identical repeat reported zero
+   cached tokens. Fixed in 3bfb494 by adding both fields to the plan route's
+   forbidden list, which the renderer consults before attaching breakpoints.
+2. **No Content-Type header on the stream.** The metered route sends
+   `text/event-stream; charset=utf-8`. `isSSE` trusted the header alone and
+   handed the stream to the JSON decoder: "invalid character 'e'". Now the
+   header decides when present, and when absent the first non-blank byte does
+   (`{` means JSON).
+3. **`response.completed` carries `output: []`.** Items arrive only as
+   `response.output_item.done` events. The parser read parts only from
+   `completed.output`, so the model's text and tool calls were dropped and the
+   turn ended successfully with nothing in it. Now done items are collected by
+   `output_index` and used when `completed.output` is empty.
+4. **A consequence of 3, and a bug on both routes.** Once tool calls survived,
+   the turn ended in "refusing to marshal invalid vendor 0". `respAssemble`
+   built `ToolCallPart` without its `From` provenance. The journal's refusal
+   was correct and stayed; the producer was fixed. The metered fixture test
+   now asserts the provenance, so this one was always catchable.
+
+Fixes 2–4 are ec5f086. Each has a test that fails when the fix is removed.
+
+**A misdiagnosis worth recording.** The first 400 looked transient, because
+replaying the exact request body from Python succeeded. The replay used the
+API key; Ensemble used the plan token. The difference was the credential, not
+the body. Replay with the credential the agent used, or the experiment
+measures a different route.
+
+**A second finding from the same probes.** The plan token gets 401 on
+`/v1/chat/completions`. Bill's instance had been answering on gpt-5.6-sol,
+which is on the Chat Completions surface, so that traffic cannot have been on
+his plan. Reading `attachCredentials` in `cmd/auth.go` explains it: plan
+credentials attach only when the vendor is OpenAI at startup, and the default
+`LLM_VENDOR` is anthropic, so a later switch to an OpenAI model ran on the API
+key from settings.json. That is inferred from the code and the 401, not
+observed on his bill.
+
+**Still open.** Only gpt-6.1-sol (and the course model) are on the Responses
+surface; Bill wants all OpenAI traffic there, per the chapter 19 ruling. The
+cache lens reported "PREFIX DIVERGED" in `input` on the second round of a
+plan-route turn although `diff prior_request.json request.json` shows a pure
+append. Probably the lens's grown-array rule not recognising the Responses
+`input` shape; not yet checked.
+
+## 25. A fake built from the docs agrees with code built from the docs
+
+The ch19 fake Responses server sent the documented stream shape to everyone,
+so it could not see any of entry 24. The grader and the agent shared one
+belief about the wire, and agreement between them proved only that.
+
+**Change** (d68fef8). The fake picks the route from the credential, as the
+vendor does: any bearer other than the metered API key gets the plan route as
+measured, with no Content-Type and an empty `completed.output`. One Go trap:
+leaving the header unset is not the same as sending none, because net/http
+sniffs and sends `text/plain; charset=utf-8`. Setting
+`w.Header()["Content-Type"] = nil` suppresses it, and a test fails without
+that line.
+
+`responses-format` gains the converse of its old rule "claim success only on
+`response.completed`": a turn the vendor completed must end without an error,
+and the scripted tool call must come back as `function_call` plus
+`function_call_output` in a later request. Before this, an agent that failed
+every plan turn still passed it.
+
+**Verified.** `./agent` 100/100. The frozen `solutions/ch19` fell from 90 to
+60 and names the cause ("turn 1 ended in error although the vendor completed
+it"). Three new audit mutants, one per defect, each kill `responses-format`
+(the Content-Type mutant also kills `reasoning-summaries`, since an unparsed
+stream delivers no summaries). The audit is 11/11.
+
+**Rejected.** A `PlanRoute` option on the fake. The route is a property of the
+credential, and a flag the test sets would let a scenario claim one route
+while sending the other's token.
