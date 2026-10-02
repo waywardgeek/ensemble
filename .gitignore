@@ -83,3 +83,16 @@ __debug_bin*
 # Python bytecode from helper scripts
 __pycache__/
 .nightly/
+
+# Agent runtime artifacts.
+#
+# Running a grader against a solution snapshot executes the agent with that
+# snapshot as its working directory, so it writes these files INTO the tree
+# you are about to commit. The ch19 snapshot picked up request.json and
+# prior_request.json exactly that way: grade first, `git add` second, and the
+# cache lens output ships as part of the solution.
+save.json
+save.json.bak
+save.json.journal
+request.json
+prior_request.json

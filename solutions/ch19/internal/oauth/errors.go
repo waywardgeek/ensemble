@@ -27,32 +27,42 @@ import (
 	"fmt"
 )
 
+// oauthError is a string that is also an error, which lets the sentinels
+// below be declared as constants rather than package-level variables. An
+// error held in a var is mutable: any code in the package can reassign it,
+// and every errors.Is comparison in the program quietly changes meaning.
+// A constant cannot be reassigned, and comparison still works because a
+// defined string type is comparable.
+type oauthError string
+
+func (e oauthError) Error() string { return string(e) }
+
 // Sentinel errors. Callers are expected to branch on these with errors.Is
 // rather than on strings, because the strings are for humans and will change.
-var (
+const (
 	// ErrNoCredentials means nothing has been stored yet: the user has never
 	// signed in on this host. It is not a failure, it is a prompt to run the
 	// authorization flow.
-	ErrNoCredentials = errors.New("oauth: no stored ChatGPT credentials; sign-in required")
+	ErrNoCredentials = oauthError("oauth: no stored ChatGPT credentials; sign-in required")
 
 	// ErrReauthRequired means the stored grant is dead and cannot be revived
 	// by any refresh. The access and refresh tokens have been cleared. The
 	// issued client_id and the host id are deliberately RETAINED, because
 	// re-authorization must reuse them (a new registration would orphan the
 	// account's existing one).
-	ErrReauthRequired = errors.New("oauth: authorization is no longer valid; full re-authorization required")
+	ErrReauthRequired = oauthError("oauth: authorization is no longer valid; full re-authorization required")
 
 	// ErrPlanScopeNotGranted means sign-in succeeded but the user's account
 	// was not granted chatgpt.tokens.use.direct. Per the first-party error
 	// guidance the correct response is to RETAIN the sign-in and disable plan
 	// usage, not to discard the credential and loop the OAuth flow — looping
 	// would spin forever against an account that is simply not eligible.
-	ErrPlanScopeNotGranted = errors.New("oauth: scope " + ScopeDirectTokens + " was not granted; ChatGPT plan usage is disabled")
+	ErrPlanScopeNotGranted = oauthError("oauth: scope " + ScopeDirectTokens + " was not granted; ChatGPT plan usage is disabled")
 
 	// ErrStateMismatch means the callback's state did not match the pending
 	// request. This is the CSRF defence: without it an attacker can feed us a
 	// code minted for their own account and silently sign us in as them.
-	ErrStateMismatch = errors.New("oauth: callback state did not match the pending authorization request")
+	ErrStateMismatch = oauthError("oauth: callback state did not match the pending authorization request")
 
 	// ErrClientIDMismatch means the callback tried to hand us a client_id
 	// different from the one already associated with the pending request.
@@ -62,12 +72,12 @@ var (
 	// registration." Accepting it would let whoever controls the redirect
 	// repoint a working registration at a client they control, which is an
 	// account-takeover primitive, not a configuration update.
-	ErrClientIDMismatch = errors.New("oauth: callback supplied a different client_id than the one on record")
+	ErrClientIDMismatch = oauthError("oauth: callback supplied a different client_id than the one on record")
 
 	// ErrAccessDenied means the user declined at the consent screen. The state
 	// is still validated first, but no code is exchanged because none was
 	// issued.
-	ErrAccessDenied = errors.New("oauth: the user denied the authorization request")
+	ErrAccessDenied = oauthError("oauth: the user denied the authorization request")
 )
 
 // TokenError is the RFC 6749 §5.2 error object returned by the token endpoint.
@@ -99,7 +109,7 @@ func (e *TokenError) Error() string {
 	}
 }
 
-// terminalRefreshCodes are the six error codes that mean the refresh token is
+// isTerminalRefreshCode reports the six error codes that mean the refresh token is
 // dead and no amount of retrying will help. The user must authorize again.
 //
 // There are SIX, not the three that a reading of the generic OAuth spec would
@@ -114,13 +124,21 @@ func (e *TokenError) Error() string {
 // a client that hammers the token endpoint with a credential that is
 // permanently dead, while never telling the user the one thing that would fix
 // it.
-var terminalRefreshCodes = map[string]bool{
-	"invalid_grant":             true,
-	"invalid_refresh_token":     true,
-	"token_expired":             true,
-	"refresh_token_expired":     true,
-	"refresh_token_invalidated": true,
-	"refresh_token_reused":      true,
+// A function rather than a package-level map: a map is mutable even when
+// nobody intends to mutate it, and one stray delete would silently turn a
+// dead credential into one the client retries forever.
+func isTerminalRefreshCode(code string) bool {
+	switch code {
+	case "invalid_grant",
+		"invalid_refresh_token",
+		"token_expired",
+		"refresh_token_expired",
+		"refresh_token_invalidated",
+		"refresh_token_reused":
+		return true
+	default:
+		return false
+	}
 }
 
 // Terminal reports whether this error ends the grant's life.
@@ -133,7 +151,7 @@ var terminalRefreshCodes = map[string]bool{
 // user's working refresh token on the strength of an unparseable body would
 // turn a transient outage into a forced re-login.
 func (e *TokenError) Terminal() bool {
-	return terminalRefreshCodes[e.Code]
+	return isTerminalRefreshCode(e.Code)
 }
 
 // IsTerminalRefreshError reports whether err is a token-endpoint error that
