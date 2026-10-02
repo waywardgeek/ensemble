@@ -1355,3 +1355,19 @@ a second flag that only turned on speech would be two names for one thing.
 **Verified live** through the GUI's own MCP relay, with the agent watching its
 own interface: the toggle click round-trips to the server and persists to
 `settings.json`, and the picker renders the catalog grouped by vendor.
+
+**The speech path was verified against the chapter 14 contract**, not merely
+switched on. With the toggle enabled, one turn that reads a file produced
+exactly two utterances:
+
+```
+seq 1  read file: /tmp/ens-gui/hello.txt, line 1
+seq 2  The file contains the single word "pong."
+```
+
+The tool's INTENT is spoken and its RESULT is not, while the same word spoken
+as assistant prose is. That is the rule chapter 14 exists to enforce: a string
+must be silent as a tool result and audible as prose. A toggle that turned
+speech on while breaking that rule would be worse than no toggle, because the
+reader who depends on speech is the reader least able to see that the output
+has gone wrong.
