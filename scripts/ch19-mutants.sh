@@ -22,9 +22,14 @@ ROOT="$PWD"
 OUT="${TMPDIR:-/tmp}/ch19-mutants"
 mkdir -p "$OUT"
 
-if ! git diff --quiet || ! git diff --cached --quiet; then
-	echo "REFUSING: working tree is dirty."
-	echo "This script mutates tracked files and reverts with 'git checkout --'."
+# The guard is scoped to the subtree this script actually mutates. It reverts
+# with 'git checkout -- agent/...', so uncommitted work under agent/ would be
+# destroyed; work anywhere else is none of its business. A whole-tree guard
+# would refuse to run whenever the author had an unsaved edit in book/, which
+# is both common and harmless.
+if ! git diff --quiet -- agent/ || ! git diff --cached --quiet -- agent/; then
+	echo "REFUSING: there are uncommitted changes under agent/."
+	echo "This script mutates tracked files there and reverts with 'git checkout --'."
 	echo "Uncommitted work would be destroyed. Commit or stash first."
 	exit 1
 fi
