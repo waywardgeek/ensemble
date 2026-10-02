@@ -312,8 +312,9 @@ func (openAISeam) Render(c *common.Context, cfg common.Config) (*http.Request, e
 		stableMsg = len(msgs) - 1
 	}
 
-	if len(c.Ephemera) > 0 {
-		if text := ephemeraText(c.Ephemera); text != "" {
+	eph := c.EphemeraFor(cfg.Model)
+	if len(eph) > 0 {
+		if text := ephemeraText(eph); text != "" {
 			msgs = append(msgs, oaiMsg{Role: "user", Content: strptr(text)})
 		}
 	}

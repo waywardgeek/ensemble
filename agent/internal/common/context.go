@@ -164,3 +164,23 @@ type Context struct {
 func NewContext() *Context {
 	return &Context{Turn: Idle}
 }
+
+// EphemeraFor returns the ephemera to put in a request for model, which is
+// none at all when the model declares NoEphemera.
+//
+// The drop happens here, at render time, and deliberately not in the reducer
+// that collects ephemera in the first place. The context is a pure projection
+// of the event log: the same events must rebuild the same context no matter
+// which model happens to be selected now, or replay stops being deterministic
+// and a saved session reloads as a different conversation. Which model we are
+// about to call is a property of this request, not of the history, so it is
+// applied when the request is built.
+//
+// Every vendor renderer asks this rather than reading Ephemera directly, so
+// there is one decision instead of one per vendor to drift apart.
+func (c *Context) EphemeraFor(model string) PartList {
+	if f, ok := LookupModel(model); ok && f.NoEphemera {
+		return nil
+	}
+	return c.Ephemera
+}

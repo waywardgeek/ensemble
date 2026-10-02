@@ -68,6 +68,19 @@ func (e *Engine) attachRecall(query string) {
 	if e == nil || e.Recall == nil {
 		return
 	}
+	// A model that cannot take ephemera does not get recall either, and the
+	// check belongs here, before the work, rather than at render time.
+	//
+	// Recall is not ephemera in this design: it lands as a permanent dialogue
+	// entry with its own kind, so the render time drop that removes ephemera
+	// would sail straight past it. It has to be refused at the source. Doing
+	// so also skips a BM25 pass and a judge call per turn, which is the
+	// difference between declining to send something and paying to build it
+	// and then throwing it away.
+	if f, ok := common.LookupModel(e.Cfg.Model); ok && f.NoEphemera {
+		return
+	}
+
 	parts := e.Recall.Recall(query, e.recallConvo())
 	if len(parts) == 0 {
 		// Finding nothing is the expected outcome, not an error. Most turns

@@ -133,6 +133,18 @@ type ModelFeatures struct {
 	// records the constraint until someone does it.
 	NoThinkingWithTools bool
 
+	// NoEphemera says the model cannot be sent ephemeral content: material
+	// that appears in one request and is gone from the next. Anthropic's
+	// Opus 5.5 tolerates no change to a prefix it has already seen, and
+	// ephemera are by definition a change. The flag is negative so that the
+	// zero value, which every other row takes, means the model is fine.
+	//
+	// This is a fact about the model, not a branch in the caller. The
+	// consequence is wider than it looks: anything delivered as ephemera is
+	// silently dropped for such a model, so a feature built on ephemera must
+	// be skipped at its source rather than generated and thrown away.
+	NoEphemera bool
+
 	// Caching is how this model caches a repeated prompt prefix. See the
 	// Caching type. Every model in the table below supports caching; none
 	// of them is CacheNone, because there is no such value.
@@ -241,6 +253,7 @@ func ModelList() []ModelEntry {
 		// Anthropic
 		{ID: "claude-opus-4-6", Features: models()["claude-opus-4-6"]},
 		{ID: "claude-opus-5", Features: models()["claude-opus-5"]},
+		{ID: "claude-opus-5-5", Features: models()["claude-opus-5-5"]},
 		{ID: "claude-sonnet-5", Features: models()["claude-sonnet-5"]},
 		// OpenAI
 		{ID: "gpt-6-astra", Features: models()["gpt-6-astra"]},
@@ -256,6 +269,7 @@ func displayName(id string) string {
 	names := map[string]string{
 		"claude-opus-4-6":        "Claude Opus 4.6",
 		"claude-opus-5":          "Claude Opus 5",
+		"claude-opus-5-5":        "Claude Opus 5.5",
 		"claude-sonnet-5":        "Claude Sonnet 5",
 		"gpt-6-astra":            "GPT-6 Astra",
 		"gpt-5.6-sol":            "GPT-5.6 Sol",
@@ -338,6 +352,7 @@ func models() map[string]ModelFeatures {
 		// All current Anthropic models have 1M context windows as of 2026.
 		"claude-opus-4-6": {Vendor: VendorAnthropic, Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 5, CacheWrite: 6.25, CacheRead: 0.5, Output: 25}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
 		"claude-opus-5":   {Vendor: VendorAnthropic, Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 5, CacheWrite: 6.25, CacheRead: 0.5, Output: 25}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
+		"claude-opus-5-5": {Vendor: VendorAnthropic, Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 4, CacheWrite: 5, CacheRead: 0.2, Output: 20}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true, NoEphemera: true},
 		"claude-sonnet-5": {Vendor: VendorAnthropic, Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 3, CacheWrite: 3.75, CacheRead: 0.3, Output: 15}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true},
 
 		// OpenAI — images yes, audio and video NO (video APIs are generation).

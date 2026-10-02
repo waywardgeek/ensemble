@@ -457,9 +457,10 @@ func (anthropicSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 	// Ephemera go LAST, in exactly one copy, and are never part of the
 	// dialogue. Volatile content at the front of a prefix converts the
 	// cheapest token category into the most expensive one on every request.
-	if len(c.Ephemera) > 0 {
+	eph := c.EphemeraFor(cfg.Model)
+	if len(eph) > 0 {
 		var blocks []anthBlock
-		for _, p := range c.Ephemera {
+		for _, p := range eph {
 			if t, ok := p.(common.TextPart); ok {
 				blocks = append(blocks, anthBlock{Type: "text", Text: t.Text})
 			}
