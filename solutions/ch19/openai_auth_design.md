@@ -1,21 +1,19 @@
-# CodeRhapsody — OpenAI ChatGPT OAuth + API-Key Provider Design
+# Ensemble — OpenAI ChatGPT OAuth + API-Key Provider Design
 
 **Status:** Implementation plan  
 **Date:** October 2, 2026  
-**Goal:** Add first-class OpenAI support to CodeRhapsody with two independent credential/billing modes:
+**Goal:** Add first-class OpenAI support to Ensemble with two independent credential/billing modes:
 
 1. **ChatGPT plan authentication** using OpenAI's supported Sign in with ChatGPT OAuth flow.
 2. **Traditional OpenAI API-key authentication** as an independent metered fallback.
 
-The implementation must preserve CodeRhapsody's existing context engineering, memory, actor identity, tool orchestration, and real-time reasoning-summary experience. Authentication and billing must remain orthogonal to those systems.
+The implementation must preserve Ensemble's existing event-log architecture, context engineering, recall, actor loop, tool orchestration, streaming observers, and real-time reasoning experience. Authentication and billing must remain orthogonal to those systems.
 
-## 1. Important eligibility constraint
+## 1. Eligibility and scope
 
-OpenAI currently documents the self-service dynamic ChatGPT-plan OAuth flow for open-source/local applications. OpenAI also says ChatGPT-plan usage is available to selected private clients, while paid or remotely hosted applications need approval through OpenAI's partner process. Because CodeRhapsody is not currently open source, do **not** assume that public distribution of the dynamic OSS flow is automatically permitted.
+Ensemble is an open-source, local agent, so it matches the application class for which OpenAI documents the self-service dynamic ChatGPT-plan OAuth flow.
 
-Implement the functionality behind a capability/configuration flag so it can be exercised for an eligible local installation, while leaving room for an approved private-client configuration if required.
-
-Do not reuse, copy, import, parse, or depend on `~/.codex/auth.json`. CodeRhapsody must own its own OAuth registration and credentials.
+Do not reuse, copy, import, parse, or depend on `~/.codex/auth.json`. Ensemble must own its own OAuth registration and credentials. The Codex credential file was useful only as a proof that the account was authenticated and that ChatGPT-plan usage works.
 
 OpenAI's documented OSS/local flow dynamically registers the application and gives it its own `client_id`, access token, refresh token, and ID token. It does not require a client secret or API key.
 
@@ -162,7 +160,7 @@ The HTTP inference layer should only ever see a current bearer credential.
 
 # 5. Persistent ChatGPT profile
 
-CodeRhapsody must maintain one or more ChatGPT account registrations.
+Ensemble must maintain one or more ChatGPT account registrations.
 
 A profile should contain roughly:
 
@@ -207,7 +205,7 @@ Maintain the issued `client_id` permanently for that registration. Never replace
 
 # 6. Host identity
 
-Each CodeRhapsody installation needs a stable:
+Each Ensemble installation needs a stable:
 
 ```text
 ext_agent_host_id
@@ -243,7 +241,7 @@ It must be opaque and non-identifying.
 Suggested storage:
 
 ```text
-CodeRhapsody auth metadata
+Ensemble auth metadata
     host_id = urn:uuid:...
 ```
 
@@ -290,7 +288,7 @@ client_id=dynamic_agent_client
 response_type=code
 redirect_uri=<exact callback>
 resource=https://api.openai.com/v1
-agent_name_hint=CodeRhapsody
+agent_name_hint=Ensemble
 ext_agent_host_id=<persistent host ID>
 
 scope=
@@ -329,7 +327,7 @@ OpenAI's OAuth flow does not require a client secret for this dynamic local-clie
 
 Open the authorization URL in the user's default browser.
 
-CodeRhapsody should announce accessibly:
+Ensemble should announce accessibly:
 
 ```text
 Opening your browser to sign in with ChatGPT.
@@ -407,7 +405,7 @@ Identity login does **not** imply permission to use ChatGPT plan inference.
 
 Inspect the token response's actually granted scopes.
 
-CodeRhapsody may use ChatGPT-plan inference only if the granted scopes include:
+Ensemble may use ChatGPT-plan inference only if the granted scopes include:
 
 ```text
 chatgpt.tokens.use.direct
@@ -452,7 +450,7 @@ API key
 Preferred storage order:
 
 1. Native OS credential/keychain facility.
-2. Existing CodeRhapsody secret-store abstraction, if already secure.
+2. Existing Ensemble secret-store abstraction, if already secure.
 3. As a fallback only, a local credential file with owner-only permissions.
 
 Never put tokens in:
@@ -523,7 +521,7 @@ profile refresh lock
     +-- process A consumes new credential
 ```
 
-If CodeRhapsody can run multiple processes sharing the same credential store, use an inter-process lock or transactional compare-and-swap mechanism.
+If Ensemble can run multiple processes sharing the same credential store, use an inter-process lock or transactional compare-and-swap mechanism.
 
 Never allow two processes to independently refresh the same refresh token.
 
@@ -744,7 +742,7 @@ previous_response_id
 
 must be omitted for ordinary HTTP use of this route.
 
-CodeRhapsody therefore needs to send the context required for each request in `input`, which is consistent with CodeRhapsody owning its own memory/context construction.
+Ensemble therefore needs to send the context required for each request in `input`, which is consistent with Ensemble owning its own memory/context construction.
 
 Do not emit explicit system-message items of the form:
 
@@ -781,7 +779,7 @@ ProviderCapabilities {
 
 # 20. Context engineering integration
 
-CodeRhapsody, not OpenAI, remains authoritative for conversation and agent memory.
+Ensemble, not OpenAI, remains authoritative for conversation and agent memory.
 
 For the ChatGPT-plan HTTP route:
 
@@ -796,7 +794,7 @@ Developer instructions
 Current user request
         |
         v
-CodeRhapsody Context Renderer
+Ensemble Context Renderer
         |
         v
 Responses API input[]
@@ -806,7 +804,7 @@ Do not depend on OpenAI server-side conversation state.
 
 This is particularly important because the current ChatGPT-plan HTTP route does not permit persistent continuation through `previous_response_id`.
 
-Any encrypted reasoning state that CodeRhapsody already chooses to preserve should remain part of the OpenAI-specific rendering layer rather than the abstract event log.
+Any encrypted reasoning state that Ensemble already chooses to preserve should remain part of the OpenAI-specific rendering layer rather than the abstract event log.
 
 ---
 
@@ -833,7 +831,7 @@ OpenAI does not expose raw private reasoning tokens; it does expose model-genera
 
 # 22. Real-time reasoning summaries
 
-This is a critical CodeRhapsody feature.
+This is a critical Ensemble feature.
 
 The streaming parser must treat reasoning summaries as first-class output, separate from final assistant text.
 
@@ -859,7 +857,7 @@ The exact event schema should be taken from the installed/current OpenAI SDK or 
 
 OpenAI's current API exposes incremental reasoning-summary text events.
 
-Map them into CodeRhapsody's existing event system:
+Map them into Ensemble's existing event system:
 
 ```text
 ModelReasoningSummaryStarted
@@ -886,7 +884,7 @@ Preserve separate channels so speech behavior can differ.
 
 Reasoning summaries should be emitted immediately as they arrive.
 
-Do not buffer a full reasoning-summary paragraph before making it available to CodeRhapsody's speech layer.
+Do not buffer a full reasoning-summary paragraph before making it available to Ensemble's speech layer.
 
 Desired pipeline:
 
@@ -897,7 +895,7 @@ SSE delta
 OpenAI stream decoder
     |
     v
-CodeRhapsody semantic event
+Ensemble semantic event
     |
     v
 speech/event queue
@@ -934,13 +932,13 @@ For interactive configurations, optionally require confirmation.
 
 # 24. Tool calling
 
-Keep CodeRhapsody's existing client-side tool system.
+Keep Ensemble's existing client-side tool system.
 
 The ChatGPT-plan route currently supports function/custom tool patterns but does not support several hosted Responses tools.
 
-Do not redesign CodeRhapsody around OpenAI-hosted tools merely to support this provider.
+Do not redesign Ensemble around OpenAI-hosted tools merely to support this provider.
 
-Continue exposing CodeRhapsody's own:
+Continue exposing Ensemble's own:
 
 ```text
 filesystem tools
@@ -1071,7 +1069,7 @@ Preferred lookup:
 OPENAI_API_KEY
 ```
 
-or CodeRhapsody's existing secret manager.
+or Ensemble's existing secret manager.
 
 Do not store the API key in the same semantic record as ChatGPT OAuth credentials.
 
@@ -1099,7 +1097,7 @@ Do not confuse them merely because both use bearer authentication.
 
 # 28. Request rendering
 
-Create one canonical CodeRhapsody OpenAI request model:
+Create one canonical Ensemble OpenAI request model:
 
 ```text
 OpenAIRequestIntent {
@@ -1130,7 +1128,7 @@ if oauth ...
 
 throughout the request-building code.
 
-It also gives CodeRhapsody freedom to exploit richer API-key capabilities while remaining compatible with the stricter ChatGPT-plan route.
+It also gives Ensemble freedom to exploit richer API-key capabilities while remaining compatible with the stricter ChatGPT-plan route.
 
 ---
 
@@ -1141,7 +1139,7 @@ At startup/account selection:
 1. Fetch the model catalog.
 2. Determine the selected auth/billing mode.
 3. Construct a capability object.
-4. Validate CodeRhapsody's intended request against it.
+4. Validate Ensemble's intended request against it.
 5. Render accordingly.
 
 Example:
@@ -1206,7 +1204,7 @@ OpenAI's UX guidance asks applications to clearly indicate when the ChatGPT plan
 
 # 31. Multiple accounts
 
-Even if CodeRhapsody initially exposes only one account, make the persisted schema multiple-account capable.
+Even if Ensemble initially exposes only one account, make the persisted schema multiple-account capable.
 
 Model:
 
@@ -1248,7 +1246,7 @@ Use returned OpenAI errors as authoritative for inference admission.
 
 OpenAI currently states that Plus's five-hour usage allowance is shared across participating apps, while that particular five-hour limit does not apply to Pro users. Other limits can still exist.
 
-CodeRhapsody should therefore model availability as:
+Ensemble should therefore model availability as:
 
 ```text
 Unknown
@@ -1381,7 +1379,7 @@ Send a coding/reasoning request with:
 reasoning.summary=auto
 ```
 
-Verify CodeRhapsody receives and emits reasoning-summary events incrementally.
+Verify Ensemble receives and emits reasoning-summary events incrementally.
 
 ### Test D — tool call
 
@@ -1391,7 +1389,7 @@ Verify:
 
 ```text
 tool request received
-CodeRhapsody executes tool
+Ensemble executes tool
 tool result returned
 model continues
 response completes
@@ -1412,7 +1410,7 @@ successful inference
 
 ### Test F — process restart
 
-Restart CodeRhapsody.
+Restart Ensemble.
 
 Verify:
 
@@ -1487,7 +1485,7 @@ Potential semantic change:
 
 # 37. Reasoning-summary regression test
 
-Because CodeRhapsody's operator workflow depends heavily on reasoning summaries, add a dedicated regression test.
+Because Ensemble's operator workflow depends heavily on reasoning summaries, add a dedicated regression test.
 
 Given a synthetic streamed response:
 
@@ -1499,7 +1497,7 @@ reasoning summary delta C
 assistant output
 ```
 
-verify CodeRhapsody emits:
+verify Ensemble emits:
 
 ```text
 A
@@ -1571,7 +1569,7 @@ Get:
 
 working through ChatGPT-plan billing.
 
-## Phase 4 — CodeRhapsody agent features
+## Phase 4 — Ensemble agent features
 
 Enable:
 
@@ -1596,7 +1594,7 @@ Test metered fallback extensively.
 
 ## Phase 6 — distribution/eligibility
 
-Before broadly distributing the ChatGPT-plan option in closed-source CodeRhapsody, confirm that CodeRhapsody's distribution model qualifies for OpenAI's private-client rules or obtain the appropriate approval.
+Before broadly distributing the ChatGPT-plan option in closed-source Ensemble, confirm that Ensemble's distribution model qualifies for OpenAI's private-client rules or obtain the appropriate approval.
 
 ---
 
@@ -1604,20 +1602,20 @@ Before broadly distributing the ChatGPT-plan option in closed-source CodeRhapsod
 
 The implementation is complete when all of the following are true:
 
-- CodeRhapsody can authenticate through its own ChatGPT OAuth registration.
+- Ensemble can authenticate through its own ChatGPT OAuth registration.
 - It never reads Codex credentials.
 - OAuth tokens survive application restart securely.
 - Access-token refresh is automatic.
 - Rotating refresh tokens are handled without races.
 - ID tokens are cryptographically verified.
 - Granted plan-use scope is explicitly checked.
-- CodeRhapsody can list models available to the signed-in ChatGPT account.
-- CodeRhapsody can stream a full Responses API inference using ChatGPT-plan billing.
+- Ensemble can list models available to the signed-in ChatGPT account.
+- Ensemble can stream a full Responses API inference using ChatGPT-plan billing.
 - Existing API-key OpenAI usage still works.
 - The user can explicitly choose ChatGPT or API billing.
 - Optional ChatGPT-to-API fallback works only when explicitly enabled.
 - ChatGPT-plan limitations are isolated in a capability layer.
-- Existing CodeRhapsody context engineering and memory remain authoritative.
+- Existing Ensemble context engineering and memory remain authoritative.
 - Tool calls work.
 - Reasoning summaries stream in real time.
 - Reasoning summaries remain distinct from final assistant output.
@@ -1646,12 +1644,12 @@ The shortest safe path is:
 11. Make one trivial streamed request.
 12. Add current model discovery.
 13. Add reasoning summaries.
-14. Add CodeRhapsody tools/context.
+14. Add Ensemble tools/context.
 15. Add explicit API fallback.
 16. Harden tests/security.
 ```
 
-Do not begin by modifying memory, actor identity, context engineering, or agent orchestration. Those are already CodeRhapsody's strengths and should remain independent of OpenAI authentication.
+Do not begin by modifying memory, actor identity, context engineering, or agent orchestration. Those are already Ensemble's strengths and should remain independent of OpenAI authentication.
 
 ---
 
@@ -1672,3 +1670,455 @@ Primary references:
 - Current OpenAI OSS integration walkthrough, published September 28, 2026.
 
 Treat those documents as authoritative over this design if OpenAI changes the protocol.
+
+
+---
+
+# 42. Ensemble codebase integration map
+
+This section overrides generic implementation advice above where the repository already has a stronger abstraction.
+
+## 42.1 Existing architecture to preserve
+
+The live implementation is already split at the right boundaries:
+
+- `agent/internal/common` is the hub of shared vendor-neutral types.
+- `agent/internal/llm` owns vendor rendering/parsing and the actor/engine.
+- `agent/internal/llm/openai.go` is the existing OpenAI **Chat Completions** seam.
+- `agent/internal/llm/seam.go` chooses a renderer/parser.
+- `agent/internal/common/provenance.go` already defines both `SurfaceChatCompletions` and `SurfaceResponses`.
+- `agent/internal/common.Config` already carries `Vendor`, `Surface`, `BaseURL`, `APIKey`, model, tools, streaming, and thinking configuration.
+- `agent/internal/common.DeltaThinking` already gives reasoning a distinct streaming channel.
+- `agent/cmd/main.go` is the composition root and currently resolves API keys/endpoints from environment and `~/.en/settings.json`.
+- `agent/internal/settings` is ordinary GUI/runtime settings storage and should **not** become the OAuth secret store.
+
+The OAuth implementation should fit these seams rather than introduce a parallel agent stack.
+
+## 42.2 Critical design correction: OpenAI now has two surfaces
+
+The current `openAISeam` speaks Chat Completions:
+
+```text
+POST /v1/chat/completions
+SurfaceChatCompletions
+```
+
+ChatGPT-plan OAuth inference requires the Responses surface:
+
+```text
+POST /v1/responses
+SurfaceResponses
+```
+
+Do **not** mutate `openai.go` into a hybrid renderer full of route conditionals.
+
+Add a second seam, suggested file:
+
+```text
+agent/internal/llm/openai_responses.go
+```
+
+Keep:
+
+```text
+openai.go
+    Chat Completions
+    API-key compatible
+    existing behavior and tests
+
+openai_responses.go
+    Responses API
+    ChatGPT-plan OAuth
+    also usable with an API key where desired
+```
+
+This preserves the existing lesson that a surface is part of provenance and wire semantics.
+
+## 42.3 Fix seam selection to honor Surface
+
+Today `SeamFor(v common.Vendor)` switches only on vendor. That is no longer sufficient because OpenAI has two materially different supported surfaces.
+
+Change the seam lookup to select by both vendor and surface, for example:
+
+```go
+func SeamFor(v common.Vendor, s common.Surface) (common.Renderer, common.Parser, error)
+```
+
+or preferably:
+
+```go
+func SeamFor(cfg common.Config) (common.Renderer, common.Parser, error)
+```
+
+with explicit cases:
+
+```text
+Anthropic + Messages         -> anthropicSeam
+OpenAI + ChatCompletions     -> openAISeam
+OpenAI + Responses           -> openAIResponsesSeam
+Gemini + GenerateContent     -> geminiSeam
+```
+
+Do not make `SurfaceResponses` an authentication mode. It is a wire/API surface.
+
+Authentication and surface are orthogonal even though ChatGPT-plan auth currently requires Responses.
+
+Add tests proving:
+
+- OpenAI/ChatCompletions selects the old seam.
+- OpenAI/Responses selects the new seam.
+- unsupported vendor/surface pairs fail loudly.
+- provenance written by each parser contains the correct surface.
+
+## 42.4 Authentication belongs outside common.Context and the event log
+
+Do not add OAuth tokens or billing state to:
+
+- `common.Context`
+- entries/events
+- recall
+- save snapshots
+- journals
+- SOUL/memory material
+
+Those structures are model-visible or durable agent state.
+
+Add a dedicated package:
+
+```text
+agent/internal/auth/openai/
+```
+
+Suggested files:
+
+```text
+profile.go        persisted non-model auth profile
+store.go          secure/0600 credential persistence abstraction
+oauth.go          authorization-code + PKCE flow
+oidc.go           ID-token/JWKS validation
+refresh.go        serialized refresh and token rotation
+browser.go        loopback listener + browser launch
+errors.go         typed auth failures
+auth_test.go
+refresh_test.go
+```
+
+A narrower initial package name such as `internal/openaiauth` is acceptable if preferred by the repo style.
+
+## 42.5 Do not overload Config.APIKey with OAuth state
+
+`common.Config.APIKey` currently represents a static vendor credential and is copied with endpoint selection. An OAuth access token is short-lived and refreshable, so storing the current token in `Config.APIKey` would make stale-token bugs likely.
+
+Introduce a request-time credential interface outside the event/context model. Minimal shape:
+
+```go
+type BearerSource interface {
+    BearerToken(context.Context) (string, error)
+}
+```
+
+Implementations:
+
+```text
+StaticBearerSource
+    wraps OPENAI_API_KEY
+
+ChatGPTBearerSource
+    owns profile store + refresh
+```
+
+The renderer should not know whether the bearer token came from an API key or OAuth.
+
+There are two reasonable integration points:
+
+1. Have the engine obtain the bearer immediately before sending the rendered request and set `Authorization`.
+2. Inject an `http.RoundTripper` that asks the source for a current bearer token per request.
+
+Prefer option 1 if it keeps the existing API logging/test seams simpler. Prefer option 2 only if request dispatch is already naturally transport-oriented.
+
+In either design, remove credential attachment from the pure Responses renderer. Rendering should determine body, URL, and content headers; request dispatch should attach the current credential.
+
+Do not refactor the existing Chat Completions path more than necessary in the first patch.
+
+## 42.6 Config additions
+
+Add vendor-neutral fields only where they are genuinely vendor-neutral.
+
+`Surface` already exists and is exactly the right mechanism for selecting Responses.
+
+For auth/billing, avoid a large generic abstraction until a second vendor needs it. A small OpenAI-specific startup configuration at the composition root is sufficient initially:
+
+```text
+OPENAI_AUTH=api|chatgpt|chatgpt_then_api
+OPENAI_API_KEY=...
+OPENAI_MODEL=...
+```
+
+Suggested default for existing users:
+
+```text
+OPENAI_AUTH=api
+```
+
+If `OPENAI_AUTH=chatgpt` or `chatgpt_then_api`:
+
+```text
+cfg.Vendor  = VendorOpenAI
+cfg.Surface = SurfaceResponses
+```
+
+The existing API-key route may continue to default to Chat Completions until Responses parity is deliberately implemented and tested.
+
+Do not silently change all existing OpenAI users from Chat Completions to Responses as part of the auth feature.
+
+## 42.7 Composition-root changes
+
+Primary file:
+
+```text
+agent/cmd/main.go
+```
+
+Responsibilities to add:
+
+- parse `OPENAI_AUTH`;
+- locate/create the Ensemble OAuth profile store;
+- construct `ChatGPTBearerSource` when requested;
+- expose explicit login/logout/status commands;
+- select `SurfaceResponses` for ChatGPT-plan inference;
+- construct optional API-key fallback policy;
+- announce billing-route changes through stderr/observer-visible status rather than silently spending money.
+
+Keep environment/home-settings lookup in the composition root, matching the existing architectural rule documented in `configFromEnv`.
+
+Suggested CLI:
+
+```text
+ensemble auth login openai
+ensemble auth status openai
+ensemble auth logout openai
+```
+
+Use the repository's actual binary name in help text.
+
+The login command should not require starting an agent session.
+
+## 42.8 Secret persistence
+
+Do not place OAuth tokens in `agent/internal/settings.SettingsStore`. That store is designed for user-facing settings and persists ordinary JSON.
+
+Use a separate auth store under the existing Ensemble home directory, for example:
+
+```text
+~/.en/auth/openai.json
+```
+
+Initial implementation requirements:
+
+- create parent directory with user-only permissions;
+- write via temp file + fsync/rename;
+- file mode 0600;
+- never log serialized contents;
+- separate host metadata from refresh/access tokens if that makes future keychain migration easier.
+
+A later OS-keychain backend can implement the same store interface.
+
+## 42.9 Responses renderer
+
+Add `openAIResponsesSeam`.
+
+Its request model should be native Responses API rather than translating the Chat Completions struct.
+
+At minimum it must render:
+
+- model;
+- `instructions` from the immutable system constitution;
+- full current Ensemble context into `input`;
+- client-side function tools;
+- reasoning effort;
+- reasoning summary request;
+- `store:false`;
+- `stream:true`.
+
+The renderer must preserve Ensemble's deterministic-context invariant: the same context/config/capabilities produce the same request body, excluding the bearer credential.
+
+Do not use server-side conversation state as the source of truth.
+
+## 42.10 Responses parser and reasoning summaries
+
+The existing stream architecture is already suited to reasoning summaries.
+
+Map Responses reasoning-summary deltas to:
+
+```text
+common.DeltaThinking
+```
+
+Map final reasoning-summary material to the appropriate existing reasoning/opaque part representation after checking the current common.Part model. Do not invent a second observer channel unless the current part model truly cannot represent a displayed reasoning summary.
+
+The existing CLI `chatStream` already sends `DeltaThinking` to stderr immediately, which is exactly the desired low-latency listening path.
+
+Preserve ordering across:
+
+```text
+reasoning delta
+tool call delta
+reasoning delta
+assistant text
+```
+
+A parser must not buffer reasoning until `response.completed`.
+
+## 42.11 Responses tool loop
+
+Keep Ensemble's current client-side tool loop.
+
+Responses function-call items must reduce to the same vendor-neutral `common.ToolCallPart` used by Chat Completions, Anthropic, and Gemini.
+
+Tool results from Ensemble must render back into the Responses wire format without changing the event log schema.
+
+The test to preserve is conceptual parity:
+
+```text
+same common.Context
+    -> Chat Completions request
+    -> Responses request
+```
+
+Different wire bytes are expected; identical agent facts are required.
+
+## 42.12 Billing fallback belongs above the seam
+
+Do not put fallback logic in `openAIResponsesSeam.Parse`.
+
+The parser should return a typed error that retains:
+
+- HTTP status;
+- OpenAI machine-readable error code;
+- parameter if present;
+- request ID if available.
+
+A higher-level OpenAI routing policy decides whether a specific error permits fallback from ChatGPT-plan bearer to API-key bearer.
+
+For `chatgpt_then_api`, fallback should be allowed for a confirmed plan-usage exhaustion condition, not for arbitrary 4xx/5xx failures.
+
+Emit/announce the billing transition before retrying with the API key.
+
+## 42.13 Existing files expected to change
+
+First implementation should be concentrated in:
+
+```text
+agent/internal/common/provenance.go
+    probably no semantic change; SurfaceResponses already exists
+
+agent/internal/common/config.go
+    surface/default or request-auth plumbing as needed
+
+agent/internal/llm/seam.go
+    select by vendor + surface
+
+agent/internal/llm/openai_responses.go
+    NEW Responses renderer/parser
+
+agent/internal/llm/openai_responses_test.go
+    NEW deterministic render + parser tests
+
+agent/internal/auth/openai/*
+    NEW OAuth/profile/refresh implementation
+
+agent/cmd/main.go
+    composition, auth CLI, billing policy
+
+agent/cmd/cli_test.go
+    auth command/config tests
+
+agent/go.mod / agent/go.sum
+    only if a JWT/OIDC helper dependency is justified
+```
+
+Avoid touching `actor.go`, recall, skills, tools, jobs, or persistence unless a concrete test demonstrates the new seam cannot fit the existing interfaces.
+
+## 42.14 Dependency policy
+
+Prefer Go's standard library for:
+
+- PKCE;
+- loopback HTTP callback;
+- random state/nonce;
+- token HTTP exchange;
+- atomic file persistence.
+
+For JWT/JWK validation, either:
+
+- use a small, well-maintained JOSE/JWT dependency with strict algorithm/issuer/audience/nonce checks; or
+- implement only the narrowly required verification using `crypto/*` and OpenAI JWKS.
+
+Do not add an OAuth framework simply to save a small amount of code if dynamic client registration still requires custom handling.
+
+Any dependency addition must have a focused reason and tests around the security boundary.
+
+## 42.15 Implementation sequence for Ensemble
+
+Recommended patch sequence:
+
+```text
+Patch 1: surface-aware seams
+    change SeamFor
+    keep behavior otherwise identical
+    add tests
+
+Patch 2: Responses API seam with API-key auth
+    render + parse
+    reasoning summaries
+    tool calls
+    fake-server tests
+    no OAuth yet
+
+Patch 3: OAuth subsystem
+    login
+    profile
+    OIDC validation
+    refresh rotation
+    logout
+    no agent integration yet
+
+Patch 4: ChatGPT bearer integration
+    OPENAI_AUTH=chatgpt
+    Responses surface
+    first live plan-backed turn
+
+Patch 5: explicit metered fallback
+    chatgpt_then_api
+    typed usage-limit errors
+    visible transition
+
+Patch 6: model discovery / UX hardening
+    account status
+    model list
+    usage-management link
+    multi-account only if needed
+```
+
+This ordering is important: prove the Responses renderer/parser independently using the existing API key before coupling wire-format bugs to OAuth bugs.
+
+## 42.16 First live milestone
+
+The first live milestone should be intentionally small:
+
+```bash
+OPENAI_AUTH=chatgpt OPENAI_MODEL=<plan-visible-model> go run ./agent chat
+```
+
+Expected behavior:
+
+1. Ensemble obtains/refreshed its own ChatGPT OAuth bearer.
+2. `SurfaceResponses` is selected.
+3. A full-context Responses request is streamed.
+4. reasoning-summary text appears through `DeltaThinking` as it arrives;
+5. final assistant text appears through `DeltaText`;
+6. `response.completed` finalizes the turn;
+7. usage is reduced into `common.Usage`;
+8. no OAuth secret appears in the event log, API log, debug log, or stdout.
+
+Only after that should automatic API-key fallback be enabled.

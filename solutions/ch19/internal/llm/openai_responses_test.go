@@ -169,6 +169,9 @@ func TestCh19ResponsesParsesTextAndToolCall(t *testing.T) {
 			if v.CallID == "" {
 				t.Error("tool call has no call_id: the result cannot be correlated back")
 			}
+			if v.From.Vendor != common.VendorOpenAI || v.From.Surface != common.SurfaceResponses {
+				t.Errorf("tool call provenance = %+v, want OpenAI/Responses: the journal refuses a zero vendor", v.From)
+			}
 		}
 	}
 	if texts == 0 {
@@ -450,6 +453,12 @@ func TestCh19ResponsesHonoursPlanRouteForbiddenFields(t *testing.T) {
 		}
 	}
 
+	// prompt_cache_breakpoint sits on content blocks, not at the top level, so
+	// the loop above cannot see it. Walk every block.
+	if n := countRespBreakpoints(got); n != 0 {
+		t.Errorf("plan route request carries %d prompt_cache_breakpoint markers; the route refuses them", n)
+	}
+
 	if got["store"] != false {
 		t.Error("plan route requires store:false")
 	}
@@ -464,6 +473,14 @@ func TestCh19ResponsesHonoursPlanRouteForbiddenFields(t *testing.T) {
 	metered := renderResponses(t, c, cfg)
 	if _, present := metered["max_output_tokens"]; !present {
 		t.Error("max_output_tokens dropped on the metered route, where it is legal")
+	}
+	// And explicit caching survives there. Without this, turning caching off on
+	// every route would pass the plan-route assertions above.
+	if mode, _ := metered["prompt_cache_options"].(map[string]any); mode["mode"] != "explicit" {
+		t.Errorf("metered route lost explicit cache mode: prompt_cache_options=%v", metered["prompt_cache_options"])
+	}
+	if countRespBreakpoints(metered) == 0 {
+		t.Error("metered route lost its cache breakpoints")
 	}
 }
 
@@ -490,5 +507,77 @@ func TestCh19ResponsesNeverSendsASystemRoleItem(t *testing.T) {
 		if item["role"] == "system" {
 			t.Errorf("input item %d uses role system, which this route rejects", i)
 		}
+	}
+}
+
+// countRespBreakpoints counts prompt_cache_breakpoint markers on the content
+// blocks of a rendered Responses request.
+func countRespBreakpoints(body map[string]any) int {
+	n := 0
+	input, _ := body["input"].([]any)
+	for _, raw := range input {
+		item, _ := raw.(map[string]any)
+		blocks, _ := item["content"].([]any)
+		for _, b := range blocks {
+			if blk, ok := b.(map[string]any); ok {
+				if _, marked := blk["prompt_cache_breakpoint"]; marked {
+					n++
+				}
+			}
+		}
+	}
+	return n
+}
+
+// The ChatGPT plan route, as measured live on 2026-10-02: no Content-Type on
+// the stream, every item delivered only through response.output_item.done,
+// and response.completed carrying an empty output array. A parser that reads
+// items from the completed object alone records every plan turn as empty,
+// which is how a model's tool call vanished without an error. The done events
+// arrive here out of index order on purpose: order is the conversation.
+func TestCh19ResponsesPlanRouteItemsArriveOnlyAsDone(t *testing.T) {
+	const stream = "event: response.created\n" +
+		`data: {"type":"response.created","response":{"id":"resp_1","model":"gpt-6.1-sol","output":[]}}` + "\n\n" +
+		"event: response.output_item.done\n" +
+		`data: {"type":"response.output_item.done","output_index":1,"item":{"type":"function_call",` +
+		`"id":"fc_1","call_id":"call_1","name":"view_gui","arguments":"{}","status":"completed"}}` + "\n\n" +
+		"event: response.output_item.done\n" +
+		`data: {"type":"response.output_item.done","output_index":0,"item":{"type":"message",` +
+		`"id":"msg_1","role":"assistant","content":[{"type":"output_text","text":"Looking."}]}}` + "\n\n" +
+		"event: response.completed\n" +
+		`data: {"type":"response.completed","response":{"id":"resp_1","model":"gpt-6.1-sol",` +
+		`"status":"completed","output":[],"usage":{"input_tokens":10,"output_tokens":5}}}` + "\n\n"
+
+	rec := newRespRecorder()
+	resp := &http.Response{
+		StatusCode: 200,
+		Header:     http.Header{},
+		Body:       io.NopCloser(strings.NewReader(stream)),
+	}
+	if err := (responsesSeam{}).Parse(resp, rec.callbacks()); err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	var ended *common.ResponseData
+	for _, e := range rec.events {
+		if e.Type == common.ResponseEnded {
+			ended = e.Response
+		}
+	}
+	if ended == nil {
+		t.Fatal("no ResponseEnded event")
+	}
+	if len(ended.Parts) != 2 {
+		t.Fatalf("got %d parts, want 2 (message, tool call): %#v", len(ended.Parts), ended.Parts)
+	}
+	if txt, ok := ended.Parts[0].(common.TextPart); !ok || txt.Text != "Looking." {
+		t.Errorf("part 0 = %#v, want the message at output_index 0", ended.Parts[0])
+	}
+	if call, ok := ended.Parts[1].(common.ToolCallPart); !ok || call.Name != "view_gui" || call.CallID != "call_1" {
+		t.Errorf("part 1 = %#v, want the view_gui call at output_index 1", ended.Parts[1])
+	}
+	// The journal marshals every part; a call with no provenance is refused
+	// there, mid-turn, which is how this was found live.
+	if _, err := json.Marshal(ended.Parts); err != nil {
+		t.Errorf("parts do not marshal: %v", err)
 	}
 }

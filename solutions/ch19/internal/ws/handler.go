@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/gorilla/websocket"
@@ -50,6 +51,8 @@ type Hub struct {
 	usage        common.UsageSource               // session token tally; nil = no meter
 	mcpReceivers map[string]func(json.RawMessage) // source tag → JSON-RPC receiver (in-process agents)
 	mcpAgents    map[string]*Client               // source tag → WebSocket client (remote agents like virtual user)
+	selfReplies  *replyRouter                     // replies to the agent's own CallGUI requests
+	selfSeq      atomic.Int64                     // CallGUI request ids
 }
 
 // NewHub creates a hub. send is called for every prompt/hint/interrupt
@@ -69,7 +72,9 @@ func NewHub(gate *common.PauseGate, send func(common.Inbound), guiLogPath string
 		usage:        usage,
 		mcpReceivers: make(map[string]func(json.RawMessage)),
 		mcpAgents:    make(map[string]*Client),
+		selfReplies:  newReplyRouter(),
 	}
+	h.mcpReceivers[selfSource] = h.receiveSelf
 	// logLen is the hub's notion of how much of the log is renderable. It was
 	// previously advanced only by Observe, so on a restored session — where the
 	// log is already full but no observation has arrived yet — it stayed at zero
@@ -116,7 +121,8 @@ func (h *Hub) RemoveMCPReceiver(source string) {
 // BroadcastJSONRPC sends a JSON-RPC message to all connected WebSocket
 // clients, wrapped as {"type":"jsonrpc","source":"...","payload":{...}}.
 // The source tag lets mcp.js echo it back so the hub can route the response.
-func (h *Hub) BroadcastJSONRPC(data json.RawMessage, source string) {
+// It returns how many browsers it reached; zero means nothing will answer.
+func (h *Hub) BroadcastJSONRPC(data json.RawMessage, source string) int {
 	envelope := map[string]any{
 		"type":    "jsonrpc",
 		"payload": json.RawMessage(data),
@@ -141,6 +147,7 @@ func (h *Hub) BroadcastJSONRPC(data json.RawMessage, source string) {
 		default:
 		}
 	}
+	return len(clients)
 }
 
 // Observe implements common.Observer. Must not block.

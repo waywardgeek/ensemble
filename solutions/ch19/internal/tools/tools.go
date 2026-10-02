@@ -808,6 +808,15 @@ func (r *Reg) Register(name, description string, schema json.RawMessage, handler
 	r.meta[common.NormalizeName(name)] = ToolMeta{Source: SourceInitial}
 }
 
+// RegisterInitial adds a fully-formed Tool that is part of the agent as created,
+// not brought in by a skill: a builtin the host can only build once it has
+// something the registry does not, such as the GUI hub behind view_gui. It
+// runs as a job like any builtin, unlike Register, which forces NoJob.
+func (r *Reg) RegisterInitial(tool common.Tool) {
+	r.tools[common.NormalizeName(tool.Name)] = tool
+	r.meta[common.NormalizeName(tool.Name)] = ToolMeta{Source: SourceInitial}
+}
+
 // RegisterTool adds a fully-formed Tool (e.g., from MCP bridge).
 func (r *Reg) RegisterTool(tool common.Tool) {
 	r.tools[common.NormalizeName(tool.Name)] = tool
@@ -972,7 +981,9 @@ func (r *Reg) Declarations() []common.ToolDecl {
 	var decls []common.ToolDecl
 	for _, n := range r.toolNames() {
 		// If a skill registry is wired, only include tools enabled by loaded skills
-		if r.skills != nil && !r.skills.IsToolEnabled(n) {
+		// (by the name a skill lists, not the normalized map key: "view_gui" is
+		// keyed "viewgui", and asking about the key filtered it out)
+		if r.skills != nil && !r.skills.IsToolEnabled(r.tools[n].Name) {
 			continue
 		}
 		t := r.tools[n]
@@ -999,7 +1010,7 @@ func (r *Reg) InitialDeclarations() []common.ToolDecl {
 		if !ok || m.Source != SourceInitial {
 			continue
 		}
-		if r.skills != nil && !r.skills.IsToolEnabled(n) {
+		if r.skills != nil && !r.skills.IsToolEnabled(r.tools[n].Name) {
 			continue
 		}
 		t := r.tools[n]
@@ -1132,10 +1143,12 @@ func (r *Reg) WireSkills(sr common.Skills, vars common.Vars, eventLog *common.Lo
 					r.meta[norm] = ToolMeta{Source: SourceDynamic, EventSeq: seq}
 				}
 				// Register MCP tools with the skill so IsToolEnabled returns true.
-				// Use normalized names since IsToolEnabled compares against
-				// normalized map keys.
+				// IsToolEnabled is asked by declared name, the one a skill author
+				// writes, never by the normalized map key ("gui_click" is keyed
+				// "guiclick"). This line once recorded keys while SKILL.md files list
+				// names, so the filter passed MCP tools and dropped view_gui.
 				for _, tn := range toolNames {
-					entry.Props.Tools = append(entry.Props.Tools, common.NormalizeName(tn))
+					entry.Props.Tools = append(entry.Props.Tools, tn)
 				}
 			}
 
