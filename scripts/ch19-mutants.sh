@@ -74,12 +74,35 @@ run_mutant() {
 	fi
 	echo "  mutant compiles."
 
-	"$GRADER" -ch 19 ./agent >"$OUT/m$n.txt" 2>&1
+	"$GRADER" -ch 19 -json ./agent >"$OUT/m$n.json" 2>&1
 	git checkout -- $files
 
-	# Go prints "--- FAIL:" with a space. The grader prints "[FAIL]".
+	# Match on check IDs from the JSON report, not on the human-readable
+	# titles. The text report prints the title only, so a grep against it
+	# silently matches nothing and every mutant reads as a survivor.
 	local killed
-	killed=$(grep -o '^\[FAIL\] [a-z-]*' "$OUT/m$n.txt" | sed 's/^\[FAIL\] //' | sort | tr '\n' ' ')
+	killed=$(python3 - "$OUT/m$n.json" <<-'PY'
+		import json, sys
+		def walk(x, out):
+		    if isinstance(x, dict):
+		        if "id" in x and "passed" in x:
+		            if not x["passed"]:
+		                out.append(x["id"])
+		        for v in x.values():
+		            walk(v, out)
+		    elif isinstance(x, list):
+		        for v in x:
+		            walk(v, out)
+		try:
+		    doc = json.load(open(sys.argv[1]))
+		except Exception as e:
+		    print("UNPARSEABLE", e)
+		    sys.exit(0)
+		out = []
+		walk(doc, out)
+		print(" ".join(sorted(set(out))))
+	PY
+	)
 	killed=$(echo $killed)
 
 	echo "  checks that failed: ${killed:-<none>}"
