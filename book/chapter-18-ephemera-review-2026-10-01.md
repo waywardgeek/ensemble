@@ -173,3 +173,58 @@ there is invisible: it produces a confident, wrong number in the usage meter.
 - Companion "still works" cases on both the ephemera and recall paths, so a
   feature deleted outright cannot pass.
 - Full grader sweep, byte identical to the sweep taken before this change.
+
+## Author ruling, 2026-10-01 evening: naming the vendor is allowed here
+
+Bill's decision, recorded verbatim in substance: when a company he does not
+work for treats its users this way, forcing them onto other vendors, he is
+willing to call it out by name. This overrides the `voice.md` rule of "name the
+API or model, never the company" **for this material specifically**. It is a
+deliberate exception, not drift, and `voice.md` should be amended to say so
+rather than leaving the next lint pass to "fix" it.
+
+His argument, which is the part worth putting in the book:
+
+- **It is not a security measure.** Defeating the existing attacks only
+  required checking which model generated a signature before accepting it.
+  The capability to fix it narrowly existed.
+- **It is a commercial measure.** The effect, and on this reading the purpose,
+  is to shut down API users, push them onto first party products, and make
+  agents written by third parties unusable. That is where the money is.
+
+Two notes from the coder, for the morning rather than tonight:
+
+1. **The receipt is what makes this publishable.** The signature checking point
+   is a factual claim about what would have sufficed technically. Stated with
+   it, the passage is an argument from evidence. Stated without it, it is an
+   accusation of motive. Before print I would like to verify that claim
+   carefully enough to stand behind it, the same standard applied to every
+   measured number in 18.
+
+2. **Motive versus effect.** "This is where the money is" is an inference about
+   intent. The effect is documentable: a January policy change, a 5x cost
+   difference between subscription and API, third party agents locked out. The
+   effect alone carries the chapter, and is not arguable. Worth deciding
+   deliberately how far past effect the prose goes.
+
+## State at end of 2026-10-01, for the morning
+
+Three commits on this thread, all UNPUSHED, Bill pushes:
+
+- `47fb4de` the endpoint must move with the model (the prerequisite bug, found
+  the day before the migration was decided)
+- `6bc8f8b` `NoEphemera`, drop ephemera for Opus 5.5
+- `f259a49` keep auto recall on such models, with the reasoning left in place
+  where the gate briefly was
+
+Full grader sweep run after each, byte identical throughout, 21 targets at
+100/100. The ch8 to ch12 failures at `./agent` are pre-existing and were proved
+so at a baseline worktree, not assumed. They are still unresolved and are worth
+raising separately.
+
+Next chapter proposed by Bill: switching from Anthropic to OpenAI, forced
+mid-book. Open and undecided: whether ch18 now ends on the restriction and
+hands off rather than resolving; and the OAuth mechanics, which I want to
+verify before designing anything, because a ChatGPT Pro token expires and the
+credential type introduced this morning, `Endpoint{BaseURL, APIKey string}`,
+assumes a static string that never does.
