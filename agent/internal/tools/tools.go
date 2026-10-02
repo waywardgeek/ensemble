@@ -1143,10 +1143,12 @@ func (r *Reg) WireSkills(sr common.Skills, vars common.Vars, eventLog *common.Lo
 					r.meta[norm] = ToolMeta{Source: SourceDynamic, EventSeq: seq}
 				}
 				// Register MCP tools with the skill so IsToolEnabled returns true.
-				// Use normalized names since IsToolEnabled compares against
-				// normalized map keys.
+				// IsToolEnabled is asked by declared name, the one a skill author
+				// writes, never by the normalized map key ("gui_click" is keyed
+				// "guiclick"). This line once recorded keys while SKILL.md files list
+				// names, so the filter passed MCP tools and dropped view_gui.
 				for _, tn := range toolNames {
-					entry.Props.Tools = append(entry.Props.Tools, common.NormalizeName(tn))
+					entry.Props.Tools = append(entry.Props.Tools, tn)
 				}
 			}
 
