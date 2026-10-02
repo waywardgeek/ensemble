@@ -44,7 +44,6 @@ type Provider struct {
 
 // Compile-time proof that Provider satisfies the interface. If the interface
 // changes, this breaks here rather than at some distant call site.
-var _ common.CredentialProvider = (*Provider)(nil)
 
 // NewProvider builds a Provider from cfg.
 //
@@ -58,14 +57,21 @@ func NewProvider(cfg Config) (*Provider, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &Provider{cfg: norm}, nil
+	p := &Provider{cfg: norm}
+	// A local assertion, not a package-level one. It gives the same
+	// compile-time proof that a Provider satisfies the engine's interface
+	// without leaving a variable at package scope.
+	var _ common.CredentialProvider = p
+	return p, nil
 }
 
 // Kind reports that this credential is a ChatGPT OAuth grant.
 //
-// For display and policy only. Nothing in request construction may branch on
-// it — if it did, the abstraction that lets a static key and a rotating token
-// travel the same path would have failed.
+// The kind selects a route description — the ChatGPT plan route forbids
+// fifteen request fields a metered API key may send — but it does so by
+// looking up a table, not by branching inside a renderer. The renderer reads
+// the resulting rules and never learns where the credential came from, which
+// is what lets a static key and a rotating token travel the same path.
 func (p *Provider) Kind() common.CredentialKind { return common.CredentialChatGPTOAuth }
 
 // GetBearerToken returns an access token that is valid at the moment it

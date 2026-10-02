@@ -40,7 +40,7 @@ func (r Route) Forbids(field string) bool {
 	return false
 }
 
-// planRouteForbidden is the consumer-plan route's unsupported parameter list,
+// planRouteForbiddenFields is the consumer-plan route's unsupported parameter list,
 // transcribed from the vendor's own documentation rather than discovered one
 // 400 at a time.
 //
@@ -48,22 +48,27 @@ func (r Route) Forbids(field string) bool {
 // not logprobs. And instructions is NOT here: it is permitted, merely
 // uncacheable, which is a reason to prefer a developer message but not a
 // reason to call it illegal.
-var planRouteForbidden = []string{
-	"background",
-	"conversation",
-	"max_output_tokens",
-	"max_tool_calls",
-	"metadata",
-	"moderation",
-	"multi_agent",
-	"prompt",
-	"prompt_cache_retention",
-	"safety_identifier",
-	"temperature",
-	"top_logprobs",
-	"top_p",
-	"truncation",
-	"user",
+// planRouteForbiddenFields returns a fresh copy on every call. A package-level
+// slice would be shared mutable state: any caller could reorder or overwrite
+// an entry and change what every later request is allowed to send.
+func planRouteForbiddenFields() []string {
+	return []string{
+		"background",
+		"conversation",
+		"max_output_tokens",
+		"max_tool_calls",
+		"metadata",
+		"moderation",
+		"multi_agent",
+		"prompt",
+		"prompt_cache_retention",
+		"safety_identifier",
+		"temperature",
+		"top_logprobs",
+		"top_p",
+		"truncation",
+		"user",
+	}
 }
 
 // RouteFor returns the constraints that apply to a credential kind.
@@ -76,7 +81,7 @@ func RouteFor(k CredentialKind) Route {
 	switch k {
 	case CredentialChatGPTOAuth:
 		return Route{
-			Forbidden:         planRouteForbidden,
+			Forbidden:         planRouteForbiddenFields(),
 			RequiresStateless: true,
 			RequiresStreaming: true,
 		}
