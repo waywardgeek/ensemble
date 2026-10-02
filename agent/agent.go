@@ -169,6 +169,13 @@ func StreamingFor(cfg Config) Stream { return common.StreamingFor(cfg) }
 // DefaultSurface returns the default API surface for a vendor.
 func DefaultSurface(v Vendor) Surface { return common.DefaultSurface(v) }
 
+// SurfaceForModel reports which endpoint dialect a model is spoken to,
+// consulting the model table before falling back to the vendor default.
+// Prefer it to DefaultSurface: one vendor can serve two surfaces at once.
+func SurfaceForModel(model string, v Vendor) Surface {
+	return common.SurfaceForModel(model, v)
+}
+
 // ToolHandler is the signature for a custom tool: given JSON arguments,
 // return the text the model will see.
 type ToolHandler func(args json.RawMessage) (string, error)
@@ -421,7 +428,6 @@ func ConfigFromEnv() (Config, error) {
 	}
 	cfg := Config{
 		Vendor:    vendor,
-		Surface:   common.DefaultSurface(vendor),
 		MaxTokens: 1024,
 	}
 	cfg.Endpoints = common.ResolveEndpoints(pick)
@@ -431,10 +437,15 @@ func ConfigFromEnv() (Config, error) {
 	case VendorAnthropic:
 		cfg.Model = pick("LLM_MODEL", "ANTHROPIC_MODEL", "claude-sonnet-5")
 	case VendorOpenAI:
-		cfg.Model = pick("LLM_MODEL", "OPENAI_MODEL", "gpt-5")
+		cfg.Model = pick("LLM_MODEL", "OPENAI_MODEL", "gpt-6.1-sol")
 	case VendorGemini:
 		cfg.Model = pick("LLM_MODEL", "GEMINI_MODEL", "gemini-3.8-flash")
 	}
+
+	// After the model is known, never before: the surface is a property of
+	// the model, and resolving it from the vendor alone would put every
+	// OpenAI model on whichever endpoint the newest one happens to use.
+	cfg.Surface = common.SurfaceForModel(cfg.Model, vendor)
 	return cfg, nil
 }
 

@@ -29,15 +29,38 @@ import (
 	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
 
-// SeamFor returns the renderer and parser for a vendor. This function is the
-// only place in the program that switches on common.Vendor, which is why common.Vendor is an
-// enum and Model is a string.
-func SeamFor(v common.Vendor) (common.Renderer, common.Parser, error) {
+// SeamFor returns the renderer and parser for a vendor and surface. This
+// function is the only place in the program that switches on common.Vendor,
+// which is why common.Vendor is an enum and Model is a string.
+//
+// The key is a PAIR because one vendor can serve two incompatible dialects at
+// once. That is not a hypothetical: OpenAI's Responses surface disagrees with
+// Chat Completions about messages, tool shape, where the system prompt lives
+// and whether reasoning has any representation at all. Hanging that off a
+// boolean inside one seam would produce a renderer that is two renderers
+// wearing a trenchcoat, with every method branching on the same flag.
+//
+// The pair is also exactly what Provenance has recorded since chapter 2:
+// (vendor, model, surface). Replay material has always been tagged with the
+// surface that produced it. Keying the seam the same way means the thing that
+// renders a request and the thing that stamps the response finally agree on
+// what identifies a dialect.
+func SeamFor(v common.Vendor, s common.Surface) (common.Renderer, common.Parser, error) {
 	switch v {
 	case common.VendorAnthropic:
 		return anthropicSeam{}, anthropicSeam{}, nil
 	case common.VendorOpenAI:
-		return openAISeam{}, openAISeam{}, nil
+		switch s {
+		case common.SurfaceResponses:
+			return responsesSeam{}, responsesSeam{}, nil
+		case common.SurfaceChatCompletions:
+			return openAISeam{}, openAISeam{}, nil
+		}
+		// Refuse rather than guess. Picking a dialect for an unrecognised
+		// surface sends a well-formed request to the wrong endpoint, and the
+		// failure surfaces as a confusing vendor error rather than as the
+		// configuration mistake it is.
+		return nil, nil, fmt.Errorf("no openai seam for surface %d", uint8(s))
 	case common.VendorGemini:
 		return geminiSeam{}, geminiSeam{}, nil
 	}

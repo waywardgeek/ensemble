@@ -50,8 +50,8 @@ func (r *respRecorder) callbacks() common.StreamCallbacks {
 			}
 		},
 		OnPartFinal: func(_ uint64, p common.Part) { r.finals = append(r.finals, p) },
-		OnFrame: func(string, []byte) {},
-		OnEvent:  func(e common.Event) { r.events = append(r.events, e) },
+		OnFrame:     func(string, []byte) {},
+		OnEvent:     func(e common.Event) { r.events = append(r.events, e) },
 	}
 }
 

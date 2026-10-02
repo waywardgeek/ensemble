@@ -488,7 +488,7 @@ func (a *Actor) handleSetModel(m common.SetModel) {
 
 	a.eng.Cfg.Model = m.Model
 	a.eng.Cfg.Vendor = v
-	a.eng.Cfg.Surface = common.DefaultSurface(v)
+	a.eng.Cfg.Surface = common.SurfaceForModel(m.Model, v)
 	a.eng.Cfg.BaseURL = ep.BaseURL
 	a.eng.Cfg.APIKey = ep.APIKey
 	if a.eng.Tools != nil {

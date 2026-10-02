@@ -919,7 +919,6 @@ func configFromEnv(reg *tools.Reg) (common.Config, error) {
 	}
 	cfg := common.Config{
 		Vendor:       vendor,
-		Surface:      common.DefaultSurface(vendor),
 		SystemPrompt: systemPrompt,
 		MaxTokens:    16384,
 		Tools:        reg.Declarations(),
@@ -931,10 +930,15 @@ func configFromEnv(reg *tools.Reg) (common.Config, error) {
 	case common.VendorAnthropic:
 		cfg.Model = pick("LLM_MODEL", "ANTHROPIC_MODEL", "claude-sonnet-5")
 	case common.VendorOpenAI:
-		cfg.Model = pick("LLM_MODEL", "OPENAI_MODEL", "gpt-5")
+		cfg.Model = pick("LLM_MODEL", "OPENAI_MODEL", "gpt-6.1-sol")
 	case common.VendorGemini:
 		cfg.Model = pick("LLM_MODEL", "GEMINI_MODEL", "gemini-3.8-flash")
 	}
+
+	// After the model is known, never before: the surface is a property of
+	// the model, and resolving it from the vendor alone would put every
+	// OpenAI model on whichever endpoint the newest one happens to use.
+	cfg.Surface = common.SurfaceForModel(cfg.Model, vendor)
 
 	// Allow disabling streaming for testing.
 	if os.Getenv("EN_DISABLE_STREAMING") == "1" {

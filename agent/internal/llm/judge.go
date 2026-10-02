@@ -56,7 +56,7 @@ func (j *Judge) Pick(prompt string) (string, error) {
 	if e == nil {
 		return "", fmt.Errorf("judge has no engine")
 	}
-	renderer, parser, err := SeamFor(e.Cfg.Vendor)
+	renderer, parser, err := SeamFor(e.Cfg.Vendor, e.Cfg.Surface)
 	if err != nil {
 		return "", err
 	}

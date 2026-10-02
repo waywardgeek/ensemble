@@ -95,6 +95,18 @@ type ModelFeatures struct {
 	// vendor and correctly leave this unset.
 	Vendor Vendor
 
+	// Surface is the endpoint dialect this model is spoken to. Like Vendor
+	// it is a fact about the model rather than a deployment choice: a vendor
+	// can serve two surfaces at once, and a single model is not generally
+	// reachable on both with the same request body.
+	//
+	// The zero value means "the vendor's default surface", which keeps every
+	// existing row honest: a model that predates a second surface genuinely
+	// has no opinion, and inventing one for it would be a guess recorded as
+	// a fact. Only rows that have actually been exercised on the newer
+	// endpoint name it.
+	Surface Surface
+
 	// Price is the dollar cost per million tokens for each of the four
 	// disjoint Usage categories. The zero sheet means unpriced, not free:
 	// see Pricing.
@@ -415,14 +427,14 @@ func models() map[string]ModelFeatures {
 		// proper fix is to speak /v1/responses. This chapter does that.
 		// The model page agrees: "Use the Responses API for tool calling.
 		// Chat Completions is supported without tool calling."
-		"gpt-6.1-sol": {Vendor: VendorOpenAI, Caching: CacheExplicit, MinCacheTokens: 1024, MaxCacheWrites: 4, Price: Pricing{Input: 2, CacheWrite: 2.5, CacheRead: 0.1, Output: 10}, ContextWindow: 1050000, Media: MediaImage, Stream: StreamText | StreamToolArgs | StreamReasoningSummary, MaxThinkingTokens: 32768, MaxOutputTokens: 128000},
+		"gpt-6.1-sol": {Vendor: VendorOpenAI, Surface: SurfaceResponses, Caching: CacheExplicit, MinCacheTokens: 1024, MaxCacheWrites: 4, Price: Pricing{Input: 2, CacheWrite: 2.5, CacheRead: 0.1, Output: 10}, ContextWindow: 1050000, Media: MediaImage, Stream: StreamText | StreamToolArgs | StreamReasoningSummary, MaxThinkingTokens: 32768, MaxOutputTokens: 128000},
 
 		// Chapter 19's grader model. A NEW row rather than a changed one,
 		// following the convention established by the course rows above:
 		// every earlier chapter's grader must keep seeing exactly the wire
 		// it saw before, and the surest way to guarantee that is never to
 		// edit a row another chapter depends on.
-		"gpt-ch19-course": {Vendor: VendorOpenAI, Caching: CacheExplicit, MinCacheTokens: 1024, MaxCacheWrites: 4, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs | StreamReasoningSummary, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gpt-ch19-course": {Vendor: VendorOpenAI, Surface: SurfaceResponses, Caching: CacheExplicit, MinCacheTokens: 1024, MaxCacheWrites: 4, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs | StreamReasoningSummary, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Gemini — images, audio, video, documents. Text and thinking stream;
 		// FUNCTION-CALL ARGUMENTS DO NOT. They arrive complete, in one frame.

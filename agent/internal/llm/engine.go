@@ -185,7 +185,7 @@ func (e *Engine) Turn(watch common.StreamCallbacks) (string, error) {
 		return "", err
 	}
 
-	renderer, parser, err := SeamFor(e.Cfg.Vendor)
+	renderer, parser, err := SeamFor(e.Cfg.Vendor, e.Cfg.Surface)
 	if err != nil {
 		return "", err
 	}
@@ -676,7 +676,7 @@ func RenderOnly(path string, cfg common.Config) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	renderer, _, err := SeamFor(cfg.Vendor)
+	renderer, _, err := SeamFor(cfg.Vendor, cfg.Surface)
 	if err != nil {
 		return nil, err
 	}

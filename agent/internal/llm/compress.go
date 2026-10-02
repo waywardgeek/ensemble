@@ -86,7 +86,7 @@ Call the submit tool exactly once with the finished text.`, what, budget)
 
 // compress runs one compressor and returns the text it submitted.
 func (e *Engine) compress(what, body string, budget int) (string, error) {
-	renderer, parser, err := SeamFor(e.Cfg.Vendor)
+	renderer, parser, err := SeamFor(e.Cfg.Vendor, e.Cfg.Surface)
 	if err != nil {
 		return "", err
 	}

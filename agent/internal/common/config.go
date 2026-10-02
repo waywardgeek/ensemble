@@ -183,6 +183,9 @@ func BodyOf(req *http.Request) ([]byte, error) {
 }
 
 // DefaultSurface returns the default API surface for a vendor.
+//
+// This is the fallback for a model nobody has recorded a surface for. Prefer
+// SurfaceForModel, which consults the table first.
 func DefaultSurface(v Vendor) Surface {
 	switch v {
 	case VendorOpenAI:
@@ -192,6 +195,24 @@ func DefaultSurface(v Vendor) Surface {
 	default:
 		return SurfaceMessages
 	}
+}
+
+// SurfaceForModel reports which endpoint dialect a model is spoken to.
+//
+// The table wins where it has an opinion, and the vendor default applies
+// where it does not. Doing it in that order is what lets one vendor serve two
+// surfaces at once without a flag: a model migrates by gaining a row, not by
+// the operator remembering to set something.
+//
+// The alternative — flipping the vendor default — would silently move every
+// model of that vendor onto an endpoint most of them have never been tested
+// against, including models that predate it. A per-model fact belongs in the
+// per-model table.
+func SurfaceForModel(model string, v Vendor) Surface {
+	if f, ok := LookupModel(model); ok && f.Surface != 0 {
+		return f.Surface
+	}
+	return DefaultSurface(v)
 }
 
 // Endpoint is where one vendor is reached: its base URL and the key that
