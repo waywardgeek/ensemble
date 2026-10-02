@@ -517,6 +517,14 @@ it is in the sentence's similarity to the nine before it.
   more code has more to explain; a sentence that earns its place stays
   regardless of the count. Cutting to hit a number is a different mistake
   wearing the linter's badge.
+- **Chapter 19 names vendors.** §7.6 ("name the API and the model family,
+  never the company") is suspended for chapter 19. Anthropic is named for
+  their policy decision (freezing the context window); OpenAI is named for
+  their approach (OAuth for third-party agents, signature binding as the
+  narrower fix). Every criticism carries a receipt (§7.4): the arXiv paper,
+  the OpenAI blog post, the dated policy change. This is a one-chapter
+  exception, not a general license. If Anthropic reverses course, the chapter
+  is revised. Ruled 2026-10-02.
 
 ## 14. Quick voice check
 
