@@ -168,6 +168,49 @@ func ch19CheckResponsesFormat(res *Ch19Result, out ch19Out) {
 	if len(r.Requests) > 1 && !r.Requests[1].IncludesEncryptedReasoning {
 		res.fail(id, "the follow-up request did not include reasoning.encrypted_content; with store=false the reasoning is lost unless the agent carries it back")
 	}
+
+	// The converse of "success only on response.completed": a turn the vendor
+	// completed must end as a success. Against the live plan route an agent
+	// built from the docs alone failed every turn (no Content-Type header on the
+	// stream) or lost its tool calls (items arrive only as output_item.done,
+	// never in response.completed.output), while every assertion above passed.
+	for i, e := range out.turnErrors {
+		if e != "" {
+			res.fail(id, "turn %d ended in error although the vendor completed it: %s", i+1, e)
+			return
+		}
+	}
+	if !ch19RespRepliedTo(r.Requests, ch19RespScriptedCallID) {
+		res.fail(id, "the scripted %s call was never answered: no later request carried function_call and function_call_output for it, so the tool call was lost between the stream and the next request", ch19RespScriptedCallID)
+	}
+}
+
+// ch19RespScriptedCallID is the call the summary_around_toolcall scenario issues.
+const ch19RespScriptedCallID = "call_ch19_c1"
+
+// ch19RespRepliedTo reports whether some request replays the call AND answers
+// it. With store:false the vendor keeps nothing, so both items must travel.
+func ch19RespRepliedTo(reqs []ch19RespReq, callID string) bool {
+	for _, q := range reqs {
+		var call, output bool
+		in, _ := q.Decoded["input"].([]any)
+		for _, el := range in {
+			m, _ := el.(map[string]any)
+			if m["call_id"] != callID {
+				continue
+			}
+			switch m["type"] {
+			case "function_call":
+				call = true
+			case "function_call_output":
+				output = true
+			}
+		}
+		if call && output {
+			return true
+		}
+	}
+	return false
 }
 
 // ch19CheckReasoningSummaries asserts the summaries reached the operator as

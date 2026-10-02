@@ -122,7 +122,7 @@ run_mutant() {
 	fi
 }
 
-ALL="1 2 3 4 5 6 7 8"
+ALL="1 2 3 4 5 6 7 8 9 10 11"
 WANT="${1:-$ALL}"
 
 for n in $WANT; do
@@ -130,7 +130,7 @@ case $n in
 
 1) run_mutant 1 \
 	"engine ignores the credential provider and always uses the configured key" \
-	"credential-provider responses-format token-refresh" \
+	"cache-breakpoints credential-provider responses-format token-refresh" \
 	"agent/internal/llm/engine.go" \
 	"perl -pi -e 's/if e\.Creds == nil \{/if e.Creds == nil || true {/' agent/internal/llm/engine.go" \
 	"grep -q 'e.Creds == nil || true' agent/internal/llm/engine.go"
@@ -190,6 +190,30 @@ case $n in
 	"agent/internal/llm/openai_responses.go" \
 	"perl -pi -e 's/ \&\& !cfg\.Route\.Forbids\(\"prompt_cache_breakpoint\"\)//' agent/internal/llm/openai_responses.go" \
 	"! grep -q 'Forbids(\"prompt_cache_breakpoint\")' agent/internal/llm/openai_responses.go"
+;;
+
+9) run_mutant 9 \
+	"an SSE stream with no Content-Type header is decoded as JSON (the live plan route sends none)" \
+	"reasoning-summaries responses-format" \
+	"agent/internal/llm/seam.go" \
+	"perl -pi -e 's/return b\[n-1\] != \x27\{\x27/return false \/\/ MUTANT 9/' agent/internal/llm/seam.go" \
+	"grep -q 'return false // MUTANT 9' agent/internal/llm/seam.go"
+;;
+
+10) run_mutant 10 \
+	"items are taken only from response.completed.output, which the plan route leaves empty" \
+	"responses-format" \
+	"agent/internal/llm/openai_responses.go" \
+	"perl -pi -e 's/env\.Response\.Output = orderedItems\(doneItems\)/_ = orderedItems(doneItems) \/\/ MUTANT 10/' agent/internal/llm/openai_responses.go" \
+	"grep -q 'MUTANT 10' agent/internal/llm/openai_responses.go"
+;;
+
+11) run_mutant 11 \
+	"a parsed tool call carries no provenance, so the journal refuses the turn" \
+	"responses-format" \
+	"agent/internal/llm/openai_responses.go" \
+	"perl -0pi -e 's/(CallID: item\.CallID,\n)\t+From:   from,\n/\$1/' agent/internal/llm/openai_responses.go" \
+	"! grep -q 'From:   from,' agent/internal/llm/openai_responses.go"
 ;;
 
 esac

@@ -322,6 +322,7 @@ func (s *ch19FakeResponses) ch19RespHandleResponses(w http.ResponseWriter, r *ht
 		cached:           s.opts.CachedTokens,
 		cacheWrite:       s.opts.CacheWriteTokens,
 		reasoningTok:     s.opts.ReasoningTokens,
+		planRoute:        r.Header.Get("Authorization") != "Bearer "+ch19APIKey,
 	}
 	// An explicitly scripted failure scenario outranks the FailAfter counter:
 	// the caller asked for that shape on this request, so the counter must not
@@ -360,7 +361,13 @@ func (s *ch19FakeResponses) ch19RespHandleResponses(w http.ResponseWriter, r *ht
 	}
 	cfg.w, cfg.f, cfg.id = w, flusher, s.ch19RespNewID()
 
-	w.Header().Set("Content-Type", "text/event-stream")
+	if !cfg.planRoute {
+		w.Header().Set("Content-Type", "text/event-stream")
+	} else {
+		// Absent, not sniffed: net/http would otherwise invent one from the
+		// first bytes, and a nil value is how it is told not to.
+		w.Header()["Content-Type"] = nil
+	}
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	w.WriteHeader(http.StatusOK)
@@ -695,6 +702,15 @@ type ch19RespStreamCfg struct {
 	// separately, so the terminal snapshot cannot drift from the deltas that
 	// produced it.
 	items []any
+
+	// planRoute is true unless the request carried the metered API key. The
+	// vendor picks the route from the credential, so the fake does too. The plan
+	// route differs from the documented metered one in two ways measured live on
+	// 2026-10-02 and reproduced here: the stream has NO Content-Type header, and
+	// response.completed carries output: [] (items arrive only as
+	// response.output_item.done). A fake built from the docs alone agreed with
+	// an agent built from the docs, and both were wrong about the plan route.
+	planRoute bool
 }
 
 // ch19RespEmit writes one SSE frame as BOTH an event: line and a data: line.
@@ -984,6 +1000,9 @@ func (s *ch19FakeResponses) ch19RespCompleted(c *ch19RespStreamCfg) {
 	if c.items == nil {
 		resp["output"] = []any{}
 	}
+	if c.planRoute {
+		resp["output"] = []any{}
+	}
 	c.emit(s, "response.completed", map[string]any{"response": resp})
 }
 
@@ -1013,7 +1032,7 @@ func (s *ch19FakeResponses) ch19RespStreamSummaryThenText(c *ch19RespStreamCfg) 
 func (s *ch19FakeResponses) ch19RespStreamToolcall(c *ch19RespStreamCfg) {
 	s.ch19RespOpen(c)
 	s.ch19RespReasoningItem(c, "rs_ch19_c1", 0, [][]string{ch19RespSummaryPhrasesA})
-	s.ch19RespFunctionCallItem(c, "fc_ch19_c", "call_ch19_c1", "read_file", 1, ch19RespArgChunks)
+	s.ch19RespFunctionCallItem(c, "fc_ch19_c", ch19RespScriptedCallID, "read_file", 1, ch19RespArgChunks)
 	s.ch19RespReasoningItem(c, "rs_ch19_c2", 2, [][]string{ch19RespSummaryPhrasesB})
 	s.ch19RespMessageItem(c, "msg_ch19_c", 3, ch19RespTextChunks)
 	s.ch19RespCompleted(c)
