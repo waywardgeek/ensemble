@@ -102,7 +102,10 @@ func (e *Engine) compress(what, body string, budget int) (string, error) {
 		Parts: common.PartList{common.TextPart{Text: body}},
 	})
 
-	cfg := e.Cfg
+	cfg, err := e.requestCfg()
+	if err != nil {
+		return "", err
+	}
 	cfg.SystemPrompt = compressorPrompt(what, budget)
 	cfg.Tools = []common.ToolDecl{submitDecl(what)}
 	cfg.DisableStreaming = true

@@ -7,6 +7,7 @@ package llm
 // is the entire point of Chapter 2.
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -25,6 +26,16 @@ type Engine struct {
 	Jobs  common.JobManager
 	Tools common.ToolRegistry
 	Host  common.Host
+
+	// Creds resolves the bearer credential for each outbound request.
+	//
+	// Nil means "use Cfg.APIKey directly", which is the behaviour of every
+	// chapter before this one and the state of every test that builds an
+	// Engine as a struct literal. That is modelled absence rather than a
+	// fallback: a nil provider is a specific, documented configuration —
+	// a static key living in Config — not an unresolved failure being
+	// papered over with a plausible default.
+	Creds common.CredentialProvider
 	// Journal, when set, receives every event as it is recorded (ch15).
 	Journal *Journal
 	// Target is the context-size target in bytes (ch15 rule 10); zero
@@ -141,6 +152,31 @@ func (e *Engine) Attach(text string) error {
 // The engine overwrites OnEvent and OnFrame with its own recording, because
 // the event log and the API log belong to it — there is deliberately no way
 // for a caller to intercept what gets logged.
+// requestCfg returns a copy of Cfg whose APIKey field holds a bearer
+// credential that is valid right now.
+//
+// Copying matters. The resolved token is per-request state, and writing it
+// back onto e.Cfg would turn a cache of the last refresh into the
+// configuration itself: a later reader could not tell the operator's
+// long-lived key from an access token that expires in forty minutes. The
+// engine's Cfg keeps holding whatever was configured; only the copy handed to
+// the renderer carries the resolved value.
+//
+// A nil provider returns Cfg unchanged. See the Creds field for why that is
+// modelled absence and not a fallback.
+func (e *Engine) requestCfg() (common.Config, error) {
+	cfg := e.Cfg
+	if e.Creds == nil {
+		return cfg, nil
+	}
+	tok, err := e.Creds.GetBearerToken(context.Background())
+	if err != nil {
+		return cfg, fmt.Errorf("resolve credential: %w", err)
+	}
+	cfg.APIKey = tok
+	return cfg, nil
+}
+
 func (e *Engine) Turn(watch common.StreamCallbacks) (string, error) {
 	// Loud refusal: reject unknown models before doing anything else.
 	if _, known := common.LookupModel(e.Cfg.Model); !known {
@@ -179,7 +215,17 @@ func (e *Engine) Turn(watch common.StreamCallbacks) (string, error) {
 	// renderer never sees them and the volatile data is silently never
 	// delivered. Nothing errors. The model just quietly does not know what
 	// time it is. Chapter 4 hits the identical ordering trap with hints.
-	req, err := renderer.Render(e.Ctx, e.Cfg)
+
+	// The credential is resolved immediately before rendering rather than at
+	// startup. For a static API key the two are the same thing. For an OAuth
+	// access token they are the difference between a request and a 401: the
+	// token may have expired since the previous turn, and the provider
+	// refreshes on demand when asked for one.
+	cfg, err := e.requestCfg()
+	if err != nil {
+		return "", err
+	}
+	req, err := renderer.Render(e.Ctx, cfg)
 	if err != nil {
 		return "", err
 	}

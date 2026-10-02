@@ -71,7 +71,10 @@ func (j *Judge) Pick(prompt string) (string, error) {
 		Parts: common.PartList{common.TextPart{Text: prompt}},
 	})
 
-	cfg := e.Cfg
+	cfg, err := e.requestCfg()
+	if err != nil {
+		return "", err
+	}
 	cfg.SystemPrompt = judgeSystemPrompt
 	// No tools. The judge is being asked a question, not being given a job,
 	// and a judge holding the agent's toolbelt could act on the conversation
