@@ -1471,3 +1471,101 @@ this defect. It removed the last thing protecting us from it, which was the
 inconvenience of changing vendors. A feature that makes an action easy is also
 a feature that makes every latent bug on that path reachable, and the honest
 way to ship one is to go looking for what it just armed.
+
+---
+
+## 30. Moving two models to Responses, and the mark it cost
+
+A table row is a claim about the world. Two of ours had stopped being true.
+
+`gpt-6-astra` and `gpt-5.6-sol` were both marked Chat Completions. Neither was
+there because anyone had measured them there and concluded it was right. They
+were there because nine test files and a grader named them, and a row that
+nine tests depend on is a row nobody edits casually.
+
+Both had been run against the live ChatGPT-plan route carrying thinking, tools
+and streamed reasoning summaries. The table said otherwise, and the table is
+what the code reads, so `cfg.Surface` came from `SurfaceForModel` and there is
+no runtime override. Using either model on the plan route was not a setting. It
+required changing the row.
+
+**The ruling, and the part worth keeping.** The first instinct was to delete
+Chat Completions outright: it is the old API, OpenAI is steering everyone to
+Responses, why teach it. The reason not to is that Chat Completions is no
+longer really OpenAI's API. It is the de-facto dialect of everything that
+speaks "OpenAI-compatible" — Ollama, vLLM, LM Studio, and most of the local
+inference ecosystem. Deleting it would cost a reader the ability to point this
+agent at a model on their own machine, which has nothing to do with OpenAI's
+roadmap. So: keep the surface, move the models. New models use Responses.
+
+For the same reason `DefaultSurface(VendorOpenAI)` stays Chat Completions. A
+model earns the new surface by naming it, which is what keeps the chapter 19
+claim — surface is per-model, not per-vendor — a fact rather than a slogan.
+
+**The best argument for the migration came from the vendor.** The old row
+carried a flag, `NoThinkingWithTools`, pinning a live-only failure:
+
+> Function tools with reasoning_effort are not supported for gpt-5.6-sol in
+> /v1/chat/completions. To use function tools, use /v1/responses or set
+> reasoning_effort to 'none'.
+
+An agent always has tools, so on Chat Completions every turn failed. OpenAI's
+own error text names `/v1/responses` as the remedy. The migration is not a
+preference dressed up as engineering; it is the documented fix.
+
+That flag could not simply be deleted along with the row, though. The
+restriction is real for Chat Completions, and deleting the row's flag would
+have quietly discarded the regression test for a bug that broke everything. It
+moved to a `gpt-5.6-course` fixture that stays on the old surface. The
+production row records today's measurement; the fixture holds yesterday's
+scar.
+
+**A guard fired, correctly.** Adding `StreamReasoningSummary` to two rows broke
+a test called `TestOnlyMeasuredRowsClaimReasoningSummary`, whose comment reads:
+*The table records measurements. A row claims summary streaming only if someone
+watched it stream a summary.* The honest repair was to extend the measured set,
+because we had watched exactly that — not to loosen the assertion. A guard that
+fails when you change the thing it guards is not an obstacle. It is the only
+part of the change that was free.
+
+**Now the mistake.** The ch18 grader named `gpt-6-astra`, so freeing that row
+meant pointing the grader somewhere else. A new `gpt-ch18-course` row was added
+and the grader aimed at it. `make grade18` returned 100/100. Everything built,
+every unit test passed, both modules were clean.
+
+The cross-chapter sweep then reported this:
+
+```
+ch18 ./agent            score: 100/100
+ch18 ./solutions/ch18   score:  85/100
+```
+
+`solutions/ch18` is a frozen snapshot with its own copy of the model table, and
+that copy has never heard of a row added today. The grader asked a frozen
+student tree for a model it did not have, and it lost fifteen marks without
+erroring.
+
+Two things about that are worth more than the fix. First, **the per-chapter
+grader passed.** It grades the live tree, which did have the row, so the one
+command most likely to be run after touching chapter 18 returned full marks on
+a change that broke chapter 18. Second, **nothing failed.** No exception, no
+missing-model error; just a lower number in a column, in a log, thirteen
+minutes later.
+
+The fix was to stop inventing a row and use `gpt-5-course`, which already
+existed in both trees with an identical profile for chapter 18's purposes —
+Chat Completions, implicit caching, same minimum and same window. One new
+fixture instead of two, and the grader names something its frozen snapshots
+actually contain.
+
+**The rule this leaves behind.** A grader model must exist in every frozen
+snapshot that grader grades. Frozen trees cannot be given new rows, so a grader
+may only name models that were already there. The compiler cannot check this,
+the per-chapter grader does not notice it, and the failure is a silent score
+drop. The sweep is not belt-and-braces; for this class of change it is the only
+instrument that works.
+
+Which also settles the sequencing argument. Fixtures move first, the suite is
+proven green, and only then does the production row change. Doing it the other
+way round means every failure afterwards has two candidate causes, and the
+sweep takes thirteen minutes per guess.
