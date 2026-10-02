@@ -329,7 +329,7 @@ replay:
 
 	// Send current settings and the model catalog so the client has the full state.
 	if h.settings != nil {
-		s := h.settings.Get()
+		s := h.settingsForDisplay(h.settings.Get())
 		data, _ := json.Marshal(map[string]any{
 			"type":     "current_settings",
 			"settings": s,
@@ -377,6 +377,25 @@ replay:
 // single source of truth and the readout cannot drift from the wire. The
 // settings store remains only as a fallback for a hub wired without an
 // engine, as in tests.
+// settingsForDisplay returns settings as the operator should SEE them.
+//
+// An unset Model means "follow the startup default". That is the right thing
+// to STORE and the wrong thing to SHOW: a picker handed an empty string falls
+// back to its first option and then reports a model the agent is not running.
+// That is the failure the usage meter already had, and showing the wrong
+// model is worse than showing none.
+//
+// It fills an EMPTY model only. After the operator picks a model the actor
+// applies the switch asynchronously, so the live model can still be the old
+// one for a moment; overwriting unconditionally would snap the picker back to
+// the previous model right after a change.
+func (h *Hub) settingsForDisplay(s common.Settings) common.Settings {
+	if s.Model == "" {
+		s.Model = h.effectiveModel()
+	}
+	return s
+}
+
 func (h *Hub) effectiveModel() string {
 	if h.Model != nil {
 		if m := h.Model(); m != "" {
@@ -622,6 +641,7 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 
 // broadcastSettings sends a settings_changed message to all live clients.
 func (h *Hub) broadcastSettings(s common.Settings) {
+	s = h.settingsForDisplay(s)
 	data, err := json.Marshal(map[string]any{
 		"type":     "settings_changed",
 		"settings": s,

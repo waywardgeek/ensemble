@@ -69,6 +69,40 @@ body {
   flex-shrink: 0;
 }
 
+/* Top-bar controls: the model picker and the speech toggle.
+
+   These are the two settings changed most often, so they sit in the bar
+   rather than behind the settings panel. They are deliberately NOT shrunk to
+   fit: the person most likely to reach for a speech toggle is the person
+   least able to hit a small target, and a control that is hard to see is a
+   control that is not really there. */
+.top-control {
+  font-size: 0.8125rem;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+#top-model {
+  max-width: 24ch;
+}
+
+#top-tts {
+  margin: 0;
+  width: 15px;
+  height: 15px;
+}
+
+.top-control:focus-within {
+  outline: 2px solid var(--accent, #4a9eff);
+  outline-offset: 1px;
+}
+
 #hamburger, #settings-btn {
   background: none;
   border: none;

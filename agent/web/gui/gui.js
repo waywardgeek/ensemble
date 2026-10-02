@@ -357,23 +357,29 @@
   // Populate model dropdown from server's model catalog.
   let modelCatalog = [];  // Saved for context-target slider range updates.
 
+  // Both the settings panel and the top bar show the model list. They are
+  // filled from the SAME server-sent catalog rather than a hardcoded list, so
+  // the picker cannot offer a model the agent does not have.
   function populateModelDropdown(models) {
     modelCatalog = models;
-    const sel = document.getElementById('set-model');
-    sel.innerHTML = '';
-    let currentVendor = '';
-    let group = null;
-    for (const m of models) {
-      if (m.vendor !== currentVendor) {
-        currentVendor = m.vendor;
-        group = document.createElement('optgroup');
-        group.label = currentVendor;
-        sel.appendChild(group);
+    for (const id of ['set-model', 'top-model']) {
+      const sel = document.getElementById(id);
+      if (!sel) continue;
+      sel.innerHTML = '';
+      let currentVendor = '';
+      let group = null;
+      for (const m of models) {
+        if (m.vendor !== currentVendor) {
+          currentVendor = m.vendor;
+          group = document.createElement('optgroup');
+          group.label = currentVendor;
+          sel.appendChild(group);
+        }
+        const opt = document.createElement('option');
+        opt.value = m.id;
+        opt.textContent = m.display_name;
+        group.appendChild(opt);
       }
-      const opt = document.createElement('option');
-      opt.value = m.id;
-      opt.textContent = m.display_name;
-      group.appendChild(opt);
     }
   }
 
@@ -387,8 +393,12 @@
     }
   }
 
-  document.getElementById('set-model').addEventListener('change', (e) => {
-    updateContextSliderForModel(e.target.value);
+  ['set-model', 'top-model'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.addEventListener('change', (e) => {
+      updateContextSliderForModel(e.target.value);
+    });
   });
 
   // Send a settings patch to the server.
@@ -416,6 +426,11 @@
   // Map: element ID → {key, type}
   const settingFields = {
     'set-model':           {key: 'model', type: 'string'},
+    // Top-bar twins of two panel controls. They add no state: the server
+    // broadcasts the whole settings object after every update, so
+    // applySettings re-syncs both copies and they cannot drift apart.
+    'top-model':           {key: 'model', type: 'string'},
+    'top-tts':             {key: 'tts_enabled', type: 'bool'},
     'set-max-tool-rounds': {key: 'max_tool_rounds', type: 'int'},
     'set-thinking-level':  {key: 'thinking_budget', type: 'thinking'},
     'set-context-target':  {key: 'context_target', type: 'int'},
@@ -536,6 +551,8 @@
     // AI
     if (s.model) {
       document.getElementById('set-model').value = s.model;
+      const top = document.getElementById('top-model');
+      if (top) top.value = s.model;
       updateContextSliderForModel(s.model);
     }
     if (s.max_tool_rounds !== undefined) document.getElementById('set-max-tool-rounds').value = s.max_tool_rounds;
@@ -570,6 +587,8 @@
 
     // Accessibility
     document.getElementById('set-tts-enabled').checked = !!s.tts_enabled;
+    const topTTS = document.getElementById('top-tts');
+    if (topTTS) topTTS.checked = !!s.tts_enabled;
     if (s.tts_speed !== undefined) {
       document.getElementById('set-tts-speed').value = s.tts_speed;
       updateRangeDisplay(document.getElementById('set-tts-speed'));
