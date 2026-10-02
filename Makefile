@@ -73,6 +73,9 @@ grade18:
 grade18-audit:
 	./scripts/ch18-mutants.sh
 
+grade19:
+	go run ./cmd/grade -ch 19 ./agent
+
 grade-dir:
 	go run ./cmd/grade -ch $(CH) $(DIR)
 
