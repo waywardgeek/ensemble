@@ -165,6 +165,25 @@ type ModelFeatures struct {
 	// 1,738 tokens.
 	MinCacheTokens int
 
+	// MaxCacheWrites is how many explicit cache breakpoints one request may
+	// WRITE. Zero means the vendor does not let you place them and the
+	// question does not arise.
+	//
+	// This is a separate fact from Caching, which says how the cache is
+	// ADDRESSED. A vendor can accept explicit breakpoints and still cap how
+	// many it will bill you for, and exceeding the cap is not an error: the
+	// surplus markers are ignored, so the request succeeds, the prefix you
+	// meant to bank is not banked, and nothing anywhere says so.
+	//
+	// Provenance: OpenAI's 4 is documented for the Responses API and was
+	// confirmed today against the live endpoint, which accepted
+	// prompt_cache_options {"mode":"explicit"} and echoed it back normalised
+	// as {"mode":"explicit","ttl":"30m"}. Note the documented asymmetry:
+	// implicit mode writes one implicit breakpoint plus up to THREE explicit
+	// ones, explicit mode writes up to FOUR and creates no implicit one. The
+	// four-breakpoint architecture therefore requires explicit mode.
+	MaxCacheWrites int
+
 	// MaxOutputTokens is the model's ceiling for output tokens, including
 	// any thinking budget. This is DATA about the model, not a default
 	// for the request — it tells the framework what ceiling is safe to
@@ -256,6 +275,7 @@ func ModelList() []ModelEntry {
 		{ID: "claude-opus-5-5", Features: models()["claude-opus-5-5"]},
 		{ID: "claude-sonnet-5", Features: models()["claude-sonnet-5"]},
 		// OpenAI
+		{ID: "gpt-6.1-sol", Features: models()["gpt-6.1-sol"]},
 		{ID: "gpt-6-astra", Features: models()["gpt-6-astra"]},
 		{ID: "gpt-5.6-sol", Features: models()["gpt-5.6-sol"]},
 		// Google
@@ -272,6 +292,7 @@ func displayName(id string) string {
 		"claude-opus-5-5":        "Claude Opus 5.5",
 		"claude-sonnet-5":        "Claude Sonnet 5",
 		"gpt-6-astra":            "GPT-6 Astra",
+		"gpt-6.1-sol":            "GPT-6.1 Sol",
 		"gpt-5.6-sol":            "GPT-5.6 Sol",
 		"gemini-3.8-flash":       "Gemini 3.8 Flash",
 		"gemini-3.1-pro-preview": "Gemini 3.1 Pro",
@@ -361,6 +382,47 @@ func models() map[string]ModelFeatures {
 		// but do not return reasoning content on Chat Completions.
 		"gpt-6-astra": {Vendor: VendorOpenAI, Caching: CacheImplicit, MinCacheTokens: 1024, Price: Pricing{Input: 10, CacheWrite: 12.50, CacheRead: 1.0, Output: 50}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 		"gpt-5.6-sol": {Vendor: VendorOpenAI, Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 1050000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, NoThinkingWithTools: true},
+
+		// Chapter 19's model, and the agent's new default.
+		//
+		// Three things here were MEASURED against the live endpoint today
+		// rather than assumed, because this row is the one the agent now
+		// runs on by default and a wrong entry here is wrong everywhere.
+		//
+		// Measured: the model exists (it is in GET /v1/models). Measured:
+		// it streams reasoning summaries, which is why this is the first
+		// row in the table to claim StreamReasoningSummary. With
+		// reasoning.summary "detailed" and effort "high" one response
+		// produced 314 summary deltas across 3 parts; with "concise", 4.
+		// Measured: it accepts prompt_cache_options {"mode":"explicit"}
+		// and a prompt_cache_breakpoint on a developer content block.
+		//
+		// NOT measured by me, but taken from OpenAI's own model page
+		// rather than guessed: pricing, context window and output cap.
+		// The page states cached input is 5% of the uncached rate and
+		// cache writes are 1.25x it, which is where CacheRead 0.1 and
+		// CacheWrite 2.5 against Input 2 come from. Those two ratios are
+		// the ones chapter 18 reasoned about, now first-party confirmed.
+		//
+		// Media is image only. The model page lists input modalities as
+		// text and image, and names audio and video as unsupported. The
+		// 5.6-sol row above claims documents; this one does not, because
+		// the page does not.
+		//
+		// Note what is ABSENT: NoThinkingWithTools. The 5.6-sol row
+		// carries it because /v1/chat/completions refuses function tools
+		// and reasoning_effort together, and the comment there says the
+		// proper fix is to speak /v1/responses. This chapter does that.
+		// The model page agrees: "Use the Responses API for tool calling.
+		// Chat Completions is supported without tool calling."
+		"gpt-6.1-sol": {Vendor: VendorOpenAI, Caching: CacheExplicit, MinCacheTokens: 1024, MaxCacheWrites: 4, Price: Pricing{Input: 2, CacheWrite: 2.5, CacheRead: 0.1, Output: 10}, ContextWindow: 1050000, Media: MediaImage, Stream: StreamText | StreamToolArgs | StreamReasoningSummary, MaxThinkingTokens: 32768, MaxOutputTokens: 128000},
+
+		// Chapter 19's grader model. A NEW row rather than a changed one,
+		// following the convention established by the course rows above:
+		// every earlier chapter's grader must keep seeing exactly the wire
+		// it saw before, and the surest way to guarantee that is never to
+		// edit a row another chapter depends on.
+		"gpt-ch19-course": {Vendor: VendorOpenAI, Caching: CacheExplicit, MinCacheTokens: 1024, MaxCacheWrites: 4, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs | StreamReasoningSummary, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
 
 		// Gemini — images, audio, video, documents. Text and thinking stream;
 		// FUNCTION-CALL ARGUMENTS DO NOT. They arrive complete, in one frame.

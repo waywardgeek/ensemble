@@ -39,13 +39,30 @@ const (
 	// The temptation to start early is exactly how an agent runs a tool call
 	// with half its arguments.
 	DeltaToolCall
+
+	// DeltaReasoningSummary is a model-generated summary of private
+	// reasoning, streamed as it is composed.
+	//
+	// It is NOT DeltaThinking. Thinking is the model's reasoning content
+	// itself; a summary is a second, shorter artifact the vendor generates
+	// ABOUT that reasoning, and on some surfaces it is the only window into
+	// the reasoning that exists. Merging the two would be convenient and
+	// wrong: a reader could no longer tell whether they were seeing the
+	// model's thinking or a précis of it, and the two have different
+	// lengths, different latencies, and different truth conditions.
+	//
+	// It is emphatically not DeltaText either. Concatenating a summary into
+	// the reply is the failure this kind exists to prevent, because the
+	// result reads as though the model said it to the user.
+	DeltaReasoningSummary
 )
 
 // deltaKindNames is the wire spelling, and the only place it is written.
 var deltaKindNames = map[DeltaKind]string{
-	DeltaThinking: "thinking",
-	DeltaText:     "text",
-	DeltaToolCall: "tool_call",
+	DeltaThinking:         "thinking",
+	DeltaText:             "text",
+	DeltaToolCall:         "tool_call",
+	DeltaReasoningSummary: "reasoning_summary",
 }
 
 func (k DeltaKind) String() string {
@@ -95,9 +112,16 @@ const (
 	StreamText Stream = 1 << iota
 	StreamThinking
 	StreamToolArgs
+	StreamReasoningSummary
 )
 
-// StreamAll is everything a vendor could stream.
+// StreamAll is every kind the three original vendors could stream.
+//
+// It deliberately excludes StreamReasoningSummary. Adding it here would be a
+// one-character change that quietly asserted something false about twenty
+// model rows: that every Anthropic and Gemini model emits reasoning summaries,
+// which none of them do. This table records what was measured, and a model
+// claims summary streaming only by naming the flag itself.
 const StreamAll = StreamText | StreamThinking | StreamToolArgs
 
 func (s Stream) Has(want Stream) bool { return s&want != 0 }
@@ -111,6 +135,8 @@ func (s Stream) KindOK(kind DeltaKind) bool {
 		return s.Has(StreamThinking)
 	case DeltaToolCall:
 		return s.Has(StreamToolArgs)
+	case DeltaReasoningSummary:
+		return s.Has(StreamReasoningSummary)
 	}
 	return false
 }
