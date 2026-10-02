@@ -493,7 +493,13 @@ type respEnvelope struct {
 // recorded. Taking finals from here rather than from accumulated deltas means
 // a dropped or reordered frame cannot corrupt the log, and it is the only
 // place the encrypted reasoning blob appears in full.
-func respAssemble(r respResponse, model string) (common.PartList, common.Provenance, common.Usage, error) {
+//
+// keys runs parallel to parts and names each part the way the stream names its
+// deltas ("text:<item>", "call:<item>", "sum:<item>:0"), so the stream parser
+// can finalize a part under the id its deltas already used. A final under a
+// fresh id is a second part to every observer: the GUI draws the answer twice
+// and, because the new id has no streamed text, reads it aloud twice.
+func respAssemble(r respResponse, model string) (common.PartList, []string, common.Provenance, common.Usage, error) {
 	from := common.Provenance{
 		Vendor:  common.VendorOpenAI,
 		Model:   model,
@@ -504,10 +510,11 @@ func respAssemble(r respResponse, model string) (common.PartList, common.Provena
 	}
 
 	var parts common.PartList
+	var keys []string
 	for _, raw := range r.Output {
 		var item respOutputItem
 		if err := json.Unmarshal(raw, &item); err != nil {
-			return nil, from, common.Usage{}, fmt.Errorf("openai responses: output item: %w", err)
+			return nil, nil, from, common.Usage{}, fmt.Errorf("openai responses: output item: %w", err)
 		}
 		switch item.Type {
 		case "reasoning":
@@ -518,7 +525,11 @@ func respAssemble(r respResponse, model string) (common.PartList, common.Provena
 			if item.EncryptedContent == "" {
 				continue
 			}
+			// One part per item, though its summary streamed as one part
+			// per summary_index. The final takes the first summary's id; the
+			// later summary parts are complete as streamed.
 			parts = append(parts, common.OpaquePart{From: from, Data: raw})
+			keys = append(keys, "sum:"+item.ID+":0")
 
 		case "message":
 			text := ""
@@ -527,6 +538,7 @@ func respAssemble(r respResponse, model string) (common.PartList, common.Provena
 			}
 			if text != "" {
 				parts = append(parts, common.TextPart{Text: text})
+				keys = append(keys, "text:"+item.ID)
 			}
 
 		case "function_call":
@@ -536,9 +548,10 @@ func respAssemble(r respResponse, model string) (common.PartList, common.Provena
 				Name:   item.Name,
 				Args:   jsonObject(json.RawMessage(item.Arguments)),
 			})
+			keys = append(keys, "call:"+item.ID)
 		}
 	}
-	return parts, from, respCanonicalUsage(r.Usage), nil
+	return parts, keys, from, respCanonicalUsage(r.Usage), nil
 }
 
 // respSummaryText extracts the human-readable summary from a reasoning item.
@@ -576,7 +589,7 @@ func (s responsesSeam) Parse(resp *http.Response, cb common.StreamCallbacks) err
 	if r.Error != nil {
 		return fmt.Errorf("openai responses: %s: %s", r.Error.Code, r.Error.Message)
 	}
-	parts, from, usage, err := respAssemble(r, "")
+	parts, _, from, usage, err := respAssemble(r, "")
 	if err != nil {
 		return err
 	}
@@ -605,6 +618,7 @@ func respParseStream(resp *http.Response, cb common.StreamCallbacks) error {
 		failure  error
 
 		parts common.PartList
+		keys  []string
 		from  common.Provenance
 		usage common.Usage
 	)
@@ -625,7 +639,10 @@ func respParseStream(resp *http.Response, cb common.StreamCallbacks) error {
 		if id, ok := live[key]; ok {
 			return id
 		}
-		id := cb.AllocPartID()
+		// pm.alloc, not cb.AllocPartID: callers that only want the result
+		// (the recall judge, compressors) leave AllocPartID nil, and calling
+		// it directly panics on the first streamed delta.
+		id := pm.alloc()
 		live[key] = id
 		return id
 	}
@@ -692,12 +709,12 @@ func respParseStream(resp *http.Response, cb common.StreamCallbacks) error {
 			if len(env.Response.Output) == 0 {
 				env.Response.Output = orderedItems(doneItems)
 			}
-			p, f, u, err := respAssemble(env.Response, "")
+			p, k, f, u, err := respAssemble(env.Response, "")
 			if err != nil {
 				failure = err
 				return
 			}
-			parts, from, usage, finished = p, f, u, true
+			parts, keys, from, usage, finished = p, k, f, u, true
 
 		case "response.failed", "response.incomplete":
 			// A mid-stream failure arrives with HTTP 200 and a clean SSE
@@ -727,7 +744,16 @@ func respParseStream(resp *http.Response, cb common.StreamCallbacks) error {
 		return fmt.Errorf("openai responses: stream ended without response.completed")
 	}
 
-	emitFinals(parts, pm, cb)
+	// A part that streamed finalizes under its delta id; one that never
+	// streamed (a call with empty arguments, a reasoning item with no summary)
+	// gets a fresh id, exactly as the whole-document path would give it.
+	for i, p := range parts {
+		id, ok := live[keys[i]]
+		if !ok {
+			id = pm.id(i)
+		}
+		cb.Final(id, p)
+	}
 	cb.Emit(common.Event{Type: common.ResponseEnded, Response: &common.ResponseData{
 		Parts: parts, From: from, Usage: usage,
 	}})
