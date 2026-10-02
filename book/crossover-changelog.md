@@ -1371,3 +1371,103 @@ must be silent as a tool result and audible as prose. A toggle that turned
 speech on while breaking that rule would be worse than no toggle, because the
 reader who depends on speech is the reader least able to see that the output
 has gone wrong.
+
+---
+
+## 29. The bug the picker armed
+
+Entry 28 added a model picker to the top bar. Entry 29 is about what that
+picker made reachable, which was already there and had been for some time.
+
+Credentials for the ChatGPT plan were attached once, at startup, by a host
+function that opened with this:
+
+```go
+if cfg.Vendor != common.VendorOpenAI {
+    return
+}
+```
+
+Read on its own that is defensible. The provider is an OpenAI credential, so
+installing it while the agent is pointed at Anthropic would present a ChatGPT
+bearer token to the wrong host. The guard is doing real work.
+
+The trouble is *when* it runs. `attachCredentials` is called exactly once, from
+the composition root. The vendor it consults is the vendor in force at startup.
+And since chapter 11 the model has been changeable at runtime, which means the
+vendor has been changeable at runtime, which means the question this guard
+answers had an expiry date on it.
+
+**What the switch already knew.** The runtime switch is not naive. It had been
+fixed once before, and it carries a comment explaining why:
+
+> The endpoint moves with the model. The renderer follows Vendor, so an
+> endpoint left behind renders one vendor's dialect and posts it to another
+> vendor's host, carrying that vendor's key. Resolve and refuse before mutating
+> anything: a half applied switch is worse than none.
+
+So the switch moves `Model`, `Vendor`, `Surface`, `BaseURL` and `APIKey`. Five
+fields, carefully, with a refusal path. It moves everything the earlier bug
+taught it to move, and the credential provider was not on that list, because
+when that fix was written the provider was not yet a thing that could be wrong.
+
+The result is a switch that is scrupulous about *where* the request goes and
+silent about *who pays for it*. Flip the picker from Claude to GPT and the
+dialect changes, the host changes, the key is refilled from the endpoint table,
+and the plan credential never arrives. The request is rendered correctly, sent
+correctly, answered correctly, and billed to the metered API key.
+
+**This is the failure mode worth naming.** Nothing breaks. There is no error, no
+retry, no degraded reply. The only component that disagrees is the invoice, and
+it disagrees a month later. A bug that announces itself is a bug you fix on
+Tuesday; this class of bug is found by someone reading a statement and saying
+*that number is wrong*.
+
+**The fix is a lookup, not a guard.** The guard was in the right place
+logically and the wrong place temporally, so it moved from attachment time to
+use time. The host still does discovery, because reading the operator's home
+directory is host policy and a library that went looking for credentials on its
+own would be making that decision for every embedder. But it now registers the
+provider *against the vendor it belongs to* instead of installing it only when
+that vendor happens to be first:
+
+```go
+eng.CredsByVendor[common.VendorOpenAI] = p
+if cfg.Vendor == common.VendorOpenAI {
+    eng.Creds = p
+}
+```
+
+and the switch gained one line beside the endpoint it already moved:
+
+```go
+a.eng.Creds = a.eng.CredsByVendor[v]
+```
+
+A vendor absent from the map means "no provider", so a switch to Anthropic
+correctly reverts to its metered key rather than inheriting the previous
+vendor's bearer token. Absence is modelled, not defaulted.
+
+This is the same shape endpoints already use. Endpoints are resolved for every
+vendor up front so that a switch is a lookup rather than a rediscovery. Doing
+the same for credentials is not a new idea in this codebase, it is the
+application of an existing one to the field that got missed.
+
+**On testing the observable.** The test asserts the bearer token actually
+presented and the route actually selected, after switching to OpenAI and again
+after switching back. It deliberately does not assert that `eng.Creds` is
+non-nil. A provider that is attached but never consulted would satisfy that
+weaker check and still bill the wrong account, and this codebase has already
+shipped one bug of exactly that shape: a test that checked `Vendor` while the
+request still went to the previous host. The proxy passed; the behavior did
+not. Assert the thing the user is charged for.
+
+Deleting the single carry line fails the test with the metered key in the
+message, which is the only evidence that the test is load-bearing rather than
+decorative.
+
+**The general point for a crossover chapter.** The picker did not introduce
+this defect. It removed the last thing protecting us from it, which was the
+inconvenience of changing vendors. A feature that makes an action easy is also
+a feature that makes every latent bug on that path reachable, and the honest
+way to ship one is to go looking for what it just armed.
