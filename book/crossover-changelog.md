@@ -1194,3 +1194,51 @@ stream delivers no summaries). The audit is 11/11.
 **Rejected.** A `PlanRoute` option on the fake. The route is a property of the
 credential, and a flag the test sets would let a scenario claim one route
 while sending the other's token.
+
+## 26. Every answer drawn twice and spoken twice
+
+**Symptom.** Live on the plan route, the GUI showed each assistant answer as
+two artifacts, and a snapshot listed a `{}{}{}{}` artifact that never
+resolved. The JSON-lines log showed why: deltas and finals for the same part
+carried different ids (tool call: deltas `1`, final `2`; text: deltas `3`,
+final `4`).
+
+**Cause.** The stream parser keyed delta ids by item (`text:<item>`,
+`call:<item>`, `sum:<item>:<summary_index>`), but finalized through a
+separate mapper keyed by part index, so every final allocated a fresh id.
+Observers key parts by id. The GUI draws a final under an unknown id as a new
+element, and because that id has no streamed text, the "arrived whole" rule
+in `_handleFinal` speaks it. For a listener every Responses answer was read
+aloud twice.
+
+**Change** (eb15005). `respAssemble` returns, parallel to the parts, a key per
+part in the delta path's naming, and the stream path finalizes under
+`live[key]`. A part that never streamed gets a fresh id, as the whole-document
+path would give it. A reasoning item finalizes under its first summary's id;
+its later summary parts stay complete as streamed, since `summary_index` part
+boundaries are a graded property.
+
+**Second defect, same file.** `partFor` called `cb.AllocPartID()` directly.
+The recall judge parses with no callbacks set, so the first recall on the
+Responses route dereferenced nil and killed the process (seen live, on the
+first prompt that matched memory snippets). It now allocates through the
+mapper, which already had the nil fallback for these callers. The Chat
+Completions and Gemini parsers nil-check already.
+
+**Third, GUI** (37ee29d). Encrypted reasoning that streamed no summary
+finalizes under an id with no element, and `_handleFinal` created an empty
+artifact for it each turn. An opaque final with no element now draws nothing.
+
+**Verified.** Two tests on the verbatim live fixture: finals reuse delta ids
+(fails on all three kinds without the fix) and a zero-callbacks parse (panics
+without it). Live: delta and final ids match for tool call, text and
+reasoning; a recall-triggering prompt completes. ch7, ch14, ch19 100/100.
+
+**Measured, not yet applied.** gpt-5.6-sol and gpt-6-astra on the plan route
+with the Responses surface: both accept thinking together with tools (so
+`NoThinkingWithTools` is a Chat Completions fact only, as the vendor's own 400
+says), both stream reasoning summaries, both complete a tool round-trip. The
+table rows were not flipped because they double as fixtures: gpt-6-astra is
+chapter 18's grader model against a Chat Completions fake, and gpt-5.6-sol is
+the fixture for the `NoThinkingWithTools` and Chat Completions cache tests.
+Flipping them first needs those tests moved to course rows.
