@@ -337,8 +337,12 @@ func (responsesSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 
 	// Explicit breakpoints, same positions and same policy as the Anthropic
 	// and Chat Completions renderers. Only the encoding is local.
+	//
+	// The consumer-plan route refuses explicit caching outright, markers and
+	// mode alike, so on that route nothing is marked; prompt_cache_options is
+	// only ever sent when something is, so this one gate covers both fields.
 	marked := false
-	if usesExplicitBreakpoints(cfg.Model) {
+	if usesExplicitBreakpoints(cfg.Model) && !cfg.Route.Forbids("prompt_cache_breakpoint") {
 		budget := 4
 		if f, ok := common.LookupModel(cfg.Model); ok && f.MaxCacheWrites > 0 {
 			budget = f.MaxCacheWrites

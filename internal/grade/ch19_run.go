@@ -197,11 +197,16 @@ func ch19CheckReasoningSummaries(res *Ch19Result, out ch19Out) {
 	}
 }
 
-// ch19CheckCacheBreakpoints asserts the ch18 caching architecture survived the
-// move. The subtle failure this exists to catch: putting the system prompt in
-// the top-level instructions field. That field is a plain string, it cannot
-// carry a breakpoint, and in explicit mode a request with no breakpoint that
-// lands gets no caching at all.
+// ch19CheckCacheBreakpoints asserts chapter 18's caching goes exactly as far
+// as each route allows, and no further. It is graded on both credentials.
+//
+// On the plan route (scenario A) the answer is: not at all. The live endpoint
+// refuses explicit prompt caching outright -- prompt_cache_options and any
+// prompt_cache_breakpoint are each a 400, "not supported on this model", for
+// models the metered route caches happily. A request that carries them does
+// not get worse caching, it gets no answer. This was found against the live
+// endpoint after the vendor documentation said otherwise, which is the whole
+// argument for keeping route rules as data.
 func ch19CheckCacheBreakpoints(res *Ch19Result, out ch19Out) {
 	const id = "cache-breakpoints"
 	r := out.resp
@@ -210,9 +215,36 @@ func ch19CheckCacheBreakpoints(res *Ch19Result, out ch19Out) {
 		res.fail(id, "no request to inspect")
 		return
 	}
+	for i, q := range r.Requests {
+		if q.PromptCacheMode != "" {
+			res.fail(id, "plan-route request %d carried prompt_cache_options (mode %q); the plan route refuses explicit caching outright, so the request fails rather than caching less", i, q.PromptCacheMode)
+			return
+		}
+		if q.BreakpointCount != 0 {
+			res.fail(id, "plan-route request %d carried %d prompt_cache_breakpoint markers; the plan route refuses them, so the request fails rather than caching less", i, q.BreakpointCount)
+			return
+		}
+	}
+}
+
+// ch19CheckCacheBreakpointsMetered asserts the ch18 caching architecture
+// survived the move on the route that permits it, the metered API key
+// (scenario E). The subtle failure this exists to catch: putting the system
+// prompt in the top-level instructions field. That field is a plain string, it
+// cannot carry a breakpoint, and in explicit mode a request with no breakpoint
+// that lands gets no caching at all. Turning caching off everywhere to satisfy
+// the plan route fails here.
+func ch19CheckCacheBreakpointsMetered(res *Ch19Result, out ch19Out) {
+	const id = "cache-breakpoints"
+	r := out.resp
+
+	if len(r.Requests) == 0 {
+		res.fail(id, "metered route: no request to inspect")
+		return
+	}
 	q := r.Requests[0]
 	if q.PromptCacheMode != "explicit" {
-		res.fail(id, "prompt_cache_options.mode was %q, want explicit", q.PromptCacheMode)
+		res.fail(id, "metered route: prompt_cache_options.mode was %q, want explicit; the metered route supports explicit caching and dropping it everywhere is a silent capability loss", q.PromptCacheMode)
 		return
 	}
 	if q.BreakpointCount == 0 {
@@ -294,6 +326,7 @@ func ch19CheckCredentialProvider(res *Ch19Result, out ch19Out) {
 // carry the API key, or the seam only ever had one implementation.
 func ch19ScenarioE(res *Ch19Result, bin, skills, gui, dir string) {
 	const id = "credential-provider"
+	res.ran("cache-breakpoints")
 
 	out := ch19Launch(bin, skills, gui, ch19Opts{
 		dir:       dir,
@@ -304,15 +337,18 @@ func ch19ScenarioE(res *Ch19Result, bin, skills, gui, dir string) {
 	})
 	if out.fatal != "" {
 		res.fail(id, "with no stored grant the agent could not complete a turn: %s", out.fatal)
+		res.fail("cache-breakpoints", "scenario E (metered key): %s", out.fatal)
 		return
 	}
 	if len(out.resp.Requests) == 0 {
 		res.fail(id, "with no stored grant the agent made no request at all; the API key path must still work")
+		res.fail("cache-breakpoints", "scenario E (metered key): no request to inspect")
 		return
 	}
 	if got := out.resp.Requests[0].Auth; got != "Bearer "+ch19APIKey {
 		res.fail(id, "with no stored grant the request did not carry the API key as a bearer token")
 	}
+	ch19CheckCacheBreakpointsMetered(res, out)
 }
 
 // ---------------------------------------------------------------------------

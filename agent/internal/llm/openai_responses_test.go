@@ -450,6 +450,12 @@ func TestCh19ResponsesHonoursPlanRouteForbiddenFields(t *testing.T) {
 		}
 	}
 
+	// prompt_cache_breakpoint sits on content blocks, not at the top level, so
+	// the loop above cannot see it. Walk every block.
+	if n := countRespBreakpoints(got); n != 0 {
+		t.Errorf("plan route request carries %d prompt_cache_breakpoint markers; the route refuses them", n)
+	}
+
 	if got["store"] != false {
 		t.Error("plan route requires store:false")
 	}
@@ -464,6 +470,14 @@ func TestCh19ResponsesHonoursPlanRouteForbiddenFields(t *testing.T) {
 	metered := renderResponses(t, c, cfg)
 	if _, present := metered["max_output_tokens"]; !present {
 		t.Error("max_output_tokens dropped on the metered route, where it is legal")
+	}
+	// And explicit caching survives there. Without this, turning caching off on
+	// every route would pass the plan-route assertions above.
+	if mode, _ := metered["prompt_cache_options"].(map[string]any); mode["mode"] != "explicit" {
+		t.Errorf("metered route lost explicit cache mode: prompt_cache_options=%v", metered["prompt_cache_options"])
+	}
+	if countRespBreakpoints(metered) == 0 {
+		t.Error("metered route lost its cache breakpoints")
 	}
 }
 
@@ -491,4 +505,23 @@ func TestCh19ResponsesNeverSendsASystemRoleItem(t *testing.T) {
 			t.Errorf("input item %d uses role system, which this route rejects", i)
 		}
 	}
+}
+
+// countRespBreakpoints counts prompt_cache_breakpoint markers on the content
+// blocks of a rendered Responses request.
+func countRespBreakpoints(body map[string]any) int {
+	n := 0
+	input, _ := body["input"].([]any)
+	for _, raw := range input {
+		item, _ := raw.(map[string]any)
+		blocks, _ := item["content"].([]any)
+		for _, b := range blocks {
+			if blk, ok := b.(map[string]any); ok {
+				if _, marked := blk["prompt_cache_breakpoint"]; marked {
+					n++
+				}
+			}
+		}
+	}
+	return n
 }

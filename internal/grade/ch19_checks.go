@@ -36,8 +36,9 @@ var ch19Table = []struct {
 		"store:false, stream:true, no parameter the plan route forbids, a developer " +
 			"role rather than a system one, and success claimed only on response.completed."},
 	{"cache-breakpoints", 10,
-		"Explicit mode declared only when a breakpoint actually attached, placed on " +
-			"content blocks, carrying chapter 18's caching onto the new wire format."},
+		"Chapter 18's caching carried exactly as far as each route allows: none on the " +
+			"plan route, which refuses it, and explicit breakpoints on content blocks on " +
+			"the metered route, with the mode declared only when one attached."},
 	{"reasoning-summaries", 15,
 		"Summaries stream incrementally and arrive distinguishable from the answer, " +
 			"which is the accessibility payoff the migration exists for."},

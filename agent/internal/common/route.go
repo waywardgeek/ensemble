@@ -48,6 +48,15 @@ func (r Route) Forbids(field string) bool {
 // not logprobs. And instructions is NOT here: it is permitted, merely
 // uncacheable, which is a reason to prefer a developer message but not a
 // reason to call it illegal.
+// Two entries were NOT in that documentation and were found against the live
+// endpoint on 2026-10-02: prompt_cache_options and prompt_cache_breakpoint.
+// The plan route refuses explicit prompt caching entirely, on gpt-6.1-sol and
+// gpt-5.6-sol alike, with a 400 whose message blames the model ("is not
+// supported on this model") although the metered route accepts the identical
+// body for the same model. The breakpoint is a content-block field, not a
+// top-level one; it is listed here because the route rule is about the
+// field, wherever it sits.
+//
 // planRouteForbiddenFields returns a fresh copy on every call. A package-level
 // slice would be shared mutable state: any caller could reorder or overwrite
 // an entry and change what every later request is allowed to send.
@@ -61,6 +70,8 @@ func planRouteForbiddenFields() []string {
 		"moderation",
 		"multi_agent",
 		"prompt",
+		"prompt_cache_breakpoint",
+		"prompt_cache_options",
 		"prompt_cache_retention",
 		"safety_identifier",
 		"temperature",

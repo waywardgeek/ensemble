@@ -160,9 +160,11 @@ type ch19FakeResponses struct {
 // offence. And it is top_logprobs that is unsupported, not logprobs, which is
 // exactly the kind of near-miss a list reconstructed from memory gets wrong.
 //
-// Note that prompt_cache_retention is unsupported while prompt_cache_options
-// is accepted and echoed back; the names are close enough that a student who
-// skims will reach for the wrong one.
+// Explicit caching (prompt_cache_options, prompt_cache_breakpoint) is not on
+// this list although the plan route refuses it too: the documentation this list
+// was transcribed from omitted it, and it was found against the live endpoint.
+// The cache-breakpoints check owns it on both routes, so a caching mistake fails
+// one check rather than this one as well.
 //
 // A slice rather than a map so violation order is deterministic: a grader that
 // reports the same problems in a different order on every run teaches students

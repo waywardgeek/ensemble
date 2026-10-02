@@ -122,7 +122,7 @@ run_mutant() {
 	fi
 }
 
-ALL="1 2 3 4 5 6 7"
+ALL="1 2 3 4 5 6 7 8"
 WANT="${1:-$ALL}"
 
 for n in $WANT; do
@@ -182,6 +182,14 @@ case $n in
 	"agent/internal/llm/openai_responses.go" \
 	"perl -0pi -e 's/case \"response\.failed\", \"response\.incomplete\":/case \"response.failed.NEVER\":/; s/case \"response\.completed\":/case \"response.completed\", \"response.failed\", \"response.incomplete\":/' agent/internal/llm/openai_responses.go" \
 	"grep -q 'response.failed.NEVER' agent/internal/llm/openai_responses.go && grep -q 'case \"response.completed\", \"response.failed\"' agent/internal/llm/openai_responses.go"
+;;
+
+8) run_mutant 8 \
+	"explicit caching sent on the plan route, which refuses it with a 400" \
+	"cache-breakpoints" \
+	"agent/internal/llm/openai_responses.go" \
+	"perl -pi -e 's/ \&\& !cfg\.Route\.Forbids\(\"prompt_cache_breakpoint\"\)//' agent/internal/llm/openai_responses.go" \
+	"! grep -q 'Forbids(\"prompt_cache_breakpoint\")' agent/internal/llm/openai_responses.go"
 ;;
 
 esac
