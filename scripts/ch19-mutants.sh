@@ -177,11 +177,11 @@ case $n in
 ;;
 
 7) run_mutant 7 \
-	"mid-stream failure ignored, so a 200 that produced nothing reads as success" \
+	"a failed response is assembled as a completed one, so a 200 that produced nothing reads as success" \
 	"billing-mode" \
 	"agent/internal/llm/openai_responses.go" \
-	"perl -pi -e 's/case \"response\.failed\", \"response\.incomplete\":/case \"response.failed.NEVER\", \"response.incomplete.NEVER\":/' agent/internal/llm/openai_responses.go" \
-	"grep -q 'response.failed.NEVER' agent/internal/llm/openai_responses.go"
+	"perl -0pi -e 's/case \"response\.failed\", \"response\.incomplete\":/case \"response.failed.NEVER\":/; s/case \"response\.completed\":/case \"response.completed\", \"response.failed\", \"response.incomplete\":/' agent/internal/llm/openai_responses.go" \
+	"grep -q 'response.failed.NEVER' agent/internal/llm/openai_responses.go && grep -q 'case \"response.completed\", \"response.failed\"' agent/internal/llm/openai_responses.go"
 ;;
 
 esac
