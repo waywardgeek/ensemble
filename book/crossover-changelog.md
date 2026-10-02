@@ -1569,3 +1569,22 @@ Which also settles the sequencing argument. Fixtures move first, the suite is
 proven green, and only then does the production row change. Doing it the other
 way round means every failure afterwards has two candidate causes, and the
 sweep takes thirteen minutes per guess.
+
+**Verified live, which is the only verification that counted here.** With
+`LLM_MODEL=gpt-5.6-sol` on the ChatGPT-plan route, one CLI turn asked for a
+file to be written and described back. It exited 0, the tool ran, the file
+contained `pong`, and stdout held exactly one sentence. Tools and a reasoning
+budget in the same request — the pair that drew the 400 quoted above — now
+work, because the request goes to `/v1/responses`.
+
+This is worth stating plainly because the fake vendor could never have
+established it. A fake accepts whatever we send, so the old request was well
+formed by our lights and refused by theirs. The grader scored 100/100 against
+Chat Completions for as long as that row was wrong. Only the live wire settles
+a vendor question; everything else only settles whether we are consistent with
+ourselves.
+
+The usual plan-route caveats still show in the lens: zero breakpoints and zero
+cache reads, because that route declines explicit caching, and a spurious
+PREFIX DIVERGED line that means nothing where there is no cache to diverge
+from. Both are known and neither is new.
