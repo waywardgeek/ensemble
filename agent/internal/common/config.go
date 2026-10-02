@@ -15,6 +15,12 @@ type Config struct {
 	BaseURL string
 	APIKey  string
 
+	// Route is what the credential's deployment permits, resolved once by
+	// the engine from the credential provider's kind. It is here as DATA so
+	// that a renderer can consult the rules of the route it is on without
+	// learning anything about where the token came from.
+	Route Route
+
 	// Endpoints is where each vendor is reached, resolved once by the
 	// composition root for every vendor rather than only the one we start
 	// on. Switching models must move the endpoint with the model: the

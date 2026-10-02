@@ -355,15 +355,32 @@ func (responsesSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 	}
 
 	body := respRequest{
-		Model:           cfg.Model,
-		Input:           items,
-		Tools:           tools,
-		Store:           false,
-		Stream:          common.StreamingFor(cfg) != 0,
-		Include:         include,
-		Reasoning:       reasoning,
-		MaxOutputTokens: cfg.MaxTokens,
+		Model:     cfg.Model,
+		Input:     items,
+		Tools:     tools,
+		Store:     false,
+		Stream:    common.StreamingFor(cfg) != 0,
+		Include:   include,
+		Reasoning: reasoning,
 	}
+
+	// The consumer-plan route rejects max_output_tokens outright. Not
+	// ignores — refuses, so a turn that sends it does not produce a shorter
+	// answer, it produces no answer. The metered route accepts it happily,
+	// which is exactly why this is read from the route table rather than
+	// hardcoded either way.
+	if !cfg.Route.Forbids("max_output_tokens") {
+		body.MaxOutputTokens = cfg.MaxTokens
+	}
+
+	// Some routes refuse a non-streaming request. We already prefer
+	// streaming everywhere, so this only matters when a caller has turned it
+	// off; honouring the route means a disabled stream degrades to a slower
+	// answer rather than to a 400.
+	if cfg.Route.RequiresStreaming {
+		body.Stream = true
+	}
+
 	if marked {
 		body.PromptCacheOptions = &respCacheOptions{Mode: "explicit"}
 	}

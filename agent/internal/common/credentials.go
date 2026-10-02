@@ -33,9 +33,21 @@ import "context"
 // CredentialKind names the sort of credential a provider holds.
 //
 // It exists for display and for policy — "which account am I signed in as",
-// "is a metered key available as a fallback" — and never to branch on while
-// building a request. A request built differently depending on this value
-// would mean the abstraction had failed.
+// "is a metered key available as a fallback" — and to select the ROUTE a
+// request travels, which is a different thing from branching on it while
+// building one.
+//
+// The distinction is worth stating because it is easy to lose. A consumer
+// plan route genuinely accepts a smaller set of parameters than a metered API
+// key does: send max_output_tokens on it and the request is refused. So the
+// rendered body does depend on the credential, and pretending otherwise would
+// be a lie that fails at runtime.
+//
+// What must not happen is a renderer reading this enum and branching. The
+// route's rules are published as DATA — see RouteFor — in the same way model
+// capabilities are, so the renderer consults facts about the route it is on
+// and still never learns where the token came from, or that an hour ago it
+// was a different string.
 type CredentialKind int
 
 const (

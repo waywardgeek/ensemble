@@ -418,3 +418,77 @@ func TestCh19ResponsesToolsAreFlat(t *testing.T) {
 		t.Errorf("tool name = %v, want get_weather at the top level", tool["name"])
 	}
 }
+
+// The consumer-plan route rejects fifteen parameters outright. This asserts
+// the whole list against the rendered body rather than the one field we
+// currently set, so adding a field later cannot quietly reintroduce the bug.
+//
+// The failure mode this guards is unusually sharp: the request is refused,
+// not degraded, so an agent that sends a forbidden field does not answer
+// worse, it stops answering.
+func TestCh19ResponsesHonoursPlanRouteForbiddenFields(t *testing.T) {
+	cfg := common.Config{
+		Model:        "gpt-ch19-course",
+		BaseURL:      "http://example.invalid",
+		APIKey:       "k",
+		SystemPrompt: "You are a careful assistant.",
+		MaxTokens:    4096,
+		Thinking:     common.ThinkingMedium,
+		Route:        common.RouteFor(common.CredentialChatGPTOAuth),
+	}
+	c := ctxWith([]common.Entry{{Seq: 1, Actor: common.ActorHuman, Parts: common.PartList{common.TextPart{Text: "hi"}}}})
+
+	got := renderResponses(t, c, cfg)
+
+	route := common.RouteFor(common.CredentialChatGPTOAuth)
+	if len(route.Forbidden) == 0 {
+		t.Fatal("plan route has an empty forbidden list: the table is not wired")
+	}
+	for _, field := range route.Forbidden {
+		if _, present := got[field]; present {
+			t.Errorf("rendered a field the plan route rejects: %s", field)
+		}
+	}
+
+	if got["store"] != false {
+		t.Error("plan route requires store:false")
+	}
+	if got["stream"] != true {
+		t.Error("plan route requires stream:true")
+	}
+
+	// The same request on a metered key may carry max_output_tokens, and
+	// should: dropping it everywhere would be a silent capability loss on the
+	// route that never had the restriction.
+	cfg.Route = common.RouteFor(common.CredentialAPIKey)
+	metered := renderResponses(t, c, cfg)
+	if _, present := metered["max_output_tokens"]; !present {
+		t.Error("max_output_tokens dropped on the metered route, where it is legal")
+	}
+}
+
+// A system-role item is rejected by the plan route; the constitution must
+// travel as a developer message. This is the other half of the reason the
+// system prompt is not the instructions field.
+func TestCh19ResponsesNeverSendsASystemRoleItem(t *testing.T) {
+	cfg := common.Config{
+		Model:        "gpt-ch19-course",
+		BaseURL:      "http://example.invalid",
+		APIKey:       "k",
+		SystemPrompt: "You are a careful assistant.",
+		Route:        common.RouteFor(common.CredentialChatGPTOAuth),
+	}
+	c := ctxWith([]common.Entry{
+		{Seq: 1, Actor: common.ActorHuman, Parts: common.PartList{common.TextPart{Text: "hi"}}},
+		{Seq: 2, Kind: common.KindRecall, Actor: common.ActorHuman, Parts: common.PartList{common.TextPart{Text: "recalled"}}},
+	})
+
+	got := renderResponses(t, c, cfg)
+	input, _ := got["input"].([]any)
+	for i, raw := range input {
+		item, _ := raw.(map[string]any)
+		if item["role"] == "system" {
+			t.Errorf("input item %d uses role system, which this route rejects", i)
+		}
+	}
+}

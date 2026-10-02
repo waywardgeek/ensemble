@@ -174,6 +174,13 @@ func (e *Engine) requestCfg() (common.Config, error) {
 		return cfg, fmt.Errorf("resolve credential: %w", err)
 	}
 	cfg.APIKey = tok
+
+	// The credential also selects which deployment the request lands on, and
+	// those deployments do not accept the same parameters. Resolving the
+	// route here, in the one place that already resolves the token, keeps the
+	// two facts from drifting apart: a renderer can never be handed a plan
+	// token with a metered route's permissions.
+	cfg.Route = common.RouteFor(e.Creds.Kind())
 	return cfg, nil
 }
 
