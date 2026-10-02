@@ -581,3 +581,72 @@ func TestCh19ResponsesPlanRouteItemsArriveOnlyAsDone(t *testing.T) {
 		t.Errorf("parts do not marshal: %v", err)
 	}
 }
+
+// A streamed part must finalize under the id its deltas used. Observers key
+// parts by id: the GUI draws a final under a new id as a second artifact, and
+// because that id has no streamed text it reads the whole answer aloud again.
+// Live, every Responses turn was drawn and spoken twice.
+func TestCh19ResponsesFinalsReuseDeltaIDs(t *testing.T) {
+	var next uint64
+	streamed := map[uint64]common.DeltaKind{}
+	type final struct {
+		id   uint64
+		part common.Part
+	}
+	var finals []final
+	cb := common.StreamCallbacks{
+		AllocPartID: func() uint64 { next++; return next },
+		OnDelta: func(id uint64, kind common.DeltaKind, _ string) {
+			streamed[id] = kind
+		},
+		OnPartFinal: func(id uint64, p common.Part) { finals = append(finals, final{id, p}) },
+		OnFrame:     func(string, []byte) {},
+		OnEvent:     func(common.Event) {},
+	}
+	if err := (responsesSeam{}).Parse(sseResponse(t, "testdata/responses_stream.sse"), cb); err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	// The fixture streams all three kinds, so every final has deltas behind it.
+	want := map[string]common.DeltaKind{
+		"text":      common.DeltaText,
+		"tool call": common.DeltaToolCall,
+		"reasoning": common.DeltaReasoningSummary,
+	}
+	seen := map[string]bool{}
+	for _, f := range finals {
+		var name string
+		switch f.part.(type) {
+		case common.TextPart:
+			name = "text"
+		case common.ToolCallPart:
+			name = "tool call"
+		case common.OpaquePart:
+			name = "reasoning"
+		default:
+			t.Fatalf("unexpected final part %T", f.part)
+		}
+		seen[name] = true
+		kind, ok := streamed[f.id]
+		if !ok {
+			t.Errorf("%s finalized under id %d, which no delta used: observers see a second part", name, f.id)
+			continue
+		}
+		if kind != want[name] {
+			t.Errorf("%s finalized under id %d, which carried %v deltas", name, f.id, kind)
+		}
+	}
+	for name := range want {
+		if !seen[name] {
+			t.Errorf("no %s final: the fixture should exercise every kind", name)
+		}
+	}
+}
+
+// Callers that want only the result leave every callback unset. The recall
+// judge does exactly this; live, the first streamed delta of its first call
+// dereferenced a nil AllocPartID and took the whole process down.
+func TestCh19ResponsesStreamWithZeroCallbacks(t *testing.T) {
+	if err := (responsesSeam{}).Parse(sseResponse(t, "testdata/responses_stream.sse"), common.StreamCallbacks{}); err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+}

@@ -135,6 +135,13 @@ class ArtifactScroll {
   _handleFinal(msg) {
     const id = msg.part_id;
     let el = this.artifacts.get(id);
+    // An opaque part (encrypted reasoning) carries nothing to display. If it
+    // never streamed a summary there is no element for it, and creating one
+    // leaves an empty artifact on screen for every such turn.
+    if (!el && msg.opaque) {
+      TTS.flush();
+      return;
+    }
     if (!el) {
       el = document.createElement('div');
       el.className = 'artifact';
