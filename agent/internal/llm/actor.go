@@ -491,6 +491,11 @@ func (a *Actor) handleSetModel(m common.SetModel) {
 	a.eng.Cfg.Surface = common.SurfaceForModel(m.Model, v)
 	a.eng.Cfg.BaseURL = ep.BaseURL
 	a.eng.Cfg.APIKey = ep.APIKey
+	// The credential provider moves with the vendor for the same reason the
+	// endpoint does. Absent means "use Cfg.APIKey", so a vendor with no
+	// provider correctly reverts to its metered key rather than inheriting
+	// the previous vendor's bearer token.
+	a.eng.Creds = a.eng.CredsByVendor[v]
 	if a.eng.Tools != nil {
 		a.eng.Tools.SyncModelGatedTools(m.Model)
 	}

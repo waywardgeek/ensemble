@@ -28,24 +28,45 @@ import (
 // Reading the operator's home directory is a policy decision belonging to the
 // program the operator launched; a library that went looking for credentials
 // on its own would be making that decision for every embedder.
+//
+// The provider is registered against the vendor it belongs to, not merely
+// installed when that vendor happens to be the one in force at startup. An
+// operator who starts on Anthropic and switches to OpenAI from the model
+// picker is still entitled to their plan, so resolving every vendor up front
+// turns the switch into a lookup — the same shape endpoints already use.
+// Gating on the startup vendor instead left the provider unattached for the
+// rest of the session, quietly billing the metered key.
 func attachCredentials(eng *llm.Engine, cfg common.Config) {
-	if cfg.Vendor != common.VendorOpenAI {
-		return
+	p := openAIProvider()
+	if p == nil {
+		return // not signed in: the API key path is unchanged
 	}
+	if eng.CredsByVendor == nil {
+		eng.CredsByVendor = make(map[common.Vendor]common.CredentialProvider)
+	}
+	eng.CredsByVendor[common.VendorOpenAI] = p
+	if cfg.Vendor == common.VendorOpenAI {
+		eng.Creds = p
+	}
+}
+
+// openAIProvider loads the stored ChatGPT-plan credentials, returning nil when
+// the operator has not signed in or the stored credentials cannot be used.
+func openAIProvider() common.CredentialProvider {
 	acfg, err := authConfig()
 	if err != nil {
-		return
+		return nil
 	}
 	creds, err := acfg.Store.Load()
 	if err != nil || creds == nil {
-		return // not signed in: the API key path is unchanged
+		return nil // not signed in: the API key path is unchanged
 	}
 	p, err := oauth.NewProvider(acfg)
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "auth: stored credentials unusable:", err)
-		return
+		return nil
 	}
-	eng.Creds = p
+	return p
 }
 
 func runAuth(sub string, printURL bool) error {

@@ -110,3 +110,69 @@ func TestSetModelRefusesVendorWithNoEndpoint(t *testing.T) {
 		t.Errorf("APIKey = %q, want %q", got, want)
 	}
 }
+
+// A credential provider is not merely a startup fact. attachCredentials used
+// to install the ChatGPT plan provider only when OpenAI was the vendor in
+// force at startup, so an operator who began on Anthropic and then switched
+// with the model picker spent the rest of the session on their metered API
+// key while believing they were spending a subscription they had already paid
+// for. Nothing failed. The request succeeded and only the invoice disagreed,
+// which is why this went unnoticed until the picker made it reachable in one
+// click.
+//
+// This asserts the token actually presented and the route actually taken,
+// never that eng.Creds is non-nil. A provider that is attached but never
+// consulted satisfies the weaker check and still bills the wrong account.
+func TestSetModelMovesCredentialsWithVendor(t *testing.T) {
+	plan := &fakeCredentialProvider{token: "plan-bearer-token"}
+	eng := NewEngine(common.Config{
+		Model:     "claude-sonnet-5",
+		Vendor:    common.VendorAnthropic,
+		Surface:   common.DefaultSurface(common.VendorAnthropic),
+		BaseURL:   "https://anthropic.test",
+		APIKey:    "key-anthropic",
+		Endpoints: endpoints(),
+	}, filepath.Join(t.TempDir(), "journal.jsonl"), nil, nil, nil)
+	eng.CredsByVendor = map[common.Vendor]common.CredentialProvider{
+		common.VendorOpenAI: plan,
+	}
+	a := NewActor(eng, nil)
+
+	// Anthropic is not the provider's vendor, so the metered key stands.
+	cfg, err := eng.requestCfg()
+	if err != nil {
+		t.Fatalf("requestCfg() on the startup vendor: %v", err)
+	}
+	if cfg.APIKey != "key-anthropic" {
+		t.Errorf("before the switch APIKey = %q, want key-anthropic", cfg.APIKey)
+	}
+
+	a.handleSetModel(common.SetModel{Model: "gpt-6.1-sol"})
+
+	cfg, err = eng.requestCfg()
+	if err != nil {
+		t.Fatalf("requestCfg() after switching to OpenAI: %v", err)
+	}
+	if cfg.APIKey != "plan-bearer-token" {
+		t.Errorf("after switching to OpenAI APIKey = %q, want the plan bearer token; "+
+			"the metered key means the switch did not carry the provider", cfg.APIKey)
+	}
+	if !cfg.Route.RequiresStateless {
+		t.Error("after switching to OpenAI the plan route was not selected")
+	}
+
+	// Switching away must not present a ChatGPT token to Anthropic's host.
+	a.handleSetModel(common.SetModel{Model: "claude-sonnet-5"})
+
+	cfg, err = eng.requestCfg()
+	if err != nil {
+		t.Fatalf("requestCfg() after switching back: %v", err)
+	}
+	if cfg.APIKey != "key-anthropic" {
+		t.Errorf("after switching back APIKey = %q, want key-anthropic; a provider left "+
+			"behind presents one vendor's bearer token to another vendor's host", cfg.APIKey)
+	}
+	if cfg.Route.RequiresStateless {
+		t.Error("the plan route survived a switch away from OpenAI")
+	}
+}

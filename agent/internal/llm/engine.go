@@ -36,6 +36,22 @@ type Engine struct {
 	// a static key living in Config — not an unresolved failure being
 	// papered over with a plausible default.
 	Creds common.CredentialProvider
+
+	// CredsByVendor holds the provider to install when the agent switches to
+	// a given vendor at runtime. The host resolves it for every vendor up
+	// front, exactly as it resolves endpoints, so a model switch is a lookup
+	// rather than a rediscovery. Credential discovery is host policy — it
+	// reads the user's home directory — and must not happen inside the
+	// library, let alone mid-turn.
+	//
+	// A vendor absent from the map means "no provider", i.e. use Cfg.APIKey.
+	// Creds has to move with Vendor for the same reason BaseURL and APIKey
+	// do: a provider left behind presents one vendor's bearer token to
+	// another vendor's host. The observed symptom is quieter than a failure
+	// and worse — a metered API key is billed while the user believes they
+	// are spending a subscription they already paid for.
+	CredsByVendor map[common.Vendor]common.CredentialProvider
+
 	// Journal, when set, receives every event as it is recorded (ch15).
 	Journal *Journal
 	// Target is the context-size target in bytes (ch15 rule 10); zero
