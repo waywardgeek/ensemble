@@ -87,6 +87,12 @@ func main() {
 	// cannot scroll back through, so it is the one that most needs a record.
 	ttsLogPath := "tts.log"
 
+	// Print the authorize URL instead of opening a browser. This is not a
+	// test hook: an agent running over SSH, in a container, or on a headless
+	// box has no browser to open, and the operator needs the URL to paste
+	// into one somewhere else.
+	printURL := false
+
 	// Parse flags manually to keep backward compat with positional commands.
 	var filtered []string
 	for i := 0; i < len(args); i++ {
@@ -106,6 +112,8 @@ func main() {
 			i++
 		case strings.HasPrefix(args[i], "--save="):
 			savePath = strings.TrimPrefix(args[i], "--save=")
+		case args[i] == "--print-url":
+			printURL = true
 		case args[i] == "--mcp-pipe":
 			mcpPipe = true
 		case args[i] == "--gui-debug":
@@ -140,6 +148,16 @@ func main() {
 	switch mode {
 	case "--help", "-h", "help":
 		usage(os.Stdout)
+
+	case "auth":
+		sub := ""
+		if len(args) > 1 {
+			sub = args[1]
+		}
+		if err := runAuth(sub, printURL); err != nil {
+			fmt.Fprintln(os.Stderr, "auth:", err)
+			os.Exit(2)
+		}
 
 	case "verify":
 		sf, err := llm.Load(savePath)
@@ -324,6 +342,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	cfg.Tools = reg.Declarations()
 
 	eng := llm.NewEngine(cfg, logPath, j, reg, host)
+	attachCredentials(eng, cfg)
 
 	// Cache analysis is on by default, like api.log and debug.log.
 	//
@@ -866,6 +885,7 @@ func runLoop(cfg common.Config, logPath string, interactive bool, reg *tools.Reg
 	host := newCLIHost()
 	j := jobs.NewJobs(host)
 	eng := llm.NewEngine(cfg, logPath, j, reg, host)
+	attachCredentials(eng, cfg)
 	in := bufio.NewScanner(os.Stdin)
 	in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
 	out := bufio.NewWriter(os.Stdout)
