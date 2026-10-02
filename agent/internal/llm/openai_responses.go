@@ -43,6 +43,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"sort"
 
 	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
@@ -531,6 +532,7 @@ func respAssemble(r respResponse, model string) (common.PartList, common.Provena
 		case "function_call":
 			parts = append(parts, common.ToolCallPart{
 				CallID: item.CallID,
+				From:   from,
 				Name:   item.Name,
 				Args:   jsonObject(json.RawMessage(item.Arguments)),
 			})
@@ -607,6 +609,12 @@ func respParseStream(resp *http.Response, cb common.StreamCallbacks) error {
 		usage common.Usage
 	)
 
+	// Items as they finish, by output_index. The ChatGPT plan route sends
+	// response.completed with an empty output array and delivers every item
+	// only through response.output_item.done, so a parser that reads the
+	// completed object alone ends every plan turn with nothing in it.
+	doneItems := map[int]json.RawMessage{}
+
 	pm := newPartIDMapper(cb)
 
 	// One streamed part per (item, summary index). Summary parts are numbered
@@ -666,11 +674,23 @@ func respParseStream(resp *http.Response, cb common.StreamCallbacks) error {
 				cb.Delta(partFor("call:"+ev.ItemID), common.DeltaToolCall, ev.Delta)
 			}
 
+		case "response.output_item.done":
+			var ev struct {
+				OutputIndex int             `json:"output_index"`
+				Item        json.RawMessage `json:"item"`
+			}
+			if json.Unmarshal(data, &ev) == nil && len(ev.Item) > 0 {
+				doneItems[ev.OutputIndex] = ev.Item
+			}
+
 		case "response.completed":
 			var env respEnvelope
 			if err := json.Unmarshal(data, &env); err != nil {
 				failure = fmt.Errorf("openai responses: completed event: %w", err)
 				return
+			}
+			if len(env.Response.Output) == 0 {
+				env.Response.Output = orderedItems(doneItems)
 			}
 			p, f, u, err := respAssemble(env.Response, "")
 			if err != nil {
@@ -712,4 +732,20 @@ func respParseStream(resp *http.Response, cb common.StreamCallbacks) error {
 		Parts: parts, From: from, Usage: usage,
 	}})
 	return nil
+}
+
+// orderedItems returns the finished items in output_index order. The
+// completed object would have listed them in that order, and the order is the
+// conversation: a message that explains a tool call must stay ahead of it.
+func orderedItems(done map[int]json.RawMessage) []json.RawMessage {
+	idx := make([]int, 0, len(done))
+	for i := range done {
+		idx = append(idx, i)
+	}
+	sort.Ints(idx)
+	out := make([]json.RawMessage, 0, len(idx))
+	for _, i := range idx {
+		out = append(out, done[i])
+	}
+	return out
 }

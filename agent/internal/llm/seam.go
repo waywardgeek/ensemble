@@ -20,6 +20,7 @@ package llm
 // client, and the second implementation can only be a copy-paste.
 
 import (
+	"bufio"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -225,8 +226,38 @@ func jsonObject(raw json.RawMessage) json.RawMessage {
 // comes back that way even when `stream: true` was sent — and a parser that
 // trusts the request instead of the response will try to read a JSON object
 // as SSE frames and find nothing at all.
+//
+// The header decides when there is one. There is not always one:
+// the ChatGPT-plan route streams /v1/responses with NO Content-Type at all
+// (measured 2026-10-02; the metered route sends text/event-stream for the
+// same request), and trusting the header alone sent every streamed turn on
+// that route to the JSON decoder, which failed on the first "event:" line.
+//
+// With the header absent, the body's own framing decides, and it is not
+// ambiguous: a JSON body opens with '{', an event stream with "event:",
+// "data:" or a ":" comment. The peek goes through a buffered reader swapped in
+// for resp.Body, so the parser still reads every byte. A wrong answer is not
+// silent: whichever parser runs fails loudly on the other framing.
 func isSSE(resp *http.Response) bool {
-	return strings.Contains(resp.Header.Get("Content-Type"), "text/event-stream")
+	if ct := resp.Header.Get("Content-Type"); ct != "" {
+		return strings.Contains(ct, "text/event-stream")
+	}
+	br := bufio.NewReader(resp.Body)
+	resp.Body = struct {
+		io.Reader
+		io.Closer
+	}{br, resp.Body}
+	for n := 1; ; n++ {
+		b, err := br.Peek(n)
+		if err != nil {
+			return false // empty or all whitespace: let the JSON path report it
+		}
+		switch b[n-1] {
+		case ' ', '\t', '\r', '\n':
+			continue
+		}
+		return b[n-1] != '{'
+	}
 }
 
 // partIDMapper allocates globally unique part IDs on demand, keyed by the

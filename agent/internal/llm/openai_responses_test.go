@@ -169,6 +169,9 @@ func TestCh19ResponsesParsesTextAndToolCall(t *testing.T) {
 			if v.CallID == "" {
 				t.Error("tool call has no call_id: the result cannot be correlated back")
 			}
+			if v.From.Vendor != common.VendorOpenAI || v.From.Surface != common.SurfaceResponses {
+				t.Errorf("tool call provenance = %+v, want OpenAI/Responses: the journal refuses a zero vendor", v.From)
+			}
 		}
 	}
 	if texts == 0 {
@@ -524,4 +527,57 @@ func countRespBreakpoints(body map[string]any) int {
 		}
 	}
 	return n
+}
+
+// The ChatGPT plan route, as measured live on 2026-10-02: no Content-Type on
+// the stream, every item delivered only through response.output_item.done,
+// and response.completed carrying an empty output array. A parser that reads
+// items from the completed object alone records every plan turn as empty,
+// which is how a model's tool call vanished without an error. The done events
+// arrive here out of index order on purpose: order is the conversation.
+func TestCh19ResponsesPlanRouteItemsArriveOnlyAsDone(t *testing.T) {
+	const stream = "event: response.created\n" +
+		`data: {"type":"response.created","response":{"id":"resp_1","model":"gpt-6.1-sol","output":[]}}` + "\n\n" +
+		"event: response.output_item.done\n" +
+		`data: {"type":"response.output_item.done","output_index":1,"item":{"type":"function_call",` +
+		`"id":"fc_1","call_id":"call_1","name":"view_gui","arguments":"{}","status":"completed"}}` + "\n\n" +
+		"event: response.output_item.done\n" +
+		`data: {"type":"response.output_item.done","output_index":0,"item":{"type":"message",` +
+		`"id":"msg_1","role":"assistant","content":[{"type":"output_text","text":"Looking."}]}}` + "\n\n" +
+		"event: response.completed\n" +
+		`data: {"type":"response.completed","response":{"id":"resp_1","model":"gpt-6.1-sol",` +
+		`"status":"completed","output":[],"usage":{"input_tokens":10,"output_tokens":5}}}` + "\n\n"
+
+	rec := newRespRecorder()
+	resp := &http.Response{
+		StatusCode: 200,
+		Header:     http.Header{},
+		Body:       io.NopCloser(strings.NewReader(stream)),
+	}
+	if err := (responsesSeam{}).Parse(resp, rec.callbacks()); err != nil {
+		t.Fatalf("Parse: %v", err)
+	}
+	var ended *common.ResponseData
+	for _, e := range rec.events {
+		if e.Type == common.ResponseEnded {
+			ended = e.Response
+		}
+	}
+	if ended == nil {
+		t.Fatal("no ResponseEnded event")
+	}
+	if len(ended.Parts) != 2 {
+		t.Fatalf("got %d parts, want 2 (message, tool call): %#v", len(ended.Parts), ended.Parts)
+	}
+	if txt, ok := ended.Parts[0].(common.TextPart); !ok || txt.Text != "Looking." {
+		t.Errorf("part 0 = %#v, want the message at output_index 0", ended.Parts[0])
+	}
+	if call, ok := ended.Parts[1].(common.ToolCallPart); !ok || call.Name != "view_gui" || call.CallID != "call_1" {
+		t.Errorf("part 1 = %#v, want the view_gui call at output_index 1", ended.Parts[1])
+	}
+	// The journal marshals every part; a call with no provenance is refused
+	// there, mid-turn, which is how this was found live.
+	if _, err := json.Marshal(ended.Parts); err != nil {
+		t.Errorf("parts do not marshal: %v", err)
+	}
 }
