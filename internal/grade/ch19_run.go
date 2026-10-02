@@ -359,41 +359,50 @@ func ch19ScenarioC(res *Ch19Result, bin, skills, gui, dir string) {
 	const id = "billing-mode"
 	res.ran(id)
 
-	out := ch19Launch(bin, skills, gui, ch19Opts{
-		dir:     dir,
-		model:   ch19Model,
-		prompts: []string{"This should stop."},
-		resp: ch19RespOptions{
-			Scenarios: []string{"text"},
-			FailWith:  "usage_limit_reached",
-		},
-	})
-	// The turn is allowed to end in an error, so out.fatal is not fatal here:
-	// an agent that stops is behaving correctly. What matters is what it did
-	// with the credential afterwards.
-
-	plan := ch19BearerOf(out.oauth.IssuedAccessTokens)
-	for i, q := range out.resp.Requests {
-		if i == 0 {
-			continue // the request that got the refusal
+	// A plan refusal arrives two different ways and an agent has to notice
+	// both. The first is an HTTP error at admission. The second is far more
+	// dangerous: HTTP 200, a clean SSE envelope, and the failure delivered
+	// mid-stream after the status line was already written.
+	for _, c := range []struct{ what, scenario string }{
+		{"an HTTP error at admission", "text"},
+		{"a mid-stream failure behind HTTP 200", "fail_midstream"},
+	} {
+		out := ch19Launch(bin, skills, gui, ch19Opts{
+			dir:     dir,
+			model:   ch19Model,
+			prompts: []string{"This should stop."},
+			resp: ch19RespOptions{
+				Scenarios: []string{c.scenario},
+				FailWith:  "usage_limit_reached",
+			},
+		})
+		// The turn is allowed to end in an error, so out.fatal is not fatal
+		// here: an agent that stops is behaving correctly. What matters is
+		// what it did with the credential, and whether it owned up.
+		plan := ch19BearerOf(out.oauth.IssuedAccessTokens)
+		for i, q := range out.resp.Requests {
+			if i == 0 {
+				continue // the request that got the refusal
+			}
+			if plan != "" && q.Auth != "" && q.Auth != plan {
+				res.fail(id, "with %s the agent retried under a different credential; spending money on a fallback has to be announced, not assumed", c.what)
+				return
+			}
 		}
-		if plan != "" && q.Auth != "" && q.Auth != plan {
-			res.fail(id, "after the plan refused the request the agent retried under a different credential; spending money on a fallback has to be announced, not assumed")
+		// Grading this by grepping the agent's output would not work: the raw
+		// SSE carries the error code, so an agent that ignored the failure
+		// entirely still prints the string. The turn_ended error field is the
+		// agent's own conclusion about the turn.
+		var reported bool
+		for _, e := range out.turnErrors {
+			if e != "" {
+				reported = true
+			}
+		}
+		if !reported && out.fatal == "" {
+			res.fail(id, "with %s the turn ended without an error; a turn that reports success after producing nothing is how a usage limit becomes a silently empty answer", c.what)
 			return
 		}
-	}
-	// The turn must end marked as failed. Grading this by grepping the
-	// agent's output would not work: the raw SSE carries the error code, so
-	// an agent that ignored the failure completely still prints the string
-	// and would pass. The turn_ended error field is the agent's own verdict.
-	var reported bool
-	for _, e := range out.turnErrors {
-		if e != "" {
-			reported = true
-		}
-	}
-	if !reported {
-		res.fail(id, "the turn ended without an error; a mid-stream failure arrives with HTTP 200, and a turn that reports success after producing nothing is how a usage limit becomes a silently empty answer")
 	}
 }
 
