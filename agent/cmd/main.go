@@ -55,6 +55,8 @@ func usage(w io.Writer) {
 usage:
   %[1]s                grader mode: JSON-lines protocol on stdin/stdout
   %[1]s chat           interactive loop; type a message, ctrl-D to exit
+                       /hint <text> steers a running turn, /interrupt stops it
+                       --verbose also shows state changes and tool arguments
   %[1]s render LOG     play LOG -> context -> render; print the request JSON
   %[1]s dump           write the event log as JSON-lines
   %[1]s --help         print this table
@@ -98,6 +100,11 @@ func main() {
 	// into one somewhere else.
 	printURL := false
 
+	// Shows state transitions, streaming tool-argument fragments and opaque
+	// parts in the terminal front end. Off by default because the interesting
+	// output is the conversation, not the machinery around it.
+	verbose := false
+
 	// Parse flags manually to keep backward compat with positional commands.
 	var filtered []string
 	for i := 0; i < len(args); i++ {
@@ -119,6 +126,8 @@ func main() {
 			savePath = strings.TrimPrefix(args[i], "--save=")
 		case args[i] == "--print-url":
 			printURL = true
+		case args[i] == "--verbose":
+			verbose = true
 		case args[i] == "--mcp-pipe":
 			mcpPipe = true
 		case args[i] == "--gui-debug":
@@ -231,12 +240,17 @@ func main() {
 		}
 
 	case "chat":
-		if runLoop(cfg, logPath, true, reg) {
+		// Chat is the SAME actor loop the GUI drives, with a text front end
+		// attached instead of a browser. It used to be a bare engine with no
+		// actor, skills, recall or save file, which meant the terminal could
+		// not reproduce a single GUI-reported bug. Pass --port as well to run
+		// both front ends against one agent.
+		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath, mcpPort, true, verbose) {
 			os.Exit(1)
 		}
 
 	case "":
-		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath, mcpPort) {
+		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath, mcpPort, false, verbose) {
 			os.Exit(1)
 		}
 
@@ -298,7 +312,7 @@ type stdinMsg struct {
 	Ephemeral *string `json:"ephemeral"`
 }
 
-func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string, mcpPort string) (vendorFailed bool) {
+func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string, mcpPort string, textMode, verboseText bool) (vendorFailed bool) {
 	host := newCLIHost()
 	j := jobs.NewJobs(host)
 
@@ -593,15 +607,27 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		out.Flush()
 	}
 
-	if isTerminal(os.Stdin) {
-		fmt.Fprintf(os.Stderr, "%[1]s: reading JSON-lines on stdin\n", progName())
-		fmt.Fprintf(os.Stderr, "for an interactive chat run `%[1]s chat`; `%[1]s --help` lists every command\n", progName())
-	}
+	if textMode {
+		if isTerminal(os.Stdin) {
+			fmt.Fprintf(os.Stderr, "%[1]s: interactive chat. type a message and press enter.\n", progName())
+			fmt.Fprintf(os.Stderr, "/hint <text> steers the turn in flight, /interrupt stops it, /quit exits; `%[1]s --help` lists every command\n", progName())
+		}
+		// The terminal front end is an Observer, exactly like the GUI. Both
+		// watch the same actor, so the CLI reproduces agent bugs without a
+		// browser, and a bug that appears in only one of them is a front-end
+		// bug.
+		actor.Attach(newTextObserver(os.Stdout, os.Stderr, verboseText))
+	} else {
+		if isTerminal(os.Stdin) {
+			fmt.Fprintf(os.Stderr, "%[1]s: reading JSON-lines on stdin\n", progName())
+			fmt.Fprintf(os.Stderr, "for an interactive chat run `%[1]s chat`; `%[1]s --help` lists every command\n", progName())
+		}
 
-	// Attach an observer that emits observations as JSON on stdout.
-	actor.Attach(stdoutObserver(func(obs common.Observation) {
-		emitLocked(observationJSON(obs))
-	}))
+		// Attach an observer that emits observations as JSON on stdout.
+		actor.Attach(stdoutObserver(func(obs common.Observation) {
+			emitLocked(observationJSON(obs))
+		}))
+	}
 
 	// Start the HTTP/WebSocket server if --port is set.
 	if port != "" {
@@ -714,14 +740,33 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
 		hinted := false
 
-		for in.Scan() {
+		for {
+			if textMode && isTerminal(os.Stdin) {
+				fmt.Fprint(os.Stdout, "\n> ")
+			}
+			if !in.Scan() {
+				break
+			}
 			line := strings.TrimSpace(in.Text())
 			if line == "" {
 				continue
 			}
 
 			var msg stdinMsg
-			if err := json.Unmarshal([]byte(line), &msg); err != nil {
+			if textMode {
+				// A terminal user types prose, not protocol. Slash commands
+				// carry the two things prose cannot express: steering a turn
+				// that is already running, and stopping it.
+				parsed, quit, perr := parseTextLine(line)
+				if quit {
+					return
+				}
+				if perr != nil {
+					fmt.Fprintf(os.Stdout, "%s\n", perr)
+					continue
+				}
+				msg = parsed
+			} else if err := json.Unmarshal([]byte(line), &msg); err != nil {
 				emitLocked(map[string]string{"error": "bad input: " + err.Error()})
 				if !hinted {
 					hinted = true
@@ -758,8 +803,13 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 					ended := obs.(common.TurnEnded)
 					if ended.Err != "" {
 						vendorFailed = true
-						emitLocked(map[string]string{"error": ended.Err})
-					} else {
+						if !textMode {
+							emitLocked(map[string]string{"error": ended.Err})
+						}
+					} else if !textMode {
+						// In text mode the observer already streamed the reply
+						// and reported any failure. Echoing here would print
+						// every answer a second time.
 						emitLocked(map[string]string{"assistant": ended.Text})
 					}
 				case "hint":
@@ -839,7 +889,15 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		fmt.Fprintf(os.Stderr, "save: %v\n", err)
 	}
 
-	emitLocked(map[string]any{"usage": eng.Ctx.Usage})
+	if textMode {
+		// Usage is commentary, not the answer. Printing it on stdout would put
+		// a JSON line in the middle of piped reply text.
+		if b, err := json.Marshal(map[string]any{"usage": eng.Ctx.Usage}); err == nil {
+			fmt.Fprintf(os.Stderr, "%s\n", b)
+		}
+	} else {
+		emitLocked(map[string]any{"usage": eng.Ctx.Usage})
+	}
 	out.Flush()
 	return vendorFailed
 }
@@ -910,54 +968,6 @@ func observationJSON(obs common.Observation) map[string]any {
 	return map[string]any{"observation": "unknown"}
 }
 
-// ----------------------------------------------------------------
-// Interactive chat mode (same as ch05, uses synchronous Ask).
-// ----------------------------------------------------------------
-
-func runLoop(cfg common.Config, logPath string, interactive bool, reg *tools.Reg) (vendorFailed bool) {
-	host := newCLIHost()
-	j := jobs.NewJobs(host)
-	eng := llm.NewEngine(cfg, logPath, j, reg, host)
-	attachCredentials(eng, cfg)
-	in := bufio.NewScanner(os.Stdin)
-	in.Buffer(make([]byte, 0, 64*1024), 8*1024*1024)
-	out := bufio.NewWriter(os.Stdout)
-	defer out.Flush()
-
-	if interactive {
-		fmt.Fprintf(os.Stderr, "%s — type a message, ctrl-D to exit\n", progName())
-		fmt.Fprint(os.Stderr, "> ")
-	}
-
-	for in.Scan() {
-		line := strings.TrimSpace(in.Text())
-		if line == "" {
-			if interactive {
-				fmt.Fprint(os.Stderr, "> ")
-			}
-			continue
-		}
-
-		if _, err := eng.AskWatching(line, chatStream(out)); err != nil {
-			vendorFailed = true
-			fmt.Fprintln(os.Stderr, "error:", err)
-			fmt.Fprint(os.Stderr, "> ")
-			continue
-		}
-
-		// The reply already streamed to stdout through the callbacks above.
-		// Printing it again here is the obvious mistake: it duplicates every
-		// answer, and it looks correct until the first long one.
-		fmt.Fprintln(out)
-		out.Flush()
-		fmt.Fprint(os.Stderr, "> ")
-	}
-
-	_ = eng.Shutdown()
-	out.Flush()
-	return vendorFailed
-}
-
 func emit(out *bufio.Writer, v any) {
 	b, _ := json.Marshal(v)
 	out.Write(b)
@@ -1011,67 +1021,6 @@ func parseVendor(s string) (common.Vendor, error) {
 		return common.VendorGemini, nil
 	}
 	return 0, fmt.Errorf("unknown vendor %q (want anthropic, openai or gemini)", s)
-}
-
-// chatStream prints a turn as it arrives.
-//
-// Reply text goes to STDOUT, because that is the answer and stdout is where
-// an answer belongs. Reasoning and tool calls go to STDERR as commentary,
-// dimmed and yellow. Piping the binary therefore still yields exactly what
-// the assistant said and nothing else, while a human at a terminal sees the
-// whole turn being built.
-//
-// Colour is chosen by whether STDERR is a terminal, not by a flag. Writing
-// escape codes into a pipe is how a log file ends up full of \033[2m.
-func chatStream(out *bufio.Writer) common.StreamCallbacks {
-	const (
-		reset  = "\033[0m"
-		dim    = "\033[2m"
-		yellow = "\033[33m"
-	)
-	color := isTerminal(os.Stderr)
-	open := false
-
-	paint := func(code string) {
-		if color && !open {
-			fmt.Fprint(os.Stderr, code)
-			open = true
-		}
-	}
-	clear := func() {
-		if open {
-			fmt.Fprint(os.Stderr, reset)
-			open = false
-		}
-	}
-
-	return common.StreamCallbacks{
-		OnDelta: func(_ uint64, kind common.DeltaKind, chunk string) {
-			switch kind {
-			case common.DeltaText:
-				clear()
-				fmt.Fprint(out, chunk)
-				// Flush per chunk. Without it the buffer holds the whole
-				// answer and releases it in one lump at the end, which looks
-				// exactly like streaming having no effect.
-				out.Flush()
-			case common.DeltaThinking:
-				paint(dim)
-				fmt.Fprint(os.Stderr, chunk)
-			case common.DeltaToolCall:
-				paint(yellow)
-				fmt.Fprint(os.Stderr, chunk)
-			}
-		},
-		OnPartFinal: func(_ uint64, _ common.Part) {
-			// Only break the line if commentary was being written, so a
-			// plain text answer does not collect blank lines after it.
-			if open {
-				clear()
-				fmt.Fprintln(os.Stderr)
-			}
-		},
-	}
 }
 
 func isTerminal(f *os.File) bool {
