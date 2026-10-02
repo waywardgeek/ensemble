@@ -54,3 +54,23 @@ func TestSettingsForDisplayKeepsChosenModel(t *testing.T) {
 		t.Fatalf("a chosen model must survive; stale live model overwrote it: %q", got.Model)
 	}
 }
+
+// TestSettingsAtLoadShowsModelInForce pins the restart case.
+//
+// Startup wires ContextTarget, Bands and LogRetention from the settings
+// store, but never the model: the engine takes its model from the flag or the
+// environment. So a model left in settings.json by an earlier session is
+// ignored by the engine and must not be shown to a freshly connected client,
+// or the picker reports a model that no request will use.
+func TestSettingsAtLoadShowsModelInForce(t *testing.T) {
+	h := &Hub{
+		settings: &fakeSettings{s: common.Settings{Model: "claude-opus-5-5"}}, // stale
+		Model:    func() string { return "gpt-6.1-sol" },                      // in force
+	}
+
+	got := h.settingsAtLoad()
+
+	if got.Model != "gpt-6.1-sol" {
+		t.Fatalf("a fresh client must see the model in force, got stored %q", got.Model)
+	}
+}

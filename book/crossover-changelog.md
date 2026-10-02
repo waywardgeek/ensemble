@@ -1242,3 +1242,116 @@ table rows were not flipped because they double as fixtures: gpt-6-astra is
 chapter 18's grader model against a Chat Completions fake, and gpt-5.6-sol is
 the fixture for the `NoThinkingWithTools` and Chat Completions cache tests.
 Flipping them first needs those tests moved to course rows.
+
+---
+
+## 27. A terminal that could not reproduce a single GUI bug
+
+Every bug in the three entries above was found in the GUI, and every one of
+them had to be found in the GUI, because the terminal ran different code.
+
+`ensemble chat` called `runLoop`, which drove a bare engine: no actor, no
+skills, no auto-recall, no save file. The default mode called `runActorLoop`,
+which drove all of it. Two dispatchers, and only the one behind a browser
+exercised the real agent. So the cheapest front end could not reproduce
+anything the expensive one reported, and a GUI bug report could not be
+narrowed to the GUI without opening a browser and clicking.
+
+`chat` now calls `runActorLoop` with a text front end attached. The CLI and
+the GUI are two Observers of one agent. That makes the diagnosis mechanical:
+a bug that reproduces in both is in the agent, a bug that reproduces in only
+one is in that front end. Passing `--port` as well runs both against a single
+agent, which is the rig the next three entries were debugged on.
+
+The front end is an Observer and nothing else. It never calls back into the
+agent, which is what lets it be swapped for a browser without the agent
+noticing, and it is why adding it required no change to the engine.
+
+**The terminal takes prose, not protocol.** The JSON-lines protocol is
+unchanged and still available to programs. A human types a sentence. Slash
+commands carry only the two things prose cannot express, both of which exist
+because turns are asynchronous: `/hint` steers a turn that is already running,
+`/interrupt` stops it.
+
+**Reply text goes to stdout, commentary to stderr.** This rule was inherited
+from the deleted `chatStream`, and it was nearly lost in the rewrite: the
+first version printed everything to stdout. Piping the binary yields exactly
+what the assistant said and nothing else, which is what makes the CLI usable
+in a shell pipeline. Usage counts moved to stderr for the same reason, after
+a measured run put a JSON line in the middle of the reply text.
+
+**The duplicate-draw bug was waiting here too.** The observer prints a final
+part only for a part that never streamed. The Responses surface reuses delta
+ids for finals, so a renderer that draws both shows every answer twice, which
+is entry 26 in a different front end. Writing a second renderer against the
+same seam is the cheapest test of whether a seam is honest.
+
+`runLoop` and `chatStream` are deleted. One dispatcher remains.
+
+**Measured live on the plan route**, gpt-6.1-sol: a prompt that writes a file
+streams the reply, prints `-> write_file` and `<- ok wrote 4 bytes`, creates
+the file, and leaves stdout holding only the sentence the assistant wrote.
+
+---
+
+## 28. A picker that showed the wrong model
+
+Two settings are changed far more often than the rest, and both were behind
+the settings panel. The top bar had a `#model-name` span that nothing ever
+populated, so the bar did not even report which model was running.
+
+The bar now carries a model picker and a speech toggle. Neither adds state.
+Both register in `settingFields` like every other control, and the server
+broadcasts the entire settings object after any update, so the panel and the
+bar re-sync from one source and cannot drift apart. The picker is filled from
+the server-sent catalog rather than a hardcoded list, so it cannot offer a
+model the agent does not have.
+
+Putting the picker where it is always visible exposed a bug that the hidden
+panel had made harmless. An unset model means "follow the startup default".
+That is the right thing to store, and the wrong thing to show. `applySettings`
+skipped an empty model, so the select kept its first option and displayed
+`Claude Opus 4.6` while the agent was running `gpt-6.1-sol`.
+
+The fix did not need inventing. `effectiveModel` already existed for the usage
+meter, and its comment already records this failure:
+
+> the meter cheerfully confirmed a model that every request ignored, which is
+> a worse failure than showing nothing at all.
+
+A wrong model in a picker is worse again, because a picker looks like a
+control rather than a readout. `settingsForDisplay` fills an empty model from
+`effectiveModel` before either settings message leaves the hub.
+
+**It fills an empty model only, and that restriction is the interesting half.**
+A model switch is an actor mailbox message, applied asynchronously, so for a
+moment after the operator picks a model the live model is still the old one.
+Filling unconditionally would broadcast that stale value and snap the picker
+back to the previous model immediately after the change. Both halves are
+pinned by tests, and each was killed by its own mutant: removing the fill
+kills the first, making it unconditional kills the second.
+
+**The same bug survives a restart, in the opposite direction.** Startup wires
+`ContextTarget`, `Bands` and `LogRetention` from the settings store, and never
+the model: the engine takes its model from the flag or the environment. So a
+model chosen in the GUI is written to `settings.json`, ignored by the engine
+on the next start, and then displayed to the next client that connects. The
+store would have been believed over the wire.
+
+A freshly connected client has nothing pending, so `settingsAtLoad` shows the
+model in force unconditionally, while `settingsForDisplay` protects the
+operator's pending choice during a broadcast. Two rules, because a fresh load
+and the instant after a change are genuinely different moments. Three tests,
+three mutants, each killing exactly one.
+
+**On sizing.** The controls are not shrunk to fit the bar. The person most
+likely to reach for a speech toggle is the person least able to hit a small
+target, and a control that cannot be seen is not really there.
+
+The speech toggle drives the existing `tts_enabled` setting rather than a new
+accessibility flag. Speech is the accessibility feature this codebase has, and
+a second flag that only turned on speech would be two names for one thing.
+
+**Verified live** through the GUI's own MCP relay, with the agent watching its
+own interface: the toggle click round-trips to the server and persists to
+`settings.json`, and the picker renders the catalog grouped by vendor.

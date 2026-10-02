@@ -329,7 +329,7 @@ replay:
 
 	// Send current settings and the model catalog so the client has the full state.
 	if h.settings != nil {
-		s := h.settingsForDisplay(h.settings.Get())
+		s := h.settingsAtLoad()
 		data, _ := json.Marshal(map[string]any{
 			"type":     "current_settings",
 			"settings": s,
@@ -377,6 +377,20 @@ replay:
 // single source of truth and the readout cannot drift from the wire. The
 // settings store remains only as a fallback for a hub wired without an
 // engine, as in tests.
+// settingsAtLoad returns the settings a freshly connected client should see.
+//
+// Nothing is pending on a fresh load, so the model shown is the model
+// actually in force, not the stored one. Startup never applies a stored model
+// to the engine: only ContextTarget, Bands and LogRetention are wired from
+// settings. A model left in settings.json by an earlier session would
+// otherwise be displayed while the agent runs the startup default, which is
+// exactly the drift effectiveModel exists to stop.
+func (h *Hub) settingsAtLoad() common.Settings {
+	s := h.settings.Get()
+	s.Model = h.effectiveModel()
+	return s
+}
+
 // settingsForDisplay returns settings as the operator should SEE them.
 //
 // An unset Model means "follow the startup default". That is the right thing
