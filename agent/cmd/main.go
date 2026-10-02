@@ -14,6 +14,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -82,6 +83,10 @@ func main() {
 	savePath := "save.json"
 	mcpPipe := false
 	guiDebug := false
+	// Exposes the browser's MCP server on a loopback TCP port, so an agent in
+	// another process can see and drive this GUI. Off unless asked for: anyone
+	// who can reach the port can click and type in the GUI.
+	mcpPort := ""
 	skillsDir := ""
 	// On by default, like api.log and debug.log. Speech is the one channel you
 	// cannot scroll back through, so it is the one that most needs a record.
@@ -118,6 +123,11 @@ func main() {
 			mcpPipe = true
 		case args[i] == "--gui-debug":
 			guiDebug = true
+		case args[i] == "--mcp-port" && i+1 < len(args):
+			mcpPort = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--mcp-port="):
+			mcpPort = strings.TrimPrefix(args[i], "--mcp-port=")
 		case args[i] == "--skills-dir" && i+1 < len(args):
 			skillsDir = args[i+1]
 			i++
@@ -133,6 +143,10 @@ func main() {
 		}
 	}
 	args = filtered
+	if mcpPort != "" && port == "" {
+		fmt.Fprintln(os.Stderr, "--mcp-port relays to the GUI, so it needs --port as well")
+		os.Exit(2)
+	}
 	if len(args) > 0 {
 		mode = args[0]
 	}
@@ -222,7 +236,7 @@ func main() {
 		}
 
 	case "":
-		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath) {
+		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath, mcpPort) {
 			os.Exit(1)
 		}
 
@@ -284,7 +298,7 @@ type stdinMsg struct {
 	Ephemeral *string `json:"ephemeral"`
 }
 
-func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string) (vendorFailed bool) {
+func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string, mcpPort string) (vendorFailed bool) {
 	host := newCLIHost()
 	j := jobs.NewJobs(host)
 
@@ -620,6 +634,19 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		srv := &http.Server{Addr: ":" + port, Handler: mux}
 		go srv.ListenAndServe()
 		defer srv.Close()
+
+		if mcpPort != "" {
+			// Loopback only, unlike the GUI server: this port takes clicks
+			// and keystrokes, not just page loads.
+			ln, lErr := net.Listen("tcp", "127.0.0.1:"+mcpPort)
+			if lErr != nil {
+				fmt.Fprintf(os.Stderr, "mcp-port: %v\n", lErr)
+				os.Exit(2)
+			}
+			defer ln.Close()
+			go hub.ServeMCP(ln)
+			fmt.Fprintf(os.Stderr, "GUI MCP server on %s (connect with mcp-connect)\n", ln.Addr())
+		}
 	}
 
 	// Start the actor loop.

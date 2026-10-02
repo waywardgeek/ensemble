@@ -116,7 +116,8 @@ func (h *Hub) RemoveMCPReceiver(source string) {
 // BroadcastJSONRPC sends a JSON-RPC message to all connected WebSocket
 // clients, wrapped as {"type":"jsonrpc","source":"...","payload":{...}}.
 // The source tag lets mcp.js echo it back so the hub can route the response.
-func (h *Hub) BroadcastJSONRPC(data json.RawMessage, source string) {
+// It returns how many browsers it reached; zero means nothing will answer.
+func (h *Hub) BroadcastJSONRPC(data json.RawMessage, source string) int {
 	envelope := map[string]any{
 		"type":    "jsonrpc",
 		"payload": json.RawMessage(data),
@@ -141,6 +142,7 @@ func (h *Hub) BroadcastJSONRPC(data json.RawMessage, source string) {
 		default:
 		}
 	}
+	return len(clients)
 }
 
 // Observe implements common.Observer. Must not block.
