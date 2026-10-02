@@ -241,7 +241,7 @@ func (f *Flow) Authorize(ctx context.Context) (*Credentials, error) {
 	defer listener.Close()
 
 	port := listener.Addr().(*net.TCPAddr).Port
-	redirectURI := fmt.Sprintf("http://127.0.0.1:%d/callback", port)
+	redirectURI := fmt.Sprintf("http://127.0.0.1:%d/auth/callback", port)
 
 	authClientID := pendingClientID
 	isRegistration := authClientID == ""
@@ -377,6 +377,12 @@ func (f *Flow) authorizationURL(disco *Discovery, clientID, redirectURI, state, 
 		"code_challenge":        {pkce.Challenge},
 		"code_challenge_method": {codeChallengeMethodS256},
 
+		// RFC 8707 resource indicator. The route requires it, and the same
+		// value has to be repeated at code exchange: it names the API the
+		// resulting token is allowed to call, so a token minted for one
+		// resource cannot be replayed against another.
+		"resource": {resourceIndicator},
+
 		// ext_agent_host_id and agent_name_hint are REQUIRED for a first-time
 		// registration. They are sent on every authorization, not just the
 		// first, because a single client_id may span many hosts for the same
@@ -436,7 +442,7 @@ func (f *Flow) callbackHandler(results chan<- callbackResult) http.Handler {
 		io.WriteString(w, `<!doctype html><title>Signed in</title>
 <h1>Signed in</h1><p>You can close this window and return to the terminal.</p>`)
 	}
-	mux.HandleFunc("/callback", handler)
+	mux.HandleFunc("/auth/callback", handler)
 	// Accept the redirect on any path. Issuers and enterprise fronts
 	// occasionally normalise the redirect path, and failing the sign-in over
 	// a trailing slash helps nobody — the state parameter, not the path, is

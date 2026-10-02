@@ -40,9 +40,10 @@ type ch19Opts struct {
 	// skipLogin runs the agent without performing the OAuth flow first, so a
 	// check can confirm the agent refuses to guess at a credential.
 	skipLogin bool
-	// expireBeforeTurn expires the access token before this 1-based prompt
-	// index, forcing a refresh mid-session.
-	expireBeforeTurn int
+
+	// saveDir is filled in by ch19Launch: a private directory per run, so no
+	// scenario inherits the conversation another one left behind.
+	saveDir string
 }
 
 // ch19Out is everything the checks are allowed to look at.
@@ -87,6 +88,7 @@ func ch19Launch(bin, skillsDir, guiDir string, o ch19Opts) ch19Out {
 		return ch19Out{fatal: fmt.Sprintf("temp home: %v", err)}
 	}
 	defer os.RemoveAll(home)
+	o.saveDir = home
 
 	// The environment both phases share. OPENAI_OIDC_ISSUER points discovery
 	// at the fake authorization server; without it the student's agent would
@@ -97,6 +99,10 @@ func ch19Launch(bin, skillsDir, guiDir string, o ch19Opts) ch19Out {
 		"LLM_BASE_URL="+resp.URL(),
 		"LLM_MODEL="+o.model,
 		"LLM_VENDOR=openai",
+		// An API key is always present. With a stored grant the OAuth token
+		// must win; with no grant the key must still work. One interface,
+		// two credential kinds, and the renderer cannot tell them apart.
+		"LLM_API_KEY="+ch19APIKey,
 		"EN_SKILLS_DIR="+skillsDir,
 		"EN_PRIMARY_SKILL=base",
 		"HOME="+home,
@@ -201,6 +207,16 @@ func ch19VisitAuthorize(rawURL string) error {
 	return nil
 }
 
+// ch19Tail returns the last n characters, so a failure message carries the
+// part of the agent's output nearest the thing that went wrong.
+func ch19Tail(s string, n int) string {
+	s = strings.TrimSpace(s)
+	if len(s) <= n {
+		return s
+	}
+	return "..." + s[len(s)-n:]
+}
+
 // ch19FindAuthorizeURL pulls the first authorize URL out of whatever the agent
 // printed. It deliberately does not require a particular sentence around the
 // URL: the chapter specifies that the URL is printed, not how it is announced.
@@ -217,7 +233,12 @@ func ch19FindAuthorizeURL(s string) string {
 // ch19RunAgent starts the agent's GUI server and drives the prompts.
 func ch19RunAgent(bin, guiDir string, o ch19Opts, env []string, auth *ch19FakeOAuth) ch19Out {
 	port := freePort()
-	cmd := exec.Command(bin, "--port", port, "--gui-dir", guiDir)
+	// Each scenario gets a private save file. The agent's default is
+	// save.json in its working directory, which every scenario shares, so
+	// without this one scenario resumes the conversation the last one left
+	// behind and the grader's result depends on what ran before it.
+	savePath := filepath.Join(o.saveDir, "save.json")
+	cmd := exec.Command(bin, "--port", port, "--gui-dir", guiDir, "--save", savePath)
 	cmd.Dir = o.dir
 	cmd.Env = env
 
@@ -257,10 +278,6 @@ func ch19RunAgent(bin, guiDir string, o ch19Opts, env []string, auth *ch19FakeOA
 	}
 
 	for i, p := range o.prompts {
-		if o.expireBeforeTurn == i+1 {
-			// Make the access token stale so the next request must refresh.
-			auth.ExpireAccessToken()
-		}
 		line, _ := json.Marshal(map[string]string{"kind": "prompt", "text": p})
 		fmt.Fprintln(stdin, string(line))
 		if !meter.waitTurns(i+1, 60*time.Second) {
@@ -268,8 +285,8 @@ func ch19RunAgent(bin, guiDir string, o ch19Opts, env []string, auth *ch19FakeOA
 			stop()
 			out := meter.snapshot()
 			out.agentOutput = buf.String()
-			out.fatal = fmt.Sprintf("after prompt %d the GUI saw %d turn_ended frames, expected %d",
-				i+1, meter.turns(), i+1)
+			out.fatal = fmt.Sprintf("after prompt %d the GUI saw %d turn_ended frames, expected %d; agent said: %s",
+				i+1, meter.turns(), i+1, ch19Tail(buf.String(), 600))
 			return out
 		}
 	}

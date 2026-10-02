@@ -132,6 +132,9 @@ func exchangeCode(ctx context.Context, client *http.Client, endpoint, clientID, 
 		"redirect_uri":  {redirectURI},
 		"client_id":     {clientID},
 		"code_verifier": {verifier},
+		// The same resource indicator sent at authorization. The server
+		// compares them, so a token exchange that omits it is refused.
+		"resource": {resourceIndicator},
 	}
 	return postToken(ctx, client, endpoint, form)
 }

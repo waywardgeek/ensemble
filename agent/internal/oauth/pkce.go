@@ -16,6 +16,11 @@ import (
 // them, because dropping them is precisely how a client ends up signed in but
 // unable to infer.
 const (
+	// resourceIndicator is the RFC 8707 resource this client asks its tokens
+	// to be valid for. It is required on the authorization request and must
+	// be repeated verbatim at code exchange.
+	resourceIndicator = "https://api.openai.com/v1"
+
 	ScopeOpenID         = "openid"
 	ScopeProfile        = "profile"
 	ScopeEmail          = "email"

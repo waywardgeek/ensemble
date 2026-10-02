@@ -22,6 +22,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 )
 
 // A grader-only model row, added alongside the real one so earlier chapters
@@ -46,6 +47,7 @@ func Ch19Run(dir string) Ch19Result {
 	ch19ScenarioB(&res, bin, skills, gui, dir)
 	ch19ScenarioC(&res, bin, skills, gui, dir)
 	ch19ScenarioD(&res, bin, skills, gui, dir)
+	ch19ScenarioE(&res, bin, skills, gui, dir)
 	return res
 }
 
@@ -54,8 +56,8 @@ func Ch19Run(dir string) Ch19Result {
 // ---------------------------------------------------------------------------
 
 var ch19ScenarioAChecks = []string{
-	"oauth-flow", "responses-api", "reasoning-summaries",
-	"cache-breakpoints", "credential-hygiene",
+	"oauth-flow", "responses-format", "reasoning-summaries",
+	"cache-breakpoints", "credential-provider",
 }
 
 func ch19ScenarioA(res *Ch19Result, bin, skills, gui, dir string) {
@@ -79,10 +81,10 @@ func ch19ScenarioA(res *Ch19Result, bin, skills, gui, dir string) {
 	}
 
 	ch19CheckOAuthFlow(res, out)
-	ch19CheckResponsesAPI(res, out)
+	ch19CheckResponsesFormat(res, out)
 	ch19CheckReasoningSummaries(res, out)
 	ch19CheckCacheBreakpoints(res, out)
-	ch19CheckCredentialHygiene(res, out)
+	ch19CheckCredentialProvider(res, out)
 }
 
 // ch19CheckOAuthFlow asserts a real authorization-code + PKCE exchange
@@ -115,8 +117,12 @@ func ch19CheckOAuthFlow(res *Ch19Result, out ch19Out) {
 	if a.ExtAgentHostID == "" {
 		res.fail(id, "the authorization request carried no ext_agent_host_id; the route requires a stable opaque host identifier")
 	}
-	if !o.SawLocalhostRedirect {
-		res.fail(id, "the redirect_uri was not a loopback address; a public client has nowhere else safe to receive the code")
+	if o.SawLocalhostRedirect {
+		// Note the flag's polarity: it records the wrong answer, not the
+		// right one. "localhost" goes through name resolution and can be
+		// pointed at ::1, or anywhere at all by a hosts-file entry; the
+		// literal 127.0.0.1 cannot.
+		res.fail(id, "the redirect_uri host was \"localhost\"; it must be the literal 127.0.0.1")
 	}
 	if o.SawDynamicClientAtToken {
 		res.fail(id, "the agent presented the bootstrap client_id at token exchange; the authorization response issues the real one and that is what must be stored and used")
@@ -126,10 +132,10 @@ func ch19CheckOAuthFlow(res *Ch19Result, out ch19Out) {
 	}
 }
 
-// ch19CheckResponsesAPI asserts the agent speaks /v1/responses and respects
+// ch19CheckResponsesFormat asserts the agent speaks /v1/responses and respects
 // the field rules of the ChatGPT-plan route.
-func ch19CheckResponsesAPI(res *Ch19Result, out ch19Out) {
-	const id = "responses-api"
+func ch19CheckResponsesFormat(res *Ch19Result, out ch19Out) {
+	const id = "responses-format"
 	r := out.resp
 
 	if len(r.Violations) > 0 {
@@ -232,18 +238,41 @@ func ch19CheckCacheBreakpoints(res *Ch19Result, out ch19Out) {
 	}
 }
 
-// ch19CheckCredentialHygiene asserts no live token escaped into anything an
-// operator might paste into a bug report. The canaries are the real tokens the
-// authorization server minted, so there is nothing to plant and nothing a
-// student could special-case.
-func ch19CheckCredentialHygiene(res *Ch19Result, out ch19Out) {
-	const id = "credential-hygiene"
+// A distinctive API key, so a request authenticated with it is impossible to
+// confuse with one authenticated by a minted OAuth token.
+const ch19APIKey = "sk-ch19-metered-0f3b81"
 
-	secrets := append(append([]string{}, out.oauth.IssuedAccessTokens...), out.oauth.IssuedRefreshTokens...)
-	if len(secrets) == 0 {
-		res.fail(id, "the authorization server issued no tokens, so hygiene could not be judged")
+// ch19CheckCredentialProvider asserts the two credential kinds reach the HTTP
+// layer through one interface. It is graded from the wire in two runs: with a
+// stored grant the bearer must be the token the authorization server minted,
+// and with no grant at all the same code path must carry the API key. A
+// student who special-cased one of them fails the other.
+//
+// It also asserts no live credential was printed. A token that reaches a log
+// is a token the operator will paste into a bug report.
+func ch19CheckCredentialProvider(res *Ch19Result, out ch19Out) {
+	const id = "credential-provider"
+
+	if len(out.resp.Requests) == 0 {
+		res.fail(id, "no request reached the inference server, so no credential was observable")
 		return
 	}
+	minted := out.oauth.IssuedAccessTokens
+	if len(minted) == 0 {
+		res.fail(id, "the authorization server minted no access token")
+		return
+	}
+	want := "Bearer " + minted[len(minted)-1]
+	if got := out.resp.Requests[0].Auth; got != want {
+		if got == "Bearer "+ch19APIKey {
+			res.fail(id, "the agent was signed in but sent the API key anyway; a stored grant has to win over the fallback")
+		} else {
+			res.fail(id, "the inference request did not carry the minted access token")
+		}
+		return
+	}
+
+	secrets := append(append([]string{}, out.oauth.IssuedAccessTokens...), out.oauth.IssuedRefreshTokens...)
 	haystacks := map[string]string{
 		"the login command's output": out.loginStdout,
 		"the agent's output":         out.agentOutput,
@@ -257,7 +286,32 @@ func ch19CheckCredentialHygiene(res *Ch19Result, out ch19Out) {
 		}
 	}
 	if out.resp.SecretInBody {
-		res.fail(id, "a credential appeared in the request body; it belongs in the Authorization header only")
+		res.fail(id, "a credential appeared in the request body; it belongs in the Authorization header")
+	}
+}
+
+// ch19ScenarioE runs with no stored grant at all. The same interface must
+// carry the API key, or the seam only ever had one implementation.
+func ch19ScenarioE(res *Ch19Result, bin, skills, gui, dir string) {
+	const id = "credential-provider"
+
+	out := ch19Launch(bin, skills, gui, ch19Opts{
+		dir:       dir,
+		model:     ch19Model,
+		prompts:   []string{"No grant stored."},
+		skipLogin: true,
+		resp:      ch19RespOptions{Scenarios: []string{"text"}},
+	})
+	if out.fatal != "" {
+		res.fail(id, "with no stored grant the agent could not complete a turn: %s", out.fatal)
+		return
+	}
+	if len(out.resp.Requests) == 0 {
+		res.fail(id, "with no stored grant the agent made no request at all; the API key path must still work")
+		return
+	}
+	if got := out.resp.Requests[0].Auth; got != "Bearer "+ch19APIKey {
+		res.fail(id, "with no stored grant the request did not carry the API key as a bearer token")
 	}
 }
 
@@ -270,11 +324,16 @@ func ch19ScenarioB(res *Ch19Result, bin, skills, gui, dir string) {
 	res.ran(id)
 
 	out := ch19Launch(bin, skills, gui, ch19Opts{
-		dir:              dir,
-		model:            ch19Model,
-		prompts:          []string{"First turn.", "Second turn."},
-		expireBeforeTurn: 2,
-		resp:             ch19RespOptions{Scenarios: []string{"text"}},
+		dir:     dir,
+		model:   ch19Model,
+		prompts: []string{"First turn.", "Second turn."},
+		// A token that expires inside the client's own refresh window, so
+		// refresh is driven by the stored expiry rather than by a 401. This
+		// is deterministic: no sleep, no race between the clock and the
+		// turn. An agent that waits to be told its token is dead has already
+		// failed the request it was holding.
+		oauth: ch19OAuthOptions{AccessTokenTTL: 90 * time.Second},
+		resp:  ch19RespOptions{Scenarios: []string{"text"}},
 	})
 	if out.fatal != "" {
 		res.fail(id, "scenario B: %s", out.fatal)
@@ -297,7 +356,7 @@ func ch19ScenarioB(res *Ch19Result, bin, skills, gui, dir string) {
 // ---------------------------------------------------------------------------
 
 func ch19ScenarioC(res *Ch19Result, bin, skills, gui, dir string) {
-	const id = "no-silent-fallback"
+	const id = "billing-mode"
 	res.ran(id)
 
 	out := ch19Launch(bin, skills, gui, ch19Opts{
