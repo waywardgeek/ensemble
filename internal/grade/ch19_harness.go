@@ -70,6 +70,12 @@ type ch19Out struct {
 	// the answer is finished is not a summary anyone can follow.
 	summaryBeforeText bool
 
+	// turnErrors is the error field of each turn_ended frame, in order. This
+	// is the agent's own verdict on the turn. Grading a failure by grepping
+	// the agent's output instead would pass on the vendor's bytes echoed to a
+	// log, which an agent that ignored the failure entirely still prints.
+	turnErrors []string
+
 	turns int
 	fatal string
 }
@@ -320,6 +326,7 @@ type ch19Meter struct {
 	summaryDeltas     int
 	textDeltas        int
 	summaryBeforeText bool
+	turnErrors        []string
 }
 
 func newCh19Meter() *ch19Meter { return &ch19Meter{} }
@@ -331,8 +338,9 @@ func (m *ch19Meter) read(conn *websocket.Conn) {
 			return
 		}
 		var f struct {
-			Type string `json:"type"`
-			Kind string `json:"kind"`
+			Type  string `json:"type"`
+			Kind  string `json:"kind"`
+			Error string `json:"error"`
 		}
 		if json.Unmarshal(data, &f) != nil {
 			continue
@@ -341,6 +349,7 @@ func (m *ch19Meter) read(conn *websocket.Conn) {
 		switch {
 		case f.Type == "turn_ended":
 			m.nTurns++
+			m.turnErrors = append(m.turnErrors, f.Error)
 		case f.Type == "part_delta" && f.Kind == "reasoning_summary":
 			if m.textDeltas == 0 {
 				m.summaryBeforeText = true
@@ -377,6 +386,7 @@ func (m *ch19Meter) snapshot() ch19Out {
 		summaryDeltas:     m.summaryDeltas,
 		textDeltas:        m.textDeltas,
 		summaryBeforeText: m.summaryBeforeText,
+		turnErrors:        append([]string{}, m.turnErrors...),
 		turns:             m.nTurns,
 	}
 }

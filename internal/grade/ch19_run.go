@@ -382,9 +382,18 @@ func ch19ScenarioC(res *Ch19Result, bin, skills, gui, dir string) {
 			return
 		}
 	}
-	if !strings.Contains(out.agentOutput, "usage_limit_reached") &&
-		!strings.Contains(strings.ToLower(out.agentOutput), "usage limit") {
-		res.fail(id, "the plan-usage error never reached the operator: a turn that stops for billing reasons has to say so")
+	// The turn must end marked as failed. Grading this by grepping the
+	// agent's output would not work: the raw SSE carries the error code, so
+	// an agent that ignored the failure completely still prints the string
+	// and would pass. The turn_ended error field is the agent's own verdict.
+	var reported bool
+	for _, e := range out.turnErrors {
+		if e != "" {
+			reported = true
+		}
+	}
+	if !reported {
+		res.fail(id, "the turn ended without an error; a mid-stream failure arrives with HTTP 200, and a turn that reports success after producing nothing is how a usage limit becomes a silently empty answer")
 	}
 }
 

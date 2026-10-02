@@ -46,6 +46,13 @@ go build -o "$GRADER" ./cmd/grade || exit 1
 # reads exactly like an insensitive check and sends you off to fix the wrong
 # thing.
 
+# Two mutants are expected to kill more than one check, and that is recorded
+# rather than filed down. Breaking the credential seam means every later
+# request carries the wrong bearer, so the inference server rejects it and no
+# refresh ever happens: all three failures are true statements about that
+# mutant. Narrowing the expectation to one check would mean asserting
+# something false in order to make a table look tidy.
+
 PASSED=0
 FAILED=0
 
@@ -123,18 +130,18 @@ case $n in
 
 1) run_mutant 1 \
 	"engine ignores the credential provider and always uses the configured key" \
-	"credential-provider" \
+	"credential-provider responses-format token-refresh" \
 	"agent/internal/llm/engine.go" \
 	"perl -pi -e 's/if e\.Creds == nil \{/if e.Creds == nil || true {/' agent/internal/llm/engine.go" \
 	"grep -q 'e.Creds == nil || true' agent/internal/llm/engine.go"
 ;;
 
 2) run_mutant 2 \
-	"PKCE downgraded from S256 to plain" \
+	"authorization request omits the required ext_agent_host_id" \
 	"oauth-flow" \
-	"agent/internal/oauth/pkce.go" \
-	"perl -pi -e 's/const codeChallengeMethodS256 = \"S256\"/const codeChallengeMethodS256 = \"plain\"/' agent/internal/oauth/pkce.go" \
-	"grep -q 'codeChallengeMethodS256 = \"plain\"' agent/internal/oauth/pkce.go"
+	"agent/internal/oauth/flow.go" \
+	"perl -pi -e 's/\"ext_agent_host_id\": \{hostID\},/\"ext_agent_host_id\": {hostID[:0]},/' agent/internal/oauth/flow.go" \
+	"grep -q 'hostID\[:0\]' agent/internal/oauth/flow.go"
 ;;
 
 3) run_mutant 3 \
