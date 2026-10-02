@@ -46,7 +46,10 @@ func TestSetModelMovesEndpointWithModel(t *testing.T) {
 	if got, want := eng.Cfg.Vendor, common.VendorOpenAI; got != want {
 		t.Errorf("Vendor = %v, want %v", got, want)
 	}
-	if got, want := eng.Cfg.Surface, common.DefaultSurface(common.VendorOpenAI); got != want {
+	// The surface follows the model, not the vendor. gpt-5.6-sol names the
+	// Responses surface explicitly, so asserting the vendor default here
+	// would quietly pass for a model that had failed to move at all.
+	if got, want := eng.Cfg.Surface, common.SurfaceForModel("gpt-5.6-sol", common.VendorOpenAI); got != want {
 		t.Errorf("Surface = %v, want %v", got, want)
 	}
 	if got, want := eng.Cfg.BaseURL, "https://openai.test"; got != want {

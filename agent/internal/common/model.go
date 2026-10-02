@@ -389,11 +389,22 @@ func models() map[string]ModelFeatures {
 		"claude-sonnet-5": {Vendor: VendorAnthropic, Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 3, CacheWrite: 3.75, CacheRead: 0.3, Output: 15}, ContextWindow: 1000000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, AdaptiveThinking: true},
 
 		// OpenAI — images yes, audio and video NO (video APIs are generation).
-		// Reasoning arrives as a summary rather than as incremental deltas,
-		// so thinking is not streamed. These models support reasoning_effort
-		// but do not return reasoning content on Chat Completions.
-		"gpt-6-astra": {Vendor: VendorOpenAI, Caching: CacheImplicit, MinCacheTokens: 1024, Price: Pricing{Input: 10, CacheWrite: 12.50, CacheRead: 1.0, Output: 50}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
-		"gpt-5.6-sol": {Vendor: VendorOpenAI, Caching: CacheExplicit, MinCacheTokens: 1024, Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 1050000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, NoThinkingWithTools: true},
+		//
+		// Both rows were measured on the live Responses endpoint carrying
+		// thinking, tools and streamed reasoning summaries, so both name that
+		// surface. For gpt-5.6-sol the move was not a preference: Chat
+		// Completions rejects a reasoning budget sent alongside function tools
+		// with a 400, and OpenAI's own error text names /v1/responses as the
+		// remedy. An agent always has tools, so on the older surface every
+		// turn failed.
+		//
+		// NoThinkingWithTools is consequently absent here and lives on the
+		// gpt-5.6-course fixture, which stays on Chat Completions so that the
+		// restriction keeps its regression test. The surface is a per-model
+		// fact: the vendor default is still Chat Completions, which is what
+		// OpenAI-compatible third-party endpoints speak.
+		"gpt-6-astra": {Vendor: VendorOpenAI, Surface: SurfaceResponses, Caching: CacheImplicit, MinCacheTokens: 1024, Price: Pricing{Input: 10, CacheWrite: 12.50, CacheRead: 1.0, Output: 50}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs | StreamReasoningSummary, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		"gpt-5.6-sol": {Vendor: VendorOpenAI, Surface: SurfaceResponses, Caching: CacheExplicit, MinCacheTokens: 1024, MaxCacheWrites: 4, Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 1050000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs | StreamReasoningSummary, MaxThinkingTokens: 32768, MaxOutputTokens: 128000},
 
 		// Chapter 19's model, and the agent's new default.
 		//
@@ -459,6 +470,26 @@ func models() map[string]ModelFeatures {
 		// exactly the wire it saw before.
 		"claude-opus-5-course": {Vendor: VendorAnthropic, Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 200000, Media: MediaImage | MediaDocument, Stream: StreamAll, MaxThinkingTokens: 32768, MaxOutputTokens: 16384, AdaptiveThinking: true, StubsToolResults: true, InlineTools: true},
 		"gpt-5-course":         {Vendor: VendorOpenAI, Caching: CacheImplicit, MinCacheTokens: 1024, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
+		// The Chat Completions thinking fixture. A test that pins Chat
+		// Completions behaviour must name a model that is pinned to Chat
+		// Completions: aim such a test at a production row and its premise
+		// expires the day the vendor ships a better endpoint for that model,
+		// which is precisely what happened when gpt-5.6-sol moved to the
+		// Responses surface.
+		//
+		// It keeps NoThinkingWithTools because the restriction that flag
+		// encodes is real and was fatal: Chat Completions rejects a reasoning
+		// budget sent alongside function tools with a 400, and an agent always
+		// has tools. The production row no longer carries the flag, so this
+		// fixture is now the only thing holding that regression test up.
+		//
+		// Chapter 18's grader deliberately uses gpt-5-course above rather than
+		// a row of its own. A grader model has to exist in the FROZEN solution
+		// snapshots it grades, and those snapshots cannot gain a row added
+		// here today. Naming a model they have never heard of costs real marks,
+		// silently, and the per-chapter grader still passes because it runs
+		// against this tree. Only the cross-chapter sweep catches it.
+		"gpt-5.6-course": {Vendor: VendorOpenAI, Caching: CacheExplicit, MinCacheTokens: 1024, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs, MaxThinkingTokens: 32768, MaxOutputTokens: 128000, NoThinkingWithTools: true},
 		// Chapter 16's grader model: the opus row with a deliberately tiny
 		// window, so a grader can reach ninety percent of it in a handful of
 		// turns instead of a hundred thousand. A NEW row rather than a

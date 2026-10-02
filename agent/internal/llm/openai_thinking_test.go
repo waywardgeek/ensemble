@@ -71,10 +71,10 @@ func TestNoThinkingWithToolsSendsNoneNotNothing(t *testing.T) {
 	}
 
 	// The affected model, with tools: explicitly none.
-	if f, ok := common.LookupModel("gpt-5.6-sol"); !ok || !f.NoThinkingWithTools {
+	if f, ok := common.LookupModel("gpt-5.6-course"); !ok || !f.NoThinkingWithTools {
 		t.Fatal("gpt-5.6-sol should be marked NoThinkingWithTools; the fixture for this test is gone")
 	}
-	got, present := oaiEffort(t, "gpt-5.6-sol", tools)
+	got, present := oaiEffort(t, "gpt-5.6-course", tools)
 	if !present {
 		t.Error("reasoning_effort absent; it must be SENT as \"none\", because absent means the vendor's default and the vendor's default is what gets the request refused")
 	} else if got != "none" {
@@ -84,15 +84,15 @@ func TestNoThinkingWithToolsSendsNoneNotNothing(t *testing.T) {
 	// The same model with no tools has no conflict to resolve, so the
 	// configured effort should survive. This is the half that stops the fix
 	// from quietly becoming "this model never reasons".
-	got, present = oaiEffort(t, "gpt-5.6-sol", nil)
+	got, present = oaiEffort(t, "gpt-5.6-course", nil)
 	if present && got == "none" {
 		t.Error("reasoning_effort forced to \"none\" with no tools declared; the constraint is about tools and reasoning TOGETHER, so with no tools there is nothing to give up")
 	}
 
 	// A model without the flag must be untouched, or the fix has stopped being
 	// a fact about one model and become a branch that applies to everyone.
-	if f, ok := common.LookupModel("gpt-6-astra"); ok && !f.NoThinkingWithTools {
-		got, present = oaiEffort(t, "gpt-6-astra", tools)
+	if f, ok := common.LookupModel("gpt-5-course"); ok && !f.NoThinkingWithTools {
+		got, present = oaiEffort(t, "gpt-5-course", tools)
 		if present && got == "none" {
 			t.Error("gpt-6-astra is not marked NoThinkingWithTools, yet its effort was forced to \"none\"")
 		}

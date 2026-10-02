@@ -54,7 +54,7 @@ func markedOAI(w oaiWire) []int {
 // An explicit-capable model should get markers AND the opt-in, together.
 func TestOpenAIExplicitBreakpointsLandAndOptIn(t *testing.T) {
 	c := ctxWith(workEntries(1, "ALPHA"), workEntries(2, "BETA"))
-	w := renderOAIWire(t, c, "gpt-5.6-sol")
+	w := renderOAIWire(t, c, "gpt-5.6-course")
 
 	marks := markedOAI(w)
 	if len(marks) < 2 {
@@ -78,7 +78,7 @@ func TestOpenAIHandoffCarriesItsOwnBreakpoint(t *testing.T) {
 	c.Dialogue = append(c.Dialogue, workEntries(60, "AFTER-ONE")...)
 	c.Dialogue = append(c.Dialogue, workEntries(70, "AFTER-TWO")...)
 
-	w := renderOAIWire(t, c, "gpt-5.6-sol")
+	w := renderOAIWire(t, c, "gpt-5.6-course")
 
 	var handoffIdx = -1
 	for i, m := range w.Messages {
@@ -115,7 +115,7 @@ func TestOpenAIImplicitModelIsLeftAlone(t *testing.T) {
 // not the intent to place one.
 func TestOpenAIOptInRequiresAMarker(t *testing.T) {
 	c := ctxWith(workEntries(1, "ALPHA"))
-	for _, model := range []string{"gpt-5.6-sol", "gpt-5-course", "no-such-model"} {
+	for _, model := range []string{"gpt-5.6-course", "gpt-5-course", "no-such-model"} {
 		w := renderOAIWire(t, c, model)
 		if len(markedOAI(w)) == 0 && w.PromptCacheOptions != nil {
 			t.Errorf("%s: explicit mode declared with nothing marked", model)

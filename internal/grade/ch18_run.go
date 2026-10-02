@@ -37,7 +37,7 @@ func (r *Ch18Result) fail(id, format string, args ...any) {
 // dash rather than a number.
 const (
 	ch18Anthropic = "claude-sonnet-5"
-	ch18OpenAI    = "gpt-6-astra"
+	ch18OpenAI    = "gpt-5-course"
 	ch18Gemini    = "gemini-3.8-flash"
 )
 

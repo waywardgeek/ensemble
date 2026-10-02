@@ -259,7 +259,7 @@ func TestOpenAIReasoningEffort(t *testing.T) {
 	}
 	cfg := common.Config{
 		Vendor:  common.VendorOpenAI,
-		Model:   "gpt-6-astra",
+		Model:   "gpt-5-course",
 		BaseURL: "https://api.openai.com",
 		APIKey:  "test-key",
 	}

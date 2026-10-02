@@ -33,10 +33,20 @@ func TestStreamAllExcludesReasoningSummary(t *testing.T) {
 // TestOnlyMeasuredRowsClaimReasoningSummary keeps the table honest.
 //
 // The table records measurements. A row claims summary streaming only if
-// someone watched it stream a summary. Today that is the chapter 19 default
-// and its grader twin, both verified against the live endpoint.
+// someone watched it stream a summary. That began as the chapter 19 default
+// and its grader twin; gpt-6-astra and gpt-5.6-sol joined them after both were
+// run against the live ChatGPT-plan route carrying thinking, tools and
+// streamed summaries together.
+//
+// Adding a row here is a claim about the world, so it belongs in the same
+// commit as the measurement that justifies it and nowhere else.
 func TestOnlyMeasuredRowsClaimReasoningSummary(t *testing.T) {
-	want := map[string]bool{"gpt-6.1-sol": true, "gpt-ch19-course": true}
+	want := map[string]bool{
+		"gpt-6.1-sol":     true,
+		"gpt-ch19-course": true,
+		"gpt-6-astra":     true,
+		"gpt-5.6-sol":     true,
+	}
 	for id, f := range models() {
 		claims := f.Stream.Has(StreamReasoningSummary)
 		if claims && !want[id] {

@@ -306,8 +306,18 @@ func TestCh19ResponsesSystemPromptIsACacheableBlock(t *testing.T) {
 // Declaring explicit mode with nothing marked turns caching OFF entirely, so
 // the option must follow evidence that a marker landed, never intent.
 func TestCh19ResponsesNoBreakpointsMeansNoExplicitMode(t *testing.T) {
+	// A real implicit-caching row. This previously named "gpt-5.6-sol-course",
+	// which is not in the table at all, so LookupModel failed and the model
+	// got zero-value features. The test passed, but it was exercising the
+	// unknown-model path — already covered elsewhere — while its comment
+	// claimed to be testing an implicit-caching model. Assert the row exists
+	// and is implicit, so the name cannot quietly rot into a different case.
+	const model = "gpt-6-astra"
+	if f, ok := common.LookupModel(model); !ok || f.Caching != common.CacheImplicit {
+		t.Fatalf("%s must be an implicit-caching row for this test to mean anything", model)
+	}
 	cfg := common.Config{
-		Model:   "gpt-5.6-sol-course", // implicit caching model
+		Model:   model,
 		BaseURL: "http://example.invalid",
 		APIKey:  "k",
 	}
@@ -356,16 +366,23 @@ func TestCh19ResponsesIsStatelessAndAsksForReasoning(t *testing.T) {
 // as the fix; honouring it here would silence thinking on every tool-bearing
 // turn, which is every turn an agent takes.
 func TestCh19ResponsesKeepsThinkingWithTools(t *testing.T) {
-	f, ok := common.LookupModel("gpt-5.6-sol")
+	// The fixture, not the production row. gpt-5.6-sol shed this flag when it
+	// moved to the Responses surface, and while the test still named it the
+	// second guard below turned into a silent skip: the test reported success
+	// while asserting nothing at all. gpt-5.6-course stays on Chat Completions
+	// and keeps the restriction, so the question this test asks stays
+	// meaningful no matter what the production rows do next.
+	const model = "gpt-5.6-course"
+	f, ok := common.LookupModel(model)
 	if !ok {
-		t.Skip("model row absent")
+		t.Fatalf("%s is not in the model table; the fixture for this test is gone", model)
 	}
 	if !f.NoThinkingWithTools {
-		t.Skip("gpt-5.6-sol no longer carries the restriction; test is moot")
+		t.Fatalf("%s must carry NoThinkingWithTools, otherwise this test proves nothing", model)
 	}
 
 	cfg := common.Config{
-		Model:    "gpt-5.6-sol",
+		Model:    model,
 		BaseURL:  "http://example.invalid",
 		APIKey:   "k",
 		Thinking: common.ThinkingMedium,
