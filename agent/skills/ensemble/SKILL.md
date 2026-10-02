@@ -17,6 +17,7 @@ tools:
   - micro_handoff
   - load_skill
   - unload_skill
+  - view_gui
 loadable-skills: code-tools search-tools gui-debug virtual-user
 ---
 # Ensemble Agent

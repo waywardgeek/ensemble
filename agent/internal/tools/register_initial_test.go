@@ -35,3 +35,35 @@ func TestRegisterInitialIsInitialProvenance(t *testing.T) {
 		t.Fatalf("view_gui must be registered and run as a job (err=%v, NoJob=%v)", err, tool.NoJob)
 	}
 }
+
+// onlyTools is a skill filter that enables exactly the names it lists. It
+// embeds the interface so any method the test does not expect panics.
+type onlyTools struct {
+	common.Skills
+	names map[string]bool
+}
+
+func (o onlyTools) IsToolEnabled(name string) bool { return o.names[name] }
+
+// The registry keys tools by a normalized name ("view_gui" -> "viewgui"), but
+// a skill lists the real one. Asking the filter about the key, as Declarations
+// once did, silently dropped every non-builtin tool whose name has an
+// underscore: view_gui shipped registered, listed in the primary skill, and
+// absent from every request.
+func TestSkillFilterUsesTheDeclaredName(t *testing.T) {
+	r := NewBareRegistry()
+	r.SetSkillRegistry(onlyTools{names: map[string]bool{"view_gui": true}})
+	r.RegisterInitial(common.Tool{
+		Name:   "view_gui",
+		Schema: json.RawMessage(`{"type":"object","properties":{}}`),
+		Run:    func(*common.Call, json.RawMessage) (string, error) { return "", nil },
+	})
+	for name, decls := range map[string][]common.ToolDecl{
+		"Declarations":        r.Declarations(),
+		"InitialDeclarations": r.InitialDeclarations(),
+	} {
+		if len(decls) != 1 || decls[0].Name != "view_gui" {
+			t.Errorf("%s = %v, want exactly view_gui", name, decls)
+		}
+	}
+}

@@ -981,7 +981,9 @@ func (r *Reg) Declarations() []common.ToolDecl {
 	var decls []common.ToolDecl
 	for _, n := range r.toolNames() {
 		// If a skill registry is wired, only include tools enabled by loaded skills
-		if r.skills != nil && !r.skills.IsToolEnabled(n) {
+		// (by the name a skill lists, not the normalized map key: "view_gui" is
+		// keyed "viewgui", and asking about the key filtered it out)
+		if r.skills != nil && !r.skills.IsToolEnabled(r.tools[n].Name) {
 			continue
 		}
 		t := r.tools[n]
@@ -1008,7 +1010,7 @@ func (r *Reg) InitialDeclarations() []common.ToolDecl {
 		if !ok || m.Source != SourceInitial {
 			continue
 		}
-		if r.skills != nil && !r.skills.IsToolEnabled(n) {
+		if r.skills != nil && !r.skills.IsToolEnabled(r.tools[n].Name) {
 			continue
 		}
 		t := r.tools[n]
