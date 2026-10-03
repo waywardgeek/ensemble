@@ -1640,3 +1640,128 @@ to quote later: it was seven files at the start of the session that produced
 entries 29 and 30, and nineteen by the end. Any statement of the form "the N
 files" goes stale the moment the next commit lands, so re-run the loop rather
 than trusting a number written down — including the nineteen above.
+
+## 32. Logging which credential is in use
+
+There was no way to tell, from a running session, whether a turn was paid for by
+a ChatGPT plan token or by a metered API key. The configuration said which one
+*should* be used. Nothing said which one *was*.
+
+That gap is how the bug in entry 29 survived. A model switch re-derived the
+route and the endpoint but left the credential behind, so the agent spoke the
+plan dialect while billing the metered key. Every request succeeded. The only
+artifact that disagreed was the invoice, and an invoice arrives weeks after the
+session it describes.
+
+So the engine now records the credential in force when it builds a request:
+
+```
+[03:50:59.861] credential: vendor=anthropic using api_key (static, from configuration)
+[04:28:11.204] credential: vendor=openai using chatgpt_oauth
+```
+
+Three decisions are worth keeping.
+
+**It logs on change, not every turn.** A line printed every turn is a line
+nobody reads. The fault worth seeing is a credential that changes when nothing
+asked it to, and that is visible only against a remembered previous value.
+
+**The redaction lives in one function.** `DescribeCredential` names the kind and
+has no path that can emit a token. Putting the rule at each log site instead
+would mean a rule enforced in five places and broken in the sixth: a bearer
+token leaks through exactly the one line nobody reviewed.
+
+**A missing provider reports as the static key, not as "none" or blank.**
+Falling back to a billed key while expecting a plan credential is the commonest
+mistake here. It must not read like the correct case, and "none" would.
+
+The line earned its place within a minute of existing. Running with
+`LLM_MODEL=gpt-5.6-sol`, it printed `vendor=anthropic using api_key` -- an
+OpenAI model id being sent to Anthropic. `cmd/main.go` resolves the vendor
+first and then uses `LLM_MODEL` to pick a model *within* that vendor, so naming
+a model from another vendor does not move the vendor with it. The request
+failed silently and the session simply looked quiet. The correct invocation
+sets both: `LLM_VENDOR=openai LLM_MODEL=gpt-5.6-sol`.
+
+## 33. A model that will not say what it is doing
+
+Some models reason at length internally and then act in silence. For an agent
+that edits files, that is not a style difference. It is unusable.
+
+The supervisor here reads narration as it streams, at around 750 words per
+minute, through a screen reader. The narration is not commentary on the work;
+it *is* the review, and it happens live. When the agent explains each edit as it
+makes it, the supervisor follows the change as it happens, stops a wrong
+assumption before it becomes ten wrong edits, and by the end already understands
+the change well enough not to review it at all.
+
+When the agent works silently, none of that exists. There is no way to tell what
+was touched or what broke. The only safe move left is to throw the whole run
+away, correct work included. That is not hypothetical: it happened, and the
+reset took the supervisor's own uncommitted work with it.
+
+It left a second mark worth recording. `git reset --hard` does not remove
+untracked files, so three half-finished files the model had created in silence
+survived the reset -- and they did not compile. The tree was broken by work that
+the reset was supposed to have erased, from a session nobody could see.
+
+### The capability, not the instruction
+
+The flag is a fact about the model, on `ModelFeatures`:
+
+```go
+RequiresVisibleReasoning bool
+```
+
+It belongs there for the same reason every other row in that table does: it
+records something measured about a specific model. A model that narrates
+willingly pays nothing. An unknown model is not enforced against either --
+enforcing on a zero-value row would turn "I have never heard of this model" into
+a behaviour change, which is how a table lookup quietly becomes policy.
+
+A reasoning *summary* does not satisfy this, which is why the flag is separate
+from `StreamReasoningSummary`. A summary is produced after the fact, is not
+always shown, and does not say what the model is about to do to the files on
+disk.
+
+### Refuse the batch, do not complain afterwards
+
+Enforcement sits in the actor loop, between gathering the pending calls and
+dispatching them. If the model produced no text this round, every call in the
+batch comes back as an error and nothing executes.
+
+Refusing *before* execution is the whole point. A tool that has already run
+cannot be un-run by a complaint, and effects nobody watched being decided are
+exactly what makes a silent run unreviewable. Every call in the batch is
+answered, because a vendor requires a result for each call it made: refusing
+some and ignoring the rest would trade this fault for a malformed request.
+
+The error text is long on purpose. It is read by a model that has just been
+stopped, and it has to do three things -- say plainly that nothing ran, explain
+the rule well enough that the model cooperates instead of working around it, and
+give an unambiguous next step. A terse refusal gets optimised against.
+
+It also asks for something beyond narration: that the model report what
+surprised it. If a tool did not behave as expected, it must say what it expected,
+what it got instead, and what it concluded from the difference. The agent is
+still being built, and it improves from exactly those reports. A surprise the
+model absorbs silently is a bug nobody learns about; a surprise it describes is
+a fix. The model is the only party that can see the tools from the inside.
+
+### What the tests do and do not prove
+
+Eight tests cover the decision: whitespace is not narration, a narrated call
+passes, other models and unknown models are untouched, every call in a batch is
+answered, and the message still contains the clauses that make the agent
+improvable.
+
+They do not prove the wiring. Deleting the call site in the actor loop leaves
+every one of them green, because they call the function directly -- the same
+hole that let three earlier commits ship without firing. The wiring was proved
+instead by forcing the condition true and running the real model: the save file
+then shows `read_file` answered with `is_error=true` and the refusal text, and
+the dispatch line that appears in an unforced run is absent.
+
+That is evidence, but it is evidence that expires. An automated test would have
+to drive the actor loop against a fake vendor, and until one exists this
+enforcement is one careless edit away from silently doing nothing.
