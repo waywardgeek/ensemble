@@ -157,6 +157,21 @@ type ModelFeatures struct {
 	// be skipped at its source rather than generated and thrown away.
 	NoEphemera bool
 
+	// RequiresVisibleReasoning says the model must narrate its work in ordinary
+	// chat text before it calls a tool.
+	//
+	// This is a fact about the model, not a style preference. Some models reason
+	// at length internally and then act in silence. A reasoning SUMMARY is not a
+	// substitute: it is produced after the fact, it is not always shown, and it
+	// does not say what the model is about to do to the files on disk.
+	//
+	// The person supervising reads narration as it streams and steers mid-turn on
+	// the strength of it. A model that works silently cannot be steered, and its
+	// work cannot be reviewed except by reading every diff afterwards -- which in
+	// practice means discarding the whole run whenever anything looks wrong,
+	// correct work included. Requiring narration is far cheaper than that.
+	RequiresVisibleReasoning bool
+
 	// Caching is how this model caches a repeated prompt prefix. See the
 	// Caching type. Every model in the table below supports caching; none
 	// of them is CacheNone, because there is no such value.
@@ -404,7 +419,7 @@ func models() map[string]ModelFeatures {
 		// fact: the vendor default is still Chat Completions, which is what
 		// OpenAI-compatible third-party endpoints speak.
 		"gpt-6-astra": {Vendor: VendorOpenAI, Surface: SurfaceResponses, Caching: CacheImplicit, MinCacheTokens: 1024, Price: Pricing{Input: 10, CacheWrite: 12.50, CacheRead: 1.0, Output: 50}, ContextWindow: 128000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs | StreamReasoningSummary, MaxThinkingTokens: 32768, MaxOutputTokens: 16384},
-		"gpt-5.6-sol": {Vendor: VendorOpenAI, Surface: SurfaceResponses, Caching: CacheExplicit, MinCacheTokens: 1024, MaxCacheWrites: 4, Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 1050000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs | StreamReasoningSummary, MaxThinkingTokens: 32768, MaxOutputTokens: 128000},
+		"gpt-5.6-sol": {RequiresVisibleReasoning: true, Vendor: VendorOpenAI, Surface: SurfaceResponses, Caching: CacheExplicit, MinCacheTokens: 1024, MaxCacheWrites: 4, Price: Pricing{Input: 4, CacheWrite: 5.0, CacheRead: 0.4, Output: 20}, ContextWindow: 1050000, Media: MediaImage | MediaDocument, Stream: StreamText | StreamToolArgs | StreamReasoningSummary, MaxThinkingTokens: 32768, MaxOutputTokens: 128000},
 
 		// Chapter 19's model, and the agent's new default.
 		//

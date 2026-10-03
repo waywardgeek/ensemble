@@ -261,6 +261,13 @@ func (a *Actor) runTurnLoop() {
 			return
 		}
 
+		// A model that acts without narrating cannot be supervised, and some
+		// models will not narrate unless required to. Refuse the batch rather
+		// than run tools whose effects nobody watched being decided.
+		if a.enforceVisibleReasoning(reply, calls) {
+			continue
+		}
+
 		a.setState(common.ToolsPending)
 
 		// Dispatch and wait for tools one at a time. Serial dispatch lets
@@ -288,6 +295,102 @@ func (a *Actor) runTurnLoop() {
 }
 
 // dispatchTool dispatches a single tool call without blocking.
+// visibleReasoningRequired is returned in place of every result in a batch of
+// tool calls that arrived with no narration.
+//
+// It is long on purpose. It is read by a model that has just been stopped, and
+// it has to do three things: say plainly that nothing ran, explain why the rule
+// exists well enough that the model cooperates rather than works around it, and
+// give an unambiguous next step.
+const visibleReasoningRequired = `VISIBLE REASONING REQUIRED. Nothing was executed. The files on disk are unchanged.
+
+You called a tool without first saying, in ordinary chat text, what you were
+about to do and why.
+
+HOW THIS COLLABORATION WORKS
+
+Your human partner reads your narration as it streams, at roughly 750 words per
+minute, through a screen reader. He has 20/180 vision. Reading a diff after the
+fact is slow and painful for him in a way it is not for a sighted reviewer.
+
+Your narration is not a courtesy and not a style preference. It IS the code
+review, and it happens live, while you work. When you narrate as you go, he
+follows the change as it is made, stops you mid-task when an assumption is
+wrong, and by the time you finish he already understands the change and does not
+need to review it at all.
+
+When you work in silence, he cannot tell what you did, what you touched, or what
+you broke. The only safe move left to him is to throw the entire run away with a
+git reset, including the parts that were correct. Silence does not save time. It
+destroys the whole session's output.
+
+YOUR INTERNAL REASONING DOES NOT COUNT
+
+It may be summarized, delayed, withheld, or never shown. He cannot read it, and
+it does not say what you are about to do to the files on disk. Only ordinary
+assistant text in the chat counts as narration.
+
+REPORT EVERYTHING YOU RUN INTO
+
+Everything you encounter matters, and the things that go wrong matter most. If a
+tool did not behave as you expected, say so explicitly: what you expected, what
+you got instead, and what you concluded from the difference. Do not quietly work
+around it. Do not retry in silence and move on.
+
+This agent is still being built, and your partner improves it using exactly
+these reports. A surprise you absorb silently is a bug he never learns about; a
+surprise you describe is a fix. If a tool is confusing, badly named, returns the
+wrong shape, or omits something you needed, say that too. You are the only one
+who can see it from the inside.
+
+WHAT TO DO NOW
+
+1. Say what you are about to do, and why, in one or two plain sentences. Name
+   the file. Name the change. Say what you expect to happen.
+2. Make the same tool call again. It will run.
+3. Keep doing this before every tool call, and explain each edit as you make it,
+   in enough detail that someone LISTENING rather than reading understands the
+   change without opening the file.
+4. When a result surprises you, say so before you continue.
+
+For example:
+   "I'll read internal/llm/actor.go around the dispatch loop to find where tool
+    calls are gathered, since that is where the check has to go."
+   followed by the tool call.
+
+Do not apologize, do not quote this message back, and do not stop working.
+Narrate, then carry on.`
+
+// enforceVisibleReasoning refuses a batch of tool calls that arrived with no
+// narration, for models that have to be told.
+//
+// It reports whether the batch was refused. Every call in the batch gets the
+// same error result, so the model sees one consistent answer however many tools
+// it asked for, and the next round carries the explanation in context.
+//
+// Nothing is executed. That is the point. A tool that has already run cannot be
+// un-run by complaining afterwards, and effects the supervisor could not watch
+// are precisely what makes a silent run unreviewable.
+func (a *Actor) enforceVisibleReasoning(reply string, calls []common.ToolCallPart) bool {
+	if strings.TrimSpace(reply) != "" {
+		return false
+	}
+	f, ok := common.LookupModel(a.eng.Cfg.Model)
+	if !ok || !f.RequiresVisibleReasoning {
+		return false
+	}
+	for _, c := range calls {
+		a.eng.Record(common.Event{Type: common.ToolReturned, Tool: &common.ToolData{
+			CallID:  c.CallID,
+			Name:    c.Name,
+			Args:    c.Args,
+			Parts:   common.PartList{common.TextPart{Text: visibleReasoningRequired}},
+			IsError: true,
+		}})
+	}
+	return true
+}
+
 func (a *Actor) dispatchTool(call common.ToolCallPart) error {
 	// Resolve limits before dispatch.
 	limits, fromPending, limErr := a.eng.Jobs.Take(call.Args)
