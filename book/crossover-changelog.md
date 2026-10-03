@@ -1588,3 +1588,55 @@ The usual plan-route caveats still show in the lens: zero breakpoints and zero
 cache reads, because that route declines explicit caching, and a spurious
 PREFIX DIVERGED line that means nothing where there is no cache to diverge
 from. Both are known and neither is new.
+
+---
+
+## 31. Why ./agent no longer matches solutions/ch19
+
+A note for whoever diffs those two trees next and wonders which one is broken.
+
+Neither is. `solutions/ch19` is a frozen snapshot of what chapter 19 teaches,
+and it is correct as of the end of that chapter. `./agent` is the live tree and
+has moved on. As of this entry nineteen tracked files differ, and every one of
+them is chapter 20 material:
+
+| commit    | files | what it was |
+|-----------|-------|-------------|
+| `cd61f8b` | `cmd/main.go`, `cmd/textui.go` | `chat` rebuilt as a text Observer over the actor loop |
+| `3ab0f51` | `web/gui/gui.js`, `index.html`, `style.css` | model picker and speech toggle in the top bar |
+| `2061b0b` | `internal/ws/handler.go`, `settings_display_test.go` | show a fresh client the model actually in force |
+| `29faa0e` | `cmd/auth.go`, `internal/llm/actor.go`, `engine.go` | carry the credential provider across a vendor switch |
+| `828e236` | `internal/common/model.go`, `reasoning_summary_test.go`, and six `internal/llm` test files | move two models to the Responses surface |
+| `f107a6e` | `internal/ws/replay_test.go` | gofmt |
+
+The snapshot was deliberately **not** refreshed. Freezing this work into
+chapter 19 would misdate it: chapter 19 is about leaving one vendor for
+another, and none of the above is that. The CLI rebuild, the top bar, the
+billing fix and the surface migration are all consequences of the crossover,
+which is the next chapter's subject.
+
+**The rule being followed.** A snapshot is refreshed when the work belongs to
+the chapter it snapshots, and only then. Earlier sessions did refresh ch19
+after plan-route fixes, correctly, because those fixes *were* chapter 19
+material. "Is it committed?" and "does it belong to this chapter?" are
+different questions, and only the second decides whether a snapshot moves.
+
+**What the drift is good for.** It is a free, continuously maintained diff of
+exactly what the next chapter has to explain. Run it and the chapter's scope
+prints itself:
+
+```
+for f in $(git ls-files agent | sed 's|^agent/||'); do
+  if [ -f "solutions/ch19/$f" ]; then
+    cmp -s "agent/$f" "solutions/ch19/$f" || echo "DIFF $f"
+  else
+    echo "NEW  $f"
+  fi
+done | sort
+```
+
+A caution that already bit once. The count is a moving measurement, not a fact
+to quote later: it was seven files at the start of the session that produced
+entries 29 and 30, and nineteen by the end. Any statement of the form "the N
+files" goes stale the moment the next commit lands, so re-run the loop rather
+than trusting a number written down — including the nineteen above.
