@@ -161,6 +161,30 @@ func (sf *SaveFile) Restore(diag func(error)) *common.Context {
 			diag(fmt.Errorf("restore: skipped event %d: %w", e.Seq, err))
 		}
 	}
+
+	// A call with no result is a legal thing for a log to hold and an illegal
+	// thing to send, so a save written while one was outstanding restores to
+	// a conversation that no vendor will accept. It is closed as lost when
+	// the next request is built, which is the right moment to repair it and
+	// the wrong moment to first hear about it: by then the session looks
+	// fine, and the only trace is a standing result the reader did not
+	// expect. Saying so here names the gap while it is still obviously a
+	// property of the FILE.
+	//
+	// Reported rather than refused. The file parsed, the history is good, and
+	// an unsendable conversation is now recoverable — turning that into a
+	// failed load would strand the very sessions this is meant to rescue.
+	if diag != nil {
+		for _, call := range lostCalls(ctx) {
+			name := call.Name
+			if name == "" {
+				name = "an unnamed tool"
+			}
+			diag(fmt.Errorf("restore: call %s to %s has no result in this save; "+
+				"it will be closed as lost when the next request is built",
+				call.CallID, name))
+		}
+	}
 	return ctx
 }
 

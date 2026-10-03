@@ -380,3 +380,63 @@ func TestALostCallMidConversationIsAnsweredInTheNextMessage(t *testing.T) {
 		t.Fatalf("tool_use %v has no tool_result in the next message: this is the request the vendor refuses", bad)
 	}
 }
+
+// Detecting the gap at LOAD, which is where a reader can still see it as a
+// property of the file rather than a surprise in a live conversation.
+func TestRestoreReportsACallWithNoResult(t *testing.T) {
+	ctx := common.NewContext()
+	ctx.Dialogue = append(ctx.Dialogue, callEntry(1, "call_lost", "read_file"))
+	sf := &SaveFile{AsOf: 1, Context: ctx}
+
+	var diags []string
+	sf.Restore(func(err error) { diags = append(diags, err.Error()) })
+
+	found := false
+	for _, d := range diags {
+		if strings.Contains(d, "call_lost") && strings.Contains(d, "no result") {
+			found = true
+		}
+	}
+	if !found {
+		t.Fatalf("loading a save holding an unanswered call said nothing; diagnostics: %v", diags)
+	}
+}
+
+// A healthy save must load in silence, or the warning becomes noise that
+// gets filtered out before the one that matters arrives.
+func TestRestoreIsQuietOnAHealthySave(t *testing.T) {
+	ctx := common.NewContext()
+	ctx.Dialogue = append(ctx.Dialogue,
+		callEntry(1, "call_a", "read_file"),
+		resultEntry(2, "call_a"),
+	)
+	sf := &SaveFile{AsOf: 2, Context: ctx}
+
+	var diags []string
+	sf.Restore(func(err error) { diags = append(diags, err.Error()) })
+	if len(diags) != 0 {
+		t.Fatalf("a healthy save produced diagnostics: %v", diags)
+	}
+}
+
+// Load REPORTS; it does not repair, and it does not refuse.
+//
+// Repair belongs at the one moment the conversation has to be legal, which is
+// when a request is built. Doing it here as well would write events into a
+// session that may never send anything, and would quietly rewrite a file the
+// user asked only to open. Refusing would be worse still: the file parsed and
+// the history is good, so failing the load would strand exactly the sessions
+// this is meant to rescue.
+func TestRestoreReportsWithoutRepairingOrRefusing(t *testing.T) {
+	ctx := common.NewContext()
+	ctx.Dialogue = append(ctx.Dialogue, callEntry(1, "call_lost", "read_file"))
+	sf := &SaveFile{AsOf: 1, Context: ctx}
+
+	restored := sf.Restore(func(error) {})
+	if restored == nil {
+		t.Fatal("Restore refused a save that merely holds an unanswered call")
+	}
+	if got := outstandingCalls(restored); got != 1 {
+		t.Fatalf("outstanding calls after load = %d, want 1: load repaired what it should only report", got)
+	}
+}
