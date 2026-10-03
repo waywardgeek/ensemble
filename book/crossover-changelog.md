@@ -1765,3 +1765,87 @@ the dispatch line that appears in an unforced run is absent.
 That is evidence, but it is evidence that expires. An automated test would have
 to drive the actor loop against a fake vendor, and until one exists this
 enforcement is one careless edit away from silently doing nothing.
+
+## 34. The client that guessed what only the sequencer knows
+
+Killing the agent mid-turn is not an edge case. It is what you do when a model
+starts editing files without saying why, and it is going to happen constantly
+until the agent is good enough to trust. The process dies, the save file keeps
+a turn state of in flight, and the next launch restores a session that believes
+a request is still running when nothing is.
+
+That much is a small bug. What made it a wedge was the GUI.
+
+### The guess
+
+The browser client chose the message type itself:
+
+    if (agentState === 'idle') send {type:'prompt'} else send {type:'hint'}
+
+A hint is delivered to a turn that is already running. If no turn is running it
+has nothing to attach to and is dropped. So with a stale in-flight state, every
+message typed into the session was classified as a hint to a turn that did not
+exist, and vanished. The window was responsive. The connection was open. The
+agent answered nothing, forever, and nothing in the interface suggested why.
+
+Chapter 2 states the rule this breaks: a hint and a prompt are the same event,
+distinguished only by turn state, and classification belongs in the reducer. We
+taught that and then shipped a client that guessed.
+
+The guess cannot be made correct by fixing the state bug, either. The state a
+client branches on is a snapshot of something that may have changed before the
+message arrives -- the turn can end in the time it takes to send. A client that
+classifies is racing the server no matter how accurate its copy of the state is.
+The only place that knows whether a turn is running is the place where the
+message is sequenced.
+
+### The fix is a deletion plus a move
+
+The GUI now always sends a prompt. The actor classifies, and it does so without
+consulting any state variable at all, because its own position already carries
+the answer. It drains its mailbox in two places: the main loop, reached when it
+is idle, and again between rounds inside a running turn. Arriving at the second
+drain is what makes a message a hint. The classification is structural.
+
+The second half matters more than it looks. That mid-turn case previously
+re-posted a user message to run as its own turn later. Removing the client's
+guess without changing it would have silently converted every mid-tool-call
+hint into a queued follow-up turn -- destroying real-time steering while every
+test stayed green, because the message was still delivered. It would just have
+arrived as a different kind of thing, one turn too late.
+
+### The button
+
+An interrupt control sits beside reset. The server already accepted an
+interrupt message and the actor already handled it; there was simply no way to
+send one, so a capability that existed in two layers was unreachable from the
+only interface anyone uses.
+
+It is worth being precise about what it can and cannot do. The actor drains its
+mailbox on the same goroutine that runs a turn, and nothing in the engine holds
+a cancel function -- only a timeout. So an interrupt sent during a live request
+is not an abort; it waits in the mailbox until the response arrives. What it
+does recover is the stale case, where the actor is idle and the message lands
+at once. True mid-flight cancellation is a different piece of work, and calling
+this button an abort would be a lie told by a tooltip.
+
+The speech toggle moved into the same group, as an icon showing whether speech
+is on rather than a checkbox captioned with a word. The hit area stayed the size
+it was: the person most likely to reach for a speech control is the person least
+able to hit a small target.
+
+### Proof without a browser
+
+The command-line chat client is a second renderer over the same actor loop, so
+it tests actor behaviour without any browser rig at all. Running it against a
+copy of a real stuck save -- 58 entries, restored state in flight, no dangling
+tool calls -- a prompt starts a turn and the reply comes back.
+
+That is the measurement that identifies the culprit. The state was never what
+blocked the session, because the same state does not block the text client. The
+only difference between the two clients was that one of them was guessing.
+
+One caution learned by doing it: the save file was a copy, but the tools were
+not. The agent resumed the old conversation and began rebuilding files that had
+just been deleted, against the live working tree. A copied save is not a
+sandbox.
