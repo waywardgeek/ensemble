@@ -37,6 +37,10 @@ type Engine struct {
 	// papered over with a plausible default.
 	Creds common.CredentialProvider
 
+	// lastCredDesc remembers what noteCredential last reported, so the log
+	// records every CHANGE of credential without repeating itself every turn.
+	lastCredDesc string
+
 	// CredsByVendor holds the provider to install when the agent switches to
 	// a given vendor at runtime. The host resolves it for every vendor up
 	// front, exactly as it resolves endpoints, so a model switch is a lookup
@@ -180,7 +184,27 @@ func (e *Engine) Attach(text string) error {
 //
 // A nil provider returns Cfg unchanged. See the Creds field for why that is
 // modelled absence and not a fallback.
+// noteCredential records which credential is in force, the first time one is
+// used and on every change after that.
+//
+// It never prints the credential itself: DescribeCredential names the kind and
+// has no path that can emit a token.
+//
+// Logging only on change is deliberate. A line every turn is a line nobody
+// reads, and the fault worth catching here is a credential that changes when
+// nothing asked it to -- a model switch moving the route while the token stays
+// behind, which bills the wrong account without failing.
+func (e *Engine) noteCredential() {
+	desc := common.DescribeCredential(e.Creds)
+	if desc == e.lastCredDesc {
+		return
+	}
+	e.lastCredDesc = desc
+	e.logf("credential: vendor=%v using %s", e.Cfg.Vendor, desc)
+}
+
 func (e *Engine) requestCfg() (common.Config, error) {
+	e.noteCredential()
 	cfg := e.Cfg
 	if e.Creds == nil {
 		return cfg, nil

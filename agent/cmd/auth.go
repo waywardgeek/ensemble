@@ -37,8 +37,16 @@ import (
 // Gating on the startup vendor instead left the provider unattached for the
 // rest of the session, quietly billing the metered key.
 func attachCredentials(eng *llm.Engine, cfg common.Config) {
+	// Report what is actually in force, not what we hoped to attach. A
+	// credential that silently failed to attach is the failure this line
+	// exists to make visible, so it must run on every path.
+	defer func() {
+		fmt.Fprintf(os.Stderr, "credential: vendor=%v using %s\n",
+			cfg.Vendor, common.DescribeCredential(eng.Creds))
+	}()
 	p := openAIProvider()
 	if p == nil {
+		fmt.Fprintln(os.Stderr, "credential: no ChatGPT plan sign-in found; openai would use the static API key")
 		return // not signed in: the API key path is unchanged
 	}
 	if eng.CredsByVendor == nil {

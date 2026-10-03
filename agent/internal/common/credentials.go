@@ -116,3 +116,21 @@ func (p *APIKeyProvider) GetBearerToken(context.Context) (string, error) {
 
 // Kind reports that this is a static key.
 func (p *APIKeyProvider) Kind() CredentialKind { return CredentialAPIKey }
+
+// DescribeCredential names the credential in force without ever printing it.
+//
+// The redaction lives here rather than at each log site on purpose. A rule
+// enforced at every call site is a rule that is already broken at one of them,
+// and a bearer token is exactly the kind of value that leaks through the one
+// log line nobody reviewed.
+//
+// A nil provider is described as the static key rather than left blank or
+// called "none". Falling back to a billed key while expecting a plan credential
+// is the commonest misconfiguration here, and it must not read like the correct
+// case in a log.
+func DescribeCredential(p CredentialProvider) string {
+	if p == nil {
+		return "api_key (static, from configuration)"
+	}
+	return p.Kind().String()
+}

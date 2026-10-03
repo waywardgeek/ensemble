@@ -496,6 +496,7 @@ func (a *Actor) handleSetModel(m common.SetModel) {
 	// provider correctly reverts to its metered key rather than inheriting
 	// the previous vendor's bearer token.
 	a.eng.Creds = a.eng.CredsByVendor[v]
+	a.eng.logf("credential: vendor=%v now using %s", v, common.DescribeCredential(a.eng.Creds))
 	if a.eng.Tools != nil {
 		a.eng.Tools.SyncModelGatedTools(m.Model)
 	}
