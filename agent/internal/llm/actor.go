@@ -191,8 +191,13 @@ func (a *Actor) handle(msg common.Inbound) {
 	case common.Hint:
 		a.handleHint(m)
 	case common.ToolCompleted:
-		// Stray completions outside of waitForTools — requeue them.
-		a.mb.Post(m)
+		// A tool from an interrupted turn may finish while idle. Its result
+		// is already recorded; report it once rather than requeueing it.
+		a.notify(common.ToolFinished{
+			CallID:  m.CallID,
+			Result:  m.Result,
+			IsError: m.IsError,
+		})
 	case common.Interrupt:
 		a.handleInterrupt()
 	case common.Reset:
@@ -287,7 +292,7 @@ func (a *Actor) runTurnLoop() {
 				a.finishTurn("", err)
 				return
 			}
-			if !a.waitForTools(1) {
+			if !a.waitForTool(call.CallID) {
 				return // interrupted
 			}
 		}
@@ -486,18 +491,21 @@ func (a *Actor) dispatchTool(call common.ToolCallPart) error {
 	return nil
 }
 
-// waitForTools waits for `count` tool completions, processing hints along
-// the way. Returns false if interrupted.
-func (a *Actor) waitForTools(count int) bool {
-	completed := 0
-	for completed < count {
+// waitForTool waits for the dispatched call, processing hints along the way.
+// A late completion from an interrupted turn still updates its tool card, but
+// cannot release this call's wait. Returns false if interrupted.
+func (a *Actor) waitForTool(callID string) bool {
+	completed := false
+	for !completed {
 		select {
 		case <-a.mb.Signal():
 			msgs := a.mb.Drain()
 			for _, msg := range msgs {
 				switch m := msg.(type) {
 				case common.ToolCompleted:
-					completed++
+					if m.CallID == callID {
+						completed = true
+					}
 					a.notify(common.ToolFinished{
 						CallID:  m.CallID,
 						Result:  m.Result,
