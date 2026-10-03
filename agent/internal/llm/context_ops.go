@@ -91,6 +91,25 @@ func Apply(c *common.Context, e common.Event) error {
 		}
 		flushHeld(c)
 
+	case common.ToolResultLost:
+		if e.Tool == nil {
+			return fmt.Errorf("seq %d: tool_result_lost with no tool payload", e.Seq)
+		}
+		// Reduces exactly as ToolReturned does, with one difference: the
+		// error flag is forced rather than copied. Copying it would read the
+		// status off a tool that never reported one.
+		//
+		// The standing text comes from the event rather than being written
+		// here, so that reading the log shows the same words the model was
+		// given, and so this stays a placer rather than an author.
+		c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Actor: common.ActorTool, Kind: common.KindDialogue, Parts: common.PartList{
+			common.ToolResultPart{CallID: e.Tool.CallID, Parts: e.Tool.Parts, IsError: true},
+		}})
+		if c.Turn == common.ToolsPending && outstandingCalls(c) == 0 {
+			c.Turn = common.InputPending
+		}
+		flushHeld(c)
+
 	case common.Redacted:
 		if e.Redact == nil {
 			return fmt.Errorf("seq %d: redacted with no redact payload", e.Seq)
@@ -240,29 +259,46 @@ func hasToolCall(parts common.PartList) bool {
 	return false
 }
 
-// outstandingCalls counts tool calls in the dialogue that have no matching
-// result. Computed from the dialogue rather than stored, because a counter in
-// the context is a field that can disagree with the log.
-func outstandingCalls(c *common.Context) int {
+// lostCalls returns the tool calls in the dialogue that have no matching
+// result, in the order the calls appear.
+//
+// Computed from the dialogue rather than stored, because a counter in the
+// context is a field that can disagree with the log.
+//
+// The ORDER is part of the contract, not a convenience. These calls become
+// ToolResultLost events, and events carry sequence numbers; ranging over a
+// map would number the same gap differently on every run, so two replays of
+// one log would disagree about the conversation they describe.
+func lostCalls(c *common.Context) []common.ToolCallPart {
 	answered := map[string]bool{}
-	calls := map[string]bool{}
+	seen := map[string]bool{}
+	var calls []common.ToolCallPart
 	for _, entry := range c.Dialogue {
 		for _, p := range entry.Parts {
 			switch v := p.(type) {
 			case common.ToolCallPart:
-				calls[v.CallID] = true
+				if !seen[v.CallID] {
+					seen[v.CallID] = true
+					calls = append(calls, v)
+				}
 			case common.ToolResultPart:
 				answered[v.CallID] = true
 			}
 		}
 	}
-	n := 0
-	for id := range calls {
-		if !answered[id] {
-			n++
+	var lost []common.ToolCallPart
+	for _, call := range calls {
+		if !answered[call.CallID] {
+			lost = append(lost, call)
 		}
 	}
-	return n
+	return lost
+}
+
+// outstandingCalls counts tool calls in the dialogue that have no matching
+// result.
+func outstandingCalls(c *common.Context) int {
+	return len(lostCalls(c))
 }
 
 // applyRedaction replaces superseded content in place. A redaction is not

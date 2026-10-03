@@ -86,6 +86,30 @@ const (
 	// only by their kind, so clearing that slice wholesale would destroy the
 	// agent's memory to clear its screen.
 	ConversationReset
+
+	// ToolResultLost records that a call was still waiting when the next
+	// request came to be built. It names one call, exactly as ToolReturned
+	// does, and carries the text that stands in for the result that never
+	// arrived.
+	//
+	// It is its own kind rather than a ToolReturned with IsError set, because
+	// those are different facts. A tool that ran and failed DID return
+	// something, and its output is content the model should read and act on.
+	// A call recorded here returned nothing at all: the dispatcher lost it, a
+	// process died, or a result went missing between the two. Writing the
+	// second down as the first would put a claim in the log that nothing ever
+	// observed, and the log is the one place that must stay literally true.
+	//
+	// Which is why the anomaly is recorded rather than quietly patched over
+	// on the way out to the wire. A conversation that heals itself in silence
+	// leaves nothing to debug the next time a result goes missing; this way
+	// the gap has a sequence number and a timestamp.
+	//
+	// Every vendor refuses a call with no result, so the repair is not a
+	// matter of taste. Anthropic and OpenAI reject the request outright.
+	// Gemini has been seen to answer anyway, which is worse: the conversation
+	// is then quietly wrong instead of loudly broken.
+	ToolResultLost
 )
 
 var eventTypeNames = map[EventType]string{
@@ -106,6 +130,7 @@ var eventTypeNames = map[EventType]string{
 	CompactorLaunched: "compactor_launched",
 	RecallAttached:    "recall_attached",
 	ConversationReset: "conversation_reset",
+	ToolResultLost:    "tool_result_lost",
 }
 
 func (t EventType) String() string {

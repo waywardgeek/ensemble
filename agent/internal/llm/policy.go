@@ -13,6 +13,8 @@ package llm
 // one policy, not two.
 
 import (
+	"fmt"
+
 	"github.com/waywardgeek/ensemble/agent/internal/common"
 )
 
@@ -32,6 +34,54 @@ func (e *Engine) target() int {
 
 // curate records this request's cuts. Rule 6 first (it only touches the
 // newest batch), then rule 7 (which walks the whole window).
+// closeLostCalls records a ToolResultLost for every call still waiting at the
+// moment a request is about to be built.
+//
+// It runs beside curate, before the render, for the same reason curate does:
+// a decision that changes what the request contains is recorded as an event
+// first, so the request carries exactly what the log says.
+//
+// WHY HERE, and not where a turn ends. The common case is a log that was
+// already written. A result lost to a crash, a killed process or a dropped
+// reply is sitting in save.json before any of this code runs, and replaying
+// that log appends nothing, so a repair that only fires at turn-end would
+// never reach it. Checking as the request is built heals those logs on the
+// next send, and catches every way a result can go missing without having to
+// enumerate them first — which matters, because we do not know what went
+// wrong in the case that prompted this.
+//
+// It cannot misfire on the ordinary tool loop, where every result is recorded
+// before the next request is built. Nor on a hint: a hint arriving while
+// tools are outstanding is delivered to the turn in flight and does not start
+// a request of its own.
+func (e *Engine) closeLostCalls() error {
+	for _, call := range lostCalls(e.Ctx) {
+		name := call.Name
+		if name == "" {
+			name = "an unnamed tool"
+		}
+		if err := e.Record(common.Event{
+			Type: common.ToolResultLost,
+			Tool: &common.ToolData{
+				CallID:  call.CallID,
+				Name:    call.Name,
+				IsError: true,
+				Parts: common.PartList{common.TextPart{Text: fmt.Sprintf(
+					"No result was recorded for this call to %s. The conversation "+
+						"moved on before one arrived, and the call was closed here so "+
+						"that it remains well formed. Whether the tool ran is NOT "+
+						"known: it may have completed, failed, or never started. Treat "+
+						"its outcome as unknown, and call it again if the answer still "+
+						"matters.", name)},
+				},
+			},
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (e *Engine) curate() error {
 	feats, _ := common.LookupModel(e.Cfg.Model)
 	b := common.BudgetsFor(e.target())

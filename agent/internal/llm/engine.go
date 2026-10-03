@@ -231,6 +231,13 @@ func (e *Engine) Turn(watch common.StreamCallbacks) (string, error) {
 		return "", err
 	}
 
+	// A call with no result makes the conversation unsendable, so close
+	// any that are still waiting before the render reads the context.
+	// Recorded as events, for the same reason the cuts above are.
+	if err := e.closeLostCalls(); err != nil {
+		return "", err
+	}
+
 	// RENDER BEFORE RECORDING common.RequestSent.
 	//
 	// Reverse these two lines and the bug is subtle and expensive: the reducer
