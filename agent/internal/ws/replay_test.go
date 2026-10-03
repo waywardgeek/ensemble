@@ -144,7 +144,6 @@ collect:
 	}
 }
 
-
 // responseEvent builds a ResponseEnded event with the given parts.
 func responseEvent(seq common.Seq, parts ...common.Part) common.Event {
 	return common.Event{
