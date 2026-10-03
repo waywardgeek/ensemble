@@ -238,6 +238,12 @@ func (e *Engine) Turn(watch common.StreamCallbacks) (string, error) {
 		return "", err
 	}
 
+	// A result that arrived LATE is not lost, so the repair above cannot see
+	// it: the call is answered, just not where a vendor demands. Report it
+	// rather than repair it, because moving an entry would make the context
+	// disagree with the log it is projected from.
+	e.reportMisplacedCalls()
+
 	// RENDER BEFORE RECORDING common.RequestSent.
 	//
 	// Reverse these two lines and the bug is subtle and expensive: the reducer

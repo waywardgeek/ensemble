@@ -365,3 +365,21 @@ func toolPartCounts(d []common.Entry) []int {
 	}
 	return out
 }
+
+// reportMisplacedCalls logs every call whose result exists but is not adjacent
+// to it.
+//
+// It reports and does not repair. Repairing would mean moving an entry that the
+// log says landed where it landed, and the context is a projection of the log:
+// a reducer that reordered history would make a replay disagree with the
+// session it replays. The real fix belongs upstream, in not letting an entry
+// land between a call and its result at all.
+//
+// It does not refuse to send either. A checker that blocks is a second way to
+// be stuck, and this one exists precisely because the first way was expensive
+// enough to diagnose.
+func (e *Engine) reportMisplacedCalls() {
+	for _, bad := range misplacedCalls(e.Ctx) {
+		e.logf("context: %v", bad)
+	}
+}

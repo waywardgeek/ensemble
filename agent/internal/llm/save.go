@@ -184,6 +184,10 @@ func (sf *SaveFile) Restore(diag func(error)) *common.Context {
 				"it will be closed as lost when the next request is built",
 				call.CallID, name))
 		}
+
+		for _, bad := range misplacedCalls(ctx) {
+			diag(fmt.Errorf("restore: %v", bad))
+		}
 	}
 	return ctx
 }
