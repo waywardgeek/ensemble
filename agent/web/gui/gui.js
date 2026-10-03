@@ -218,11 +218,16 @@
     chatScroll.handleMessage({type: 'message', actor: 'user', text});
 
     if (ws && ws.readyState === WebSocket.OPEN) {
-      if (agentState === 'idle') {
-        ws.send(JSON.stringify({type: 'prompt', text}));
-      } else {
-        ws.send(JSON.stringify({type: 'hint', text}));
-      }
+      // One message type, always. Whether this lands as a fresh turn or as a
+      // hint into a running one is decided by the actor at the moment the
+      // message is sequenced. It is never guessed here.
+      //
+      // The GUI cannot know, even in principle. The state it would test is a
+      // snapshot that was already stale when it was drawn, and it can be wrong
+      // outright: a process killed mid-turn restores as "in flight" with
+      // nothing running. Every message typed after that was classified as a
+      // hint to a turn that did not exist, and vanished without a trace.
+      ws.send(JSON.stringify({type: 'prompt', text}));
     }
     userTyping = false;      // assigning .value fires no input event
     updateGate();
@@ -303,6 +308,21 @@
 
   initDragBar('drag-left', sidebar, null, 0, 0);
   initDragBar('drag-right', document.getElementById('center'), rightPane, 300, 0);
+
+  // ── Interrupt ──
+  document.getElementById('interrupt-btn').addEventListener('click', () => {
+    // No confirmation. This is a recovery path, it will be used constantly
+    // while the agent is still rough, and it destroys nothing: the
+    // conversation, the memory and every artifact survive. Only the turn in
+    // progress is abandoned.
+    //
+    // Deliberately never disabled. The state in the bar can be WRONG -- a
+    // process killed mid-turn restores as "in flight" with nothing actually
+    // running -- and that is exactly when this button is needed. Gating it on
+    // the displayed state would lock the user out precisely when the display
+    // is the thing that is broken.
+    ws.send(JSON.stringify({ type: 'interrupt' }));
+  });
 
   // ── Reset ──
   document.getElementById('reset-btn').addEventListener('click', () => {

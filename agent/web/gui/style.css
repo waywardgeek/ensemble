@@ -69,13 +69,17 @@ body {
   flex-shrink: 0;
 }
 
-/* Top-bar controls: the model picker and the speech toggle.
+/* Top-bar control: the model picker.
 
-   These are the two settings changed most often, so they sit in the bar
-   rather than behind the settings panel. They are deliberately NOT shrunk to
-   fit: the person most likely to reach for a speech toggle is the person
-   least able to hit a small target, and a control that is hard to see is a
-   control that is not really there. */
+   It is the setting changed most often, so it sits in the bar rather than
+   behind the settings panel. It is deliberately NOT shrunk to fit: the person
+   most likely to reach for these controls is the person least able to hit a
+   small target, and a control that is hard to see is a control that is not
+   really there.
+
+   The speech toggle used to live here as a labelled checkbox. It has moved to
+   the icon group on the right, where it keeps its hit area even though the
+   word "speech" is gone -- see .icon-btn. */
 .top-control {
   font-size: 0.8125rem;
   color: var(--text);
@@ -103,7 +107,7 @@ body {
   outline-offset: 1px;
 }
 
-#hamburger, #settings-btn {
+#hamburger, #settings-btn, #interrupt-btn, #reset-btn, .icon-btn {
   background: none;
   border: none;
   color: var(--text-dim);
@@ -113,9 +117,45 @@ body {
   border-radius: 4px;
 }
 
-#hamburger:hover, #settings-btn:hover {
+#hamburger:hover, #settings-btn:hover, #interrupt-btn:hover, #reset-btn:hover, .icon-btn:hover {
   background: var(--surface-raised);
   color: var(--text);
+}
+
+/* The speech toggle is a real checkbox wearing an icon.
+   Keeping the checkbox means the existing settings binding, the keyboard
+   behaviour and the checked/unchecked semantics all work unchanged -- only the
+   presentation is replaced. Swapping it for a button would have meant
+   reimplementing state that the platform already tracks. */
+/* Losing the word "speech" shrinks the target, so the hit area is held open
+   deliberately rather than left to collapse around a single glyph. This is
+   the control most likely to be reached for by someone who cannot easily hit
+   a small one, which is the same reason the model picker above is not shrunk
+   to fit. */
+.icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.75rem;
+  min-height: 1.5rem;
+}
+
+.icon-btn input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.icon-btn .tts-on { display: none; }
+.icon-btn input:checked ~ .tts-on { display: inline; }
+.icon-btn input:checked ~ .tts-off { display: none; }
+
+/* The checkbox is invisible, so focus has to be shown by the label or the
+   control becomes unreachable by keyboard without any visible cue. */
+.icon-btn:focus-within {
+  outline: 2px solid var(--accent, #4a9eff);
+  outline-offset: 1px;
 }
 
 #agent-state {

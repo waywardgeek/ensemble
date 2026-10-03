@@ -16,9 +16,6 @@
       <button id="hamburger" title="Toggle sidebar" aria-controls="sidebar" aria-expanded="true">☰</button>
       <span id="agent-state">idle</span>
       <select id="top-model" class="top-control" aria-label="Model"></select>
-      <label class="top-control" id="top-tts-label" title="Speak replies aloud">
-        <input type="checkbox" id="top-tts"> speech
-      </label>
       <span class="spacer"></span>
       <span id="usage-meter" role="status" aria-live="off">
         <span class="u-item" id="u-cost" title="Session cost so far">$0.00</span>
@@ -26,6 +23,12 @@
         <span class="u-item" id="u-cr" title="Input tokens served from the prompt cache">cache 0</span>
         <span class="u-item u-hit" id="u-hit" title="Share of input tokens served from cache">0.0%</span>
       </span>
+      <button id="interrupt-btn" title="Interrupt: abort the current turn and return to the start of turn. Always available, including when the displayed state is wrong.">⏹</button>
+      <label class="icon-btn" id="top-tts-label" title="Speak replies aloud">
+        <input type="checkbox" id="top-tts" aria-label="Speak replies aloud">
+        <span class="tts-on" aria-hidden="true">🔊</span>
+        <span class="tts-off" aria-hidden="true">🔇</span>
+      </label>
       <button id="reset-btn" title="Clear the conversation. Memory, skills and checkpoints are kept.">⟳</button>
       <button id="settings-btn" title="Settings">⚙</button>
     </div>

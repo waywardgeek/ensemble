@@ -518,8 +518,18 @@ func (a *Actor) waitForTools(count int) bool {
 					a.handleInterrupt()
 					return false
 				case common.UserMessage:
-					// Queue for next turn — don't process mid-tools.
-					a.mb.Post(m)
+					// The same event, classified by where it arrives. Reaching THIS
+					// drain means a turn is already running, and that is what makes
+					// the message a hint rather than the start of a new turn. The
+					// distinction is turn state, and this is the only place that knows
+					// the turn state for certain.
+					//
+					// It used to be re-posted and queued for the next turn instead.
+					// That was invisible to whoever sent it: a message typed while a
+					// tool was running did not steer the work it was about. It waited,
+					// then started a turn of its own, by which time the thing it was
+					// about had already finished.
+					a.handleHint(common.Hint{Text: m.Text})
 				}
 			}
 		}
@@ -607,6 +617,15 @@ func (a *Actor) handleSetModel(m common.SetModel) {
 }
 
 func (a *Actor) handleInterrupt() {
+	// Interrupted, not Idle. The turn did not finish, and a state that said
+	// "idle" would erase that: the next thing to read this could not tell an
+	// aborted turn from one that ran to completion.
+	//
+	// It is safe to rest here because nothing gates on the state any more.
+	// The GUI used to decide, from this value, whether a typed message was a
+	// prompt or a hint -- which is what made a stale state unrecoverable. That
+	// decision has moved to the actor, where the turn state is known for
+	// certain, so a status line is now a status line and nothing else.
 	a.setState(common.Interrupted)
 	a.notify(common.TurnEnded{Err: "interrupted"})
 }
