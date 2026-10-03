@@ -95,16 +95,21 @@ func Apply(c *common.Context, e common.Event) error {
 		if e.Tool == nil {
 			return fmt.Errorf("seq %d: tool_result_lost with no tool payload", e.Seq)
 		}
-		// Reduces exactly as ToolReturned does, with one difference: the
-		// error flag is forced rather than copied. Copying it would read the
-		// status off a tool that never reported one.
+		// Reduces much as ToolReturned does, with two differences. The error
+		// flag is forced rather than copied, because copying it would read a
+		// status off a tool that never reported one. And the standing result
+		// is placed next to the call it answers rather than appended, because
+		// a vendor does not merely want the result present: it wants it in
+		// the message immediately after the call. An orphan that reached a
+		// save file is usually buried mid-conversation, with whatever was
+		// said next sitting between it and the end of the dialogue.
 		//
 		// The standing text comes from the event rather than being written
 		// here, so that reading the log shows the same words the model was
 		// given, and so this stays a placer rather than an author.
-		c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Actor: common.ActorTool, Kind: common.KindDialogue, Parts: common.PartList{
-			common.ToolResultPart{CallID: e.Tool.CallID, Parts: e.Tool.Parts, IsError: true},
-		}})
+		if err := insertStandingResult(c, e.Seq, *e.Tool); err != nil {
+			return err
+		}
 		if c.Turn == common.ToolsPending && outstandingCalls(c) == 0 {
 			c.Turn = common.InputPending
 		}
@@ -299,6 +304,51 @@ func lostCalls(c *common.Context) []common.ToolCallPart {
 // result.
 func outstandingCalls(c *common.Context) int {
 	return len(lostCalls(c))
+}
+
+// insertStandingResult places the result that closes a lost call directly
+// after the call it answers, keeping a batch's results contiguous.
+//
+// Appending to the end of the dialogue would be simpler, and wrong. The rule
+// a vendor enforces is ADJACENCY, in its own words: "Each tool_use block must
+// have a corresponding tool_result block in the next message." A call that
+// survives into a save file is usually buried mid-conversation, because the
+// turn died, the turn ended, and the user carried on talking. Everything said
+// afterwards then sits between the call and the end of the dialogue, so a
+// result appended there answers nothing and the request is still refused.
+func insertStandingResult(c *common.Context, seq common.Seq, tool common.ToolData) error {
+	entry := common.Entry{Seq: seq, Actor: common.ActorTool, Kind: common.KindDialogue, Parts: common.PartList{
+		common.ToolResultPart{CallID: tool.CallID, Parts: tool.Parts, IsError: true},
+	}}
+
+	at := -1
+	for i, d := range c.Dialogue {
+		for _, p := range d.Parts {
+			if call, ok := p.(common.ToolCallPart); ok && call.CallID == tool.CallID {
+				at = i
+			}
+		}
+	}
+	if at < 0 {
+		// Loud, rather than appended somewhere plausible. This event is only
+		// ever written for a call observed in the dialogue, so failing to
+		// find one means the log and the context disagree about what
+		// happened, and guessing a position would hide that.
+		return fmt.Errorf("seq %d: tool_result_lost names call %q, which is not in the dialogue", seq, tool.CallID)
+	}
+
+	// Every result for one message's calls belongs in the single message that
+	// follows it, so step over any that already arrived. A batch where one
+	// call returned and one did not is the realistic shape of this failure.
+	at++
+	for at < len(c.Dialogue) && c.Dialogue[at].Actor == common.ActorTool {
+		at++
+	}
+
+	c.Dialogue = append(c.Dialogue, common.Entry{})
+	copy(c.Dialogue[at+1:], c.Dialogue[at:])
+	c.Dialogue[at] = entry
+	return nil
 }
 
 // applyRedaction replaces superseded content in place. A redaction is not

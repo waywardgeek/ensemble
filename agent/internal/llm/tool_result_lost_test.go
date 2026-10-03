@@ -222,47 +222,6 @@ func TestToolResultLostWithNoPayloadIsRefused(t *testing.T) {
 	}
 }
 
-// unansweredOnTheWire walks a rendered Anthropic request and returns the
-// tool_use ids that have no matching tool_result.
-//
-// It reads the BYTES rather than the context, because the context is the
-// thing under test. Asserting that the projection looks right would restate
-// the production code; this asks the only question the vendor asks.
-func unansweredOnTheWire(t *testing.T, body string) []string {
-	t.Helper()
-	var req struct {
-		Messages []struct {
-			Content []struct {
-				Type      string `json:"type"`
-				ID        string `json:"id"`
-				ToolUseID string `json:"tool_use_id"`
-			} `json:"content"`
-		} `json:"messages"`
-	}
-	if err := json.Unmarshal([]byte(body), &req); err != nil {
-		t.Fatalf("request body is not JSON: %v", err)
-	}
-	var calls []string
-	answered := map[string]bool{}
-	for _, m := range req.Messages {
-		for _, b := range m.Content {
-			switch b.Type {
-			case "tool_use":
-				calls = append(calls, b.ID)
-			case "tool_result":
-				answered[b.ToolUseID] = true
-			}
-		}
-	}
-	var unanswered []string
-	for _, id := range calls {
-		if !answered[id] {
-			unanswered = append(unanswered, id)
-		}
-	}
-	return unanswered
-}
-
 // The WIRING, which is the part that actually broke.
 //
 // Every test above calls closeLostCalls directly, so deleting its one call
@@ -309,7 +268,115 @@ func TestARequestBuiltOverALostCallIsLegalOnTheWire(t *testing.T) {
 	if len(bodies) != 1 {
 		t.Fatalf("vendor saw %d requests, want 1", len(bodies))
 	}
-	if bad := unansweredOnTheWire(t, bodies[0]); len(bad) != 0 {
-		t.Fatalf("request carries tool calls with no result %v: every vendor refuses this, and one answers anyway", bad)
+	if bad := adjacencyViolations(t, bodies[0]); len(bad) != 0 {
+		t.Fatalf("request carries tool calls with no result in the next message %v: every vendor refuses this, and one answers anyway", bad)
+	}
+}
+
+// adjacencyViolations returns the tool_use ids that are not answered by a
+// tool_result in the NEXT message.
+//
+// This is the rule the vendor actually enforces, quoted from its own refusal:
+// "tool_use ids were found without tool_result blocks immediately after ...
+// Each tool_use block must have a corresponding tool_result block in the next
+// message." Asking the weaker question, whether a call is answered ANYWHERE,
+// passes a conversation the vendor rejects.
+func adjacencyViolations(t *testing.T, body string) []string {
+	t.Helper()
+	var req struct {
+		Messages []struct {
+			Role    string `json:"role"`
+			Content []struct {
+				Type      string `json:"type"`
+				ID        string `json:"id"`
+				ToolUseID string `json:"tool_use_id"`
+			} `json:"content"`
+		} `json:"messages"`
+	}
+	if err := json.Unmarshal([]byte(body), &req); err != nil {
+		t.Fatalf("request body is not JSON: %v", err)
+	}
+	var bad []string
+	for i, m := range req.Messages {
+		var calls []string
+		for _, b := range m.Content {
+			if b.Type == "tool_use" {
+				calls = append(calls, b.ID)
+			}
+		}
+		if len(calls) == 0 {
+			continue
+		}
+		answered := map[string]bool{}
+		if i+1 < len(req.Messages) {
+			for _, b := range req.Messages[i+1].Content {
+				if b.Type == "tool_result" {
+					answered[b.ToolUseID] = true
+				}
+			}
+		}
+		for _, id := range calls {
+			if !answered[id] {
+				bad = append(bad, id)
+			}
+		}
+	}
+	return bad
+}
+
+// The orphan BURIED MID-CONVERSATION, which is the shape that actually
+// reaches a save file.
+//
+// A turn dies with a call outstanding, the turn ends, and the user carries on
+// talking. The gap is then stranded behind whatever was said next, and a
+// standing result appended to the end of the dialogue answers nothing: the
+// vendor wants it in the message immediately after the call.
+func TestALostCallMidConversationIsAnsweredInTheNextMessage(t *testing.T) {
+	var bodies []string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			t.Errorf("reading request body: %v", err)
+		}
+		bodies = append(bodies, string(body))
+		w.Header().Set("Content-Type", "application/json")
+		fmt.Fprint(w, `{"id":"msg_1","type":"message","role":"assistant","model":"claude-sonnet-5",
+			"content":[{"type":"text","text":"ok"}],
+			"stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1}}`)
+	}))
+	t.Cleanup(srv.Close)
+
+	const model = "claude-sonnet-5"
+	e := &Engine{
+		Log:  NewLog(),
+		Ctx:  common.NewContext(),
+		Host: testHost{t},
+		HTTP: srv.Client(),
+		Cfg: common.Config{
+			Model:   model,
+			Vendor:  common.VendorAnthropic,
+			Surface: common.SurfaceForModel(model, common.VendorAnthropic),
+			BaseURL: srv.URL,
+			APIKey:  "test-key",
+		},
+	}
+	e.Ctx.Dialogue = append(e.Ctx.Dialogue,
+		callEntry(1, "call_lost", "read_file"),
+		common.Entry{Seq: 2, Actor: common.ActorHuman, Kind: common.KindDialogue, Parts: common.PartList{
+			common.TextPart{Text: "never mind, something else"},
+		}},
+		common.Entry{Seq: 3, Actor: common.ActorAgent, Kind: common.KindDialogue, Parts: common.PartList{
+			common.TextPart{Text: "sure"},
+		}},
+	)
+
+	if _, err := e.Turn(common.StreamCallbacks{}); err != nil {
+		t.Fatalf("Turn: %v", err)
+	}
+	if len(bodies) != 1 {
+		t.Fatalf("vendor saw %d requests, want 1", len(bodies))
+	}
+	if bad := adjacencyViolations(t, bodies[0]); len(bad) != 0 {
+		t.Fatalf("tool_use %v has no tool_result in the next message: this is the request the vendor refuses", bad)
 	}
 }
