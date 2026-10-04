@@ -189,6 +189,7 @@ type Agent struct {
 	common.UsageCounter
 
 	eng        *llm.Engine
+	actor      *llm.Actor
 	reg        *tools.Reg
 	skills     *skills.SkillRegistry
 	vars       *skills.VarRegistry
@@ -216,6 +217,7 @@ func NewAgent(cfg Config, logPath string) *Agent {
 
 	cfg.Tools = a.reg.Declarations()
 	a.eng = llm.NewEngine(cfg, logPath, j, a.reg, a)
+	a.actor = llm.NewActor(a.eng, a)
 	return a
 }
 
@@ -233,6 +235,7 @@ func NewBareAgent(cfg Config, logPath string) *Agent {
 
 	cfg.Tools = a.reg.Declarations()
 	a.eng = llm.NewEngine(cfg, logPath, j, a.reg, a)
+	a.actor = llm.NewActor(a.eng, a)
 	return a
 }
 
@@ -303,16 +306,17 @@ func (a *Agent) Debugf(format string, args ...any)  { a.Logger.Debugf(format, ar
 
 // Ask sends a prompt and runs the full tool loop until the model replies.
 func (a *Agent) Ask(prompt string) (string, error) {
-	return a.eng.Ask(prompt)
+	return a.actor.Ask(prompt)
 }
 
 // Shutdown ends all running jobs, closes MCP connections, and saves the log.
 func (a *Agent) Shutdown() error {
+	err := a.actor.Shutdown()
 	for _, c := range a.mcpClients {
 		c.Close()
 	}
 	a.mcpClients = nil
-	return a.eng.Shutdown()
+	return err
 }
 
 // ConnectMCP connects to an MCP server over the given transport.
@@ -373,12 +377,19 @@ func (a *Agent) EventLog() *Log {
 // Actor is the public handle to an actor-based agent.
 type Actor = llm.Actor
 
+// ToolRoundLimitError reports that a turn requested more tool batches than
+// permitted. Rejected calls have paired not-executed results in the history.
+type ToolRoundLimitError = llm.ToolRoundLimitError
+
+// ErrActorStopped is returned when a request cannot run because its actor stopped.
+const ErrActorStopped = llm.ErrActorStopped
+
 // Framework manages multiple actors.
 type Framework = llm.Framework
 
-// NewActor creates an Actor wrapping the given engine.
+// NewActor returns this agent's single execution owner.
 func (a *Agent) NewActor() *Actor {
-	return llm.NewActor(a.eng, a)
+	return a.actor
 }
 
 // NewFramework creates a multi-agent framework.

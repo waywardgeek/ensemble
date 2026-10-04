@@ -36,8 +36,10 @@ type Config struct {
 	Endpoints    map[Vendor]Endpoint
 	SystemPrompt string
 	MaxTokens    int
-	Tools        []ToolDecl
-	Cwd          string
+	// MaxToolRounds bounds dispatched batches per human turn. Zero uses 200.
+	MaxToolRounds int
+	Tools         []ToolDecl
+	Cwd           string
 
 	// DisableStreaming turns streaming off for every request.
 	//

@@ -211,7 +211,8 @@ The four token categories already exist and are already disjoint (`Input`,
 
 ## Agent code
 
-- [ ] **`max_tool_rounds` is a dead setting (ch9).** VERIFIED 2026-09-23.
+- [x] **`max_tool_rounds` was a dead setting (ch9).** Historical diagnosis,
+      VERIFIED 2026-09-23; resolution below supersedes the two-loop remedy.
       Added in `8fd790f` (ch9); `agent/internal/common/settings.go` stores and
       clamps it, and nothing else reads `.MaxToolRounds`. Both dispatchers stop
       at `const MaxToolRounds = 16` (`agent/internal/llm/engine.go:224`, checked
@@ -219,6 +220,33 @@ The four token categories already exist and are already disjoint (`Input`,
       60 reads in one prompt stopped at 16 rounds with `max_tool_rounds: 100`.
       Not ch15's contract. Fix belongs to ch9's settings path; the ch15
       grader's longest turn is 13 rounds, so fixing it moves no ch15 score.
+
+      **Crossover blocker, re-verified 2026-10-04.** Bill saw "stopped after
+      16 rounds of tool calls" while the agent was still debugging. Today's
+      saved log contains that exact error at sequences 167 and 349. This
+      interrupts ordinary supervised work, not just a stress test. The actor
+      checks the cap after receiving the next tool-call batch and ends the
+      turn without dispatching that batch (`actor.go`, `runTurn`); it calls
+      `finishTurn(reply, nil)` despite having recorded the limit error.
+      Fix must wire the setting into both actor and synchronous loops, define
+      what zero means, report the stop distinctly from successful completion,
+      and preserve a well-formed, resumable conversation. Test a configured
+      limit above 16 and continuation after hitting the limit. Do not merely
+      raise the constant. ASSUMED, not yet traced end-to-end: stranded calls
+      from this path may explain the synthetic "No result was recorded"
+      messages seen after interruption/restart.
+
+      **Plan (2026-10-04):** `book/single-agent-loop-plan.md`. Retire the
+      synchronous engine loop, make blocking Ask an actor adapter with reliable
+      completion/lifecycle, then wire the setting into the one remaining loop.
+      Do not fix this by preserving two separately configured dispatch loops.
+
+      **Resolved:** the actor is the sole loop and reads the setting once per
+      human turn. Zero selects the named default of 200. Subprocess tests of
+      both CLI formats prove saved 200 permits 18 batches; saved 1 refuses the
+      next batch with paired results and a distinct error; the history resumes
+      after restart. A race-tested runtime-store update changes the next turn's
+      budget, not the active turn's. Full retirement audit status is in the plan.
 - [ ] **Six of the twelve settings are dead, and the doc comment claims
       otherwise.** VERIFIED 2026-09-26. `Model`, `Temperature`, `MaxTokens`,
       `ThinkingBudget`, `MaxToolRounds` (the entry above) and `SystemPrompt`

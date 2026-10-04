@@ -166,8 +166,9 @@ type Job struct {
 	// changed is closed and replaced on every change; a waiter blocks on it.
 	changed chan struct{}
 
-	proc  *os.Process // set by tools that start a process; nil otherwise
-	stdin interface {
+	proc        *os.Process // set by tools that start a process; nil otherwise
+	processStop string      // shutdown may precede process attachment
+	stdin       interface {
 		Write([]byte) (int, error)
 	}
 	// cwd is where a run_command job ran, when that was not the working
@@ -200,6 +201,22 @@ func (j *Job) Attach(proc *os.Process, stdin interface{ Write([]byte) (int, erro
 	j.mu.Lock()
 	defer j.mu.Unlock()
 	j.proc, j.stdin = proc, stdin
+	if j.processStop != "" && proc != nil {
+		j.killLocked(j.processStop)
+	}
+}
+
+// StopProcess is shutdown's process-only cancellation. Unlike an explicit
+// Kill, it leaves non-process Go tools running so their owner can join and
+// preserve their results. Remember the request even before Attach: otherwise
+// a process started concurrently with shutdown could escape cancellation.
+func (j *Job) StopProcess(reason string) {
+	j.mu.Lock()
+	defer j.mu.Unlock()
+	j.processStop = reason
+	if j.proc != nil {
+		j.killLocked(reason)
+	}
 }
 
 // SetExit records how a process ended. It does not end the job; Finish does.
@@ -297,6 +314,10 @@ func (j *Job) Wait(l common.Limits) common.WakeReason {
 func (j *Job) Kill(reason string) bool {
 	j.mu.Lock()
 	defer j.mu.Unlock()
+	return j.killLocked(reason)
+}
+
+func (j *Job) killLocked(reason string) bool {
 	if j.status != common.StatusRunning {
 		return false
 	}

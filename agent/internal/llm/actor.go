@@ -26,12 +26,21 @@ type Actor struct {
 	host common.Host
 	gate *common.PauseGate // nil means never pause
 
-	mu        sync.Mutex
-	observers []observerEntry
-	obsIDSeq  uint64
-	state     common.TurnState
-	partSeq   uint64
-	ctx       context.Context // set by Run, used by WaitIfPaused
+	mu          sync.Mutex
+	observers   []observerEntry
+	obsIDSeq    uint64
+	state       common.TurnState
+	partSeq     uint64
+	ctx         context.Context // actor lifetime; set once before its goroutine starts
+	turnCtx     context.Context
+	pending     []common.Inbound // requests/settings deferred while a tool runs
+	result      common.TurnResult
+	workers     sync.WaitGroup
+	lifeMu      sync.Mutex
+	started     bool
+	cancel      context.CancelFunc
+	done        chan struct{}
+	shutdownErr error
 
 	// obs is a buffered channel of observations that Wait can select on.
 	obs chan common.Observation
@@ -45,11 +54,13 @@ type observerEntry struct {
 // NewActor creates an Actor wrapping the given Engine.
 func NewActor(eng *Engine, host common.Host) *Actor {
 	return &Actor{
-		eng:   eng,
-		mb:    common.NewMailbox(),
-		host:  host,
-		state: common.Idle,
-		obs:   make(chan common.Observation, 256),
+		eng:     eng,
+		mb:      common.NewMailbox(),
+		host:    host,
+		state:   common.Idle,
+		obs:     make(chan common.Observation, 256),
+		done:    make(chan struct{}),
+		turnCtx: context.Background(),
 	}
 }
 
@@ -133,42 +144,12 @@ func (a *Actor) Wait(ctx context.Context, pred func(common.Observation) bool) (c
 	}
 }
 
-// Ask posts a UserMessage and waits for the turn to end. This is the
-// synchronous convenience: post + wait for turn-end.
-func (a *Actor) Ask(text string) (string, error) {
-	a.Send(common.UserMessage{Text: text})
-	ctx := context.Background()
-	obs, err := a.Wait(ctx, func(o common.Observation) bool {
-		_, ok := o.(common.TurnEnded)
-		return ok
-	})
-	if err != nil {
-		return "", err
-	}
-	ended := obs.(common.TurnEnded)
-	if ended.Err != "" {
-		return ended.Text, fmt.Errorf("%s", ended.Err)
-	}
-	return ended.Text, nil
-}
-
-// Run starts the actor loop. It blocks until ctx is cancelled.
-func (a *Actor) Run(ctx context.Context) {
-	a.ctx = ctx
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		case <-a.mb.Signal():
-			a.drain(ctx)
-		}
-	}
-}
-
 // drain processes all queued messages.
 func (a *Actor) drain(ctx context.Context) {
 	for {
-		msgs := a.mb.Drain()
+		msgs := a.pending
+		a.pending = nil
+		msgs = append(msgs, a.mb.Drain()...)
 		if len(msgs) == 0 {
 			return
 		}
@@ -186,18 +167,21 @@ func (a *Actor) drain(ctx context.Context) {
 // handle processes a single inbound message.
 func (a *Actor) handle(msg common.Inbound) {
 	switch m := msg.(type) {
+	case common.Request:
+		a.handleRequest(m)
 	case common.UserMessage:
+		a.turnCtx = a.ctx
 		a.handleUserMessage(m)
 	case common.Hint:
 		a.handleHint(m)
 	case common.ToolCompleted:
-		// A tool from an interrupted turn may finish while idle. Its result
-		// is already recorded; report it once rather than requeueing it.
-		a.notify(common.ToolFinished{
-			CallID:  m.CallID,
-			Result:  m.Result,
-			IsError: m.IsError,
-		})
+		if err := a.completeTool(m); err != nil {
+			a.eng.logf("tool completion: %v", err)
+		}
+	case common.ToolEvents:
+		if err := a.recordToolEvents(m.Events); err != nil {
+			a.eng.logf("tool effects: %v", err)
+		}
 	case common.Interrupt:
 		a.handleInterrupt()
 	case common.Reset:
@@ -207,7 +191,7 @@ func (a *Actor) handle(msg common.Inbound) {
 	}
 }
 
-// handleUserMessage starts a new turn: Say, then loop Turn→Execute.
+// handleUserMessage is the single human-turn setup path for every caller.
 func (a *Actor) handleUserMessage(m common.UserMessage) {
 	a.setState(common.InputPending)
 
@@ -216,13 +200,16 @@ func (a *Actor) handleUserMessage(m common.UserMessage) {
 		return
 	}
 
-	// Recall runs here as well as in Engine.AskWatching, because these are
-	// two genuinely disjoint entry points into a turn and neither delegates
-	// to the other. AskWatching is the synchronous path used by the plain
-	// stdin REPL; this is the actor path, and it is the one the GUI and the
-	// actor protocol actually use. Hooking only the tidier-looking one gives
-	// an agent whose recall demonstrably works when tested by hand and never
-	// runs a single time in the shipped product.
+	// Recall runs AFTER the user's message has landed and BEFORE the model is
+	// asked anything. Both halves of that sentence are load-bearing.
+	//
+	// After, because the retrieved material is a response to what was just
+	// said, and an entry that landed first would read as context the user was
+	// replying to rather than context fetched on their behalf.
+	//
+	// Before, because the whole point is that the model sees the material on
+	// the turn where it is relevant. Attaching it afterwards would be an
+	// elaborate way of answering the previous question.
 	a.eng.attachRecall(m.Text)
 
 	// "turn" ephemeral tools are called once when the turn starts.
@@ -231,13 +218,13 @@ func (a *Actor) handleUserMessage(m common.UserMessage) {
 		return
 	}
 
-	a.runTurnLoop()
+	a.runTurnLoop(a.toolRoundLimit())
 }
 
-// runTurnLoop is the actor version of Engine.Ask's loop. Instead of blocking
-// on Execute, it dispatches tools and waits for ToolCompleted messages.
-func (a *Actor) runTurnLoop() {
-	for round := 0; ; round++ {
+// runTurnLoop is the sole multi-round orchestration loop.
+func (a *Actor) runTurnLoop(limit int) {
+	rounds := 0
+	for {
 		a.setState(common.InFlight)
 
 		// "round" ephemeral tools are called before every round.
@@ -246,7 +233,7 @@ func (a *Actor) runTurnLoop() {
 			return
 		}
 
-		reply, err := a.eng.Turn(a.streamWatch())
+		reply, err := a.eng.TurnContext(a.turnCtx, a.streamWatch())
 		if err != nil {
 			a.finishTurn("", err)
 			return
@@ -258,11 +245,20 @@ func (a *Actor) runTurnLoop() {
 			return
 		}
 
-		if round >= MaxToolRounds {
-			_ = a.eng.Record(common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{
-				Message: fmt.Sprintf("stopped after %d rounds of tool calls", MaxToolRounds),
-			}})
-			a.finishTurn(reply, nil)
+		if rounds >= limit {
+			err := &ToolRoundLimitError{Limit: limit}
+			// Close recorded calls honestly: no dispatch occurred.
+			for _, call := range calls {
+				if recErr := a.eng.Record(common.Event{Type: common.ToolReturned, Tool: &common.ToolData{
+					CallID: call.CallID, Name: call.Name, Args: call.Args, IsError: true,
+					Parts: common.PartList{common.TextPart{Text: "Not executed: " + err.Error() + ". Ask to continue in a new turn."}},
+				}}); recErr != nil {
+					a.finishTurn(reply, recErr)
+					return
+				}
+			}
+			_ = a.eng.Record(common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{Message: err.Error()}})
+			a.finishTurn(reply, err)
 			return
 		}
 
@@ -273,13 +269,14 @@ func (a *Actor) runTurnLoop() {
 			continue
 		}
 
+		rounds++
 		a.setState(common.ToolsPending)
 
 		// Dispatch and wait for tools one at a time. Serial dispatch lets
 		// the pause gate hold execution between tools: if a client pauses
 		// after the first tool finishes, the second never starts.
 		for _, call := range calls {
-			if a.gate != nil && !a.gate.WaitIfPaused(a.ctx) {
+			if a.gate != nil && !a.gate.WaitIfPaused(a.turnCtx) {
 				a.handleInterrupt()
 				return
 			}
@@ -396,8 +393,28 @@ func (a *Actor) enforceVisibleReasoning(reply string, calls []common.ToolCallPar
 	return true
 }
 
+// dispatchTool runs one tool call and records its result.
+//
+// EVERY call records a common.ToolReturned event, including the ones that fail. A
+// failure is a RESULT, not an absence: the model asked a question and the
+// answer is "that did not work, here is why". Dropping the result instead —
+// or panicking, or ending the turn — leaves the model waiting for an answer to
+// a question it can see it asked, and is the single most common way an agent
+// locks up.
+//
+// THIS IS THE DISPATCH SITE, and the job model lives here and nowhere else.
+// Before the tool runs it has a handle, an output file and a status; the tool
+// runs on its own goroutine; and this goroutine waits on the JOB — until it
+// is done, or the delay passes, or the pattern appears — rather than in the
+// tool. Compare Chapter 3's version: the handler ran right here, and if it
+// never came back, neither did the agent. Nothing about any of the six tools
+// made that so. This function did.
+//
+// The supervision tools and tool_limits are the exception, marked NoJob: they
+// act on jobs rather than being jobs, and they run inline.
 func (a *Actor) dispatchTool(call common.ToolCallPart) error {
-	// Resolve limits before dispatch.
+	// Resolve limits before ToolCalled so even a missing tool consumes a
+	// pending one-shot setting. Bad patterns are tool errors, not turn errors.
 	limits, fromPending, limErr := a.eng.Jobs.Take(call.Args)
 
 	tool, err := a.eng.Tools.Lookup(call.Name)
@@ -440,7 +457,8 @@ func (a *Actor) dispatchTool(call common.ToolCallPart) error {
 		return nil
 	}
 
-	// Normal tool: start a job, run on goroutine, post completion to mailbox.
+	// Allocate a handle for every tool before knowing what it will do.
+	// read_file on an unavailable NFS mount hangs as well as a shell command.
 	job, err := a.eng.Jobs.Start(call.Name, call.CallID)
 	if err != nil {
 		return err
@@ -453,16 +471,28 @@ func (a *Actor) dispatchTool(call common.ToolCallPart) error {
 
 	mb := a.mb
 	callCopy := call
+	a.workers.Add(2)
 	go func() {
+		defer a.workers.Done()
 		c := &common.Call{Host: a.eng.Host, Job: job, Jobs: a.eng.Jobs, Limits: limits}
+		// No recover: a tool panic is an invariant violation, not model output.
 		out, err := tool.Run(c, callCopy.Args)
+		// Publish effects before Finish wakes a normal completion waiter.
+		// Only the execution goroutine may read Call.Events while a tool runs.
+		if len(c.Events) != 0 {
+			mb.Post(common.ToolEvents{Events: c.Events})
+		}
 		// DeferFinish: the tool spawned a background goroutine that will
 		// call Finish itself (e.g. an interactive PTY reader). Skip it
 		// here so the job stays Running and Wait honours the delay/pattern.
 		if !c.DeferFinish {
 			job.Finish(out, err)
 		}
-
+	}()
+	go func() {
+		defer a.workers.Done()
+		// Wait on the JOB, not the tool. A callback deadline returns control
+		// even when a Go tool has not returned; it does not cancel that tool.
 		reason := job.Wait(limits)
 		result := job.Report(reason, limits)
 		if fromPending {
@@ -470,21 +500,12 @@ func (a *Actor) dispatchTool(call common.ToolCallPart) error {
 		}
 		isError := job.Status() == common.StatusDone && job.Err() != nil
 
-		// Record the tool result in the engine log.
-		a.eng.Record(common.Event{Type: common.ToolReturned, Tool: &common.ToolData{
-			CallID:  callCopy.CallID,
-			Name:    callCopy.Name,
-			Args:    callCopy.Args,
-			Parts:   common.PartList{common.TextPart{Text: result}},
-			IsError: isError,
-			Job:     job.Data(),
-		}})
-
-		// Post to mailbox — the actor loop will process this.
+		// The actor owns log/context mutation, including late completions.
 		mb.Post(common.ToolCompleted{
-			CallID:  callCopy.CallID,
-			Result:  result,
-			IsError: isError,
+			CallID: callCopy.CallID, Result: result, IsError: isError,
+			Tool: &common.ToolData{CallID: callCopy.CallID, Name: callCopy.Name,
+				Args: callCopy.Args, Parts: common.PartList{common.TextPart{Text: result}},
+				IsError: isError, Job: job.Data()},
 		})
 	}()
 
@@ -498,31 +519,32 @@ func (a *Actor) waitForTool(callID string) bool {
 	completed := false
 	for !completed {
 		select {
+		case <-a.turnCtx.Done():
+			a.finishTurn("", a.turnCtx.Err())
+			return false
 		case <-a.mb.Signal():
 			msgs := a.mb.Drain()
-			for _, msg := range msgs {
+			for i, msg := range msgs {
 				switch m := msg.(type) {
 				case common.ToolCompleted:
 					if m.CallID == callID {
 						completed = true
 					}
-					a.notify(common.ToolFinished{
-						CallID:  m.CallID,
-						Result:  m.Result,
-						IsError: m.IsError,
-					})
-					// A tool result is NOT model text, and it used to be
-					// announced twice: once above, correctly, and once more
-					// wrapped in a TextPart. Anything downstream reading
-					// that second event believed the model had said it.
-					// The speech channel believed it too, and read the
-					// contents of every file out loud.
-					//
-					// The tool card renders from ToolFinished above, so
-					// nothing visible depended on the duplicate.
+					if err := a.completeTool(m); err != nil {
+						a.pending = append(a.pending, msgs[i+1:]...)
+						a.finishTurn("", err)
+						return false
+					}
+				case common.ToolEvents:
+					if err := a.recordToolEvents(m.Events); err != nil {
+						a.pending = append(a.pending, msgs[i+1:]...)
+						a.finishTurn("", err)
+						return false
+					}
 				case common.Hint:
 					a.handleHint(m)
 				case common.Interrupt:
+					a.pending = append(a.pending, msgs[i+1:]...)
 					a.handleInterrupt()
 					return false
 				case common.UserMessage:
@@ -538,6 +560,8 @@ func (a *Actor) waitForTool(callID string) bool {
 					// then started a turn of its own, by which time the thing it was
 					// about had already finished.
 					a.handleHint(common.Hint{Text: m.Text})
+				default:
+					a.pending = append(a.pending, msg)
 				}
 			}
 		}
@@ -635,18 +659,13 @@ func (a *Actor) handleInterrupt() {
 	// decision has moved to the actor, where the turn state is known for
 	// certain, so a status line is now a status line and nothing else.
 	a.setState(common.Interrupted)
-	a.notify(common.TurnEnded{Err: "interrupted"})
+	a.endTurn("", fmt.Errorf("interrupted"))
 }
 
 // finishTurn transitions to Idle and notifies observers.
 func (a *Actor) finishTurn(text string, err error) {
 	a.setState(common.Idle)
-	ended := common.TurnEnded{Text: text}
-	if err != nil {
-		ended.Err = err.Error()
-	}
-	a.notify(ended)
-	_ = a.eng.Save()
+	a.endTurn(text, err)
 }
 
 // notifyContent is gone, and its absence is the point.
@@ -695,9 +714,6 @@ func (a *Actor) entrySeq() common.Seq {
 
 // Engine returns the underlying engine for log/context access.
 func (a *Actor) Engine() *Engine { return a.eng }
-
-// Shutdown ends the actor's engine.
-func (a *Actor) Shutdown() error { return a.eng.Shutdown() }
 
 // lastAgentText returns the last text the agent said.
 func (a *Actor) lastAgentText() string {
@@ -830,4 +846,14 @@ func tagObservation(obs common.Observation, id common.AgentID) common.Observatio
 // Timeout helper for use in exercises and graders.
 func WithTimeout(d time.Duration) (context.Context, context.CancelFunc) {
 	return context.WithTimeout(context.Background(), d)
+}
+
+// pendingNote heads the report of whichever call consumed a pending
+// tool_limits. The limits are one-shot and land on the next call whatever it
+// is. That is the design, and the footgun in it is that landing on the wrong
+// call used to be silent: the model saw a truncated build two calls later
+// with no cause in sight. This line puts the cause in the very result it
+// produced. Loud, not different.
+func pendingNote(tool string, l common.Limits) string {
+	return fmt.Sprintf("[tool_limits consumed by this %s call: %s]\n", tool, l)
 }

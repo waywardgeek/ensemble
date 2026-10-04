@@ -6,13 +6,29 @@ package common
 // typed mid-turn, a tool finishing, and an interrupt are the same kind of
 // event to the loop.
 
-import "sync"
+import (
+	"context"
+	"sync"
+)
 
 // Inbound is anything the agent can hear. Sealed union.
 type Inbound interface{ isInbound() }
 
 // UserMessage starts a new turn.
 type UserMessage struct{ Text string }
+
+// Request is a blocking caller's distinct turn (or ephemeral attachment).
+// Completion is runtime control data, never serialized into the event log.
+type Request struct {
+	Text      string
+	Ephemeral bool
+	Context   context.Context
+	Reply     chan TurnResult
+}
+type TurnResult struct {
+	Text string
+	Err  error
+}
 
 // Hint is a message that arrives while a turn is already running. It is not
 // a separate channel: classification happens in the reducer, by turn state,
@@ -26,7 +42,15 @@ type ToolCompleted struct {
 	CallID  string
 	Result  string
 	IsError bool
+	// Workers return data; only the actor records it. Nil Tool means already recorded.
+	Tool *ToolData
 }
+
+// ToolEvents carries effects once a tool returns, independently of its job
+// report: a callback deadline can report the still-running job earlier.
+type ToolEvents struct{ Events []Event }
+
+func (ToolEvents) isInbound() {}
 
 // Interrupt tells the actor loop to stop processing the current turn.
 type Interrupt struct{}
@@ -49,6 +73,7 @@ type Reset struct{}
 // through a render.
 type SetModel struct{ Model string }
 
+func (Request) isInbound()       {}
 func (UserMessage) isInbound()   {}
 func (Hint) isInbound()          {}
 func (ToolCompleted) isInbound() {}

@@ -14,7 +14,7 @@ type Settings struct {
 	Temperature    float64 `json:"temperature"`
 	MaxTokens      int     `json:"max_tokens"`
 	ThinkingBudget int     `json:"thinking_budget"`
-	MaxToolRounds  int     `json:"max_tool_rounds"`
+	MaxToolRounds  int     `json:"max_tool_rounds"` // zero selects the default of 200
 	SystemPrompt   string  `json:"system_prompt"`
 
 	// Appearance.

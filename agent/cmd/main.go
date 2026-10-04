@@ -430,6 +430,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	// change applies to the next cut and never to a recorded one.
 	settingsStore := settings.NewSettingsStore(filepath.Join(".", "settings.json"))
 	eng.Target = func() int { return settingsStore.Get().ContextTarget }
+	eng.ToolRoundLimit = func() int { return settingsStore.Get().MaxToolRounds }
 
 	// Chapter 16. The memory directory sits beside the save file, because
 	// it is the same kind of thing: the part of this agent that outlives
@@ -789,28 +790,15 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 						emitLocked(map[string]string{"error": "prompt requires text"})
 						continue
 					}
-					actor.Send(common.UserMessage{Text: *msg.Text})
-					// Wait for turn to end.
-					obs, err := actor.Wait(ctx, func(o common.Observation) bool {
-						_, ok := o.(common.TurnEnded)
-						return ok
-					})
+					reply, err := actor.AskContext(ctx, *msg.Text)
 					if err != nil {
 						vendorFailed = true
-						emitLocked(map[string]string{"error": err.Error()})
-						continue
-					}
-					ended := obs.(common.TurnEnded)
-					if ended.Err != "" {
-						vendorFailed = true
 						if !textMode {
-							emitLocked(map[string]string{"error": ended.Err})
+							emitLocked(map[string]string{"error": err.Error()})
 						}
 					} else if !textMode {
-						// In text mode the observer already streamed the reply
-						// and reported any failure. Echoing here would print
-						// every answer a second time.
-						emitLocked(map[string]string{"assistant": ended.Text})
+						// The text observer already streamed it; never echo twice.
+						emitLocked(map[string]string{"assistant": reply})
 					}
 				case "hint":
 					if msg.Text == nil {
@@ -828,7 +816,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 
 			// Backward compat: {"ephemeral":"..."}
 			if msg.Ephemeral != nil {
-				if err := eng.Attach(*msg.Ephemeral); err != nil {
+				if err := actor.AttachContext(ctx, *msg.Ephemeral); err != nil {
 					emitLocked(map[string]string{"error": err.Error()})
 					continue
 				}
@@ -838,7 +826,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 
 			// Backward compat: {"user":"..."}
 			if msg.User != nil {
-				reply, err := eng.Ask(*msg.User)
+				reply, err := actor.AskContext(ctx, *msg.User)
 				if err != nil {
 					vendorFailed = true
 					emitLocked(map[string]string{"error": err.Error()})
@@ -976,9 +964,47 @@ func emit(out *bufio.Writer, v any) {
 }
 
 func configFromEnv(reg *tools.Reg) (common.Config, error) {
-	vendor, err := parseVendor(envOr("LLM_VENDOR", "anthropic"))
-	if err != nil {
-		return common.Config{}, err
+	// Settle the model before the vendor, because the vendor is a property of
+	// the model and not an independent choice. Resolving the vendor first and
+	// then choosing a model inside it means a model named anywhere other than
+	// LLM_MODEL reaches whichever vendor happened to be the default. That does
+	// not fail: an OpenAI id sent to Anthropic comes back answered by Sonnet,
+	// so the session looks healthy and is simply the wrong model. The GUI
+	// never hit this because it sends the model again after connecting; the
+	// CLI has nothing to send it, so it ran the default every time.
+	named := os.Getenv("LLM_MODEL")
+	if named == "" {
+		named = homeSetting("LLM_MODEL")
+	}
+	if named == "" {
+		named = localSettingModel()
+	}
+
+	vendorNamed := os.Getenv("LLM_VENDOR")
+	if vendorNamed == "" {
+		vendorNamed = homeSetting("LLM_VENDOR")
+	}
+
+	var vendor common.Vendor
+	switch {
+	case vendorNamed != "":
+		// An explicit vendor is an instruction and outranks the table, which
+		// is what lets a local OpenAI-compatible endpoint serve a model id
+		// the table has never heard of.
+		v, err := parseVendor(vendorNamed)
+		if err != nil {
+			return common.Config{}, err
+		}
+		vendor = v
+	default:
+		vendor = common.VendorAnthropic
+		if feat, ok := common.LookupModel(named); ok && named != "" {
+			// Only a model the table knows may choose its own vendor. An
+			// unknown id keeps the old default rather than erroring, because
+			// the graders drive custom ids at fake endpoints and a hard
+			// failure here would stop them dead.
+			vendor = feat.Vendor
+		}
 	}
 	cfg := common.Config{
 		Vendor:       vendor,
@@ -1001,6 +1027,13 @@ func configFromEnv(reg *tools.Reg) (common.Config, error) {
 	// After the model is known, never before: the surface is a property of
 	// the model, and resolving it from the vendor alone would put every
 	// OpenAI model on whichever endpoint the newest one happens to use.
+	// A model named outside the environment, which is to say the one the GUI
+	// last wrote to settings.json, wins over the per-vendor default picked
+	// above. Without this the CLI silently ignores the model on display.
+	if named != "" {
+		cfg.Model = named
+	}
+
 	cfg.Surface = common.SurfaceForModel(cfg.Model, vendor)
 
 	// Allow disabling streaming for testing.
@@ -1063,6 +1096,15 @@ func pick(primary, secondary, def string) string {
 // the composition root. The file holds a handful of keys and is consulted only
 // while assembling the startup config, so the cost of not caching it is a few
 // microseconds once. That is a good trade for keeping the global out.
+// localSettingModel reports the model recorded in the settings file the GUI
+// writes beside the agent. It reuses the settings reader rather than parsing
+// the file again so that the shape of settings.json is known in one place.
+// An absent or unreadable file yields the empty string, which simply means
+// "nothing chosen" and leaves the per-vendor default in force.
+func localSettingModel() string {
+	return settings.NewSettingsStore(filepath.Join(".", "settings.json")).Get().Model
+}
+
 func homeSetting(key string) string {
 	if v, ok := loadHomeSettings()[strings.ToLower(key)]; ok {
 		return v

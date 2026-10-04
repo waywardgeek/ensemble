@@ -101,6 +101,9 @@ type JobHandle interface {
 	Wait(l Limits) WakeReason
 	Report(reason WakeReason, l Limits) string
 	Kill(reason string) bool
+	// StopProcess kills an attached process (or one attached later), without
+	// discarding a non-process tool's eventual return value during shutdown.
+	StopProcess(reason string)
 	SendInput(text string) error
 	Bytes() int
 	Err() error

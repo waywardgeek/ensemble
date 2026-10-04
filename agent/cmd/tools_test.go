@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"strings"
@@ -163,14 +165,55 @@ func TestSearchFilesContextLines(t *testing.T) {
 // proves the note is one-shot too.
 func TestToolLimitsConsumptionIsVisible(t *testing.T) {
 	t.Chdir(t.TempDir())
-	e := llm.NewEngine(common.Config{}, "log.jsonl", jobs.NewJobs(&cliHost{}), tools.NewRegistry(), &cliHost{})
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			Messages []struct{ Content []struct{ Type, Text string } }
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			t.Error(err)
+			http.Error(w, "bad request", 400)
+			return
+		}
+		last := req.Messages[len(req.Messages)-1].Content
+		parts := []map[string]any{{"type": "text", "text": "done"}}
+		if len(last) > 0 && last[0].Type == "text" {
+			var call struct {
+				ID, Name string
+				Args     json.RawMessage
+			}
+			if err := json.Unmarshal([]byte(last[0].Text), &call); err != nil {
+				t.Error(err)
+				http.Error(w, "bad prompt", 400)
+				return
+			}
+			parts = []map[string]any{{"type": "text", "text": "I will run the requested tool."}, {"type": "tool_use", "id": call.ID, "name": call.Name, "input": call.Args}}
+		}
+		w.Header().Set("Content-Type", "application/json")
+		json.NewEncoder(w).Encode(map[string]any{"id": "test", "type": "message", "role": "assistant", "model": "claude-sonnet-5", "content": parts, "stop_reason": "end_turn", "usage": map[string]int{"input_tokens": 1, "output_tokens": 1}})
+	}))
+	defer srv.Close()
+	host := newCLIHost()
+	e := llm.NewEngine(common.Config{Vendor: common.VendorAnthropic, Model: "claude-sonnet-5", BaseURL: srv.URL, APIKey: "test"}, "log.jsonl", jobs.NewJobs(host), tools.NewRegistry(), host)
+	actor := llm.NewActor(e, e.Host)
+	defer actor.Shutdown()
 	run := func(id, name, args string) string {
-		if err := e.Execute(common.ToolCallPart{CallID: id, Name: name, Args: json.RawMessage(args)}); err != nil {
+		prompt, err := json.Marshal(map[string]any{"id": id, "name": name, "args": json.RawMessage(args)})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := actor.Ask(string(prompt)); err != nil {
 			t.Fatalf("%s: %v", name, err)
 		}
-		last := e.Log.Events[len(e.Log.Events)-1]
-		if last.Type != common.ToolReturned || last.Tool == nil || len(last.Tool.Parts) != 1 {
-			t.Fatalf("%s: last event is not a one-part common.ToolReturned: %+v", name, last)
+		var last common.Event
+		count := 0
+		for _, ev := range e.Log.Events {
+			if ev.Type == common.ToolReturned && ev.Tool.CallID == id {
+				last = ev
+				count++
+			}
+		}
+		if count != 1 || last.Tool == nil || len(last.Tool.Parts) != 1 {
+			t.Fatalf("%s: expected one one-part ToolReturned, got count %d: %+v", name, count, last)
 		}
 		if last.Tool.IsError {
 			t.Fatalf("%s returned an error: %s", name, last.Tool.Parts[0].(common.TextPart).Text)

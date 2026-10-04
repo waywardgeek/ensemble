@@ -1,6 +1,7 @@
 package llm
 
-// The engine: one turn, start to finish.
+// The engine: vendor-independent single-request and execution primitives.
+// The actor owns turn setup and multi-round orchestration.
 //
 // Notice how little of it there is, and that none of it mentions a vendor.
 // Everything vendor-shaped was pushed into the renderer and the parser, which
@@ -63,6 +64,10 @@ type Engine struct {
 	// change takes effect at the next cut and never rewrites a past one.
 	Target func() int
 
+	// ToolRoundLimit reads runtime settings once per human turn.
+	// Nil uses Config.MaxToolRounds; zero selects DefaultToolRounds.
+	ToolRoundLimit func() int
+
 	// Memory is the store band events are built from: the one component
 	// that reads the memory directory. Nil disables the memory system
 	// entirely, which is what every chapter before this one wants.
@@ -101,10 +106,15 @@ type Engine struct {
 	// repeating every turn. The authoritative fact, which tools are
 	// withdrawn, lives in the log as a ToolsChanged event and survives a
 	// restart. This does not need to.
-	warned bool
+	warned     bool
+	requestCtx context.Context
 }
 
 func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools common.ToolRegistry, host common.Host) *Engine {
+	// Match the single-surface renderer's default in persisted provenance.
+	if cfg.Surface == 0 && (cfg.Vendor == common.VendorAnthropic || cfg.Vendor == common.VendorGemini) {
+		cfg.Surface = common.SurfaceForModel(cfg.Model, cfg.Vendor)
+	}
 	return &Engine{
 		Log:   NewLog(),
 		Ctx:   common.NewContext(),
@@ -164,14 +174,6 @@ func (e *Engine) Attach(text string) error {
 	}})
 }
 
-// Turn renders the current context, sends it, and folds the response back in.
-//
-// watch is the caller's half of the stream: set OnDelta to watch content
-// arrive and OnPartFinal to be told when a part is complete. Both are
-// optional, and a zero StreamCallbacks is the ordinary non-observing call.
-// The engine overwrites OnEvent and OnFrame with its own recording, because
-// the event log and the API log belong to it — there is deliberately no way
-// for a caller to intercept what gets logged.
 // requestCfg returns a copy of Cfg whose APIKey field holds a bearer
 // credential that is valid right now.
 //
@@ -224,7 +226,24 @@ func (e *Engine) requestCfg() (common.Config, error) {
 	return cfg, nil
 }
 
+// Turn renders the current context, sends it, and folds the response back in.
+//
+// watch is the caller's half of the stream: set OnDelta to watch content
+// arrive and OnPartFinal to be told when a part is complete. Both are
+// optional, and a zero StreamCallbacks is the ordinary non-observing call.
+// The engine overwrites OnEvent and OnFrame with its own recording, because
+// the event log and the API log belong to it — there is deliberately no way
+// for a caller to intercept what gets logged.
 func (e *Engine) Turn(watch common.StreamCallbacks) (string, error) {
+	return e.TurnContext(context.Background(), watch)
+}
+
+func (e *Engine) TurnContext(ctx context.Context, watch common.StreamCallbacks) (string, error) {
+	e.requestCtx = ctx
+	defer func() { e.requestCtx = nil }()
+	if err := ctx.Err(); err != nil {
+		return "", err
+	}
 	// Loud refusal: reject unknown models before doing anything else.
 	if _, known := common.LookupModel(e.Cfg.Model); !known {
 		err := fmt.Errorf("unknown model %q: not in the supported model table; refusing to proceed", e.Cfg.Model)
@@ -394,6 +413,9 @@ func (e *Engine) send(req *http.Request) (*http.Response, error) {
 		req.Body = io.NopCloser(strings.NewReader(string(reqBody)))
 	}
 
+	if e.requestCtx != nil {
+		req = req.WithContext(e.requestCtx)
+	}
 	resp, err := e.HTTP.Do(req)
 	if err != nil {
 		return nil, err
@@ -405,101 +427,6 @@ func (e *Engine) send(req *http.Request) (*http.Response, error) {
 	e.Host.APILogf("<<< %d %s", resp.StatusCode, resp.Header.Get("Content-Type"))
 
 	return resp, nil
-}
-
-// MaxToolRounds bounds how many times one prompt may bounce through tools.
-//
-// This is a loop bound, not a timeout: nothing here is cancelled and nothing
-// runs concurrently. It exists because a model that keeps asking forever, or a
-// tool that keeps producing an error the model keeps retrying, should stop
-// being funny at some point and hand control back to the human.
-const MaxToolRounds = 16
-
-// Ask is the loop of the chapter: say it, send it, run whatever the model
-// asked for, send the results back, and keep going until it stops asking.
-//
-// The thing that surprises people is step 5. A tool call is not the end of a
-// turn, it is the middle of one. The turn ends when the model replies without
-// asking for anything.
-func (e *Engine) Ask(text string) (string, error) {
-	return e.AskWatching(text, common.StreamCallbacks{})
-}
-
-// AskWatching is Ask with a caller-supplied view of the stream.
-//
-// A separate method rather than a parameter on Ask, because Ask is the
-// signature every chapter before this one calls and the exercises still do.
-// Adding a parameter would have made this chapter's change reach backwards
-// into code that has nothing to do with streaming.
-func (e *Engine) AskWatching(text string, watch common.StreamCallbacks) (string, error) {
-	if err := e.Say(text); err != nil {
-		return "", err
-	}
-
-	// Recall runs AFTER the user's message has landed and BEFORE the model is
-	// asked anything. Both halves of that sentence are load-bearing.
-	//
-	// After, because the retrieved material is a response to what was just
-	// said, and an entry that landed first would read as context the user was
-	// replying to rather than context fetched on their behalf.
-	//
-	// Before, because the whole point is that the model sees the material on
-	// the turn where it is relevant. Attaching it afterwards would be an
-	// elaborate way of answering the previous question.
-	e.attachRecall(text)
-
-	// "turn" ephemeral tools are called once when the turn starts.
-	if err := e.CallEphemeral("turn"); err != nil {
-		return "", err
-	}
-
-	var reply string
-	for round := 0; ; round++ {
-		// "round" ephemeral tools are called before every round.
-		if err := e.CallEphemeral("round"); err != nil {
-			return "", err
-		}
-
-		var err error
-		reply, err = e.Turn(watch)
-		if err != nil {
-			return "", err
-		}
-
-		// DISPATCH ON BLOCK TYPE. This is where Chapter 1's deferred type
-		// filter finally bites: the model's reply is a LIST of typed parts,
-		// and one message can carry both prose and a request to run something.
-		// An implementation that walks the list looking only at text never
-		// sees the call, reports the prose, and silently does nothing.
-		calls := e.PendingCalls()
-		if len(calls) == 0 {
-			break
-		}
-
-		if round >= MaxToolRounds {
-			if err := e.Record(common.Event{Type: common.ErrorOccurred, Error: &common.ErrorData{
-				Message: fmt.Sprintf("stopped after %d rounds of tool calls", MaxToolRounds),
-			}}); err != nil {
-				return "", err
-			}
-			break
-		}
-
-		// SEQUENTIALLY, in the order the model asked for them. This is a
-		// choice, not an oversight. Ordering is observable to the model, and a
-		// shell command that changes the working tree changes what the next
-		// tool sees.
-		for _, call := range calls {
-			if err := e.Execute(call); err != nil {
-				return "", err
-			}
-		}
-	}
-
-	if err := e.Save(); err != nil {
-		return "", err
-	}
-	return reply, nil
 }
 
 // PendingCalls returns the tool calls that have been asked for and not yet
@@ -528,146 +455,6 @@ func (e *Engine) PendingCalls() []common.ToolCallPart {
 		}
 	}
 	return out
-}
-
-// Execute runs one tool call and records its result.
-//
-// EVERY call records a common.ToolReturned event, including the ones that fail. A
-// failure is a RESULT, not an absence: the model asked a question and the
-// answer is "that did not work, here is why". Dropping the result instead —
-// or panicking, or ending the turn — leaves the model waiting for an answer to
-// a question it can see it asked, and is the single most common way an agent
-// locks up.
-//
-// THIS IS THE DISPATCH SITE, and the job model lives here and nowhere else.
-// Before the tool runs it has a handle, an output file and a status; the tool
-// runs on its own goroutine; and this goroutine waits on the JOB — until it
-// is done, or the delay passes, or the pattern appears — rather than in the
-// tool. Compare Chapter 3's version: the handler ran right here, and if it
-// never came back, neither did the agent. Nothing about any of the six tools
-// made that so. This function did.
-//
-// The supervision tools and tool_limits are the exception, marked NoJob: they
-// act on jobs rather than being jobs, and they run inline.
-func (e *Engine) Execute(call common.ToolCallPart) error {
-	// common.Limits are resolved BEFORE the common.ToolCalled record, so that a pending
-	// tool_limits is consumed by this call whether or not the tool exists.
-	// A bad pattern is a tool error like any other: reported, not fatal.
-	limits, fromPending, limErr := e.Jobs.Take(call.Args)
-
-	tool, err := e.Tools.Lookup(call.Name)
-	if err == nil {
-		err = limErr
-	}
-	if err != nil || tool.NoJob {
-		// The dispatch record: the agent decided to run this. It carries no
-		// dialogue content of its own — the model already knows it asked.
-		if err := e.Record(common.Event{Type: common.ToolCalled, Tool: &common.ToolData{
-			CallID: call.CallID, Name: call.Name, Args: call.Args,
-		}}); err != nil {
-			return err
-		}
-		c := &common.Call{Host: e.Host, Jobs: e.Jobs, Limits: limits}
-		var out string
-		if err == nil {
-			out, err = tool.Run(c, call.Args)
-		}
-		isError := false
-		if err != nil {
-			isError, out = true, err.Error()
-		}
-		if fromPending {
-			out = pendingNote(call.Name, limits) + out
-		}
-		if err := e.Record(common.Event{Type: common.ToolReturned, Tool: &common.ToolData{
-			CallID: call.CallID, Name: call.Name, Args: call.Args,
-			Parts: common.PartList{common.TextPart{Text: out}}, IsError: isError,
-		}}); err != nil {
-			return err
-		}
-		for _, ev := range c.Events {
-			if err := e.Record(ev); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-
-	// The handle is allocated here, for every tool, before the dispatcher
-	// knows anything about what the tool will do. read_file gets one. A
-	// read_file on an NFS mount that has gone away hangs exactly as well as
-	// a shell command does.
-	job, err := e.Jobs.Start(call.Name, call.CallID)
-	if err != nil {
-		return err
-	}
-	if err := e.Record(common.Event{Type: common.ToolCalled, Tool: &common.ToolData{
-		CallID: call.CallID, Name: call.Name, Args: call.Args, Job: job.Data(),
-	}}); err != nil {
-		return err
-	}
-
-	// The tool runs on its own goroutine and reports into the job. There is
-	// no recover here: a panic in a tool is an invariant violation, and an
-	// invariant violation takes the process down loudly, as it should.
-	c := &common.Call{Host: e.Host, Job: job, Jobs: e.Jobs, Limits: limits}
-	go func() {
-		out, err := tool.Run(c, call.Args)
-		// DeferFinish: the tool spawned a background goroutine that will
-		// call Finish itself (e.g. an interactive PTY reader). Skip it
-		// here so the job stays Running and Wait honours the delay/pattern.
-		if !c.DeferFinish {
-			job.Finish(out, err)
-		}
-	}()
-
-	// The wait is on the job, not the tool. If the tool never returns, this
-	// returns anyway, with a handle, and the model decides what happens next.
-	reason := job.Wait(limits)
-	out := job.Report(reason, limits)
-	if fromPending {
-		out = pendingNote(call.Name, limits) + out
-	}
-	isError := job.Status() == common.StatusDone && job.Err() != nil
-
-	return e.Record(common.Event{Type: common.ToolReturned, Tool: &common.ToolData{
-		CallID:  call.CallID,
-		Name:    call.Name,
-		Args:    call.Args,
-		Parts:   common.PartList{common.TextPart{Text: out}},
-		IsError: isError,
-		Job:     job.Data(),
-	}})
-}
-
-// pendingNote heads the report of whichever call consumed a pending
-// tool_limits. The limits are one-shot and land on the next call whatever it
-// is. That is the design, and the footgun in it is that landing on the wrong
-// call used to be silent: the model saw a truncated build two calls later
-// with no cause in sight. This line puts the cause in the very result it
-// produced. Loud, not different.
-func pendingNote(tool string, l common.Limits) string {
-	return fmt.Sprintf("[tool_limits consumed by this %s call: %s]\n", tool, l)
-}
-
-// Shutdown ends every job that is still running, and says so in the log.
-//
-// This is what happens to a job nobody killed when the agent exits: it is
-// killed then, by the agent, deliberately, with a record. The alternative —
-// letting it outlive the process that started it — leaves the human with a
-// process they cannot find from any transcript.
-func (e *Engine) Shutdown() error {
-	for _, j := range e.Jobs.Running() {
-		if !j.Kill("shutdown") {
-			continue
-		}
-		data := j.Data()
-		data.Reason = "shutdown"
-		if err := e.Record(common.Event{Type: common.JobKilled, Job: data}); err != nil {
-			return err
-		}
-	}
-	return e.Save()
 }
 
 func (e *Engine) Save() error { return SaveLogFile(e.Log, e.Path) }
