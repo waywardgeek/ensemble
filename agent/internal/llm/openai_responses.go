@@ -39,6 +39,8 @@ package llm
 // the breakpoints can go.
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -73,6 +75,7 @@ type respRequest struct {
 	Include         []string       `json:"include,omitempty"`
 	Reasoning       *respReasoning `json:"reasoning,omitempty"`
 	MaxOutputTokens int            `json:"max_output_tokens,omitempty"`
+	PromptCacheKey  string         `json:"prompt_cache_key,omitempty"`
 
 	// Declaring explicit mode with nothing marked turns caching OFF, so this
 	// is set from EVIDENCE that a breakpoint attached, never from the
@@ -360,9 +363,18 @@ func (responsesSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 	}
 
 	body := respRequest{
-		Model:     cfg.Model,
-		Input:     items,
-		Tools:     tools,
+		Model: cfg.Model,
+		Input: items,
+		Tools: tools,
+		// Store must be false, and this is not a preference. The ChatGPT plan
+		// route rejects the request outright with {"detail":"Store must be set
+		// to false"} if it is true, so the literal is load-bearing. Measured
+		// 2026-10-04 by flipping it and reading the 400.
+		//
+		// A consequence worth knowing when chasing prompt-cache misses: because
+		// nothing is stored server side, every request must carry the whole
+		// conversation, so the cacheable prefix is the only thing standing
+		// between this agent and paying full price for the history on each turn.
 		Store:     false,
 		Stream:    common.StreamingFor(cfg) != 0,
 		Include:   include,
@@ -388,6 +400,35 @@ func (responsesSeam) Render(c *common.Context, cfg common.Config) (*http.Request
 
 	if marked {
 		body.PromptCacheOptions = &respCacheOptions{Mode: "explicit"}
+	}
+
+	// OpenAI serves a cached prefix from one machine, and a prefix cached on
+	// one machine is invisible to the others. prompt_cache_key is the
+	// documented handle on that routing: requests carrying the same key are
+	// steered to the same place.
+	//
+	// Honest accounting of what this is worth. The published guidance says
+	// GPT-5.6 and later route automatically and do not need the key, and a
+	// measured run on the ChatGPT plan route agreed: adding it changed
+	// nothing, because that route wrote no cache at all until a request
+	// crossed roughly twenty thousand tokens, and below that a prefix held
+	// stable to 99% still returned zero. So this is not the fix for a cold
+	// cache, and anyone arriving here hunting one should look at the route
+	// and the request size first.
+	//
+	// It is sent anyway because the vendor's own client sends it, the field
+	// is free, and it is the only documented lever on cache routing we have
+	// if a future route or an API key reaches a multi-machine pool.
+	//
+	// The key is derived from the frozen prefix rather than from a session
+	// id, which is the part worth preserving. Two runs of the same agent
+	// share tools and a constitution, so they should share a machine, and
+	// deriving the key from that content makes it true across restarts with
+	// nothing to persist and nothing to expire. A prefix that genuinely
+	// changes mints a new key, which is correct rather than unfortunate: the
+	// old machine holds nothing worth reaching for.
+	if !cfg.Route.Forbids("prompt_cache_key") {
+		body.PromptCacheKey = respCacheKey(body.Model, tools, items)
 	}
 
 	return newJSONRequest("POST", cfg.BaseURL+"/v1/responses",
@@ -774,4 +815,28 @@ func orderedItems(done map[int]json.RawMessage) []json.RawMessage {
 		out = append(out, done[i])
 	}
 	return out
+}
+
+// respCacheKey fingerprints the part of a request that is meant never to
+// change: the model, the tool declarations, and the leading system block.
+//
+// It deliberately excludes the conversation. Including it would mint a fresh
+// key on every turn, steering each request to a different machine and so
+// guaranteeing the miss the key exists to prevent. The failure would be
+// silent, which is the reason this is a named function with a comment rather
+// than an expression inlined at the call site.
+func respCacheKey(model string, tools []respTool, items []respItem) string {
+	h := sha256.New()
+	h.Write([]byte(model))
+	if b, err := json.Marshal(tools); err == nil {
+		h.Write(b)
+	}
+	// Only the first item: on this route that is the developer block holding
+	// the constitution, because top-level instructions are uncacheable here.
+	if len(items) > 0 {
+		if b, err := json.Marshal(items[0]); err == nil {
+			h.Write(b)
+		}
+	}
+	return "en-" + hex.EncodeToString(h.Sum(nil))[:32]
 }
