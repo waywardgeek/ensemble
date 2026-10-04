@@ -167,6 +167,20 @@ func (l *Lens) ObserveUsage(u common.Usage) {
 		return
 	}
 
+	// A rewrite below the top of the dialogue is ours, and it is the expensive
+	// one: it reads as ordinary growth in every other instrument, because the
+	// request did get bigger. Only the byte comparison shows that the growth
+	// happened under the existing history rather than after it.
+	if d.DialogueRewritten {
+		l.report(fmt.Sprintf(
+			"cachelens: DIALOGUE REWRITTEN — history changed at +%d, not appended. "+
+				"Everything after that byte is uncacheable even though it is unchanged. "+
+				"Expected after a micro_handoff, redaction or a restore; unexplained "+
+				"otherwise. Run: diff %s %s",
+			d.RewriteOffset, l.priorPath(), l.requestPath()))
+		return
+	}
+
 	const gapThreshold = 0.20
 	if possible-actual <= gapThreshold {
 		return

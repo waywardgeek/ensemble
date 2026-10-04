@@ -316,3 +316,68 @@ func TestGeminiDialogueIsNotPrefixInstability(t *testing.T) {
 		t.Error("DialogueChanged is false, yet the conversation grew; the change has to be attributed somewhere or it is silently lost")
 	}
 }
+
+func TestRetroactiveReasoningItemIsARewriteNotGrowth(t *testing.T) {
+	// The shape here is copied from a real session that burned ~6.4M
+	// uncached input tokens in one morning.
+	//
+	// A turn was sent containing a function_call. On the next request the
+	// same turn came back with an encrypted reasoning item inserted BEFORE
+	// that function_call. Nothing was deleted and the request was bigger
+	// than the one before it, so by every coarse measure the conversation
+	// had simply grown. It had not: ~87% of the prefix stopped matching,
+	// and every byte after the insertion was re-billed at full price.
+	//
+	// The insertion is in the middle of the array rather than at the end,
+	// which is the whole difference. An append leaves earlier bytes alone.
+	prior := sect("tools", `[{"name":"read"}]`, "system", `"be helpful"`,
+		"messages", `[{"role":"user","content":"hi"},`+
+			`{"type":"function_call","call_id":"call_1","name":"read"}]`)
+	current := sect("tools", `[{"name":"read"}]`, "system", `"be helpful"`,
+		"messages", `[{"role":"user","content":"hi"},`+
+			`{"type":"reasoning","id":"rs_1","encrypted_content":"gAAAAAB"},`+
+			`{"type":"function_call","call_id":"call_1","name":"read"}]`)
+
+	d := Compare(prior, current)
+
+	if !d.DialogueRewritten {
+		t.Error("DialogueRewritten = false; an item inserted before an " +
+			"already-sent function_call rewrote history and must be flagged")
+	}
+	if d.RewriteOffset <= 0 {
+		t.Errorf("RewriteOffset = %d, want >0 — the offset is the only thing "+
+			"that says how much of the prefix survived", d.RewriteOffset)
+	}
+	// The sections above the dialogue were untouched, so this must not be
+	// reported as general instability: that would send the reader hunting
+	// through the system prompt for a fault that is in the message history.
+	if d.Unstable != "" {
+		t.Errorf("Unstable = %q, want empty — only the dialogue changed", d.Unstable)
+	}
+}
+
+func TestAppendingATurnIsNotReportedAsARewrite(t *testing.T) {
+	// The companion to the test above, and the one that keeps the alarm
+	// worth listening to. Appending happens on every single turn. If it
+	// tripped the rewrite alarm the alarm would fire constantly and be
+	// muted within a day, which is how an instrument stops being read.
+	prior := sect("tools", `[{"name":"read"}]`, "system", `"be helpful"`,
+		"messages", `[{"role":"user","content":"hi"}]`)
+	current := sect("tools", `[{"name":"read"}]`, "system", `"be helpful"`,
+		"messages", `[{"role":"user","content":"hi"},{"role":"assistant","content":"yo"}]`)
+
+	d := Compare(prior, current)
+
+	if d.DialogueRewritten {
+		t.Error("DialogueRewritten = true for a plain append; the alarm " +
+			"fires every turn and will be ignored")
+	}
+
+	// Both cases set DialogueChanged, which is why a new field was needed.
+	// Asserting it here pins down what the old signal could and could not
+	// distinguish, so this does not silently become a duplicate flag.
+	if !d.DialogueChanged {
+		t.Error("DialogueChanged = false for an append; precondition of this " +
+			"test is wrong, so it no longer proves the two are distinguishable")
+	}
+}

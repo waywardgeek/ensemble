@@ -17,8 +17,12 @@ const (
 	// StatusTruncated: the section shrank but kept its prefix. Expected after a
 	// compaction or a reset.
 	StatusTruncated = "truncated"
-	// StatusEdited: bytes changed in place. Harmless in the dialogue, a bug
-	// anywhere above it, because it voids the cache for everything after.
+	// StatusEdited: bytes changed in place. A fault wherever it appears,
+	// including in the dialogue, because it voids the cache for everything
+	// after the edit. In the dialogue it means a turn already sent came back
+	// different — history was rewritten under the cache rather than extended.
+	// Do not read this as the ordinary cost of a longer conversation: that is
+	// StatusAppended, and it is free.
 	StatusEdited = "edited"
 )
 
@@ -62,6 +66,24 @@ type Divergence struct {
 	// healthy case and must never raise an alarm, because it happens on every
 	// single turn.
 	DialogueChanged bool
+
+	// DialogueRewritten separates the two ways a dialogue can change, which
+	// the byte counts cannot tell apart because both make the request bigger.
+	//
+	// Growth appends a turn and leaves every earlier byte where it was, so the
+	// cache entry from last turn still matches and the new turn is the only
+	// part paid for. A rewrite edits something BELOW the top — a reasoning item
+	// attached to a turn already sent, a tool result moved, history rebuilt on
+	// restore — and every byte after the edit misses, however old it is.
+	//
+	// This is worth an alarm where growth is not. Growth happens every turn; a
+	// rewrite means content that was supposed to be settled moved, and it is
+	// silent otherwise: the conversation still looks like it only got longer.
+	DialogueRewritten bool
+
+	// RewriteOffset is the byte at which the dialogue stopped matching. Bytes
+	// before it still cache; bytes after it do not.
+	RewriteOffset int
 
 	// Breakpoints counts the cache_control markers in the current request.
 	// The comparison above is deliberately blind to markers, so this is the
@@ -177,6 +199,16 @@ func Compare(prior, current Sections) Divergence {
 			allIdentical = false
 			if name == dialogue {
 				d.DialogueChanged = true
+				// StatusAppended means the prior dialogue survives whole as a
+				// prefix, so this turn only added to the end. StatusEdited means
+				// it does not: the conversation changed below the top.
+				// StatusTruncated is deliberately not flagged here — a shrink is
+				// what micro_handoff and reset do on purpose, and it keeps its
+				// prefix, so it costs a partial miss rather than a total one.
+				if sd.Status == StatusEdited {
+					d.DialogueRewritten = true
+					d.RewriteOffset = sd.PrefixBytes
+				}
 			} else if d.Unstable == "" {
 				// A section other than the dialogue changed. Record the first
 				// one; later ones are downstream of it and not independently

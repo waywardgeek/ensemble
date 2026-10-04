@@ -95,14 +95,34 @@ func Split(model string, body []byte) (Sections, error) {
 
 	// Which section holds the conversation, decided from the body's own shape
 	// rather than from a vendor table. Gemini calls it "contents"; Anthropic
-	// and OpenAI both call it "messages". Reading it off the request keeps the
-	// knowledge in one place and means a body speaks for itself.
+	// and OpenAI Chat Completions call it "messages"; the OpenAI Responses API
+	// calls it "input". Reading it off the request keeps the knowledge in one
+	// place and means a body speaks for itself.
+	//
+	// Getting this wrong is not a cosmetic mislabelling. Everything above the
+	// dialogue is supposed to be frozen, so an unrecognised conversation key
+	// is read as a frozen section that changes on every turn, and the lens
+	// reports PREFIX DIVERGED for an ordinary append. That happened: the
+	// Responses API shipped without "input" here and the lens cried wolf on
+	// every single request, so a session that really was losing its prefix
+	// looked exactly like all the others and nobody read the alarm.
 	dialogue := "messages"
-	if _, ok := raw["contents"]; ok {
+	switch {
+	case hasKey(raw, "contents"):
 		dialogue = "contents"
+	case hasKey(raw, "input"):
+		dialogue = "input"
 	}
 
 	return Sections{Order: order, Raw: raw, Dialogue: dialogue}, nil
+}
+
+// hasKey reports whether the body carries a top-level key. It exists so the
+// dialogue decision above reads as a list of names rather than a stack of
+// two-value type assertions.
+func hasKey(raw map[string]json.RawMessage, k string) bool {
+	_, ok := raw[k]
+	return ok
 }
 
 // Canonical renders sections as the byte sequence used for prefix comparison:
