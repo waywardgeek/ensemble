@@ -1,0 +1,79 @@
+#!/bin/sh
+#
+# Refuse a commit that carries a live credential.
+#
+# This repository is public, and published keys are found by scanners in
+# minutes rather than days. A key that reaches a public commit must be treated
+# as burned even if the commit is amended seconds later, because the push, the
+# fork, and the scraper all happen before the correction does. The cheapest
+# place to stop that is before the object is written at all.
+#
+# The hook reads STAGED content, not the working tree. What is about to be
+# recorded is the only thing that matters here: an unstaged key is a local
+# file, while a staged one is a publication.
+#
+# Install:
+#   git config core.hooksPath .githooks
+#
+# Deliberate non-goal: this does not scan history. Once a secret is committed
+# the remedy is rotation, not a rewrite, so a history scanner would mostly
+# produce work that does not reduce exposure.
+
+set -eu
+
+# Names that should never be committed whatever their contents, because they
+# are credential stores by purpose rather than by accident.
+forbidden_names='(^|/)(settings\.json|credentials\.json|auth\.json|\.env|\.en/settings\.json)$'
+
+# Shapes of real keys. These are deliberately tight: each requires the vendor
+# prefix AND a long random tail, so that a short placeholder does not match.
+# A loose pattern here would fire on every commit, and an alarm that always
+# fires is one nobody reads, which is the same as having none.
+key_shapes='sk-ant-api[0-9]{2}-[A-Za-z0-9_-]{80,}|sk-proj-[A-Za-z0-9_-]{40,}|sk-[A-Za-z0-9]{48,}|AIza[0-9A-Za-z_-]{35}|gh[pousr]_[A-Za-z0-9]{36,}|eyJ[A-Za-z0-9_-]{30,}\.[A-Za-z0-9_-]{30,}\.[A-Za-z0-9_-]{20,}'
+
+# Markers that identify a fixture. Real keys are random base62 and will not
+# contain an English word, so excluding these costs no real coverage while
+# keeping the hook silent on the test vendors this repo ships. Extend this
+# list rather than loosening the shapes above.
+fixture_markers='test|fake|dummy|example|placeholder|course|hardcoded|sample|redacted|xxxx|0000'
+
+fail=0
+
+# 1. Forbidden filenames.
+names=$(git diff --cached --name-only --diff-filter=ACM | grep -nE "$forbidden_names" || true)
+if [ -n "$names" ]; then
+	echo "pre-commit: refusing to commit a credential file:"
+	echo "$names" | sed 's/^/  /'
+	echo "  These hold live keys. Add them to .gitignore instead."
+	fail=1
+fi
+
+# 2. Key-shaped strings in staged content.
+#
+# --unified=0 keeps the context lines out, so an existing key sitting near an
+# edit does not get reported as though this commit introduced it.
+hits=$(git diff --cached --unified=0 --diff-filter=ACM |
+	grep '^+' |
+	grep -vE "^\+\+\+" |
+	grep -oE "$key_shapes" |
+	grep -viE "$fixture_markers" |
+	sort -u || true)
+
+if [ -n "$hits" ]; then
+	echo "pre-commit: refusing to commit what looks like a live credential."
+	echo "  Matched (first 12 characters only):"
+	echo "$hits" | cut -c1-12 | sed 's/^/    /'
+	echo
+	echo "  If this is a fixture, give it a name containing one of:"
+	echo "    $fixture_markers"
+	echo "  If it is real, rotate it: assume anything staged here is public."
+	fail=1
+fi
+
+if [ "$fail" -ne 0 ]; then
+	echo
+	echo "  Override only if you are certain:  git commit --no-verify"
+	exit 1
+fi
+
+exit 0
