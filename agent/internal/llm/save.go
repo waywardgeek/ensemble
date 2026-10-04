@@ -152,6 +152,8 @@ func (sf *SaveFile) Restore(diag func(error)) *common.Context {
 	ctx, after := sf.Context, sf.AsOf
 	if ctx == nil {
 		ctx, after = common.NewContext(), 0
+	} else {
+		repairLateResults(ctx, sf.Log, after, diag)
 	}
 	for _, e := range sf.Log {
 		if e.Seq <= after {

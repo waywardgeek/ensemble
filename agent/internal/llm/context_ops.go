@@ -83,9 +83,10 @@ func Apply(c *common.Context, e common.Event) error {
 		if e.Tool == nil {
 			return fmt.Errorf("seq %d: tool_returned with no tool payload", e.Seq)
 		}
-		c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Actor: common.ActorTool, Kind: common.KindDialogue, Parts: common.PartList{
-			common.ToolResultPart{CallID: e.Tool.CallID, Parts: e.Tool.Parts, IsError: e.Tool.IsError},
-		}})
+		result := common.ToolResultPart{CallID: e.Tool.CallID, Parts: e.Tool.Parts, IsError: e.Tool.IsError}
+		if !replaceLostResult(c, e.Seq, result) {
+			c.Dialogue = append(c.Dialogue, common.Entry{Seq: e.Seq, Actor: common.ActorTool, Kind: common.KindDialogue, Parts: common.PartList{result}})
+		}
 		if c.Turn == common.ToolsPending && outstandingCalls(c) == 0 {
 			c.Turn = common.InputPending
 		}
@@ -317,8 +318,12 @@ func outstandingCalls(c *common.Context) int {
 // afterwards then sits between the call and the end of the dialogue, so a
 // result appended there answers nothing and the request is still refused.
 func insertStandingResult(c *common.Context, seq common.Seq, tool common.ToolData) error {
+	// A delayed or repeated loss event cannot supersede an existing answer.
+	if findResultIndex(c, tool.CallID) >= 0 {
+		return nil
+	}
 	entry := common.Entry{Seq: seq, Actor: common.ActorTool, Kind: common.KindDialogue, Parts: common.PartList{
-		common.ToolResultPart{CallID: tool.CallID, Parts: tool.Parts, IsError: true},
+		common.ToolResultPart{CallID: tool.CallID, Parts: tool.Parts, IsError: true, Lost: true},
 	}}
 
 	at := -1

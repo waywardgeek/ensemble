@@ -138,6 +138,7 @@ type ToolResultPart struct {
 	CallID  string
 	Parts   []Part
 	IsError bool // a tool that ran and failed is CONTENT, not ErrorOccurred
+	Lost    bool // synthetic unknown outcome; a late real result supersedes it
 }
 
 // ToolDeclPart carries a change to the tool declarations, made mid-session.
@@ -198,6 +199,7 @@ type partJSON struct {
 	Opaque  json.RawMessage `json:"opaque,omitempty"`
 	Parts   PartList        `json:"parts,omitempty"`
 	IsError bool            `json:"is_error,omitempty"`
+	Lost    bool            `json:"lost,omitempty"`
 	Added   []ToolDecl      `json:"added,omitempty"`
 	Removed []string        `json:"removed,omitempty"`
 }
@@ -234,7 +236,7 @@ func (p PartList) MarshalJSON() ([]byte, error) {
 			from := v.From
 			w = partJSON{Type: "tool_call", CallID: v.CallID, From: &from, Name: v.Name, Args: v.Args, Opaque: v.Opaque}
 		case ToolResultPart:
-			w = partJSON{Type: "tool_result", CallID: v.CallID, Parts: PartList(v.Parts), IsError: v.IsError}
+			w = partJSON{Type: "tool_result", CallID: v.CallID, Parts: PartList(v.Parts), IsError: v.IsError, Lost: v.Lost}
 		case ToolDeclPart:
 			w = partJSON{Type: "tool_decls", Added: v.Added, Removed: v.Removed}
 		default:
@@ -295,7 +297,7 @@ func (p *PartList) UnmarshalJSON(b []byte) error {
 			}
 			list = append(list, ToolCallPart{CallID: w.CallID, From: from, Name: w.Name, Args: w.Args, Opaque: w.Opaque})
 		case "toolresult":
-			list = append(list, ToolResultPart{CallID: w.CallID, Parts: w.Parts, IsError: w.IsError})
+			list = append(list, ToolResultPart{CallID: w.CallID, Parts: w.Parts, IsError: w.IsError, Lost: w.Lost})
 		case "tooldecls":
 			list = append(list, ToolDeclPart{Added: w.Added, Removed: w.Removed})
 		default:
