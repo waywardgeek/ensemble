@@ -610,7 +610,7 @@ that is Chapter 4. No mailbox, hints, or interrupts; Chapter 5. No permission
 boundary between the read-only tools and the rest, although §3.4 has told you
 where it will go. Six tools, one loop, sixteen rounds.
 
-## 3.9 Drive it yourself
+## 3.8 Drive it yourself
 
 Ungraded. Do it anyway. This is the chapter where the thing stops being a
 correspondent and starts being a participant.
