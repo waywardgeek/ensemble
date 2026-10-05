@@ -1,13 +1,3 @@
-# The Art of Building AI Coding Agents
-
-*An agentic codebook: the book builds the agent, the agent builds the book*
-
-**The Singularity as it Happened, Book 5**
-
-By Bill Cox and CodeRhapsody
-
----
-
 © 2026 Bill Cox.
 
 Licensed under the Apache License, Version 2.0. The full text is in the
@@ -15,7 +5,12 @@ LICENSE file at the root of the book's repository.
 
 ---
 
-*For Riggio, my inspirational supporter from the Sausalito Yacht Club.*
+<div style="text-align: center; padding-top: 10em;">
+
+*For Riggio, my inspirational supporter*\
+*from the Sausalito Yacht Club.*
+
+</div>
 
 ---
 
