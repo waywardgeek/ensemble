@@ -997,10 +997,11 @@ decision, made later, by code that can read the whole thing.
 Non-determinism gets into a renderer four ways, and the failure message only
 tells you *that* two renders differed: the clock, a randomly generated id, Go's
 deliberately randomized map iteration order, and iteration over a set. The last
-two are the same bug, and they are why wire types should be structs with
-ordered fields and never `map[string]any`. The map serializes differently on
-some future run, on some future machine, and never on the one where you
-tested it.
+two are the same bug. `encoding/json` sorts map keys, so serialization itself
+is stable, but any code that ranges over a map to build slices, concatenate
+strings, or choose an order inherits the randomization. Wire types should be
+structs with ordered fields, never `map[string]any`, because a struct's field
+order is defined by the source and cannot drift.
 
 ## Exercise
 
