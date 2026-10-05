@@ -55,9 +55,10 @@ The client-side layout, theming, agent tree, and TTS settings are not
 graded. The grader runs Go. You know the client works because you can
 see it.
 
-Three obligations survive the absence of a grader. Each one shipped
+Four obligations survive the absence of a grader. The first three shipped
 broken in this book's own reference implementation and stayed broken
-until Chapter 13 drove the GUI with a second agent.
+until Chapter 13 drove the GUI with a second agent. The fourth survived
+until the single-loop retirement audit.
 
 **Validate where the value enters.** A settings field arriving over the
 wire is untrusted input. Clamp it in the apply path and again on the
@@ -75,6 +76,16 @@ a boolean as false, so TTS can never be turned off from the server.
 **Put control state in an attribute, not a CSS class.** A class styles a
 toggle and tells a screen reader nothing, and an automated observer
 reads the same nothing.
+
+**Prove that a setting changes behavior.** Persistence and broadcast can
+both work while the execution path ignores the value. `max_tool_rounds`
+did exactly that: two orchestration loops read a hard-coded limit of 16
+while the GUI faithfully saved 200. Chapter 6 now has one owner and one
+policy: zero selects the named default of 200; positive N permits N tool
+batches per human turn. Read the setting at turn start so an update takes
+effect on the next turn, not halfway through the current one. Test both a
+small saved limit that stops execution and a large one that permits more
+than 16 batches, through the actual entry point and across a restart.
 
 ## The Why
 

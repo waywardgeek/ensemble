@@ -19,13 +19,16 @@ Send a hint and it arrives one round too late. Run two agents at once
 and the second one blocks until the first is done. The package
 structure is right and the engine is deaf.
 
-This chapter fixes the deafness. Three additions, no existing code
-removed: an outbound seam so the framework tells the world what
+This chapter fixes the deafness. Three additions and one retirement:
+an outbound seam so the framework tells the world what
 happened instead of the world reaching in to ask; an inbound queue so
 prompts, hints, tool completions, and interrupts enter through one
 door; and a loop between them that drains the queue and notifies
-observers on every event. A framework is two seams and a loop. By
-the end, the same core runs a three-agent workflow where each agent
+observers on every event. Retire the old synchronous orchestration loop;
+keep its public API as an adapter to the actor. Two loops over one engine
+are two owners of mutable state, not backward compatibility.
+A framework is two seams and a loop. By the end, the same core runs
+a three-agent workflow where each agent
 has its own tools, its own prompt, and its own observers, and a hint
 mid-tool-call arrives before the tool finishes.
 
@@ -107,8 +110,11 @@ mailbox has a message, the loop drains it:
 - `Interrupt`: set state to `Interrupted`, stop processing.
 
 The synchronous `Ask(text) (string, error)` still exists. It posts a
-`UserMessage` and waits for the turn to end. Callers that do not need
-blocking use `Post` directly and watch through an observer.
+request with its own buffered reply channel and waits for that request's
+text or error. Concurrent blocking requests queue as separate turns;
+they are not hints for the active turn. Callers that do not need blocking
+use `Post` directly and watch through an observer. One agent owns one
+actor, whether a caller uses the blocking or non-blocking API.
 
 **The Wait primitive.**
 
@@ -118,9 +124,11 @@ func (a *Actor) Wait(ctx context.Context,
 ```
 
 Blocks until an observation satisfies `pred` or the context cancels.
-Every higher-level operation derives from this: blocking send is
-`Post` plus `Wait` for idle; waiting for two agents is `Wait` on
-whichever fires first.
+Use it for observing progress, not acknowledging a blocking request.
+The observation stream is bounded and may drop events; waiters can also
+consume one another's events. Neither an idle notification nor shared
+last-text state identifies which request completed. Request replies are
+reliable control messages, separate from this non-blocking observation seam.
 
 **Ref and ModelFeatures.** `BlobPart` gains a `Ref` instead of a bare
 path string:
@@ -247,15 +255,16 @@ arrives, drains the queue, and processes each message in order. After
 processing, it notifies observers. The loop is the smallest possible
 concurrency primitive: one goroutine, one queue, one notify step. It
 replaces the synchronous for-loop from Chapter 4 with something that
-can hear, without introducing locks on any shared state. The only
-lock is inside the mailbox itself.
+can hear. The mailbox synchronizes delivery; the job subsystem synchronizes
+worker state. Neither gives workers permission to mutate the conversation.
 
 These three pieces are independent additions to the star topology
 from Chapter 5. The observer interface and the mailbox message types
 go into `internal/common/` as two new interfaces in the hub. The
 mailbox implementation goes into a new spoke or an existing one. The
-actor loop replaces the engine's synchronous ask, and no existing
-spoke changes its contract.
+actor loop replaces the engine's synchronous ask while preserving the public
+blocking API. Internal orchestration helpers are retired, not retained as a
+second execution path.
 
 ## §6.2 The framework that imported its own GUI
 
@@ -536,33 +545,57 @@ engine.
 ### Ask, rebuilt
 
 The synchronous `Ask(text) (string, error)` from Chapter 4 still
-works. Its implementation changes:
+works. It delegates to the agent's owned actor:
 
 ```go
 func (a *Agent) Ask(text string) (string, error) {
-    a.Post(Prompt{Text: text})
-    obs, err := a.Wait(context.Background(), func(o Observation) bool {
-        sc, ok := o.(StateChanged)
-        return ok && sc.To == Idle
-    })
-    if err != nil {
-        return "", err
-    }
-    return a.LastText(), nil
+    return a.actor.Ask(text)
 }
 ```
 
-Post the prompt. Wait for the state to reach `Idle`. Return the last
-agent text. The blocking is in `Wait`, not in the engine. The engine
-is free to hear hints while the caller waits.
+The actor creates a one-element buffered reply channel for each request,
+posts the request, and waits for its reply, caller cancellation, or actor
+shutdown. The buffer lets the actor finish even if the caller has cancelled.
+The actor returns that request's text and error, not shared last-text state.
+Save before replying; a failed save is a failed completion, not durable
+success. Notify observers of the same outcome without making observation
+delivery a prerequisite for returning to the caller.
+
+Starting the actor is lazy and idempotent. `NewActor` on an existing agent
+returns that same owner; `Run` must not create another mailbox consumer.
+Shutdown stops new work, cancels in-flight model requests, stops managed
+processes, joins workers, records their outcomes and saves. An arbitrary Go
+tool may not be cancellable: shutdown must wait for it, not discard its real
+result and pretend it stopped. Repeated shutdown is safe; later requests
+return a distinguishable stopped error.
+
+Delete `Engine.Ask` and any sibling orchestration loop after migrating their
+callers, including legacy CLI prompt formats and embedding programs. Keep
+one-request rendering, parsing, reduction and persistence in the engine.
+Keep multi-round orchestration, turn setup and runtime context mutation in
+the actor. The synchronous API survives; the duplicate implementation does not.
+
+The same ownership rule applies to the tool-round limit. A positive N permits
+N dispatched tool batches in one human turn. Zero selects the named default
+of 200, not infinity. Read the effective setting once at turn start; chapter
+9's persisted setting must feed this same policy. After the Nth batch, allow
+the model to consume its results and finish. If it asks for another batch,
+execute none of it, record explicit not-executed results for every call and
+return a distinguishable limit error. Do not leave dangling calls or edit
+signed assistant content. A later instruction can start a new turn.
 
 ### Where is the concurrency?
 
-Exactly two goroutines per agent: the actor loop and the current tool
-(if any). The mailbox has one lock. The observer list is set at
-creation and never modified. There is no shared mutable state between
-the actor and the tool except the mailbox itself, and the mailbox
-is the one lock.
+One actor goroutine owns the engine. A tool execution worker runs the
+handler; a separate job-report worker waits for completion, the callback
+deadline or an output pattern. These must be separate: a blocked handler
+must not prevent the model from receiving a running-job report. A callback
+is not cancellation. Both workers belong to the shutdown join.
+
+Workers return results and context effects through the mailbox rather than
+mutating the engine. The job subsystem synchronizes process state, output
+and completion; the actor owns the conversation. Count ownership boundaries,
+not a fixed number of goroutines.
 
 The minimalism is deliberate. Every lock is a place where two
 goroutines disagree about what is happening. Two goroutines can
@@ -577,8 +610,10 @@ in ways that show up in production at 3 AM on a Saturday.
 > path between them. Two goroutines with one lock is not a style
 > preference. It is what survived the race detector.
 
-The goal is the smallest number of goroutines that fixes the
-deafness, and that number is two.
+That historical two-goroutine fix established the ownership boundary.
+The job-report worker preserves it while allowing callbacks before a tool
+returns. The goal is still minimal concurrency, with one execution owner
+and explicit messages across every boundary.
 
 ## §6.6 The Wait primitive
 
@@ -596,23 +631,18 @@ func (a *Agent) Wait(ctx context.Context,
 ```
 
 `Wait` blocks until an observation satisfies `pred` or the context
-cancels. The implementation registers a temporary observer that
-checks every observation against the predicate, and signals a
-condition when one matches.
+cancels. The current actor consumes a bounded observation channel; it is
+not a subscription replaying every event to every waiter.
 
-Every higher-level wait derives from this.
+**Blocking send** uses the request-scoped completion described above, not
+`Wait` for a shared idle transition.
 
-**Blocking send**: post a `UserMessage`, then `Wait` for `StateChanged`
-where `To` is `Idle` or `Interrupted`.
-
-**Wait for agent**: `Wait` for `StateChanged` where `To` is `Idle`
-and `Agent` matches.
-
-**Join**: `Wait` for a predicate that tracks N agent IDs and returns
-true when all have reached `Idle`.
-
-**Wake-any**: `Wait` for `StateChanged` where `To` is `Idle` and
-`Agent` is any of a set.
+**Wait for agent**, **join**, and **wake-any** can use observations to watch
+agent state. But an orchestration decision that requires completion cannot
+rest on a lossy progress stream. Track the relevant request completions
+reliably, then publish the resulting progress. A shared idle event cannot
+acknowledge a particular prompt, and a slow observer must not stall the
+actor just to prevent a dropped progress notification.
 
 The `wake-once` grader check tests this directly. Two agents finish
 in the same turn window. The parent waits for both. The observation
@@ -644,12 +674,13 @@ the turn, and the turn state is the reducer's business.
 > compile error, the dependency is real, and the fix is to move the
 > interface to the hub.
 
-The interrupt is simpler. An `Interrupt` message arrives, the engine
-sets the turn state to `Interrupted`, and the loop exits. Tools that
-are still running will complete, and their `ToolCompleted` messages will
-arrive at a mailbox that nobody is draining. That is fine. A killed
-goroutine's output is garbage, and treating it otherwise is a
-different bug.
+An `Interrupt` ends the active turn, not the actor's lifetime. The actor
+continues draining its mailbox and recording results. A Go handler may
+still complete after the interrupt; its real output is not garbage. An
+explicit job kill has different semantics: it suppresses late output for
+that killed job. Shutdown must stop managed processes, join workers and
+save their outcomes rather than silently applying kill semantics to every
+non-cancellable Go function.
 
 ### The stdin protocol
 
