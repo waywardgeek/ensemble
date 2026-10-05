@@ -26,6 +26,11 @@
     ws = new WebSocket(`${proto}//${location.host}/ws`);
 
     ws.onopen = () => {
+      // Each connection receives a complete replay. Live part IDs are local
+      // to the server process, so retaining maps across restart would route
+      // new replies into old artifacts as well as duplicate the history.
+      chatScroll.clear();
+      actionsScroll.clear();
       ws.send(JSON.stringify({type: 'subscribe'}));
     };
 
@@ -44,9 +49,9 @@
   function routeMessage(msg) {
     switch (msg.type) {
       case 'event_range':
-        if (msg.last > 0) {
-          ws.send(JSON.stringify({type: 'fetch', from: msg.first, to: msg.last}));
-        }
+        // Informational: subscribe already pushes the full history and
+        // in-flight partials. Fetching it again appends user messages twice
+        // while updating assistant artifacts in place, scrambling the chat.
         break;
 
       case 'part_delta':

@@ -165,6 +165,10 @@ class ArtifactScroll {
       el.innerHTML = Renderers.json(`${msg.tool}: ${msg.args || ''}`);
     }
 
+    // Finals may arrive without deltas (including restored history). Keep
+    // the newest reply visible even if no turn-ended frame follows it.
+    this._scrollToBottom();
+
     // End of a part is a phrase boundary. Streaming routinely stops on a colon or a
     // bare clause, so text still buffered here would otherwise sit waiting for a
     // period that never arrives, and never be heard at all.

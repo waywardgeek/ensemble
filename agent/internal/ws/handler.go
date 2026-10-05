@@ -481,7 +481,8 @@ func (h *Hub) broadcastUsage() {
 }
 
 // fetch sends event-log entries in the requested seq range, followed by
-// any in-flight partials. The client calls this after receiving event_range.
+// any in-flight partials. This is an explicit range request, not part of
+// initial subscription: subscribe already pushes the complete history.
 func (h *Hub) fetch(c *Client, fromSeq, toSeq common.Seq) {
 	h.mu.Lock()
 	logLen := h.logLen
