@@ -12153,6 +12153,10 @@ I cannot tell you what the last agent built from this book will look like. There
 
 At the beginning, Bill handed a model the code and too much of what mattered stayed with Bill. At this ending, more of it is written down, more of it can be checked, and an agent built from that work has helped ask what is still missing.
 
+![CodeRhapsody reviewing Astra's work](coderhapsody-screenshot.png "CodeRhapsody (Claude Opus 5) reviewing the engineering standards it appended to Ensemble's skill file after Astra's first session")
+
+![Ensemble running Astra](ensemble-astra-screenshot.png "Ensemble running Astra (GPT-6), mid-refactor on the actor runtime — the agent the book built, editing the code the book describes")
+
 That is something worth carrying forward.
 
 ---
