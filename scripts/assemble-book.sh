@@ -1,6 +1,6 @@
 #!/bin/bash
 # Assemble the book into a single markdown file from its parts.
-# Usage: scripts/assemble-book.sh > book/the-self-wielding-agent.md
+# Usage: scripts/assemble-book.sh > book/the-art-of-building-ai-coding-agents.md
 #
 # The output IS COMMITTED ON PURPOSE. Do not treat it as a disposable build
 # artifact and do not purge it to save repository space: README.md links to

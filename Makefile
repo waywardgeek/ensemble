@@ -100,5 +100,5 @@ fake-serve:
 
 # Assemble the full book into a single readable markdown file.
 book:
-	scripts/assemble-book.sh > book/the-self-wielding-agent.md
-	@wc -w < book/the-self-wielding-agent.md | xargs -I{} echo "book/the-self-wielding-agent.md: {} words"
+	scripts/assemble-book.sh > book/the-art-of-building-ai-coding-agents.md
+	@wc -w < book/the-art-of-building-ai-coding-agents.md | xargs -I{} echo "book/the-art-of-building-ai-coding-agents.md: {} words"
