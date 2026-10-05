@@ -144,7 +144,7 @@ The body:
 much output you can afford. `system` is one string that rides outside the
 messages array, and for this chapter it is a single fixed line.
 
-`messages` carries three rules, and the grader enforces all of them. Roles
+`messages` carries four rules, and the grader enforces all of them. Roles
 strictly alternate, `user`, `assistant`, `user`. The conversation begins with a
 `user` message. The last message is the user's, because otherwise there is
 nothing to answer. And no message's content is ever empty.
