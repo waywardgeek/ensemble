@@ -30,7 +30,7 @@ The difference is not a preference. It follows from the limitation above. An aut
 
 Corporations are building AI coding agents to control swarms, doubling down on specification-driven development, throwing money at agents until they can stumble through a problem to a solution. Nobody is an expert in the code. That approach works when the budget absorbs the waste.
 
-This book is for the engineer who cannot afford that waste, or who does not want it. While writing this book, the total AI spend was $2,475 of my own money. My coding agent is designed to be efficient while supervised, maximizing every dollar. It assumes the human is the expert, because the human is the one who remembers.
+This book is for the engineer who cannot afford that waste, or who does not want it. While writing this book, the total AI spend was approximately $3,000 of my own money. My coding agent is designed to be efficient while supervised, maximizing every dollar. It assumes the human is the expert, because the human is the one who remembers.
 
 ## What this book is
 
