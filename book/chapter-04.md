@@ -334,10 +334,6 @@ It appears on every tool, including the four that are not jobs, and the
 will report the consumption. A burn is now an error you read in the result it
 caused, one round trip from the correction.
 
-[CODER: the consumed-by note is ruled (review-ch04-tools-friction §7) and
-not yet in `solutions/ch04`; `toollimits` gains two note legs. The prose
-above states the ruling as built. Reconcile or mark.]
-
 What the model changes on every monitoring call, because the wait is on the
 call: it can wait 0.2 seconds to see whether a job started, thirty seconds
 for a test suite, or "until `(dlv) ` appears" for a debugger, and change its
@@ -427,10 +423,6 @@ job and printed in the report when it is not the default, which is Chapter
 setting, the agent's workspace, which is not the same directory as the one
 holding the event log. That shipped the morning after the numbers
 were measured.
-
-[CODER: `cwd` is ruled (§4.7, Ruled 11) and not yet in `solutions/ch04`;
-`jobmodel` gains a `cwd` leg (assert on a line of `pwd` output, not a
-substring) and a no-persistence leg. Prose states the ruling as built.]
 
 Why no `set_cwd` tool. It is the `tool_limits` argument again, with a worse
 failure mode. A sticky default set at call 40 and compacted away by call 300
