@@ -25,10 +25,14 @@ purpose: no chapter count is fixed until a chapter is built.
 - 16. Forgetting on Purpose
 - 17. Auto-Recall (BM25 + SLM relevance judge; design: auto-recall-design.md)
 
-## Planned
-- 18. Caching: I'd like to meaure what changed betwen requests and automatically detect unexpected cache misses for each LLM vendor.
+- 18. Caching
+- 19. Leaving Anthropic for OpenAI
 
-## Candidates
+## Planned
+- 20. Crossover (outline: chapter-20-outline.md)
+- 21. What Comes Next (forward-looking final chapter for edition 1)
+
+## Candidates (edition 2)
 
 - **Sandboxing** (decided: one chapter). Owed by the ch15 design, Part V:
   identity-band write protection, the identity-write refusal check, the

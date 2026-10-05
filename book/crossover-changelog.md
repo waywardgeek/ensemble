@@ -1849,3 +1849,362 @@ One caution learned by doing it: the save file was a copy, but the tools were
 not. The agent resumed the old conversation and began rebuilding files that had
 just been deleted, against the live working tree. A copied save is not a
 sandbox.
+
+## A late real result must supersede its lost-result placeholder
+
+Bill's next crossover attempt began with a conversation that appeared not to
+load. The CLI reproduced the reported Anthropic refusal from `save.json.bak`
+(the companion `save.json.journal.bak` was empty): two results for
+`call_vlQmGiaMZIthjk1j1RZOPAnc`. The snapshot parsed; the next model request
+failed. The distinction matters when diagnosing a loader.
+
+The audit log contained a dispatch at sequence 375, a synthetic lost result at
+377, and the actual successful result at 378, less than a millisecond after the
+placeholder. The earlier call-ID wait fix prevents that stale-completion race,
+but it does not repair the context already saved by the old actor. Both results
+survived restart, and full replay with the old reducer reproduced the damage.
+
+Synthetic results now carry explicit `Lost` provenance in the common part
+format. A late real `ToolReturned` replaces only that placeholder, at its
+existing position beside the call, with the real result's sequence number and
+contents. A real tool error is an observed outcome too; it is not a lost result.
+A delayed loss event cannot overwrite a result already present.
+
+Restore identifies placeholders in older snapshots by their recorded
+`tool_result_lost` event sequence and call ID, not their wording or error flag.
+It reports each duplicate repaired and leaves the audit log intact. New
+snapshots retain the marker even without the old log. For an old snapshot whose
+loss event has already been discarded, there is no reliable provenance to
+infer, so this migration does not guess.
+
+Regression tests cover damaged snapshots, full replay, a late result in the
+log tail, successful and failed real results, a human message between the
+placeholder and return, and snapshot-only persistence of the marker. A local
+fake Anthropic server checks the actual request contains exactly one adjacent
+result with the real output. The full Go suite and focused actor/common/LLM
+race tests pass.
+
+Live CLI checks used isolated copies, leaving the backup and running server
+untouched. Sonnet 5 no longer reported duplicate results, but exposed another
+refusal: `messages.7.content.4` claimed a signed thinking block had been
+modified. That separate blocker is not fixed here. Astra 6 resumed the same
+backup successfully and replied `OK`, exit status 0. The GUI's failure to
+restore the selected model from settings also remains open.
+
+## Restart replay duplicated history and reused live artifact IDs
+
+VERIFIED 2026-10-04. After rebuilding and restarting, Bill reported that the
+latest assistant output was missing again. The final summary was present in
+the saved response at sequence 238. A later live GUI snapshot showed it too,
+but followed immediately by a duplicate of the opening user message.
+
+The server already pushes complete history on subscribe; the GUI interpreted
+`event_range` as an instruction to fetch it again. On that second pass,
+assistant parts updated existing artifacts while user messages appended again,
+leaving the transcript out of order. Reconnecting also retained the old DOM
+and maps, even though live part IDs restart with the server process, so a new
+reply could overwrite an old live artifact. Finally, final-only replies did
+not scroll into view unless another event did it for them.
+
+The client now clears both panes and their correlation maps before each fresh
+subscription, treats `event_range` as informational, and scrolls final parts
+into view. The GUI design's reconnect contract is updated to match server-push
+replay. No server restart was performed by the agent.
+
+A real headless Chrome integration test uses the real GUI scripts and WebSocket
+hub, without a model call or a handwritten DOM. Against the old code it
+reproduced all three failures; with the changes it passes initial replay,
+server replacement with the tab left open, reused live IDs, and final-only
+scrolling. `go test ./...` and `go test -race ./internal/ws` passed. The browser
+test skips explicitly when Chrome is unavailable; CHROME_BIN selects another
+installation.
+
+## Single-loop retirement: CLI evidence and audit corrections
+
+The migrated native-tool limit test now drives a real actor and fake HTTP
+provider rather than the deleted Engine.Execute. Its old bare cliHost lacked a
+logger; normal CLI host initialization corrected the fixture, not production
+logging. The original limit-consumption assertions remain.
+
+New compiled-CLI tests exercise both prompt JSON formats: saved 200 allows 18
+batches, saved 1 rejects the next batch with explicit paired results, and a new
+process resumes the save. Legacy ephemeral attachment reaches the first request.
+The test initially counted the turn-ended observation as a second request error;
+inspection showed these are separate protocol records. It now checks both
+outcomes rather than deleting the observation or accepting duplicate replies.
+A settings-store update during an active turn affects the next turn only (five
+race-enabled repetitions).
+
+The root gate caught what the agent suite did not: an error sentinel violated
+the no-mutable-package-state rule. It is now an immutable typed constant and is
+publicly exposed alongside the limit error type. Root testing also found stale
+chapter 7 mutation anchors; updated to the current part-ID mapper without
+changing expected failures. Chapter 7 reference and mutation audit pass.
+
+Chapter 8 replay failed for two harness reasons. It repeatedly scanned the
+original event_range and fetched again before reaching its completion check;
+then it silently discarded finals because numeric-only part-ID decoding rejected
+namespaced replay IDs. The captured journal contained the assistant responses.
+Subscription now supplies replay without redundant fetch, and the decoder
+preserves both ID representations. The final-plus-tool assertion remains;
+chapter 8 now passes. Added explicit decoding checks for live and replay finals.
+
+The early five-minute root timeout was below chapter 4's documented six-minute
+audit duration. A normal-timeout root run completed in about 8.5 minutes and
+reported the failures above; it was not green. A final full root rerun is still
+required. Agent full/race suites passed at the preceding checkpoint; final-tree
+reruns and explicit recall/ephemera parity evidence remain in the plan.
+
+Chapter 6 now retires the engine loop and teaches reliable request-scoped
+completion, joined lifecycle and independent job callbacks; chapter 9 requires
+proof that persisted settings change execution. Preserved the TTS warning and
+recall-order rationale, and moved the displaced Turn callback-ownership comment
+back to its function. The historical fixed goroutine count and advice to discard
+late Go output were replaced because joined execution/report workers and
+non-cancellable-tool tests prove those conditions no longer hold.
+
+## The cache lens that cried wolf
+
+A morning of work consumed 46% of a weekly plan allowance. The journal said
+why, once it was asked: 175 requests carried 6,915,184 uncached input tokens
+against 2,003,456 cache reads, a hit rate of 22.5%. Of those requests, 137 sent
+between 55,000 and 73,000 tokens and read nothing at all from cache, arriving
+four to forty-seven seconds apart. That is far too quick for the provider's idle
+expiry, and only seven of the breaks followed a `micro_handoff` or a redaction.
+The structural rewrites, the ones that are supposed to cost a partial miss, came
+to 231,154 tokens. The unexplained ones came to 6,440,030.
+
+The lens built to catch exactly this had been running the whole time, on by
+default, writing to the log. It had been reporting a divergence on every single
+request:
+
+```
+cachelens: PREFIX DIVERGED — section "input" changed at +466116,
+above the dialogue.
+```
+
+The section named `input` is the conversation. The OpenAI Responses API calls it
+that, where Chat Completions calls it `messages` and Gemini calls it `contents`.
+The canonicalizer knew the latter two names and defaulted to `messages`, so on
+the Responses API the conversation was filed as a frozen section, and frozen
+sections are not permitted to change. Every ordinary appended turn therefore
+tripped the alarm.
+
+An alarm with a 100% false positive rate is not a noisy alarm. It is an absent
+one, because the single genuine break in the session, a rewrite that cut the
+surviving prefix to 34%, rendered as the same line of text as the hundred
+harmless appends around it. The instrument was not broken in the sense of
+failing to run. It ran, it reported, and its report carried no information.
+
+The fix is to read the conversation key off the body alongside the other two
+names. That restores the distinction the lens was built to draw, and it exposes
+a second gap immediately behind it. Within the dialogue, the lens recorded only
+that the conversation had changed, which is true on every turn and therefore
+worth nothing. Growth and rewriting are not the same event. Appending a turn
+leaves every earlier byte where it was and costs only the new turn. Editing
+something below the top, such as attaching a reasoning item to a turn already
+sent, voids the cache from the edit onward however old the content is. Both make
+the request bigger, which is why the byte counts cannot separate them and why
+the distinction has to be read from the comparison instead.
+
+The dialogue comparison now reports a rewrite separately from growth, with the
+offset at which the prefix stopped matching. Truncation is deliberately left
+unflagged: shrinking the conversation is what `micro_handoff` and reset do on
+purpose, and a truncation keeps its prefix, so it costs a partial miss rather
+than a total one. That matches what the journal showed, and it is the behaviour
+to preserve rather than warn about.
+
+Two lessons are worth separating. The first is that a vendor's new surface can
+rename a field that an instrument depends on, and the instrument will keep
+running and keep reporting rather than fail loudly. The second is the reason
+this went unnoticed for a morning: the alarm was firing correctly according to
+its own logic, and the only way to discover otherwise was to compare what it
+claimed against what the provider actually billed. An instrument that is never
+checked against an independent measurement is a belief, not a measurement.
+
+## The vendor is a property of the model
+
+Startup resolved the vendor first and then chose a model inside it. The
+consequence was narrow and almost invisible. A model named anywhere other than
+the `LLM_MODEL` environment variable, including the one the GUI writes to
+`settings.json` when the user picks from the dropdown, was sent to whichever
+vendor happened to be the default. An OpenAI identifier therefore arrived at
+Anthropic, which did not reject it: the session came back answered by the
+default Anthropic model and looked entirely healthy. The user had selected
+Astra and was talking to Sonnet.
+
+The GUI concealed this, because it sends the model again over the WebSocket
+once connected, which corrects the choice a moment after startup. The command
+line has nothing to send it, so the correction never arrived and every session
+ran the default. The bug was therefore invisible in the interface where it was
+survivable and total in the interface where it was not.
+
+Two changes follow from one principle already stated a few lines further down
+in the same function, where the surface is derived after the model is known
+because the surface is a property of the model. The vendor is a property of the
+model in exactly the same way. The model is now settled first, from the
+environment, then from the home settings file, then from the settings file the
+GUI writes beside the agent. The vendor is then taken from the model table when
+the table knows the model.
+
+An explicit vendor still outranks the table, which is what allows a local
+OpenAI-compatible endpoint to serve an identifier the table has never seen. An
+unknown model with no explicit vendor keeps the old default rather than failing,
+because the course graders drive custom identifiers at fake endpoints and a hard
+error there would stop every one of them.
+
+## Refusing to publish a credential
+
+The repository is public, and a key in a public commit is found by scanners in
+minutes. Amending afterwards does not help, because the push, the fork and the
+scrape all complete before the correction does. The only useful place to
+intervene is before the object is written, so a pre-commit hook now reads
+staged content and refuses anything carrying a live credential.
+
+The design problem is not detection but restraint. This tree ships four
+synthetic keys in its test vendors, and a pattern loose enough to catch
+everything would fire on every single commit. An alarm that always fires is one
+nobody reads, which is the same as having none, a lesson this tree had already
+paid for once in the cache lens. The shapes therefore require both a vendor
+prefix and a long random tail, and names carrying a fixture marker are excluded
+on the reasoning that a real key is random base62 and will not contain an
+English word.
+
+The hook was proven in both directions before being trusted. A generated key of
+genuine shape is blocked; the existing course fixtures pass untouched. A
+detector is not evidence of anything until it has been shown to fire and shown
+to stay silent.
+
+## The cache that ignores small conversations
+
+The agent was burning a weekly token allowance in a morning, and the obvious
+suspect was prefix instability: something near the front of each request
+changing from turn to turn and invalidating everything behind it. The lens had
+just been repaired and reported the opposite. Tools identical, parameters
+identical, conversation appended, cacheable prefix 99 percent of the request.
+The provider served none of it.
+
+Seven consecutive requests on one live session settled what was happening, and
+it is not a bug in the agent at all. At eight thousand tokens the provider
+wrote nothing. At ten thousand, nothing. At eighteen thousand, with the prefix
+held stable to 99 percent, still nothing. The first request to cross roughly
+twenty-two thousand tokens was written, and the request after it read back
+twenty-two thousand of them, three quarters of the whole request.
+
+So the route has a floor, and the floor is nowhere near the documented
+thousand-token minimum. An agent whose conversations stay under twenty thousand
+tokens will pay full price for every turn it ever takes, with a perfectly
+stable prefix and nothing in its logs to suggest anything is wrong. That is a
+worse failure than a broken prefix, because a broken prefix at least leaves
+evidence.
+
+The practical consequence runs against the instinct to keep context small. Past
+the floor the economics inverts: a longer conversation is cheaper per turn than
+a short one, because the long one is cached and the short one is not. Aggressive
+trimming below the floor does not save money, it forfeits the discount and pays
+full freight for a smaller request.
+
+Two hypotheses died on the way to this. The first was that the key was missing:
+the vendor's own client sends prompt_cache_key, which the published guidance
+says is unnecessary on current models. Adding it changed nothing, because size
+was the constraint all along. It was kept anyway, on the reasoning that the
+field is free and the vendor's client is a better witness to the vendor's
+behaviour than the vendor's documentation, but the comment beside it refuses to
+claim a benefit that was not observed. The second was that storage was the
+constraint, which ended quickly: the route rejects a stored request outright, so
+that literal was never a choice.
+
+The lesson worth keeping is narrower than the finding. A measurement that
+contradicts the documentation is not automatically wrong, and the way to tell
+is to vary one thing at a time until the number moves. Here the number moved on
+size, and only on size, after two plausible stories about headers and parameters
+had already been told and believed.
+
+
+## The actor's stale completion
+
+A count-based wait in the actor loop released the wrong caller. The actor
+tracked in-flight tool calls by count: decrement on each completion, wake the
+waiter when the count reaches zero. If a stale completion from a previous
+request arrived late, it decremented the counter and freed the current batch's
+wait one call early. The tool that was still running returned its result to a
+turn that had already moved on.
+
+Astra 6 found and fixed this during daily use. The fix replaces the count with
+identity-based tracking: each wait is bound to the specific calls it is waiting
+for, and a completion that cannot be matched is discarded. The invariant is now
+structural rather than arithmetic: a wait that holds three call IDs releases
+when exactly those three IDs are resolved, and a stale ID from a previous batch
+has no slot to fill.
+
+The bug was reachable from the first day of crossover and was never triggered by
+the graders, because graders run clean conversations with no restarts, no
+interrupts, and no late-arriving completions. It requires a session old enough
+to have stale state, which is exactly the condition a daily driver creates and a
+test harness avoids.
+
+## Engineering standards, written after watching
+
+After reviewing the first day of Astra 6's work on the crossover tree, a
+pattern emerged: the model deleted load-bearing comments, committed unformatted
+Go, edited files via unasserted Python string replacements, and left `.bak`
+files in the tree. Each of these is a preventable mistake, and each had a
+specific mechanism of harm:
+
+- A deleted comment that read "recall is hooked in TWO places" removed the
+  only record of an invariant that both call sites still depend on. The
+  condition it warned about survived; the warning did not.
+- Unformatted Go, caused by editing through heredocs instead of `edit_file`,
+  broke a class of grep that depends on the standard layout.
+- String replacement without a uniqueness assertion silently ate the wrong
+  match when two lines shared a substring.
+- `.bak` files in a public repo leak content that was deliberately deleted.
+
+The remedy was not to issue instructions. A terse rule gets optimised against.
+Instead, explicit engineering standards were appended to the agent's SKILL.md,
+each one stating the *reason* it exists, so a model that decides to override a
+rule must also override an argument. The rules are: gate output not exit status;
+use `edit_file` with anchor asserts; deleting a WHY comment requires proving the
+condition gone in the commit message; git is the backup (no `.bak`); never
+weaken a test to make it pass; report surprises.
+
+This is a crossover finding, not a coding one. A human team writes down
+engineering standards when a new contributor joins and makes the same three
+mistakes everyone makes. That the new contributor is a model rather than a
+person changes the ceremony and not the need.
+
+## The plan route does not cache (confirmed, bug filed)
+
+Seven days of measurement and two independent agents confirmed that the
+ChatGPT plan route (`api.openai.com/v1/responses` with an OAuth token) does not
+cache prompts at the level the metered route does. The expectation that the
+documented 1,024-token minimum would apply was wrong: the measured floor is
+roughly 22,000 tokens, and even past that floor the hit rate is far below what
+the same model achieves on Codex's own route.
+
+Codex sustains 61–85% cache hit rates, including 12,160 cached tokens on the
+*first* request of a fresh session — the prefix survives across sessions. 
+Ensemble on the same model, same OAuth token, different endpoint, never gets a
+cross-session hit and gets near-zero within a session below the floor.
+
+The bug was filed with OpenAI. The expectation is a fix within weeks. Until
+then, Ensemble is declared usable for daily coding work but not affordable as a
+primary driver. The caching gap is the last asterisk on the crossover.
+
+Three hypotheses were killed on the way:
+
+1. **`prompt_cache_key` missing.** Codex sends it; the published docs say it is
+   unnecessary on 5.6+. Adding it changed nothing. Kept anyway because the
+   field is free and the vendor's client is a better witness to the vendor's
+   behaviour than the vendor's documentation.
+2. **`store:true` missing.** The route rejects it outright:
+   `{"detail":"Store must be set to false"}`.
+3. **Wrong endpoint.** Codex posts to `chatgpt.com/backend-api/codex/responses`,
+   not `api.openai.com/v1/responses`. Pointing Ensemble there is plausibly a ToS
+   problem; it remains Bill's call. The endpoint difference likely matters, but
+   the size floor was the dominant, measured cause.
+
+The practical inversion worth remembering: past the floor, a *longer*
+conversation is cheaper per turn than a short one, because the long one is
+cached and the short one is not. Aggressive context trimming below ~22K tokens
+forfeits the discount and pays full freight for a smaller request.
