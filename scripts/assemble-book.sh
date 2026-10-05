@@ -47,4 +47,7 @@ for ch in "$BOOK_DIR"/chapter-[0-9][0-9].md; do
     [ -f "$ch" ] && add "$ch"
 done
 
+add "$BOOK_DIR/epilogue.md"
+add "$BOOK_DIR/note-from-bill.md"
+
 printf '%s\n' "$OUT" | python3 "$(dirname "$0")/book-toc.py"
