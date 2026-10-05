@@ -6,7 +6,7 @@
 
 I gave Astra a simple prompt: read all of CodeRhapsody's documentation and source code, then design a better next-generation version. This is a task I could do in an afternoon.
 
-Astra failed. Not partially. I would not have given a passing grade to a student studying how to build AI coding agents. Astra is the current best overall frontier model, and after reading the full source and extensive documentation of one of the most advanced coding agents in the world, it had no idea what it was looking at.
+Astra failed. Not partially. I would not have given a passing grade to a student studying how to build AI coding agents. Astra is OpenAI's best model as of October 2025, and after reading the full source and extensive documentation of one of the most advanced coding agents in the world, it had no idea what it was looking at.
 
 Astra is brilliant, but ignorant. It was not there for the two thousand hours I spent with Claude building CodeRhapsody, OpenADP, and Puffin. The pain points, the dead ends we burned days on, the lessons that changed the architecture. None of that is written in any document. The model would have learned more reading my LinkedIn posts.
 
@@ -44,7 +44,7 @@ Do it again next year with a better model and get a better Ensemble. Add a chapt
 
 That sequence is literal, and the rest of this book is the proof.
 
-## Not a specification
+## A specification with receipts
 
 The distinction matters enough to be on the first page.
 
@@ -62,7 +62,7 @@ Every chapter includes a parity check: all previous chapter graders must still p
 
 ## The generation
 
-Hand this book to the next generation of language model. Point it at Chapter 1. It reads the TL;DR, builds the exercise, runs the grader, scores 100, and moves to Chapter 2. Chapter by chapter, it rebuilds Ensemble from scratch. At the end it has a working AI coding agent, because "working" is what 100 on every grader means, and the graders are not quizzes.
+Hand this book to the next generation of language model. Point it at Chapter 1. It reads the TL;DR, builds the exercise, runs the grader, scores 100, and moves to Chapter 2. Chapter by chapter, it rebuilds Ensemble from scratch. At the end it has a working AI coding agent, because scoring 100 on every grader means the exercised contracts hold and the tested deletions are detected. The graders are not quizzes.
 
 A more capable model produces a more capable Ensemble. The graders set the floor, not the ceiling: cleaner code, sharper tool descriptions, tighter error handling, a more natural conversation style. The specifications say what the agent must do. They do not limit how well it does it.
 
