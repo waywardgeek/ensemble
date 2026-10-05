@@ -312,7 +312,7 @@ the exercise under `ephemera`.
 
 ### Turn state
 
-`Idle`, `InputPending`, `InFlight`, `ToolsPending`. Chapter 5 adds
+`Idle`, `InputPending`, `InFlight`, `ToolsPending`. Chapter 6 adds
 `Interrupted`, and it will have to be a *state* and not a flag, or replay
 re-executes tool calls that were cancelled.
 
@@ -448,7 +448,7 @@ abuse, and the abuse has a predictable shape. First someone describes the tools
 in it by hand. Then the descriptions drift from the actual tools. Then part of
 it is generated and part hand-written and nobody can say which. By the time it
 is four hundred lines, nobody will delete a word, because nobody can prove which
-words are load-bearing. Chapter 6 replaces the constant with generation from
+words are load-bearing. Chapter 10 replaces the constant with generation from
 skills, and under §2.1 that has to be a pure addition, which it is, provided
 the system prompt was never a stored value in the first place.
 

@@ -6,7 +6,7 @@
 
 I gave Astra a simple prompt: read all of CodeRhapsody's documentation and source code, then design a better next-generation version. This is a task I could do in an afternoon.
 
-Astra failed. Not partially. I would not have given a passing grade to a student studying how to build AI coding agents. Astra is OpenAI's best model as of October 2025, and after reading the full source and extensive documentation of one of the most advanced coding agents in the world, it had no idea what it was looking at.
+Astra failed. Not partially. I would not have given a passing grade to a student studying how to build AI coding agents. Astra is OpenAI's best model as of October 2026, and after reading the full source and extensive documentation of one of the most advanced coding agents in the world, it had no idea what it was looking at.
 
 Astra is brilliant, but ignorant. It was not there for the two thousand hours I spent with Claude building CodeRhapsody, OpenADP, and Puffin. The pain points, the dead ends we burned days on, the lessons that changed the architecture. None of that is written in any document. The model would have learned more reading my LinkedIn posts.
 

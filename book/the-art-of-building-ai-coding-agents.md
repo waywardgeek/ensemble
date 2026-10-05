@@ -467,7 +467,7 @@ The story of how the two of us came to work this way is a different book,
 
 I gave Astra a simple prompt: read all of CodeRhapsody's documentation and source code, then design a better next-generation version. This is a task I could do in an afternoon.
 
-Astra failed. Not partially. I would not have given a passing grade to a student studying how to build AI coding agents. Astra is OpenAI's best model as of October 2025, and after reading the full source and extensive documentation of one of the most advanced coding agents in the world, it had no idea what it was looking at.
+Astra failed. Not partially. I would not have given a passing grade to a student studying how to build AI coding agents. Astra is OpenAI's best model as of October 2026, and after reading the full source and extensive documentation of one of the most advanced coding agents in the world, it had no idea what it was looking at.
 
 Astra is brilliant, but ignorant. It was not there for the two thousand hours I spent with Claude building CodeRhapsody, OpenADP, and Puffin. The pain points, the dead ends we burned days on, the lessons that changed the architecture. None of that is written in any document. The model would have learned more reading my LinkedIn posts.
 
@@ -491,7 +491,7 @@ The difference is not a preference. It follows from the limitation above. An aut
 
 Corporations are building AI coding agents to control swarms, doubling down on specification-driven development, throwing money at agents until they can stumble through a problem to a solution. Nobody is an expert in the code. That approach works when the budget absorbs the waste.
 
-This book is for the engineer who cannot afford that waste, or who does not want it. While writing this book, the total AI spend was $2,475 of my own money. My coding agent is designed to be efficient while supervised, maximizing every dollar. It assumes the human is the expert, because the human is the one who remembers.
+This book is for the engineer who cannot afford that waste, or who does not want it. While writing this book, the total AI spend was approximately $3,000 of my own money. My coding agent is designed to be efficient while supervised, maximizing every dollar. It assumes the human is the expert, because the human is the one who remembers.
 
 ## What this book is
 
@@ -868,7 +868,7 @@ The reference has one fixed line to say about itself, and it says it in the
 system prompt:
 
 ```go
-const systemPrompt = "You are a helpful assistant built from raw HTTP calls in Chapter 1 of Building Advanced AI Coding Agents. Answer briefly."
+const systemPrompt = "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."
 ```
 
 Everything the model knows about where it is running is in that string.
@@ -1415,7 +1415,7 @@ the exercise under `ephemera`.
 
 ### Turn state
 
-`Idle`, `InputPending`, `InFlight`, `ToolsPending`. Chapter 5 adds
+`Idle`, `InputPending`, `InFlight`, `ToolsPending`. Chapter 6 adds
 `Interrupted`, and it will have to be a *state* and not a flag, or replay
 re-executes tool calls that were cancelled.
 
@@ -1551,7 +1551,7 @@ abuse, and the abuse has a predictable shape. First someone describes the tools
 in it by hand. Then the descriptions drift from the actual tools. Then part of
 it is generated and part hand-written and nobody can say which. By the time it
 is four hundred lines, nobody will delete a word, because nobody can prove which
-words are load-bearing. Chapter 6 replaces the constant with generation from
+words are load-bearing. Chapter 10 replaces the constant with generation from
 skills, and under §2.1 that has to be a pure addition, which it is, provided
 the system prompt was never a stored value in the first place.
 
@@ -2362,7 +2362,7 @@ Hold that ratio; §3.4 comes back to it.
 The status column marks two rows dead or dying. `compress_context` is
 retired; `handoff_task` is on its way out. A table showing only the
 survivors would hide the two best lessons in it, so they stay, with their
-status marked. The story of why they died belongs to Chapter 6; here the
+status marked. The story of why they died belongs to Chapter 15; here the
 status column is allowed to raise the question without answering it.
 
 ## 3.2 The loop
@@ -4895,7 +4895,7 @@ and explicit messages across every boundary.
 
 This chapter does not introduce agent state. It exposes it. The
 reader has had a state machine since Chapter 2: `TurnState` with
-`Idle`, `InputPending`, `InFlight`, `ToolsPending`. Chapter 4 added
+`Idle`, `InputPending`, `InFlight`, `ToolsPending`. This chapter adds
 `Interrupted`, deliberately as a state rather than a flag, because
 replay re-executes tool calls that were cancelled if `Interrupted`
 is not terminal. The state machine is a fact. The observer seam
@@ -4935,8 +4935,8 @@ is a hint. The classification happens in the reducer (`Apply`), not
 at the capture site, because only the reducer holds the state that
 makes the decision correct.
 
-The `HintReceived` event type was added in Chapter 5's refactoring
-for exactly this reason: without it, the reducer cannot distinguish
+The `HintReceived` event type exists for exactly this reason:
+without it, the reducer cannot distinguish
 "a new prompt arrived" from "a hint arrived during an active turn."
 Both carry text. The difference is when they arrived relative to
 the turn, and the turn state is the reducer's business.
@@ -6974,7 +6974,7 @@ That separation matters for memory. Pre-loaded context (memories,
 user preferences, project notes) belongs in the message history as
 data rather than the system prompt as instructions. `save_memory`
 produces a data message. The system prompt stays clean and cacheable.
-Chapter 12 builds the memory cascade on this foundation.
+Chapter 16 builds the memory cascade on this foundation.
 
 ---
 
@@ -11459,11 +11459,12 @@ streams, interleaved, each with its own voice.
 ```
 
 The cache lens from chapter 18 confirms the caching. The
-developer-role constitution carries a breakpoint. The tools
-carry a breakpoint. The compaction bound carries a breakpoint.
-Three of four markers land; the tool-array marker is inexpressible
-on the Responses API because breakpoints attach to content blocks,
-not to the tool array. The system marker covers both.
+developer-role constitution carries a breakpoint. The compaction
+bound carries a breakpoint. The stable end of history carries a
+breakpoint. Three of four markers land; the tool-array marker is
+inexpressible on the Responses API because breakpoints attach to
+content blocks, not to the tool array. The system marker covers
+both.
 
 ```
 $ agent auth status

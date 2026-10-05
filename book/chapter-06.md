@@ -619,7 +619,7 @@ and explicit messages across every boundary.
 
 This chapter does not introduce agent state. It exposes it. The
 reader has had a state machine since Chapter 2: `TurnState` with
-`Idle`, `InputPending`, `InFlight`, `ToolsPending`. Chapter 4 added
+`Idle`, `InputPending`, `InFlight`, `ToolsPending`. This chapter adds
 `Interrupted`, deliberately as a state rather than a flag, because
 replay re-executes tool calls that were cancelled if `Interrupted`
 is not terminal. The state machine is a fact. The observer seam
@@ -659,8 +659,8 @@ is a hint. The classification happens in the reducer (`Apply`), not
 at the capture site, because only the reducer holds the state that
 makes the decision correct.
 
-The `HintReceived` event type was added in Chapter 5's refactoring
-for exactly this reason: without it, the reducer cannot distinguish
+The `HintReceived` event type exists for exactly this reason:
+without it, the reducer cannot distinguish
 "a new prompt arrived" from "a hint arrived during an active turn."
 Both carry text. The difference is when they arrived relative to
 the turn, and the turn state is the reducer's business.

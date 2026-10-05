@@ -311,7 +311,7 @@ The reference has one fixed line to say about itself, and it says it in the
 system prompt:
 
 ```go
-const systemPrompt = "You are a helpful assistant built from raw HTTP calls in Chapter 1 of Building Advanced AI Coding Agents. Answer briefly."
+const systemPrompt = "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."
 ```
 
 Everything the model knows about where it is running is in that string.

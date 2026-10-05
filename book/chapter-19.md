@@ -642,11 +642,12 @@ streams, interleaved, each with its own voice.
 ```
 
 The cache lens from chapter 18 confirms the caching. The
-developer-role constitution carries a breakpoint. The tools
-carry a breakpoint. The compaction bound carries a breakpoint.
-Three of four markers land; the tool-array marker is inexpressible
-on the Responses API because breakpoints attach to content blocks,
-not to the tool array. The system marker covers both.
+developer-role constitution carries a breakpoint. The compaction
+bound carries a breakpoint. The stable end of history carries a
+breakpoint. Three of four markers land; the tool-array marker is
+inexpressible on the Responses API because breakpoints attach to
+content blocks, not to the tool array. The system marker covers
+both.
 
 ```
 $ agent auth status

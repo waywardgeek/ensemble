@@ -237,4 +237,4 @@ That separation matters for memory. Pre-loaded context (memories,
 user preferences, project notes) belongs in the message history as
 data rather than the system prompt as instructions. `save_memory`
 produces a data message. The system prompt stays clean and cacheable.
-Chapter 12 builds the memory cascade on this foundation.
+Chapter 16 builds the memory cascade on this foundation.

@@ -67,7 +67,7 @@ Hold that ratio; §3.4 comes back to it.
 The status column marks two rows dead or dying. `compress_context` is
 retired; `handoff_task` is on its way out. A table showing only the
 survivors would hide the two best lessons in it, so they stay, with their
-status marked. The story of why they died belongs to Chapter 6; here the
+status marked. The story of why they died belongs to Chapter 15; here the
 status column is allowed to raise the question without answering it.
 
 ## 3.2 The loop
