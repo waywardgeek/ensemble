@@ -27,10 +27,8 @@ purpose: no chapter count is fixed until a chapter is built.
 
 - 18. Caching
 - 19. Leaving Anthropic for OpenAI
-
-## Planned
-- 20. Crossover (outline: chapter-20-outline.md)
-- 21. What Comes Next (forward-looking final chapter for edition 1)
+- 20. The Crossover
+- Epilogue: What We Can Carry Forward (epilogue.md, by Astra running in Ensemble)
 
 ## Candidates (edition 2)
 
