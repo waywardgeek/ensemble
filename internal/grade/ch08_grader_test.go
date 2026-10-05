@@ -6,6 +6,7 @@ package grade_test
 // asserts the expected set of failing checks.
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -62,5 +63,20 @@ func TestCh8Grade(t *testing.T) {
 
 	if total < 100 {
 		t.Errorf("reference solution scored %d/100, want 100", total)
+	}
+}
+
+// Replayed IDs occupy a different namespace from live IDs. A numeric-only
+// decoder silently dropped every replay final before the grader could see it.
+func TestCh8ReadsLiveAndReplayFinals(t *testing.T) {
+	for _, id := range []string{`4`, `"r9.0"`} {
+		var msg grade.Ch8WsMsg
+		wire := `{"type":"part_final","part_id":` + id + `,"seq":9,"text":"finished"}`
+		if err := json.Unmarshal([]byte(wire), &msg); err != nil {
+			t.Fatal(err)
+		}
+		if msg.Type != "part_final" || msg.Text != "finished" || msg.Seq != 9 || string(msg.PartID) != id {
+			t.Fatalf("final lost or misidentified: %+v", msg)
+		}
 	}
 }

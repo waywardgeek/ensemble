@@ -189,8 +189,8 @@ func ch7Mutants() []ch7mutation {
 			wantFail: []string{"deltas-match-final"},
 			edits: []ch7edit{{
 				relPath: "agent/internal/llm/claude.go",
-				find:    `cb\.Delta\(partID\(ev\.Index\), common\.DeltaText, ev\.Delta\.Text\)`,
-				replace: `cb.Delta(partID(ev.Index)*1000+uint64(len(ev.Delta.Text)), common.DeltaText, ev.Delta.Text)`,
+				find:    `cb\.Delta\(pm\.id\(ev\.Index\), common\.DeltaText, ev\.Delta\.Text\)`,
+				replace: `cb.Delta(pm.id(ev.Index)*1000+uint64(len(ev.Delta.Text)), common.DeltaText, ev.Delta.Text)`,
 			}},
 		},
 
@@ -212,8 +212,8 @@ func ch7Mutants() []ch7mutation {
 			wantFail: []string{"thinking-streamed"},
 			edits: []ch7edit{{
 				relPath: "agent/internal/llm/claude.go",
-				find:    `cb\.Delta\(partID\(ev\.Index\), common\.DeltaThinking, ev\.Delta\.Thinking\)`,
-				replace: `cb.Delta(partID(ev.Index+1), common.DeltaThinking, ev.Delta.Thinking)`,
+				find:    `cb\.Delta\(pm\.id\(ev\.Index\), common\.DeltaThinking, ev\.Delta\.Thinking\)`,
+				replace: `cb.Delta(pm.id(ev.Index+1), common.DeltaThinking, ev.Delta.Thinking)`,
 			}},
 		},
 
@@ -232,7 +232,7 @@ func ch7Mutants() []ch7mutation {
 			wantFail: []string{"thinking-streamed"},
 			edits: []ch7edit{{
 				relPath: "agent/internal/llm/claude.go",
-				find:    `cb\.Delta\(partID\(ev\.Index\), common\.DeltaThinking, ev\.Delta\.Thinking\)`,
+				find:    `cb\.Delta\(pm\.id\(ev\.Index\), common\.DeltaThinking, ev\.Delta\.Thinking\)`,
 				replace: `_ = ev.Delta.Thinking // deltas dropped`,
 			}},
 		},
@@ -248,7 +248,7 @@ func ch7Mutants() []ch7mutation {
 			wantFail: []string{"tool-params-streamed"},
 			edits: []ch7edit{{
 				relPath: "agent/internal/llm/claude.go",
-				find:    `cb\.Delta\(partID\(ev\.Index\), common\.DeltaToolCall, ev\.Delta\.PartialJSON\)`,
+				find:    `cb\.Delta\(pm\.id\(ev\.Index\), common\.DeltaToolCall, ev\.Delta\.PartialJSON\)`,
 				replace: `_ = ev.Delta.PartialJSON // deltas dropped`,
 			}},
 		},
