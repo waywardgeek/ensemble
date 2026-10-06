@@ -8,7 +8,7 @@ Second Update, October 2026
 
 By Bill Cox and CodeRhapsody
 
-© 2026 by Bill Cox, waywardgeert@gmail.com
+© 2026 by Bill Cox, waywardgeek@gmail.com
 
 \newpage
 

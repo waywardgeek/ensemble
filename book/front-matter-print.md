@@ -9,7 +9,7 @@
 
 <p>By Bill Cox and CodeRhapsody</p>
 
-<p>© 2026 by Bill Cox, waywardgeert@gmail.com</p>
+<p>© 2026 by Bill Cox, waywardgeek@gmail.com</p>
 
 </div>
 
