@@ -1,0 +1,300 @@
+# Chapter 21 — Coder Review
+
+*From the coder to the author. Written during implementation, 6 October 2026.
+Every number here was measured today on this machine; claims I did not measure
+are marked INFERRED. Nothing in this file is prose for the book — it is what I
+learned building the thing.*
+
+---
+
+## 1. The headline: the chapter's stack changed
+
+The outline specifies `ddgs` for search and `crawl4ai` for fetch, both as local
+MCP sidecars. I measured both. **Neither survived.** What shipped instead is
+Firecrawl's hosted MCP server, reached over a new URL transport.
+
+The decision was made in three steps, each forced by a measurement rather than
+a preference:
+
+1. **crawl4ai has no MCP server to use.** (§2 below.)
+2. **ddgs search is 73% reliable.** (§3 below.) A flaky search is a failing
+   search — for us and for the student.
+3. **Firecrawl's hosted server is keyless, stateless, and was 15/15.** (§4.)
+
+The net effect on the chapter is *less* new code than the outline assumed, not
+more, and a better teaching beat. See §6.
+
+---
+
+## 2. Factual corrections to the outline and research doc
+
+These are errors of fact, not matters of taste. Please fix them wherever they
+appear.
+
+**2.1 "crawl4ai … Built-in MCP server" is false.** (§21.3, TL;DR, Decision 1,
+and the coder brief all state it.) VERIFIED: the pip package's console scripts
+are `crawl4ai-doctor`, `crawl4ai-download-models`, `crawl4ai-migrate`,
+`crawl4ai-setup`, and `crwl`. There is no MCP entry point and no `*mcp*` module
+in the installed package. crawl4ai's MCP support exists only in its **Docker
+deployment**, as an HTTP/SSE endpoint. A reader who runs `pip install crawl4ai`
+expecting a stdio MCP server will not find one.
+
+**2.2 ddgs's own MCP server already does fetching.** The outline treats search
+and fetch as requiring two different libraries. VERIFIED: `ddgs mcp` advertises
+six tools — `search_text`, `search_images`, `search_news`, `search_videos`,
+`search_books`, and **`extract_content`** (fetch a URL, return its text). Had we
+stayed with ddgs, crawl4ai would have been unnecessary on its own terms.
+
+**2.3 ddgs version confirmed.** The outline's "v9.16.0" is correct — that is
+what installed today. VERIFIED.
+
+**2.4 The brief's "grader must NOT require internet access" is now overruled**
+by the author's ruling that the chapter requires internet and that a reader who
+does not need web access may skip the chapter. Recording the conflict so the
+brief and outline do not disagree in the final text.
+
+**2.5 The brief's "tools are always available / MCP servers start when the
+agent starts" fights the architecture.** See §5.1 — it was withdrawn in favour
+of a loadable skill.
+
+---
+
+## 3. Why ddgs was dropped: the measurements
+
+All figures from a single machine, one session, through `ddgs mcp` over stdio.
+
+**Search reliability — 15 distinct queries, one attempt each, 1s apart:**
+
+| Result | Count |
+|---|---|
+| OK | 11 |
+| FAIL | 4 |
+
+**73% per-call success, average 2.33s.** The failures are not query-specific:
+re-running the four failed queries four times each rescued **all four**
+(per-attempt success across that retry run was 10 OK / 6 FAIL). So the fault is
+transient throttling, and the fix is retry with backoff.
+
+That fix is the problem. The retry would have to live *inside the sidecar*, and
+the sidecar is third-party. Making ddgs reliable therefore means **writing our
+own MCP server** wrapping the ddgs Python library — reintroducing exactly the
+authored-server complexity that dropping crawl4ai removed.
+
+**Backends are not interchangeable.** VERIFIED: with `backend` set explicitly,
+`brave`, `mojeek`, and `wikipedia` each failed every attempt; the default
+(duckduckgo) worked. The outline's "10 backends including Google, Bing, Brave"
+should not be read as ten working options.
+
+**Fetch was fine.** `extract_content` was 5/5, 0.10–0.29s, up to 112KB
+(Wikipedia). Fetch was never the weak half.
+
+**But fetch has no main-content extraction.** VERIFIED on `react.dev/learn`:
+23,482 chars as `text_markdown`, 16,991 as `text_plain` — both dominated by
+nav, sidebar, and link lists before any article text. This matters because
+§21.5's "tool results can be large" is real: one page can be tens of thousands
+of characters of mostly chrome.
+
+**A gotcha worth a sentence of prose:** `fmt` accepts `text_markdown`
+(default), `text_plain`, `text_rich`, `text` (raw HTML), and `content` (raw
+bytes). It does **not** accept `markdown`. I passed `markdown` on my first
+probe and got output anyway, which nearly led me to a wrong conclusion about
+extraction quality.
+
+**ddgs error messages are opaque.** Every failure — rate limit, connection
+refused, bad URL — returns the same 36-character string: `Error executing tool
+extract_content`. The cause is destroyed inside the server's
+`UnexpectedToolError` wrapper. The agent learns *that* it failed and never
+*why*. This is a concrete, checkable example for §21.7: failure visibility is a
+property of the server you chose, not only of the code you wrote.
+
+---
+
+## 4. What Firecrawl actually gives us
+
+VERIFIED against `https://mcp.firecrawl.dev/v2/mcp`:
+
+- **Keyless.** No account, no API key, no signup, within a daily limit. The
+  chapter keeps its zero-friction on-ramp.
+- **Stateless.** No `Mcp-Session-Id` is issued, and `tools/list` succeeds
+  *without* calling `initialize` first. (I still implemented session support;
+  see §5.4.)
+- `serverInfo`: `firecrawl-fastmcp` v3.27.3, protocol `2024-11-05`.
+- Tools: `firecrawl_search`, `firecrawl_scrape`, `firecrawl_parse`.
+
+**Reliability, same method as the ddgs run:**
+
+| | result | average latency |
+|---|---|---|
+| `firecrawl_search` | **10 / 10** | 0.84s |
+| `firecrawl_scrape` | **5 / 5** | 0.48s |
+
+**100% vs 73%, and 2.8× faster on search.** No sidecar process, no Python, no
+Node, no install step of any kind.
+
+**The author's "Astra" test question works.** VERIFIED: `firecrawl_search` for
+"OpenAI Astra model announcement" returns
+`https://openai.com/index/gpt-6-astra/` — *"GPT-6 Astra: A new generation of
+intelligence"*. The model's name is **GPT-6 Astra**.
+
+### 4.1 The most important behavioural finding: an HTTP error is not a tool error
+
+VERIFIED: `firecrawl_scrape` on a URL returning **404** comes back with
+`isError=false` and the error page's content as markdown. The status code is in
+`metadata`, not in the error flag.
+
+This deserves prose in §21.7. An agent — or a grader — that checks only
+`isError` will treat a 404 page as a successful fetch and happily summarize
+"Page Not Found" as though it were documentation. "Visible failure" means
+reading the status, not trusting the flag.
+
+By contrast, a genuinely unreachable target *is* flagged: fetching
+`http://127.0.0.1:9/...` returns `isError=true` with a **specific** message
+(`ERR_UNSAFE_PORT`), and an unknown tool name surfaces as JSON-RPC `-32601`.
+Firecrawl's diagnostics are markedly better than ddgs's single opaque string —
+another concrete contrast for §21.7.
+
+---
+
+## 5. Architectural decisions the outline did not anticipate
+
+### 5.1 The skill is loadable, and that deletes a whole problem
+
+The brief asks for search to be always on, with servers started at agent
+startup. I began building that and found it fights the design:
+`onSkillMCPConnect` has exactly **one** call site — inside the `load_skill`
+tool handler (`internal/tools/tools.go:1136`). `LoadInitial` and `LoadDynamic`
+both route through `registry.load()`, which never touches MCP, and
+`registry.go:87` forbids loading a primary skill dynamically. So declaring
+`mcp_servers` on the primary skill **parses cleanly and silently never
+connects** — a trap worth one sentence of prose on its own.
+
+The author's ruling settled it: sidecars start when a skill is loaded, because
+dynamic loading is the point of skills. `web-search` is therefore a `type:
+loadable` skill. Consequence: **zero changes to `tools.go`, `agent.go`, or the
+skill registry.** §21.4's claim that the only new code is configuration
+survives intact — which it would *not* have under the always-on reading.
+
+### 5.2 Ch12 left the seam; ch21 only fills it
+
+This is the best structural surprise in the chapter, and I think it should be
+the spine of §21.4. The work needed to add an HTTP transport was already
+designed for:
+
+- `internal/mcp/transport.go` defines `Transport` as three methods —
+  `Send`/`Recv`/`Close` over `json.RawMessage` — and its doc comment says: *"A
+  future fourth (URL/port-based) can be added later — the interface is the
+  seam."*
+- `common.MCPServerConfig` **already had** a `URL string` field, commented
+  `// for url: the server URL (future)`.
+- `internal/skills/skill.go`'s frontmatter parser **already had** `case "url":`.
+- `cmd/main.go`'s transport switch **already had** a `default:` that logs
+  "unsupported MCP transport".
+
+So ch21's host change is literally two lines — one `case "url":` in that
+switch. Everything else is a new file implementing an interface that was
+written to be implemented. That is a much stronger payoff story than
+"configure a Python sidecar," and it retroactively justifies ch12's design.
+
+### 5.3 Transport vocabulary: `url`, not `http`
+
+I used `transport: url` because that is the codebase's existing vocabulary
+(struct comment and parser case both say `url`). The implementation type is
+`HTTPTransport`. Prose should use `url` when showing frontmatter.
+
+### 5.4 Design choices inside the transport, and why
+
+- **An unbounded cond-var queue, not a buffered channel.** HTTP has no stream
+  the peer can write to whenever it likes; a reply exists only as the body of a
+  request we made. So `Send` parses the reply and queues what it found, and
+  `Recv` drains. A notification POST returns 202 with **no body** and enqueues
+  nothing, while one POST may yield **several** frames — with a fixed capacity
+  either case can wedge a concurrent `Send`.
+- **Both body shapes are handled.** The spec permits `application/json` or
+  `text/event-stream`, and servers switch between them per method.
+- **Session support, though Firecrawl does not need it.** A stateful server
+  issues `Mcp-Session-Id` on initialize and expects it echoed. Supporting it
+  costs ~6 lines and makes the transport usable against servers other than the
+  one we happen to ship.
+- **Non-2xx errors carry the body, not just the status.** Quota and auth
+  failures explain themselves in the body; dropping it leaves the agent unable
+  to say why the web stopped working. There is a test asserting the body
+  survives, because this is precisely the kind of detail a later refactor
+  "tidies" away.
+
+### 5.5 Credentials never touch a committed file
+
+Worth a line of prose. `NewStdioTransport` inherits the parent environment when
+`env` is empty, so a key-requiring server is configured by exporting the
+variable, not by writing it into `SKILL.md`. With the keyless hosted server the
+question is moot today, but the pattern matters: `solutions/` is in git, and
+the repository has a pre-commit hook that refuses staged credentials.
+
+---
+
+## 6. What the prose should emphasize, based on building it
+
+1. **Reliability is a feature, and it is measurable.** The 73%-vs-100%
+   comparison is the most useful thing I learned. It is also a good lesson in
+   method: three samples suggested ddgs was fine; fifteen showed it was not.
+2. **An HTTP error is not a tool error** (§4.1). The single most likely bug in
+   a reader's implementation.
+3. **Error-message quality is a selection criterion.** "Visible failure" is
+   half your code and half the server's manners. ddgs's one opaque string
+   versus Firecrawl's `ERR_UNSAFE_PORT` makes that concrete.
+4. **The seam payoff** (§5.2) — an interface written in ch12 for a transport
+   that did not exist yet, implemented in ch21 without touching its consumers.
+5. **The silent-no-connect trap** (§5.1): config that parses perfectly and does
+   nothing is worse than config that errors.
+
+---
+
+## 7. An editorial problem I cannot fix, and should not
+
+§21.1 is an indictment of vendors who monetised search and chose lock-in. The
+implementation now depends on **Firecrawl, a commercial company**, on its free
+tier.
+
+I do not think the argument collapses — Firecrawl is neutral with respect to
+*LLM* vendors, works with any agent, locks you into no model, and the outline
+already names it as the one commercial offering that "did not choose the dark
+path." But §21.3's framing of ddgs and crawl4ai as "the community answer," and
+the implied contrast between community tools and commercial ones, no longer
+matches what the chapter ships. The honest version is probably: the objection
+is to *your model vendor* owning your search, not to paying anyone for search.
+
+Flagging it rather than rewriting it: this is the author's argument to make.
+
+---
+
+## 8. Status and what remains
+
+**Done and verified:**
+- `solutions/ch21/` copied from `solutions/ch19` (ch20 was prose-only); builds
+  clean.
+- `solutions/ch21/internal/mcp/http.go` — the URL transport.
+- `solutions/ch21/internal/mcp/http_test.go` — 9 hermetic tests, no internet,
+  using `httptest`.
+- `cmd/main.go` — two-line `case "url":` in the existing transport switch.
+- `solutions/ch21/skills/web-search/SKILL.md` — loadable skill, keyless
+  endpoint, no credentials, no sidecar.
+- Live end-to-end through the real code path: parse SKILL.md → build transport
+  from that parsed config → initialize → list → search → scrape → failure
+  paths.
+- Mutation audit of the transport: 4 mutants, **4 killed**.
+
+**A test-quality note worth repeating in the book.** My first mutation run
+appeared to hang for four and a half minutes. The mutant had not failed the
+suite — it had **starved** it: with SSE frames dropped, nothing is ever queued,
+`Recv` blocks by contract, and `go test` sat until its ten-minute panic timeout.
+A test that hangs under mutation is nearly as useless as one that passes, since
+the audit harness reads failures, not hangs. The fix was a bounded `recvWithin`
+helper; the suite now runs in 0.01s and the same four mutants die in 6s total.
+
+The same run produced a genuine survivor: deleting `cond.Broadcast()` from
+`Close` changed nothing, because no test had a Recv **parked** at the moment of
+close — the one case that matters, since the codec's read loop lives there for
+the life of the connection. I added `TestHTTPTransportCloseWakesParkedRecv`,
+which kills it.
+
+**Still to do:** the grader (`internal/grade/ch21_*.go`) and its fake server,
+then a cross-chapter sweep. I will append findings here as I build them.
