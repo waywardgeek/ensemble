@@ -339,3 +339,274 @@ by disabling everything that looks like search.
 5. **Gemini cannot be advertised until its Search Suggestions ToS obligation is
    quoted.** The grounding doc defers the display requirements to the terms;
    that section still needs reading before Gemini ships as a choice.
+
+
+---
+
+## 2026-10-06 — Revised architecture: local tools, not native vendor search
+
+### Decision: abandon native vendor search APIs
+
+After reviewing the findings above with Bill, we made a series of simplifying
+decisions that culminated in abandoning native vendor search entirely:
+
+1. **Always-on, no settings UI** — search is always available, no Off toggle
+   (deferred to a sandboxing chapter), no dropdown. This eliminated all GUI
+   settings work.
+
+2. **Same-vendor only** — no cross-vendor adapter. This eliminated the second
+   credentials, bounded research query, and provider routing.
+
+3. **Then the killer question: do search results survive a model switch?**
+   Native vendor search results are vendor-specific opaque structures
+   (Anthropic's `encrypted_content`, Gemini's offset-based annotations,
+   OpenAI's `url_citation` offsets). Switching models means re-rendering the
+   conversation for a different vendor, and these structures are meaningless
+   cross-vendor. A normalization layer is needed regardless.
+
+4. **Bill's final call: use local tools instead.** If we're normalizing anyway,
+   and native search creates three different parser paths with three different
+   citation formats, three different billing models, and three different
+   continuation rules — why not just use local tools that produce
+   vendor-neutral results by construction? The model calls `search_web`, gets
+   back a list of results (title, URL, snippet). The model calls `crawl_web`,
+   gets back markdown. Both are plain text tool results. They survive any
+   model switch because they're just text in the conversation. No opaque
+   blobs, no encrypted continuations, no offset-based citations that break
+   on re-render.
+
+This matches what CodeRhapsody already does: `ddgs` for search, `crawl4ai`
+for scraping. Proven in production.
+
+### Consequences for the chapter
+
+- The chapter teaches TWO local tools: `search_web` and `crawl_web`
+- No vendor-specific renderer additions for search
+- No vendor-specific parser additions for search results
+- No `ModelFeatures` search capability flags
+- No citation normalization layer (results are already plain text)
+- No opaque continuation data to preserve
+- Security section (§21.5) still applies — fetched content is untrusted
+- The grader's fake server is simpler — it serves HTTP responses to the
+  local tools, not vendor-specific API response shapes
+
+### What the native API research above is still good for
+
+The native research is NOT wasted. The chapter should:
+- Mention that vendors offer native search as an alternative
+- Note the trade-offs (tighter integration vs. portability)
+- Use the citation display requirements as context for why attribution matters
+- Reference the `Off` / Chat Completions search model finding as an example
+  of why "off means off" is harder than it looks
+
+---
+
+## Vendor URL fetch/scrape tools
+
+Researched 2026-10-06. Two of three vendors offer native URL fetching tools.
+OpenAI does not.
+
+### Anthropic — `web_fetch` tool
+
+Source: https://docs.anthropic.com/en/docs/agents-and-tools/tool-use/web-fetch-tool
+(crawled 2026-10-06, rendered as nav chrome but key facts extracted).
+
+VERIFIED — server-executed tool. Claude fetches the URL and returns page
+content as markdown.
+
+VERIFIED — respects `robots.txt`. Will not fetch pages that disallow crawling.
+
+VERIFIED — `max_content_size` parameter: default 50KB, maximum 1MB. This is
+a real bound the implementation can enforce.
+
+VERIFIED — tool type follows the same pattern as `web_search`:
+`web_fetch_20250305` (and presumably later versions).
+
+### Google — `url_context` tool
+
+Source: https://ai.google.dev/gemini-api/docs/url-context (crawled 2026-10-06).
+
+VERIFIED — lets you provide URLs as additional context. The model accesses
+the content from those pages to inform its response.
+
+VERIFIED — limitations exist:
+  - Does not work with auth-required pages
+  - Does not work with YouTube URLs
+  - Other URL types listed in the limitations section
+
+VERIFIED — invoked alongside other tools (can be combined with
+`google_search`).
+
+### OpenAI — no native URL fetch tool
+
+VERIFIED (by absence): OpenAI's Responses API tools documentation
+(https://platform.openai.com/docs/guides/tools.md, crawled 2026-10-06) lists
+`web_search`, `file_search`, `computer_use`, `code_interpreter`, and
+`image_generation`. No URL fetch/scrape tool exists.
+
+### Implication for the chapter
+
+This asymmetry (2 of 3 vendors have native fetch, 1 does not) further
+supports the local-tools approach. A `crawl_web` local tool provides uniform
+fetch capability across all vendors without gaps.
+
+---
+
+## Community search/scrape libraries — 2026 landscape
+
+Researched 2026-10-06.
+
+### Search: DDGS (Dux Distributed Global Search)
+
+Source: https://github.com/deedy5/ddgs (README crawled 2026-10-06).
+
+The library formerly known as `duckduckgo_search` has reinvented itself as a
+**metasearch library** aggregating results from 10 search backends. This is
+what CodeRhapsody uses today for its `search_web` tool.
+
+**Key facts (all VERIFIED from README):**
+
+- **Package**: `pip install ddgs` (MIT license)
+- **Version**: v9.16.0 (August 2026)
+- **Stars**: ~3K on GitHub, actively maintained
+- **Python**: >= 3.10
+
+**Search backends (VERIFIED):**
+
+| Function | Available backends |
+|----------|:-------------------|
+| `text()` | `bing`, `brave`, `duckduckgo`, `google`, `grokipedia`, `mojeek`, `startpage`, `yandex`, `yahoo`, `wikipedia` |
+| `images()` | `bing`, `duckduckgo` |
+| `videos()` | `duckduckgo` |
+| `news()` | `bing`, `duckduckgo`, `yahoo` |
+| `books()` | `annasarchive` |
+
+**Built-in servers (VERIFIED):**
+
+- **MCP server**: `pip install ddgs[mcp]` then `ddgs mcp` (stdio transport).
+  Tools: `search_text`, `search_images`, `search_news`, `search_videos`,
+  `search_books`, `extract_content`.
+- **API server**: `pip install ddgs[api]` then `ddgs api` (FastAPI on port
+  4479). Docker compose support. Endpoints: `/search/text`, `/search/images`,
+  `/search/news`, `/search/videos`, `/search/books`, `/extract`, `/health`.
+
+**API (VERIFIED from README examples):**
+
+```python
+from ddgs import DDGS
+
+# Text search — returns list of dicts with title, href, body
+results = DDGS().text("python programming", max_results=5, backend="auto")
+
+# URL content extraction
+content = DDGS().extract(url)
+```
+
+`backend="auto"` is the default — the library picks the best available
+backend. A specific backend can be forced: `backend="brave"`,
+`backend="google"`, etc.
+
+**No API keys needed for any backend.** All backends are scraped, which means
+they could break if the upstream provider changes their HTML. This is the
+trade-off: free and keyless, but potentially fragile.
+
+**The `extract()` function** provides URL content extraction (similar to
+crawl4ai), but it is likely simpler HTTP fetching without Playwright-backed
+JS rendering. For documentation pages (the primary coding-agent use case),
+this is probably sufficient. For JS-heavy SPAs, crawl4ai with Playwright
+would be needed.
+
+### Scrape/fetch: crawl4ai
+
+Source: https://github.com/unclecode/crawl4ai (crawled 2026-10-06).
+
+- **Stars**: 84.8K (committed Oct 5, 2026 — actively maintained)
+- **Version**: v0.9.2 (July 2026)
+- **License**: Apache 2.0
+- **Approach**: Python, Playwright-backed, async, handles JS-rendered pages
+- **Built-in MCP server**: stdio transport (added August 2026)
+
+This is what CodeRhapsody uses today for its `crawl_web` tool. It handles
+JS-rendered pages that simpler HTTP-only scrapers cannot.
+
+### Other notable libraries (VERIFIED from web search 2026-10-06)
+
+| Library | Stars | License | Approach | Notes |
+|---------|-------|---------|----------|-------|
+| **Firecrawl** | ~40K+ | AGPL-3.0 (self-host) / Paid API | Node/Python, cloud primary | Best managed service DX. AGPL is a problem for book readers building agents. |
+| **Jina Reader** | ~25K+ | Apache 2.0 (reader) | `r.jina.ai/URL` prefix | Zero-config hosted service. Sends every URL to Jina's servers. |
+| **ScrapeGraphAI** | — | — | Python, graph-based + LLM | Uses LLMs for extraction via natural language prompts. |
+| **Scrapy** | Mature | BSD | Python framework | Production-grade structured extraction. Overkill for agent use. |
+| **Crawlee** | — | — | Node.js | All-in-one scraping + browser automation for JS. |
+
+### Recommendation for the book
+
+**Search**: `ddgs` — 10 backends, no API keys, MIT license, built-in MCP
+server, already proven in CodeRhapsody. The `backend="auto"` default means
+the library handles backend selection, reducing fragility. If one backend
+breaks, others are available.
+
+**Fetch/Scrape**: `crawl4ai` — Apache 2.0, 84.8K stars, Playwright-backed
+(handles JS), built-in MCP server, already proven in CodeRhapsody.
+
+**Why two libraries instead of just `ddgs`**: `ddgs` has `extract()` for URL
+fetching, but it is simple HTTP without JS rendering. Documentation pages are
+often static HTML and would work fine, but JS-heavy pages (SPAs, React docs
+sites) need Playwright. `crawl4ai` handles both. The two tools have different
+jobs: `ddgs` discovers URLs, `crawl4ai` reads them.
+
+**Alternative considered and deferred**: using `ddgs` for everything (search +
+extract) would simplify the dependency story to one library. This is viable
+if the book's examples never need JS-rendered pages. Could be mentioned as a
+simpler option for readers who don't need full browser rendering.
+
+---
+
+## Search pricing comparison (partial — 2026-10-06)
+
+Pricing was difficult to extract from vendor pages (most rendered as nav
+chrome). What follows is partial and should be re-verified before publication.
+
+### Native vendor search pricing
+
+**Anthropic `web_search`**: Priced per search invocation, separate from token
+costs. `max_uses` (default 5) caps searches per request. Exact dollar figure
+NOT EXTRACTED — pricing page rendered as nav chrome. Usage reported via
+`usage.server_tool_use.web_search_requests`.
+
+**OpenAI `web_search`**: No separate per-search charge visible on the pricing
+page. "Search actions incur a tool call cost" — appears to be bundled into
+token usage. `search_context_size` (`low`/`medium`/`high`) controls returned
+context volume.
+
+**Gemini `google_search_retrieval`**: Billed per search query on Gemini 3+
+(per query executed, not per prompt). Empty queries ignored for counting. On
+Gemini 2.5 and older, billed per prompt. Free tier includes grounding at no
+cost. Exact paid-tier pricing NOT EXTRACTED.
+
+INFERRED — the pricing models are fundamentally asymmetric across vendors:
+per-invocation (Anthropic), bundled into tokens (OpenAI), per-query with
+model-generation gating (Gemini). This asymmetry was another factor in
+choosing local tools over native search — local tools have zero search cost
+beyond the compute to run them.
+
+### Local tool pricing
+
+**`ddgs`**: Free. No API keys. All backends are scraped. Zero cost.
+
+**`crawl4ai`**: Free. Self-hosted. Playwright browser instance runs locally.
+Cost is only the compute to run the browser.
+
+---
+
+## Summary of architecture decisions (2026-10-06)
+
+| Decision | Choice | Rationale |
+|----------|--------|-----------|
+| Search mechanism | Local tools (`ddgs` + `crawl4ai`) | Vendor-neutral results, no opaque blobs, survives model switch, free, proven in CodeRhapsody |
+| Native vendor search | Not used | Three different APIs, three different citation formats, three different billing models, results don't survive model switch without normalization |
+| Settings UI | None — always on | Deferred to sandboxing chapter |
+| Off toggle | Deferred | Belongs in capability restriction / sandboxing chapter |
+| Cross-vendor adapter | Eliminated | Same-vendor-only was already the plan; local tools make it moot |
+| DuckDuckGo-specific | No — `ddgs` is now a metasearch library with 10 backends | `backend="auto"` handles backend selection |
+| JS-rendered pages | `crawl4ai` (Playwright) | `ddgs extract()` is HTTP-only; documentation sites sometimes need JS |
