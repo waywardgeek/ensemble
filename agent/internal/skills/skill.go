@@ -200,6 +200,11 @@ func parseMCPField(c *common.MCPServerConfig, line string) {
 		c.Command = value
 	case "url":
 		c.URL = value
+	case "auth-env":
+		// The frontmatter names an environment variable; it never carries the
+		// secret itself. A SKILL.md is committed to the repository, and a
+		// credential in it would be a credential published.
+		c.AuthEnv = value
 	case "args":
 		// Parse ["arg1", "arg2"] or bare words.
 		value = strings.TrimPrefix(value, "[")

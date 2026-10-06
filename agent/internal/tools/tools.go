@@ -977,6 +977,24 @@ func sortedKeys(m map[string]common.ToolDecl) []string {
 	return out
 }
 
+// IsEnabled reports whether a tool may be called right now.
+//
+// It asks exactly the question Declarations asks, by the declared name rather
+// than the normalized map key, so the set the model is shown and the set it
+// may call cannot drift apart. An unknown name is reported enabled: Lookup
+// owns the "no such tool" error, and answering false here would turn a typo
+// into a permission complaint.
+func (r *Reg) IsEnabled(name string) bool {
+	if r.skills == nil {
+		return true
+	}
+	t, ok := r.tools[common.NormalizeName(name)]
+	if !ok {
+		return true
+	}
+	return r.skills.IsToolEnabled(t.Name)
+}
+
 func (r *Reg) Declarations() []common.ToolDecl {
 	var decls []common.ToolDecl
 	for _, n := range r.toolNames() {
@@ -1142,14 +1160,22 @@ func (r *Reg) WireSkills(sr common.Skills, vars common.Vars, eventLog *common.Lo
 					norm := common.NormalizeName(tn)
 					r.meta[norm] = ToolMeta{Source: SourceDynamic, EventSeq: seq}
 				}
-				// Register MCP tools with the skill so IsToolEnabled returns true.
-				// IsToolEnabled is asked by declared name, the one a skill author
-				// writes, never by the normalized map key ("gui_click" is keyed
-				// "guiclick"). This line once recorded keys while SKILL.md files list
-				// names, so the filter passed MCP tools and dropped view_gui.
-				for _, tn := range toolNames {
-					entry.Props.Tools = append(entry.Props.Tools, tn)
-				}
+				// Enablement comes from the skill's own tools: header and
+				// nowhere else. The bridged tools are registered -- they
+				// exist, and the names above are recorded -- but a tool the
+				// SKILL.md does not list stays disabled, so it is never
+				// declared to the model.
+				//
+				// This used to append every advertised name to Props.Tools,
+				// which force-enabled whatever the server happened to offer.
+				// Keyless Firecrawl advertised exactly the three tools the
+				// skill documented, so the hole was invisible: the inventory
+				// matched the documentation by luck, not by enforcement. An
+				// API key turns the same endpoint into twenty-seven tools,
+				// including ones that delete monitors and spend credits, and
+				// every one of them would have been declared to the model.
+				// A remote server does not get to decide what the agent may
+				// call. The skill file decides.
 			}
 
 			// Rule 2: the declarations that changed, as a delta, in the

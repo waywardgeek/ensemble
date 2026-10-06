@@ -418,6 +418,15 @@ func (a *Actor) dispatchTool(call common.ToolCallPart) error {
 	limits, fromPending, limErr := a.eng.Jobs.Take(call.Args)
 
 	tool, err := a.eng.Tools.Lookup(call.Name)
+	if err == nil && !a.eng.Tools.IsEnabled(call.Name) {
+		// Registered but not enabled by any loaded skill. A bridged MCP
+		// server registers everything it advertises; the SKILL.md decides
+		// what may actually be called. Report it the way an unknown tool is
+		// reported, because to this conversation it is one -- it was never
+		// declared, and naming it as "disabled" would tell the model that
+		// something it cannot see is there to be unlocked.
+		err = fmt.Errorf("unknown tool: %s", call.Name)
+	}
 	if err == nil {
 		err = limErr
 	}

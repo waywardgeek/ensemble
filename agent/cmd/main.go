@@ -510,7 +510,24 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 				// added later" -- and MCPServerConfig has carried a URL field
 				// since Chapter 12. This case is the whole host-side cost of
 				// reaching a hosted MCP server.
-				t, tErr = mcp.NewHTTPTransport(srv.URL, nil)
+				//
+				// auth-env names an environment variable; the skill file never
+				// holds the key itself. If the variable is unset we still
+				// connect, because this endpoint also answers keyless requests
+				// -- at a lower daily limit. Degrading to anonymous is safe;
+				// doing it silently is not, so say so.
+				var headers map[string]string
+				if srv.AuthEnv != "" {
+					if token := os.Getenv(srv.AuthEnv); token != "" {
+						headers = map[string]string{
+							"Authorization": "Bearer " + token,
+						}
+					} else {
+						host.Logf("skill %s MCP %s: $%s is unset; connecting without a key",
+							skill, srv.Name, srv.AuthEnv)
+					}
+				}
+				t, tErr = mcp.NewHTTPTransport(srv.URL, headers)
 			default:
 				host.Logf("skill %s: unsupported MCP transport %q, skipping", skill, srv.Transport)
 				continue

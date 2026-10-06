@@ -35,7 +35,8 @@ type MCPServerConfig struct {
 	Command   string   // for stdio: the command to run
 	Args      []string // for stdio: command arguments
 	Env       []string // for stdio: environment variables
-	URL       string   // for url: the server URL (future)
+	URL       string   // for url: the server URL
+	AuthEnv   string   // for url: name of an env var holding a bearer token
 }
 
 // SkillProperties is the parsed representation of a SKILL.md file.

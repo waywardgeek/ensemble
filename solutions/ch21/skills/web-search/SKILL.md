@@ -2,17 +2,22 @@
 name: web-search
 description: Search the web and read pages, for facts that changed after training.
 type: loadable
+tools: firecrawl_search firecrawl_scrape firecrawl_parse
 mcp_servers:
   - name: firecrawl
     transport: url
     url: https://mcp.firecrawl.dev/v2/mcp
+    auth-env: FIRECRAWL_API_KEY
 ---
 
 # Web search
 
 This skill connects Firecrawl's hosted MCP server over HTTP. There is no
-sidecar process to install and no API key: the server answers keyless requests
-within a daily limit. The tools it advertises:
+sidecar process to install. The server answers keyless requests within a small
+daily limit; `auth-env` names the environment variable holding an API key,
+which raises that limit. The key lives in the environment, never in this file.
+
+The three tools this skill exposes:
 
 - `firecrawl_search` — query the web. Returns ranked hits with title, URL, and
   a description.
@@ -21,6 +26,11 @@ within a daily limit. The tools it advertises:
 
 Searching discovers sources; scraping reads one. Use `firecrawl_search` to find
 a page, then `firecrawl_scrape` on the URL you chose.
+
+With a key, the server advertises considerably more than three tools —
+crawling, monitors, credit accounting. The `tools:` line above is what decides
+which of them exist for you, and it lists three. A server may offer whatever it
+likes; the skill file decides what the agent may call.
 
 ## When to use it
 

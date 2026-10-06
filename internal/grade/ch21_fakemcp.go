@@ -249,6 +249,10 @@ func ch21SkillMD(url string) string {
 		"name: web-search",
 		"description: Search the web and fetch pages.",
 		"type: loadable",
+		// The skill lists what it exposes. A bridged server advertises
+		// whatever it likes; only the names here become tools the model
+		// is shown and may call. These two are what the fake server offers.
+		"tools: firecrawl_search firecrawl_scrape",
 		"mcp_servers:",
 		"  - name: firecrawl",
 		"    transport: url",

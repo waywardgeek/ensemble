@@ -128,6 +128,13 @@ type ToolRegistry interface {
 	Declarations() []ToolDecl
 	EphemeralTools(mode string) []Tool
 
+	// IsEnabled reports whether a tool may be called right now. Lookup
+	// answers "does this exist"; a tool can exist and still be off limits.
+	// A bridged MCP server registers every tool it advertises, but only the
+	// ones its SKILL.md lists are enabled, and dispatch checks this before
+	// running anything the model asked for by name.
+	IsEnabled(name string) bool
+
 	// SyncModelGatedTools declares or withdraws the tools whose meaning
 	// depends on the model in use, so that switching models leaves the
 	// advertised tool set honest. Called at startup and on every switch.

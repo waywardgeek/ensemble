@@ -103,6 +103,7 @@ func ch13SkillTests(bin string, r *Ch13Result) {
 	skillMD := fmt.Sprintf(`---
 name: gui-debug
 description: Debug the GUI through browser MCP tools
+tools: gui_snapshot tts_queue gui_click gui_input
 depends:
   - ensemble
 mcp_servers:

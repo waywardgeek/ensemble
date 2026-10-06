@@ -92,6 +92,7 @@ Always read the manual before editing. This body is the whole manual.
 	mcpSkill := fmt.Sprintf(`---
 name: mcp-tools
 description: Connects a fake MCP server mid-session
+tools: gui_snapshot tts_queue gui_click gui_input
 type: loadable
 mcp_servers:
   - name: fakemcp
