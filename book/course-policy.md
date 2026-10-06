@@ -467,3 +467,46 @@ Standing rule for this repository: **nothing older than Gemini 3.0 Flash**,
 every earlier model having been superseded — with that single exception of
 `gemini-2.5-flash-lite` for summarizing and cheap judging, where tool calling is
 not required.
+
+## P11. The parent chain is an invariant, and graders must check the property
+
+Every constructor in the agent library takes an interface back-pointer to the
+object that created it. If a constructor's parameter list names something the
+agent or the engine already owns, it takes the back-pointer instead. Each
+back-pointer interface exposes its own parent, so an object reaches the root
+by walking up rather than by holding a direct line to it.
+
+Reason: a constructor that takes a dependency bag instead of a back-pointer
+produces a flat composition root, and in a flat root there is no parent to
+point at. The only remaining way to bridge two objects is to staple a closure
+between them at the wiring site. Those staples are invisible to the type
+system and are written exactly once, so a capability nobody thought to staple
+is unreachable — which is how a setting gets declared, plumbed, and left
+dead. The rule costs nothing when the constructor is written and saves a
+rewrite the first time someone needs a value the constructor was not handed.
+
+This rule is taught in Chapter 5 and it decayed anyway, in this repository,
+within the chapters that followed the ones that taught it. The reason it
+decayed is the second half of this policy, and it is the part that matters
+more:
+
+**A grader must test the property, not the vocabulary that usually
+accompanies it.** Chapter 5's original check for this invariant grepped the
+student's tree for the strings `Logf` and `Host` and reported "Host interface
+with Logf found, embedded in Call" — a message describing a structure it
+never looked at. It passed any tree containing a logging helper and an
+unrelated identifier. The invariant was therefore unprotected for sixteen
+chapters while appearing green on every run, and the reference implementation
+drifted out from under it with nothing to say so.
+
+This is P9 (audit by mutation) stated from the other direction. P9 asks
+whether a check can be killed. P11 asks what the check would have to be
+killed *by*: if the mutant that kills your check is a rename, you are grading
+vocabulary. If it is a structural change — a constructor that stops taking
+its parent, an import that reaches sideways instead of up — you are grading
+the property.
+
+A corollary for chapter authors: when a later chapter repairs an invariant an
+earlier chapter taught, fix the earlier chapter's **check** and leave the
+earlier chapter's **prose** alone. The reader should meet the original design,
+then meet the reason it was wrong, in the order the authors met them.
