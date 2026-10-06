@@ -11,7 +11,7 @@ import (
 // one is delivered, so returning on the stale message leaves it unprocessed.
 func TestToolWaitIgnoresStaleCompletion(t *testing.T) {
 	e := lostCallEngine(t)
-	a := NewActor(e, e.Agent)
+	a := NewActor(e, e.parent)
 	var finished []string
 	a.Attach(ObserverFunc(func(obs common.Observation) {
 		if f, ok := obs.(common.ToolFinished); ok {
@@ -46,7 +46,7 @@ func TestToolWaitIgnoresStaleCompletion(t *testing.T) {
 // other mailbox message.
 func TestToolWaitAcceptsCurrentCompletion(t *testing.T) {
 	e := lostCallEngine(t)
-	a := NewActor(e, e.Agent)
+	a := NewActor(e, e.parent)
 	a.mb.Post(common.ToolCompleted{CallID: "current", Result: "done"})
 	if !a.waitForTool("current") {
 		t.Fatal("current completion did not finish the wait")
@@ -57,7 +57,7 @@ func TestToolWaitAcceptsCurrentCompletion(t *testing.T) {
 // must not requeue it forever or leave it to satisfy the next tool's wait.
 func TestActorConsumesIdleToolCompletion(t *testing.T) {
 	e := lostCallEngine(t)
-	a := NewActor(e, e.Agent)
+	a := NewActor(e, e.parent)
 	var finished []common.ToolFinished
 	a.Attach(ObserverFunc(func(obs common.Observation) {
 		if f, ok := obs.(common.ToolFinished); ok {

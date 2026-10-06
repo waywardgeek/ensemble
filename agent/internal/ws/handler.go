@@ -433,10 +433,15 @@ func (h *Hub) usageFrame() []byte {
 		priced bool
 		cost   float64
 	)
-	if f, ok := common.LookupModel(h.effectiveModel()); ok && f.Price.Priced() {
-		priced = true
-		cost = common.CostUSD(session, f.Price)
-	}
+	// Price each model's own counts at that model's own rates.
+	//
+	// This used to be CostUSD(session, priceOfCurrentModel), which billed
+	// every token the session had ever spent at whatever model happened to
+	// be selected right now. Switching from a cheap model to an expensive
+	// one retroactively re-priced the entire history, so the displayed cost
+	// jumped without a request having been sent -- a wrong number that looks
+	// completely plausible, which is the kind that survives.
+	cost, priced = common.CostByModel(h.usage.UsageByModel())
 
 	data, _ := json.Marshal(map[string]any{
 		"type": "usage",

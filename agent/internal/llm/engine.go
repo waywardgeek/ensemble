@@ -26,7 +26,15 @@ type Engine struct {
 	Path  string // where the log is persisted, so `dump` can find it
 	Jobs  common.JobManager
 	Tools common.ToolRegistry
-	Agent common.Agent
+	// parent is the back-pointer to the agent that created this engine.
+	// It is unexported so that Agent() can be a method, which is what
+	// common.Engine requires: anything holding an engine can walk up.
+	parent common.Agent
+
+	// usage is this run's token counts, split by the model that incurred
+	// them. It lives here, not on the agent, because the engine is what
+	// spends tokens and the only object that knows which model spent them.
+	usage common.UsageCounter
 
 	// Creds resolves the bearer credential for each outbound request.
 	//
@@ -110,20 +118,20 @@ type Engine struct {
 	requestCtx context.Context
 }
 
-func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools common.ToolRegistry, host common.Agent) *Engine {
+func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools common.ToolRegistry, parent common.Agent) *Engine {
 	// Match the single-surface renderer's default in persisted provenance.
 	if cfg.Surface == 0 && (cfg.Vendor == common.VendorAnthropic || cfg.Vendor == common.VendorGemini) {
 		cfg.Surface = common.SurfaceForModel(cfg.Model, cfg.Vendor)
 	}
 	return &Engine{
-		Log:   NewLog(),
-		Ctx:   common.NewContext(),
-		Cfg:   cfg,
-		HTTP:  &http.Client{Timeout: 120 * time.Second},
-		Path:  path,
-		Jobs:  jobs,
-		Tools: tools,
-		Agent: host,
+		Log:    NewLog(),
+		Ctx:    common.NewContext(),
+		Cfg:    cfg,
+		HTTP:   &http.Client{Timeout: 120 * time.Second},
+		Path:   path,
+		Jobs:   jobs,
+		Tools:  tools,
+		parent: parent,
 	}
 }
 
@@ -150,8 +158,8 @@ func (e *Engine) Record(ev common.Event) error {
 }
 
 func (e *Engine) logf(format string, args ...any) {
-	if e.Agent != nil {
-		e.Agent.Logf(format, args...)
+	if e.parent != nil {
+		e.parent.Logf(format, args...)
 	}
 }
 
@@ -319,16 +327,23 @@ func (e *Engine) TurnContext(ctx context.Context, watch common.StreamCallbacks) 
 	// turns would become the "previous request" and the diff would compare a
 	// judge prompt against a conversation. Hooking Turn excludes them by
 	// construction instead of by filtering.
-	//
+
+	// The model this turn is actually sending to, captured before the
+	// request goes out. Usage is credited to this rather than to whatever
+	// Cfg holds when the response finishes parsing: handleSetModel mutates
+	// Cfg in place, so a switch arriving mid-turn would otherwise bill this
+	// turn's tokens to the model that replaced it.
+	sentModel := e.Cfg.Model
+
 	// BodyOf reads from req.GetBody, which hands back a fresh reader, so the
 	// live body is not consumed.
 	if e.Cache != nil {
 		if body, bErr := common.BodyOf(req); bErr == nil {
-			e.Cache.ObserveRequest(e.Cfg.Model, body)
+			e.Cache.ObserveRequest(sentModel, body)
 		}
 	}
 	if err := e.Record(common.Event{Type: common.RequestSent, Request: &common.RequestData{To: common.Provenance{
-		Vendor: e.Cfg.Vendor, Model: e.Cfg.Model, Surface: e.Cfg.Surface,
+		Vendor: e.Cfg.Vendor, Model: sentModel, Surface: e.Cfg.Surface,
 	}}}); err != nil {
 		return "", err
 	}
@@ -372,12 +387,18 @@ func (e *Engine) TurnContext(ctx context.Context, watch common.StreamCallbacks) 
 			if e.Cache != nil {
 				e.Cache.ObserveUsage(ev.Response.Usage)
 			}
-			// Report spend up the parent chain. The reducer's total is durable
-			// and spans every run the conversation has had; this one spans this
-			// process, which is what a human means by "this session".
-			if e.Agent != nil {
-				e.Agent.RecordUsage(ev.Response.Usage)
-			}
+			// Record spend against the model that was sent to. The reducer's
+			// total is durable and spans every run the conversation has had;
+			// this one spans this process, which is what a human means by
+			// "this session".
+			//
+			// No nil guard: the counter is a field on the engine, not
+			// something reached through the parent, so there is nothing here
+			// that can be absent. That change is the point — the previous
+			// version skipped recording entirely when the parent was nil,
+			// silently losing a run's counts in exactly the configuration
+			// (a bare engine) that tests use.
+			e.usage.RecordUsage(sentModel, ev.Response.Usage)
 		}
 	}
 	watch.OnFrame = func(eventType string, data []byte) {
@@ -386,10 +407,10 @@ func (e *Engine) TurnContext(ctx context.Context, watch common.StreamCallbacks) 
 		// longer possible and the response half of the log would otherwise
 		// simply go dark.
 		if eventType != "" {
-			e.Agent.APILogf("<<< [%s] %s", eventType, string(data))
+			e.parent.APILogf("<<< [%s] %s", eventType, string(data))
 			return
 		}
-		e.Agent.APILogf("<<< %s", string(data))
+		e.parent.APILogf("<<< %s", string(data))
 	}
 
 	if err := parser.Parse(resp, watch); err != nil {
@@ -409,7 +430,7 @@ func (e *Engine) send(req *http.Request) (*http.Response, error) {
 			return nil, err
 		}
 		req.Body.Close()
-		e.Agent.APILogf(">>> %s %s\n%s", req.Method, req.URL, string(reqBody))
+		e.parent.APILogf(">>> %s %s\n%s", req.Method, req.URL, string(reqBody))
 		req.Body = io.NopCloser(strings.NewReader(string(reqBody)))
 	}
 
@@ -424,7 +445,7 @@ func (e *Engine) send(req *http.Request) (*http.Response, error) {
 	// Only the status line here. The body is NOT read: reading it would
 	// consume the stream the parser is about to walk, and buffering it whole
 	// would give up streaming entirely while still looking like it worked.
-	e.Agent.APILogf("<<< %d %s", resp.StatusCode, resp.Header.Get("Content-Type"))
+	e.parent.APILogf("<<< %d %s", resp.StatusCode, resp.Header.Get("Content-Type"))
 
 	return resp, nil
 }
@@ -473,12 +494,12 @@ func (e *Engine) CallEphemeral(mode string) error {
 
 	var parts []string
 	for _, t := range tools {
-		c := &common.Call{Agent: e.Agent, Jobs: e.Jobs}
+		c := &common.Call{Agent: e.parent, Engine: e, Jobs: e.Jobs}
 		out, err := t.Run(c, nil)
 		if err != nil {
 			// Ephemeral tool errors are logged but not fatal —
 			// a snapshot failure should not abort the turn.
-			e.Agent.Logf("ephemeral tool %s error: %v", t.Name, err)
+			e.parent.Logf("ephemeral tool %s error: %v", t.Name, err)
 			continue
 		}
 		if out != "" {

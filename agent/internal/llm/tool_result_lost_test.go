@@ -24,7 +24,7 @@ import (
 
 func lostCallEngine(t *testing.T, entries ...common.Entry) *Engine {
 	t.Helper()
-	e := &Engine{Log: NewLog(), Ctx: common.NewContext(), Agent: testHost{t}}
+	e := &Engine{Log: NewLog(), Ctx: common.NewContext(), parent: testHost{t}}
 	e.Ctx.Dialogue = append(e.Ctx.Dialogue, entries...)
 	return e
 }
@@ -245,10 +245,10 @@ func TestARequestBuiltOverALostCallIsLegalOnTheWire(t *testing.T) {
 
 	const model = "claude-sonnet-5"
 	e := &Engine{
-		Log:   NewLog(),
-		Ctx:   common.NewContext(),
-		Agent: testHost{t},
-		HTTP:  srv.Client(),
+		Log:    NewLog(),
+		Ctx:    common.NewContext(),
+		parent: testHost{t},
+		HTTP:   srv.Client(),
 		Cfg: common.Config{
 			Model:   model,
 			Vendor:  common.VendorAnthropic,
@@ -348,10 +348,10 @@ func TestALostCallMidConversationIsAnsweredInTheNextMessage(t *testing.T) {
 
 	const model = "claude-sonnet-5"
 	e := &Engine{
-		Log:   NewLog(),
-		Ctx:   common.NewContext(),
-		Agent: testHost{t},
-		HTTP:  srv.Client(),
+		Log:    NewLog(),
+		Ctx:    common.NewContext(),
+		parent: testHost{t},
+		HTTP:   srv.Client(),
 		Cfg: common.Config{
 			Model:   model,
 			Vendor:  common.VendorAnthropic,

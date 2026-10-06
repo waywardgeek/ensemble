@@ -348,7 +348,7 @@ func (a *Agent) ConnectMCP(t mcp.Transport) error {
 		if err != nil {
 			return "", err
 		}
-		c := &common.Call{Agent: a, Jobs: a.eng.Jobs}
+		c := &common.Call{Agent: a, Engine: a.eng, Jobs: a.eng.Jobs}
 		return tool.Run(c, args)
 	})
 

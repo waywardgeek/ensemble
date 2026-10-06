@@ -658,10 +658,21 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	if port != "" {
 		// The same store the context policy reads, so a target changed in
 		// the Context Management tab applies from the next request.
-
+		//
+		// Usage comes from the engine, which spends the tokens and is the
+		// only object that knows which model spent them. It used to come
+		// from host, back when the counter was embedded on the agent
+		// because the agent was the thing everything could reach.
+		//
+		// Note what this line cannot protect against. A usage source handed
+		// over once at construction is resolved now and never again, so
+		// moving the counter elsewhere silently aims the meter at an object
+		// nobody writes to: nothing fails to compile and the meter reads
+		// zero. A back-pointer is re-resolved at the moment of asking and
+		// cannot go stale that way.
 		hub := ws.NewHub(gate, func(msg common.Inbound) {
 			actor.Send(msg)
-		}, "gui.log", eng.Log, settingsStore, host)
+		}, "gui.log", eng.Log, settingsStore, eng.Usage())
 		// view_gui: the agent looks at its own GUI when it chooses to. Registered
 		// here because it needs the hub, and before the actor starts, so it is in
 		// the startup declarations like every builtin (the --gui-debug load above

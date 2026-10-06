@@ -17,17 +17,30 @@ import "sync"
 //
 // Counts only. No money is stored here, ever — prices change while counts are
 // history, so cost is computed where it is displayed and never recorded.
+//
+// Counts are kept PER MODEL as well as in aggregate. A session that switches
+// models spends tokens at two different prices, and a single session total
+// cannot be priced correctly afterwards at either of them: multiplying the
+// whole session by the current model's rate retroactively re-prices every
+// token already spent, so the reported cost changes when the operator picks a
+// different model without sending anything. Keeping the counts split is what
+// lets cost stay a derived quantity rather than a remembered one.
 type UsageCounter struct {
-	mu    sync.Mutex
-	usage Usage
-	last  Usage // most recent single-response usage
+	mu      sync.Mutex
+	usage   Usage
+	last    Usage // most recent single-response usage
+	byModel map[string]Usage
 }
 
-// RecordUsage adds one request's counts to the session total.
+// RecordUsage adds one request's counts to the session total and to the
+// running total for the model that served it.
 //
 // Called from whichever goroutine parsed the response, so it locks. This is
-// the write half of the Agent usage seam.
-func (c *UsageCounter) RecordUsage(u Usage) {
+// the write half of the Engine usage seam. The model is a parameter rather
+// than something read back from configuration because the configured model
+// may already have changed by the time a response is parsed; the only model
+// that can be credited is the one the caller actually sent to.
+func (c *UsageCounter) RecordUsage(model string, u Usage) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	c.usage.Input += u.Input
@@ -35,6 +48,30 @@ func (c *UsageCounter) RecordUsage(u Usage) {
 	c.usage.CacheRead += u.CacheRead
 	c.usage.Output += u.Output
 	c.last = u
+
+	if c.byModel == nil {
+		c.byModel = map[string]Usage{}
+	}
+	m := c.byModel[model]
+	m.Input += u.Input
+	m.CacheWrite += u.CacheWrite
+	m.CacheRead += u.CacheRead
+	m.Output += u.Output
+	c.byModel[model] = m
+}
+
+// UsageByModel returns a copy of the per-model tallies.
+//
+// A copy, because the caller is going to price it, and pricing walks the map
+// while the engine may still be recording into it.
+func (c *UsageCounter) UsageByModel() map[string]Usage {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	out := make(map[string]Usage, len(c.byModel))
+	for k, v := range c.byModel {
+		out[k] = v
+	}
+	return out
 }
 
 // SessionUsage returns a copy of the totals for this process.
@@ -83,6 +120,9 @@ func CacheHitRate(u Usage) float64 {
 type UsageSource interface {
 	SessionUsage() Usage
 	LastUsage() Usage
+	// UsageByModel returns counts split by the model that incurred them, so
+	// that a session spanning several models can be priced correctly.
+	UsageByModel() map[string]Usage
 }
 
 // CostUSD is the dollar cost of a tally under a price sheet.
@@ -101,4 +141,36 @@ func CostUSD(u Usage, p Pricing) float64 {
 		float64(u.CacheWrite)*p.CacheWrite +
 		float64(u.CacheRead)*p.CacheRead +
 		float64(u.Output)*p.Output) / perMillion
+}
+
+// CostByModel prices a per-model tally: the sum over models of that model's
+// counts at that model's rates.
+//
+// This is the whole point of keeping counts split. The obvious shortcut —
+// multiply the session total by the current model's price — is wrong in a way
+// that is easy to miss, because it produces a plausible number that changes
+// retroactively. Switch from a cheap model to an expensive one and every
+// token the cheap model spent is suddenly billed at the expensive rate, so
+// the session cost jumps without a request having been sent.
+//
+// The second return reports whether every model that actually spent tokens
+// had a price. It is false when some did not, which the renderer shows as a
+// dash rather than silently under-reporting: a missing price is not a price
+// of zero, and the difference matters precisely when a new model has been
+// added and nobody has filled in its row yet.
+func CostByModel(byModel map[string]Usage) (float64, bool) {
+	total := 0.0
+	complete := true
+	for model, u := range byModel {
+		if u == (Usage{}) {
+			continue // a model that was selected but never sent to
+		}
+		f, ok := LookupModel(model)
+		if !ok || !f.Price.Priced() {
+			complete = false
+			continue
+		}
+		total += CostUSD(u, f.Price)
+	}
+	return total, complete
 }

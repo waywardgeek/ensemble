@@ -438,7 +438,7 @@ func (a *Actor) dispatchTool(call common.ToolCallPart) error {
 		}}); err != nil {
 			return err
 		}
-		c := &common.Call{Agent: a.host, Jobs: a.eng.Jobs, Limits: limits}
+		c := &common.Call{Agent: a.host, Engine: a.eng, Jobs: a.eng.Jobs, Limits: limits}
 		var out string
 		if err == nil {
 			out, err = tool.Run(c, call.Args)
@@ -483,7 +483,7 @@ func (a *Actor) dispatchTool(call common.ToolCallPart) error {
 	a.workers.Add(2)
 	go func() {
 		defer a.workers.Done()
-		c := &common.Call{Agent: a.eng.Agent, Job: job, Jobs: a.eng.Jobs, Limits: limits}
+		c := &common.Call{Agent: a.eng.parent, Engine: a.eng, Job: job, Jobs: a.eng.Jobs, Limits: limits}
 		// No recover: a tool panic is an invariant violation, not model output.
 		out, err := tool.Run(c, callCopy.Args)
 		// Publish effects before Finish wakes a normal completion waiter.

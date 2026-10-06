@@ -147,26 +147,61 @@ type ToolRegistry interface {
 
 // Agent is the root interface every object can reach through its parent chain.
 // It provides access to the logger and any other top-level facilities.
+// Agent is the back-pointer interface every object in the library holds to
+// the agent that created it, directly or through its own parent.
+//
+// It was called Host until Chapter 22, named for its first capability —
+// logging — rather than for the object it points at. The name mattered more
+// than it looks. Nobody thinks to add Model() to "the logging thing", so when
+// a later object needed the model it got a closure stapled to it at the
+// wiring site instead, and the chain stopped growing the day it was named.
+//
+// Usage reporting used to live here too, with a comment explaining that it
+// belonged on Host "because Host is already the thing every object can
+// reach". That is a reason for where it was EASY to put, not for where it
+// BELONGED, and it is the same mistake in a quieter register: reachable had
+// become the selection criterion, so the parent interface accreted a
+// capability that has nothing to do with being a parent. Token counts now
+// live on Engine, which is the object that spends them and the only one that
+// knows which model did.
 type Agent interface {
 	Logf(format string, args ...any)
 	// APILogf logs LLM API wire traffic (JSON requests and responses).
 	APILogf(format string, args ...any)
 	// Debugf logs to both the terminal and the debug log file.
 	Debugf(format string, args ...any)
+}
 
-	// RecordUsage adds one request's token counts to this run's totals, and
-	// SessionUsage reads them back.
-	//
-	// These live on Agent rather than being handed around because Agent is
-	// already the thing every object can reach through its parent chain, and
-	// its lifespan is already exactly one run of the program — which is what a
-	// session is. Anything that spends tokens can therefore report them
-	// without being wired to a reporter, and anything that displays them can
-	// read them without being wired to a producer.
-	//
-	// Embed UsageCounter to satisfy both.
-	RecordUsage(u Usage)
-	SessionUsage() Usage
+// Engine is the back-pointer interface for the object that runs model
+// requests: it owns the configuration, spends the tokens, and knows which
+// model spent them.
+//
+// It exists because the engine was always reachable from the tool dispatch
+// site and never exposed. The line that builds a Call reached into the engine
+// to pull out one field and discarded the rest, so a tool that needed the
+// model name had no route to it even though the engine was sitting in scope
+// one identifier away. Everything added here was already available at the
+// moment the call was constructed.
+//
+// Agent() is the parent accessor. An object walks UP the chain — Engine to
+// Agent — rather than holding a separate direct line to the root, because two
+// routes to the same object drift, and the one that drifts is always the one
+// missing the capability you need.
+type Engine interface {
+	// Agent returns the engine's parent.
+	Agent() Agent
+
+	// Model is the model the engine will send the next request to.
+	Model() string
+
+	// Pricing is the price table for the current model. Prices are returned
+	// rather than costs: money is derived at the point of display, never
+	// stored, because a stored cost is wrong the day a price changes.
+	Pricing() Pricing
+
+	// Usage reports token counts, including the per-model split needed to
+	// price a session that switched models.
+	Usage() UsageSource
 }
 
 // ToolFunc executes one tool call and returns text the model will see.
@@ -190,6 +225,15 @@ type Tool struct {
 // gives every tool trivial access to the logger through the parent chain.
 type Call struct {
 	Agent
+	// Engine is the back-pointer to the object running the model request
+	// this tool call belongs to. A tool reaches the agent through it with
+	// Engine.Agent(), rather than through a second field pointing at the
+	// root: one route, so there is one place to extend.
+	//
+	// Nothing new had to be plumbed to make this available. The engine was
+	// already in scope at the line that builds a Call — that line reached
+	// into it to pull out Jobs and threw the rest away.
+	Engine Engine
 	Job    JobHandle
 	Jobs   JobManager
 	Limits Limits
