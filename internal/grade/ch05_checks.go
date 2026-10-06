@@ -88,9 +88,9 @@ func Ch5Evaluate(r *Ch5Result) []Check {
 		} else if r.HasLogf {
 			c.Passed = true
 			c.Earned = c.Points
-			c.notef("Host interface with Logf found, embedded in Call")
+			c.notef("parent chain verified: %s", r.LogfEvidence)
 		} else {
-			c.failf("no Host interface with Logf found, or not embedded in Call")
+			c.failf("no back-pointer interface reaches the logger from a tool: %s", r.LogfEvidence)
 		}
 		checks = append(checks, c)
 	}

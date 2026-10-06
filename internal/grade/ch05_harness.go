@@ -7,6 +7,7 @@ package grade
 
 import (
 	"bytes"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -25,6 +26,7 @@ type Ch5Result struct {
 	ToolOutput     string
 	Base           string
 	HasLogf        bool
+	LogfEvidence   string
 	MutableGlobals []string
 	Ch4Result      *Ch4Result
 	HelpersErr     string
@@ -49,8 +51,9 @@ func Ch5Run(dir string) (*Ch5Result, error) {
 	// Inspect import graph.
 	r.ImportGraph = DiscoverImportGraph(dir)
 
-	// Check for Host interface with Logf in common, and embedded in Call.
-	r.HasLogf = detectLogf(dir)
+	// Verify the parent chain structurally: a back-pointer interface on the
+	// dispatch struct, walked from outside the hub package. Not by name.
+	r.LogfEvidence, r.HasLogf = detectParentChain(dir)
 
 	// Check for mutable package-level vars.
 	r.MutableGlobals = detectMutableGlobals(dir)
@@ -147,17 +150,78 @@ func driveCh5Tool(bin, workDir string) (toolCalled bool, toolOutput string) {
 	return
 }
 
-// detectLogf checks whether the student's code declares a Host-like
-// interface with Logf and references it from a Call-like struct.
-// Searches the entire tree, not just internal/common/.
-func detectLogf(dir string) bool {
-	cmd := exec.Command("grep", "-rl", "Logf", dir, "--include=*.go")
-	if out, err := cmd.Output(); err != nil || len(out) == 0 {
-		return false
+// detectParentChain verifies -- structurally, and without knowing any of the
+// reference implementation's identifiers -- that the back-pointer interface
+// taught in this chapter exists, is genuinely walked, and is reachable from
+// the struct the hub hands outward to tool code.
+//
+// The property, stated without vocabulary. There is an interface I declared
+// in the tree with a variadic logging method, and:
+//
+//   - WALKED: some struct in a package other than I's stores I as an
+//     interface-typed field -- which is what a back-pointer constructor
+//     parameter becomes -- and a method on that struct calls I's logging
+//     method through that field.
+//
+//   - REACHABLE: some struct declared alongside I in I's own package carries
+//     I as a field, and is passed as a parameter to a function in another
+//     package. That is the tool dispatch struct: the value the hub hands
+//     outward to code that was given nothing else.
+//
+// Together these say the parent chain is real rather than decorative, and
+// that tool code has a route onto it. Neither clause names a type.
+//
+// Both clauses reject func-typed fields. That refusal is the whole
+// distinction between a back-pointer and a closure stapled on at the wiring
+// site, which is the subject of Chapter 22: a closure answers exactly the
+// one question its author anticipated, and an interface answers every
+// question the parent can answer.
+//
+// What this replaces grepped the tree for "Logf" and for "Host" and reported
+// "Host interface with Logf found, embedded in Call" without ever looking at
+// an interface or at a struct. It scored any tree containing a logging
+// helper and an unrelated identifier, and a rename would have killed it.
+// See P11.
+//
+// The evidence is returned so the check can report what it found rather than
+// assert what it assumed.
+func detectParentChain(dir string) (string, bool) {
+	scan, err := scanTree(dir)
+	if err != nil {
+		return "no parsable Go source found: " + err.Error(), false
 	}
-	cmd = exec.Command("grep", "-rl", "Host", dir, "--include=*.go")
-	out, err := cmd.Output()
-	return err == nil && len(out) > 0
+
+	ifaces := scan.loggingInterfaces()
+	if len(ifaces) == 0 {
+		return "no interface in the tree declares a variadic logging method", false
+	}
+
+	// Report the near miss that got furthest, so a failing student is told
+	// which clause broke rather than just being told "no".
+	best := ""
+	note := func(s string) {
+		if best == "" {
+			best = s
+		}
+	}
+	for _, iface := range ifaces {
+		use, usedOK := scan.storedBackPointerUse(iface)
+		if !usedOK {
+			note(fmt.Sprintf("%s has %v, but no struct outside package %s stores it "+
+				"as a field and logs through it (a closure field does not count)",
+				iface.Key(), loggingMethods(iface), iface.Pkg))
+			continue
+		}
+		disp, dispOK := scan.dispatchStructFor(iface)
+		if !dispOK {
+			note(fmt.Sprintf("%s is walked as a back-pointer (%s), but no struct in "+
+				"package %s carries it and is passed out to another package, so tool "+
+				"code has no way to reach it", iface.Key(), use, iface.Pkg))
+			continue
+		}
+		return use + "; " + disp, true
+	}
+	return best, false
 }
 
 // detectMutableGlobals finds package-level var declarations that are mutable
