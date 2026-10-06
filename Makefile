@@ -82,6 +82,9 @@ grade21:
 grade19-audit:
 	./scripts/ch19-mutants.sh
 
+grade21-audit:
+	./scripts/ch21-mutants.sh
+
 grade-dir:
 	go run ./cmd/grade -ch $(CH) $(DIR)
 

@@ -159,10 +159,16 @@ func ch21ScenarioFailures(res *Ch21Result, bin, gui, nonce string) {
 	// --- tool-error-is-reported ------------------------------------------
 	// MCP-level failure: HTTP 200 with isError true.
 	res.ran("tool-error-is-reported")
-	if !ch21AnyToolResultContains(out.requests, "404") {
-		res.fail("tool-error-is-reported",
-			"a tool error (isError) never reached the model; a failure the model cannot see "+
-				"is a failure it will confidently narrate around")
+	if !ch21ErroredToolResultContains(out.requests, "404") {
+		if ch21AnyToolResultContains(out.requests, "404") {
+			res.fail("tool-error-is-reported",
+				"the failed scrape reached the model as a SUCCESSFUL tool result; the server's "+
+					"isError flag was dropped, so the model sees an error page framed as content")
+		} else {
+			res.fail("tool-error-is-reported",
+				"a tool error (isError) never reached the model; a failure the model cannot see "+
+					"is a failure it will confidently narrate around")
+		}
 	}
 
 	// --- transport-error-is-reported --------------------------------------
@@ -173,12 +179,17 @@ func ch21ScenarioFailures(res *Ch21Result, bin, gui, nonce string) {
 	if !ch21Called(out.calls, "firecrawl_scrape") {
 		res.fail("transport-error-is-reported", "no scrape reached the server at all")
 	} else {
-		reached := ch21AnyToolResultContains(out.requests, "quota exhausted") ||
-			ch21AnyToolResultContains(out.requests, "500")
+		reached := ch21ErroredToolResultContains(out.requests, "quota exhausted")
 		if !reached {
+			detail := "the failure never reached the model as an error at all"
+			if ch21AnyToolResultContains(out.requests, "quota exhausted") {
+				detail = "the reason reached the model but was not marked as an error"
+			} else if ch21ErroredToolResultContains(out.requests, "") {
+				detail = "an error reached the model, but the reason in the response body was discarded"
+			}
 			res.fail("transport-error-is-reported",
-				"the HTTP 500 from the MCP endpoint never reached the model with a usable reason; "+
-					"the response body carries why the request was refused")
+				"the HTTP 500 from the MCP endpoint did not reach the model with a usable reason: %s; "+
+					"the response body is where a refusal says whether it was quota, auth or outage", detail)
 		}
 	}
 
@@ -237,8 +248,28 @@ func ch21ToolNames(r fakevendor.Recorded) []string {
 // tool_result block of any recorded request.
 func ch21AnyToolResultContains(rs []fakevendor.Recorded, needle string) bool {
 	for _, r := range rs {
-		for _, s := range ch21ToolResultTexts(r) {
-			if strings.Contains(s, needle) {
+		for _, tr := range ch21ToolResults(r) {
+			if strings.Contains(tr.Text, needle) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// ch21ErroredToolResultContains is the same question, restricted to results
+// the agent marked as failures.
+//
+// Asserting the text alone is not enough, and the difference is the whole
+// check: if the agent dropped the server's isError flag and passed the body
+// through as an ordinary success, the words "404 Not Found" would still reach
+// the model — attached to a result that claims it worked. The model then has
+// a page that says one thing and a frame that says another, and it will
+// usually believe the frame.
+func ch21ErroredToolResultContains(rs []fakevendor.Recorded, needle string) bool {
+	for _, r := range rs {
+		for _, tr := range ch21ToolResults(r) {
+			if tr.IsError && strings.Contains(tr.Text, needle) {
 				return true
 			}
 		}
@@ -307,10 +338,16 @@ func ch21SystemText(body map[string]any) string {
 	return ""
 }
 
-// ch21ToolResultTexts pulls the text out of every tool_result block, which is
-// where a well-behaved agent puts what a tool returned.
-func ch21ToolResultTexts(r fakevendor.Recorded) []string {
-	var out []string
+// ch21ToolResult is one tool_result block as it appeared on the wire.
+type ch21ToolResult struct {
+	Text    string
+	IsError bool
+}
+
+// ch21ToolResults pulls every tool_result block out of a request, keeping the
+// is_error flag alongside the text.
+func ch21ToolResults(r fakevendor.Recorded) []ch21ToolResult {
+	var out []ch21ToolResult
 	body := r.JSON()
 	if body == nil {
 		return out
@@ -327,7 +364,8 @@ func ch21ToolResultTexts(r fakevendor.Recorded) []string {
 			if !ok || b["type"] != "tool_result" {
 				continue
 			}
-			out = append(out, ch21BlockText(b["content"]))
+			isErr, _ := b["is_error"].(bool)
+			out = append(out, ch21ToolResult{Text: ch21BlockText(b["content"]), IsError: isErr})
 		}
 	}
 	return out

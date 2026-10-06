@@ -356,5 +356,159 @@ If the author wants the chapter to show an authenticated hosted server, say so
 and it is a small addition — but it reintroduces the credential-handling
 problem that the keyless endpoint currently makes vanish.
 
-**Still to do:** the grader (`internal/grade/ch21_*.go`) and its fake server,
-then a cross-chapter sweep. I will append findings here as I build them.
+## 11. The grader
+
+Seven checks, one hundred points, scoring 100/100 against `./agent`:
+
+| check | pts | what it protects |
+|---|---|---|
+| `tools-gated-by-skill` | 15 | web tools absent until the skill loads |
+| `url-transport-connects` | 15 | `transport: url` reaches a hosted server |
+| `search-dispatches` | 15 | results return as a tool result |
+| `fetch-returns-planted-token` | 20 | page content arrives intact |
+| `fetched-content-is-a-tool-result` | 15 | fetched bytes never become instructions |
+| `tool-error-is-reported` | 10 | `isError` on a 200 reaches the model |
+| `transport-error-is-reported` | 10 | an HTTP failure keeps its reason |
+
+Three design points worth the author's attention, because each is a claim the
+prose can make:
+
+**The grader supplies the skill file.** It owns the endpoint and therefore the
+tool names, which is what makes the scored checks deterministic without a
+network — and it means a student who chose a different backend is graded on
+their wiring rather than on their vendor. §21.6's "report the backend you can
+characterize" survives intact.
+
+**The fake MCP server is a real HTTP server, not a stub transport.** The
+transport *is* the thing under test; a stub would bypass the code being graded
+and certify nothing.
+
+**One check is unfakeable.** The fake server plants a token minted at process
+start inside one page. A stub, a cached fixture, or the model's own knowledge
+cannot produce it. This is the same trick as the Chapter 16 memory check, and
+it is the reason that check is worth 20 points rather than 15.
+
+## 12. Mutation audit: 4 mutants, 4 killed exactly
+
+`scripts/ch21-mutants.sh`, also `make grade21-audit`.
+
+| mutant | kills |
+|---|---|
+| host cannot construct a URL transport | 6 checks (everything but the gate) |
+| tool results truncated to 30 bytes | `search-dispatches`, `fetch-returns-planted-token`, `fetched-content-is-a-tool-result` |
+| server's `isError` flag dropped | `tool-error-is-reported` |
+| response body discarded on non-2xx | `transport-error-is-reported` |
+
+The audit found a real weakness in my own check before the mutants ran, and it
+is the most useful thing in this section. `tool-error-is-reported` originally
+asserted that the text "404" reached the model. That check **passes** against
+an agent that drops the server's `isError` flag entirely, because the error
+page's text still arrives — attached to a tool result that claims it
+succeeded. The model then has a page saying one thing and a frame saying
+another, and it will generally believe the frame.
+
+The check now asserts the `is_error` flag on the tool_result block, not the
+words in it. The general form is worth a sentence in §21.7: **when a tool
+fails, the failure is carried by the frame, not by the prose inside it.** An
+agent that loses the frame produces the most expensive failure mode in the
+chapter — a confident summary of an error page.
+
+## 13. One check has no mutant, on purpose
+
+`tools-gated-by-skill` cannot be killed by any valid mutant, and I want to be
+explicit rather than quietly ship a 15-point check nothing can break.
+
+A valid mutant deletes exactly one behaviour. There is no behaviour here to
+delete: MCP servers are connected in exactly one place, the `load_skill` tool
+handler, so nothing can connect a server before a skill is loaded. Breaking the
+check requires *adding* a startup-connect path, which is a feature, not a
+mutation.
+
+I kept the check anyway, and the justification matters for the chapter: it is
+entirely reachable for a **student**, because the coder brief proposed exactly
+the design that fails it — "the tools are always available, the servers start
+when the agent starts." The check is what separates that design from the one
+the architecture supports. It earns its points against the submissions it will
+actually see, not against a mutant of the reference.
+
+## 14. Two harness bugs that both looked like student failures
+
+Worth recording because both produced a plausible, wrong story about the
+student's code, and the chapter is partly about exactly this confusion.
+
+**15/100 — "the transport is broken."** The grader's own `base` skill did not
+list `web-search` under `loadable-skills`, so Chapter 10's progressive
+disclosure correctly refused to load it. The symptom was the web tools simply
+being absent from the tool list, which is indistinguishable from a transport
+that never connected. The architecture was working and the test was wrong.
+
+**65/100 — "the second scenario's tools never dispatch."** Both scenarios
+shared a working directory, and since Chapter 11 the agent loads `save.json` on
+startup by default. The second scenario silently resumed the first one's
+conversation, so every scripted reply landed one turn out of place. Each
+scenario now gets its own temp directory.
+
+The second one is a genuinely good illustration for the book: persistence that
+is helpful in production is a hazard in a test harness, and the failure does
+not look like persistence — it looks like the feature under test being broken.
+
+## 15. A note on how the harness drives the agent
+
+The ch18 and ch19 harnesses drive the agent over the GUI websocket. This one
+uses stdin/stdout only: in server mode each `{"kind":"prompt"}` is answered
+with one `{"assistant":...}` line, so turn completion is observable without
+opening a socket. Fewer moving parts, and it keeps the headless path exercised
+— which matters now that `chat` is the same actor loop, because the terminal
+path is a real way to use this feature.
+
+## 16. Cross-chapter sweep: 29 of 30 at 100, and the exception is not ours
+
+`scripts/gradesweep.sh`, 12m26s. I added `run 21 ./solutions/ch21` to it, so
+ch21 is now part of the standing sweep rather than something only I remember
+to run.
+
+Every target scored full marks (ch5 scores 120/120 by its own scale) with one
+exception: **`ch19 ./agent` scored 85/100**, while `ch19 ./solutions/ch19`
+scored 100/100.
+
+I did not take that at face value in either direction. The failing check
+reports `open agent/events.jsonl: no such file or directory`, which is a
+harness path problem and has nothing to do with web search — but "looks
+unrelated" is not evidence. I built a worktree at `5cd7772`, the commit
+immediately before any of my `agent/` changes, confirmed `agent/skills/` there
+has no `web-search` entry, and ran the ch19 grader against it. It scores the
+same **85/100** with the identical error.
+
+**Pre-existing, not a regression from this chapter.** Worth fixing, but it
+belongs to ch19's harness and I have left it alone rather than widen this
+chapter's diff.
+
+The sweep also warns about five leaked agent processes. Those are not from
+ch21: with the strays cleared, a full ch21 grader run leaves no process
+behind. They come from other chapters' harnesses and are also pre-existing.
+
+## 17. Summary of what the author needs to decide or change
+
+Nothing here is blocking; the code and grader are complete and green.
+
+1. **crawl4ai must come out of the prose.** It ships no MCP server in its pip
+   package. §21.3's "Built-in MCP server", the TL;DR's "Playwright-backed,
+   handles JavaScript-rendered pages", §21.6, §21.7 and Decision #1 all need
+   revising.
+2. **ddgs should come out as the shipped backend**, on measured reliability:
+   73% on search versus Firecrawl's 100%, and the repair requires authoring
+   our own server. It remains an excellent *example* in §21.3 of the sidecar
+   pattern, and the 73% number is itself good chapter material.
+3. **The chapter gains a transport**, which is a better beat than configuring
+   a Python sidecar: Chapter 12 explicitly left the seam open and Chapter 21
+   fills it. Consider promoting this in the TL;DR.
+4. **§21.4's "the only new code is configuration" needs one word of nuance** —
+   it is now one transport plus configuration. The thesis survives and is
+   arguably stronger, because the transport is ~180 lines against an interface
+   designed for it.
+5. **The brief's "always available, servers start at agent startup" is wrong
+   for this architecture** and should not reach the prose. Skills are loadable
+   by design; that is the point of skills.
+6. **Internet is required** for the student, by the author's ruling. The
+   scored grader is nonetheless hermetic, which is the right split and is what
+   §21.6 already blesses.
