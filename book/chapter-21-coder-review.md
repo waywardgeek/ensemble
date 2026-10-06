@@ -296,5 +296,65 @@ close — the one case that matters, since the codec's read loop lives there for
 the life of the connection. I added `TestHTTPTransportCloseWakesParkedRecv`,
 which kills it.
 
+## 9. The snapshot base was wrong, and it matters for every chapter after this
+
+I first built `solutions/ch21` by copying `solutions/ch19`, on the reasoning
+that Chapter 20 was prose-only so ch19 was the last frozen snapshot. That was
+wrong, and the author caught it from a symptom I had already written down as a
+finding.
+
+The symptom: I reported that MCP is unavailable in `chat` mode, because
+`SetOnSkillMCPConnect` is installed inside `runActorLoop` while `chat` called a
+separate `runLoop`. The author's response was that the CLI is supposed to be
+the same agent with a different front end. He was right. In the **live** tree,
+`chat` is already the same actor loop the GUI drives, with this comment on it:
+
+> Chat is the SAME actor loop the GUI drives, with a text front end attached
+> instead of a browser. It used to be a bare engine with no actor, skills,
+> recall or save file, which meant the terminal could not reproduce a single
+> GUI-reported bug.
+
+That was commit `4023cff`, "retire synchronous engine loop; actor is the sole
+orchestration path". The frozen ch19 snapshot predates it. So my finding was an
+artifact of reading a stale tree, not a fact about the architecture, and I have
+struck it. **Retracted: there is no chat-mode MCP gap.**
+
+The correction generalizes, and it is the part worth putting in the author's
+notes rather than mine:
+
+- Since ch20 is prose-only, the accumulated state through Chapter 20 lives in
+  `agent/`, not in any `solutions/` directory. For a chapter that follows a
+  prose-only chapter, **the live tree is the base**, and `solutions/ch(N-1)` is
+  not.
+- The drift was **65 files**, not the 7 recorded when ch19 was current. A note
+  about how far a snapshot has drifted expires quickly; it should be measured
+  at use, never recalled.
+- Rebasing was strictly an improvement and cost nothing but the transport file
+  being re-applied: the suite went from 10 packages to 12 (`oauth`, `recall`,
+  `settings`, `cachelens` are new), and `gofmt -l` went from flagging an
+  inherited unformatted `internal/ws/replay_test.go` to being silent, because
+  the live tree had already fixed it.
+
+Taking the snapshot with `git archive HEAD:agent` rather than `cp -a` is worth
+keeping as the recipe: it copies exactly the tracked files, so the debug
+binaries and the 17MB of runtime logs sitting in `agent/` cannot leak into a
+committed snapshot.
+
+One consequence for the prose: because `chat` is the actor loop, **web search
+works from the terminal, not just the GUI**. That is worth a sentence, since
+Chapter 21's value is largely that a headless agent can research.
+
+## 10. One deliberate limitation to note
+
+`NewHTTPTransport(url, headers)` accepts custom headers, but
+`MCPServerConfig` has no field for them, so the host passes `nil`. That is
+sufficient for the keyless endpoint the chapter ships and for any hosted server
+that authenticates by URL. A server needing `Authorization: Bearer …` would
+require a new frontmatter field. I did not add one: it is unneeded for the
+chapter's stack, and an unused config field is a claim the code cannot honour.
+If the author wants the chapter to show an authenticated hosted server, say so
+and it is a small addition — but it reintroduces the credential-handling
+problem that the keyless endpoint currently makes vanish.
+
 **Still to do:** the grader (`internal/grade/ch21_*.go`) and its fake server,
 then a cross-chapter sweep. I will append findings here as I build them.

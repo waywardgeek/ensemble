@@ -76,6 +76,9 @@ grade18-audit:
 grade19:
 	go run ./cmd/grade -ch 19 ./agent
 
+grade21:
+	go run ./cmd/grade -ch 21 ./agent
+
 grade19-audit:
 	./scripts/ch19-mutants.sh
 

@@ -258,6 +258,11 @@ func main() {
 		report = grade.NewTitledReport(
 			"Chapter 19 — Leaving Anthropic for OpenAI",
 			grade.Ch19Checks(r), "")
+	case 21:
+		r := grade.Ch21Run(path)
+		report = grade.NewTitledReport(
+			"Chapter 21 — Giving the Agent the Web",
+			grade.Ch21Checks(r), "")
 	default:
 		fmt.Fprintf(os.Stderr, "grader: no grader for chapter %d yet\n", *chapter)
 		os.Exit(2)

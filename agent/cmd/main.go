@@ -504,6 +504,13 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 			switch srv.Transport {
 			case "stdio":
 				t, tErr = mcp.NewStdioTransport(srv.Command, srv.Args, srv.Env)
+			case "url":
+				// Streamable HTTP. The Transport interface was written with
+				// this in mind -- "a future fourth (URL/port-based) can be
+				// added later" -- and MCPServerConfig has carried a URL field
+				// since Chapter 12. This case is the whole host-side cost of
+				// reaching a hosted MCP server.
+				t, tErr = mcp.NewHTTPTransport(srv.URL, nil)
 			default:
 				host.Logf("skill %s: unsupported MCP transport %q, skipping", skill, srv.Transport)
 				continue
