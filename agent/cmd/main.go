@@ -261,7 +261,7 @@ func main() {
 	}
 }
 
-// cliHost implements common.Host for the CLI with three log destinations.
+// cliHost implements common.Agent for the CLI with three log destinations.
 type cliHost struct {
 	// UsageCounter holds this run's token totals. cliHost is the composition
 	// root for the server, so its lifespan is the process — which is exactly
@@ -559,7 +559,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 				if lErr != nil {
 					return "", lErr
 				}
-				return tool.Run(&common.Call{Host: host, Jobs: j}, args)
+				return tool.Run(&common.Call{Agent: host, Jobs: j}, args)
 			})
 
 			skillMCPClients[skill] = append(skillMCPClients[skill], client)
@@ -597,7 +597,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 		// the Skill entry). Its ToolsChanged is dropped: this is startup,
 		// the prefix is not frozen yet, and the declarations are simply
 		// re-derived below.
-		c := &common.Call{Host: host, Jobs: j}
+		c := &common.Call{Agent: host, Jobs: j}
 		if _, lErr = loadTool.Run(c, args); lErr != nil {
 			fmt.Fprintf(os.Stderr, "gui-debug: %v\n", lErr)
 			return true
@@ -739,7 +739,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 			if lookupErr != nil {
 				return "", lookupErr
 			}
-			c := &common.Call{Host: host, Jobs: j}
+			c := &common.Call{Agent: host, Jobs: j}
 			return tool.Run(c, args)
 		})
 

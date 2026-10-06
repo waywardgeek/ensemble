@@ -56,9 +56,9 @@ func compactEngine(t *testing.T, f *fakeCompressor, cfg common.BandConfig) (*Eng
 	dir := t.TempDir()
 	store := NewStore(dir)
 	e := &Engine{
-		Log:  NewLog(),
-		Ctx:  common.NewContext(),
-		Host: testHost{t},
+		Log:   NewLog(),
+		Ctx:   common.NewContext(),
+		Agent: testHost{t},
 		Cfg: common.Config{
 			Vendor:           common.VendorAnthropic,
 			Surface:          common.SurfaceMessages,

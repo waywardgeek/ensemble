@@ -110,10 +110,10 @@ type JobHandle interface {
 	Finish(result string, err error)
 }
 
-// JobManager manages the set of running jobs. It embeds Host so that job
+// JobManager manages the set of running jobs. It embeds Agent so that job
 // supervision code can log through the parent chain.
 type JobManager interface {
-	Host
+	Agent
 	Start(tool, callID string) (JobHandle, error)
 	Get(h int) (JobHandle, bool)
 	Handles() []int
@@ -145,9 +145,9 @@ type ToolRegistry interface {
 // Tool types shared between engine and tool implementations.
 // ---------------------------------------------------------------------------
 
-// Host is the root interface every object can reach through its parent chain.
+// Agent is the root interface every object can reach through its parent chain.
 // It provides access to the logger and any other top-level facilities.
-type Host interface {
+type Agent interface {
 	Logf(format string, args ...any)
 	// APILogf logs LLM API wire traffic (JSON requests and responses).
 	APILogf(format string, args ...any)
@@ -157,7 +157,7 @@ type Host interface {
 	// RecordUsage adds one request's token counts to this run's totals, and
 	// SessionUsage reads them back.
 	//
-	// These live on Host rather than being handed around because Host is
+	// These live on Agent rather than being handed around because Agent is
 	// already the thing every object can reach through its parent chain, and
 	// its lifespan is already exactly one run of the program — which is what a
 	// session is. Anything that spends tokens can therefore report them
@@ -186,10 +186,10 @@ type Tool struct {
 	Ephemeral   string // "round", "turn", or ""
 }
 
-// Call is what a tool is handed besides its arguments. The embedded Host
+// Call is what a tool is handed besides its arguments. The embedded Agent
 // gives every tool trivial access to the logger through the parent chain.
 type Call struct {
-	Host
+	Agent
 	Job    JobHandle
 	Jobs   JobManager
 	Limits Limits

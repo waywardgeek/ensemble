@@ -180,11 +180,11 @@ func SurfaceForModel(model string, v Vendor) Surface {
 // return the text the model will see.
 type ToolHandler func(args json.RawMessage) (string, error)
 
-// Agent is the public handle to a running agent. It implements common.Host,
+// Agent is the public handle to a running agent. It implements common.Agent,
 // providing the logger that all internal code reaches through parent interfaces.
 type Agent struct {
 	// UsageCounter holds this run's token totals. Embedded so Agent satisfies
-	// the usage half of common.Host, which is how anything downstream reports
+	// the usage half of common.Agent, which is how anything downstream reports
 	// spend without being handed a reporter.
 	common.UsageCounter
 
@@ -299,7 +299,7 @@ func (a *Agent) WireSkillTools() {
 }
 
 // Logf logs a message through the agent's logger. This makes Agent satisfy
-// common.Host, so any code that holds a Host can log.
+// common.Agent, so any code that holds a Agent can log.
 func (a *Agent) Logf(format string, args ...any)    { a.Logger.Logf(format, args...) }
 func (a *Agent) APILogf(format string, args ...any) { a.Logger.APILogf(format, args...) }
 func (a *Agent) Debugf(format string, args ...any)  { a.Logger.Debugf(format, args...) }
@@ -348,7 +348,7 @@ func (a *Agent) ConnectMCP(t mcp.Transport) error {
 		if err != nil {
 			return "", err
 		}
-		c := &common.Call{Host: a, Jobs: a.eng.Jobs}
+		c := &common.Call{Agent: a, Jobs: a.eng.Jobs}
 		return tool.Run(c, args)
 	})
 
@@ -393,7 +393,7 @@ func (a *Agent) NewActor() *Actor {
 }
 
 // NewFramework creates a multi-agent framework.
-func NewFramework(host common.Host) *Framework {
+func NewFramework(host common.Agent) *Framework {
 	return llm.NewFramework(host)
 }
 

@@ -144,7 +144,7 @@ type StreamCallbacks struct {
 	// This exists so the API log stays byte-complete when streaming. Without
 	// it the response half of that log would simply go dark, because the
 	// body is consumed by the parser instead of being read whole. The parser
-	// is a stateless value with no Host, so logging is wired in by the
+	// is a stateless value with no Agent, so logging is wired in by the
 	// engine, which has one.
 	OnFrame func(eventType string, data []byte)
 }

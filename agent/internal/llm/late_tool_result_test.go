@@ -137,7 +137,7 @@ func TestRestoredLateResultIsSingleAndAdjacentOnAnthropicWire(t *testing.T) {
 		fmt.Fprint(w, `{"id":"msg_1","type":"message","role":"assistant","model":"claude-sonnet-5","content":[{"type":"text","text":"ok"}],"stop_reason":"end_turn","usage":{"input_tokens":1,"output_tokens":1}}`)
 	}))
 	defer srv.Close()
-	e := &Engine{Log: NewLog(), Ctx: lateResultSave(t, "snapshot", false).Restore(nil), Host: testHost{t}, HTTP: srv.Client(), Cfg: common.Config{Model: "claude-sonnet-5", Vendor: common.VendorAnthropic, Surface: common.SurfaceForModel("claude-sonnet-5", common.VendorAnthropic), BaseURL: srv.URL, APIKey: "test"}}
+	e := &Engine{Log: NewLog(), Ctx: lateResultSave(t, "snapshot", false).Restore(nil), Agent: testHost{t}, HTTP: srv.Client(), Cfg: common.Config{Model: "claude-sonnet-5", Vendor: common.VendorAnthropic, Surface: common.SurfaceForModel("claude-sonnet-5", common.VendorAnthropic), BaseURL: srv.URL, APIKey: "test"}}
 	if _, err := e.Turn(common.StreamCallbacks{}); err != nil {
 		t.Fatal(err)
 	}

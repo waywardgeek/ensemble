@@ -23,7 +23,7 @@ import (
 type Actor struct {
 	eng  *Engine
 	mb   *common.Mailbox
-	host common.Host
+	host common.Agent
 	gate *common.PauseGate // nil means never pause
 
 	mu          sync.Mutex
@@ -52,7 +52,7 @@ type observerEntry struct {
 }
 
 // NewActor creates an Actor wrapping the given Engine.
-func NewActor(eng *Engine, host common.Host) *Actor {
+func NewActor(eng *Engine, host common.Agent) *Actor {
 	return &Actor{
 		eng:     eng,
 		mb:      common.NewMailbox(),
@@ -438,7 +438,7 @@ func (a *Actor) dispatchTool(call common.ToolCallPart) error {
 		}}); err != nil {
 			return err
 		}
-		c := &common.Call{Host: a.host, Jobs: a.eng.Jobs, Limits: limits}
+		c := &common.Call{Agent: a.host, Jobs: a.eng.Jobs, Limits: limits}
 		var out string
 		if err == nil {
 			out, err = tool.Run(c, call.Args)
@@ -483,7 +483,7 @@ func (a *Actor) dispatchTool(call common.ToolCallPart) error {
 	a.workers.Add(2)
 	go func() {
 		defer a.workers.Done()
-		c := &common.Call{Host: a.eng.Host, Job: job, Jobs: a.eng.Jobs, Limits: limits}
+		c := &common.Call{Agent: a.eng.Agent, Job: job, Jobs: a.eng.Jobs, Limits: limits}
 		// No recover: a tool panic is an invariant violation, not model output.
 		out, err := tool.Run(c, callCopy.Args)
 		// Publish effects before Finish wakes a normal completion waiter.
@@ -753,14 +753,14 @@ func (a *Actor) AgentID() common.AgentID { return "" }
 type Framework struct {
 	mu     sync.Mutex
 	actors map[common.AgentID]*Actor
-	host   common.Host
+	host   common.Agent
 
 	// merged observation channel for wake-once semantics
 	merged chan common.Observation
 }
 
 // NewFramework creates a multi-agent framework.
-func NewFramework(host common.Host) *Framework {
+func NewFramework(host common.Agent) *Framework {
 	return &Framework{
 		actors: make(map[common.AgentID]*Actor),
 		host:   host,

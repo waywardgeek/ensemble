@@ -194,7 +194,7 @@ func TestToolLimitsConsumptionIsVisible(t *testing.T) {
 	defer srv.Close()
 	host := newCLIHost()
 	e := llm.NewEngine(common.Config{Vendor: common.VendorAnthropic, Model: "claude-sonnet-5", BaseURL: srv.URL, APIKey: "test"}, "log.jsonl", jobs.NewJobs(host), tools.NewRegistry(), host)
-	actor := llm.NewActor(e, e.Host)
+	actor := llm.NewActor(e, e.Agent)
 	defer actor.Shutdown()
 	run := func(id, name, args string) string {
 		prompt, err := json.Marshal(map[string]any{"id": id, "name": name, "args": json.RawMessage(args)})

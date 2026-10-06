@@ -36,7 +36,7 @@ const IODir = "cr/io"
 // --- the table -------------------------------------------------------------
 
 type Jobs struct {
-	host common.Host
+	host common.Agent
 	mu   sync.Mutex
 	next int
 	all  map[int]*Job
@@ -45,9 +45,9 @@ type Jobs struct {
 	pending *common.Limits
 }
 
-func NewJobs(host common.Host) *Jobs { return &Jobs{host: host, all: map[int]*Job{}} }
+func NewJobs(host common.Agent) *Jobs { return &Jobs{host: host, all: map[int]*Job{}} }
 
-// Logf satisfies common.Host via the parent chain.
+// Logf satisfies common.Agent via the parent chain.
 func (js *Jobs) Logf(format string, args ...any)    { js.host.Logf(format, args...) }
 func (js *Jobs) APILogf(format string, args ...any) { js.host.APILogf(format, args...) }
 func (js *Jobs) Debugf(format string, args ...any)  { js.host.Debugf(format, args...) }

@@ -26,7 +26,7 @@ type Engine struct {
 	Path  string // where the log is persisted, so `dump` can find it
 	Jobs  common.JobManager
 	Tools common.ToolRegistry
-	Host  common.Host
+	Agent common.Agent
 
 	// Creds resolves the bearer credential for each outbound request.
 	//
@@ -110,7 +110,7 @@ type Engine struct {
 	requestCtx context.Context
 }
 
-func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools common.ToolRegistry, host common.Host) *Engine {
+func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools common.ToolRegistry, host common.Agent) *Engine {
 	// Match the single-surface renderer's default in persisted provenance.
 	if cfg.Surface == 0 && (cfg.Vendor == common.VendorAnthropic || cfg.Vendor == common.VendorGemini) {
 		cfg.Surface = common.SurfaceForModel(cfg.Model, cfg.Vendor)
@@ -123,7 +123,7 @@ func NewEngine(cfg common.Config, path string, jobs common.JobManager, tools com
 		Path:  path,
 		Jobs:  jobs,
 		Tools: tools,
-		Host:  host,
+		Agent: host,
 	}
 }
 
@@ -150,8 +150,8 @@ func (e *Engine) Record(ev common.Event) error {
 }
 
 func (e *Engine) logf(format string, args ...any) {
-	if e.Host != nil {
-		e.Host.Logf(format, args...)
+	if e.Agent != nil {
+		e.Agent.Logf(format, args...)
 	}
 }
 
@@ -349,7 +349,7 @@ func (e *Engine) TurnContext(ctx context.Context, watch common.StreamCallbacks) 
 	// The caller supplies the watching half of these callbacks (deltas and
 	// finals, which are observations). The engine supplies the recording
 	// half, because the event log and the API log are its responsibility and
-	// a stateless vendor parser has no Host to write to.
+	// a stateless vendor parser has no Agent to write to.
 	watch.OnEvent = func(ev common.Event) {
 		if recErr != nil {
 			return
@@ -375,8 +375,8 @@ func (e *Engine) TurnContext(ctx context.Context, watch common.StreamCallbacks) 
 			// Report spend up the parent chain. The reducer's total is durable
 			// and spans every run the conversation has had; this one spans this
 			// process, which is what a human means by "this session".
-			if e.Host != nil {
-				e.Host.RecordUsage(ev.Response.Usage)
+			if e.Agent != nil {
+				e.Agent.RecordUsage(ev.Response.Usage)
 			}
 		}
 	}
@@ -386,10 +386,10 @@ func (e *Engine) TurnContext(ctx context.Context, watch common.StreamCallbacks) 
 		// longer possible and the response half of the log would otherwise
 		// simply go dark.
 		if eventType != "" {
-			e.Host.APILogf("<<< [%s] %s", eventType, string(data))
+			e.Agent.APILogf("<<< [%s] %s", eventType, string(data))
 			return
 		}
-		e.Host.APILogf("<<< %s", string(data))
+		e.Agent.APILogf("<<< %s", string(data))
 	}
 
 	if err := parser.Parse(resp, watch); err != nil {
@@ -409,7 +409,7 @@ func (e *Engine) send(req *http.Request) (*http.Response, error) {
 			return nil, err
 		}
 		req.Body.Close()
-		e.Host.APILogf(">>> %s %s\n%s", req.Method, req.URL, string(reqBody))
+		e.Agent.APILogf(">>> %s %s\n%s", req.Method, req.URL, string(reqBody))
 		req.Body = io.NopCloser(strings.NewReader(string(reqBody)))
 	}
 
@@ -424,7 +424,7 @@ func (e *Engine) send(req *http.Request) (*http.Response, error) {
 	// Only the status line here. The body is NOT read: reading it would
 	// consume the stream the parser is about to walk, and buffering it whole
 	// would give up streaming entirely while still looking like it worked.
-	e.Host.APILogf("<<< %d %s", resp.StatusCode, resp.Header.Get("Content-Type"))
+	e.Agent.APILogf("<<< %d %s", resp.StatusCode, resp.Header.Get("Content-Type"))
 
 	return resp, nil
 }
@@ -473,12 +473,12 @@ func (e *Engine) CallEphemeral(mode string) error {
 
 	var parts []string
 	for _, t := range tools {
-		c := &common.Call{Host: e.Host, Jobs: e.Jobs}
+		c := &common.Call{Agent: e.Agent, Jobs: e.Jobs}
 		out, err := t.Run(c, nil)
 		if err != nil {
 			// Ephemeral tool errors are logged but not fatal —
 			// a snapshot failure should not abort the turn.
-			e.Host.Logf("ephemeral tool %s error: %v", t.Name, err)
+			e.Agent.Logf("ephemeral tool %s error: %v", t.Name, err)
 			continue
 		}
 		if out != "" {

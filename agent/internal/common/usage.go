@@ -4,7 +4,7 @@ import "sync"
 
 // UsageCounter accumulates token counts for one process lifetime.
 //
-// Embed it in whatever implements Host and the two Host usage methods come
+// Embed it in whatever implements Agent and the two Agent usage methods come
 // along for free. Its lifespan is deliberately the lifespan of the struct
 // holding it, which is what makes it a *session* figure: one run of the
 // program, exactly as a human means it when asking what this session cost.
@@ -26,7 +26,7 @@ type UsageCounter struct {
 // RecordUsage adds one request's counts to the session total.
 //
 // Called from whichever goroutine parsed the response, so it locks. This is
-// the write half of the Host usage seam.
+// the write half of the Agent usage seam.
 func (c *UsageCounter) RecordUsage(u Usage) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -78,7 +78,7 @@ func CacheHitRate(u Usage) float64 {
 // one so it can render a session meter. A nil source means no meter, which is
 // the right behaviour for the CLI and for graders.
 //
-// This is deliberately narrower than Host, which also declares SessionUsage:
+// This is deliberately narrower than Agent, which also declares SessionUsage:
 // the hub needs to read the tally, never to add to it.
 type UsageSource interface {
 	SessionUsage() Usage

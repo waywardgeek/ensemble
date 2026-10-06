@@ -35,7 +35,7 @@ func (e *Engine) maybeCompact() {
 	// band be switched off in the GUI and take effect on the next turn
 	// rather than on the next launch.
 	if err := e.SyncBands("settings"); err != nil {
-		e.Host.Logf("memory: could not sync bands: %v", err)
+		e.Agent.Logf("memory: could not sync bands: %v", err)
 	}
 	cfg := e.Bands()
 
@@ -289,7 +289,7 @@ func (e *Engine) abandonedSince(b common.Band, thru common.MemoryFileID) bool {
 }
 
 func (e *Engine) warn(format string, args ...any) {
-	if e.Host != nil {
-		e.Host.Logf(format, args...)
+	if e.Agent != nil {
+		e.Agent.Logf(format, args...)
 	}
 }
