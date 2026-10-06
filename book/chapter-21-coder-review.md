@@ -512,3 +512,53 @@ Nothing here is blocking; the code and grader are complete and green.
 6. **Internet is required** for the student, by the author's ruling. The
    scored grader is nonetheless hermetic, which is the right split and is what
    §21.6 already blesses.
+
+## 18. The feature was unreachable as shipped, and the grader could not see it
+
+Found after the grader was green, which is the interesting part.
+
+The default primary skill `agent/skills/ensemble/SKILL.md` declared:
+
+```
+loadable-skills: code-tools search-tools gui-debug virtual-user
+```
+
+No `web-search`. So in production, `load_skill web-search` would have been
+refused by Chapter 10's progressive disclosure and the entire feature would
+have been dead on arrival — while scoring 100/100, because the grader supplies
+its own `base` skill and whitelists the skill there.
+
+Fixed in both `agent/` and `solutions/ch21/`.
+
+This is worth a paragraph in the chapter, because it is a clean instance of a
+general problem rather than a one-off slip: **the grader supplies the skill
+file in order to be deterministic, and that same decision makes it blind to
+whether the shipped skill set can reach the feature at all.** Every isolation a
+test buys is a thing the test stops observing. The live probe below is what
+caught it, and it is the reason the chapter should keep one.
+
+## 19. Live probe: it works end to end
+
+Unscored, internet-dependent, run by hand — the "live probe reported
+separately" that §21.6 asks for. The author suggested the question.
+
+The real agent, the real `web-search` skill, the real URL transport, the real
+hosted Firecrawl server, a real model. One prompt: *what is OpenAI's most
+advanced model as of September 2026?* The answer:
+
+> Based on my search, as of September 2026, OpenAI's most advanced model is
+> **GPT-6 Astra**. … **Source:** https://openai.com/index/path-to-astra/
+
+It cited OpenAI's own post plus a Reuters article from 2026-09-01. The model
+cannot know this from training data, so the answer is proof that bytes came
+from the live web through the transport added in this chapter.
+
+Two things make this a good acceptance test for the book to describe:
+
+1. **It is unfakeable in the same way the planted token is**, but from the
+   other direction — the token proves the plumbing without the internet, this
+   proves the internet without the plumbing being mocked.
+2. **It found a defect the hermetic grader structurally could not** (§18).
+
+Keeping both, and keeping them clearly labelled as different kinds of
+evidence, is the honest version of §21.6.
