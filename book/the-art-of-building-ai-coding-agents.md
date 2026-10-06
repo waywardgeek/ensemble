@@ -1,19 +1,3 @@
-© 2026 Bill Cox.
-
-Licensed under the Apache License, Version 2.0. The full text is in the
-LICENSE file at the root of the book's repository.
-
----
-
-<div style="text-align: center; padding-top: 10em;">
-
-*For Riggio, my inspirational supporter*\
-*from the Sausalito Yacht Club.*
-
-</div>
-
----
-
 # Contents
 
 - [Preface](#preface)
@@ -12846,7 +12830,7 @@ Workflows and sub-agents raise a related question: what has actually been promis
 
 The proposed self-wielding capstone is the experiment I most want to see: the agent writes a new chapter and its exercise, then grades the result. It should keep a record of the help it needed and expose both its implementation and its checks to challenge. Passing a test I devised for my own work would be a beginning. Another builder successfully learning and rebuilding from that chapter would tell us considerably more.
 
-These are candidates, not a table of contents for a finished second edition. Building them may change which chapters we need. That is consistent with how this book was made, and it leaves room for the most useful next lesson to be one we have not anticipated.
+These are candidates, not a table of contents for a future update. Building them may change which chapters we need. That is consistent with how this book was made, and it leaves room for the most useful next lesson to be one we have not anticipated.
 
 Readers can take that experiment somewhere Bill would not. You may need different tools, a different interface, or different limits on autonomy. Forking the book lets you change the instructions as well as the resulting code. Keep the reasons for your changes. Give your checks a chance to reject your favorite implementation. When real use reveals something the checks missed, bring that knowledge back into the instructions.
 
@@ -12864,7 +12848,7 @@ That is something worth carrying forward.
 
 # A Note from Bill
 
-This is only the first edition of *The Art of Building AI Coding Agents*.
+This is the second update of *The Art of Building AI Coding Agents*.
 
 I released it early, before writing all the advanced material still in my head — dynamic workflows, sandboxing, connectors, prompt injection defense, sub-agents and managing the swarm, and gateways. There are several chapters I owe you. The free version will always be online and up to date.
 

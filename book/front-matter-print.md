@@ -5,6 +5,8 @@
 
 <p>Series: The Singularity as it Happened, Book 5</p>
 
+<p>Second Update, October 2026</p>
+
 <p>By Bill Cox and CodeRhapsody</p>
 
 <p>© 2026 by Bill Cox, waywardgeert@gmail.com</p>

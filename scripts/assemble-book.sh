@@ -30,16 +30,13 @@ add() {
     OUT="$OUT$(cat "$1")"
 }
 
-# Front matter in Chicago order: copyright page, dedication,
-# contents, preface.
-add "$BOOK_DIR/copyright.md"
-add "$BOOK_DIR/dedication.md"
+# Front matter: copyright and dedication are in front-matter.md
+# (for EPUB) and front-matter-print.md (for PDF), which pandoc
+# prepends separately. The assembled markdown starts with the TOC
+# and preface.
+#
 # book-toc.py replaces this marker with a linked table of contents.
-OUT="$OUT
-
----
-
-<!-- toc -->"
+OUT="<!-- toc -->"
 add "$BOOK_DIR/preface.md"
 
 for ch in "$BOOK_DIR"/chapter-[0-9][0-9].md; do
