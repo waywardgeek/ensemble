@@ -52,6 +52,7 @@ purpose: no chapter count is fixed until a chapter is built.
   "succeeded".
 - **Self-wielding capstone.** The agent writes and grades a new chapter
   itself.
+- Ollama local support, asked for by multiple commenters on LinkedIn.
 
 ## AI Native chapters already covered here
 
