@@ -15,6 +15,7 @@ tools:
   - think
   - keep_tool_results
   - micro_handoff
+  - agent_status
   - load_skill
   - unload_skill
   - view_gui

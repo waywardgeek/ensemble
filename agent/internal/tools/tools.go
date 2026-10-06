@@ -31,6 +31,7 @@ import (
 // builtinArgSpec returns a human-readable summary of each builtin tool's arguments.
 func builtinArgSpec() map[string]string {
 	return map[string]string{
+		"agent_status":   `{}`,
 		"run_command":    `{"command":string,"cwd":string?,"ai_callback_delay":number?,"ai_callback_pattern":string?,"max_output_bytes":int?}`,
 		"read_file":      `{"path":string,"start_line":int?,"end_line":int?,"max_bytes":int?}`,
 		"write_file":     `{"path":string,"content":string,"append":bool?}`,
@@ -63,6 +64,16 @@ func builtinTools() map[string]common.Tool {
 			` + limitProps + `},
 			"required":["command"]}`),
 			Run: toolRunCommand,
+		},
+		"agent_status": {
+			Name:        "agent_status",
+			Description: "Report the model currently in use, this session's token counts (including the per-model split), the cache hit rate, and the session cost in USD. Use it to check what a run is costing before starting expensive work.",
+			Schema:      json.RawMessage(`{"type":"object","properties":{}}`),
+			Run:         toolAgentStatus,
+			// NoJob: this answers from state already in memory. It neither
+			// starts a process nor blocks, so routing it through the job
+			// system would buy nothing and cost a handle.
+			NoJob: true,
 		},
 		"wait_for_job": {
 			Name:        "wait_for_job",
