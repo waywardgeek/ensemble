@@ -15,7 +15,7 @@ comparison follows the initial implementation and actual runs.
 | Structure plan | Student/reviewer | Narrow new-contract review passed; [student review](../../solutions/edition-2/main/evidence/ch05/student-review.md) records the three risks and their implementation checks | Inspect actual ownership and lifecycle during comparative review |
 | Implementation and local checks | Student/grader engineer | Frozen initial source `8aa40c3`; six-module vet/tests, main race and new independent checker 100/100 pass. Inherited CH6's incompatible 10/100 remains recorded separately in [grader review](chapter-05-grader-review.md) | Finish independent checker receipt checkpoint; retain original defects and fixture failures |
 | Live coverage plan | Student/coordinator | Coordinator reviewed and accepted [plan completeness](../../solutions/edition-2/main/evidence/ch05/live-plan.md): all three human CLI/provider paths, public workflow/collection and labeled deterministic supplements | Finish local path/checker gates, freeze source and run the plan |
-| Initial actual demonstrations | Student | Anthropic/OpenAI control runs and all-three-provider workflow, collection and EOF runs passed; Gemini control gate incomplete after empty responses. Initial receipts `5f2576c` retain 59 exact request replays across 14 sessions | One bounded final unchanged-runtime Gemini control attempt; retain earlier failures and any addendum under its actual identity |
+| Initial actual demonstrations | Student/reviewer | Anthropic/OpenAI control runs and all-three-provider workflow, collection and EOF runs passed; Gemini control gate remains incomplete after the final bounded attempt also returned an empty response. Initial receipts `5f2576c` retain 59 exact request replays across 14 sessions | Paid retries stopped; independently investigate retained requests/responses and configuration before any proposed correction |
 | Initial attempt and teaching review | Student | Source `8aa40c3` and actual attempts `5f2576c` preserved; [student review](../../solutions/edition-2/main/evidence/ch05/student-review.md) records clarification, diagnostic defect, live difficulty and assistance | Append final provider outcome and subsequent review effects without rewriting the initial freeze |
 | Independent comparison and revisions | Code reviewer/student | Assigned to grader engineer after its checker checkpoint; independent of student implementation, with grader exposure disclosed | Compare historical standard separately; group findings, revise and review |
 | Final validation | Student/reviewer | Pending | Run required checks and affected live paths; retain unchanged evidence under its original identity |
@@ -40,7 +40,9 @@ existing student context.
 
 The Gemini grouping diagnostic succeeded for both the exact originally failed
 body and a split variant. That does not establish a grouping defect or justify
-changing the renderer. The final bounded control attempt uses unchanged source;
-a further failure leaves that live gate incomplete. Initial summary messages
+changing the renderer. The final bounded control attempt used unchanged source
+and failed again; raw evidence is in the student's
+`evidence/ch05/controls-gemini-final-attempt/`. Paid retries have stopped and
+the reviewer has these paths for investigation. Initial summary messages
 and commit prose incorrectly counted 62 replayed requests; the machine report
 and manifest record 59, and the student appended the correction.

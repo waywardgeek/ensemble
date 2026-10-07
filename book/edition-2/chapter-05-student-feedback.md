@@ -5,7 +5,7 @@ first-edition comparison. The [student review](../../solutions/edition-2/main/ev
 retains its initial reads, plan, failures and requested clarification. Current
 validation status belongs in [the gate record](chapter-05-validation.md).
 The prior story pass has independent acceptance at review commit `3d6effd`;
-the new timing clarification below awaits the resumed student's confirmation.
+the resumed student has now confirmed the timing clarification below.
 
 The student found the prompt/hint/receipt/wire distinctions, explicit collection
 readiness barrier, prepared report cursor and lock-inversion warning useful.
@@ -29,8 +29,11 @@ Accepted clarification, consistent with the coordinator's interpretation of
 A request activated earlier follows the active-turn close rules; accepted
 effects and completions are retained. §5.7 now says this explicitly and does
 not add an actor halt-on-provider-error policy. The affected stronger guarantee
-was held while independent work continued. Student confirmation of this wording
-will be recorded when the continuation resumes.
+was held while independent work continued. The coordinator subsequently checked
+the student's “Resumed clarification confirmation”: it accepts the wording and
+records a deterministic test with the second request active, its accepted file
+effect retained, and a third request still queued when Close is admitted. This
+teaching finding is resolved; chapter acceptance remains a separate gate.
 
 ## Live plan and inherited grader
 
