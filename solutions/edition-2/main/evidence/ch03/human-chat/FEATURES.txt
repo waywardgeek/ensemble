@@ -76,3 +76,13 @@ python3 verify-receipts.py --binary /path/to/recorded-binary \
   --repository /path/to/ensemble --output-dir /path/to/new-offline-output
 The path to the binary can change; its recorded hash must match. Historical source
 is resolved from the outer Git commit, so today's working tree is not its authority.
+
+Final acceptance — 2026-10-07:
+The independent reviewer accepted the human integration: 45/45 black-box checks,
+a passing control and seven targeted mutations with exact expected failures, and
+independent re-execution of all four verifier controls. No production revisions
+were requested. The initial production source and live binary remain bound to
+outer commit a347ce31511c4b124e486bb41ef98c07bd17cec5; the accepted evidence verifier
+is preserved in 339a2a61e7107b921bdc7acbd704b2eb7da17931. Earlier pending-status notes
+above describe their preserved initial checkpoints. The coordinator owns final
+review-report import, chapter export, manuscript reconciliation and revision tag.
