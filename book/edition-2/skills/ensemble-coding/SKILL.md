@@ -25,6 +25,10 @@ coordinator, who can ask Bill. Do independent, unblocked work meanwhile.
 
 - Core shared data structures, constants, and interfaces belong in
   `internal/common`. Interfaces for back-pointers belong there too.
+- Bill clarified on 2026-10-07 that private runtime structs, including Engine,
+  Registry, Jobs and Job implementations, may live in their responsible
+  packages when common interfaces expose the ownership chain. Shared data
+  stays in common; do not relocate it solely to retain method syntax.
 - Implementation belongs in the directory responsible for the work:
   `internal/llm` for model requests, rendering, parsing, and conversation
   operations; `internal/jobs` for job lifecycle; `internal/tools` for tools.

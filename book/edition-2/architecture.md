@@ -55,6 +55,14 @@ The term "hub" in the star-import rule means a package of shared types and
 interfaces. It must not be confused with the runtime Hub/Ensemble that owns
 agents and services.
 
+During the manual data-structure review on 2026-10-07, Bill explicitly allowed
+private runtime structs in their implementation packages when common
+interfaces expose the ownership chain. Engine, Registry, Jobs and Job may
+have private concrete implementations. Shared core values and interfaces stay
+in `internal/common`; behavior over common data stays in the responsible
+spoke, using free functions where necessary. This settles the placement
+boundary without requiring all runtime implementations to move into common.
+
 ## Consequences for the module contract
 
 The agent library must work without importing the optional GUI module. The
