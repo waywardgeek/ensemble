@@ -1,0 +1,7 @@
+{
+  "command": "go test -run ^TestReviewSendInputDoesNotParkActor$ -count=1 -timeout=15s .",
+  "source": "8aa40c3",
+  "exit": 1,
+  "stdout": "--- FAIL: TestReviewSendInputDoesNotParkActor (4.58s)\n    review_send_test.go:68: hint acknowledgement parked behind PTY send_input write\nFAIL\nFAIL\texample.com/ensemble\t4.593s\nFAIL\n",
+  "stderr": ""
+}

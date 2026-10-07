@@ -1,0 +1,104 @@
+package ensemble
+
+import (
+	"context"
+	"encoding/json"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync/atomic"
+	"testing"
+	"time"
+)
+
+type reviewSendObserver struct{ called chan struct{} }
+
+func (o reviewSendObserver) Observe(v Observation) {
+	if v.Kind == "tool_called" && v.Event.Tool != nil && v.Event.Tool.Name == "send_input" {
+		close(o.called)
+	}
+}
+
+func TestReviewSendInputDoesNotParkActor(t *testing.T) {
+	var requests atomic.Int32
+	ready := filepath.Join(t.TempDir(), "ready")
+	inputBytes := 1 << 20
+	if os.Getenv("ENSEMBLE_REVIEW_SMALL_INPUT") == "1" {
+		inputBytes = 128
+	}
+	app, a := actorAgent(t, func(w http.ResponseWriter, r *http.Request) {
+		n := requests.Add(1)
+		if n == 1 {
+			// Raw mode with no reader fills the PTY input buffer. The bounded sleep
+			// also guarantees cleanup even when the actor cannot process Close.
+			command := "stty -echo -icanon; touch " + ready + "; sleep 4"
+			_ = json.NewEncoder(w).Encode(map[string]any{"content": []any{map[string]any{"type": "tool_use", "id": "run", "name": "run_command", "input": map[string]any{"command": command, "ai_callback_delay": 0.02}}}, "usage": map[string]int{"input_tokens": 2, "output_tokens": 1}})
+		} else if n == 2 {
+			deadline := time.Now().Add(time.Second)
+			for {
+				if _, err := os.Stat(ready); err == nil {
+					break
+				}
+				if time.Now().After(deadline) {
+					t.Error("PTY setup barrier absent")
+					return
+				}
+				time.Sleep(time.Millisecond)
+			}
+			_ = json.NewEncoder(w).Encode(map[string]any{"content": []any{map[string]any{"type": "tool_use", "id": "send", "name": "send_input", "input": map[string]any{"handle": 1, "input": strings.Repeat("x", inputBytes), "append_newline": false, "ai_callback_delay": 1}}}, "usage": map[string]int{"input_tokens": 2, "output_tokens": 1}})
+		} else {
+			replyText(w, "done")
+		}
+	}, "run_command", "send_input")
+	called := make(chan struct{})
+	if _, err := app.Subscribe(a.ID(), reviewSendObserver{called}); err != nil {
+		t.Fatal(err)
+	}
+	h, err := a.Submit("send input to the waiting process")
+	if err != nil {
+		t.Fatal(err)
+	}
+	waitSignal(t, called)
+	time.Sleep(50 * time.Millisecond)
+	ack := make(chan error, 1)
+	go func() { _, err := a.Hint("remain responsive"); ack <- err }()
+	select {
+	case err := <-ack:
+		if err != nil {
+			t.Errorf("hint: %v", err)
+		}
+	case <-time.After(400 * time.Millisecond):
+		t.Error("hint acknowledgement parked behind PTY send_input write")
+	}
+	interrupted := make(chan error, 1)
+	go func() { _, err := a.Interrupt(); interrupted <- err }()
+	select {
+	case err := <-interrupted:
+		if err != nil {
+			t.Errorf("interrupt: %v", err)
+		}
+	case <-time.After(400 * time.Millisecond):
+		t.Error("interrupt acknowledgement parked behind PTY send_input write")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if c, err := h.Wait(ctx); err != nil {
+		t.Error(err)
+	} else if c.Outcome != "interrupted" {
+		t.Errorf("completion outcome %q", c.Outcome)
+	}
+	if j := a.Snapshot().Jobs[1]; j.Status != "running" {
+		t.Errorf("interrupt killed or lost live job: %+v", j)
+	}
+	closed := make(chan error, 1)
+	go func() { closed <- app.Close() }()
+	select {
+	case err := <-closed:
+		if err != nil {
+			t.Error(err)
+		}
+	case <-time.After(time.Second):
+		t.Error("Close parked behind PTY input worker")
+	}
+}
