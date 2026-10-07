@@ -245,3 +245,202 @@ Unit-level versions of both already exist and pass, in
 `agent/internal/common/usage_test.go` and
 `agent/internal/tools/statustools_test.go`. The grader versions must drive the
 binary rather than re-test the library.
+
+## Stage 8d-8f COMPLETE — grader is 100/100 (7 of 7 checks)
+
+Commits: `e714350` (8d single-composition-root), `6f62793` (8e/8f behavioural).
+
+### 8d single-composition-root (15 pts) — `internal/grade/ch22_root.go`
+
+Two name-blind clauses:
+1. ONE ROOT PER BINARY. A main package may call at most one composition
+   root, and -- if its own reach into the library is >= the threshold --
+   must call at least one.
+2. NO REBUILDING. A binary must not take an object from a package the root
+   already builds from and then assign its fields.
+
+A composition root is found with NO name matching: a function reaching >= 3
+of the tree's own packages, directly or through helpers in its own package
+(`treeFanout`, transitive within the package). `astscan.go` gained
+`imports`/`pkgNames` maps, `callsIn`, `findFunc`, `treeFanout`,
+`varsFromTreeCalls`, `fieldAssignsOn`, `line`.
+
+MEASURED separation (TestCompositionRootFanout, asserts it survives):
+least-reaching root = 4; greatest-reaching of the 29 other constructors the
+binaries call = 1. Nothing sits at 2 or 3 — the threshold is in an empty gap.
+Roots found: `agent.NewAgent`, `agent.NewBareAgent` (different binaries).
+
+TWO FINDINGS THAT CHANGED THE DESIGN:
+- "main sets a field on a library value" is NOT a decay signal by itself.
+  Filling in a config struct before handing it to a constructor has the
+  SAME SHAPE as stapling a capability onto a live engine. Only types
+  separate them and this scanner has none. Both shapes are in the reference
+  tree (`cfg.SystemPrompt` in virtual-user is legitimate; `hub.Model =
+  func(){}` is the GUIServer closure Bill ruled out of scope). Hence clause
+  2 is restricted by PROVENANCE to packages the root itself builds from,
+  excluding the root's own package.
+- THE CHECK PASSED THE REAL DECAYED TREE at first. Ten fixtures missed what
+  one real tree caught. The draft counted roots tree-wide, and
+  cmd/virtual-user's healthy `NewBareAgent` call satisfied the count on
+  behalf of the decayed `cmd/` — the broken binary was not the one being
+  counted. Now per-binary. Permanent fixture: "a healthy second binary
+  masks a decayed first". Verify with:
+      git worktree add /tmp/ch22-decayed 273797c
+  The decayed tree must report: "cmd reaches 12 of the library's packages
+  ... but calls no composition root".
+
+### 8e/8f behavioural (20 + 15 pts) — `ch22_harness.go`, `ch22_status.go`
+
+One driven session serves both. Builds the binary, runs 4 turns against
+`fakevendor`, switches model mid-session over the GUI websocket, recovers
+the `agent_status` output from the transcript the agent sent BACK to the
+vendor (a tool result rides in the next request — no instrumentation).
+
+- WS is CLIENT-PULL: a fresh connection is sent NOTHING until it sends
+  `{"type":"subscribe"}`. Then `{"type":"update_settings","settings":{"model":...}}`.
+  Endpoint `/ws`; the envelope field is `"type"`, NOT `"kind"` (stdin uses
+  `"kind"`). There is no stdin verb for the model and settings.json is read
+  once at startup, so the socket is the only seam.
+- THE SWITCH IS ASYNCHRONOUS and a stdin prompt overtakes it: the turn
+  after the switch is sometimes still billed to the old model. Fixed by
+  reading each turn's model OFF THE WIRE (`ch22RequestModels`) instead of
+  assuming. Removes the race; cost is still predicted independently.
+- TOKEN COUNTS HAVE A CEILING: an earlier draft used millions and the
+  driven agent decided its context was full and withdrew every tool but
+  micro_handoff. Checks still passed — the grader had started testing
+  compaction policy instead. Now 10k/2k/1k.
+- Models are PRODUCTION rows `claude-opus-4-6` (5/25, read 0.5) and
+  `claude-sonnet-5` (3/15, read 0.3): same vendor (wire shape unchanged)
+  and both PRICED. Every `*-course` row is unpriced, and an unpriced pair
+  cannot demonstrate a pricing bug. Prices are hardcoded — internal/grade is
+  in the ROOT module and cannot import the agent module's internal packages.
+- Cost check asserts correct AND not-flat-rate, but only after confirming
+  the two formulas disagree for the session actually driven; otherwise it
+  reports the GRADER incomplete rather than awarding points.
+- Shipped-SKILL.md check is separate (`ch22StatusToolDeclared`) because the
+  grader supplies its own skill file and is therefore blind to ch21's
+  dead-on-arrival fault.
+
+### Remaining: stages 9, 10, 11
+
+## Stage 9 IN PROGRESS — `scripts/ch22-mutants.sh` written, NOT committed
+
+Script exists and runs. Harness (guard, run_mutant, JSON check-ID extraction,
+compile gate, landed-verification) is copied from `scripts/ch21-mutants.sh`
+and WORKS. Six mutants; `agent-builds` deliberately has none (a build failure
+is not a deletion of a taught behavior) — rationale is in the script header.
+
+### Mutant status, measured
+
+| # | target check | status |
+|---|---|---|
+| 1 | back-pointer-chain | **PASSES** — kills exactly its check |
+| 2 | reaches-through-the-chain | does not compile — FIXABLE, see below |
+| 3 | ch21-parity | SURVIVED — wrong mutant, see below |
+| 4 | single-composition-root | does not compile — FIXABLE, see below |
+| 5 | agent-status-tool | kills its check; the extra kill was FLAKE, not coupling |
+| 6 | per-model-cost | does not compile — FIXABLE, see below |
+
+Fixes, all diagnosed, none yet applied:
+
+- **M2**: `statustools.go` already has an `import (...)` block, so inserting a
+  new import after `package tools` puts a declaration before it →
+  "imports must appear before other declarations". Insert the import INSIDE
+  the existing block and append `var _ = mutantllm.Engine{}` at END of file.
+  `llm.Engine` IS a struct, and there is no import cycle.
+- **M4**: anchor `host := a` is right, but `spec` is not in scope there. The
+  real call is `agent.NewAgent(cfg, agent.AgentSpec{DataDir: ".", SkillDir:
+  skillDir, Skills: []string{primaryName}, LogPath: logPath, SavePath:
+  savePath})` at `agent/cmd/main.go:287`. Use
+  `_, _ = agent.NewAgent(cfg, agent.AgentSpec{DataDir: "."})` — a composite
+  literal with a subset of fields compiles.
+- **M6**: substituting `LookupModel("claude-opus-4-6")` leaves the range
+  variable `model` unused → compile error. Append `_ = model` on the next line.
+  The mutation itself is the right one: it is the historical flat-rate bug
+  exactly, and changes no number in the report, only which price sheet is
+  consulted.
+- **M3**: ch21-parity does NOT read the shipped `agent/skills/web-search/SKILL.md`
+  (ch21's grader supplies its own skill file — that is documented and
+  deliberate), so renaming `firecrawl_search` there changes nothing. Pick a
+  mutant in ch21's CODE path instead: break the Streamable HTTP transport in
+  `agent/internal/mcp/http.go` (e.g. the `case "url"` dispatch ch21 added).
+
+## THE REAL BLOCKER — the driven session is ~17% FLAKY
+
+MEASURED: 1 of 6 clean grader runs fails; 3 of 6 in another sample. When it
+fails, BOTH `agent-status-tool` and `per-model-cost` fail together with:
+
+    "the session did not run: agent produced no assistant reply"
+
+So `out.replies` is EMPTY — turn ONE never got a reply. This is a startup /
+timing race in `ch22DriveSession`, NOT a check defect and NOT the model switch.
+
+**A grader that fails honest work 1-in-6 cannot ship. Fix this before stage 10.**
+
+Ruled out by measurement, do NOT re-investigate:
+- NOT the save.json-shared-workdir bug: `ch22_harness.go:186` uses
+  `os.MkdirTemp` per run with `defer os.RemoveAll`.
+- NOT a model-switch race: `ch22SwitchModel` ALREADY waits for the agent to
+  echo the new model back over the websocket before returning
+  (`ch22_harness.go` ~334-343). I added a bounded drive-until-switch loop to
+  "fix" this and it was both unnecessary and HARMFUL — see below. Reverted.
+- NOT check coupling between agent-status-tool and per-model-cost. The single
+  observation suggesting it was this same flake.
+
+**DO NOT drive extra turns.** `ch22_harness.go:107`
+`turns := []ch22Usage{ch22TurnOne, ch22TurnTwo, ch22TurnThree}` means the
+EXPECTED figures assume exactly three turns, and the fake vendor's `replies`
+list (~line 177) is finite. Extra prompts exhaust it and produce the very
+"no assistant reply" symptom being chased.
+
+Next diagnostic step: the harness does not appear to capture the child's
+stderr (`grep -n Stderr internal/grade/ch22_harness.go` — see output above).
+Capture it to a buffer and print it when no reply arrives; that will say
+whether the process exited, the fake vendor 500'd on a port race, or the
+first prompt was written before the actor began reading stdin.
+`ch22WaitPort` returning only proves the LISTENER is up, which is weaker than
+"the actor is ready to accept a prompt".
+
+## Remaining: finish stage 9, then 10, 11
+
+## !!! CORRECTION — the "flake" is a REAL PRODUCTION BUG, not a grader defect
+
+Captured on run 4 of 6 by NOT discarding the child's stderr (`cmd.Stderr =
+os.Stderr` at `ch22_harness.go:206`, so `2>/dev/null` was hiding it — that
+redirect is why three earlier diagnoses were wrong):
+
+    panic: send on closed channel
+
+    ws.(*Hub).Observe(...)            agent/internal/ws/handler.go:211
+    llm.(*Actor).notify(...)          agent/internal/llm/actor.go:124
+    llm.(*Actor).setState(...)        agent/internal/llm/actor.go:110
+    llm.(*Actor).runTurnLoop(...)     agent/internal/llm/actor.go:228
+    llm.(*Actor).handleUserMessage    agent/internal/llm/actor.go:221
+    llm.(*Actor).handleRequest        agent/internal/llm/actor_runtime.go:147
+
+**Diagnosis.** The grader connects a websocket client, switches the model,
+and disconnects. The Hub closes that client's channel on disconnect, but the
+Actor goes on delivering observations to it, and `Hub.Observe` sends on the
+closed channel. The whole process panics, so turn one never produces a reply
+— which surfaced as the misleading "agent produced no assistant reply".
+
+**This is a race in shipped agent code, not in the grader.** It needs a real
+owner: whoever makes the channel unusable must stop the sender first, or
+`Observe` must not own the lifetime of a channel it does not close. The
+pattern is the ch4 deadlock rule inverted — there the rule was that whoever
+makes a condition true owns waking the waiters; here, whoever closes a
+channel owns stopping its senders.
+
+**Do NOT "fix" this by having the grader keep its websocket open.** That
+hides a crash any GUI client triggers by closing a browser tab mid-turn. The
+grader found a genuine defect; that is the grader working.
+
+**This also means the mutation audit's earlier results are suspect.** Mutant
+5's "extra kill" of per-model-cost was almost certainly this panic, not check
+coupling. Re-run `scripts/ch22-mutants.sh` after the panic is fixed and
+re-read every mutant's kill set from scratch.
+
+**Raise with Bill before fixing**: ch22's thesis is architectural decay, and a
+crash on client disconnect in the component that is being moved out of the
+library (`ws.Hub` → GUIServer) may belong in the chapter as an exhibit rather
+than being silently repaired.
