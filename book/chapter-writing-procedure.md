@@ -156,6 +156,12 @@ contract, checks, preserved prior behavior, and genuinely unresolved choices.
 Record a short voice plan using the current voice guide. Ask Bill only where
 his answer materially changes the design.
 
+Apply the required story-preservation pass in `voice.md` §4.1. Record which
+documented human incident or memorable explanation from the first edition
+will survive, its source, and the design decision it motivates. If none fits,
+record why and identify the concrete reader problem that carries the chapter.
+Revisit already-drafted second-edition chapters under this rule too.
+
 ## 2. Write the student-facing contract
 
 Write enough of the chapter before implementation that the student can build
@@ -398,6 +404,9 @@ this procedure, and the coder's evidence. Check:
 - Plain-English explanation, logical order, terminology, and necessary detail.
 - Motivation for the rules and a reader-facing reason to build the mechanism;
   specifications and a clean lint run do not by themselves establish voice.
+- Preservation of documented human stakes and personality under `voice.md`
+  §4.1: compare the old and new telling, check the outline's retention or
+  removal decision, and flag a rewrite that keeps facts but loses their point.
 - Voice budgets, repetition, unsupported claims, and stale cross-references.
 - Agreement among TL;DR, prose, exercises, checks, and demonstrated behavior.
 - Architectural consistency and forward lessons, consulting the global map.

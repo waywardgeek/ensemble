@@ -1,9 +1,14 @@
 # Voice
 
-*Version 4, 2026-09-20. A specification, written plainly on purpose. Version 2
+*Version 5, 2026-10-07. A specification, written plainly on purpose. Version 2
 was written in the voice it described, and the chapter drafted the same day
 copied the document's tics instead of following its rules. A voice document
 should be followed, not enjoyed.*
+
+*What changed from v4: Bill asks the second edition to recover human story
+and personality lost during the rewrite. §4.1 makes that a required author
+and reviewer pass. Third-person narration still allows warmth, judgment,
+humor, and documented human experience; it does not require impersonal prose.*
 
 *What changed from v3: person is settled per surface, because the chapters had
 already moved to third person while v3 still described a first-person narrator.
@@ -30,14 +35,16 @@ wins and the rule gets an entry in §13 saying so, with a date.
 
 ### 1.1 The default is third person
 
-Chapter bodies are third person. No "I", no "we" standing in for an author, no
-narrator with a personality. This is the register chapters 11, 12 and 13 are
+Chapter bodies are third person. No "I" or "we" standing in for an author,
+and no invented agent narrator. This is the register chapters 11, 12 and 13 are
 written in, and it is the one to match.
 
 The reason is not modesty. An earlier version of this book had the agent
 narrate itself, and a reader found it unsettling rather than charming. The
-cure for a monotone page is density, not personality. A page that is dense
-with mechanism does not need someone standing next to it being interesting.
+prose should carry personality through concrete choices, candid engineering
+judgment, rhythm, and dry humor. Technical density alone does not make a page
+worth reading. Keep the people and consequences visible as the mechanism
+becomes more detailed.
 
 "We" is the course addressing the reader. "You" is the reader. Present tense.
 Contractions are fine.
@@ -136,6 +143,45 @@ stake is something that could still go wrong in the next paragraph.
 
 When a stretch of mechanism runs more than 1,200 words with no person on the
 page, put one back. The linter warns at that length.
+
+### 4.1 Preserve the human story when rewriting
+
+For every second-edition chapter, the author must examine the corresponding
+first-edition material for a documented incident, revealing exchange, reader
+frustration, or memorable explanation worth retaining. Record the choice and
+its source in the outline, or explain why that material no longer serves the
+chapter. The reviewer checks the choice against both versions. This applies
+to existing second-edition drafts as well as future chapters.
+
+Keep enough of an incident to show what someone wanted, what went wrong,
+what they tried, and what the outcome taught. Compressing Bill's two-week bet
+into a biographical clause can preserve the fact while losing its reason to
+be on the page. Preserve the stakes when they explain why the work matters.
+Use Bill's first-person voice in a short motivational opener under §1.2, or
+tell the incident in third person in the body under §1.3.
+
+The second edition teaches the rules before implementation. An earlier
+failure can motivate the right design without asking the student to recreate
+the flawed architecture. Connect the incident to the decision it explains,
+and return to its consequence when the new mechanism resolves the problem.
+
+Personality also belongs in the explanation: name the reader's likely
+objection, make a defensible engineering judgment, or let an observed absurdity
+speak for itself. Preserve a sharp, accurate sentence when it teaches. Avoid
+adding jokes, stock catchphrases, or a personal anecdote to satisfy a quota.
+A concrete reader problem can carry a chapter when no historical story fits.
+
+Use actual second-edition experience too. A model claiming an edit succeeded
+while the file remains unchanged, followed by an observed corrective turn,
+can teach more than another instruction to verify results. Retain the failure
+and its resolution; distinguish model behavior from an implementation defect.
+
+Historical prose is a lead to evidence, not proof that every detail is true.
+Verify quotations, dates, figures, and claimed outcomes. Never invent dialogue,
+feelings, scenes, or a successful result. Use the story-slot rule in §9 when
+needed. Keep the essential receipt and reproduction steps in the chapter;
+link detailed audit ledgers and checkpoint history so they do not overwhelm
+the reader's journey. Required exercise contracts remain explicit.
 
 ## 5. Budgets
 
@@ -406,6 +452,7 @@ tests run. The tests are now steps.
 
 1. Write the through-line stake sentence (§4) and each section's wild fact
    (§7.3) at the top of the outline.
+   For an edition rewrite, record the story-preservation decision under §4.1.
 2. Draft.
 3. Run `make lint-prose`. Fix hard failures. Read the soft warnings.
 4. Cut pass. The test for each sentence: delete it; if no claim, number,
@@ -491,6 +538,10 @@ it is in the sentence's similarity to the nine before it.
 
 ## 13. Rulings that bind the prose
 
+- **Second-edition personality:** preserve documented human story and restore
+  warmth and personality during the rewrite. Requested by Bill, 2026-10-07.
+  §4.1 is a required author and reviewer pass. This clarifies §1.1; third-person
+  bodies, evidence discipline, and architecture taught from the start remain.
 - **Person:** third person in chapter bodies; first person only in the §1.2
   motivational opener, the preface, and material published under Bill's name.
   Ruled by Bill, 2026-09-20. This supersedes v3 §1.1, which described a
@@ -540,3 +591,7 @@ Run this before sending a chapter for review.
 7. Does every criticism carry a receipt?
 8. Is every figure verified against an artifact rather than memory?
 9. Does it read like an engineer at a whiteboard, or like a press release?
+10. What human stake, memorable explanation, or documented incident survived
+    the rewrite? If one was removed, does the outline explain why?
+11. Does the chapter make the reader care before its detailed requirements,
+    and does the mechanism resolve the problem that made them care?
