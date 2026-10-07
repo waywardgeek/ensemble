@@ -134,3 +134,26 @@ artifact comparison; their continued availability is not assumed.
 
 Voice v5 SHA-256: `17883353cf9653c0df46081c216b5b1623dfa640619e06fe89bff46fc29dfad1`.
 Procedure SHA-256: `826a6138c85deb85ba08362075dc8423ee29887af2be4510bf4462c54391fbac`.
+
+## Status-only resolution, October 7, 2026
+
+The coordinator corrected the current Chapter 2 manuscript and evidence
+summary statuses to accepted human-client review and linked the authoritative
+validation record. Chapter 5's outline now identifies the accepted predecessor
+and active fresh student, with live acceptance still pending. The reviewer
+read those exact diffs and the new Chapter 5 gate table: findings 1–3 above are
+resolved. This closes the story-pass editorial review at its stated scope.
+The initial findings, hashes and source chronology above remain unchanged.
+
+Chapter 2 validation now explicitly separates the later immutable LogPath
+clarification from its accepted historical receipts and leaves the Chapter 2/3
+backport and validation pending. That honest qualification resolves the status
+concern; it does not complete the code correction. Bill's editorial approval
+and Chapters 5–6 implementation/live gates remain separate.
+
+| Rechecked file | SHA-256 |
+|---|---|
+| `chapter-02.md` | `32c5a586b6a80092a740e3c9a4e1a2a531b73ad7963afce73cd2852c524379f5` |
+| `chapter-02-evidence.md` | `c96481ff12d4232c9315370d6aabdc185c38a849a65d0077fbb765d8a7b87544` |
+| `chapter-02-validation.md` | `e0a3eda84cf5fb743e38147d1b85a79707fc19258191e60e47cd74bddb152d81` |
+| `chapter-05-outline.md` | `e01642c7fea84eda9c806daec71375a825bdb1cb3a87a3a2e1b9a2d3a739ea3d` |
