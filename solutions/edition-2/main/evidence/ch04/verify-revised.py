@@ -15,6 +15,10 @@ args = p.parse_args()
 binding = json.loads((HERE/'boundary-binding.json').read_text())
 for kind, binary in [('cli', args.cli_binary), ('public', args.public_binary)]:
     assert hashlib.sha256(binary.read_bytes()).hexdigest() == binding['binaries'][kind]
+# The manifest must cover every Go source/module file in this historical tree.
+paths = subprocess.check_output(['git','ls-tree','-r','--name-only',binding['source_revision'],'solutions/edition-2/main'],cwd=ROOT,text=True).splitlines()
+expected = {path for path in paths if '/evidence/' not in path and (path.endswith('.go') or path.endswith('go.mod') or path.endswith('go.sum'))}
+assert expected and set(binding['sources']) == expected, 'empty or incomplete source binding; no evidence modified'
 for path, want in binding['sources'].items():
     data = subprocess.check_output(['git','show',binding['source_revision']+':'+path],cwd=ROOT)
     assert hashlib.sha256(data).hexdigest() == want
