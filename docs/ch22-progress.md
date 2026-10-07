@@ -330,18 +330,18 @@ compile gate, landed-verification) is copied from `scripts/ch21-mutants.sh`
 and WORKS. Six mutants; `agent-builds` deliberately has none (a build failure
 is not a deletion of a taught behavior) — rationale is in the script header.
 
-### Mutant status, measured — ALL SIX ARE NOW VALID
+### Mutant status, measured — ALL SIX KILL EXACTLY THEIR CHECK
 
-Last full run: **5 PASS, 1 FAIL**, and the single FAIL is the panic below,
-not a weak check. All four broken mutants are fixed and committed.
+Last full run after the ws fix: **6 PASS, 0 FAIL**. Every mutant kills the one
+check it names and nothing else.
 
 | # | target check | status |
 |---|---|---|
-| 1 | back-pointer-chain | PASSES — kills exactly its check |
+| 1 | back-pointer-chain | PASSES |
 | 2 | reaches-through-the-chain | PASSES — fixed (import placement) |
 | 3 | ch21-parity | PASSES — fixed (retargeted) |
 | 4 | single-composition-root | PASSES — fixed (`spec` not in scope) |
-| 5 | agent-status-tool | killed its check **plus** `per-model-cost` — THE PANIC, proven below |
+| 5 | agent-status-tool | PASSES — was the panic, now fixed |
 | 6 | per-model-cost | PASSES — fixed (unused range var) |
 
 What each fix turned out to be:
@@ -446,21 +446,86 @@ One non-100, NOT ours: `ch19 ./agent` = 85/100. `ch19 ./solutions/ch19` scores
 100 on the same run, which localises it to the missing `agent/events.jsonl`
 already proven pre-existing at `273797c`.
 
-### Defect found by the sweep: ch14's harness leaks five agents per run
+### Defect found by the sweep: ch14's harness leaks agents
 
-The sweep ends with `WARNING: 15 leaked agent process(es) still running`. All
-fifteen were ch14's — every one carried a `--tts-log .../ch14-work-*/tts.log`
-flag, in three batches of five from three sweeps. So ch14's grader leaks
-exactly five agents per invocation and they survive the grader's exit.
+Every sweep ends with a `WARNING: N leaked agent process(es) still running`,
+and every leaked process is ch14's — each carries a
+`--tts-log .../ch14-work-<random>/tts.log` flag, and each sits in its OWN
+`ch14-work-*` directory. So ch14 leaves one agent behind per scenario, and
+they survive the grader's exit.
 
-Reaped by hand this session (0 remaining). Beware when cleaning up: an
-unrelated long-lived `./ensemble --port 8084` was running at the time and must
-not be matched. Filter on the harness's temp dir, not on the binary name.
+Measured: **5 leaked per sweep** (one sweep → 5; three sweeps → 15).
+Deliberately not stated per ch14 invocation: the sweep grades ch14 twice
+(`./agent` and `./solutions/ch14`) yet only five leak, so the per-invocation
+rate is NOT simply five and has not been pinned down.
 
-Not fixed here — it is a ch14 harness bug, outside ch22's scope, and worth
-raising on its own.
+Reaped by hand each time. Beware when cleaning up: an unrelated long-lived
+`./ensemble --port 8084` was running throughout, and must not be matched.
+Filter on the harness's temp dir, not on the binary name.
 
-## Remaining: stage 9's last mutant (blocked on the panic), then 11
+Not fixed here — a ch14 harness bug, outside ch22's scope, worth raising on
+its own.
+
+## The panic is FIXED (`352b590`), and the fix is ch22 material
+
+Diagnosis: both sides of the race mutate shared state under `h.mu` and then
+act after releasing it. `Observe` snapshots the live clients, unlocks, and
+only then sends. Teardown deleted the client, unlocked, and only then closed
+`c.send`. So a client could be snapshotted, deleted, closed, then sent to.
+
+The count is the exhibit: **thirteen call sites send on `c.send`; exactly one
+closed it; and that one was not a sender.** The `select`/`default` on most of
+those sends looks like protection and is not — `default` saves a sender from
+a FULL channel, never from a CLOSED one. The defensive-looking code gives no
+defense against the failure that actually occurs.
+
+Fixed by ownership rather than by narrowing the window: nothing closes
+`c.send` at all, and `writePump` stops on a new `done` channel (draining
+what is already buffered first). An unreferenced channel is garbage collected
+whether or not it was closed. `sendReplay` selects on `done` too, so a replay
+no longer burns its full 5s timeout on a socket that has gone.
+
+Teardown was extracted from the tail of `ServeWS` into `Hub.removeClient` so
+the test drives the real path. It also drops MCP agent registrations —
+behavior a hand-copied teardown in the first test had already silently lost.
+
+### The regression test lied twice before it worked
+
+`TestObserveDuringTeardownDoesNotPanic` is proven sensitive: restoring
+`close(c.send)` panics it. Two earlier versions **passed with the bug
+restored**, and both are recorded in the test's own comments:
+
+1. 64 clients torn down in one goroutine — the teardown loop finished before
+   the senders were scheduled, so `Observe` saw an empty set. 8000
+   observations in 8ms, green.
+2. 5000 rounds of a single client — the gap between `Observe`'s unlock and
+   its send is a few nanoseconds, and teardown never once landed inside it.
+
+What works is a LARGE snapshot: the send loop itself becomes the window,
+because `Observe` is still working through early clients while teardown is
+closing later ones. **Widen a race window structurally; do not hope for it.**
+
+Also worth keeping: `Observe` early-returns when `marshalObservation` yields
+nil, so an observation the switch does not handle never reaches the send loop
+at all. A test using one would pass while exercising nothing.
+
+## Remaining: nothing blocking — ch22's grader work is complete
+
+Stages 0–11 are done. Final state: `grade22` = 100/100 on 7 checks for both
+`./agent` and `./solutions/ch22`; `grade22-audit` = 6/6; snapshot re-taken at
+`3a6ef2b` with zero drift; full sweep green.
+
+Still open, and NOT ch22's scope:
+
+- **ch14's harness leaks five agents per run** (see above). Its own bug.
+- **ch19 `./agent` = 85/100**, pre-existing at `273797c`, missing
+  `agent/events.jsonl`. `./solutions/ch19` scores 100.
+- **Two authorial calls on the panic**, which are Bill's, not mine:
+  whether to backport the fix to the frozen `solutions/ch21` (students start
+  ch22 from it and would otherwise meet a ~1-run-in-6 crash through no fault
+  of their own), and how ch22 narrates the bug. The fix itself landing in
+  `./agent` was required under all three options considered, which is why it
+  did not wait.
 
 
 ## !!! CORRECTION — the "flake" is a REAL PRODUCTION BUG, not a grader defect
