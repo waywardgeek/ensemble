@@ -225,3 +225,59 @@ passes. Both receipts record source and fixture hashes. Python compilation
 passed and `gofmt -l` printed nothing for the two new Go fixtures. Existing
 broad grader/vet/module receipts are reused; this review adds only targeted
 checks justified by the newly found defects.
+
+## Repair review: 959c663
+
+Reviewed `959c663400b74927578a3609ce58b0a51263e654` after the student's grouped
+repair. R1 and R2 are resolved. This clears the code and the revised live plan;
+it does not yet establish successful Gemini 3.8 demonstrations or close chapter
+acceptance.
+
+For R1, Registry now prepares an input task without performing the write.
+The existing actor-owned report worker calls Jobs' cancelable input operation;
+Jobs captures the output offset, serializes writers with a cancelable gate and
+returns the actual accepted-byte count. A duplicated nonblocking PTY descriptor
+is registered with Go's poller before reader startup, and deadline capability
+is checked. Setup failure closes the descriptor and kills/reaps the process.
+The cancellation hook sets the write deadline, the writer joins that hook,
+then clears the deadline before releasing the input gate. This ordering prevents
+a late cancellation from poisoning a subsequent writer.
+
+The actor records an ending outcome while the input operation settles and
+continues servicing its mailbox. It accepts that operation's report before
+finishing the interrupted call and refusing remaining batch effects. The report
+states accepted bytes and preserves an input error; persistence-failure request
+completion is also deferred until owned cleanup joins workers. Existing PTY
+drain and process-kill behavior remains. The student's added Jobs regression
+checks a real partial write, its exact prewrite offset, a surviving job and a
+successful next writer after cancellation.
+
+For R2, subscription admission checks Ensemble.closed under the existing mutex.
+On delivery-worker exit, that same mutex guards clearing the observer and queue
+references before closing the worker's done signal. The reason remains queryable.
+The student's regressions exercise unsubscribe, overflow and application-close
+exits; the independent probes check retained references and closed admission.
+This retains the existing callback contract and adds no forced-stop promise.
+
+The reviewer verified that the successful independent-probe receipt matches all
+47 Go files in the committed repair and both unchanged fixture hashes. See
+[identity audit](checkpoint-evidence/ch05-review-repair-identity.json) and the
+[passing probe receipt](../../solutions/edition-2/main/evidence/ch05/review-probes-revised.txt).
+The six-module vet/tests, main race suite and empty formatting output are in
+[revised local checks](../../solutions/edition-2/main/evidence/ch05/revised-local-checks.json);
+the [revised checker](../../solutions/edition-2/main/evidence/ch05/new-checker-revised.txt)
+is 100/100. These passing recorded checks were inspected and reused, not
+represented as a second reviewer execution. The earlier disk-full attempt
+remains separate evidence and is not counted as passing.
+
+The reviewed live plan retains the eight original Anthropic/OpenAI core sessions
+with their original runtime identity. It adds controls, EOF, workflow and
+collection on exact `models/gemini-3.8-flash`; controls include nominal input
+with observed process echo and explicit kill. Two focused Anthropic/OpenAI chat
+sessions exercise revised run-command, input, observed echo and kill behavior.
+Full-buffer partial-write cancellation remains deterministic local evidence,
+avoiding huge paid tool arguments. The mixed-revision verifier validates every
+binding and launch identity before replay or writing derivatives, and retains
+raw receipts separately. The reviewer inspected that adapter and its local
+controls as part of plan review. No additional material code repair is requested
+before those bounded runs. Their actual results still require independent review.
