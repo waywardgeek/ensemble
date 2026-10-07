@@ -207,6 +207,13 @@ each feature. Fix inaccessible or broken features through the chapter contract
 and appropriate regressions, then repeat the affected live demonstration.
 The author writes the demonstration from those receipts, not predictions.
 
+If shipping a replay/evidence verifier, bind it to the recorded executable
+hash and immutable source revision before it runs or rewrites derived files.
+Allow an explicit executable location; a temporary pathname alone is not an
+identity. Resolve historical source against that revision, not today's working
+tree. A mismatched executable or source must fail before changing evidence.
+Keep original terminal/log receipts distinct from reconstructed requests.
+
 Deterministic fake-server grading and mutation audits remain required where
 specified. They complement live demonstrations; neither replaces the other.
 A deliberately stubbed GUI must be labeled as such, never reported live-tested.
