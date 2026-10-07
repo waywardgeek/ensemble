@@ -323,6 +323,11 @@ timeout or broken payload that a real provider does not reliably produce,
 but label them as local faults. They cannot replace the required live
 feature demonstration.
 
+An evidence verifier must check its executable hash and immutable source
+revision before running the program or rewriting derived files. Let the caller
+select the executable's location; refuse a mismatch before changing evidence.
+Keep raw transcripts separate from reconstructed requests and label both.
+
 When a provider is unavailable, record the blocker and leave the affected
 validation incomplete. A plausible transcript is no receipt. The author
 writes the demonstration after the run, and the proofreader checks its

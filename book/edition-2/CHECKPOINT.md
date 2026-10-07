@@ -1,20 +1,21 @@
 # Working checkpoint
 
-Date: 2026-10-07. Bill explicitly resumed autonomous work. The main-source
-migration is complete and verified. Work in `solutions/edition-2/main/`;
-`ch01/`–`ch03/` are frozen exports. See `progress.md` and
-`solutions/edition-2/history/migration.json` for exact commits, inventories,
-and the complete external archive. Portable bundles preserve original Git
-history; Chapter 3's merge index, ignored binaries, and untracked files remain
-in the external archive. Main contains the tracked unfinished merge result.
-Do not call this new Chapter 3 validation or restart the completed Chapter 2
-paid demonstrations merely to recover context.
+Date: 2026-10-07. Autonomous work is active. Chapter 3 human integration is
+accepted, with dedicated checkpoint `edition-2-ch03-r1`. Reviewed source and
+independent receipts are at `8494fdb0e5d6c096445bfac039458b83dd225332`; exact
+491-file export and source/evidence manifest are under `solutions/edition-2/`.
+See `progress.md`, `chapter-03-validation.md` and `chapter-03-human-review.md`.
 
-Next: finish Chapter 3 human-chat integration and its actual all-provider PTY
-demonstrations; preserve an initial attempt, review and improve it, then
-validate/export/commit/tag. Only then release Chapter 4 to a fresh new-only
-coder. The author is updating active paths and the reviewer has audited the
-migration evidence requirements. No root regression tests remain running.
+Next: launch a fresh Chapter 4 coder from accepted main, with new-only context,
+full coding skill and published contract. Actual model-driven Delve through
+Ensemble is required; an external debugger run is insufficient. Chapters 4/5
+contracts are ready (5 awaits predecessor); Chapter 6 is research only.
+
+Consolidation is complete and verified at `8831ce2`. Original nested histories,
+ignored/untracked files, and the old staged merge remain safely archived;
+tracked bundles and `history/migration.json` preserve their source identities.
+No root regression tests remain running. Do not repeat paid demos to recover
+context. No pushes; preserve Bill's unrelated untracked files.
 
 ## Objective and current scope
 
@@ -67,23 +68,15 @@ that limitation; their implementation validation is a separate claim.
 
 ## Current state
 
-- **Active correction:** Bill explicitly requires a human chat mode from
-  Chapter 2 and actual coder interaction through that mode with real models.
-  Piped JSON is machine-protocol evidence, not the human usability gate.
-  Chapter 2 human client is accepted at `ad0d80e`; new teaching and path rules
-  are committed in `dd5db87`. The fresh Chapter 3 coder now works in main. Carry
-  the change into Chapter 3 and
-  demonstrate all three providers before releasing Chapter 4 implementation.
-  The skill, workflow, and Chapter 0 now state this requirement. Preserve the
-  older checkpoints and receipts rather than relabeling them as human tests.
-- Chapter 3 reviewed snapshot: `7cbbd8e2e0101e40dee63fe18d05f48b791c55ff`, frozen before human integration.
-  Earlier scope passes: all four modules format/vet/test; inherited100;
-  independent39/39; eight checker controls; control+five exact-failure mutants;
-  all-three real machine CLI/public-consumer and guided correction receipts;
-  independent standard comparison and full manuscript review. The first full
-  root retry failed for disk exhaustion; cache cleanup recovered space and
-  the final full retry passed exit0 (`internal/grade` 508.374s). Human-chat
-  validation remains a new open gate. No root tests are still running.
+- **Latest accepted source:** Chapter 3 human integration, as recorded above.
+  All four modules format/vet/test; inherited100; human45/45; passing control
+  plus seven exact-failure mutations; four verifier controls independently rerun.
+  Actual all-three-provider human PTYs and prose/comparison review accepted.
+  Production/live initiala347ce3 is unchanged by evidence-only repair339a2a6.
+- Chapter 3 earlier tool-scope snapshot `7cbbd8e2` remains historically bound to
+  independent39/39, eight checker controls and five mutants, all-three machine
+  CLI/public-consumer runs and comparison. Root legacy retry passed exit0
+  (`internal/grade`508.374s); earlier disk-exhaustion failure remains recorded.
 
 - Main workflow review requirement committed as `1d3b6c9`.
 - Independent acceptance/package tooling and evidence committed as `602ae87`.
@@ -105,7 +98,7 @@ that limitation; their implementation validation is a separate claim.
 - Chapter 0's execution guide is written and independently reviewed.
   Chapter 3's fresh coder used `fork_turns="none"` and new-only sources; its
   reviewed snapshot is recorded above. Chapter 4's contract passed review,
-  but it is not yet released for implementation because of the human CLI gate.
+  and its predecessor human CLI gate is now accepted; release a fresh student.
   Chapters 1 and 2 now motivate the rules and visibly teach skill loading,
   following Bill's forwarded CodeRhapsody advice.
 

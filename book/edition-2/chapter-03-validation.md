@@ -1,10 +1,49 @@
 # Chapter 3 validation
 
-Date: 2026-10-07. Status: human chat interface and its live terminal gate reopened
-by Bill's subsequent requirement. The prior contract's manuscript, code review,
-and full legacy regression passed. Bill's editorial approval is separate.
-Reviewed student checkpoint: `7cbbd8e2e0101e40dee63fe18d05f48b791c55ff`,
-with a clean working tree in `solutions/edition-2/ch03/`.
+Date: 2026-10-07. Status: the reopened human-chat implementation, actual terminal
+evidence and independent review now pass. The exact reviewed source export and manifest are bound by checkpoint
+`edition-2-ch03-r1`. Bill's editorial approval is separate. The earlier tool implementation
+was accepted at student checkpoint `7cbbd8e2e0101e40dee63fe18d05f48b791c55ff`.
+Its original nested history was preserved during consolidation; development now
+uses outer-tracked `solutions/edition-2/main/`, with `ch03/` a frozen export.
+
+## Human interface correction
+
+The integrated human client and all-three-provider actual PTY runs were frozen
+in outer commit `a347ce31511c4b124e486bb41ef98c07bd17cec5`. Its executable SHA256
+is `3d49d9037077929b7380fbbae020e968c79075ac94eb95c939535aa606523990`.
+The fresh student extended the reviewed client and Chapter 3 tool implementation
+using new-only source instructions. This is a guided integration, not a fresh
+whole-chapter blind trial.
+
+Independent black-box acceptance passes 45/45; seven checker controls pass.
+A passing disposable control plus seven compiled defects each produce their
+exact expected failure sets, with original production hashes unchanged.
+The checker was prepared at `10ab549` before inspecting this implementation.
+It retains Chapter 2's 42-case mode and proves absence with the older no-tools
+binary failing exactly the six newly introduced Chapter 3 cases.
+
+The student recorded clean formatting, vet and tests in all four modules and
+inherited grade 100. No shared grader or legacy implementation changed for this
+human-client integration. The earlier full-root regression below remains the
+legacy gate; it is not relabeled as a new run.
+
+Post-run comparison with the first-edition CLI found the small client integration
+appropriate. Evidence-only revision `339a2a61e7107b921bdc7acbd704b2eb7da17931`
+fixes the verifier's missing immutable source/executable binding before execution
+or derived writes. Independent negative and positive controls pass. Production
+and paid raw receipts remain those of the initial frozen executable.
+
+The reviewer checked actual all-three-provider terminal transcripts, tool facts,
+disk effects, history-selected redaction, reconstructed subsequent requests,
+ephemera, accounting, commands and EOF. The author's updated spin matches those
+receipts and preserves observed model mistakes. See `chapter-03-human-review.md`
+for precise comparison, commands, scope and receipt paths. Reviewed source and imported independent receipts are committed at
+`8494fdb0e5d6c096445bfac039458b83dd225332`. The 491-file frozen export is
+`solutions/edition-2/ch03/`; `solutions/edition-2/manifests/ch03-r1.json`
+binds its source tree, contract, skill and review evidence. All four modules
+also passed vet/tests from the exported location, with clean formatting.
+The snapshot exporter matched every committed blob and mode.
 
 ## Student attempt and revisions
 
@@ -108,5 +147,6 @@ and revised-grade receipts. Independent manuscript proof is recorded in
 effects and render pairs. The final student checkpoint retains the reviewed
 production unchanged. Bill then identified the missing human chat mode: the
 old real-model JSON sessions establish the machine interface, not interactive
-human usability. Chapter 2's new chat contract must be implemented, carried
-forward, and exercised through an actual terminal before closing this new gate.
+human usability. The later correction described above carries Chapter 2's new
+chat contract forward and closes the implementation/live-review gate with actual
+terminal evidence. These later receipts do not change what the earlier runs prove.

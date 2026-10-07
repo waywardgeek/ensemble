@@ -36,10 +36,18 @@ func configuration(owner ensemble.ClientOwner) ensemble.Config {
 	return ensemble.Config{Vendor: vendor, APIKey: value("API_KEY"), Model: value("MODEL"), BaseURL: value("BASE_URL"), ResolvedModel: os.Getenv("LLM_RESOLVED_MODEL"), LogPath: path}
 }
 func run(input io.Reader, output, diagnostics io.Writer) error {
+	return runArgs(os.Args[1:], input, output, diagnostics)
+}
+func runArgs(args []string, input io.Reader, output, diagnostics io.Writer) error {
 	app := ensemble.New(diagnostics)
 	config := configuration(app)
-	args := os.Args[1:]
-	if len(args) > 0 {
+	mode := "protocol"
+	if isTerminal(app, input) && isTerminal(app, output) {
+		mode = "chat"
+	}
+	if len(args) == 1 && (args[0] == "chat" || args[0] == "protocol") {
+		mode = args[0]
+	} else if len(args) > 0 {
 		var path string
 		switch {
 		case len(args) == 1 && args[0] == "dump":
@@ -47,7 +55,7 @@ func run(input io.Reader, output, diagnostics io.Writer) error {
 		case len(args) == 2 && args[0] == "render":
 			path = args[1]
 		default:
-			return fmt.Errorf("usage: ensemble [dump | render LOG]")
+			return fmt.Errorf("usage: ensemble [chat | protocol | dump | render LOG]")
 		}
 		agent, err := app.Load(path, config)
 		if err != nil {
@@ -75,6 +83,13 @@ func run(input io.Reader, output, diagnostics io.Writer) error {
 		return err
 	}
 	defer agent.Close()
+	if mode == "chat" {
+		return runChat(app, agent, input, output)
+	}
+	return runProtocol(app, agent, input, output)
+}
+
+func runProtocol(app ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader, output io.Writer) error {
 	scanner := bufio.NewScanner(input)
 	scanner.Buffer(make([]byte, 4096), 16*1024*1024)
 	encoder := json.NewEncoder(output)

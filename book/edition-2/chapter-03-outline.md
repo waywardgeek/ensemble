@@ -3,9 +3,15 @@
 Status: prior tool contract validated at `7cbbd8e2`, with initial checkpoint
 `590c4f4` retained. Independent comparison and final prose review accepted;
 39 acceptance cases, eight checker controls, control plus five mutants, and
-full legacy regression passed. Human-client validation is now reopened under
-Bill's ordinary-text chat requirement. Chapter 2 teaches the new client;
-Chapter 3 requires real PTY runs of tools and history-selected redaction.
+full legacy regression passed. Human-client review and evidence reconciliation
+are now accepted under Bill's ordinary-text chat requirement. The initial integration and all-three-API
+human PTY runs are retained at outer commit `a347ce31511c4b124e486bb41ef98c07bd17cec5`;
+45 independent interface cases and a passing control plus seven exact mutants
+pass. Evidence-only repair `339a2a6` passed four identity controls; production
+code and original paid receipts are unchanged. Chapter 3 demonstrates tools
+and history-selected redaction through that human interface. Coordinator
+checkpoint/export uses `edition-2-ch03-r1` and its validation manifest;
+Bill's editorial approval remains separate.
 
 ## Voice plan
 

@@ -1,0 +1,5 @@
+Ensemble — anthropic / claude-sonnet-5-5
+Type /help for commands.
+You> /redact 1 1 deliberate invalid target control
+ensemble: invalid event or conversation transition
+invalid event or conversation transition

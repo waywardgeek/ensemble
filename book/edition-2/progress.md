@@ -1,35 +1,38 @@
 # Second-edition progress
 
-Date: 2026-10-07. Bill resumed autonomous work and approved the main-source
-layout and commits after each chapter. Consolidation is complete:
-`solutions/edition-2/main/` is the authoritative working source in the outer
-repository; `ch01/`–`ch03/` are frozen tracked exports. Original histories,
-ignored files, and the unfinished Chapter 3 merge are preserved in the archive
-and portable bundles recorded in `solutions/edition-2/history/migration.json`.
-All exported bytes/modes and the moved repositories were verified. This is a
-migration checkpoint, not a new Chapter 3 validation. Author, reviewer and Chapter 3 coder have resumed. Migration commit `8831ce2`
-and independent `migration-review.md` preserve the audit. Main integration now
-passes all four modules and inherited grade100; actual human runs and review
-remain in progress. Snapshot exporter `551b096` passed three fixture controls
-and an exact 289-file export comparison.
-First-edition baseline: `ec41c6e`. Workflow checkpoint: `1d3b6c9`;
-independent tooling/evidence: `602ae87`; Chapter 0 and ending plan: `24867ca`.
+Date: 2026-10-07. Autonomous work is active. Source consolidation is complete
+and independently verified at `8831ce2`; original histories and unfinished
+migration state remain preserved in the archive and tracked bundles.
+`solutions/edition-2/main/` is the authoritative source. Frozen exports belong
+in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 
 ## Current chapter
 
-Chapter 2 human chat is accepted at historical commit
-`ad0d80e33a3a2857e8e0887117d9b099f1a4786d`: 42 independent checks, a passing
-control plus five detected mutations, and real PTY runs on all three APIs.
-Its exact accepted source is frozen in `solutions/edition-2/ch02/`.
+Chapter 3's human-client integration is accepted. Initial production/live
+commit: `a347ce31511c4b124e486bb41ef98c07bd17cec5`. Evidence-only verifier repair:
+`339a2a61e7107b921bdc7acbd704b2eb7da17931`; accepted ledger: `17b60d2`.
+Reviewed source plus independent receipts: `8494fdb0e5d6c096445bfac039458b83dd225332`.
+The exact 491-file source export is `solutions/edition-2/ch03/`; its manifest
+is `solutions/edition-2/manifests/ch03-r1.json`. Dedicated chapter checkpoint:
+`edition-2-ch03-r1`. Bill's editorial approval is separate.
 
-Chapter 3's staged integration of that client is now the tracked working tree
-in `solutions/edition-2/main/`. Its original merge index and MERGE_HEAD remain
-in the external archive. Finish and freeze the initial human-client attempt,
-run actual interactive all-provider demonstrations of the chapter features,
-and obtain independent review before declaring the new gate complete. No
-Chapter 4 solution exists yet. Its reviewed manuscript is ready for a fresh
-student once Chapter 3 passes. A direct shell or Delve run outside Ensemble
-does not fulfill a chapter's human-interface gate.
+All four modules passed format/vet/tests, inherited grade100, independent
+human45/45, a passing control plus seven exact-failure mutants, and four
+independently rerun verifier controls. Actual all-provider macOS PTY sessions
+covered all six tools, refusals/recovery, redaction and later context, Unicode
+bounds, silent nonzero exit, commands, slash escaping, quit and EOF. The
+OpenAI model omitted one requested overwrite and needed an observed follow-up;
+its mistaken description of a UTF-8 result is not treated as tool evidence.
+No production change or paid repeat followed review. GUI remains a stub;
+Linux runtime is not claimed. Earlier Chapter 3 machine/public-consumer and
+architectural evidence retains its original bindings and scope.
+
+Chapter 2's accepted human source is frozen at `ch02/`, matching historical
+`ad0d80e33a3a2857e8e0887117d9b099f1a4786d` (42 independent cases, five mutants,
+all-three-provider PTYs). Chapter 4's reviewed contract is ready for a fresh
+new-only student using accepted main. No Chapter 4 implementation exists yet.
+Next action: launch that student, record actual reads, and implement Chapter 4
+including real model-driven Delve through Ensemble's human CLI.
 
 Chapter 1 is validated against the current chapter contract, with independent
 quality review and real-model receipts. Final student checkpoint:
@@ -85,7 +88,7 @@ See `chapter-02-validation.md`; Bill's editorial approval remains separate.
   the affected checks without repeating unchanged paid demonstrations.
 
 Chapter 3's earlier scope passed at reviewed snapshot
-`7cbbd8e2e0101e40dee63fe18d05f48b791c55ff`; its new human client gate remains open.
+`7cbbd8e2e0101e40dee63fe18d05f48b791c55ff`; the later human gate is accepted above.
 Its fresh
 student, `/root/coder_ch03`, was launched with `fork_turns="none"` and only an
 explicit new-material handoff. The initial implementation `590c4f4` and
@@ -111,8 +114,7 @@ inputs. All three real CLI and public-consumer demonstrations succeeded.
 - Full legacy regression hit linker errors from a full disk. The failed log is
   preserved; clearing only the disposable Go build cache recovered space.
   The full retry passed with exit 0 (`internal/grade` 508.374s), and root vet
-  and changed-file formatting passed. The new human-mode requirement remains
-  independent of these passing gates.
+  and changed-file formatting passed. The later human-mode results remain separately bound above.
 
 Chapter 4's complete contract passed independent review; it has
 not been released to a student. Its asynchronous events must coexist with
@@ -148,16 +150,15 @@ old implementation into the new solution.
 
 ## Roles and next actions
 
-- Author: maintain Chapter 3 teaching from actual receipts; prepare later prose.
-  Chapter 5 actor/collection ownership passed coordinator architecture review.
-- Coder: `/root/coder_ch03_chat` is finishing actual all-provider human runs in
-  main, then freezes its initial attempt before independent implementation review.
-- Global reviewer: Chapter 3 human checker has 45 cases and seven checker controls;
-  Chapter 2 retains 42/42, and the no-tools build fails exactly the six added
-  Chapter 3 cases. Await initial student freeze, then run acceptance/comparison.
-- Coordinator: close Chapter 3 only after live/review gates, commit validated
-  source, generate exact export/manifest, dedicated chapter commit and immutable
-  tag. Launch a fresh new-only Chapter 4 coder from that accepted source.
+- Author: Chapter 4 contract ready; Chapter 5 actor/collection ownership accepted;
+  Chapter 6 remains research/outline only until its predecessor is ready.
+- Coder: launch a fresh Chapter 4 context (`fork_turns="none"`) with only new
+  teaching, full mandatory skill, architecture, and accepted preceding source.
+- Global reviewer: human Chapter 3 review accepted; prepare independent Chapter 4
+  lifecycle, owner-isolation, fault and real interactive-debugger checks.
+- Coordinator: preserve initial attempts, route teaching gaps before coding,
+  require actual all-provider human runs, compare/revise/review, then export and
+  checkpoint each validated chapter. No pushes or publication yet.
 
 ## Scope and enduring decisions
 

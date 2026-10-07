@@ -530,10 +530,110 @@ while its pairing survived. `/usage` reports the same accounting as protocol
 mode. Human chat calls the same Agent and tool loop; it needs no jobs, actor,
 or model streaming to be usable.
 
-All-three-API PTY demonstrations of this interface are pending after the
-usability correction. The following receipts establish the earlier machine
-interface and tool behavior. They are retained without relabeling them as
-human chat or as a session Bill personally ran.
+The October 7, 2026 human-terminal sessions are preserved in outer commit
+`a347ce31511c4b124e486bb41ef98c07bd17cec5`. The coder used actual macOS PTYs,
+read each answer, and sent the next request at the returned prompt. Messages
+selected chat by detecting the terminal; Chat Completions and generateContent
+used explicit `chat`. These are coder sessions. Independent review accepted
+the integrated client and the retained demonstration.
+
+Build `./cmd` from the Chapter 3 source, select a fresh `CH02_LOG`, and launch
+the executable with `chat` from a scratch workspace containing the five-line
+`notes.md` fixture in §3.7. Supply credentials through the environment and
+choose a discovered tool-capable model. Set `LLM_RESOLVED_MODEL` when bound
+replay material requires a known identity; automatic tool continuations obey
+that rule too. The first typed request in every session was:
+
+```text
+Please exercise your six tools in this scratch workspace. Use list_directory, read_file on notes.md lines 3 through 4, and search_files for beta|delta in notes.md with context_lines 1. Use write_file to create created.txt with exactly first anchor\nsecond line\n, then edit_file to replace first anchor with first edited. Use run_command with cat created.txt; printf 'STDOUT-MARKER\n'; printf 'STDERR-MARKER\n' >&2; exit 7. Report concise observed results and invent a two-word code name for us to remember. Use the actual tools, not a simulated demonstration.
+```
+
+All three paths used the six tools. The ranged read returned lines 3–4,
+search merged the overlapping context around lines 2 and 4, and the file
+changed from `first anchor` to `first edited`. The shell result kept stdout,
+stderr and exit status 7 separate. The tool invocation succeeded even though
+the command chose a nonzero exit status. The models invented `Copper Lantern`,
+`Scratch Check` and `SILVER FALCON`, respectively.
+
+At the next prompt, `/history` exposed a real result at sequence 5 with its
+call ID. The coder entered `/redact 5 5 demonstration`, then requested the
+overwrite-refusal exercise. Messages and generateContent refused the first
+unflagged write, then replaced the file with explicit permission and appended
+`tail`. Chat Completions omitted the requested `overwrite:true` call. Its
+answer offered a confused explanation about parallel execution; the actual
+call records showed refusal, append and read, with no replacement request.
+The file still contained `first edited`, `second line` and `tail`.
+
+The coder checked the file and sent this correction:
+
+```text
+The log shows you never requested overwrite:true. Please now use write_file with overwrite:true and content replacement\n, then append tail\n, then read_file. Execute those actions sequentially and report the actual bytes. Also recall the exact code name you invented initially.
+```
+
+The model then requested the missing operation. The tool records and disk
+agreed on `replacement\ntail\n`, and the answer recalled `Scratch Check`.
+No code repair was needed for this model omission. The distinction matters:
+the agent executed the calls it received; the model's account did not establish
+that it had requested the right calls. The
+[terminal transcript](../../solutions/edition-2/ch03/evidence/ch03/human-chat/openai-main/terminal.txt)
+retains the failed plan and the corrective turn.
+
+Further ordinary-text requests tested ambiguous and missing edit anchors,
+an absent file and an invalid regular expression, then repaired one unique
+anchor. Each failure returned to the model, and all final `anchors.txt` files
+contained `first repaired\nsecond anchor\n`. Empty-file reads succeeded with
+an omitted range or `end_line:0`, while explicit `start_line:1` returned an
+ordinary tool error. Reading `éX` at byte caps 1, 2 and 3 retained empty text,
+`é` and `éX`; only the first two reported truncation. A two-byte command cap
+retained the complete `é`, and a silent `exit 7` reported the actual status.
+
+Chat Completions described that complete two-byte character as an incomplete
+sequence. The saved tool result contradicts the description. Inspecting the
+result bytes is also how the reader distinguishes an empty successful read
+from a model's paraphrase of its presentation.
+
+Every session ended with the same literal-slash test. This excerpt is from
+the Messages terminal:
+
+```text
+You> //help is literal text for this test. Do not use any tools. Reply with SLASH-OK on line one and our exact original two-word code name on line two.
+Assistant:
+SLASH-OK
+Copper Lantern
+```
+
+The other two answers retained their own original names on the second line.
+`/usage` and `/quit` displayed these cumulative counters, including every
+intermediate tool round and the corrective turn:
+
+| Surface and selected model | Human turns | Tool calls | Input | Cache write | Cache read | Output |
+|---|---:|---:|---:|---:|---:|---:|
+| Messages, `claude-sonnet-5-5` | 5 | 27 | 78489 | 0 | 0 | 3313 |
+| Chat Completions, `gpt-4.1-mini-2025-04-14` | 6 | 29 | 10777 | 0 | 33664 | 1381 |
+| generateContent, `models/gemini-3.8-flash` | 5 | 27 | 120234 | 0 | 0 | 4452 |
+
+The first two returned their selected model names; generateContent returned
+`gemini-3.8-flash`. These differing call plans and cache observations are dated
+run receipts, not a controlled efficiency comparison. All main sessions exited
+0. Separate actual-terminal EOF sessions exited with four zero counters.
+Local commands, blank input and malformed command syntax returned readable
+feedback without ending the conversation. Invalid UTF-8, oversized input and
+provider-failure behavior remain separately labeled local controls.
+
+The [human feature ledger](../../solutions/edition-2/ch03/evidence/ch03/human-chat/FEATURES.txt)
+links the transcripts, source/binary binding, actual tool results and disk
+checks. Offline reconstruction of each later request preserved sequence 5's
+call ID while replacing its result with `[redacted]`. The one-request
+`LILAC-614` directive appeared in exactly one reconstructed request. Repeated
+rendering was byte-identical and left logs and files unchanged. These are
+reconstructions of saved log prefixes, not intercepted HTTP request bodies.
+Runtime terminal evidence is macOS; no Linux live run is claimed.
+
+### Earlier machine-interface evidence
+
+The earlier receipts remain useful for the protocol and public library.
+They are preserved at their original source versions and are not relabeled
+as the human sessions above.
 
 The October 7, 2026 initial sessions ran all six tools through the JSON-lines CLI on
 Messages, Chat Completions, and generateContent. The runner planted only
@@ -643,6 +743,15 @@ controls and a passing control plus five deliberate defects also pass with
 their expected outcomes. The earlier successful ASCII demonstrations do
 not prove the multibyte case. Comparative revisions are accepted; the full
 legacy retry also passed. Independent proofreading is accepted, and the
-revised source is checkpointed at `7cbbd8e2`. The newly required human chat
-revision and actual terminal runs reopen the client-validation gate;
-these earlier checks do not satisfy it.
+revised source is checkpointed at `7cbbd8e2`.
+
+The later human integration at `a347ce3` passed all 45 independent interface
+cases. A passing control and seven deliberate defects produced their expected
+results. Review required one evidence-only repair at `339a2a6`: the verifier
+now checks its immutable source and executable before producing reconstructed
+requests. Four identity controls passed, including refusals that left evidence
+unchanged. No production code changed and no paid runs were repeated for that
+repair. The independent code and manuscript reviews accepted this revision.
+The dedicated checkpoint identifier is `edition-2-ch03-r1`; its validation
+manifest binds reviewed source, frozen export and evidence. Editorial approval
+remains separate from these recorded checks.

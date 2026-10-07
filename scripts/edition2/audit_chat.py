@@ -34,9 +34,30 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def mutations(chapter):
+    result = []
+    for name, file, old, new, failures in MUTATIONS:
+        failures = list(failures)
+        if chapter == 3 and name in ("answer-json-escaped", "prompt-not-flushed"):
+            failures.append("tool-turn-redaction")
+        if chapter == 3 and name == "prompt-not-flushed":
+            failures.append("tool-continuation-failure")
+        result.append((name, file, old, new, failures))
+    if chapter == 3:
+        result.extend([
+            ("history-call-id-hidden", "cmd/chat.go", "if event.Tool != nil {",
+             "if false && event.Tool != nil {", ["tool-turn-redaction"]),
+            ("redaction-keeps-original", "internal/llm/events.go",
+             'p.Parts[k] = common.Part{Type: "redacted", Stub: "[redacted]", Ref: old.Ref}',
+             "p.Parts[k] = old", ["tool-turn-redaction"]),
+        ])
+    return result
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("solution", type=pathlib.Path)
+    parser.add_argument("--chapter", type=int, choices=(2, 3), default=2)
     args = parser.parse_args()
     source = args.solution.resolve(strict=True)
     checker = pathlib.Path(__file__).with_name("accept_chat.py").resolve()
@@ -54,7 +75,7 @@ def main():
             shutil.copyfile(p, target)
         if any(digest(source / p) != h or digest(baseline / p) != h for p, h in hashes.items()):
             raise RuntimeError("source changed while freezing audit")
-        for name, file, old, new, failures in [("control", None, None, None, []), *MUTATIONS]:
+        for name, file, old, new, failures in [("control", None, None, None, []), *mutations(args.chapter)]:
             work = root / "work"
             shutil.copytree(baseline, work)
             try:
@@ -75,7 +96,8 @@ def main():
                 if build.returncode:
                     row.update(passed=False, build_stderr=build.stderr)
                 else:
-                    run = subprocess.run([sys.executable, "-B", str(checker), str(binary)],
+                    run = subprocess.run([sys.executable, "-B", str(checker), str(binary),
+                                          "--chapter", str(args.chapter)],
                                          capture_output=True, text=True, timeout=120)
                     receipt = json.loads(run.stdout)
                     actual = sorted(c["id"] for c in receipt["checks"] if not c["passed"])
@@ -87,7 +109,8 @@ def main():
                 shutil.rmtree(work)
     unchanged = all(digest(source / p) == h for p, h in hashes.items())
     passed = unchanged and all(r["passed"] for r in results)
-    print(json.dumps({"scope": __doc__, "source_files": hashes, "source_unchanged": unchanged,
+    print(json.dumps({"scope": __doc__, "chapter": args.chapter,
+                      "source_files": hashes, "source_unchanged": unchanged,
                       "checker_sha256": digest(checker), "audit_sha256": digest(pathlib.Path(__file__)),
                       "passed": passed, "results": results}, indent=2))
     return 0 if passed else 1

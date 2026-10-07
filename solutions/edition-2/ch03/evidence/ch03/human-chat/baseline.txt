@@ -1,0 +1,1 @@
+Inherited Ch2 human merge into Ch3: go test ./... -count=1 failed TestChatEmptyAndToolOnly (invalid event or conversation transition), because Ch2 fixture repeats one call ID during new automatic continuation. Other main packages passed. Coordinator reports main go vet passed and all nested modules passed at migration 8831ce2.

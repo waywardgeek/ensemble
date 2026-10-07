@@ -254,8 +254,17 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 		}
 	case "redacted":
 		r := e.Redact
-		if r == nil || r.From == 0 || r.From > r.To || r.To > c.LastSeq || r.Level != "redact_result" || r.Reason == "" {
-			return bad("invalid event or conversation transition")
+		if r == nil {
+			return bad("redaction payload is required")
+		}
+		if r.From == 0 || r.From > r.To || r.To > c.LastSeq {
+			return bad("redaction span must name positive ordered sequences already in this log")
+		}
+		if r.Level != "redact_result" {
+			return bad("redaction level must be redact_result")
+		}
+		if strings.TrimSpace(r.Reason) == "" {
+			return bad("redaction reason must be nonempty")
 		}
 		found := false
 		for _, entry := range c.Entries {
@@ -268,7 +277,7 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 			}
 		}
 		if !found {
-			return bad("invalid event or conversation transition")
+			return bad("redaction span contains no tool results; inspect history for tool_returned events")
 		}
 	case "error_occurred":
 		if e.Error == nil || e.Error.Code == "" || e.Error.Message == "" {
