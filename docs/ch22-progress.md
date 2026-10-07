@@ -330,40 +330,65 @@ compile gate, landed-verification) is copied from `scripts/ch21-mutants.sh`
 and WORKS. Six mutants; `agent-builds` deliberately has none (a build failure
 is not a deletion of a taught behavior) — rationale is in the script header.
 
-### Mutant status, measured
+### Mutant status, measured — ALL SIX ARE NOW VALID
+
+Last full run: **5 PASS, 1 FAIL**, and the single FAIL is the panic below,
+not a weak check. All four broken mutants are fixed and committed.
 
 | # | target check | status |
 |---|---|---|
-| 1 | back-pointer-chain | **PASSES** — kills exactly its check |
-| 2 | reaches-through-the-chain | does not compile — FIXABLE, see below |
-| 3 | ch21-parity | SURVIVED — wrong mutant, see below |
-| 4 | single-composition-root | does not compile — FIXABLE, see below |
-| 5 | agent-status-tool | kills its check; the extra kill was FLAKE, not coupling |
-| 6 | per-model-cost | does not compile — FIXABLE, see below |
+| 1 | back-pointer-chain | PASSES — kills exactly its check |
+| 2 | reaches-through-the-chain | PASSES — fixed (import placement) |
+| 3 | ch21-parity | PASSES — fixed (retargeted) |
+| 4 | single-composition-root | PASSES — fixed (`spec` not in scope) |
+| 5 | agent-status-tool | killed its check **plus** `per-model-cost` — THE PANIC, proven below |
+| 6 | per-model-cost | PASSES — fixed (unused range var) |
 
-Fixes, all diagnosed, none yet applied:
+What each fix turned out to be:
 
 - **M2**: `statustools.go` already has an `import (...)` block, so inserting a
-  new import after `package tools` puts a declaration before it →
-  "imports must appear before other declarations". Insert the import INSIDE
-  the existing block and append `var _ = mutantllm.Engine{}` at END of file.
-  `llm.Engine` IS a struct, and there is no import cycle.
-- **M4**: anchor `host := a` is right, but `spec` is not in scope there. The
-  real call is `agent.NewAgent(cfg, agent.AgentSpec{DataDir: ".", SkillDir:
-  skillDir, Skills: []string{primaryName}, LogPath: logPath, SavePath:
-  savePath})` at `agent/cmd/main.go:287`. Use
-  `_, _ = agent.NewAgent(cfg, agent.AgentSpec{DataDir: "."})` — a composite
-  literal with a subset of fields compiles.
-- **M6**: substituting `LookupModel("claude-opus-4-6")` leaves the range
-  variable `model` unused → compile error. Append `_ = model` on the next line.
-  The mutation itself is the right one: it is the historical flat-rate bug
-  exactly, and changes no number in the report, only which price sheet is
-  consulted.
-- **M3**: ch21-parity does NOT read the shipped `agent/skills/web-search/SKILL.md`
-  (ch21's grader supplies its own skill file — that is documented and
-  deliberate), so renaming `firecrawl_search` there changes nothing. Pick a
-  mutant in ch21's CODE path instead: break the Streamable HTTP transport in
-  `agent/internal/mcp/http.go` (e.g. the `case "url"` dispatch ch21 added).
+  new import after `package tools` pushed the real block below a declaration →
+  "imports must appear before other declarations". Fixed by inserting the
+  import INSIDE the existing block. Verified: `llm.Engine` is a struct and
+  there is **no import cycle** — the mutant builds clean.
+- **M3**: the old mutant edited `agent/skills/web-search/SKILL.md`, which
+  ch21's grader never reads (it supplies its own skill file for determinism).
+  The mutation landed on a file no check looks at, so it survived. Retargeted
+  to `case "url":` in `agent/cmd/main.go` — the comment on that line calls it
+  "the whole host-side cost" of ch21. Retiring the label sends URL servers to
+  the default unsupported-transport branch: the transport is still fully
+  implemented and simply never selected, which is ch21's own lesson restored
+  as a fault.
+- **M4**: `spec` never existed — the real call passes an inline
+  `agent.AgentSpec{...}` literal at `agent/cmd/main.go:287`. Fixed with a
+  never-called `func mutantSecondRoot()`. **Unreachable is deliberate**: the
+  check is static and counts root call sites per main package regardless of
+  reachability, while a *live* second `NewAgent` would also build a second
+  agent at run time and redden the behavioral checks. A mutant that kills more
+  than it names is a defect by this script's own doctrine.
+- **M6**: pinning the lookup to a literal leaves the loop's `model` variable
+  unused, which Go refuses to compile. Fixed by also rewriting the range to
+  `for _, u := range byModel` — two textual edits, one deleted behavior.
+
+### M5 is NOT check coupling — it is the panic, proven
+
+I twice reasoned my way to "the `agent-status-tool` and `per-model-cost`
+checks are coupled." They are not. Evidence, from the run above:
+
+- m5's JSON reports both checks failing with **"agent produced no assistant
+  reply"** — the crash signature, not a parse or assertion failure.
+- `m5.err` is the **only** one of the six stderr captures containing
+  `panic: send on closed channel` (exactly 1 occurrence; all others 0), and
+  it is 643 bytes larger than its siblings — that delta is the stack trace.
+
+The script already redirects each grader's stderr to `$OUT/mN.err`. **Read
+those files before theorising about a mutant result.** The evidence was
+sitting on disk through three wrong diagnoses.
+
+Consequence: the audit cannot be trusted to a clean 6/6 until the panic is
+fixed. Every driven-grader invocation carries ~17% chance of a spurious
+double-failure, and a re-run that happens to come up clean is not a fix.
+
 
 ## THE REAL BLOCKER — the driven session is ~17% FLAKY
 

@@ -148,26 +148,45 @@ run_mutant 1 "dispatch struct carries a closure again" \
 #
 # The blank-identifier reference is required - an unused import does not
 # compile, and a mutant that does not compile proves nothing.
+#
+# The import must go INSIDE the file's existing import block. An earlier
+# version inserted it directly after the package clause, which pushed the
+# real import block below a declaration and failed to build with "imports
+# must appear before other declarations" - a script bug that reads exactly
+# like a surviving mutant.
 # --------------------------------------------------------------------------
 run_mutant 2 "a tool package imports the engine directly" \
 	"reaches-through-the-chain" \
 	"agent/internal/tools/statustools.go" \
-	"perl -0pi -e 's{^package tools$}{package tools\n\nimport mutantllm \"github.com/waywardgeek/ensemble/agent/internal/llm\"\n\nvar _ = mutantllm.Engine{}}m' agent/internal/tools/statustools.go" \
+	"perl -0pi -e 's{\"github.com/waywardgeek/ensemble/agent/internal/common\"\n\)}{\"github.com/waywardgeek/ensemble/agent/internal/common\"\n\tmutantllm \"github.com/waywardgeek/ensemble/agent/internal/llm\"\n)\n\nvar _ = mutantllm.Engine{}}' agent/internal/tools/statustools.go" \
 	"grep -q 'mutantllm' agent/internal/tools/statustools.go"
 
 # --------------------------------------------------------------------------
 # 3. ch21-parity
 #
 # Every chapter is strictly additive, so ch22 must not be gradeable on a tree
-# that has lost ch21's web access. Removing the search tool from the shipped
-# skill file is the same fault ch21 itself shipped and caught: the code is all
-# still there, and the feature is dead because nothing declares it.
+# that has lost ch21's web access.
+#
+# The target is the one 'case "url":' in the host's transport switch - the
+# whole host-side cost of ch21, per the comment sitting on it. Retiring the
+# label sends URL servers to the default "unsupported transport" branch, so
+# the Streamable HTTP transport is still fully implemented and simply never
+# selected. That is ch21's own lesson restored as a fault: the code is all
+# there and the feature is dead because nothing reaches it.
+#
+# An earlier version mutated agent/skills/web-search/SKILL.md instead. That
+# mutant SURVIVED, and the reason is worth keeping: ch21's grader supplies
+# its own skill file for determinism, so it cannot see the shipped one. The
+# mutation landed on a file the checks never read.
+#
+# ch22's ch21-parity is a single boolean over every ch21 check, so breaking
+# one ch21 behavior turns exactly one ch22 check red, not several.
 # --------------------------------------------------------------------------
-run_mutant 3 "ch21's web-search tool is undeclared" \
+run_mutant 3 "ch21's URL transport is never selected" \
 	"ch21-parity" \
-	"agent/skills/web-search/SKILL.md" \
-	"perl -0pi -e 's/firecrawl_search/firecrawl_DISABLED/g' agent/skills/web-search/SKILL.md" \
-	"grep -q 'firecrawl_DISABLED' agent/skills/web-search/SKILL.md"
+	"agent/cmd/main.go" \
+	"perl -0pi -e 's/case \"url\":/case \"url_RETIRED\":/' agent/cmd/main.go" \
+	"grep -q 'case \"url_RETIRED\":' agent/cmd/main.go"
 
 # --------------------------------------------------------------------------
 # 4. single-composition-root
@@ -179,12 +198,22 @@ run_mutant 3 "ch21's web-search tool is undeclared" \
 #
 # This mutant restores the shape, not the original code: a second root call in
 # the same binary.
+#
+# The call sits in a function nothing ever calls. The check is static - it
+# counts root call sites per main package, reachable or not - so a dead call
+# site violates the property exactly. Keeping it unreachable is deliberate:
+# a live second NewAgent would also build a second agent at run time and
+# redden the behavioral checks, and a mutant that kills more checks than it
+# names is as much a defect as one that kills none.
+#
+# An earlier version referenced a 'spec' variable, which does not exist: the
+# real call site passes an agent.AgentSpec{...} literal inline.
 # --------------------------------------------------------------------------
 run_mutant 4 "a second composition root in the same binary" \
 	"single-composition-root" \
 	"agent/cmd/main.go" \
-	"perl -0pi -e 's/^\thost := a$/\thost := a\n\t_, _ = agent.NewAgent(cfg, spec)/m' agent/cmd/main.go" \
-	"grep -q '_, _ = agent.NewAgent(cfg, spec)' agent/cmd/main.go"
+	"printf '\nfunc mutantSecondRoot() { _, _ = agent.NewAgent(agent.Config{}, agent.AgentSpec{}) }\n' >> agent/cmd/main.go" \
+	"grep -q 'func mutantSecondRoot()' agent/cmd/main.go"
 
 # --------------------------------------------------------------------------
 # 5. agent-status-tool
@@ -209,11 +238,14 @@ run_mutant 5 "agent_status stops reporting the cache hit rate" \
 # reported total stays a plausible dollar figure. That is why the check
 # recomputes the expected cost from an independent copy of the price table
 # instead of asserting the number is non-zero or well-formed.
+#
+# Two textual edits, one deleted behavior: pinning the lookup to a literal
+# leaves the loop's model variable unused, and Go refuses to compile that.
 # --------------------------------------------------------------------------
 run_mutant 6 "every model is billed at one model's rate" \
 	"per-model-cost" \
 	"agent/internal/common/usage.go" \
-	"perl -0pi -e 's/f, ok := LookupModel\(model\)/f, ok := LookupModel(\"claude-opus-4-6\")/' agent/internal/common/usage.go" \
+	"perl -0pi -e 's/for model, u := range byModel/for _, u := range byModel/; s/LookupModel\(model\)/LookupModel(\"claude-opus-4-6\")/' agent/internal/common/usage.go" \
 	"grep -q 'LookupModel(\"claude-opus-4-6\")' agent/internal/common/usage.go"
 
 echo
