@@ -72,3 +72,15 @@ the independent reviewer checked its fields, placement and signed-part rule
 against the renderer, frozen request and GenerateContent signature guide.
 The reviewer also requested the now-added distinction between a provider turn
 and Ensemble's actor turn. The revised 3.8 live demonstrations remain pending.
+
+## A full terminal input buffer can block the actor
+
+Independent comparison found that `send_input` performed its terminal write
+on the actor's dispatch path. A retained local probe filled the input buffer
+of a nonreading process and delayed hint acknowledgement until the process
+ended. This violates the chapter's responsiveness rule even though HTTP and
+report waits already run elsewhere. §5.4 now explicitly includes cancelable
+process-input I/O, partial effects, writer settlement and process lifetime;
+§5.9 names the corresponding deterministic controls. The coder's correction
+and independent re-review are pending. No Gemini renderer defect is inferred
+from this separate local finding.

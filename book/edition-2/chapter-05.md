@@ -319,6 +319,22 @@ back. Start the next call only after the previous call's report has been
 accepted. Running jobs can overlap because a report can describe continuing
 work; this chapter does not introduce parallel dispatch of a model batch.
 
+A process that stops reading can fill its terminal's input buffer. Even
+`send_input` then waits: moving only HTTP and report waits off the actor leaves
+the mailbox stuck behind a write. Run potentially blocking process-input I/O
+as an owned, cancelable operation too. The actor must continue acknowledging
+hints, interruption and close while that write is parked. Preserve serial tool
+effects and Chapter 4's output position captured before the input write.
+
+Cancellation stops further input and settles the writer before its call is
+reported finished. Bytes already accepted by the terminal cannot be rolled
+back; report partial or interrupted work truthfully instead of claiming the
+entire input was delivered. An interrupted turn leaves the job alive under
+§5.5, while Agent close still kills and drains managed processes. An input-size
+cap alone cannot establish responsiveness because even a short write can meet
+an already full buffer. Keep job locks free during this I/O and join owned
+workers during cleanup.
+
 Chapter 4's worker owns the job's terminal fact. It submits that fact for
 durable recording even while another HTTP operation is in flight. Preserve
 its output-close/drain and killed-state rules. The actor assigns sequence
@@ -561,7 +577,7 @@ the actual properties rather than infer them from those labels.
 | One owner | Concurrent blocking/asynchronous clients share one actor; repeated start never adds a drainer; every new spoke and executable follows the star and parent chain |
 | Replies | Overlapping distinct prompts get their own answers; two waiters can read one completion; no observer or an overflowing observer does not lose a reply |
 | Admission | FIFO queued prompts, canceled queued request makes no HTTP/log turn, explicit hint differs from prompt, stopped Agent refuses new work |
-| Responsiveness | Barrier-controlled blocked HTTP and report waits both accept a hint/control before release; hint receipt and later wire inclusion are checked separately |
+| Responsiveness | Barrier-controlled blocked HTTP, report waits and a full process-input buffer accept hints/controls before release; interrupt and close settle the owned input writer; hint receipt and later wire inclusion are checked separately |
 | Interruption | Interrupt active request, retain paired accepted calls, reject stale response, preserve late job event once, and successfully complete a later prompt |
 | Close | Park active and queued callers, close, require each to settle; managed processes/readers stop, repeated close works, local nonkillable work is reported truthfully |
 | Replay | Capture actual sanitized request bytes; reconstruct from its exact prefix/configuration and compare bytes, including hints and ephemera; deliberately remove a hint to make the comparison fail |
