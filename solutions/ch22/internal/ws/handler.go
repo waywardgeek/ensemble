@@ -243,12 +243,13 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 // removeClient detaches a departing client: it leaves the client set, drops
 // any MCP agent registrations it owned, and stops its writePump.
 //
-// Close done, NEVER c.send. Thirteen call sites send on c.send, and the only
-// one that may close a channel is the sole sender - which this is not.
-// Closing it here raced every one of them: a sender snapshots the client
-// under the lock, releases it, and sends after this function has already
-// closed the channel, crashing the process with "send on closed channel" and
-// taking the agent down mid-turn.
+// Close done, NEVER c.send. Thirteen call sites send on a client's send
+// channel - eleven spelled c.send, plus agentClient.send and cl.send - and
+// the only one that may close a channel is the sole sender, which this is
+// not. Closing it here raced every one of them: a sender snapshots the
+// client under the lock, releases it, and sends after this function has
+// already closed the channel, crashing the process with "send on closed
+// channel" and taking the agent down mid-turn.
 //
 // The select/default guarding most of those sends looks like protection and
 // is not: default saves you from a FULL channel, never from a closed one.

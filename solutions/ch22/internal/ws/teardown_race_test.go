@@ -9,8 +9,9 @@ import (
 
 // A departing client must never crash the process.
 //
-// Thirteen call sites send on Client.send, and the teardown at the end of
-// ServeWS used to close that channel - while not being one of the senders.
+// Thirteen call sites send on a client's send channel - eleven spelled
+// c.send, plus agentClient.send and cl.send - and the teardown at the end of
+// ServeWS used to close that channel while not being one of the senders.
 // Both sides mutate shared state under h.mu and then act after releasing it:
 // Observe snapshots the live clients and unlocks before sending, teardown
 // deletes the client and unlocks before closing. So a client could be
