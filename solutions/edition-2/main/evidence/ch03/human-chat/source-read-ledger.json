@@ -92,6 +92,17 @@
       "path": "solutions/edition-2/main/CHECKPOINT.md",
       "scope": "entire existing second-edition file; README subsequently refreshed for Chapter3",
       "sha256": "f0305516e45591e4a62343abe3862175c3db823e0d3a673d58f1aad002a32bfc"
+    },
+    {
+      "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+      "scope": "entire skill reread before verifier revision; includes newly taught immutable source/executable binding rule",
+      "at": "2026-10-07T20:12:31.475376+00:00",
+      "sha256": "b0e2735225c29a43787dabd7647f6e5a837eb988a89311463764e283f81df4f7"
+    },
+    {
+      "path": "solutions/edition-2/main/evidence/ch03/human-chat/verify-receipts.py",
+      "scope": "entire initial verifier read before targeted revision; original bytes are preserved in a347ce3",
+      "at": "2026-10-07T20:12:31.475730+00:00"
     }
   ],
   "official_documentation": [

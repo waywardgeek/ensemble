@@ -55,3 +55,24 @@ Runtime terminal evidence is macOS; inherited Linux implementation is not live-t
 Source boundary and exact reads: source-read-ledger.json. Fresh discovery metadata:
 discovery.json. Verification program: verify-receipts.py. No grader implementation,
 first-edition solution, agent/ implementation or reviewer research was read.
+
+Root comparison revision: the initial verifier trusted a temporary executable
+pathname and did not enforce its saved bindings. The initial attempt remains at
+a347ce31511c4b124e486bb41ef98c07bd17cec5. The corrected verifier requires explicit
+binary, immutable initial commit:path prefix and Git repository arguments. Before
+execution or output, it checks the binary, historical Go bytes from that commit,
+initial binding, all six launch bindings, and immutable terminal/log receipts.
+It creates offline reconstructions only in a new directory outside the raw evidence.
+The positive control reproduces every existing derived byte in an isolated copy.
+Wrong executable, wrong source identity, and changed launch metadata each exit1,
+create no output, do not execute the wrong binary, and leave evidence byte-identical.
+See reviewed-verifier-controls.json and verify-controls.py. No Go code changed and
+no paid calls were repeated; all original terminal/log receipts remain untouched.
+Independent confirmation of this evidence-only revision is pending.
+
+Repeat with an explicit copy of the recorded binary and a fresh output path:
+python3 verify-receipts.py --binary /path/to/recorded-binary \
+  --source a347ce31511c4b124e486bb41ef98c07bd17cec5:solutions/edition-2/main \
+  --repository /path/to/ensemble --output-dir /path/to/new-offline-output
+The path to the binary can change; its recorded hash must match. Historical source
+is resolved from the outer Git commit, so today's working tree is not its authority.
