@@ -126,6 +126,11 @@ WebSocket implementation remains in the separate optional GUI module.
    Preserve earlier behavior and continuously check applicable architecture.
 6. If the student needs an unstated fact, repair the chapter and re-run the
    exercise. Do not cure missing teaching with private implementation advice.
+   The coder records difficulties as they arise in
+   `solutions/edition-2/main/evidence/chNN/student-review.md`, with the affected
+   passage, attempt, consequence and clarification needed, and alerts author
+   and coordinator. Keep blocked attempts in the record; continue independent
+   work while affected implementation waits.
 7. For every "Taking it for a spin" section, coder actually runs the user-facing
    interface with a real model backend, initially through the CLI. Maintain a
    feature-to-user-action checklist covering every chapter feature and record
@@ -152,10 +157,18 @@ WebSocket implementation remains in the separate optional GUI module.
    again, and the reviewer checks resolution. Keep the initial attempt blind;
    comparison is not permission to copy old implementation or restore flawed
    architecture. Follow §5 of `book/chapter-writing-procedure.md`.
+   Before that comparison, retain the coder's own review of the teaching,
+   including what helped, what was missing, failures/help received, live-user
+   difficulties and suggested improvements. Append a completion update after
+   revisions. The author records material findings and dispositions in
+   `book/edition-2/chapter-NN-student-feedback.md`; the coder checks resolution.
+   This report is required even when no defect is found and is distinct from
+   the independent code review. Label retrospective reviews honestly.
 9. Coordinator saves chapter status and next action. Only a chapter with a
    successful student build, grading evidence, audit, required live feature
    demonstrations, first-edition comparison and improvements, and resolved
-   code/teaching review is validated.
+   code/teaching review is validated. Require the retained student teaching
+   review and author's response to each material finding before closing it.
    Bill's editorial approval is a separate recorded status.
 
 ## Durable checkpoint

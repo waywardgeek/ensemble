@@ -166,6 +166,22 @@ Student coders use the chapter, this skill, and the preceding second-edition
 baseline. They do not consult later solutions or grader implementation to
 guess missing requirements. Surface missing teaching instead.
 
+Give the author a durable review of the teaching in
+`solutions/edition-2/main/evidence/chNN/student-review.md`. Record difficulty
+when it occurs, with the passage, interpretation attempted, observed problem
+and clarification needed; notify author and coordinator without waiting for
+success. Stop affected code for unresolved architectural/contract ambiguity
+and continue independent work. Preserve failed and blocked attempts.
+
+Before comparative feedback, record the initial student experience: source
+versions, useful explanations, missing/conflicting instructions, failed
+approaches, help received, live-interface difficulties, and concrete teaching
+suggestions. Distinguish chapter gaps from implementation, grader or provider
+faults. Complete the review even when nothing needs changing; do not invent
+complaints. Append the effect of revisions, and check the author's recorded
+responses before chapter acceptance. Label any retrospective report as such.
+This is separate from a passing-score summary and the independent code review.
+
 After the initial implementation and runs, preserve the student checkpoint
 and take part in the mandatory independent comparison with the first-edition
 standard. The code reviewer reads that standard and returns concrete findings;

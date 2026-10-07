@@ -81,10 +81,13 @@ Both **Author and Reviewer must read all of `book/voice.md` and this procedure**
 before working, and reload after compaction or a rule change. Use the current
 voice file where older procedural wording disagrees with it.
 
-Agent slots may require scheduling roles in phases. In this session the
-global review thread also serves the code-review and proofreading phases after
-saving its whole-book findings. Keep role and review evidence explicit; do
-not describe that as a separately spawned fourth worker.
+Agent slots may require scheduling roles in phases. One reviewer can cover
+global review, code review and proofreading after saving its whole-book
+findings. If capacity requires reassigning a role, carry that durable record
+forward and disclose the replacement's prior source exposure. The code
+reviewer must remain independent of the current chapter's implementation.
+Record actual assignments in the progress log; do not describe several roles
+on one thread as separately spawned workers.
 
 Every coding agent, including the grader engineer, must read the entire
 `book/edition-2/skills/ensemble-coding/SKILL.md` before each coding task and
@@ -212,6 +215,14 @@ The student implements from scratch in Chapter 1 and from the preceding new
 baseline thereafter. Before editing, load the full coding skill and identify
 any contract ambiguity. Report gaps to the author rather than silently filling
 missing teaching with knowledge from another solution.
+
+When the student has difficulty, record it immediately in
+`solutions/edition-2/main/evidence/chNN/student-review.md` and notify the author
+and coordinator. Name the chapter passage, attempted interpretation, observed
+failure or conflict, and the clarification needed. Do not wait for a passing
+build or abandon the record because the chapter cannot yet be completed.
+Stop affected implementation when ownership or requirements are unresolved;
+continue independent work. Preserve the original question and dated resolution.
 
 The grader engineer builds checks from the contract. Test behavior and
 structural properties, not identifier vocabulary or code lineage. Include
@@ -348,6 +359,33 @@ The coder returns a post-build review: actual implementation, discovered
 contract gaps, grader changes, checks run, exact failures, and live receipts.
 The author reconciles outline and chapter with that evidence.
 
+Require a distinct **student review of the teaching**, even when the build
+passes without questions. The coder owns
+`solutions/edition-2/main/evidence/chNN/student-review.md`; its purpose is to
+tell the author what it was like to execute the chapter. Record the chapter,
+skill and predecessor versions actually used, what explained the task well,
+missing or conflicting instructions, difficult steps and failed approaches,
+help received, and concrete suggestions for better explanations or examples.
+Include what actual human-interface use revealed. Distinguish a teaching gap,
+a bug in the student's implementation, a grader defect and a provider behavior;
+do not turn every difficulty into a demand to relax the contract. No finding
+is required merely to fill a template.
+
+Preserve the initial student review before first-edition comparative feedback;
+append the effects of clarification and revision rather than rewriting that
+initial account. Update it at completion, or leave an interim review when
+blocked. This is separate from the independent reviewer's assessment of code
+quality and the final test/run summary.
+
+The author reads that report and records each material finding's disposition
+in `book/edition-2/chapter-NN-student-feedback.md`: chapter change and location,
+clarification of an intentional choice, or a reasoned deferral/decline. The
+coder checks whether the response resolves the original difficulty. The
+coordinator verifies that this exchange exists; unresolved material teaching
+findings prevent chapter validation. If a review is collected retrospectively,
+label it with its actual date and exposure rather than presenting it as an
+initial cold-student report.
+
 Write "Taking it for a spin" using the actual run. An abridged transcript must
 preserve what occurred. Explain how the reader reproduces it. Where a GUI is
 part of the chapter's demonstrated feature, capture the actual interface and
@@ -377,6 +415,8 @@ checks and deletion audits, retained legacy coverage, actual live feature
 demonstrations, a recorded comparison with the first-edition standard,
 completed code/teaching revisions, and resolved reviewer findings. Record
 what improved rather than inferring quality from a passing score.
+A retained student teaching review and recorded author responses to its
+material findings are required too; a success-only handoff is incomplete.
 Bill's editorial approval is
 recorded separately.
 

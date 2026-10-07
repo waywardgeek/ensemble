@@ -189,6 +189,9 @@ for this student. Do not edit agent/ or first-edition solutions.
 
 Report missing requirements to the coordinator before affected code.
 Continue work that does not depend on the answer. Preserve unrelated work.
+Record difficulties as they arise in evidence/chNN/student-review.md under
+main, and notify the author. Preserve the initial teaching review before
+comparative feedback, even when the build passes; append later resolutions.
 
 Run the chapter's build, tests, vet, and grader. Exercise every implemented
 feature through the real user interface with the supported real models.
@@ -227,9 +230,17 @@ The chapter cycle has these gates:
    user inputs, outputs, measured usage, and limitations.
 6. Preserve the first student checkpoint. An independent reviewer compares
    it with the corresponding first-edition standard, then the coder and
-   author revise from the findings. Review those revisions too.
+   author revise from the findings. Preserve the student's own review of
+   executing the chapter before this comparison. Review the revisions too.
 7. Proofread the complete chapter against the contract and receipts.
    Resolve material findings, checkpoint the validated answer, and continue.
+
+The student review tells the author where the teaching worked and where the
+student got stuck. Record a difficulty when it occurs, rather than waiting
+for a successful handoff. The author records a change, clarification, or
+reasoned deferral for each material finding; the student checks that response
+against the original difficulty. This exchange is required even when every
+test passes. A retrospective account carries its actual date and exposure.
 
 A grader starts local fake services, runs the submitted binary, and
 inspects what it did. Fakes let it request the same edge case repeatedly.
@@ -376,6 +387,8 @@ These are the reference workflow's durable records:
 | `book/edition-2/chapter-NN.md` | What does the student have to learn and implement? |
 | `book/edition-2/chapter-NN-outline.md` | What is the chapter's stake, teaching order, and intended scope? |
 | `book/edition-2/chapter-NN-evidence.md` | Which sources, runs, findings, and limitations support the prose? |
+| `solutions/edition-2/main/evidence/chNN/student-review.md` | What did executing the teaching reveal, before and after clarification or revision? |
+| `book/edition-2/chapter-NN-student-feedback.md` | How did the author resolve each material student finding, and did the student confirm resolution? |
 | `book/edition-2/architecture.md` | Which ownership and dependency decisions are current? |
 | `book/edition-2/skills/ensemble-coding/SKILL.md` | Which coding rules must a worker load? |
 | `book/chapter-writing-procedure.md` and `book/edition-2/workflow.md` | Which work and review gates are required? |
