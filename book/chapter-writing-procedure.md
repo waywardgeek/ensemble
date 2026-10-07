@@ -369,10 +369,30 @@ what improved rather than inferring quality from a passing score.
 Bill's editorial approval is
 recorded separately.
 
-Commit the validated snapshot in its own solution repository. Preserve chapter
-history when continuing to the next repository. Record status, exact commands,
-remaining issues, and the next action in `book/edition-2/progress.md`.
-Checkpoint unfinished work honestly if an interruption requires it.
+After every validated chapter, make a dedicated commit in the outer Ensemble
+repository and add an immutable annotated tag, for example
+`edition-2-ch03-r1`. The chapter checkpoint includes its manuscript, the matching
+main source and chapter snapshot, changed graders and skills, and a validation
+manifest linking source identities and evidence. Keep the worktree free of
+unrelated changes in that commit; stage the intended files explicitly.
+
+Bill accepted `solutions/edition-2/main/` as the main source tree, with
+`solutions/edition-2/chNN/` as tracked chapter snapshots in the outer repository.
+The earlier standalone student repositories must retain their histories during
+consolidation. Until that migration is complete, keep their local checkpoints
+and record their exact commit IDs in the outer checkpoint. An outer commit
+alone does not publish untracked nested repositories or close the migration.
+
+Preserve the initial student attempt before comparative review. Work-in-progress
+commits are welcome, but a validated chapter tag requires every chapter gate.
+A later correction gets a new commit and revision tag, such as
+`edition-2-ch03-r2`; never move the earlier tag or relabel its evidence.
+Carry earlier corrections forward through affected later chapters and the
+main source, revalidating each affected version before tagging it.
+
+Record status, exact commands, remaining issues, and the next action in
+`book/edition-2/progress.md`. Checkpoint unfinished work honestly if interrupted.
+Local commits and tags do not authorize a push or a published release.
 
 Stage only owned changes explicitly. Never `git add -A`, stage Bill's
 unrelated files, mutate first-edition solutions for an audit, or push.

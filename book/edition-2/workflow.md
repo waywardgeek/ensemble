@@ -157,6 +157,22 @@ WebSocket implementation remains in the separate optional GUI module.
 
 ## Durable checkpoint
 
+Bill requires a dedicated outer-repository commit after every validated
+chapter. Include the chapter text, matching main source and chapter snapshot,
+relevant grader/skill changes, and evidence manifest. Add an immutable annotated
+tag such as `edition-2-ch03-r1`; corrections get new revision tags. Preserve
+the initial attempt and useful work-in-progress commits separately from the
+validated checkpoint. Carry fixes forward and revalidate affected later
+chapters before tagging them.
+
+The accepted publication layout uses `solutions/edition-2/main/` for the main
+source and tracked `chNN/` snapshots in the outer Ensemble repository. Existing
+standalone student histories must be preserved during consolidation. Until
+that migration is performed, retain their local commits and record their exact
+identities in the outer chapter checkpoint; do not claim that an outer push
+would include untracked nested repositories. Commits and tags remain local
+until publishing is authorized.
+
 Maintain `progress.md` with the current chapter, artifact paths, checks run,
 unresolved questions, user rulings, and the next executable action. Record
 the baseline commit and exact commands in chapter evidence. Historical tests

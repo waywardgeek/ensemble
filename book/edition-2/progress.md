@@ -1,7 +1,10 @@
 # Second-edition progress
 
-Date: 2026-10-07. Chapter advancement is on hold at Bill's request while the
-main-source and chapter-snapshot workflow is discussed. The requested Edition 3
+Date: 2026-10-07. Bill accepted the main-source and chapter-snapshot layout
+and requested a commit after each chapter. The workflow now requires dedicated
+outer-repository commits and immutable revision tags after validation.
+Consolidation has not been performed; workers remain interrupted during this
+planning discussion. The requested Edition 3
 planning note is in Chapter 1, section 1.8. Workers are interrupted; do not
 resume implementation from the older active instructions below without the
 user's continuation. First-edition baseline: `ec41c6e`.
