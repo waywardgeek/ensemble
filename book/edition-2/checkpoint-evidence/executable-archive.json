@@ -1,0 +1,30 @@
+{
+  "at": "2026-10-07T20:24:41.727472+00:00",
+  "purpose": "Preserve exact live-tested executable identities beyond temporary-directory lifetime. These are local archival copies, not published artifacts or newly rebuilt/live-tested binaries. Raw receipts remain unchanged.",
+  "files": [
+    {
+      "original_path": "/tmp/ensemble-ed2-ch02-human-chat",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch02-human-chat",
+      "sha256": "f62927fa1bc2449d16f3f10fc3eebacbed12fbd0d20b6508dcf8ffb5e7fa36db",
+      "source_identity": "56dacfad01f71f2a1b20d39bca15846edef41ddd",
+      "platform": "darwin/arm64",
+      "bytes": 8410898
+    },
+    {
+      "original_path": "/tmp/ensemble-ed2-ch02-human-chat-reviewed",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch02-human-chat-reviewed",
+      "sha256": "6e4399307e20fedf1c982677e39c3dadc70beb94e933cb237323468949bbfce9",
+      "source_identity": "ad0d80e33a3a2857e8e0887117d9b099f1a4786d",
+      "platform": "darwin/arm64",
+      "bytes": 8410898
+    },
+    {
+      "original_path": "/tmp/ensemble-ed2-ch03-human-chat",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch03-human-chat",
+      "sha256": "3d49d9037077929b7380fbbae020e968c79075ac94eb95c939535aa606523990",
+      "source_identity": "a347ce31511c4b124e486bb41ef98c07bd17cec5",
+      "platform": "darwin/arm64",
+      "bytes": 8994738
+    }
+  ]
+}
