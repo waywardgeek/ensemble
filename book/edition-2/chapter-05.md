@@ -101,9 +101,19 @@ From the course repository root:
 make grade-dir CH=6 DIR=solutions/edition-2/main
 ```
 
-`CH=6` selects the inherited grader's historical numbering. This is second-
-edition Chapter 5; its independent checks use that number. The inherited score
-is a regression floor, not evidence for every lifecycle guarantee below.
+That command retains the historical grader and its original fixtures. The
+second-edition acceptance command is:
+
+```sh
+PATH="$HOME/go/bin:$PATH" python3 scripts/edition2/accept_ch05.py solutions/edition-2/main
+python3 scripts/edition2/audit_ch05_mutations.py solutions/edition-2/main
+```
+
+The expanded path makes the installed Delve executable available to the test
+runner. These checks preserve the seven category weights and prior behavior
+while exercising the new public interfaces. The historical grader's fixture
+assumptions do not define the new contract; retain its results separately.
+Local acceptance still needs the live demonstrations and independent review.
 
 ## 5.2 A queue needs a meaning
 
@@ -199,6 +209,64 @@ completion and chat display report the count of unsent hints explicitly.
 Receiving a hint does not force an extra paid request merely to consume it.
 Interrupting a turn also retains its unconsumed hints; `/hint` is refused
 while idle rather than silently starting a turn.
+
+### Gemini: put the correction where the model can read it
+
+The terminal can acknowledge a hint while Gemini is working on an earlier
+request. That acknowledgement proves persistence. Delivery happens when a
+later `generateContent` body actually contains the text.
+
+There is no provider `hint` role or wire field in this adapter. Keep the
+returned `functionCall` in its `role:"model"` content, with any returned ID
+and `thoughtSignature` on their original part. Follow it with the complete
+result group in `role:"user"`. Each `functionResponse` carries its matching
+name and supplied call ID, with the rendered result under `response.result`.
+Then append each pending hint as a separate `{"text":"..."}` part, in receipt
+order. Chapter 2 merges adjacent user entries, so results and hints occupy
+the same user content. A pending ordinary prompt, if present, precedes the
+hints. Every accepted call receives its result before this added guidance.
+
+For one completed read and one hint, the suffix of `contents` has this shape.
+Earlier history, tool declarations and configuration are omitted. The signature
+placeholder illustrates placement only; an actual request preserves the exact
+returned bytes. This is an illustrative request fragment, not a live receipt.
+
+```json
+[
+  {
+    "role": "model",
+    "parts": [{
+      "functionCall": {"id": "read-1", "name": "read_file", "args": {"path": "notes.txt"}},
+      "thoughtSignature": "<returned signature>"
+    }]
+  },
+  {
+    "role": "user",
+    "parts": [
+      {"functionResponse": {"id": "read-1", "name": "read_file", "response": {"result": "port=8080"}}},
+      {"text": "Report only the port."}
+    ]
+  }
+]
+```
+
+The neutral event's `hints:[4]` records which hint this request consumes;
+it is not an extra Gemini request property. Keep the literal hint outside
+`functionResponse.response`, function arguments and `systemInstruction`.
+Preserve Chapter 2's signature provenance and part boundaries. The
+[GenerateContent signature guide](https://ai.google.dev/gemini-api/docs/generate-content/thought-signatures)
+requires returning a signature on the part that supplied it. Adding guidance
+does not authorize reconstructing or stripping that signed part.
+Ordinary user text can also start a new provider turn for signature validation.
+Ensemble's hint still belongs to its current actor turn; those two turn labels
+need not coincide. Preserve the signatures in either case.
+
+Check three distinct facts: the in-flight body lacks a later hint, the next
+captured body contains the exact hint after the results, and the following
+request omits that consumed hint. Replay the exact recorded prefix for each
+comparison. Model compliance with the correction is a separate live observation.
+Retained hint events remain in the log even after their text leaves the next
+request's projection.
 
 This literal log is an offline fixture, using fictional provenance. Its
 compact responses omit request records intentionally:
@@ -514,6 +582,16 @@ source. Retain the initial checkpoint, revision and distinguishing checks.
 Final validation requires the reviewed improvements and real user path.
 
 ## 5.10 Taking it for a spin
+
+The current second-edition Gemini validation scope starts at Gemini 3.0 Flash
+and newer. Use **Gemini 3.8 Flash** for this chapter's hint and control
+demonstrations. Discovery on October 7, 2026 confirmed
+`models/gemini-3.8-flash` supports `generateContent`; the REST request uses
+`POST /v1beta/models/gemini-3.8-flash:generateContent`. Record that exact model
+in every Gemini run, including EOF, workflow and collection. A discovery result
+establishes availability, while the live receipts establish behavior. Older
+model attempts remain historical evidence. This test selection does not impose
+a hardcoded model allowlist on the library.
 
 Launch `chat` in an actual terminal/PTY using a fresh log and scratch workspace.
 Select a discovered tool-capable model and safe environment credentials. Ask

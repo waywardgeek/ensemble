@@ -269,6 +269,11 @@ credential-bearing request logs before running. Evidence and git diffs must
 contain no credentials. Never commit the settings file or a copied secret.
 Use bounded demonstrations, not unattended retry loops. Exercise all three
 initial vendors (Anthropic, OpenAI, Gemini) as their adapters are introduced.
+For new Gemini validation, Bill specifies Gemini 3.0 Flash and newer and selects
+Gemini 3.8 Flash for hints. Use the exact discovered model and Chapter 5's
+explicit wire mapping; see the current Gemini target in `workflow.md`.
+Keep older receipts historical and avoid turning this test choice into a
+runtime model allowlist or changing legacy fixtures.
 At the caching chapter, re-test Bill's reported OpenAI OAuth caching failure
 using current official subscription-access guidance and fresh measurements;
 do not treat the historical report as proof of current behavior.

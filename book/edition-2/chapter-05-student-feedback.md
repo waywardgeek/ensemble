@@ -51,3 +51,24 @@ the coordinator is preparing separate contract-derived acceptance. Do not
 describe that legacy score alone as a failure to implement this chapter or
 silently treat it as a passing result. Publish the actual new acceptance command
 before the continuation runs it; the original grader remains historical.
+
+## Gemini model scope and explicit hint mapping
+
+Bill selected Gemini 3.8 Flash for hints and limited new Gemini validation to
+3.0 Flash and newer. Discovery confirmed `models/gemini-3.8-flash` supports
+GenerateContent. The older attempts remain evidence of those exact models;
+all four Gemini demonstration modes will use 3.8 Flash for the revised scope.
+
+The original §5.3 prescribed literal hints after results, but required the
+student to combine that instruction with Chapter 2's provider mapping. The
+new subsection spells out the GenerateContent request suffix: original model
+call/signature, user function responses, then separate literal hint text parts;
+the neutral `hints` sequence array stays in the event log. It also separates
+receipt, wire delivery, consumption and observed model compliance. Chapter 2
+now links that example. This fills a teaching gap without claiming that the
+earlier ambiguous diagnostic established a renderer defect. The student
+confirmed that the renderer and consumption path match the expanded explanation;
+the independent reviewer checked its fields, placement and signed-part rule
+against the renderer, frozen request and GenerateContent signature guide.
+The reviewer also requested the now-added distinction between a provider turn
+and Ensemble's actor turn. The revised 3.8 live demonstrations remain pending.

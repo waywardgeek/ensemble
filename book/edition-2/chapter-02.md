@@ -459,6 +459,11 @@ on the same part as its functionCall. A URI blob becomes
 `fileData:{mimeType,fileUri}`. A redacted reference is rendered as text
 with its locator; rendering must not fetch the content that was removed.
 
+Chapter 5 extends this mapping with hints: complete the `functionResponse`
+group, then append literal hint text parts to the user content. Its
+[Gemini wire example](chapter-05.md#gemini-put-the-correction-where-the-model-can-read-it)
+shows the result, hint and preserved call signature together.
+
 The public configuration also accepts tool declarations: name, description,
 and an object-valued JSON input schema. Render these to Messages `tools`,
 Chat Completions function tools, and Gemini `functionDeclarations`.

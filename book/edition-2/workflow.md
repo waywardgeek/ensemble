@@ -187,6 +187,16 @@ On completion messages, promptly execute the next authorized handoff; after
 acceptance, export/tag and start the next fresh student. See procedure §7 for
 coordination when agent slots are unavailable.
 
+## Current Gemini validation target
+
+Bill narrowed new Gemini validation to Gemini 3.0 Flash and newer, selecting
+Gemini 3.8 Flash for hint behavior. Use discovered `models/gemini-3.8-flash`
+for Chapter 5's Gemini human controls, EOF, workflow and collection runs.
+Preserve older-model attempts with their actual identities; they do not satisfy
+this revised model scope. This is a live-test target, not a library allowlist
+or permission to alter first-edition fixtures. Chapter 5 §5.3 teaches the exact
+GenerateContent hint mapping before affected implementation.
+
 ## Durable checkpoint
 
 Bill requires a dedicated outer-repository commit after every validated

@@ -1,9 +1,10 @@
 # Chapter 5 source research
 
-Status: full contract/prose and outline independently reviewed and accepted;
-coordinator architecture review also accepted the working choices. Predecessor
-validation still precedes handoff. No new implementation or measurements. New
-Chapter 5 corresponds to first-edition Chapter 6; old architecture-repair
+Status: initial contract and architecture reviews are complete. Implementation,
+live attempts and subsequent teaching revisions are recorded in the
+[current gate record](chapter-05-validation.md); this source-research account
+does not itself establish live acceptance. New Chapter 5 corresponds to
+first-edition Chapter 6; old architecture-repair
 Chapter 5 remains absorbed into first introductions.
 
 Read the full current voice and writing procedure, updated architecture,
@@ -70,3 +71,31 @@ and Ensemble-owned reliable completion collections. Report reservation/acceptanc
 and separation of progress from completion remain mandatory. Predecessor gates
 remain before student release. Scoped prose lint has no hard failures.
 No new live transcript is written before actual student demonstrations.
+
+## Gemini hint clarification and revised live scope
+
+After the initial attempts, Bill specified Gemini 3.0 Flash and newer as the
+new validation scope and Gemini 3.8 Flash for hint behavior. The student's
+`main/evidence/ch05/gemini38-discovery/receipt.json` records successful model
+discovery; `model.json` lists GenerateContent support for
+`models/gemini-3.8-flash`. Availability does not certify live hint behavior.
+
+The coordinator added a detailed §5.3 request suffix and a Chapter 2 cross-link.
+The ordering follows the existing new-edition mapping: completed tool results,
+pending human prompt if any, then literal pending hints, with adjacent Gemini
+user entries merged. The example is illustrative and preserves the distinction
+between neutral request metadata and provider wire fields. It does not claim
+that splitting contents fixes the earlier empty responses: both diagnostic
+variants succeeded, so that causal claim was unsupported.
+
+The [GenerateContent thought-signature guide](https://ai.google.dev/gemini-api/docs/generate-content/thought-signatures),
+read October 7, 2026, requires preserving a returned signature on its original
+part. Its current function-call turn rules also distinguish ordinary user text
+from a function-response-only continuation. The book's actor turn and hint
+consumption are local semantics, not claims about the provider's turn labels.
+The general function-calling documentation now presents Interactions examples;
+those request shapes must not silently replace the GenerateContent adapter.
+
+All four Gemini modes are assigned to 3.8 Flash under the revised scope. Older
+model receipts remain dated evidence and are not relabeled. Revised prose,
+student confirmation and new live results require their own review.
