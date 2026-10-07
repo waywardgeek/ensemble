@@ -273,5 +273,36 @@
     "source_scope": "ee15 responsibility/source-cap revision read; full d25 change diff plus current common owner declarations, appendPrepared and boundary tests. Prior initial full source review retained above. Runtime only d25; no student working changes used in checks.",
     "receipt_scope": "All three initial full raw chat terminals read; initial and real-public raw log counters/artifact hashes checked independently; revised receipts pending.",
     "verifier_scope": "Full verifier read and narrow revised preflight diff reviewed; independent isolated negative and positive controls."
+  },
+  "story_review_scope": {
+    "complete_new_chapter": "book/edition-2/chapter-04.md",
+    "historical_passages": [
+      "book/chapter-01.md lines1\u2013165",
+      "book/chapter-02.md lines1\u2013135",
+      "book/chapter-03.md lines1\u2013110",
+      "book/chapter-04.md lines1\u2013220",
+      "book/chapter-06.md lines1\u2013120",
+      "book/chapter-07.md lines1\u2013110 and section7.9"
+    ],
+    "additional_new_scope": "Changed story passages with surrounding text and each Chapters1\u20136 outline story-preservation decision; NOT full reread of all six chapters."
+  },
+  "boundary_live_review": {
+    "checkpoint": "9341117",
+    "full_terminal_files": [
+      {
+        "path": "solutions/edition-2/main/evidence/ch04/boundary-live-openai/terminal.txt",
+        "sha256": "5a5418e26ad3d8bc4df741937aa3d91bcf35349e89940954b345f1153e0697f8"
+      },
+      {
+        "path": "solutions/edition-2/main/evidence/ch04/boundary-live-gemini/terminal.txt",
+        "sha256": "53d31d0a7413614e7ef39257032a12fc9bce734fc2c5674c3a7f7aea657b116f"
+      },
+      {
+        "path": "solutions/edition-2/main/evidence/ch04/boundary-live-anthropic/terminal.txt",
+        "sha256": "c7c90aeee1b582dbf07c9cc15f4b9181d43b8a649cc68f1424af36ea14d5592e"
+      }
+    ],
+    "checks": "All3 full raw terminals;34 artifact hashes/lengths, exact alph source bytes,3 debugger400-byte outputs, raw usage; final verifier checked51 historical files and7 isolated controls after empty-source map fix at e1c6488.",
+    "accepted_evidence_revision": "e1c64886564e7d1e8205ee08c17f98f32e001912"
   }
 }

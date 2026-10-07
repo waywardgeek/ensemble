@@ -211,3 +211,37 @@ Runtime revisions are accepted by this reviewer. Final chapter acceptance still
 requires the revised live demonstrations, final student/author feedback exchange,
 and proofread manuscript reconciliation. This section does not relabel initial
 runs as demonstrations of d25, or claim Bill ran any of the sessions.
+
+## Closing runtime and evidence decision
+
+The final revised demonstrations at `9341117` use runtime d25. All three
+complete human PTY transcripts were read, all 34 revised job artifact hashes
+and lengths checked, and response usage recomputed. Each source-capped read
+retains exactly `alph` (four bytes); its source notice and the two-byte report
+omission remain distinct. Actual Delve output shows the breakpoint, 42 and
+normal exit on all three paths. Default/exact input, limit consumption and
+overrides, slow waiting, middle recovery and EOF cleanup were repeated. The
+corrected-runtime real public-consumer supplement also passes.
+
+The coder's initial revised prompt wrongly supplied a callback field directly
+to read_file. Two model paths attempted it and received the correct refusal;
+the observed follow-up removed that field. The third model omitted it. This
+preserved user-input mistake is not a new runtime defect. Revised Gemini
+responses supplied IDs, so synthesized-ID timing remains a deterministic
+barrier proof rather than a claim about those paid responses.
+
+Final receipt review caught an empty source map in boundary-binding.json.
+The verifier silently verified zero source files. That failure is preserved.
+Evidence-only revision `e1c64886564e7d1e8205ee08c17f98f32e001912` populates all
+51 historical Go/module hashes and independently derives the required complete
+set before verification. This reviewer checked every hash and seven isolated
+controls: empty map, missing entry, wrong hash, late public source mismatch,
+late public binary mismatch, wrong CLI, and the original positive invocation.
+Each refusal leaves all 273 copied files unchanged; the positive invocation
+succeeds without any byte change. No paid run was repeated for this repair.
+
+The student's completion review and author's dispositions were read. The
+coder confirms the published explanations resolve the identified difficulties.
+Runtime, comparative quality, revised live use and evidence verification are
+accepted. No further implementation change is requested. Manuscript final
+reconciliation/proofreading and the coordinator's export/tag remain separate.

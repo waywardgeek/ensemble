@@ -22,7 +22,9 @@
     "ch04-independent-live-receipt-review.json": "83134ca60dbcffb7dfacd3f28c6a5e0a3f86334ba912a9e4f8a3d8d3aff7095b",
     "ch04-verifier-late-binding-negative.json": "f795d3d0015bbcff4a71d965cc80e99702bead125eb9c8dd7d9aca3ed1149093",
     "ch04-verifier-independent-revised-controls.json": "7267718b4ac019e97a6c98114a70006002fcf2fdffe43ffa2abb92556e83861b",
-    "initial-live-arithmetic-check.py.txt": "5ac6dd262e9e5a16bd67bd4635b7ccf65a995d7cb124ade4fb59bbb475d71a6f"
+    "initial-live-arithmetic-check.py.txt": "5ac6dd262e9e5a16bd67bd4635b7ccf65a995d7cb124ade4fb59bbb475d71a6f",
+    "ch04-boundary-empty-source-finding.json": "692b8490371428190dad6c215b5ee4f85ae2ee6ae31c25c36aa5b09c1df970a0",
+    "ch04-boundary-final-independent-review.json": "a815be5b0a8e8e468ff22ae8702e58d8abdf4eb84334ebf7a6af6ae8d2689d13"
   },
   "probes": {
     "scripts/edition2/ch04_jobs_fault_test.go.txt": "44e12c9f089ba7a41967a54670b8defa2333913688973eec7ad0bab890ec423b",
@@ -35,5 +37,11 @@
     "scripts/edition2/test_accept_ch04.py": "02f616f86672ec0d5a3b778fc8dc99de06c1b3cf0fd5a237960a3e9a4e9d3751",
     "scripts/edition2/ch04_durability_test.go.txt": "f9b88e0030fdfca193c65108c3255b3a8acb4473f0e7685ec069477f414bb490",
     "scripts/edition2/ch04_public_validation_test.go.txt": "7a603a53df2383248fe76608c5c235c0b6f73c4ba5361c2643513a521325cd39"
+  },
+  "final_live_review": {
+    "runtime_source": "d25d3fd4e552cd17c75bf814c9899903878cfbd5",
+    "initial_final_receipts": "9341117",
+    "evidence_repair": "e1c64886564e7d1e8205ee08c17f98f32e001912",
+    "scope": "all3 revised complete human PTYs and real public supplement; isolated verifier controls; no new paid calls by reviewer"
   }
 }
