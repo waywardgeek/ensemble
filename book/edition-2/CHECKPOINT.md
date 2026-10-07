@@ -3,8 +3,9 @@
 Date: 2026-10-07. Autonomous work is active. Chapter 4 code, live evidence and
 manuscript are accepted; its exact 780-file export and manifest are checkpointed
 as `edition-2-ch04-r1`. Runtime `d25d3fd`, final evidence `e1c6488`, reviewer
-`05b170a`. See `chapter-04-validation.md`. Next is a fresh new-only Chapter 5
-student, using main at that checkpoint.
+`05b170a`. See `chapter-04-validation.md`. Checkpoint commit is `55e6411`.
+Fresh `/root/coder_ch05` is now implementing Chapter 5 from that predecessor,
+launched with `fork_turns="none"` and the explicit new-only reading boundary.
 
 Chapter 3 human integration is
 accepted, with dedicated checkpoint `edition-2-ch03-r1`. Reviewed source and

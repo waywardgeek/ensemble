@@ -19,7 +19,9 @@ detected mutations and storage/lifecycle/boundary controls. Actual all-three
 provider PTYs drove Delve through Ensemble, retained source/report limits and
 verified EOF cleanup; real public clients exercised Agent ownership. Initial
 failures and subsequent corrections remain preserved. See `chapter-04-validation.md`.
-Next: fresh new-only Chapter 5 student. Bill's editorial approval stays separate.
+Checkpoint commit: `55e64115ee5243cac6b4958fd12e6811862ae033`. Fresh
+`/root/coder_ch05` has been launched with `fork_turns="none"` from this accepted
+predecessor and the new-only reading boundary. Bill's editorial approval stays separate.
 
 Chapter 3's human-client integration is accepted. Initial production/live
 commit: `a347ce31511c4b124e486bb41ef98c07bd17cec5`. Evidence-only verifier repair:
@@ -166,8 +168,8 @@ old implementation into the new solution.
   accepted; Chapter 6 full contract reviewed, implementation gated on Chapter 5.
   Requested story restoration across Chapters 1–6 is drafted; independent
   complete proofreading of the remaining chapters continues.
-- Coder: `/root/coder_ch04` completed accepted Chapter 4; next student must
-  start in a fresh new-only context for Chapter 5.
+- Coder: `/root/coder_ch05` starts Chapter 5 in a fresh new-only context from
+  accepted `edition-2-ch04-r1`; `/root/coder_ch04` completed Chapter 4.
 - Chapter 4 reviewer: `/root/coder_ch03_chat`, independent of this chapter's
   new coder, completed lifecycle/owner/fault/debugger and comparative review.
   This agent authored the preceding human-client integration; disclose that
@@ -179,6 +181,12 @@ old implementation into the new solution.
   checkpoint each validated chapter. No pushes or publication yet.
 
 ## Scope and enduring decisions
+
+Earlier correction to propagate: the manual review's immutable LogPath fix
+first lands in Chapter 4 runtime d25. The new Chapter 2 teaching now explains
+that invariant; frozen ch02/ch03 need a scoped backport and validation before
+new revision tags claim the clarification is implemented there. Preserve the
+old tags and receipts. The current Chapter 5 baseline already contains the fix.
 
 The current plan is 22 chapters, 0–21, including the newly requested final
 edition-comparison chapter. Bill now permits chapter adjustments
