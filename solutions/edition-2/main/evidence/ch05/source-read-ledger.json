@@ -49,6 +49,21 @@
       "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
       "sha256": "637f2607c059e479e54655a07b2fca3117d4aad4c03d754644c276ddb5bf0a46",
       "reason": "full reload after context compaction before final local gate"
+    },
+    {
+      "path": "book/edition-2/chapter-02.md",
+      "sha256": "32c5a586b6a80092a740e3c9a4e1a2a531b73ad7963afce73cd2852c524379f5",
+      "reason": "Gemini adjacent-role merge paragraph and related matches"
+    },
+    {
+      "path": "book/edition-2/chapter-03.md",
+      "sha256": "515e8bea29e0143d3f0527117de9fcb1fbb0d50b1d5888098ae2d7d6cec6b480",
+      "reason": "section3.6 tool-result mapping"
+    },
+    {
+      "path": "book/edition-2/chapter-05.md",
+      "sha256": "4531a562069080780f5d2dc40a79b66493b2dc0f4a2e7b0e0fed7e3c54388820",
+      "reason": "sections5.3 and5.10 revisited during Gemini live blocker"
     }
   ],
   "baseline_source_reads": [
@@ -183,5 +198,17 @@
       "sha256": "d6b047d392a64f8ab5bbe4a20c444b764c9f724799417c5f95613c2986cea6b5"
     }
   ],
-  "isolation": "Only new teaching and accepted predecessor implementation/evidence machinery. Did not read old answer, later chapter, grader implementation or comparative reports."
+  "isolation": "Only new teaching and accepted predecessor implementation/evidence machinery. Did not read old answer, later chapter, grader implementation or comparative reports.",
+  "provider_reference_reads": [
+    {
+      "url": "https://ai.google.dev/api/generate-content",
+      "at": "2026-10-07",
+      "scope": "schema search excerpt"
+    },
+    {
+      "url": "https://ai.google.dev/gemini-api/docs/generate-content/function-calling?hl=en",
+      "at": "2026-10-07",
+      "scope": "current official function-call guide read during live failure diagnosis"
+    }
+  ]
 }

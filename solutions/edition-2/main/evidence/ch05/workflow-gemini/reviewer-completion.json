@@ -1,0 +1,19 @@
+{
+  "agent_id": "agent-3",
+  "request_id": "r1",
+  "outcome": "success",
+  "text": "The draft is clear and welcoming, with all requested information included. The date, time, and specific items to bring are well-integrated. The mention of free repairs is a good incentive.",
+  "parts": [
+    {
+      "type": "text",
+      "text": "The draft is clear and welcoming, with all requested information included. The date, time, and specific items to bring are well-integrated. The mention of free repairs is a good incentive."
+    }
+  ],
+  "pending_hints": 0,
+  "usage": {
+    "input": 321,
+    "cache_write": 0,
+    "cache_read": 0,
+    "output": 38
+  }
+}
