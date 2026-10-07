@@ -228,6 +228,7 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 		hub:  h,
 		conn: conn,
 		send: make(chan []byte, 256),
+		done: make(chan struct{}),
 	}
 	h.mu.Lock()
 	h.clients[c] = true
@@ -236,6 +237,25 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 	go c.writePump()
 	c.readPump() // blocks until disconnect
 
+	h.removeClient(c)
+}
+
+// removeClient detaches a departing client: it leaves the client set, drops
+// any MCP agent registrations it owned, and stops its writePump.
+//
+// Close done, NEVER c.send. Thirteen call sites send on c.send, and the only
+// one that may close a channel is the sole sender - which this is not.
+// Closing it here raced every one of them: a sender snapshots the client
+// under the lock, releases it, and sends after this function has already
+// closed the channel, crashing the process with "send on closed channel" and
+// taking the agent down mid-turn.
+//
+// The select/default guarding most of those sends looks like protection and
+// is not: default saves you from a FULL channel, never from a closed one.
+// Leaving c.send open costs nothing - an unreferenced channel is garbage
+// collected whether or not it was ever closed - while writePump now stops on
+// done instead of on the close.
+func (h *Hub) removeClient(c *Client) {
 	h.mu.Lock()
 	delete(h.clients, c)
 	// Clean up any MCP agent registrations for this client.
@@ -245,7 +265,7 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 	h.mu.Unlock()
-	close(c.send)
+	close(c.done)
 }
 
 // subscribe reports the available event-log range, sends the full
@@ -262,6 +282,11 @@ func sendReplay(c *Client, data []byte) bool {
 	select {
 	case c.send <- data:
 		return true
+	case <-c.done:
+		// The client left. Once writePump has stopped nothing drains c.send,
+		// so without this case every remaining replay write would burn the
+		// full timeout before giving up on a socket that is already gone.
+		return false
 	case <-t.C:
 		return false
 	}
@@ -692,8 +717,9 @@ type Client struct {
 	hub     *Hub
 	conn    *websocket.Conn
 	send    chan []byte
-	live    bool       // receives live messages only after subscribe
-	lastSeq common.Seq // last event-log Seq delivered to this client
+	done    chan struct{} // closed once, by ServeWS teardown, to stop writePump
+	live    bool          // receives live messages only after subscribe
+	lastSeq common.Seq    // last event-log Seq delivered to this client
 }
 
 // readPump reads messages from the WebSocket and dispatches them.
@@ -709,11 +735,31 @@ func (c *Client) readPump() {
 }
 
 // writePump writes messages from the send channel to the WebSocket.
+//
+// It stops on done rather than on c.send being closed, because nothing closes
+// c.send - see removeClient. Draining whatever is already buffered first
+// keeps the old behavior that a client gets the messages queued before it
+// left.
 func (c *Client) writePump() {
 	defer c.conn.Close()
-	for msg := range c.send {
-		if err := c.conn.WriteMessage(websocket.TextMessage, msg); err != nil {
-			return
+	for {
+		select {
+		case msg := <-c.send:
+			if err := c.conn.WriteMessage(websocket.TextMessage, msg); err != nil {
+				return
+			}
+		case <-c.done:
+			// Drain anything already queued, then stop.
+			for {
+				select {
+				case msg := <-c.send:
+					if err := c.conn.WriteMessage(websocket.TextMessage, msg); err != nil {
+						return
+					}
+				default:
+					return
+				}
+			}
 		}
 	}
 }
