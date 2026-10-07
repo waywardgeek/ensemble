@@ -1,0 +1,96 @@
+# Second edition: Chapter 1 working outline
+
+Status: complete student contract and body drafted under renewed autonomous
+authorization on 2026-10-07; implementation and validation pending.
+First-edition source is preserved. Working baseline: `ec41c6e`.
+
+## Edition map
+
+Bill's target is exactly 21 chapters, numbered 0–20. Chapter 0 stays
+untouched. Old chapters 1–4 keep their numbers; old 6–21 become new 5–20.
+Old chapters 5 and 22 disappear as standalone repair chapters. Their
+lessons enter when the relevant structures first appear, beginning with
+the architecture taught before code here. Any dependency-driven exception
+to the mapping must be documented explicitly. Coder drift is corrected
+in code; it does not authorize weakening these rules.
+
+## Voice plan
+
+- Stake: the reader must be able to add a feature without duplicating
+  state or reconstructing access to data the program already owns.
+- Register: compiler-book mechanism, with one short sourced origin story.
+- Bill moment: StackAgent bet and demonstration, recorded in chapter 1.
+- Confession inventory: the first-block grader hole, documented in
+  `835946f`; no invented story or freshly claimed live run.
+
+## Thesis
+
+A conversation starts with explicit ownership, a star of package
+dependencies, and parent interfaces that make owned data and logging
+reachable. Teach those rules before the first code block and apply them
+from the first implementation. Do not recreate architectural flaws for
+later repair chapters to fix.
+
+## Structure
+
+1. Short motivation preserving the documented StackAgent origin.
+2. 1.1 The idea in plain words: one owner for each fact, reachable through
+   parent interfaces; debug logging applies to stateless helpers too.
+3. 1.2 Packages follow responsibilities: `internal/common` declarations,
+   `internal/llm` behavior, free functions rather than behavior migrating
+   into common; standard-library interface methods are the narrow exception.
+4. 1.3 Follow the owner: immediate-parent back-pointers, no globals,
+   dependency bags, or closure bridges; distinguish shared package hub
+   from runtime Ensemble; one owner with potentially many Agents.
+5. 1.4 Events, requests, and the optional GUI: Observer for streaming
+   events; parent-interface methods for actions/services; separate optional
+   GUI module and public reusable GUI components. Starting in chapter 2,
+   the clean data structures include Ensemble with CLI and browser-GUI
+   client interfaces; the GUI can be stubbed while CLI use is live.
+6. TL;DR: architecture, protocol, wire, history, and accounting contract.
+7. 1.5 The request carries the conversation: history and model discovery.
+8. 1.6 A complete exchange has two messages: valid pairs, text blocks,
+   and failure termination without fabricated output or retries.
+9. 1.7 Read the token counts: owned accounting and independent
+   Agents; fake tokens versus live usage and prices.
+10. 1.8 Exercise, graded: inherited checks plus added configuration,
+    failure, ownership, library, import, and parent-path acceptance.
+11. 1.9 Taking it for a spin: actual live evidence pending. Every feature
+    must be exercised with a real model, initially via CLI. No invented
+    run output.
+
+## Grading decisions
+
+The existing first-edition checks retain their current seven IDs and
+weights. Preserve already-shipped exact model/key equality and nonempty
+system validation when defining the new contract. The historical audit's
+open items are resolved by `898f3b3`, not outstanding work. Passing those
+checks alone cannot demonstrate the second-edition architecture.
+
+Renewed autonomous authorization permits routine contract decisions:
+negative configuration runs, failure responses with no retry, malformed
+input, exact growth by two, nonempty answers and present nonnegative
+usage. These are now chapter requirements alongside the ownership/import
+rules. Root independently implements acceptance; no pass is claimed yet.
+
+The earlier plan to defer parent chains and package topology until chapter
+2 is superseded by Bill's instruction to teach the methodology in chapter
+1 before any code. The first-edition sacrificial architecture is not the
+second-edition construction plan.
+
+## Implementable choices
+
+Bill endorses `solutions/edition-2/chNN`, each snapshot a self-contained
+Git repository with history extended from the preceding new chapter.
+The module root is the public library and `cmd/` holds the CLI; the
+existing grader discovers that CLI when given the module root.
+
+Coordinator choices for chapter 1: Ensemble owns logger; Agent owns
+configuration/history; Engine owns transport/usage. These match Bill's
+guidance but are not falsely attributed explicit rulings. Signatures and
+names are student choices within the ownership contract.
+
+Chapter 1 keeps the text-message slice; chapter 2 introduces neutral
+events and two client surfaces. Package/ownership architecture survives.
+Registry storage and public GUI signatures do not block a chapter that
+implements neither feature.
