@@ -1,8 +1,9 @@
 # Second edition: Chapter 1 working outline
 
-Status: student contract, body, and verified live demonstration drafted.
-Initial student checkpoint `459e4ce` is implemented and run; final acceptance
-audit and post-run comparison/revision gate remain in progress.
+Status: student contract, body, and live demonstration validated by the
+coordinator at revised checkpoint `75542c1`. Initial live receipts describe
+`459e4ce`; code comparison, diagnostic revision, acceptance/audit, and
+independent prose/receipt review are complete. Editorial approval is separate.
 First-edition source is preserved. Working baseline: `ec41c6e`.
 
 ## Edition map

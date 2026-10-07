@@ -38,10 +38,12 @@ Chapter 2's contract passed independent technical review and a cold student
 read. Implementation is now authorized and underway in a full repository
 derived from the reviewed Chapter 1 history.
 
-Chapter 0 execution guide is being enhanced in `book/edition-2/chapter-00.md`.
-Bill requested roles, skills, architecture, evidence, and checkpoint guidance.
-The author is preserving the first-edition source and reconciling its old
-execution promises with the actual second-edition procedure.
+Chapter 0's execution guide is written and independently reviewed at
+`book/edition-2/chapter-00.md`. It covers roles, skills, architecture,
+evidence, and checkpoints, preserving the first-edition source.
+`ending-chapter-note.md` plans the requested new final comparison chapter;
+all editions remain historical artifacts. The epilogue will be rewritten
+in Codex's own first person at second-edition publication readiness.
 
 ## Required quality comparison
 
@@ -56,8 +58,8 @@ old implementation into the new solution.
 
 ## Roles and next actions
 
-- Author: finish Chapter 0 guide; answer Chapter 2 student questions through
-  teaching updates; preserve the voice improvements requested by CodeRhapsody.
+- Author: develop Chapter 3's contract and answer Chapter 2 student questions
+  through teaching updates; preserve the requested voice improvements.
 - Coder: implement Chapter 2 from the reviewed contract, exercise all three
   real vendors and public paths, then submit to comparison/revision review.
 - Global reviewer: review Chapter 0 and subsequent student work; preserve
@@ -67,7 +69,8 @@ old implementation into the new solution.
 
 ## Scope and enduring decisions
 
-The current plan is 21 chapters, 0–20. Bill now permits chapter adjustments
+The current plan is 22 chapters, 0–21, including the newly requested final
+edition-comparison chapter. Bill now permits chapter adjustments
 for teaching quality and requests an enhanced Chapter 0 execution guide in
 the second-edition directory. Preserve the first-edition source and preface.
 Absorb old Chapters

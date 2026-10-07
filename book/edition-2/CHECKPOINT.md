@@ -7,11 +7,14 @@ paused restart record. Read `progress.md` for the current executable next step.
 ## Objective and current scope
 
 Write the second edition and regenerate Ensemble as a student of that book.
-The current map has 21 chapters, 0–20, absorbing old Chapters 5 and 22 where
-those lessons first matter. Bill subsequently permitted chapter adjustments
-for concrete teaching benefits and explicitly requested an enhanced Chapter 0
-execution guide. Author is creating `book/edition-2/chapter-00.md` from the
-existing introduction. Preserve the first-edition source and preface.
+The current map has 22 chapters, 0–21, absorbing old Chapters 5 and 22 where
+those lessons first matter and adding Bill's requested final edition-comparison
+chapter. Bill permits chapter adjustments for concrete teaching benefits.
+The enhanced Chapter 0 execution guide is written and independently reviewed.
+Preserve all historical editions, their source/code/evidence, and the preface.
+`ending-chapter-note.md` records the comparison plan and Bill's instruction to
+rewrite the second-edition epilogue in Codex's own first person when the edition
+is ready for publication. Do not write a fictional completed outcome now.
 
 New implementations live in separate full Git repositories at
 `solutions/edition-2/chNN/`. Start Chapter 1 from scratch; derive each later
@@ -54,7 +57,8 @@ Preserve the initial attempt and record concrete gains and tradeoffs.
 - Chapter 2 contract passed independent review and a cold student read. The
   coder is implementing in `solutions/edition-2/ch02/`, derived from `75542c1`.
   It has no claimed successful grade or live result yet.
-- Author is writing Chapter 0's execution guide. Reviewer will check it.
+- Chapter 0's execution guide is written and independently reviewed.
+  Author is developing Chapter 3's contract while the coder implements Chapter 2.
   Chapters 1 and 2 now motivate the rules and visibly teach skill loading,
   following Bill's forwarded CodeRhapsody advice.
 

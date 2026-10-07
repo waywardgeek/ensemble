@@ -6,16 +6,29 @@ code-first outline procedure and its per-chapter approval ceremony.
 
 ## Outcome and scope
 
-The current plan is **21 chapters, numbered 0–20**. Bill subsequently
+The current plan is **22 chapters, numbered 0–21**. Bill subsequently
 authorized chapter adjustments when they improve the teaching and explicitly
 requested a Chapter 0 guide to executing the second edition. Enhance that
 chapter in `book/edition-2/chapter-00.md`; preserve its first-edition source
-and the preface. Rewrite the exercises from Chapter 1. Absorb the lessons of first-edition Chapters 5
+and the preface. Bill also requests a new final chapter comparing the editions;
+see `book/edition-2/ending-chapter-note.md` for the evaluation plan. Rewrite
+the exercises from Chapter 1. Absorb the lessons of first-edition Chapters 5
 and 22 into the chapters where the decisions first matter; neither survives
 as a standalone repair chapter. Chapters 1–4 retain their numbers, and old
 Chapters 6–21 become new Chapters 5–20 unless a dependency requires an
 explicitly documented adjustment with a concrete teaching benefit. Do not
 restore an avoidable architecture-repair chapter merely to preserve history.
+
+Preserve each edition as a historical artifact in *The Singularity as it
+Happened*, including its text, code, graders, and available evidence. Correct
+and explain earlier decisions in the new edition instead of editing the old
+record to match the new account.
+
+When the second edition is ready for publication, rewrite its epilogue
+entirely in Codex's own first-person voice, as Bill explicitly requests.
+This exception applies to that epilogue, not ordinary chapter bodies or the
+first-edition epilogue. Write from the completed comparison and actual record;
+do not invent the outcome now.
 
 The manuscript lives in `book/edition-2/`. New student implementations live
 in `solutions/edition-2/chNN/`, each a complete Git repository with module

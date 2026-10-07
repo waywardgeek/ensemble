@@ -3,14 +3,19 @@
 Review date: 2026-10-07. This is a forward-lesson and dependency map for the
 second edition, not an implementation specification or validation report.
 Chapter numbers below refer to the **first edition** unless stated otherwise.
-The current second-edition plan is **21 chapters, numbered 0–20**.
-Bill subsequently requested an enhanced Chapter 0 execution guide and permits
+The current proposed second-edition plan is **22 chapters, numbered 0–21**:
+the prior 0–20 sequence plus a newly requested final comparison chapter.
+Bill requested an enhanced Chapter 0 execution guide and permits
 documented organizational changes with a concrete teaching benefit. Preserve
 the first-edition Chapter 0 and preface; write the new guide in this edition.
 Old Chapters 1–4 keep their numbers, and old
 Chapters 6–21 become new Chapters 5–20. Old Chapters 5 and 22 are absorbed
 at the relevant first introductions, not retained as standalone chapters.
 Any dependency-driven adjustment must document its teaching benefit.
+Preserve historical editions as the series *The Singularity as It Happened*.
+The final comparison is new work, not a revival of either architecture-repair
+chapter. Bill also authorizes a complete first-person epilogue rewrite when
+the second edition is publication-ready; no ending or outcome is invented now.
 
 ## Authority and read ledger
 
@@ -52,10 +57,14 @@ performed for this review. Historical measurements remain historical.
   `agent/` and first-edition implementations untouched. New student code lives
   in `solutions/edition-2/chNN/`, built from scratch or the preceding new
   chapter; old solutions are evidence for authors, not student starting code.
-- Use the current 21-chapter plan, numbered 0–20, with the mapping above;
-  Bill now permits justified organizational changes. Neither
+- Add a new final comparison chapter to the prior 0–20 sequence, provisionally
+  Chapter 21. Preserve historical editions and their evidence. Bill permits
+  justified organizational changes. Neither
   former repair chapter survives as an extra chapter or capstone. Incorporate
   useful extension and audit exercises into the relevant remaining chapters.
+- Rewrite the second-edition epilogue in the coordinator's first person when
+  the edition is publication-ready, as Bill explicitly requested. This is a
+  future writing task; actual results must determine its ending.
 - The initial rewrite began with Chapter 1. Bill now requests an enhanced
   second-edition Chapter 0 execution guide; the preface remains untouched.
   Teach the architecture in plain English before any Chapter 1 code. There is no initial
@@ -330,3 +339,110 @@ guard scripted edit anchors, preserve explanations of WHY until their
 conditions are demonstrably gone, never weaken tests merely for green, and
 report surprises. Architecture and usability need evidence in addition to
 green tests.
+
+## Chapter 3: first execution, without a later ownership repair
+
+These are review recommendations for the author to make explicit in the
+contract, not additional unpublished grader requirements. Freshly reread
+first-edition Chapter 3's loop/tool/edit sections, Chapter 10's registry and
+provenance sections, Chapter 15's batch-preservation rules, and Chapter 21's
+dispatcher authorization section for this handoff.
+
+- A simple working choice is an Agent-owned registry implemented in
+  `internal/tools`, with a `common.Agent` owner interface. Engine obtains the
+  tool service through its Agent interface; the two spokes do not import
+  each other. Shared types/interfaces stay in common and execution behavior
+  stays in tools. This recommendation does not change Bill's permission for
+  a shared root registry with per-agent visibility. Record the chosen owner
+  before implementation; avoid flat captured `ToolFunc` dependency closures.
+- Declarations and dispatch must use the same Agent-visible tool set. Unknown
+  or disabled calls get error results without execution. A tool result is
+  data and cannot itself grant a capability. Introduce this with the first
+  dispatcher, rather than waiting for skills or retrieved web content.
+  [Chapter 10](../chapter-10.md), [Chapter 21](../chapter-21.md)
+- Persist the accepted response once, then each dispatch fact before its
+  side effect, then its result. Preserve issued IDs and execute in call order.
+  Ordinary tool errors still answer their calls and do not silently skip the
+  remaining batch. A nonzero command exit is a command result, distinct from
+  failure to start or invalid arguments. Keep the one Agent append path and
+  existing public observers; tools never write directly to a GUI.
+- Specify persistence failure around a side effect: no execution when the
+  pre-call record fails; after execution, a failed result write cannot undo
+  the external change. Fault the Agent, report the limitation, and do not
+  retry automatically. Likewise a later model failure cannot roll back an
+  earlier accepted response or tool side effect.
+- Define the round limit's counting and final-batch behavior. A useful rule
+  is at most sixteen model responses, complete the last accepted call batch,
+  then refuse a seventeenth request. This preserves pairing without adding
+  jobs, retries, concurrent execution, or cancellation machinery. Replay and
+  offline rendering must never re-execute tools. Later batch compaction needs
+  these identities and boundaries, not its policy machinery today.
+  [Chapter 3](../chapter-03.md), [Chapter 15](../chapter-15.md)
+- Agent workspace settings determine path resolution, not filesystem
+  confinement. Avoid process-global working-directory changes; two Agents
+  must retain independent workspaces. A shell can access outside its working
+  directory, so neither prose nor demonstrations may call it a sandbox.
+- Teach overwrite refusal and an explicit zero/multiple-match edit policy.
+  Preserve the six-tool synchronous scope. Use a mixed-content fixture for
+  result ordering, independent declaration/dispatch checks, and real scratch
+  workspace demonstrations of all six tools, failures, recovery, multiple
+  rounds, and history retention on the supported APIs. Historical private
+  corpus counts remain dated observations, not new measurements.
+
+## Final comparison: collect the evidence before writing the verdict
+
+Bill requires this chapter. The following experimental design is a review
+recommendation; the final contract should state which comparisons will
+actually be performed. Keep it separate from the publication-time epilogue.
+
+Compare two different questions explicitly:
+
+1. **What improved in the completed software?** Compare fixed first-edition
+   and second-edition snapshots at matched feature scope. Test actual user
+   tasks and public integrations, failures and diagnostics, ownership and
+   extension effort, and regressions. The final corrected artifact and the
+   first cold student attempt answer different questions; retain both.
+2. **What improved in the teaching?** Regenerate comparable scopes from each
+   edition with independent cold workers, the same model snapshot, settings,
+   tools, environment, budget, and exposure rules. Freeze the handoffs and
+   record every intervention. A changed edition and a changed model in the
+   same experiment cannot establish which caused an improvement. Cross
+   edition and model conditions where feasible; otherwise name the confound.
+
+Freeze a concrete evaluation rubric before inspecting the outputs. Keep
+grader authors and evaluation challenges independent of the student, use
+hidden challenge cases and mutation controls alongside published contracts,
+and inspect successful real-user paths. For judgment-based code reviews,
+blind edition labels and randomize presentation order where practical.
+Require evidence and record reviewer disagreements; a judge's score or prose
+is not a target for repeated tuning. Do not invent a numerical quality scale
+whose precision the evidence cannot support.
+
+Assess code quality through concrete changes: simpler ownership, eliminated
+duplicate behavior, legible invariants, clearer failure boundaries, usable
+public interfaces, and a small matched extension task. Fewer lines alone
+cannot distinguish economy from missing functionality. Preserve losses,
+regressions, unsupported features, and unresolved findings alongside wins.
+Historical snapshots must remain available even when a new edition fixes
+their mistakes.
+
+Begin a per-chapter evidence ledger now:
+
+- Initial and revised commits, source/build hashes, chapter/skill/handoff
+  versions, evaluator version, and corresponding first-edition snapshot.
+- Builder model identity and relevant settings, supplied context, accidental
+  answer exposure, attempts, interventions, and the reason for each revision.
+- Exact checks and failures, independently exercised properties, applied
+  mutations and intended failures, plus the actual live feature checklist.
+- Model input/output/cache observations, elapsed time, and human review or
+  repair effort when measured. Keep build cost separate from runtime cost;
+  date price conversions and distinguish API-key versus subscription costs.
+- Code-review findings, accepted and declined changes with reasons, teaching
+  changes, public usability evidence, and remaining limitations.
+
+Keep credentials out of retained artifacts. Missing first-edition model,
+cost, timing, or intervention data stays unknown. A retrospective estimate
+may be useful if labeled and bounded, but cannot become a measured baseline.
+Replicated trials can show variability where budget allows; one success
+remains one observation, not a universal regeneration guarantee. Do not add
+new paid experiments merely to fill a table before their scope is decided.

@@ -1,8 +1,8 @@
 # Chapter 1 second-edition evidence
 
-Status: student contract/body and actual live section drafted. Final
-acceptance/mutation audit and independent final review are coordinated
-separately; Bill's editorial approval is not claimed.
+Status: Chapter 1 validated at student checkpoint `75542c1`; initial live
+receipts remain bound to `459e4ce`. Independent code/teaching review and
+receipt verification are complete. Bill's editorial approval is not claimed.
 
 ## Read before writing
 
@@ -223,8 +223,23 @@ The skill path and full-read requirement are now visible before the first
 code example, with explicit limits on what loading instructions enforces.
 The precise contract and early verification requirements are retained.
 
-## Validation pending
+## Validated revision
 
-- Root's final acceptance/property-deletion audit and retained run reports.
-- Mandatory independent first-edition comparison and any resulting coder
-  revision/teaching corrections, as newly requested by Bill.
+Coordinator confirmed Chapter 1 validated at
+`75542c1c73388fa1ab618dbb8b1e252e3d80816a`. Read the retained
+`DIAGNOSTIC-REVIEW.md`, `FEATURES.md`,
+`independent-cli-acceptance-reviewed.json`, and
+`independent-mutations-reviewed.json` under
+`solutions/edition-2/ch01/evidence/`. The revised CLI passes all 23
+acceptance cases, including the bounded timeout. The mutation report passes
+its control and eleven mutants with exact expected failure sets; separate
+diagnostic-site mutations protect cancellation/timeout classification.
+The retained review records passing module tests, vet, formatting, and the
+inherited 100/100 grade. The author inspected reports and did not rerun
+those code checks or make additional paid calls.
+
+The independent reviewer accepted the concrete diagnostic improvement and
+the chapter's teaching revision, then verified the exact live section.
+Live receipts still describe `459e4ce`; the later error-path-only revision
+has separate source hashes and local evidence. No successful live behavior
+was claimed remeasured after that change.
