@@ -372,10 +372,15 @@ func vendorEnv(vendor, baseURL, work string) []string {
 		"LLM_VENDOR="+vendor,
 		"LLM_API_KEY=course-grader-fake",
 		"LLM_MODEL="+ch2RequestedModel(vendor),
+		"LLM_RESOLVED_MODEL=",
 		"CH02_LOG="+filepath.Join(work, "ch02-"+vendor+".log"),
 	)
 	if baseURL != "" {
 		env = append(env,
+			// The fake deliberately reports an identity different from its
+			// routing alias. Signed tool continuations need the explicit,
+			// known identity; offline fixtures keep their own exact model.
+			"LLM_RESOLVED_MODEL="+fakevendor.Models[vendor],
 			"LLM_BASE_URL="+baseURL,
 			"ANTHROPIC_BASE_URL="+baseURL,
 			"OPENAI_BASE_URL="+baseURL,

@@ -1,7 +1,28 @@
 # Chapter 3 evidence and reconciliation
 
-Status: complete contract/prose draft; independent review accepted.
-No new implementation tested.
+Status: prior tool contract validated at `7cbbd8e2`; comparative code review
+and complete prose/receipt proofreading accepted. Coordinator reports 39
+acceptance cases, eight checker controls, passing control plus five exact
+defects, and full legacy regression exit 0 (grade package 508.374 seconds).
+Bill's human-client requirement reopens validation: actual ordinary-text chat
+in a PTY is now required on all three APIs. Earlier JSON-lines runs remain
+machine-interface/tool evidence; no human-mode receipt is claimed yet.
+
+## Initial student and grader correction
+
+The coordinator reports that first unchanged student checkpoint `590c4f4`
+scored 65 with inherited grader assumptions: Gemini declarations recognized
+only the narrower `parameters` field, and the fake lacked the explicit resolved
+identity required by the new provenance rule. The same student binary scored
+100 after those harness corrections. Legacy Chapter 2/3 reference and deletion
+checks passed; the full root regression is still pending. Preserve both runs
+and do not misclassify these fixture failures as missing student behavior.
+
+The fresh student's empty-file question exposed a contract ambiguity now
+resolved in §3.5: omitted start with omitted end or `end_line:0` is a full-file
+read and succeeds with empty content. An explicit start, even 1, or positive
+end requests a line target and fails on an empty file. This is a published
+clarification before the affected student revision, not a private grader hint.
 
 ## Read ledger
 
@@ -98,3 +119,30 @@ continuations must obey the existing provenance rule after side effects.
 Reviewer found no architecture or lifecycle contradiction. Resolution check
 accepted all three amendments; `chapter-03-review.md` records readiness for
 a fresh student handoff. No live or implementation result is claimed.
+
+## Live reconciliation and comparative finding
+
+The live manuscript now uses `540fb4a`'s retained all-three-provider CLI and
+public-consumer receipts, following initial implementation `590c4f4`. Author
+read the feature ledger, actual calls/results, final files, stdout usage,
+selected/returned model facts, public consumer source, and all three offline
+replay receipts. Each source run is dated October 7, 2026; no paid calls were
+made by the author. The guided empty-file/owner-interface revision is separately
+bound by receipt source hashes under `revision-{vendor}` and is not attributed
+to the initial binary. Its model-invented first answer/recall is stronger than
+the earlier supplied-marker check.
+
+Independent comparison then exposed a shared first/new-edition UTF-8 cap
+defect: slicing valid `éX` at one byte became a replacement character when
+JSON encoded, corrupting text and exceeding the retained-content budget.
+Published the complete-prefix rule and cap1/cap2/cap3 positive/negative cases
+before the student's affected edit. No binary transcoding format is added.
+The correction subsequently passed deterministic Unicode controls and the
+independent reviewed acceptance noted above. Successful earlier ASCII live
+runs still do not prove the multibyte case. The remaining client gate is the
+new human-chat revision, not the corrected output boundary.
+
+Chapter 3's comparative-review instructions now explicitly assign old-source
+reading to the independent reviewer. The fresh student receives rationale
+and revised new teaching, not an instruction to inspect the old answer.
+Scoped prose lint passes all hard checks after live reconciliation.

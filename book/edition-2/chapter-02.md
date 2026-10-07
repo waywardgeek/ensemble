@@ -46,10 +46,11 @@ logger and Agents, Agent owns configuration and its conversation, and
 Engine owns transport and accounting. Replace the narrow text slice
 with events and a derived context inside that architecture.
 
-> **Validated implementation:** `cc1bec45c3327c87728a4040f762155d8e860a0b`.
-> Independent comparison, revisions, and acceptance are complete. Actual
-> live receipts retain their initial source binding described in §2.10.
-> Bill's editorial approval is separate and is not claimed here.
+> **Client revision pending.** Checkpoint
+> `cc1bec45c3327c87728a4040f762155d8e860a0b` passed the earlier contract's
+> comparison and acceptance. Its CLI demonstrations used the machine
+> protocol. The human chat contract below and actual terminal demonstrations
+> are now required before closing validation. Bill's editorial approval is separate.
 
 ## TL;DR
 
@@ -90,8 +91,10 @@ implementation, reload the entire
    Replace result content in context with a deterministic stub, preserving
    call/result linkage and any external reference. The original log stays
    unchanged. Do not add an unbounded second set of redacted sequence IDs.
-8. Preserve Chapter 1's successful CLI protocol and public-library use.
-   Add offline `render LOG` and `dump` commands plus explicit log selection.
+8. Add a human `chat` mode with ordinary text, visible prompts, readable
+   answers, directives, and usage. Preserve Chapter 1's machine protocol
+   for pipes and explicit `protocol` mode. Add offline `render LOG` and
+   `dump` commands plus explicit log selection.
    Valid present empty text and tool-only responses are now representable;
    absence, malformed payload, and HTTP failure remain distinct errors.
 9. Expose public, transport-neutral client requests and observations on
@@ -100,7 +103,8 @@ implementation, reload the entire
    Observer events carry Agent identity; synchronous requests return their
    own answers instead of waiting for a broadcast to imply completion.
 10. Demonstrate every implemented feature through actual user paths.
-    Run the CLI with all three real APIs, plus an external public consumer.
+    Interact with human chat in a real terminal on all three APIs, plus an
+    external public consumer. Scripted JSON lines do not prove human usability.
     Label GUI-stub integration and deterministic failure fixtures as such;
     neither is a working live browser demonstration.
 
@@ -502,7 +506,19 @@ response, and never while rendering or dumping.
 
 ## 2.7 User paths and the optional GUI
 
-With no arguments, retain Chapter 1's JSON-lines CLI. Select
+The terminal is a client for a person. Requiring JSON around every sentence
+makes the person operate a test harness. Give chat its own presentation while
+both human and machine clients call the same public Agent operations.
+
+`chat` explicitly selects the human interface. `protocol` explicitly selects
+Chapter 1's JSON-lines interface. With no arguments, select chat only when
+both stdin and stdout are terminals; otherwise select protocol. Thus a reader
+can start the executable at a terminal, while existing redirected graders
+keep their exact machine output. `chat` still accepts plain text through a
+pipe when explicitly requested, but a pipe is not terminal usability evidence.
+Unknown subcommands print a short usage error and exit nonzero.
+
+Select
 `LLM_VENDOR=anthropic|openai|gemini`, defaulting to anthropic. Nonempty
 `LLM_MODEL`, `LLM_API_KEY`, and `LLM_BASE_URL` override the selected
 provider's corresponding `ANTHROPIC_`, `OPENAI_`, or `GEMINI_` variables.
@@ -518,6 +534,71 @@ plus `.log` in the working directory. Create a new log exclusively; refuse
 to overwrite or append to an existing file in this chapter. Each Agent
 has a distinct log destination. Choose explicit paths in a fresh directory
 for demonstrations so a previous run cannot contaminate the next one.
+
+### A conversation a person can type
+
+After configuration and log creation succeed, show a short banner naming
+the selected API/model and `/help`, then a flushed `You> ` prompt. Read one
+ordinary UTF-8 line as one prompt. Remove its line ending; preserve the rest
+of nonblank input. Ignore a whitespace-only line without logging or HTTP and
+show the next prompt. The answer appears under `Assistant:` as readable text,
+with its actual newlines, followed by the next prompt. Do not JSON-escape it
+or mix raw event records into the conversation.
+
+The chapter remains synchronous and non-streaming. Wait for the whole answer
+before the next prompt. A plain line that happens to contain JSON is still
+the user's text. For a present empty text response, display `[No text returned]`;
+for a tool-only response, display `[Tool calls returned; execution is not
+available in this chapter]`. These are interface notices, not invented model
+answers or new conversation entries. Preserve the response parts and usage.
+
+Support these local commands; list them in `/help`:
+
+| Typed command | Human result |
+|---|---|
+| `/help` | Show commands and the single-line input limit; no HTTP or log event |
+| `/usage` | Show current input, cache write, cache read, and output token totals; no HTTP or mutation |
+| `/history` | List this session's recorded sequence numbers and event types, plus call IDs on tool events; no HTTP or mutation |
+| `/ephemeral TEXT` | Record the same one-request directive as the protocol and acknowledge it in plain text |
+| `/redact FROM TO REASON` | Record `redact_result` over the positive inclusive sequence span, with the remaining nonempty text as its reason |
+| `/quit` | Finish exactly like clean EOF |
+
+`/history` makes redaction targets discoverable without counting hidden events
+or constructing JSON. It identifies `tool_returned` records explicitly; it
+does not expose credentials or dump provider bodies. This chapter does not
+execute tools, so an ordinary chat session has no such target yet. Say so
+when the history has none. The public controlled-result consumer still
+demonstrates successful redaction; Chapter 3 adds naturally occurring results
+that the person can select through this same history command.
+
+An unknown command or malformed command syntax prints a short local error
+and another prompt, without recording an event or contacting the API.
+Prefix a leading slash with another slash to submit it literally:
+`//help` sends `/help` to the model. No other slash-command guessing is allowed.
+An actual operation failure, including an invalid recorded redaction target,
+still uses the safe fail-fast policy: report the reason on stderr, exit
+nonzero, and do not print a successful-session usage summary. This chapter
+does not add automatic retry or recovery from a faulted Agent.
+
+Accept human input lines up to 1 MiB of UTF-8 bytes excluding the line ending,
+with either LF or CRLF. Exactly the limit is valid. Reject invalid UTF-8 or
+a longer line with a safe diagnostic and nonzero exit before submitting it;
+never send a silently truncated prompt. Multiline editing and terminal escape
+interpretation are outside this chapter. At clean EOF or `/quit`, finish the
+current completed interaction, print a readable final usage summary with all
+four named counts, and exit zero. An empty chat session reports zero totals.
+Configuration failure occurs before any banner or prompt. Keys never appear
+in the banner, input transcript, output, or diagnostics.
+
+The CLI remains a presentation client. It must not own a second conversation,
+HTTP client, or orchestration loop. A human prompt and the equivalent protocol
+message reach the same public submission path; only their input and output
+formatting differ.
+
+### The machine protocol
+
+Protocol mode emits no banner, prompt, terminal formatting, or chat command
+interpretation. Its exact JSON-lines behavior remains:
 
 | Input line | Output line and effect |
 |---|---|
@@ -700,6 +781,7 @@ examines ownership or imports.
 | Redaction | Plain fixture renders its content; redacted fixture omits it, keeps pairing/reference, and does not grow an auxiliary redaction index |
 | References | All three kinds survive dump; old path and zero kind fail there; URI mapping and redacted locator preservation have separate controls |
 | Clients | Two independent Agents, public external consumer, optional GUI-stub module, Agent-attributed ordered observations, unregister-on-close, headless build |
+| Human chat | Actual terminal default and explicit chat; flushed prompt, ordinary text, multiline answer display, blank line, commands, slash escape, four usage counts, EOF/quit, exact input ceiling and safe failure; explicit protocol and redirected default retain exact prior bytes |
 | Credentials | Offline paths need no key; logs, diagnostics, request bodies, and observer events contain no key; local errors retain safe timeout/cancellation causes |
 | Real use | All three CLI backends plus public consumer exercise implemented features; local faults and GUI-stub tests are labeled separately |
 
@@ -720,7 +802,26 @@ the unanswered-call rule or establish final chapter validation.
 
 ## 2.10 Taking it for a spin
 
-The October 7, 2026 runs used the actual CLI against all three APIs. Each
+Start the built executable with `chat` in a terminal, after setting the
+provider variables and a fresh `CH02_LOG` as described in §2.7. Type a request
+for an invented two-word code name. Wait for its readable answer and the next
+`You> ` prompt, type `/ephemeral` followed by a one-request marker, then ask
+for the original code name and its reversed form. Use `/usage`, `/history`, and `/help`,
+try a blank line and a malformed local command, then leave with `/quit`.
+Repeat clean EOF in another session. No JSON wrapper belongs around the
+questions a person types.
+
+The coder must perform this interaction in an actual PTY with each real API,
+waiting for prompts and inspecting displayed answers. Preserve sanitized
+terminal transcripts, source identity, selected/returned model identities,
+logs and usage. Exercise the same mode's remaining features through concrete
+user actions; controlled fixtures still cover failures and redaction targets
+that this chapter's no-tool CLI cannot create. These terminal receipts are
+pending. They must not be described as a session Bill personally ran.
+
+### Earlier machine-interface receipts
+
+The October 7, 2026 initial runs used the JSON-lines CLI against all three APIs. Each
 session invented a code name, recalled it, then reversed it. Between the
 first two questions, an ephemeral directive added a diagnostic marker.
 The Messages run received these input lines:
@@ -765,10 +866,10 @@ These are offline reconstructions of live history, not intercepted HTTP
 bodies. Repeated full-log rendering produced identical bytes without
 credentials, and dumping preserved the recorded facts.
 
-To repeat the CLI exercise, build `./cmd` from the Chapter 2 module, use a
+To repeat this earlier machine-protocol exercise, build `./cmd` from the Chapter 2 module, use a
 fresh `CH02_LOG` destination, and select an available model as described in
 §2.7. Supply the selected API credential through the environment. Feed the
-four lines above, end input, then run `dump` and `render LOG` without a key.
+four lines above to `protocol`, end input, then run `dump` and `render LOG` without a key.
 Save both render outputs and compare them. A new run need not invent the
 same code name; recall, transformation, and recorded state are the checks.
 
@@ -841,3 +942,5 @@ It passed module checks, the inherited grader, 44 independent acceptance
 checks, and a control plus ten deliberate defects. The broader legacy suite
 also passed. Those internal revisions were checked locally; the chapter
 does not claim that the paid demonstrations were repeated afterward.
+The human chat addition requires a new source checkpoint and terminal
+receipts; the earlier successful checks remain evidence for their original scope.

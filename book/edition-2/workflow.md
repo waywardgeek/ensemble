@@ -127,7 +127,13 @@ WebSocket implementation remains in the separate optional GUI module.
    interface with a real model backend, initially through the CLI. Maintain a
    feature-to-user-action checklist covering every chapter feature and record
    observed outcomes with date, command, and actual provider/model. Internal
-   calls and fake servers cannot replace this check. Mark the Chapter 2 GUI
+   calls and fake servers cannot replace this check. From Chapter 2, provide
+   a human chat mode accepting ordinary text with understandable responses.
+   Coder and reader use that same mode: the coder must exercise it through an
+   interactive terminal, observe replies, and send follow-ups with real models.
+   Piped JSON sessions remain machine-interface evidence and cannot satisfy
+   this gate. The chapter gives the reader the invocation and interactive
+   steps; never claim a reader ran them unless observed. Mark the Chapter 2 GUI
    stub honestly. Use credentials from `~/.cr/settings.json` without printing
    them, logging them, or copying them into repository files. Keep secrets in
    memory or child environments; keep commands and evidence sanitized. A live

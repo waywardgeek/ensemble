@@ -112,7 +112,8 @@ the current architecture decisions, and this chapter's detailed contract.
    read, search, listing, and captured command output; report truncation.
    A command's nonzero exit status is a result of execution, not a malformed
    tool call. Report stdout, stderr, and the actual process exit status.
-7. Preserve the JSON-lines CLI, `render LOG`, `dump`, and `CH02_LOG`.
+7. Preserve Chapter 2's human `chat`, explicit machine `protocol`, terminal
+   mode selection, `render LOG`, `dump`, and `CH02_LOG`.
    Emit one assistant line containing the final model response per completed
    user turn. Intermediate text and tool facts stay in history and observer
    events. Sum usage across all accepted responses, not just the final one.
@@ -121,9 +122,11 @@ the current architecture decisions, and this chapter's detailed contract.
    and round-limit errors end the CLI session without a fabricated final
    answer or success-usage line. Keep already accepted history and effects.
 9. Demonstrate every tool and its important failure paths through the actual
-   CLI/public library on the three real APIs. Separate deterministic fault
-   fixtures from live evidence. Compare the initial answer with the first
-   edition only after the initial build and run, then revise code and prose.
+   human chat in an actual terminal and the public library on the three
+   real APIs. Separate deterministic fault
+   fixtures from live evidence. After the initial build and run, an independent
+   reviewer compares with the first edition and supplies findings; revise
+   code and prose without giving the student the old answer.
 
 **Yours.** Internal names, implementation structure within the architecture,
 tool description wording, and presentation of ordinary tool output. The
@@ -254,9 +257,11 @@ ends a line instead of creating an extra empty line. An omitted end reads
 through EOF; explicit end zero has the same meaning. Reject start below
 one, a positive end before start, or a start beyond EOF. An end beyond EOF
 stops at EOF. Reading an empty
-file with the default full-file range succeeds with empty content; an
-explicit range into an empty file fails. The tool must distinguish that
-valid empty result from an I/O error.
+file with the default full-file range succeeds with empty content.
+`end_line:0` alone also means that full-file read and succeeds on an empty
+file. An explicitly supplied `start_line`, even 1, or a positive `end_line`
+names a line target and fails on an empty file. The tool must distinguish
+that valid empty full-file result from an I/O error.
 
 Truncation must be visible in the result, outside the retained-content
 byte budget. Report it when content was omitted, not merely when a complete
@@ -264,6 +269,15 @@ result exactly fills its limit. State which limit was reached so the model
 can request a narrower range or an explicit larger limit. Numbered lines or a short
 header are acceptable; returning an entire file for a requested two-line
 range is not. A read failure returns a tool error with the path and reason.
+
+Byte caps apply to retained UTF-8 text, before JSON encoding. For valid
+UTF-8 input, keep the longest complete prefix that fits the budget: if the
+cut falls inside a code point, omit that incomplete final code point and
+report the omitted content. Letting JSON replace a broken byte with a
+replacement character both changes the text and can exceed the byte cap.
+Apply this boundary rule to reads, listings, search output, and each captured
+command stream. Preservation fixtures use valid UTF-8 text; this chapter
+defines no transcoding format for arbitrary binary or invalid UTF-8 bytes.
 
 `list_directory` is one level deep, sorted by entry name. Return names and
 distinguish directories, for example with a trailing slash. Respect the
@@ -414,6 +428,13 @@ print a child's exit status while returning a different status itself;
 that output is evidence about the wrapper, not a substitute for reading
 the process status.
 
+Use the three-byte UTF-8 text `éX` to test a cap independently of ASCII
+output. A one-byte cap retains an empty prefix and reports omission; a
+two-byte cap retains exactly `é` and reports the missing `X`; a three-byte
+cap retains `éX` with no truncation notice. Exercise both read_file and
+run_command's stdout with these cases. A decoded replacement character is
+a failure, even if the encoded JSON is syntactically valid.
+
 Use the deferred-human fixture printed in Chapter 2 to test result-first
 rendering. Its call, later human input, and result must all survive replay.
 Also verify that loading, dumping, and offline rendering a log containing
@@ -449,7 +470,8 @@ that failed to create their input.
 ## 3.9 Exercise and acceptance
 
 Keep the previous command and environment contracts, including explicit
-model selection and `CH02_LOG`. No additional CLI mode is needed. In a
+model selection and `CH02_LOG`, and implement Chapter 2's human chat revision.
+No additional tool-specific CLI mode is needed. In a
 public consumer, the same Ensemble request service runs the loop, and
 the same observer receives its persisted tool facts with Agent ID and
 sequence. Tools have no GUI imports or direct GUI calls. The separate
@@ -488,8 +510,9 @@ instead of claiming the broad old check already proves the narrower rule.
 | Public clients | CLI final-answer protocol, observer attribution/order, headless consumer and optional GUI stub remain usable |
 | Real use | All six tools and recovery paths exercised through the actual program on all three provider paths, with disk and request/log evidence |
 
-After the first run, compare the new answer with the first-edition standard.
-Look for duplicated schema metadata, awkward dispatch, missing diagnostic
+After the first run, an independent reviewer compares the new answer with
+the first-edition standard. The student does not read the old source. The
+reviewer looks for duplicated schema metadata, awkward dispatch, missing diagnostic
 context, and comments that explain syntax instead of the invariant. Retain
 the initial answer and the findings, revise code and teaching, rerun affected
 checks, and obtain review of the revision. Passing is the start of that
@@ -497,36 +520,128 @@ comparison, not its conclusion.
 
 ## 3.10 Taking it for a spin
 
-Build the new CLI and run it in a fresh scratch workspace with a fresh
-explicit log path. Supply credentials through the environment and select
-an actually available tool-capable model using current provider information.
-If replay material requires a resolved model identity, configure its known
-value through Chapter 2's public configuration or `LLM_RESOLVED_MODEL`
-before the turn. Automatic continuation obeys the same exact-provenance
-rule; it must not guess an alias after tools have already changed files.
-Repeat the feature checklist on Messages, Chat Completions, and
-generateContent; record selected and returned model IDs without assuming
-the old book's defaults are still available.
+Use `chat` in an actual terminal/PTY and type ordinary requests. Ask for the
+six-tool exercise below, inspect the readable result, and follow up at the
+next visible prompt. Use `/history` to find a real `tool_returned` sequence,
+then `/redact N N demonstration` using that displayed number. Ask a further
+question and inspect the recorded request to verify the result became a stub
+while its pairing survived. `/usage` reports the same accounting as protocol
+mode. Human chat calls the same Agent and tool loop; it needs no jobs, actor,
+or model streaming to be usable.
 
-Ask the model to list the directory, create a small text file, read a range,
-search for a word with context, replace a unique fragment, and run a short
-command that verifies the final bytes. Inspect the file independently.
-Then ask a follow-up that depends on an earlier answer so a tool session
-cannot conceal lost conversation history.
+All-three-API PTY demonstrations of this interface are pending after the
+usability correction. The following receipts establish the earlier machine
+interface and tool behavior. They are retained without relabeling them as
+human chat or as a session Bill personally ran.
 
-Exercise the overwrite refusal and a failed edit, then let the model recover
-with explicit overwrite permission or a corrected unique anchor. The record
-must show the failing result reaching the model and the later successful
-operation. The model may choose a different plan on each run; the retained
-calls and actual disk state determine which features were demonstrated.
+The October 7, 2026 initial sessions ran all six tools through the JSON-lines CLI on
+Messages, Chat Completions, and generateContent. The runner planted only
+`notes.md` in each fresh workspace, then asked the model to list the directory,
+read lines 3–4, search `beta|delta` with context, create a file, edit its
+unique anchor, and run a verification command. The source and receipts are
+preserved at student checkpoint `540fb4a`, following the initial code
+checkpoint `590c4f4`.
 
-Use a public executable consumer for independently configured Agents,
-capability subsets, and observer delivery. Use deterministic fixtures for
-unknown tools, persistence faults, the exact round bound, and output limits
-that a live model will not reliably trigger. Label those controls separately
-from the live program. The GUI remains a stub unless an actual browser
-transport has been implemented and demonstrated.
+The command emitted distinct stream markers and deliberately exited 7.
+The tool returned a successful invocation with that actual status, stdout
+containing the file and `STDOUT-MARKER`, and stderr containing
+`STDERR-MARKER`. The model could report the failed command without losing
+the rest of the turn.
 
-[LIVE RECEIPTS PENDING: new Chapter 3 executable, all three provider paths,
-six tools, failures and recovery, public consumer, measured usage, and
-independent post-run comparison. No new run or acceptance result is claimed.]
+The next prompt tried to replace `created.txt` without permission. On the
+Messages run the result refused replacement of the existing 25-byte file.
+The model then supplied `overwrite:true`, appended `tail\n`, and read the
+result. Independent disk inspection found these exact bytes on all three
+paths:
+
+```text
+replacement
+tail
+```
+
+Another prompt created `first anchor\nsecond anchor\n` in `anchors.txt`.
+The ambiguous edit of `anchor` failed with two matches, the edit of
+`missing` failed with zero, and a read of an absent file failed. The model
+received all three error results, selected `first anchor` as a unique
+target, and completed the repair. Both the tool record and independent
+disk inspection showed:
+
+```text
+first repaired
+second anchor
+```
+
+Each initial CLI session completed four human turns and exited successfully.
+Its measured cumulative usage was:
+
+| Surface and selected model | Input | Cache write | Cache read | Output |
+|---|---:|---:|---:|---:|
+| Messages, `claude-sonnet-5-5` | 56911 | 0 | 0 | 1976 |
+| Chat Completions, `gpt-4.1-mini-2025-04-14` | 4004 | 0 | 20608 | 775 |
+| generateContent, `models/gemini-3.8-flash` | 50081 | 0 | 0 | 1469 |
+
+The first two returned those same model identities; generateContent returned
+`gemini-3.8-flash`. The differing call plans and cache observations make
+these run receipts, not a controlled model-efficiency comparison. Usage
+includes the intermediate tool rounds as well as the final visible answers.
+
+### Repeat the task, including its refusals
+
+Build `./cmd` from the new Chapter 3 module, run it in a scratch directory,
+and select a fresh `CH02_LOG`. Supply credentials through the environment
+and use a currently available tool-capable model. Configure a known resolved
+identity with `LLM_RESOLVED_MODEL` where required for bound replay material.
+Automatic continuation must follow the same provenance rule; it cannot
+guess an alias after tools have changed files.
+
+Plant the five-line fixture from §3.7. The actual
+[input transcript](../../solutions/edition-2/ch03/evidence/ch03/live-anthropic/stdin.jsonl)
+contains the four prompts used above; feed those lines to `protocol` and end
+input. Inspect the resulting files yourself. Then dump and render the
+recorded log twice without credentials. In all three original runs the
+renders were byte-identical, the original log stayed unchanged, and the
+scratch-file hashes stayed unchanged. Offline replay executed no edit.
+
+The initial recall question asked for a supplied code name and status.
+The later guided-revision runs used a stronger check: the model invented
+its first answer, then had to recall that exact answer in the next turn.
+Messages returned `Silent Seven` twice, Chat Completions `SilentEcho`
+twice, and generateContent `Cobalt Falcon` twice.
+
+Those revision runs also exercised the clarified empty-file rule through
+actual calls. An omitted range and an `end_line:0`-only range both returned
+valid empty text. An explicit `start_line:1` returned an ordinary tool error.
+The turn continued and a silent `exit 7` still produced status 7 without
+becoming a tool error. The receipts retain the guided revision's source
+hashes rather than attributing these results to the earlier binary.
+
+### Same filename, different Agents
+
+The public program in
+[`examples/tools-consumer`](../../solutions/edition-2/ch03/examples/tools-consumer/main.go)
+created two workspaces containing a different `same.txt`. One Agent received
+only read_file; the other received read_file and list_directory. Each real
+model used its Agent's tool and returned the corresponding marker,
+`NORTH-314` or `SOUTH-927`, on every API path. The shared filename never
+made one Agent read the other's directory.
+
+The consumer also checked Agent-attributed, increasing observer sequences,
+including actual call/result events, and stopped receiving events after
+unsubscription. A third Agent selected no tools and completed a real text
+turn with `READY`. Unknown/disabled dispatch, exact round bounds, and
+persistence faults are separately labeled deterministic controls. The
+optional GUI is still a stub tested through its public module boundary;
+these runs make no browser or WebSocket claim.
+
+The [feature ledger](../../solutions/edition-2/ch03/evidence/ch03/FEATURES.json)
+links initial CLI, consumer, offline, and guided-revision evidence. Comparative
+review subsequently exposed the split-UTF-8 cap defect now described in
+§§3.5 and 3.7. The corrected reviewed binary passes the deterministic
+Unicode controls and all 39 independent acceptance cases; eight checker
+controls and a passing control plus five deliberate defects also pass with
+their expected outcomes. The earlier successful ASCII demonstrations do
+not prove the multibyte case. Comparative revisions are accepted; the full
+legacy retry also passed. Independent proofreading is accepted, and the
+revised source is checkpointed at `7cbbd8e2`. The newly required human chat
+revision and actual terminal runs reopen the client-validation gate;
+these earlier checks do not satisfy it.

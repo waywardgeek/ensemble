@@ -1,0 +1,11 @@
+?   	github.com/waywardgeek/ensemble/cmd/fakevendor	[no test files]
+?   	github.com/waywardgeek/ensemble/cmd/grade	[no test files]
+?   	github.com/waywardgeek/ensemble/cmd/lintprose	[no test files]
+?   	github.com/waywardgeek/ensemble/internal/fakeanthropic	[no test files]
+ok  	github.com/waywardgeek/ensemble/internal/fakevendor	0.008s
+ok  	github.com/waywardgeek/ensemble/internal/grade	508.374s
+ok  	github.com/waywardgeek/ensemble/scripts/edition2/packagecheck	0.043s
+?   	github.com/waywardgeek/ensemble/solutions/ch01	[no test files]
+ok  	github.com/waywardgeek/ensemble/solutions/ch02	4.030s
+ok  	github.com/waywardgeek/ensemble/solutions/ch03	4.140s
+ok  	github.com/waywardgeek/ensemble/solutions/ch04	3.981s

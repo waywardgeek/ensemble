@@ -184,6 +184,22 @@ the CLI. Verify that a real user can exercise **every feature in the chapter**.
 Do not substitute direct calls to internal functions, a fake server, or a
 fabricated transcript for the user path.
 
+**The CLI must have a human chat mode.** Starting in Chapter 2, the reader
+must be able to launch it, enter ordinary text, see understandable answers,
+continue the conversation, and exit without constructing JSON. Teach its
+invocation and behavior in the chapter before implementing it. Preserve the
+machine protocol for automation as a separate interface.
+
+The coder must drive that same human mode in an actual interactive terminal
+(a PTY is suitable), observe each response, and then send follow-up input.
+Exercise the chapter's features and recovery paths with the supported real
+providers, retaining sanitized terminal evidence. Feeding JSON lines to stdin
+does not fulfill this human-interface gate, even with a real backend. A direct
+shell or debugger run outside Ensemble does not prove Ensemble's interface.
+"Taking it for a spin" must guide the reader through this usable mode and
+report the coder's actual run. Do not claim Bill or another reader tested it
+unless that happened; their separate participation is not an invented receipt.
+
 Before running, map each chapter feature to a concrete user action and an
 observable result. Exercise the real interface, inspect the results, and record
 the command, date, provider/model actually used, and sanitized evidence for

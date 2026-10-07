@@ -54,6 +54,23 @@ that limitation; their implementation validation is a separate claim.
 
 ## Current state
 
+- **Active correction:** Bill explicitly requires a human chat mode from
+  Chapter 2 and actual coder interaction through that mode with real models.
+  Piped JSON is machine-protocol evidence, not the human usability gate.
+  The author is publishing the new contract and chapter-procedure rule before
+  a fresh new-only coder implements it. Carry the change into Chapter 3 and
+  demonstrate all three providers before releasing Chapter 4 implementation.
+  The skill, workflow, and Chapter 0 now state this requirement. Preserve the
+  older checkpoints and receipts rather than relabeling them as human tests.
+- Chapter 3 reviewed snapshot: `7cbbd8e2e0101e40dee63fe18d05f48b791c55ff`, clean.
+  Earlier scope passes: all four modules format/vet/test; inherited100;
+  independent39/39; eight checker controls; control+five exact-failure mutants;
+  all-three real machine CLI/public-consumer and guided correction receipts;
+  independent standard comparison and full manuscript review. The first full
+  root retry failed for disk exhaustion; cache cleanup recovered space and
+  the final full retry passed exit0 (`internal/grade` 508.374s). Human-chat
+  validation remains a new open gate. No root tests are still running.
+
 - Main workflow review requirement committed as `1d3b6c9`.
 - Independent acceptance/package tooling and evidence committed as `602ae87`.
 - Chapter 1 student final revision: `75542c1c73388fa1ab618dbb8b1e252e3d80816a`.
@@ -61,7 +78,7 @@ that limitation; their implementation validation is a separate claim.
   Chapter 1 passed implementation, required live demonstrations, scoped audits,
   code-quality comparison/revisions, and final prose review. Bill's separate
   editorial approval is not claimed.
-- Chapter 2 validated checkpoint: `cc1bec45c3327c87728a4040f762155d8e860a0b` in
+- Chapter 2 prior-contract checkpoint: `cc1bec45c3327c87728a4040f762155d8e860a0b` in
   `solutions/edition-2/ch02/`, derived from `75542c1`. Initial student checkpoint
   `39a92ca27a418712832ac0dcbbfbe4e32b3bca35` is retained. All three live CLI and
   public-consumer paths succeeded; receipts are in `evidence/ch02/`. Independent
@@ -72,9 +89,9 @@ that limitation; their implementation validation is a separate claim.
   passing legacy reference/mutation tests. Full root regression passed exit 0,
   with `internal/grade` 513.863s. See `chapter-02-validation.md`.
 - Chapter 0's execution guide is written and independently reviewed.
-  Chapter 3's contract is independently reviewed. Fresh `/root/coder_ch03`,
-  launched with `fork_turns="none"`, now implements it from new-only sources.
-  The author is drafting Chapter 4; it is not yet released for implementation.
+  Chapter 3's fresh coder used `fork_turns="none"` and new-only sources; its
+  reviewed snapshot is recorded above. Chapter 4's contract passed review,
+  but it is not yet released for implementation because of the human CLI gate.
   Chapters 1 and 2 now motivate the rules and visibly teach skill loading,
   following Bill's forwarded CodeRhapsody advice.
 

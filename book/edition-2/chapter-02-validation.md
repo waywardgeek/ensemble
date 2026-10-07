@@ -1,7 +1,10 @@
 # Chapter 2 validation
 
-Date: 2026-10-07. Implementation, independent comparison/revision, and live
-demonstrations are validated. Bill's editorial approval is a separate status.
+Date: 2026-10-07. The earlier implementation, comparison, and machine-protocol
+demonstrations passed. Bill subsequently required human chat mode and actual
+interactive terminal runs; that new client gate is reopened and pending.
+The evidence below describes the earlier scope. Bill's editorial approval is
+a separate status.
 Initial student checkpoint: `39a92ca27a418712832ac0dcbbfbe4e32b3bca35`.
 Reviewed checkpoint: `cc1bec45c3327c87728a4040f762155d8e860a0b`, clean, in
 `solutions/edition-2/ch02/`. Both histories are preserved.

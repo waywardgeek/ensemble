@@ -7,6 +7,16 @@ Chapter 0 and the ending/preservation plan are committed as `24867ca`.
 
 ## Current chapter
 
+**Current priority: human chat mode, starting in Chapter 2.** Bill identified
+that the real-model JSON-lines sessions did not exercise the terminal mode a
+person would use, and explicitly requested a chapter requirement. The author
+is publishing the human CLI contract before implementation; the mandatory
+skill, workflow, and Chapter 0 now require actual interactive-terminal use.
+Reopen the Chapter 2/3 client gates while preserving their earlier evidence.
+Do not release Chapter 4 implementation until this correction is carried forward
+and demonstrated with real models on all three provider paths. A direct shell
+or Delve session outside Ensemble does not fulfill the new gate.
+
 Chapter 1 is validated against the current chapter contract, with independent
 quality review and real-model receipts. Final student checkpoint:
 `75542c1c73388fa1ab618dbb8b1e252e3d80816a` in the separate
@@ -34,7 +44,8 @@ static analysis and nonexhaustive mutation coverage.
   motivation and the visible skill-loading instruction. Reviewer accepted
   those revisions and the first-edition comparison's code/teaching corrections.
 
-Chapter 2 is validated at `cc1bec45c3327c87728a4040f762155d8e860a0b`.
+Chapter 2's earlier contract passed at `cc1bec45c3327c87728a4040f762155d8e860a0b`;
+the new human chat requirement remains pending.
 Initial student checkpoint `39a92ca27a418712832ac0dcbbfbe4e32b3bca35` is retained,
 derived from the reviewed Chapter 1 history. All three real CLI and public-consumer demonstrations succeeded;
 sanitized receipts include the initially rejected provider requests and their
@@ -59,13 +70,39 @@ See `chapter-02-validation.md`; Bill's editorial approval remains separate.
   ordering and copy boundaries. All requested revisions are accepted and passed
   the affected checks without repeating unchanged paid demonstrations.
 
-Chapter 3's contract passed independent review after clarifying search
-truncation, binary-file policy, and explicit resolved model identity for tool
-continuations. A new student, `/root/coder_ch03`, was launched with
-`fork_turns="none"` and only an explicit new-material handoff. It will derive
-`solutions/edition-2/ch03/` from the reviewed Chapter 2 history and keep an actual
-read ledger. Chapter 4 source research/outline is written; its contract is being
-drafted and has not been released to a student.
+Chapter 3's earlier scope passed at reviewed snapshot
+`7cbbd8e2e0101e40dee63fe18d05f48b791c55ff`; its new human client gate remains open.
+Its fresh
+student, `/root/coder_ch03`, was launched with `fork_turns="none"` and only an
+explicit new-material handoff. The initial implementation `590c4f4` and
+initial run checkpoint `540fb4a` share identical production code and derive
+from the reviewed Chapter 2 history. The source-read ledger records new-only
+inputs. All three real CLI and public-consumer demonstrations succeeded.
+
+- The frozen initial binary scored 65 with incompatible inherited fixtures,
+  then 100 after grader-only corrections for Gemini JSON Schema and explicit
+  fake resolved-model identity. Targeted legacy reference/mutation tests pass.
+- Independent initial acceptance passed 33 of 36 scenario groups; the failures
+  exposed the empty-file `end_line:0` teaching gap. The author clarified it
+  before the guided fix. Initial evidence remains distinct from revisions.
+- Review corrected a concrete capture parent to a common interface, replaced
+  unnecessary whole-configuration copies with an Agent-owned workspace query,
+  and found a UTF-8 byte-cap defect shared with the historical answer. The
+  author taught complete-code-point prefixes before the student corrected it.
+- Revised production passed 39 independent checks, eight checker controls,
+  and a control plus five targeted mutations with exact expected failures.
+  Independent code and final prose/receipt review are accepted.
+  Focused live checks of the empty-file correction and silent command failure
+  succeeded on all three providers. Unchanged paid demonstrations are retained.
+- Full legacy regression hit linker errors from a full disk. The failed log is
+  preserved; clearing only the disposable Go build cache recovered space.
+  The full retry passed with exit 0 (`internal/grade` 508.374s), and root vet
+  and changed-file formatting passed. The new human-mode requirement remains
+  independent of these passing gates.
+
+Chapter 4's complete contract passed independent review; it has
+not been released to a student. Its asynchronous events must coexist with
+response identity assignment under Agent append serialization.
 
 Chapter 0's execution guide is written and independently reviewed at
 `book/edition-2/chapter-00.md`. It covers roles, skills, architecture,
@@ -97,12 +134,13 @@ old implementation into the new solution.
 
 ## Roles and next actions
 
-- Author: reconcile Chapter 2's final status, resolve Chapter 3 review, and
-  draft Chapter 4; preserve the requested voice improvements.
-- Coder: Chapter 2 role complete. Fresh `/root/coder_ch03` implements Chapter 3
-  from the reviewed new contract, with no coordinator-history inheritance.
-- Global reviewer: review Chapter 4's contract and new student work; preserve
-  independence from the coder/author and maintain whole-book guidance.
+- Author: publish Chapter 2's human CLI contract and reader instructions;
+  update the chapter procedure and carry the requirement into Chapters 3/4.
+  Chapter 5 research is secondary to this correction.
+- Coder: `/root/coder_ch03` finished the reviewed snapshot. Use a fresh new-only
+  coder for the Chapter 2 client revision after its contract is reviewed.
+- Global reviewer: review the human CLI teaching and independent terminal
+  acceptance; Chapter 4 contract was accepted, but its student handoff waits.
 - Coordinator: independent acceptance/property audit, enforce architecture,
   integrate evidence, and advance only when the chapter meets all gates.
 
@@ -120,7 +158,8 @@ Children follow interface parent chains to data and logger. Ensemble is the
 working application-root name and logger owner; Agent owns config/history;
 Engine owns transport/usage. Observer carries live events, while explicit
 parent methods can supply services and action requests. Registry ownership
-remains a decision for the tools chapter; visibility must be per-agent.
+is currently Agent-owned under Chapter 3's working choice; visibility remains
+per-agent even if a later design shares storage on Ensemble.
 
 Chapter 2 introduces CLI and browser client seams. GUI/WebSocket belongs in a
 separate optional Go module and may be an honest stub then. Each chapter must

@@ -247,8 +247,14 @@ not evidence that the complete feature is usable.
 **The coder must run the chapter's real user interface with a real model
 backend and exercise every chapter feature. Initially that interface is the
 CLI.** This happens before the author writes the chapter's demonstration.
-Fake-server grading, internal function calls, and plausible output cannot
-substitute for a live user exercising the program.
+From Chapter 2, the CLI has a human chat mode: ordinary text, visible prompts,
+readable answers, and usage. Exercise that mode in an actual terminal/PTY,
+waiting for its prompts and reading its answers. The coder may drive the PTY,
+but may not replace this interaction with JSON-lines protocol input or call it
+a session Bill personally ran. Retain machine-protocol runs as separately
+labeled interface evidence. Human chat cannot be deferred to the jobs chapter.
+Fake-server grading, internal function calls, scripted JSON conversations,
+and plausible output cannot substitute for the human-mode live interaction.
 
 Create a feature checklist with a concrete user action and observable result
 for each capability. Run the actual snapshot's executable. Record:

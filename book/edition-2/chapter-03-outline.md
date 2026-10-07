@@ -1,7 +1,11 @@
 # Second edition: Chapter 3 outline
 
-Status: complete contract/prose draft independently reviewed and ready for
-fresh student handoff; no implementation or new live evidence.
+Status: prior tool contract validated at `7cbbd8e2`, with initial checkpoint
+`590c4f4` retained. Independent comparison and final prose review accepted;
+39 acceptance cases, eight checker controls, control plus five mutants, and
+full legacy regression passed. Human-client validation is now reopened under
+Bill's ordinary-text chat requirement. Chapter 2 teaches the new client;
+Chapter 3 requires real PTY runs of tools and history-selected redaction.
 
 ## Voice plan
 

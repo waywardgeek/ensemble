@@ -1,12 +1,22 @@
 # Chapter 2 evidence and source reconciliation
 
-Status: validated at reviewed student checkpoint
+Status: human-client validation reopened; prior contract validated at reviewed student checkpoint
 `cc1bec45c3327c87728a4040f762155d8e860a0b`. Initial implementation and
 all-three-provider CLI/public-consumer live receipts remain bound to
 `39a92ca27a418712832ac0dcbbfbe4e32b3bca35` and its per-run source ledger.
 Independent comparison, revisions, and acceptance are complete. Bill's
 editorial approval is separate; strict blind-context certification is not
 claimed for this pilot (see the qualification below).
+
+## Human client correction
+
+Bill identified that JSON-lines input is a machine interface rather than
+human chat. Added the new contract in §2.7 before implementation: explicit
+chat/protocol, terminal auto-selection, flushed prompt/readable answer,
+local commands, history-derived redaction targets, exact line ceiling and
+error/EOF behavior. Procedure now requires actual PTY interaction with all
+three real APIs from Chapter 2. Existing API/protocol receipts remain valid
+for their measured scope. Human-mode source, checks, and receipts are pending.
 
 ## Reading
 

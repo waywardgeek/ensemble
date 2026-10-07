@@ -181,11 +181,13 @@ func ch3Env(vendor, baseURL, work, logPath string) []string {
 		"LLM_VENDOR="+vendor,
 		"LLM_API_KEY=course-grader-fake",
 		"LLM_MODEL="+ch2RequestedModel(vendor),
+		"LLM_RESOLVED_MODEL=",
 		"CH02_LOG="+logPath,
 		"CH03_LOG="+logPath,
 	)
 	if baseURL != "" {
 		env = append(env,
+			"LLM_RESOLVED_MODEL="+fakevendor.Models[vendor],
 			"LLM_BASE_URL="+baseURL,
 			"ANTHROPIC_BASE_URL="+baseURL,
 			"OPENAI_BASE_URL="+baseURL,

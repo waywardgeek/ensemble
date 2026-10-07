@@ -283,6 +283,17 @@ each supported provider as its adapter enters the book: Chapter 1 uses
 the Messages API, and Chapter 2 adds Chat Completions and generateContent.
 The multi-provider chapter needs all three paths to work.
 
+Starting in Chapter 2, the CLI also needs a human chat mode. The reader
+launches it, types ordinary text, reads the answer, and follows up in the
+same conversation. The chapter explains how to do that without constructing
+JSON. The coder must use that same mode through an interactive terminal,
+observing replies before sending follow-ups, with real models on all three
+provider paths. A PTY lets the coder exercise the terminal interface directly.
+Piped JSON sessions test the machine protocol and remain separate evidence.
+Neither those sessions nor a direct debugger run outside Ensemble proves
+that a person can use Ensemble interactively. Record actual coder runs;
+do not attribute them to a reader or to Bill.
+
 Before a run, map every chapter feature to an action a user can perform
 and an observable result. Use an external executable consumer when the
 feature belongs to the public library rather than the CLI. A direct call

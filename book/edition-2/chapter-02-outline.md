@@ -1,12 +1,20 @@
 # Second edition: Chapter 2 outline
 
-Status: validated at `cc1bec45c3327c87728a4040f762155d8e860a0b` after
-independent comparison and revision. All-three-provider CLI/public-consumer
+Status: human-client validation reopened. Prior contract validated at
+`cc1bec45c3327c87728a4040f762155d8e860a0b` after independent comparison
+and revision. All-three-provider machine-CLI/public-consumer
 receipts retain their source binding at initial checkpoint
 `39a92ca27a418712832ac0dcbbfbe4e32b3bca35`; no later paid rerun is claimed.
 Bill's editorial approval remains separate. See evidence for the pilot's
 inherited-context qualification.
 Student handoff includes the formal sections as well as the TL;DR.
+
+Bill requires actual human chat now, not JSON-lines input described as chat.
+The published §2.7 contract adds explicit chat/protocol modes, terminal
+default selection, visible prompts, ordinary text, readable answers and
+usage, discoverable history/redaction, and precise command/input failure
+behavior. New all-three-API terminal receipts and independent review are
+required. No old receipt is relabeled or attributed to Bill's participation.
 
 ## Voice plan
 

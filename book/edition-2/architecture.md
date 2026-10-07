@@ -81,8 +81,10 @@ of every artifact data type. Specify that public seam before implementation.
   Ensemble as owner, following Bill's preference. Keep headless operation
   possible. This is an explicit working design choice, not a claimed new
   user ruling; interface spelling remains the student's design.
-- Registry ownership: Agent-owned registries versus an Ensemble-owned shared
-  registry with per-agent visibility. Do not encode either as settled yet.
+- Registry ownership: Chapter 3 selects Agent-owned storage as the current
+  implementation choice, with the same visible set governing declarations and
+  dispatch. Bill also permits shared storage on Ensemble; the chapter's choice
+  does not turn either arrangement into a universal architecture rule.
 - Exact public interfaces and module paths for GUI component reuse.
 - Exact request and shared-service methods on the parent interface. Bill has
   resolved that Observer is not exclusive; logging need not be forced into
@@ -91,6 +93,12 @@ of every artifact data type. Specify that public seam before implementation.
 Agent configuration belongs on Agent, per Bill's guidance. The
 existing methodology keeps usage on Engine, which knows the producing model.
 Reachability does not justify moving a fact to a more convenient ancestor.
+
+Chapter 4's reviewed contract selects Agent-owned Jobs, Jobs-owned live Job,
+and an Ensemble-owned application-wide handle allocator. These are explicit
+working design choices. Unique handles do not authorize one Agent to supervise
+another Agent's jobs. Background completion uses Agent's serialized durable
+event path and Observer, including while a model request is in flight.
 
 ## Source reconciliation
 

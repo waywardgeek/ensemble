@@ -1,8 +1,11 @@
 # Chapter 3 independent contract and prose review
 
-Date: 2026-10-07. Status: contract ready for the student handoff after the
-bounded clarifications below. Implementation, live demonstration, deletion
-audits, and the post-run standard comparison remain future gates.
+Date: 2026-10-07. Status: final manuscript and live receipts accepted; see
+the post-run review below. The earlier contract review is retained to show
+what the fresh student received. Code comparison and revisions are accepted
+separately, and the coordinator's full legacy regression subsequently passed.
+Bill's later human-chat requirement reopens the client teaching and live gate;
+this review records the earlier scope, not acceptance of that new interface.
 
 ## Reading and scope
 
@@ -67,3 +70,34 @@ into Chapter 3; it does not establish a new live run.
 Future student evaluation must use a fresh context and the new-material-only
 source boundary in the current procedure. Author/reviewer historical research
 is not a student input. Bill's editorial approval remains separate.
+
+## Post-run full-manuscript and receipt review
+
+The reviewer reread the full latest Chapter 3 after reconciliation, including
+the clarified empty-file and UTF-8 rules and the actual spin. Checked all three
+initial CLI stdout streams and neutral logs, recomputing each usage total from
+accepted response records: Messages 56911/0/0/1976, Chat Completions
+4004/0/20608/775, and generateContent 50081/0/0/1469 (input/write/read/output).
+The selected/returned identities agree with the manuscript. Every initial
+path records all six tools, actual error results for overwrite and missing/
+ambiguous anchors, and subsequent recovery. The receipts' independently
+observed final file contents match the printed examples.
+
+Checked the three consumer stdout/report artifacts: NORTH-314 and SOUTH-927
+are read from independent workspaces; the empty-selection Agent returns READY.
+The consumer implementation checks observation attribution/order and performs
+an actual post-unsubscribe event before confirming absence of delivery.
+Checked offline receipt flags and compared the two retained render files
+directly on each surface: byte equality holds, and the receipts identify
+keyless commands, unchanged log, and unchanged scratch-file hashes.
+
+The guided-run stdout/logs separately show Silent Seven, SilentEcho, and
+Cobalt Falcon invented then recalled, and all three empty-read modes plus
+silent exit 7. Their binary hash differs from the initial run as the prose
+states. These are real guided runs, not initial-attempt evidence.
+
+No material prose or receipt blocker remains. The author should replace the
+final pending UTF-8/comparison sentence once the coordinator binds the accepted
+revision and remaining full-regression gate. UTF-8 sensitivity and the accepted
+code changes are recorded in `chapter-03-code-review.md`; no new paid run is
+claimed for that deterministic boundary correction.

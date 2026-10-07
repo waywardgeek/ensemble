@@ -66,3 +66,34 @@ checks. It records source hashes and excludes repository metadata and evidence
 from the disposable copies. This scoped audit does not establish every event
 transition, public Go ownership, provider parsing, GUI behavior, or live
 usability; those require the separate chapter acceptance and review evidence.
+
+## Chapter 3 CLI and tool checks
+
+```sh
+(cd solutions/edition-2/ch03 && go build -o /tmp/ensemble-ed2-ch03 ./cmd)
+python3 scripts/edition2/accept_ch03.py /tmp/ensemble-ed2-ch03
+python3 scripts/edition2/audit_ch03.py solutions/edition-2/ch03
+python3 -m unittest discover -s scripts/edition2 -p test_accept_ch03.py
+```
+
+`accept_ch03.py` exercises thirteen scenario groups on each of the three fake
+provider surfaces. It checks the actual CLI, requests, persisted events, and
+disk effects against independent fixtures, including tool errors, bounds,
+UTF-8 preservation, the sixteenth request, failed continuations, and replay.
+The checker was initially written from the published contract before reading
+student source. The later empty-file and Unicode corrections have separately
+recorded initial and revised runs; do not merge them into the initial result.
+
+`audit_ch03.py` builds a passing control and five targeted mutations serially
+in disposable source copies. Each must compile and produce exactly its
+expected failing scenario set. The mutations cover read and command Unicode
+caps, continuing after an ordinary tool error, the request count, and completing
+the final batch. They use the Messages fixture; ordinary acceptance exercises
+all three surfaces. These five mutations do not exhaust the chapter contract.
+
+The CLI checker does not establish public Agent isolation, persistence-fault
+handling, actual parent/logger chains, GUI behavior, or live-model usability.
+Command markers and labels alone do not prove every label-to-stream association;
+the inherited grader, focused tests, and review provide separate evidence.
+Listing/search byte checks bound fixture content rather than prescribing a
+particular presentation header. Keep those limits with the retained receipts.

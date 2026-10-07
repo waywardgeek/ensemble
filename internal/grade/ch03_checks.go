@@ -99,8 +99,11 @@ func vendorToolDecls(vendor string, body []byte) (decls []declaredTool, ok bool,
 			}
 			decls = append(decls, lift(fn, "parameters"))
 		case "gemini":
-			// {functionDeclarations:[{name, description, parameters}]} — the
-			// snake_case spelling is also a valid proto-JSON wire name.
+			// Gemini accepts its Schema form in parameters or a JSON Schema
+			// document in parametersJsonSchema, never both. Preserve the old
+			// form for historical solutions; edition 2 uses the JSON Schema
+			// form so constraints such as additionalProperties survive.
+			// Snake_case spellings are also valid proto-JSON wire names.
 			fds, has := m["functionDeclarations"].([]any)
 			if !has {
 				fds, has = m["function_declarations"].([]any)
@@ -113,7 +116,18 @@ func vendorToolDecls(vendor string, body []byte) (decls []declaredTool, ok bool,
 				if !isObj {
 					return nil, false, fmt.Sprintf("tools[%d].functionDeclarations[%d] is not an object", i, j)
 				}
-				decls = append(decls, lift(fm, "parameters"))
+				schemaKey := "parameters"
+				present := 0
+				for _, key := range []string{"parameters", "parametersJsonSchema", "parameters_json_schema"} {
+					if _, exists := fm[key]; exists {
+						schemaKey = key
+						present++
+					}
+				}
+				if present > 1 {
+					return nil, false, fmt.Sprintf("tools[%d].functionDeclarations[%d] supplies conflicting parameter fields", i, j)
+				}
+				decls = append(decls, lift(fm, schemaKey))
 			}
 		}
 	}
