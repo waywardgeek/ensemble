@@ -426,7 +426,42 @@ first prompt was written before the actor began reading stdin.
 `ch22WaitPort` returning only proves the LISTENER is up, which is weaker than
 "the actor is ready to accept a prompt".
 
-## Remaining: finish stage 9, then 10, 11
+## Stage 10 DONE — plumbing wired, FULL SWEEP GREEN
+
+Committed `9199ea6`: Makefile `grade22` / `grade22-audit` (the latter marked
+BATCH in a comment — six mutants, each a full driven-binary grader run), plus
+`run 22 ./solutions/ch22` in `scripts/gradesweep.sh`.
+
+Verified before wiring: `git diff HEAD:agent HEAD:solutions/ch22` is EMPTY, so
+the stage-7 snapshot has zero tracked drift and the new sweep line targets a
+tree that really passes. `solutions/ch22` grades 100/100 on 7 of 7.
+
+**Full cross-chapter sweep: exit 0, every chapter 100/100.** This was the real
+gate for this chapter: stage 1 replaced ch5's fake `detectLogf` with the
+structural `detectParentChain`, and via the parity cascade that new check runs
+against every later snapshot. Nothing broke. The `common.Host`→`common.Agent`
+rename across 15 files likewise propagated cleanly.
+
+One non-100, NOT ours: `ch19 ./agent` = 85/100. `ch19 ./solutions/ch19` scores
+100 on the same run, which localises it to the missing `agent/events.jsonl`
+already proven pre-existing at `273797c`.
+
+### Defect found by the sweep: ch14's harness leaks five agents per run
+
+The sweep ends with `WARNING: 15 leaked agent process(es) still running`. All
+fifteen were ch14's — every one carried a `--tts-log .../ch14-work-*/tts.log`
+flag, in three batches of five from three sweeps. So ch14's grader leaks
+exactly five agents per invocation and they survive the grader's exit.
+
+Reaped by hand this session (0 remaining). Beware when cleaning up: an
+unrelated long-lived `./ensemble --port 8084` was running at the time and must
+not be matched. Filter on the harness's temp dir, not on the binary name.
+
+Not fixed here — it is a ch14 harness bug, outside ch22's scope, and worth
+raising on its own.
+
+## Remaining: stage 9's last mutant (blocked on the panic), then 11
+
 
 ## !!! CORRECTION — the "flake" is a REAL PRODUCTION BUG, not a grader defect
 
