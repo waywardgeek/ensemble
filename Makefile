@@ -79,11 +79,21 @@ grade19:
 grade21:
 	go run ./cmd/grade -ch 21 ./agent
 
+grade22:
+	go run ./cmd/grade -ch 22 ./agent
+
 grade19-audit:
 	./scripts/ch19-mutants.sh
 
 grade21-audit:
 	./scripts/ch21-mutants.sh
+
+# Mutation audit for the chapter 22 checks. BATCH: six mutants, each one a
+# full grader run that drives the real binary, so minutes not seconds. It
+# mutates tracked files under agent/ and reverts with git checkout, so it
+# refuses a dirty tree there.
+grade22-audit:
+	./scripts/ch22-mutants.sh
 
 grade-dir:
 	go run ./cmd/grade -ch $(CH) $(DIR)
