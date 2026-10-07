@@ -1,5 +1,17 @@
 # Chapter 2: One History, Three APIs
 
+The first edition describes an interface extracted from a working Messages
+client. Its methods accepted `ClaudeMessage` and returned `ClaudeResponse`.
+It looked like preparation for a second provider: the declaration even had
+`interface` in front of it. When another API arrived, it still had to pretend
+to be the first one before it could enter the program.
+
+The clients grew separately, and fixes acquired several places to land.
+That is the mistake this chapter avoids at the first real boundary. Build
+one account of the conversation, then let each API ask for its own spelling.
+The reader should spend a model switch checking its behavior, not untangling
+ownership of the conversation it inherited.
+
 Changing the model should not require rewriting what happened. A tool
 result still came from a tool, even if the next API wants it inside a
 user message. A cached token still belongs to the response that reported
@@ -46,12 +58,14 @@ logger and Agents, Agent owns configuration and its conversation, and
 Engine owns transport and accounting. Replace the narrow text slice
 with events and a derived context inside that architecture.
 
-> **Client revision pending.** Checkpoint
+> **Human client revision accepted.** Checkpoint
 > `cc1bec45c3327c87728a4040f762155d8e860a0b` passed the earlier contract's
 > comparison and acceptance. Its CLI demonstrations used the machine
-> protocol. Human chat at `56dacfad` now has actual terminal demonstrations
-> on all three APIs; independent review and final acceptance of that client
-> revision remain pending. Bill's editorial approval is separate.
+> protocol. Human chat's actual all-three-API terminal runs bind to `56dacfad`;
+> the reviewed revision `ad0d80e3` passed independent acceptance and the
+> recorded mutation audit. The frozen `ch02/` export preserves that accepted
+> source. See [the validation record](chapter-02-validation.md) for scope and
+> chronology. Bill's editorial approval is separate.
 
 ## TL;DR
 
@@ -288,6 +302,14 @@ A `tool_called` record must name an existing, unanswered call with the
 same name and arguments and cannot dispatch that call twice. Validate
 these transitions before writing an event; replay applies the same checks.
 Different Agents retain separate state and sequence spaces.
+
+An Agent's log destination identifies the history it owns for its lifetime.
+Changing the model configuration does not move that history or replace its
+open writer. If the public configuration includes a log path, an update must
+preserve that path; reject a different destination before changing any
+configuration. A configuration snapshot must describe the actual writer,
+not a new filename that the program has quietly ignored. Create a new Agent
+for a new log destination. No live log migration is part of this chapter.
 
 An imported version-1 fixture may omit request/start records and place
 `response_ended` directly after a human input. Apply it as a completed
@@ -865,7 +887,8 @@ The [human-client feature ledger](../../solutions/edition-2/ch02/evidence/ch02/h
 links terminal transcripts, exact source/binary hashes and local controls.
 These are the coder's sessions, not claimed participation by Bill. Runtime
 terminal evidence is macOS; Linux was cross-built rather than live-tested.
-Independent review of this client revision remains open. The earlier
+Independent review of this client revision is accepted; see the
+[validation record](chapter-02-validation.md). The earlier
 machine-interface and public-consumer evidence follows with its original
 source binding.
 
@@ -992,6 +1015,7 @@ It passed module checks, the inherited grader, 44 independent acceptance
 checks, and a control plus ten deliberate defects. The broader legacy suite
 also passed. Those internal revisions were checked locally; the chapter
 does not claim that the paid demonstrations were repeated afterward.
-The human chat addition has its separate checkpoint and terminal receipts
-above; its final review/acceptance remains pending. Earlier successful checks
-remain evidence for their original scope.
+The human chat addition has its accepted checkpoint and terminal receipts
+above; the [validation record](chapter-02-validation.md) records its review
+and remaining scope limits. Bill's editorial approval is separate. Earlier
+successful checks remain evidence for their original scope.

@@ -25,6 +25,23 @@ historical tool-count exhibit only as a dated, private-corpus account; do not
 turn it into a fresh general benchmark. Explain dedicated tools through
 bounded reads, unambiguous edits, and capability selection before schemas.
 
+## Story-preservation pass, voice v5
+
+Sources: first-edition `book/chapter-03.md` §§3.0–3.1 and its tool-use exhibit;
+actual October 7 second-edition Chat Completions terminal/call/disk receipts.
+Keep the historical concentration of ordinary file/shell work as the reason
+for a small tool set, with its existing exhibit link and private-corpus
+qualification. Do not repeat the old agent-narrator percentages as universal
+or current measurements.
+
+Foreground the new observed overwrite omission and correction in the opener;
+retain the exact follow-up and resulting bytes in §3.10. It shows a person
+using the logs to distinguish model narration from effects. The coder drove
+the interaction; no Bill participation is invented. Compress the closing
+acceptance/mutation ledger into the existing validation link while retaining
+the Unicode and verifier lessons. Exact contracts, tables and code blocks
+remain unchanged; original tags and runtime receipts remain historical.
+
 ## Thesis and order
 
 A tool call is part of an unfinished turn. Persist the call, execute it under

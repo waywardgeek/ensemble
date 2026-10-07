@@ -1,6 +1,8 @@
 # Second edition: Chapter 2 outline
 
-Status: human-client validation reopened. Prior contract validated at
+Status: human-client revision accepted at `ad0d80e3`, with independent
+acceptance and mutation audit recorded in `chapter-02-validation.md`.
+Prior contract validated at
 `cc1bec45c3327c87728a4040f762155d8e860a0b` after independent comparison
 and revision. All-three-provider machine-CLI/public-consumer
 receipts retain their source binding at initial checkpoint
@@ -14,8 +16,10 @@ Bill requires actual human chat now, not JSON-lines input described as chat.
 The published §2.7 contract adds explicit chat/protocol modes, terminal
 default selection, visible prompts, ordinary text, readable answers and
 usage, discoverable history/redaction, and precise command/input failure
-behavior. New all-three-API terminal receipts are reconciled into §2.10;
-independent final review/acceptance remains required. No old receipt is
+behavior. New all-three-API terminal receipts and accepted client revision
+are reconciled into §2.10. The separate October 7 story pass awaits editorial
+review, and the newly clarified immutable-log rule needs affected-code checks.
+No old receipt is
 relabeled or attributed to Bill's participation.
 
 ## Voice plan
@@ -32,6 +36,22 @@ relabeled or attributed to Bill's participation.
   fresh measurements.
 - Confession inventory: per-call opaque fixture passed vacuously in the
   original grader, documented by `5a7dfca`.
+
+## Story-preservation pass, voice v5
+
+Source: first-edition `book/chapter-02.md` §2.0, reread October 7. Retain the
+provider-shaped interface incident: methods accepting ClaudeMessage and
+returning ClaudeResponse forced later adapters to inherit the first API's
+assumptions. Restore the memorable contrast between the interface keyword
+and actual neutrality, in third person. The source's line totals, dated
+migration-duration/outage claims and agent-narrator autobiography are omitted;
+the mechanism needs no fresh numeric superiority claim.
+
+The existing port=8080/redaction example then supplies the reader's debugging
+stakes: recover the actual prior request, rather than ask the model to explain
+its memory. This preserves correct construction from the start. The opening
+status now matches the already accepted human-client record; no new run is
+claimed. Contract/code/fixtures remain unchanged by this editorial pass.
 
 ## Thesis
 

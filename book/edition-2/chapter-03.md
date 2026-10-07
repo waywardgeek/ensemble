@@ -5,6 +5,14 @@ lets the model read the file, make the edit, and run a command to check it.
 That makes the distinction between an answer and an action matter: a
 confident sentence is no evidence that the file changed.
 
+The second-edition run supplied a useful example. A model omitted the flag
+that permitted an overwrite, then offered an explanation about parallel
+execution. The call log showed no overwrite request. The file still held the
+old lines. The coder's follow-up supplied the missing instruction, and the next
+calls finally changed the bytes. §3.10 retains that exchange because the
+difference between a proposed edit, an executed edit and a story about an
+edit is the subject of this chapter.
+
 The useful unit is a completed turn. A model can ask for a file, inspect
 the result, ask for another file, and only then answer the human. The
 program must keep that exchange moving without losing a result, confusing
@@ -145,6 +153,11 @@ The inherited score is a regression baseline. The additional acceptance
 table in §3.9 covers requirements that the original grader never protected.
 
 ## 3.3 A call is the middle of an answer
+
+Chapter 2 stopped at a tool-only response and explained that execution was
+not yet available. Replace that notice now. Its old one-response fixtures
+also need a continuation: return the tool result, then a final model answer,
+rather than repeating the same call ID as though it were another response.
 
 Suppose the model asks to read two regions of the same file. Both calls
 have the name `read_file`; the name cannot tell their results apart.
@@ -737,21 +750,15 @@ these runs make no browser or WebSocket claim.
 The [feature ledger](../../solutions/edition-2/ch03/evidence/ch03/FEATURES.json)
 links initial CLI, consumer, offline, and guided-revision evidence. Comparative
 review subsequently exposed the split-UTF-8 cap defect now described in
-§§3.5 and 3.7. The corrected reviewed binary passes the deterministic
-Unicode controls and all 39 independent acceptance cases; eight checker
-controls and a passing control plus five deliberate defects also pass with
-their expected outcomes. The earlier successful ASCII demonstrations do
-not prove the multibyte case. Comparative revisions are accepted; the full
-legacy retry also passed. Independent proofreading is accepted, and the
-revised source is checkpointed at `7cbbd8e2`.
+§§3.5 and 3.7. The earlier successful ASCII demonstrations could not prove the
+multibyte case; explicit Unicode controls did. The
+[validation record](chapter-03-validation.md) retains the acceptance counts,
+deliberate defects, legacy checks and exact reviewed-source chronology.
 
-The later human integration at `a347ce3` passed all 45 independent interface
-cases. A passing control and seven deliberate defects produced their expected
-results. Review required one evidence-only repair at `339a2a6`: the verifier
-now checks its immutable source and executable before producing reconstructed
-requests. Four identity controls passed, including refusals that left evidence
-unchanged. No production code changed and no paid runs were repeated for that
-repair. The independent code and manuscript reviews accepted this revision.
-The dedicated checkpoint identifier is `edition-2-ch03-r1`; its validation
-manifest binds reviewed source, frozen export and evidence. Editorial approval
-remains separate from these recorded checks.
+Human integration also exposed an evidence-tool defect: a temporary pathname
+was being trusted as the executable's identity. Review required the verifier
+to check immutable source and executable hashes before writing reconstructed
+requests. That evidence-only repair changed no production code and required
+no repeated paid run. The accepted checkpoint is `edition-2-ch03-r1`; its
+manifest binds source, frozen export and evidence. Editorial approval remains
+separate from these checks.

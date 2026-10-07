@@ -2,6 +2,8 @@
 
 A build is running, and the reader notices the agent chose the wrong file.
 The correction is short. The wait for somewhere to type it is the problem.
+An interface that accepts the correction only after the work has finished
+turns an instruction into a review comment.
 Chapter 4 keeps the build alive after a tool returns, but a client submitting
 a turn still waits while the model requests another operation. A goroutine
 running the process does not make the conversation responsive.
@@ -12,9 +14,11 @@ messages. The actor can acknowledge a correction while an HTTP request or a
 job-report wait is outstanding. Whether the model has received that correction
 is a separate fact, recorded at the next request.
 
-> **Independently reviewed student contract; architecture accepted.**
-> Predecessor validation still precedes student handoff. No Chapter 5
-> implementation, successful grade, or live demonstration is claimed.
+> **Implementation is awaiting contract grading and live demonstration.**
+> The initial student reports six modules' local checks and core race checks
+> passing. This is not chapter acceptance. The [current gate record](chapter-05-validation.md)
+> tracks grading, live use, independent comparison and manuscript reconciliation;
+> Bill's editorial approval remains separate.
 
 ## 5.1 One Agent, one turn owner
 
@@ -36,6 +40,11 @@ The public blocking call remains: it submits a request to the actor and waits
 for that particular request's completion. A CLI, GUI stub, and embedding
 program must not choose different execution loops merely because one caller
 wants a blocking API.
+
+The first edition put the danger plainly: two loops over one engine mean two
+owners of mutable state. Keeping the old loop for familiar callers would make
+the new actor compete for its own conversation. Preserve the familiar call
+by giving it another entrance to the same owner.
 
 ## TL;DR
 
@@ -425,9 +434,13 @@ The message gives a static useful reason, without echoing input. Such a record
 is not admitted and makes no history or HTTP operation. Malformed JSON and
 invalid legacy directives retain their previous fatal behavior. A real
 request failure with outcome `error` or `round_limit` emits its reliable
-completion, reports the safe reason on stderr and closes the CLI; queued new-format requests receive stopped
-completions during cleanup. No successful-session usage record follows that
-failure. Intentional `interrupted` and `canceled` outcomes are control results:
+completion, reports the safe reason on stderr and closes the CLI. Requests
+still queued when Close is admitted receive `stopped` completions. The actor
+may have started the next prompt before the client observes the failure and
+admits Close; that request follows the active-turn close rules instead. A
+completion or effect accepted before Close is not rolled back. There is no
+implicit actor halt-on-provider-error policy. No successful-session usage
+record follows that failure. Intentional `interrupted` and `canceled` outcomes are control results:
 keep both chat and protocol alive so queued and later prompts can finish.
 `stopped` accompanies explicit close or cleanup; it is not a new provider error.
 

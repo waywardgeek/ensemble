@@ -2,9 +2,11 @@
 
 Status: full contract/prose independently reviewed; all reported findings
 resolved. Coordinator architecture review accepted the working choices.
-Await predecessor gates before student handoff.
-This chapter maps to first-edition Chapter 6. Human-chat correction work in
-Chapters 2–4 remains a separate active gate; no Chapter 5 code or live run.
+The predecessor is accepted at `edition-2-ch04-r1`; the initial student
+implementation reports local checks passing and awaits contract grading and
+live work. See [the validation record](chapter-05-validation.md)
+for current gates; Chapter 5 live success and acceptance are not yet claimed.
+This chapter maps to first-edition Chapter 6.
 
 ## Voice plan and stake
 
@@ -17,6 +19,22 @@ interfaces necessarily serialize independent Agents. Chapter 4 already runs
 jobs asynchronously; the missing ability is to process input while awaiting
 a model or job report. Explain reliable replies with two simultaneous callers
 whose answers cannot be identified by a shared Idle notification.
+
+## Story-preservation pass, voice v5
+
+Source: first-edition `book/chapter-06.md` opener and actor discussion, reread
+October 7. Retain the desire to correct work while it is still happening and
+the memorable two-loops/two-owners explanation. The opening now states the
+human consequence: an instruction accepted only afterward becomes a review
+comment. The blocking API stays familiar by entering the same actor.
+
+Omit the unsupported exact weeks spent separating the historical GUI, the
+old prediction that the GUI chapter comes immediately next, and the claim
+that synchronous APIs necessarily serialize independent Agents. The new
+architecture already separates GUI ownership and allows background jobs;
+the missing capability is admission during an HTTP/report wait. No actual
+Chapter 5 run or new story is invented. Normative contracts and fixtures stay
+unchanged by the editorial pass.
 
 ## Teaching order
 

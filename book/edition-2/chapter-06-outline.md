@@ -1,9 +1,10 @@
-# Second edition: Chapter 6 research outline
+# Second edition: Chapter 6 outline
 
-Status: author research and proposed teaching order only. This is not a student
-contract or implementation handoff. Chapter 4 and Chapter 5 must establish their
-validated predecessors first. No new streaming implementation or live run is
-claimed. New Chapter 6 maps to first-edition Chapter 7.
+Status: full draft contract/prose now exists in `chapter-06.md`; the coordinator
+accepted its full contract review and the two resulting clarifications.
+Chapter 4 and Chapter 5 must establish their
+validated predecessors before implementation. No new streaming implementation,
+passing checks or live run is claimed. New Chapter 6 maps to first-edition Chapter 7.
 
 ## Stake and voice plan
 
@@ -18,7 +19,22 @@ Use a deterministic held-open response to make that failure observable. Avoid
 invented wait times, new Bill anecdotes, or claims that two live generations
 produce identical answers. Explain the mechanisms before their schemas.
 
-## Proposed teaching order
+## Story-preservation pass, voice v5
+
+Source: first-edition `book/chapter-07.md` opener and §7.9, reread October 7.
+Retain the reader's blank-terminal frustration and the sharp explanation that
+a buffered writer can do its job correctly while hiding the entire streaming
+feature. The mechanism needs a timing check at the actual terminal, not a new
+claim about how long an unmeasured model took. The current opener adds the
+reader's ability to recognize a proposed bad write before it becomes an effect.
+
+Omit historical model-capability tables and exact waiting times as current
+facts. No new live stream or Bill anecdote is invented. The existing parser,
+actor and terminal contract already carries the human stake, so the editorial
+change stays in §6.7's explanation. Code blocks and tables remain unchanged.
+Independent story proofreading is accepted; it does not validate code.
+
+## Teaching order
 
 1. Extend Chapter 5's existing public submission, control and observation
    interfaces. There is still one actor owning turn decisions and history.
@@ -50,7 +66,7 @@ produce identical answers. Explain the mechanisms before their schemas.
     plus deterministic framing, identity, timing and failure controls. Compare
     the first answer with the historical standard only in the reviewer phase.
 
-## Proposed boundaries to settle in the full contract
+## Initial design questions, with resolutions below
 
 - **Identity:** allocate an operation identity before parser output and carry it
   through fragments, accepted finals and abort observations. Do not predict the
@@ -81,8 +97,31 @@ produce identical answers. Explain the mechanisms before their schemas.
   setting before a checker depends on them. Preserve Chapter 5's request IDs,
   acceptance/completion records, interruption outcomes and legacy user format.
 
-These are design proposals for the full contract, not new Bill rulings. No
-architectural ambiguity should reach the student as an implementation exercise.
+The coordinator explicitly accepted Engine-owned operations and default-on
+delivery with an explicit disable switch. This is a working design, not a new
+Bill ruling. The draft fixes the remaining choices as follows:
+
+- `EN_DISABLE_STREAMING=1` disables delivery; absent/0 enables it. Historical
+  `request.delivery` absence means plain, including request reconstruction.
+  Stream choices deterministically restore stream flags, usage option and
+  endpoint, rather than adopting today's default.
+- Public `model_begin`, typed-channel `part_delta`, `part_final`, `model_end`
+  carry Agent/request/operation identities. Final mappings add actual durable
+  response sequence and part position. Plain delivery has no deltas.
+- `protocol --observe` explicitly opts into new observation JSON; default
+  protocol remains unchanged. Human chat flushes provisional text, labels
+  proposals/thinking, and avoids duplicate final text.
+- No production frame trace is added. Static owner-reachable diagnostics are
+  required; controlled fixture bytes remain local test evidence.
+- The shared SSE reader handles standard line endings and multiline data,
+  bounded to 1 MiB per event and 16 MiB assembled content. Each adapter supplies
+  its own terminal/usage rule. No EOF-based universal success or automatic retry.
+- Token-limit completion is distinct from network truncation. Validated parts
+  follow the plain semantics; malformed argument objects still fail the whole
+  response. Raw stop reasons are retained and generation limits displayed.
+
+Independent review should check that these choices are internally complete
+before a student or grader depends on them.
 
 ## Checks to derive from the eventual contract
 
@@ -124,7 +163,8 @@ actual first-observation timing and total timing without a speedup guarantee.
 Label local truncated-stream and framing tests separately. Preserve all prior
 human commands, usage, tools and cleanup behavior.
 
-Next action: consult the global reviewer, verify current official wire rules,
-and turn these proposals into exact schemas/fixtures after predecessor work
-has settled. Development will extend the accepted Chapter 5 source in
+Next action: independent full-draft review, then reconcile any findings before
+the fresh student handoff after Chapter 5 validation. Current official sources
+and the earlier global reviewer's forward lessons are recorded in evidence.
+Development will extend the accepted Chapter 5 source in
 `solutions/edition-2/main/`; `ch06/` will be a frozen validated export.

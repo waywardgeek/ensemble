@@ -1,22 +1,25 @@
 # Chapter 1: One Conversation, Every Request
 
-Getting a model to answer is easy. Keeping control of the program as it
-grows takes more work. A second conversation needs its own history, a
-timeout needs to reach the application's logger, and a changed model
-setting needs to reach the request builder. Adding those features should
-not require reconnecting the whole program.
+Bill Cox told his team he could build a better coding-agent proof of concept
+than Windsurf in two weeks. His manager wanted him to demonstrate it. The first
+edition records the result as StackAgent: a working prototype built on that
+deadline, followed by a decision to delete it and start again.
 
-Bill Cox's first coding agent was a two-week bet. The first edition records
-the July 2025 demonstration of StackAgent, followed by a decision to start
-again with what building it had taught him. This edition starts with those
-lessons in hand: give the data owners, make them reachable, and keep the
-work in the package responsible for it.
+The rewrite is the useful part of that story. The first build had taught him
+things worth keeping even when its code was worth replacing. This edition
+starts with those lessons in hand. The reader gets to spend the first evening
+building a conversation instead of earning the same architectural repair bill.
+
+Getting a model to answer is easy. Keeping control as the program grows takes
+more work. A second conversation needs its own history, a timeout needs to
+reach the application's logger, and a changed model setting needs to reach the
+request builder. Give each fact an owner and a route to it while the program
+is small enough to understand.
 
 The first exercise is a conversation you can inspect one request at a time.
 Your program sends the messages, keeps the answers, and reports the tokens
 consumed. By the end, a separate application will be able to create two
-Agents without mixing their histories or accounts. The architecture earns
-its place while the program is still small enough to read.
+Agents without mixing their histories or accounts.
 
 ## 1.1 The idea in plain words
 
@@ -50,16 +53,14 @@ packages do the work: model requests, job supervision, tool execution.
 Each package imports the shared declarations. It calls across a boundary
 through an interface, without importing the other implementation.
 
-**Make logging reachable before something breaks.** A parser can have no
-stored state and still need to explain which response it rejected. Give
-code likely to need debug logging access to an owned object from which it
-can reach the logger. Calling a function stateless does not remove that
-need. Logging follows the same ownership route as other shared facilities.
+**Make logging reachable before something breaks.** Code likely to need debug
+logging receives an owning context from which it can reach the logger. That
+includes stateless parsers and helpers: having nothing to remember does not
+mean having nothing useful to report.
 
-This is the construction pattern for the exercises. Learn it, build the
-small program with it, then extend the same ownership tree as new features
-arrive. A parent interface gives a child a continuing route to its owner's
-facilities; the next feature should not need to rediscover how to reach them.
+Build the small program with this ownership tree, then extend it. Its next
+feature should inherit a route to the existing facilities instead of requiring
+another round of constructor wiring.
 
 ## 1.2 Packages follow responsibilities
 
@@ -77,6 +78,14 @@ request construction, response parsing, and the engine's work.
 conversation data and the interfaces connecting these responsibilities
 belong in `internal/common`. Create the packages needed for actual work;
 an empty directory does not establish an architectural boundary.
+
+Private runtime implementations may stay in their responsible packages.
+An Engine, Registry, Jobs service or Job need not expose its concrete struct
+in `common` when common interfaces expose its ownership chain and required
+operations. Shared conversation values and cross-package interfaces still
+belong in `common`; behavior on those shared values uses free functions in
+the responsible spoke. A private implementation is not permission to hide
+an owner's capabilities behind concrete type assertions or bypass its parent.
 
 Go restricts where methods can be declared: the receiver's base type must
 be defined in the same package. This is the language's

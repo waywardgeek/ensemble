@@ -29,6 +29,29 @@ weakening these rules. Preserve first-edition artifacts unchanged.
 - Confession inventory: the first-block grader hole, documented in
   `835946f`; no invented story or freshly claimed live run.
 
+## Story-preservation pass, voice v5
+
+Source: first-edition `book/chapter-01.md` §1.0, reread October 7. Restore
+the two-week proof-of-concept bet, request for a demonstration, working
+StackAgent and deliberate restart as a short third-person sequence. The
+earlier rewrite compressed this to biography and lost the choice to discard
+code while retaining hard-won knowledge. The new opening connects that choice
+to teaching ownership before construction. It attributes the outcome to the
+recorded first-edition account, not a new benchmark of superiority to Windsurf.
+
+Omit acquisition prices, exact demonstration/rewrite dates and the large
+market-value thesis: they add external-verification work without explaining
+this exercise. Omit invented dialogue or feelings. Trim the repeated generic
+parent/logger motivation in §1.1 while retaining every rule, including
+stateless-helper reachability. Independent story review is accepted;
+the validated solution and its recorded runtime evidence remain unchanged.
+
+Separate architectural clarification, October 7: Bill explicitly permits
+private runtime structs when common interfaces expose their ownership chain.
+§1.2 now distinguishes those implementations from shared data and interfaces;
+this is not a request to relocate Engine/Registry/Jobs/Job or to weaken the
+free-function rule for behavior on common values.
+
 ## Thesis
 
 A conversation starts with explicit ownership, a star of package

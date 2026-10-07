@@ -1,7 +1,8 @@
 # Chapter 6 source research
 
-Status: research/outline only, not a released contract. No student code,
-grader changes, network probes, paid calls or new measurements. Sources below
+Status: full draft contract/prose exists; independent review and validated
+predecessor remain required before implementation. No student code,
+grader changes, live API probes, paid calls or new measurements. Sources below
 are author/reviewer evidence and must not enter the cold student's context.
 
 ## Reads and source boundaries
@@ -80,16 +81,99 @@ deterministic fixture equality, live behavior and retained trace scope separate.
 The historical stateless-parser logging exemption contradicts the current
 methodology and must not return.
 
-Current external API claims have not been verified in this research pass.
-Before the full contract, read current official SSE/API documentation for
-completion, error, usage, tool fragments and opaque/signature handling on the
-three selected surfaces. Date capability observations and retain provenance.
-Do not copy historical model tables as current recommendations.
+The initial research pass had not verified current external API claims. The
+subsequent official-source read below closes that drafting prerequisite; it
+does not establish live model capability or validate a student implementation.
+Historical model tables are not current recommendations.
+
+## Official wire verification, October 7, 2026
+
+Read the official sources below while drafting. The OpenAI documentation
+skill was loaded for Chat Completions research. No model invocation was made.
+
+- [WHATWG SSE](https://html.spec.whatwg.org/multipage/server-sent-events.html):
+  UTF-8, LF/CRLF/CR, comment fields, multiline data and blank-line dispatch.
+  Pending data at EOF is discarded by the framing specification. The chapter
+  turns unfinished data into an adapter failure; it does not implement a
+  browser EventSource client's automatic reconnect policy.
+- [Messages streaming](https://platform.claude.com/docs/en/build-with-claude/streaming):
+  block starts/deltas/stops, message_stop, ping and error events; cumulative
+  usage snapshots; distinct thinking and signature fragments. The chapter's
+  no-retry policy is its own lifecycle decision, not a claim that the guide
+  forbids recovery strategies.
+- [Chat Completions streaming events](https://developers.openai.com/api/reference/resources/chat/subresources/completions/streaming-events)
+  and [create request](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create):
+  indexed choices/tool calls, optional name/argument fragments,
+  stream_options.include_usage, final empty-choices usage before [DONE].
+  The generic platform streaming URL redirected to an overview and was not
+  used as evidence for the event schema.
+- [generateContent API](https://ai.google.dev/api/generate-content): SSE
+  endpoint, indexed candidates, modelVersion, finishReason and usageMetadata.
+  Empty finishReason denotes ongoing generation. The guide labels this API
+  legacy; this chapter keeps the already-taught surface rather than silently
+  migrating to Interactions. Latest-snapshot handling and orderly-EOF policy
+  are explicit chapter assembly rules; no claim is made that arbitrary chunks
+  have independent additive token charges.
+- [generateContent thought signatures](https://ai.google.dev/gemini-api/docs/generate-content/thought-signatures):
+  an empty text part may carry the signature late in a streamed response.
+  Preserve that exact signed part instead of attaching it to earlier text.
+- [generateContent function calling](https://ai.google.dev/gemini-api/docs/generate-content/function-calling?hl=en):
+  complete functionCall name/args/id representation. The newer redirected
+  Interactions guide was excluded from this adapter's contract. No partialArgs
+  requirement is inferred from a different API surface.
+
+## Draft design and checks
+
+The coordinator accepted default streaming on supported adapters, explicit
+disable, safe provider refusal without a paid retry, no frozen model-name
+allowlist, and Engine-owned operation contexts. API delivery support remains
+separate from model-specific thinking/content support. No new Bill ruling is
+claimed. Actor retains durable acceptance; generated call IDs use actual
+append sequence despite asynchronous job events.
+
+New request.delivery records effective delivery; absent historical field means
+plain, including reconstruction under a later default-on configuration. New
+response.stop_reason retains supplied reasons without imposing a finish-reason
+allowlist on plain parsers. Token-limit completion and incomplete JSON are
+distinct; full semantic validation still precedes all effects.
+
+The draft contains literal framing and three API text/signature streams,
+paired plain-response descriptions, interleaved-tool fixture requirements,
+operation/part observation shapes, opt-in protocol, human PTY instructions
+and distinguishing controls. Every fixture counter and identity is explicitly
+synthetic, not a new measurement. Production frame tracing is deferred;
+safe owner-reachable diagnostics remain required.
+
+After the cut and consistency pass, scoped prose lint passed all hard checks
+with 4687 counted prose words. Soft negation/person-gap warnings were read;
+the reader's incomplete-display problem remains explicit through the body,
+and no invented story was added to satisfy a counter. `git diff --check`
+passed. No code, tests or old grader files were edited by the author.
+Independent full-draft review remains pending.
+
+The coordinator's full draft review requested two bounded clarifications.
+§6.2 now specifies a 1 MiB operation-owned pending-fragment store, cancellable
+producer backpressure, one readiness notice, and at most 64 KiB actor service
+per notice before returning remaining work to the mailbox tail. Chapter 5's
+growable admission mailbox remains unchanged; accepted finals and reliable
+completion cannot be lost to that fragment bound.
+
+§6.3 now counts physical wire bytes including ignored fields/comments, line
+terminators and the blank delimiter, excluding only the initial BOM. Reset
+occurs at every dispatched or ignored blank-line event boundary. Exact LF,
+CRLF and comment fixtures were independently counted with a local byte-length
+calculation: each is 1,048,576 bytes. This is fixture arithmetic, not a parser
+test. The revised manuscript passes all hard prose checks at 5037 counted
+words. The coordinator subsequently read the exact clarification diff and
+accepted both changes. The draft remains gated on validated Chapter 5 and
+actual implementation evidence. The separate voice-v5 editorial pass preserves
+the old terminal-flush explanation. Independent proofreading is now accepted,
+with the final status resolution recorded in review commit `3d6effd`.
 
 ## Next action
 
-The outline preserves the accepted Actor/Engine/Jobs ownership and explicit
-human/protocol split. Ask the global reviewer for forward identity, loss and
-finalization lessons, then develop schemas and literal fixtures when the
-coordinator releases full Chapter 6 drafting. Chapter 4/5 validation and a
-fresh new-only student context remain prerequisites for implementation.
+The earlier global reviewer supplied identity, loss, actor and finalization
+lessons before that thread became unavailable; the durable map remains the
+source for those recommendations. The coordinator's contract review is now
+accepted, as is the separate editorial proofreading. Chapter 4/5 validation
+and a fresh new-only student context remain prerequisites for implementation.
