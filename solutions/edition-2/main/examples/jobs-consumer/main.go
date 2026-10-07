@@ -17,15 +17,19 @@ import (
 )
 
 type observer struct {
-	mu    sync.Mutex
-	seq   []uint64
-	ended chan struct{}
+	mu          sync.Mutex
+	seq         []uint64
+	ended       chan struct{}
+	sawMutation bool
 }
 
 func (o *observer) Observe(event ensemble.Observation) {
 	o.mu.Lock()
 	defer o.mu.Unlock()
 	o.seq = append(o.seq, event.Seq)
+	if event.Event.Tool != nil && event.Event.Tool.CallID == "consumer-owned-copy" {
+		o.sawMutation = true
+	}
 	if event.Kind == "job_ended" {
 		close(o.ended)
 	}
@@ -131,7 +135,11 @@ func run() error {
 	return json.NewEncoder(os.Stdout).Encode(map[string]any{"agents": 2, "handles": []int{1, 2}, "shared_workspace_artifacts": "distinct", "foreign_handle": "refused", "background_observations": "ordered and owned", "close": "idempotent", "backend": "local deterministic HTTP fixture, not paid live model"})
 }
 func main() {
-	if err := run(); err != nil {
+	task := run
+	if len(os.Args) == 2 && os.Args[1] == "--live" {
+		task = runLive
+	}
+	if err := task(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
