@@ -7,8 +7,11 @@ repository; `ch01/`–`ch03/` are frozen tracked exports. Original histories,
 ignored files, and the unfinished Chapter 3 merge are preserved in the archive
 and portable bundles recorded in `solutions/edition-2/history/migration.json`.
 All exported bytes/modes and the moved repositories were verified. This is a
-migration checkpoint, not a new Chapter 3 validation. Author and reviewer have
-resumed; the Chapter 3 coder resumes in main after the migration checkpoint.
+migration checkpoint, not a new Chapter 3 validation. Author, reviewer and Chapter 3 coder have resumed. Migration commit `8831ce2`
+and independent `migration-review.md` preserve the audit. Main integration now
+passes all four modules and inherited grade100; actual human runs and review
+remain in progress. Snapshot exporter `551b096` passed three fixture controls
+and an exact 289-file export comparison.
 First-edition baseline: `ec41c6e`. Workflow checkpoint: `1d3b6c9`;
 independent tooling/evidence: `602ae87`; Chapter 0 and ending plan: `24867ca`.
 
@@ -145,15 +148,16 @@ old implementation into the new solution.
 
 ## Roles and next actions
 
-- Author: publish Chapter 2's human CLI contract and reader instructions;
-  update the chapter procedure and carry the requirement into Chapters 3/4.
-  Chapter 5 research is secondary to this correction.
-- Coder: `/root/coder_ch03` finished the reviewed snapshot. Use a fresh new-only
-  coder for the Chapter 2 client revision after its contract is reviewed.
-- Global reviewer: review the human CLI teaching and independent terminal
-  acceptance; Chapter 4 contract was accepted, but its student handoff waits.
-- Coordinator: independent acceptance/property audit, enforce architecture,
-  integrate evidence, and advance only when the chapter meets all gates.
+- Author: maintain Chapter 3 teaching from actual receipts; prepare later prose.
+  Chapter 5 actor/collection ownership passed coordinator architecture review.
+- Coder: `/root/coder_ch03_chat` is finishing actual all-provider human runs in
+  main, then freezes its initial attempt before independent implementation review.
+- Global reviewer: Chapter 3 human checker has 45 cases and seven checker controls;
+  Chapter 2 retains 42/42, and the no-tools build fails exactly the six added
+  Chapter 3 cases. Await initial student freeze, then run acceptance/comparison.
+- Coordinator: close Chapter 3 only after live/review gates, commit validated
+  source, generate exact export/manifest, dedicated chapter commit and immutable
+  tag. Launch a fresh new-only Chapter 4 coder from that accepted source.
 
 ## Scope and enduring decisions
 
@@ -179,8 +183,9 @@ with real models. Credentials stay in memory/environment, never argv or repo.
 At the caching chapter, verify current official OpenAI subscription guidance
 and remeasure the reported OAuth caching failure against suitable controls.
 
-New solution repositories only: `solutions/edition-2/chNN/`, derived from the
-preceding new history. Preserve `agent/`, first-edition solutions, and Bill's
+New source only in `solutions/edition-2/main/`, derived from the preceding
+accepted new source. Frozen `chNN/` exports and immutable revision tags preserve
+chapter checkpoints in the outer repository. Preserve `agent/`, first-edition solutions, and Bill's
 unrelated files. No pushes. Ask Bill when genuine architectural ambiguity
 blocks affected work; routine naming does not require approval.
 

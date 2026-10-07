@@ -395,6 +395,18 @@ tag preserve the matching manuscript, main source and export together. A later
 validated export may update that chapter's tracked directory in a new revision;
 the previous commit and tag remain unchanged. Students never edit the export.
 
+Commit the source first, then export it from the repository root with absent
+destination and manifest paths:
+
+```sh
+python3 scripts/edition2/export_snapshot.py SOURCE_COMMIT /tmp/ensemble-chNN-export --manifest /tmp/ensemble-chNN-manifest.json
+```
+
+The tool exports committed `solutions/edition-2/main/` and records source and
+file identities. It does not validate, stage, replace a snapshot or tag. After
+the gates pass, verify and promote the export and manifest into the chapter
+checkpoint.
+
 The earlier standalone student repositories and any unfinished work must be
 preserved before consolidation moves them. Record the migration mapping and
 original commit IDs; do not rewrite old transcripts, source hashes or local

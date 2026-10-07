@@ -100,6 +100,16 @@ working design choices. Unique handles do not authorize one Agent to supervise
 another Agent's jobs. Background completion uses Agent's serialized durable
 event path and Observer, including while a model request is in flight.
 
+Chapter 5's reviewed contract selects one Agent-owned Actor, implemented in
+`internal/llm` over common declarations, to serialize turn decisions and durable
+conversation changes. Engine remains Agent-owned and keeps transport/usage;
+Jobs retains job state, output and transactional report cursors. Actor reaches
+these owners through Agent rather than injected sibling services. Model and
+report workers return owned facts without parking the actor. Ensemble owns
+reliable completion collections; transient display observations do not deliver
+or consume request completion. The coordinator accepted these working choices
+on 2026-10-07; implementation still requires the validated Chapter 4 predecessor.
+
 ## Source reconciliation
 
 `docs/ensemble-topology-decisions.md` already distinguishes the application

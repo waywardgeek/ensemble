@@ -343,6 +343,18 @@ works in main; the coordinator produces the export with source and file hashes.
 Earlier standalone student repositories belong to the historical record:
 preserve their histories and unfinished work before consolidating them.
 
+Commit the source before exporting it. From the repository root, use two
+output paths that do not yet exist:
+
+```sh
+python3 scripts/edition2/export_snapshot.py SOURCE_COMMIT /tmp/ensemble-chNN-export --manifest /tmp/ensemble-chNN-manifest.json
+```
+
+This exports committed `solutions/edition-2/main/` and records its source and
+file identities. It does not validate, replace a snapshot, stage files or tag.
+After the chapter gates pass, the coordinator checks and promotes the export
+and manifest into the chapter checkpoint.
+
 Keep an initial student checkpoint before comparative review and a validated
 checkpoint after corrections. Each validated chapter receives a dedicated
 outer commit and immutable annotated tag such as `edition-2-ch03-r1`, binding

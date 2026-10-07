@@ -70,8 +70,9 @@ that limitation; their implementation validation is a separate claim.
 - **Active correction:** Bill explicitly requires a human chat mode from
   Chapter 2 and actual coder interaction through that mode with real models.
   Piped JSON is machine-protocol evidence, not the human usability gate.
-  The author is publishing the new contract and chapter-procedure rule before
-  a fresh new-only coder implements it. Carry the change into Chapter 3 and
+  Chapter 2 human client is accepted at `ad0d80e`; new teaching and path rules
+  are committed in `dd5db87`. The fresh Chapter 3 coder now works in main. Carry
+  the change into Chapter 3 and
   demonstrate all three providers before releasing Chapter 4 implementation.
   The skill, workflow, and Chapter 0 now state this requirement. Preserve the
   older checkpoints and receipts rather than relabeling them as human tests.
