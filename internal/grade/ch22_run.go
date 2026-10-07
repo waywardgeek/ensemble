@@ -52,7 +52,25 @@ func Ch22Run(dir string) Ch22Result {
 		r.fail("reaches-through-the-chain", "%s", msg)
 	}
 
-	// TODO(ch22): these four are not implemented yet. They are failed
+	// ch21-parity. Chapter 22 rearranges the spine of the agent -- it renames
+	// the hub interface, moves usage onto the engine, and replaces the
+	// binary's composition root. Every one of those is a change that can
+	// pass its own new checks while quietly breaking the chapter before it.
+	// Parity is the guard, and it is worth its cost: it re-runs chapter 21's
+	// own checks rather than re-asserting a summary of them, so it cannot
+	// drift away from what chapter 21 actually requires.
+	r.ran("ch21-parity")
+	var broken []string
+	for _, c := range Ch21Checks(Ch21Run(dir)) {
+		if !c.Passed {
+			broken = append(broken, c.ID)
+		}
+	}
+	if len(broken) > 0 {
+		r.fail("ch21-parity", "chapter 21 checks now fail: %s", strings.Join(broken, ", "))
+	}
+
+	// TODO(ch22): these three are not implemented yet. They are failed
 	// EXPLICITLY, with a reason naming the harness rather than the student,
 	// so an incomplete grader cannot be mistaken for a failing tree. The
 	// alternative -- leaving them unexercised -- produced the message "an
@@ -62,7 +80,6 @@ func Ch22Run(dir string) Ch22Result {
 		"single-composition-root",
 		"agent-status-tool",
 		"per-model-cost",
-		"ch21-parity",
 	} {
 		r.fail(id, "GRADER INCOMPLETE: this check is not implemented yet; see docs/ch22-grader-design.md. This is not a failure of the tree under test.")
 	}
