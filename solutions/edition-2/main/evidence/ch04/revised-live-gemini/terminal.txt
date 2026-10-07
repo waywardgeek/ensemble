@@ -1,0 +1,74 @@
+Ensemble — gemini / models/gemini-3.8-flash
+Type /help for commands.
+You> Test the revised output handling using real tools. Read notes.txt with max_bytes:4; its selected source text is 'alph', and the artifact must contain only those four bytes, with the truncation notice in the report. Then set tool_limits max_output_bytes:2 and ai_callback_delay:1, and read notes.txt again with max_bytes:4, exercising both independent caps. Read notes.txt normally afterward to show settings are one-shot. Finally run 'printf START; sleep 1; printf END' with ai_callback_delay:0.05 and then wait_for_job to completion. Report actual handles, bytes, and outputs.
+Assistant:
+Here are the results of testing the revised output handling:
+
+### 1. `read_file` on `notes.txt` with `max_bytes: 4`
+* **Job Handle**: `1`
+* **Artifact**: `cr/io/1`
+* **Total Bytes**: `4`
+* **Report Output**:
+```text
+job 1 status: done; output: cr/io/1; total bytes: 4
+alph
+[truncated: max_bytes limit reached]
+```
+
+---
+
+### 2. Set `tool_limits` (`max_output_bytes: 2`, `ai_callback_delay: 1`) and `read_file` with `max_bytes: 4`
+* **Tool Limits Result**: `tool_limits set: supplied overrides apply to the next attempted call only...`
+* **Job Handle**: `2`
+* **Artifact**: `cr/io/2`
+* **Total Bytes**: `4`
+* **Report Output**:
+```text
+tool_limits consumed by read_file: ai_callback_delay=1 ai_callback_pattern="" max_output_bytes=2
+job 2 status: done; output: cr/io/2; total bytes: 4
+a
+[truncated: 2 bytes omitted; total bytes: 4; output: cr/io/2]
+h
+[truncated: max_bytes limit reached]
+```
+
+---
+
+### 3. Normal `read_file` on `notes.txt` (One-Shot Verification)
+* Overrides were consumed; standard limits applied.
+* **Output**:
+```text
+alpha one
+beta two
+gamma three
+delta four
+```
+
+---
+
+### 4. `run_command` with `printf START; sleep 1; printf END` and `ai_callback_delay: 0.05`
+* **Job Handle**: `4`
+* **Artifact**: `cr/io/4`
+* **Total Bytes Seen**: `5`
+* **Status**: `running`
+* **Report Output**:
+```text
+job 4 status: running; output: cr/io/4; total bytes: 5; use wait_for_job, send_input, or kill_job
+START
+```
+
+---
+
+### 5. `wait_for_job` on Handle `4` to Completion
+* **Job Handle**: `4`
+* **Artifact**: `cr/io/4`
+* **Total Bytes**: `22`
+* **Status**: `done` (`exit_code: 0`)
+* **Report Output**:
+```text
+job 4 status: done; output: cr/io/4; total bytes: 22
+END
+exit_code: 0
+```
+You> ^D
+Final usage: input=17196, cache write=0, cache read=0, output=1728

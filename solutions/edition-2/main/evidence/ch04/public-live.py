@@ -8,8 +8,9 @@ import subprocess
 import sys
 
 here=Path(__file__).resolve().parent
-vendor,model=sys.argv[1:]
-run=here/('public-live-'+vendor)
+vendor,model=sys.argv[1:3]
+name=sys.argv[3] if len(sys.argv)>3 else 'public-live-'+vendor
+run=here/name
 run.mkdir()
 env=os.environ.copy()
 for key in list(env):
@@ -17,7 +18,7 @@ for key in list(env):
 field={'anthropic':'directClaudeAPIKey','openai':'directOpenAIAPIKey','gemini':'directGeminiAPIKey'}[vendor]
 key=json.loads((Path.home()/'.cr/settings.json').read_text())[field]
 env.update(LLM_VENDOR=vendor,LLM_MODEL=model,LLM_RESOLVED_MODEL=model.removeprefix('models/'),LLM_API_KEY=key,ENSEMBLE_LIVE_WORKSPACE=str(run/'workspace'))
-binary=Path('/tmp/ensemble-ed2-ch04-public')
+binary=Path(sys.argv[4] if len(sys.argv)>4 else '/tmp/ensemble-ed2-ch04-public')
 command=[str(binary),'--live']
 receipt={'start':datetime.datetime.now(datetime.timezone.utc).isoformat(),'command':command,'vendor':vendor,'requested_model':model,'source_revision':subprocess.check_output(['git','rev-parse','HEAD'],text=True).strip(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'kind':'supplemental real-model public library; main human PTY receipts remain separate'}
 with (run/'stdout.json').open('w') as stdout,(run/'stderr.txt').open('w') as stderr:

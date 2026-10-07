@@ -45,5 +45,14 @@
       "solutions/edition-2/main/ensemble_test.go",
       "solutions/edition-2/main/jobs_test.go"
     ]
-  }
+  },
+  "completion_reads": [
+    "book/edition-2/chapter-04-student-feedback.md (author dispositions)",
+    "solutions/edition-2/main/examples/jobs-consumer/live.go",
+    "solutions/edition-2/main/evidence/ch04/verify-receipts.py",
+    "solutions/edition-2/main/evidence/ch04/public-live.py",
+    "solutions/edition-2/main/evidence/ch04/terminal-run.py",
+    "solutions/edition-2/main/internal/tools/registry.go (declared callback fields)",
+    "own initial and revised raw receipt files"
+  ]
 }

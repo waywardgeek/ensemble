@@ -18,12 +18,16 @@ for path,want in binding['sources'].items():
     source = subprocess.check_output(['git','show',binding['source_revision']+':'+path],cwd=ROOT)
     assert hashlib.sha256(source).hexdigest()==want, 'historical source mismatch; no evidence modified'
 
-# All source/executable validation above precedes writes and subprocess replay.
-receipts = {}
+# Preflight every launch before any vendor can rewrite replay derivatives.
+launches = {}
 for vendor in ['anthropic','openai','gemini']:
+    launch = json.loads((HERE/('live-'+vendor)/'launch.json').read_text())
+    assert launch['binary_sha256']==binding['binary_sha256'] and launch['source_revision']==binding['source_revision'], 'launch binding mismatch; no evidence modified'
+    launches[vendor] = launch
+
+receipts = {}
+for vendor, launch in launches.items():
     run = HERE/('live-'+vendor)
-    launch = json.loads((run/'launch.json').read_text())
-    assert launch['binary_sha256']==binding['binary_sha256'] and launch['source_revision']==binding['source_revision']
     records = [json.loads(x) for x in (run/'session.log').read_text().splitlines()]
     assert records[0]=={'log_version':1}
     events = records[1:]
