@@ -1,0 +1,162 @@
+// A transport that deliberately returns after cancellation makes stale-operation
+// rejection deterministic. This adapter implements owner interfaces and uses the
+// production reducer; it does not replace the actor under test.
+package llm
+
+import (
+	"context"
+	"fmt"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+
+	"example.com/ensemble/internal/common"
+)
+
+type auditLateExchange struct{ reply chan common.ParsedResponse }
+type auditLateEngine struct {
+	parent *auditLateAgent
+	calls  chan auditLateExchange
+}
+
+func (e *auditLateEngine) Agent() common.Agent { return e.parent }
+func (e *auditLateEngine) Usage() common.Usage { return common.Usage{} }
+func (e *auditLateEngine) ExchangeConfig(_ context.Context, _ []byte, _ common.Config) (common.ParsedResponse, error) {
+	op := auditLateExchange{make(chan common.ParsedResponse, 1)}
+	e.calls <- op
+	return <-op.reply, nil
+}
+
+type auditLateRoot struct {
+	common.Ensemble
+	logs chan string
+}
+
+func (e *auditLateRoot) Logf(format string, args ...any) { e.logs <- fmt.Sprintf(format, args...) }
+func (e *auditLateRoot) Observe(common.Observation)      {}
+
+type auditLateRegistry struct{ common.Registry }
+
+func (auditLateRegistry) Declarations() []common.ToolDefinition { return nil }
+
+type auditLateJobs struct{ common.Jobs }
+
+func (auditLateJobs) Close() error { return nil }
+
+type auditLateAgent struct {
+	common.ActorAgent
+	root   *auditLateRoot
+	engine *auditLateEngine
+	mu     sync.Mutex
+	state  common.Context
+	events []common.Event
+}
+
+func (a *auditLateAgent) ID() string                { return "late-agent" }
+func (a *auditLateAgent) Ensemble() common.Ensemble { return a.root }
+func (a *auditLateAgent) Config() common.Config {
+	return common.Config{Vendor: "anthropic", Model: "fixture", System: "fixture", MaxTokens: 10, APIKey: "local"}
+}
+func (a *auditLateAgent) Workspace() string          { return "" }
+func (a *auditLateAgent) Engine() common.ModelEngine { return a.engine }
+func (a *auditLateAgent) Jobs() common.Jobs          { return auditLateJobs{} }
+func (a *auditLateAgent) Registry() common.Registry  { return auditLateRegistry{} }
+func (a *auditLateAgent) BeginTurn() error           { return nil }
+func (a *auditLateAgent) EndTurn()                   {}
+func (a *auditLateAgent) FinishClose() error         { return nil }
+func (a *auditLateAgent) NextSequence() uint64       { return a.TurnSnapshot().LastSeq + 1 }
+func (a *auditLateAgent) TurnSnapshot() common.Context {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	out, _ := Clone(a.engine, a.state)
+	return out
+}
+func (a *auditLateAgent) RecordTurn(event common.Event) error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	event.Seq = a.state.LastSeq + 1
+	event.Time = time.Now().UTC().Format(time.RFC3339Nano)
+	if err := Validate(a.engine, a.state, &event); err != nil {
+		return err
+	}
+	a.events = append(a.events, event)
+	Apply(a.engine, &a.state, event)
+	return nil
+}
+func (a *auditLateAgent) RecordResponse(response common.ParsedResponse) error {
+	return a.RecordTurn(common.Event{Type: "response_ended", Response: &response.Response})
+}
+func auditLateResponse(text string) common.ParsedResponse {
+	return common.ParsedResponse{Response: common.Response{From: common.Provenance{Vendor: "anthropic", Model: "fixture", Surface: "messages"}, Parts: []common.Part{Text(text)}, Usage: &common.Usage{}}}
+}
+func auditLateGet[T any](t *testing.T, ch <-chan T) T {
+	t.Helper()
+	select {
+	case value := <-ch:
+		return value
+	case <-time.After(4 * time.Second):
+		t.Fatal("stale-operation barrier timed out")
+		var zero T
+		return zero
+	}
+}
+func TestIndependentResponsivenessStaleModelFact(t *testing.T) {
+	parent := &auditLateAgent{root: &auditLateRoot{logs: make(chan string, 16)}}
+	parent.engine = &auditLateEngine{parent: parent, calls: make(chan auditLateExchange, 2)}
+	actor := NewActor(parent)
+	first, err := actor.Submit("first")
+	if err != nil {
+		t.Fatal(err)
+	}
+	old := auditLateGet(t, parent.engine.calls)
+	ack, err := actor.Interrupt()
+	if err != nil || !ack.Interrupted {
+		t.Fatal("interrupt failed")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer cancel()
+	if c, err := first.Wait(ctx); err != nil || c.Outcome != "interrupted" {
+		t.Fatal("first completion")
+	}
+	second, err := actor.Submit("second")
+	if err != nil {
+		t.Fatal(err)
+	}
+	current := auditLateGet(t, parent.engine.calls)
+	// Cleanup releases both deliberately noncooperative transports before joining.
+	defer func() {
+		select {
+		case old.reply <- auditLateResponse("cleanup-old"):
+		default:
+		}
+		select {
+		case current.reply <- auditLateResponse("cleanup-current"):
+		default:
+		}
+		_ = actor.Close()
+	}()
+	old.reply <- auditLateResponse("PRIVATE-STALE-BODY")
+	select {
+	case message := <-parent.root.logs:
+		if message == "" || strings.Contains(message, "PRIVATE-STALE-BODY") {
+			t.Fatal("stale debug diagnostic leaked body")
+		}
+	case <-second.Done():
+		t.Fatal("stale fact completed a later request")
+	case <-time.After(4 * time.Second):
+		t.Fatal("stale fact not discarded with diagnostic")
+	}
+	current.reply <- auditLateResponse("CURRENT-ANSWER")
+	c, err := second.Wait(ctx)
+	if err != nil || c.Text != "CURRENT-ANSWER" || c.Outcome != "success" {
+		t.Fatalf("later completion %+v %v", c, err)
+	}
+	parent.mu.Lock()
+	defer parent.mu.Unlock()
+	for _, event := range parent.events {
+		if event.Response != nil && event.Response.Parts[0].Text != nil && *event.Response.Parts[0].Text == "PRIVATE-STALE-BODY" {
+			t.Fatal("stale response entered history")
+		}
+	}
+}

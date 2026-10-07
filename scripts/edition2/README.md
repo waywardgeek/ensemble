@@ -97,3 +97,14 @@ Command markers and labels alone do not prove every label-to-stream association;
 the inherited grader, focused tests, and review provide separate evidence.
 Listing/search byte checks bound fixture content rather than prescribing a
 particular presentation header. Keep those limits with the retained receipts.
+
+Chapter 5 uses `accept_ch05.py SOURCE` with the inherited seven-category weights.
+It runs independent actor/public API probes in a disposable copy, all Chapter 4
+checks through an asynchronous-human-prompt adapter, local protocol/PTY controls,
+a public three-Agent workflow, all-module builds, package and ownership checks.
+Set `PATH="$HOME/go/bin:$PATH"` when Delve is installed in Go's user bin directory.
+`audit_ch05_mutations.py SOURCE` keeps passing and renamed-parent controls, then
+requires valid compiling deletions and negative source fixtures to lose their
+intended category points. Partial flags are for iteration. The historical CH6
+grader is unchanged. See `book/edition-2/chapter-05-grader-review.md` for scope,
+fixture corrections, the initial genuine defect, and required separate gates.

@@ -1,0 +1,770 @@
+// Independent contract probes. Public spelling is an adapter; assertions derive
+// from Edition 2 Chapter 5, not the student's own tests. Only local HTTP is used.
+package ensemble_test
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+
+	ens "example.com/ensemble"
+)
+
+const auditModel = "independent-fixture-5"
+
+type auditWire struct {
+	body     []byte
+	release  chan any
+	canceled <-chan struct{}
+}
+type auditFixture struct {
+	t        *testing.T
+	root     string
+	e        *ens.Ensemble
+	a        *ens.Agent
+	requests chan auditWire
+	server   *httptest.Server
+	vendor   string
+}
+
+func auditNew(t *testing.T, vendor string, builtins ...string) *auditFixture {
+	return auditNewOwned(t, vendor, ens.New(io.Discard), builtins...)
+}
+func auditNewOwned(t *testing.T, vendor string, owner *ens.Ensemble, builtins ...string) *auditFixture {
+	t.Helper()
+	f := &auditFixture{t: t, root: t.TempDir(), e: owner, requests: make(chan auditWire, 64), vendor: vendor}
+	f.server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			return
+		}
+		call := auditWire{body: body, release: make(chan any, 1), canceled: r.Context().Done()}
+		f.requests <- call
+		select {
+		case value := <-call.release:
+			w.Header().Set("Content-Type", "application/json")
+			_ = json.NewEncoder(w).Encode(value)
+		case <-r.Context().Done():
+		}
+	}))
+	var err error
+	f.a, err = f.e.NewAgent(ens.Config{Vendor: vendor, Model: auditModel, ResolvedModel: auditModel, APIKey: "LOCAL-ONLY", BaseURL: f.server.URL, Workspace: f.root, LogPath: filepath.Join(f.root, "events.jsonl"), Builtins: builtins})
+	if err != nil {
+		f.server.Close()
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = f.e.Close(); f.server.Close() })
+	return f
+}
+func auditReceive[T any](t *testing.T, ch <-chan T) T {
+	t.Helper()
+	select {
+	case v := <-ch:
+		return v
+	case <-time.After(4 * time.Second):
+		t.Fatal("barrier timed out")
+		var zero T
+		return zero
+	}
+}
+func auditGet(f *auditFixture) auditWire { return auditReceive(f.t, f.requests) }
+func auditSubmit(t *testing.T, a *ens.Agent, text string) ens.RequestHandle {
+	t.Helper()
+	h, err := a.Submit(text)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return h
+}
+func auditWait(t *testing.T, h ens.RequestHandle) ens.Completion {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+	defer cancel()
+	c, err := h.Wait(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return c
+}
+func auditReply(vendor, text string, calls ...map[string]any) any {
+	switch vendor {
+	case "anthropic":
+		parts := []any{map[string]any{"type": "text", "text": text}}
+		for _, c := range calls {
+			parts = append(parts, map[string]any{"type": "tool_use", "id": c["id"], "name": c["name"], "input": c["args"]})
+		}
+		return map[string]any{"model": auditModel, "content": parts, "usage": map[string]int{"input_tokens": 3, "output_tokens": 2}}
+	case "openai":
+		m := map[string]any{"role": "assistant", "content": text}
+		cs := []any{}
+		for _, c := range calls {
+			args, _ := json.Marshal(c["args"])
+			cs = append(cs, map[string]any{"id": c["id"], "type": "function", "function": map[string]any{"name": c["name"], "arguments": string(args)}})
+		}
+		if len(cs) > 0 {
+			m["tool_calls"] = cs
+		}
+		return map[string]any{"model": auditModel, "choices": []any{map[string]any{"message": m, "finish_reason": "stop"}}, "usage": map[string]int{"prompt_tokens": 3, "completion_tokens": 2}}
+	default:
+		parts := []any{map[string]any{"text": text}}
+		for _, c := range calls {
+			fc := map[string]any{"name": c["name"], "args": c["args"]}
+			if c["id"] != "" {
+				fc["id"] = c["id"]
+			}
+			parts = append(parts, map[string]any{"functionCall": fc})
+		}
+		return map[string]any{"modelVersion": auditModel, "candidates": []any{map[string]any{"content": map[string]any{"role": "model", "parts": parts}, "finishReason": "STOP"}}, "usageMetadata": map[string]int{"promptTokenCount": 3, "candidatesTokenCount": 2}}
+	}
+}
+func auditCall(id, name string, args map[string]any) map[string]any {
+	return map[string]any{"id": id, "name": name, "args": args}
+}
+func auditSuccess(t *testing.T, c ens.Completion, h ens.RequestHandle, text string) {
+	t.Helper()
+	if c.RequestID != h.ID() || c.Outcome != "success" || c.Text != text || c.Error != nil {
+		t.Fatalf("wrong per-request completion: %+v", c)
+	}
+}
+func auditEvents(a *ens.Agent, kind string) []ens.Event {
+	out := []ens.Event{}
+	for _, e := range a.Events() {
+		if e.Type == kind {
+			out = append(out, e)
+		}
+	}
+	return out
+}
+
+func TestIndependentResponsivenessOverlap(t *testing.T) {
+	f := auditNew(t, "anthropic")
+	h1 := auditSubmit(t, f.a, "FIRST-UNIQUE")
+	r1 := auditGet(f)
+	h2 := auditSubmit(t, f.a, "SECOND-UNIQUE")
+	h3 := auditSubmit(t, f.a, "CANCELED-UNIQUE")
+	if err := h3.Cancel(); err != nil {
+		t.Fatal(err)
+	}
+	if c := auditWait(t, h3); c.Outcome != "canceled" {
+		t.Fatalf("queued cancellation: %+v", c)
+	}
+	blocking := make(chan ens.ClientResult, 1)
+	blockingErr := make(chan error, 1)
+	go func() {
+		v, err := f.a.Prompt(context.Background(), "BLOCKING-UNIQUE")
+		blocking <- v
+		blockingErr <- err
+	}()
+	// Cancellation of a handle wait must not cancel the admitted request.
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := h2.Wait(ctx); err == nil {
+		t.Fatal("canceled wait succeeded before completion")
+	}
+	if n := len(auditEvents(f.a, "turn_started")); n != 1 {
+		t.Fatalf("queued prompt started before active response: %d", n)
+	}
+	r1.release <- auditReply(f.vendor, "ANSWER-FIRST")
+	r2 := auditGet(f)
+	if !bytes.Contains(r2.body, []byte("SECOND-UNIQUE")) || bytes.Contains(r2.body, []byte("CANCELED-UNIQUE")) {
+		t.Fatal("FIFO or queued cancellation corrupted request")
+	}
+	r2.release <- auditReply(f.vendor, "ANSWER-SECOND")
+	r3 := auditGet(f)
+	if !bytes.Contains(r3.body, []byte("BLOCKING-UNIQUE")) {
+		t.Fatal("blocking wrapper bypassed queue")
+	}
+	r3.release <- auditReply(f.vendor, "ANSWER-BLOCKING")
+	auditSuccess(t, auditWait(t, h1), h1, "ANSWER-FIRST")
+	auditSuccess(t, auditWait(t, h2), h2, "ANSWER-SECOND")
+	if v := auditReceive(t, blocking); v.Text != "ANSWER-BLOCKING" {
+		t.Fatal("blocking caller read unrelated completion")
+	}
+	if err := auditReceive(t, blockingErr); err != nil {
+		t.Fatal(err)
+	}
+	// Two concurrent waiters and subsequent reads cannot consume the answer.
+	out := make(chan ens.Completion, 2)
+	for i := 0; i < 2; i++ {
+		go func() { c, _ := h1.Wait(context.Background()); out <- c }()
+	}
+	for i := 0; i < 2; i++ {
+		auditSuccess(t, auditReceive(t, out), h1, "ANSWER-FIRST")
+	}
+	one := auditWait(t, h1)
+	*one.Parts[0].Text = "MUTATED"
+	auditSuccess(t, auditWait(t, h1), h1, "ANSWER-FIRST")
+	if *auditWait(t, h1).Parts[0].Text != "ANSWER-FIRST" {
+		t.Fatal("completion parts alias caller memory")
+	}
+	raw, _ := json.Marshal(f.a.Events())
+	if bytes.Contains(raw, []byte("CANCELED-UNIQUE")) {
+		t.Fatal("canceled queued prompt entered durable history")
+	}
+	if len(auditEvents(f.a, "turn_started")) != 3 || len(auditEvents(f.a, "turn_ended")) != 3 {
+		t.Fatal("turn identity/count changed")
+	}
+}
+
+func TestIndependentResponsivenessHTTPHint(t *testing.T) {
+	for _, vendor := range []string{"anthropic", "openai", "gemini"} {
+		t.Run(vendor, func(t *testing.T) {
+			f := auditNew(t, vendor)
+			h := auditSubmit(t, f.a, "FIRST")
+			r := auditGet(f)
+			ackCh := make(chan ens.ControlAck, 1)
+			errCh := make(chan error, 1)
+			go func() { ack, err := f.a.Hint("GUIDANCE-NEXT-ONLY"); ackCh <- ack; errCh <- err }()
+			ack := auditReceive(t, ackCh)
+			if err := auditReceive(t, errCh); err != nil {
+				t.Fatal(err)
+			}
+			if ack.RequestID != h.ID() || ack.Seq == 0 || ack.Sent || bytes.Contains(r.body, []byte("GUIDANCE")) {
+				t.Fatal("hint receipt confused with delivery")
+			}
+			if len(auditEvents(f.a, "hint_received")) != 1 {
+				t.Fatal("hint acknowledged before persistence")
+			}
+			if err := f.a.SetConfig(f.a.Config()); err == nil {
+				t.Fatal("configuration changed during active request")
+			}
+			if err := f.a.Ephemeral("BUSY"); err == nil {
+				t.Fatal("ephemeral changed active context")
+			}
+			r.release <- auditReply(vendor, "ONE")
+			if c := auditWait(t, h); c.PendingHints != 1 {
+				t.Fatal("unsent hint not counted")
+			}
+			if _, err := f.a.Hint("IDLE"); err == nil {
+				t.Fatal("idle hint accepted")
+			}
+			next := auditSubmit(t, f.a, "SECOND")
+			r2 := auditGet(f)
+			if !bytes.Contains(r2.body, []byte("GUIDANCE-NEXT-ONLY")) {
+				t.Fatal("pending hint omitted from next actual request")
+			}
+			r2.release <- auditReply(vendor, "TWO")
+			if c := auditWait(t, next); c.PendingHints != 0 {
+				t.Fatal("hint not consumed")
+			}
+			last := auditSubmit(t, f.a, "THIRD")
+			r3 := auditGet(f)
+			if bytes.Contains(r3.body, []byte("GUIDANCE-NEXT-ONLY")) {
+				t.Fatal("hint became enduring instruction")
+			}
+			r3.release <- auditReply(vendor, "THREE")
+			auditWait(t, last)
+		})
+	}
+}
+
+func TestIndependentResponsivenessInterruptClose(t *testing.T) {
+	f := auditNew(t, "anthropic")
+	active := auditSubmit(t, f.a, "INTERRUPT")
+	r := auditGet(f)
+	queued := auditSubmit(t, f.a, "SURVIVES")
+	ackCh := make(chan ens.ControlAck, 1)
+	go func() { ack, _ := f.a.Interrupt(); ackCh <- ack }()
+	ack := auditReceive(t, ackCh)
+	if !ack.Interrupted || ack.RequestID != active.ID() {
+		t.Fatal("interrupt identity")
+	}
+	if c := auditWait(t, active); c.Outcome != "interrupted" || c.Error == nil || c.Error.Code != "interrupted" {
+		t.Fatalf("interrupt completion: %+v", c)
+	}
+	auditReceive(t, r.canceled)
+	r.release <- auditReply(f.vendor, "STALE-MUST-NOT-APPLY")
+	r2 := auditGet(f)
+	r2.release <- auditReply(f.vendor, "LATER-SUCCESS")
+	auditSuccess(t, auditWait(t, queued), queued, "LATER-SUCCESS")
+	if ack, err := f.a.Interrupt(); err != nil || ack.Interrupted || ack.RequestID != "" {
+		t.Fatal("idle interrupt not a no-op")
+	}
+	parked := auditSubmit(t, f.a, "CLOSE-ACTIVE")
+	r3 := auditGet(f)
+	waiting := auditSubmit(t, f.a, "CLOSE-QUEUED")
+	closed := make(chan error, 1)
+	go func() { closed <- f.a.Close() }()
+	if err := auditReceive(t, closed); err != nil {
+		t.Fatal(err)
+	}
+	auditReceive(t, r3.canceled)
+	for _, h := range []ens.RequestHandle{parked, waiting} {
+		if c := auditWait(t, h); c.Outcome != "stopped" {
+			t.Fatalf("close did not settle: %+v", c)
+		}
+	}
+	if err := f.a.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := f.a.Submit("AFTER-CLOSE"); err == nil {
+		t.Fatal("closed admission accepted")
+	} else {
+		var stopped ens.StoppedError
+		if !errors.As(err, &stopped) {
+			t.Fatal("stopped error not distinguishable")
+		}
+	}
+	raw, _ := json.Marshal(f.a.Events())
+	if bytes.Contains(raw, []byte("STALE-MUST-NOT-APPLY")) || bytes.Contains(raw, []byte("CLOSE-QUEUED")) {
+		t.Fatal("stale/queued work entered history")
+	}
+	if u := f.a.Usage(); u.Input != 3 || u.Output != 2 {
+		t.Fatalf("discarded response counted in usage: %+v", u)
+	}
+}
+
+type auditObserver func(ens.Observation)
+
+func (f auditObserver) Observe(o ens.Observation) { f(o) }
+func auditWaitEvent(t *testing.T, ch <-chan ens.Observation, kind string) ens.Observation {
+	t.Helper()
+	for {
+		v := auditReceive(t, ch)
+		if v.Kind == kind {
+			return v
+		}
+	}
+}
+func TestIndependentResponsivenessReportInterrupt(t *testing.T) {
+	f := auditNew(t, "anthropic", "run_command", "write_file", "wait_for_job")
+	events := make(chan ens.Observation, 128)
+	_, err := f.e.Subscribe(f.a.ID(), auditObserver(func(o ens.Observation) { events <- o }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := auditSubmit(t, f.a, "START")
+	// cat blocks on stdin, so the report wait can only end through our control.
+	r := auditGet(f)
+	r.release <- auditReply(f.vendor, "CALLS", auditCall("running", "run_command", map[string]any{"command": "printf UNSEEN; cat", "ai_callback_delay": 30}), auditCall("refused", "write_file", map[string]any{"path": "MUST-NOT-EXIST", "content": "BAD"}))
+	auditWaitEvent(t, events, "tool_called")
+	ackCh := make(chan ens.ControlAck, 1)
+	go func() { v, _ := f.a.Hint("REPORT-HINT"); ackCh <- v }()
+	ack := auditReceive(t, ackCh)
+	if ack.Seq == 0 {
+		t.Fatal("hint blocked behind report wait")
+	}
+	stop := make(chan ens.ControlAck, 1)
+	go func() { v, _ := f.a.Interrupt(); stop <- v }()
+	if !auditReceive(t, stop).Interrupted {
+		t.Fatal("report interruption not accepted")
+	}
+	if c := auditWait(t, h); c.Outcome != "interrupted" {
+		t.Fatal(c)
+	}
+	if _, err := os.Stat(filepath.Join(f.root, "MUST-NOT-EXIST")); !os.IsNotExist(err) {
+		t.Fatal("undispatched call executed after interrupt")
+	}
+	called, returned := auditEvents(f.a, "tool_called"), auditEvents(f.a, "tool_returned")
+	if len(called) != 2 || len(returned) != 2 || called[0].Tool.CallID != "running" || called[1].Tool.CallID != "refused" || returned[0].Tool.CallID != "running" || returned[1].Tool.CallID != "refused" || !returned[1].Tool.IsError {
+		t.Fatal("accepted batch not paired in order")
+	}
+	if returned[0].Tool.Job == nil || returned[0].Tool.Job.Status != "running" {
+		t.Fatal("interrupted report not truthful")
+	}
+	if err := f.a.Close(); err != nil {
+		t.Fatal(err)
+	}
+	ended := auditEvents(f.a, "job_killed")
+	if len(ended) != 1 || ended[0].Job.Status != "killed" {
+		t.Fatal("late terminal fact missing or duplicated")
+	}
+	if len(auditEvents(f.a, "tool_returned")) != 2 || len(auditEvents(f.a, "turn_ended")) != 1 {
+		t.Fatal("late completion reopened turn/result")
+	}
+}
+
+func TestIndependentReplayExactBytes(t *testing.T) {
+	for _, vendor := range []string{"anthropic", "openai", "gemini"} {
+		t.Run(vendor, func(t *testing.T) {
+			f := auditNew(t, vendor, "read_file")
+			if err := os.WriteFile(filepath.Join(f.root, "notes"), []byte("file bytes"), 0600); err != nil {
+				t.Fatal(err)
+			}
+			if err := f.a.Ephemeral("EPHEMERAL-ONLY-ONCE"); err != nil {
+				t.Fatal(err)
+			}
+			h := auditSubmit(t, f.a, "REPLAY-FIRST")
+			r1 := auditGet(f)
+			if _, err := f.a.Hint("REPLAY-HINT-ONLY-ONCE"); err != nil {
+				t.Fatal(err)
+			}
+			r1.release <- auditReply(vendor, "TOOL", auditCall("read", "read_file", map[string]any{"path": "notes"}))
+			r2 := auditGet(f)
+			r2.release <- auditReply(vendor, "FINAL")
+			auditWait(t, h)
+			requests := auditEvents(f.a, "request_sent")
+			if len(requests) != 2 {
+				t.Fatal("unexpected model request count")
+			}
+			bodies := [][]byte{r1.body, r2.body}
+			for i, request := range requests {
+				rendered, err := f.a.ReconstructRequest(request.Seq)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if !bytes.Equal(rendered, bodies[i]) {
+					t.Fatalf("actual request %d differs from exact prefix replay", i)
+				}
+				again, _ := f.a.ReconstructRequest(request.Seq)
+				if !bytes.Equal(rendered, again) {
+					t.Fatal("replay consumed guidance")
+				}
+			}
+			if !bytes.Contains(r1.body, []byte("EPHEMERAL-ONLY-ONCE")) || bytes.Contains(r2.body, []byte("EPHEMERAL-ONLY-ONCE")) || bytes.Contains(r1.body, []byte("REPLAY-HINT")) || !bytes.Contains(r2.body, []byte("REPLAY-HINT")) {
+				t.Fatal("hint/ephemeral request boundaries wrong")
+			}
+			if len(requests[0].Request.Hints) != 0 || len(requests[1].Request.Hints) != 1 || requests[1].Request.Configuration == nil {
+				t.Fatal("request snapshot lacks hint/configuration identity")
+			}
+			events := f.a.Events()
+			path := filepath.Join(f.root, "missing-hint.jsonl")
+			file, err := os.Create(path)
+			if err != nil {
+				t.Fatal(err)
+			}
+			fmt.Fprintln(file, `{"log_version":1}`)
+			for _, event := range events {
+				if event.Type != "hint_received" {
+					_ = json.NewEncoder(file).Encode(event)
+				}
+			}
+			_ = file.Close()
+			replay, err := f.e.Load(path, f.a.Config())
+			if err == nil {
+				body, renderErr := replay.ReconstructRequest(requests[1].Seq)
+				if renderErr == nil && bytes.Equal(body, r2.body) {
+					t.Fatal("deleting hint escaped byte replay check")
+				}
+			}
+			// The accepted configuration, not current settings, determines historical bytes.
+			config := f.a.Config()
+			config.System = "CHANGED-LATER"
+			if err := f.a.SetConfig(config); err != nil {
+				t.Fatal(err)
+			}
+			body, _ := f.a.ReconstructRequest(requests[0].Seq)
+			if !bytes.Equal(body, r1.body) {
+				t.Fatal("replay used mutable current config")
+			}
+		})
+	}
+}
+
+func TestIndependentObserversOwnedAndOverflow(t *testing.T) {
+	f := auditNew(t, "anthropic")
+	first := make(chan struct{})
+	release := make(chan struct{})
+	var once sync.Once
+	slow, err := f.e.Subscribe(f.a.ID(), auditObserver(func(o ens.Observation) { once.Do(func() { close(first); <-release }) }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer close(release)
+	observations := make(chan ens.Observation, 2048)
+	_, err = f.e.Subscribe(f.a.ID(), auditObserver(func(o ens.Observation) { observations <- o }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = f.e.Subscribe(f.a.ID(), auditObserver(func(o ens.Observation) {
+		if o.Part != nil && o.Part.Text != nil {
+			*o.Part.Text = "OBSERVER-CORRUPTION"
+		}
+		if o.Event.Response != nil && len(o.Event.Response.Parts) > 0 {
+			if o.Event.Response.Parts[0].Text != nil {
+				*o.Event.Response.Parts[0].Text = "EVENT-CORRUPTION"
+			}
+		}
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := auditSubmit(t, f.a, "OBSERVE")
+	r := auditGet(f)
+	auditReceive(t, first)
+	r.release <- auditReply(f.vendor, "x")
+	c := auditWait(t, h)
+	if c.Outcome != "success" || c.Text != "x" {
+		t.Fatal("observer affected reliable completion")
+	}
+	finals := 0
+	states := map[string]bool{}
+	deadline := time.After(4 * time.Second)
+	for finals < 1 || !states["idle"] {
+		select {
+		case o := <-observations:
+			if o.AgentID != f.a.ID() {
+				t.Fatal("observation Agent attribution")
+			}
+			if o.Kind == "state" {
+				states[o.State] = true
+			}
+			if o.Kind == "part_final" {
+				if o.RequestID != h.ID() || o.Part == nil || o.Part.Type != "text" || o.Part.Text == nil || *o.Part.Text != "x" || o.Position != 0 {
+					t.Fatalf("finalized part attribution/copy: %+v", o)
+				}
+				response := auditEvents(f.a, "response_ended")
+				if len(response) != 1 || o.Seq != response[0].Seq {
+					t.Fatal("final observation did not identify durable response")
+				}
+				finals++
+			}
+		case <-deadline:
+			t.Fatal("final observations missing")
+		}
+	}
+	if !states["in_flight"] || !states["input_pending"] {
+		t.Fatalf("missing state progress: %v", states)
+	}
+	snapshot := f.a.Events()
+	for _, e := range snapshot {
+		if e.Response != nil {
+			*e.Response.Parts[0].Text = "SNAPSHOT-CORRUPTION"
+		}
+	}
+	responses := auditEvents(f.a, "response_ended")
+	if *responses[0].Response.Parts[0].Text != "x" {
+		t.Fatal("observation/snapshot mutated durable history")
+	}
+	// Force overflow independently. Even a fast callback may be descheduled, so
+	// only the parked consumer is required to overflow; other subscribers' exact
+	// delivery count is deliberately not scheduler-dependent.
+	flood := auditSubmit(t, f.a, "FLOOD")
+	request := auditGet(f)
+	parts := []any{}
+	for i := 0; i < 350; i++ {
+		parts = append(parts, map[string]any{"type": "text", "text": "y"})
+	}
+	request.release <- map[string]any{"model": auditModel, "content": parts, "usage": map[string]int{"input_tokens": 3, "output_tokens": 2}}
+	done := auditWait(t, flood)
+	if done.Outcome != "success" || done.Text != strings.Repeat("y", 350) {
+		t.Fatal("overflow lost reliable completion")
+	}
+	if f.e.SubscriptionStatus(slow) != "overflow" {
+		t.Fatal("full subscription silently remained current")
+	}
+}
+
+func TestIndependentCollectionReadyAndStaggered(t *testing.T) {
+	f := auditNew(t, "anthropic")
+	g := auditNewOwned(t, "anthropic", f.e)
+	if f.a.ID() == g.a.ID() {
+		t.Fatal("distinct Agents share identity within Ensemble")
+	}
+	a := auditSubmit(t, f.a, "A")
+	ar := auditGet(f)
+	b := auditSubmit(t, g.a, "B")
+	br := auditGet(g)
+	collection := f.e.Collect([]ens.RequestHandle{b, a})
+	second := f.e.Collect([]ens.RequestHandle{a, b})
+	if collection.Ensemble() != f.e {
+		t.Fatal("collection lost owning Ensemble")
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, _, err := collection.Wait(ctx); err == nil {
+		t.Fatal("collection ignored cancellation")
+	}
+	ar.release <- auditReply(f.vendor, "A-RESULT")
+	br.release <- auditReply(g.vendor, "B-RESULT")
+	auditWait(t, a)
+	auditWait(t, b)
+	result, exhausted, err := collection.Wait(context.Background())
+	if err != nil || !exhausted || len(result) != 2 || result[0].RequestID != b.ID() || result[0].AgentID != g.a.ID() || result[0].Text != "B-RESULT" || result[1].Text != "A-RESULT" {
+		t.Fatalf("both-ready drain: %+v, exhausted=%v, err=%v", result, exhausted, err)
+	}
+	result, exhausted, err = collection.Wait(context.Background())
+	if err != nil || !exhausted || len(result) != 0 {
+		t.Fatal("collection returned member twice")
+	}
+	result, _, err = second.Wait(context.Background())
+	if err != nil || len(result) != 2 {
+		t.Fatal("collections consumed one another")
+	}
+	empty := f.e.Collect(nil)
+	if r, done, err := empty.Wait(context.Background()); len(r) != 0 || !done || err != nil {
+		t.Fatal("empty collection blocked")
+	}
+	c := auditSubmit(t, f.a, "C")
+	cr := auditGet(f)
+	d := auditSubmit(t, g.a, "D")
+	dr := auditGet(g)
+	staggered := f.e.Collect([]ens.RequestHandle{c, d})
+	waiting := make(chan []ens.Completion, 1)
+	go func() { v, _, _ := staggered.Wait(context.Background()); waiting <- v }()
+	cr.release <- auditReply(f.vendor, "C-RESULT")
+	r := auditReceive(t, waiting)
+	if len(r) != 1 || r[0].Text != "C-RESULT" {
+		t.Fatal("first staggered readiness")
+	}
+	dr.release <- auditReply(g.vendor, "D-RESULT")
+	r, done, err := staggered.Wait(context.Background())
+	if err != nil || !done || len(r) != 1 || r[0].Text != "D-RESULT" {
+		t.Fatal("second staggered readiness")
+	}
+	auditSuccess(t, auditWait(t, c), c, "C-RESULT")
+	auditSuccess(t, auditWait(t, d), d, "D-RESULT")
+}
+
+func TestIndependentParityRoundBound(t *testing.T) {
+	f := auditNew(t, "anthropic", "read_file")
+	_ = os.WriteFile(filepath.Join(f.root, "n"), []byte("N"), 0600)
+	h := auditSubmit(t, f.a, "LOOP")
+	for i := 0; i < 16; i++ {
+		r := auditGet(f)
+		r.release <- auditReply(f.vendor, "AGAIN", auditCall(fmt.Sprint(i), "read_file", map[string]any{"path": "n"}))
+	}
+	c := auditWait(t, h)
+	if c.Outcome != "round_limit" || c.Error == nil {
+		t.Fatalf("16 request boundary: %+v", c)
+	}
+	if len(auditEvents(f.a, "request_sent")) != 16 || len(auditEvents(f.a, "tool_called")) != 16 || len(auditEvents(f.a, "tool_returned")) != 16 || len(auditEvents(f.a, "turn_started")) != 1 || len(auditEvents(f.a, "turn_ended")) != 1 {
+		t.Fatal("bound invented request/turn or left final call unpaired")
+	}
+	if u := f.a.Usage(); u.Input != 48 || u.Output != 32 {
+		t.Fatalf("usage not once per accepted response: %+v", u)
+	}
+	select {
+	case <-f.requests:
+		t.Fatal("HTTP seventeen")
+	default:
+	}
+}
+
+func TestIndependentRefusalUnsupported(t *testing.T) {
+	f := auditNew(t, "openai")
+	// A well-formed retained locator is not proof of an implemented media mapping.
+	err := f.a.Append(ens.Event{Type: "message_received", Message: &ens.Entry{Actor: "human", Purpose: "dialogue", Parts: []ens.Part{{Type: "blob", MIME: "video/mp4", Ref: &ens.Ref{Kind: 2, Locator: "https://PRIVATE-LOCATOR.invalid/SECRET"}}}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = f.a.Render(f.a.Config())
+	if err == nil {
+		t.Fatal("unsupported video reference accepted")
+	}
+	message := err.Error()
+	if !strings.Contains(message, auditModel) || !strings.Contains(message, "video/mp4") || strings.Contains(message, "PRIVATE-LOCATOR") || strings.Contains(message, "SECRET") {
+		t.Fatalf("unsafe/uninformative media refusal: %s", message)
+	}
+}
+
+func TestIndependentReplayInvalidTurns(t *testing.T) {
+	f := auditNew(t, "anthropic")
+	fixtures := []struct {
+		name   string
+		events []map[string]any
+	}{
+		{"empty-success", []map[string]any{{"type": "turn_started", "turn": map[string]any{"request_id": "r"}}, {"type": "turn_ended", "turn": map[string]any{"request_id": "r", "outcome": "success"}}}},
+		{"hint-idle", []map[string]any{{"type": "hint_received", "hint": map[string]any{"request_id": "r", "text": "BAD"}}}},
+		{"overlap", []map[string]any{{"type": "turn_started", "turn": map[string]any{"request_id": "r"}}, {"type": "turn_started", "turn": map[string]any{"request_id": "s"}}}},
+	}
+	for _, fixture := range fixtures {
+		t.Run(fixture.name, func(t *testing.T) {
+			path := filepath.Join(f.root, fixture.name+".jsonl")
+			file, _ := os.Create(path)
+			fmt.Fprintln(file, `{"log_version":1}`)
+			for i, event := range fixture.events {
+				event["seq"] = i + 1
+				event["time"] = "2026-01-01T00:00:00Z"
+				_ = json.NewEncoder(file).Encode(event)
+			}
+			_ = file.Close()
+			if _, err := f.e.Load(path, f.a.Config()); err == nil {
+				t.Fatal("invalid turn log accepted")
+			}
+		})
+	}
+}
+
+func TestIndependentObserversTypedParts(t *testing.T) {
+	f := auditNew(t, "anthropic", "read_file")
+	_ = os.WriteFile(filepath.Join(f.root, "note"), []byte("N"), 0600)
+	observed := make(chan ens.Observation, 64)
+	_, err := f.e.Subscribe(f.a.ID(), auditObserver(func(o ens.Observation) { observed <- o }))
+	if err != nil {
+		t.Fatal(err)
+	}
+	h := auditSubmit(t, f.a, "TYPED")
+	r := auditGet(f)
+	r.release <- map[string]any{"model": auditModel, "content": []any{map[string]any{"type": "text", "text": "TEXT"}, map[string]any{"type": "tool_use", "id": "c", "name": "read_file", "input": map[string]any{"path": "note"}}, map[string]any{"type": "future_block", "value": "OPAQUE-VALUE"}}, "usage": map[string]int{"input_tokens": 3, "output_tokens": 2}}
+	next := auditGet(f)
+	next.release <- auditReply(f.vendor, "FINAL")
+	auditWait(t, h)
+	finals := []ens.Observation{}
+	for len(finals) < 4 {
+		o := auditReceive(t, observed)
+		if o.Kind == "part_final" {
+			finals = append(finals, o)
+		}
+	}
+	kinds := []string{"text", "tool_call", "opaque"}
+	responses := auditEvents(f.a, "response_ended")
+	for i, kind := range kinds {
+		o := finals[i]
+		if o.Part == nil || o.Part.Type != kind || o.Seq != responses[0].Seq || o.RequestID != h.ID() || o.AgentID != f.a.ID() || o.Position != i {
+			t.Fatalf("typed finalized part %d: %+v", i, o)
+		}
+	}
+	if finals[1].Part.CallID != "c" || !bytes.Contains(finals[2].Part.Data, []byte("OPAQUE-VALUE")) {
+		t.Fatal("typed payload truncated to display text")
+	}
+}
+
+func TestIndependentResponsivenessAdmissionAndCancel(t *testing.T) {
+	f := auditNew(t, "anthropic")
+	active := auditSubmit(t, f.a, "ACTIVE")
+	r := auditGet(f)
+	admitted := make(chan []ens.RequestHandle, 1)
+	go func() {
+		handles := make([]ens.RequestHandle, 0, 1024)
+		for i := 0; i < 1024; i++ {
+			h, err := f.a.Submit(fmt.Sprintf("QUEUED-%d", i))
+			if err != nil {
+				break
+			}
+			handles = append(handles, h)
+		}
+		admitted <- handles
+	}()
+	handles := auditReceive(t, admitted)
+	if len(handles) != 1024 {
+		t.Fatal("admission waited for consumer capacity")
+	}
+	ids := map[string]bool{active.ID(): true}
+	for _, h := range handles {
+		if h.ID() == "" || ids[h.ID()] {
+			t.Fatal("request identity reused")
+		}
+		ids[h.ID()] = true
+	}
+	if err := active.Cancel(); err != nil {
+		t.Fatal(err)
+	}
+	if c := auditWait(t, active); c.Outcome != "canceled" {
+		t.Fatal("active identity cancellation did not use turn settlement")
+	}
+	auditReceive(t, r.canceled)
+	// The actor may start the next admitted request before close is enqueued; all
+	// accepted requests must settle either way, with no scheduler assumption.
+	closed := make(chan error, 1)
+	go func() { closed <- f.a.Close() }()
+	if err := auditReceive(t, closed); err != nil {
+		t.Fatal(err)
+	}
+	for _, h := range handles {
+		if c := auditWait(t, h); c.Outcome != "stopped" {
+			t.Fatal("close lost admitted completion")
+		}
+	}
+}

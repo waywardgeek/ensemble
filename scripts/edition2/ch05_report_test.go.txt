@@ -1,0 +1,74 @@
+// Independent transaction probe: two preparations reserve the same bytes. Only
+// one accepted report consumes them, and its superseded sibling cannot consume
+// the next interval. No model, process scheduling, or student test helper is used.
+package jobs
+
+import (
+	"context"
+	"strings"
+	"testing"
+
+	"example.com/ensemble/internal/common"
+)
+
+type auditCursorRoot struct {
+	common.Ensemble
+	next uint64
+}
+
+func (r *auditCursorRoot) AllocateHandle() uint64 { r.next++; return r.next }
+func (r *auditCursorRoot) Logf(string, ...any)    {}
+
+type auditCursorAgent struct {
+	common.JobAgent
+	root      *auditCursorRoot
+	workspace string
+}
+
+func (a *auditCursorAgent) Ensemble() common.Ensemble { return a.root }
+func (a *auditCursorAgent) Workspace() string         { return a.workspace }
+func (a *auditCursorAgent) Fault(error)               {}
+func TestIndependentResponsivenessPreparedReportOwnership(t *testing.T) {
+	owner := &auditCursorAgent{root: &auditCursorRoot{}, workspace: t.TempDir()}
+	service := New(owner)
+	owned, err := service.Create()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer service.Abort(owned)
+	job := owned.(*job)
+	service.mu.Lock()
+	service.write(job, []byte("UNSEEN-ABC"))
+	service.mu.Unlock()
+	request := common.JobReport{CallID: "call", Limits: common.Limits{MaxBytes: 1024}, Original: true, MatchStart: -1}
+	old, err := service.PrepareReport(context.Background(), owned, request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	replacement, err := service.PrepareReport(context.Background(), owned, request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, report := range []common.PreparedReport{old, replacement} {
+		if report.From != 0 || report.To != 10 || !strings.Contains(*report.Event.Parts[0].Text, "UNSEEN-ABC") {
+			t.Fatal("preparation irreversibly consumed output")
+		}
+	}
+	if err := service.CommitReport(replacement); err != nil {
+		t.Fatal(err)
+	}
+	if err := service.CommitReport(old); err == nil {
+		t.Fatal("superseded report consumed the cursor twice")
+	}
+	service.mu.Lock()
+	service.write(job, []byte("NEXT-DEF"))
+	service.mu.Unlock()
+	next, err := service.PrepareReport(context.Background(), owned, request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text := *next.Event.Parts[0].Text
+	if strings.Contains(text, "UNSEEN-ABC") || !strings.Contains(text, "NEXT-DEF") || next.From != 10 {
+		t.Fatal("accepted report repeated or lost byte interval")
+	}
+}

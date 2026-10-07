@@ -1,0 +1,128 @@
+// Private-field spelling is confined to this structural adapter. The assertions
+// compare live parent identities and interface kinds, never lexical names.
+package ensemble
+
+import (
+	"bytes"
+	"context"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"path/filepath"
+	"reflect"
+	"strings"
+	"testing"
+	"time"
+
+	"example.com/ensemble/internal/common"
+)
+
+func TestIndependentArchitectureParentOwnership(t *testing.T) {
+	var output bytes.Buffer
+	root := New(&output)
+	a, err := root.NewAgent(Config{APIKey: "fixture", Model: "fixture", Vendor: "anthropic", BaseURL: "http://127.0.0.1:1", Workspace: t.TempDir(), LogPath: filepath.Join(t.TempDir(), "events")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer root.Close()
+	parents := []common.Agent{a.actor.Agent(), a.engine.Agent(), a.jobs.Agent(), a.registry.Agent(), a.log.Agent()}
+	for _, parent := range parents {
+		if parent.Ensemble() != root || parent.Workspace() != a.Workspace() {
+			t.Fatal("child cannot reach actual creator-owned data")
+		}
+		parent.Ensemble().Logf("OWNER-PROBE")
+	}
+	if strings.Count(output.String(), "OWNER-PROBE") != len(parents) {
+		t.Fatal("parent chain does not reach logger")
+	}
+	if a.actor.Agent().Engine() != a.engine || a.actor.Agent().Jobs() != a.jobs || a.actor.Agent().Registry() != a.registry {
+		t.Fatal("actor injected/replaced sibling owner")
+	}
+	child, err := a.jobs.Create()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.jobs.Abort(child)
+	if child.Jobs() != a.jobs || child.Jobs().Agent().Ensemble() != root {
+		t.Fatal("Job parent chain lost owning Jobs/Agent")
+	}
+	// Every runtime child has an interface link; concrete sideways pointers do not
+	// count. Interface vocabulary belongs to common, regardless of its type name.
+	objects := []any{a.actor, a.engine, a.jobs, a.registry, a.log, child}
+	for _, object := range objects {
+		typ := reflect.TypeOf(object).Elem()
+		found := false
+		for i := 0; i < typ.NumField(); i++ {
+			f := typ.Field(i)
+			if f.Type.Kind() == reflect.Interface && f.Type.PkgPath() == "example.com/ensemble/internal/common" {
+				found = true
+			}
+		}
+		if !found {
+			t.Fatalf("runtime child %s has no common-declared interface parent", typ)
+		}
+	}
+}
+
+// Fault injection remains outside the student module and targets durability,
+// not an implementation-selected filename or a substring in a success log.
+type auditFailingLog struct{ common.EventLog }
+
+func (l auditFailingLog) Append(event common.Event) error {
+	if event.Type == "turn_ended" {
+		return fmt.Errorf("injected storage failure")
+	}
+	return l.EventLog.Append(event)
+}
+func TestIndependentResponsivenessPersistenceFailure(t *testing.T) {
+	var diagnostics bytes.Buffer
+	root := New(&diagnostics)
+	arrived := make(chan struct{}, 1)
+	release := make(chan struct{})
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		arrived <- struct{}{}
+		<-release
+		fmt.Fprint(w, `{"model":"fixture","content":[{"type":"text","text":"UNCOMMITTED-SUCCESS"}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+	}))
+	defer server.Close()
+	defer root.Close()
+	a, err := root.NewAgent(Config{APIKey: "fixture", Model: "fixture", Vendor: "anthropic", BaseURL: server.URL, Workspace: t.TempDir(), LogPath: filepath.Join(t.TempDir(), "events")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.log = auditFailingLog{a.log}
+	active, err := a.Submit("active")
+	if err != nil {
+		t.Fatal(err)
+	}
+	select {
+	case <-arrived:
+	case <-time.After(4 * time.Second):
+		t.Fatal("model barrier")
+	}
+	queued, err := a.Submit("queued")
+	if err != nil {
+		t.Fatal(err)
+	}
+	close(release)
+	for _, h := range []RequestHandle{active, queued} {
+		ctx, cancel := context.WithTimeout(context.Background(), 4*time.Second)
+		c, err := h.Wait(ctx)
+		cancel()
+		if err != nil || c.Outcome == "success" || c.Error == nil || !strings.Contains(c.Error.Message, "persistence") {
+			t.Fatalf("save failure did not settle caller truthfully: %+v %v", c, err)
+		}
+	}
+	_ = a.Close()
+	if !strings.Contains(diagnostics.String(), "durable") {
+		t.Fatal("failed cleanup/durability not logged")
+	}
+	for _, event := range a.Events() {
+		if event.Type == "turn_ended" && event.Turn.Outcome == "success" {
+			t.Fatal("failed save applied durable success")
+		}
+	}
+	if _, err := a.Submit("new work"); err == nil {
+		t.Fatal("faulted actor accepted new work")
+	}
+}
