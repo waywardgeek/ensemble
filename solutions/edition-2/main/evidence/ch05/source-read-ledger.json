@@ -109,6 +109,18 @@
       "path": "book/edition-2/chapter-05.md",
       "sha256": "36250b8a773a21eb15c1e1ded4f813f1252e6c23b76c58b7905c0e14c38a22d9",
       "reason": "full skill reload; R1 process-input cancellation and R2 subscription lifecycle teaching read before affected repair"
+    },
+    {
+      "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+      "sha256": "022fedaf295f8a9fea11de45b4c0a45bf0b47a1441be4384c6884a534bdc84df",
+      "read_at": "2026-10-07T23:30:19.413474+00:00",
+      "scope": "complete reload at final live/evidence boundary"
+    },
+    {
+      "path": "book/edition-2/chapter-05-student-feedback.md",
+      "sha256": "27f88143c7ac5d71e1ae050e64707f2c4fbe2ba85fa75616df05182e7a3471db",
+      "read_at": "2026-10-07T23:30:19.413653+00:00",
+      "scope": "complete reload at final live/evidence boundary"
     }
   ],
   "baseline_source_reads": [
