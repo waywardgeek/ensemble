@@ -504,6 +504,37 @@ work in its own Git history; the succeeding chapter starts from that
 history and extends it. The snapshot is both runnable code and a record
 of how the code arrived there. Preserve the first-edition solutions.
 
+### Edition 3 planning note: one source repository from Chapter 1
+
+A correction to Chapter 2 must reach Chapter 3 and every later solution that
+depends on it. Editing separate chapter copies makes that propagation easy to
+miss. Edition 3 should establish one main source repository before its first
+implementation, for example at `solutions/edition-3/main/`, and develop the
+agent there as the book progresses.
+
+Create chapter solution directories from exact commits in that repository.
+They can remain self-contained Git clones for readers, but their source is a
+recorded chapter snapshot. Development and integration happen in the main
+repository. Each new student starts from the preceding chapter's accepted
+tag, with only the new edition's teaching and earlier permitted code.
+
+Preserve the first student attempt under a tag such as `ch01-initial` and the
+reviewed solution under `ch01-r1`. Record the tag, exact source commit,
+manuscript commit, creation date, and validation receipts in a snapshot manifest.
+A later correction receives a new tag such as `ch01-r2`; existing tags and
+their evidence stay unchanged. This preserves what each attempt actually
+produced and makes a copied solution traceable to its source.
+
+Tags identify versions; they do not propagate fixes. When an earlier chapter
+changes, update its teaching first, make the correction on a branch from its
+accepted snapshot, and validate it at that chapter's feature scope. Carry the
+correction forward through each already-built later chapter and into the
+current main branch, resolving conflicts and running the affected checks and
+live demonstrations at each stage. Record the propagation in the snapshot
+manifest and publish new revision tags only after validation. Copying the
+latest agent backward would introduce features the earlier chapter has not
+taught.
+
 ## 1.9 Taking it for a spin
 
 The reference CLI ran against the live Messages API on October 7, 2026,

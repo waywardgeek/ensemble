@@ -1,8 +1,12 @@
 # Working checkpoint
 
-Date: 2026-10-07. Status: ACTIVE. Bill enabled full access without restarting
-and authorized continued autonomous work. This file supersedes the original
-paused restart record. Read `progress.md` for the current executable next step.
+Date: 2026-10-07. Status: chapter advancement on hold at Bill's request while
+repository layout is discussed. All workers were interrupted. The requested
+Edition 3 repository/snapshot note was added to Chapter 1, section 1.8; no
+repository migration was performed. Preserve Chapter 3's staged, uncommitted
+merge of Chapter 2 `ad0d80e33a3a2857e8e0887117d9b099f1a4786d`. Read the opening
+of `progress.md` before the older active next steps below. Await continuation
+before resuming implementation.
 
 ## Objective and current scope
 

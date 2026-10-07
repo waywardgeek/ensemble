@@ -1,11 +1,24 @@
 # Second-edition progress
 
-Date: 2026-10-07. Status: ACTIVE. Bill enabled full access without a restart
-and instructed autonomous work to continue. First-edition baseline: `ec41c6e`.
+Date: 2026-10-07. Chapter advancement is on hold at Bill's request while the
+main-source and chapter-snapshot workflow is discussed. The requested Edition 3
+planning note is in Chapter 1, section 1.8. Workers are interrupted; do not
+resume implementation from the older active instructions below without the
+user's continuation. First-edition baseline: `ec41c6e`.
 Main workflow checkpoint: `1d3b6c9`; independent tooling/evidence: `602ae87`.
 Chapter 0 and the ending/preservation plan are committed as `24867ca`.
 
 ## Current chapter
+
+At the hold, Chapter 2 human chat was accepted at `ad0d80e33a3a2857e8e0887117d9b099f1a4786d`
+(42 independent checks, control plus five detected mutations, real PTY runs
+on all three APIs). A fresh Chapter 3 coder had begun integrating that history
+into `solutions/edition-2/ch03/`; the merge is staged but uncommitted, with
+`MERGE_HEAD` at the Chapter 2 commit. Preserve this work. No Chapter 4 solution
+exists yet. The author, reviewer, and coder were interrupted together.
+The Edition 3 note specifies one main repository, immutable initial/revision
+tags, snapshot manifests, and explicit forward propagation and revalidation;
+it does not claim a current repository migration has happened.
 
 **Current priority: human chat mode, starting in Chapter 2.** Bill identified
 that the real-model JSON-lines sessions did not exercise the terminal mode a
