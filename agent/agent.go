@@ -13,12 +13,15 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/waywardgeek/ensemble/agent/internal/cachelens"
 	"github.com/waywardgeek/ensemble/agent/internal/common"
 	"github.com/waywardgeek/ensemble/agent/internal/jobs"
 	"github.com/waywardgeek/ensemble/agent/internal/llm"
 	"github.com/waywardgeek/ensemble/agent/internal/mcp"
+	"github.com/waywardgeek/ensemble/agent/internal/recall"
 	"github.com/waywardgeek/ensemble/agent/internal/settings"
 	"github.com/waywardgeek/ensemble/agent/internal/skills"
 	"github.com/waywardgeek/ensemble/agent/internal/tools"
@@ -183,43 +186,189 @@ type ToolHandler func(args json.RawMessage) (string, error)
 // Agent is the public handle to a running agent. It implements common.Agent,
 // providing the logger that all internal code reaches through parent interfaces.
 type Agent struct {
-	// UsageCounter holds this run's token totals. Embedded so Agent satisfies
-	// the usage half of common.Agent, which is how anything downstream reports
-	// spend without being handed a reporter.
-	common.UsageCounter
-
 	eng        *llm.Engine
 	actor      *llm.Actor
 	reg        *tools.Reg
 	skills     *skills.SkillRegistry
 	vars       *skills.VarRegistry
+	jobs       *jobs.Jobs
+	settings   *settings.SettingsStore
+	save       *llm.SaveFile
+	journal    *llm.Journal
+	spec       AgentSpec
 	Logger     *Logger
 	mcpClients []*mcp.Client // active MCP connections for cleanup
 }
 
-// NewAgent creates a new agent with the given config and log path. It wires
-// up the builtin tools (run_command, read_file, etc.) and any custom tools
-// registered before this call. Constructors take interfaces to parents: the
-// engine receives the job manager and tool registry as interfaces, not
-// concrete types.
-func NewAgent(cfg Config, logPath string) *Agent {
+// AgentSpec is everything that distinguishes one agent from another: where
+// its files live, where it finds skills, and which skills define it.
+//
+// Every field here used to be a process-wide constant. The data directory was
+// the working directory, hardcoded at seven separate call sites; the defining
+// skill was an environment variable. Neither could differ between two agents
+// in one process, which is the whole reason there could only ever be one.
+type AgentSpec struct {
+	// DataDir is this agent's private directory. Every file the agent owns
+	// lives under it -- save file, journal, settings, memory, cache captures
+	// -- so two agents never contend for the same path.
+	DataDir string
+
+	// SkillDir is where this agent discovers skills.
+	SkillDir string
+
+	// Skills are the top-level skills loaded at startup. They define what the
+	// agent is: an ephemeral agent with no memory carries a different one from
+	// a long-lived assistant.
+	Skills []string
+
+	// LogPath overrides the log location. Empty places it inside DataDir.
+	LogPath string
+}
+
+// Path returns the location of one of this agent's files.
+func (s AgentSpec) Path(name string) string { return filepath.Join(s.DataDir, name) }
+
+// NewAgent builds a complete, current agent: logger, skill and variable
+// registries, job manager, tool registry, engine and actor, plus every
+// capability the engine needs in order to run -- restored context, journal,
+// settings, memory, recall and the cache lens.
+//
+// It returns an error rather than exiting. A library may not decide that a
+// process should end: a save file that exists but will not parse is fatal to
+// THIS agent, but whether it is fatal to the program is the caller's
+// judgement, not ours.
+func NewAgent(cfg Config, spec AgentSpec) (*Agent, error) {
+	if spec.DataDir == "" {
+		spec.DataDir = "."
+	}
+	logPath := spec.LogPath
+	if logPath == "" {
+		logPath = spec.Path("agent.log")
+	}
+
 	a := &Agent{
 		Logger: DefaultLogger(),
 		skills: skills.NewSkillRegistry(),
 		vars:   skills.NewVarRegistry(),
+		spec:   spec,
 	}
-	j := jobs.NewJobs(a)
+	a.jobs = jobs.NewJobs(a)
 	a.reg = tools.NewRegistry()
 
 	// Register built-in variable renderers.
 	a.vars.Register("TOOLS", skills.BuiltinToolsRenderer(a.skills, a.reg))
 	a.vars.Register("SKILLS", skills.BuiltinSkillsRenderer(a.skills))
+	a.reg.SetSkillRegistry(a.skills)
 
+	// Skills load before the declarations are taken, but not because the
+	// order is forced. LoadSkill re-derives both the system prompt and the
+	// declarations whenever a skill arrives later, which is what makes
+	// dynamic loading work at all. Doing it here simply means a fresh agent
+	// starts complete.
+	if spec.SkillDir != "" {
+		if err := a.skills.DiscoverSkills(spec.SkillDir); err != nil {
+			a.Logf("skills: discover: %v", err)
+		}
+	}
+	for _, name := range spec.Skills {
+		if err := a.skills.LoadInitial(name, a.vars); err != nil {
+			a.Logf("skills: load %s: %v", name, err)
+		}
+	}
+	if bodies := a.skills.InitialBodies(); len(bodies) > 0 {
+		cfg.SystemPrompt = strings.Join(bodies, "\n\n---\n\n")
+	}
+
+	a.reg.SyncModelGatedTools(cfg.Model)
 	cfg.Tools = a.reg.Declarations()
-	a.eng = llm.NewEngine(cfg, logPath, j, a.reg, a)
+
+	a.eng = llm.NewEngine(cfg, logPath, a.jobs, a.reg, a)
+	if err := a.attachState(); err != nil {
+		return nil, err
+	}
 	a.actor = llm.NewActor(a.eng, a)
-	return a
+	return a, nil
 }
+
+// attachState gives the engine the capabilities that live in this agent's
+// data directory.
+//
+// Every one of these was stapled onto the engine by the command-line root,
+// one assignment at a time, because the agent had no directory of its own to
+// put them in. They are not nine separate dependencies; they are one -- a
+// place to keep files -- read nine ways.
+func (a *Agent) attachState() error {
+	spec := a.spec
+
+	// Cache captures land beside the agent's other logs.
+	a.eng.Cache = cachelens.New(spec.DataDir, func(s string) { a.Debugf("%s", s) })
+
+	savePath := spec.Path("save.json")
+	sf, err := llm.Recover(savePath, func(err error) { a.Logf("load: %v", err) })
+	if err != nil {
+		return fmt.Errorf("recover %s: %w", savePath, err)
+	}
+	a.save = sf
+	a.eng.Ctx = sf.Restore(func(err error) { a.Logf("load: %v", err) })
+
+	jr, err := llm.OpenJournal(llm.JournalPath(savePath))
+	if err != nil {
+		return fmt.Errorf("open journal for %s: %w", savePath, err)
+	}
+	a.journal = jr
+	a.eng.Journal = jr
+
+	a.settings = settings.NewSettingsStore(spec.Path("settings.json"))
+	a.eng.Target = func() int { return a.settings.Get().ContextTarget }
+	a.eng.ToolRoundLimit = func() int { return a.settings.Get().MaxToolRounds }
+	a.eng.Bands = func() common.BandConfig { return a.settings.Get().Memory.Normalized() }
+
+	a.eng.Memory = llm.NewStore(spec.Path("memory"))
+	a.eng.SyncBands("startup")
+
+	// Recall is assembled here because this is the one place that is allowed
+	// to know about both halves.
+	a.eng.Recall = recall.New(
+		recall.DefaultSources(spec.DataDir, spec.SkillDir),
+		llm.NewJudge(a.eng),
+		recall.DefaultConfig(),
+	)
+	return nil
+}
+
+// The accessors below exist so an application can reach the agent's parts
+// without rebuilding them. Their absence is why the command-line root
+// constructed its own: there was no way to get at an agent's engine, so it
+// was easier to make a second engine than to ask for the first.
+
+// Engine returns the agent's engine.
+func (a *Agent) Engine() *llm.Engine { return a.eng }
+
+// Actor returns the agent's actor.
+func (a *Agent) Actor() *llm.Actor { return a.actor }
+
+// Jobs returns the agent's job table.
+func (a *Agent) Jobs() *jobs.Jobs { return a.jobs }
+
+// Registry returns the agent's tool registry.
+func (a *Agent) Registry() *tools.Reg { return a.reg }
+
+// Skills returns the agent's skill registry.
+func (a *Agent) Skills() *skills.SkillRegistry { return a.skills }
+
+// Vars returns the agent's variable registry.
+func (a *Agent) Vars() *skills.VarRegistry { return a.vars }
+
+// Settings returns this agent's settings store. Settings are per-agent
+// because the model, the context target and the memory bands are properties
+// of an agent, not of the process it happens to be running in.
+func (a *Agent) Settings() *settings.SettingsStore { return a.settings }
+
+// SaveFile returns the agent's save file.
+func (a *Agent) SaveFile() *llm.SaveFile { return a.save }
+
+// Spec returns the specification this agent was built from.
+func (a *Agent) Spec() AgentSpec { return a.spec }
 
 // NewBareAgent creates an agent with NO builtin tools. All tools come from
 // MCP or explicit RegisterTool calls. Used for auxiliary agents like the
@@ -316,6 +465,9 @@ func (a *Agent) Shutdown() error {
 		c.Close()
 	}
 	a.mcpClients = nil
+	if a.journal != nil {
+		a.journal.Close()
+	}
 	return err
 }
 

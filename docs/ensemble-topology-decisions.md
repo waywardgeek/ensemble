@@ -106,3 +106,80 @@ broken by moving the counter onto the Engine.
 The arc this sets up: ch22 repairs the chain, the multi-agent chapter spends
 it. `spawn_sub_agent` becomes a walk up the parent chain with no new
 plumbing, which demonstrates the rule instead of asserting it.
+
+## Per-agent data directory and per-agent skills (Bill, ch22 session)
+
+RULING: every agent is handed a path to its own data directory. The
+application chooses the root (e.g. `en/` at the project root); the root
+agent's files go there and sub-agents go in `en/agents/<name>`. The data
+directory forms a tree by default. Revisit at the sandboxing chapter.
+
+RULING: top-level skills are per-agent and are passed to the agent
+constructor. An ephemeral agent with no memory would carry a different
+top-level skill.
+
+RULING: the Ensemble object is what `main.go` instantiates, and it is handed
+the path to the top-level agent data directory.
+
+### Why this settles the "collapse the roots" question
+
+Measured in `agent/cmd/main.go`, every per-agent artifact is rooted at `"."`:
+
+    main.go:85    savePath := "save.json"        (ch11 "Rule 1", in a comment)
+    main.go:420   journal from JournalPath(savePath)
+    main.go:385   eng.Cache   = cachelens.New(".", ...)
+    main.go:431   settingsStore = ./settings.json
+    main.go:440   eng.Memory  = llm.NewStore(filepath.Join(".", "memory"))
+    main.go:460   recall.DefaultSources(".", skillDir)
+    main.go:1140  a SECOND settings store, built only to read the model
+
+So the agent's data directory IS the process working directory today. That
+is why there can only be one agent: two agents in one process would fight
+over `save.json`. The singleton is a consequence of hardcoding `"."`, not a
+design anyone chose. Ch11's "Rule 1" reads as a persistence rule but is
+actually a cardinality constraint.
+
+The same is true of identity: `main.go:347` selects the defining skill with
+`envOr("EN_PRIMARY_SKILL", "ensemble")` -- a process-wide environment
+variable, so two agents in one process could not have different primary
+skills either.
+
+This is what makes the full collapse (option A) correct rather than an arity
+trap. The nine capabilities stapled onto the engine in `main.go` do not
+become nine constructor parameters. They collapse to ONE input, the data
+directory, plus the agent's skill identity. That missing input is precisely
+why the root had to staple them on by hand.
+
+### Signature
+
+    // AgentSpec is everything that distinguishes one agent from another:
+    // where its files live, where it finds skills, and which skills define it.
+    type AgentSpec struct {
+        DataDir  string   // this agent's private directory
+        SkillDir string   // where skills are discovered
+        Skills   []string // top-level skills loaded at startup
+        LogPath  string   // optional override; defaults inside DataDir
+    }
+
+    func NewAgent(cfg common.Config, spec AgentSpec) *Agent
+
+Arity matches chapter 5's published `NewAgent(cfg, logPath)`. The second
+parameter was a log path; it becomes the agent's identity. Chapter 22 carries
+that change and explains it; chapter 5 stays as written, preserving
+chronology, exactly as with the Host -> Agent rename.
+
+Config is NOT the place for these fields: `common.Config` is the LLM request
+config (model, tools, system prompt) and is rendered onto the wire. Agent
+identity does not belong in it.
+
+### Ch22 scope decision
+
+`main.go` passes `DataDir: "."`, so behaviour is byte-identical to today --
+same files, same places, fully testable against current output. The seam is
+cut and proven by reproducing current behaviour; the multi-agent chapter
+spends it by passing a different directory per agent.
+
+TRAP, from CodeRhapsody's own data-dir tree: mixing relative and absolute
+paths double-prefixes sub-agent directories. Resolve the root to an absolute
+path once at the top and pass absolute down, or keep everything relative --
+never mix. Settle it in ch22 while there is exactly one caller.
