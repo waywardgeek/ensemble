@@ -1,0 +1,17 @@
+{
+  "started_utc": "2026-10-07T18:37:52.703660+00:00",
+  "argv": [
+    "/Users/bill/projects/ensemble/solutions/edition-2/ch03/evidence/ch03/bin/tools-consumer"
+  ],
+  "environment": {
+    "LLM_VENDOR": "openai",
+    "LLM_MODEL": "gpt-4.1-mini-2025-04-14",
+    "LLM_RESOLVED_MODEL": "gpt-4.1-mini-2025-04-14",
+    "DEMO_DIR": "/Users/bill/projects/ensemble/solutions/edition-2/ch03/evidence/ch03/consumer-openai",
+    "LLM_API_KEY": "<child environment; redacted>"
+  },
+  "binary_sha256": "13871793c3be6ed0f5fe62c4ad41605f9adfb18a7d9d6b0dc33bbf882a93dcae",
+  "consumer_source_sha256": "b8e5ccfd2858804abc584e722ed9d88505178acc1f563c104c8b0f1c7969fb25",
+  "exit_code": 0,
+  "finished_utc": "2026-10-07T18:37:58.904738+00:00"
+}

@@ -1,0 +1,15 @@
+Type 'help' for list of commands.
+(dlv) break debuggee.go:5
+Breakpoint 1 set at 0x1009ab290 for main.main() ./debuggee.go:5
+(dlv) continue
+> [Breakpoint 1] main.main() ./debuggee.go:5 (hits goroutine(1):1 total:1) (PC: 0x1009ab290)
+     1:	package main
+     2:	import "fmt"
+     3:	func main() {
+     4:	 value := 42
+=>   5:	 fmt.Println(value)
+     6:	}
+(dlv) print value
+42
+(dlv) quit
+exit_code: 0

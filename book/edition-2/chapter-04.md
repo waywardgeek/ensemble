@@ -13,15 +13,21 @@ Keep the work instead. Give it a handle, retain its output, and let the model
 look again, send input, or stop it. The job survives the end of the tool
 call that started it.
 
-> **Independently reviewed student contract.** No Chapter 4 implementation,
-> successful grade, or new live demonstration is claimed.
+> **Reviewed implementation and live revision accepted.** Independent review
+> accepts runtime `d25d3fd`, its all-three-API demonstrations, and evidence-only
+> repair `e1c6488`. §4.9 preserves the initial attempts and revised results
+> separately. Final manuscript proofreading is accepted. Validated checkpoint
+> `edition-2-ch04-r1` binds the manuscript, source, and evidence. Evidence links
+> target the matching frozen `ch04/` export. Bill's
+> editorial approval remains separate.
 
 ## 4.1 A job needs an owner
 
 Agent owns a Jobs service in `internal/jobs`, just as it owns its Registry
 in `internal/tools`. Jobs owns each live Job. Ensemble owns an application-wide
 handle allocator, starting at one and increasing for every newly allocated
-job. These are explicit working choices for this edition. They provide
+candidate. Occupied artifact names consume a candidate and are skipped.
+These are explicit working choices for this edition. They provide
 independent Agent access while preventing two Agents from assigning the
 same handle to different work.
 
@@ -37,10 +43,18 @@ operations need those facilities. The chain already reaches them.
 
 Common declares job snapshots, statuses, limits, and the interfaces. Jobs
 implements lifecycle, waiting, output capture, and reporting. Tools implements
-the tool operations; llm implements dispatch and model continuation. These
+the tool operations, including supervision JSON/schema validation, tool-name
+dispatch and presentation of consumed-limit notes. It passes typed requests
+to Jobs; Jobs retains pending limits, cursors and lifecycle state. llm
+implements model continuation and its dispatch boundary. These
 spokes import common and never one another. If a shared type needs behavior
 in jobs, use a free function there rather than moving behavior into common
 to keep method syntax. Helpers retain their owning context and logger path.
+
+Even an apparently local file read can wait on unavailable mounted storage.
+Giving only shell commands jobs would leave that ordinary read holding the
+model's turn indefinitely. Every ordinary tool gets the same supervised
+lifecycle; its usual speed does not decide whether the reader needs control.
 
 One worker owns completion. For a local function, that worker completes the
 job after the function returns. For a process, its process/output lifecycle
@@ -73,7 +87,8 @@ and preceding new snapshot; historical answers and research notes are excluded.
    the consuming call, including invalid calls and another setter.
 5. Write produced output to `cr/io/HANDLE` beneath the owning Agent's
    workspace. Reports contain bounded unseen output, with head/tail and an
-   exact omission notice when capped. Preserve the file for later reads.
+   exact omission notice when capped. Preserve the file for later reads;
+   skip occupied artifact names when allocating, including after CLI restart.
 6. Run commands on a Unix PTY with input echo and merged stdout/stderr.
    This replaces Chapter 3's separate-stream result. Normalize CRLF, retain
    the actual exit status, and add a per-call `cwd` override. Never change
@@ -112,11 +127,31 @@ inventing a job for work that was never admitted.
 
 For a permitted ordinary tool, allocate a handle and create its output file
 exclusively. Never truncate an existing artifact. Allocate before recording
-`tool_called`, so that event names the job before the handler starts. If the
-file cannot be created or the event cannot be persisted, do not execute.
-A failed allocation may leave a gap in handles; reuse would make old records
-ambiguous. In a fresh application with successful allocations, handles are
-1, 2, 3, and so on across all its Agents.
+`tool_called`, so that event names the job before the handler starts. Start
+candidate allocation at 1 in each application and consume candidates
+monotonically across its Agents. If exclusive creation reports an occupied
+name, preserve it and try the next candidate. A file, directory or symlink
+already occupying `cr/io/HANDLE` is a collision: never read, follow or truncate
+that old leaf to make room. Use the exclusive create result rather than a
+check-then-create race.
+
+Other creation failures, such as an unwritable artifact directory, refuse
+execution and terminate the current request with a safe infrastructure error.
+Do not start the handler, invent a job, or continue to another model request.
+No matched tool result is required for this pre-admission infrastructure
+failure. Retain the already accepted response and any earlier effects in
+history; unresolved calls remain unresolved rather than being erased or
+reported as successful. The CLI closes the Agent and performs its normal
+cleanup. A library caller receives the terminal error and must close that
+Agent instead of submitting another turn against the unfinished call batch.
+A failed event append also prevents the handler from starting and faults
+the Agent under the existing persistence rule.
+Consumed candidates are never reused within the application; a failed
+allocation may leave gaps. A fresh application in an empty workspace obtains
+handles 1, 2, 3, and so on. Restarting it in a workspace containing `cr/io/1`
+and `cr/io/2` preserves both and begins new work at the next free candidate.
+This is collision avoidance, not restoration of old jobs or their supervision
+rights. A skipped candidate creates no job record.
 
 Run the ordinary handler under the job lifecycle and wait for its first
 report. A quick read can return its complete result immediately. A slow
@@ -208,13 +243,25 @@ append the terminal event. Holding the turn mutex across that append path
 would turn the new job system into a deadlock. No observer sees an event
 before persistence, and each receives its own owned snapshot in sequence.
 
+Update predecessor tests that locate responses by a fixed event-array index.
+Select the relevant event kind and call identity instead: an asynchronous
+terminal event may legitimately take an earlier position. Preserve the
+original assertion about content, identity or order rather than deleting it
+because the log now records more facts.
+
 Background events also change when a response's sequence becomes known.
 A job can finish while the HTTP request is in flight, consuming the next
 event sequence before the response arrives. Chapter 2's synthesized missing
 call IDs must use the actual committed response sequence, not a number
 predicted before HTTP. Finalize missing IDs on an owned response copy under
 Agent's append serialization, after choosing that event's sequence and
-before validating and writing it. Preserve supplied IDs and the specified
+before final durable validation and writing. First validate the transient
+response's structure: the required response must exist, and every index used
+to identify a missing call ID must name an actual tool-call part. Public
+append inputs can be malformed. Refuse them with a safe error before any
+dereference or index access, leave history unchanged, and release the append
+lock on every error path so a later valid append can proceed.
+Preserve supplied IDs and the specified
 part index. Leave the parser's returned facts unchanged. Do not suppress
 real-time job observations for an entire HTTP request to reserve a sequence.
 Replay then sees the same finalized IDs that the model continuation used.
@@ -292,6 +339,17 @@ It does not secretly read the rest of a file merely because storage is now
 on disk. A full-file read large enough to exceed the report budget must
 explicitly request enough source bytes. For read_file artifacts, preserve
 the selected file text itself; put optional presentation headers in reports.
+
+The source-limit truncation notice is report metadata too. Reading
+`ABCDEFGHIJ` with `max_bytes:4` stores exactly `ABCD` in the artifact; its
+produced byte count is four. The report still tells the model that the source
+selection was truncated. Preserve that fact separately from the retained
+bytes so a later report can explain the limit even when the first report
+returned while the read was running. Do not append the notice to the artifact
+or imply that omitted source bytes can be recovered from that artifact.
+The separate report cap can omit some of the four retained bytes; its own
+notice describes those recoverable bytes and must not be confused with the
+source-selection notice.
 
 The shell changes here. Spool its complete merged stream and final status
 to disk. Its `max_output_bytes` now caps the inline report, replacing
@@ -537,6 +595,206 @@ without reading the old source, and revises from the new teaching. The author
 incorporates the teaching findings. Keep the corrected ownership design and
 recheck affected behavior before claiming the chapter complete.
 
-[LIVE RECEIPTS PENDING: new Chapter 4 program, all-three-provider feature
-runs, actual interactive debugger, output recovery, shutdown, public consumer,
-measured usage, independent acceptance and comparative review.]
+The initial October 7, 2026 runs followed this route on all three APIs.
+The coder drove real macOS terminals, read the answers, and supplied follow-up
+requests. These were coder sessions, not sessions attributed to Bill. The
+executable came from `9f76d9e99ad1c52c6af5d5c4496bbe2410e3ae70`; initial
+source and evidence were frozen at `9803b006aa2ad14337655595c057b3016d11363e`.
+The [launch and receipt record](../../solutions/edition-2/ch04/evidence/ch04/receipts.json)
+binds the runs to their binary and actual model identities. All three used
+explicit `chat`, beginning at 20:38 UTC.
+
+For a matching scratch setup, copy the retained
+[interactive program](../../solutions/edition-2/ch04/evidence/ch04/live-anthropic/workspace/interactive.py)
+and [debugger source](../../solutions/edition-2/ch04/evidence/ch04/live-anthropic/workspace/debuggee.go.txt)
+into a fresh workspace, naming the latter `debuggee.go`. Add `subdir` and a
+`notes.txt` containing the four lines `alpha one`, `beta two`, `gamma three`
+and `delta four`. Use a fresh log and leave the saved evidence untouched.
+
+The first request asked for a command that printed `SLOW-START`, slept two
+seconds and printed `SLOW-END`, with a 0.05-second callback delay. Each model
+received a running job, read `notes.txt` through a separate job, and used
+`wait_for_job` to obtain the remaining output. The saved artifact contained:
+
+```text
+SLOW-START
+SLOW-END
+exit_code: 0
+```
+
+The Messages model explained the 33-byte total as carriage returns added by
+the PTY. The retained file contains normalized LF bytes; the generated
+`exit_code: 0` line accounts for the additional bytes. The status, byte count
+and artifact establish what happened. A plausible explanation in the answer
+does not replace those records.
+
+Next, the models started a small interactive program that printed `READY>`
+and replied to input lines. Sending `alpha` with the default newline produced
+an echo and `REPLY:alpha READY>`. Messages and generateContent also sent
+`beta\n` with `append_newline:false` and obtained the corresponding reply.
+Chat Completions initially sent only `beta`; the record contains exactly
+that string, and the program correctly remained waiting for its line ending.
+
+After reading that answer, the coder sent a correction beginning, “You omitted
+the explicitly requested LF, so beta correctly remained buffered.” The next
+request specified a fresh program and the exact string `beta\n` with
+`append_newline:false`. The tool result then contained:
+
+```text
+beta
+REPLY:beta READY>
+```
+
+The model killed the fresh job after the successful reply. The
+[Chat Completions transcript](../../solutions/edition-2/ch04/evidence/ch04/live-openai/terminal.txt)
+preserves both attempts. No input implementation was changed to obtain the
+second result; the corrected tool arguments supplied the missing byte.
+
+All three models then started a persistent shell, sent `cd subdir; pwd`, and
+observed that shell's changed directory. A separately started `pwd` still used
+the Agent workspace. An explicit `cwd:"subdir"` selected the subdirectory;
+`cwd:"does-not-exist"` produced a tool error, followed by successful recovery
+with the valid override. The persistent shells were explicitly killed.
+
+For output recovery, each model generated `LINE-001` through `LINE-100` with
+a 40-byte report cap. The retained artifact held 913 bytes, including the
+generated exit-status line; the report identified 873 omitted bytes and its
+actual locator. The model then read lines 50–52 from that artifact and received
+`LINE-050`, `LINE-051` and `LINE-052`. The recovery address was usable data,
+not decoration on a truncation warning.
+
+The one-shot exercise exposed another useful distinction. Messages and
+generateContent set an eight-byte budget and received the expected head/tail
+report for the 42-byte notes file. The next read returned the complete file
+without a consumption note. Chat Completions added a zero delay to its setter;
+its next read returned a running report at zero produced bytes. A following
+`job_ended` recorded all 42 bytes in the artifact. The model called the first
+report an empty limited read, but the job was still running when that report
+was taken. Read the status before interpreting the byte count.
+
+Each model also set a pending zero-delay, eight-byte limit, then supplied
+explicit one-second and 100-byte limits on a short command. Its consumption
+note recorded the explicit values. Later, a `kill_job` consumed a fresh pending
+setting, and the following ordinary command had no stale consumption note.
+These are separate observations of precedence and next-call consumption.
+
+The debugger exercise used Delve 1.27.2. The model read the planted Go source,
+built it with disabled optimization, started `dlv exec ./debug-target`, set a
+breakpoint at `debuggee.go:5`, and continued to it. The retained PTY output
+shows a breakpoint in `main.main`, then this exchange:
+
+```text
+(dlv) print value
+42
+(dlv) quit
+exit_code: 0
+```
+
+The debugger jobs were handles 16, 17 and 16 for Messages, Chat Completions
+and generateContent respectively. All reached done with exit status zero.
+The [Messages debugger artifact](../../solutions/edition-2/ch04/evidence/ch04/live-anthropic/workspace/cr/io/16)
+retains the breakpoint, source position, input and output. This debugger ran
+through Ensemble's model-selected tools; a direct shell probe outside the
+agent was only an earlier environment prerequisite check.
+
+Finally, each model started a blocking process, killed it, waited on the killed
+handle and observed that it stayed killed without a generated exit code.
+It then started another blocker and left that job running. The coder used
+`/history`, selected the actual earlier notes result for `/redact`, inspected
+`/usage`, and sent EOF. The logs end with `job_killed` and reason `shutdown`
+for the remaining job. Separate process checks recorded that process alive
+before EOF and absent afterward; the explicitly killed process was already
+absent. Every chat process exited zero after reporting final usage.
+
+| API and selected model | Tool calls | Jobs | Input | Cache write | Cache read | Output |
+|---|---:|---:|---:|---:|---:|---:|
+| Messages, `claude-sonnet-5-5` | 36 | 19 | 269672 | 0 | 0 | 5817 |
+| Chat Completions, `gpt-4.1-mini-2025-04-14` | 39 | 20 | 8783 | 0 | 136192 | 1601 |
+| generateContent, `models/gemini-3.8-flash` | 35 | 19 | 252517 | 0 | 0 | 6413 |
+
+Messages and Chat Completions returned the selected identities. generateContent
+returned `gemini-3.8-flash`, separately retained from its selected routing name.
+The counters above are sums of the saved accepted-response usage, matching the
+terminal totals. They describe these particular conversations, including the
+extra correction, rather than a comparison of model efficiency.
+
+An earlier launcher attempt could not find `dlv` on its terminal PATH. It made
+no model request and began no Ensemble session; the retained startup-failure
+directories document setup, not a debugger demonstration. The corrected
+launcher supplied the installed executable locations before these runs.
+
+The initial public consumer uses a labeled local HTTP fixture to check two
+Agents sharing a workspace, distinct artifacts, foreign-handle refusal and
+ordered owned observations. That is deterministic interface evidence, not a
+real-model consumer demonstration. A separate supplement then exercised the
+public consumer with real models on all three APIs at 20:52 UTC. Two Agents
+shared a workspace, retained distinct job output, and received their own
+ordered background completion observations. An attempted foreign-handle wait
+was refused. Those runs bind to source `7061d7c6` and are retained in the
+[supplemental public receipts](../../solutions/edition-2/ch04/evidence/ch04/supplemental-public-receipts.json);
+their counters are separate from the chat table above.
+
+Offline log reconstructions remain distinct from captured HTTP traffic. The
+optional GUI remains a stub.
+
+### After review: four bytes means four bytes
+
+Comparative review found a smaller boundary with a visible consequence. A
+source-capped file read put its truncation notice inside the retained artifact.
+Reading four bytes could therefore create a file containing four bytes plus
+an explanation. The corrected result separates produced text from report
+metadata. Review also corrected the supervision responsibility boundary and
+owner access, safe response admission, log identity and snapshot ownership.
+The [code review](chapter-04-code-review.md) records the defects, fixes and
+independent checks.
+
+The coder repeated the affected human workflows on all three APIs from runtime
+`d25d3fd4e552cd17c75bf814c9899903878cfbd5`, beginning at 21:12 UTC on October 7.
+The [revised receipts](../../solutions/edition-2/ch04/evidence/ch04/boundary-receipts.json)
+retain these sessions separately. Reading `notes.txt` with `max_bytes:4`
+produced the exact artifact `alph`. A pending two-byte report cap then showed
+`a` and `h`, with two bytes omitted from that four-byte artifact. The separate
+source-cap notice explained why the rest of `notes.txt` was absent. Reading
+the artifact can recover the omitted `lp`; it cannot recover source bytes that
+were never selected.
+
+The first revised prompt contained the coder's own mistake: it also placed
+`ai_callback_delay` directly on `read_file`. Messages and Chat Completions
+attempted that argument and received the correct unknown-field error.
+generateContent omitted the unsupported argument. After observing the result,
+the coder corrected the instruction to use `tool_limits`. Both the bad prompt
+and the successful follow-up remain in the transcripts.
+
+Each revised session repeated default Enter and exact-LF input, kill-time
+consumption, slow completion, explicit limit precedence, middle-line recovery
+and EOF cleanup. Each model again drove Delve through Ensemble, inspected 42,
+and quit normally. Fresh real-model public-consumer runs repeated the separate
+Agents, owned observations and foreign-handle refusal on the corrected runtime.
+The revised generateContent replies supplied call IDs; the concurrent
+missing-ID synthesis property remains a deterministic test, rather than a
+claim about those particular paid responses.
+
+| Revised API | Input | Cache write | Cache read | Output |
+|---|---:|---:|---:|---:|
+| Messages | 138922 | 0 | 0 | 3754 |
+| Chat Completions | 8736 | 0 | 53248 | 1101 |
+| generateContent | 133475 | 0 | 0 | 5522 |
+
+These counters describe the revised human conversations only. Their selected
+and returned identities match the earlier sessions' respective identities;
+the public consumer has separate accounting. Intermediate partial revision
+runs remain labeled with their earlier executable rather than being added
+to either table.
+
+Evidence review also found verifier defects: identity checks could occur after
+earlier derived files were rewritten, and a generated empty source map could
+pass without checking any source. The repaired verifier checks every launch
+and the complete historical source set before writing. Evidence-only revision
+`e1c6488` preserves the bad manifest and binds all 51 historical source files;
+independent failure controls confirm refusal leaves evidence unchanged. It
+changes no runtime and requires no repeated paid call. Independent review
+accepts the corrected runtime, revised live results and evidence; the chapter
+manuscript is independently proofread and accepted. Validated checkpoint
+`edition-2-ch04-r1` binds these artifacts through a dedicated commit and
+immutable tag. That checkpoint does not imply
+Bill's editorial approval.

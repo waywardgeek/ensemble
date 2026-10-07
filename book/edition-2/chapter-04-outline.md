@@ -2,8 +2,16 @@
 
 Status: full contract/prose in `chapter-04.md` independently accepted after
 the fixture and lifecycle clarifications recorded in `chapter-04-review.md`.
-Ready for the coordinator's student handoff after Chapter 3 validation.
-No new Chapter 4 run or grade is claimed.
+The fresh student built from validated Chapter 3. Its initial reported grade
+was 90/100, then 100/100 after published allocation clarification. All three
+human CLI/Delve runs and a separately bound all-three-API public-consumer
+supplement are recorded in §4.9. Independent review now accepts corrected
+runtime `d25d3fd`, its repeated human/public live demonstrations, and evidence-only
+repair `e1c6488`. Final manuscript proofreading is accepted; validated
+checkpoint `edition-2-ch04-r1` binds the dedicated commit and immutable tag. Reader evidence targets the frozen `ch04/` export. Initial
+source and revised source are not conflated.
+The October 7 allocation clarification below responds to actual difficulty,
+not an accepted-code or live claim.
 
 ## Voice plan and stake
 
@@ -19,6 +27,29 @@ source material; do not retell an AI narrator's first-person account as a
 new personal memory. Omit the retired corpus percentages and provider/model
 defaults. No unconditional claim that a job wrapper can prevent every crash
 or kill an arbitrary Go goroutine.
+
+## Story-preservation pass, voice v5
+
+Source: first-edition `book/chapter-04.md` §§4.0–4.1, reread October 7. Its
+screenshot hang illustrates why apparently local tools need supervision,
+but the narrated incident's precise date and broad all-agents consequence
+lack a newly inspected underlying receipt here. Do not present them as a new
+firsthand scene or repeat its claim that every tool becomes incapable of
+taking down an agent. The local-goroutine limitation is part of the corrected
+contract.
+
+Retain the current debugger opening: both sides wait correctly and neither
+can progress. The actual new debugger artifacts now resolve that stake in
+§4.9. Also retain the missing-LF human correction and mistaken byte/status
+accounts against inspected tool records. Those current receipts supply
+personality and consequence without inventing a historical scene. No extra
+joke is needed; the competing waits already expose the design problem.
+
+Independent review accepted this story choice and suggested one useful
+mechanism from old §§4.1–4.3: a local read can block on mounted storage.
+§4.1 now uses that objection to explain supervision of every ordinary tool.
+It also explicitly assigns supervision wire decoding and note presentation
+to tools while Jobs retains typed lifecycle and pending/cursor state.
 
 ## Thesis and teaching order
 
@@ -97,6 +128,15 @@ a workspace as well as Agents with separate workspaces.
 
 ## Compatibility points that need explicit teaching
 
+- Allocation consumes monotonically increasing candidates. Exclusive-create
+  collisions with any occupied artifact leaf preserve it and try the next
+  candidate; other creation errors still prevent execution. Empty workspaces
+  begin at 1; a restarted CLI can share retained artifacts without restoring
+  old jobs. Add file/directory/symlink collision controls and noncollision
+  failure/no-effect controls.
+- Tests must locate asynchronously interleaved events by kind and call
+  identity rather than a fixed array index, preserving their behavioral
+  assertions. This is a predecessor-test adaptation, not relaxed ordering.
 - PTY output merges stdout/stderr and echoes input. This deliberately replaces
   Chapter 3's separate-stream shell result; do not claim byte-identical shell
   output across that change. Keep actual exit status and short-result content.
@@ -161,6 +201,13 @@ background completion is durable and observable. It also finalizes synthesized
 missing call IDs using the actual response sequence under the append gate;
 background completion during HTTP cannot steal a predicted identity.
 
-Independent contract findings are resolved. Handoff includes the full chapter,
+Independent preimplementation contract findings were resolved. Handoff includes the full chapter,
 mandatory skill and validated predecessor, not this author-only research
-outline. Actual student implementation and demonstrations remain the next gate.
+outline. The initial student report and allocation clarification are tracked
+in `chapter-04-student-feedback.md`; the coder confirmed resolution and
+independent review accepts the corrections. Initial human runs bind to runtime
+`9f76d9e` and freeze `9803b00`; initial public runs bind to `7061d7c6`.
+Comparative revisions, final demonstrations on `d25d3fd`, evidence-only repair
+`e1c6488` and final proofreading are accepted. The coordinator's exact export
+and manifest bind the reviewed source in checkpoint `edition-2-ch04-r1`.
+Bill's editorial approval remains separate.

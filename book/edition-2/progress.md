@@ -8,6 +8,19 @@ in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 
 ## Current chapter
 
+Chapter 4 is accepted by independent code, live-evidence and manuscript review.
+Runtime: `d25d3fd4e552cd17c75bf814c9899903878cfbd5`; final evidence-only repair:
+`e1c64886564e7d1e8205ee08c17f98f32e001912`; final reviewer: `05b170a`.
+Its 780-file exact export is `solutions/edition-2/ch04/`, with manifest
+`solutions/edition-2/manifests/ch04-r1.json` and checkpoint `edition-2-ch04-r1`.
+All five modules passed vet/tests, main race and formatting passed, inherited
+grade is 100/100, independent CLI checks 53/53 and public cases 3/3, with eleven
+detected mutations and storage/lifecycle/boundary controls. Actual all-three
+provider PTYs drove Delve through Ensemble, retained source/report limits and
+verified EOF cleanup; real public clients exercised Agent ownership. Initial
+failures and subsequent corrections remain preserved. See `chapter-04-validation.md`.
+Next: fresh new-only Chapter 5 student. Bill's editorial approval stays separate.
+
 Chapter 3's human-client integration is accepted. Initial production/live
 commit: `a347ce31511c4b124e486bb41ef98c07bd17cec5`. Evidence-only verifier repair:
 `339a2a61e7107b921bdc7acbd704b2eb7da17931`; accepted ledger: `17b60d2`.
@@ -29,12 +42,9 @@ architectural evidence retains its original bindings and scope.
 
 Chapter 2's accepted human source is frozen at `ch02/`, matching historical
 `ad0d80e33a3a2857e8e0887117d9b099f1a4786d` (42 independent cases, five mutants,
-all-three-provider PTYs). Chapter 4's reviewed contract is ready for a fresh
-new-only student using accepted main. Fresh `/root/coder_ch04` is now implementing Chapter 4 in main, launched with
-`fork_turns="none"` and only new teaching/accepted source. It loaded the full
-mandatory skill and contract and passed its initial baseline test. No Chapter 4
-completion, live result or validation is claimed. It must demonstrate real
-model-driven Delve through Ensemble's human CLI, not an external shell.
+all-three-provider PTYs). Chapter 4 used a fresh `fork_turns="none"` student
+with only new teaching and the accepted predecessor. Historical comparison
+was supplied afterward as reviewer rationale, preserving the initial attempt.
 
 Chapter 1 is validated against the current chapter contract, with independent
 quality review and real-model receipts. Final student checkpoint:
@@ -152,11 +162,14 @@ old implementation into the new solution.
 
 ## Roles and next actions
 
-- Author: Chapter 4 contract ready; Chapter 5 actor/collection ownership accepted;
-  Chapter 6 remains research/outline only until its predecessor is ready.
-- Coder: `/root/coder_ch04`, fresh new-only context, working main on Chapter 4.
+- Author: Chapter 4 final prose accepted; Chapter 5 actor/collection contract
+  accepted; Chapter 6 full contract reviewed, implementation gated on Chapter 5.
+  Requested story restoration across Chapters 1–6 is drafted; independent
+  complete proofreading of the remaining chapters continues.
+- Coder: `/root/coder_ch04` completed accepted Chapter 4; next student must
+  start in a fresh new-only context for Chapter 5.
 - Chapter 4 reviewer: `/root/coder_ch03_chat`, independent of this chapter's
-  new coder, preparing lifecycle/owner/fault/debugger checks before source review.
+  new coder, completed lifecycle/owner/fault/debugger and comparative review.
   This agent authored the preceding human-client integration; disclose that
   context rather than claiming total source blindness. The original global-review
   thread could not resume (tool thread limit); its durable map/reviews/handoff

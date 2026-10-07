@@ -1,0 +1,204 @@
+{
+  "started": "2026-10-07T21:02:35.977455+00:00",
+  "parent_revision": "8a4794d1b166b2e43c6ea47b69f1c23c4768c03f",
+  "checks": [
+    {
+      "module": ".",
+      "command": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "start": "2026-10-07T21:02:35.994679+00:00",
+      "end": "2026-10-07T21:02:36.196204+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "module": ".",
+      "command": [
+        "go",
+        "test",
+        "./...",
+        "-count=1"
+      ],
+      "start": "2026-10-07T21:02:36.196232+00:00",
+      "end": "2026-10-07T21:02:37.187200+00:00",
+      "exit_code": 0,
+      "stdout": "ok  \texample.com/ensemble\t0.560s\nok  \texample.com/ensemble/cmd\t0.027s\n?   \texample.com/ensemble/internal/common\t[no test files]\nok  \texample.com/ensemble/internal/eventlog\t0.006s\nok  \texample.com/ensemble/internal/jobs\t0.727s\nok  \texample.com/ensemble/internal/llm\t0.009s\nok  \texample.com/ensemble/internal/tools\t0.011s\n",
+      "stderr": ""
+    },
+    {
+      "module": "gui",
+      "command": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "start": "2026-10-07T21:02:37.187251+00:00",
+      "end": "2026-10-07T21:02:37.316831+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "module": "gui",
+      "command": [
+        "go",
+        "test",
+        "./...",
+        "-count=1"
+      ],
+      "start": "2026-10-07T21:02:37.316861+00:00",
+      "end": "2026-10-07T21:02:37.536164+00:00",
+      "exit_code": 0,
+      "stdout": "ok  \texample.com/ensemble-gui\t0.009s\n",
+      "stderr": ""
+    },
+    {
+      "module": "examples/consumer",
+      "command": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "start": "2026-10-07T21:02:37.536191+00:00",
+      "end": "2026-10-07T21:02:37.634023+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "module": "examples/consumer",
+      "command": [
+        "go",
+        "test",
+        "./...",
+        "-count=1"
+      ],
+      "start": "2026-10-07T21:02:37.634052+00:00",
+      "end": "2026-10-07T21:02:37.747680+00:00",
+      "exit_code": 0,
+      "stdout": "?   \texample.com/ensemble-consumer\t[no test files]\n",
+      "stderr": ""
+    },
+    {
+      "module": "examples/tools-consumer",
+      "command": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "start": "2026-10-07T21:02:37.747714+00:00",
+      "end": "2026-10-07T21:02:37.846860+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "module": "examples/tools-consumer",
+      "command": [
+        "go",
+        "test",
+        "./...",
+        "-count=1"
+      ],
+      "start": "2026-10-07T21:02:37.846893+00:00",
+      "end": "2026-10-07T21:02:37.955377+00:00",
+      "exit_code": 0,
+      "stdout": "?   \texample.com/ensemble-tools-consumer\t[no test files]\n",
+      "stderr": ""
+    },
+    {
+      "module": "examples/jobs-consumer",
+      "command": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "start": "2026-10-07T21:02:37.955409+00:00",
+      "end": "2026-10-07T21:02:38.059088+00:00",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "module": "examples/jobs-consumer",
+      "command": [
+        "go",
+        "test",
+        "./...",
+        "-count=1"
+      ],
+      "start": "2026-10-07T21:02:38.059121+00:00",
+      "end": "2026-10-07T21:02:38.181941+00:00",
+      "exit_code": 0,
+      "stdout": "?   \texample.com/ensemble-jobs-consumer\t[no test files]\n",
+      "stderr": ""
+    },
+    {
+      "module": ".",
+      "command": [
+        "go",
+        "test",
+        "-race",
+        "./...",
+        "-count=1"
+      ],
+      "start": "2026-10-07T21:02:38.181965+00:00",
+      "end": "2026-10-07T21:02:40.827993+00:00",
+      "exit_code": 0,
+      "stdout": "ok  \texample.com/ensemble\t1.940s\nok  \texample.com/ensemble/cmd\t1.153s\n?   \texample.com/ensemble/internal/common\t[no test files]\nok  \texample.com/ensemble/internal/eventlog\t1.015s\nok  \texample.com/ensemble/internal/jobs\t1.710s\nok  \texample.com/ensemble/internal/llm\t1.016s\nok  \texample.com/ensemble/internal/tools\t1.018s\n",
+      "stderr": ""
+    }
+  ],
+  "source_hashes": {
+    "ensemble_test.go": "9adb6af5eb4cec2dacf90af570c29fc4acbe929d8cef81120edcaf87f4d10740",
+    "turn_test.go": "f894d9fac8501b54b06ce2b4172b45013e61b127b7dfd2254763e33ce2e5da2d",
+    "events_test.go": "1aaa23460229d112297f8e3a134d7593ba4cfb5cd00beee7dae107bc88e7700b",
+    "jobs_test.go": "ee5ffd3f1875ce9db14a56065dcd3c2cbbd0185abc5fde9712eab4e9637b02c5",
+    "redaction_test.go": "4b2b5f0f9dac67d31e956b546576286e67aa04785a4976ffbb5b224d765a379b",
+    "ensemble.go": "c260962465194eb2391d40202303e76949f31645647e06a4a4911f02c8edac03",
+    "cmd/terminal.go": "b0230318e64f3a6f190be72326ce93a519367b4f328d29266dc2f1e413d24169",
+    "cmd/terminal_linux.go": "7130f243fcaf6cbc347725052a45305a1faf4116a7986b1dd1015f5f29b0c8fe",
+    "cmd/chat_test.go": "5c1e8690feb42ab68ded45306291c6c051006c45315fd660865ac57ab3101383",
+    "cmd/chat.go": "bb0a648bfbc881dfcf6553d1ec548a353cc9bbd0bf1924001cbfb445b5df9944",
+    "cmd/terminal_darwin.go": "d08027b3da0e6056fab15fe4cc979c7214470d024aab9156f87b99fe4476d3ea",
+    "cmd/terminal_other.go": "f10d70d18f22b0434a49048b42988ca617aad2d76ca77431ba4c00c35ed8a3f9",
+    "cmd/main.go": "4184fea4938f055a60231e410d68c1a040cb95357f48a547295ea37fb99d6776",
+    "gui/client.go": "65ccdbab3ecb3ed30a9d88e9a4ae8800d645c48e8a62f0a52d5e71327b47dcea",
+    "gui/client_test.go": "40680f862f7452919aee870a3042054bb3e77a24a63e71d66861418fb28185e5",
+    "examples/tools-consumer/main.go": "b8e5ccfd2858804abc584e722ed9d88505178acc1f563c104c8b0f1c7969fb25",
+    "examples/consumer/main.go": "e19628ef423166058165d2919d81c972ee1ae0452930f35533fddb6e58b601ea",
+    "examples/jobs-consumer/live.go": "9cadb11a5c691753e13f2bf2d0828c9a15cbf7bf1793d488b9ec58ca79e06a49",
+    "examples/jobs-consumer/main.go": "43d3b792c53e4d66c7d5f444085e42f03a555e7e7900c2142d4ab41c4d5578cc",
+    "internal/tools/command.go": "5694afff95ac331bff418460311cb0ff7d0379afb3d3add463b9fea31d9ae10a",
+    "internal/tools/files.go": "c7db80bd7b1bb0af299535c23dadc5bab6ef24b607606897f506ef192b969d3f",
+    "internal/tools/registry.go": "41ccba00940d0aa789817e85ff2939d26acbfdc1e15ab7db2148ebebace5d4fb",
+    "internal/tools/text.go": "46dceb3bcf9c0ecdfb608102c38b4f30ec71231bf0ddd695741d0a0af40d9aa7",
+    "internal/tools/supervision.go": "10ad9eb40489f07270d6e27b452dd6780f0b6f81e644dca6312986405c5f9fa0",
+    "internal/tools/tools_test.go": "03752efd9dba9376be511b8c379b4ef9d597d6eed94d50700eb2278e27704d1d",
+    "internal/llm/render.go": "0707d81b69113351b5712eb4438c7074bfa84e7a62232979c7f28cc4a7555944",
+    "internal/llm/turn.go": "1765e4ffc2874f4d373c35349e33373049ad36c8a6ba7a79642c364100825259",
+    "internal/llm/engine_test.go": "f1b886638f72f5814c9ba07fe88c5c628e8afa0ac1a83314aebfbd4a6cb65e59",
+    "internal/llm/events.go": "6def7894d5b90994f5bcfec00f44892dd1e7b9d007d683a0b2d866837f36e483",
+    "internal/llm/engine.go": "b10a788a59b0fcb9105f793e55a6314839d66eb26f9d677191d1fd5f6a5693a9",
+    "internal/llm/parse.go": "fd0ec8fc20e037e80af6acbc1eeae0bb648420af32cbe300d78afaf07bebae05",
+    "internal/common/types.go": "4736fdd09dad8924c7cb9dcc11262b143bde88b78c7dd069afeb25cd97d9d551",
+    "internal/common/json.go": "351498fa4f35016ea75e4fffe402a6b5c5d2273072c65d739f25bef7fa110175",
+    "internal/eventlog/log.go": "f3006daf420e94343a1141b3255acb4cdadaaffaefb4432d35455108e1a27b95",
+    "internal/eventlog/log_test.go": "e3cc8db4fbda9663c172c751ce8db63f39e428dde4048cb4c1929e885df2f91c",
+    "internal/jobs/limits.go": "e0c84405eedcdfbbe0234a9cdb72a59f397020124182b71698bbf13afadb2ef4",
+    "internal/jobs/jobs_test.go": "71a3d9fb76ef25efcae95917872de9eb8bddbf101e6754c7ebbfbea8735c3df2",
+    "internal/jobs/process.go": "31e67bde9bc085f09cef5357a2a4c98b297175b9bb17d6b47433bfb1bae38fc0",
+    "internal/jobs/jobs.go": "6647c9e9a3d67b2c179702601788c3b61920617c565b880148e983df2c9a341d",
+    "internal/jobs/report.go": "5b73458d95f60c3070aad24c11f9cf6e68c904ab15230b21f3f41522e46173c4"
+  },
+  "formatting": {
+    "command": "gofmt -l all discovered Go sources",
+    "exit_code": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+}

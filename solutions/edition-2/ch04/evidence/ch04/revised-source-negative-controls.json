@@ -1,0 +1,41 @@
+{
+  "at": "2026-10-07T21:21:51.534817+00:00",
+  "source_bindings_checked_on_positive": 51,
+  "cases": [
+    {
+      "fault": "empty source map",
+      "exit_code": 1,
+      "whole_tree_unchanged": true,
+      "files_compared": 85,
+      "stderr": "Traceback (most recent call last):\n  File \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-revised-source-negative-zgp0rh0z/solutions/edition-2/main/evidence/ch04/verify-revised.py\", line 21, in <module>\n    assert expected and set(binding['sources']) == expected, 'empty or incomplete source binding; no evidence modified'\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: empty or incomplete source binding; no evidence modified\n"
+    },
+    {
+      "fault": "missing source file",
+      "exit_code": 1,
+      "whole_tree_unchanged": true,
+      "files_compared": 85,
+      "stderr": "Traceback (most recent call last):\n  File \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-revised-source-negative-5wdfrjyn/solutions/edition-2/main/evidence/ch04/verify-revised.py\", line 21, in <module>\n    assert expected and set(binding['sources']) == expected, 'empty or incomplete source binding; no evidence modified'\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: empty or incomplete source binding; no evidence modified\n"
+    },
+    {
+      "fault": "wrong source hash",
+      "exit_code": 1,
+      "whole_tree_unchanged": true,
+      "files_compared": 85,
+      "stderr": "Traceback (most recent call last):\n  File \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-revised-source-negative-o00k2ntb/solutions/edition-2/main/evidence/ch04/verify-revised.py\", line 24, in <module>\n    assert hashlib.sha256(data).hexdigest() == want\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "fault": "late launch source",
+      "exit_code": 1,
+      "whole_tree_unchanged": true,
+      "files_compared": 85,
+      "stderr": "Traceback (most recent call last):\n  File \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-revised-source-negative-yck1mmg9/solutions/edition-2/main/evidence/ch04/verify-revised.py\", line 31, in <module>\n    assert launch['source_revision'] == binding['source_revision']\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "fault": "late launch binary",
+      "exit_code": 1,
+      "whole_tree_unchanged": true,
+      "files_compared": 85,
+      "stderr": "Traceback (most recent call last):\n  File \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-revised-source-negative-90q2j6dl/solutions/edition-2/main/evidence/ch04/verify-revised.py\", line 32, in <module>\n    assert launch['binary_sha256'] == binding['binaries']['cli' if kind=='live' else 'public']\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    }
+  ]
+}

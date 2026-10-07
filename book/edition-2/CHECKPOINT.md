@@ -1,17 +1,23 @@
 # Working checkpoint
 
-Date: 2026-10-07. Autonomous work is active. Chapter 3 human integration is
+Date: 2026-10-07. Autonomous work is active. Chapter 4 code, live evidence and
+manuscript are accepted; its exact 780-file export and manifest are checkpointed
+as `edition-2-ch04-r1`. Runtime `d25d3fd`, final evidence `e1c6488`, reviewer
+`05b170a`. See `chapter-04-validation.md`. Next is a fresh new-only Chapter 5
+student, using main at that checkpoint.
+
+Chapter 3 human integration is
 accepted, with dedicated checkpoint `edition-2-ch03-r1`. Reviewed source and
 independent receipts are at `8494fdb0e5d6c096445bfac039458b83dd225332`; exact
 491-file export and source/evidence manifest are under `solutions/edition-2/`.
 See `progress.md`, `chapter-03-validation.md` and `chapter-03-human-review.md`.
 
-Active: `/root/coder_ch04` is implementing Chapter 4 from accepted main in a
-fresh new-only context, with full coding skill and published contract. Actual model-driven Delve through
-Ensemble is required; an external debugger run is insufficient. Chapter 5
-contract is ready pending predecessor; author is developing Chapter 6 teaching.
-`/root/coder_ch03_chat` now performs independent Chapter 4 review/checker work,
-not implementation; its previous client authorship must be disclosed. The old
+`/root/coder_ch04` completed Chapter 4 from a fresh new-only context, including
+actual model-driven Delve through Ensemble on all three providers. Chapter 5
+contract is ready; Chapter 6 contract is reviewed but still gated on Chapter 5.
+`/root/coder_ch03_chat` completed independent Chapter 4 review and now reviews
+the remaining story-restoration prose; its previous client authorship must be
+disclosed. The old
 global-review thread could not resume because of tool thread capacity. Read its
 durable map/reviews and current progress, not assumptions about live threads.
 
@@ -72,7 +78,11 @@ that limitation; their implementation validation is a separate claim.
 
 ## Current state
 
-- **Latest accepted source:** Chapter 3 human integration, as recorded above.
+- **Latest accepted source:** Chapter 4, runtime d25/final evidence e1c6488.
+  Five-module checks, grade100, independent53/53 and public3/3, eleven mutations,
+  race/fault/boundary controls, actual all-provider PTYs and public consumers,
+  evidence/source-binding controls and final prose all accepted.
+- Chapter 3 human integration, as recorded above:
   All four modules format/vet/test; inherited100; human45/45; passing control
   plus seven exact-failure mutations; four verifier controls independently rerun.
   Actual all-three-provider human PTYs and prose/comparison review accepted.

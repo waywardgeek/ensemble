@@ -1,0 +1,11 @@
+Ensemble — anthropic / local-fixture
+Type /help for commands.
+You> /ephemeral local diagnostic control
+Recorded ephemeral.
+You> /history
+History:
+1 message_received
+No tool_returned events to redact; this chapter does not execute tools.
+You> /redact 1 1 deliberate no eligible result control
+ensemble: redaction span contains no tool results; inspect history for tool_returned events
+redaction span contains no tool results; inspect history for tool_returned events
