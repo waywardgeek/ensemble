@@ -39,13 +39,13 @@ func (e *Engine) Turn(ctx context.Context) (common.ClientResult, error) {
 		if err != nil {
 			return fail("request_failed", err)
 		}
-		if err = owner.RecordTurn(common.Event{Type: "response_ended", Response: &response}); err != nil {
+		if err = owner.RecordResponse(response); err != nil {
 			return common.ClientResult{}, err
 		}
 		committed := owner.TurnSnapshot()
-		response.Parts = committed.Entries[len(committed.Entries)-1].Parts
+		response.Response.Parts = committed.Entries[len(committed.Entries)-1].Parts
 		calls := 0
-		for _, part := range response.Parts {
+		for _, part := range response.Response.Parts {
 			if part.Type != "tool_call" {
 				continue
 			}
@@ -56,7 +56,7 @@ func (e *Engine) Turn(ctx context.Context) (common.ClientResult, error) {
 			}
 		}
 		if calls == 0 {
-			parts, _ := Clone(e, response.Parts)
+			parts, _ := Clone(e, response.Response.Parts)
 			return common.ClientResult{Text: TextAnswer(e, parts), Parts: parts, Usage: e.Usage()}, nil
 		}
 	}

@@ -13,6 +13,7 @@ func (o *owner) Config() common.Config        { return common.Config{} }
 func (o *owner) Workspace() string            { return "" }
 func (o *owner) Logf(string, ...any)          {}
 func (o *owner) Publish(string, common.Event) {}
+func (*owner) AllocateHandle() uint64         { return 0 }
 func (o *owner) Write(b []byte) (int, error) {
 	o.writes++
 	return len(b) / 2, errors.New("simulated partial write")

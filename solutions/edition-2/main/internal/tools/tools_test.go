@@ -13,6 +13,7 @@ type testRoot struct{}
 
 func (testRoot) Logf(string, ...any)          {}
 func (testRoot) Publish(string, common.Event) {}
+func (testRoot) AllocateHandle() uint64       { return 0 }
 
 type testAgent struct{ config common.Config }
 

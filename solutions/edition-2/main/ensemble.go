@@ -129,6 +129,10 @@ func (e *Ensemble) NewAgent(config Config) (*Agent, error) {
 	if a.config.LogPath == "" {
 		return nil, fmt.Errorf("a fresh LogPath is required")
 	}
+	a.config.LogPath, err = filepath.Abs(a.config.LogPath)
+	if err != nil {
+		return nil, err
+	}
 	a.log, err = eventlog.New(a, a.config.LogPath)
 	if err != nil {
 		return nil, err
@@ -140,6 +144,11 @@ func (e *Ensemble) NewAgent(config Config) (*Agent, error) {
 	return a, nil
 }
 func (e *Ensemble) Load(path string, config Config) (*Agent, error) {
+	var err error
+	config.LogPath, err = filepath.Abs(path)
+	if err != nil {
+		return nil, err
+	}
 	a, err := e.construct(config)
 	if err != nil {
 		return nil, err
@@ -279,6 +288,17 @@ func (a *Agent) SetConfig(config Config) error {
 		return fmt.Errorf("workspace and builtin selection are fixed when the Agent is created")
 	}
 	config.Workspace = workspace
+	if config.LogPath == "" {
+		config.LogPath = current.LogPath
+	}
+	logPath, err := filepath.Abs(config.LogPath)
+	if err != nil {
+		return err
+	}
+	if logPath != current.LogPath {
+		return fmt.Errorf("log destination is fixed when the Agent is created")
+	}
+	config.LogPath = logPath
 	if !a.registry.Match(config.Tools) {
 		return fmt.Errorf("live tool declarations must match selected builtins")
 	}
@@ -295,10 +315,8 @@ func (a *Agent) SetConfig(config Config) error {
 	a.mu.Unlock()
 	return nil
 }
-func (a *Agent) Usage() Usage { a.mu.Lock(); defer a.mu.Unlock(); return a.engine.Usage() }
+func (a *Agent) Usage() Usage { return a.engine.Usage() }
 func (a *Agent) UsageByModel() map[Provenance]Usage {
-	a.mu.Lock()
-	defer a.mu.Unlock()
 	return a.engine.UsageByModel()
 }
 func (a *Agent) Snapshot() common.Context {
@@ -379,6 +397,10 @@ func (a *Agent) Append(event Event) error {
 	return a.append(event, true, true)
 }
 func (a *Agent) append(event Event, persist, notify bool) error {
+	return a.appendPrepared(event, persist, notify, nil)
+}
+
+func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int) error {
 	a.appendMu.Lock()
 	defer a.appendMu.Unlock()
 	a.mu.Lock()
@@ -391,8 +413,12 @@ func (a *Agent) append(event Event, persist, notify bool) error {
 		event.Time = time.Now().UTC().Format(time.RFC3339Nano)
 	}
 	owned, err := llm.Clone(a.engine, event)
-	if err == nil && persist && owned.Type == "response_ended" {
-		for _, index := range event.Response.MissingCallIDs {
+	if err == nil && len(missing) != 0 {
+		for _, index := range missing {
+			if !persist || owned.Type != "response_ended" || owned.Response == nil || index < 0 || index >= len(owned.Response.Parts) || owned.Response.Parts[index].Type != "tool_call" {
+				err = fmt.Errorf("invalid parsed response call index")
+				break
+			}
 			owned.Response.Parts[index].CallID = fmt.Sprintf("call-%d-%d", owned.Seq, index)
 		}
 	}
@@ -462,8 +488,11 @@ type turnAgent struct{ *Agent }
 
 func (a turnAgent) TurnSnapshot() common.Context        { return a.Snapshot() }
 func (a turnAgent) RecordTurn(event common.Event) error { return a.append(event, true, true) }
-func (a turnAgent) NextSequence() uint64                { return a.nextSeq() }
-func (a turnAgent) Registry() common.Registry           { return a.registry }
+func (a turnAgent) RecordResponse(parsed common.ParsedResponse) error {
+	return a.appendPrepared(Event{Type: "response_ended", Response: &parsed.Response}, true, true, parsed.MissingCallIDs)
+}
+func (a turnAgent) NextSequence() uint64      { return a.nextSeq() }
+func (a turnAgent) Registry() common.Registry { return a.registry }
 
 func (e *Ensemble) AllocateHandle() uint64 {
 	e.mu.Lock()

@@ -58,8 +58,9 @@ func (p *parser) truth(raw json.RawMessage) bool {
 }
 
 // Parse returns facts only. The Agent's durable append path owns all mutation.
-func Parse(owner common.Engine, config common.Config, body []byte, responseSeq uint64) (common.Response, error) {
+func Parse(owner common.Engine, config common.Config, body []byte, responseSeq uint64) (common.ParsedResponse, error) {
 	p := parser{parent: owner}
+	var missing []int
 	root := p.obj(body)
 	requested := Route(owner, config)
 	from := requested
@@ -154,7 +155,7 @@ func Parse(owner common.Engine, config common.Config, body []byte, responseSeq u
 				if raw, ok := fn["id"]; ok {
 					id = p.str(raw)
 				} else {
-					out.MissingCallIDs = append(out.MissingCallIDs, index)
+					missing = append(missing, index)
 				}
 				part = common.Part{Type: "tool_call", CallID: id, From: &from, Name: p.str(fn["name"]), Args: append(json.RawMessage(nil), fn["args"]...)}
 			} else {
@@ -186,5 +187,5 @@ func Parse(owner common.Engine, config common.Config, body []byte, responseSeq u
 	if !visible {
 		p.invalid()
 	}
-	return out, p.err
+	return common.ParsedResponse{Response: out, MissingCallIDs: missing}, p.err
 }

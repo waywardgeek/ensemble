@@ -42,7 +42,12 @@ func (j *job) Snapshot() common.JobSnapshot {
 	s := j.service()
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return j.snapshot
+	snapshot := j.snapshot
+	if snapshot.ExitCode != nil {
+		code := *snapshot.ExitCode
+		snapshot.ExitCode = &code
+	}
+	return snapshot
 }
 func (s *Service) changed(j *job) { close(j.changed); j.changed = make(chan struct{}) }
 func (s *Service) fail(err error) {
@@ -66,7 +71,7 @@ func (s *Service) Create() (common.Job, error) {
 	var locator string
 	var file *os.File
 	for {
-		handle = s.parent.Ensemble().(common.HandleOwner).AllocateHandle()
+		handle = s.parent.Ensemble().AllocateHandle()
 		locator = fmt.Sprintf("cr/io/%d", handle)
 		path := filepath.Join(s.parent.Workspace(), locator)
 		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {

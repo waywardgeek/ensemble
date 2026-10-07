@@ -352,3 +352,26 @@ func TestSourceNoticeSurvivesInitialRunningReport(t *testing.T) {
 		t.Fatal(string(data), j.Snapshot(), err)
 	}
 }
+
+func TestSnapshotOwnsExitStatus(t *testing.T) {
+	s, _ := harness(t)
+	j, err := s.Create()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = j.StartProcess("exit 7", ""); err != nil {
+		t.Fatal(err)
+	}
+	if err = s.Report(j, common.JobReport{CallID: "done", Limits: common.Limits{Delay: time.Second, MaxBytes: 100}, MatchStart: -1}); err != nil {
+		t.Fatal(err)
+	}
+	first := j.Snapshot()
+	if first.ExitCode == nil || *first.ExitCode != 7 {
+		t.Fatal(first)
+	}
+	*first.ExitCode = 99
+	next := j.Snapshot()
+	if next.ExitCode == nil || *next.ExitCode != 7 {
+		t.Fatal("snapshot changed owned exit status", next)
+	}
+}

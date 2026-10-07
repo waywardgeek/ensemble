@@ -12,13 +12,17 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 )
 
 type Engine struct {
 	parent common.Agent
 	client *http.Client
-	usage  map[common.Provenance]common.Usage
+	// Accounting locks never call back into Agent. Agent may hold its state lock
+	// while committing usage exactly once after durable append.
+	usageMu sync.Mutex
+	usage   map[common.Provenance]common.Usage
 }
 
 func New(parent common.Agent) *Engine {
@@ -32,11 +36,15 @@ func New(parent common.Agent) *Engine {
 }
 func (e *Engine) Agent() common.Agent { return e.parent }
 func (e *Engine) Account(response common.Response) {
+	e.usageMu.Lock()
+	defer e.usageMu.Unlock()
 	u := e.usage[response.From]
 	e.add(&u, *response.Usage)
 	e.usage[response.From] = u
 }
 func (e *Engine) Usage() common.Usage {
+	e.usageMu.Lock()
+	defer e.usageMu.Unlock()
 	var out common.Usage
 	for _, u := range e.usage {
 		e.add(&out, u)
@@ -44,6 +52,8 @@ func (e *Engine) Usage() common.Usage {
 	return out
 }
 func (e *Engine) UsageByModel() map[common.Provenance]common.Usage {
+	e.usageMu.Lock()
+	defer e.usageMu.Unlock()
 	out := map[common.Provenance]common.Usage{}
 	for p, u := range e.usage {
 		out[p] = u
@@ -57,7 +67,7 @@ func (e *Engine) add(total *common.Usage, u common.Usage) {
 	total.Output += u.Output
 }
 
-func (e *Engine) Exchange(ctx context.Context, body []byte, responseSeq uint64) (common.Response, error) {
+func (e *Engine) Exchange(ctx context.Context, body []byte, responseSeq uint64) (common.ParsedResponse, error) {
 	config := e.parent.Config()
 	path := "/v1/messages"
 	if config.Vendor == "openai" {
@@ -68,7 +78,7 @@ func (e *Engine) Exchange(ctx context.Context, body []byte, responseSeq uint64) 
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, config.BaseURL+path, bytes.NewReader(body))
 	if err != nil {
-		return common.Response{}, failure(e, "cannot construct model request")
+		return common.ParsedResponse{}, failure(e, "cannot construct model request")
 	}
 	req.Header.Set("content-type", "application/json")
 	switch config.Vendor {
@@ -82,15 +92,15 @@ func (e *Engine) Exchange(ctx context.Context, body []byte, responseSeq uint64) 
 	}
 	response, err := e.client.Do(req)
 	if err != nil {
-		return common.Response{}, requestFailure(e, err, "model transport failed")
+		return common.ParsedResponse{}, requestFailure(e, err, "model transport failed")
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		return common.Response{}, failure(e, "model returned HTTP %d", response.StatusCode)
+		return common.ParsedResponse{}, failure(e, "model returned HTTP %d", response.StatusCode)
 	}
 	data, err := io.ReadAll(response.Body)
 	if err != nil {
-		return common.Response{}, requestFailure(e, err, "model response read failed")
+		return common.ParsedResponse{}, requestFailure(e, err, "model response read failed")
 	}
 	return Parse(e, config, data, responseSeq)
 }

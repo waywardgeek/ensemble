@@ -93,14 +93,20 @@ type RequestEvent struct {
 	Ephemera []uint64   `json:"ephemera"`
 }
 type Response struct {
-	MissingCallIDs []int           `json:"-"`
-	From           Provenance      `json:"from"`
-	Requested      *Provenance     `json:"requested,omitempty"`
-	ModelReported  *bool           `json:"model_reported,omitempty"`
-	Parts          []Part          `json:"parts,omitempty"`
-	Usage          *Usage          `json:"usage,omitempty"`
-	RawUsage       json.RawMessage `json:"raw_usage,omitempty"`
+	From          Provenance      `json:"from"`
+	Requested     *Provenance     `json:"requested,omitempty"`
+	ModelReported *bool           `json:"model_reported,omitempty"`
+	Parts         []Part          `json:"parts,omitempty"`
+	Usage         *Usage          `json:"usage,omitempty"`
+	RawUsage      json.RawMessage `json:"raw_usage,omitempty"`
 }
+
+// ParsedResponse carries temporary parser facts, never public event metadata.
+type ParsedResponse struct {
+	Response       Response
+	MissingCallIDs []int
+}
+
 type ToolEvent struct {
 	Job     *JobSnapshot    `json:"job,omitempty"`
 	CallID  string          `json:"call_id"`
@@ -170,6 +176,7 @@ type ClientResult struct {
 type Ensemble interface {
 	Logf(string, ...any)
 	Publish(string, Event)
+	AllocateHandle() uint64
 }
 type Agent interface {
 	Ensemble() Ensemble
@@ -192,6 +199,7 @@ type TurnAgent interface {
 	Agent
 	TurnSnapshot() Context
 	RecordTurn(Event) error
+	RecordResponse(ParsedResponse) error
 	NextSequence() uint64
 	Registry() Registry
 	Jobs() Jobs
@@ -227,10 +235,6 @@ type LimitOverrides struct {
 	Pattern    *regexp.Regexp
 	PatternSet bool
 	MaxBytes   *int
-}
-type HandleOwner interface {
-	Ensemble
-	AllocateHandle() uint64
 }
 type JobAgent interface {
 	Agent
