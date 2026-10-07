@@ -64,6 +64,11 @@
       "path": "book/edition-2/chapter-05.md",
       "sha256": "4531a562069080780f5d2dc40a79b66493b2dc0f4a2e7b0e0fed7e3c54388820",
       "reason": "sections5.3 and5.10 revisited during Gemini live blocker"
+    },
+    {
+      "path": "book/edition-2/chapter-05-student-feedback.md",
+      "sha256": "6763219b1c7ae07bbf5a42e9dffd58ec886ed50923b61ac982705f0ab2d8582c",
+      "reason": "final initial-review confirmation; accepted section5.7 response"
     }
   ],
   "baseline_source_reads": [
