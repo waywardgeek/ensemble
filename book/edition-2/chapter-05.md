@@ -435,6 +435,13 @@ as current. Its consumer can obtain a fresh authoritative snapshot and
 subscribe again; a gap-free snapshot/live handoff is not promised here.
 Callback recipients still receive separate owned copies.
 
+When a closed subscription's delivery worker exits, release its callback/client
+reference and queue storage. Retain only the small status record needed to
+explain closure. A closed Ensemble refuses new subscriptions, so reconnecting
+a client cannot start an orphan delivery worker after application shutdown.
+The callback's nonblocking contract still applies; cleanup cannot forcibly
+terminate arbitrary user callback code.
+
 Request completion never depends on that queue. A terminal can display a
 request's result from its reliable handle even if a progress subscription
 overflows. A slow or unsubscribed GUI cannot stop model work or consume the
