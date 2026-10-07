@@ -1,0 +1,135 @@
+{
+  "at": "2026-10-07T20:24:04.806769+00:00",
+  "role": "Independent Chapter4 checker author and code reviewer; authored preceding Chapter3 human integration. Independent of Chapter4 builder, not totally source blind.",
+  "new_ch04_source_read": false,
+  "historical_standard_read": false,
+  "full_reads": [
+    {
+      "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+      "sha256": "b0e2735225c29a43787dabd7647f6e5a837eb988a89311463764e283f81df4f7"
+    },
+    {
+      "path": "book/edition-2/architecture.md",
+      "sha256": "1f9ebba645b5020c8ebec8632290f7120d5931842b9d17cfb7e27ad20eecb702"
+    },
+    {
+      "path": "book/edition-2/chapter-04.md",
+      "sha256": "05e304ed9b20d582fc4fbb82bd5042fccc288a18c22af77ff5409bf2083164c7"
+    },
+    {
+      "path": "book/voice.md",
+      "sha256": "711ffed2eff5c5a830a7aa584844e1c862c0a1f7a5309990ecf8e3c2b6794447"
+    },
+    {
+      "path": "book/chapter-writing-procedure.md",
+      "sha256": "ee0c251f07bf43e01c064345701977b21ddc2c19aea57cb149de9a089d22fea6"
+    },
+    {
+      "path": "book/edition-2/global-review.md",
+      "sha256": "99a40d71f44db05f39006298d0e739f26c989b29839cec1f3d7afb00281ae261"
+    },
+    {
+      "path": "scripts/edition2/accept_ch04.py",
+      "sha256": "d5b52afe5606f65d940b7ef9b2e938447ac4801ccd244cc2fcf4a8e586a211dd"
+    },
+    {
+      "path": "scripts/edition2/test_accept_ch04.py",
+      "sha256": "88bd68d0b762ded74c03b6b53d5933259d1c2145a3c3eb45befeb2b9003c76df"
+    }
+  ],
+  "partial_reads": [
+    {
+      "path": "scripts/edition2/accept_ch03.py",
+      "lines": "1\u2013180"
+    },
+    {
+      "path": "scripts/edition2/accept_ch02.py",
+      "lines": "1\u2013140"
+    }
+  ],
+  "baseline_public_api": {
+    "source": "edition-2-ch03-r1:solutions/edition-2/main/internal/common/types.go",
+    "scope": "entire accepted preceding public/shared declaration file",
+    "sha256": "cfa802393517d4f4253a56ad591cee38b6cdf07101db7ea8b5f04d592665f8a8"
+  },
+  "baseline_checker_controls": {
+    "command": "python3 -m unittest discover -s scripts/edition2 -p test_accept_ch04.py -v",
+    "passed": 4,
+    "failed": 0
+  },
+  "rule_reload": {
+    "at": "2026-10-07T20:32:53.681087+00:00",
+    "reason": "new mandatory durable student teaching review and author disposition gate",
+    "full_reads": [
+      {
+        "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+        "sha256": "6f3ca8608c5f77b039d17d1c94cc5a9de849d2a784a966009a4302786c3eed8b"
+      },
+      {
+        "path": "book/chapter-writing-procedure.md",
+        "sha256": "1c963290a8ba0677ff1a2bfa1f440c1188ab19d58a484e48920c6cd5ad30da25"
+      }
+    ]
+  },
+  "additional_partial_reads": [
+    {
+      "path": "scripts/edition2/accept_chat.py",
+      "lines": "1\u2013165"
+    }
+  ],
+  "official_sources": [
+    {
+      "url": "https://github.com/go-delve/delve/blob/master/Documentation/cli/README.md",
+      "scope": "CLI reference read for actual debugger fixture"
+    }
+  ],
+  "reloads": [
+    {
+      "at": "2026-10-07T20:38:20.411562+00:00",
+      "reason": "context reload and occupied-artifact contract clarification",
+      "full_reads": [
+        {
+          "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+          "sha256": "6f3ca8608c5f77b039d17d1c94cc5a9de849d2a784a966009a4302786c3eed8b"
+        },
+        {
+          "path": "book/edition-2/architecture.md",
+          "sha256": "1f9ebba645b5020c8ebec8632290f7120d5931842b9d17cfb7e27ad20eecb702"
+        },
+        {
+          "path": "book/edition-2/chapter-04.md",
+          "sha256": "c700464e3bedb9badab6ddc92e2a852d1a04e7cd43864e5364bd5f3bfdb0345d"
+        },
+        {
+          "path": "book/voice.md",
+          "sha256": "711ffed2eff5c5a830a7aa584844e1c862c0a1f7a5309990ecf8e3c2b6794447"
+        },
+        {
+          "path": "book/chapter-writing-procedure.md",
+          "sha256": "8a9152bdbd8131d51e391d93c39cc438b0f4cecc73ebdb27699f904dc4e383e4"
+        }
+      ]
+    }
+  ],
+  "pre_freeze_preparation": {
+    "cli_replay_cases": 50,
+    "checker_controls_passed": 6,
+    "student_runs": 0,
+    "public_consumer": "scripts/edition2/ch04_public_consumer.go.txt",
+    "public_consumer_status": "gofmt empty, go vet/test/build passed against isolated accepted Ch3 source; runtime Ch4 checks not run",
+    "public_cases": 3
+  },
+  "baseline_adapter_verification": {
+    "source": "edition-2-ch03-r1:solutions/edition-2/main",
+    "scope": "Go source files exported programmatically for compilation; excludes nested modules; no Chapter4 source",
+    "commands": [
+      "gofmt -l main.go",
+      "go vet ./...",
+      "go test ./... -count=1",
+      "go build -o consumer-bin ."
+    ],
+    "all_exit_zero": true,
+    "format_stdout_empty": true,
+    "runtime_checks": 0
+  }
+}

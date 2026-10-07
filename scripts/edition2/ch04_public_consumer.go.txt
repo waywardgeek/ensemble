@@ -1,0 +1,116 @@
+// Independent public consumer. Copy into a temporary external Go module to
+// compile after the Chapter 4 source freeze; never into the student module.
+package main
+
+import (
+	"bufio"
+	"context"
+	"encoding/json"
+	"fmt"
+	"os"
+	"sync"
+
+	ensemble "example.com/ensemble"
+)
+
+type output struct {
+	mu  sync.Mutex
+	enc *json.Encoder
+}
+
+func (o *output) emit(value any) {
+	o.mu.Lock()
+	defer o.mu.Unlock()
+	if err := o.enc.Encode(value); err != nil {
+		panic(err)
+	}
+}
+
+func (o *output) Observe(value ensemble.Observation) {
+	o.emit(map[string]any{"observation": value})
+}
+
+type request struct {
+	ID        string
+	Operation string
+	Agent     string
+	Config    ensemble.Config
+	Prompt    string
+}
+
+func main() {
+	app := ensemble.New(os.Stderr)
+	out := &output{enc: json.NewEncoder(os.Stdout)}
+	agents := map[string]*ensemble.Agent{}
+	var workers sync.WaitGroup
+	scan := bufio.NewScanner(os.Stdin)
+	scan.Buffer(make([]byte, 4096), 1024*1024)
+	for scan.Scan() {
+		var input request
+		if err := json.Unmarshal(scan.Bytes(), &input); err != nil {
+			panic(err)
+		}
+		reply := map[string]any{"id": input.ID}
+		var err error
+		switch input.Operation {
+		case "new":
+			var agent *ensemble.Agent
+			agent, err = app.NewAgent(input.Config)
+			if err == nil {
+				agents[input.Agent] = agent
+				reply["agent_id"] = agent.ID()
+				_, err = app.Subscribe(agent.ID(), out)
+			}
+		case "prompt":
+			agent := agents[input.Agent]
+			if agent == nil {
+				err = fmt.Errorf("fixture agent absent")
+				break
+			}
+			workers.Add(1)
+			go func(input request, agent *ensemble.Agent) {
+				defer workers.Done()
+				result, err := app.Submit(context.Background(), ensemble.ClientRequest{AgentID: agent.ID(), Prompt: &input.Prompt})
+				answer := map[string]any{"id": input.ID, "result": result}
+				if err != nil {
+					answer["error"] = err.Error()
+				}
+				out.emit(answer)
+			}(input, agent)
+			continue
+		case "events":
+			if agent := agents[input.Agent]; agent != nil {
+				reply["events"] = agent.Events()
+			} else {
+				err = fmt.Errorf("fixture agent absent")
+			}
+		case "close-agent":
+			if agent := agents[input.Agent]; agent != nil {
+				err = agent.Close()
+			} else {
+				err = fmt.Errorf("fixture agent absent")
+			}
+		case "close-all":
+			// Chapter 4 requires public application cleanup but leaves spelling
+			// open. Adapt this single assertion after freeze if needed.
+			if closer, ok := any(app).(interface{ Close() error }); ok {
+				err = closer.Close()
+			} else {
+				err = fmt.Errorf("public close adapter needs published method spelling")
+			}
+		default:
+			err = fmt.Errorf("unknown fixture operation")
+		}
+		if err != nil {
+			reply["error"] = err.Error()
+		}
+		out.emit(reply)
+	}
+	if err := scan.Err(); err != nil {
+		panic(err)
+	}
+	for _, agent := range agents {
+		_ = agent.Close()
+	}
+	workers.Wait()
+}
