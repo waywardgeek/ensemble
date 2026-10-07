@@ -24,7 +24,7 @@ type entry struct {
 }
 type arguments map[string]any
 type Registry struct {
-	parent  common.Agent
+	parent  common.ToolAgent
 	entries map[string]entry
 }
 
@@ -42,7 +42,7 @@ func numberField(description string, fallback, minimum int) field {
 func boolField(description string) field {
 	return field{Type: "boolean", Description: description, Default: false}
 }
-func New(parent common.Agent, selected []string) (*Registry, error) {
+func New(parent common.ToolAgent, selected []string) (*Registry, error) {
 	r := &Registry{parent: parent, entries: map[string]entry{}}
 	path := textField("File path, relative to the Agent workspace or absolute; not confined to workspace.", true, false, "")
 	root := textField("File or directory path; defaults to the Agent workspace (.).", false, false, ".")
@@ -128,9 +128,14 @@ func (r *Registry) Match(defs []common.ToolDefinition) bool {
 	return true
 }
 func (r *Registry) Execute(call common.Part) common.ToolEvent {
-	result := common.ToolEvent{CallID: call.CallID}
+	result := r.execute(call)
+	text := result.Text + result.Note
+	return common.ToolEvent{CallID: call.CallID, IsError: result.IsError, Parts: []common.Part{{Type: "text", Text: &text}}}
+}
+func (r *Registry) execute(call common.Part) common.ExecutionResult {
+	result := common.ExecutionResult{}
 	e, ok := r.entries[call.Name]
-	var text string
+	var text, note string
 	var err error
 	if !ok {
 		err = r.failure("%s: tool is unavailable to this Agent", call.Name)
@@ -140,6 +145,8 @@ func (r *Registry) Execute(call common.Part) common.ToolEvent {
 		if err == nil {
 			if e.run == nil {
 				err = r.failure("%s requires managed dispatch", call.Name)
+			} else if call.Name == "read_file" {
+				text, note, err = readSelection(r, args)
 			} else {
 				text, err = e.run(r, args)
 			}
@@ -149,7 +156,8 @@ func (r *Registry) Execute(call common.Part) common.ToolEvent {
 		result.IsError = true
 		text = fmt.Sprintf("%s failed: %s", call.Name, err)
 	}
-	result.Parts = []common.Part{{Type: "text", Text: &text}}
+	result.Text = text
+	result.Note = note
 	return result
 }
 func (r *Registry) decode(name string, e entry, raw json.RawMessage) (arguments, error) {
@@ -230,12 +238,12 @@ func (r *Registry) Kind(name string) (bool, bool) {
 
 // ExecuteJob leaves a successfully started process to its lifecycle worker.
 // Local results return to Jobs, which owns their artifact and terminal event.
-func (r *Registry) ExecuteJob(call common.Part, job common.Job) *common.ToolEvent {
+func (r *Registry) ExecuteJob(call common.Part, job common.Job) *common.ExecutionResult {
 	if call.Name != "run_command" {
-		result := r.Execute(call)
+		result := r.execute(call)
 		return &result
 	}
-	result := common.ToolEvent{CallID: call.CallID}
+	result := common.ExecutionResult{}
 	entry, ok := r.entries[call.Name]
 	var err error
 	if !ok {
@@ -252,6 +260,6 @@ func (r *Registry) ExecuteJob(call common.Part, job common.Job) *common.ToolEven
 	}
 	text := fmt.Sprintf("run_command failed: %v", err)
 	result.IsError = true
-	result.Parts = []common.Part{{Type: "text", Text: &text}}
+	result.Text = text
 	return &result
 }

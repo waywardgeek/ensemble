@@ -201,7 +201,9 @@ type Registry interface {
 	Declarations() []ToolDefinition
 	Execute(Part) ToolEvent
 	Kind(string) (available, supervision bool)
-	ExecuteJob(Part, Job) *ToolEvent
+	ExecuteJob(Part, Job) *ExecutionResult
+	ResolveLimits(Part) (Limits, string, error)
+	Supervise(Part, Limits, string) error
 }
 
 // Job snapshots are durable facts; live handles never reattach during replay.
@@ -221,9 +223,10 @@ type Limits struct {
 	MaxBytes int
 }
 type LimitOverrides struct {
-	Delay    *time.Duration
-	Pattern  *string
-	MaxBytes *int
+	Delay      *time.Duration
+	Pattern    *regexp.Regexp
+	PatternSet bool
+	MaxBytes   *int
 }
 type HandleOwner interface {
 	Ensemble
@@ -235,14 +238,34 @@ type JobAgent interface {
 	Registry() Registry
 	Fault(error)
 }
+type ToolAgent interface {
+	Agent
+	Jobs() Jobs
+	RecordTool(Event) error
+}
+type ExecutionResult struct {
+	Text    string
+	Note    string // Presentation facts are never bytes in the retained artifact.
+	IsError bool
+}
+type JobReport struct {
+	CallID     string
+	Limits     Limits
+	Note       string
+	Original   bool
+	MatchStart int64 // -1 starts at the unconsumed report cursor.
+}
 type Jobs interface {
 	Agent() JobAgent
-	Resolve(Part) (Limits, string, error)
-	Create(Part) (Job, error)
+	Resolve(LimitOverrides) (Limits, bool)
+	SetLimits(LimitOverrides)
+	Create() (Job, error)
+	Lookup(uint64) (Job, error)
+	Send(Job, string) (int64, error)
+	Kill(Job, string) error
 	Start(Job, Part)
 	Abort(Job)
-	Report(Job, Part, Limits, string) error
-	Supervise(Part, Limits, string) error
+	Report(Job, JobReport) error
 	Close() error
 }
 type Job interface {

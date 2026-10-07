@@ -34,31 +34,41 @@ func (r *Registry) lines(data []byte) []string {
 	return rows
 }
 func readFile(r *Registry, a arguments) (string, error) {
+	text, note, err := readSelection(r, a)
+	return text + note, err
+}
+func readSelection(r *Registry, a arguments) (string, string, error) {
 	path := a["path"].(string)
 	data, err := os.ReadFile(r.path(path))
 	if err != nil {
-		return "", r.failure("read_file path %q: %v", path, err)
+		return "", "", r.failure("read_file path %q: %v", path, err)
 	}
 	start, end := a["start_line"].(int), a["end_line"].(int)
 	if end > 0 && end < start {
-		return "", r.failure("read_file end_line: must not precede start_line")
+		return "", "", r.failure("read_file end_line: must not precede start_line")
 	}
 	rows := r.lines(data)
 	if len(rows) == 0 && start == 1 && end == 0 {
 		// end_line:0 means through EOF even when supplied. An explicit start
 		// still names a line target, which an empty file cannot satisfy.
 		if a["explicit_start_line"] == true {
-			return "", r.failure("read_file start_line/end_line: explicit range into empty path %q", path)
+			return "", "", r.failure("read_file start_line/end_line: explicit range into empty path %q", path)
 		}
-		return "", nil
+		return "", "", nil
 	}
 	if start > len(rows) {
-		return "", r.failure("read_file start_line: beyond EOF for path %q", path)
+		return "", "", r.failure("read_file start_line: beyond EOF for path %q", path)
 	}
 	if end == 0 || end > len(rows) {
 		end = len(rows)
 	}
-	return r.bounded(strings.Join(rows[start-1:end], ""), a["max_bytes"].(int), "max_bytes"), nil
+	selected := strings.Join(rows[start-1:end], "")
+	text := textPrefix(r, selected, a["max_bytes"].(int))
+	note := ""
+	if len(text) < len(selected) {
+		note = "\n[truncated: max_bytes limit reached]\n"
+	}
+	return text, note, nil
 }
 func listDirectory(r *Registry, a arguments) (string, error) {
 	path := a["path"].(string)

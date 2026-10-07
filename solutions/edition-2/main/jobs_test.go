@@ -146,3 +146,109 @@ func TestPublicAgentHandlesAndWorkspaceIsolation(t *testing.T) {
 		t.Fatal("artifact changed", string(data))
 	}
 }
+
+func TestWireLimitsConsumeEveryAttempt(t *testing.T) {
+	calls := []struct{ id, name, args string }{
+		{"set1", "tool_limits", `{"ai_callback_delay":0.2,"max_output_bytes":4}`},
+		{"unknown", "unavailable", `{}`},
+		{"default", "run_command", `{"command":"echo DEFAULT-CONTROL"}`},
+		{"set2", "tool_limits", `{"ai_callback_delay":0.2}`},
+		{"set3", "tool_limits", `{"max_output_bytes":4}`},
+		{"override", "run_command", `{"command":"echo EXPLICIT-CONTROL","ai_callback_delay":1,"max_output_bytes":100}`},
+		{"set4", "tool_limits", `{"max_output_bytes":4}`},
+		{"invalid", "run_command", `{"command":"touch forbidden","ai_callback_pattern":"["}`},
+		{"after", "run_command", `{"command":"echo AFTER-CONTROL"}`},
+	}
+	count := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		count++
+		if count > 1 {
+			fmt.Fprint(w, `{"content":[{"type":"text","text":"complete"}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+			return
+		}
+		content := []map[string]any{}
+		for _, c := range calls {
+			content = append(content, map[string]any{"type": "tool_use", "id": c.id, "name": c.name, "input": json.RawMessage(c.args)})
+		}
+		json.NewEncoder(w).Encode(map[string]any{"content": content, "usage": map[string]int{"input_tokens": 1, "output_tokens": 1}})
+	}))
+	defer server.Close()
+	dir := t.TempDir()
+	app := New(nil)
+	defer app.Close()
+	a, err := app.NewAgent(Config{APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"run_command", "tool_limits"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = a.Prompt(context.Background(), "exercise limits"); err != nil {
+		t.Fatal(err)
+	}
+	results := map[string]ToolEvent{}
+	for _, e := range a.Events() {
+		if e.Type == "tool_returned" {
+			results[e.Tool.CallID] = *e.Tool
+		}
+	}
+	if !results["unknown"].IsError || !strings.Contains(*results["unknown"].Parts[0].Text, "tool_limits consumed by unavailable") {
+		t.Fatal(results["unknown"])
+	}
+	if strings.Contains(*results["default"].Parts[0].Text, "tool_limits") || !strings.Contains(*results["default"].Parts[0].Text, "DEFAULT-CONTROL") {
+		t.Fatal(results["default"])
+	}
+	if !strings.Contains(*results["set3"].Parts[0].Text, "tool_limits consumed by tool_limits") {
+		t.Fatal(results["set3"])
+	}
+	if got := *results["override"].Parts[0].Text; !strings.Contains(got, "ai_callback_delay=1") || !strings.Contains(got, "max_output_bytes=100") || !strings.Contains(got, "EXPLICIT-CONTROL") {
+		t.Fatal(got)
+	}
+	if !results["invalid"].IsError || results["invalid"].Job != nil || !strings.Contains(*results["invalid"].Parts[0].Text, "validation refused") {
+		t.Fatal(results["invalid"])
+	}
+	if strings.Contains(*results["after"].Parts[0].Text, "tool_limits") {
+		t.Fatal(results["after"])
+	}
+	if _, err = os.Stat(filepath.Join(dir, "forbidden")); !os.IsNotExist(err) {
+		t.Fatal("invalid limit executed")
+	}
+}
+
+func TestReadSourceCapIsReportMetadata(t *testing.T) {
+	count := 0
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		count++
+		if count == 1 {
+			fmt.Fprint(w, `{"content":[{"type":"tool_use","id":"read","name":"read_file","input":{"path":"source","max_bytes":4}}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+		} else {
+			fmt.Fprint(w, `{"content":[{"type":"text","text":"ok"}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+		}
+	}))
+	defer server.Close()
+	dir := t.TempDir()
+	os.WriteFile(filepath.Join(dir, "source"), []byte("ABCDEFGHIJ"), 0600)
+	app := New(nil)
+	defer app.Close()
+	a, err := app.NewAgent(Config{APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"read_file"}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = a.Prompt(context.Background(), "read capped source"); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(filepath.Join(dir, "cr/io/1"))
+	if err != nil || string(data) != "ABCD" {
+		t.Fatal(string(data), err)
+	}
+	if a.Snapshot().Jobs[1].Bytes != 4 {
+		t.Fatal(a.Snapshot().Jobs)
+	}
+	found := false
+	for _, e := range a.Events() {
+		if e.Type == "tool_returned" {
+			text := *e.Tool.Parts[0].Text
+			found = strings.Contains(text, "ABCD") && strings.Contains(text, "max_bytes limit reached")
+		}
+	}
+	if !found {
+		t.Fatal("source truncation metadata disappeared")
+	}
+}

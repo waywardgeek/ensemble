@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"syscall"
@@ -52,13 +53,21 @@ func (a *testAgent) RecordJob(e common.Event) error {
 
 type testRegistry struct {
 	parent  *testAgent
-	handler func(common.Part, common.Job) *common.ToolEvent
+	handler func(common.Part, common.Job) *common.ExecutionResult
 }
 
-func (r *testRegistry) Agent() common.Agent                    { return r.parent }
-func (*testRegistry) Declarations() []common.ToolDefinition    { return nil }
-func (r *testRegistry) Execute(p common.Part) common.ToolEvent { return *r.handler(p, nil) }
-func (r *testRegistry) ExecuteJob(p common.Part, j common.Job) *common.ToolEvent {
+func (r *testRegistry) ResolveLimits(common.Part) (common.Limits, string, error) {
+	return common.Limits{}, "", nil
+}
+func (r *testRegistry) Supervise(common.Part, common.Limits, string) error { return nil }
+func (r *testRegistry) Agent() common.Agent                                { return r.parent }
+func (*testRegistry) Declarations() []common.ToolDefinition                { return nil }
+func (r *testRegistry) Execute(p common.Part) common.ToolEvent {
+	result := r.handler(p, nil)
+	text := result.Text + result.Note
+	return common.ToolEvent{Parts: []common.Part{{Type: "text", Text: &text}}, IsError: result.IsError}
+}
+func (r *testRegistry) ExecuteJob(p common.Part, j common.Job) *common.ExecutionResult {
 	return r.handler(p, j)
 }
 func (*testRegistry) Kind(name string) (bool, bool) {
@@ -72,18 +81,18 @@ func harness(t *testing.T) (*Service, *testAgent) {
 	t.Cleanup(func() { s.Close() })
 	return s, a
 }
-func local(text string, failed bool) *common.ToolEvent {
-	return &common.ToolEvent{IsError: failed, Parts: []common.Part{{Type: "text", Text: &text}}}
+func local(text string, failed bool) *common.ExecutionResult {
+	return &common.ExecutionResult{IsError: failed, Text: text}
 }
 func launch(t *testing.T, s *Service, a *testAgent, command string) common.Job {
 	t.Helper()
-	a.registry.handler = func(p common.Part, j common.Job) *common.ToolEvent {
+	a.registry.handler = func(p common.Part, j common.Job) *common.ExecutionResult {
 		if err := j.StartProcess(command, ""); err != nil {
 			return local(err.Error(), true)
 		}
 		return nil
 	}
-	j, err := s.Create(common.Part{})
+	j, err := s.Create()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,7 +101,7 @@ func launch(t *testing.T, s *Service, a *testAgent, command string) common.Job {
 }
 func report(t *testing.T, s *Service, j common.Job, delay time.Duration, budget int) common.ToolEvent {
 	t.Helper()
-	if err := s.Report(j, common.Part{Name: "run_command", CallID: "original"}, common.Limits{Delay: delay, MaxBytes: budget}, ""); err != nil {
+	if err := s.Report(j, common.JobReport{CallID: "original", Limits: common.Limits{Delay: delay, MaxBytes: budget}, Original: true, MatchStart: -1}); err != nil {
 		t.Fatal(err)
 	}
 	a := s.parent.(*testAgent)
@@ -100,9 +109,37 @@ func report(t *testing.T, s *Service, j common.Job, delay time.Duration, budget 
 	defer a.mu.Unlock()
 	return *a.events[len(a.events)-1].Tool
 }
+
+// Test helper expresses typed lifecycle operations; wire validation is tested
+// through the Registry and public Agent integration paths.
 func supervise(t *testing.T, s *Service, name, args string, limits common.Limits) common.ToolEvent {
 	t.Helper()
-	if err := s.Supervise(common.Part{Name: name, Args: json.RawMessage(args), CallID: name}, limits, ""); err != nil {
+	var data struct {
+		Handle        uint64
+		Input         string
+		AppendNewline *bool `json:"append_newline"`
+	}
+	if err := json.Unmarshal([]byte(args), &data); err != nil {
+		t.Fatal(err)
+	}
+	j, err := s.Lookup(data.Handle)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := common.JobReport{CallID: name, Limits: limits, MatchStart: -1}
+	switch name {
+	case "send_input":
+		if data.AppendNewline == nil || *data.AppendNewline {
+			data.Input += "\n"
+		}
+		request.MatchStart, err = s.Send(j, data.Input)
+	case "kill_job":
+		err = s.Kill(j, "kill_job")
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = s.Report(j, request); err != nil {
 		t.Fatal(err)
 	}
 	a := s.parent.(*testAgent)
@@ -138,8 +175,8 @@ func TestCursorCapAndUTF8(t *testing.T) {
 	for _, text := range []string{"abcdefghij", "ééééé"} {
 		t.Run(text, func(t *testing.T) {
 			s, a := harness(t)
-			a.registry.handler = func(common.Part, common.Job) *common.ToolEvent { return local(text, false) }
-			j, err := s.Create(common.Part{})
+			a.registry.handler = func(common.Part, common.Job) *common.ExecutionResult { return local(text, false) }
+			j, err := s.Create()
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -159,8 +196,8 @@ func TestCursorCapAndUTF8(t *testing.T) {
 		})
 	}
 	s, a := harness(t)
-	a.registry.handler = func(common.Part, common.Job) *common.ToolEvent { return local("éX", false) }
-	j, _ := s.Create(common.Part{})
+	a.registry.handler = func(common.Part, common.Job) *common.ExecutionResult { return local("éX", false) }
+	j, _ := s.Create()
 	s.Start(j, common.Part{})
 	if got := output(report(t, s, j, time.Second, 3)); got != "éX" {
 		t.Fatal(got)
@@ -169,11 +206,9 @@ func TestCursorCapAndUTF8(t *testing.T) {
 func TestPatternInputAndKillGroup(t *testing.T) {
 	s, a := harness(t)
 	j := launch(t, s, a, "printf 'ready>'; while IFS= read -r line; do sleep 0.15; printf 'reply:%s ready>' \"$line\"; done")
-	limits, _, err := s.Resolve(common.Part{Name: "run_command", Args: json.RawMessage(`{"ai_callback_delay":2,"ai_callback_pattern":"ready>"}`)})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err = s.Report(j, common.Part{Name: "run_command"}, limits, ""); err != nil {
+	limits := common.Limits{Delay: 2 * time.Second, Pattern: regexp.MustCompile("ready>"), MaxBytes: 16384}
+	var err error
+	if err = s.Report(j, common.JobReport{Limits: limits, Original: true, MatchStart: -1}); err != nil {
 		t.Fatal(err)
 	}
 	start := time.Now()
@@ -238,12 +273,12 @@ func TestLocalKillDiscardsLateResultAndErrorWaitSucceeds(t *testing.T) {
 	s, a := harness(t)
 	gate := make(chan struct{})
 	started := make(chan struct{})
-	a.registry.handler = func(common.Part, common.Job) *common.ToolEvent {
+	a.registry.handler = func(common.Part, common.Job) *common.ExecutionResult {
 		close(started)
 		<-gate
 		return local("late must not appear", false)
 	}
-	j, _ := s.Create(common.Part{})
+	j, _ := s.Create()
 	s.Start(j, common.Part{})
 	<-started
 	if err := s.kill(j.(*job), "kill_job"); err != nil {
@@ -258,8 +293,8 @@ func TestLocalKillDiscardsLateResultAndErrorWaitSucceeds(t *testing.T) {
 	if !strings.Contains(output(report(t, s, j, 0, 100)), "may continue") {
 		t.Fatal("dishonest local kill")
 	}
-	a.registry.handler = func(common.Part, common.Job) *common.ToolEvent { return local("missing file", true) }
-	failed, _ := s.Create(common.Part{})
+	a.registry.handler = func(common.Part, common.Job) *common.ExecutionResult { return local("missing file", true) }
+	failed, _ := s.Create()
 	s.Start(failed, common.Part{})
 	first := report(t, s, failed, time.Second, 100)
 	if !first.IsError {
@@ -270,30 +305,50 @@ func TestLocalKillDiscardsLateResultAndErrorWaitSucceeds(t *testing.T) {
 		t.Fatal(later)
 	}
 }
-func TestOneShotLimitsConsumeEveryAttempt(t *testing.T) {
+func TestPendingLimitsConsumedAndExplicitPrecedence(t *testing.T) {
 	s, _ := harness(t)
-	set := func(raw string) { supervise(t, s, "tool_limits", raw, common.Limits{}) }
-	set(`{"ai_callback_delay":0.2,"max_output_bytes":4}`)
-	limits, note, err := s.Resolve(common.Part{Name: "unknown", Args: json.RawMessage(`{}`)})
-	if err != nil || limits.Delay != 200*time.Millisecond || limits.MaxBytes != 4 || !strings.Contains(note, "unknown") {
-		t.Fatal(limits, note, err)
+	delay := 200 * time.Millisecond
+	budget := 4
+	s.SetLimits(common.LimitOverrides{Delay: &delay, MaxBytes: &budget})
+	limits, consumed := s.Resolve(common.LimitOverrides{})
+	if !consumed || limits.Delay != delay || limits.MaxBytes != budget {
+		t.Fatal(limits, consumed)
 	}
-	defaults, note, _ := s.Resolve(common.Part{Name: "run_command", Args: json.RawMessage(`{}`)})
-	if defaults.Delay != 3*time.Second || defaults.MaxBytes != 16384 || note != "" {
-		t.Fatal(defaults, note)
+	defaults, consumed := s.Resolve(common.LimitOverrides{})
+	if consumed || defaults.Delay != 3*time.Second || defaults.MaxBytes != 16384 {
+		t.Fatal(defaults, consumed)
 	}
-	set(`{"ai_callback_delay":0.2}`)
-	limits, note, err = s.Resolve(common.Part{Name: "run_command", Args: json.RawMessage(`{"ai_callback_delay":10}`)})
-	if err != nil || limits.Delay != 10*time.Second || note == "" {
-		t.Fatal(limits, note, err)
+	s.SetLimits(common.LimitOverrides{Delay: &delay})
+	explicit := 10 * time.Second
+	limits, consumed = s.Resolve(common.LimitOverrides{Delay: &explicit})
+	if !consumed || limits.Delay != explicit {
+		t.Fatal(limits, consumed)
 	}
-	set(`{"max_output_bytes":4}`)
-	_, note, err = s.Resolve(common.Part{Name: "run_command", Args: json.RawMessage(`{"ai_callback_pattern":"["}`)})
-	if err == nil || !strings.Contains(note, "validation refused") {
-		t.Fatal(note, err)
+}
+
+func TestSourceNoticeSurvivesInitialRunningReport(t *testing.T) {
+	s, a := harness(t)
+	gate := make(chan struct{})
+	a.registry.handler = func(common.Part, common.Job) *common.ExecutionResult {
+		<-gate
+		return &common.ExecutionResult{Text: "ABCD", Note: "\n[truncated: max_bytes limit reached]\n"}
 	}
-	_, note, _ = s.Resolve(common.Part{Name: "kill_job", Args: json.RawMessage(`{}`)})
-	if note != "" {
-		t.Fatal(note)
+	j, err := s.Create()
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.Start(j, common.Part{})
+	first := report(t, s, j, 0, 100)
+	if first.Job.Status != "running" || strings.Contains(output(first), "max_bytes") {
+		t.Fatal(first)
+	}
+	close(gate)
+	later := supervise(t, s, "wait_for_job", `{"handle":1}`, common.Limits{Delay: time.Second, MaxBytes: 2})
+	if got := output(later); !strings.Contains(got, "2 bytes omitted; total bytes: 4") || !strings.Contains(got, "max_bytes limit reached") || !strings.Contains(got, "\nA\n") || !strings.Contains(got, "\nD\n") {
+		t.Fatal(got)
+	}
+	data, err := os.ReadFile(filepath.Join(a.workspace, "cr/io/1"))
+	if err != nil || string(data) != "ABCD" || j.Snapshot().Bytes != 4 {
+		t.Fatal(string(data), j.Snapshot(), err)
 	}
 }

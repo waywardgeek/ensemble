@@ -97,7 +97,7 @@ func (e *Ensemble) construct(config Config) (*Agent, error) {
 		return nil, fmt.Errorf("cannot capture Agent workspace: %w", err)
 	}
 	a.jobs = jobs.New(jobAgent{a})
-	a.registry, err = tools.New(a, a.config.Builtins)
+	a.registry, err = tools.New(toolAgent{a}, a.config.Builtins)
 	if err != nil {
 		return nil, err
 	}
@@ -500,3 +500,9 @@ func (a jobAgent) Fault(err error) {
 	a.parent.Logf("jobs faulted: %v", err)
 }
 func (a turnAgent) Jobs() common.Jobs { return a.jobs }
+
+// Tool operations follow their Agent parent to Jobs and durable publication.
+type toolAgent struct{ *Agent }
+
+func (a toolAgent) Jobs() common.Jobs                   { return a.jobs }
+func (a toolAgent) RecordTool(event common.Event) error { return a.append(event, true, true) }

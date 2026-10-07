@@ -27,9 +27,9 @@ def discover():
     (HERE/'discovery.json').write_text(json.dumps(result,indent=2)+'\n')
     print(json.dumps(result,indent=2))
 
-def launch(vendor,model):
-    binary = Path('/tmp/ensemble-ed2-ch04-live')
-    run = HERE / ('live-'+vendor)
+def launch(vendor,model,name=None,binary_path="/tmp/ensemble-ed2-ch04-live"):
+    binary = Path(binary_path)
+    run = HERE / (name or ('live-'+vendor))
     run.mkdir()
     workspace = run/'workspace'
     workspace.mkdir()

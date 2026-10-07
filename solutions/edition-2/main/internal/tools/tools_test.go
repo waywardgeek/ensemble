@@ -16,9 +16,11 @@ func (testRoot) Publish(string, common.Event) {}
 
 type testAgent struct{ config common.Config }
 
-func (a testAgent) Config() common.Config     { return a.config }
-func (a testAgent) Workspace() string         { return a.config.Workspace }
-func (a testAgent) Ensemble() common.Ensemble { return testRoot{} }
+func (a testAgent) Jobs() common.Jobs             { return nil }
+func (a testAgent) RecordTool(common.Event) error { return nil }
+func (a testAgent) Config() common.Config         { return a.config }
+func (a testAgent) Workspace() string             { return a.config.Workspace }
+func (a testAgent) Ensemble() common.Ensemble     { return testRoot{} }
 func registry(t *testing.T) *Registry {
 	t.Helper()
 	r, err := New(testAgent{common.Config{Workspace: t.TempDir()}}, []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command"})
@@ -182,5 +184,18 @@ func TestUTF8ByteCapsSurviveJSON(t *testing.T) {
 		if got != "\n[truncated: max_bytes limit reached]\n" {
 			t.Fatal(tool, got)
 		}
+	}
+}
+
+func TestLimitWireValidationAndExplicitPatternClear(t *testing.T) {
+	r := registry(t)
+	for _, raw := range []string{`{"ai_callback_delay":-1}`, `{"ai_callback_delay":1e100}`, `{"ai_callback_delay":null}`, `{"ai_callback_delay":"0"}`, `{"ai_callback_pattern":"["}`, `{"ai_callback_pattern":false}`, `{"max_output_bytes":0}`, `{"max_output_bytes":1.5}`} {
+		if _, err := r.limitOverrides(json.RawMessage(raw)); err == nil {
+			t.Fatal("accepted invalid limits", raw)
+		}
+	}
+	value, err := r.limitOverrides(json.RawMessage(`{"ai_callback_delay":0,"ai_callback_pattern":"","max_output_bytes":2000000}`))
+	if err != nil || value.Delay == nil || *value.Delay != 0 || !value.PatternSet || value.Pattern != nil || value.MaxBytes == nil || *value.MaxBytes != 2000000 {
+		t.Fatal(value, err)
 	}
 }

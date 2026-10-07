@@ -12,10 +12,9 @@ import (
 	"example.com/ensemble/internal/common"
 )
 
-func (s *Service) Report(owned common.Job, call common.Part, limits common.Limits, note string) error {
-	return s.report(owned.(*job), call, limits, note, -1)
-}
-func (s *Service) report(j *job, call common.Part, limits common.Limits, note string, matchStart int64) error {
+func (s *Service) Report(owned common.Job, request common.JobReport) error {
+	j := owned.(*job)
+	limits, note, matchStart := request.Limits, request.Note, request.MatchStart
 	timer := time.NewTimer(limits.Delay)
 	defer timer.Stop()
 	s.mu.Lock()
@@ -60,9 +59,10 @@ func (s *Service) report(j *job, call common.Part, limits common.Limits, note st
 		return err
 	}
 	snapshot := j.snapshot
+	text += j.reportNote
 	// Holding Jobs' mutex across report append orders its snapshot and cursor with
 	// terminal publication; the long wait above never holds this mutex.
-	if snapshot.Status != "done" || j.reports > 0 || capped || note != "" || snapshot.Cwd != "" || snapshot.IsError {
+	if snapshot.Status != "done" || j.reports > 0 || capped || note != "" || snapshot.Cwd != "" || snapshot.IsError || j.reportNote != "" {
 		metadata := fmt.Sprintf("job %d status: %s; output: %s; total bytes: %d", snapshot.Handle, snapshot.Status, snapshot.Output.Locator, snapshot.Bytes)
 		if snapshot.Cwd != "" {
 			metadata += "; cwd: " + snapshot.Cwd
@@ -79,9 +79,8 @@ func (s *Service) report(j *job, call common.Part, limits common.Limits, note st
 		text = metadata + "\n" + text
 	}
 	text = note + text
-	result := common.ToolEvent{CallID: call.CallID, Parts: []common.Part{{Type: "text", Text: &text}}}
-	_, supervision := s.parent.Registry().Kind(call.Name)
-	if !supervision {
+	result := common.ToolEvent{CallID: request.CallID, Parts: []common.Part{{Type: "text", Text: &text}}}
+	if request.Original {
 		result.Job = &snapshot
 		result.IsError = snapshot.IsError
 	}

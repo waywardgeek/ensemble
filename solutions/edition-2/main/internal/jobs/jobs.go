@@ -2,7 +2,6 @@
 package jobs
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -22,16 +21,17 @@ type Service struct {
 	fault   error
 }
 type job struct {
-	parent   common.Jobs
-	snapshot common.JobSnapshot
-	file     *os.File
-	cursor   int64
-	reports  int
-	changed  chan struct{}
-	reaped   chan struct{}
-	terminal *os.File
-	pid      int
-	killing  bool
+	parent     common.Jobs
+	snapshot   common.JobSnapshot
+	file       *os.File
+	cursor     int64
+	reports    int
+	reportNote string
+	changed    chan struct{}
+	reaped     chan struct{}
+	terminal   *os.File
+	pid        int
+	killing    bool
 }
 
 func New(parent common.JobAgent) *Service { return &Service{parent: parent, jobs: map[uint64]*job{}} }
@@ -54,7 +54,7 @@ func (s *Service) fail(err error) {
 		s.changed(j)
 	}
 }
-func (s *Service) Create(call common.Part) (common.Job, error) {
+func (s *Service) Create() (common.Job, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.closed || s.fault != nil {
@@ -104,11 +104,8 @@ func (s *Service) Start(owned common.Job, call common.Part) {
 		if j.snapshot.Status != "running" || j.killing {
 			return
 		}
-		for _, p := range result.Parts {
-			if p.Text != nil {
-				s.write(j, []byte(*p.Text))
-			}
-		}
+		s.write(j, []byte(result.Text))
+		j.reportNote = result.Note
 		j.snapshot.IsError = result.IsError
 		s.finish(j, "done", "")
 	}()
@@ -206,89 +203,32 @@ func (s *Service) Close() error {
 	}
 	return s.fault
 }
-func (s *Service) Supervise(call common.Part, limits common.Limits, note string) error {
-	var fields map[string]json.RawMessage
-	_ = json.Unmarshal(call.Args, &fields)
-	allowed := map[string]bool{}
-	if call.Name != "tool_limits" {
-		allowed["handle"] = true
-	}
-	if call.Name == "send_input" {
-		allowed["input"] = true
-		allowed["append_newline"] = true
-	}
-	if call.Name != "kill_job" {
-		for _, key := range []string{"ai_callback_delay", "ai_callback_pattern", "max_output_bytes"} {
-			allowed[key] = true
-		}
-	}
-	refuse := func(err error) error {
-		text := note + call.Name + " failed: " + err.Error()
-		return s.parent.RecordJob(common.Event{Type: "tool_returned", Tool: &common.ToolEvent{CallID: call.CallID, IsError: true, Parts: []common.Part{{Type: "text", Text: &text}}}})
-	}
-	for key := range fields {
-		if !allowed[key] {
-			return refuse(fmt.Errorf("unknown field %s", key))
-		}
-	}
-	if call.Name == "tool_limits" {
-		if len(fields) == 0 {
-			return refuse(fmt.Errorf("supply at least one limit field"))
-		}
-		value, err := overrides(s, call.Args)
-		if err != nil {
-			return refuse(err)
-		}
-		s.mu.Lock()
-		s.pending = &value
-		s.mu.Unlock()
-		text := note + "tool_limits set: supplied overrides apply to the next attempted call only, including invalid calls or another setter."
-		return s.parent.RecordJob(common.Event{Type: "tool_returned", Tool: &common.ToolEvent{CallID: call.CallID, Parts: []common.Part{{Type: "text", Text: &text}}}})
-	}
-	var handle uint64
-	if json.Unmarshal(fields["handle"], &handle) != nil || handle == 0 {
-		return refuse(fmt.Errorf("handle must be a positive integer"))
-	}
+
+// Lookup enforces Agent scope even though Ensemble allocates application-wide IDs.
+func (s *Service) Lookup(handle uint64) (common.Job, error) {
 	s.mu.Lock()
+	defer s.mu.Unlock()
 	j := s.jobs[handle]
-	s.mu.Unlock()
 	if j == nil {
-		return refuse(fmt.Errorf("handle %d is unavailable to this Agent", handle))
+		return nil, fmt.Errorf("handle %d is unavailable to this Agent", handle)
 	}
-	if call.Name == "kill_job" {
-		if err := s.kill(j, "kill_job"); err != nil {
-			return refuse(err)
-		}
-		return s.report(j, call, limits, note, -1)
-	}
-	matchStart := int64(-1)
-	if call.Name == "send_input" {
-		var input string
-		newline := true
-		if string(fields["input"]) == "null" || json.Unmarshal(fields["input"], &input) != nil {
-			return refuse(fmt.Errorf("input must be a string"))
-		}
-		if raw, ok := fields["append_newline"]; ok {
-			if string(raw) == "null" || json.Unmarshal(raw, &newline) != nil {
-				return refuse(fmt.Errorf("append_newline must be boolean"))
-			}
-		}
-		if newline {
-			input += "\n"
-		}
-		s.mu.Lock()
-		if j.snapshot.Status != "running" || j.killing || j.terminal == nil {
-			s.mu.Unlock()
-			return refuse(fmt.Errorf("job is finished or has no input-capable process"))
-		}
-		matchStart = j.snapshot.Bytes
-		terminal := j.terminal
+	return j, nil
+}
+func (s *Service) Kill(owned common.Job, reason string) error { return s.kill(owned.(*job), reason) }
+func (s *Service) Send(owned common.Job, input string) (int64, error) {
+	j := owned.(*job)
+	s.mu.Lock()
+	if j.snapshot.Status != "running" || j.killing || j.terminal == nil {
 		s.mu.Unlock()
-		if _, err := terminal.Write([]byte(input)); err != nil {
-			return refuse(fmt.Errorf("send input: %w", err))
-		}
+		return 0, fmt.Errorf("job is finished or has no input-capable process")
 	}
-	return s.report(j, call, limits, note, matchStart)
+	matchStart := j.snapshot.Bytes
+	terminal := j.terminal
+	s.mu.Unlock()
+	if _, err := terminal.Write([]byte(input)); err != nil {
+		return 0, fmt.Errorf("send input: %w", err)
+	}
+	return matchStart, nil
 }
 
 // Abort releases an allocation whose pre-dispatch event failed. It never

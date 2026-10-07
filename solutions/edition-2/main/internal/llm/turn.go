@@ -51,7 +51,7 @@ func (e *Engine) Turn(ctx context.Context) (common.ClientResult, error) {
 			}
 			calls++
 			call := &Call{parent: e, part: part}
-			if err = call.dispatch(owner); err != nil {
+			if err = call.dispatch(); err != nil {
 				return common.ClientResult{}, err
 			}
 		}
@@ -70,14 +70,15 @@ type Call struct {
 }
 
 func (c *Call) Engine() common.Engine { return c.parent }
-func (c *Call) dispatch(owner common.TurnAgent) error {
+func (c *Call) dispatch() error {
+	owner := c.Engine().Agent().(common.TurnAgent)
 	manager := owner.Jobs()
-	limits, note, limitErr := manager.Resolve(c.part)
+	limits, note, limitErr := owner.Registry().ResolveLimits(c.part)
 	available, supervision := owner.Registry().Kind(c.part.Name)
 	var job common.Job
 	var err error
 	if available && !supervision && limitErr == nil {
-		job, err = manager.Create(c.part)
+		job, err = manager.Create()
 		if err != nil {
 			return err
 		}
@@ -102,10 +103,10 @@ func (c *Call) dispatch(owner common.TurnAgent) error {
 		return owner.RecordTurn(common.Event{Type: "tool_returned", Tool: &common.ToolEvent{CallID: c.part.CallID, IsError: true, Parts: []common.Part{Text(text)}}})
 	}
 	if supervision {
-		return manager.Supervise(c.part, limits, note)
+		return owner.Registry().Supervise(c.part, limits, note)
 	}
 	manager.Start(job, c.part)
-	if err := manager.Report(job, c.part, limits, note); err != nil {
+	if err := manager.Report(job, common.JobReport{CallID: c.part.CallID, Limits: limits, Note: note, Original: true, MatchStart: -1}); err != nil {
 		return fmt.Errorf("tool %s completion could not be recorded; inspect its actual effect before any new attempt: %w", c.part.Name, err)
 	}
 	return nil
