@@ -50,6 +50,11 @@ type astMethod struct {
 	Variadic bool
 	Results  int
 	FmtFirst bool // first parameter is a plain string: a format string
+	// ResultTypes are the method's result types. Chapter 22 needs these to
+	// find the SECOND link of a back-pointer chain: a method whose result is
+	// itself an interface is how a parent hands you its own parent without
+	// the dispatch struct growing a field.
+	ResultTypes []astField
 }
 
 type astType struct {
@@ -148,10 +153,11 @@ func (s *astScan) addFile(path string, file *ast.File) {
 							continue
 						}
 						t.Methods = append(t.Methods, astMethod{
-							Name:     m.Names[0].Name,
-							Variadic: isVariadic(ft),
-							Results:  resultCount(ft),
-							FmtFirst: firstParamIsString(ft),
+							Name:        m.Names[0].Name,
+							Variadic:    isVariadic(ft),
+							Results:     resultCount(ft),
+							FmtFirst:    firstParamIsString(ft),
+							ResultTypes: resultTypes(ft),
 						})
 					}
 				case *ast.StructType:
@@ -246,6 +252,20 @@ func resultCount(ft *ast.FuncType) int {
 		}
 	}
 	return n
+}
+
+// resultTypes describes a method's result types, reusing the same field
+// parser used for struct fields so that a result and a field are judged by
+// identical rules.
+func resultTypes(ft *ast.FuncType) []astField {
+	if ft.Results == nil {
+		return nil
+	}
+	var out []astField
+	for _, r := range ft.Results.List {
+		out = append(out, fieldsOf(r)...)
+	}
+	return out
 }
 
 // isLogShaped identifies a formatted-logging method by its SIGNATURE rather
