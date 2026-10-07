@@ -1,42 +1,37 @@
 # Second-edition progress
 
-Date: 2026-10-07. Bill accepted the main-source and chapter-snapshot layout
-and requested a commit after each chapter. The workflow now requires dedicated
-outer-repository commits and immutable revision tags after validation.
-Consolidation has not been performed; workers remain interrupted during this
-planning discussion. The requested Edition 3
-planning note is in Chapter 1, section 1.8. Workers are interrupted; do not
-resume implementation from the older active instructions below without the
-user's continuation. First-edition baseline: `ec41c6e`.
-Main workflow checkpoint: `1d3b6c9`; independent tooling/evidence: `602ae87`.
-Chapter 0 and the ending/preservation plan are committed as `24867ca`.
+Date: 2026-10-07. Bill resumed autonomous work and approved the main-source
+layout and commits after each chapter. Consolidation is complete:
+`solutions/edition-2/main/` is the authoritative working source in the outer
+repository; `ch01/`–`ch03/` are frozen tracked exports. Original histories,
+ignored files, and the unfinished Chapter 3 merge are preserved in the archive
+and portable bundles recorded in `solutions/edition-2/history/migration.json`.
+All exported bytes/modes and the moved repositories were verified. This is a
+migration checkpoint, not a new Chapter 3 validation. Author and reviewer have
+resumed; the Chapter 3 coder resumes in main after the migration checkpoint.
+First-edition baseline: `ec41c6e`. Workflow checkpoint: `1d3b6c9`;
+independent tooling/evidence: `602ae87`; Chapter 0 and ending plan: `24867ca`.
 
 ## Current chapter
 
-At the hold, Chapter 2 human chat was accepted at `ad0d80e33a3a2857e8e0887117d9b099f1a4786d`
-(42 independent checks, control plus five detected mutations, real PTY runs
-on all three APIs). A fresh Chapter 3 coder had begun integrating that history
-into `solutions/edition-2/ch03/`; the merge is staged but uncommitted, with
-`MERGE_HEAD` at the Chapter 2 commit. Preserve this work. No Chapter 4 solution
-exists yet. The author, reviewer, and coder were interrupted together.
-The Edition 3 note specifies one main repository, immutable initial/revision
-tags, snapshot manifests, and explicit forward propagation and revalidation;
-it does not claim a current repository migration has happened.
+Chapter 2 human chat is accepted at historical commit
+`ad0d80e33a3a2857e8e0887117d9b099f1a4786d`: 42 independent checks, a passing
+control plus five detected mutations, and real PTY runs on all three APIs.
+Its exact accepted source is frozen in `solutions/edition-2/ch02/`.
 
-**Current priority: human chat mode, starting in Chapter 2.** Bill identified
-that the real-model JSON-lines sessions did not exercise the terminal mode a
-person would use, and explicitly requested a chapter requirement. The author
-is publishing the human CLI contract before implementation; the mandatory
-skill, workflow, and Chapter 0 now require actual interactive-terminal use.
-Reopen the Chapter 2/3 client gates while preserving their earlier evidence.
-Do not release Chapter 4 implementation until this correction is carried forward
-and demonstrated with real models on all three provider paths. A direct shell
-or Delve session outside Ensemble does not fulfill the new gate.
+Chapter 3's staged integration of that client is now the tracked working tree
+in `solutions/edition-2/main/`. Its original merge index and MERGE_HEAD remain
+in the external archive. Finish and freeze the initial human-client attempt,
+run actual interactive all-provider demonstrations of the chapter features,
+and obtain independent review before declaring the new gate complete. No
+Chapter 4 solution exists yet. Its reviewed manuscript is ready for a fresh
+student once Chapter 3 passes. A direct shell or Delve run outside Ensemble
+does not fulfill a chapter's human-interface gate.
 
 Chapter 1 is validated against the current chapter contract, with independent
 quality review and real-model receipts. Final student checkpoint:
-`75542c1c73388fa1ab618dbb8b1e252e3d80816a` in the separate
-`solutions/edition-2/ch01/` repository. Initial pre-comparison checkpoint:
+`75542c1c73388fa1ab618dbb8b1e252e3d80816a` preserved in the historical bundle and exported to
+`solutions/edition-2/ch01/`. Initial pre-comparison checkpoint:
 `459e4ce`. Bill's editorial approval is not claimed. The validation record
 explicitly distinguishes tested properties from remaining general limits of
 static analysis and nonexhaustive mutation coverage.
@@ -61,7 +56,7 @@ static analysis and nonexhaustive mutation coverage.
   those revisions and the first-edition comparison's code/teaching corrections.
 
 Chapter 2's earlier contract passed at `cc1bec45c3327c87728a4040f762155d8e860a0b`;
-the new human chat requirement remains pending.
+its human-chat correction subsequently passed at `ad0d80e` (see above).
 Initial student checkpoint `39a92ca27a418712832ac0dcbbfbe4e32b3bca35` is retained,
 derived from the reviewed Chapter 1 history. All three real CLI and public-consumer demonstrations succeeded;
 sanitized receipts include the initially rejected provider requests and their

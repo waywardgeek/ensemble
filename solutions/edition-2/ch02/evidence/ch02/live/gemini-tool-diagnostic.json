@@ -1,0 +1,7 @@
+{
+  "vendor": "gemini",
+  "status": 400,
+  "message": "Invalid JSON payload received. Unknown name \"additionalProperties\" at 'tools[0].function_declarations[0].parameters': Cannot find field.",
+  "type": null,
+  "param": null
+}

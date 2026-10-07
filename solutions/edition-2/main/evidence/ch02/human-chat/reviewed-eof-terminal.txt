@@ -1,0 +1,4 @@
+Ensemble — anthropic / local-fixture
+Type /help for commands.
+You> ^D
+Final usage: input=0, cache write=0, cache read=0, output=0

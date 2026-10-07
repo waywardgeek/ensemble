@@ -1,0 +1,227 @@
+{
+  "scope": "Chapter 2 offline CLI only; no live/API-ownership/GUI claim",
+  "binary_sha256": "8c2e6fb762788e36f443e59d2c57899bf7772c00ca0c829612045af942debcdc",
+  "passed": true,
+  "checks": [
+    {
+      "id": "dump-without-model-or-key",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "present-empty-text",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "zero-usage",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "increasing-sequence-gaps",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "unknown-metadata",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "legacy-missing-purpose",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "legacy-surface-alias",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "reference-kind-1-dump",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "reference-kind-1-unsupported-render",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "reference-kind-3-dump",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "reference-kind-3-unsupported-render",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "unsupported-version",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "missing-header",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "duplicate-sequence",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "zero-sequence",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "bad-timestamp",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "unknown-event",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "extra-known-payload",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "null-payload",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "missing-text",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "unknown-part",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "agent-cannot-bypass-response-event",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "unknown-purpose",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "zero-reference-kind",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "unknown-reference-kind",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "legacy-blob-path",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "missing-normalized-usage",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "negative-usage",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "fractional-usage",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "unknown-result-call",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "duplicate-call-id",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "wrong-dispatch-args",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "unsolicited-response",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "second-pending-human",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "duplicate-result",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic-deterministic-render",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic-redaction",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai-deterministic-render",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai-redaction",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini-deterministic-render",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini-redaction",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "deferred-human-after-call",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "unanswered-call-remains-loadable",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "unanswered-call-refuses-render",
+      "passed": true,
+      "details": []
+    }
+  ]
+}

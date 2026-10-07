@@ -1,0 +1,607 @@
+{
+  "status": "Reviewed student snapshot; independent acceptance39/39, checker controls8, passing control+5deliberate defects with exact failures. Whole-chapter validation awaits coordinator full legacy/prose gate.",
+  "initial_checkpoint": "590c4f4",
+  "production_changes_since_initial": [
+    "common.Registry interface parent for command capture (coordinator-guided architecture correction)",
+    "empty-file end_line0-only success (author-resolved ambiguity)",
+    "Agent.Workspace scalar owner query avoids cloning full configuration for tool paths (comparison rationale)",
+    "UTF8 complete-prefix finalization before JSON on read/list/search and captured stdout/stderr (published clarification plus comparison witness)"
+  ],
+  "date_utc": "2026-10-07T18:39:43.962141+00:00",
+  "grader": {
+    "initial": "initial-grade.txt: 65/100",
+    "corrected": "initial-grade-corrected-fixtures.txt: same binary 100/100; grader repaired Gemini schema-field and known resolved-model fixture configuration"
+  },
+  "local_features": {
+    "tools": "internal/tools/tools_test.go: ranges, limits, empty result, invalid args, merged/separated search context, binary/git/symlink exclusion, mutation/refusal/disk checks, shell stream draining",
+    "lifecycle": "turn_test.go: batch after error, final batch at request16/no17, API failure retains facts+usage, before-call persistence failure prevents effect, after-effect failure faults, replay without side effects",
+    "provider_mapping": "turn_test.go: all3 error surfaces, Gemini signed automatic continuation and deterministic synthesized IDs",
+    "baseline": "existing event/replay/GUI/public tests retained; two stop-before-dispatch Chapter2 fixtures adapted to automatic continuation"
+  },
+  "live": {
+    "anthropic": {
+      "receipt": "evidence/ch03/live-anthropic/receipt.json",
+      "input": "evidence/ch03/live-anthropic/stdin.jsonl",
+      "output": "evidence/ch03/live-anthropic/stdout.jsonl",
+      "log": "evidence/ch03/live-anthropic/session.log",
+      "source_binary_hash": "6ce26361073f824164387bb9859fdcd3c855311835c5cada2343def678be7a23",
+      "exit_code": 0,
+      "tools": {
+        "list_directory": [
+          {
+            "call_id": "toolu_01RRjg59czUkgnJwkZiR66cq",
+            "args": {
+              "path": "."
+            },
+            "is_error": false
+          }
+        ],
+        "read_file": [
+          {
+            "call_id": "toolu_01KsC7Cp6pV4DvotXN6T4cWL",
+            "args": {
+              "path": "notes.md",
+              "start_line": 3,
+              "end_line": 4
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "toolu_0174e4fWwXzH4DJ4BqXf676d",
+            "args": {
+              "path": "created.txt"
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "toolu_01YA1mDoGsuzFbnDjMUARB6N",
+            "args": {
+              "path": "absent-file.txt"
+            },
+            "is_error": true
+          },
+          {
+            "call_id": "toolu_01UrSXrXKYRpjw9WnpAUMwyx",
+            "args": {
+              "path": "anchors.txt"
+            },
+            "is_error": false
+          }
+        ],
+        "search_files": [
+          {
+            "call_id": "toolu_01U7knTMyRypz4tRAEk8aUU1",
+            "args": {
+              "pattern": "beta|delta",
+              "path": "notes.md",
+              "context_lines": 1
+            },
+            "is_error": false
+          }
+        ],
+        "write_file": [
+          {
+            "call_id": "toolu_012Vr5Kde6H3jzmVX73FwtNy",
+            "args": {
+              "path": "created.txt",
+              "content": "first anchor\nsecond anchor\n"
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "toolu_01W8LEJkEPLsmdvAgCwgUxuB",
+            "args": {
+              "path": "created.txt",
+              "content": "replacement\n"
+            },
+            "is_error": true
+          },
+          {
+            "call_id": "toolu_01SJPHeAJZ1qZa6tkjGsthAF",
+            "args": {
+              "path": "created.txt",
+              "content": "replacement\n",
+              "overwrite": true
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "toolu_01NHSbAmfdeeJpNuzF1CdpXw",
+            "args": {
+              "path": "created.txt",
+              "content": "tail\n",
+              "append": true
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "toolu_016S1Gfr5TCgqXwBemZWFyPW",
+            "args": {
+              "path": "anchors.txt",
+              "content": "first anchor\nsecond anchor\n"
+            },
+            "is_error": false
+          }
+        ],
+        "edit_file": [
+          {
+            "call_id": "toolu_0166fRYuduUzJpXKt7nmnYmL",
+            "args": {
+              "path": "created.txt",
+              "old_text": "first anchor",
+              "new_text": "first edit"
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "toolu_01SqHACG3gka2M84kNkN1mDL",
+            "args": {
+              "path": "anchors.txt",
+              "old_text": "anchor",
+              "new_text": "wrong"
+            },
+            "is_error": true
+          },
+          {
+            "call_id": "toolu_01Ntd2DZbG1AVmBzLyaCrwAH",
+            "args": {
+              "path": "anchors.txt",
+              "old_text": "missing",
+              "new_text": "x"
+            },
+            "is_error": true
+          },
+          {
+            "call_id": "toolu_01FjAtsmDoxdPcreAV1GCXn2",
+            "args": {
+              "path": "anchors.txt",
+              "old_text": "first anchor",
+              "new_text": "first repaired"
+            },
+            "is_error": false
+          }
+        ],
+        "run_command": [
+          {
+            "call_id": "toolu_01WAKLP88w5u4aEcHzG2BYzB",
+            "args": {
+              "command": "cat created.txt; printf STDOUT-MARKER; printf STDERR-MARKER >&2; exit 7"
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "toolu_01FPm2PvJge9FmGgEKbnAvUY",
+            "args": {
+              "command": "cat anchors.txt"
+            },
+            "is_error": false
+          }
+        ]
+      },
+      "usage": {
+        "input": 56911,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 1976
+      },
+      "independent_disk_bytes": {
+        "anchors.txt": "first repaired\nsecond anchor\n",
+        "created.txt": "replacement\ntail\n",
+        "notes.md": "alpha line one\nbeta line two\ngamma line three\ndelta line four\nepsilon line five\n"
+      },
+      "recall_answer": "AMBER-CH03, 7",
+      "consumer": {
+        "receipt": "evidence/ch03/consumer-anthropic/receipt.json",
+        "report": "evidence/ch03/consumer-anthropic/report.json",
+        "workspace_answers": [
+          "NORTH-314",
+          "SOUTH-927"
+        ],
+        "observer_order_and_identity": "asserted by live public consumer",
+        "unsubscribe": "post-unsubscribe local ephemeral event produces no observation",
+        "empty_registry": "separate real text turn; no tools selected"
+      }
+    },
+    "openai": {
+      "receipt": "evidence/ch03/live-openai/receipt.json",
+      "input": "evidence/ch03/live-openai/stdin.jsonl",
+      "output": "evidence/ch03/live-openai/stdout.jsonl",
+      "log": "evidence/ch03/live-openai/session.log",
+      "source_binary_hash": "6ce26361073f824164387bb9859fdcd3c855311835c5cada2343def678be7a23",
+      "exit_code": 0,
+      "tools": {
+        "list_directory": [
+          {
+            "call_id": "call_angSDxwPnY00Dfg3SRBUapQR",
+            "args": {
+              "path": "."
+            },
+            "is_error": false
+          }
+        ],
+        "read_file": [
+          {
+            "call_id": "call_Nz4Hu1KURZNgPec4GBcfMSOO",
+            "args": {
+              "path": "notes.md",
+              "start_line": 3,
+              "end_line": 4
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_xy4JyuK4pQFyTohSkvqsGdBG",
+            "args": {
+              "path": "created.txt",
+              "start_line": 1,
+              "end_line": 2
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_NoMaIQ8SZAdsQCobkrWQnGSK",
+            "args": {
+              "path": "absent-file.txt",
+              "start_line": 1,
+              "end_line": 2
+            },
+            "is_error": true
+          },
+          {
+            "call_id": "call_HRkVczSUJTLboKz0jnvC0pZL",
+            "args": {
+              "path": "anchors.txt",
+              "start_line": 1,
+              "end_line": 2
+            },
+            "is_error": false
+          }
+        ],
+        "search_files": [
+          {
+            "call_id": "call_ykYsDcO0Hp8nJutgg1RBJv0u",
+            "args": {
+              "path": ".",
+              "file_pattern": "notes.md",
+              "pattern": "beta|delta",
+              "context_lines": 1
+            },
+            "is_error": false
+          }
+        ],
+        "write_file": [
+          {
+            "call_id": "call_oHMstJdrMO713RIaMFomIzdK",
+            "args": {
+              "path": "created.txt",
+              "content": "first anchor\nsecond anchor\n"
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_4cPaUuT9AH4zBYjq3AhKXkqz",
+            "args": {
+              "path": "created.txt",
+              "content": "replacement\n"
+            },
+            "is_error": true
+          },
+          {
+            "call_id": "call_78OJ3yE6NC5YDXk8tiBlJJmN",
+            "args": {
+              "path": "created.txt",
+              "content": "replacement\n",
+              "overwrite": true
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_wQ8fi1ulITIC1g7YRHyArI3Z",
+            "args": {
+              "path": "created.txt",
+              "content": "tail\n",
+              "append": true
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_mW5HsgUTAFLzyF1C10YHISnb",
+            "args": {
+              "path": "anchors.txt",
+              "content": "first anchor\nsecond anchor\n"
+            },
+            "is_error": false
+          }
+        ],
+        "edit_file": [
+          {
+            "call_id": "call_ZgjYnudQozh5oqMDzx1INIzt",
+            "args": {
+              "path": "created.txt",
+              "old_text": "first anchor",
+              "new_text": "first edit"
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_qZTABWW2dpWBSs4QNp7TWc1O",
+            "args": {
+              "path": "anchors.txt",
+              "old_text": "anchor",
+              "new_text": "wrong"
+            },
+            "is_error": true
+          },
+          {
+            "call_id": "call_LrP98ARukBMlWcoUe8AkXhDN",
+            "args": {
+              "path": "anchors.txt",
+              "old_text": "missing",
+              "new_text": "anything"
+            },
+            "is_error": true
+          },
+          {
+            "call_id": "call_Sn5BAiE7J9r1eYIYuRlbOBHv",
+            "args": {
+              "path": "anchors.txt",
+              "old_text": "first anchor",
+              "new_text": "first repaired"
+            },
+            "is_error": false
+          }
+        ],
+        "run_command": [
+          {
+            "call_id": "call_8wQ8lDD0e5ShQzafC4dl3zrS",
+            "args": {
+              "command": "cat created.txt; printf STDOUT-MARKER; printf STDERR-MARKER >&2; exit 7"
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_Xrv9rA9aS3sU6m4lD8KTZa9H",
+            "args": {
+              "command": "cat anchors.txt"
+            },
+            "is_error": false
+          }
+        ]
+      },
+      "usage": {
+        "input": 4004,
+        "cache_write": 0,
+        "cache_read": 20608,
+        "output": 775
+      },
+      "independent_disk_bytes": {
+        "anchors.txt": "first repaired\nsecond anchor\n",
+        "created.txt": "replacement\ntail\n",
+        "notes.md": "alpha line one\nbeta line two\ngamma line three\ndelta line four\nepsilon line five\n"
+      },
+      "recall_answer": "AMBER-CH03 7",
+      "consumer": {
+        "receipt": "evidence/ch03/consumer-openai/receipt.json",
+        "report": "evidence/ch03/consumer-openai/report.json",
+        "workspace_answers": [
+          "NORTH-314",
+          "SOUTH-927"
+        ],
+        "observer_order_and_identity": "asserted by live public consumer",
+        "unsubscribe": "post-unsubscribe local ephemeral event produces no observation",
+        "empty_registry": "separate real text turn; no tools selected"
+      }
+    },
+    "gemini": {
+      "receipt": "evidence/ch03/live-gemini/receipt.json",
+      "input": "evidence/ch03/live-gemini/stdin.jsonl",
+      "output": "evidence/ch03/live-gemini/stdout.jsonl",
+      "log": "evidence/ch03/live-gemini/session.log",
+      "source_binary_hash": "6ce26361073f824164387bb9859fdcd3c855311835c5cada2343def678be7a23",
+      "exit_code": 0,
+      "tools": {
+        "list_directory": [
+          {
+            "call_id": "call_95654",
+            "args": {
+              "path": "."
+            },
+            "is_error": false
+          }
+        ],
+        "read_file": [
+          {
+            "call_id": "call_134647",
+            "args": {
+              "start_line": 3,
+              "path": "notes.md",
+              "end_line": 4
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_55208",
+            "args": {
+              "path": "created.txt"
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_58883",
+            "args": {
+              "path": "absent-file.txt"
+            },
+            "is_error": true
+          },
+          {
+            "call_id": "call_114810",
+            "args": {
+              "path": "anchors.txt"
+            },
+            "is_error": false
+          }
+        ],
+        "search_files": [
+          {
+            "call_id": "call_84675",
+            "args": {
+              "path": "notes.md",
+              "pattern": "beta|delta",
+              "context_lines": 1
+            },
+            "is_error": false
+          }
+        ],
+        "write_file": [
+          {
+            "call_id": "call_49600",
+            "args": {
+              "content": "first anchor\nsecond anchor\n",
+              "path": "created.txt"
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_160122",
+            "args": {
+              "content": "replacement\n",
+              "path": "created.txt"
+            },
+            "is_error": true
+          },
+          {
+            "call_id": "call_131069",
+            "args": {
+              "overwrite": true,
+              "content": "replacement\n",
+              "path": "created.txt"
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_106558",
+            "args": {
+              "path": "created.txt",
+              "content": "tail\n",
+              "append": true
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_102759",
+            "args": {
+              "content": "first anchor\nsecond anchor\n",
+              "path": "anchors.txt"
+            },
+            "is_error": false
+          }
+        ],
+        "edit_file": [
+          {
+            "call_id": "call_101970",
+            "args": {
+              "old_text": "first anchor",
+              "path": "created.txt",
+              "new_text": "first edit"
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_109052",
+            "args": {
+              "old_text": "anchor",
+              "path": "anchors.txt",
+              "new_text": "wrong"
+            },
+            "is_error": true
+          },
+          {
+            "call_id": "call_117738",
+            "args": {
+              "new_text": "wrong",
+              "path": "anchors.txt",
+              "old_text": "missing"
+            },
+            "is_error": true
+          },
+          {
+            "call_id": "call_152143",
+            "args": {
+              "path": "anchors.txt",
+              "new_text": "first repaired",
+              "old_text": "first anchor"
+            },
+            "is_error": false
+          }
+        ],
+        "run_command": [
+          {
+            "call_id": "call_103960",
+            "args": {
+              "command": "cat created.txt; printf STDOUT-MARKER; printf STDERR-MARKER >&2; exit 7"
+            },
+            "is_error": false
+          },
+          {
+            "call_id": "call_123254",
+            "args": {
+              "command": "cat anchors.txt"
+            },
+            "is_error": false
+          }
+        ]
+      },
+      "usage": {
+        "input": 50081,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 1469
+      },
+      "independent_disk_bytes": {
+        "anchors.txt": "first repaired\nsecond anchor\n",
+        "created.txt": "replacement\ntail\n",
+        "notes.md": "alpha line one\nbeta line two\ngamma line three\ndelta line four\nepsilon line five\n"
+      },
+      "recall_answer": "AMBER-CH03\n7",
+      "consumer": {
+        "receipt": "evidence/ch03/consumer-gemini/receipt.json",
+        "report": "evidence/ch03/consumer-gemini/report.json",
+        "workspace_answers": [
+          "NORTH-314",
+          "SOUTH-927"
+        ],
+        "observer_order_and_identity": "asserted by live public consumer",
+        "unsubscribe": "post-unsubscribe local ephemeral event produces no observation",
+        "empty_registry": "separate real text turn; no tools selected"
+      }
+    }
+  },
+  "gui": "Separate optional GUI module remains a stub; fake-backed public integration passes. No browser/WebSocket run claimed.",
+  "failures": [
+    "Initial local tests exposed obsolete stop-before-dispatch fixtures; assertions preserved at equivalent new lifecycle boundaries.",
+    "Initial grader65 due fixture mismatch; same frozen binary100 after coordinator fixes.",
+    "First consumer runner attempt failed locally before any process/API request due source-hash path typo; corrected path then all3 exit0."
+  ],
+  "revision_receipts": {
+    "anthropic": "evidence/ch03/revision-anthropic/receipt.json",
+    "openai": "evidence/ch03/revision-openai/receipt.json",
+    "gemini": "evidence/ch03/revision-gemini/receipt.json"
+  },
+  "offline_live_log_checks": {
+    "anthropic": "evidence/ch03/live-anthropic/offline-receipt.json",
+    "openai": "evidence/ch03/live-openai/offline-receipt.json",
+    "gemini": "evidence/ch03/live-gemini/offline-receipt.json"
+  },
+  "source_lineage": {
+    "initial_implementation": "590c4f4; all3 original CLI runs use frozen ch03-initial binary and initial-source-hashes.json",
+    "initial_runs_checkpoint": "540fb4a; adds public consumer and local tests, preserves production code unchanged",
+    "focused_live_revision": "revision-{vendor}/receipt.json binds source hashes after capture-interface/end0 corrections, before Workspace/UTF8 changes",
+    "final_review_candidate": "reviewed-source-hashes.json binds frozen ch03-reviewed binary after all four corrections; deterministic validation only for economy/UTF8 changes, no paid rerun claimed"
+  },
+  "independent_review": {
+    "acceptance": "evidence/ch03/independent-reviewed.json",
+    "mutations": "evidence/ch03/independent-mutations.json",
+    "review": "book/edition-2/chapter-03-code-review.md (reviewer-owned; acceptance communicated by coordinator)",
+    "source": "reviewed-source-hashes.json"
+  }
+}

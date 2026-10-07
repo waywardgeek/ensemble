@@ -1,14 +1,20 @@
 # Working checkpoint
 
-Date: 2026-10-07. Bill accepted the main-source layout and commits after each
-chapter. The procedure now requires outer-repository commits and immutable
-chapter revision tags after validation. Consolidation remains pending, and
-workers remain interrupted during the planning discussion. The requested
-Edition 3 repository/snapshot note was added to Chapter 1, section 1.8; no
-repository migration was performed. Preserve Chapter 3's staged, uncommitted
-merge of Chapter 2 `ad0d80e33a3a2857e8e0887117d9b099f1a4786d`. Read the opening
-of `progress.md` before the older active next steps below. Await continuation
-before resuming implementation.
+Date: 2026-10-07. Bill explicitly resumed autonomous work. The main-source
+migration is complete and verified. Work in `solutions/edition-2/main/`;
+`ch01/`–`ch03/` are frozen exports. See `progress.md` and
+`solutions/edition-2/history/migration.json` for exact commits, inventories,
+and the complete external archive. Portable bundles preserve original Git
+history; Chapter 3's merge index, ignored binaries, and untracked files remain
+in the external archive. Main contains the tracked unfinished merge result.
+Do not call this new Chapter 3 validation or restart the completed Chapter 2
+paid demonstrations merely to recover context.
+
+Next: finish Chapter 3 human-chat integration and its actual all-provider PTY
+demonstrations; preserve an initial attempt, review and improve it, then
+validate/export/commit/tag. Only then release Chapter 4 to a fresh new-only
+coder. The author is updating active paths and the reviewer has audited the
+migration evidence requirements. No root regression tests remain running.
 
 ## Objective and current scope
 
@@ -22,9 +28,10 @@ Preserve all historical editions, their source/code/evidence, and the preface.
 rewrite the second-edition epilogue in Codex's own first person when the edition
 is ready for publication. Do not write a fictional completed outcome now.
 
-New implementations live in separate full Git repositories at
-`solutions/edition-2/chNN/`. Start Chapter 1 from scratch; derive each later
-repository from the preceding new history. Never copy old answer keys or edit
+The authoritative implementation lives in `solutions/edition-2/main/` within
+the outer Git repository. Each `chNN/` is a frozen source export with a source
+manifest. Extend the preceding accepted new source and checkpoint each chapter
+with an outer commit and immutable annotated revision tag. Never copy old answer keys or edit
 existing `agent/` implementation and first-edition solutions. Grader changes
 cannot weaken coverage and must retain legacy passes. Do not push or stage
 Bill's unrelated files.
@@ -68,7 +75,7 @@ that limitation; their implementation validation is a separate claim.
   demonstrate all three providers before releasing Chapter 4 implementation.
   The skill, workflow, and Chapter 0 now state this requirement. Preserve the
   older checkpoints and receipts rather than relabeling them as human tests.
-- Chapter 3 reviewed snapshot: `7cbbd8e2e0101e40dee63fe18d05f48b791c55ff`, clean.
+- Chapter 3 reviewed snapshot: `7cbbd8e2e0101e40dee63fe18d05f48b791c55ff`, frozen before human integration.
   Earlier scope passes: all four modules format/vet/test; inherited100;
   independent39/39; eight checker controls; control+five exact-failure mutants;
   all-three real machine CLI/public-consumer and guided correction receipts;

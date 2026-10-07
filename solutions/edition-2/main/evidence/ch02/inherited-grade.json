@@ -1,0 +1,11 @@
+{
+  "date": "2026-10-07T18:13:09.567331+00:00",
+  "command": "make grade-dir CH=2 DIR=solutions/edition-2/ch02",
+  "exit_code": 2,
+  "score": 95,
+  "failed_check": "log round-trips: dump -> render in a fresh process",
+  "diagnostic": "unanswered tool calls require results before rendering",
+  "all_other_checks_pass": true,
+  "initial_pre_clarification_score": 100,
+  "resolution": "Pending coordinator review of fixture against new required unanswered-call render refusal; student did not read grader implementation."
+}

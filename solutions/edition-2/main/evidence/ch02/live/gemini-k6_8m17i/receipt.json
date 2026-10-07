@@ -1,0 +1,13 @@
+{
+  "date": "2026-10-07T18:05:40.519438+00:00",
+  "vendor": "gemini",
+  "model_requested": "models/gemini-3.8-flash",
+  "command": [
+    "/tmp/ensemble-ed2-ch02-consumer"
+  ],
+  "inputs": [],
+  "stdout": "",
+  "stderr": "ensemble: model returned HTTP 400\nmodel returned HTTP 400\n",
+  "exit_code": 1,
+  "directory": "/tmp/ensemble-ed2-ch02-live/gemini-k6_8m17i"
+}

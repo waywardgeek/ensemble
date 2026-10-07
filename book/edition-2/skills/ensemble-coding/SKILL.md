@@ -228,11 +228,23 @@ do not treat the historical report as proof of current behavior.
 
 ## Workspace and regression boundaries
 
-Write the student rewrite in self-contained Git repositories under
-`solutions/edition-2/chNN/`. Bill authorizes `git init`; derive subsequent
-chapters from the preceding new solution and checkpoint validated snapshots.
-Never edit the existing `agent/` implementation or first-edition solutions.
-Do not copy their code into the new student repository.
+Write the student rewrite in `solutions/edition-2/main/`, tracked in the outer
+Ensemble repository. Its Go modules remain independent of the historical
+implementation. Extend the accepted preceding second-edition source. Frozen
+`solutions/edition-2/chNN/` directories are exact exports for readers and
+verification; do not edit them as parallel working trees or initialize nested
+Git repositories. Never edit or copy the existing `agent/` implementation or
+first-edition solutions.
+
+Preserve the initial student attempt before comparison. After each chapter
+passes its required gates, export the source with a manifest identifying the
+source revision, then commit the manuscript, source, snapshot, and evidence in
+the outer repository and create an immutable annotated `edition-2-chNN-rN`
+tag. Corrections receive new revisions, never moved tags. Carry earlier fixes
+forward through affected chapters and rerun their affected checks; freezing a
+snapshot does not make a later solution inherit a fix automatically. Historical
+nested student repositories and their unfinished work were preserved during
+consolidation; see `solutions/edition-2/history/README.md` for restoration.
 
 Grader improvements are allowed, including limitations discovered by the
 student, but coverage must not be weakened and legacy tests must still pass.

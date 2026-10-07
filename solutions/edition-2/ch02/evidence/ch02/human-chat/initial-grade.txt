@@ -1,0 +1,55 @@
+go run ./cmd/grade -ch 2 solutions/edition-2/ch02
+Chapter 2 — One Log, Three Vendors
+============================================================
+
+[PASS]      stdio protocol, directives, request census  (0/0)
+       census: anthropic:2 requests, 2 answers; openai:2 requests, 2 answers;
+       gemini:2 requests, 2 answers; ephemera:2 requests
+
+[PASS]      all seven Chapter 1 checks still pass  (10/10)
+       7 Chapter 1 checks still pass
+
+[PASS]      log round-trips: dump -> render in a fresh process  (5/5)
+       6 events dumped and re-rendered
+
+[PASS]      two renders of one log are byte-identical  (10/10)
+       all three vendors render deterministically
+
+[PASS]      redacted content is absent from later renders  (10/10)
+       tool output stubbed, tool call preserved, on all three vendors
+
+[PASS]      delivered exactly once, then absent  (10/10)
+       delivered once, in request 1 of 2
+
+[PASS]      four token categories, normalized, disjoint  (10/10)
+       input/cache_write/cache_read/output normalized on all three vendors
+
+[PASS]      one log, three vendor request shapes  (15/15)
+       Exhibit A (three authorships) and Exhibit B (the merged message) both
+       correct
+       per-call replay material survives a Gemini round trip
+
+[PASS]      three responses, one context, provenance preserved  (15/15)
+       three vendors, one context; provenance distinct: [openai/gpt-5-fake
+       gemini/gemini-3.5-flash-fake anthropic/claude-sonnet-5-fake]
+
+[PASS]      all three RefKinds survive the log  (3/3)
+       RefPath, RefURI and RefHandle all survive marshal/unmarshal
+
+[PASS]      a pre-Ref log is refused, not coerced  (2/2)
+       old-format log refused loudly; "path" is not coerced into a Ref
+
+[PASS]      the zero value is not a RefKind  (2/2)
+       kind 0 refused; the constants start at iota+1 so the zero value is not
+       a kind
+
+[PASS]      RefURI renders to the vendor's remote-reference form  (4/4)
+       RefURI rendered as a Gemini fileData part, not a path and not inline
+       bytes
+
+[PASS]      a stub carries forward the superseded Ref  (4/4)
+       tool output stubbed; the superseded blob's Ref carried forward into
+       the stub
+
+------------------------------------------------------------
+score: 100/100 — PASS

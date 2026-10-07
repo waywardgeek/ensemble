@@ -1,0 +1,11 @@
+{
+  "vendor": "anthropic",
+  "model": "claude-sonnet-5-5",
+  "directory": "/tmp/ensemble-ed2-ch02-live/anthropic-rj4hqrm9",
+  "ephemeral_in_replayed_requests": [
+    false,
+    true,
+    false
+  ],
+  "offline_only": true
+}

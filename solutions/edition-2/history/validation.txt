@@ -1,0 +1,21 @@
+Migration validation, 2026-10-07
+
+Original complete repositories: before/after SHA-256 and mode inventories match.
+Frozen exports: each byte, executable mode and symlink target matches its
+recorded Git blob. Counts: ch01 21, ch02 192, ch03 212 tracked files.
+Main: 289 tracked working files preserve the unfinished Chapter 3 merge.
+All three all-ref bundles: git bundle verify passed.
+Historical Chapter 2 receipt git-show source hashes: passed in flattened tree.
+Main gofmt -l: no output.
+Main go vet ./...: passed.
+Main go test ./... -count=1: FAILED at existing staged integration case
+TestChatEmptyAndToolOnly in cmd/chat_test.go:104, invalid conversation transition.
+All other main package suites passed. This is the unvalidated merge baseline,
+not a migration-induced source edit; coder must resolve it before acceptance.
+GUI, examples/consumer and examples/tools-consumer: vet/tests passed.
+Mandatory coding skill validator: passed.
+Git whitespace check reports original raw PTY CRLF/control-byte transcripts;
+those exact evidence bytes were deliberately preserved rather than normalized.
+
+No first-edition implementation files changed. No paid provider runs repeated
+for migration. No chapter-validation tag created for unfinished main.

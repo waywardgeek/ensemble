@@ -23,9 +23,15 @@ code merely because it differs from the new rules.
 
 Bill explicitly requires a fresh student rewrite in `solutions/edition-2/`.
 Do not edit existing `agent/` implementation or first-edition solutions.
-Each new `chNN/` is a self-contained Git repository; initialize the first,
-then derive subsequent chapter repositories from the preceding new history.
-Checkpoint validated solutions. Never copy the first-edition implementation.
+The authoritative source is `solutions/edition-2/main/`, tracked by this outer
+repository. Frozen `chNN/` directories are exact source exports, not independent
+working repositories. Extend the accepted preceding second-edition source;
+never copy the first-edition implementation. After each validated chapter,
+commit its source, manuscript, snapshot, and evidence together and create an
+immutable annotated `edition-2-chNN-rN` tag. Preserve initial attempts and use
+new revision tags for corrections; carry earlier fixes forward and revalidate.
+The original student repositories and staged Chapter 3 merge are preserved;
+see `solutions/edition-2/history/migration.json` and its README.
 Grader enhancements are allowed, but may not weaken coverage and must retain
 passing legacy tests. Record baseline failures before changes if encountered.
 

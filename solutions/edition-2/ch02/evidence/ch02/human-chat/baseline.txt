@@ -1,0 +1,5 @@
+Baseline cc1bec45c3327c87728a4040f762155d8e860a0b
+Core go vet ./...: PASS
+Core go test ./... -count=1: PASS
+make grade-dir CH=2 DIR=solutions/edition-2/ch02: PASS 100/100
+No baseline failures. Existing untracked tmp/ preserved/excluded.
