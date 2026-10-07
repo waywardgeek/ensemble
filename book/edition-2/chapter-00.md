@@ -169,7 +169,7 @@ This is a reusable handoff. Replace the angle-bracketed fields with actual
 paths and the chapter number:
 
 ```text
-Implement Chapter <N> in <fresh-student-directory>.
+Implement Chapter <N> in solutions/edition-2/main/.
 
 Before editing, read the entire
 book/edition-2/skills/ensemble-coding/SKILL.md.
@@ -177,9 +177,11 @@ Reload it after context compaction or a change of coding task.
 Read book/edition-2/architecture.md, Chapter 1's architecture sections,
 and the current chapter contract, including its schemas and fixtures.
 
-For Chapter 1, start a fresh Go module and Git repository.
-For later chapters, derive this repository and its history from the
-validated preceding second-edition snapshot at <previous-directory>.
+For Chapter 1, start a fresh Go module within the outer Ensemble repository.
+For later chapters, the coordinator prepares main at the accepted preceding
+second-edition source version <previous-commit-or-tag>.
+Do not initialize a nested Git repository or edit frozen chNN exports.
+Do not inspect future main history to infer the answer.
 Do not read first-edition chapters or solutions, future solutions, grader
 implementation, or author/reviewer research notes. Historical links in the
 coding skill are research sources for those other roles, not prerequisites
@@ -247,7 +249,7 @@ From the course repository root, Chapter 1's grader accepts the student's
 module directory:
 
 ```sh
-make grade-dir CH=1 DIR=/path/to/your/ch01
+make grade-dir CH=1 DIR=solutions/edition-2/main
 ```
 
 Inside each affected Go module, run its tests and vet; a test at the course
@@ -328,17 +330,27 @@ numbers and claims against the retained output.
 
 ## 0.9 Leave a continuation point
 
-The reference workflow creates a self-contained Git repository for each
-new solution at `solutions/edition-2/chNN/`. Chapter 1 starts from scratch;
-each later repository derives from the preceding new repository's history.
-Readers can use another fresh location. Preserve the first-edition
-implementations and existing `agent/` tree as evidence. Do not silently
-replace them with the student's answer.
+The reference workflow develops the new agent in `solutions/edition-2/main/`,
+tracked by the outer Ensemble Git repository. Chapter 1 starts from scratch;
+later chapters extend the accepted preceding second-edition version in that
+same tree. Readers working elsewhere can keep their own main tree. Preserve
+the first-edition implementations and existing `agent/` tree as evidence.
+
+After validation, export that exact source version to
+`solutions/edition-2/chNN/`. These are self-contained Go modules and frozen
+ordinary tracked directories, without nested Git repositories. The student
+works in main; the coordinator produces the export with source and file hashes.
+Earlier standalone student repositories belong to the historical record:
+preserve their histories and unfinished work before consolidating them.
 
 Keep an initial student checkpoint before comparative review and a validated
-checkpoint after corrections. An interrupted attempt can have an unfinished
-checkpoint too, provided its status says what remains. Commit only the
-intended files; a shared workspace may contain someone else's work.
+checkpoint after corrections. Each validated chapter receives a dedicated
+outer commit and immutable annotated tag such as `edition-2-ch03-r1`, binding
+the manuscript, matching main source, chapter export and validation manifest.
+A correction gets a new revision tag; never move an old tag or relabel its
+receipts. An interrupted attempt can have an unfinished commit too, provided
+its status says what remains. Commit only intended files; a shared workspace
+may contain someone else's work. A local commit or tag does not publish it.
 
 These are the reference workflow's durable records:
 
@@ -352,7 +364,9 @@ These are the reference workflow's durable records:
 | `book/chapter-writing-procedure.md` and `book/edition-2/workflow.md` | Which work and review gates are required? |
 | `book/edition-2/global-review.md` | Which later lessons and dependencies bear on this chapter? |
 | `book/edition-2/progress.md` | What is complete, what is blocked, and what is the next action? |
-| `solutions/edition-2/chNN/` | Which exact new code and history produced the evidence? |
+| `solutions/edition-2/main/` | Where does the current student implement and integrate the new agent? |
+| `solutions/edition-2/chNN/` | Which frozen source export and evidence belong to this chapter? |
+| Outer commit, `edition-2-chNN-rN` tag and validation manifest | Which exact source, manuscript, export and checks define the validated revision? |
 
 A checkpoint should let a fresh worker continue without reconstructing
 the entire conversation. Record accepted decisions separately from tentative

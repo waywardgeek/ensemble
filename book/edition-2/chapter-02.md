@@ -49,13 +49,15 @@ with events and a derived context inside that architecture.
 > **Client revision pending.** Checkpoint
 > `cc1bec45c3327c87728a4040f762155d8e860a0b` passed the earlier contract's
 > comparison and acceptance. Its CLI demonstrations used the machine
-> protocol. The human chat contract below and actual terminal demonstrations
-> are now required before closing validation. Bill's editorial approval is separate.
+> protocol. Human chat at `56dacfad` now has actual terminal demonstrations
+> on all three APIs; independent review and final acceptance of that client
+> revision remain pending. Bill's editorial approval is separate.
 
 ## TL;DR
 
-Continue the validated Chapter 1 repository and its history in
-`solutions/edition-2/ch02`. Keep its public library and CLI. Add three
+Continue the exact validated Chapter 1 source in `solutions/edition-2/main/`,
+tracked by the outer Ensemble repository. `ch02/` is the frozen export after
+validation, not a development directory. Keep its public library and CLI. Add three
 non-streaming adapters: Messages, Chat Completions, and generateContent.
 Read current model IDs from provider discovery for live runs. Before
 implementation, reload the entire
@@ -116,7 +118,7 @@ browser interface is required here.
 **Exercise.** The inherited grader is a useful regression baseline:
 
 ```sh
-make grade-dir CH=2 DIR=solutions/edition-2/ch02
+make grade-dir CH=2 DIR=solutions/edition-2/main
 ```
 
 The score covers the inherited wire and replay checks. The additional
@@ -811,13 +813,61 @@ try a blank line and a malformed local command, then leave with `/quit`.
 Repeat clean EOF in another session. No JSON wrapper belongs around the
 questions a person types.
 
-The coder must perform this interaction in an actual PTY with each real API,
-waiting for prompts and inspecting displayed answers. Preserve sanitized
-terminal transcripts, source identity, selected/returned model identities,
-logs and usage. Exercise the same mode's remaining features through concrete
-user actions; controlled fixtures still cover failures and redaction targets
-that this chapter's no-tool CLI cannot create. These terminal receipts are
-pending. They must not be described as a session Bill personally ran.
+The coder performed this interaction on October 7, 2026, using an actual
+PTY and observing each answer before submitting the next model prompt.
+The human-client checkpoint is `56dacfad01f71f2a1b20d39bca15846edef41ddd`.
+The Messages session used terminal default selection; the other two selected
+`chat` explicitly. This abridged Messages transcript preserves the actual
+typed questions and displayed answers:
+
+```text
+You> Invent a short two-word code name. Reply with only the name.
+Assistant:
+Silent Harbor
+You> /ephemeral One-request marker LILAC-614; this is context for one request only. Do not repeat the marker.
+Recorded ephemeral.
+You> What exact code name did you invent? Reply with that same name on line one and its character-by-character reversed form on line two.
+Assistant:
+Silent Harbor
+robraH tneliS
+```
+
+The next actions inspected `/usage`, `/history` and `/help`. History listed
+seven event sequences and explained that there were no `tool_returned`
+targets, because this chapter had executed no tools. A blank line and malformed
+local commands produced no extra model request or log event. The final prompt,
+`//help` followed by an instruction to reply `SLASH-OK`, reached the model as
+literal slash-prefixed text; all three models returned that exact answer.
+
+Each session ended with `/quit`, three real requests and exit zero:
+
+| Surface and selected model | Name, recalled exactly | Displayed reversed line | Input | Cache write/read | Output |
+|---|---|---|---:|---:|---:|
+| Messages, `claude-sonnet-5-5` | Silent Harbor | robraH tneliS | 418 | 0 / 0 | 168 |
+| Chat Completions, `gpt-6-luna` | Velvet Comet | temoC tevleV | 263 | 0 / 0 | 160 |
+| generateContent, `models/gemini-3.8-flash` | Cobalt Echo | ohcE tlaboC | 212 | 0 / 0 | 894 |
+
+These are the displayed four-counter totals, not cost or efficiency rankings.
+The first two routes reported the selected model name; generateContent
+reported `gemini-3.8-flash`, retaining the requested prefix separately.
+Offline reconstruction from these live logs found the one-request marker
+absent, present, absent, with consumed ephemera `[]`, `[4]`, `[]`.
+That comparison uses actual log prefixes, not intercepted HTTP bodies.
+
+Separate terminal sessions used Ctrl-D and reported zero usage without making
+a request. Another local control supplied a nonexistent redaction target;
+it exited nonzero without a final usage summary or HTTP call. Successful
+human-command redaction used a controlled result inserted through the public
+API in a local test, since ordinary Chapter 2 chat cannot create one.
+The public consumer below supplies the separate real-model redaction path.
+
+The [human-client feature ledger](../../solutions/edition-2/ch02/evidence/ch02/human-chat/FEATURES.txt)
+links terminal transcripts, exact source/binary hashes and local controls.
+These are the coder's sessions, not claimed participation by Bill. Runtime
+terminal evidence is macOS; Linux was cross-built rather than live-tested.
+Independent review of this client revision remains open. The earlier
+machine-interface and public-consumer evidence follows with its original
+source binding.
 
 ### Earlier machine-interface receipts
 
@@ -942,5 +992,6 @@ It passed module checks, the inherited grader, 44 independent acceptance
 checks, and a control plus ten deliberate defects. The broader legacy suite
 also passed. Those internal revisions were checked locally; the chapter
 does not claim that the paid demonstrations were repeated afterward.
-The human chat addition requires a new source checkpoint and terminal
-receipts; the earlier successful checks remain evidence for their original scope.
+The human chat addition has its separate checkpoint and terminal receipts
+above; its final review/acceptance remains pending. Earlier successful checks
+remain evidence for their original scope.

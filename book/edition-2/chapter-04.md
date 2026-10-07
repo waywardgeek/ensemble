@@ -50,7 +50,9 @@ Closing the output file at that point would cut off a reader still writing.
 
 ## TL;DR
 
-Continue validated Chapter 3 history in `solutions/edition-2/ch04`. Read the
+Continue the exact validated Chapter 3 source in `solutions/edition-2/main/`.
+Keep history in the outer Ensemble repository; `ch04/` is its frozen chapter
+export after validation. Read the
 entire [coding skill](skills/ensemble-coding/SKILL.md), architecture, and this
 contract before editing. A fresh student receives only the new curriculum
 and preceding new snapshot; historical answers and research notes are excluded.
@@ -97,7 +99,7 @@ connection is added.
 From the course repository root:
 
 ```sh
-make grade-dir CH=4 DIR=solutions/edition-2/ch04
+make grade-dir CH=4 DIR=solutions/edition-2/main
 ```
 
 ## 4.2 Start once, report more than once

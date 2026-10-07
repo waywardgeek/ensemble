@@ -91,8 +91,11 @@ second-edition construction plan.
 
 ## Implementable choices
 
-Bill endorses `solutions/edition-2/chNN`, each snapshot a self-contained
-Git repository with history extended from the preceding new chapter.
+Bill's later consolidation ruling supersedes separate student repositories:
+develop in `solutions/edition-2/main/` under outer Git history, then export
+exact validated versions to ordinary tracked `solutions/edition-2/chNN/`.
+Each validated chapter gets a dedicated outer commit and immutable annotated
+revision tag. Preserve the earlier repositories and their receipt identities.
 The module root is the public library and `cmd/` holds the CLI; the
 existing grader discovers that CLI when given the module root.
 

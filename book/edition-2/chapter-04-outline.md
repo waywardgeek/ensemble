@@ -49,7 +49,8 @@ and killing are distinct operations with different records.
 
 ## Proposed scope
 
-Continue validated new Chapter 3 history in `solutions/edition-2/ch04`.
+Continue the exact validated new Chapter 3 source in `solutions/edition-2/main/`.
+History belongs to the outer repository; `ch04/` is the later frozen export.
 Keep the public library, CLI, observer attribution, and separate optional
 GUI module. No actor mailbox, turn interruption, streaming model transport,
 cross-process recovery, remote tool connection, or GUI transport is added.

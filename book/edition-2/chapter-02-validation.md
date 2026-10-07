@@ -1,15 +1,65 @@
 # Chapter 2 validation
 
-Date: 2026-10-07. The earlier implementation, comparison, and machine-protocol
-demonstrations passed. Bill subsequently required human chat mode and actual
-interactive terminal runs; that new client gate is reopened and pending.
-The evidence below describes the earlier scope. Bill's editorial approval is
-a separate status.
+Date: 2026-10-07. The implementation, comparison, machine-protocol demonstrations,
+and subsequently required human chat revision have passed their recorded gates.
+Actual coder-driven terminal runs cover all three providers. Bill's editorial
+approval is a separate status. The unfinished Chapter 3 integration in the main
+development tree is not this validated Chapter 2 source.
 Initial student checkpoint: `39a92ca27a418712832ac0dcbbfbe4e32b3bca35`.
-Reviewed checkpoint: `cc1bec45c3327c87728a4040f762155d8e860a0b`, clean, in
-`solutions/edition-2/ch02/`. Both histories are preserved.
+Earlier reviewed checkpoint: `cc1bec45c3327c87728a4040f762155d8e860a0b`.
+Initial human-client checkpoint: `56dacfad01f71f2a1b20d39bca15846edef41ddd`.
+Accepted human-client revision: `ad0d80e33a3a2857e8e0887117d9b099f1a4786d`.
+The frozen ordinary export at `solutions/edition-2/ch02/` matches the latter
+commit exactly. Consolidation commit `8831ce2` preserves original histories in
+bundles and records export hashes in `solutions/edition-2/history/migration.json`.
+Those original IDs remain historical source identities; the migration is not
+a retroactive validated chapter tag.
 
-## Evidence and scope
+## Human client revision
+
+The independent reviewer derived terminal checks before inspecting the new
+student client. Initial and reviewed executables each passed 42/42 cases across
+the three local fake API surfaces. Actual PTYs verify explicit/default human
+mode, visible flushed prompts, ordinary input, multiline answers, commands,
+history, ephemera, slash escaping, clean EOF/quit, and usage. Explicit piped chat
+covers exact UTF-8 byte limits without confusing the terminal driver's line cap
+with the program's input limit. Machine protocol compatibility remains checked.
+
+A passing control and five compiled defects produce exactly their expected
+failures: disabled terminal default, removed slash escape, invalid UTF-8
+acceptance, JSON-escaped answers, and an unflushed prompt. Five independent
+checker controls protect the checker. This audit covers these selected
+properties, not every possible client defect.
+
+The actual coder-driven human sessions use real models on all three routes.
+Each invents a name, recalls and reverses it on separate displayed lines,
+inspects usage/history/help, recovers from malformed local commands, submits
+literal slash text, and exits cleanly. Separate terminal EOF and invalid-target
+controls make no paid request. Successful human-command redaction is checked
+with controlled results through the public API; the earlier real-model consumer
+retains its separate redaction evidence. No ordinary Chapter 2 chat is claimed
+to execute tools, and none of these sessions is attributed to Bill.
+
+Post-run comparison with the first-edition CLI and revision review are accepted.
+Both presentations use public submission; input bytes and output errors are
+handled explicitly. Review added actionable static redaction refusals with
+nonmutation/privacy regressions and preserved owner/logger access into platform
+terminal helpers. Historical receipt verification now binds source bytes to the
+initial commit rather than the mutable worktree. Initial paid receipts remain
+unchanged; affected local refusal and terminal-detection paths were rechecked.
+
+Formatting, vet/tests in the core, optional GUI and public consumer modules,
+inherited grade 100/100, and a Linux cross-build passed. Actual terminal runtime
+evidence is macOS. The new §2.10 transcript and totals were independently checked
+against retained files. No new browser transport is claimed.
+
+See `chapter-02-chat-review.md` and
+`solutions/edition-2/ch02/evidence/ch02/human-chat/`, including
+`review-binding.json`, initial/reviewed independent reports, mutation receipts,
+launch identities and actual terminal transcripts. Reviewed binary SHA256:
+`6e4399307e20fedf1c982677e39c3dadc70beb94e933cb237323468949bbfce9`.
+
+## Earlier implementation evidence and scope
 
 - Core, external public consumer, and optional GUI modules pass formatting,
   `go vet ./...`, and `go test ./... -count=1`.
@@ -63,7 +113,7 @@ First-edition solutions and existing `agent/` implementation were not edited.
 
 ## Limits that remain visible
 
-Live receipts precede the final diagnostics/internal-copy revision. Those
+The earlier machine/public-consumer live receipts precede the diagnostics/internal-copy revision. Those
 changes passed relevant local gates and review; unchanged paid conversations
 were not repeated. The earlier Gemini declaration correction did receive a
 fresh successful live run, and its original failure is retained. The observed
@@ -80,4 +130,6 @@ agent code, or grader source. It did inherit historical summaries, and compacted
 history prevents a complete raw-trace audit. Chapters 1–2 are guided student
 builds with no known answer-key exposure, not certified strictly blind trials.
 See the student's `evidence/ch02/SOURCE-EXPOSURE.md`. Subsequent cold chapters use
-fresh contexts without coordinator-history inheritance.
+fresh contexts without coordinator-history inheritance. The later human-client
+revision used a fresh new-only coder context but is a guided correction of
+Chapter 2, not a second cold evaluation of the entire chapter.

@@ -84,8 +84,9 @@ names and schemas it advertises from the Registry it will actually use.
 
 ## TL;DR
 
-Continue the validated Chapter 2 repository and history in
-`solutions/edition-2/ch03`. Before editing, read the entire
+Continue the exact validated Chapter 2 source in `solutions/edition-2/main/`.
+The outer Ensemble repository owns its history; `ch03/` is the frozen export
+produced after validation. Before editing, read the entire
 [`book/edition-2/skills/ensemble-coding/SKILL.md`](skills/ensemble-coding/SKILL.md),
 the current architecture decisions, and this chapter's detailed contract.
 
@@ -137,7 +138,7 @@ streaming, mailbox, concurrent tool execution, or automatic retries yet.
 **Exercise.** From the course repository root:
 
 ```sh
-make grade-dir CH=3 DIR=solutions/edition-2/ch03
+make grade-dir CH=3 DIR=solutions/edition-2/main
 ```
 
 The inherited score is a regression baseline. The additional acceptance

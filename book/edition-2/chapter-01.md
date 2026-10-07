@@ -269,9 +269,10 @@ positive output-token limit, and optional human interface, within the
 architecture above. No tools, streaming, persistence, retries, model switching,
 or dollar-price calculation belong in this exercise.
 
-**Exercise.** Create a self-contained Go module and Git repository with
-the library at its root. The course's new reference snapshot lives at
-`solutions/edition-2/ch01`; your own directory works equally well. Build
+**Exercise.** Create a self-contained Go module in `solutions/edition-2/main/`,
+with the library at its root and history in the outer Ensemble repository.
+Do not initialize a nested Git repository. The frozen reference export lives
+at `solutions/edition-2/ch01`; a reader's own main directory works too. Build
 `./cmd`, then run the free local grader from the course repository root:
 
 ```sh
@@ -491,7 +492,7 @@ the consumer handing the engine a separate logging closure.
 Build and check your CLI from the repository root:
 
 ```sh
-make grade-dir CH=1 DIR=solutions/edition-2/ch01
+make grade-dir CH=1 DIR=solutions/edition-2/main
 ```
 
 Substitute your own directory if you are building elsewhere. The reference
@@ -499,12 +500,20 @@ is a legal starting point; the course does not grade authorship or require
 you to reproduce its names. It does require the relationships and behavior
 described on this page.
 
-Each second-edition snapshot is a complete repository. Record validated
-work in its own Git history; the succeeding chapter starts from that
-history and extends it. The snapshot is both runnable code and a record
-of how the code arrived there. Preserve the first-edition solutions.
+Develop succeeding chapters in the same main tree. After validation, export
+the exact Chapter 1 source to `solutions/edition-2/ch01/` as an ordinary
+tracked directory and record source/evidence hashes. A dedicated outer commit
+and immutable annotated `edition-2-ch01-r1` tag preserve that revision.
+Later corrections receive new revision tags; students do not edit frozen
+exports. Preserve first-edition solutions and the original student histories.
 
 ### Edition 3 planning note: one source repository from Chapter 1
+
+This planning note was recorded before the second-edition consolidation.
+Its central lesson has now been adopted in this edition: develop in one main
+tree and publish exact chapter exports. The exploratory clone and tag examples
+below remain part of that earlier note; the current workflow above specifies
+ordinary tracked exports and outer `edition-2-chNN-rN` tags.
 
 A correction to Chapter 2 must reach Chapter 3 and every later solution that
 depends on it. Editing separate chapter copies makes that propagation easy to

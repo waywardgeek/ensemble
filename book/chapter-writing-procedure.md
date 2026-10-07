@@ -30,11 +30,19 @@ This exception applies to that epilogue, not ordinary chapter bodies or the
 first-edition epilogue. Write from the completed comparison and actual record;
 do not invent the outcome now.
 
-The manuscript lives in `book/edition-2/`. New student implementations live
-in `solutions/edition-2/chNN/`, each a complete Git repository with module
-files, tests, and validated snapshots. Initialize Chapter 1 from scratch.
-Continue each subsequent chapter from the preceding **second-edition**
-repository and history. Bill authorizes initializing these repositories.
+The manuscript lives in `book/edition-2/`. The sole development tree is
+`solutions/edition-2/main/`, tracked by the outer Ensemble Git repository.
+Initialize Chapter 1's Go module there from scratch; subsequent chapters
+extend its accepted second-edition predecessor. Do not create nested Git
+repositories. The `solutions/edition-2/chNN/` directories are frozen, ordinary
+tracked exports of exact accepted source versions, with module files, tests
+and evidence. They are references for readers, not parallel development trees.
+
+The coordinator prepares the student's main tree at the permitted preceding
+chapter version. A cold student must not inspect later main history to infer
+an answer. Work on an earlier correction uses an isolated checkout/branch at
+that chapter's accepted source, then carries the validated correction forward;
+do not copy a later implementation backward into an earlier exercise.
 
 **Do not edit existing Ensemble implementation in `agent/` or first-edition
 solutions.** They are historical evidence for the author and global reviewer,
@@ -209,7 +217,10 @@ The grader engineer builds checks from the contract. Test behavior and
 structural properties, not identifier vocabulary or code lineage. Include
 each newly added spoke and every executable in architecture checks.
 
-Run the new solution's build, module tests, vet, and relevant grader.
+Run the new solution's build, module tests, vet, and relevant grader against
+`solutions/edition-2/main/`. A frozen `chNN/` export can be graded read-only
+at its own feature scope. Preserve historical grader numbering where the
+second-edition chapter explicitly maps to a different inherited grader.
 Then audit the advertised properties by deletion:
 
 - Keep a correct positive control.
@@ -376,12 +387,21 @@ main source and chapter snapshot, changed graders and skills, and a validation
 manifest linking source identities and evidence. Keep the worktree free of
 unrelated changes in that commit; stage the intended files explicitly.
 
-Bill accepted `solutions/edition-2/main/` as the main source tree, with
-`solutions/edition-2/chNN/` as tracked chapter snapshots in the outer repository.
-The earlier standalone student repositories must retain their histories during
-consolidation. Until that migration is complete, keep their local checkpoints
-and record their exact commit IDs in the outer checkpoint. An outer commit
-alone does not publish untracked nested repositories or close the migration.
+Export `solutions/edition-2/chNN/` from the exact validated main source version;
+exclude nested Git metadata, credentials and unrelated runtime files. Record
+the source tree identity, export hashes, contract/check versions and evidence
+binding in the validation manifest. The dedicated outer commit and annotated
+tag preserve the matching manuscript, main source and export together. A later
+validated export may update that chapter's tracked directory in a new revision;
+the previous commit and tag remain unchanged. Students never edit the export.
+
+The earlier standalone student repositories and any unfinished work must be
+preserved before consolidation moves them. Record the migration mapping and
+original commit IDs; do not rewrite old transcripts, source hashes or local
+repository identities to make them look like later outer commits. This policy
+describes the target layout, not evidence that migration has completed.
+Consolidating unfinished source does not validate it: preserve its pending
+status and withhold the validated chapter tag until its remaining gates pass.
 
 Preserve the initial student attempt before comparative review. Work-in-progress
 commits are welcome, but a validated chapter tag requires every chapter gate.

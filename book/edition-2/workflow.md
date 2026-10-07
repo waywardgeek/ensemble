@@ -12,12 +12,13 @@ first-edition sources, and existing untracked work. All editions remain
 historical artifacts. At publication readiness, rewrite the second-edition
 epilogue in Codex's own first person. See `ending-chapter-note.md` for the
 comparison protocol and this deferred writing instruction.
-The manuscript lives in
-`book/edition-2/`, with independent student solutions in
-`solutions/edition-2/chNN/`. Bill endorsed this layout and authorized `git init`
-for full solution repositories. Each chapter is a self-contained repo with its
-own module files and validation evidence; continue subsequent chapters from
-the preceding second-edition repository/history and checkpoint completed work.
+The manuscript lives in `book/edition-2/`. Bill's consolidated layout has one
+development tree, `solutions/edition-2/main/`, tracked by the outer Ensemble
+Git repository. Students extend that tree from the exact accepted preceding
+second-edition version. Do not initialize nested Git repositories or develop
+inside `chNN/`: those are frozen ordinary tracked exports for readers, each
+with its module files and evidence. Preserve the original standalone histories
+and unfinished work before migration; retain their dated receipt identities.
 Do not edit existing `agent/` implementation or first-edition solutions.
 The student rebuilds from the new teaching, never from the old answer key.
 
@@ -116,7 +117,9 @@ WebSocket implementation remains in the separate optional GUI module.
    student handoff, including TL;DR-only evaluations. Every graded
    requirement appears in the teaching. Leave real design choices to students.
 4. Coordinator extracts only student-facing contracts to a clean handoff
-   directory. Student builds independently. Grader work derives from the
+   directory and prepares `solutions/edition-2/main/` at the allowed predecessor.
+   Student builds independently in that tree and must not inspect future main
+   history or frozen answers. Grader work derives from the
    contract, without fitting checks to the student's implementation.
 5. Run the actual binary against fake services. Audit protected properties
    by deletion, with positive controls and exact expected failing check IDs.
@@ -165,13 +168,21 @@ the initial attempt and useful work-in-progress commits separately from the
 validated checkpoint. Carry fixes forward and revalidate affected later
 chapters before tagging them.
 
-The accepted publication layout uses `solutions/edition-2/main/` for the main
-source and tracked `chNN/` snapshots in the outer Ensemble repository. Existing
-standalone student histories must be preserved during consolidation. Until
-that migration is performed, retain their local commits and record their exact
-identities in the outer chapter checkpoint; do not claim that an outer push
-would include untracked nested repositories. Commits and tags remain local
-until publishing is authorized.
+Export the chapter's `chNN/` directory from the exact validated main version,
+including the self-contained module and retained evidence, without a nested
+`.git`, credentials or unrelated runtime artifacts. Record source/export
+hashes and validation bindings in the manifest. Never mutate a frozen export
+as a development shortcut. A later validated correction receives a new export,
+outer commit and revision tag; its previous tagged version stays intact.
+
+Existing standalone student histories and unfinished work must be preserved
+before consolidation. Record original commit IDs and their migration mapping;
+old evidence must not be relabeled as produced by the new outer history.
+An outer commit alone cannot preserve files it does not track. Describe the
+migration as complete only after its preservation/export checks pass. A staged
+or unfinished integration may become main without becoming a validated chapter;
+retain its open gates and do not create its validated tag prematurely. Commits
+and tags remain local until publishing is authorized.
 
 Maintain `progress.md` with the current chapter, artifact paths, checks run,
 unresolved questions, user rulings, and the next executable action. Record

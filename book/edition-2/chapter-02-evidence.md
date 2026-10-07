@@ -16,7 +16,26 @@ chat/protocol, terminal auto-selection, flushed prompt/readable answer,
 local commands, history-derived redaction targets, exact line ceiling and
 error/EOF behavior. Procedure now requires actual PTY interaction with all
 three real APIs from Chapter 2. Existing API/protocol receipts remain valid
-for their measured scope. Human-mode source, checks, and receipts are pending.
+for their measured scope.
+
+Human-mode initial checkpoint `56dacfad01f71f2a1b20d39bca15846edef41ddd`
+now has real PTY receipts in `solutions/edition-2/ch02/evidence/ch02/human-chat`.
+Author read FEATURES.txt, receipts.json, all three main terminal transcripts,
+and each launch record with binary/source hashes. Each had three paid
+requests, exact code-name recall/reversal, literal slash input and exit zero.
+Input/write/read/output totals were 418/0/0/168 on Messages, 263/0/0/160 on
+Chat Completions, and 212/0/0/894 on generateContent. Local EOF/redaction
+controls are separately labeled; existing public-consumer receipts were
+not rerun. The spin now begins with ordinary-text reproduction and an actual
+abridged terminal transcript, followed by earlier machine evidence.
+
+Coder reports independent review requested useful static redaction errors
+and owner access for terminal helpers, with bounded revisions now awaiting
+re-review. No final acceptance is inferred from the initial terminal success.
+Runtime PTY evidence is macOS; automatic terminal detection is implemented
+for macOS/Linux, with explicit chat required elsewhere. No cross-platform
+runtime success or Bill participation is claimed. Scoped prose lint passes
+all hard checks after receipt reconciliation.
 
 ## Reading
 

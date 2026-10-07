@@ -4,7 +4,8 @@ Status: human-client validation reopened. Prior contract validated at
 `cc1bec45c3327c87728a4040f762155d8e860a0b` after independent comparison
 and revision. All-three-provider machine-CLI/public-consumer
 receipts retain their source binding at initial checkpoint
-`39a92ca27a418712832ac0dcbbfbe4e32b3bca35`; no later paid rerun is claimed.
+`39a92ca27a418712832ac0dcbbfbe4e32b3bca35`. New human-mode paid runs
+are separately bound to `56dacfad01f71f2a1b20d39bca15846edef41ddd`.
 Bill's editorial approval remains separate. See evidence for the pilot's
 inherited-context qualification.
 Student handoff includes the formal sections as well as the TL;DR.
@@ -13,8 +14,9 @@ Bill requires actual human chat now, not JSON-lines input described as chat.
 The published §2.7 contract adds explicit chat/protocol modes, terminal
 default selection, visible prompts, ordinary text, readable answers and
 usage, discoverable history/redaction, and precise command/input failure
-behavior. New all-three-API terminal receipts and independent review are
-required. No old receipt is relabeled or attributed to Bill's participation.
+behavior. New all-three-API terminal receipts are reconciled into §2.10;
+independent final review/acceptance remains required. No old receipt is
+relabeled or attributed to Bill's participation.
 
 ## Voice plan
 
@@ -59,8 +61,10 @@ replacing its intentionally narrow text-message representation.
 
 ## Scope and ownership
 
-Start from the validated `solutions/edition-2/ch01` repository/history in
-`solutions/edition-2/ch02`. Keep its public library root and CLI. Add an
+Start from the exact accepted Chapter 1 source in `solutions/edition-2/main/`,
+under the outer repository's history. Export `ch02/` only from a validated
+source version; do not develop inside that frozen directory. Keep its public
+library root and CLI. Add an
 optional GUI module beneath the snapshot with its own `go.mod`; the core
 module must neither require nor import it. A public transport-neutral
 client seam is real; WebSocket/browser transport may remain a documented
