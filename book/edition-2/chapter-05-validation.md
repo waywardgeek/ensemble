@@ -1,7 +1,8 @@
 # Chapter 5 validation
 
-Current gate record, started October 7, 2026. Chapter 5 is in implementation;
-it is not accepted. Bill's editorial approval remains separate.
+Current gate record, started October 7, 2026. Chapter 5's initial implementation
+is frozen and live validation is underway; it is not accepted. Bill's editorial
+approval remains separate.
 
 The fresh student `/root/coder_ch05` started with `fork_turns="none"` from
 accepted checkpoint `edition-2-ch04-r1` (`55e64115ee5243cac6b4958fd12e6811862ae033`).
@@ -11,12 +12,12 @@ comparison follows the initial implementation and actual runs.
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Contract and predecessor | Author/coordinator | Ready: [outline](chapter-05-outline.md), [contract](chapter-05.md), [accepted Chapter 4](chapter-04-validation.md) | Route new teaching gaps before affected implementation |
-| Structure plan | Student/reviewer | Narrow new-contract review passed; [student plan](../../solutions/edition-2/main/evidence/ch05/student-review.md) has no blocking ownership contradiction | Student confirms close-time internal admission, exactly-once terminal recording and helper owner/logger paths in implementation and checks |
-| Implementation and local checks | Student/grader engineer | Initial implementation reported complete; [six-module vet/tests and main race receipts](../../solutions/edition-2/main/evidence/ch05/pre-live-checks.json) pass. Inherited CH6 is 10/100; independent contract/fixture diagnosis underway | Resolve CLI close-order wording and run contract-derived independent checks; retain original grader failures |
+| Structure plan | Student/reviewer | Narrow new-contract review passed; [student review](../../solutions/edition-2/main/evidence/ch05/student-review.md) records the three risks and their implementation checks | Inspect actual ownership and lifecycle during comparative review |
+| Implementation and local checks | Student/grader engineer | Frozen initial source `8aa40c3`; six-module vet/tests, main race and new independent checker 100/100 pass. Inherited CH6's incompatible 10/100 remains recorded separately in [grader review](chapter-05-grader-review.md) | Finish independent checker receipt checkpoint; retain original defects and fixture failures |
 | Live coverage plan | Student/coordinator | Coordinator reviewed and accepted [plan completeness](../../solutions/edition-2/main/evidence/ch05/live-plan.md): all three human CLI/provider paths, public workflow/collection and labeled deterministic supplements | Finish local path/checker gates, freeze source and run the plan |
-| Initial actual demonstrations | Student | Pending; no Chapter 5 live success claimed | Drive human PTYs and public clients, retaining exact source/binary identities and observed outcomes |
-| Initial attempt and teaching review | Student | Review started; final initial-attempt record pending | Freeze source and runs before comparative feedback; record difficulty and assistance |
-| Independent comparison and revisions | Code reviewer/student | Pending initial implementation and runs | Compare historical standard separately; group findings, revise and review |
+| Initial actual demonstrations | Student | Anthropic/OpenAI control runs and all-three-provider workflow, collection and EOF runs passed; Gemini control gate incomplete after empty responses. Initial receipts `5f2576c` retain 59 exact request replays across 14 sessions | One bounded final unchanged-runtime Gemini control attempt; retain earlier failures and any addendum under its actual identity |
+| Initial attempt and teaching review | Student | Source `8aa40c3` and actual attempts `5f2576c` preserved; [student review](../../solutions/edition-2/main/evidence/ch05/student-review.md) records clarification, diagnostic defect, live difficulty and assistance | Append final provider outcome and subsequent review effects without rewriting the initial freeze |
+| Independent comparison and revisions | Code reviewer/student | Assigned to grader engineer after its checker checkpoint; independent of student implementation, with grader exposure disclosed | Compare historical standard separately; group findings, revise and review |
 | Final validation | Student/reviewer | Pending | Run required checks and affected live paths; retain unchanged evidence under its original identity |
 | Manuscript reconciliation | Author/proofreader | Contract reviewed; final observed demonstration and feedback dispositions pending | Reconcile prose with actual receipts and resolve student findings |
 | Export and chapter checkpoint | Coordinator | Pending acceptance | Export exact accepted source, verify manifest, commit/tag, then hand off next chapter |
@@ -30,11 +31,16 @@ student plan, without inspecting implementation or the old answer. It is not
 code acceptance or the later historical comparison. Its three risks were
 returned to the student as existing contract obligations.
 
-Current handoff: the author clarified CLI error/Close ordering in manuscript
-checkpoint `5ae7649`; student confirmation remains pending.
-`/root/grader_ch05` is preparing independent checks from the published
-contract. The first attempts to resume the student or allocate a replacement
-failed with an orchestration thread-limit error. After the author finished,
-resuming the original `/root/coder_ch05` succeeded; it continues local client
-and evidence preparation in its existing student context. No Chapter 5 paid
-run or acceptance is inferred from the local test results.
+Current handoff: the student confirmed the author's CLI error/Close clarification
+from manuscript checkpoint `5ae7649` and added a deterministic ordering test.
+`/root/grader_ch05` is finishing checker receipts, then taking comparative
+review. A separate reviewer allocation failed with a thread-limit error, so
+this role reuse is explicit. The original `/root/coder_ch05` continues in its
+existing student context.
+
+The Gemini grouping diagnostic succeeded for both the exact originally failed
+body and a split variant. That does not establish a grouping defect or justify
+changing the renderer. The final bounded control attempt uses unchanged source;
+a further failure leaves that live gate incomplete. Initial summary messages
+and commit prose incorrectly counted 62 replayed requests; the machine report
+and manifest record 59, and the student appended the correction.
