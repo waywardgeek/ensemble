@@ -163,3 +163,30 @@ ch19 grades 85/100; one check fails on a missing `agent/events.jsonl`.
 Verified pre-existing by `git worktree` at `273797c`, the commit BEFORE this
 session's first, where it fails identically. Raise with the author
 separately. (Memory also records ch8-ch12 at 80-90 pre-existing.)
+
+## The thinnest possible exhibit: *Logger satisfies common.Agent
+
+`common.Agent` is {Logf, APILogf, Debugf}. `*Logger` has all three, so a
+LOGGER satisfies the AGENT interface. This session relied on that fact
+without noticing: when `cliHost` was deleted, its replacement in
+`cmd/tools_test.go` is literally `host := agent.DefaultLogger()`.
+
+That is the measurement proving the interface never grew past the capability
+it was named for. Five types satisfy it today:
+
+    logger.go:49                    *Logger          (the base)
+    agent.go:534                    *Agent
+    internal/jobs/jobs.go:52        *Jobs            (delegates to its host)
+    internal/llm/compact_test.go:81 testHost         (fake)
+    internal/tools/statustools_test.go:23 fakeAgent  (fake)
+
+DECIDED NOT TO FIX IN CH22: adding `Settings()` to `common.Agent` would make
+the three remaining settings closures die, which is the thesis. But it forces
+a meaningless `Settings()` onto `*Logger` and onto both test fakes, and it
+would stop a logger being usable as a parent -- a change worth making
+deliberately, with its own argument, not as a late addition to this chapter.
+
+The closures are no longer staples in any case: they are created by the agent
+over its OWN settings store inside `attachState`, not handed in from outside.
+The remaining distance is one interface method, and naming that distance is
+probably better teaching than silently closing it.
