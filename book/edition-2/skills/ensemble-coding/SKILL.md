@@ -166,6 +166,16 @@ Student coders use the chapter, this skill, and the preceding second-edition
 baseline. They do not consult later solutions or grader implementation to
 guess missing requirements. Surface missing teaching instead.
 
+After the initial implementation and runs, preserve the student checkpoint
+and take part in the mandatory independent comparison with the first-edition
+standard. The code reviewer reads that standard and returns concrete findings;
+revise the new code from their rationale without copying the old answer. A
+passing grade is insufficient: seek better design, clearer and tighter code,
+useful comments, and better teaching. Send instruction gaps to the author,
+rerun affected validation, and obtain review of the revisions before declaring
+the chapter complete. See §5 of `book/chapter-writing-procedure.md` for the
+comparison evidence and quality gate.
+
 ## 6. Actually take every chapter for a spin
 
 Every chapter with a "Taking it for a spin" section requires the coder to run

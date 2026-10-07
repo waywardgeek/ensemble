@@ -42,6 +42,10 @@ claim he approved a chapter merely because its checks passed. Push is Bill's.
   of the student's implementation. The coordinator can fill this role.
 - **Global reviewer:** reads the complete textbook, records dependencies and
   later lessons, and answers questions about the whole-book consequences.
+- **Code reviewer:** after the student's first implementation and runs,
+  compares it with the corresponding first-edition standard solution. Gives
+  concrete quality feedback to the coder and teaching feedback to the author,
+  then reviews their revisions. This reviewer is independent of the coder.
 - **Reviewer / proofreader:** reads the author's work independently for voice,
   clarity, organization, consistency, and evidence. Returns concrete findings
   to the author, then reviews the revision. It is distinct from authorship.
@@ -53,7 +57,7 @@ before working, and reload after compaction or a rule change. Use the current
 voice file where older procedural wording disagrees with it.
 
 Agent slots may require scheduling roles in phases. In this session the
-global review thread also serves the dedicated proofreading phase after
+global review thread also serves the code-review and proofreading phases after
 saving its whole-book findings. Keep role and review evidence explicit; do
 not describe that as a separately spawned fourth worker.
 
@@ -235,7 +239,47 @@ repeatable measurements and API-key controls where comparable. Record endpoint,
 model, credential mode, cache counters, and uncertainty without recording
 credentials. A historical report and a closed bug are not measurements.
 
-## 5. Author reconciliation and independent proofreading
+## 5. Compare with the first edition and improve the answer
+
+Passing is necessary, but it is not the objective of the second edition.
+**After the coder has implemented and run the chapter, an independent code
+reviewer must compare the new solution with the corresponding first-edition
+standard solution.** Preserve the initial student attempt before this review.
+The reviewer reads the old implementation; the student receives findings and
+rationale, not an answer key to copy. This keeps the initial build a test of
+the new teaching while allowing the completed answer to improve through review.
+
+Record the two snapshot commits and the corresponding chapter numbers; old
+Chapters 6–21 map to new Chapters 5–20. Review at the same feature scope, using
+later first-edition corrections as evidence where they bear on today's design.
+The corrected architecture remains authoritative: an old shortcut does not
+become desirable merely because the standard solution used it.
+
+Compare:
+
+- Design, data ownership, dependency direction, and room for later features.
+- Code clarity and economy: unnecessary machinery, duplicated work, awkward
+  control flow, and avoidable complexity. Fewer lines alone is not better.
+- Comments: explain intent, invariants, and surprising choices accurately;
+  preserve useful reasoning and remove misleading or redundant narration.
+- Behavior, error handling, public usability, tests, and diagnostic access.
+- Teaching: whether the prose and instructions enable a student to produce
+  the better design without private hints from the reviewer.
+
+Give actionable findings with locations, reasons, and expected benefits.
+Identify strengths worth retaining from either version, regressions in the
+new answer, and opportunities beyond test compliance. Record concrete
+improvements over the first edition, plus any justified tradeoffs. Do not
+manufacture edits when a comparison supports keeping the new code as written.
+
+The coder revises the answer; the author incorporates teaching findings into
+the chapter and contract. Rerun affected checks and live demonstrations when
+the revision changes demonstrated behavior. The code reviewer then checks
+the revisions and records which findings were fixed or declined, with reasons.
+A score of 100 does not close this stage. Unresolved material quality or
+teaching findings prevent chapter validation.
+
+## 6. Author reconciliation and independent proofreading
 
 The coder returns a post-build review: actual implementation, discovered
 contract gaps, grader changes, checks run, exact failures, and live receipts.
@@ -261,11 +305,14 @@ revises; the Reviewer checks resolution. A draft can be proofread while live
 work is pending, but cannot be labeled complete without required evidence.
 Run prose lint against the new chapter, not every unrelated first-edition file.
 
-## 6. Checkpoint and continue
+## 7. Checkpoint and continue
 
 A validated chapter has a successful independent student build, required
 checks and deletion audits, retained legacy coverage, actual live feature
-demonstrations, and resolved reviewer findings. Bill's editorial approval is
+demonstrations, a recorded comparison with the first-edition standard,
+completed code/teaching revisions, and resolved reviewer findings. Record
+what improved rather than inferring quality from a passing score.
+Bill's editorial approval is
 recorded separately.
 
 Commit the validated snapshot in its own solution repository. Preserve chapter

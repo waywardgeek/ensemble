@@ -50,6 +50,10 @@ contracts. Do not preserve an old module boundary merely to match old graders.
 - Global reviewer: reads every canonical chapter, maps dependencies, extracts
   later lessons, and checks each rewrite for contradictions and omissions.
   Keeps a read ledger; reloads sources when context has been compacted.
+- Code reviewer: independently compares the student's completed initial run
+  with the corresponding first-edition standard, sends quality findings to
+  the coder and teaching findings to the author, and reviews their revisions.
+  The global reviewer can fill this role in a separate recorded phase.
 
 The current session has four agent slots. The coordinator handles independent
 grader engineering while author, student, and reviewer occupy the other three.
@@ -111,9 +115,19 @@ WebSocket implementation remains in the separate optional GUI module.
    blocker leaves validation incomplete, not waived. Author reconciles prose
    with these real receipts and checks voice and references. Reviewer checks
    the chapter against the whole-book map. Record limitations honestly.
-8. Coordinator saves chapter status and next action. Only a chapter with a
+8. After the initial student implementation and runs, the independent code
+   reviewer compares its snapshot with the first-edition standard at the same
+   feature scope. Record commits, concrete improvements, regressions, and
+   tradeoffs in design, code clarity/economy, comments, behavior, and teaching.
+   Passing alone is insufficient. The coder revises from the findings, the
+   author improves prose/instructions, affected checks and demonstrations run
+   again, and the reviewer checks resolution. Keep the initial attempt blind;
+   comparison is not permission to copy old implementation or restore flawed
+   architecture. Follow §5 of `book/chapter-writing-procedure.md`.
+9. Coordinator saves chapter status and next action. Only a chapter with a
    successful student build, grading evidence, audit, required live feature
-   demonstrations, and review is validated.
+   demonstrations, first-edition comparison and improvements, and resolved
+   code/teaching review is validated.
    Bill's editorial approval is a separate recorded status.
 
 ## Durable checkpoint
