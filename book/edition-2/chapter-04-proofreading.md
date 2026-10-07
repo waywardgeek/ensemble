@@ -68,3 +68,19 @@ controls now pass independent review. The final student review confirms author
 clarifications and identifies its prompt mistake as such. No new teaching gap
 or live-interface defect remains. Final manuscript status wording is pending
 the author's closing reconciliation.
+
+## Final decision
+
+Final Chapter 4 proofreading is accepted. The author's closing revision adds
+both §4.1 explanations and accurately separates the original demonstration,
+partial revisions, accepted d25 runs and evidence-only repairs. The revised
+alph/a–h/lp explanation agrees with retained bytes; the callback-field mistake,
+correct refusal and observed follow-up are preserved. The revised usage table
+matches recomputation. Supplied-ID live results are not claimed as missing-ID
+synthesis evidence. The student/author feedback exchange is complete.
+
+The final narrow pass checked status, ownership explanation, revised §4.9,
+outline, evidence and feedback dispositions after the earlier full chapter read.
+Scoped prose lint passes all hard checks at 6173 words; scoped diff whitespace
+checks pass. No further manuscript change is requested by this reviewer.
+Coordinator export/tag and Bill's editorial approval remain separate decisions.

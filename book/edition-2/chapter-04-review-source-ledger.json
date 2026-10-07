@@ -304,5 +304,31 @@
     ],
     "checks": "All3 full raw terminals;34 artifact hashes/lengths, exact alph source bytes,3 debugger400-byte outputs, raw usage; final verifier checked51 historical files and7 isolated controls after empty-source map fix at e1c6488.",
     "accepted_evidence_revision": "e1c64886564e7d1e8205ee08c17f98f32e001912"
+  },
+  "final_proofreading": {
+    "status": "accepted including final author status-only cleanup",
+    "scope": "full current Chapter4 read followed by narrow author revision review; no claim full6chapter proof",
+    "files": [
+      {
+        "path": "book/edition-2/chapter-04.md",
+        "sha256": "5d5bc0258e0e5ddf75c6457de2997545bd9ff6fc3931c7e80d7d3ee76735b5c4"
+      },
+      {
+        "path": "book/edition-2/chapter-04-outline.md",
+        "sha256": "44583ffacb2d00c0d64c43c5a1a841d3ee0d7e39809af345f9dd8d5c6cea3035"
+      },
+      {
+        "path": "book/edition-2/chapter-04-evidence.md",
+        "sha256": "54ec61fd90353efe4d27f66c80cf0727f674f02666f0de552d41ffc763edefff"
+      },
+      {
+        "path": "book/edition-2/chapter-04-student-feedback.md",
+        "sha256": "e9f916a90f1e95abd4a86a21eb4e87ceb62243ffa8f3a29f596c54547a1d65ca"
+      }
+    ],
+    "checks": [
+      "go run ./cmd/lintprose book/edition-2/chapter-04.md: hard checks pass,6173 words,soft warnings retained",
+      "git diff --check -- chapter04 manuscript/outline/evidence/feedback paths: empty"
+    ]
   }
 }
