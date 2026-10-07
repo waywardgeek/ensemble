@@ -1,8 +1,8 @@
 {
   "at": "2026-10-07T20:24:04.806769+00:00",
   "role": "Independent Chapter4 checker author and code reviewer; authored preceding Chapter3 human integration. Independent of Chapter4 builder, not totally source blind.",
-  "new_ch04_source_read": false,
-  "historical_standard_read": false,
+  "new_ch04_source_read": true,
+  "historical_standard_read": true,
   "full_reads": [
     {
       "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
@@ -109,6 +109,24 @@
           "sha256": "8a9152bdbd8131d51e391d93c39cc438b0f4cecc73ebdb27699f904dc4e383e4"
         }
       ]
+    },
+    {
+      "at": "2026-10-07T20:58:01.706492+00:00",
+      "reason": "voice v5 story-preservation instruction",
+      "full_reads": [
+        {
+          "path": "book/voice.md",
+          "sha256": "17883353cf9653c0df46081c216b5b1623dfa640619e06fe89bff46fc29dfad1"
+        },
+        {
+          "path": "book/chapter-writing-procedure.md",
+          "sha256": "826a6138c85deb85ba08362075dc8423ee29887af2be4510bf4462c54391fbac"
+        },
+        {
+          "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+          "sha256": "6f3ca8608c5f77b039d17d1c94cc5a9de849d2a784a966009a4302786c3eed8b"
+        }
+      ]
     }
   ],
   "pre_freeze_preparation": {
@@ -131,5 +149,100 @@
     "all_exit_zero": true,
     "format_stdout_empty": true,
     "runtime_checks": 0
-  }
+  },
+  "initial_freeze": {
+    "commit": "9803b006aa2ad14337655595c057b3016d11363e",
+    "runtime_source": "9f76d9e99ad1c52c6af5d5c4496bbe2410e3ae70",
+    "binary": "/tmp/ensemble-ed2-ch04-live",
+    "binary_sha256": "296c6f9bd0f529e9765be9d53a980b21c9e02d60a732b981da8109d75d32b68a",
+    "inspected_only_after_coordinator_freeze": true
+  },
+  "initial_full_source_reads": [
+    {
+      "path": "solutions/edition-2/main/ensemble.go",
+      "sha256": "799a024bd3617fabe02811e9c69131d311d5267daf697e8ec54c837353c0bbe3"
+    },
+    {
+      "path": "solutions/edition-2/main/internal/common/types.go",
+      "sha256": "6f3a2af7fa262566e668656ec7f92f53834122efaf6388a08d736cbc030ccd75"
+    },
+    {
+      "path": "solutions/edition-2/main/internal/llm/turn.go",
+      "sha256": "5ffea0aa73572faf8ee676465728bd3dc1d85cf035e3f37915f235f2f4f8a86b"
+    },
+    {
+      "path": "solutions/edition-2/main/internal/jobs/jobs.go",
+      "sha256": "407f8b3cf85b96c268a523bcf7b46d4496535de62a2d8c882cce75791b29ced9"
+    },
+    {
+      "path": "solutions/edition-2/main/internal/jobs/limits.go",
+      "sha256": "45ce5d70084080f667ba2e0c00b1f569abf72c0df643a47c141362b98f49b237"
+    },
+    {
+      "path": "solutions/edition-2/main/internal/jobs/process.go",
+      "sha256": "31e67bde9bc085f09cef5357a2a4c98b297175b9bb17d6b47433bfb1bae38fc0"
+    },
+    {
+      "path": "solutions/edition-2/main/internal/jobs/report.go",
+      "sha256": "59eb162f30b8943005698d286bf2bd81a3c74386e9d2c687a9da79813146ba79"
+    },
+    {
+      "path": "solutions/edition-2/main/internal/jobs/jobs_test.go",
+      "sha256": "e98fde0465cd5af259722af5630a01e1943323a1ebbaa7fb20253c0bdb62b52a"
+    },
+    {
+      "path": "solutions/edition-2/main/internal/tools/command.go",
+      "sha256": "5694afff95ac331bff418460311cb0ff7d0379afb3d3add463b9fea31d9ae10a"
+    },
+    {
+      "path": "solutions/edition-2/main/internal/tools/registry.go",
+      "sha256": "6e09a8dfe476ecec96191ed58d231402e7e042ce8835cc51bb87be40b62e8485"
+    },
+    {
+      "path": "solutions/edition-2/main/internal/tools/files.go",
+      "sha256": "c8f40681d154e1e72e3d663d1941600aefc88ffab032ad18ec0a049c5a9a345a"
+    },
+    {
+      "path": "solutions/edition-2/main/internal/tools/text.go",
+      "sha256": "46dceb3bcf9c0ecdfb608102c38b4f30ec71231bf0ddd695741d0a0af40d9aa7"
+    }
+  ],
+  "initial_partial_source_reads": [
+    {
+      "path": "internal/llm/events.go",
+      "scope": "function listing and jobProblem body"
+    }
+  ],
+  "historical_reads": {
+    "snapshot_commit": "ab10324a52daf15c6f0449f4ba8b5824cdbb0045",
+    "full": [
+      "solutions/ch04/jobs.go",
+      "solutions/ch04/jobtools.go",
+      "solutions/ch04/engine.go"
+    ],
+    "partial": [
+      {
+        "path": "solutions/ch04/tools.go",
+        "scope": "Call/Tool declarations and complete run_command implementation"
+      },
+      {
+        "path": "solutions/ch04/seam.go",
+        "scope": "lines1-150"
+      },
+      {
+        "path": "solutions/ch04/tools.go",
+        "scope": "lines75-100 confirming mutable global Registry"
+      }
+    ]
+  },
+  "initial_review_results": {
+    "prepared_cli_checks_passed": 50,
+    "public_provider_cases_passed": 3,
+    "independent_race_fault_tests_passed": 10,
+    "pure_checker_controls_passed": 6,
+    "targeted_mutations_detected_after_fixture_repair": 10,
+    "new_source_cap_cases_failed_initial": 3,
+    "new_total_cli_cases": 53
+  },
+  "review_artifacts": "book/edition-2/chapter-04-review-evidence"
 }

@@ -1,0 +1,45 @@
+=== RUN   TestIndependentDurablePreDispatch
+--- PASS: TestIndependentDurablePreDispatch (0.01s)
+=== RUN   TestIndependentDurableAfterSideEffect
+=== RUN   TestIndependentDurableAfterSideEffect/tool_called
+=== RUN   TestIndependentDurableAfterSideEffect/job_ended
+--- PASS: TestIndependentDurableAfterSideEffect (0.01s)
+    --- PASS: TestIndependentDurableAfterSideEffect/tool_called (0.00s)
+    --- PASS: TestIndependentDurableAfterSideEffect/job_ended (0.00s)
+=== RUN   TestIndependentUnwritableLogStillCleansProcess
+--- PASS: TestIndependentUnwritableLogStillCleansProcess (0.01s)
+=== RUN   TestIndependentAgentsAndFailureAtomicity
+--- PASS: TestIndependentAgentsAndFailureAtomicity (0.01s)
+PASS
+ok  	example.com/ensemble	1.052s
+testing: warning: no tests to run
+PASS
+ok  	example.com/ensemble/cmd	1.018s [no tests to run]
+?   	example.com/ensemble/internal/common	[no test files]
+testing: warning: no tests to run
+PASS
+ok  	example.com/ensemble/internal/eventlog	1.015s [no tests to run]
+=== RUN   TestIndependentSpoolFailureWakesWaiter
+    independent_fault_test.go:139: spool failure left child alive
+--- FAIL: TestIndependentSpoolFailureWakesWaiter (0.02s)
+=== RUN   TestIndependentFailedReportRetainsCursor
+--- PASS: TestIndependentFailedReportRetainsCursor (0.00s)
+=== RUN   TestIndependentReportCommitBeforeCompletion
+--- PASS: TestIndependentReportCommitBeforeCompletion (0.02s)
+=== RUN   TestIndependentCompletionCommitBeforeReport
+--- PASS: TestIndependentCompletionCommitBeforeReport (0.02s)
+=== RUN   TestIndependentKillBeforeStartup
+--- PASS: TestIndependentKillBeforeStartup (0.00s)
+=== RUN   TestIndependentKillExitRace
+--- PASS: TestIndependentKillExitRace (0.04s)
+=== RUN   TestIndependentLocalKillAllowsEffectDiscardsResult
+--- PASS: TestIndependentLocalKillAllowsEffectDiscardsResult (0.00s)
+FAIL
+FAIL	example.com/ensemble/internal/jobs	0.100s
+testing: warning: no tests to run
+PASS
+ok  	example.com/ensemble/internal/llm	1.015s [no tests to run]
+testing: warning: no tests to run
+PASS
+ok  	example.com/ensemble/internal/tools	1.013s [no tests to run]
+FAIL

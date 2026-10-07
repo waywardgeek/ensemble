@@ -1,0 +1,35 @@
+[
+  {
+    "id": "anthropic/human-debugger",
+    "passed": false,
+    "details": [
+      "Delve did not set breakpoint",
+      "Delve did not reach selected source breakpoint",
+      "actual debugger print result does not contain known value42"
+    ],
+    "debugger_version": "Delve Debugger\nVersion: 1.27.2\nBuild: $Id: 360e7b2181d3da54115aaee4f569954bca95cfe3 $",
+    "scope": "actual PTY CLI + Delve with local scripted API; no paid model"
+  },
+  {
+    "id": "openai/human-debugger",
+    "passed": false,
+    "details": [
+      "Delve did not set breakpoint",
+      "Delve did not reach selected source breakpoint",
+      "actual debugger print result does not contain known value42"
+    ],
+    "debugger_version": "Delve Debugger\nVersion: 1.27.2\nBuild: $Id: 360e7b2181d3da54115aaee4f569954bca95cfe3 $",
+    "scope": "actual PTY CLI + Delve with local scripted API; no paid model"
+  },
+  {
+    "id": "gemini/human-debugger",
+    "passed": false,
+    "details": [
+      "Delve did not set breakpoint",
+      "Delve did not reach selected source breakpoint",
+      "actual debugger print result does not contain known value42"
+    ],
+    "debugger_version": "Delve Debugger\nVersion: 1.27.2\nBuild: $Id: 360e7b2181d3da54115aaee4f569954bca95cfe3 $",
+    "scope": "actual PTY CLI + Delve with local scripted API; no paid model"
+  }
+]

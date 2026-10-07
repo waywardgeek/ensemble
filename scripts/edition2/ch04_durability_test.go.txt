@@ -1,0 +1,155 @@
+// Independent probes, injected only into an isolated copy of the frozen source.
+package ensemble
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync/atomic"
+	"syscall"
+	"testing"
+	"time"
+)
+
+type auditObserver func(Observation)
+
+func (f auditObserver) Observe(o Observation) { f(o) }
+
+func auditFaultAgent(t *testing.T, tool string, args map[string]any, failAt string) (*Ensemble, *Agent, string, *atomic.Int32, *bytes.Buffer) {
+	t.Helper()
+	root := t.TempDir()
+	var requests atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests.Add(1)
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"model": "fixture-model", "stop_reason": "tool_use",
+			"content": []any{map[string]any{"type": "tool_use", "id": "audit-call", "name": tool, "input": args}},
+			"usage":   map[string]any{"input_tokens": 3, "output_tokens": 2},
+		})
+	}))
+	t.Cleanup(server.Close)
+	diagnostics := &bytes.Buffer{}
+	app := New(diagnostics)
+	a, err := app.NewAgent(Config{Vendor: "anthropic", Model: "fixture-model", APIKey: "LOCAL-FIXTURE",
+		BaseURL: server.URL, Workspace: root, LogPath: filepath.Join(root, "events"), Builtins: []string{tool}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = app.Subscribe(a.ID(), auditObserver(func(o Observation) {
+		if o.Kind == failAt {
+			_ = a.log.Close()
+		}
+	}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = app.Close() })
+	return app, a, root, &requests, diagnostics
+}
+
+func auditPromptError(t *testing.T, a *Agent) {
+	t.Helper()
+	done := make(chan error, 1)
+	go func() { _, err := a.Prompt(context.Background(), "Perform the fixture operation."); done <- err }()
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatal("persistence failure returned success")
+		}
+	case <-time.After(4 * time.Second):
+		t.Fatal("persistence failure did not wake request")
+	}
+}
+
+func auditEventCount(a *Agent, kind string) int {
+	n := 0
+	for _, e := range a.Events() {
+		if e.Type == kind {
+			n++
+		}
+	}
+	return n
+}
+
+func TestIndependentDurablePreDispatch(t *testing.T) {
+	_, a, root, requests, _ := auditFaultAgent(t, "write_file", map[string]any{"path": "effect", "content": "ACTUAL-EFFECT"}, "response_ended")
+	auditPromptError(t, a)
+	if _, err := os.Stat(filepath.Join(root, "effect")); !os.IsNotExist(err) {
+		t.Fatalf("handler ran before durable dispatch: %v", err)
+	}
+	if auditEventCount(a, "tool_called") != 0 || auditEventCount(a, "job_ended") != 0 {
+		t.Fatal("failed dispatch invented lifecycle")
+	}
+	auditPromptError(t, a)
+	if requests.Load() != 1 {
+		t.Fatal("faulted Agent retried HTTP")
+	}
+}
+
+func TestIndependentDurableAfterSideEffect(t *testing.T) {
+	for _, failAt := range []string{"tool_called", "job_ended"} {
+		t.Run(failAt, func(t *testing.T) {
+			_, a, root, requests, _ := auditFaultAgent(t, "write_file", map[string]any{"path": "effect", "content": "ACTUAL-EFFECT"}, failAt)
+			auditPromptError(t, a)
+			data, err := os.ReadFile(filepath.Join(root, "effect"))
+			if err != nil || string(data) != "ACTUAL-EFFECT" {
+				t.Fatalf("physical side effect was not retained: %q %v", data, err)
+			}
+			if auditEventCount(a, "tool_called") != 1 || auditEventCount(a, "tool_returned") != 0 {
+				t.Fatal("failed persistence invented successful result")
+			}
+			wantTerminal := 0
+			if failAt == "job_ended" {
+				wantTerminal = 1
+			}
+			if auditEventCount(a, "job_ended") != wantTerminal {
+				t.Fatal("terminal event durability changed")
+			}
+			auditPromptError(t, a)
+			if requests.Load() != 1 {
+				t.Fatal("faulted Agent continued provider loop")
+			}
+		})
+	}
+}
+
+func TestIndependentUnwritableLogStillCleansProcess(t *testing.T) {
+	_, a, root, _, diagnostics := auditFaultAgent(t, "run_command", map[string]any{
+		"command":             "echo $$ > managed.pid; printf READY; while :; do sleep 1; done",
+		"ai_callback_pattern": "READY", "ai_callback_delay": 2}, "tool_called")
+	auditPromptError(t, a)
+	data, err := os.ReadFile(filepath.Join(root, "managed.pid"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var pid int
+	if _, err = fmt.Sscanf(string(data), "%d", &pid); err != nil {
+		t.Fatal(err)
+	}
+	if err = syscall.Kill(pid, 0); err != nil {
+		t.Fatalf("job disappeared before explicit Agent close: %v", err)
+	}
+	done := make(chan error, 1)
+	go func() { done <- a.Close() }()
+	select {
+	case <-done:
+	case <-time.After(3 * time.Second):
+		t.Fatal("close blocked with unwritable log")
+	}
+	if err = syscall.Kill(pid, 0); err == nil {
+		t.Fatal("managed process survived cleanup")
+	}
+	if auditEventCount(a, "job_killed") != 0 {
+		t.Fatal("unwritten cleanup falsely appeared durable")
+	}
+	if !strings.Contains(diagnostics.String(), "could not be retained") {
+		t.Fatal("owned logger lost cleanup persistence diagnostic")
+	}
+}

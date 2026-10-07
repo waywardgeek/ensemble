@@ -32,7 +32,7 @@ from accept_chat import Terminal, usage_errors
 
 SUPERVISION = {"wait_for_job", "send_input", "kill_job", "tool_limits"}
 TOOLS = sorted(SUPERVISION | {"read_file", "write_file", "edit_file", "list_directory", "search_files", "run_command"})
-FIXTURE = r'''import os, pathlib, sys, time, termios
+FIXTURE = r'''import os, pathlib, signal, sys, time, termios
 mode = sys.argv[1]
 pathlib.Path("fixture-parent.pid").write_text(str(os.getpid()))
 if mode == "interactive":
@@ -49,6 +49,7 @@ elif mode == "late":
 elif mode == "blocked":
     child = os.fork()
     if child == 0:
+        signal.signal(signal.SIGHUP, signal.SIG_IGN)
         pathlib.Path("fixture-child.pid").write_text(str(os.getpid()))
         while True: time.sleep(1)
     while not pathlib.Path("fixture-child.pid").exists(): time.sleep(.005)
@@ -405,6 +406,65 @@ def occupied_artifacts(binary, vendor):
                 "details": errors, "created_handles": observations}
 
 
+def source_cap_artifacts(binary, vendor):
+    """Selection metadata never becomes retained source; delayed reads retain it."""
+    with tempfile.TemporaryDirectory(prefix="ensemble-ch04-source-cap-") as tmp:
+        root = pathlib.Path(tmp)
+        (root / "source").write_text("ABCDEFGHIJ")
+        (root / "unicode").write_text("éX")
+        (root / "range").write_text("ignore\nABCDEFGHIJ\nignore\n")
+        os.mkfifo(root / "blocked-source")
+        batches = [[call("source-cap", "read_file", path="source", max_bytes=4)],
+                   [call("report-cap", "tool_limits", max_output_bytes=2),
+                    call("both-caps", "read_file", path="source", max_bytes=4)],
+                   [call("zero-rune", "read_file", path="unicode", max_bytes=1),
+                    call("range-cap", "read_file", path="range", start_line=2, end_line=2, max_bytes=5)],
+                   [call("no-wait", "tool_limits", ai_callback_delay=0),
+                    call("delayed-cap", "read_file", path="blocked-source", max_bytes=4)],
+                   [call("delayed-result", "wait_for_job", handle=5, ai_callback_delay=2)]]
+        replies = [response(vendor, batch, NARRATION) for batch in batches] + [response(vendor, [])]
+
+        def release(session, index):
+            if index != 4:
+                return
+            deadline = time.monotonic() + 2
+            while True:
+                try:
+                    fd = os.open(root / "blocked-source", os.O_WRONLY | os.O_NONBLOCK)
+                    break
+                except OSError:
+                    if time.monotonic() >= deadline:
+                        raise TimeoutError("read_file did not open controlled source FIFO")
+                    time.sleep(.005)
+            try:
+                os.write(fd, b"ABCDEFGHIJ")
+            finally:
+                os.close(fd)
+
+        session = Session(binary, root, vendor, replies, before_reply=release)
+        try:
+            events, results, errors = evaluate(session, batches)
+            for handle, expected in ((1, b"ABCD"), (2, b"ABCD"), (3, b""), (4, b"ABCDE"), (5, b"ABCD")):
+                require(artifact(root, handle) == expected, "source-cap artifact contains metadata or unselected bytes: " + str(handle), errors)
+            for identifier, count in (("source-cap", 4), ("both-caps", 4), ("zero-rune", 0), ("range-cap", 5)):
+                require(job_of(results, identifier)["bytes"] == count, "source-cap byte count includes metadata: " + identifier, errors)
+                text = successful(results, identifier, errors)
+                require("trunc" in text.lower() and "max_bytes" in text, "source truncation notice missing: " + identifier, errors)
+                require("\ufffd" not in text, "source cap introduced replacement character", errors)
+            capped = successful(results, "both-caps", errors)
+            require("A" in capped and "D" in capped and "ABCD" not in capped and "2 bytes omitted" in capped,
+                    "report cap did not describe recoverable omission within four produced bytes", errors)
+            require(job_of(results, "delayed-cap")["status"] == "running", "controlled source unexpectedly completed before release", errors)
+            delayed = successful(results, "delayed-result", errors)
+            require("ABCD" in delayed and "trunc" in delayed.lower() and "max_bytes" in delayed,
+                    "source-cap notice was lost after initial running report", errors)
+        except (OSError, ValueError, KeyError, TypeError, AttributeError, TimeoutError) as err:
+            errors = [f"fixture failed: {type(err).__name__}: {err}"]
+        finally:
+            session.close()
+        return {"id": vendor + "/source-cap-artifacts", "passed": not errors, "details": errors}
+
+
 def allocation_failure(binary, vendor):
     """A non-directory parent is an I/O error, not an occupied leaf to skip."""
     with tempfile.TemporaryDirectory(prefix="ensemble-ch04-allocation-") as tmp:
@@ -415,8 +475,13 @@ def allocation_failure(binary, vendor):
         replies = [response(vendor, batches[0], NARRATION), response(vendor, [])]
         session = Session(binary, root, vendor, replies)
         try:
-            events, results, errors = evaluate(session, batches)
-            require(results["refused"].get("is_error") is True, "allocation error did not refuse operation", errors)
+            rc, stdout, stderr = session.run()
+            events, errors = rows(session.log), list(session.errors)
+            require(rc != 0 and bool(stderr.strip()), "allocation infrastructure failure was not surfaced", errors)
+            require(not any("assistant" in json.loads(line) or "usage" in json.loads(line)
+                            for line in stdout.splitlines() if line.strip()),
+                    "allocation failure printed a successful answer or final usage", errors)
+            require(len(session.requests) == 1, "allocation failure silently continued or retried", errors)
             require(not (root / "must-not-exist").exists(), "handler ran after artifact creation failure", errors)
             require((root / "cr/io").read_text() == "RETAIN-PARENT", "allocation replaced invalid parent", errors)
             require(not any(e.get("job") or e.get("tool", {}).get("job") for e in events),
@@ -471,8 +536,8 @@ def debugger_terminal(binary, vendor):
     with tempfile.TemporaryDirectory(prefix="ensemble-ch04-debugger-") as tmp:
         root = pathlib.Path(tmp)
         source = 'package main\nimport "fmt"\nfunc main() {\n answer := 37\n answer += 5\n fmt.Println(answer)\n}\n'
-        (root / "debug.go").write_text(source)
-        built = subprocess.run(["go", "build", "-gcflags=all=-N -l", "-o", "debug-target", "debug.go"],
+        (root / "audit_target.go").write_text(source)
+        built = subprocess.run(["go", "build", "-gcflags=all=-N -l", "-o", "debug-target", "audit_target.go"],
                                cwd=root, capture_output=True, text=True, timeout=60)
         if built.returncode:
             return {"id": vendor + "/human-debugger", "passed": False,
@@ -480,7 +545,7 @@ def debugger_terminal(binary, vendor):
         version = subprocess.check_output([debugger, "version"], text=True).strip()
         command = "echo $$ > fixture-parent.pid; exec " + shlex.quote(debugger) + " exec ./debug-target"
         start = call("debug-start", "run_command", command=command, ai_callback_delay=3, ai_callback_pattern=r"\(dlv\) ")
-        commands = [("debug-break", "break inspected debug.go:6"), ("debug-continue", "continue"),
+        commands = [("debug-break", "break inspected audit_target.go:6"), ("debug-continue", "continue"),
                     ("debug-print", "print answer"), ("debug-finish", "continue"), ("debug-exit", "exit")]
         calls = [call(identifier, "send_input", handle=1, input=text, ai_callback_delay=3,
                       **({"ai_callback_pattern": r"\(dlv\) "} if identifier != "debug-exit" else {}))
@@ -493,6 +558,7 @@ def debugger_terminal(binary, vendor):
         session = Session(binary, root, vendor, replies)
         terminal = None
         errors = []
+        observed_results = {}
         try:
             terminal = Terminal(session, ["chat"])
             require("/help" in terminal.prompt(), "human debugger session lacked visible prompt/help", errors)
@@ -504,10 +570,12 @@ def debugger_terminal(binary, vendor):
                         "debugger did not complete through readable human chat", errors)
             events = rows(session.log)
             results = result_map(events)
+            observed_results = {identifier: result_text(results, identifier)
+                                for identifier in ("debug-start", "debug-break", "debug-continue", "debug-print", "debug-finish", "debug-exit")}
             require("(dlv)" in successful(results, "debug-start", errors), "Delve prompt absent", errors)
             require("Breakpoint" in successful(results, "debug-break", errors), "Delve did not set breakpoint", errors)
             stopped = successful(results, "debug-continue", errors)
-            require("debug.go:6" in stopped and "main.main" in stopped, "Delve did not reach selected source breakpoint", errors)
+            require("audit_target.go:6" in stopped and "main.main" in stopped, "Delve did not reach selected source breakpoint", errors)
             printed = successful(results, "debug-print", errors)
             require(re.search(r"(?m)^\s*42\s*$", printed) is not None,
                     "actual debugger print result does not contain known value42", errors)
@@ -537,6 +605,7 @@ def debugger_terminal(binary, vendor):
                 terminal.close()
             session.close()
         return {"id": vendor + "/human-debugger", "passed": not errors, "details": errors,
+                "observed_tool_results": observed_results,
                 "debugger_version": version, "scope": "actual PTY CLI + Delve with local scripted API; no paid model"}
 
 
@@ -787,7 +856,7 @@ def main():
                 checks.append({"id": vendor + "/" + name, "passed": not errors, "details": errors})
                 print(f"{vendor}/{name}: {'PASS' if not errors else 'FAIL'}", file=sys.stderr, flush=True)
         for extra in (completion_during_http, cursor_after_omission, occupied_artifacts,
-                      allocation_failure, debugger_terminal):
+                      allocation_failure, source_cap_artifacts, debugger_terminal):
             check = extra(binary, vendor)
             checks.append(check)
             print(f"{check['id']}: {'PASS' if check['passed'] else 'FAIL'}", file=sys.stderr, flush=True)

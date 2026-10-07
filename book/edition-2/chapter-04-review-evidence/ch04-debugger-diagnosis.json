@@ -1,0 +1,19 @@
+{
+  "id": "anthropic/human-debugger",
+  "passed": false,
+  "details": [
+    "Delve did not set breakpoint",
+    "Delve did not reach selected source breakpoint",
+    "actual debugger print result does not contain known value42"
+  ],
+  "observed_tool_results": {
+    "debug-start": "job 1 status: running; output: cr/io/1; total bytes: 40; use wait_for_job, send_input, or kill_job\nType 'help' for list of commands.\n(dlv) ",
+    "debug-break": "job 1 status: running; output: cr/io/1; total bytes: 259; use wait_for_job, send_input, or kill_job\nbreak inspected debug.go:6\nCommand failed: Location \"debug.go:6\" ambiguous: /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch04-debugger-qgyew1q2/debug.go, /usr/local/go/src/runtime/debug.go\u2026\n(dlv) ",
+    "debug-continue": "job 1 status: running; output: cr/io/1; total bytes: 317; use wait_for_job, send_input, or kill_job\ncontinue\n42\r\nProcess 63172 has exited with status 0\n(dlv) ",
+    "debug-print": "job 1 status: running; output: cr/io/1; total bytes: 375; use wait_for_job, send_input, or kill_job\nprint answer\nProcess 63172 has exited with status 0\n(dlv) ",
+    "debug-finish": "job 1 status: running; output: cr/io/1; total bytes: 429; use wait_for_job, send_input, or kill_job\ncontinue\nProcess 63172 has exited with status 0\n(dlv) ",
+    "debug-exit": "job 1 status: done; output: cr/io/1; total bytes: 447\nexit\nexit_code: 0\n"
+  },
+  "debugger_version": "Delve Debugger\nVersion: 1.27.2\nBuild: $Id: 360e7b2181d3da54115aaee4f569954bca95cfe3 $",
+  "scope": "actual PTY CLI + Delve with local scripted API; no paid model"
+}

@@ -1,0 +1,53 @@
+[
+  {
+    "id": "anthropic/source-cap-artifacts",
+    "passed": false,
+    "details": [
+      "source-cap artifact contains metadata or unselected bytes: 1",
+      "source-cap artifact contains metadata or unselected bytes: 2",
+      "source-cap artifact contains metadata or unselected bytes: 3",
+      "source-cap artifact contains metadata or unselected bytes: 4",
+      "source-cap artifact contains metadata or unselected bytes: 5",
+      "source-cap byte count includes metadata: source-cap",
+      "source-cap byte count includes metadata: both-caps",
+      "source truncation notice missing: both-caps",
+      "source-cap byte count includes metadata: zero-rune",
+      "source-cap byte count includes metadata: range-cap",
+      "report cap did not describe recoverable omission within four produced bytes"
+    ]
+  },
+  {
+    "id": "openai/source-cap-artifacts",
+    "passed": false,
+    "details": [
+      "source-cap artifact contains metadata or unselected bytes: 1",
+      "source-cap artifact contains metadata or unselected bytes: 2",
+      "source-cap artifact contains metadata or unselected bytes: 3",
+      "source-cap artifact contains metadata or unselected bytes: 4",
+      "source-cap artifact contains metadata or unselected bytes: 5",
+      "source-cap byte count includes metadata: source-cap",
+      "source-cap byte count includes metadata: both-caps",
+      "source truncation notice missing: both-caps",
+      "source-cap byte count includes metadata: zero-rune",
+      "source-cap byte count includes metadata: range-cap",
+      "report cap did not describe recoverable omission within four produced bytes"
+    ]
+  },
+  {
+    "id": "gemini/source-cap-artifacts",
+    "passed": false,
+    "details": [
+      "source-cap artifact contains metadata or unselected bytes: 1",
+      "source-cap artifact contains metadata or unselected bytes: 2",
+      "source-cap artifact contains metadata or unselected bytes: 3",
+      "source-cap artifact contains metadata or unselected bytes: 4",
+      "source-cap artifact contains metadata or unselected bytes: 5",
+      "source-cap byte count includes metadata: source-cap",
+      "source-cap byte count includes metadata: both-caps",
+      "source truncation notice missing: both-caps",
+      "source-cap byte count includes metadata: zero-rune",
+      "source-cap byte count includes metadata: range-cap",
+      "report cap did not describe recoverable omission within four produced bytes"
+    ]
+  }
+]

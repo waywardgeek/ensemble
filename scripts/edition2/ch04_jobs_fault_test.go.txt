@@ -1,0 +1,379 @@
+// Independent lifecycle fault and race probes. Inject into a disposable copy.
+package jobs
+
+import (
+	"errors"
+	"fmt"
+	"os"
+	"os/exec"
+	"path/filepath"
+	"regexp"
+	"strings"
+	"sync"
+	"syscall"
+	"testing"
+	"time"
+
+	"example.com/ensemble/internal/common"
+)
+
+type auditRoot struct {
+	mu   sync.Mutex
+	next uint64
+}
+
+func (*auditRoot) Logf(string, ...any)          {}
+func (*auditRoot) Publish(string, common.Event) {}
+func (r *auditRoot) AllocateHandle() uint64 {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.next++
+	return r.next
+}
+
+type auditAgent struct {
+	root         auditRoot
+	workspace    string
+	mu           sync.Mutex
+	events       []common.Event
+	fault        error
+	beforeRecord func(common.Event) error
+	handler      func(common.Part, common.Job) *common.ToolEvent
+}
+
+func (a *auditAgent) Ensemble() common.Ensemble { return &a.root }
+func (a *auditAgent) Config() common.Config     { return common.Config{Workspace: a.workspace} }
+func (a *auditAgent) Workspace() string         { return a.workspace }
+func (a *auditAgent) Registry() common.Registry { return auditRegistry{a} }
+func (a *auditAgent) Fault(err error)           { a.mu.Lock(); defer a.mu.Unlock(); a.fault = err }
+func (a *auditAgent) RecordJob(event common.Event) error {
+	if a.beforeRecord != nil {
+		if err := a.beforeRecord(event); err != nil {
+			return err
+		}
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	a.events = append(a.events, event)
+	return nil
+}
+
+type auditRegistry struct{ a *auditAgent }
+
+func (r auditRegistry) Agent() common.Agent                    { return r.a }
+func (auditRegistry) Declarations() []common.ToolDefinition    { return nil }
+func (r auditRegistry) Execute(p common.Part) common.ToolEvent { return *r.a.handler(p, nil) }
+func (r auditRegistry) ExecuteJob(p common.Part, j common.Job) *common.ToolEvent {
+	return r.a.handler(p, j)
+}
+func (auditRegistry) Kind(name string) (bool, bool) {
+	return true, name == "wait_for_job" || name == "kill_job" || name == "send_input" || name == "tool_limits"
+}
+func auditService(t *testing.T) (*Service, *auditAgent, *job) {
+	t.Helper()
+	a := &auditAgent{workspace: t.TempDir()}
+	s := New(a)
+	j, err := s.Create(common.Part{Name: "run_command"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = s.Close() })
+	return s, a, j.(*job)
+}
+func auditAwait(t *testing.T, done <-chan struct{}) {
+	t.Helper()
+	select {
+	case <-done:
+	case <-time.After(3 * time.Second):
+		t.Fatal("deterministic boundary timed out")
+	}
+}
+func auditGatedProcess(t *testing.T, s *Service, a *auditAgent, j *job) {
+	t.Helper()
+	if err := j.StartProcess("printf READY; while [ ! -f release ]; do sleep 0.01; done; printf LATE", ""); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Report(j, common.Part{Name: "run_command", CallID: "first"}, common.Limits{Delay: time.Second, Pattern: regexp.MustCompile("READY"), MaxBytes: 100}, ""); err != nil {
+		t.Fatal(err)
+	}
+}
+func auditRelease(t *testing.T, a *auditAgent) {
+	t.Helper()
+	if err := os.WriteFile(filepath.Join(a.workspace, "release"), nil, 0600); err != nil {
+		t.Fatal(err)
+	}
+}
+func auditTerminals(a *auditAgent) []common.Event {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	out := []common.Event{}
+	for _, e := range a.events {
+		if e.Type == "job_ended" || e.Type == "job_killed" {
+			out = append(out, e)
+		}
+	}
+	return out
+}
+
+func TestIndependentSpoolFailureWakesWaiter(t *testing.T) {
+	s, a, j := auditService(t)
+	auditGatedProcess(t, s, a, j)
+	s.mu.Lock()
+	if err := j.file.Close(); err != nil {
+		t.Fatal(err)
+	}
+	// A read-only descriptor fails writes while its later Close succeeds;
+	// this isolates write-failure handling from a second close failure.
+	var reopenErr error
+	j.file, reopenErr = os.Open(filepath.Join(a.workspace, j.snapshot.Output.Locator))
+	if reopenErr != nil {
+		t.Fatal(reopenErr)
+	}
+	s.mu.Unlock()
+	done := make(chan error, 1)
+	go func() {
+		done <- s.Report(j, common.Part{Name: "wait_for_job", CallID: "waiting"}, common.Limits{Delay: 10 * time.Second, Pattern: regexp.MustCompile("NEVER"), MaxBytes: 100}, "")
+	}()
+	auditRelease(t, a)
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatal("spool failure reported complete output")
+		}
+	case <-time.After(3 * time.Second):
+		t.Fatal("spool failure did not wake waiter")
+	}
+	_ = s.Close()
+	if syscall.Kill(j.pid, 0) == nil {
+		// kill(pid,0) can briefly recognize an already reaped PID on Darwin.
+		// Confirm a runnable process, as the CLI process checks do; a missing
+		// process or zombie cannot execute or retain the slave terminal.
+		state, _ := exec.Command("ps", "-o", "stat=", "-p", fmt.Sprint(j.pid)).Output()
+		status := strings.TrimSpace(string(state))
+		if status != "" && !strings.HasPrefix(status, "Z") {
+			t.Fatalf("spool failure left child alive: pid=%d snapshot=%+v status=%s", j.pid, j.Snapshot(), status)
+		}
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.fault == nil {
+		t.Fatal("spool failure did not fault owning Agent")
+	}
+	for _, e := range a.events {
+		if e.Tool != nil && e.Tool.CallID == "waiting" {
+			t.Fatal("failed spool produced successful report")
+		}
+	}
+}
+
+func TestIndependentFailedReportRetainsCursor(t *testing.T) {
+	s, a, j := auditService(t)
+	a.handler = func(common.Part, common.Job) *common.ToolEvent {
+		text := "UNCONSUMED"
+		return &common.ToolEvent{Parts: []common.Part{{Type: "text", Text: &text}}}
+	}
+	a.beforeRecord = func(e common.Event) error {
+		if e.Type == "tool_returned" {
+			return errors.New("injected report append failure")
+		}
+		return nil
+	}
+	s.Start(j, common.Part{Name: "read_file"})
+	if err := s.Report(j, common.Part{Name: "read_file"}, common.Limits{Delay: time.Second, MaxBytes: 4}, ""); err == nil {
+		t.Fatal("failed report returned success")
+	}
+	s.mu.Lock()
+	cursor, reports, fault := j.cursor, j.reports, s.fault
+	s.mu.Unlock()
+	if cursor != 0 || reports != 0 || fault == nil {
+		t.Fatalf("failed report consumed state: cursor=%d reports=%d fault=%v", cursor, reports, fault)
+	}
+	data, err := os.ReadFile(filepath.Join(a.workspace, "cr/io/1"))
+	if err != nil || string(data) != "UNCONSUMED" {
+		t.Fatal("failed report lost complete artifact")
+	}
+}
+
+func TestIndependentReportCommitBeforeCompletion(t *testing.T) {
+	s, a, j := auditService(t)
+	auditGatedProcess(t, s, a, j)
+	entered, release := make(chan struct{}), make(chan struct{})
+	a.beforeRecord = func(e common.Event) error {
+		if e.Type == "tool_returned" && e.Tool.CallID == "racing" {
+			close(entered)
+			<-release
+		}
+		return nil
+	}
+	done := make(chan error, 1)
+	go func() {
+		done <- s.Report(j, common.Part{Name: "run_command", CallID: "racing"}, common.Limits{MaxBytes: 100}, "")
+	}()
+	auditAwait(t, entered)
+	auditRelease(t, a)
+	close(release)
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	auditAwait(t, j.reaped)
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	position := -1
+	for i, e := range a.events {
+		if e.Tool != nil && e.Tool.CallID == "racing" {
+			position = i
+			if e.Tool.Job.Status != "running" {
+				t.Fatal("running report changed under commit")
+			}
+		}
+		if e.Type == "job_ended" && position < 0 {
+			t.Fatal("terminal event overtook captured running report")
+		}
+	}
+	if position < 0 {
+		t.Fatal("missing report")
+	}
+}
+
+func TestIndependentCompletionCommitBeforeReport(t *testing.T) {
+	s, a, j := auditService(t)
+	auditGatedProcess(t, s, a, j)
+	entered, release := make(chan struct{}), make(chan struct{})
+	a.beforeRecord = func(e common.Event) error {
+		if e.Type == "job_ended" {
+			close(entered)
+			<-release
+		}
+		return nil
+	}
+	auditRelease(t, a)
+	auditAwait(t, entered)
+	done := make(chan error, 1)
+	go func() {
+		done <- s.Report(j, common.Part{Name: "run_command", CallID: "after"}, common.Limits{MaxBytes: 100}, "")
+	}()
+	close(release)
+	if err := <-done; err != nil {
+		t.Fatal(err)
+	}
+	auditAwait(t, j.reaped)
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	terminal := false
+	for _, e := range a.events {
+		if e.Type == "job_ended" {
+			terminal = true
+		}
+		if e.Tool != nil && e.Tool.CallID == "after" {
+			if !terminal || e.Tool.Job.Status != "done" {
+				t.Fatal("report reversed committed terminal state")
+			}
+		}
+	}
+}
+
+func TestIndependentKillBeforeStartup(t *testing.T) {
+	s, a, j := auditService(t)
+	entered, release, returned := make(chan struct{}), make(chan struct{}), make(chan struct{})
+	a.handler = func(_ common.Part, owned common.Job) *common.ToolEvent {
+		close(entered)
+		<-release
+		err := owned.StartProcess("printf BAD > launched", "")
+		close(returned)
+		if err == nil {
+			t.Error("killed job launched")
+		}
+		text := "late"
+		return &common.ToolEvent{Parts: []common.Part{{Type: "text", Text: &text}}}
+	}
+	s.Start(j, common.Part{Name: "run_command"})
+	auditAwait(t, entered)
+	if err := s.kill(j, "kill_job"); err != nil {
+		t.Fatal(err)
+	}
+	close(release)
+	auditAwait(t, returned)
+	if _, err := os.Stat(filepath.Join(a.workspace, "launched")); !os.IsNotExist(err) {
+		t.Fatal("startup race produced side effect")
+	}
+	if len(auditTerminals(a)) != 1 || j.Snapshot().Status != "killed" {
+		t.Fatal("startup race changed terminal state")
+	}
+}
+
+func TestIndependentKillExitRace(t *testing.T) {
+	for n := 0; n < 12; n++ {
+		s, a, j := auditService(t)
+		auditGatedProcess(t, s, a, j)
+		done := make(chan error, 1)
+		go func() { done <- s.kill(j, "kill_job") }()
+		auditRelease(t, a)
+		if err := <-done; err != nil {
+			t.Fatal(err)
+		}
+		auditAwait(t, j.reaped)
+		terminal := auditTerminals(a)
+		snapshot := j.Snapshot()
+		if len(terminal) != 1 {
+			t.Fatalf("race produced %d terminal events", len(terminal))
+		}
+		if snapshot.Status == "killed" && snapshot.ExitCode != nil {
+			t.Fatal("killed race winner acquired exit status")
+		}
+		if snapshot.Status == "done" && (snapshot.ExitCode == nil || *snapshot.ExitCode != 0) {
+			t.Fatal("done race winner lost actual exit")
+		}
+		if err := s.kill(j, "kill_job"); err != nil || len(auditTerminals(a)) != 1 {
+			t.Fatal("repeat kill changed terminal")
+		}
+	}
+}
+
+func TestIndependentLocalKillAllowsEffectDiscardsResult(t *testing.T) {
+	s, a, j := auditService(t)
+	entered, release, returned := make(chan struct{}), make(chan struct{}), make(chan struct{})
+	a.handler = func(common.Part, common.Job) *common.ToolEvent {
+		close(entered)
+		<-release
+		_ = os.WriteFile(filepath.Join(a.workspace, "late-effect"), []byte("REAL"), 0600)
+		close(returned)
+		text := "DISCARD"
+		return &common.ToolEvent{Parts: []common.Part{{Type: "text", Text: &text}}}
+	}
+	s.Start(j, common.Part{Name: "write_file"})
+	auditAwait(t, entered)
+	if err := s.kill(j, "kill_job"); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Report(j, common.Part{Name: "wait_for_job"}, common.Limits{MaxBytes: 100}, ""); err != nil {
+		t.Fatal(err)
+	}
+	if err := s.Close(); err != nil {
+		t.Fatal(err)
+	}
+	close(release)
+	auditAwait(t, returned)
+	data, _ := os.ReadFile(filepath.Join(a.workspace, "late-effect"))
+	if string(data) != "REAL" {
+		t.Fatal("fixture side effect missing")
+	}
+	data, _ = os.ReadFile(filepath.Join(a.workspace, "cr/io/1"))
+	if len(data) != 0 {
+		t.Fatal("late local result reached artifact")
+	}
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	honest := false
+	for _, e := range a.events {
+		if e.Tool != nil {
+			for _, p := range e.Tool.Parts {
+				if p.Text != nil && strings.Contains(*p.Text, "may continue") {
+					honest = true
+				}
+			}
+		}
+	}
+	if !honest {
+		t.Fatal("local kill report promised cancellation")
+	}
+}
