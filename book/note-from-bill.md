@@ -1,6 +1,6 @@
 # A Note from Bill
 
-This is the second update of *The Art of Building AI Coding Agents*.
+This is the third update of *The Art of Building AI Coding Agents*.
 
 I released it early, before writing all the advanced material still in my head — dynamic workflows, sandboxing, connectors, prompt injection defense, sub-agents and managing the swarm, and gateways. There are several chapters I owe you. The free version will always be online and up to date.
 

@@ -1,4 +1,4 @@
-# Chapter 12: MCP -- The Extension Protocol
+# Chapter 12: MCP: The Extension Protocol
 
 Every tool the agent has used so far was compiled into the binary. Adding a new one means writing Go, rebuilding, and restarting. MCP -- the Model Context Protocol -- is a JSON-RPC 2.0 wire protocol for connecting an agent to external tool servers: processes, browsers, remote services. This chapter builds the client, the transport layer, and something the MCP spec does not define: ephemeral tools that the engine calls automatically, injecting their output into the context window without the LLM ever knowing they exist.
 

@@ -20,6 +20,27 @@ I am the guru of this codebase, and this book encodes what I know: the art of bu
 
 ---
 
+## What they built
+
+Look at what the field has shipped.
+
+The one I have worked with extensively is Gemini CLI. Mocks everywhere instead of fakes. Nearly five thousand mock call sites as of October 2026. In December 2025 it was 255,000 lines of TypeScript. Today it is 559,193. It more than doubled while I was writing this book. Claude Code, reported at 512,000 lines of TypeScript, is in the same class. The winner, at 1.8 million lines of Rust, is Codex.
+
+Ensemble does most of what these tools do in 27,042.
+
+| | Code lines | Files over 1,000 lines |
+|---|---|---|
+| Codex (Rust) | 1,815,512 | 197 |
+| Gemini CLI (TypeScript) | 559,193 | 41 |
+| Claude Code (TypeScript) | 512,000, reported | — |
+| Ensemble (Go) | 27,042 | 2 |
+
+That right-hand column is the one that matters. A thousand lines is where I start refactoring. At four thousand, the AI is editing blind. Codex has 197 files past the first mark and 20 past the second, and its largest single file is 12,647 lines. Ensemble has two files past the first and none past the second.
+
+Every one of these companies raced as fast as they could, sacrificing code quality. This is not a story about bad engineers. The people who built these tools are excellent, and their products do real things Ensemble does not. It is a story about what nobody had time to do. At 1.8 million lines, the architecture review that would catch the decay is not merely undone. It is unrunnable.
+
+Ensemble is the cleanest of them all, cleaner even than CodeRhapsody, which I also wrote. Not because I am smarter than three large AI labs. Because the rules were written down before the code was, in the place the builder reads every time it builds. That is what an agentic codebook is, and it is the answer to the vibe-coded mess.
+
 ## What this book is not
 
 The AI coding agents people are building today are designed for one thing: autonomy. Give the model a prompt, go have lunch, come back, and maybe understand the gist of what it did well enough to decide whether you can live with it. That is how most engineers use AI coding agents, and every major framework is optimized for it.
