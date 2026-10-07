@@ -18,10 +18,11 @@ type Client struct {
 	mu           sync.Mutex
 	closed       bool
 	events       []ensemble.Observation
+	updates      chan struct{}
 }
 
 func New(parent ensemble.ClientOwner, agentID string) (*Client, error) {
-	c := &Client{parent: parent, agentID: agentID}
+	c := &Client{parent: parent, agentID: agentID, updates: make(chan struct{}, 1)}
 	id, err := parent.Subscribe(agentID, c)
 	if err != nil {
 		return nil, err
@@ -35,6 +36,10 @@ func (c *Client) Observe(event ensemble.Observation) {
 	defer c.mu.Unlock()
 	if !c.closed && event.AgentID == c.agentID {
 		c.events = append(c.events, event)
+		select {
+		case c.updates <- struct{}{}:
+		default:
+		}
 	}
 }
 func (c *Client) Submit(ctx context.Context, request ensemble.ClientRequest) (ensemble.ClientResult, error) {
@@ -62,3 +67,20 @@ func (c *Client) Close() {
 	c.mu.Unlock()
 	c.parent.Unsubscribe(c.subscription)
 }
+
+func (c *Client) SubmitPrompt(text string) (ensemble.RequestHandle, error) {
+	c.mu.Lock()
+	closed := c.closed
+	c.mu.Unlock()
+	if closed {
+		return nil, fmt.Errorf("GUI client closed")
+	}
+	return c.parent.SubmitPrompt(c.agentID, text)
+}
+func (c *Client) Hint(text string) (ensemble.ControlAck, error) {
+	return c.parent.Hint(c.agentID, text)
+}
+func (c *Client) Interrupt() (ensemble.ControlAck, error) { return c.parent.Interrupt(c.agentID) }
+func (c *Client) Status() string                          { return c.parent.SubscriptionStatus(c.subscription) }
+
+func (c *Client) Updates() <-chan struct{} { return c.updates }

@@ -76,12 +76,22 @@ func (r *Registry) limitOverrides(raw json.RawMessage) (common.LimitOverrides, e
 	return out, nil
 }
 func (r *Registry) Supervise(call common.Part, limits common.Limits, note string) error {
-	finish := func(text string, err error) error {
+	event, task := r.BeginSupervision(call, limits, note)
+	if event != nil {
+		return r.parent.RecordTool(common.Event{Type: "tool_returned", Tool: event})
+	}
+	if task.Ready != nil {
+		<-task.Ready
+	}
+	return r.parent.Jobs().Report(task.Job, task.Request)
+}
+func (r *Registry) BeginSupervision(call common.Part, limits common.Limits, note string) (*common.ToolEvent, *common.ReportTask) {
+	finish := func(text string, err error) (*common.ToolEvent, *common.ReportTask) {
 		if err != nil {
 			text = call.Name + " failed: " + err.Error()
 		}
 		text = note + text
-		return r.parent.RecordTool(common.Event{Type: "tool_returned", Tool: &common.ToolEvent{CallID: call.CallID, IsError: err != nil, Parts: []common.Part{{Type: "text", Text: &text}}}})
+		return &common.ToolEvent{CallID: call.CallID, IsError: err != nil, Parts: []common.Part{{Type: "text", Text: &text}}}, nil
 	}
 	entry, ok := r.entries[call.Name]
 	if !ok {
@@ -111,10 +121,11 @@ func (r *Registry) Supervise(call common.Part, limits common.Limits, note string
 	if err != nil {
 		return finish("", err)
 	}
+	var ready <-chan struct{}
 	request := common.JobReport{CallID: call.CallID, Limits: limits, Note: note, MatchStart: -1}
 	switch call.Name {
 	case "kill_job":
-		err = manager.Kill(job, "kill_job")
+		ready, err = manager.RequestKill(job, "kill_job")
 	case "send_input":
 		input := args["input"].(string)
 		if args["append_newline"].(bool) {
@@ -128,5 +139,5 @@ func (r *Registry) Supervise(call common.Part, limits common.Limits, note string
 	if err != nil {
 		return finish("", err)
 	}
-	return manager.Report(job, request)
+	return nil, &common.ReportTask{Job: job, Request: request, Ready: ready}
 }

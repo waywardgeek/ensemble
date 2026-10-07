@@ -1,14 +1,12 @@
 package main
 
 import (
-	"bufio"
-	"context"
-	"encoding/json"
 	"example.com/ensemble"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 )
 
@@ -52,17 +50,25 @@ func runArgs(args []string, input io.Reader, output, diagnostics io.Writer) erro
 		switch {
 		case len(args) == 1 && args[0] == "dump":
 			path = config.LogPath
+		case len(args) == 3 && args[0] == "replay":
+			path = args[1]
 		case len(args) == 2 && args[0] == "render":
 			path = args[1]
 		default:
-			return fmt.Errorf("usage: ensemble [chat | protocol | dump | render LOG]")
+			return fmt.Errorf("usage: ensemble [chat | protocol | dump | render LOG | replay LOG SEQ]")
 		}
 		agent, err := app.Load(path, config)
 		if err != nil {
 			return err
 		}
 		var data []byte
-		if args[0] == "dump" {
+		if args[0] == "replay" {
+			var sequence uint64
+			sequence, err = strconv.ParseUint(args[2], 10, 64)
+			if err == nil {
+				data, err = agent.ReconstructRequest(sequence)
+			}
+		} else if args[0] == "dump" {
 			data, err = agent.Dump()
 		} else {
 			data, err = agent.Render(config)
@@ -87,67 +93,4 @@ func runArgs(args []string, input io.Reader, output, diagnostics io.Writer) erro
 		return runChat(app, agent, input, output)
 	}
 	return runProtocol(app, agent, input, output)
-}
-
-func runProtocol(app ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader, output io.Writer) error {
-	scanner := bufio.NewScanner(input)
-	scanner.Buffer(make([]byte, 4096), 16*1024*1024)
-	encoder := json.NewEncoder(output)
-	for scanner.Scan() {
-		line := scanner.Bytes()
-		if strings.TrimSpace(string(line)) == "" {
-			continue
-		}
-		var fields map[string]json.RawMessage
-		if json.Unmarshal(line, &fields) != nil || len(fields) != 1 {
-			return fmt.Errorf("exactly one valid directive is required")
-		}
-		request := ensemble.ClientRequest{AgentID: agent.ID()}
-		ack := ""
-		switch {
-		case fields["user"] != nil:
-			var text string
-			if string(fields["user"]) == "null" || json.Unmarshal(fields["user"], &text) != nil {
-				return fmt.Errorf("invalid user input")
-			}
-			request.Prompt = &text
-		case fields["ephemeral"] != nil:
-			var text string
-			if string(fields["ephemeral"]) == "null" || json.Unmarshal(fields["ephemeral"], &text) != nil {
-				return fmt.Errorf("invalid ephemeral input")
-			}
-			request.Ephemeral = &text
-			ack = "ephemeral"
-		case fields["redact"] != nil:
-			var r ensemble.Redaction
-			if json.Unmarshal(fields["redact"], &r) != nil {
-				return fmt.Errorf("invalid redaction")
-			}
-			request.Redact = &r
-			ack = "redact"
-		default:
-			return fmt.Errorf("unknown directive")
-		}
-		result, err := app.Submit(context.Background(), request)
-		if err != nil {
-			return err
-		}
-		if ack != "" {
-			err = encoder.Encode(map[string]string{"ack": ack})
-		} else {
-			err = encoder.Encode(map[string]string{"assistant": result.Text})
-		}
-		if err != nil {
-			return fmt.Errorf("cannot write response")
-		}
-	}
-	if scanner.Err() != nil {
-		return fmt.Errorf("cannot read input")
-	}
-	if err := agent.Close(); err != nil {
-		return err
-	}
-	return encoder.Encode(struct {
-		Usage ensemble.Usage `json:"usage"`
-	}{agent.Usage()})
 }

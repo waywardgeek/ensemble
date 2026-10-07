@@ -3,12 +3,15 @@ package llm
 import (
 	"encoding/json"
 	"example.com/ensemble/internal/common"
+	"fmt"
+	"mime"
 	"strings"
 )
 
 type renderer struct {
 	parent common.Engine
 	target common.Provenance
+	model  string
 	err    error
 }
 
@@ -27,7 +30,7 @@ func (r *renderer) resultText(parts []common.Part) string {
 			lines = append(lines, *p.Text)
 		case "blob":
 			if p.Ref.Kind != 2 {
-				r.fail("unsupported reference")
+				r.unsupportedReference(p)
 			}
 			lines = append(lines, "["+p.MIME+"] "+p.Ref.Locator)
 		case "redacted":
@@ -51,7 +54,7 @@ func Render(owner common.Engine, c common.Context, config common.Config) ([]byte
 	if config.ResolvedModel != "" {
 		target.Model = config.ResolvedModel
 	}
-	r := renderer{parent: owner, target: target}
+	r := renderer{parent: owner, target: target, model: config.Model}
 	system := []string{config.System}
 	for _, entry := range c.Instructions {
 		for _, part := range entry.Parts {
@@ -68,6 +71,7 @@ func Render(owner common.Engine, c common.Context, config common.Config) ([]byte
 		entry.Actor = "human"
 		entries = append(entries, entry)
 	}
+	entries = append(entries, c.Hints...)
 	var body any
 	switch config.Vendor {
 	case "anthropic", "gemini":
@@ -153,7 +157,7 @@ func Render(owner common.Engine, c common.Context, config common.Config) ([]byte
 					}
 					calls = append(calls, map[string]any{"id": part.CallID, "type": "function", "function": map[string]any{"name": part.Name, "arguments": string(part.Args)}})
 				case "blob":
-					r.fail("unsupported reference")
+					r.unsupportedReference(part)
 				case "opaque":
 					if r.match(part.From) {
 						r.fail("unsupported opaque Chat Completions material")
@@ -214,7 +218,7 @@ func (r *renderer) block(p common.Part, vendor string, c common.Context) any {
 			}
 			return map[string]any{"type": "text", "text": s}
 		case "blob":
-			r.fail("unsupported reference")
+			r.unsupportedReference(p)
 		}
 		return nil
 	}
@@ -233,7 +237,7 @@ func (r *renderer) block(p common.Part, vendor string, c common.Context) any {
 		out = map[string]any{"functionResponse": map[string]any{"id": p.CallID, "name": call.Part.Name, "response": map[string]any{key: r.resultText(p.Parts)}}}
 	case "blob":
 		if p.Ref.Kind != 2 {
-			r.fail("unsupported reference")
+			r.unsupportedReference(p)
 			return nil
 		}
 		out = map[string]any{"fileData": map[string]any{"mimeType": p.MIME, "fileUri": p.Ref.Locator}}
@@ -248,4 +252,24 @@ func (r *renderer) block(p common.Part, vendor string, c common.Context) any {
 		out["thoughtSignature"] = p.Opaque
 	}
 	return out
+}
+
+// Diagnostics identify the missing mapping, never the retained private locator.
+func (r *renderer) unsupportedReference(p common.Part) {
+	media, _, err := mime.ParseMediaType(p.MIME)
+	if err != nil {
+		media = "invalid media MIME"
+	}
+	kind := "reference"
+	if p.Ref != nil {
+		switch p.Ref.Kind {
+		case 1:
+			kind = "path"
+		case 2:
+			kind = "URI"
+		case 3:
+			kind = "handle"
+		}
+	}
+	r.fail(fmt.Sprintf("unsupported reference: model %q has no %s %s mapping for %s", r.model, r.target.Surface, kind, media))
 }

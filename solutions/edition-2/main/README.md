@@ -50,3 +50,32 @@ Checks run separately in all four Go modules: `go vet ./...` and
 `make grade-dir CH=3 DIR=solutions/edition-2/main`. See
 `evidence/ch03/human-chat/FEATURES.txt` for the human integration's actual results
 and review status. Earlier machine-interface receipts remain separately labeled.
+
+## Chapter 5: responsive turns
+
+`chat` accepts ordinary prompts while a turn runs and prints each request ID.
+Use `/hint TEXT` for one-request guidance to the active turn, `/interrupt` to
+end that turn while preserving its jobs, and `/quit` for full cleanup. EOF lets
+all admitted prompts finish before cleanup. `protocol` preserves legacy user
+records and also accepts explicit `kind: prompt`, `kind: hint`, and
+`kind: interrupt` records with attributable reliable completions.
+
+Embedding clients use `Agent.Submit` for a reusable request handle, `Wait` to
+read its completion, and `Cancel` to cancel only that request. `Agent.Prompt`
+is a blocking wrapper over the same actor. `Ensemble.Collect` creates an
+independent collection that drains all currently ready handles in declared
+order; cancellation of a collection wait does not cancel any request.
+
+The optional GUI module exposes these public seams and remains a transport
+stub. Display subscriptions have their own bounded queues and report
+`overflow` through `SubscriptionStatus`; reliable request completion does not
+rely on display delivery. Model responses are nonstreaming.
+
+`examples/workflow` builds a public author/editor/reviewer consumer. Its
+`collection` mode demonstrates two Agents, queued cancellation, reusable
+handles and independent collections. Set `ENSEMBLE_RUN_DIRECTORY` to a fresh
+directory and use the ordinary `LLM_*` environment configuration.
+
+For an event log with captured request configuration,
+`ensemble replay LOG SEQ` reconstructs that exact request's bytes from the
+prefix before `request_sent`. This path performs no model or tool effect.

@@ -56,7 +56,7 @@ func TestChatAndProtocolUseSamePublicPath(t *testing.T) {
 	defer server.Close()
 	chatPath := cliConfig(t, server.URL)
 	var chat, diag bytes.Buffer
-	input := " \t\n/help\n/unknown\n/ephemeral\n/redact nope 1 reason\n/usage\n/history\n/ephemeral one request\n  hello  \n//help\n/quit\nignored\n"
+	input := " \t\n/help\n/unknown\n/ephemeral\n/redact nope 1 reason\n/usage\n/history\n/ephemeral one request\n  hello  \n//help\n"
 	if err := runArgs([]string{"chat"}, strings.NewReader(input), &chat, &diag); err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +69,7 @@ func TestChatAndProtocolUseSamePublicPath(t *testing.T) {
 		t.Fatal("chat changed prompt text or directive delivery")
 	}
 	data, _ := os.ReadFile(chatPath)
-	if strings.Count(string(data), `"seq":`) != 7 || bytes.Contains(data, []byte("secret-marker")) {
+	if strings.Count(string(data), `"seq":`) != 11 || bytes.Contains(data, []byte("secret-marker")) {
 		t.Fatal("local commands mutated the log or secret leaked")
 	}
 	chatBodies := append([]string(nil), bodies...)

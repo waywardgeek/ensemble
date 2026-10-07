@@ -1,0 +1,30 @@
+solutions/edition-2/main/examples/consumer: ['go', 'vet', './...']: exit 0
+
+solutions/edition-2/main/examples/consumer: ['go', 'test', './...', '-count=1']: exit 0
+?   	example.com/ensemble-consumer	[no test files]
+
+solutions/edition-2/main/examples/jobs-consumer: ['go', 'vet', './...']: exit 0
+
+solutions/edition-2/main/examples/jobs-consumer: ['go', 'test', './...', '-count=1']: exit 0
+?   	example.com/ensemble-jobs-consumer	[no test files]
+
+solutions/edition-2/main/examples/tools-consumer: ['go', 'vet', './...']: exit 0
+
+solutions/edition-2/main/examples/tools-consumer: ['go', 'test', './...', '-count=1']: exit 0
+?   	example.com/ensemble-tools-consumer	[no test files]
+
+solutions/edition-2/main: ['go', 'vet', './...']: exit 0
+
+solutions/edition-2/main: ['go', 'test', './...', '-count=1']: exit 0
+ok  	example.com/ensemble	0.564s
+ok  	example.com/ensemble/cmd	0.027s
+?   	example.com/ensemble/internal/common	[no test files]
+ok  	example.com/ensemble/internal/eventlog	0.006s
+ok  	example.com/ensemble/internal/jobs	0.732s
+ok  	example.com/ensemble/internal/llm	0.008s
+ok  	example.com/ensemble/internal/tools	0.013s
+
+solutions/edition-2/main/gui: ['go', 'vet', './...']: exit 0
+
+solutions/edition-2/main/gui: ['go', 'test', './...', '-count=1']: exit 0
+ok  	example.com/ensemble-gui	0.008s

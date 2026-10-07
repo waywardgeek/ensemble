@@ -68,7 +68,9 @@ func (e *Engine) add(total *common.Usage, u common.Usage) {
 }
 
 func (e *Engine) Exchange(ctx context.Context, body []byte, responseSeq uint64) (common.ParsedResponse, error) {
-	config := e.parent.Config()
+	return e.ExchangeConfig(ctx, body, e.parent.Config())
+}
+func (e *Engine) ExchangeConfig(ctx context.Context, body []byte, config common.Config) (common.ParsedResponse, error) {
 	path := "/v1/messages"
 	if config.Vendor == "openai" {
 		path = "/v1/chat/completions"
@@ -102,7 +104,7 @@ func (e *Engine) Exchange(ctx context.Context, body []byte, responseSeq uint64) 
 	if err != nil {
 		return common.ParsedResponse{}, requestFailure(e, err, "model response read failed")
 	}
-	return Parse(e, config, data, responseSeq)
+	return Parse(e, config, data, 0)
 }
 func requestFailure(owner common.Engine, cause error, fallback string) error {
 	// Wrap only known safe sentinels, never raw transport errors: those can
@@ -124,3 +126,5 @@ func failure(owner common.Engine, format string, args ...any) error {
 	owner.Agent().Ensemble().Logf("%s", err)
 	return err
 }
+
+func (e *Engine) Close() { e.client.CloseIdleConnections() }

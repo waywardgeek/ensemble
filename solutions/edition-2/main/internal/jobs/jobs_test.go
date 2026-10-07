@@ -1,6 +1,7 @@
 package jobs
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -373,5 +374,40 @@ func TestSnapshotOwnsExitStatus(t *testing.T) {
 	next := j.Snapshot()
 	if next.ExitCode == nil || *next.ExitCode != 7 {
 		t.Fatal("snapshot changed owned exit status", next)
+	}
+}
+
+func (*testRoot) Observe(common.Observation)                       {}
+func (*testRoot) Collect([]common.RequestHandle) common.Collection { return nil }
+
+func (*testRegistry) BeginSupervision(common.Part, common.Limits, string) (*common.ToolEvent, *common.ReportTask) {
+	return nil, nil
+}
+
+func TestPreparedReportDoesNotConsumeUntilAccepted(t *testing.T) {
+	s, a := harness(t)
+	a.registry.handler = func(common.Part, common.Job) *common.ExecutionResult { return local("whole-output", false) }
+	j, err := s.Create()
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.Start(j, common.Part{Name: "local"})
+	request := common.JobReport{CallID: "one", Limits: common.Limits{Delay: time.Second, MaxBytes: 1000}, Original: true, MatchStart: -1}
+	first, err := s.PrepareReport(context.Background(), j, request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := s.PrepareReport(context.Background(), j, request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.From != second.From || first.To != second.To || !strings.Contains(*second.Event.Parts[0].Text, "whole-output") {
+		t.Fatal("superseded preparation consumed output")
+	}
+	if err = s.CommitReport(second); err != nil {
+		t.Fatal(err)
+	}
+	if err = s.CommitReport(first); err == nil {
+		t.Fatal("accepted cursor consumed twice")
 	}
 }

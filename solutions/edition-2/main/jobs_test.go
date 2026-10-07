@@ -32,7 +32,7 @@ func TestBackgroundCompletionFinalizesActualResponseIdentity(t *testing.T) {
 		default:
 			var request json.RawMessage
 			json.NewDecoder(r.Body).Decode(&request)
-			if !strings.Contains(string(request), `"id":"call-8-1"`) {
+			if !strings.Contains(string(request), `"id":"call-9-1"`) {
 				t.Error("continuation did not use committed response ID", string(request))
 			}
 			fmt.Fprint(w, `{"modelVersion":"test","candidates":[{"content":{"parts":[{"text":"finished"}]}}],"usageMetadata":{"promptTokenCount":1,"candidatesTokenCount":1}}`)
@@ -50,7 +50,9 @@ func TestBackgroundCompletionFinalizesActualResponseIdentity(t *testing.T) {
 	sequences := []uint64{}
 	app.Subscribe(a.ID(), callbackObserver(func(o Observation) {
 		mu.Lock()
-		sequences = append(sequences, o.Seq)
+		if o.Event.Seq != 0 {
+			sequences = append(sequences, o.Seq)
+		}
 		mu.Unlock()
 		if o.Kind == "job_ended" && o.Event.Job.Handle == 1 {
 			close(ended)

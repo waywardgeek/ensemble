@@ -121,7 +121,7 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 		return bad("invalid UTC timestamp")
 	}
 	n := 0
-	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil} {
+	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Turn != nil, e.Hint != nil} {
 		if present {
 			n++
 		}
@@ -130,6 +130,27 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 		return bad("exactly one event payload is required")
 	}
 	switch e.Type {
+	case "turn_started":
+		if e.Turn == nil || e.Turn.RequestID == "" || e.Turn.Outcome != "" || c.TurnID != "" || c.Active || c.Pending != nil || unresolved(owner, c) || c.TurnIDs[e.Turn.RequestID] {
+			return bad("invalid turn start")
+		}
+	case "hint_received":
+		if e.Hint == nil || e.Hint.RequestID == "" || e.Hint.RequestID != c.TurnID || strings.TrimSpace(e.Hint.Text) == "" {
+			return bad("hint requires its active turn")
+		}
+	case "turn_ended":
+		if e.Turn == nil || e.Turn.RequestID == "" || e.Turn.RequestID != c.TurnID || c.Active || unresolved(owner, c) {
+			return bad("invalid turn end")
+		}
+		switch e.Turn.Outcome {
+		case "success":
+			if !c.FinalResponse {
+				return bad("success requires final response")
+			}
+		case "interrupted", "canceled", "error", "round_limit", "stopped":
+		default:
+			return bad("unknown turn outcome")
+		}
 	case "message_received":
 		m := e.Message
 		if m == nil || m.Parts == nil {
@@ -143,7 +164,7 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 			}
 		}
 		if m.Actor == "human" {
-			if m.Purpose != "dialogue" || c.Pending != nil || c.Active {
+			if m.Purpose != "dialogue" || c.Pending != nil || c.Active || (c.ExplicitTurns && c.TurnID == "") {
 				return bad("invalid event or conversation transition")
 			}
 		} else if m.Actor != "system" || (m.Purpose != "instruction" && m.Purpose != "ephemeral") {
@@ -170,6 +191,16 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 			for _, entry := range c.Ephemera {
 				r.Ephemera = append(r.Ephemera, entry.Seq)
 			}
+		}
+		expected := make([]uint64, 0, len(c.Hints))
+		for _, hint := range c.Hints {
+			expected = append(expected, hint.Seq)
+		}
+		if r.Hints == nil {
+			r.Hints = expected
+		}
+		if !reflect.DeepEqual(expected, r.Hints) {
+			return bad("request must consume exactly pending hints in order")
 		}
 		seen := map[uint64]bool{}
 		for _, seq := range r.Ephemera {
@@ -342,6 +373,20 @@ func Apply(owner common.Engine, c *common.Context, e common.Event) {
 		c.Calls = map[string]common.CallState{}
 	}
 	switch e.Type {
+	case "turn_started":
+		c.ExplicitTurns = true
+		c.TurnID = e.Turn.RequestID
+		c.FinalResponse = false
+		if c.TurnIDs == nil {
+			c.TurnIDs = map[string]bool{}
+		}
+		c.TurnIDs[c.TurnID] = true
+	case "turn_ended":
+		c.TurnID = ""
+		c.Continuation = false
+		c.Pending = nil
+	case "hint_received":
+		c.Hints = append(c.Hints, common.Entry{Seq: e.Seq, Actor: "human", Purpose: "hint", Parts: []common.Part{Text(e.Hint.Text)}})
 	case "message_received":
 		m := *e.Message
 		m.Seq = e.Seq
@@ -354,6 +399,7 @@ func Apply(owner common.Engine, c *common.Context, e common.Event) {
 			c.Pending = &m
 		}
 	case "request_sent":
+		c.Hints = nil
 		c.Active = true
 		keep := c.Ephemera[:0]
 		for _, entry := range c.Ephemera {
@@ -378,8 +424,10 @@ func Apply(owner common.Engine, c *common.Context, e common.Event) {
 		c.Active = false
 		c.Continuation = false
 		c.Entries = append(c.Entries, common.Entry{Seq: e.Seq, Actor: "agent", Purpose: "dialogue", Parts: e.Response.Parts})
+		c.FinalResponse = true
 		for _, p := range e.Response.Parts {
 			if p.Type == "tool_call" {
+				c.FinalResponse = false
 				c.Calls[p.CallID] = common.CallState{Part: p}
 			}
 		}

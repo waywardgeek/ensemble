@@ -16,56 +16,138 @@ import (
 const chatLineLimit = 1024 * 1024
 
 func runChat(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader, output io.Writer) error {
-	reader := bufio.NewReader(input)
 	writer := bufio.NewWriter(output)
 	config := agent.Config()
 	fmt.Fprintf(writer, "Ensemble — %s / %s\nType /help for commands.\n", config.Vendor, config.Model)
-	for {
-		fmt.Fprint(writer, "You> ")
-		// Flush before reading so a person can see that the client is ready.
-		if err := writer.Flush(); err != nil {
-			return fmt.Errorf("cannot write chat output")
+	done := make(chan struct{})
+	defer close(done)
+	lines := inputLines(owner, input, true, done)
+	completed := make(chan completedRequest)
+	pending := 0
+	reading := true
+	var fatal error
+	prompt := func() error { fmt.Fprint(writer, "You> "); return writer.Flush() }
+	if err := prompt(); err != nil {
+		return err
+	}
+	finish := func() error {
+		if err := agent.Close(); fatal == nil {
+			fatal = err
 		}
-		line, err := readChatLine(owner, reader)
-		if err == io.EOF {
-			fmt.Fprintln(writer)
-			if err := agent.Close(); err != nil {
-				return err
+		if fatal != nil {
+			return fatal
+		}
+		return showUsage(owner, writer, agent.Usage(), true)
+	}
+	for reading || pending > 0 {
+		select {
+		case item := <-lines:
+			if item.err != nil {
+				reading = false
+				lines = nil
+				if item.err != io.EOF {
+					fatal = item.err
+					_ = agent.Close()
+				}
+				continue
 			}
-			return showUsage(owner, writer, agent.Usage(), true)
-		}
-		if err != nil {
-			return err
-		}
-		if strings.TrimSpace(line) == "" {
-			continue
-		}
-		if strings.HasPrefix(line, "/") && !strings.HasPrefix(line, "//") {
-			quit, err := chatCommand(owner, agent, writer, line)
+			line := item.line
+			if strings.TrimSpace(line) == "" {
+				if err := prompt(); err != nil {
+					return err
+				}
+				continue
+			}
+			if strings.HasPrefix(line, "/") && !strings.HasPrefix(line, "//") {
+				command, rest := commandWord(owner, line)
+				switch command {
+				case "/hint":
+					ack, err := agent.Hint(rest)
+					if err != nil {
+						fmt.Fprintf(writer, "Command error: %s.\n", err)
+					} else {
+						fmt.Fprintf(writer, "Hint received for %s at seq %d; sent=false (pending next request).\n", ack.RequestID, ack.Seq)
+					}
+				case "/interrupt":
+					if rest != "" {
+						fmt.Fprintln(writer, "Command error: /interrupt takes no text.")
+					} else {
+						ack, err := agent.Interrupt()
+						if err != nil {
+							return err
+						}
+						fmt.Fprintf(writer, "Interrupt: request=%s interrupted=%t.\n", ack.RequestID, ack.Interrupted)
+					}
+				default:
+					quit, err := chatCommand(owner, agent, writer, line)
+					if err != nil {
+						if strings.Contains(err.Error(), "busy") {
+							fmt.Fprintln(writer, "Command refused: Agent busy.")
+						} else {
+							fatal = err
+							reading = false
+							lines = nil
+							_ = agent.Close()
+						}
+					}
+					if quit {
+						reading = false
+						lines = nil
+						_ = agent.Close()
+					}
+				}
+				if reading {
+					if err := prompt(); err != nil {
+						return err
+					}
+				} else {
+					writer.Flush()
+				}
+				continue
+			}
+			if strings.HasPrefix(line, "//") {
+				line = line[1:]
+			}
+			h, err := agent.Submit(line)
 			if err != nil {
 				return err
 			}
-			if quit {
-				if err := agent.Close(); err != nil {
+			pending++
+			fmt.Fprintf(writer, "Accepted %s.\n", h.ID())
+			watchCompletion(h, completed, false)
+			if err := prompt(); err != nil {
+				return err
+			}
+		case item := <-completed:
+			pending--
+			c := item.value
+			text := c.Text
+			if text == "" && c.Outcome == "success" {
+				text = "[No text returned]"
+			}
+			fmt.Fprintf(writer, "\nRequest %s (%s; pending hints=%d)\n", c.RequestID, c.Outcome, c.PendingHints)
+			if text != "" {
+				fmt.Fprintf(writer, "Assistant:\n%s\n", text)
+			}
+			if c.Error != nil {
+				fmt.Fprintf(writer, "%s: %s\n", c.Error.Code, c.Error.Message)
+			}
+			if c.Outcome == "error" || c.Outcome == "round_limit" || item.err != nil {
+				fatal = completionError(item)
+				reading = false
+				lines = nil
+				_ = agent.Close()
+			}
+			if reading {
+				if err := prompt(); err != nil {
 					return err
 				}
-				return showUsage(owner, writer, agent.Usage(), true)
+			} else {
+				writer.Flush()
 			}
-			continue
 		}
-		if strings.HasPrefix(line, "//") {
-			line = line[1:]
-		}
-		result, err := owner.Submit(context.Background(), ensemble.ClientRequest{AgentID: agent.ID(), Prompt: &line})
-		if err != nil {
-			return err
-		}
-		text := result.Text
-		if text == "" {
-			text = "[No text returned]"
-		}
-		fmt.Fprintf(writer, "Assistant:\n%s\n", text)
 	}
+	return finish()
 }
 
 // ReadSlice bounds memory while allowing exactly the ceiling plus CRLF. A
@@ -124,7 +206,7 @@ func chatCommand(owner ensemble.ClientOwner, agent *ensemble.Agent, out *bufio.W
 		}
 		switch command {
 		case "/help":
-			fmt.Fprintln(out, "/help — show commands\n/usage — token totals\n/history — event sequences and tool call IDs\n/ephemeral TEXT — one-request directive\n/redact FROM TO REASON — redact tool results in a sequence span\n/quit — finish the session\n//TEXT — submit a literal leading slash\nInput: one UTF-8 line, at most 1 MiB (1048576 bytes), excluding LF or CRLF.")
+			fmt.Fprintln(out, "/help — show commands\n/usage — token totals\n/history — event sequences and tool call IDs\n/hint TEXT — guide the next request of the active turn\n/interrupt — interrupt the active turn\n/ephemeral TEXT — one-request directive\n/redact FROM TO REASON — redact tool results in a sequence span\n/quit — finish the session\n//TEXT — submit a literal leading slash\nInput: one UTF-8 line, at most 1 MiB (1048576 bytes), excluding LF or CRLF.")
 		case "/usage":
 			return false, showUsage(owner, out, agent.Usage(), false)
 		case "/history":

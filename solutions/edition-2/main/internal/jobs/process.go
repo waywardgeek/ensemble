@@ -51,7 +51,7 @@ func (j *job) StartProcess(command, cwd string) error {
 		defer close(j.reaped)
 		j.terminal = nil
 		if j.killing {
-			s.finish(j, "killed", j.snapshot.Reason)
+			s.finish(j, "killed", j.killReason)
 			return
 		}
 		code := cmd.ProcessState.ExitCode()

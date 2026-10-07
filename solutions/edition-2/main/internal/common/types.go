@@ -88,9 +88,19 @@ type Entry struct {
 	Purpose string `json:"purpose"`
 	Parts   []Part `json:"parts"`
 }
+type TurnEvent struct {
+	RequestID string `json:"request_id"`
+	Outcome   string `json:"outcome,omitempty"`
+}
+type HintEvent struct {
+	RequestID string `json:"request_id"`
+	Text      string `json:"text"`
+}
 type RequestEvent struct {
-	To       Provenance `json:"to"`
-	Ephemera []uint64   `json:"ephemera"`
+	Hints         []uint64       `json:"hints"`
+	Configuration *RequestConfig `json:"configuration,omitempty"`
+	To            Provenance     `json:"to"`
+	Ephemera      []uint64       `json:"ephemera"`
 }
 type Response struct {
 	From          Provenance      `json:"from"`
@@ -126,6 +136,8 @@ type EventError struct {
 	Message string `json:"message"`
 }
 type Event struct {
+	Turn     *TurnEvent    `json:"turn,omitempty"`
+	Hint     *HintEvent    `json:"hint,omitempty"`
 	Job      *JobSnapshot  `json:"job,omitempty"`
 	Seq      uint64        `json:"seq"`
 	Type     string        `json:"type"`
@@ -144,21 +156,31 @@ type CallState struct {
 	Returned   bool
 }
 type Context struct {
-	Jobs         map[uint64]JobSnapshot
-	Entries      []Entry
-	Instructions []Entry
-	Ephemera     []Entry
-	Pending      *Entry
-	Active       bool
-	Continuation bool
-	Calls        map[string]CallState
-	LastSeq      uint64
+	Hints         []Entry
+	TurnID        string
+	TurnIDs       map[string]bool
+	ExplicitTurns bool
+	FinalResponse bool
+	Jobs          map[uint64]JobSnapshot
+	Entries       []Entry
+	Instructions  []Entry
+	Ephemera      []Entry
+	Pending       *Entry
+	Active        bool
+	Continuation  bool
+	Calls         map[string]CallState
+	LastSeq       uint64
 }
 type Observation struct {
-	AgentID string `json:"agent_id"`
-	Seq     uint64 `json:"seq"`
-	Kind    string `json:"kind"`
-	Event   Event  `json:"event"`
+	RequestID string `json:"request_id,omitempty"`
+	OldState  string `json:"old_state,omitempty"`
+	State     string `json:"state,omitempty"`
+	Position  int    `json:"position,omitempty"`
+	Part      *Part  `json:"part,omitempty"`
+	AgentID   string `json:"agent_id"`
+	Seq       uint64 `json:"seq"`
+	Kind      string `json:"kind"`
+	Event     Event  `json:"event"`
 }
 type Observer interface{ Observe(Observation) }
 type ClientRequest struct {
@@ -177,6 +199,8 @@ type Ensemble interface {
 	Logf(string, ...any)
 	Publish(string, Event)
 	AllocateHandle() uint64
+	Observe(Observation)
+	Collect([]RequestHandle) Collection
 }
 type Agent interface {
 	Ensemble() Ensemble
@@ -184,11 +208,21 @@ type Agent interface {
 	Workspace() string
 }
 type Engine interface{ Agent() Agent }
+type EventLog interface {
+	Agent() Agent
+	Append(Event) error
+	Close() error
+}
 
 // ClientOwner is public through an alias; optional clients never import internal packages.
 type ClientOwner interface {
 	Logf(string, ...any)
 	Submit(context.Context, ClientRequest) (ClientResult, error)
+	SubmitPrompt(string, string) (RequestHandle, error)
+	Hint(string, string) (ControlAck, error)
+	Interrupt(string) (ControlAck, error)
+	Collect([]RequestHandle) Collection
+	SubscriptionStatus(uint64) string
 	Subscribe(string, Observer) (uint64, error)
 	Unsubscribe(uint64)
 }
@@ -212,6 +246,7 @@ type Registry interface {
 	ExecuteJob(Part, Job) *ExecutionResult
 	ResolveLimits(Part) (Limits, string, error)
 	Supervise(Part, Limits, string) error
+	BeginSupervision(Part, Limits, string) (*ToolEvent, *ReportTask)
 }
 
 // Job snapshots are durable facts; live handles never reattach during replay.
@@ -267,9 +302,12 @@ type Jobs interface {
 	Lookup(uint64) (Job, error)
 	Send(Job, string) (int64, error)
 	Kill(Job, string) error
+	RequestKill(Job, string) (<-chan struct{}, error)
 	Start(Job, Part)
 	Abort(Job)
 	Report(Job, JobReport) error
+	PrepareReport(context.Context, Job, JobReport) (PreparedReport, error)
+	CommitReport(PreparedReport) error
 	Close() error
 }
 type Job interface {

@@ -138,6 +138,7 @@ func TestCancellationAndDeadlineDiagnostics(t *testing.T) {
 					t.Fatal(err)
 				}
 				_, err = a.Ask(ctx, "hi")
+				_ = a.Close()
 				if !errors.Is(err, want) {
 					t.Fatalf("error %v does not preserve %v", err, want)
 				}

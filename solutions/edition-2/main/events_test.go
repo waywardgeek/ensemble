@@ -117,7 +117,12 @@ func TestEphemeraFailureAndUsageAttribution(t *testing.T) {
 		t.Fatal(a.Usage())
 	}
 	events := a.Events()
-	response := events[len(events)-1].Response
+	var response *ensemble.Response
+	for _, e := range events {
+		if e.Response != nil {
+			response = e.Response
+		}
+	}
 	if response.From.Model != "reported-v1" || response.Requested.Model != "alias-v1" || response.ModelReported == nil || !*response.ModelReported {
 		t.Fatal("model identities conflated")
 	}
@@ -223,7 +228,7 @@ func TestOpenAIParsingAndInstructionRoles(t *testing.T) {
 		t.Fatal(a.Usage())
 	}
 	var args map[string]string
-	if json.Unmarshal(a.Events()[3].Response.Parts[0].Args, &args) != nil || args["path"] != "x" {
+	if json.Unmarshal(a.Events()[4].Response.Parts[0].Args, &args) != nil || args["path"] != "x" {
 		t.Fatal("arguments not decoded into neutral object")
 	}
 }

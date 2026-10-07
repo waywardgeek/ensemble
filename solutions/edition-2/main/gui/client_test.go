@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestPublicClientBoundary(t *testing.T) {
@@ -43,18 +44,49 @@ func TestPublicClientBoundary(t *testing.T) {
 	if _, err = b.Ask(context.Background(), "separate"); err != nil {
 		t.Fatal(err)
 	}
-	events := client.Observations()
-	if len(events) != 3 {
-		t.Fatalf("events=%d", len(events))
-	}
-	for i, event := range events {
-		if event.AgentID != a.ID() || event.Seq != uint64(i+1) {
-			t.Fatal("wrong Agent or event order")
+	deadline := time.After(3 * time.Second)
+	var events []ensemble.Observation
+	for {
+		events = client.Observations()
+		ended := false
+		for _, o := range events {
+			ended = ended || o.Kind == "turn_ended"
+		}
+		if ended {
+			break
+		}
+		select {
+		case <-client.Updates():
+		case <-deadline:
+			t.Fatal("GUI did not receive durable turn end")
 		}
 	}
-	events[0].Event.Message.Parts[0].Text = new(string)
-	if *client.Observations()[0].Event.Message.Parts[0].Text != "hi" {
-		t.Fatal("snapshot aliased")
+	durable := []ensemble.Observation{}
+	for _, event := range events {
+		if event.AgentID != a.ID() {
+			t.Fatal("wrong Agent")
+		}
+		if event.Event.Seq != 0 {
+			durable = append(durable, event)
+		}
+	}
+	if len(durable) != 5 {
+		t.Fatalf("durable events=%d", len(durable))
+	}
+	for i, event := range durable {
+		if event.Seq != uint64(i+1) {
+			t.Fatal("wrong durable order")
+		}
+	}
+	for _, event := range events {
+		if event.Event.Message != nil {
+			*event.Event.Message.Parts[0].Text = "mutated"
+		}
+	}
+	for _, event := range client.Observations() {
+		if event.Event.Message != nil && *event.Event.Message.Parts[0].Text != "hi" {
+			t.Fatal("snapshot aliased")
+		}
 	}
 	client.Close()
 	if _, err = client.Submit(context.Background(), ensemble.ClientRequest{Prompt: &prompt}); err == nil || !strings.Contains(diagnostics.String(), "GUI client closed") {
@@ -63,7 +95,7 @@ func TestPublicClientBoundary(t *testing.T) {
 	if _, err = a.Ask(context.Background(), "after close"); err != nil {
 		t.Fatal(err)
 	}
-	if len(client.Observations()) != 3 {
+	if len(client.Observations()) != len(events) {
 		t.Fatal("closed client received later event")
 	}
 }

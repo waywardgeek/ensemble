@@ -1,0 +1,54 @@
+{
+  "backend": "local fake only; no paid requests",
+  "positive_capture": {
+    "request": "fec2876c9556f09ca96edc19585a3326764dd0573c8c2bb3e08b35f701123a2f",
+    "response": "692ed77e0c5239a6f6e96824464f6a375c7158264d865a0bc670eae9d7b0a461"
+  },
+  "controls": [
+    {
+      "control": "empty source map",
+      "refusal": "empty source set; no evidence modified",
+      "raw_unchanged": true
+    },
+    {
+      "control": "missing source",
+      "refusal": "incomplete historical source set; no evidence modified",
+      "raw_unchanged": true
+    },
+    {
+      "control": "extra source",
+      "refusal": "incomplete historical source set; no evidence modified",
+      "raw_unchanged": true
+    },
+    {
+      "control": "wrong source hash",
+      "refusal": "historical source mismatch; no evidence modified",
+      "raw_unchanged": true
+    },
+    {
+      "control": "wrong cli",
+      "refusal": "executable mismatch; no evidence modified",
+      "raw_unchanged": true
+    },
+    {
+      "control": "wrong workflow",
+      "refusal": "executable mismatch; no evidence modified",
+      "raw_unchanged": true
+    },
+    {
+      "control": "wrong interpreter",
+      "refusal": "interpreter mismatch; no evidence modified",
+      "raw_unchanged": true
+    },
+    {
+      "control": "wrong recorder",
+      "refusal": "executable mismatch; no evidence modified",
+      "raw_unchanged": true
+    },
+    {
+      "control": "last launch identity",
+      "refusal": "launch executable mismatch; no evidence modified",
+      "raw_unchanged": true
+    }
+  ]
+}

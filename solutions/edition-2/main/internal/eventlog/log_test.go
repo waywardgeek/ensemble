@@ -29,3 +29,6 @@ func TestPartialWritePermanentlyFaultsLog(t *testing.T) {
 		t.Fatal("appended after partial record")
 	}
 }
+
+func (*owner) Observe(common.Observation)                       {}
+func (*owner) Collect([]common.RequestHandle) common.Collection { return nil }

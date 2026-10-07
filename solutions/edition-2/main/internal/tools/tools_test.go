@@ -200,3 +200,6 @@ func TestLimitWireValidationAndExplicitPatternClear(t *testing.T) {
 		t.Fatal(value, err)
 	}
 }
+
+func (testRoot) Observe(common.Observation)                       {}
+func (testRoot) Collect([]common.RequestHandle) common.Collection { return nil }

@@ -29,6 +29,10 @@ type Part = common.Part
 type Ref = common.Ref
 type Entry = common.Entry
 type Event = common.Event
+type TurnEvent = common.TurnEvent
+type HintEvent = common.HintEvent
+type RequestEvent = common.RequestEvent
+type EventError = common.EventError
 type Response = common.Response
 type ToolEvent = common.ToolEvent
 type JobSnapshot = common.JobSnapshot
@@ -39,10 +43,19 @@ type Observer = common.Observer
 type ClientOwner = common.ClientOwner
 type ClientRequest = common.ClientRequest
 type ClientResult = common.ClientResult
+type RequestHandle = common.RequestHandle
+type StoppedError = common.StoppedError
+type Completion = common.Completion
+type ControlAck = common.ControlAck
+type Collection = common.Collection
 
 type subscription struct {
+	parent   common.Ensemble
 	agentID  string
 	observer Observer
+	queue    chan Observation
+	done     chan struct{}
+	reason   string
 }
 type Ensemble struct {
 	logger                  *log.Logger
@@ -51,14 +64,14 @@ type Ensemble struct {
 	nextAgent, nextObserver uint64
 	nextHandle              uint64
 	closed                  bool
-	observers               map[uint64]subscription
+	observers               map[uint64]*subscription
 }
 
 func New(diagnostics io.Writer) *Ensemble {
 	if diagnostics == nil {
 		diagnostics = io.Discard
 	}
-	return &Ensemble{logger: log.New(diagnostics, "ensemble: ", 0), agents: map[string]*Agent{}, observers: map[uint64]subscription{}}
+	return &Ensemble{logger: log.New(diagnostics, "ensemble: ", 0), agents: map[string]*Agent{}, observers: map[uint64]*subscription{}}
 }
 func (e *Ensemble) Logf(format string, args ...any) { e.logger.Printf(format, args...) }
 func normalize(owner common.Ensemble, config Config) Config {
@@ -137,6 +150,7 @@ func (e *Ensemble) NewAgent(config Config) (*Agent, error) {
 	if err != nil {
 		return nil, err
 	}
+	a.actor = llm.NewActor(turnAgent{a})
 	if err = e.publishAgent(a); err != nil {
 		_ = a.Close()
 		return nil, err
@@ -213,31 +227,61 @@ func (e *Ensemble) Subscribe(agentID string, observer Observer) (uint64, error) 
 		return 0, fmt.Errorf("invalid observer subscription")
 	}
 	e.nextObserver++
-	e.observers[e.nextObserver] = subscription{agentID, observer}
+	s := &subscription{parent: e, agentID: agentID, observer: observer, queue: make(chan Observation, 256), done: make(chan struct{})}
+	e.observers[e.nextObserver] = s
+	go func() {
+		defer close(s.done)
+		for observation := range s.queue {
+			s.observer.Observe(observation)
+		}
+	}()
 	return e.nextObserver, nil
 }
-func (e *Ensemble) Unsubscribe(id uint64) { e.mu.Lock(); defer e.mu.Unlock(); delete(e.observers, id) }
-func (e *Ensemble) Publish(agentID string, event Event) {
+func (e *Ensemble) Unsubscribe(id uint64) {
 	e.mu.Lock()
-	listeners := []Observer{}
-	a := e.agents[agentID]
+	defer e.mu.Unlock()
+	if s := e.observers[id]; s != nil && s.reason == "" {
+		s.reason = "unsubscribed"
+		close(s.queue)
+	}
+}
+func (e *Ensemble) SubscriptionStatus(id uint64) string {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	if s := e.observers[id]; s != nil {
+		return s.reason
+	}
+	return "unknown subscription"
+}
+func (e *Ensemble) Observe(o Observation) {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	a := e.agents[o.AgentID]
+	if a == nil {
+		return
+	}
 	for _, s := range e.observers {
-		if s.agentID == agentID {
-			listeners = append(listeners, s.observer)
+		if s.agentID != o.AgentID || s.reason != "" {
+			continue
+		}
+		owned, err := llm.Clone(a.engine, o)
+		if err != nil {
+			continue
+		}
+		select {
+		case s.queue <- owned:
+		default:
+			s.reason = "overflow"
+			close(s.queue)
 		}
 	}
-	e.mu.Unlock()
-	// Publication follows durable application. Give each recipient its own copy so
-	// one observer cannot change either history or another observer's notification.
-	for _, listener := range listeners {
-		copy, err := llm.Clone(a.engine, event)
-		if err == nil {
-			listener.Observe(Observation{AgentID: agentID, Seq: event.Seq, Kind: event.Type, Event: copy})
-		}
-	}
+}
+func (e *Ensemble) Publish(agentID string, event Event) {
+	e.Observe(Observation{AgentID: agentID, Seq: event.Seq, Kind: event.Type, Event: event})
 }
 
 type Agent struct {
+	actor     *llm.Actor
 	parent    common.Ensemble
 	id        string
 	config    Config
@@ -251,7 +295,7 @@ type Agent struct {
 	context   common.Context
 	registry  *tools.Registry
 	engine    *llm.Engine
-	log       *eventlog.Log
+	log       common.EventLog
 	faulted   bool
 }
 
@@ -271,6 +315,12 @@ func (a *Agent) Config() Config {
 	return out
 }
 func (a *Agent) SetConfig(config Config) error {
+	a.mu.Lock()
+	stopped := a.closed || a.faulted
+	a.mu.Unlock()
+	if stopped {
+		return fmt.Errorf("Agent stopped")
+	}
 	if !a.operation.TryLock() {
 		return fmt.Errorf("Agent busy")
 	}
@@ -366,6 +416,14 @@ func (a *Agent) Render(config Config) ([]byte, error) {
 }
 func (a *Agent) Dump() ([]byte, error) { return eventlog.Dump(a, a.Events()) }
 func (a *Agent) Close() error {
+	if a.actor != nil {
+		return a.actor.Close()
+	}
+	_ = a.jobs.Close()
+	return a.finishClose()
+}
+func (a *Agent) finishClose() error {
+	a.engine.Close()
 	a.closeMu.Lock()
 	defer a.closeMu.Unlock()
 	a.mu.Lock()
@@ -375,7 +433,7 @@ func (a *Agent) Close() error {
 	}
 	a.closed = true
 	a.mu.Unlock()
-	err := a.jobs.Close()
+	var err error
 	a.appendMu.Lock()
 	defer a.appendMu.Unlock()
 	a.mu.Lock()
@@ -390,6 +448,9 @@ func (a *Agent) Close() error {
 }
 func Text(text string) Part { return llm.Text(text) }
 func (a *Agent) Append(event Event) error {
+	if a.actor != nil {
+		return a.actor.Append(event)
+	}
 	if !a.operation.TryLock() {
 		return fmt.Errorf("Agent busy")
 	}
@@ -461,29 +522,53 @@ func (a *Agent) Ask(ctx context.Context, question string) (string, error) {
 	result, err := a.Prompt(ctx, question)
 	return result.Text, err
 }
+func (a *Agent) Submit(question string) (RequestHandle, error) {
+	if a.actor == nil {
+		return nil, fmt.Errorf("Agent is read-only")
+	}
+	return a.actor.Submit(question)
+}
+func (a *Agent) Hint(text string) (ControlAck, error) {
+	if a.actor == nil {
+		return ControlAck{}, fmt.Errorf("Agent is read-only")
+	}
+	return a.actor.Hint(text)
+}
+func (a *Agent) Interrupt() (ControlAck, error) {
+	if a.actor == nil {
+		return ControlAck{}, fmt.Errorf("Agent is read-only")
+	}
+	return a.actor.Interrupt()
+}
+func (a *Agent) Cancel(id string) error {
+	if a.actor == nil {
+		return fmt.Errorf("Agent is read-only")
+	}
+	return a.actor.Cancel(id)
+}
 func (a *Agent) Prompt(ctx context.Context, question string) (ClientResult, error) {
-	if !a.operation.TryLock() {
-		return ClientResult{}, fmt.Errorf("Agent busy")
-	}
-	defer a.operation.Unlock()
-	if strings.TrimSpace(question) == "" {
-		return ClientResult{}, fmt.Errorf("question must be nonempty")
-	}
-	config := a.Config()
-	if err := llm.ValidateConfig(a.engine, config, true); err != nil {
+	h, err := a.Submit(question)
+	if err != nil {
 		return ClientResult{}, err
 	}
-	if err := a.canPrompt(); err != nil {
+	c, err := h.Wait(ctx)
+	if err != nil {
+		if err == context.DeadlineExceeded {
+			a.parent.Logf("blocking request timed out")
+		} else {
+			a.parent.Logf("blocking request canceled")
+		}
+		_ = h.Cancel()
 		return ClientResult{}, err
 	}
-	if err := a.append(Event{Type: "message_received", Message: &Entry{Actor: "human", Purpose: "dialogue", Parts: []Part{Text(question)}}}, true, true); err != nil {
-		return ClientResult{}, err
+	result := ClientResult{Text: c.Text, Parts: c.Parts, Usage: a.Usage()}
+	if c.Error != nil {
+		return result, fmt.Errorf("%s: %s", c.Error.Code, c.Error.Message)
 	}
-	return a.engine.Turn(ctx)
+	return result, nil
 }
 
-// Engine receives the Agent interface through a private admission adapter. These
-// methods assume Prompt holds operation; public Append still acquires that lock.
+// The private adapter exposes actor-only persistence and lifecycle operations.
 type turnAgent struct{ *Agent }
 
 func (a turnAgent) TurnSnapshot() common.Context        { return a.Snapshot() }
@@ -491,6 +576,17 @@ func (a turnAgent) RecordTurn(event common.Event) error { return a.append(event,
 func (a turnAgent) RecordResponse(parsed common.ParsedResponse) error {
 	return a.appendPrepared(Event{Type: "response_ended", Response: &parsed.Response}, true, true, parsed.MissingCallIDs)
 }
+func (a turnAgent) Engine() common.ModelEngine { return a.engine }
+func (a turnAgent) BeginTurn() error {
+	a.operation.Lock()
+	if err := a.canPrompt(); err != nil {
+		a.operation.Unlock()
+		return err
+	}
+	return nil
+}
+func (a turnAgent) EndTurn()                  { a.operation.Unlock() }
+func (a turnAgent) FinishClose() error        { return a.finishClose() }
 func (a turnAgent) NextSequence() uint64      { return a.nextSeq() }
 func (a turnAgent) Registry() common.Registry { return a.registry }
 
@@ -514,19 +610,35 @@ func (e *Ensemble) Close() error {
 			first = err
 		}
 	}
+	e.mu.Lock()
+	for _, s := range e.observers {
+		if s.reason == "" {
+			s.reason = "closed"
+			close(s.queue)
+		}
+	}
+	e.mu.Unlock()
 	return first
 }
 
 // Jobs has its own admission path: background completion cannot wait for Prompt.
 type jobAgent struct{ *Agent }
 
-func (a jobAgent) RecordJob(event common.Event) error { return a.append(event, true, true) }
-func (a jobAgent) Registry() common.Registry          { return a.registry }
+func (a jobAgent) RecordJob(event common.Event) error {
+	if a.actor != nil {
+		return a.actor.Record(event)
+	}
+	return a.append(event, true, true)
+}
+func (a jobAgent) Registry() common.Registry { return a.registry }
 func (a jobAgent) Fault(err error) {
 	a.mu.Lock()
 	a.faulted = true
 	a.mu.Unlock()
 	a.parent.Logf("jobs faulted: %v", err)
+	if a.actor != nil {
+		a.actor.Fault(err)
+	}
 }
 func (a turnAgent) Jobs() common.Jobs { return a.jobs }
 
@@ -535,3 +647,44 @@ type toolAgent struct{ *Agent }
 
 func (a toolAgent) Jobs() common.Jobs                   { return a.jobs }
 func (a toolAgent) RecordTool(event common.Event) error { return a.append(event, true, true) }
+
+func (e *Ensemble) SubmitPrompt(id, text string) (RequestHandle, error) {
+	a, err := e.Agent(id)
+	if err != nil {
+		return nil, err
+	}
+	return a.Submit(text)
+}
+func (e *Ensemble) Hint(id, text string) (ControlAck, error) {
+	a, err := e.Agent(id)
+	if err != nil {
+		return ControlAck{}, err
+	}
+	return a.Hint(text)
+}
+func (e *Ensemble) Interrupt(id string) (ControlAck, error) {
+	a, err := e.Agent(id)
+	if err != nil {
+		return ControlAck{}, err
+	}
+	return a.Interrupt()
+}
+
+// ReconstructRequest renders the exact prefix/configuration of a captured send.
+// It performs no model or tool effect and does not consume pending guidance.
+func (a *Agent) ReconstructRequest(sequence uint64) ([]byte, error) {
+	state := common.Context{}
+	for _, event := range a.Events() {
+		if event.Seq == sequence {
+			if event.Type != "request_sent" || event.Request.Configuration == nil {
+				return nil, fmt.Errorf("sequence lacks captured request configuration")
+			}
+			request := event.Request
+			captured := request.Configuration
+			config := Config{Vendor: request.To.Vendor, Model: request.To.Model, System: captured.System, MaxTokens: captured.MaxTokens, Tools: captured.Tools, ResolvedModel: captured.ResolvedModel}
+			return llm.Render(a.engine, state, config)
+		}
+		llm.Apply(a.engine, &state, event)
+	}
+	return nil, fmt.Errorf("request sequence not found")
+}

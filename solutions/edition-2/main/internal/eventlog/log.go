@@ -83,7 +83,7 @@ func Read(parent common.Agent, reader io.Reader) ([]common.Event, []int, error) 
 			return fail("malformed JSON record")
 		}
 		count := 0
-		for _, key := range []string{"message", "request", "response", "tool", "redact", "error", "job"} {
+		for _, key := range []string{"message", "request", "response", "tool", "redact", "error", "job", "turn", "hint"} {
 			if raw, ok := keys[key]; ok {
 				count++
 				if bytes.Equal(raw, []byte("null")) {

@@ -32,6 +32,7 @@ type job struct {
 	terminal   *os.File
 	pid        int
 	killing    bool
+	killReason string
 }
 
 func New(parent common.JobAgent) *Service { return &Service{parent: parent, jobs: map[uint64]*job{}} }
@@ -153,34 +154,38 @@ func (s *Service) finish(j *job, status, reason string) {
 	}
 	s.changed(j)
 }
-func (s *Service) kill(j *job, reason string) error {
+
+// RequestKill starts the owned effect without waiting for pipe readers/reaping.
+// The actor can continue handling controls while a report worker awaits Ready.
+func (s *Service) RequestKill(owned common.Job, reason string) (<-chan struct{}, error) {
+	j := owned.(*job)
 	s.mu.Lock()
+	defer s.mu.Unlock()
+	ready := func() <-chan struct{} { done := make(chan struct{}); close(done); return done }
 	if j.snapshot.Status != "running" {
-		s.mu.Unlock()
-		return nil
+		return ready(), nil
 	}
 	if j.killing {
-		done := j.reaped
-		s.mu.Unlock()
-		<-done
-		return nil
+		return j.reaped, nil
 	}
 	if j.pid == 0 {
 		s.finish(j, "killed", reason)
-		s.mu.Unlock()
-		return nil
+		return ready(), nil
 	}
 	if err := syscall.Kill(-j.pid, syscall.SIGKILL); err != nil && !errors.Is(err, syscall.ESRCH) {
-		s.mu.Unlock()
-		return fmt.Errorf("kill process group: %w", err)
+		return nil, fmt.Errorf("kill process group: %w", err)
 	}
 	j.killing = true
-	j.snapshot.Reason = reason
-	done := j.reaped
+	j.killReason = reason
 	s.changed(j)
-	s.mu.Unlock()
-	<-done // Worker reaps and drains before publishing killed and closing the spool.
-	return nil
+	return j.reaped, nil
+}
+func (s *Service) kill(j *job, reason string) error {
+	done, err := s.RequestKill(j, reason)
+	if err == nil {
+		<-done
+	}
+	return err
 }
 func (s *Service) Close() error {
 	s.mu.Lock()

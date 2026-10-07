@@ -2,6 +2,7 @@ package jobs
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"os"
@@ -13,6 +14,16 @@ import (
 )
 
 func (s *Service) Report(owned common.Job, request common.JobReport) error {
+	p, err := s.PrepareReport(context.Background(), owned, request)
+	if err != nil {
+		return err
+	}
+	if err = s.parent.RecordJob(common.Event{Type: "tool_returned", Tool: &p.Event}); err != nil {
+		return err
+	}
+	return s.CommitReport(p)
+}
+func (s *Service) PrepareReport(ctx context.Context, owned common.Job, request common.JobReport) (common.PreparedReport, error) {
 	j := owned.(*job)
 	limits, note, matchStart := request.Limits, request.Note, request.MatchStart
 	timer := time.NewTimer(limits.Delay)
@@ -24,13 +35,13 @@ func (s *Service) Report(owned common.Job, request common.JobReport) error {
 	}
 	for {
 		if s.fault != nil {
-			return s.fault
+			return common.PreparedReport{}, s.fault
 		}
 		matched := false
 		if limits.Pattern != nil && j.snapshot.Bytes > matchStart {
 			file, err := s.open(j)
 			if err != nil {
-				return err
+				return common.PreparedReport{}, err
 			}
 			matched = limits.Pattern.MatchReader(bufio.NewReader(io.NewSectionReader(file, matchStart, j.snapshot.Bytes-matchStart)))
 			file.Close()
@@ -42,6 +53,8 @@ func (s *Service) Report(owned common.Job, request common.JobReport) error {
 		s.mu.Unlock()
 		expired := false
 		select {
+		case <-ctx.Done():
+			expired = true
 		case <-timer.C:
 			expired = true
 		case <-changed:
@@ -52,16 +65,15 @@ func (s *Service) Report(owned common.Job, request common.JobReport) error {
 		}
 	}
 	if s.fault != nil {
-		return s.fault
+		return common.PreparedReport{}, s.fault
 	}
 	text, capped, err := s.content(j, limits.MaxBytes)
 	if err != nil {
-		return err
+		return common.PreparedReport{}, err
 	}
 	snapshot := j.snapshot
 	text += j.reportNote
-	// Holding Jobs' mutex across report append orders its snapshot and cursor with
-	// terminal publication; the long wait above never holds this mutex.
+	// The snapshot and interval are owned values; preparation never consumes output.
 	if snapshot.Status != "done" || j.reports > 0 || capped || note != "" || snapshot.Cwd != "" || snapshot.IsError || j.reportNote != "" {
 		metadata := fmt.Sprintf("job %d status: %s; output: %s; total bytes: %d", snapshot.Handle, snapshot.Status, snapshot.Output.Locator, snapshot.Bytes)
 		if snapshot.Cwd != "" {
@@ -84,11 +96,18 @@ func (s *Service) Report(owned common.Job, request common.JobReport) error {
 		result.Job = &snapshot
 		result.IsError = snapshot.IsError
 	}
-	if err = s.parent.RecordJob(common.Event{Type: "tool_returned", Tool: &result}); err != nil {
-		s.fail(err)
-		return err
+	return common.PreparedReport{Event: result, Handle: snapshot.Handle, From: j.cursor, To: snapshot.Bytes, Generation: j.reports}, nil
+}
+
+// Only accepted reports advance the cursor. Superseded preparations consume nothing.
+func (s *Service) CommitReport(p common.PreparedReport) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	j := s.jobs[p.Handle]
+	if j == nil || j.cursor != p.From || j.reports != p.Generation {
+		return fmt.Errorf("stale report cursor")
 	}
-	j.cursor = snapshot.Bytes
+	j.cursor = p.To
 	j.reports++
 	return nil
 }

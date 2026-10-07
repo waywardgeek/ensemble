@@ -3,6 +3,7 @@ package ensemble
 import (
 	"context"
 	"encoding/json"
+	"example.com/ensemble/internal/common"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -58,7 +59,7 @@ func TestTurnBatchBoundAndFailureRetention(t *testing.T) {
 			} else if err == nil {
 				t.Fatal("missing terminal error")
 			}
-			if mode == "round_limit" && (count != 16 || a.Events()[len(a.Events())-1].Error.Code != "round_limit") {
+			if mode == "round_limit" && (count != 16 || a.Events()[len(a.Events())-1].Turn.Outcome != "round_limit") {
 				t.Fatal("bad bound")
 			}
 			effects := 1
@@ -106,11 +107,13 @@ func TestPersistenceExecutionBoundaries(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			app.Subscribe(a.ID(), callbackObserver(func(o Observation) {
-				if (stage == "before_call" && o.Kind == "response_ended") || (stage == "after_effect" && o.Kind == "tool_called") {
-					a.log.Close()
-				}
-			}))
+			failType := "tool_called"
+			if stage == "after_effect" {
+				failType = "tool_returned"
+			}
+			a.log = &failingEventLog{parent: a, inner: a.log, failType: failType}
+			defer a.Close()
+
 			_, err = a.Prompt(context.Background(), "write")
 			if err == nil {
 				t.Fatal("persistence failure accepted")
@@ -179,7 +182,7 @@ func TestGeminiSignedContinuationAndErrorSurface(t *testing.T) {
 		}
 		var request json.RawMessage
 		json.NewDecoder(r.Body).Decode(&request)
-		for _, want := range []string{`"thoughtSignature":"signed"`, `"id":"call-3-0"`, `"name":"inspect"`, `"error":`} {
+		for _, want := range []string{`"thoughtSignature":"signed"`, `"id":"call-4-0"`, `"name":"inspect"`, `"error":`} {
 			if !strings.Contains(string(request), want) {
 				t.Errorf("missing %s", want)
 			}
@@ -199,7 +202,7 @@ func TestGeminiSignedContinuationAndErrorSurface(t *testing.T) {
 	if err != nil || answer.Text != "" || count != 2 {
 		t.Fatal(answer, err, count)
 	}
-	if got := a.Events()[2].Response.Parts[0].CallID; got != "call-3-0" {
+	if got := a.Events()[3].Response.Parts[0].CallID; got != "call-4-0" {
 		t.Fatal("synthesized ID", got)
 	}
 	if a.Usage() != (Usage{Input: 120, CacheRead: 30, Output: 40}) {
@@ -230,4 +233,21 @@ func TestErrorRenderingEverySurface(t *testing.T) {
 			t.Fatal(vendor, string(body), err)
 		}
 	}
+}
+
+// Failure is injected at the durable writer boundary, never through timing of a
+// display callback. This protects pre-effect and post-effect persistence facts.
+type failingEventLog struct {
+	parent   common.Agent
+	inner    common.EventLog
+	failType string
+}
+
+func (l *failingEventLog) Agent() common.Agent { return l.parent }
+func (l *failingEventLog) Close() error        { return l.inner.Close() }
+func (l *failingEventLog) Append(e Event) error {
+	if e.Type == l.failType {
+		return fmt.Errorf("injected durable write failure")
+	}
+	return l.inner.Append(e)
 }
