@@ -80,17 +80,42 @@ func Ch22Run(dir string) Ch22Result {
 		r.fail("single-composition-root", "%s", detail)
 	}
 
-	// TODO(ch22): these two are not implemented yet. They are failed
-	// EXPLICITLY, with a reason naming the harness rather than the student,
-	// so an incomplete grader cannot be mistaken for a failing tree. The
-	// alternative -- leaving them unexercised -- produced the message "an
-	// earlier failure stopped the run", which blames a student for work the
-	// grader has not done. Design for each is in docs/ch22-grader-design.md.
-	for _, id := range []string{
-		"agent-status-tool",
-		"per-model-cost",
-	} {
-		r.fail(id, "GRADER INCOMPLETE: this check is not implemented yet; see docs/ch22-grader-design.md. This is not a failure of the tree under test.")
+	// The two behavioural checks share one driven session: building the
+	// binary and running a four-turn conversation is the expensive part,
+	// and both checks read the same report out of it.
+	r.ran("agent-status-tool")
+	r.ran("per-model-cost")
+
+	if ok, detail := ch22StatusToolDeclared(dir); !ok {
+		r.fail("agent-status-tool", "%s", detail)
+	}
+
+	run := ch22Drive(dir)
+	switch {
+	case run.fatal != "":
+		r.fail("agent-status-tool", "%s", run.fatal)
+		r.fail("per-model-cost", "the session did not run: %s", run.fatal)
+	case run.status == "":
+		r.fail("agent-status-tool",
+			"the agent never returned a status report: %d requests reached the "+
+				"vendor and no tool result carrying a model and a session total "+
+				"came back. Either agent_status is not registered, or it is not "+
+				"reachable from the skill the run loaded.", run.requests)
+		r.fail("per-model-cost", "no status report was produced, so there is no cost to check")
+	default:
+		e := ch22Expected(run.models)
+		if bad := ch22CheckStatus(run.status, e); len(bad) > 0 {
+			r.fail("agent-status-tool", "%s\n    report was:\n      %s",
+				strings.Join(bad, "\n    "),
+				strings.ReplaceAll(strings.TrimSpace(run.status), "\n", "\n      "))
+		}
+		bad, broken := ch22CheckCost(run.status, e)
+		switch {
+		case broken != "":
+			r.fail("per-model-cost", "GRADER INCOMPLETE: %s", broken)
+		case len(bad) > 0:
+			r.fail("per-model-cost", "%s", strings.Join(bad, "\n    "))
+		}
 	}
 
 	return r
