@@ -14,7 +14,7 @@ commit: `a347ce31511c4b124e486bb41ef98c07bd17cec5`. Evidence-only verifier repai
 Reviewed source plus independent receipts: `8494fdb0e5d6c096445bfac039458b83dd225332`.
 The exact 491-file source export is `solutions/edition-2/ch03/`; its manifest
 is `solutions/edition-2/manifests/ch03-r1.json`. Dedicated chapter checkpoint:
-`edition-2-ch03-r1`. Bill's editorial approval is separate.
+`edition-2-ch03-r1` at `1a61e1f2487cdc94ee65bd0e1593065cc1e95f45`. Bill's editorial approval is separate.
 
 All four modules passed format/vet/tests, inherited grade100, independent
 human45/45, a passing control plus seven exact-failure mutants, and four
@@ -30,9 +30,11 @@ architectural evidence retains its original bindings and scope.
 Chapter 2's accepted human source is frozen at `ch02/`, matching historical
 `ad0d80e33a3a2857e8e0887117d9b099f1a4786d` (42 independent cases, five mutants,
 all-three-provider PTYs). Chapter 4's reviewed contract is ready for a fresh
-new-only student using accepted main. No Chapter 4 implementation exists yet.
-Next action: launch that student, record actual reads, and implement Chapter 4
-including real model-driven Delve through Ensemble's human CLI.
+new-only student using accepted main. Fresh `/root/coder_ch04` is now implementing Chapter 4 in main, launched with
+`fork_turns="none"` and only new teaching/accepted source. It loaded the full
+mandatory skill and contract and passed its initial baseline test. No Chapter 4
+completion, live result or validation is claimed. It must demonstrate real
+model-driven Delve through Ensemble's human CLI, not an external shell.
 
 Chapter 1 is validated against the current chapter contract, with independent
 quality review and real-model receipts. Final student checkpoint:
@@ -117,7 +119,7 @@ inputs. All three real CLI and public-consumer demonstrations succeeded.
   and changed-file formatting passed. The later human-mode results remain separately bound above.
 
 Chapter 4's complete contract passed independent review; it has
-not been released to a student. Its asynchronous events must coexist with
+now been released to a fresh student after the accepted human predecessor. Its asynchronous events must coexist with
 response identity assignment under Agent append serialization.
 
 Chapter 0's execution guide is written and independently reviewed at
@@ -152,10 +154,13 @@ old implementation into the new solution.
 
 - Author: Chapter 4 contract ready; Chapter 5 actor/collection ownership accepted;
   Chapter 6 remains research/outline only until its predecessor is ready.
-- Coder: launch a fresh Chapter 4 context (`fork_turns="none"`) with only new
-  teaching, full mandatory skill, architecture, and accepted preceding source.
-- Global reviewer: human Chapter 3 review accepted; prepare independent Chapter 4
-  lifecycle, owner-isolation, fault and real interactive-debugger checks.
+- Coder: `/root/coder_ch04`, fresh new-only context, working main on Chapter 4.
+- Chapter 4 reviewer: `/root/coder_ch03_chat`, independent of this chapter's
+  new coder, preparing lifecycle/owner/fault/debugger checks before source review.
+  This agent authored the preceding human-client integration; disclose that
+  context rather than claiming total source blindness. The original global-review
+  thread could not resume (tool thread limit); its durable map/reviews/handoff
+  remain available, and the full skill/voice/procedure reload was required.
 - Coordinator: preserve initial attempts, route teaching gaps before coding,
   require actual all-provider human runs, compare/revise/review, then export and
   checkpoint each validated chapter. No pushes or publication yet.

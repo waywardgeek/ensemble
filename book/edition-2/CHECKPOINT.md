@@ -6,10 +6,14 @@ independent receipts are at `8494fdb0e5d6c096445bfac039458b83dd225332`; exact
 491-file export and source/evidence manifest are under `solutions/edition-2/`.
 See `progress.md`, `chapter-03-validation.md` and `chapter-03-human-review.md`.
 
-Next: launch a fresh Chapter 4 coder from accepted main, with new-only context,
-full coding skill and published contract. Actual model-driven Delve through
-Ensemble is required; an external debugger run is insufficient. Chapters 4/5
-contracts are ready (5 awaits predecessor); Chapter 6 is research only.
+Active: `/root/coder_ch04` is implementing Chapter 4 from accepted main in a
+fresh new-only context, with full coding skill and published contract. Actual model-driven Delve through
+Ensemble is required; an external debugger run is insufficient. Chapter 5
+contract is ready pending predecessor; author is developing Chapter 6 teaching.
+`/root/coder_ch03_chat` now performs independent Chapter 4 review/checker work,
+not implementation; its previous client authorship must be disclosed. The old
+global-review thread could not resume because of tool thread capacity. Read its
+durable map/reviews and current progress, not assumptions about live threads.
 
 Consolidation is complete and verified at `8831ce2`. Original nested histories,
 ignored/untracked files, and the old staged merge remain safely archived;
@@ -98,7 +102,7 @@ that limitation; their implementation validation is a separate claim.
 - Chapter 0's execution guide is written and independently reviewed.
   Chapter 3's fresh coder used `fork_turns="none"` and new-only sources; its
   reviewed snapshot is recorded above. Chapter 4's contract passed review,
-  and its predecessor human CLI gate is now accepted; release a fresh student.
+  and its predecessor human CLI gate is accepted; fresh student is active.
   Chapters 1 and 2 now motivate the rules and visibly teach skill loading,
   following Bill's forwarded CodeRhapsody advice.
 
