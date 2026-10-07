@@ -87,20 +87,32 @@ func TestChatAndProtocolUseSamePublicPath(t *testing.T) {
 	}
 }
 
-func TestChatEmptyAndToolOnly(t *testing.T) {
-	for _, parts := range []string{`[{"type":"text","text":""}]`, `[{"type":"tool_use","id":"call-1","name":"inspect","input":{}}]`} {
+func TestChatEmptyAndToolContinuation(t *testing.T) {
+	for _, withCall := range []bool{false, true} {
+		requests := 0
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requests++
+			parts := `[{"type":"text","text":""}]`
+			if withCall && requests == 1 {
+				parts = `[{"type":"text","text":"intermediate narration"},{"type":"tool_use","id":"call-1","name":"unavailable","input":{}}]`
+			}
+			if requests == 2 {
+				body, _ := io.ReadAll(r.Body)
+				if !bytes.Contains(body, []byte(`"tool_use_id":"call-1"`)) || !bytes.Contains(body, []byte(`"is_error":true`)) {
+					t.Error("continuation did not preserve ordinary tool failure and pairing")
+				}
+			}
 			fmt.Fprintf(w, `{"content":%s,"usage":{"input_tokens":1,"output_tokens":2}}`, parts)
 		}))
 		cliConfig(t, server.URL)
 		var out, diag bytes.Buffer
 		err := runArgs([]string{"chat"}, strings.NewReader("hello\n"), &out, &diag)
 		server.Close()
-		want := "[No text returned]"
-		if strings.Contains(parts, "tool_use") {
-			want = "[Tool calls returned; execution is not available in this chapter]"
+		wantRequests := 1
+		if withCall {
+			wantRequests = 2
 		}
-		if err != nil || !strings.Contains(out.String(), want) || !strings.Contains(out.String(), "Final usage: input=1") {
+		if err != nil || requests != wantRequests || strings.Count(out.String(), "Assistant:") != 1 || !strings.Contains(out.String(), "[No text returned]") || strings.Contains(out.String(), "intermediate narration") || !strings.Contains(out.String(), fmt.Sprintf("Final usage: input=%d", wantRequests)) {
 			t.Fatal(err, out.String())
 		}
 	}

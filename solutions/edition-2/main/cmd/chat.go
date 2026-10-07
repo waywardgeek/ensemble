@@ -57,12 +57,6 @@ func runChat(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader,
 		text := result.Text
 		if text == "" {
 			text = "[No text returned]"
-			for _, part := range result.Parts {
-				if part.Type == "tool_call" {
-					text = "[Tool calls returned; execution is not available in this chapter]"
-					break
-				}
-			}
 		}
 		fmt.Fprintf(writer, "Assistant:\n%s\n", text)
 	}
@@ -139,7 +133,7 @@ func chatCommand(owner ensemble.ClientOwner, agent *ensemble.Agent, out *bufio.W
 				hasResult = hasResult || event.Type == "tool_returned"
 			}
 			if !hasResult {
-				fmt.Fprintln(out, "No tool_returned events to redact; this chapter does not execute tools.")
+				fmt.Fprintln(out, "No tool_returned events to redact in this session.")
 			}
 		case "/quit":
 			return true, nil

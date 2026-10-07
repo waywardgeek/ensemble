@@ -1,0 +1,57 @@
+Chapter 3 initial human integration — actual coder PTYs, 2026-10-07
+
+Status: initial integrated implementation and runs complete; independent review pending.
+The coder observed each provider answer and next prompt before submitting the next
+model prompt. These are not Bill's sessions. All paid calls used official provider
+endpoints with fresh model discovery; credentials stayed in memory/child environment.
+
+Implementation: inherited reviewed Chapter2 client, one public Submit path through
+Chapter3's existing Engine tool loop. Remove Chapter2-only unexecuted-tool notices.
+Adapt inherited empty/tool fixture to assert paired error continuation, cumulative
+usage and final-only display. README now explains current invocation and ownership.
+The baseline failure is preserved in baseline.txt; initial-checks.json shows clean
+formatting, vet/tests across all4 modules and build. initial-grade.txt:100/100.
+
+Live feature evidence:
+* anthropic-main: default actual-terminal selection, claude-sonnet-5-5.
+* openai-main: explicit chat, freshly discovered gpt-4.1-mini-2025-04-14.
+* gemini-main: explicit chat, models/gemini-3.8-flash, explicit resolved identity.
+Each directory has terminal.txt, session.log and launch.json binding binary/source
+hashes. Each exercises all6 tools, repeated tool calls, ranged reads, merged search
+context, write/edit disk effects, stdout/stderr and actual exit7; overwrite refusal,
+explicit replacement and append; ambiguous/missing anchors, missing file and bad
+regex with successful recovery; empty-file/range distinction; 1/2/3-byte Unicode
+read caps and 2-byte command cap; silent exit7. tool-feature-map.json maps arguments
+to actual call/result sequences and results, independently verified against disk.
+
+/history visibly exposed result5 and its actual call ID in each run. The coder then
+issued /redact 5 5 demonstration. Every later reconstructed request replaces that
+specific result with [redacted], preserves the call ID, and omits its original text.
+request-before-N.json are offline reconstructions of actual log prefixes, NOT
+intercepted live request bodies. Rendering twice is byte-identical; dump preserves
+records; log and workspace hashes remain unchanged by replay. receipts.json links
+these controls and the single consumed LILAC-614 ephemeral sequence per provider.
+
+/help, /usage, /history, blank lines, malformed commands, and /ephemeral were used
+locally in each main PTY. Final //help escaped to model text and produced two readable
+lines SLASH-OK plus the original invented name: Copper Lantern / Scratch Check /
+SILVER FALCON. All main sessions ended /quit, usage matched log sums, exit0.
+Separate *-eof sessions received Ctrl-D in an actual PTY, exit0 and four zero counts.
+Malformed UTF8/oversized lines, safe provider failure, invalid redaction, explicit
+protocol and redirected-default output use local tests, not paid-failure claims.
+
+Observed model correction: OpenAI omitted the requested overwrite:true call in its
+second turn, then described an incomplete recovery. disk-after-overwrite-turn.json
+and the actual log expose this. The coder asked a corrective followup; real overwrite,
+append and read then succeeded. No agent code change was needed. OpenAI's summary of
+the 2-byte cap calls é an incomplete sequence; the actual retained é is complete UTF8.
+Provider prose is not treated as independent evidence of tool behavior.
+
+Earlier Chapter3 public-consumer, architecture and deterministic evidence remains in
+evidence/ch03/, unchanged. It is not relabeled as new human validation. The optional
+GUI remains a separately built stub; no browser/WebSocket demonstration is claimed.
+Runtime terminal evidence is macOS; inherited Linux implementation is not live-tested.
+
+Source boundary and exact reads: source-read-ledger.json. Fresh discovery metadata:
+discovery.json. Verification program: verify-receipts.py. No grader implementation,
+first-edition solution, agent/ implementation or reviewer research was read.
