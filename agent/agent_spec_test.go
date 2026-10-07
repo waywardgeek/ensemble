@@ -58,10 +58,13 @@ func TestNewAgentBuildsCompleteAgent(t *testing.T) {
 		{"Journal", eng.Journal != nil},
 		{"Cache", eng.Cache != nil},
 		{"Memory", eng.Memory != nil},
-		{"Recall", eng.Recall != nil},
 		{"Target", eng.Target != nil},
 		{"ToolRoundLimit", eng.ToolRoundLimit != nil},
 		{"Bands", eng.Bands != nil},
+		// Recall is deliberately absent from this list. It is left nil when
+		// nothing is archived, which is the state of every agent on its first
+		// run, so a fresh data directory must NOT have one. Asserting it
+		// non-nil here would be asserting a bug.
 	}
 	for _, c := range caps {
 		if !c.ok {

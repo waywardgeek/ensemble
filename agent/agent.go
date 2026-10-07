@@ -223,6 +223,17 @@ type AgentSpec struct {
 
 	// LogPath overrides the log location. Empty places it inside DataDir.
 	LogPath string
+
+	// SavePath overrides the save file location. Empty places it inside
+	// DataDir.
+	//
+	// LogPath and SavePath are the only two overrides, and they exist because
+	// both were already explicit configuration before an agent had a
+	// directory: the log honoured CH02_LOG and the save file honoured --save,
+	// which a grader still passes. They are paths, which is data. A new
+	// CAPABILITY must never be added here -- that is the dependency bag this
+	// type replaced, and it is how the engine came to be stapled nine times.
+	SavePath string
 }
 
 // Path returns the location of one of this agent's files.
@@ -254,6 +265,16 @@ func NewAgent(cfg Config, spec AgentSpec) (*Agent, error) {
 	}
 	a.jobs = jobs.NewJobs(a)
 	a.reg = tools.NewRegistry()
+
+	// Three log destinations, all inside this agent's own directory. The CLI
+	// root used to create these two in the working directory, which meant two
+	// agents in one process would have written over each other's wire logs.
+	if f, err := os.Create(spec.Path("api.log")); err == nil {
+		a.Logger.SetAPILog(f)
+	}
+	if f, err := os.Create(spec.Path("debug.log")); err == nil {
+		a.Logger.SetDebugLog(f)
+	}
 
 	// Register built-in variable renderers.
 	a.vars.Register("TOOLS", skills.BuiltinToolsRenderer(a.skills, a.reg))
@@ -300,16 +321,39 @@ func NewAgent(cfg Config, spec AgentSpec) (*Agent, error) {
 func (a *Agent) attachState() error {
 	spec := a.spec
 
-	// Cache captures land beside the agent's other logs.
+	// Capture failures are worth a diagnostic and not worth dying over. The
+	// captures land in this agent's data directory, beside its other logs.
 	a.eng.Cache = cachelens.New(spec.DataDir, func(s string) { a.Debugf("%s", s) })
 
-	savePath := spec.Path("save.json")
+	// Load at start (chapter 11 rule 2). No flag decides this; the files'
+	// existence does. Recover assembles snapshot + log + journal tail;
+	// Restore applies the tail, skipping any event it cannot apply.
+	savePath := a.SavePath()
 	sf, err := llm.Recover(savePath, func(err error) { a.Logf("load: %v", err) })
 	if err != nil {
-		return fmt.Errorf("recover %s: %w", savePath, err)
+		// A file that exists but does not parse is fatal to this agent. We
+		// must NOT start fresh over it: the agent saves at exit, and a fresh
+		// start would write an empty conversation over the user's history.
+		// Name the file, touch none of its bytes, and let a human look at it.
+		return fmt.Errorf("cannot load save file %s: %w", savePath, err)
 	}
 	a.save = sf
-	a.eng.Ctx = sf.Restore(func(err error) { a.Logf("load: %v", err) })
+	if len(sf.Log) > 0 || sf.Context != nil {
+		// Rule 3: install the snapshot, then apply only the tail above its
+		// anchor. Restore handles the null-snapshot case too.
+		a.eng.Ctx = sf.Restore(func(err error) { a.Logf("load: %v", err) })
+		// The loaded log is kept whole: rule 6 saves it back plus whatever
+		// this session adds. Restoring the context consumed the tail; it did
+		// not consume the history.
+		a.eng.Log.Events = sf.Log
+		// Rule 5: numbering continues past both the anchor and the log, which
+		// is why NextSeq looks at both.
+		llm.ResetSeq(a.eng.Log, sf.NextSeq())
+		// Rule 7 is enforced by what is ABSENT here: nothing copies sf.Config
+		// back into cfg. The save records what shaped the wire so a human can
+		// read it; the running agent's own model, vendor, prompt and tools
+		// win.
+	}
 
 	jr, err := llm.OpenJournal(llm.JournalPath(savePath))
 	if err != nil {
@@ -318,21 +362,47 @@ func (a *Agent) attachState() error {
 	a.journal = jr
 	a.eng.Journal = jr
 
+	// Chapter 15 rule 10: the context target comes from this agent's
+	// settings.json, read whether or not a GUI is up, and re-read on every
+	// request so a change applies to the next cut and never to a recorded one.
 	a.settings = settings.NewSettingsStore(spec.Path("settings.json"))
 	a.eng.Target = func() int { return a.settings.Get().ContextTarget }
 	a.eng.ToolRoundLimit = func() int { return a.settings.Get().MaxToolRounds }
+
+	// Chapter 16. The memory directory sits beside the save file, because it
+	// is the same kind of thing: the part of this agent that outlives the
+	// process. Bands are re-read on every check for the same reason the
+	// context target is.
+	a.eng.Memory = llm.NewStore(spec.Path("memory"))
 	a.eng.Bands = func() common.BandConfig { return a.settings.Get().Memory.Normalized() }
 
-	a.eng.Memory = llm.NewStore(spec.Path("memory"))
-	a.eng.SyncBands("startup")
-
-	// Recall is assembled here because this is the one place that is allowed
-	// to know about both halves.
-	a.eng.Recall = recall.New(
+	// Chapter 17. Recall is assembled here because this is the one place
+	// allowed to know about both halves. internal/recall knows how to score
+	// text and nothing about models; internal/llm knows how to call a model
+	// and nothing about scoring. They do not import each other and could not
+	// -- they are both spokes, and a spoke importing a spoke is how a star
+	// quietly becomes a graph.
+	recaller := recall.New(
 		recall.DefaultSources(spec.DataDir, spec.SkillDir),
 		llm.NewJudge(a.eng),
 		recall.DefaultConfig(),
 	)
+	if recaller.Indexed() > 0 {
+		// Left nil when there is nothing archived, which is the state of every
+		// agent on its first run. Nil is not a degraded mode to be apologised
+		// for: with an empty archive every retrieval would score nothing, and
+		// the only observable effect of wiring it up would be a judge call per
+		// turn that can only ever answer NONE.
+		a.eng.Recall = recaller
+	}
+
+	// Populate the bands from what is on disk before the first turn, so a
+	// restart comes back with the same memory it went down with. A failure
+	// here is worth saying out loud and not worth dying over: an agent with no
+	// memory can still work, it just cannot remember having done so.
+	if err := a.eng.SyncBands("startup"); err != nil {
+		a.Logf("memory: could not load bands at startup: %v", err)
+	}
 	return nil
 }
 
@@ -366,6 +436,17 @@ func (a *Agent) Settings() *settings.SettingsStore { return a.settings }
 
 // SaveFile returns the agent's save file.
 func (a *Agent) SaveFile() *llm.SaveFile { return a.save }
+
+// Journal returns the agent's event journal.
+func (a *Agent) Journal() *llm.Journal { return a.journal }
+
+// SavePath returns where this agent's conversation is saved.
+func (a *Agent) SavePath() string {
+	if a.spec.SavePath != "" {
+		return a.spec.SavePath
+	}
+	return a.spec.Path("save.json")
+}
 
 // Spec returns the specification this agent was built from.
 func (a *Agent) Spec() AgentSpec { return a.spec }

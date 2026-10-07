@@ -24,15 +24,10 @@ import (
 	"syscall"
 
 	agent "github.com/waywardgeek/ensemble/agent"
-	"github.com/waywardgeek/ensemble/agent/internal/cachelens"
 	"github.com/waywardgeek/ensemble/agent/internal/common"
-	"github.com/waywardgeek/ensemble/agent/internal/jobs"
 	"github.com/waywardgeek/ensemble/agent/internal/llm"
 	"github.com/waywardgeek/ensemble/agent/internal/mcp"
-	"github.com/waywardgeek/ensemble/agent/internal/recall"
 	"github.com/waywardgeek/ensemble/agent/internal/settings"
-	"github.com/waywardgeek/ensemble/agent/internal/skills"
-	"github.com/waywardgeek/ensemble/agent/internal/tools"
 	"github.com/waywardgeek/ensemble/agent/internal/ws"
 )
 
@@ -160,8 +155,7 @@ func main() {
 		mode = args[0]
 	}
 
-	reg := tools.NewRegistry()
-	cfg, err := configFromEnv(reg)
+	cfg, err := configFromEnv()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, "config:", err)
 		os.Exit(2)
@@ -245,12 +239,12 @@ func main() {
 		// actor, skills, recall or save file, which meant the terminal could
 		// not reproduce a single GUI-reported bug. Pass --port as well to run
 		// both front ends against one agent.
-		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath, mcpPort, true, verbose) {
+		if runActorLoop(cfg, logPath, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath, mcpPort, true, verbose) {
 			os.Exit(1)
 		}
 
 	case "":
-		if runActorLoop(cfg, logPath, reg, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath, mcpPort, false, verbose) {
+		if runActorLoop(cfg, logPath, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath, mcpPort, false, verbose) {
 			os.Exit(1)
 		}
 
@@ -259,42 +253,6 @@ func main() {
 		usage(os.Stderr)
 		os.Exit(2)
 	}
-}
-
-// cliHost implements common.Agent for the CLI with three log destinations.
-type cliHost struct {
-	// UsageCounter holds this run's token totals. cliHost is the composition
-	// root for the server, so its lifespan is the process — which is exactly
-	// the session the header reports on.
-	common.UsageCounter
-
-	logger *agent.Logger
-}
-
-func newCLIHost() *cliHost {
-	logger := agent.DefaultLogger()
-
-	// API log: raw JSON wire traffic.
-	if f, err := os.Create("api.log"); err == nil {
-		logger.SetAPILog(f)
-	}
-
-	// Debug log: arbitrary text, also printed to stderr.
-	if f, err := os.Create("debug.log"); err == nil {
-		logger.SetDebugLog(f)
-	}
-
-	return &cliHost{logger: logger}
-}
-
-func (h *cliHost) Logf(format string, args ...any) {
-	h.logger.Logf(format, args...)
-}
-func (h *cliHost) APILogf(format string, args ...any) {
-	h.logger.APILogf(format, args...)
-}
-func (h *cliHost) Debugf(format string, args ...any) {
-	h.logger.Debugf(format, args...)
 }
 
 // ----------------------------------------------------------------
@@ -312,173 +270,60 @@ type stdinMsg struct {
 	Ephemeral *string `json:"ephemeral"`
 }
 
-func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string, guiDir string, savePath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string, mcpPort string, textMode, verboseText bool) (vendorFailed bool) {
-	host := newCLIHost()
-	j := jobs.NewJobs(host)
-
-	// Set up skills.
+func runActorLoop(cfg common.Config, logPath string, port string, guiDir string, savePath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string, mcpPort string, textMode, verboseText bool) (vendorFailed bool) {
+	// One agent, built by the library's own constructor.
+	//
+	// Everything that follows used to be assembled here by hand: a second
+	// logging host, a second job table, a second tool registry, a second
+	// engine. None of it was deliberate. NewAgent had no caller, so when a
+	// capability arrived it was easier to staple it onto the engine here than
+	// to teach a constructor nobody was using.
 	skillDir := envOr("EN_SKILLS_DIR", "skills")
 	if skillsDir != "" {
 		skillDir = skillsDir
 	}
-	sr := skills.NewSkillRegistry()
-	vars := skills.NewVarRegistry()
+	primaryName := envOr("EN_PRIMARY_SKILL", "ensemble")
 
-	// Built-in variable renderers.
-	vars.Register("TOOLS", skills.BuiltinToolsRenderer(sr, reg))
-	vars.Register("SKILLS", skills.BuiltinSkillsRenderer(sr))
+	a, err := agent.NewAgent(cfg, agent.AgentSpec{
+		DataDir:  ".",
+		SkillDir: skillDir,
+		Skills:   []string{primaryName},
+		LogPath:  logPath,
+		SavePath: savePath,
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "%v\n", err)
+		os.Exit(1)
+	}
 
-	// Application-specific variable renderers (from environment).
+	host := a
+	j := a.Jobs()
+	reg := a.Registry()
+	sr := a.Skills()
+	vars := a.Vars()
+	eng := a.Engine()
+
+	// Application-specific variable renderers, from the environment. These are
+	// registered after construction because only skills loaded later in the
+	// session can reference them; the primary skill body cannot, since it was
+	// rendered during NewAgent.
 	if cv := os.Getenv("EN_CUSTOM_VAR"); cv != "" {
 		vars.Register("CUSTOM_VAR", func() string { return cv })
 	}
 
-	// Discover and load skills.
-	if err := sr.DiscoverSkills(skillDir); err != nil {
-		fmt.Fprintf(os.Stderr, "skills: %v\n", err)
-	}
-
-	// Load the primary skill to set the system prompt. Defaulting to "ensemble"
-	// means a bare `./ensemble --port 8084` gets a full toolset: the tool filter
-	// enables only what a loaded skill declares, so an agent with no skill
-	// loaded would be left with just load_skill and unload_skill. This is a
-	// warning rather than fatal because the agent is also run without any
-	// skills directory at all, where no filtering is the correct behaviour.
-	primaryName := envOr("EN_PRIMARY_SKILL", "ensemble")
-	if err := sr.LoadInitial(primaryName, vars); err != nil {
-		fmt.Fprintf(os.Stderr, "primary skill %q: %v\n", primaryName, err)
-	}
-	// Build the system prompt from initial skill bodies.
-	bodies := sr.InitialBodies()
-	if len(bodies) > 0 {
-		cfg.SystemPrompt = strings.Join(bodies, "\n\n---\n\n")
-	}
-
-	// Wire skill-based tool filtering and load_skill/unload_skill tools.
-	reg.SetSkillRegistry(sr)
-
-	// keep_tool_results means nothing on a model whose features row does
-	// not enable per-round-trip stubbing (ch15 rule 6), so it is not
-	// declared there: a tool that silently does nothing is a lie in the
-	// prompt.
-	//
-	// This is the same call the actor makes on a model switch, so startup
-	// and switch cannot drift apart: one function decides, in both cases.
-	reg.SyncModelGatedTools(cfg.Model)
-
-	// Rebuild tool declarations with skill filtering applied.
-	cfg.Tools = reg.Declarations()
-
-	eng := llm.NewEngine(cfg, logPath, j, reg, host)
 	attachCredentials(eng, cfg)
-
-	// Cache analysis is on by default, like api.log and debug.log.
+	// The engine's capabilities -- the cache lens, restored context, the
+	// journal, settings, memory, memory bands and recall -- are built by
+	// NewAgent now, inside this agent's own data directory.
 	//
-	// A cache miss is the one failure in this program that produces a correct
-	// answer, so nothing else will ever report it: no error, no exception, no
-	// failing test. It shows up only on the invoice, thirty days later,
-	// aggregated past the point where you could tell which change caused it. A
-	// failure with no natural signal needs a manufactured one, and a signal
-	// that has to be switched on is off on the day you need it.
-	//
-	// The captures land in the working directory beside the other two logs.
-	eng.Cache = cachelens.New(".", func(s string) { host.Debugf("%s", s) })
-
-	// Load at start (rule 2). No flag decides this; the files' existence
-	// does. Chapter 15 adds the journal: every event recorded since the
-	// last snapshot, so a session that was killed resumes where it died.
-	// Recover assembles snapshot + log + journal tail; Restore applies the
-	// tail, skipping (and logging) any event it cannot apply.
-	sf, err := llm.Recover(savePath, func(err error) { host.Logf("load: %v", err) })
-	if err != nil {
-		// A file that exists but does not parse is fatal. We must
-		// NOT start fresh over it: the agent saves at exit, and a
-		// fresh start would write an empty conversation over the
-		// user's history. Name the file, touch none of its bytes,
-		// and let a human look at it.
-		fmt.Fprintf(os.Stderr, "agent: cannot load save file %s: %v\n", savePath, err)
-		os.Exit(1)
-	}
-	if len(sf.Log) > 0 || sf.Context != nil {
-		// Rule 3: install the snapshot, then apply only the tail above
-		// its anchor. Restore handles the null-snapshot case too.
-		eng.Ctx = sf.Restore(func(err error) { host.Logf("load: %v", err) })
-		// The loaded log is kept whole: rule 6 saves it back plus
-		// whatever this session adds. Restoring the context consumed
-		// the tail; it did not consume the history.
-		eng.Log.Events = sf.Log
-		// Rule 5: numbering continues past both the anchor and the log,
-		// which is why NextSeq looks at both.
-		llm.ResetSeq(eng.Log, sf.NextSeq())
-		// Rule 7 is enforced by what is ABSENT here: nothing copies
-		// sf.Config back into cfg. The save records what shaped the
-		// wire so a human can read it; the running agent's own model,
-		// vendor, prompt and tools win. The ch2 context is
-		// vendor-independent, so a conversation saved against one
-		// vendor resumes against another.
-	}
-	journal, err := llm.OpenJournal(llm.JournalPath(savePath))
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "agent: %v\n", err)
-		os.Exit(1)
-	}
-	defer journal.Close()
-	eng.Journal = journal
-
-	// Chapter 15 rule 10: the context target comes from settings.json,
-	// read whether or not the GUI is up, and re-read on every request so a
-	// change applies to the next cut and never to a recorded one.
-	settingsStore := settings.NewSettingsStore(filepath.Join(".", "settings.json"))
-	eng.Target = func() int { return settingsStore.Get().ContextTarget }
-	eng.ToolRoundLimit = func() int { return settingsStore.Get().MaxToolRounds }
-
-	// Chapter 16. The memory directory sits beside the save file, because
-	// it is the same kind of thing: the part of this agent that outlives
-	// the process. Bands are re-read on every check for the same reason
-	// the context target is, so switching a band off in the GUI takes
-	// effect on the next turn rather than on the next launch.
-	eng.Memory = llm.NewStore(filepath.Join(".", "memory"))
-	eng.Bands = func() common.BandConfig { return settingsStore.Get().Memory.Normalized() }
-
-	// Chapter 17. Recall is assembled here, at the top, because this is the
-	// only place in the program that is allowed to know about both halves.
-	//
-	// internal/recall knows how to score text and nothing about models.
-	// internal/llm knows how to call a model and nothing about scoring. They
-	// do not import each other and could not — they are both spokes, and a
-	// spoke importing a spoke is how a star quietly becomes a graph. The two
-	// are joined by two interfaces that live in the hub: the engine accepts a
-	// common.Recaller, and the recaller accepts a common.SnippetJudge. Main
-	// is where the concrete types on either side of those interfaces are
-	// finally allowed to meet.
-	//
-	// The judge is a plain function call that happens to be evaluated by a
-	// language model. It is not a sub-agent: it has no dialogue, no tools, no
-	// memory of the last time it was asked, and no ability to do anything
-	// except return text. Every call starts from nothing.
-	recaller := recall.New(
-		recall.DefaultSources(".", skillDir),
-		llm.NewJudge(eng),
-		recall.DefaultConfig(),
-	)
-	if recaller.Indexed() > 0 {
-		// Left nil when there is nothing archived, which is the state of
-		// every agent on its first run. Nil is not a degraded mode to be
-		// apologised for: with an empty archive, every retrieval would score
-		// nothing and the only observable effect of wiring it up would be a
-		// judge call per turn that can only ever answer NONE.
-		eng.Recall = recaller
-	}
-
-	// Populate the bands from what is on disk before the first turn, so a
-	// restart comes back with the same memory it went down with. A failure
-	// here is worth saying out loud and not worth dying over: an agent
-	// with no memory can still work, it just cannot remember having done so.
-	if err := eng.SyncBands("startup"); err != nil {
-		host.Logf("memory: could not load bands at startup: %v", err)
-	}
-
-	actor := llm.NewActor(eng, host)
+	// All of them used to be stapled onto the engine here, one assignment at
+	// a time, over five chapters. That is precisely how the library's
+	// constructor fell sixteen chapters behind without anyone noticing: a
+	// capability added here cost one line, and a capability added to NewAgent
+	// would have had to be added to a function with no callers.
+	settingsStore := a.Settings()
+	actor := a.Actor()
+	defer a.Journal().Close()
 
 	// Wire load_skill/unload_skill now that we have the event log.
 	reg.WireSkills(sr, vars, eng.Log)
@@ -908,7 +753,7 @@ func runActorLoop(cfg common.Config, logPath string, reg *tools.Reg, port string
 	// it outright.
 	if err := llm.SaveRetaining(savePath, asOf, eng.Ctx, eng.Log, eng.Cfg, settingsStore.Get().LogRetention); err != nil {
 		fmt.Fprintf(os.Stderr, "save: %v\n", err)
-	} else if err := journal.Reset(); err != nil {
+	} else if err := a.Journal().Reset(); err != nil {
 		fmt.Fprintf(os.Stderr, "save: %v\n", err)
 	}
 
@@ -998,7 +843,7 @@ func emit(out *bufio.Writer, v any) {
 	out.Flush()
 }
 
-func configFromEnv(reg *tools.Reg) (common.Config, error) {
+func configFromEnv() (common.Config, error) {
 	// Settle the model before the vendor, because the vendor is a property of
 	// the model and not an independent choice. Resolving the vendor first and
 	// then choosing a model inside it means a model named anywhere other than
@@ -1045,7 +890,6 @@ func configFromEnv(reg *tools.Reg) (common.Config, error) {
 		Vendor:       vendor,
 		SystemPrompt: systemPrompt,
 		MaxTokens:    16384,
-		Tools:        reg.Declarations(),
 	}
 	cfg.Endpoints = common.ResolveEndpoints(pick)
 	active := cfg.Endpoints[vendor]

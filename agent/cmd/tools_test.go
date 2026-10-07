@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/waywardgeek/ensemble/agent"
 	"github.com/waywardgeek/ensemble/agent/internal/common"
 	"github.com/waywardgeek/ensemble/agent/internal/jobs"
 	"github.com/waywardgeek/ensemble/agent/internal/llm"
@@ -192,7 +193,7 @@ func TestToolLimitsConsumptionIsVisible(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]any{"id": "test", "type": "message", "role": "assistant", "model": "claude-sonnet-5", "content": parts, "stop_reason": "end_turn", "usage": map[string]int{"input_tokens": 1, "output_tokens": 1}})
 	}))
 	defer srv.Close()
-	host := newCLIHost()
+	host := agent.DefaultLogger()
 	e := llm.NewEngine(common.Config{Vendor: common.VendorAnthropic, Model: "claude-sonnet-5", BaseURL: srv.URL, APIKey: "test"}, "log.jsonl", jobs.NewJobs(host), tools.NewRegistry(), host)
 	actor := llm.NewActor(e, e.Agent())
 	defer actor.Shutdown()
