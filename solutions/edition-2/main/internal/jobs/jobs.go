@@ -2,12 +2,14 @@
 package jobs
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
 	"syscall"
+	"time"
 
 	"example.com/ensemble/internal/common"
 )
@@ -21,6 +23,7 @@ type Service struct {
 	fault   error
 }
 type job struct {
+	inputGate  chan struct{}
 	parent     common.Jobs
 	snapshot   common.JobSnapshot
 	file       *os.File
@@ -88,7 +91,7 @@ func (s *Service) Create() (common.Job, error) {
 		}
 		break
 	}
-	j := &job{parent: s, snapshot: common.JobSnapshot{Handle: handle, Status: "running", Output: common.Ref{Kind: 3, Locator: locator}}, file: file, changed: make(chan struct{}), reaped: make(chan struct{})}
+	j := &job{parent: s, snapshot: common.JobSnapshot{Handle: handle, Status: "running", Output: common.Ref{Kind: 3, Locator: locator}}, file: file, changed: make(chan struct{}), reaped: make(chan struct{}), inputGate: make(chan struct{}, 1)}
 	s.jobs[handle] = j
 	return j, nil
 }
@@ -226,19 +229,47 @@ func (s *Service) Lookup(handle uint64) (common.Job, error) {
 }
 func (s *Service) Kill(owned common.Job, reason string) error { return s.kill(owned.(*job), reason) }
 func (s *Service) Send(owned common.Job, input string) (int64, error) {
+	position, _, err := s.SendContext(context.Background(), owned, input)
+	return position, err
+}
+func (s *Service) SendContext(ctx context.Context, owned common.Job, input string) (int64, int, error) {
 	j := owned.(*job)
+	// Only input workers acquire this gate. Waiting for another writer is itself
+	// cancelable; a writer joins its deadline hook before releasing the descriptor.
+	select {
+	case j.inputGate <- struct{}{}:
+		defer func() { <-j.inputGate }()
+	case <-ctx.Done():
+		return 0, 0, ctx.Err()
+	}
+	if err := ctx.Err(); err != nil {
+		return 0, 0, err
+	}
 	s.mu.Lock()
 	if j.snapshot.Status != "running" || j.killing || j.terminal == nil {
 		s.mu.Unlock()
-		return 0, fmt.Errorf("job is finished or has no input-capable process")
+		return 0, 0, fmt.Errorf("job is finished or has no input-capable process")
 	}
 	matchStart := j.snapshot.Bytes
 	terminal := j.terminal
 	s.mu.Unlock()
-	if _, err := terminal.Write([]byte(input)); err != nil {
-		return 0, fmt.Errorf("send input: %w", err)
+	settled := make(chan struct{})
+	stop := context.AfterFunc(ctx, func() {
+		defer close(settled)
+		_ = terminal.SetWriteDeadline(time.Now())
+	})
+	n, err := terminal.Write([]byte(input))
+	if !stop() {
+		<-settled
 	}
-	return matchStart, nil
+	_ = terminal.SetWriteDeadline(time.Time{})
+	if err != nil {
+		if ctx.Err() != nil {
+			err = ctx.Err()
+		}
+		return matchStart, n, fmt.Errorf("send input after %d of %d bytes: %w", n, len(input), err)
+	}
+	return matchStart, n, nil
 }
 
 // Abort releases an allocation whose pre-dispatch event failed. It never

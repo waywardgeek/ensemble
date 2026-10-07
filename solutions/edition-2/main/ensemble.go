@@ -226,11 +226,20 @@ func (e *Ensemble) Subscribe(agentID string, observer Observer) (uint64, error) 
 	if e.agents[agentID] == nil || observer == nil {
 		return 0, fmt.Errorf("invalid observer subscription")
 	}
+	if e.closed {
+		return 0, common.StoppedError{}
+	}
 	e.nextObserver++
 	s := &subscription{parent: e, agentID: agentID, observer: observer, queue: make(chan Observation, 256), done: make(chan struct{})}
 	e.observers[e.nextObserver] = s
 	go func() {
-		defer close(s.done)
+		defer func() {
+			e.mu.Lock()
+			s.observer = nil
+			s.queue = nil
+			close(s.done)
+			e.mu.Unlock()
+		}()
 		for observation := range s.queue {
 			s.observer.Observe(observation)
 		}

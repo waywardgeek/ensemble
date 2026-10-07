@@ -63,6 +63,7 @@ type ReportTask struct {
 	Ready   <-chan struct{}
 	Job     Job
 	Request JobReport
+	Input   *string
 }
 type PreparedReport struct {
 	Generation int

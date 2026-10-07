@@ -69,6 +69,46 @@
       "path": "book/edition-2/chapter-05-student-feedback.md",
       "sha256": "6763219b1c7ae07bbf5a42e9dffd58ec886ed50923b61ac982705f0ab2d8582c",
       "reason": "final initial-review confirmation; accepted section5.7 response"
+    },
+    {
+      "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+      "sha256": "637f2607c059e479e54655a07b2fca3117d4aad4c03d754644c276ddb5bf0a46",
+      "reason": "Gemini3.8 scope continuation; skill/architecture/current chapter reloaded before dependent work"
+    },
+    {
+      "path": "book/edition-2/architecture.md",
+      "sha256": "75e1c7422e0b0c32eded2be2ac8a89b31b4541995c20a96a05fddbf0be246957",
+      "reason": "Gemini3.8 scope continuation; skill/architecture/current chapter reloaded before dependent work"
+    },
+    {
+      "path": "book/edition-2/chapter-05.md",
+      "sha256": "4531a562069080780f5d2dc40a79b66493b2dc0f4a2e7b0e0fed7e3c54388820",
+      "reason": "Gemini3.8 scope continuation; skill/architecture/current chapter reloaded before dependent work"
+    },
+    {
+      "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+      "sha256": "022fedaf295f8a9fea11de45b4c0a45bf0b47a1441be4384c6884a534bdc84df",
+      "reason": "read revised Gemini wire-hint explanation and exact3.8 live scope; confirm renderer and consumption match"
+    },
+    {
+      "path": "book/edition-2/chapter-05.md",
+      "sha256": "c7ac43417c7a888b570acf8eeb4f68dadb52ffcf43727accf4cfbb552618b65a",
+      "reason": "read revised Gemini wire-hint explanation and exact3.8 live scope; confirm renderer and consumption match"
+    },
+    {
+      "path": "book/edition-2/workflow.md",
+      "sha256": "b44ee30f1cb5d43a971b06473468e3a175b0890600d54e0a902a7e59d8903384",
+      "reason": "read revised Gemini wire-hint explanation and exact3.8 live scope; confirm renderer and consumption match"
+    },
+    {
+      "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+      "sha256": "022fedaf295f8a9fea11de45b4c0a45bf0b47a1441be4384c6884a534bdc84df",
+      "reason": "full skill reload; R1 process-input cancellation and R2 subscription lifecycle teaching read before affected repair"
+    },
+    {
+      "path": "book/edition-2/chapter-05.md",
+      "sha256": "36250b8a773a21eb15c1e1ded4f813f1252e6c23b76c58b7905c0e14c38a22d9",
+      "reason": "full skill reload; R1 process-input cancellation and R2 subscription lifecycle teaching read before affected repair"
     }
   ],
   "baseline_source_reads": [
@@ -214,6 +254,16 @@
       "url": "https://ai.google.dev/gemini-api/docs/generate-content/function-calling?hl=en",
       "at": "2026-10-07",
       "scope": "current official function-call guide read during live failure diagnosis"
+    }
+  ],
+  "dependency_reference_reads": [
+    {
+      "path": "github.com/creack/pty@v1.1.24/README.md",
+      "scope": "deadline/nonblocking note"
+    },
+    {
+      "path": "github.com/creack/pty@v1.1.24/pty_darwin.go",
+      "scope": "file descriptor setup for deadline-support diagnosis"
     }
   ]
 }

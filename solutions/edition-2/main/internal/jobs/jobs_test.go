@@ -240,6 +240,61 @@ func TestPatternInputAndKillGroup(t *testing.T) {
 		t.Fatal(terminal)
 	}
 }
+
+func TestCancelablePTYWriteRetainsJobAndAllowsNextWriter(t *testing.T) {
+	s, a := harness(t)
+	j := launch(t, s, a, "stty -echo -icanon; printf READY; while [ ! -f read-now ]; do sleep 0.01; done; cat")
+	ready := common.Limits{Delay: 2 * time.Second, Pattern: regexp.MustCompile("READY"), MaxBytes: 16384}
+	if err := s.Report(j, common.JobReport{Limits: ready, Original: true, MatchStart: -1}); err != nil {
+		t.Fatal(err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	type writeResult struct {
+		position int64
+		accepted int
+		err      error
+	}
+	done := make(chan writeResult, 1)
+	go func() {
+		position, accepted, err := s.SendContext(ctx, j, strings.Repeat("x", 1<<20))
+		done <- writeResult{position, accepted, err}
+	}()
+	// The READY barrier establishes raw mode and a process that cannot read yet.
+	// A completed megabyte write here would invalidate the full-buffer fixture.
+	select {
+	case result := <-done:
+		t.Fatal("input unexpectedly fit in unread PTY", result)
+	case <-time.After(100 * time.Millisecond):
+	}
+	cancel()
+	var result writeResult
+	select {
+	case result = <-done:
+	case <-time.After(time.Second):
+		t.Fatal("cancel did not settle writer")
+	}
+	if result.err == nil || result.accepted <= 0 || result.accepted >= 1<<20 || result.position != int64(len("READY")) || j.Snapshot().Status != "running" {
+		t.Fatal("partial effects or pre-write position not retained", result, j.Snapshot())
+	}
+	if err := os.WriteFile(filepath.Join(s.parent.Workspace(), "read-now"), nil, 0600); err != nil {
+		t.Fatal(err)
+	}
+	next, stop := context.WithTimeout(context.Background(), time.Second)
+	defer stop()
+	position, accepted, err := s.SendContext(next, j, "SECOND-WRITE")
+	if err != nil || accepted != len("SECOND-WRITE") {
+		t.Fatal("late cancellation poisoned next writer", accepted, err)
+	}
+	limits := common.Limits{Delay: time.Second, Pattern: regexp.MustCompile("SECOND-WRITE"), MaxBytes: 16384}
+	p, err := s.PrepareReport(next, j, common.JobReport{Limits: limits, MatchStart: position})
+	if err != nil || !strings.Contains(output(p.Event), "SECOND-WRITE") {
+		t.Fatal("second write not delivered", p, err)
+	}
+	if err = s.Kill(j, "test cleanup"); err != nil {
+		t.Fatal(err)
+	}
+}
 func TestShutdownKillsChildAndFailureStillCleans(t *testing.T) {
 	for _, fault := range []bool{false, true} {
 		t.Run(fmt.Sprint(fault), func(t *testing.T) {

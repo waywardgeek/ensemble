@@ -1,6 +1,7 @@
 package tools
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -83,6 +84,13 @@ func (r *Registry) Supervise(call common.Part, limits common.Limits, note string
 	if task.Ready != nil {
 		<-task.Ready
 	}
+	if task.Input != nil {
+		var err error
+		task.Request.MatchStart, _, err = r.parent.Jobs().SendContext(context.Background(), task.Job, *task.Input)
+		if err != nil {
+			return err
+		}
+	}
 	return r.parent.Jobs().Report(task.Job, task.Request)
 }
 func (r *Registry) BeginSupervision(call common.Part, limits common.Limits, note string) (*common.ToolEvent, *common.ReportTask) {
@@ -122,16 +130,17 @@ func (r *Registry) BeginSupervision(call common.Part, limits common.Limits, note
 		return finish("", err)
 	}
 	var ready <-chan struct{}
+	var input *string
 	request := common.JobReport{CallID: call.CallID, Limits: limits, Note: note, MatchStart: -1}
 	switch call.Name {
 	case "kill_job":
 		ready, err = manager.RequestKill(job, "kill_job")
 	case "send_input":
-		input := args["input"].(string)
+		text := args["input"].(string)
 		if args["append_newline"].(bool) {
-			input += "\n"
+			text += "\n"
 		}
-		request.MatchStart, err = manager.Send(job, input)
+		input = &text
 	case "wait_for_job":
 	default:
 		return finish("", r.failure("not a supervision operation"))
@@ -139,5 +148,5 @@ func (r *Registry) BeginSupervision(call common.Part, limits common.Limits, note
 	if err != nil {
 		return finish("", err)
 	}
-	return nil, &common.ReportTask{Job: job, Request: request, Ready: ready}
+	return nil, &common.ReportTask{Job: job, Request: request, Ready: ready, Input: input}
 }

@@ -30,6 +30,7 @@ type Actor struct {
 	closing   bool
 	fault     error
 	closeErr  error
+	faulted   *request
 }
 type request struct {
 	parent     common.Actor
@@ -42,6 +43,7 @@ type request struct {
 	calls      []common.Part
 	index      int
 	report     *common.ReportTask
+	ending     string
 }
 
 func NewActor(parent common.ActorAgent) *Actor {
@@ -268,7 +270,11 @@ func (a *Actor) receive(m common.ActorMessage) bool {
 		}
 		a.active.report = nil
 		a.active.index++
-		a.dispatch()
+		if a.active.ending != "" {
+			a.finishInterrupted(a.active.ending)
+		} else {
+			a.dispatch()
+		}
 	case "fault":
 		a.persistence(m.Error)
 	case "close":
@@ -282,6 +288,10 @@ func (a *Actor) receive(m common.ActorMessage) bool {
 			a.interrupt("stopped")
 		}
 	case "closed":
+		if a.faulted != nil {
+			a.complete(a.faulted, "error", fmt.Errorf("persistence failure; completion could not be recorded; inspect actual effects before retry"))
+			a.faulted = nil
+		}
 		if a.fault != nil {
 			a.closeErr = a.fault
 		} else {
@@ -456,7 +466,21 @@ func (a *Actor) dispatch() {
 			case <-ctx.Done():
 			}
 		}
-		report, err := manager.PrepareReport(ctx, task.Job, task.Request)
+		request := task.Request
+		var inputError error
+		if task.Input != nil {
+			var accepted int
+			request.MatchStart, accepted, inputError = manager.SendContext(ctx, task.Job, *task.Input)
+			request.Note += fmt.Sprintf("send_input accepted %d of %d bytes; accepted bytes cannot be rolled back.\n", accepted, len(*task.Input))
+			if inputError != nil {
+				request.Note += inputError.Error() + "\n"
+				request.Limits.Delay = 0
+			}
+		}
+		report, err := manager.PrepareReport(ctx, task.Job, request)
+		if inputError != nil {
+			report.Event.IsError = true
+		}
 		_ = a.enqueue(common.ActorMessage{Kind: "report", Operation: op, Report: report, Error: err}, false)
 	}()
 }
@@ -498,10 +522,20 @@ func (a *Actor) interrupt(outcome string) {
 	if a.active == nil {
 		return
 	}
+	if a.active.ending != "" {
+		return
+	}
 	a.transition("interrupted")
 	if a.cancel != nil {
 		a.cancel()
 		a.cancel = nil
+	}
+	if a.active.report != nil && a.active.report.Input != nil {
+		// Input may already have partial effects. Keep this operation current and
+		// accept its settled write/report fact before ending the call or turn.
+		// The mailbox remains available while the worker cancels its PTY write.
+		a.active.ending = outcome
+		return
 	}
 	a.operation++
 	r := a.active
@@ -524,6 +558,10 @@ func (a *Actor) interrupt(outcome string) {
 		r.report = nil
 		r.index++
 	}
+	a.finishInterrupted(outcome)
+}
+func (a *Actor) finishInterrupted(outcome string) {
+	r := a.active
 	for ; r.index < len(r.calls); r.index++ {
 		p := r.calls[r.index]
 		_, note, _ := a.parent.Registry().ResolveLimits(p)
@@ -584,7 +622,9 @@ func (a *Actor) persistence(err error) {
 		r := a.active
 		a.active = nil
 		a.parent.EndTurn()
-		a.complete(r, "error", fmt.Errorf("persistence failure; completion could not be recorded; inspect actual effects before retry"))
+		// Cleanup joins owned I/O before callers can observe the failed request as
+		// complete, including an input writer that may have accepted partial bytes.
+		a.faulted = r
 	}
 	for _, r := range a.pending {
 		a.complete(r, "error", fmt.Errorf("persistence failure; completion could not be recorded; inspect actual effects before retry"))

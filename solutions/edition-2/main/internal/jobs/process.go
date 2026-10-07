@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/creack/pty"
 )
@@ -35,6 +36,14 @@ func (j *job) StartProcess(command, cwd string) error {
 	if err != nil {
 		return fmt.Errorf("start PTY: %w", err)
 	}
+	pollable, err := j.pollableTerminal(terminal)
+	_ = terminal.Close()
+	if err != nil {
+		_ = syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+		_ = cmd.Wait()
+		return fmt.Errorf("prepare cancelable PTY: %w", err)
+	}
+	terminal = pollable
 	j.terminal = terminal
 	j.pid = cmd.Process.Pid
 	j.snapshot.Cwd = cwd
@@ -74,6 +83,27 @@ func (j *job) StartProcess(command, cwd string) error {
 		s.finish(j, "done", "")
 	}()
 	return nil
+}
+
+// NewFile observes nonblocking mode at construction and registers Go's poller.
+// Setting a deadline on the original blocking descriptor is not sufficient on
+// every supported platform. Duplicate before closing the original PTY owner.
+func (j *job) pollableTerminal(terminal *os.File) (*os.File, error) {
+	fd, err := syscall.Dup(int(terminal.Fd()))
+	if err != nil {
+		return nil, err
+	}
+	syscall.CloseOnExec(fd)
+	if err = syscall.SetNonblock(fd, true); err != nil {
+		_ = syscall.Close(fd)
+		return nil, err
+	}
+	pollable := os.NewFile(uintptr(fd), terminal.Name())
+	if err = pollable.SetWriteDeadline(time.Time{}); err != nil {
+		_ = pollable.Close()
+		return nil, err
+	}
+	return pollable, nil
 }
 func (j *job) readProcess(reader io.Reader) {
 	s := j.service()

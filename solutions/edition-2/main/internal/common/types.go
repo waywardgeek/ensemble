@@ -301,6 +301,7 @@ type Jobs interface {
 	Create() (Job, error)
 	Lookup(uint64) (Job, error)
 	Send(Job, string) (int64, error)
+	SendContext(context.Context, Job, string) (int64, int, error)
 	Kill(Job, string) error
 	RequestKill(Job, string) (<-chan struct{}, error)
 	Start(Job, Part)

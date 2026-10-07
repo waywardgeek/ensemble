@@ -639,3 +639,50 @@ func TestUnsupportedReferenceNamesModelAndMIMEWithoutLocator(t *testing.T) {
 		})
 	}
 }
+
+func TestClosedSubscriptionReleasesDeliveryState(t *testing.T) {
+	for _, ending := range []string{"unsubscribed", "overflow", "closed"} {
+		t.Run(ending, func(t *testing.T) {
+			app, a := actorAgent(t, func(w http.ResponseWriter, r *http.Request) { replyText(w, "unused") })
+			entered, release := make(chan struct{}), make(chan struct{})
+			var once sync.Once
+			id, err := app.Subscribe(a.ID(), callbackObserver(func(Observation) {
+				once.Do(func() { close(entered); <-release })
+			}))
+			if err != nil {
+				t.Fatal(err)
+			}
+			app.mu.Lock()
+			s := app.observers[id]
+			app.mu.Unlock()
+			app.Observe(Observation{AgentID: a.ID(), Kind: "fixture"})
+			waitSignal(t, entered)
+			switch ending {
+			case "unsubscribed":
+				app.Unsubscribe(id)
+			case "overflow":
+				for i := 0; i < 257; i++ {
+					app.Observe(Observation{AgentID: a.ID(), Kind: "fixture"})
+				}
+			case "closed":
+				if err := app.Close(); err != nil {
+					t.Fatal(err)
+				}
+			}
+			close(release)
+			waitSignal(t, s.done)
+			app.mu.Lock()
+			retained := s.observer != nil || s.queue != nil
+			app.mu.Unlock()
+			if retained || app.SubscriptionStatus(id) != ending {
+				t.Fatal("delivery references retained or status lost", retained, app.SubscriptionStatus(id))
+			}
+			if err = app.Close(); err != nil {
+				t.Fatal(err)
+			}
+			if _, err = app.Subscribe(a.ID(), callbackObserver(func(Observation) {})); err == nil {
+				t.Fatal("subscription admitted after Ensemble close")
+			}
+		})
+	}
+}
