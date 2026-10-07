@@ -139,6 +139,13 @@ silently turn either registry option into a universal requirement.
 
 ## 5. Prove the rules, not their vocabulary
 
+Before new ownership/concurrency implementation, put a compact structure plan
+in the student review: owners, parent interfaces, mutable facts, derived
+snapshots, creation-only settings, locks and lifetime. Request the coordinator's
+or reviewer's contract check; continue independent work. This check uses new
+teaching only and does not replace post-run historical comparison. If already
+underway, review the current design at the next boundary without restarting.
+
 Before handing code back, check responsibilities, actual imports, constructors,
 and the paths to owned services. A search for `Host` or `Logf` proves no chain.
 Discover all present spokes and check each executable's use of the library
@@ -221,7 +228,9 @@ report the coder's actual run. Do not claim Bill or another reader tested it
 unless that happened; their separate participation is not an invented receipt.
 
 Before running, map each chapter feature to a concrete user action and an
-observable result. Exercise the real interface, inspect the results, and record
+observable result, including required public/multi-Agent paths and provider
+coverage. Have the coordinator or reviewer check completeness before paid
+runs. Exercise the real interface, inspect the results, and record
 the command, date, provider/model actually used, and sanitized evidence for
 each feature. Fix inaccessible or broken features through the chapter contract
 and appropriate regressions, then repeat the affected live demonstration.
@@ -233,6 +242,17 @@ Allow an explicit executable location; a temporary pathname alone is not an
 identity. Resolve historical source against that revision, not today's working
 tree. A mismatched executable or source must fail before changing evidence.
 Keep original terminal/log receipts distinct from reconstructed requests.
+
+Reuse validated evidence machinery from permitted earlier second-edition work;
+historical answers, grader internals and reviewer-only scripts remain outside
+the student boundary. Test changed adapters locally before paid runs.
+Reject empty/incomplete source maps; validate the entire required
+historical source set and all launch/binary identities before any derived write.
+Use explicit repository roots when computing source paths. Group compatible
+review corrections before rerunning affected live paths. Record each rerun's
+reason; prose/evidence-only repairs need no repeated paid call unless they
+invalidate the demonstration. Retained earlier runs keep their original source
+identity. These rules preserve all required checks and live feature coverage.
 
 Deterministic fake-server grading and mutation audits remain required where
 specified. They complement live demonstrations; neither replaces the other.

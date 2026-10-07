@@ -1,6 +1,9 @@
 # Chapter 2 evidence and source reconciliation
 
-Status: human-client validation reopened; prior contract validated at reviewed student checkpoint
+Status: human-client revision accepted at
+`ad0d80e33a3a2857e8e0887117d9b099f1a4786d`; see the
+[validation record](chapter-02-validation.md) for current scope and the pending
+LogPath backport. The prior contract passed at reviewed student checkpoint
 `cc1bec45c3327c87728a4040f762155d8e860a0b`. Initial implementation and
 all-three-provider CLI/public-consumer live receipts remain bound to
 `39a92ca27a418712832ac0dcbbfbe4e32b3bca35` and its per-run source ledger.
@@ -29,9 +32,10 @@ controls are separately labeled; existing public-consumer receipts were
 not rerun. The spin now begins with ordinary-text reproduction and an actual
 abridged terminal transcript, followed by earlier machine evidence.
 
-Coder reports independent review requested useful static redaction errors
-and owner access for terminal helpers, with bounded revisions now awaiting
-re-review. No final acceptance is inferred from the initial terminal success.
+Independent review requested useful static redaction errors and owner access
+for terminal helpers. Those revisions and their affected local checks are
+accepted in [the client review](chapter-02-chat-review.md). Initial terminal
+success alone was not acceptance; the validation record closes that gate.
 Runtime PTY evidence is macOS; automatic terminal detection is implemented
 for macOS/Linux, with explicit chat required elsewhere. No cross-platform
 runtime success or Bill participation is claimed. Scoped prose lint passes

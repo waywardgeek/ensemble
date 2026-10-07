@@ -242,6 +242,14 @@ reasoned deferral for each material finding; the student checks that response
 against the original difficulty. This exchange is required even when every
 test passes. A retrospective account carries its actual date and exposure.
 
+Review the student's ownership and data-lifetime sketch before new boundaries
+become implementation. Before paid demonstrations, map every required feature
+to its user path, including public multi-Agent use where the chapter requires
+it. Group related review corrections before repeating affected runs. Reuse
+tested capture and verification tools; a prose correction usually needs no
+new model call. These scheduling choices keep the same acceptance gates while
+reducing repeated work. The detailed procedure describes their boundaries.
+
 A grader starts local fake services, runs the submitted binary, and
 inspects what it did. Fakes let it request the same edge case repeatedly.
 Mutation audits ask a different question: would a missing behavior be
@@ -387,6 +395,7 @@ These are the reference workflow's durable records:
 | `book/edition-2/chapter-NN.md` | What does the student have to learn and implement? |
 | `book/edition-2/chapter-NN-outline.md` | What is the chapter's stake, teaching order, and intended scope? |
 | `book/edition-2/chapter-NN-evidence.md` | Which sources, runs, findings, and limitations support the prose? |
+| `book/edition-2/chapter-NN-validation.md` | Which gates are complete, who owns the remaining work, and which receipts support that status? |
 | `solutions/edition-2/main/evidence/chNN/student-review.md` | What did executing the teaching reveal, before and after clarification or revision? |
 | `book/edition-2/chapter-NN-student-feedback.md` | How did the author resolve each material student finding, and did the student confirm resolution? |
 | `book/edition-2/architecture.md` | Which ownership and dependency decisions are current? |

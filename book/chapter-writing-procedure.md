@@ -222,6 +222,17 @@ baseline thereafter. Before editing, load the full coding skill and identify
 any contract ambiguity. Report gaps to the author rather than silently filling
 missing teaching with knowledge from another solution.
 
+Before implementing new ownership or concurrency boundaries, the student adds
+a short data-structure plan to its existing student review: owners and parent
+interfaces, authoritative facts versus derived snapshots, mutable versus
+creation-only configuration, synchronization and lifetime. Coordinator or
+reviewer checks that plan against the new contract before affected code.
+Independent work continues during that check. Keep this review narrow; do not
+design the implementation for the student or introduce first-edition answers.
+Record assistance honestly. Historical comparative review still follows the
+initial implementation and actual runs. For a chapter already underway, review
+the current design at the next boundary rather than restart the exercise.
+
 When the student has difficulty, record it immediately in
 `solutions/edition-2/main/evidence/chNN/student-review.md` and notify the author
 and coordinator. Name the chapter passage, attempted interpretation, observed
@@ -292,6 +303,24 @@ for each capability. Run the actual snapshot's executable. Record:
 - User inputs, observed outputs, and relevant measured usage.
 - The result for each feature, limitations, and failures needing correction.
 
+Complete that checklist before the first paid demonstration, including human
+CLI, public embedding, multi-Agent and optional GUI paths required by the
+chapter. Name the provider coverage and expected receipt for each feature;
+identify deterministic-only faults separately. Coordinator or reviewer checks
+coverage before launch. This is a completeness check, not a new user-approval
+ceremony. Finish known local failures before spending on their live paths.
+
+Reuse validated launch, capture and verification machinery from permitted
+earlier second-edition work where it fits. This does not open historical
+answers, grader internals or reviewer-only scripts to the student. Adapt
+chapter-specific actions without copying old solution code into the student's
+implementation. Before paid runs, exercise changed evidence tooling
+with local fixtures. A verifier must reject empty/incomplete source bindings
+and check every required source, executable and launch identity before any
+replay or derived write, including identities for the last provider in a batch.
+Resolve repository paths from an explicit repository root. Preserve raw
+receipts separately from derivatives.
+
 Test all three initially supported vendors, Anthropic, OpenAI, and Gemini, as
 their adapters are introduced. A single-provider chapter tests its supported
 provider; the multi-provider chapter tests all three. Use provider discovery
@@ -359,6 +388,16 @@ the revisions and records which findings were fixed or declined, with reasons.
 A score of 100 does not close this stage. Unresolved material quality or
 teaching findings prevent chapter validation.
 
+Keep one consolidated findings list per review round in the existing code
+review record. Report blocking defects immediately; group compatible fixes
+before freezing the next runtime and repeating affected live demonstrations.
+Do not delay a needed correction merely to fill a batch. Before each rerun,
+record which changed behavior it verifies. Retain applicable earlier evidence
+with its original source identity and explain its scope; never relabel it as
+a run of the new binary. Prose-only or evidence-only repairs normally need
+their own local checks, not another paid generation. Required chapter checks,
+legacy coverage and independent review remain mandatory.
+
 ## 6. Author reconciliation and independent proofreading
 
 The coder returns a post-build review: actual implementation, discovered
@@ -418,6 +457,28 @@ work is pending, but cannot be labeled complete without required evidence.
 Run prose lint against the new chapter, not every unrelated first-edition file.
 
 ## 7. Checkpoint and continue
+
+The coordinator creates `book/edition-2/chapter-NN-validation.md` at chapter
+start as the authoritative current gate record. Keep a compact table of
+contract/design review, implementation/local checks, initial live use,
+comparative review/revisions, final live evidence, manuscript/feedback and
+checkpoint. Each row names its responsible role, current status, supporting
+revision or receipt, and next action. Update when a gate changes, not after
+every command. Stages may overlap; implementation finished and chapter
+validated are distinct statuses.
+
+Other records retain their separate purposes and historical chronology.
+`progress.md` and `CHECKPOINT.md` link the gate record with a short current
+summary; prose and outlines should link it rather than repeat changing task
+lists. Reconcile existing current-summary contradictions, but preserve dated
+failed or pending attempts. No new parallel status ledger is needed.
+
+When workers report completion, the coordinator checks the remaining gates
+and promptly performs the next authorized handoff. Prepare export paths and
+manifest inputs while final review runs; export/tag only after acceptance.
+Once checkpointed, start the next fresh student without waiting for Bill to
+ask for status. If worker capacity blocks a handoff, record the role awaiting
+a slot and reuse an available role with its source exposure disclosed.
 
 A validated chapter has a successful independent student build, required
 checks and deletion audits, retained legacy coverage, actual live feature

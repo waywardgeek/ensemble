@@ -3,8 +3,8 @@
 Date: 2026-10-07. The implementation, comparison, machine-protocol demonstrations,
 and subsequently required human chat revision have passed their recorded gates.
 Actual coder-driven terminal runs cover all three providers. Bill's editorial
-approval is a separate status. The unfinished Chapter 3 integration in the main
-development tree is not this validated Chapter 2 source.
+approval is a separate status. Later work in the main development tree is
+separate from this validated Chapter 2 source.
 Initial student checkpoint: `39a92ca27a418712832ac0dcbbfbe4e32b3bca35`.
 Earlier reviewed checkpoint: `cc1bec45c3327c87728a4040f762155d8e860a0b`.
 Initial human-client checkpoint: `56dacfad01f71f2a1b20d39bca15846edef41ddd`.
@@ -14,6 +14,12 @@ commit exactly. Consolidation commit `8831ce2` preserves original histories in
 bundles and records export hashes in `solutions/edition-2/history/migration.json`.
 Those original IDs remain historical source identities; the migration is not
 a retroactive validated chapter tag.
+
+The current Chapter 2 teaching also includes the immutable LogPath rule found
+during the later data-structure review. Its implementation first landed in
+Chapter 4 runtime `d25d3fd`; the frozen Chapter 2 and 3 exports still need a
+scoped backport and validation before new revision tags can claim that rule.
+The accepted receipts below retain their original source and scope.
 
 ## Human client revision
 

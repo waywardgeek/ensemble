@@ -8,6 +8,10 @@ in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 
 ## Current chapter
 
+Chapter 5's current stages, owners, evidence and next actions are maintained
+in [chapter-05-validation.md](chapter-05-validation.md). Use that record for
+handoffs; the completed-chapter details below preserve historical evidence.
+
 Chapter 4 is accepted by independent code, live-evidence and manuscript review.
 Runtime: `d25d3fd4e552cd17c75bf814c9899903878cfbd5`; final evidence-only repair:
 `e1c64886564e7d1e8205ee08c17f98f32e001912`; final reviewer: `05b170a`.
@@ -130,9 +134,8 @@ inputs. All three real CLI and public-consumer demonstrations succeeded.
   The full retry passed with exit 0 (`internal/grade` 508.374s), and root vet
   and changed-file formatting passed. The later human-mode results remain separately bound above.
 
-Chapter 4's complete contract passed independent review; it has
-now been released to a fresh student after the accepted human predecessor. Its asynchronous events must coexist with
-response identity assignment under Agent append serialization.
+Chapter 4's asynchronous events coexist with response identity assignment
+under Agent append serialization; its accepted checkpoint is recorded above.
 
 Chapter 0's execution guide is written and independently reviewed at
 `book/edition-2/chapter-00.md`. It covers roles, skills, architecture,
@@ -167,7 +170,7 @@ old implementation into the new solution.
 - Author: Chapter 4 final prose accepted; Chapter 5 actor/collection contract
   accepted; Chapter 6 full contract reviewed, implementation gated on Chapter 5.
   Requested story restoration across Chapters 1–6 is drafted; independent
-  complete proofreading of the remaining chapters continues.
+  complete proofreading passed, with stale status summaries being reconciled.
 - Coder: `/root/coder_ch05` starts Chapter 5 in a fresh new-only context from
   accepted `edition-2-ch04-r1`; `/root/coder_ch04` completed Chapter 4.
 - Chapter 4 reviewer: `/root/coder_ch03_chat`, independent of this chapter's

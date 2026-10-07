@@ -6,6 +6,8 @@ as `edition-2-ch04-r1`. Runtime `d25d3fd`, final evidence `e1c6488`, reviewer
 `05b170a`. See `chapter-04-validation.md`. Checkpoint commit is `55e6411`.
 Fresh `/root/coder_ch05` is now implementing Chapter 5 from that predecessor,
 launched with `fork_turns="none"` and the explicit new-only reading boundary.
+Use [chapter-05-validation.md](chapter-05-validation.md) for its authoritative
+current gate status, owners, evidence and next actions.
 
 Chapter 3 human integration is
 accepted, with dedicated checkpoint `edition-2-ch03-r1`. Reviewed source and
@@ -16,8 +18,8 @@ See `progress.md`, `chapter-03-validation.md` and `chapter-03-human-review.md`.
 `/root/coder_ch04` completed Chapter 4 from a fresh new-only context, including
 actual model-driven Delve through Ensemble on all three providers. Chapter 5
 contract is ready; Chapter 6 contract is reviewed but still gated on Chapter 5.
-`/root/coder_ch03_chat` completed independent Chapter 4 review and now reviews
-the remaining story-restoration prose; its previous client authorship must be
+`/root/coder_ch03_chat` completed independent Chapter 4 and story-restoration
+prose review; status reconciliation remains. Its previous client authorship must be
 disclosed. The old
 global-review thread could not resume because of tool thread capacity. Read its
 durable map/reviews and current progress, not assumptions about live threads.
@@ -112,8 +114,8 @@ that limitation; their implementation validation is a separate claim.
   with `internal/grade` 513.863s. See `chapter-02-validation.md`.
 - Chapter 0's execution guide is written and independently reviewed.
   Chapter 3's fresh coder used `fork_turns="none"` and new-only sources; its
-  reviewed snapshot is recorded above. Chapter 4's contract passed review,
-  and its predecessor human CLI gate is accepted; fresh student is active.
+  reviewed snapshot is recorded above. Chapter 4's student completed the
+  accepted checkpoint above; Chapter 5's current gates have their own record.
   Chapters 1 and 2 now motivate the rules and visibly teach skill loading,
   following Bill's forwarded CodeRhapsody advice.
 

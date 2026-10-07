@@ -108,6 +108,12 @@ WebSocket implementation remains in the separate optional GUI module.
 
 ## Chapter cycle
 
+Apply the early structure review, complete live-plan check, grouped revision
+and evidence-reuse rules in §§3–5 of `book/chapter-writing-procedure.md`.
+The early review checks the student's owner/state plan against the new
+contract; old-answer comparison remains after the initial implementation and
+runs. Neither check requires another approval from Bill for authorized work.
+
 1. Author reads current chapter and its relevant git history, audits, and
    later corrections. Record current facts separately from superseded notes.
 2. Reviewer identifies future lessons needed now, prerequisites, and what can
@@ -170,6 +176,16 @@ WebSocket implementation remains in the separate optional GUI module.
    code/teaching review is validated. Require the retained student teaching
    review and author's response to each material finding before closing it.
    Bill's editorial approval is a separate recorded status.
+
+Use `chapter-NN-validation.md` as the authoritative current gate record, with
+role, status, evidence/revision and next action for each stage. Distinguish
+implementation complete, review corrections, live verification, manuscript
+reconciliation and checkpoint completion. `progress.md` and `CHECKPOINT.md`
+link that record; retain detailed rationale in the existing student/author
+and reviewer records rather than copying their contents into every summary.
+On completion messages, promptly execute the next authorized handoff; after
+acceptance, export/tag and start the next fresh student. See procedure §7 for
+coordination when agent slots are unavailable.
 
 ## Durable checkpoint
 
