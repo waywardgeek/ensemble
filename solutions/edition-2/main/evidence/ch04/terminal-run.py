@@ -38,11 +38,12 @@ def launch(vendor,model):
     (workspace/'interactive.py').write_text('import time\nprint("READY>",flush=True)\nwhile True:\n    try: value=input()\n    except EOFError: break\n    time.sleep(0.2)\n    print("REPLY:"+value+" READY>",flush=True)\n')
     (workspace/'debuggee.go').write_text('package main\nimport "fmt"\nfunc main() {\n value := 42\n fmt.Println(value)\n}\n')
     env = os.environ.copy()
+    env["PATH"] = str(Path.home()/"go/bin") + ":/usr/local/go/bin:" + env.get("PATH", "")
     for key in list(env):
         if key.startswith(('LLM_','ANTHROPIC_','OPENAI_','GEMINI_')): del env[key]
     env.update(LLM_VENDOR=vendor,LLM_MODEL=model,LLM_RESOLVED_MODEL=model.removeprefix('models/'),LLM_API_KEY=credential(vendor),CH02_LOG=str(run/'session.log'))
     command = [str(binary),'chat']
-    receipt = {'start':datetime.datetime.now(datetime.timezone.utc).isoformat(),'actor':'Codex student coder, not Bill','vendor':vendor,'requested_model':model,'command':command,'workspace':str(workspace),'source_revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=MODULE,text=True).strip(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'dlv_version':subprocess.check_output(['dlv','version'],text=True),'transport':'actual execution-tool PTY and macOS script terminal'}
+    receipt = {'start':datetime.datetime.now(datetime.timezone.utc).isoformat(),'actor':'Codex student coder, not Bill','vendor':vendor,'requested_model':model,'command':command,'workspace':str(workspace),'source_revision':subprocess.check_output(['git','rev-parse','HEAD'],cwd=MODULE,text=True).strip(),'binary_sha256':hashlib.sha256(binary.read_bytes()).hexdigest(),'dlv_version':subprocess.check_output([str(Path.home()/'go/bin/dlv'),'version'],text=True),'transport':'actual execution-tool PTY and macOS script terminal'}
     (run/'launch.json').write_text(json.dumps(receipt,indent=2)+'\n')
     code = subprocess.call(['/usr/bin/script','-q',str(run/'terminal.txt'),*command],cwd=workspace,env=env)
     receipt.update(exit_code=code,end=datetime.datetime.now(datetime.timezone.utc).isoformat())
