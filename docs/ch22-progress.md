@@ -55,7 +55,10 @@ VIOLATE the rule: `ws.NewHub` (6 params), `cachelens.New(dir, report func)`,
 - [x] 3. `common.Engine` interface + `Call.Engine`        -- commit 80dd708
 - [x] 4. Per-model usage on Engine; fix cost bug          -- commit 80dd708
 - [x] 5. `agent_status` tool                             -- commit fa9b6e4
-- [ ] 6. Collapse composition roots (cliHost -> NewAgent)
+- [x] 6a. NewAgent builds a complete agent from a data directory
+      -- commit 70acadd, new AgentSpec + attachState + 2 tests
+- [x] 6b. Collapse composition roots; cliHost deleted
+      -- commit 6077d4b, main.go -214 net lines
 - [ ] 7. Snapshot `solutions/ch22`
 - [ ] 8. Grader `internal/grade/ch22_*` (7 checks / 100 pts)
 - [ ] 9. `scripts/ch22-mutants.sh`
@@ -110,3 +113,53 @@ itself. Every sentence is true. "Reachable" has quietly become the criterion
 for where a capability lives, which is exactly how the parent interface stops
 meaning anything — and it is the same root cause as the closures, wearing a
 better argument.
+
+## Stage 6 findings (measured, for the author)
+
+The two composition roots were never duplicates. The library root was a
+STRICT SUBSET: `cmd/main.go` stapled nine capabilities onto the engine that
+`NewAgent` set none of -- Cache, Ctx, Journal, Target, ToolRoundLimit,
+Memory, Bands, Recall, and the hub's Model closure. Chapters 15 through 18
+existed only inside `main()`. `NewAgent` had not merely gone unused; it had
+stopped being able to build an agent that could run.
+
+The nine do not become nine constructor parameters. They collapse to ONE,
+because each was reading the same hardcoded `"."`. That is what makes the
+full collapse correct rather than arity growth.
+
+THREE constructors, not two. `NewAgent` 0 callers, `NewWSHub` 0 callers, but
+`NewBareAgent` has FOUR live callers (`cmd/virtual-user/main.go:111` plus
+three tests) and is documented in chapter 13. The secondary binary uses the
+library correctly while the main binary hand-wires. The flat root is not in
+the simple case; it is in the important one. `NewBareAgent` also proves
+single-phase construction was always sufficient -- virtual-user builds an
+agent, then registers tools and connects MCP afterwards.
+
+`runActorLoop` had THIRTEEN parameters. That is what a composition root looks
+like when there is no object to hang anything on.
+
+A dissolved constraint, preserved. The flat root's startup sequence read as a
+necessary ordering: discover skills, sync model-gated tools, freeze
+declarations, then build the engine. It stopped being necessary when chapter
+10 made skills loadable at runtime -- `LoadSkill` re-derives the system
+prompt AND the declarations, and `main.go` already re-synced declarations at
+four later points. The root preserved an ordering that had not been required
+for six chapters. Bill spotted this from the chapter content alone; it killed
+a two-phase constructor split that was about to be built.
+
+Per-agent identity as a process global. The defining skill was selected by
+`envOr("EN_PRIMARY_SKILL", "ensemble")`, so two agents in one process could
+not have had different primary skills either. Same disease as the data
+directory, different axis.
+
+`cliHost` was a pass-through wrapper around `Logger` plus a usage counter
+nothing had written since stage 3 -- but it also created `api.log` and
+`debug.log` in the working directory, so deleting it naively would have
+silently stopped two logs.
+
+## Pre-existing failure, NOT caused by this work
+
+ch19 grades 85/100; one check fails on a missing `agent/events.jsonl`.
+Verified pre-existing by `git worktree` at `273797c`, the commit BEFORE this
+session's first, where it fails identically. Raise with the author
+separately. (Memory also records ch8-ch12 at 80-90 pre-existing.)
