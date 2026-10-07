@@ -244,5 +244,34 @@
     "new_source_cap_cases_failed_initial": 3,
     "new_total_cli_cases": 53
   },
-  "review_artifacts": "book/edition-2/chapter-04-review-evidence"
+  "review_artifacts": "book/edition-2/chapter-04-review-evidence",
+  "revision_review": {
+    "runtime_source": "d25d3fd4e552cd17c75bf814c9899903878cfbd5",
+    "date": "2026-10-07T21:15:20.713411+00:00",
+    "rules_full_reloaded": [
+      {
+        "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+        "sha256": "47e74940f1ffe195e7981ff1ec7613094ef64744dc4aa62976a3228ac2a72402"
+      },
+      {
+        "path": "book/edition-2/architecture.md",
+        "sha256": "75e1c7422e0b0c32eded2be2ac8a89b31b4541995c20a96a05fddbf0be246957"
+      },
+      {
+        "path": "book/voice.md",
+        "sha256": "17883353cf9653c0df46081c216b5b1623dfa640619e06fe89bff46fc29dfad1"
+      },
+      {
+        "path": "book/chapter-writing-procedure.md",
+        "sha256": "826a6138c85deb85ba08362075dc8423ee29887af2be4510bf4462c54391fbac"
+      },
+      {
+        "path": "book/edition-2/chapter-04.md",
+        "sha256": "a720edf5f94225aeea74c3fd43e0e5f7748e6784b582f83548b46843d424d0d0"
+      }
+    ],
+    "source_scope": "ee15 responsibility/source-cap revision read; full d25 change diff plus current common owner declarations, appendPrepared and boundary tests. Prior initial full source review retained above. Runtime only d25; no student working changes used in checks.",
+    "receipt_scope": "All three initial full raw chat terminals read; initial and real-public raw log counters/artifact hashes checked independently; revised receipts pending.",
+    "verifier_scope": "Full verifier read and narrow revised preflight diff reviewed; independent isolated negative and positive controls."
+  }
 }

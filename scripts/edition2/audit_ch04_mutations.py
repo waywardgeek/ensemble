@@ -17,6 +17,7 @@ import time
 
 import accept_ch04 as cli
 import accept_ch04_public as public
+import prepare_ch04_probes as probes
 
 
 def replace(root, relative, before, after):
@@ -63,14 +64,13 @@ MUTATIONS = [
     ("killed-as-done", "group-kill", [("internal/jobs/process.go", 's.finish(j, "killed", j.snapshot.Reason)', 's.finish(j, "done", "")')]),
     ("kill-only-shell", "group-kill", [("internal/jobs/jobs.go", 'if err := syscall.Kill(-j.pid, syscall.SIGKILL);', 'if err := syscall.Kill(j.pid, syscall.SIGKILL);')]),
     ("skip-agent-shutdown", "eof-shutdown", [("ensemble.go", "err := a.jobs.Close()", "var err error")]),
+    ("source-notice-in-artifact", "source-cap", [("internal/jobs/jobs.go", "s.write(j, []byte(result.Text))", "s.write(j, []byte(result.Text + result.Note))")]),
 ]
 
 
 def run_check(root, case, work):
     if case.startswith("Test"):
-        for fixture, target in [("ch04_durability_test.go.txt", "independent_durability_test.go"),
-                                ("ch04_jobs_fault_test.go.txt", "internal/jobs/independent_fault_test.go")]:
-            shutil.copyfile(pathlib.Path(__file__).with_name(fixture), root / target)
+        probes.install(root)
         result = command(["go", "test", "./...", "-run", "^" + case + "$", "-count=1", "-timeout=12s"], root)
         result.update(id=case, passed=result["exit"] == 0)
         return result
@@ -91,6 +91,7 @@ def run_check(root, case, work):
     if case == "occupied": return cli.occupied_artifacts(binary, "anthropic")
     if case == "cursor": return cli.cursor_after_omission(binary, "anthropic")
     if case == "identity": return cli.completion_during_http(binary, "gemini")
+    if case == "source-cap": return cli.source_cap_artifacts(binary, "anthropic")
     return scenario(binary, case)
 
 

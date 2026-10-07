@@ -142,3 +142,72 @@ The main remaining quality work is responsibility separation and the source
 artifact correction, followed by independent review of the revised source,
 affected checks and retained live evidence. The student teaching review and
 author dispositions exist and were read. Final acceptance is not claimed here.
+
+## Revision review: d25d3fd
+
+Reviewed `ee15a56491c00a2a284d94ebde3264045650b544`, then runtime revision
+`d25d3fd4e552cd17c75bf814c9899903878cfbd5`. Findings 1–3 are resolved:
+Registry now owns wire decoding, regex validation, supervision dispatch and
+consumption-note presentation. Jobs exposes typed operations and retains
+mutable settings, cursor and worker state. Call derives its Agent from Engine.
+A typed execution result separates retained text from report notes; the source
+cap tests pass, including delayed completion and overlapping report limits.
+
+The coordinator's manual data review found additional defects that ordinary
+model runs did not reveal. A public nil response panicked before validation,
+and invalid parser indices could panic while retaining Agent's lock. The
+independent probes reproduced these failures on ee15a56. d25 separates temporary
+parser metadata from public durable Response and validates indices before
+access. Independent tests now check safe rejection, unchanged history and
+log bytes, untouched caller facts, and a subsequent valid append. Removed
+public metadata-index cases are explicitly skipped as no longer representable;
+three separate typed parser-admission cases cover their internal replacements.
+
+The same revision rejects changes to the lifetime log destination atomically,
+retains an omitted destination during other configuration changes, and reports
+the actual path on replay load. Independent controls verify the original writer
+still receives events and the refused path is absent. Job snapshots copy their
+exit-status pointer. Engine owns the accounting mutex and documents its lock
+order; it no longer relies on an undocumented Agent lock for its usage map.
+Ensemble's interface directly exposes its allocator.
+
+Bill's explicit private-runtime ruling resolves placement: private Engine,
+Registry, Jobs and Job implementations may remain in their responsible spokes
+when common interfaces expose ownership. Remaining scoped casts are not a
+placement violation. Engine checks its optional turn capability before dispatch;
+Call dispatch follows that admitted Engine path. Job's concrete Service cast
+stays within the owning jobs implementation and follows its constructor invariant.
+No new sibling dependency or capability bag was introduced.
+
+Independent revision results are **53/53 CLI/replay cases**, **3/3 external
+public-consumer cases**, the original ten storage/lifecycle controls under the
+race detector, and added malformed-admission/log-identity controls. All eleven
+targeted mutations have passing controls and the intended failure, including
+the new mutation that puts the source-selection notice back into the artifact.
+Six pure checker controls pass. Formatting output is empty; vet and full tests
+pass in the isolated main and external consumer modules. The immutable source,
+commands, probe hashes and raw results are recorded in
+[the revision manifest](chapter-04-review-evidence/revision-manifest.json).
+
+A separate evidence-only finding remained after runtime repair: the verifier
+checked each provider's launch identity inside its replay/write loop. Corrupting
+the third provider's source identity caused refusal after the first provider's
+derivative had already changed. This was reproduced only in an isolated copy.
+The coder moved all launch identity checks ahead of every replay and write.
+Independent wrong-third-source, wrong-third-binary and wrong-executable controls
+now leave the entire copied evidence tree unchanged; the original positive
+replay succeeds. The negative receipt is preserved alongside its corrected
+controls. Raw terminal and log receipts were never rewritten by this review.
+
+The initial live prose was checked against all three complete terminal records,
+all 58 artifact byte counts and hashes, actual debugger output, accepted-response
+usage totals and the recorded before/after PID observations. Its figures agree.
+The real public-consumer supplement's six Agents also agree with their raw log
+usage, artifact hashes and ordered observation sequences. A first arithmetic
+script assumed one spelling for the before-EOF alive field; it was corrected to
+handle both recorded spellings without changing the receipts.
+
+Runtime revisions are accepted by this reviewer. Final chapter acceptance still
+requires the revised live demonstrations, final student/author feedback exchange,
+and proofread manuscript reconciliation. This section does not relabel initial
+runs as demonstrations of d25, or claim Bill ran any of the sessions.

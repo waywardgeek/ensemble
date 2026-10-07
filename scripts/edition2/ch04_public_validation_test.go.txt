@@ -1,0 +1,90 @@
+// Independent public validation probes, for disposable source copies only.
+package ensemble
+
+import (
+	"os"
+	"path/filepath"
+	"reflect"
+	"testing"
+	"time"
+)
+
+func TestIndependentMalformedResponseAppendIsAtomic(t *testing.T) {
+	for _, kind := range []string{"nil-response", "negative-index", "past-end-index", "non-tool-index"} {
+		t.Run(kind, func(t *testing.T) {
+			root := t.TempDir()
+			app := New(nil)
+			a, err := app.NewAgent(Config{Vendor: "anthropic", Model: "fixture-model", APIKey: "LOCAL-FIXTURE", Workspace: root, LogPath: filepath.Join(root, "events")})
+			if err != nil {
+				t.Fatal(err)
+			}
+			event := Event{Type: "response_ended"}
+			if kind != "nil-response" {
+				event.Response = &Response{Parts: []Part{Text("unchanged")}}
+				field := reflect.ValueOf(event.Response).Elem().FieldByName("MissingCallIDs")
+				if !field.IsValid() {
+					_ = app.Close()
+					t.Skip("parser metadata is no longer publicly representable")
+				}
+				index := -1
+				if kind == "past-end-index" {
+					index = 1
+				}
+				if kind == "non-tool-index" {
+					index = 0
+				}
+				field.Set(reflect.ValueOf([]int{index}))
+			}
+			before, err := os.ReadFile(filepath.Join(root, "events"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			type outcome struct {
+				err      error
+				panicked any
+			}
+			done := make(chan outcome, 1)
+			go func() {
+				out := outcome{}
+				defer func() { out.panicked = recover(); done <- out }()
+				out.err = a.Append(event)
+			}()
+			select {
+			case out := <-done:
+				if out.panicked != nil {
+					t.Fatalf("malformed public event panicked: %v", out.panicked)
+				}
+				if out.err == nil {
+					t.Fatal("malformed public response was accepted")
+				}
+			case <-time.After(time.Second):
+				t.Fatal("malformed public event blocked")
+			}
+			after, err := os.ReadFile(filepath.Join(root, "events"))
+			if err != nil || string(after) != string(before) {
+				t.Fatal("invalid event changed durable bytes")
+			}
+			if len(a.Events()) != 0 {
+				t.Fatal("invalid event changed owned history")
+			}
+			if event.Response != nil && (event.Response.Parts[0].CallID != "" || *event.Response.Parts[0].Text != "unchanged") {
+				t.Fatal("invalid event mutated caller-owned response")
+			}
+			continued := make(chan error, 1)
+			go func() {
+				continued <- a.Append(Event{Type: "message_received", Message: &Entry{Actor: "human", Purpose: "dialogue", Parts: []Part{Text("still usable")}}})
+			}()
+			select {
+			case err := <-continued:
+				if err != nil {
+					t.Fatal(err)
+				}
+			case <-time.After(time.Second):
+				t.Fatal("rejection left Agent unusable or locked")
+			}
+			if err := app.Close(); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}

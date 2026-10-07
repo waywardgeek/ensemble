@@ -1,0 +1,107 @@
+// Independent revision controls; installed only when typed parser admission exists.
+package ensemble
+
+import (
+	"bytes"
+	"os"
+	"path/filepath"
+	"reflect"
+	"testing"
+	"time"
+
+	"example.com/ensemble/internal/common"
+)
+
+func TestIndependentParsedAdmissionIsAtomic(t *testing.T) {
+	for _, index := range []int{-1, 0, 1} {
+		t.Run(string(rune('b'+index)), func(t *testing.T) {
+			root := t.TempDir()
+			app := New(nil)
+			a, err := app.NewAgent(Config{APIKey: "LOCAL", Model: "fixture-model", Workspace: root, LogPath: filepath.Join(root, "events")})
+			if err != nil {
+				t.Fatal(err)
+			}
+			parsed := common.ParsedResponse{Response: Response{Parts: []Part{Text("caller text")}}, MissingCallIDs: []int{index}}
+			before, err := os.ReadFile(a.Config().LogPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			done := make(chan error, 1)
+			go func() { done <- a.engine.Agent().(common.TurnAgent).RecordResponse(parsed) }()
+			select {
+			case err := <-done:
+				if err == nil {
+					t.Fatal("accepted invalid parser index")
+				}
+			case <-time.After(time.Second):
+				t.Fatal("admission blocked")
+			}
+			after, err := os.ReadFile(a.Config().LogPath)
+			if err != nil || !bytes.Equal(before, after) || len(a.Events()) != 0 {
+				t.Fatal("invalid admission changed retained history")
+			}
+			if parsed.Response.Parts[0].CallID != "" || *parsed.Response.Parts[0].Text != "caller text" {
+				t.Fatal("mutated parser facts")
+			}
+			go func() { done <- a.Ephemeral("valid after refusal") }()
+			select {
+			case err := <-done:
+				if err != nil {
+					t.Fatal(err)
+				}
+			case <-time.After(time.Second):
+				t.Fatal("refusal retained lock")
+			}
+			if err := app.Close(); err != nil {
+				t.Fatal(err)
+			}
+		})
+	}
+}
+
+func TestIndependentLogIdentity(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "original")
+	app := New(nil)
+	defer app.Close()
+	a, err := app.NewAgent(Config{APIKey: "LOCAL", Model: "fixture-model", Workspace: root, LogPath: path})
+	if err != nil {
+		t.Fatal(err)
+	}
+	before := a.Config()
+	changed := before
+	changed.Model = "must-not-commit"
+	changed.LogPath = filepath.Join(root, "other")
+	if err := a.SetConfig(changed); err == nil {
+		t.Fatal("accepted changed log identity")
+	}
+	if !reflect.DeepEqual(before, a.Config()) {
+		t.Fatal("failed config update was partial")
+	}
+	if err := a.Ephemeral("after rejected path"); err != nil {
+		t.Fatal(err)
+	}
+	data, err := os.ReadFile(path)
+	if err != nil || !bytes.Contains(data, []byte("after rejected path")) {
+		t.Fatal("writer no longer matches identity")
+	}
+	if _, err := os.Stat(changed.LogPath); !os.IsNotExist(err) {
+		t.Fatal("refused destination was created")
+	}
+	changed = before
+	changed.LogPath = ""
+	changed.Model = "permitted-change"
+	if err := a.SetConfig(changed); err != nil {
+		t.Fatal(err)
+	}
+	if a.Config().LogPath != path || a.Config().Model != changed.Model {
+		t.Fatal("omitted fixed path was not retained")
+	}
+	loaded, err := app.Load(path, Config{LogPath: "misleading"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if loaded.Config().LogPath != path {
+		t.Fatal("replay reported a false log identity")
+	}
+}

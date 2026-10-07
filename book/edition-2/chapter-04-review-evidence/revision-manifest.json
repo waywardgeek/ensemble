@@ -1,0 +1,39 @@
+{
+  "source_revision": "d25d3fd4e552cd17c75bf814c9899903878cfbd5",
+  "runtime_binary_sha256": "235ceff3c9f68e1442f6bdc23c79e3a4b01f024907861dda1fae0a7976962a02",
+  "scope": "independent local revision checks; source copied by git show; no main or historical edits",
+  "commands": [
+    "PATH=/Users/bill/go/bin:$PATH python3 scripts/edition2/accept_ch04.py /tmp/ensemble-ch04-independent-d25-bin",
+    "python3 scripts/edition2/prepare_ch04_probes.py /tmp/ensemble-ch04-independent-d25",
+    "go test -race ./... -run TestIndependent -count=1 -timeout=60s",
+    "go vet ./...; go test ./... -count=1 (isolated main and external consumer modules)",
+    "python3 scripts/edition2/accept_ch04_public.py /tmp/ensemble-ch04-public-d25-bin",
+    "python3 scripts/edition2/audit_ch04_mutations.py /tmp/ensemble-ch04-independent-d25",
+    "python3 -m unittest discover -s scripts/edition2 -p test_accept_ch04.py"
+  ],
+  "artifacts": {
+    "ch04-independent-revised.json": "176e866d66fd3eacc70a6d8099d9001d170a7f59a750ef972ab8792df88dfda1",
+    "ch04-independent-faults-ee15a56.txt": "c36646a5de3b15c1a052c6cb8e7c935d88b617ed2dd9caf09a3e4a7d6fb2c397",
+    "ch04-independent-d25.json": "15d357e91c30ba9f12a9e6ee7844ac6bdda1b57584afcb0d72e139eefdd07593",
+    "ch04-independent-faults-d25.txt": "27eeb6f6c2fe25480b191079b8303be4a9ffaf9326eb8669d93725bc9f4e008e",
+    "ch04-independent-full-d25.txt": "9f8b07ba28874ee1a6662d86d8243514c2094027186752480a093689b784a73d",
+    "ch04-public-d25.json": "f5edea16befd2c0ea8a2ed9754eee493d8bbaab791977dbd006a76b89a0b4417",
+    "ch04-independent-mutations-d25.json": "8106742d31323ea443f3ada025db50f8628ec8101361fd1dce2bce60fc005d1c",
+    "ch04-independent-live-receipt-review.json": "83134ca60dbcffb7dfacd3f28c6a5e0a3f86334ba912a9e4f8a3d8d3aff7095b",
+    "ch04-verifier-late-binding-negative.json": "f795d3d0015bbcff4a71d965cc80e99702bead125eb9c8dd7d9aca3ed1149093",
+    "ch04-verifier-independent-revised-controls.json": "7267718b4ac019e97a6c98114a70006002fcf2fdffe43ffa2abb92556e83861b",
+    "initial-live-arithmetic-check.py.txt": "5ac6dd262e9e5a16bd67bd4635b7ccf65a995d7cb124ade4fb59bbb475d71a6f"
+  },
+  "probes": {
+    "scripts/edition2/ch04_jobs_fault_test.go.txt": "44e12c9f089ba7a41967a54670b8defa2333913688973eec7ad0bab890ec423b",
+    "scripts/edition2/prepare_ch04_probes.py": "1592311b46c3d1fe16fe94c637af50d5372241885a7707e5d4a84020196ec1d0",
+    "scripts/edition2/accept_ch04_public.py": "0e066b4ee23c888cfcaa33ea697770f0cb72a7f73fc3310cc04f66c5ceb81397",
+    "scripts/edition2/audit_ch04_mutations.py": "8ff243b543d0ee3db1575f5a875b4160939df63a55dbfb9274e21dd50187562a",
+    "scripts/edition2/accept_ch04.py": "dda16997444d07a26173bc519ea7048fc79f9086aeaf1ded9cb8ddf528c3cd56",
+    "scripts/edition2/ch04_revision_boundary_test.go.txt": "6f5dfbe218ae9d9fbe45bf0678082ca5900af6471bb6c7a7a4786048330fdc77",
+    "scripts/edition2/ch04_public_consumer.go.txt": "f292bff45b290058a162c8e232f96f8936944429ca7013021eda34b755f88d89",
+    "scripts/edition2/test_accept_ch04.py": "02f616f86672ec0d5a3b778fc8dc99de06c1b3cf0fd5a237960a3e9a4e9d3751",
+    "scripts/edition2/ch04_durability_test.go.txt": "f9b88e0030fdfca193c65108c3255b3a8acb4473f0e7685ec069477f414bb490",
+    "scripts/edition2/ch04_public_validation_test.go.txt": "7a603a53df2383248fe76608c5c235c0b6f73c4ba5361c2643513a521325cd39"
+  }
+}

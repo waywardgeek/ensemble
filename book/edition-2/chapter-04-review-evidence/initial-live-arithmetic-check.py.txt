@@ -1,0 +1,17 @@
+import pathlib,json,hashlib
+r=pathlib.Path('solutions/edition-2/main/evidence/ch04'); rec=json.loads((r/'receipts.json').read_text()); sup=json.loads((r/'supplemental-public-receipts.json').read_text()); out={}
+def events(p): return [json.loads(l) for l in p.read_text().splitlines()][1:]
+def usage(es): return {k:sum(e['response']['usage'].get(k,0) for e in es if e['type']=='response_ended') for k in ['input','cache_write','cache_read','output']}
+for v,want in rec['runs'].items():
+ d=r/('live-'+v); es=events(d/'session.log'); u=usage(es); assert u==want['usage']; assert len(es)==want['events']; assert sum(e['type']=='tool_called' for e in es)==want['tool_calls']; assert sum(e['type']=='tool_called' and 'job' in e['tool'] for e in es)==want['jobs']; assert es[-1]==want['shutdown_event']
+ for h,a in want['artifacts'].items():
+  b=(d/'workspace'/a['locator']).read_bytes(); assert len(b)==a['bytes']; assert hashlib.sha256(b).hexdigest()==a['sha256']
+ debug=(d/want['debugger_artifact']).read_text(); assert '(dlv) print value\n42\n(dlv) quit\nexit_code: 0\n' in debug
+ before=json.loads((d/'process-before-eof.json').read_text()); after=json.loads((d/'process-after-eof.json').read_text()); alive=lambda q:q.get('alive_before_eof',q.get('alive')); assert alive(before['shutdown']) and not alive(before['killed']); assert all(not q['alive'] for q in after.values()); assert all(before[k]['pid']==after[k]['pid'] for k in before)
+ launch=json.loads((d/'launch.json').read_text());assert launch['source_revision']==rec['binding'] and launch['binary_sha256']==rec['binary_sha256'] and launch['exit_code']==0
+ terminal=(d/'terminal.txt').read_text(); assert '/history' in terminal and '/redact ' in terminal and '/usage' in terminal
+ p=r/('public-live-'+v); stdout=json.loads((p/'stdout.json').read_text()); assert stdout['foreign_handle']=='refused'; assert len({a['handle'] for a in stdout['agents']})==2
+ for a in sup[v]['agents']:
+  pes=events(p/f"agent-{a['agent']}.log"); assert usage(pes)==a['usage']; assert sum(e['type']=='request_sent' for e in pes)==a['model_requests']; j=next(e for e in pes if e['type']=='job_ended'); assert j['seq']==a['job_terminal_seq'] and j['job']['handle']==a['handle']; assert hashlib.sha256((p/'workspace'/j['job']['output']['locator']).read_bytes()).hexdigest()==a['artifact_sha256']; observed=stdout['agents'][a['agent']-1]['observed_sequences']; assert observed==[e['seq'] for e in pes]
+ out[v]={'events':len(es),'usage':u,'tool_calls':want['tool_calls'],'jobs':want['jobs'],'artifact_hashes_checked':len(want['artifacts']),'debugger_bytes_checked':len(debug.encode()),'pid_before_after_receipts_checked':True,'supplemental_public_agents_checked':2}
+path=pathlib.Path('/tmp/ch04-independent-live-receipt-review.json');path.write_text(json.dumps({'scope':'read-only arithmetic/hash and raw-record checks; no replay, no new live call, no claim current PID state','initial_runtime_source':rec['binding'],'results':out},indent=2)+'\n');print(path);print(json.dumps(out,indent=2))

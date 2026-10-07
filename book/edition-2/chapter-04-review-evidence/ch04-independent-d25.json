@@ -1,0 +1,339 @@
+{
+  "scope": "Independent Chapter 4 CLI/job acceptance from the new published contract.\n\nLocal scripted APIs only. No student implementation is imported or inspected.\nThis is scoped evidence: owner chains, cross-Agent isolation, injected storage\nfaults, goroutine containment, terminal races, and real model use need separate\nchecks. Report wording is not fixed; authoritative job facts and artifact bytes\ncarry the strongest assertions. Tests run serially and clean up fixture children.\n",
+  "binary_sha256": "235ceff3c9f68e1442f6bdc23c79e3a4b01f024907861dda1fae0a7976962a02",
+  "checker_sha256": "dda16997444d07a26173bc519ea7048fc79f9086aeaf1ded9cb8ddf528c3cd56",
+  "passed": true,
+  "checks": [
+    {
+      "id": "anthropic/local-jobs-cursor",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/late-output",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/interactive-new-output",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/pty-cwd",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/full-spool",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/one-shot-limits",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/group-kill",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/eof-shutdown",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/error-shutdown",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/completion-during-http",
+      "passed": true,
+      "details": [],
+      "observed_boundaries": {
+        "request_seq": 6,
+        "terminal_seq": 7
+      }
+    },
+    {
+      "id": "anthropic/cursor-after-omission",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/occupied-artifacts-restart",
+      "passed": true,
+      "details": [],
+      "created_handles": [
+        [
+          4
+        ],
+        [
+          5
+        ]
+      ]
+    },
+    {
+      "id": "anthropic/allocation-error-no-execution",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/source-cap-artifacts",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/human-debugger",
+      "passed": true,
+      "details": [],
+      "observed_tool_results": {
+        "debug-start": "job 1 status: running; output: cr/io/1; total bytes: 40; use wait_for_job, send_input, or kill_job\nType 'help' for list of commands.\n(dlv) ",
+        "debug-break": "job 1 status: running; output: cr/io/1; total bytes: 156; use wait_for_job, send_input, or kill_job\nbreak inspected audit_target.go:6\nBreakpoint inspected set at 0x1040c7298 for main.main() ./audit_target.go:6\n(dlv) ",
+        "debug-continue": "job 1 status: running; output: cr/io/1; total bytes: 411; use wait_for_job, send_input, or kill_job\ncontinue\n> [inspected] main.main() ./audit_target.go:6 (hits goroutine(1):1 total:1) (PC: 0x1040c7298)\n     1:\tpackage main\n     2:\timport \"fmt\"\n     3:\tfunc main() {\n     4:\t answer := 37\n     5:\t answer += 5\n=>   6:\t fmt.Println(answer)\n     7:\t}\n(dlv) ",
+        "debug-print": "job 1 status: running; output: cr/io/1; total bytes: 433; use wait_for_job, send_input, or kill_job\nprint answer\n42\n(dlv) ",
+        "debug-finish": "job 1 status: running; output: cr/io/1; total bytes: 491; use wait_for_job, send_input, or kill_job\ncontinue\n42\r\nProcess 70817 has exited with status 0\n(dlv) ",
+        "debug-exit": "job 1 status: done; output: cr/io/1; total bytes: 509\nexit\nexit_code: 0\n"
+      },
+      "debugger_version": "Delve Debugger\nVersion: 1.27.2\nBuild: $Id: 360e7b2181d3da54115aaee4f569954bca95cfe3 $",
+      "scope": "actual PTY CLI + Delve with local scripted API; no paid model"
+    },
+    {
+      "id": "openai/local-jobs-cursor",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/late-output",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/interactive-new-output",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/pty-cwd",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/full-spool",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/one-shot-limits",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/group-kill",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/eof-shutdown",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/error-shutdown",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/completion-during-http",
+      "passed": true,
+      "details": [],
+      "observed_boundaries": {
+        "request_seq": 6,
+        "terminal_seq": 7
+      }
+    },
+    {
+      "id": "openai/cursor-after-omission",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/occupied-artifacts-restart",
+      "passed": true,
+      "details": [],
+      "created_handles": [
+        [
+          4
+        ],
+        [
+          5
+        ]
+      ]
+    },
+    {
+      "id": "openai/allocation-error-no-execution",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/source-cap-artifacts",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/human-debugger",
+      "passed": true,
+      "details": [],
+      "observed_tool_results": {
+        "debug-start": "job 1 status: running; output: cr/io/1; total bytes: 40; use wait_for_job, send_input, or kill_job\nType 'help' for list of commands.\n(dlv) ",
+        "debug-break": "job 1 status: running; output: cr/io/1; total bytes: 156; use wait_for_job, send_input, or kill_job\nbreak inspected audit_target.go:6\nBreakpoint inspected set at 0x100333298 for main.main() ./audit_target.go:6\n(dlv) ",
+        "debug-continue": "job 1 status: running; output: cr/io/1; total bytes: 411; use wait_for_job, send_input, or kill_job\ncontinue\n> [inspected] main.main() ./audit_target.go:6 (hits goroutine(1):1 total:1) (PC: 0x100333298)\n     1:\tpackage main\n     2:\timport \"fmt\"\n     3:\tfunc main() {\n     4:\t answer := 37\n     5:\t answer += 5\n=>   6:\t fmt.Println(answer)\n     7:\t}\n(dlv) ",
+        "debug-print": "job 1 status: running; output: cr/io/1; total bytes: 433; use wait_for_job, send_input, or kill_job\nprint answer\n42\n(dlv) ",
+        "debug-finish": "job 1 status: running; output: cr/io/1; total bytes: 491; use wait_for_job, send_input, or kill_job\ncontinue\n42\r\nProcess 70867 has exited with status 0\n(dlv) ",
+        "debug-exit": "job 1 status: done; output: cr/io/1; total bytes: 509\nexit\nexit_code: 0\n"
+      },
+      "debugger_version": "Delve Debugger\nVersion: 1.27.2\nBuild: $Id: 360e7b2181d3da54115aaee4f569954bca95cfe3 $",
+      "scope": "actual PTY CLI + Delve with local scripted API; no paid model"
+    },
+    {
+      "id": "gemini/local-jobs-cursor",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/late-output",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/interactive-new-output",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/pty-cwd",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/full-spool",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/one-shot-limits",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/group-kill",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/eof-shutdown",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/error-shutdown",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/completion-during-http",
+      "passed": true,
+      "details": [],
+      "observed_boundaries": {
+        "request_seq": 6,
+        "terminal_seq": 7
+      }
+    },
+    {
+      "id": "gemini/cursor-after-omission",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/occupied-artifacts-restart",
+      "passed": true,
+      "details": [],
+      "created_handles": [
+        [
+          4
+        ],
+        [
+          5
+        ]
+      ]
+    },
+    {
+      "id": "gemini/allocation-error-no-execution",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/source-cap-artifacts",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/human-debugger",
+      "passed": true,
+      "details": [],
+      "observed_tool_results": {
+        "debug-start": "job 1 status: running; output: cr/io/1; total bytes: 40; use wait_for_job, send_input, or kill_job\nType 'help' for list of commands.\n(dlv) ",
+        "debug-break": "job 1 status: running; output: cr/io/1; total bytes: 156; use wait_for_job, send_input, or kill_job\nbreak inspected audit_target.go:6\nBreakpoint inspected set at 0x1048f3298 for main.main() ./audit_target.go:6\n(dlv) ",
+        "debug-continue": "job 1 status: running; output: cr/io/1; total bytes: 411; use wait_for_job, send_input, or kill_job\ncontinue\n> [inspected] main.main() ./audit_target.go:6 (hits goroutine(1):1 total:1) (PC: 0x1048f3298)\n     1:\tpackage main\n     2:\timport \"fmt\"\n     3:\tfunc main() {\n     4:\t answer := 37\n     5:\t answer += 5\n=>   6:\t fmt.Println(answer)\n     7:\t}\n(dlv) ",
+        "debug-print": "job 1 status: running; output: cr/io/1; total bytes: 433; use wait_for_job, send_input, or kill_job\nprint answer\n42\n(dlv) ",
+        "debug-finish": "job 1 status: running; output: cr/io/1; total bytes: 491; use wait_for_job, send_input, or kill_job\ncontinue\n42\r\nProcess 70916 has exited with status 0\n(dlv) ",
+        "debug-exit": "job 1 status: done; output: cr/io/1; total bytes: 509\nexit\nexit_code: 0\n"
+      },
+      "debugger_version": "Delve Debugger\nVersion: 1.27.2\nBuild: $Id: 360e7b2181d3da54115aaee4f569954bca95cfe3 $",
+      "scope": "actual PTY CLI + Delve with local scripted API; no paid model"
+    },
+    {
+      "id": "offline/dump-without-artifact",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "offline/render-without-artifact",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "offline/unknown-terminal",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "offline/changed-locator",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "offline/running-exit-code",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "offline/decreasing-bytes",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "offline/reversing-result",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "offline/duplicate-terminal",
+      "passed": true,
+      "details": []
+    }
+  ]
+}

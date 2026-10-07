@@ -1,0 +1,32 @@
+{
+  "scope": "External-consumer Chapter 4 checks; run only after the initial source freeze.\n\nThe adapter is built against the public library, outside its module. No internal\npackage imports or private field names are used. Prepared against accepted Ch3\ndeclarations; method spelling may be adapted after freeze without changing the\nbehavioral assertions. Local fake providers; no paid model use.\n",
+  "consumer_sha256": "ed63191bad1767bfcd5e9f4545d75a204d732a6d74019891bf1c9761be849584",
+  "checker_sha256": "0e066b4ee23c888cfcaa33ea697770f0cb72a7f73fc3310cc04f66c5ceb81397",
+  "passed": true,
+  "checks": [
+    {
+      "id": "anthropic/public-owners-isolation-observation",
+      "passed": true,
+      "details": [],
+      "boundaries": {
+        "terminal_while_http_parked": 19
+      }
+    },
+    {
+      "id": "openai/public-owners-isolation-observation",
+      "passed": true,
+      "details": [],
+      "boundaries": {
+        "terminal_while_http_parked": 19
+      }
+    },
+    {
+      "id": "gemini/public-owners-isolation-observation",
+      "passed": true,
+      "details": [],
+      "boundaries": {
+        "terminal_while_http_parked": 19
+      }
+    }
+  ]
+}
