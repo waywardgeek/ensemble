@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Independent Chapter 2 human CLI checks, including actual PTY interaction.
+"""Independent Chapter 2/3 human CLI checks, including actual PTY interaction.
 
 Local fake APIs establish deterministic interface behavior, not paid/live model
 usability. The latter requires separate coder receipts. No student source is
 read. Large lines use explicit piped chat to avoid the terminal driver's own
-canonical-line limit. Architecture and successful tool-result redaction need
-separate public-library/Chapter 3 checks.
+canonical-line limit. Chapter 3 adds actual tools and successful human redaction;
+architecture and public-library isolation remain separate checks.
 """
 
 import argparse
@@ -23,13 +23,16 @@ import tempfile
 import termios
 import time
 
-from accept_ch03 import Session, VENDORS, MODEL, response, records, text_content
+from accept_ch03 import (Session, VENDORS, MODEL, response, records, text_content,
+                         call, declaration_errors, wire_facts, result_map, result_text)
 
 
 PROMPT = b"You> "
 LIMIT = 1024 * 1024
 KEY = "LOCAL-CHAT-SECRET-481"
 ANSWER = "DISPLAY-FIRST-381\nDISPLAY-SECOND-629"
+PRIVATE_RESULT = "FILE-RESULT-TO-REDACT-826"
+INTERMEDIATE = "MODEL-INTERMEDIATE-NOT-FINAL-742"
 
 
 def environment(session):
@@ -263,29 +266,152 @@ def fixture(vendor, kind):
     return [response(vendor, [], ANSWER) for _ in range(3)]
 
 
+def tool_plan(root):
+    (root / "notes.txt").write_text(PRIVATE_RESULT + "\n")
+    return [call("missing", "read_file", path="absent.txt"),
+            call("read-visible", "read_file", path="notes.txt"),
+            call("write", "write_file", path="made.txt", content="BEFORE\n"),
+            call("edit", "edit_file", path="made.txt", old_text="BEFORE", new_text="AFTER"),
+            call("list", "list_directory", path="."),
+            call("search", "search_files", path="made.txt", pattern="AFTER"),
+            call("command", "run_command", command="printf 'OUT-482'; printf 'ERR-371' >&2; exit 7")]
+
+
+def tool_projection_errors(body, vendor, calls, redacted):
+    errors = declaration_errors(body, vendor)
+    actual, results, signatures = wire_facts(body, vendor)
+    if actual != [(c["id"], c["name"], c["args"]) for c in calls]:
+        errors.append("continuation changed call identities/arguments/order")
+    if [r[0] for r in results] != [c["id"] for c in calls]:
+        errors.append("continuation lost result pairing/order")
+    values = {identifier: (text, failed) for identifier, text, failed in results}
+    if "read-visible" not in values:
+        errors.append("missing independent read result")
+    else:
+        text = values["read-visible"][0]
+        if redacted:
+            if PRIVATE_RESULT in text or "[redacted]" not in text:
+                errors.append("selected result was not replaced by a redaction stub")
+        elif PRIVATE_RESULT not in text:
+            errors.append("positive result content absent before redaction")
+    if vendor == "gemini" and any(signatures.get(c["id"]) != "fixture-signature-" + c["id"] for c in calls):
+        errors.append("human continuation lost bound replay signatures")
+    return errors
+
+
+def tool_terminal_case(session, calls, failure=False):
+    errors = []
+    terminal = Terminal(session, ["chat"])
+    try:
+        terminal.prompt()
+        if failure:
+            code, out, err = terminal.finish(b"Exercise the tools.\n")
+            if code == 0 or not err.strip() or "Assistant:" in out or "usage" in out.lower():
+                errors.append("continuation failure produced success UI or lacked failure status")
+        else:
+            out = terminal.prompt(b"Exercise the tools.\n")
+            if out.count("Assistant:") != 1 or ANSWER not in out or INTERMEDIATE in out or PRIVATE_RESULT in out:
+                errors.append("tool turn displayed intermediate facts instead of one final readable answer")
+            if "execution is not available" in out:
+                errors.append("Chapter 2 tool-only notice survived into tool execution")
+        captured = records(session.log)
+        results = result_map(captured)
+        if list(results) != [c["id"] for c in calls]:
+            errors.append("tool batch not fully paired after ordinary error")
+        else:
+            if not results["missing"].get("is_error", False):
+                errors.append("missing file did not produce ordinary tool error")
+            if any(results[c["id"]].get("is_error", False) for c in calls[1:]):
+                errors.append("valid tool or nonzero command exit became tool failure")
+            for identifier, markers in (("read-visible", [PRIVATE_RESULT]), ("list", ["made.txt"]),
+                                        ("search", ["AFTER"]), ("command", ["OUT-482", "ERR-371", "7"])):
+                if any(marker not in result_text(results, identifier) for marker in markers):
+                    errors.append("tool result missing observed content: " + identifier)
+        if (session.root / "made.txt").read_bytes() != b"AFTER\n":
+            errors.append("write/edit result disagreed with disk")
+        if len(session.requests) != 2:
+            errors.append("first full tool turn did not use exactly two requests")
+        else:
+            errors.extend(tool_projection_errors(session.requests[1], session.vendor, calls, False))
+        for request in session.requests:
+            errors.extend(declaration_errors(request, session.vendor))
+        if failure:
+            if not any(e["type"] == "error_occurred" for e in captured):
+                errors.append("failed continuation lost safe durable error")
+            return errors
+        before_history = session.log.read_bytes()
+        history = terminal.prompt(b"/history\n")
+        target = next(e for e in captured if e["type"] == "tool_returned" and e["tool"]["call_id"] == "read-visible")
+        # Discover the number in the displayed row, then cross-check the log.
+        # No hardcoded event sequence is assumed.
+        candidate = [line for line in history.splitlines() if "tool_returned" in line and "read-visible" in line]
+        numbers = re.findall(r"\b\d+\b", candidate[0]) if len(candidate) == 1 else []
+        if str(target["seq"]) not in numbers:
+            errors.append("history did not expose usable result sequence and call identity")
+        if session.log.read_bytes() != before_history or len(session.requests) != 2:
+            errors.append("history inspection mutated or contacted API")
+        sequence = target["seq"]
+        acknowledgement = terminal.prompt(f"/redact {sequence} {sequence} controlled terminal redaction\n".encode())
+        if "redact" not in acknowledgement.lower() or len(session.requests) != 2:
+            errors.append("redaction lacked local acknowledgement or made HTTP request")
+        after_redaction = records(session.log)
+        if after_redaction[:-1] != captured or after_redaction[-1]["type"] != "redacted":
+            errors.append("redaction rewrote recorded facts or omitted directive")
+        out = terminal.prompt(b"Continue after the deliberate redaction.\n")
+        if out.count("Assistant:") != 1 or ANSWER not in out:
+            errors.append("redacted follow-up did not display final answer")
+        if len(session.requests) != 3:
+            errors.append("redacted follow-up made wrong request count")
+        else:
+            errors.extend(tool_projection_errors(session.requests[2], session.vendor, calls, True))
+        errors.extend(usage_errors(terminal.prompt(b"/usage\n"), 3))
+        code, out, err = terminal.finish(b"/quit\n")
+        if code != 0:
+            errors.append("full tool/redaction chat failed clean exit")
+        errors.extend(usage_errors(out, 3))
+        if KEY in bytes(terminal.output).decode() + err:
+            errors.append("credential leaked")
+    finally:
+        terminal.close()
+    return errors
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("binary", type=pathlib.Path)
+    parser.add_argument("--chapter", type=int, choices=(2, 3), default=2)
     args = parser.parse_args()
     binary = args.binary.resolve(strict=True)
     checks = []
     kinds = ("pty-chat", "pty-default", "empty", "exact-limit-crlf", "over-limit", "invalid-utf8",
              "operation-refusal", "provider-failure", "missing-model", "unknown-subcommand",
              "protocol", "redirected-default", "empty-response", "tool-only")
+    if args.chapter == 3:
+        kinds = tuple(k for k in kinds if k != "tool-only") + ("tool-turn-redaction", "tool-continuation-failure")
     for vendor in VENDORS:
         for kind in kinds:
             with tempfile.TemporaryDirectory(prefix="ensemble-chat-check-") as tmp:
-                session = Session(binary, pathlib.Path(tmp), vendor, fixture(vendor, kind))
+                root = pathlib.Path(tmp)
+                calls = tool_plan(root) if kind.startswith("tool-") and args.chapter == 3 else None
+                replies = fixture(vendor, kind)
+                if calls:
+                    replies = [response(vendor, calls, INTERMEDIATE),
+                               None if kind == "tool-continuation-failure" else response(vendor, [], ANSWER),
+                               response(vendor, [], ANSWER)]
+                session = Session(binary, root, vendor, replies)
                 try:
-                    errors = (terminal_case(session, kind == "pty-default") if kind.startswith("pty-")
-                              else pipe_case(session, kind))
+                    if calls:
+                        errors = tool_terminal_case(session, calls, kind == "tool-continuation-failure")
+                    else:
+                        errors = (terminal_case(session, kind == "pty-default") if kind.startswith("pty-")
+                                  else pipe_case(session, kind))
                     errors.extend(session.server_errors)
                 except (AssertionError, ValueError, KeyError, TypeError, OSError, subprocess.TimeoutExpired) as exc:
                     errors = [type(exc).__name__ + ": " + str(exc)]
                 finally:
                     session.close()
                 checks.append({"id": vendor + "/" + kind, "passed": not errors, "details": errors})
-    print(json.dumps({"binary_sha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
+    print(json.dumps({"chapter": args.chapter, "binary_sha256": hashlib.sha256(binary.read_bytes()).hexdigest(),
                       "checker_sha256": hashlib.sha256(pathlib.Path(__file__).read_bytes()).hexdigest(),
                       "checks": checks}, indent=2))
     return 0 if all(c["passed"] for c in checks) else 1
