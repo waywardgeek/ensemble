@@ -3,7 +3,14 @@
 Review date: 2026-10-07. This is a forward-lesson and dependency map for the
 second edition, not an implementation specification or validation report.
 Chapter numbers below refer to the **first edition** unless stated otherwise.
-The second-edition sequence may change.
+The current second-edition plan is **21 chapters, numbered 0–20**.
+Bill subsequently requested an enhanced Chapter 0 execution guide and permits
+documented organizational changes with a concrete teaching benefit. Preserve
+the first-edition Chapter 0 and preface; write the new guide in this edition.
+Old Chapters 1–4 keep their numbers, and old
+Chapters 6–21 become new Chapters 5–20. Old Chapters 5 and 22 are absorbed
+at the relevant first introductions, not retained as standalone chapters.
+Any dependency-driven adjustment must document its teaching benefit.
 
 ## Authority and read ledger
 
@@ -45,8 +52,13 @@ performed for this review. Historical measurements remain historical.
   `agent/` and first-edition implementations untouched. New student code lives
   in `solutions/edition-2/chNN/`, built from scratch or the preceding new
   chapter; old solutions are evidence for authors, not student starting code.
-- Start writing with Chapter 1, not the preface or Chapter 0. Teach the
-  architecture in plain English before any code. There is no initial
+- Use the current 21-chapter plan, numbered 0–20, with the mapping above;
+  Bill now permits justified organizational changes. Neither
+  former repair chapter survives as an extra chapter or capstone. Incorporate
+  useful extension and audit exercises into the relevant remaining chapters.
+- The initial rewrite began with Chapter 1. Bill now requests an enhanced
+  second-edition Chapter 0 execution guide; the preface remains untouched.
+  Teach the architecture in plain English before any Chapter 1 code. There is no initial
   flat-package exemption from the methodology.
 - Coders load the entire standing coding skill before every coding task,
   including fixes and graders, and after compaction. Summaries do not replace
@@ -136,7 +148,7 @@ at the chapter number where the first edition discovered its absence.
 | [2: log and vendors](../chapter-02.md) | Separate immutable event history, reduced context, and vendor request projection. Capture exact provenance when written; normalize usage without losing producing-model identity. Add both client seams now, with optional GUI stub. | Three API paths as introduced, deterministic rendering, parser-to-event-to-reducer path, independent logs, headless build, public GUI seam. |
 | [3: tools](../chapter-03.md) | Per-agent capability visibility must constrain declarations and dispatch. Preserve call identity and tool-result order. A tool failure is content; infrastructure failure is different. Shell working directory is not a filesystem sandbox. | Unknown/disabled tool rejection, all issued calls answered, truthful working-directory behavior, real tool use. |
 | [4: jobs](../chapter-04.md) | Give each job a lifecycle owner. Wait wakeup is not deadline or cancellation. Process-output completion and dispatch completion are distinct. Full output can live on disk while reports are capped and cursored. | Long job start/wait/input/kill through the user path, late output, cursor advancement, independent per-call cwd and one-shot limits. |
-| [5: architecture repair](../chapter-05.md) | Move its architecture to Chapter 1. Turn the later chapter into extension/audit practice if retained. Logging and multiple-agent isolation expose missing ownership before scale does. | A separate consumer extends the public library; actual parent paths and all import edges; no mutable globals. |
+| [5: architecture repair](../chapter-05.md) | Absorb its architecture into Chapter 1 and its extension/audit exercises where the relevant features first appear; no standalone replacement chapter. Logging and multiple-agent isolation expose missing ownership before scale does. | A separate consumer extends the public library; actual parent paths and all import edges; no mutable globals. |
 | [6: actor](../chapter-06.md) | One owner mutates conversation state. Public synchronous calls enqueue requests and wait for their own completion; observations are not completion joins. Introduce lifecycle rules with the actor. | Concurrent requests receive their own replies; interrupts end turns, not the actor; shutdown joins workers; late results have a specified disposition. |
 | [7: streaming](../chapter-07.md) | Incremental parser IDs are response-local; UI identity needs an explicit broader scope. Deltas are provisional; finalized events are durable. Nonstreaming and streaming parsing share semantics. | Interleaved fragments, finalization once, malformed chunks, two consecutive replies reusing provider-local IDs. |
 | [8: GUI](../chapter-08.md) | The optional GUI module consumes public events and requests. Introduce safe WebSocket sender/teardown ownership immediately. Give final state a reliable delivery or resynchronization path despite lossy deltas. | Headless and GUI consumers, reconnect/resync, slow clients, disconnect during broadcasts, independent authoritative state. |
@@ -153,7 +165,7 @@ at the chapter number where the first edition discovered its absence.
 | [19: credentials](../chapter-19.md) | Credential ownership stays outside renderers; secrets are request-local, not durable context. Route and funding transitions must be explicit. API and subscription access are separate evidence questions. | Authorized real route, sanitized receipts, coherent endpoint/model/surface/credential transitions, no silent billing fallback. |
 | [20: live integration](../chapter-20.md) | Test effective state through actual entry points, not only intended config. Move discovered ID-scope, parser-finalization, content-type, and shutdown fixes to their first consumers. | Real backend user sessions and route changes, two-turn identity, correct terminal-event handling, normal shutdown on signals. |
 | [21: web/skills integration](../chapter-21.md) | Retrieved content is data, not authority. Tool allowlists govern dispatch, not only declarations. Test the shipped default skill, not just a special grader fixture. | Live default feature use, disabled/guessed tool rejection, injected retrieval content cannot itself grant tools, configured integrations actually connect. |
-| [22: final repair](../chapter-22.md) | Move parent reachability, per-model cost, and WebSocket lifecycle lessons earlier. Retain a capstone audit that extends the system without changing its ownership model. | Deliberate parent-path breakage fails; mixed-model usage not repriced; sender/disconnect race exposed by sensitive fixtures; each binary uses the library root. |
+| [22: final repair](../chapter-22.md) | Absorb parent reachability, per-model cost, and WebSocket lifecycle lessons and audits into their first consumers. No standalone repair or extra capstone chapter remains. | Deliberate parent-path breakage fails; mixed-model usage not repriced; sender/disconnect race exposed by sensitive fixtures; each binary uses the library root. |
 
 The table does not require every hypothetical mechanism in Chapter 2. A
 conversation shape must admit later features without rebuilding its meaning;

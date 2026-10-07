@@ -1,153 +1,95 @@
-# Restart checkpoint
+# Working checkpoint
 
-Work paused at Bill's request so he can restart Codex with different sandbox
-settings. Resume from this file and `progress.md`, not from a new plan.
+Date: 2026-10-07. Status: ACTIVE. Bill enabled full access without restarting
+and authorized continued autonomous work. This file supersedes the original
+paused restart record. Read `progress.md` for the current executable next step.
 
-## Objective and authorization
+## Objective and current scope
 
 Write the second edition and regenerate Ensemble as a student of that book.
-Continue autonomously; ask Bill real unresolved questions. Exactly **21
-chapters, 0–20**: leave Chapter 0 and preface alone; rewrite from Chapter 1;
-remove old Chapters 5 and 22 as standalone repairs and absorb their lessons
-where first needed. Old 6–21 become new 5–20. Detect drift and fix the coder,
-never dilute the architecture to accommodate it.
+The current map has 21 chapters, 0–20, absorbing old Chapters 5 and 22 where
+those lessons first matter. Bill subsequently permitted chapter adjustments
+for concrete teaching benefits and explicitly requested an enhanced Chapter 0
+execution guide. Author is creating `book/edition-2/chapter-00.md` from the
+existing introduction. Preserve the first-edition source and preface.
 
-Do not edit existing `agent/` implementation or first-edition solutions.
-New code belongs in `solutions/edition-2/chNN/`, each a self-contained Git
-repository. Bill authorizes initializing repositories and snapshots. Start
-Chapter 1 from scratch; derive later repos/history only from preceding new
-solutions. Do not copy old answer-key code. Grader improvements are authorized,
-including coder findings, but cannot weaken coverage and must preserve legacy
-tests. Do not push or include Bill's unrelated files in commits.
+New implementations live in separate full Git repositories at
+`solutions/edition-2/chNN/`. Start Chapter 1 from scratch; derive each later
+repository from the preceding new history. Never copy old answer keys or edit
+existing `agent/` implementation and first-edition solutions. Grader changes
+cannot weaken coverage and must retain legacy passes. Do not push or stage
+Bill's unrelated files.
 
-## Mandatory context
+## Mandatory context and roles
 
-Read these before resuming:
+Read root `AGENTS.md`, `book/chapter-writing-procedure.md`, and this directory's
+`architecture.md`, `workflow.md`, and relevant chapter contract. Every coding
+agent must freshly read the entire `skills/ensemble-coding/SKILL.md` before a
+coding task and after compaction. Every coding handoff explicitly names
+`book/edition-2/skills/ensemble-coding/SKILL.md` and requires that read.
+Author and proofreader also read the full `book/voice.md`.
 
-1. Root `AGENTS.md`.
-2. `book/chapter-writing-procedure.md` (rewritten to reflect this session).
-3. `book/edition-2/skills/ensemble-coding/SKILL.md` in full before ANY coding
-   task, including tests/graders, and after compaction. Every coder handoff
-   requires that read explicitly.
-4. `book/edition-2/architecture.md` and `workflow.md`.
-5. Author and proofreader both read all of `book/voice.md` and the procedure.
-6. Current chapter, outline, evidence, and `global-review.md` as relevant.
+Root coordinates and independently grades. Worker roles are author, student
+coder, and global reviewer; the reviewer performs independent code-review and
+proofreading phases. Three worker threads fit in this session; scheduling
+roles in phases is not a requirement of every reader's platform. Inspect
+actual agent status after interruptions rather than assuming thread state.
 
-Chapter 1 now teaches architecture in plain English before all code: star
-imports; shared core structures/interfaces in `internal/common`; behavior in
-the owning spoke, using free functions rather than moving it to common for
-method syntax; interface parent chains; logger access for all likely-to-log
-code including stateless helpers. Common's vocabulary hub is not runtime
-Hub/Ensemble. Mutable application state belongs to objects, not globals.
+The initial student attempt uses the new teaching and preceding new solution,
+not old implementation or grader internals. AFTER the first implementation
+and runs, an independent code reviewer compares it with the first-edition
+standard, sends findings to coder and author, and reviews their revisions.
+Passing alone is insufficient: improve code, design, comments, and teaching.
+Preserve the initial attempt and record concrete gains and tradeoffs.
 
-One runtime Ensemble owns many Agents. Working implementation decision:
-Ensemble owns logger, Agent config/history, Engine transport/usage. Parent
-interfaces are in common. Observer carries streaming/real-time display events;
-explicit parent methods also support requests and services. No observer-only
-prohibition remains. Registry may be Agent-owned or shared on Ensemble with
-per-agent visibility; choose when tools are introduced.
+## Current state
 
-GUI/WebSocket code belongs in a separate optional Go MODULE, never
-`agent/internal`. Starting Chapter 2, clean core data structures and both CLI
-and browser-GUI client interfaces exist; GUI may be an honest stub then.
+- Main workflow review requirement committed as `1d3b6c9`.
+- Independent acceptance/package tooling and evidence committed as `602ae87`.
+- Chapter 1 student final revision: `75542c1c73388fa1ab618dbb8b1e252e3d80816a`.
+  Initial comparison/live checkpoint: `459e4ce`. Both are in the student repo.
+  Chapter 1 passed implementation, required live demonstrations, scoped audits,
+  code-quality comparison/revisions, and final prose review. Bill's separate
+  editorial approval is not claimed.
+- Chapter 2 contract passed independent review and a cold student read. The
+  coder is implementing in `solutions/edition-2/ch02/`, derived from `75542c1`.
+  It has no claimed successful grade or live result yet.
+- Author is writing Chapter 0's execution guide. Reviewer will check it.
+  Chapters 1 and 2 now motivate the rules and visibly teach skill loading,
+  following Bill's forwarded CodeRhapsody advice.
 
-## Team workflow
+Chapter 1 checks: both modules format/vet/test clean; inherited score100;
+23 independent CLI checks; eleven CLI mutants plus passing control; two
+parser-classifier mutations; ten package-boundary controls and actual student
+identifier-rename control. Structural analysis is scoped, not a proof of every
+possible ownership violation. See `chapter-01-validation.md` and
+`chapter-01-code-review.md` for evidence and limitations.
 
-Author, student coder, global reviewer, and independent proofreader roles were
-established. Only three worker threads fit in this session: attempting a fourth
-failed. The global review thread saves its map and switches to a dedicated
-proofreading phase; it remains independent of the author. Recreate workers as
-needed after restart; do not assume the old agent threads remain available.
+Full legacy root tests passed with exit0, including grade508.958s; root vet
+and latest targeted package-checker tests pass. Existing agent suite passed
+without edits. Durable logs are in `checkpoint-evidence/`. Shared legacy
+graders have not changed. Do not repeat the long suite absent relevant changes.
 
-The student has NOT read old solution/agent/grader implementation. It reads
-the new chapter and skill only, plus earlier new snapshots. Root handles
-independent grader engineering. Proofreader returns findings to the author.
+## Live evidence and credentials
 
-## Current chapter state
+The existing Chapter 1 paid CLI and public-consumer receipts are saved under
+`solutions/edition-2/ch01/evidence/`; do not repeat paid calls to recover state.
+They used discovered model `claude-sonnet-5-5`, with final CLI usage261/209.
+Independent consumer Agents retained their own histories and totals. Logger
+failure evidence is a deliberate local probe. Receipts are bound to459e4ce;
+75542c1 adds reviewed diagnostics/comments/named fields, validated locally.
 
-### Chapter 1
+Every chapter must exercise every supported feature through actual user paths
+with real models, initially CLI; three vendors as introduced. Fake checks and
+GUI-stub integration must be labeled honestly. Bill authorizes keys in
+`~/.cr/settings.json`: programmatic memory/environment only, never dump keys,
+put them in argv/prompts/logs, or commit them. Record safe source/run provenance.
 
-`book/edition-2/chapter-01.md` has full teaching and a usable student contract.
-Proofreader read full voice/procedure and resolved its material findings:
-credential-safe discovery example, timeout/logger contract in TL;DR, external
-public-library consumer for live ownership checks. Prose lint has no hard
-failures; soft warnings do not warrant padding. Section 1.9 still has a LIVE
-RECEIPT PENDING placeholder. Do not claim completed validation.
+At the caching chapter, verify then-current official subscription-access
+methods and measure the reported OpenAI OAuth caching issue against suitable
+API-key controls. Do not assume a historical claim or closed issue proves it.
 
-Student implementation is underway in `solutions/edition-2/ch01/`, a newly
-initialized Git repo: public root library, `internal/common`, `internal/llm`,
-`cmd/` JSON-lines CLI, tests. See its own `CHECKPOINT.md` for the latest coder
-results and exact unfinished work. No optional chat mode was planned.
-
-Existing `grade.Build` already discovers `cmd/` beneath a solution directory;
-use `make grade-dir CH=1 DIR=solutions/edition-2/ch01`.
-
-The new chapter adds pass/fail acceptance beyond the old seven-check score:
-configuration failures, malformed/empty input, response validation, finite
-timeout, exact history growth, external library use, independent Agents,
-logger reachability, and architecture. Root has not yet changed graders or
-implemented independent new acceptance/mutation checks. Read §1.8.
-
-### Chapter 2
-
-Outline, evidence, and initial contract exist in `chapter-02*.md`.
-**Not ready for student implementation.** Needs literal event/data schemas,
-fixtures, CLI contracts, and requested-versus-returned model provenance rules.
-Author researched official current API fields. See evidence, not assumptions:
-OpenAI docs currently describe both cached and cache-write input fields;
-Gemini prompt counts include cache and total includes thinking+candidates.
-Keep original initial surfaces Messages, Chat Completions, and generateContent
-unless source evidence requires a documented change. Three-vendor live checks
-are mandatory once adapters exist.
-
-Global map is saved. Its old-number rows are historical references; suggestions
-to retain old 5/22 as audit chapters must be updated to the final 21-chapter map.
-
-## Tests and evidence
-
-- Legacy Chapter 1 reference + all mutation cases PASS:
-  `GOCACHE=/tmp/ensemble-edition2-go-cache go test ./internal/grade -run
-  '^(TestReferenceSolutionPasses|TestMutationsAreCaught)$' -count=1`
-  Local fake-server listening required execution outside the sandbox.
-- Existing `agent/` full `go test ./... -count=1 -timeout=20m` PASS, exit 0,
-  without implementation changes. Log copied to checkpoint evidence.
-- Full root `go test ./... -count=1 -timeout=45m` was interrupted for this
-  checkpoint before the grade package completed. **NOT a passing baseline.**
-  Partial log saved; rerun on resume before shared grader enhancements.
-- Bundled skill validator cannot start because Python lacks PyYAML. Ruby
-  successfully parsed skill frontmatter and checked name/description; that
-  does not replace behavioral validation. Read-only coder scenarios and full
-  global review found no material rule contradiction.
-
-## Live demonstrations and credentials
-
-Every "Taking it for a spin" requires the coder actually run the user-facing
-program with a REAL model, initially CLI, exercising every chapter feature.
-Fake grading is complementary, never a substitute. Use a runnable external
-consumer for public-library features; retain sanitized receipts for the author.
-The proofreader checks prose against those receipts. No invented transcripts.
-
-Bill authorizes API keys in `~/.cr/settings.json`. Read needed values
-programmatically into memory/child environments; never dump the config,
-print keys, place them in argv/prompts/logs/repo files, or commit them.
-Use all three vendors as introduced. Model IDs must be discovered/verified.
-Check coder checkpoint for whether any live attempt happened before pausing.
-
-At the caching chapter, check OpenAI's then-current official subscription
-access method and TEST OAuth caching against comparable API-key controls.
-Bill reports a recently introduced subscription/API capability and an OAuth
-caching defect; these are leads, not newly verified facts. Do not declare it
-fixed because a report was closed. Record actual endpoint, model, mode, cache
-counts, and date, never credentials. Do not research/implement it prematurely.
-
-## Next executable actions
-
-1. Read the mandatory context and the student repository checkpoint; inspect
-   its current commit/status without mixing nested repos into the parent commit.
-2. Resume student Chapter 1 validation and real-model demonstrations. Have the
-   grader engineer add independent acceptance checks and property mutants,
-   retaining a passing legacy baseline. Review actual architecture for drift.
-3. Give observed receipts to the author, finish §1.9, run proofreader review,
-   and commit a validated Chapter 1 snapshot only after all required evidence.
-4. In parallel finish Chapter 2's concrete contract. Then continue through
-   new Chapter 20 using the same author/student/grade/live/review cycle.
+Bill also asked for an opinion on `book/the-improvement-loop.md`. Root read it
+and discussed using attempts, review, revisions, and distinguishing tests as
+potential future training data. No model weight training or training-speed
+improvement has been performed or authorized as implementation work here.

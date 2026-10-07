@@ -6,12 +6,16 @@ code-first outline procedure and its per-chapter approval ceremony.
 
 ## Outcome and scope
 
-Write exactly **21 chapters, numbered 0–20**. Leave Chapter 0 and the preface
-alone. Rewrite from Chapter 1. Absorb the lessons of first-edition Chapters 5
+The current plan is **21 chapters, numbered 0–20**. Bill subsequently
+authorized chapter adjustments when they improve the teaching and explicitly
+requested a Chapter 0 guide to executing the second edition. Enhance that
+chapter in `book/edition-2/chapter-00.md`; preserve its first-edition source
+and the preface. Rewrite the exercises from Chapter 1. Absorb the lessons of first-edition Chapters 5
 and 22 into the chapters where the decisions first matter; neither survives
 as a standalone repair chapter. Chapters 1–4 retain their numbers, and old
 Chapters 6–21 become new Chapters 5–20 unless a dependency requires an
-explicitly documented adjustment that preserves the agreed total.
+explicitly documented adjustment with a concrete teaching benefit. Do not
+restore an avoidable architecture-repair chapter merely to preserve history.
 
 The manuscript lives in `book/edition-2/`. New student implementations live
 in `solutions/edition-2/chNN/`, each a complete Git repository with module
@@ -134,6 +138,20 @@ Write enough of the chapter before implementation that the student can build
 from the teaching. Chapter 1's plain-English rules precede all code. Each
 chapter explains the idea in plain words before its detailed mechanism.
 
+The second-edition journey is learn the rules, build correctly, then extend.
+Motivate a rule before demanding compliance: briefly describe the failure it
+prevents, then explain the design. A paragraph about a timeout that cannot
+reach the right logger can teach the reason for a parent chain without making
+the student build a flawed version first. Keep the opener warm and direct
+within `voice.md`; a precise contract does not excuse specification-only prose.
+Use documented experience, never invented Bill stories or unsupported numbers.
+
+Chapter 1 explicitly tells the student to load
+`book/edition-2/skills/ensemble-coding/SKILL.md` before writing code and explains
+why that instruction is part of the working method. The skill supplies the
+rules during implementation; checks and independent review detect violations.
+Do not claim that loading a text skill mechanically prevents invalid code.
+
 The TL;DR includes:
 
 - Data structures and wire/on-disk contracts the student needs.
@@ -191,6 +209,12 @@ be weakened. A genuine test defect needs a stated reason and a stronger
 replacement, not a deleted assertion to get green. Record pre-existing
 failures separately; do not claim a passing legacy regression suite if it
 did not pass.
+
+Check fixture model IDs against every implementation the fixture exercises.
+Frozen solutions may carry their own model tables; updating the main model
+catalog does not update those snapshots. Keep local fixture identity separate
+from discovered live model identity, and test compatibility in both trees
+before changing a shared fixture. The coding skill cannot prove that agreement.
 
 When behavior is missing, update the teaching and its check, then rebuild.
 Fixes must survive regeneration by the next student. Green checks alone are
@@ -295,6 +319,8 @@ The Reviewer independently reads the complete chapter, current voice rules,
 this procedure, and the coder's evidence. Check:
 
 - Plain-English explanation, logical order, terminology, and necessary detail.
+- Motivation for the rules and a reader-facing reason to build the mechanism;
+  specifications and a clean lint run do not by themselves establish voice.
 - Voice budgets, repetition, unsupported claims, and stale cross-references.
 - Agreement among TL;DR, prose, exercises, checks, and demonstrated behavior.
 - Architectural consistency and forward lessons, consulting the global map.

@@ -4,8 +4,11 @@ Started 2026-10-07 at Bill's request. First-edition baseline: `ec41c6e`.
 
 ## Scope and authority
 
-Rewrite from Chapter 1. Do not rewrite the preface or Chapter 0. Preserve
-the first edition and existing untracked work. The manuscript lives in
+Rewrite exercises from Chapter 1. Bill subsequently requested an enhanced
+second-edition Chapter 0 explaining how to execute the book, and authorized
+chapter adjustments for concrete teaching benefits. The current map remains
+0–20; preserve the preface, first-edition sources, and existing untracked work.
+The manuscript lives in
 `book/edition-2/`, with independent student solutions in
 `solutions/edition-2/chNN/`. Bill endorsed this layout and authorized `git init`
 for full solution repositories. Each chapter is a self-contained repo with its

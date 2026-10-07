@@ -1,7 +1,8 @@
 # Chapter 1 second-edition evidence
 
-Status: student contract and body drafted; implementation and validation
-pending. No second-edition pass claimed by the author.
+Status: student contract/body and actual live section drafted. Final
+acceptance/mutation audit and independent final review are coordinated
+separately; Bill's editorial approval is not claimed.
 
 ## Read before writing
 
@@ -175,10 +176,55 @@ long mechanism passage without a named person. These are not gates; no
 padding or invented story was added to satisfy them. No code/grader tests
 were run by the author, and no implementation was changed.
 
+## Actual live receipts
+
+Read the existing sanitized `/tmp/ensemble-ed2-live-evidence.json`; no new
+paid requests were made by the author. Discovery: 2026-10-07 17:01 UTC,
+Messages API, model `claude-sonnet-5-5` returned in the account's list.
+CLI run: 17:06:50 UTC, `/tmp/ensemble-ed2-ch01`, three turns, stdout
+`Silent Harbor`, `Silent Harbor`, `robraH tneliS`, usage 261 input/209
+output, exit 0, empty stderr. The chapter reproduces the exact inputs
+and stdout; its build commands are reproduction instructions.
+
+Consumer: 17:08:33 UTC, `/tmp/ensemble-ed2-consumer/demo`, built from the
+separate public consumer now at `solutions/edition-2/ch01/examples/consumer`.
+Agent A remembered CORAL-271 with totals144/118; Agent B remembered
+HERON-839 with totals144/28. Consumer checked four-message histories and
+absence of the other Agent's code and emitted Independent=true. A third
+Agent pointed at a closed localhost port produced the captured logger
+message and zero usage. That negative probe is explicitly local fault
+injection, not a claimed provider failure.
+
+Coder subsequently retained receipts at student checkpoint `459e4ce`:
+`solutions/edition-2/ch01/evidence/live.json` and `FEATURES.md`. The earlier
+`4d8ee16` plus working changes was the state inspected while authoring;
+the coder's checkpoint is the durable source/evidence reference. No new
+paid call was made to reproduce an already recorded result.
+
+## Post-run comparison and teaching revision
+
+Reloaded the complete chapter-writing procedure after its mandatory
+first-edition comparison stage was added. The independent reviewer verified
+the final live section against the sanitized receipt and consumer source.
+Its teaching finding is incorporated in §1.6: identify timeout/cancellation
+without printing unsafe remote error detail, and preserve the safe cause
+for a library caller. This improves diagnostic usefulness without adding
+retries or new provider calls. Coder changes and final comparison review
+remain the reviewer's responsibility.
+
+## Editorial revision
+
+Bill relayed CodeRhapsody's editorial feedback that the prose read too much
+like a specification. Reloaded the complete voice guide and revised the
+opener and §1.1 to show the cost of a second conversation and a parser that
+cannot reach the logger before prescribing parent interfaces. The sourced
+StackAgent bet remains; no new private anecdote or quote was invented.
+The skill path and full-read requirement are now visible before the first
+code example, with explicit limits on what loading instructions enforces.
+The precise contract and early verification requirements are retained.
+
 ## Validation pending
 
-- Student implementation from the complete clean chapter contract.
-- Existing seven-check grader and independent second-edition probes.
-- Property deletion audit and final full-chapter prose review.
-- Actual live-model feature exercise and a reproducible, secret-free
-  transcript for "Taking it for a spin"; initially through the CLI.
+- Root's final acceptance/property-deletion audit and retained run reports.
+- Mandatory independent first-edition comparison and any resulting coder
+  revision/teaching corrections, as newly requested by Bill.

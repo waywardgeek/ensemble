@@ -1,7 +1,8 @@
 # Second edition: Chapter 1 working outline
 
-Status: complete student contract and body drafted under renewed autonomous
-authorization on 2026-10-07; implementation and validation pending.
+Status: student contract, body, and verified live demonstration drafted.
+Initial student checkpoint `459e4ce` is implemented and run; final acceptance
+audit and post-run comparison/revision gate remain in progress.
 First-edition source is preserved. Working baseline: `ec41c6e`.
 
 ## Edition map
@@ -19,6 +20,8 @@ in code; it does not authorize weakening these rules.
 - Stake: the reader must be able to add a feature without duplicating
   state or reconstructing access to data the program already owns.
 - Register: compiler-book mechanism, with one short sourced origin story.
+  Open with the practical cost of a second conversation and unreachable
+  diagnostics; show the missing connection before prescribing parent access.
 - Bill moment: StackAgent bet and demonstration, recorded in chapter 1.
 - Confession inventory: the first-block grader hole, documented in
   `835946f`; no invented story or freshly claimed live run.
@@ -47,7 +50,9 @@ later repair chapters to fix.
    GUI module and public reusable GUI components. Starting in chapter 2,
    the clean data structures include Ensemble with CLI and browser-GUI
    client interfaces; the GUI can be stubbed while CLI use is live.
-6. TL;DR: architecture, protocol, wire, history, and accounting contract.
+6. TL;DR: mandatory visible skill-loading instruction, then architecture,
+   protocol, wire, history, and accounting contract. Instructions, checks,
+   and review enforce the rules; file loading is no mechanical guarantee.
 7. 1.5 The request carries the conversation: history and model discovery.
 8. 1.6 A complete exchange has two messages: valid pairs, text blocks,
    and failure termination without fabricated output or retries.
@@ -55,9 +60,10 @@ later repair chapters to fix.
    Agents; fake tokens versus live usage and prices.
 10. 1.8 Exercise, graded: inherited checks plus added configuration,
     failure, ownership, library, import, and parent-path acceptance.
-11. 1.9 Taking it for a spin: actual live evidence pending. Every feature
-    must be exercised with a real model, initially via CLI. No invented
-    run output.
+11. 1.9 Taking it for a spin: exact October 7 CLI and external-consumer
+    receipts, independently verified by the reviewer. Recorded CLI totals
+    261 input/209 output; consumer proves independent Agents and captures
+    a separately labeled local transport fault at Ensemble's logger.
 
 ## Grading decisions
 
@@ -71,7 +77,9 @@ Renewed autonomous authorization permits routine contract decisions:
 negative configuration runs, failure responses with no retry, malformed
 input, exact growth by two, nonempty answers and present nonnegative
 usage. These are now chapter requirements alongside the ownership/import
-rules. Root independently implements acceptance; no pass is claimed yet.
+rules. Root independently runs acceptance and deletion audits; final
+retained reports determine validation. Post-run comparison additionally
+improved the teaching of safe timeout/cancellation diagnostics and causes.
 
 The earlier plan to defer parent chains and package topology until chapter
 2 is superseded by Bill's instruction to teach the methodology in chapter

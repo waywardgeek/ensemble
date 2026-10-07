@@ -1,113 +1,103 @@
-# Second-edition checkpoint
+# Second-edition progress
 
-Date: 2026-10-07. Baseline: `ec41c6e` (Bill's publishing update).
-Status: PAUSED at Bill's request for a Codex restart. Read `CHECKPOINT.md`.
-Chapter 1 contract is ready and its fresh student implementation is in progress.
-Chapter 2 outline/contract is drafted but not yet ready for a student handoff.
-No second-edition chapter has yet been validated or approved by Bill.
+Date: 2026-10-07. Status: ACTIVE. Bill enabled full access without a restart
+and instructed autonomous work to continue. First-edition baseline: `ec41c6e`.
+Main workflow checkpoint: `1d3b6c9`; independent tooling/evidence: `602ae87`.
+Later prose and Chapter 0 work remain in progress.
 
-## Current work
+## Current chapter
 
-- Author: Chapter 1 body/contract ready, live demonstration still pending;
-  Chapter 2 outline, evidence, and partial contract saved.
-- Global reviewer: reports canonical Chapters 1–22 read; forward-lesson map.
-- Student coder: fresh repository at `solutions/edition-2/ch01/` contains
-  library, CLI, common/llm packages, and tests. Paused for checkpoint; see its
-  own `CHECKPOINT.md` for exact validated and unfinished work.
-- Coordinator: coding skill now states the mandatory settled methodology;
-  root `AGENTS.md` and workflow require loading it for every coding task.
+Chapter 1 is validated against the current chapter contract, with independent
+quality review and real-model receipts. Final student checkpoint:
+`75542c1c73388fa1ab618dbb8b1e252e3d80816a` in the separate
+`solutions/edition-2/ch01/` repository. Initial pre-comparison checkpoint:
+`459e4ce`. Bill's editorial approval is not claimed. The validation record
+explicitly distinguishes tested properties from remaining general limits of
+static analysis and nonexhaustive mutation coverage.
 
-## Latest user ruling
+- Formatting, vet, and tests pass in the core and external consumer modules.
+- Inherited Chapter 1 grader: 100/100.
+- Independent CLI acceptance: 23/23, including a stalled-response timeout.
+- Revised deletion audit: passing control and eleven detected mutants with
+  exact failing-check sets, plus two parser-classifier mutation tests.
+  Package checks pass ten source controls and a real-student identifier rename.
+  These are scoped evidence, not proof of all architectural properties.
+- Real Anthropic CLI and public-library consumer succeeded on 2026-10-07.
+  Final CLI usage: 261 input, 209 output; two independent consumer Agents:
+  144/118 and 144/28. Model selected from discovery: `claude-sonnet-5-5`.
+  The logger fault was a local transport probe, not an induced provider error.
+- Sanitized live evidence and feature checklist are in the student's
+  `evidence/` directory. Do not repeat paid calls just to recover context.
+- Reviewer found the HTTP client's implicit global transport; coder replaced
+  it with an owned transport and a regression test before final live runs.
+- Author replaced the live placeholder with observed receipts and strengthened
+  motivation and the visible skill-loading instruction. Reviewer accepted
+  those revisions and the first-edition comparison's code/teaching corrections.
 
-Code likely to need debug logging must have access to the logger. Stateless
-helpers are not automatically exempt. Bill suggests the logger probably
-belongs on Hub and agent configuration on Agent. A registry may belong on
-Agent, or be shared on Hub with per-agent tool visibility. The earlier absolute
-"per-agent registries are mandatory" interpretation is superseded.
-Hub/Ensemble now clearly means one application-level owner managing many
-Agents and communication with the GUI or external gateway. Final naming and
-logger ownership remain open. GUI code, including its WebSocket detail, must
-live in a separate optional Go module, never `agent/internal`. The second
-edition must teach these boundaries at their first introduction, not repair
-them in appended chapters. See `architecture.md` for the reconciled record.
-Agent holds a back-pointer to Hub/Ensemble, like all children to their owners,
-and uses Observer to deliver streaming events and real-time GUI updates to
-Hub/Ensemble. Bill explicitly clarified that Observer is not exclusive.
-Action requests (such as sub-agent creation and messaging) and shared-service
-access can use parent-interface methods. Exact methods remain to be defined.
+Chapter 2's contract passed independent technical review and a cold student
+read. Implementation is now authorized and underway in a full repository
+derived from the reviewed Chapter 1 history.
 
-Chapter 1 must teach the rules in plain English before any code. Core data
-and interfaces go in `internal/common`, behavior in responsible spokes, using
-free functions when shared types prevent method declarations there. Parent
-interfaces preserve access to data and logging. These rules govern the first
-implementation, not a later refactor.
+Chapter 0 execution guide is being enhanced in `book/edition-2/chapter-00.md`.
+Bill requested roles, skills, architecture, evidence, and checkpoint guidance.
+The author is preserving the first-edition source and reconciling its old
+execution promises with the actual second-edition procedure.
 
-Starting in Chapter 2, clean core data structures support both CLI and browser
-GUI clients of Hub/Ensemble; the GUI may be stubbed then. Every chapter's
-"Taking it for a spin" requires actual coder-run user-facing demonstrations
-with a real model, initially CLI, covering all chapter features. Local fake
-grading is complementary. Bill authorizes credentials from
-`~/.cr/settings.json`; never print, log, copy into repo, or commit secrets.
-No credential file has been read and no live call made for this docs task.
-Do not write code with architectural ambiguity. Clarify with Bill first.
-The current `agent/skills/ensemble/SKILL.md` explicitly requires the immediate
-creator chain, `Call.Engine.Agent()` rather than a redundant `Call.Agent`, and
-capabilities on the object that owns the fact (usage on Engine).
+## Required quality comparison
 
-Working paths: `book/edition-2/` and `solutions/edition-2/chNN/`.
-Existing first-edition artifacts and untracked files remain untouched.
+Bill added a mandatory independent code review after the student's initial
+implementation and runs. Compare against the corresponding first-edition
+standard, return feedback to the coder, allow revisions, and review them.
+Improve design, code clarity/economy, comments, and chapter prose/instructions;
+a passing grade is insufficient. See §5 of `../chapter-writing-procedure.md`.
+The global reviewer performs this separate code-review phase, independent of
+the coder and author. Preserve the original student attempt and avoid copying
+old implementation into the new solution.
 
-## Questions pending
+## Roles and next actions
 
-1. Final application-root name (working name: Ensemble). Coordinator selects
-   Ensemble as logger owner, following Bill's preference, for the student
-   contract; exact method signatures are student design choices.
-3. Registry ownership: Agent-owned, or shared application registry with
-   per-agent visibility. Both are acceptable in principle to Bill.
-4. Define explicit Hub/Ensemble request capabilities (sub-agent creation and
-   messaging are candidates), and shared logger/registry access, separately
-   from observer notifications.
+- Author: finish Chapter 0 guide; answer Chapter 2 student questions through
+  teaching updates; preserve the voice improvements requested by CodeRhapsody.
+- Coder: implement Chapter 2 from the reviewed contract, exercise all three
+  real vendors and public paths, then submit to comparison/revision review.
+- Global reviewer: review Chapter 0 and subsequent student work; preserve
+  independence from the coder/author and maintain whole-book guidance.
+- Coordinator: independent acceptance/property audit, enforce architecture,
+  integrate evidence, and advance only when the chapter meets all gates.
 
-Bill endorsed separate solution directories and authorized full Git repos and
-snapshots in each `solutions/edition-2/chNN/`. No existing Ensemble code may
-be edited. New code comes from the second-edition student exercise. Graders
-may be enhanced, never weakened; legacy tests must remain passing.
-Bill has clarified
-that lessons belong at their original points of introduction so structures
-and organization improve from the start. The exact revised chapter sequence
-is not yet drafted. Retaining P1's sacrificial Chapter 1 remains provisional
-where it might conflict with that objective.
+## Scope and enduring decisions
 
-## Findings to carry forward
+The current plan is 21 chapters, 0–20. Bill now permits chapter adjustments
+for teaching quality and requests an enhanced Chapter 0 execution guide in
+the second-edition directory. Preserve the first-edition source and preface.
+Absorb old Chapters
+5 and 22 where their lessons first matter; old 6–21 become new 5–20.
+Teach architecture before Chapter 1 code. Common declares core data and
+interfaces; behavior stays in owning spokes, using free functions as needed.
+Children follow interface parent chains to data and logger. Ensemble is the
+working application-root name and logger owner; Agent owns config/history;
+Engine owns transport/usage. Observer carries live events, while explicit
+parent methods can supply services and action requests. Registry ownership
+remains a decision for the tools chapter; visibility must be per-agent.
 
-- Chapter 5's global registration example conflicts with its per-agent rule.
-- Chapter 22's parent-chain failure must be prevented by persistent property
-  checks, not merely moved to an earlier paragraph.
-- Old Chapter 1 audit briefs are stale: commits `898f3b3` and `7eb3e24`
-  already addressed several purported gaps. Reconcile history before fixing.
-- Existing `make grade-dir CH=1 DIR=...` supports isolated student directories;
-  `make grade1` does not exist. Go 1.25.4 is available.
+Chapter 2 introduces CLI and browser client seams. GUI/WebSocket belongs in a
+separate optional Go module and may be an honest stub then. Each chapter must
+actually demonstrate all supported features through its user-facing interface
+with real models. Credentials stay in memory/environment, never argv or repo.
+At the caching chapter, verify current official OpenAI subscription guidance
+and remeasure the reported OAuth caching failure against suitable controls.
 
-## Next action
+New solution repositories only: `solutions/edition-2/chNN/`, derived from the
+preceding new history. Preserve `agent/`, first-edition solutions, and Bill's
+unrelated files. No pushes. Ask Bill when genuine architectural ambiguity
+blocks affected work; routine naming does not require approval.
 
-On restart read `CHECKPOINT.md`, restore author/student/reviewer roles, and
-resume Chapter 1 independent acceptance and live validation. Main chapter
-procedure is rewritten, proofreader has checked it, and mandatory coder skill
-is installed in the repository. Target exactly 21 chapters numbered 0–20,
-removing old Chapters 5 and 22 as standalone chapters.
+## Legacy evidence
 
-## Methodology validation
-
-- Global reviewer checked Chapter 1, skill, workflow, architecture record,
-  and `AGENTS.md`: no material architectural contradiction found.
-- Student coder read the rules and reasoned through four no-code scenarios:
-  common data/llm behavior, stateless parser diagnostics, GUI events versus
-  requests, and real-model evidence after fake grading. Responses preserved
-  the intended boundaries and identified remaining contract decisions.
-- Author ran prose lint: no hard failures, two soft incomplete-draft warnings.
-- Bundled skill validator could not start because its Python lacks PyYAML.
-  This is a tooling limitation, not a successful validation result.
-- Ruby parsed skill frontmatter successfully; behavioral read-only validation
-  passed. Existing agent module full tests PASS; legacy Chapter 1 reference
-  and mutation tests PASS. Full root baseline interrupted for restart, so
-  remains unvalidated. No grader changes have been made yet.
+Existing agent full tests and old Chapter 1 reference/mutation tests passed.
+The initial resumed full-root baseline log had all passes but lost its process
+exit receipt across daemon recovery. A subsequent full-root run passed with
+exit 0, including `internal/grade` (508.958s). Logs are durable in
+`checkpoint-evidence/`. Root vet and the latest package-checker tests pass.
+No shared legacy grader was changed. Independent second-edition scripts are
+under `scripts/edition2/`.

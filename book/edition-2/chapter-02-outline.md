@@ -1,8 +1,9 @@
 # Second edition: Chapter 2 outline
 
-Status: author contract draft in progress while Chapter 1 is implemented.
-Not yet a clean student handoff; missing literal fixtures are identified
-below. No implementation or live result is claimed.
+Status: complete executable contract independently reviewed and ready for
+student implementation.
+No Chapter 2 implementation or live result is claimed. Student handoff
+must include the chapter's formal sections as well as its TL;DR.
 
 ## Voice plan
 
@@ -10,6 +11,9 @@ below. No implementation or live result is claimed.
   meaning of the conversation or losing the evidence needed to reconstruct it.
 - Register: mechanism first; short documented example of a provider-shaped
   interface becoming three clients if the origin story earns its space.
+- Revised motivation: begin with the reader's need to explain a bad answer,
+  using the concrete `port=8080` result before/after redaction. Derive log,
+  context, and request from that debugging problem before presenting schemas.
 - Bill moment: no new anecdote. Historical interface story is available
   in old chapter 2 but its size/timeline claims will not be recycled as
   fresh measurements.
@@ -71,7 +75,9 @@ answer/error. There is no actor scheduler or streaming transport yet.
 - An append-only JSON-lines log, strict sequence/payload validation, safe
   unknown-kind/version refusal, typed provenance, and captured owned bytes.
 - Text, call, result, blob-reference, opaque, and redacted parts. Preserve
-  present empty text, order, call identity, and call-bound replay material.
+  present empty text, order, call identity, and part-bound replay material,
+  including signatures on visible text. Thought-marked parts remain opaque
+  and do not become ordinary CLI answer text.
 - An entry kind distinct from actor: dialogue, instruction, ephemeral.
   The type can gain future kinds with future schema support; do not
   implement skills/recall now or silently accept unknown kinds.
@@ -103,16 +109,28 @@ repeated offline render leaving ephemera unconsumed, actual ownership and
 imports, both public clients, and headless optional-module independence.
 Publish each assumption before it becomes a grader requirement.
 
-## Contract work before handoff
+## Contract choices now printed
 
-- Print the canonical event schema and independent literal fixtures.
-- Reconcile exact CLI environment/protocol compatibility with the inherited
-  grader without carrying hidden first-edition assumptions.
-- Specify scope of valid empty/tool-only replies, replacing Chapter 1's
-  deliberately text-only refusal while preserving its success protocol.
-- Confirm present official usage fields and request parameters, including
-  OpenAI `max_completion_tokens`; inspect live discrepancies with the
-  grader engineer rather than weakening old tests.
-- Define GUI stub as a stub: an actual implemented WebSocket adapter would
-  require live user-path evidence. Public interface integration alone must
-  not be described as a working browser session.
+Canonical schemas, independent literal tool/redaction/opaque fixtures,
+CLI directives and acknowledgements, explicit log selection, provider
+environment precedence, and usage formulas are in §§2.2–2.9. Empty and
+tool-only answers are represented honestly; unresolved calls block a new
+request until supplied results complete them. No tool dispatch is added.
+
+Request and returned model identities are recorded separately. Usage keys
+the returned provenance, with an explicit fallback/reporting flag when
+the provider omits its model. Opaque compatibility uses exact target
+identity or explicitly configured `LLM_RESOLVED_MODEL`; no inferred alias
+matching. Foreign standalone opaque parts are omitted; incompatible
+call-bound material causes a render error.
+
+Failed attempts remain in the log while their unmatched inputs leave
+future request context. A recorded request consumes its named ephemera
+even on failure; offline rendering consumes none. One replay application
+path updates Agent context and Engine accounting under their actual owners.
+
+Independent review resolved the material findings, and the student's cold
+read clarified accepted message actors and permanent fault after a failed
+log write. After implementation/live use, require the newly
+mandated first-edition quality comparison and resulting code/teaching
+revisions, in addition to grading and proofread evidence.

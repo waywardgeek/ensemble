@@ -1,23 +1,42 @@
 # Chapter 1: One Conversation, Every Request
 
+Getting a model to answer is easy. Keeping control of the program as it
+grows takes more work. A second conversation needs its own history, a
+timeout needs to reach the application's logger, and a changed model
+setting needs to reach the request builder. Adding those features should
+not require reconnecting the whole program.
+
 Bill Cox's first coding agent was a two-week bet. The first edition records
 the July 2025 demonstration of StackAgent, followed by a decision to start
-again with what building it had taught him. The useful part of that story
-fits on a workbench: build something small enough to understand, run it,
-and make its failures visible before adding machinery.
+again with what building it had taught him. This edition starts with those
+lessons in hand: give the data owners, make them reachable, and keep the
+work in the package responsible for it.
 
-This exercise starts with a conversation you can inspect one request at a
-time. Your program sends the messages, keeps the answers, and reports the
-tokens consumed. Its package boundaries and ownership rules apply from the
-first implementation, while the program is still small enough to inspect.
+The first exercise is a conversation you can inspect one request at a time.
+Your program sends the messages, keeps the answers, and reports the tokens
+consumed. By the end, a separate application will be able to create two
+Agents without mixing their histories or accounts. The architecture earns
+its place while the program is still small enough to read.
 
 ## 1.1 The idea in plain words
 
-An agent needs both a place to keep facts and a way to reach them. A model
-name belongs to an agent's configuration. The code sending a request needs
-that name. A tool reporting status needs it too. Copying the name into
-every interested object creates several answers to a question that should
-have one answer, especially when the user changes the model.
+Consider a response parser that discovers a malformed reply. The
+application has a logger, but the parser has no route to it. Making the
+logger global gives every Agent the same hidden dependency; passing it
+down through unrelated callers changes their signatures for work they do
+not perform. Omitting the diagnostic leaves the person debugging the
+program with less information precisely when something broke.
+
+Those are tempting repairs to a missing connection. The design here makes
+the connection explicit when the object is created. A parser works for an
+Engine, that Engine belongs to an Agent, and that Agent belongs to the
+application owner. Following those existing relationships reaches the
+logger without giving the parser a second, unrelated set of dependencies.
+
+The same problem appears with configuration. The request builder and a
+tool reporting status may both need the selected model. Copying that name
+into each object creates several answers to a question that should have
+one answer, especially when the user changes it.
 
 **Give each fact an owner.** Keep configuration on the Agent. Keep usage
 accounting with the Engine that receives the model's responses. A child
@@ -37,12 +56,10 @@ code likely to need debug logging access to an owned object from which it
 can reach the logger. Calling a function stateless does not remove that
 need. Logging follows the same ownership route as other shared facilities.
 
-These rules prevent a common form of plumbing. A new feature needs a value
-that another object already owns; its constructor gains another parameter,
-several callers gain the same parameter, and a closure carries the value
-across the final gap. Repeat that for settings, usage, and logging, and a
-small feature changes construction throughout the program. A parent
-interface gives the child a continuing route to its owner's facilities.
+This is the construction pattern for the exercises. Learn it, build the
+small program with it, then extend the same ownership tree as new features
+arrive. A parent interface gives a child a continuing route to its owner's
+facilities; the next feature should not need to rediscover how to reach them.
 
 ## 1.2 Packages follow responsibilities
 
@@ -168,6 +185,14 @@ package, with access to its owned data and logger through the interfaces
 just described.
 
 ## TL;DR
+
+Before writing or editing the solution, read the entire repository skill
+[`book/edition-2/skills/ensemble-coding/SKILL.md`](skills/ensemble-coding/SKILL.md).
+Require a coding agent to load it for each coding task and after context
+compaction. It restates the package, ownership, and logging rules so those
+choices travel with the exercise instead of depending on remembered prose.
+Loading a file does not enforce a design: instructions, structural checks,
+behavioral tests, and independent review do that work together.
 
 Build a Go program using the standard library and raw HTTP. No SDK or agent
 framework. Apply the architecture in §§1.1–1.4 from the first implementation:
@@ -373,6 +398,11 @@ wait forever. The precise duration is a deployment choice; the grader
 also has its own deadline. Neither mechanism authorizes a retry. Each
 accepted input question makes one request in this exercise.
 
+Diagnostics can distinguish a timeout or cancellation from another
+transport failure without echoing a remote error, request URL, or credential.
+Preserve that safe cause for library callers too; an application should not
+have to parse a log message to recognize its canceled request.
+
 ## 1.7 Read the token counts
 
 Engine owns usage because it receives the response that reports it.
@@ -476,22 +506,67 @@ of how the code arrived there. Preserve the first-edition solutions.
 
 ## 1.9 Taking it for a spin
 
-The coder must exercise every feature with a real model before this
-section is complete, initially through the CLI. The local fake verifies
-deterministic cases; a live run verifies that a real service accepts the
-requests and that the program is usable through its public interface.
+The reference CLI ran against the live Messages API on October 7, 2026,
+at 17:06 UTC. Model discovery returned `claude-sonnet-5-5`, which was
+selected for this run. That identifier records the experiment; use
+discovery to choose the model available when you run it.
 
-The run must cover model discovery, configured transport, a multi-turn
-conversation retaining information from an earlier answer, final usage,
-and failure diagnostics. Run a separate, executable public-library
-consumer against the real backend to exercise independent Agents and
-logger access; an internal unit test does not demonstrate this user path.
-Local negative probes accompany
-the live run for failures that should not require intentionally malformed
-traffic to a paid service. If optional chat mode is implemented, run it
-as well. Record the commands, date, returned model identity, observations,
-and reported usage without recording secrets.
+With the key and selected model already in your environment, build the
+snapshot from the course repository root:
 
-[LIVE RECEIPT PENDING: insert the coder's actual commands, observed
-responses, usage, and feature-by-feature evidence. No live run or
-second-edition acceptance pass is claimed by this draft.]
+```sh
+go build -C solutions/edition-2/ch01 -o /tmp/ensemble-ed2-ch01 ./cmd
+```
+
+The recorded run sent these three lines to the binary and closed stdin:
+
+```json
+{"user":"Invent a short two-word code name. Reply with only that code name."}
+{"user":"What exact code name did you just invent? Reply with only that same code name."}
+{"user":"Spell the code name you invented in your first reply backwards, character by character. Reply only with the reversed text."}
+```
+
+Its complete stdout was:
+
+```json
+{"assistant":"Silent Harbor"}
+{"assistant":"Silent Harbor"}
+{"assistant":"robraH tneliS"}
+{"usage":{"input":261,"output":209}}
+```
+
+The process exited 0 with empty stderr. The second and third prompts
+never supplied the code name. The program had to carry the earlier
+assistant answer forward for the model to see it. The token counts are
+the accumulated response usage from this run; a repeat need not produce
+the same name or counts.
+
+The separate module in `examples/consumer` exercises the public library.
+It creates two Agents under one Ensemble, gives each a different code,
+and asks each to recall its own. From the course root, build and run it:
+
+```sh
+go build -C solutions/edition-2/ch01/examples/consumer \
+  -o /tmp/ensemble-ed2-consumer-demo .
+/tmp/ensemble-ed2-consumer-demo
+```
+
+The recorded live run at 17:08 UTC used the same model:
+
+| Agent | Supplied code | Later answer | Cumulative input | Cumulative output |
+|---|---|---|---:|---:|
+| A | `CORAL-271` | `CORAL-271` | 144 | 118 |
+| B | `HERON-839` | `HERON-839` | 144 | 28 |
+
+The consumer inspected both histories and reported `"Independent":true`.
+Each contained its own four messages without the other Agent's code.
+The two counters happened to agree on input; their output counts stayed
+separate.
+
+Finally, that consumer created a third Agent pointed at a closed local
+port. This was deliberate local fault injection, not a provider outage.
+The failure reached Ensemble's captured logger as
+`ensemble: model transport failed`; neither live Agent's counters changed,
+and the failed Agent's counters remained zero. The executable exited 0
+after verifying those conditions. The same parent route used to reach
+configuration also made the diagnostic available to its application.
