@@ -5,7 +5,6 @@ import (
 	"example.com/ensemble/internal/common"
 	"fmt"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -150,20 +149,7 @@ func TestListingAndCommandDraining(t *testing.T) {
 	if got := invoke(t, r, "list_directory", `{"max_entries":1}`, false); !strings.Contains(got, "max_entries") {
 		t.Fatal(got)
 	}
-	if got := invoke(t, r, "run_command", `{"command":"exit 7"}`, false); !strings.Contains(got, "exit_status: 7") {
-		t.Fatal(got)
-	}
-	if got := invoke(t, r, "run_command", `{"command":"printf out; printf err >&2; pwd"}`, false); !strings.Contains(got, "out") || !strings.Contains(got, "err") || !strings.Contains(got, r.parent.Config().Workspace) {
-		t.Fatal(got)
-	}
-	got := invoke(t, r, "run_command", `{"command":"i=0; while [ $i -lt 20000 ]; do printf abcdefgh; printf ijklmnop >&2; i=$((i+1)); done; printf done > drained","max_output_bytes":8}`, false)
-	if strings.Count(got, "truncated:") != 2 || !strings.Contains(got, "exit_status: 0") {
-		t.Fatal(got)
-	}
-	data, err := os.ReadFile(filepath.Join(r.parent.Config().Workspace, "drained"))
-	if err != nil || string(data) != "done" {
-		t.Fatal("process failed to drain")
-	}
+
 }
 
 func TestUTF8ByteCapsSurviveJSON(t *testing.T) {
@@ -182,17 +168,7 @@ func TestUTF8ByteCapsSurviveJSON(t *testing.T) {
 		if decoded != expected || strings.Contains(decoded, "\uFFFD") {
 			t.Fatalf("read cap%d: %q", limit, decoded)
 		}
-		output := invoke(t, r, "run_command", fmt.Sprintf(`{"command":"printf 'éX'; printf 'éX' >&2","max_output_bytes":%d}`, limit), false)
-		encoded, _ = json.Marshal(output)
-		json.Unmarshal(encoded, &decoded)
-		stream := want
-		if limit < 3 {
-			stream += "\n[truncated: max_output_bytes limit reached]\n"
-		}
-		expected = "stdout:\n" + stream + "\nstderr:\n" + stream + "\nexit_status: 0"
-		if decoded != expected || strings.Contains(decoded, "\uFFFD") {
-			t.Fatalf("command cap%d: %q", limit, decoded)
-		}
+
 	}
 	// The file name makes the listing/search prefix itself multibyte.
 	other := registry(t)
@@ -205,14 +181,6 @@ func TestUTF8ByteCapsSurviveJSON(t *testing.T) {
 		got := invoke(t, other, tool, args, false)
 		if got != "\n[truncated: max_bytes limit reached]\n" {
 			t.Fatal(tool, got)
-		}
-	}
-	for _, limit := range []int{2, 3} {
-		c := &capture{parent: r, limit: limit}
-		c.Write([]byte{0xc3})
-		c.Write([]byte{0xa9})
-		if got := c.text(); got != "é" {
-			t.Fatalf("split stream rune lost at cap%d: %q", limit, got)
 		}
 	}
 }

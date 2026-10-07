@@ -5,6 +5,7 @@ import (
 	"context"
 	"example.com/ensemble/internal/common"
 	"example.com/ensemble/internal/eventlog"
+	"example.com/ensemble/internal/jobs"
 	"example.com/ensemble/internal/llm"
 	"example.com/ensemble/internal/tools"
 	"fmt"
@@ -30,6 +31,7 @@ type Entry = common.Entry
 type Event = common.Event
 type Response = common.Response
 type ToolEvent = common.ToolEvent
+type JobSnapshot = common.JobSnapshot
 type ToolDefinition = common.ToolDefinition
 type Redaction = common.Redaction
 type Observation = common.Observation
@@ -47,6 +49,8 @@ type Ensemble struct {
 	mu                      sync.Mutex
 	agents                  map[string]*Agent
 	nextAgent, nextObserver uint64
+	nextHandle              uint64
+	closed                  bool
 	observers               map[uint64]subscription
 }
 
@@ -92,18 +96,23 @@ func (e *Ensemble) construct(config Config) (*Agent, error) {
 	if err != nil {
 		return nil, fmt.Errorf("cannot capture Agent workspace: %w", err)
 	}
+	a.jobs = jobs.New(jobAgent{a})
 	a.registry, err = tools.New(a, a.config.Builtins)
 	if err != nil {
 		return nil, err
 	}
 	return a, nil
 }
-func (e *Ensemble) publishAgent(a *Agent) {
+func (e *Ensemble) publishAgent(a *Agent) error {
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	if e.closed {
+		return fmt.Errorf("Ensemble is closed")
+	}
 	e.nextAgent++
 	a.id = fmt.Sprintf("agent-%d", e.nextAgent)
 	e.agents[a.id] = a
+	return nil
 }
 func (e *Ensemble) NewAgent(config Config) (*Agent, error) {
 	a, err := e.construct(config)
@@ -124,7 +133,10 @@ func (e *Ensemble) NewAgent(config Config) (*Agent, error) {
 	if err != nil {
 		return nil, err
 	}
-	e.publishAgent(a)
+	if err = e.publishAgent(a); err != nil {
+		_ = a.Close()
+		return nil, err
+	}
 	return a, nil
 }
 func (e *Ensemble) Load(path string, config Config) (*Agent, error) {
@@ -146,7 +158,10 @@ func (e *Ensemble) Load(path string, config Config) (*Agent, error) {
 			return nil, llm.ParseEventError(a.engine, lines[i], err)
 		}
 	}
-	e.publishAgent(a)
+	if err = e.publishAgent(a); err != nil {
+		_ = a.Close()
+		return nil, err
+	}
 	return a, nil
 }
 func (e *Ensemble) Agent(id string) (*Agent, error) {
@@ -218,6 +233,10 @@ type Agent struct {
 	id        string
 	config    Config
 	mu        sync.Mutex
+	appendMu  sync.Mutex
+	closeMu   sync.Mutex
+	closed    bool
+	jobs      *jobs.Service
 	operation sync.Mutex
 	events    []Event
 	context   common.Context
@@ -293,6 +312,9 @@ func (a *Agent) Snapshot() common.Context {
 func (a *Agent) canPrompt() error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
+	if a.closed || a.faulted {
+		return fmt.Errorf("Agent is closed or faulted")
+	}
 	return llm.CanPrompt(a.engine, a.context)
 }
 func (a *Agent) nextSeq() uint64 {
@@ -326,15 +348,27 @@ func (a *Agent) Render(config Config) ([]byte, error) {
 }
 func (a *Agent) Dump() ([]byte, error) { return eventlog.Dump(a, a.Events()) }
 func (a *Agent) Close() error {
-	if !a.operation.TryLock() {
-		return fmt.Errorf("Agent busy")
+	a.closeMu.Lock()
+	defer a.closeMu.Unlock()
+	a.mu.Lock()
+	if a.closed {
+		a.mu.Unlock()
+		return nil
 	}
-	defer a.operation.Unlock()
+	a.closed = true
+	a.mu.Unlock()
+	err := a.jobs.Close()
+	a.appendMu.Lock()
+	defer a.appendMu.Unlock()
+	a.mu.Lock()
+	defer a.mu.Unlock()
 	a.faulted = true
 	if a.log != nil {
-		return a.log.Close()
+		if closeErr := a.log.Close(); err == nil {
+			err = closeErr
+		}
 	}
-	return nil
+	return err
 }
 func Text(text string) Part { return llm.Text(text) }
 func (a *Agent) Append(event Event) error {
@@ -345,6 +379,8 @@ func (a *Agent) Append(event Event) error {
 	return a.append(event, true, true)
 }
 func (a *Agent) append(event Event, persist, notify bool) error {
+	a.appendMu.Lock()
+	defer a.appendMu.Unlock()
 	a.mu.Lock()
 	if persist && (a.faulted || a.log == nil) {
 		a.mu.Unlock()
@@ -355,6 +391,11 @@ func (a *Agent) append(event Event, persist, notify bool) error {
 		event.Time = time.Now().UTC().Format(time.RFC3339Nano)
 	}
 	owned, err := llm.Clone(a.engine, event)
+	if err == nil && persist && owned.Type == "response_ended" {
+		for _, index := range event.Response.MissingCallIDs {
+			owned.Response.Parts[index].CallID = fmt.Sprintf("call-%d-%d", owned.Seq, index)
+		}
+	}
 	if err == nil {
 		err = llm.Validate(a.engine, a.context, &owned)
 	}
@@ -423,3 +464,39 @@ func (a turnAgent) TurnSnapshot() common.Context        { return a.Snapshot() }
 func (a turnAgent) RecordTurn(event common.Event) error { return a.append(event, true, true) }
 func (a turnAgent) NextSequence() uint64                { return a.nextSeq() }
 func (a turnAgent) Registry() common.Registry           { return a.registry }
+
+func (e *Ensemble) AllocateHandle() uint64 {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	e.nextHandle++
+	return e.nextHandle
+}
+func (e *Ensemble) Close() error {
+	e.mu.Lock()
+	e.closed = true
+	agents := make([]*Agent, 0, len(e.agents))
+	for _, a := range e.agents {
+		agents = append(agents, a)
+	}
+	e.mu.Unlock()
+	var first error
+	for _, a := range agents {
+		if err := a.Close(); first == nil {
+			first = err
+		}
+	}
+	return first
+}
+
+// Jobs has its own admission path: background completion cannot wait for Prompt.
+type jobAgent struct{ *Agent }
+
+func (a jobAgent) RecordJob(event common.Event) error { return a.append(event, true, true) }
+func (a jobAgent) Registry() common.Registry          { return a.registry }
+func (a jobAgent) Fault(err error) {
+	a.mu.Lock()
+	a.faulted = true
+	a.mu.Unlock()
+	a.parent.Logf("jobs faulted: %v", err)
+}
+func (a turnAgent) Jobs() common.Jobs { return a.jobs }

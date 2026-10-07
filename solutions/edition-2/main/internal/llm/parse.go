@@ -153,6 +153,8 @@ func Parse(owner common.Engine, config common.Config, body []byte, responseSeq u
 				id := fmt.Sprintf("call-%d-%d", responseSeq, index)
 				if raw, ok := fn["id"]; ok {
 					id = p.str(raw)
+				} else {
+					out.MissingCallIDs = append(out.MissingCallIDs, index)
 				}
 				part = common.Part{Type: "tool_call", CallID: id, From: &from, Name: p.str(fn["name"]), Args: append(json.RawMessage(nil), fn["args"]...)}
 			} else {

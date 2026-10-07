@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"example.com/ensemble/internal/common"
+	"fmt"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"time"
@@ -119,7 +121,7 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 		return bad("invalid UTC timestamp")
 	}
 	n := 0
-	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil} {
+	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil} {
 		if present {
 			n++
 		}
@@ -242,7 +244,32 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 			if call.Dispatched || t.Name != call.Part.Name || !object(owner, t.Args) || !reflect.DeepEqual(a, b) {
 				return bad("invalid event or conversation transition")
 			}
+			if t.Job != nil {
+				if _, exists := c.Jobs[t.Job.Handle]; exists || t.Job.Status != "running" || t.Job.Bytes != 0 {
+					return bad("job creation must introduce a new running handle")
+				}
+				if reason := jobProblem(owner, *t.Job, nil); reason != "" {
+					return bad(reason)
+				}
+			}
 		} else {
+			if call.JobHandle != 0 {
+				if t.Job == nil || t.Job.Handle != call.JobHandle {
+					return bad("result job does not belong to original call")
+				}
+				previous := c.Jobs[call.JobHandle]
+				if reason := jobProblem(owner, *t.Job, &previous); reason != "" {
+					return bad(reason)
+				}
+				if previous.Status != "running" && !reflect.DeepEqual(previous, *t.Job) {
+					return bad("result disagrees with terminal job")
+				}
+				if previous.Status == "running" && t.Job.Status != "running" {
+					return bad("terminal result requires terminal event")
+				}
+			} else if t.Job != nil {
+				return bad("result invents a job")
+			}
 			if t.Parts == nil {
 				return bad("invalid event or conversation transition")
 			}
@@ -251,6 +278,24 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 					return bad(reason)
 				}
 			}
+		}
+	case "job_ended", "job_killed":
+		if e.Job == nil {
+			return bad("job payload required")
+		}
+		previous, ok := c.Jobs[e.Job.Handle]
+		if !ok || previous.Status != "running" {
+			return bad("terminal job must refer to an existing running job")
+		}
+		expected := "done"
+		if e.Type == "job_killed" {
+			expected = "killed"
+		}
+		if e.Job.Status != expected {
+			return bad("terminal event status mismatch")
+		}
+		if reason := jobProblem(owner, *e.Job, &previous); reason != "" {
+			return bad(reason)
 		}
 	case "redacted":
 		r := e.Redact
@@ -340,9 +385,21 @@ func Apply(owner common.Engine, c *common.Context, e common.Event) {
 		}
 	case "tool_called":
 		call := c.Calls[e.Tool.CallID]
+		if e.Tool.Job != nil {
+			if c.Jobs == nil {
+				c.Jobs = map[uint64]common.JobSnapshot{}
+			}
+			c.Jobs[e.Tool.Job.Handle] = *e.Tool.Job
+			call.JobHandle = e.Tool.Job.Handle
+		}
 		call.Dispatched = true
 		c.Calls[e.Tool.CallID] = call
+	case "job_ended", "job_killed":
+		c.Jobs[e.Job.Handle] = *e.Job
 	case "tool_returned":
+		if e.Tool.Job != nil {
+			c.Jobs[e.Tool.Job.Handle] = *e.Tool.Job
+		}
 		call := c.Calls[e.Tool.CallID]
 		call.Returned = true
 		c.Calls[e.Tool.CallID] = call
@@ -419,4 +476,30 @@ func ParseEventError(owner common.Engine, line int, cause error) error {
 		reason = validation.reason
 	}
 	return failure(owner, "invalid event log at line %d: %s", line, reason)
+}
+
+func jobProblem(owner common.Engine, job common.JobSnapshot, previous *common.JobSnapshot) string {
+	if job.Handle == 0 || job.Bytes < 0 || job.Output.Kind != 3 || job.Output.Locator != fmt.Sprintf("cr/io/%d", job.Handle) {
+		return "invalid job identity, locator, or byte count"
+	}
+	if job.Status != "running" && job.Status != "done" && job.Status != "killed" {
+		return "invalid job status"
+	}
+	if job.ExitCode != nil && job.Status != "done" {
+		return "exit code requires normally completed job"
+	}
+	if job.Cwd != "" && !filepath.IsAbs(job.Cwd) {
+		return "job cwd must be absolute"
+	}
+	if job.Status == "killed" {
+		if job.Reason != "kill_job" && job.Reason != "shutdown" {
+			return "invalid kill reason"
+		}
+	} else if job.Reason != "" {
+		return "kill reason on non-killed job"
+	}
+	if previous != nil && (job.Output != previous.Output || job.Bytes < previous.Bytes || (previous.Cwd != "" && job.Cwd != previous.Cwd)) {
+		return "job locator, cwd, or bytes changed inconsistently"
+	}
+	return ""
 }

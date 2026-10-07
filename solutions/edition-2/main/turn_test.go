@@ -154,8 +154,12 @@ func TestWorkspaceCapabilityAndLiveDeclarations(t *testing.T) {
 		if _, err = a.Prompt(context.Background(), "read"); err != nil {
 			t.Fatal(err)
 		}
-		if got := *a.Events()[4].Tool.Parts[0].Text; got != fmt.Sprint(i) {
-			t.Fatal("workspace leaked", got)
+		for _, event := range a.Events() {
+			if event.Type == "tool_returned" {
+				if got := *event.Tool.Parts[0].Text; got != fmt.Sprint(i) {
+					t.Fatal("workspace leaked", got)
+				}
+			}
 		}
 		a.Close()
 	}

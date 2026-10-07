@@ -76,7 +76,7 @@ func runArgs(args []string, input io.Reader, output, diagnostics io.Writer) erro
 		_, err = output.Write(data)
 		return err
 	}
-	config.Builtins = []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command"}
+	config.Builtins = []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command", "wait_for_job", "send_input", "kill_job", "tool_limits"}
 	config.MaxTokens = 4096
 	agent, err := app.NewAgent(config)
 	if err != nil {
@@ -143,6 +143,9 @@ func runProtocol(app ensemble.ClientOwner, agent *ensemble.Agent, input io.Reade
 	}
 	if scanner.Err() != nil {
 		return fmt.Errorf("cannot read input")
+	}
+	if err := agent.Close(); err != nil {
+		return err
 	}
 	return encoder.Encode(struct {
 		Usage ensemble.Usage `json:"usage"`

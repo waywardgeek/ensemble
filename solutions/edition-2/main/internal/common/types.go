@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"regexp"
+	"time"
 )
 
 type Message struct {
@@ -91,14 +93,16 @@ type RequestEvent struct {
 	Ephemera []uint64   `json:"ephemera"`
 }
 type Response struct {
-	From          Provenance      `json:"from"`
-	Requested     *Provenance     `json:"requested,omitempty"`
-	ModelReported *bool           `json:"model_reported,omitempty"`
-	Parts         []Part          `json:"parts,omitempty"`
-	Usage         *Usage          `json:"usage,omitempty"`
-	RawUsage      json.RawMessage `json:"raw_usage,omitempty"`
+	MissingCallIDs []int           `json:"-"`
+	From           Provenance      `json:"from"`
+	Requested      *Provenance     `json:"requested,omitempty"`
+	ModelReported  *bool           `json:"model_reported,omitempty"`
+	Parts          []Part          `json:"parts,omitempty"`
+	Usage          *Usage          `json:"usage,omitempty"`
+	RawUsage       json.RawMessage `json:"raw_usage,omitempty"`
 }
 type ToolEvent struct {
+	Job     *JobSnapshot    `json:"job,omitempty"`
 	CallID  string          `json:"call_id"`
 	Name    string          `json:"name,omitempty"`
 	Args    json.RawMessage `json:"args,omitempty"`
@@ -116,6 +120,7 @@ type EventError struct {
 	Message string `json:"message"`
 }
 type Event struct {
+	Job      *JobSnapshot  `json:"job,omitempty"`
 	Seq      uint64        `json:"seq"`
 	Type     string        `json:"type"`
 	Time     string        `json:"time"`
@@ -127,11 +132,13 @@ type Event struct {
 	Error    *EventError   `json:"error,omitempty"`
 }
 type CallState struct {
+	JobHandle  uint64
 	Part       Part
 	Dispatched bool
 	Returned   bool
 }
 type Context struct {
+	Jobs         map[uint64]JobSnapshot
 	Entries      []Entry
 	Instructions []Entry
 	Ephemera     []Entry
@@ -187,9 +194,59 @@ type TurnAgent interface {
 	RecordTurn(Event) error
 	NextSequence() uint64
 	Registry() Registry
+	Jobs() Jobs
 }
 type Registry interface {
 	Agent() Agent
 	Declarations() []ToolDefinition
 	Execute(Part) ToolEvent
+	Kind(string) (available, supervision bool)
+	ExecuteJob(Part, Job) *ToolEvent
+}
+
+// Job snapshots are durable facts; live handles never reattach during replay.
+type JobSnapshot struct {
+	Handle   uint64 `json:"handle"`
+	Status   string `json:"status"`
+	Output   Ref    `json:"output"`
+	Bytes    int64  `json:"bytes"`
+	ExitCode *int   `json:"exit_code,omitempty"`
+	IsError  bool   `json:"is_error,omitempty"`
+	Reason   string `json:"reason,omitempty"`
+	Cwd      string `json:"cwd,omitempty"`
+}
+type Limits struct {
+	Delay    time.Duration
+	Pattern  *regexp.Regexp
+	MaxBytes int
+}
+type LimitOverrides struct {
+	Delay    *time.Duration
+	Pattern  *string
+	MaxBytes *int
+}
+type HandleOwner interface {
+	Ensemble
+	AllocateHandle() uint64
+}
+type JobAgent interface {
+	Agent
+	RecordJob(Event) error
+	Registry() Registry
+	Fault(error)
+}
+type Jobs interface {
+	Agent() JobAgent
+	Resolve(Part) (Limits, string, error)
+	Create(Part) (Job, error)
+	Start(Job, Part)
+	Abort(Job)
+	Report(Job, Part, Limits, string) error
+	Supervise(Part, Limits, string) error
+	Close() error
+}
+type Job interface {
+	Jobs() Jobs
+	Snapshot() JobSnapshot
+	StartProcess(command, cwd string) error
 }

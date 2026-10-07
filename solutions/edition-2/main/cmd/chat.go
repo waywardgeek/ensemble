@@ -29,6 +29,9 @@ func runChat(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader,
 		line, err := readChatLine(owner, reader)
 		if err == io.EOF {
 			fmt.Fprintln(writer)
+			if err := agent.Close(); err != nil {
+				return err
+			}
 			return showUsage(owner, writer, agent.Usage(), true)
 		}
 		if err != nil {
@@ -43,6 +46,9 @@ func runChat(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader,
 				return err
 			}
 			if quit {
+				if err := agent.Close(); err != nil {
+					return err
+				}
 				return showUsage(owner, writer, agent.Usage(), true)
 			}
 			continue

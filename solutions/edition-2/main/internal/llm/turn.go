@@ -42,18 +42,17 @@ func (e *Engine) Turn(ctx context.Context) (common.ClientResult, error) {
 		if err = owner.RecordTurn(common.Event{Type: "response_ended", Response: &response}); err != nil {
 			return common.ClientResult{}, err
 		}
+		committed := owner.TurnSnapshot()
+		response.Parts = committed.Entries[len(committed.Entries)-1].Parts
 		calls := 0
 		for _, part := range response.Parts {
 			if part.Type != "tool_call" {
 				continue
 			}
 			calls++
-			if err = owner.RecordTurn(common.Event{Type: "tool_called", Tool: &common.ToolEvent{CallID: part.CallID, Name: part.Name, Args: part.Args}}); err != nil {
+			call := &Call{parent: e, part: part}
+			if err = call.dispatch(owner); err != nil {
 				return common.ClientResult{}, err
-			}
-			result := owner.Registry().Execute(part)
-			if err = owner.RecordTurn(common.Event{Type: "tool_returned", Tool: &result}); err != nil {
-				return common.ClientResult{}, fmt.Errorf("tool %s completion could not be recorded; inspect its actual effect before any new attempt: %w", part.Name, err)
 			}
 		}
 		if calls == 0 {
@@ -62,4 +61,52 @@ func (e *Engine) Turn(ctx context.Context) (common.ClientResult, error) {
 		}
 	}
 	return fail("round_limit", failure(e, "round_limit: sixteen model requests completed; final tool batch retained"))
+}
+
+// A call has one parent, Engine; registry and job services remain Agent-owned.
+type Call struct {
+	parent common.Engine
+	part   common.Part
+}
+
+func (c *Call) Engine() common.Engine { return c.parent }
+func (c *Call) dispatch(owner common.TurnAgent) error {
+	manager := owner.Jobs()
+	limits, note, limitErr := manager.Resolve(c.part)
+	available, supervision := owner.Registry().Kind(c.part.Name)
+	var job common.Job
+	var err error
+	if available && !supervision && limitErr == nil {
+		job, err = manager.Create(c.part)
+		if err != nil {
+			return err
+		}
+	}
+	called := common.ToolEvent{CallID: c.part.CallID, Name: c.part.Name, Args: c.part.Args}
+	if job != nil {
+		snapshot := job.Snapshot()
+		called.Job = &snapshot
+	}
+	if err = owner.RecordTurn(common.Event{Type: "tool_called", Tool: &called}); err != nil {
+		if job != nil {
+			manager.Abort(job)
+		}
+		return err
+	}
+	if limitErr != nil || !available {
+		text := "tool is unavailable to this Agent"
+		if limitErr != nil {
+			text = limitErr.Error()
+		}
+		text = note + c.part.Name + " failed: " + text
+		return owner.RecordTurn(common.Event{Type: "tool_returned", Tool: &common.ToolEvent{CallID: c.part.CallID, IsError: true, Parts: []common.Part{Text(text)}}})
+	}
+	if supervision {
+		return manager.Supervise(c.part, limits, note)
+	}
+	manager.Start(job, c.part)
+	if err := manager.Report(job, c.part, limits, note); err != nil {
+		return fmt.Errorf("tool %s completion could not be recorded; inspect its actual effect before any new attempt: %w", c.part.Name, err)
+	}
+	return nil
 }
