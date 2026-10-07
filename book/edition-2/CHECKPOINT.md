@@ -45,6 +45,13 @@ standard, sends findings to coder and author, and reviews their revisions.
 Passing alone is insufficient: improve code, design, comments, and teaching.
 Preserve the initial attempt and record concrete gains and tradeoffs.
 
+For every next chapter, start a fresh coder with `fork_turns="none"`; never
+inherit coordinator research/answer inspection into the student. Exclude old
+chapters as well as old solutions and author/reviewer notes. The current coder
+reports no direct old-material reads, but inherited summaries and compacted
+history prevent certification of Chapters 1–2 as strictly blind trials. Preserve
+that limitation; their implementation validation is a separate claim.
+
 ## Current state
 
 - Main workflow review requirement committed as `1d3b6c9`.
@@ -54,11 +61,20 @@ Preserve the initial attempt and record concrete gains and tradeoffs.
   Chapter 1 passed implementation, required live demonstrations, scoped audits,
   code-quality comparison/revisions, and final prose review. Bill's separate
   editorial approval is not claimed.
-- Chapter 2 contract passed independent review and a cold student read. The
-  coder is implementing in `solutions/edition-2/ch02/`, derived from `75542c1`.
-  It has no claimed successful grade or live result yet.
+- Chapter 2 validated checkpoint: `cc1bec45c3327c87728a4040f762155d8e860a0b` in
+  `solutions/edition-2/ch02/`, derived from `75542c1`. Initial student checkpoint
+  `39a92ca27a418712832ac0dcbbfbe4e32b3bca35` is retained. All three live CLI and
+  public-consumer paths succeeded; receipts are in `evidence/ch02/`. Independent
+  comparison revisions and live prose review are accepted.
+- Chapter 2 offline acceptance passes 44 checks, with a passing control and ten
+  detected defects. Scoped package check passes. Initial inherited95 records
+  an invalid roundtrip fixture; the corrected fixture produces100 and retains
+  passing legacy reference/mutation tests. Full root regression passed exit 0,
+  with `internal/grade` 513.863s. See `chapter-02-validation.md`.
 - Chapter 0's execution guide is written and independently reviewed.
-  Author is developing Chapter 3's contract while the coder implements Chapter 2.
+  Chapter 3's contract is independently reviewed. Fresh `/root/coder_ch03`,
+  launched with `fork_turns="none"`, now implements it from new-only sources.
+  The author is drafting Chapter 4; it is not yet released for implementation.
   Chapters 1 and 2 now motivate the rules and visibly teach skill loading,
   following Bill's forwarded CodeRhapsody advice.
 
@@ -71,8 +87,10 @@ possible ownership violation. See `chapter-01-validation.md` and
 
 Full legacy root tests passed with exit0, including grade508.958s; root vet
 and latest targeted package-checker tests pass. Existing agent suite passed
-without edits. Durable logs are in `checkpoint-evidence/`. Shared legacy
-graders have not changed. Do not repeat the long suite absent relevant changes.
+without edits. Durable logs are in `checkpoint-evidence/`. The Chapter 2
+roundtrip harness now explicitly completes unanswered calls with fixture results
+before rendering, preserving every original dumped byte. Targeted legacy tests
+pass; the subsequent full-root run passed with exit 0. Do not duplicate it.
 
 ## Live evidence and credentials
 

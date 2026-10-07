@@ -106,7 +106,8 @@ second edition must eliminate, not a precedent the new solution must follow.
 Do not start implementation while an unresolved ownership decision affects
 that implementation. The coding methodology above is settled and mandatory;
 remaining owner choices do not make it optional. Chapter 1's complete exercise
-contract and second-edition grader acceptance are still under development.
+contract and student snapshot are validated; see `chapter-01-validation.md`.
+Apply each later chapter's published contract before extending that snapshot.
 
 Every "Taking it for a spin" section requires actual coder-run user-facing
 checks with a real model, initially via CLI, covering all chapter features.

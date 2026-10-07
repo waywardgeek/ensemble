@@ -154,10 +154,16 @@ can follow the chapter without managing all the author's research files.
 
 A cold build tests the teaching only if the student receives the teaching
 and stays away from the answer. Supply Chapter 1's architecture rules,
-the current and earlier exercise contracts, all formal schemas and fixtures
+the current and earlier second-edition contracts, all formal schemas and fixtures
 the chapter says are required, the coding skill, and the preceding
 second-edition solution. Chapter 1 has no preceding implementation.
 Do not cut the handoff down to a TL;DR that refers to omitted definitions.
+
+Start the student in a fresh context without inheriting the coordinator's
+conversation. That conversation may contain the very old-book passages and
+answer code being withheld. Use a new student context for each chapter and
+record its actual reading. The student can keep its context while repairing
+that chapter and receiving the later comparative review.
 
 This is a reusable handoff. Replace the angle-bracketed fields with actual
 paths and the chapter number:
@@ -174,8 +180,10 @@ and the current chapter contract, including its schemas and fixtures.
 For Chapter 1, start a fresh Go module and Git repository.
 For later chapters, derive this repository and its history from the
 validated preceding second-edition snapshot at <previous-directory>.
-Do not copy first-edition code. Do not read future solutions or grader
-implementation. Do not edit agent/ or first-edition solutions.
+Do not read first-edition chapters or solutions, future solutions, grader
+implementation, or author/reviewer research notes. Historical links in the
+coding skill are research sources for those other roles, not prerequisites
+for this student. Do not edit agent/ or first-edition solutions.
 
 Report missing requirements to the coordinator before affected code.
 Continue work that does not depend on the answer. Preserve unrelated work.

@@ -3,7 +3,7 @@
 Date: 2026-10-07. Status: ACTIVE. Bill enabled full access without a restart
 and instructed autonomous work to continue. First-edition baseline: `ec41c6e`.
 Main workflow checkpoint: `1d3b6c9`; independent tooling/evidence: `602ae87`.
-Later prose and Chapter 0 work remain in progress.
+Chapter 0 and the ending/preservation plan are committed as `24867ca`.
 
 ## Current chapter
 
@@ -34,9 +34,38 @@ static analysis and nonexhaustive mutation coverage.
   motivation and the visible skill-loading instruction. Reviewer accepted
   those revisions and the first-edition comparison's code/teaching corrections.
 
-Chapter 2's contract passed independent technical review and a cold student
-read. Implementation is now authorized and underway in a full repository
-derived from the reviewed Chapter 1 history.
+Chapter 2 is validated at `cc1bec45c3327c87728a4040f762155d8e860a0b`.
+Initial student checkpoint `39a92ca27a418712832ac0dcbbfbe4e32b3bca35` is retained,
+derived from the reviewed Chapter 1 history. All three real CLI and public-consumer demonstrations succeeded;
+sanitized receipts include the initially rejected provider requests and their
+corrections. Independent comparison/revisions and prose review are accepted.
+See `chapter-02-validation.md`; Bill's editorial approval remains separate.
+
+- Core, external consumer, and optional GUI modules pass format/vet/tests.
+- Independent offline CLI acceptance passes 44 checks. A passing control and
+  ten deliberate defects produce the exact expected failures. Nine independent
+  checker controls exercise valid alternate JSON representations and malformed
+  projections. This is partial offline coverage, not a live or ownership claim.
+- An early architecture review corrected missing helper/GUI logger access and
+  a loaded configuration's caller-buffer alias despite an inherited 100 score.
+- The final inherited run initially scored 95 because its roundtrip fixture
+  rendered unanswered calls, which the new contract correctly refuses. The
+  harness now preserves the full dump and supplies explicitly labeled fixture
+  results only for unanswered calls. New score: 100. Legacy Chapter 2 reference
+  and mutation tests pass; full root regression passed with exit 0 after this
+  change (`internal/grade` 513.863s). Root vet and formatting checks pass.
+- The standard comparison requested fewer unnecessary internal history copies,
+  safe field/transition-specific diagnostics, and comments explaining subtle
+  ordering and copy boundaries. All requested revisions are accepted and passed
+  the affected checks without repeating unchanged paid demonstrations.
+
+Chapter 3's contract passed independent review after clarifying search
+truncation, binary-file policy, and explicit resolved model identity for tool
+continuations. A new student, `/root/coder_ch03`, was launched with
+`fork_turns="none"` and only an explicit new-material handoff. It will derive
+`solutions/edition-2/ch03/` from the reviewed Chapter 2 history and keep an actual
+read ledger. Chapter 4 source research/outline is written; its contract is being
+drafted and has not been released to a student.
 
 Chapter 0's execution guide is written and independently reviewed at
 `book/edition-2/chapter-00.md`. It covers roles, skills, architecture,
@@ -46,6 +75,16 @@ all editions remain historical artifacts. The epilogue will be rewritten
 in Codex's own first person at second-edition publication readiness.
 
 ## Required quality comparison
+
+Bill reiterated that the student must succeed from the new edition without
+reading the old chapters or answers. The current coder reports no direct reads
+of first-edition chapters, old solutions, `agent/`, or grader source. Its context
+did include inherited historical summaries, and compaction prevents a complete
+raw-trace audit. Treat Chapters 1–2 as guided student builds with no known
+answer-key exposure, not certified strictly blind trials. Every subsequent
+chapter uses a fresh coder context with `fork_turns="none"` and an explicit
+new-only handoff. Historical skill links are for author/reviewer research.
+Record actual reads and route missing teaching back to the new chapter.
 
 Bill added a mandatory independent code review after the student's initial
 implementation and runs. Compare against the corresponding first-edition
@@ -58,11 +97,11 @@ old implementation into the new solution.
 
 ## Roles and next actions
 
-- Author: develop Chapter 3's contract and answer Chapter 2 student questions
-  through teaching updates; preserve the requested voice improvements.
-- Coder: implement Chapter 2 from the reviewed contract, exercise all three
-  real vendors and public paths, then submit to comparison/revision review.
-- Global reviewer: review Chapter 0 and subsequent student work; preserve
+- Author: reconcile Chapter 2's final status, resolve Chapter 3 review, and
+  draft Chapter 4; preserve the requested voice improvements.
+- Coder: Chapter 2 role complete. Fresh `/root/coder_ch03` implements Chapter 3
+  from the reviewed new contract, with no coordinator-history inheritance.
+- Global reviewer: review Chapter 4's contract and new student work; preserve
   independence from the coder/author and maintain whole-book guidance.
 - Coordinator: independent acceptance/property audit, enforce architecture,
   integrate evidence, and advance only when the chapter meets all gates.
@@ -102,5 +141,8 @@ The initial resumed full-root baseline log had all passes but lost its process
 exit receipt across daemon recovery. A subsequent full-root run passed with
 exit 0, including `internal/grade` (508.958s). Logs are durable in
 `checkpoint-evidence/`. Root vet and the latest package-checker tests pass.
-No shared legacy grader was changed. Independent second-edition scripts are
-under `scripts/edition2/`.
+The Chapter 2 roundtrip harness fixture was subsequently corrected as described
+above, with a passing pre-change legacy reference baseline and passing targeted
+legacy reference/mutation suite afterward. Full root regression subsequently
+passed with exit 0 (`internal/grade` 513.863s); its durable log is retained.
+Independent second-edition scripts are under `scripts/edition2/`.

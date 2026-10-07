@@ -46,9 +46,10 @@ logger and Agents, Agent owns configuration and its conversation, and
 Engine owns transport and accounting. Replace the narrow text slice
 with events and a derived context inside that architecture.
 
-> **Student contract ready for implementation.** The commands, schemas,
-> and fixtures below specify the reviewed exercise. No Chapter 2
-> implementation, successful grade, or live demonstration is claimed.
+> **Validated implementation:** `cc1bec45c3327c87728a4040f762155d8e860a0b`.
+> Independent comparison, revisions, and acceptance are complete. Actual
+> live receipts retain their initial source binding described in §2.10.
+> Bill's editorial approval is separate and is not claimed here.
 
 ## TL;DR
 
@@ -258,10 +259,20 @@ an active request, a pending human input in a compact imported record,
 or the continuation made possible by a completed set of tool results.
 That last case preserves `human -> assistant calls -> tool results ->
 assistant` without inventing another human. A response in any other state
-is unsolicited and fails validation. A new human input is allowed once
-all calls have results; its subsequent response consumes that pending input
-and the prior results together. No automatic continuation request is made
-in this chapter.
+is unsolicited and fails validation. No response may complete while a
+previous call remains unanswered. A subsequent response consumes its
+pending human input and the prior results together. No automatic continuation
+request is made in this chapter.
+
+The event vocabulary can also retain one deferred human input that arrived
+while calls were outstanding. The same append validator and replay reducer
+accept that record; a second pending human is still invalid. This is broader
+than synchronous `Submit`, which rejects such a live prompt before capture.
+It permits faithful reduction of recorded history without adding a mailbox
+or a concurrent input path. Preserve the event sequences and original log
+order. Once all calls have results, request projection puts those completed
+results before the deferred human input. Until then, rendering refuses the
+unanswered-call state instead of dropping a call or guessing a result.
 
 `request_sent` requires a pending human input or a completed set of tool
 results awaiting model continuation, and no unanswered calls. It cannot
@@ -287,6 +298,14 @@ until the application creates a fresh Agent with a fresh log destination.
 This chapter needs no crash-recovery repair of a partially written final
 line: loading detects and refuses it. Do not append a speculative event
 and then edit the earlier bytes when an operation succeeds.
+
+Keep copies at the boundaries that need isolation. Each observer receives
+its own event copy so one client cannot change what another sees. Internal
+code asking whether a call is pending or which sequence comes next should
+query that fact through its owner; it should not serialize and copy the
+entire history to recover one boolean or number. Comments should explain
+these purposes, including why rendering precedes the request event that
+consumes ephemera, rather than narrating each append or loop.
 
 Offline rendering has no side effects. Calling it twice leaves pending
 ephemera, accounting, and the log unchanged. A failed request still consumes
@@ -415,6 +434,13 @@ with its locator; rendering must not fetch the content that was removed.
 The public configuration also accepts tool declarations: name, description,
 and an object-valued JSON input schema. Render these to Messages `tools`,
 Chat Completions function tools, and Gemini `functionDeclarations`.
+For Gemini, put the schema in `parametersJsonSchema`, not `parameters`.
+The latter accepts a narrower schema representation and can reject a
+declaration containing `additionalProperties:false`. The
+[official FunctionDeclaration reference](https://googleapis.github.io/js-genai/release_docs/interfaces/types.FunctionDeclaration.html),
+checked October 7, 2026, documents `parametersJsonSchema` for object JSON
+schemas and makes the two fields mutually exclusive. Preserve the supplied
+schema rather than deleting constraints to make the narrower field accept it.
 Declarations let a real model produce a call for this chapter's parsing
 demonstration. They authorize no local execution. There is no tool registry
 or dispatch loop yet.
@@ -513,6 +539,12 @@ and reduces the specified log, then writes exactly one JSON request body
 for the selected vendor/model. It requires a model, but no credential,
 and performs no HTTP. Errors produce empty stdout and nonzero exit.
 Neither command emits the session's final usage record.
+
+Make a refusal useful without reproducing the rejected data. A diagnostic
+can identify the line and a static reason such as an invalid reference kind
+or an unsolicited response. A generic “invalid event” leaves the reader
+guessing; echoing the event or provider body can disclose private content.
+Keep the cause precise and the payload out of the diagnostic.
 
 The public library exposes equivalent operations: create/select an Agent,
 submit a prompt or directive, load and inspect a log, render offline,
@@ -619,6 +651,28 @@ The matching Gemini render contains one `text:"Ready."` part carrying
 that signature. A foreign render retains `Ready.` once and omits the
 signature. The log retains both facts in either case.
 
+This final fixture makes the ordering rule observable. A deferred human
+arrives before the outstanding call's result; the event log keeps that order:
+
+```jsonl
+{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-01-01T00:00:00Z","message":{"actor":"human","purpose":"dialogue","parts":[{"type":"text","text":"run the tests"}]}}
+{"seq":2,"type":"response_ended","time":"2026-01-01T00:00:01Z","response":{"from":{"vendor":"anthropic","model":"fixture-messages","surface":"messages"},"parts":[{"type":"tool_call","call_id":"call-order","from":{"vendor":"anthropic","model":"fixture-messages","surface":"messages"},"name":"run_command","args":{"command":"go test ./..."}}],"usage":{"input":80,"cache_write":0,"cache_read":0,"output":15}}}
+{"seq":3,"type":"tool_called","time":"2026-01-01T00:00:02Z","tool":{"call_id":"call-order","name":"run_command","args":{"command":"go test ./..."}}}
+{"seq":4,"type":"message_received","time":"2026-01-01T00:00:03Z","message":{"actor":"human","purpose":"dialogue","parts":[{"type":"text","text":"also check the logs"}]}}
+{"seq":5,"type":"tool_returned","time":"2026-01-01T00:00:04Z","tool":{"call_id":"call-order","parts":[{"type":"text","text":"ok\n"}]}}
+```
+
+The final Messages user content starts with the result for `call-order`,
+then contains `also check the logs`. Chat Completions places the tool message
+before the deferred user message; Gemini places functionResponse before
+the deferred text. The snapshot still retains each original sequence.
+The prefix ending at sequence 4 loads, but cannot render until a result
+arrives. A second pending human or a response before the result fails
+event validation. Live synchronous `Submit` of that second question while
+the call is pending fails before recording it. These are separate checks
+of admission, stored facts, and provider projection.
+
 An earlier audit found that deleting call-bound replay still scored 100:
 the fixture had no bound material to replay and named a different model.
 Commit `5a7dfca` records the corrected test. A positive control needs
@@ -655,36 +709,135 @@ Improve awkward design, duplicated work, misleading comments, and missing
 teaching; a perfect score does not complete that review. Preserve the
 initial attempt so the revised chapter can be judged on what it taught.
 
+The inherited dump-to-render fixture exposed a different kind of failure.
+It retained unanswered calls, which the new contract correctly refused to
+render. The student scored 95 because the harness asked for an invalid
+continuation. The correction preserved the complete dump check, then
+appended explicitly supplied fixture results before testing replay. The
+corrected run scored 100, with the legacy reference and relevant mutations
+still passing. That repairs the fixture's precondition; it does not waive
+the unanswered-call rule or establish final chapter validation.
+
 ## 2.10 Taking it for a spin
 
-Run each CLI backend in a fresh directory with an explicit log path.
-Ask a model to choose a short code name, then recall and transform its
-answer. Insert an ephemeral fact before one request and show from the
-recorded requests/replay that it is absent from the next. Dump and render
-the resulting log twice, without credentials, and compare bytes. Keep
-the real response and measured usage with the selected and returned model
-identities.
+The October 7, 2026 runs used the actual CLI against all three APIs. Each
+session invented a code name, recalled it, then reversed it. Between the
+first two questions, an ephemeral directive added a diagnostic marker.
+The Messages run received these input lines:
 
-The external executable consumer exercises features the simple CLI does
-not expose. It creates fresh Agents with fresh log writers, supplies a
-tool declaration, and asks a real model for that call. It ingests a
-controlled result through the public append path using the actual call ID;
-the result is supplied by the demonstration, with no claimed tool execution.
-It records a result-redaction directive and submits the next real prompt.
-Retain the plain and redacted render evidence showing content removal,
-preserved pairing, and the reference-bearing stub. This uses a live Agent's
-normal write path; loading a prior log remains an offline inspection
-operation and does not require writable log resumption in this chapter.
+```json
+{"user":"Invent a short two-word code name. Reply with only the name."}
+{"ephemeral":"One-request diagnostic marker: LILAC-614. It is context for this request only; do not repeat it in your answer."}
+{"user":"What exact code name did you invent? Reply with only that same name."}
+{"user":"Reverse the code name from your first answer character by character. Reply only with the reversed text."}
+```
 
-Use the same public consumer to demonstrate independent Agents, observer
-attribution and unsubscription, and per-provenance accounting across a
-configuration change. Use the literal fixtures for unsupported references,
-opaque compatibility, and malformed-input controls that a provider cannot
-be expected to produce. Label every fixture and local fault. The optional
-GUI stub's separate-module test proves its public boundary; it cannot
-produce a browser screenshot or a live WebSocket claim.
+The executable returned:
 
-[LIVE RECEIPTS PENDING: all three actual CLI API paths; recorded history
-and offline replay; ephemeral delivery; result redaction; independent
-Agents through an external executable; clearly labeled GUI-stub integration.
-No real-model response or successful acceptance result has been invented.]
+```json
+{"assistant":"Silent Harbor"}
+{"ack":"ephemeral"}
+{"assistant":"Silent Harbor"}
+{"assistant":"robraH tneliS"}
+{"usage":{"input":285,"cache_write":0,"cache_read":0,"output":115}}
+```
+
+All three CLI sessions exited successfully with empty stderr. Their actual
+answers and disjoint usage totals were:
+
+| Surface and selected model | First answer, repeated on recall | Reversed answer | Input | Cache write/read | Output |
+|---|---|---|---:|---:|---:|
+| Messages, `claude-sonnet-5-5` | Silent Harbor | robraH tneliS | 285 | 0 / 0 | 115 |
+| Chat Completions, `gpt-6-luna` | Velvet Comet | temoC tevleV | 239 | 0 / 0 | 130 |
+| generateContent, `models/gemini-3.8-flash` | Cobalt Echo | ohcE tlaboC | 184 | 0 / 0 | 562 |
+
+The first two surfaces reported the selected model name. generateContent
+reported `gemini-3.8-flash`, without the selected name's `models/` prefix;
+both names remain in the log. These are dated observations, not defaults
+or a comparison of model efficiency. Output totals include the reasoning
+usage specified by each surface, not just the three visible answers.
+
+The marker's absence from an answer proves little: the prompt expressly
+asked the model not to repeat it. Instead, the runner reconstructed requests
+from each actual log prefix. The marker was absent, present, then absent
+on every surface. Recorded request events consumed `[]`, `[4]`, then `[]`.
+These are offline reconstructions of live history, not intercepted HTTP
+bodies. Repeated full-log rendering produced identical bytes without
+credentials, and dumping preserved the recorded facts.
+
+To repeat the CLI exercise, build `./cmd` from the Chapter 2 module, use a
+fresh `CH02_LOG` destination, and select an available model as described in
+§2.7. Supply the selected API credential through the environment. Feed the
+four lines above, end input, then run `dump` and `render LOG` without a key.
+Save both render outputs and compare them. A new run need not invent the
+same code name; recall, transformation, and recorded state are the checks.
+
+### A real call, with a supplied result
+
+The separate executable in
+[`examples/consumer`](../../solutions/edition-2/ch02/examples/consumer/main.go)
+exercised the public library. It declared `inspect`, asked the real model
+for one call, and used the returned call ID to ingest a controlled result:
+`CONTROLLED-RESULT-914: port=8080`, with the reference
+`https://example.invalid/demo/result`. No tool ran. Chapter 3 adds execution.
+
+The program rendered that result, recorded its redaction, and rendered
+again. The marker disappeared while the locator and pairing survived.
+It then sent the redacted conversation to the real model. The successful
+generateContent run answered, “I acknowledge that the tool's result was
+deliberately redacted.” Its original call carried a signature, which the
+adapter preserved using the recorded returned model identity.
+
+Each consumer also created an independent Agent, gave it `ORCHID-572`,
+changed its model, and asked for the code again. All three recalled it.
+The first Agent's history contained no copy of that private code, and the
+first model's accounting remained unchanged after the second model ran.
+The public observer saw eight ordered, Agent-attributed events before
+unsubscription and no later event after it.
+
+| Surface | First selected model | Second selected model |
+|---|---|---|
+| Messages | `claude-sonnet-5-5` | `claude-sonnet-5` |
+| Chat Completions | `gpt-4.1-mini` | `gpt-6-luna` |
+| generateContent | `models/gemini-3.8-flash` | `models/gemini-3.7-flash` |
+
+The Chat Completions response reported `gpt-4.1-mini-2025-04-14` for the
+first selection. Accounting retained that returned identity instead of
+relabelling its tokens after the model switch. To repeat this path, build
+the consumer's own module, set the same live provider variables plus a
+fresh `DEMO_DIR` and a discovered `DEMO_SECOND_MODEL`, then run it. The
+program writes the plain and redacted requests alongside its separate
+Agent logs.
+
+The successful runs followed two useful failures. In the dated Chat
+Completions attempt, `gpt-6-luna` rejected the tool request with HTTP 400;
+a separate diagnostic identified a tools/default-reasoning restriction
+on that surface. The consumer selected discovered `gpt-4.1-mini` for its
+tool phase and used `gpt-6-luna` for the later text-only model switch.
+This result does not establish that the latter model can never use tools.
+
+The initial Gemini declaration also returned HTTP 400: its `parameters`
+field rejected `additionalProperties`. The corrected adapter used
+`parametersJsonSchema`, retained the shared schema, and completed the
+consumer run. A fake that accepts both fields cannot expose this mistake.
+The fix and the failed attempt remain in the evidence.
+
+The consumer deliberately submitted an unknown local call ID to exercise
+diagnostic access. Its logged validation error was a local control, not
+a provider failure. Malformed logs, unsupported references, opaque
+compatibility negatives, and writer faults likewise use deterministic
+fixtures. The separate GUI module passed its public-boundary test with a
+fake backend; it still has no browser transport or live WebSocket result.
+
+The [feature ledger](../../solutions/edition-2/ch02/evidence/ch02/FEATURES.md)
+links the exact receipts and source hashes preserved at initial checkpoint
+`39a92ca27a418712832ac0dcbbfbe4e32b3bca35`. The CLI and consumer runs span
+the helper-ownership correction and Gemini schema fix; the ledger records
+which source produced each run. Only the affected Gemini behavior was
+repeated after its correction. The reviewed checkpoint
+`cc1bec45c3327c87728a4040f762155d8e860a0b` adds safer actionable diagnostics,
+cheaper internal state queries, and comments explaining ownership boundaries.
+It passed module checks, the inherited grader, 44 independent acceptance
+checks, and a control plus ten deliberate defects. The broader legacy suite
+also passed. Those internal revisions were checked locally; the chapter
+does not claim that the paid demonstrations were repeated afterward.

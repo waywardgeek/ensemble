@@ -8,13 +8,15 @@ First-edition source is preserved. Working baseline: `ec41c6e`.
 
 ## Edition map
 
-Bill's target is exactly 21 chapters, numbered 0–20. Chapter 0 stays
-untouched. Old chapters 1–4 keep their numbers; old 6–21 become new 5–20.
-Old chapters 5 and 22 disappear as standalone repair chapters. Their
-lessons enter when the relevant structures first appear, beginning with
-the architecture taught before code here. Any dependency-driven exception
-to the mapping must be documented explicitly. Coder drift is corrected
-in code; it does not authorize weakening these rules.
+Bill's updated working map is Chapters 0–21: the previous plan through
+Chapter 20 plus a new final comparison of the editions. Chapter 0 now has
+the explicitly requested second-edition execution guide. Old chapters 1–4
+keep their numbers; old 6–21 become new 5–20. Old chapters 5 and 22 disappear
+as standalone repair chapters; their lessons enter where first relevant.
+The final comparison is a separate purpose, described in
+`ending-chapter-note.md`. Bill permits organization changes with a concrete
+teaching benefit. Coder drift is corrected in code; it does not authorize
+weakening these rules. Preserve first-edition artifacts unchanged.
 
 ## Voice plan
 

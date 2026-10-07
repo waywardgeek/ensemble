@@ -54,7 +54,7 @@ claim he approved a chapter merely because its checks passed. Push is Bill's.
   implement the student's solution.
 - **Student coder:** builds from the new chapter and earlier new baseline,
   reports gaps, tests the result, and actually uses the CLI with real models.
-  Does not edit chapter prose or consult old implementation answers.
+  Does not edit chapter prose or consult first-edition chapters or old answers.
 - **Grader engineer:** derives checks from the taught contract, independently
   of the student's implementation. The coordinator can fill this role.
 - **Global reviewer:** reads the complete textbook, records dependencies and
@@ -179,11 +179,20 @@ Print exact fixture bytes when those bytes are part of the public contract.
 Never grade an unpublished private assumption.
 
 For a cold student evaluation, provide the architecture rules from Chapter 1,
-the mandatory coding skill, current and earlier TL;DRs, the preceding new
+the mandatory coding skill, current and earlier second-edition TL;DRs, the preceding new
 solution, and the grader command. Do not omit the architecture from a
 "TL;DR-only" test. Do not provide future or first-edition solution code or
 grader internals. In a shared workspace this is an instruction boundary,
 not a claimed filesystem sandbox. Disclose accidental answer exposure.
+
+Use a fresh student context for each chapter, with no inherited coordinator
+conversation (`fork_turns="none"` in the current orchestration API). The
+coordinator has read material the student must not see. Explicitly exclude old
+chapters, old solutions, and author/reviewer research notes, including historical
+sources linked from the coding skill. Record actual source reads. An instruction
+not to open an old file does not undo old text already inherited in context.
+Keep post-run comparison findings separate from the initial student attempt;
+the reviewer supplies rationale rather than old answer code.
 
 Method and field spelling may be student decisions where behavior and
 structure are equivalent. Unspecified spelling alone does not require a

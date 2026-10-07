@@ -1,7 +1,12 @@
 # Chapter 2 evidence and source reconciliation
 
-Status: executable contract reviewed and ready for student implementation;
-no Chapter 2 implementation tested or live result claimed.
+Status: validated at reviewed student checkpoint
+`cc1bec45c3327c87728a4040f762155d8e860a0b`. Initial implementation and
+all-three-provider CLI/public-consumer live receipts remain bound to
+`39a92ca27a418712832ac0dcbbfbe4e32b3bca35` and its per-run source ledger.
+Independent comparison, revisions, and acceptance are complete. Bill's
+editorial approval is separate; strict blind-context certification is not
+claimed for this pilot (see the qualification below).
 
 ## Reading
 
@@ -138,3 +143,90 @@ agent/tool `message_received` records and a permanently faulted writer
 after a failed log append. These clarify existing invariants without
 adding a log-resumption implementation. Contract handoff is ready; actual
 Chapter 2 validation remains pending the student build and evidence.
+
+The reviewer also accepted the revised motivation and signed-text contract
+after rereading, and the student confirmed its cold-read questions were
+resolved. Root released Chapter 2 implementation. A final copyedit corrected
+`scored100` to `scored 100`; it changes no fixture or requirement.
+
+During Chapter 3 derivation, its inherited ordering fixture exposed a real
+future dependency: a deferred human event occurs before an outstanding tool
+result. Coordinator approved a narrow clarification, reviewed by the global
+reviewer. The SAME append validator/reducer permits one deferred human event;
+synchronous Submit still rejects that input before recording. Renderer waits
+for all results, projects them before the deferred input, and leaves log
+sequences unchanged. §2.8 now publishes literal bytes plus negative controls
+for a second pending human and a premature response. This preserves the
+inherited ordering check without a hidden loader-only rule or runtime mailbox.
+
+The student's real Gemini declaration run exposed a field mismatch:
+`parameters` rejected `additionalProperties:false`. Author independently
+checked the official FunctionDeclaration reference on October 7, 2026;
+`parametersJsonSchema` accepts an object JSON schema and is mutually exclusive
+with `parameters`. §2.5 now names that field explicitly, preserving neutral
+schema constraints. Student reports the corrected live run succeeded; final
+receipt reconciliation remains pending. This is a live-discovered adapter
+correction, not evidence that the earlier fake had validated the real surface.
+
+## Initial live reconciliation
+
+Author reread full voice/procedure, the durable feature ledger, all six
+successful receipt summaries, raw provider diagnostic receipts, observer/
+redaction consumer source, and requested/returned identities in actual logs.
+§2.10 now records the actual CLI transcript, all-three usage totals,
+ephemeral reconstruction limits, real declared calls with controlled result
+ingestion, redaction, independent Agents, observer close, and model changes.
+No tool execution or live browser transport is claimed. Source binding is
+the initial student checkpoint above plus the per-run hashes/sequence in
+`solutions/edition-2/ch02/evidence/ch02/FEATURES.md`; the corrected Gemini
+path alone was live-rerun after the wire-field change.
+
+Preserve the safely failed tool-mode request and dated capability limit as
+an observed request failure, not a universal statement about a model family.
+Local rejected-event diagnostics and fake GUI integration are separately
+labeled. The inherited dump/render harness conflict is under coordinator
+repair: the correctly refused unanswered-call log is not a reason to weaken
+the new reducer/renderer rule. No final 100-point or validation claim is made.
+
+Coordinator subsequently corrected that harness precondition: retain the full
+dump check, then append labeled supplied results before replay. Reported
+corrected student score is 100, with legacy reference and relevant mutation
+checks passing; the broader regression and independent revision gate remain
+pending. §2.9 records the 95-to-100 fixture correction without weakening the
+unanswered-call rule or claiming final validation.
+
+Post-run comparison teaching findings are incorporated: safe static
+field/transition reasons in diagnostics; owned per-observer copies at public
+boundaries without full-history copying to recover an internal scalar or
+predicate; purpose comments for render-before-consumption and persistence-
+before-observation. These are implementation-independent requirements,
+not private method-name hints. Scoped chapter lint still has no hard failures.
+
+Author read the corrected output in
+`checkpoint-evidence/ch02-initial-grade-after-fixture.txt` (100/100), the
+targeted legacy result in `ch02-legacy-targeted-after-fixture.txt`, and
+`ch02-initial-check-manifest.json`, which binds checks and the original
+student snapshot. These verify the newly printed grader-correction result;
+they do not finish the still-pending comparison/revision gate.
+
+## Evaluation-context qualification
+
+The student reports no direct first-edition chapter/solution/grader-source
+reads. However, inherited historical summaries prevent certifying Chapters
+1–2 as strictly blind context evaluations. Preserve that limitation in the
+cross-edition comparison. Per the reloaded procedure, subsequent students
+start in fresh context without coordinator history and read only new chapters,
+the new skill/architecture, and the preceding new solution. Historical sources
+linked from the skill and author/reviewer research notes are excluded.
+
+## Final reconciliation
+
+The reviewer accepted the safe diagnostic reasons, efficient owner queries,
+and explanatory comments, then accepted the live prose against actual receipts.
+Coordinator/coder report the final clean student commit above, passing main/
+GUI/consumer module checks, inherited 100, 44 independent acceptance cases,
+the positive control plus ten detected defects, and the complete root legacy
+suite. This closes the pending stages recorded chronologically above.
+No paid rerun was made for the internal diagnostic/query/comment revision;
+retain the original source chronology. The student's `SOURCE-EXPOSURE.md`
+records the inherited-summary limitation alongside the preserved first answer.

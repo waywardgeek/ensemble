@@ -243,3 +243,13 @@ the chapter's teaching revision, then verified the exact live section.
 Live receipts still describe `459e4ce`; the later error-path-only revision
 has separate source hashes and local evidence. No successful live behavior
 was claimed remeasured after that change.
+
+## Evaluation-context qualification
+
+The student reports no direct reads of first-edition chapters, solutions,
+or grader source. Its inherited conversation nevertheless contained historical
+summaries, so this initial attempt cannot be certified as a strictly blind
+context evaluation. This qualification does not change the behavioral results;
+it limits conclusions about what the new chapter alone taught. The coordinator
+has required fresh, non-forked student context for each subsequent chapter,
+with only the new curriculum and preceding new snapshot permitted.

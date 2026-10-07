@@ -389,6 +389,38 @@ dispatcher authorization section for this handoff.
   rounds, and history retention on the supported APIs. Historical private
   corpus counts remain dated observations, not new measurements.
 
+## Chapter 4: forward checks before the job contract
+
+Reviewer recommendations from the original Chapter 4 lifecycle and audit,
+revisited October 7, 2026. These are proposed contract clarifications, not
+additional user rulings. Agent-owned Jobs and Ensemble-wide handle allocation
+are the coordinator's current working choice.
+
+- Define monotone terminal transitions: a late worker cannot overwrite
+  `killed` with `done`. State completed-job waits, repeated kill, and kill/exit
+  race outcomes, and check structured status instead of a substring.
+- Specify consumption of pending one-shot limits by the literal next call,
+  including another setter, kill, or invalid call. Keep consumption visible
+  and the pending state on its owner; no hidden sticky configuration.
+- Distinguish spool length from report cursor. Say whether omitted middle
+  bytes count as consumed while remaining retrievable on disk. Pattern waits
+  inspect unseen output, handle read-boundary splits, and do not repeatedly
+  wake on an already reported prompt.
+- The process worker/reader owns completion and spool closure. Shutdown must
+  coordinate process termination, draining, terminal status, and joining;
+  a returning dispatcher cannot close a still-writing reader's file.
+- Distinguish process-group kill from marking a nonkillable Go goroutine.
+  Neither workspace selection nor the output locator is confinement, and
+  renderers must not automatically retrieve arbitrary spool references.
+- State the intended Chapter 3 changes: PTY merges streams, job spooling
+  retains output that inline reports cap, and a wake timer is not cancellation.
+  Use a built short parity fixture instead of depending on a cold `go run`
+  finishing inside the wake interval. Required debugger prerequisites must
+  fail clearly rather than yield a skipped, falsely successful check.
+
+The author received these recommendations before the Chapter 4 contract.
+No new job implementation or behavior is claimed by this review.
+
 ## Final comparison: collect the evidence before writing the verdict
 
 Bill requires this chapter. The following experimental design is a review

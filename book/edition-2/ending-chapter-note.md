@@ -97,6 +97,13 @@ instructions belonging to its edition and starts without answer-key or
 grader-implementation exposure. Record what actually entered its context;
 a claimed clean context is not evidence by itself.
 
+Treat the current Chapters 1–2 builds as pilots for this purpose. The student
+reports no direct reads of legacy chapters, solutions, or grader source, but
+its inherited conversation included historical summaries. Those builds cannot
+support strict-blind claims. Regenerate from frozen teaching in fresh context
+before claiming independent teaching efficacy; retain the pilot results and
+their exposure qualification alongside the later trials.
+
 The mandatory skill is part of the second edition's treatment. Do not give
 the old-book student the new skill and then claim to have measured the old
 book. Use the workflow each edition teaches, with matched external resources.

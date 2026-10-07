@@ -1,9 +1,12 @@
 # Second edition: Chapter 2 outline
 
-Status: complete executable contract independently reviewed and ready for
-student implementation.
-No Chapter 2 implementation or live result is claimed. Student handoff
-must include the chapter's formal sections as well as its TL;DR.
+Status: validated at `cc1bec45c3327c87728a4040f762155d8e860a0b` after
+independent comparison and revision. All-three-provider CLI/public-consumer
+receipts retain their source binding at initial checkpoint
+`39a92ca27a418712832ac0dcbbfbe4e32b3bca35`; no later paid rerun is claimed.
+Bill's editorial approval remains separate. See evidence for the pilot's
+inherited-context qualification.
+Student handoff includes the formal sections as well as the TL;DR.
 
 ## Voice plan
 

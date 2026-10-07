@@ -291,14 +291,80 @@ func Ch2Run(bin string) (*Ch2Result, error) {
 
 	if s := res.Session["anthropic"]; s != nil && strings.TrimSpace(s.DumpOut) != "" {
 		rt := filepath.Join(work, "roundtrip.log")
-		if err := os.WriteFile(rt, []byte(s.DumpOut), 0o644); err == nil {
+		fixture, err := ch2RoundTripFixture(s)
+		if err != nil {
+			res.RoundTripErr = err.Error()
+		} else if err := os.WriteFile(rt, fixture, 0o644); err == nil {
 			out, errOut, _ := runOnce(bin, work, vendorEnv("anthropic", "", work), "render", rt)
 			res.RoundTripOut = out
 			res.RoundTripErr = errOut
+		} else {
+			res.RoundTripErr = err.Error()
 		}
 	}
 
 	return res, nil
+}
+
+// ch2RoundTripFixture preserves the entire dump, then supplies explicit fixture
+// results for unanswered calls. Chapter 2 records calls but executes no tools;
+// rendering those dangling calls as a new request is deliberately refused by
+// edition 2. Completion makes this a legal replay without removing the original
+// call or weakening the dump checks. Later chapters already have real results,
+// so their complete dumps pass through byte-for-byte. No tool executes here.
+func ch2RoundTripFixture(s *VendorSession) ([]byte, error) {
+	if s.LogErr != "" {
+		return nil, fmt.Errorf("cannot complete malformed dumped log: %s", s.LogErr)
+	}
+	var order []string
+	pending := map[string]bool{}
+	seq := 0
+	for _, event := range s.Log {
+		if event.Seq > seq {
+			seq = event.Seq
+		}
+		switch event.Type {
+		case normName("response_ended"):
+			for _, value := range getSlice(getMap(event.Data, "response"), "parts") {
+				part, ok := value.(map[string]any)
+				if !ok || normName(getStr(part, "type", "kind")) != normName("tool_call") {
+					continue
+				}
+				id := getStr(part, "call_id", "id")
+				if id == "" {
+					return nil, fmt.Errorf("cannot complete a call without an ID")
+				}
+				if !pending[id] {
+					order = append(order, id)
+				}
+				pending[id] = true
+			}
+		case normName("tool_returned"):
+			delete(pending, getStr(getMap(event.Data, "tool"), "call_id", "id"))
+		}
+	}
+	out := []byte(s.DumpOut)
+	for _, id := range order {
+		if !pending[id] {
+			continue
+		}
+		if len(out) > 0 && out[len(out)-1] != '\n' {
+			out = append(out, '\n')
+		}
+		seq++
+		line, err := json.Marshal(map[string]any{
+			"seq": seq, "type": "tool_returned", "time": "2026-01-01T00:00:00Z",
+			"tool": map[string]any{"call_id": id, "parts": []any{
+				map[string]any{"type": "text", "text": "Fixture completion; no tool executed."},
+			}},
+		})
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, line...)
+		out = append(out, '\n')
+	}
+	return out, nil
 }
 
 func vendorEnv(vendor, baseURL, work string) []string {

@@ -51,9 +51,10 @@ contracts. Do not preserve an old module boundary merely to match old graders.
 - Author: owns chapter prose, outline, and chapter evidence. Reads history,
   first-edition artifacts, voice rules, and the reviewer's forward lessons.
   Does not edit solutions or grader code.
-- Student coder: implements from the current chapter contract, cumulative
-  earlier contracts, coding skill, and the preceding second-edition solution.
-  Does not read old solutions, later implementation, or grader internals.
+- Student coder: implements from the current second-edition chapter contract,
+  earlier second-edition contracts, coding skill, and the preceding
+  second-edition solution. Does not read first-edition chapters, old solutions,
+  author/reviewer research notes, later implementation, or grader internals.
 - Global reviewer: reads every canonical chapter, maps dependencies, extracts
   later lessons, and checks each rewrite for contradictions and omissions.
   Keeps a read ledger; reloads sources when context has been compacted.
@@ -67,6 +68,17 @@ grader engineering while author, student, and reviewer occupy the other three.
 Student isolation is an instruction boundary in this shared workspace, not an
 OS access restriction. Report accidental exposure and use a fresh student if
 it compromises a cold build.
+
+Start each chapter's cold student in a fresh context with an explicit handoff,
+without inheriting the coordinator's conversation. In this orchestration API,
+use `fork_turns="none"`; the coordinator's history contains old-book research
+and answer-key inspection. A path restriction alone cannot remove that inherited
+information. The student may retain its context through that chapter's repairs
+and post-run review; use another fresh context for the next chapter. Record
+actual reads and any accidental exposure separately from the intended policy.
+Historical links in the coding skill are author/reviewer sources, not student
+prerequisites. If the new teaching is insufficient, repair it instead of sending
+the student to the old edition.
 
 All agents may raise questions. Route them through the coordinator with the
 question, source of ambiguity, consequence, and any recommendation. The

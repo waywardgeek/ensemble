@@ -1,0 +1,12 @@
+{
+  "student_checkpoint": "39a92ca27a418712832ac0dcbbfbe4e32b3bca35",
+  "scope": "Initial student snapshot acceptance; comparison revisions pending; full root regression running",
+  "tools_sha256": {
+    "scripts/edition2/accept_ch02.py": "c9e72b5f3bea55c1d1e06f345aad0dce0bded5935e14cc652d03a2785ed908a5",
+    "scripts/edition2/audit_ch02.py": "e9c0b39712b85344a775d53a4a94956ba8a06ccbee23a7d7c6b1d730c0575415",
+    "scripts/edition2/test_accept_ch02.py": "d6b39fbdf659e4cc12b0d1a0d28c354fe75b38042ffac815e725226b026cc17f",
+    "internal/grade/ch02_harness.go": "4732a0b71cfc8e7661b744b797d737bec8acfd9192b597fa99664b09cf5af8bb",
+    "internal/grade/ch02_roundtrip_test.go": "f639b92b58155c0271a4847fa6afafaa090fc5cbaccac8fa3dd84845a059d84c"
+  },
+  "legacy_baseline": "Before harness edit: go test ./internal/grade -run ^TestCh2ReferenceSolutionScores100$ -count=1 passed (0.616s). Initial unchanged-student grade95 retained in student evidence/ch02/inherited-grade-before-fixture-fix.txt."
+}

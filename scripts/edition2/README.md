@@ -43,3 +43,26 @@ including live feature demonstrations and the post-run comparison with the
 first-edition standard. Do not weaken old graders or edit old solutions for
 these audits. Preserve source hashes and distinguish paid-model receipts
 from local fault injection.
+
+## Chapter 2 offline checks
+
+```sh
+(cd solutions/edition-2/ch02 && go build -o /tmp/ensemble-ed2-ch02 ./cmd)
+python3 scripts/edition2/accept_ch02.py /tmp/ensemble-ed2-ch02
+python3 scripts/edition2/audit_ch02.py solutions/edition-2/ch02
+```
+
+`accept_ch02.py` exercises the public offline executable with independent
+contract fixtures. It checks versioned log validation, valid edge cases,
+three wire projections, result redaction and pairing, deferred-input order,
+and refusal to render unresolved calls or unsupported references. It checks
+that commands leave the source log unchanged and make no requests to the
+configured loopback trap. This is not a network sandbox or a live-provider
+test. Rendering is checked as JSON, allowing harmless formatting differences.
+
+`audit_ch02.py` freezes a source copy, then builds and checks a passing control
+and ten deliberate defects. Each must produce exactly the expected failed
+checks. It records source hashes and excludes repository metadata and evidence
+from the disposable copies. This scoped audit does not establish every event
+transition, public Go ownership, provider parsing, GUI behavior, or live
+usability; those require the separate chapter acceptance and review evidence.
