@@ -30,10 +30,11 @@ student plan, without inspecting implementation or the old answer. It is not
 code acceptance or the later historical comparison. Its three risks were
 returned to the student as existing contract obligations.
 
-Current handoff: the author is clarifying CLI error/Close ordering, and
+Current handoff: the author clarified CLI error/Close ordering in manuscript
+checkpoint `5ae7649`; student confirmation remains pending.
 `/root/grader_ch05` is preparing independent checks from the published
-contract. Resuming the original student and starting its replacement both
-failed with an orchestration thread-limit error. Its implementation and
-student review remain preserved in main; the coordinator owns continuation
-after these dependencies clear or a worker becomes available. No Chapter 5
-paid run or acceptance is inferred from the local test results.
+contract. The first attempts to resume the student or allocate a replacement
+failed with an orchestration thread-limit error. After the author finished,
+resuming the original `/root/coder_ch05` succeeded; it continues local client
+and evidence preparation in its existing student context. No Chapter 5 paid
+run or acceptance is inferred from the local test results.
