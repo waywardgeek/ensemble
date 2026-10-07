@@ -59,8 +59,15 @@ VIOLATE the rule: `ws.NewHub` (6 params), `cachelens.New(dir, report func)`,
       -- commit 70acadd, new AgentSpec + attachState + 2 tests
 - [x] 6b. Collapse composition roots; cliHost deleted
       -- commit 6077d4b, main.go -214 net lines
-- [ ] 7. Snapshot `solutions/ch22`
-- [ ] 8. Grader `internal/grade/ch22_*` (7 checks / 100 pts)
+- [x] 7. Snapshot `solutions/ch22`                       -- commit df86628
+- [~] 8. Grader `internal/grade/ch22_*` (7 checks / 100 pts)
+      - [x] 8a `back-pointer-chain` + astscan ResultTypes -- commit 22104ff
+      - [x] 8b skeleton + `agent-builds` + `reaches-through-the-chain`,
+            wired into cmd/grade as case 22            -- commit 77f5275
+      - [x] 8c `ch21-parity`                            -- this commit
+      - [ ] 8d `single-composition-root`   (needs call tracking in astscan)
+      - [ ] 8e `agent-status-tool`         (needs fake-vendor harness)
+      - [ ] 8f `per-model-cost`            (needs fake-vendor harness)
 - [ ] 9. `scripts/ch22-mutants.sh`
 - [ ] 10. Makefile `grade22`/`grade22-audit` + gradesweep entry
 
@@ -190,3 +197,51 @@ The closures are no longer staples in any case: they are created by the agent
 over its OWN settings store inside `attachState`, not handed in from outside.
 The remaining distance is one interface method, and naming that distance is
 probably better teaching than silently closing it.
+
+## Grader state (end of this session)
+
+`go run ./cmd/grade -ch 22 ./agent` reports **50/100**, with four checks
+implemented and passing and three reporting GRADER INCOMPLETE in those words.
+That wording is deliberate: an incomplete grader must never be mistakable for
+a failing tree.
+
+    agent-builds               5/5   PASS
+    back-pointer-chain        20/20  PASS   (framework-blind; 7 sharpness tests)
+    reaches-through-the-chain 15/15  PASS
+    ch21-parity               10/10  PASS
+    single-composition-root    0/15  GRADER INCOMPLETE
+    agent-status-tool          0/20  GRADER INCOMPLETE
+    per-model-cost             0/15  GRADER INCOMPLETE
+
+### What each remaining check needs
+
+**single-composition-root (15).** Needs call-site tracking, which
+`astscan.go` does NOT have today (one `*ast.CallExpr` at astscan.go:361, used
+only by the chapter 5 walked-clause check). The property to assert, which is
+clean and framework-blind: *the main package must not call any constructor
+that the library's root constructor also calls.* Before this chapter's fix
+`main` called `llm.NewEngine`, `jobs.NewJobs`, `tools.NewRegistry` and
+`skills.NewSkillRegistry`, every one of which `NewAgent` also calls; after it,
+`main` calls `agent.NewAgent` alone. Add a per-function set of `pkg.Func` call
+targets to the scanner and the check is about twenty lines.
+
+CAUTION: `NewBareAgent` is a SECOND legitimate library constructor with four
+live callers (`agent/cmd/virtual-user/main.go:111` plus three tests), and it
+is documented in chapter 13. The check must forbid a second flat ROOT, not a
+second constructor.
+
+**agent-status-tool (20) and per-model-cost (15).** Both need a fake-vendor
+harness driving the real binary. `internal/grade/ch21_run.go` is the nearest
+template. Give every scenario its OWN work directory -- chapter 21 lost time
+to a shared workdir letting `save.json` resume the previous scenario.
+
+For `per-model-cost`, assert BOTH that the reported figure equals
+`sum(tokens_N * price_N)` AND that it differs from `total * current_price`;
+and first assert those two formulas actually produce different strings for the
+inputs chosen, or the test proves nothing. Use a tolerance: `CostByModel` sums
+over a map, so float addition order varies between runs.
+
+Unit-level versions of both already exist and pass, in
+`agent/internal/common/usage_test.go` and
+`agent/internal/tools/statustools_test.go`. The grader versions must drive the
+binary rather than re-test the library.
