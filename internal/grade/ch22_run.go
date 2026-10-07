@@ -70,14 +70,23 @@ func Ch22Run(dir string) Ch22Result {
 		r.fail("ch21-parity", "chapter 21 checks now fail: %s", strings.Join(broken, ", "))
 	}
 
-	// TODO(ch22): these three are not implemented yet. They are failed
+	// single-composition-root. One place assembles the agent, and the
+	// binary uses it. Framework-blind: see detectSingleCompositionRoot in
+	// ch22_root.go. Its sharpness was settled not by fixtures but by
+	// running it against the real pre-repair tree, which an earlier draft
+	// passed.
+	r.ran("single-composition-root")
+	if ok, detail := detectSingleCompositionRoot(scan); !ok {
+		r.fail("single-composition-root", "%s", detail)
+	}
+
+	// TODO(ch22): these two are not implemented yet. They are failed
 	// EXPLICITLY, with a reason naming the harness rather than the student,
 	// so an incomplete grader cannot be mistaken for a failing tree. The
 	// alternative -- leaving them unexercised -- produced the message "an
 	// earlier failure stopped the run", which blames a student for work the
 	// grader has not done. Design for each is in docs/ch22-grader-design.md.
 	for _, id := range []string{
-		"single-composition-root",
 		"agent-status-tool",
 		"per-model-cost",
 	} {

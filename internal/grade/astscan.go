@@ -85,6 +85,17 @@ type astScan struct {
 	Types map[string]*astType
 	Funcs []*astFunc
 	fset  *token.FileSet
+
+	// imports maps a file path to the package qualifiers usable in it:
+	// local name -> import path. Needed because a call written as
+	// foo.Bar() is a package-qualified call when foo is an import and a
+	// method call when foo is a variable, and the syntax is identical.
+	imports map[string]map[string]string
+
+	// pkgNames is every package name declared anywhere in the scanned
+	// tree. It is how a call is classified as reaching the student's own
+	// code rather than the standard library.
+	pkgNames map[string]bool
 }
 
 // scanTree parses every non-test .go file under dir.
@@ -127,6 +138,30 @@ func scanTree(dir string) (*astScan, error) {
 
 func (s *astScan) addFile(path string, file *ast.File) {
 	pkg := file.Name.Name
+
+	if s.pkgNames == nil {
+		s.pkgNames = map[string]bool{}
+	}
+	s.pkgNames[pkg] = true
+
+	// Record the file's import qualifiers. The local name is the alias
+	// when one is written, otherwise the last segment of the import path.
+	// (A package whose name differs from its directory is mis-keyed here;
+	// no such package exists in this tree.)
+	if s.imports == nil {
+		s.imports = map[string]map[string]string{}
+	}
+	im := map[string]string{}
+	for _, spec := range file.Imports {
+		p := strings.Trim(spec.Path.Value, `"`)
+		name := p[strings.LastIndex(p, "/")+1:]
+		if spec.Name != nil {
+			name = spec.Name.Name
+		}
+		im[name] = p
+	}
+	s.imports[path] = im
+
 	for _, decl := range file.Decls {
 		switch d := decl.(type) {
 		case *ast.GenDecl:
@@ -426,3 +461,199 @@ func (s *astScan) dispatchStructFor(iface *astType) (string, bool) {
 // parameter was removed with the first draft of this check: no tool in the
 // reference implementation logs, so the clause it supported was never true.
 // That absence is itself a finding -- see the Chapter 22 report.)
+
+// --- call sites and field assignments ---------------------------------
+//
+// Added for chapter 22's single-composition-root check. The scanner already
+// retains every function body, so call sites are derived on demand rather
+// than recorded during the parse.
+
+// line resolves a position to its 1-based line number, or 0 if the scan
+// has no file set (which happens only in hand-built test scans).
+func (s *astScan) line(p token.Pos) int {
+	if s.fset == nil || !p.IsValid() {
+		return 0
+	}
+	return s.fset.Position(p).Line
+}
+
+// astCall is one call site inside a function body. Pkg is the package
+// qualifier as written; it is empty for a call to a function in the
+// caller's own package.
+type astCall struct {
+	Pkg  string
+	Name string
+	Line int
+}
+
+// isPkgQualifier reports whether ident, as used in file, names an imported
+// package rather than a local variable. This distinction is the whole
+// difference between settings.NewSettingsStore(p) and store.Get(): the two
+// are the same syntax and only the import set tells them apart.
+func (s *astScan) isPkgQualifier(file, ident string) bool {
+	_, ok := s.imports[file][ident]
+	return ok
+}
+
+// isTreePkg reports whether a package qualifier names a package declared
+// inside the scanned tree -- the student's own code, as opposed to the
+// standard library or a third-party module.
+func (s *astScan) isTreePkg(file, ident string) bool {
+	p, ok := s.imports[file][ident]
+	if !ok {
+		return false
+	}
+	return s.pkgNames[p[strings.LastIndex(p, "/")+1:]]
+}
+
+// callsIn returns every call site in fn's body. Calls through a variable
+// (method calls) are skipped: only calls to a named function, either
+// package-qualified or in the caller's own package, are reported.
+func (s *astScan) callsIn(fn *astFunc) []astCall {
+	if fn == nil || fn.body == nil {
+		return nil
+	}
+	var out []astCall
+	ast.Inspect(fn.body, func(n ast.Node) bool {
+		call, ok := n.(*ast.CallExpr)
+		if !ok {
+			return true
+		}
+		switch f := call.Fun.(type) {
+		case *ast.Ident:
+			out = append(out, astCall{Name: f.Name, Line: s.line(f.Pos())})
+		case *ast.SelectorExpr:
+			base, ok := f.X.(*ast.Ident)
+			if !ok || !s.isPkgQualifier(fn.File, base.Name) {
+				return true // a method call on a value, not a function
+			}
+			out = append(out, astCall{Pkg: base.Name, Name: f.Sel.Name, Line: s.line(f.Pos())})
+		}
+		return true
+	})
+	return out
+}
+
+// findFunc locates a non-method function by package and name.
+func (s *astScan) findFunc(pkg, name string) *astFunc {
+	for _, f := range s.Funcs {
+		if !f.IsMethod && f.Pkg == pkg && f.Name == name {
+			return f
+		}
+	}
+	return nil
+}
+
+// treeFanout returns the set of in-tree packages, other than fn's own, that
+// fn reaches -- directly, or through other functions declared in fn's own
+// package. The closure through the local package matters: a constructor
+// that delegates its wiring to an unexported helper is still the thing
+// doing the wiring, and a check that looked only at the top-level body
+// would be trivially defeated by extracting a helper.
+func (s *astScan) treeFanout(fn *astFunc) map[string]bool {
+	reached := map[string]bool{}
+	if fn == nil {
+		return reached
+	}
+	seen := map[string]bool{fn.Name: true}
+	queue := []*astFunc{fn}
+	for len(queue) > 0 {
+		cur := queue[0]
+		queue = queue[1:]
+		for _, c := range s.callsIn(cur) {
+			if c.Pkg == "" {
+				// Same package: follow it, once.
+				if seen[c.Name] {
+					continue
+				}
+				seen[c.Name] = true
+				if next := s.findFunc(cur.Pkg, c.Name); next != nil {
+					queue = append(queue, next)
+				}
+				continue
+			}
+			if s.isTreePkg(cur.File, c.Pkg) && c.Pkg != fn.Pkg {
+				reached[c.Pkg] = true
+			}
+		}
+	}
+	return reached
+}
+
+// varsFromTreeCalls returns the local variables in fn that are bound to the
+// result of a call into the tree's own packages -- that is, the objects fn
+// received from the library rather than built itself.
+func (s *astScan) varsFromTreeCalls(fn *astFunc) map[string]string {
+	out := map[string]string{}
+	if fn == nil || fn.body == nil {
+		return out
+	}
+	record := func(lhs []ast.Expr, rhs []ast.Expr) {
+		if len(rhs) != 1 {
+			return
+		}
+		call, ok := rhs[0].(*ast.CallExpr)
+		if !ok {
+			return
+		}
+		sel, ok := call.Fun.(*ast.SelectorExpr)
+		if !ok {
+			return
+		}
+		base, ok := sel.X.(*ast.Ident)
+		if !ok || !s.isTreePkg(fn.File, base.Name) {
+			return
+		}
+		for _, l := range lhs {
+			if id, ok := l.(*ast.Ident); ok && id.Name != "_" {
+				out[id.Name] = base.Name + "." + sel.Sel.Name
+			}
+		}
+	}
+	ast.Inspect(fn.body, func(n ast.Node) bool {
+		switch a := n.(type) {
+		case *ast.AssignStmt:
+			record(a.Lhs, a.Rhs)
+		case *ast.ValueSpec:
+			lhs := make([]ast.Expr, 0, len(a.Names))
+			for _, nm := range a.Names {
+				lhs = append(lhs, nm)
+			}
+			record(lhs, a.Values)
+		}
+		return true
+	})
+	return out
+}
+
+// fieldAssignsOn returns the field assignments fn performs on any of the
+// named variables: the "x.Field = v" shape. This is the signature of a
+// capability stapled onto an object after its constructor returned.
+func (s *astScan) fieldAssignsOn(fn *astFunc, vars map[string]string) []astCall {
+	var out []astCall
+	if fn == nil || fn.body == nil {
+		return out
+	}
+	ast.Inspect(fn.body, func(n ast.Node) bool {
+		a, ok := n.(*ast.AssignStmt)
+		if !ok {
+			return true
+		}
+		for _, l := range a.Lhs {
+			sel, ok := l.(*ast.SelectorExpr)
+			if !ok {
+				continue
+			}
+			base, ok := sel.X.(*ast.Ident)
+			if !ok {
+				continue
+			}
+			if _, tracked := vars[base.Name]; !tracked {
+				continue
+			}
+			out = append(out, astCall{Pkg: base.Name, Name: sel.Sel.Name, Line: s.line(sel.Pos())})
+		}
+		return true
+	})
+	return out
+}
