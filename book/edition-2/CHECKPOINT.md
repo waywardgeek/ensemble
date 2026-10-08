@@ -1,5 +1,61 @@
 # Working checkpoint
 
+## Latest boundary, October 8
+
+Chapter 10 initial implementation is `41a5e72`; grouped lock/index/encoding/Q5
+repairs are frozen at `122b04a57e7c6ea158901d00bfc0f1a3a8c75329`, with status
+`1e041f5`. CLI 93, public 16, clients 9, DOM 6 and physical reads 38 have passing
+source-bound local receipts, plus eleven-module vet/tests and main/GUI race.
+They are not complete chapter acceptance. Exact activation/job maxima are taught
+at `3a9e5b7`, independently closed at `2a24f7c` and acknowledged by the student.
+
+Independent frozen fault overlay `f572cd3` found a later blocker: one-byte partial
+public Append faults Agent but Close reports success and actually creates/replaces
+a checkpoint. Identical checkpoint bytes would hide the forbidden replacement.
+Original and expanded diagnostics are preserved and copied safely into the
+student's external results directory. Other tested checkpoint I/O outcomes,
+canceled waiting and close/join/lock controls pass. No paid calls are released.
+
+CLI phase 2 exited 0 (exec `52654`). The SAME student conversation
+`01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0` is resumed for this repair: exec `15768`,
+external `phase-2-repair.txt`, events, stderr and eventual result under
+`/Users/bill/projects/ensemble-edition-2-revisions/ch10-student-inputs/`.
+Its regression reproduced the fault; repair validation then encountered disk
+exhaustion. Cache maintenance is now complete and its build stage is released.
+No competing student exists. Keep its new-only boundary and sole append-only
+coordinator-inbox.md channel. Every resumed coding handoff requires a full skill
+read, and no credentials/discovery/generation are authorized yet.
+
+The root's retained gate against isolated `122b04a` exited 1 (exec `23880` closed)
+on disk exhaustion during final GUI-directory rename, before emitting its final
+JSON. External ch10-retained-initial.json is empty; the matching .stderr preserves
+the failure. Do not claim any recovered pass count or repeat without durable
+per-command receipts. No original runtime/checker code was modified by that run.
+Root will own the retained/structural gate; grader `/root/grader_ch05` owns fault
+and real-job tail controls, reviewer `/root/coder_ch08` owns remaining bounds and
+uint64 controls. Pending lifecycle files are separate from stable `f572cd3`.
+
+Only regenerable Go build cache was cleared after no compiler/linker remained,
+with exit 0 and 1.4 GiB free. Preserve source, binaries, evidence, credentials,
+module downloads and user files. Serialize builds: student repair first, then
+grader lifecycle, reviewer bounds, then retained integration. Both graders have
+small-write permission but await explicit build-stage release. The last failed
+root status patch made no changes; this paragraph supersedes the older narrative.
+
+Live plan review `c9ba32c` requests concrete prompts/schedules, current settings,
+tail/import comparisons, legitimate limit seeding and complete immutable support
+preflight within the proposed 66 generation attempts plus 3 discovery requests.
+Root relayed the five points; this is not a paid release. No historical code
+comparison has started for Chapter 10.
+
+Chapter 15 contract is accepted (`a80138d`, closure `738fe0f`). Chapter 16 outline
+`d4b17a3`, advisory `0320911` and decisions `81e2065` led to full draft `f097e24`.
+The draft needs independent full review; reviewer currently prioritizes Chapter 10
+bounds. Root gate chapter-16-validation.md exists. Author `/root/coder_ch04` is
+available for feedback; no Chapter 16 checker/runtime/live result exists.
+
+## Previous handoff narrative
+
 Chapter 9 is accepted at `edition-2-ch09-r1`, with exact 4,012-file export from
 `ac55f64` (tree `94315d7`) and eleven complete delivered modules. Runtime
 `06c6787` has independent code acceptance `19d2fdf`; live review `2dc5841`

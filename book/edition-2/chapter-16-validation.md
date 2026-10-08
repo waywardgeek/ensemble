@@ -10,7 +10,7 @@ required implementation predecessor does not exist yet.
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Research and consequential choices | Author, reviewer, coordinator | Outline `d4b17a3`, advisory `0320911`, decisions `81e2065` | Teach exact selected mechanisms and flag contradictory prerequisites |
-| Full contract and prose | Author `/root/coder_ch04`, reviewer `/root/coder_ch08` | Drafting released | Print schemas, limits, timeline, provider fixtures and usable recovery, then independent review |
+| Full contract and prose | Author `/root/coder_ch04`, reviewer `/root/coder_ch08` | Full draft `f097e24` published; independent full review pending | Review exact contract, voice, fixtures and preceding boundaries |
 | Independent checks | Future grader | Not started | Derive distinguishing controls from accepted printed requirements |
 | Fresh student and owner plan | Future fresh student, reviewer | Not released | Requires accepted Chapter 15 source and published checks |
 | Local implementation | Future student, grader | Not started | Preserve preceding contracts, ownership and evidence boundaries |

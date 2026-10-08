@@ -13,8 +13,8 @@ Bill's editorial approval is separate from technical acceptance.
 | Contract | Author, coordinator | Prepared-event clarification `c5ad6c0`/`c773b11` and exact watermark clarification `3a9e5b7`/`2a24f7c` published, pinned and acknowledged | Preserve exact representation and complete-state identity rules |
 | Independent checks | `/root/grader_ch05`, coordinator, `/root/coder_ch08` | Prepared executable passes CLI 93, clients 9, DOM 6 and physical reads 38; corrected public suite passes 16 groups on later mutable source. Initial failures remain retained | Bind repaired source; finish independent fault, allocation, storage and retained-behavior gates |
 | Fresh student and owner plan | Fresh CLI student `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0`, coordinator, independent reviewer | Plan `7cb8429` accepted at `72bf621`; answers `af5a762` proofread at `6766995`, fully acknowledged by student at `44056d1` | Preserve new-only read ledger and route new teaching gaps before affected code |
-| Implementation and local gates | Same student, grader | Initial runtime `41a5e72` preserves prepared-byte repair and evidence before later Q5/lock/index fixes. Main/GUI race and nine nested module checks recorded; grouped revisions remain mutable | Freeze validated grouped revision for remaining independent controls and live-plan review |
-| Actual use | Future student, reviewer | Not started | Review bounded plan, then real CLI/browser/public all-provider demonstrations |
+| Implementation and local gates | Same student, grader | Initial `41a5e72`, revised `122b04a`, handback `1e041f5`. Frozen fault controls found a wrong Close success/checkpoint replacement after partial public Append | Repair and independently recheck; complete remaining frozen gates |
+| Actual use | Same student, reviewer | Unrun proposal reviewed at `c9ba32c`; five concrete plan/support corrections requested, no calls released | Finish deterministic clearance, executable schedule and immutable preflight before real demonstrations |
 | Historical comparison and revisions | Independent reviewer | Not started | Preserve initial source, runs and teaching review first |
 | Manuscript and feedback | Author, student, proofreader | Draft labels actual spin pending | Reconcile actual evidence and resolve student feedback |
 | Export and checkpoint | Coordinator | Not started | Complete all gates before immutable export/tag |
@@ -123,3 +123,18 @@ used to overwrite the new contract. Independent fault barriers, allocation,
 complete storage/semantic and retained-behavior coverage are still being completed.
 No partial local result releases paid calls or substitutes for the full chapter
 matrix and later comparative quality review.
+
+The grouped correction is now frozen at `122b04a` with status-only `1e041f5`.
+Independent overlay `f572cd3` passes checked checkpoint-I/O, canceled waiting and
+close/join/lock controls, but one-byte public Append failure leaves Close returning
+nil and actually creating/replacing a checkpoint. The checkpoint bytes happen to
+match; byte equality alone would miss the forbidden operation. Reopening correctly
+refuses the partial log. Both diagnostics remain preserved. The same student has
+resumed for a focused repair; no ordinary validation refusal may become terminal.
+
+The initial retained-suite run against isolated `122b04a` exhausted disk before
+emitting its final result. Its error is preserved, with no recovered pass claim.
+Only regenerable build cache was cleared after compilers stopped. Remaining runs
+must serialize builds and retain per-command results. Other source/artifacts and
+module downloads are preserved. The live matrix remains pending its independent
+`c9ba32c` corrections, local clearance and immutable support preflight.
