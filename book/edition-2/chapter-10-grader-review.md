@@ -451,3 +451,60 @@ refusal must remain nonterminal. The coordinator received this rationale before
 student repair. No timeout or acceptance assertion was relaxed. This milestone
 does not close append-fault acceptance or the remaining storage/collection,
 allocation, independent-job-tail, deletion and retained architecture gates.
+
+### Repaired append boundary and actual independent-job tail
+
+The student froze the terminal-append correction at
+`8882a18cf98e9a4b70afccfbe980f6344630aae6`. The coordinator checked its targeted
+and complete four-group runs of the unchanged `f572cd3` command: all passed.
+This reviewer read the production delta. Agent retains its terminal append error;
+Actor reaches that owned fact through its common parent interface, propagates it
+on public append failure and checks it before checkpoint/final-close work.
+Ordinary candidate validation does not create that terminal fact. This repairs
+the diagnosed path without making every refused append fatal. The original
+failed source and receipts remain historical evidence.
+
+A separate runner preserves the student-facing fault command byte-for-byte:
+
+```sh
+python3 scripts/edition2/accept_ch10_lifecycle.py SOURCE_DIRECTORY \
+  --source-commit SOURCE_COMMIT --receipt RECEIPT.json
+```
+
+Its [small extraction record](checkpoint-evidence/ch10-lifecycle-extraction.json)
+binds the non-evidence files copied from `8882a18`; no historical raw evidence
+was duplicated. The [final lifecycle receipt](checkpoint-evidence/ch10-lifecycle-final.json)
+verifies all 158 selected runtime/asset/document identities, empty formatting
+output, vet and two passing race-tested groups. One group confirms an ordinary
+invalid append can be followed by a valid append, checkpoint and clean close.
+
+The other uses two actual localhost model requests and a real shell process.
+The shell reports readiness, then waits for a specific fixture file. Its first
+running report is paired and the turn completes before checkpoint capture.
+The real checkpoint writer blocks immediately before replacement; releasing
+the shell then produces an accepted, successful job_ended event through the
+public watch while replacement still waits. The checkpoint acknowledges the
+earlier exact anchor and retains the running job fact. The terminal event is
+in the later log tail. Restoring that genuine older checkpoint beside its real
+newer log and reopening recovers the done job exactly once, with no additional
+HTTP request. No fabricated lifecycle event or sleep-only flood establishes
+the ordering.
+
+Two reviewer fixture failures are preserved. The
+[first attempt](checkpoint-evidence/ch10-lifecycle-first.json) copied returned
+Config.System into a new session constructor rather than the documented
+SessionOptions presence field, so it failed before the job scenario. The
+[second attempt](checkpoint-evidence/ch10-lifecycle-corrected.json) reached the
+save barrier but waited for the nonexistent event name job_done instead of
+the inherited job_ended vocabulary. Its timeout is not evidence of blocked
+runtime progress. Correcting those setup/matching mistakes left the required
+ordering, actual process outcome and exact replay assertions intact.
+
+The separate runner saves each completed command atomically and marks an
+unfinished run explicitly. Three orchestration-only controls verify that an
+identity mismatch preserves existing receipts, an interrupted next command
+retains the prior result, and a completed mocked sequence records all commands.
+They do not count as Ensemble runtime coverage. Targeted implementation deletion
+audits are the next reviewer step; storage/collection/allocation and retained
+structural coverage remain separate work. No paid call or historical solution
+comparison occurred during this milestone.
