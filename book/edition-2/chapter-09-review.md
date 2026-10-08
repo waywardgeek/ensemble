@@ -113,3 +113,74 @@ and the direct author response were released to the same student; the original
 handoff remains preserved. Full implementation is authorized after those reads
 and the student's confirmation. Any remaining reported ambiguity still stops
 its affected code. This acceptance does not certify a runtime or live result.
+
+## Independent post-run prose review, October 8
+
+Reviewed complete manuscript `01049b7` against initial student freeze `786ff23`
+and accepted independent live audit `2dc5841`. The proofreader is the earlier
+Chapter 8 coder, initial Chapter 9 checker preparer, Chapter 11 checker preparer,
+Chapter 13 prose reviewer and Chapter 9 live auditor; this is not the Chapter 9
+runtime author or its independent comparative code reviewer.
+
+The complete voice and writing procedure were reloaded, followed by the complete
+reconciled chapter, complete direct student-feedback response, final author
+evidence reconciliation, relevant frozen student entries and live matrix.
+Both actual cited screenshots were viewed. Narrow current-source reads of the
+public skills consumer, CLI configuration reader and search skill checked the
+reader instructions; they did not constitute a new runtime review. No provider
+calls, runtime builds, implementation edits or old implementation reads occurred.
+
+The manuscript connects a concrete reader problem, removing editing authority
+without losing its manual, to the ownership and durable-material design. Its
+actual beta story makes the cost of unnecessary capability changes tangible:
+the requested report remains missing even though isolation and file reads work.
+The dense middle is an exercise contract, but explanations precede constraints,
+the graph fixture gives the reader stable names, and literal provider suffixes
+make the difficult ordering rule inspectable. The ending resolves the original
+authority/manual distinction. No invented user, measured speedup, cache promise
+or hearing claim was found.
+
+The independent comparative reviewer separately confirms the historical opener:
+the old Chapter 10 teaching/implementation placed loaded instructions in a tool
+result, while old Chapter 15 separated the Skill entry and short acknowledgement;
+its grader correction `81a9fcd` moved the variable assertion to the next request.
+This is attributed corroboration from that reviewer, not a claim that this
+proofreader opened historical code. It agrees with the coordinator's preserved
+initial story review above.
+
+The actual spin and final feedback agree with the accepted audit: 93 attempts,
+the original/repaired source split, the partial Anthropic public task, Gemini's
+missing revoked-write answer and refused usage, the unchanged original browser
+timeout, full text versus bounded native audio, and limited keyboard-launch
+linkage all retain their correct meanings. The direct response preserves initial
+questions and implementation/support mistakes instead of rewriting them as
+teaching failures. Final student confirmation and the separate comparative
+quality revisions remain their own gates.
+
+Four narrow grouped corrections were sent to the author before closure:
+
+| ID | Location | Correction and reason |
+| --- | --- | --- |
+| P1 | §9.9, revision-4 paragraph | Change “read remained their dependency” to identify review's dependency. The shipped search definition grants search_files without depending on read. |
+| P2 | §9.9, full-primary launch | Print the complete CLI environment invocation again. The initial inline shell assignments do not persist; LLM_PRIMARY_SKILL alone cannot select skill mode without LLM_SKILLS_DIR. |
+| P3 | §9.9, public consumer | Make no-flags and --ask explicit alternatives using separate fresh workspaces. Running both sequentially in one directory encounters the inherited exclusive event-log creation rule. |
+| P4 | §9.9, native recordings | Say roughly eight seconds; measured original durations span 7.78–8.52 seconds. The stated bounded-audio limitation otherwise agrees with the receipts. |
+
+No new architecture or runtime-contract blocker was found. These are prose
+precision and reproduction fixes, not reasons for another paid demonstration.
+
+Independent scoped checks used the retained prose executable, without rebuilding
+it: hard rules pass at 7,260 counted words. Soft negation and person-gap warnings
+were read against the concrete refusal rules, ordering fixtures and task-focused
+spin; no mechanically shortened replacement would improve those instructions.
+All eleven JSON fixture blocks parse and are byte-identical to the preceding
+manuscript. Both image descriptions match their actual viewports.
+
+Source hashes for this review:
+
+- chapter-09.md: `a1239e0e9d8eccd5fba7d30af951b1239fd5a90c65c5d4e546689d4884a5d611`.
+- chapter-09-student-feedback.md: `d7520e5c9db4ed6095d0071224fbc05da7159407b2943795fe520fe9c2b3b699`.
+- chapter-09-evidence.md: `9559b95de3d638e55510ee4a7cacaeafd954198d746ab9820f206ab1516dd027`.
+
+Disposition at this boundary: complete initial prose review, awaiting the
+author's grouped P1–P4 correction. No final chapter acceptance is claimed.
