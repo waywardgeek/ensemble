@@ -5,9 +5,8 @@ panel. The source describes what should happen. The person at the keyboard needs
 to know what happened in the running page.
 
 The first edition encountered that distinction twice. Programmatic input left
-the Agent paused as though a person were still composing. Later, a snapshot
-named the panels but omitted selected and expanded state; the observer described
-the wrong one. The repairs made the missing state explicit. A later integration
+the Agent paused as though a person were still composing. A panel-observation
+failure later exposed missing semantic state, discussed in §12.4. An integration
 review found a more basic problem: the shipped debug skill had never connected
 the browser, although the grader's fake stdio server could answer its calls.
 The [historical evidence](chapter-12-evidence.md#historical-findings-and-limits)
@@ -70,7 +69,8 @@ go test ./... -count=1
 
 Run vet/tests in every affected module and require empty gofmt output. Build the
 GUI from `solutions/edition-2/main/gui/` with
-`go build -o /tmp/ensemble-ch12-gui ./cmd`. From the repository root, retain
+`go build -o /tmp/ensemble-ch12-gui ./cmd/ensemble-gui`. From the repository root,
+retain
 `make grade-dir CH=13 DIR=solutions/edition-2/main` as a historical diagnostic.
 Publish the new independent checker command before student handoff; §12.10 is
 its required behavioral matrix.
@@ -174,6 +174,9 @@ sending MCP requests toward the client. The endpoint implements the supported
 MCP server direction, with current discovery metadata and frozen tool schemas.
 
 An explicitly tunnel-enabled socket permits physical text frames up to 12 MiB.
+Here frame means one complete WebSocket text message, after any wire-level
+fragmentation is assembled. Enforce the bound across that whole message, not
+separately on each RFC frame. The tunnel adds no application-level fragments.
 Every inherited command still has its exact 65,536-byte bound; no-debug sockets
 keep the old physical limit too. This increases the bounded memory exposure of
 an enabled connection. Read within the physical bound, identify its top-level
@@ -254,18 +257,46 @@ API. No endpoint means immediate unavailable for calls on a previously failed
 route. Do not save a click for the next browser to connect. Bind mount and channel
 generation before admitting a control; never change its destination while queued.
 
-The browser follows Chapter 11's canonical rpc-N correlation and bounded pending
-rules. Before synchronous action admission, cancellation prevents the effect.
-After admission it can cancel further waiting but cannot undo an applied action.
-Return one settlement and fence late callbacks. Unknown/future IDs and malformed
-messages follow the protocol failure rules; settled old replies cannot settle a
-different call. Cleanup must not rely on an ever-growing canceled-ID set.
+The browser is the RPC server here. A new canonical rpc-N request is work to
+admit, not an unknown reply to a browser-issued call. Scope admission state to
+channel plus generation: at most 64 pending operations, a contiguous seen prefix
+starting at zero, and at most 64 sorted disjoint seen-ID ranges above it. Merge
+adjacent ranges and advance the prefix whenever possible. A fresh ID is a positive
+uint64 in Chapter 11's canonical spelling absent from both the prefix and ranges.
+Range comparisons must not wrap at the maximum uint64.
+Check capacity, then mark it seen before validating tool arguments or admitting
+an effect. Even a request that returns an argument error cannot execute again.
+
+Discard a seen duplicate without another effect or reply, leaving any original
+pending operation intact. Unseen requests may arrive out of order: rpc-2 followed
+by rpc-1 is valid, and either may finish first. A long run above one missing ID
+uses one merged range, not one record per request. If adding a fresh request
+would require a 65th disjoint range or pending operation, fault only that logical
+route before accepting it. Malformed/noncanonical request identities also fault
+the route. Completion removes pending work after owned cleanup/delivery settles;
+the compact seen representation remains until generation close.
+
+Keep each request ahead of its own cancellation notice in tunnel delivery;
+independent requests and completions need no common order. Cancellation names a
+pending request: before action admission it prevents the effect; afterward it
+cancels further waiting without undoing the action. Fence the canceled operation's
+late callback and suppress a second settlement. A canonical cancellation naming
+unseen or settled work is ignored without a tombstone. On rebind, create fresh
+state only for the new generation after fencing old work from the new mount.
+These server rules complement Chapter 11's client reply classifier; they do not
+replace it or require retaining every completed request body.
 
 ## 12.4 Show enough state to correct a mistake
 
 The reader asking which panel is open needs its selected state, not a list of
-panel labels. Build a semantic view from the owned components. Do not scrape the
-whole document or infer hidden controls by guessing CSS selectors.
+panel labels. The first-edition account asked the observer to click Artifacts.
+It reported Settings, although the interface had no Settings tab. Labels without
+selected state left room for a plausible answer to pass as observation. The
+source repair adding semantic state is verified; the raw model transcript was
+not recovered, so this remains an attributed historical account rather than a
+newly reproduced result. Build the view from owned components with explicit
+selected, expanded and checked state. Do not scrape the whole document or infer
+hidden controls by guessing CSS selectors.
 
 The endpoint advertises exactly the five remote names gui_snapshot, tts_queue,
 gui_click, gui_input and gui_submit. The default aliases are identical. Public
@@ -323,6 +354,16 @@ owned traversal cannot establish its total. A null means unknown, never zero.
 Truncated is true if any content was omitted or its completeness is unknown.
 Untruncated empty arrays have exact zero omissions. Existing owned indexes should
 supply counts without rescanning an unlimited document.
+
+Omitted.bytes counts the original UTF-8 bytes of eligible display text omitted
+from control labels/values and retained artifact text. Omitted.text_scalars counts
+the same text in Unicode scalars. Include a truncated suffix and all eligible
+text of a wholly omitted item; count each displayed field once, even if two fields
+have equal text. Exclude JSON quotes/escaping, structural metadata and text that
+is outside observation scope, such as human drafts or credentials. If any required
+text total is unknown within the bounded indexes, the corresponding aggregate
+is null. For example, retaining `A` from eligible text `Aé🙂` omits six UTF-8 bytes
+and two scalars, regardless of how JSON would escape them.
 
 For example, the complete unbound-view structured value is:
 
@@ -662,8 +703,13 @@ supported tab, and inspect again. Wait for each answer and compare it with the
 browser and accepted tool result before asking the next question. Exercise input
 and submit with a harmless subsequent prompt, checking that the programmatic
 draft does not strand typing pause and that its admission completes without
-waiting for the future turn. Type a human-owned draft in the browser, then have
-the model attempt a conflicting input; preserve the actual refusal and text.
+waiting for the future turn. A human-owned draft asserts typing pause, so a new
+same-Agent model tool waits at the inherited gate. Record that gate separately.
+To exercise the browser's gui_human_draft refusal, type a draft in the target
+Page and use an explicitly scoped independent observer Agent or public action
+consumer to attempt the overwrite. Preserve issuer/target identities, the refusal
+and unchanged draft without clearing the target pause. A controlled action
+already admitted before the human edit can separately prove the race-time recheck.
 
 Use snapshot to read applied preferences and a bounded artifact preview, then
 retrieve omitted text through its versioned targeted read. Make a real bounded
@@ -681,9 +727,13 @@ scope may be another Page, but that is caller-granted access, never default
 cross-Agent visibility. Record which Agent issued the call and which Page was
 observed; leave the target's pause untouched.
 
-Unload gui-debug through the typed public/human skill control, observe that
-automatic samples stop, and reload it. Compare the actual outgoing request bodies
-and replay them exactly with the endpoint disabled. A model can ignore delivered
+Use the public consumer's Chapter 9 actor-ordered typed unload operation for
+gui-debug, observe that automatic samples stop, and invoke its typed load operation
+to restore it. Alternatively, ask the model to call unload_skill and load_skill
+with `{"name":"gui-debug"}`, retaining the actual tool results. Human `/skills`
+only inspects state; this exercise introduces no load/unload slash command.
+Compare the actual outgoing request bodies and replay them exactly with the
+endpoint disabled. A model can ignore delivered
 context; delivery and successful task completion need separate evidence. Preserve
 unavailable or timed-out samples and any corrective prompt instead of scripting
 a successful account after the fact.
@@ -717,7 +767,9 @@ boundary it never reaches: the delivered browser code using the real WebSocket.
 | Ownership | Public custom-view consumer; logical close preserves physical watch and peer channel; root joins a stopped peer |
 | Framing | Real browser round trip above 65,536 bytes through bounded tunnel; an equally large ordinary command still refuses; malformed base64/generation cannot fall through |
 | Bounds | Actual encoded-byte queue caps, stopped sender/consumer, cancellation burst, no pending-work growth after repeated canceled calls |
+| Request identity | Out-of-order fresh requests and completions pass; duplicate pending/settled requests have one effect; unseen/settled cancel leaves no tombstone; 65th disjoint range faults only its route |
 | Scope | Two views, no broadcast, stale mount/control refusal, hidden credentials/drafts excluded, script-looking text remains text |
+| Human draft | Same-Agent typing gate demonstrated separately; explicitly scoped peer/public action refuses overwrite; already-admitted action rechecks after human edit |
 | Effects | Selected/expanded/checked state agrees with actual DOM; programmatic input/submit works without clearing human/peer pause; policy success requires server ack |
 | Speech observation | Same-Agent pause gates retained; explicitly scoped independent observer reads the target's actual active queue without access to other Pages or canceling its speech |
 | Recovery | Exact omission or explicit unknown; targeted Unicode slices and changed-version refusal; complete metadata at the byte cap |

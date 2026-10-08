@@ -253,6 +253,46 @@ plan now requires explicit observer/public-consumer scope where concurrent
 active-queue evidence needs it. It grants no default cross-Agent visibility,
 changes no target pause, and keeps telemetry distinct from heard audio.
 
+## First contract review corrections
+
+The initial complete draft remains at 46fd7d8. The coordinator's independent
+reading found these concrete issues, corrected before student handoff:
+
+- The optional GUI command is cmd/ensemble-gui, confirmed by listing the accepted
+  main/gui/cmd tree. Chapter 12's build now names that package. A search of the
+  earlier second-edition manuscripts found their explicit GUI package commands
+  already correct; none was changed or relabeled as newly built.
+- The live plan named an ambiguous human skill control. Chapter 9's /skills is
+  read-only. The plan now names the existing typed public load/unload consumer
+  or ordinary model management-tool prompts, with no new slash command.
+- A new same-Agent overwrite tool would wait behind a human typing pause. The
+  plan now separates that gate from an explicitly scoped peer/public browser
+  action that proves gui_human_draft, plus a controlled already-admitted action
+  race. Target pause remains untouched.
+- Client reply classification did not define fresh browser-server requests.
+  The accepted correction keeps a seen prefix plus at most 64 disjoint seen
+  ranges and 64 pending operations per channel/generation, permits independent
+  out-of-order work, discards seen duplicates before effects and orders a request
+  before its own cancellation. Unseen/settled cancellation creates no tombstone;
+  range overflow faults the route before admission.
+- Omitted.bytes now means omitted eligible display text's original UTF-8 bytes,
+  excluding JSON/metadata and out-of-scope text. The Aé🙂 example distinguishes
+  six omitted bytes from two scalars after retaining A.
+- Frame now explicitly means a complete WebSocket text message across any
+  wire-level fragmentation; the bounds do not apply independently per RFC frame.
+- The phantom-panel incident is restored near its mechanism: the first-edition
+  account reports Artifacts being described as nonexistent Settings. The source
+  repair is verified, but no raw transcript or successful rerun/timing is newly
+  claimed. The introduction points forward without repeating the whole story.
+
+This revision reread the full voice/procedure, Chapter 11's issue/pending-ID
+contract, Chapter 9's public controls, and the old Chapter 13 panel passage.
+The coordinator accepted the server lifecycle choice explicitly; the author did
+not infer ordered arrival from Chapter 11's sequential ID allocation. Checks
+remain editorial: scoped hard-rule lint, unchanged JSON fixtures and whitespace,
+plus arithmetic on the literal Unicode omission example. No runtime or grader
+source was edited and no new model request was made.
+
 ## Preparation checkpoint
 
 The final author pass reread the complete voice/procedure and both preparation
