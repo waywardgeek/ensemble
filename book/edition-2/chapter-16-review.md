@@ -216,3 +216,112 @@ Reviewed hashes:
 Disposition: proposed direction supported, with the concrete choices above to
 be settled before the full contract. This is advisory review only. No new code,
 checker, runtime/build, provider call or historical reference execution occurred.
+
+## Full draft review: f097e24
+
+October 8, 2026. Independently read the complete manuscript, outline and evidence
+at `f097e24a0b10f8293c68fb7758a9a8d90e7a0153`, and the complete coordinator
+decisions at `81e2065`. The three author files and decision file still match
+those commits. This follows the advisory above; it does not replace its chronology
+or claim a new cold student attempt. Earlier Chapter 8 implementation and later
+grader/reviewer roles remain disclosed. No Chapter 16 runtime exists to review.
+
+The entire current `book/voice.md` and chapter-writing procedure were reloaded;
+an initially truncated combined tool result was followed by separate complete
+reads. The architecture ledger was read completely during the immediately
+preceding task. Focused predecessor reads covered Chapter 14 §14.6, Chapter 15
+§§15.2–15.3 and §§15.5–15.8, and Chapter 9's description/discoverability rules.
+Those supplement the earlier complete Chapter 14–15 contract reviews. Historical
+story verification revisited old Chapter 17's opener/TL;DR and the full commit
+message `a91362b`; no old implementation or historical grader was opened or run.
+The author's other historical reads are not attributed to this reviewer.
+
+### R1: Give recall events an explicit physical record class
+
+Material teaching gap in §16.7, read together with §16.1's explicit standalone
+capability and §16.2's 8 MiB corpus. The draft requires inherited encoded-record
+checks but never assigns the new `recall_*` records a standalone physical limit.
+Chapter 15 grants the 64 MiB exception specifically to new memory events while
+retaining the smaller bounds for unrelated standalone records. It does not
+already classify a new recall corpus record. A student or checker therefore
+has no printed common answer for reading a valid multi-megabyte standalone
+corpus event, including escaped text.
+
+Print the intended class explicitly: all new recall events are bounded to
+64 MiB including their actual framing LF in recall-capable sessions and explicitly
+capable standalone histories. Preserve existing bounds for unrelated events and
+headers. Bound original physical reads before allocation and exact prepared
+write bytes before append; a remarshal is not the size of an imported record.
+Retain the lower corpus/helper/block limits as independent restrictions, and
+distinguish controlled candidate refusal from terminal storage failure. Include
+the classification and exact/+1/LF/escaping controls in the required check table.
+Root independently agrees this is material and supports that scoped direction;
+it remains a proposed clarification until the author publishes it.
+
+### R2: Describe the indexing proposal accurately
+
+Small evidence correction, not a runtime design issue. The full-draft reconciliation
+in the outline and evidence says a preceding zero-based proposal was superseded.
+The frozen `d4b17a3` outline's D5 leaves the index base unspecified. It requires
+unique in-range integer indices but does not choose zero-based indexing. Say that
+the full contract settles the previously unspecified base at one, unless a
+different dated source for that particular proposal is supplied. The printed
+one-based grammar and literal fixtures themselves are consistent.
+
+### Retained decisions and integration assessment
+
+| Decision | Independent contract assessment |
+|---|---|
+| D1 corpus authority | Explicit frozen logical roots, no construction/resume scan, bounded enumeration, captured-file limitations and ready index before publication preserve one applied authority. Retired memory and exports remain excluded. R1 supplies the missing physical record classification. |
+| D2 capability/policy | Fresh v6 and policy v4 preserve old strict routes and disabled defaults. Logical membership is immutable; physical relocation and current settings remain separate. No handler/catalog expansion is implied. |
+| D3 placement/lifetime | Recorded prompt precedes the later recall fact while the literal render anchor places the attachment before it. Complete-set v6 handoff retirement happens atomically, including empty tool sets; checkpoint, refresh and disable preserve accepted material. |
+| D4 operation/cost | Actual parent paths, one joined worker, 15-second total deadline, one attempt, captured effective turn cap and foreground reservation are explicit. Current pressure stays current. Paused/stale/canceled outcomes cannot attach or retry after their boundary; accepted billed usage remains visible. |
+| D5 ranking/verdict | Global post-filter statistics, unique query terms, two separate diversity selections, stable ties and strict one-based verdicts are calculable. Empty success differs from fallback, no fit and cancellation. Literal helper requests omit authority, tools and observations. |
+| D6 Skills | Only currently discoverable IDs/descriptions enter new candidates; revision recheck prevents stale attachment. Historical suggestions survive offer revocation as attributed data without granting current load authority. |
+| D7 retention/bounds | Whole chunks, complete wrappers, cumulative limits and actual neutral-projection delta are independent. Handoff prevents an attachment's prompt from becoming a compressible closed segment while that attachment still remains represented. Reduced state drops retired corpus/helper body copies and preserves the inherited history_unavailable boundary. |
+
+The public, CLI and browser paths share Actor authority and owned safe state.
+The exact refresh command/ack, policy patch, watch-before-ack ordering and Page
+remount cleanup are printed. The separate optional GUI/MCP/native-speech
+lifetimes remain intact. No second recall authority, automatic observation
+access for the judge or new model-facing recall tool is introduced.
+
+The spin is appropriately pending. It teaches explicit refresh/enable/judge
+selection and the context-enable step required for zero-model handoff recovery.
+It distinguishes selected bytes, delivered request and answer quality; its later
+paid feature matrix still must allocate concrete actions and call caps. No
+successful runtime, relevance improvement, cache effect or actual provider
+demonstration follows from this prose review.
+
+### Voice, facts and literal checks
+
+The filing-cabinet incident retains the wasted investigation and the reader's
+reason to build recall. It is correctly attributed to the old account, while
+the unsupported improvement claim is declined. The judge-format story matches
+the cited commit message and explains why parser ownership and visible fallback
+matter. Concrete port-decision, refresh and delivery examples carry the mechanism
+without inventing a new observed result. The dense contract earns its place;
+the long-span and negation warnings are not a reason to add filler or remove
+necessary distinctions. No additional voice blocker was found.
+
+Independent local checks on the unchanged manuscript:
+
+- All nine JSON blocks parse. The three provider helper fixtures have identical
+  system/user text, and the inner user text has the specified canonical ordering.
+- The selected-text SHA-256 matches. All three attachment fixtures render the
+  exact same prescribed block, 221 UTF-8 bytes for the illustrated identities.
+- Direct BM25 calculation yields `0.5981864372218454` and
+  `0.42081720292932145`, with zero for the unrelated chunk.
+- The versioned [Lucene 10.2.2 primary documentation](https://lucene.apache.org/core/10_2_2/core/org/apache/lucene/search/similarities/BM25Similarity.html)
+  confirms the cited defaults and smoothed IDF definition; it supplies no
+  application-quality claim.
+- The retained `edition2-lintprose` executable reports 6,044 words and no hard
+  failure. Its 18 negation forms and long technical-span warnings were reviewed
+  manually. No Go build was performed.
+
+The checked manuscript SHA-256 is
+`a138e632340651b25608a81c748768bcc0e9d605904c18e1d3b52e6b9f268361`.
+Full-draft disposition: D1–D7 direction supported; close R1 and the small R2
+record correction before contract acceptance. This review makes no implementation,
+checker-coverage or paid-run acceptance claim. The separate pending Chapter 10
+bounds fixtures remain uncommitted and unexecuted under coordinated build scheduling.
