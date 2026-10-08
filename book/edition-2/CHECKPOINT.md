@@ -26,8 +26,11 @@ Independent code review `270c3b6` accepts runtime `a06d4f3` with 52 accounted-fo
 groups. Final live audit, author reconciliation and proofread are accepted at
 `d528419`, with student confirmation `446d7f2`. Chapter 8 is checkpointed as
 `edition-2-ch08-r1`, an exact 3,308-file export from that confirmation source.
-Chapter 9's initial checker is published at `e6c3406`; the next student receives
-a separate fresh context.
+Chapter 9's initial checker is published at `e6c3406`. Fresh local CLI student
+`01a11c0d-47b8-7241-8834-5ddf57ac5009` is reading new-only inputs at `8736c95`
+and preparing its ownership plan. Managed spawn hit its thread limit; this
+separate session inherits no conversation and disables memories. See
+[chapter-09-validation.md](chapter-09-validation.md) for its handoff and limits.
 Source identities and retained limitations are tracked in
 [chapter-07-validation.md](chapter-07-validation.md).
 Earlier log-destination corrections are independently accepted and checkpointed

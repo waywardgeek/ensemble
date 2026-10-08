@@ -29,14 +29,19 @@ student confirmation/export source `446d7f2` and final independent acceptance
 `d528419`. Its 3,308-file snapshot matches main, with 52 accounted-for check
 groups, 47 exact request reconstructions and complete nine-module discovery. See
 [chapter-08-validation.md](chapter-08-validation.md). Chapter 9's full draft
-`49ae919` and transition clarification `0bca41c` are accepted for checker
-preparation; its student release still requires accepted Chapter 8 and published
-checks. The initial 51-check command is published at `e6c3406`; numeric teaching
-and invocation are clarified at `77cd638`/`f303754`. The next Chapter 9 student
-will use a separate fresh context. See
+`49ae919` and transition clarification `0bca41c` are accepted. The initial
+51-check command is published at `e6c3406`; numeric teaching and invocation are
+clarified at `77cd638`/`f303754`. Fresh local CLI student
+`01a11c0d-47b8-7241-8834-5ddf57ac5009` is reading new-only inputs at `8736c95`
+and preparing its owner/state/public API plan from accepted Chapter 8. Managed
+spawn hit its thread limit; this new session inherits no conversation and has
+memory injection disabled. `/root/grader_ch05` continues independent checks. See
 [chapter-09-validation.md](chapter-09-validation.md).
 Chapter 10 draft `9181683`, clarified at `6cf8660`/`b4e3fb7`, is accepted for
-checker preparation. The author prepares Chapter 11's MCP outline. No
+checker preparation. Chapter 11 outline/evidence `8aea492` requires replaceable
+MCP message transports and the later optional-module WebSocket GUI tunnel,
+following Bill's explicit instruction recorded at `ad2b2e8`. The author is
+drafting the complete contract after the coordinator's ownership review. No
 implementation or live result is claimed for those future chapters.
 Bill and CodeRhapsody are separately writing a new first-edition sandboxing
 chapter. Preserve that work; review it as a future source when available, without
