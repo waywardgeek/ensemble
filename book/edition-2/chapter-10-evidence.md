@@ -209,3 +209,133 @@ ed6482dd1e5247880122382a3b4199276d8fbda13ea8863676eda5c6e49e9df0 book/chapter-11
 57681a1dc938f86cf89526073a493fa92d1acd9f9054cc59760f827c9accc079 internal/grade/ch11_checks.go
 b834e66359c579340fb505a48b71f7ac99422ef94494a1034fa93fb9fc3fbe40 internal/grade/ch11_harness.go
 ```
+
+## Full contract draft after outline review
+
+The coordinator read the complete `4744f41` outline/evidence and authorized the
+full draft on October 8. The initial preparation and its open-question chronology
+above remain intact. The following are coordinator working choices, explicitly
+separate from Bill's rulings:
+
+- Preserve fresh NewAgent and offline Load; add explicit public session opening,
+  used by human CLI/GUI by default, with workspace-local `.ensemble/session` and
+  a shared session-directory selector. An explicit legacy log is never silently
+  redirected or migrated.
+- Capture at idle/settled actor boundaries with immediate busy refusal and one
+  off-actor worker. Refuse unfinished live resume and a partial final record.
+- Support semantic snapshot-only import with allocator state. Validate equality
+  against the complete available prefix, with replay cost stated honestly.
+- Preserve Jobs-owned pending tool_limits with durable set/consume facts through
+  the existing writer, including failed literal-next-attempt consumption.
+- Compare exact semantic catalog, bindings and installed ceiling. A new path with
+  identical content can resume; current credentials/route/model and Chapter 8
+  policy remain separate. Plain-mode base System is session identity: omission
+  adopts it and a competing explicit value refuses.
+- Hold a nonblocking OS lock for live store ownership and publish resource bounds.
+  Persist SessionID separately from the current Ensemble's runtime Agent.ID.
+
+A follow-up design question was answered before drafting the affected format:
+the outer checkpoint format and semantic invariants must be exact, while private
+state-payload names may follow the student's data structures. The student must
+publish a strict versioned codec. Independent acceptance uses its public
+snapshot/import surface, documented format and externally visible behavior,
+rather than an unpublished private-field assumption. Shared values/interfaces
+remain in common; the snapshot is no second mutable conversation authority.
+
+The coordinator also accepted initialization/anchor facts as a reasonable proposed
+boundary, requiring exact placement, counter accounting, snapshot binding and
+construction-only admission. `chapter-10.md` supplies those details and remains
+under full contract review. It is not a student-ready contract yet.
+
+### Additional draft choices needing coordinator review
+
+The author surfaced these details while writing, instead of presenting them as
+already settled user decisions:
+
+1. **Transient request ordinals.** Chapter 5 queued cancellations have no durable
+   turn event. The draft adds request_index only to a session's actual turn-start
+   fact; snapshot cursor can retain higher burned ordinals. Prefix comparison
+   checks its lower bound and recorded-ID uniqueness instead of requiring exact
+   equality to invisible dead handles. This preserves nonblocking admission
+   without introducing an enqueue journal. A mount nonce was presented as an
+   alternative; the current draft selects explicit ordinal/no-reuse rules.
+2. **Imported origin lifetime.** Later checkpoint replacement cannot erase the
+   seed named by the first anchor. The draft preserves immutable origin.json,
+   binds the first session_anchor to its exact bytes and all high-watermarks, and
+   rejects incomplete imports. It remains one events.log writer. Replay from
+   origin makes no claim to reconstruct absent pre-origin history.
+3. **Plain-mode tools.** The draft also binds installed/visible handler definitions
+   in plain mode. A changed set refuses compatibility rather than adding a
+   permission-migration/fork operation. Skill mode already requires exact ceiling
+   compatibility under the coordinator decision.
+4. **Skill transition proof.** Active roots alone cannot prove earlier load
+   visibility after an advertiser retires. Snapshot state must retain compact
+   ordered transition provenance referencing immutable activation records once,
+   so Chapter 9 action/visibility/retirement validation survives snapshot-only
+   import without embedding the complete event log or duplicating primary text.
+
+These are concrete review points in a complete draft. No runtime implementation
+was instructed to follow them before that review. The accepted predecessor and
+independent published checker still gate the fresh student.
+
+### Scope, cost and source follow-up
+
+The draft deliberately excludes automatic crash-work recovery, log truncation,
+fork/migration commands, cross-domain settings transactions and distributed locks.
+It states the extra prefix replay/capture cost, requires indexed validation and
+streaming bounded reads, and distinguishes durable semantic equality from runtime
+Agent/watch/worker state. Its filename table refuses missing or inconsistent
+origins rather than assuming another valid-looking file wins.
+
+The full current Chapter 9 skills transitions/material and Chapter 5 request,
+turn and shutdown rules were reread in targeted passages. Chapter 4 exact limit
+consumption, error-before-admission and occupied-artifact behavior were consulted;
+Chapter 7 safe watch/wire placement and Chapter 8 independent file lifetimes were
+checked. No runtime source was mined to decide the new contract. A targeted read
+of `cmd/lintprose/main.go` explained a soft warning: its person detector matches
+Bill/I/my/me, so literal reader/user stakes still require the manual reading pass.
+No linter source was edited.
+
+For the new local-lock statement, primary documentation was checked on October 8:
+[Linux flock(2)](https://man7.org/linux/man-pages/man2/flock.2.html) and
+[Apple's archived flock(2)](https://developer.apple.com/library/archive/documentation/System/Conceptual/ManPages_iPhoneOS/man2/flock.2.html).
+The draft confines support to macOS/Linux local filesystems, requires a
+noninherited descriptor and retains the lock file across release. It makes no
+claim about hostile replacements, arbitrary network filesystem semantics or
+power-loss survival. These are documentation checks, not executed lock tests.
+
+Bill is concurrently writing first-edition sandboxing material with CodeRhapsody.
+That work is untouched and recorded only as a pending future lesson source.
+This preparation neither claims to have read a completed source nor assumes a
+new chapter count or a security result from it.
+
+The chapter's demonstration section remains visibly a proposed reproduction
+plan. No CLI output, browser screenshot, provider success, save timing or measured
+usage has been invented. Independent review, implementation and actual use will
+supply those receipts later.
+
+Snapshot-only live compatibility has one further explicit distinction in §10.7:
+recorded material is installed unchanged, while validation compares its grants,
+graph and expected expansion at the original candidate boundaries against the
+caller's matching frozen catalog. Offline inspection/rendering still requires no
+catalog or expansion. A mismatch is refused rather than replaced. This prevents
+a forged active snapshot from borrowing a valid catalog digest while supplying
+different grants or primary bytes; it is included in the coordinator's detailed
+contract review, not claimed as an implemented protection.
+
+Additional consulted-source fingerprints:
+
+```text
+b18b22663ceb4a9bbe74663a830423b0762afaee783e5f92b706c483d5289a46 book/edition-2/chapter-04.md
+1635746aed55332bb82a26df93158f5c5b2a1a6f7bf684fd25fcb0a64b656fb8 book/edition-2/chapter-05.md
+b3a567cdec86a334a44d248f405dc316c8f3ce1a97b6b9d01dbf9dcb5d275473 book/edition-2/chapter-07.md
+794d5283a3b89b37a40a0a14c26a46a534dda92f4d9457781330ae63543f6954 cmd/lintprose/main.go
+```
+
+The complete chapter received a cut/last-sentence/figures pass and scoped prose
+lint. All hard rules pass; the remaining chapter soft warning is the narrow
+person-name heuristic described above. The manual pass retains the returning
+reader, catalog relocation and useful refusal stakes in the later mechanism.
+The evidence file's soft length/qualification warnings remain appropriate to an
+audit record. No old chapter, literal prior fixture or grader was edited, and
+no implementation tests or paid repeats were represented as run for this prose.
