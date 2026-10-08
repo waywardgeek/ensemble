@@ -74,6 +74,9 @@ func completionError(item completedRequest) error {
 	return nil
 }
 func runProtocol(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader, output io.Writer) error {
+	return runProtocolObserved(owner, agent, input, output, false)
+}
+func runProtocolObserved(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader, output io.Writer, observe bool) error {
 	done := make(chan struct{})
 	defer close(done)
 	lines := inputLines(owner, input, false, done)
@@ -82,6 +85,23 @@ func runProtocol(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Rea
 	reading := true
 	var fatal error
 	encoder := json.NewEncoder(output)
+	var progress *progress
+	var wake <-chan struct{}
+	if observe {
+		var err error
+		progress, err = newProgress(owner, agent.ID())
+		if err != nil {
+			return err
+		}
+		defer owner.Unsubscribe(progress.subscription)
+		wake = progress.wake
+	}
+	show := func(o ensemble.Observation) error {
+		return encoder.Encode(map[string]any{"observation": observationRecord(o)})
+	}
+	gap := func() error {
+		return encoder.Encode(map[string]any{"observation_gap": map[string]string{"agent_id": agent.ID(), "reason": "overflow"}})
+	}
 	invalid := func(reason string) error {
 		return encoder.Encode(map[string]any{"error": map[string]string{"code": "invalid_control", "message": reason}})
 	}
@@ -212,7 +232,16 @@ func runProtocol(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Rea
 			if err := encoder.Encode(map[string]string{"ack": ack}); err != nil {
 				stop(err)
 			}
+		case <-wake:
+			if err := progress.drain(show, gap); err != nil {
+				return err
+			}
 		case item := <-completed:
+			if progress != nil {
+				if err := progress.beforeCompletion(agent, item.value, show, gap); err != nil {
+					return err
+				}
+			}
 			pending--
 			c := item.value
 			if item.legacy {

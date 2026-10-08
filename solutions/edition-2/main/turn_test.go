@@ -42,7 +42,7 @@ func TestTurnBatchBoundAndFailureRetention(t *testing.T) {
 				fmt.Fprintf(w, `{"content":[{"type":"text","text":"intermediate"},{"type":"tool_use","id":"bad-%d","name":"disabled","input":{}},{"type":"tool_use","id":"write-%d","name":"write_file","input":{"path":"effect","content":"x","append":true}}],"usage":{"input_tokens":2,"output_tokens":3}}`, count, count)
 			}))
 			defer server.Close()
-			a, err := New(nil).NewAgent(Config{APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"write_file"}})
+			a, err := New(nil).NewAgent(Config{DisableStreaming: true, APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"write_file"}})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -81,12 +81,12 @@ func TestTurnBatchBoundAndFailureRetention(t *testing.T) {
 			dump, _ := a.Dump()
 			path := filepath.Join(dir, "replay")
 			os.WriteFile(path, dump, 0600)
-			loaded, err := New(nil).Load(path, Config{Model: "test"})
+			loaded, err := New(nil).Load(path, Config{DisableStreaming: true, Model: "test"})
 			if err != nil {
 				t.Fatal(err)
 			}
 			loaded.Dump()
-			loaded.Render(Config{Model: "test"})
+			loaded.Render(Config{DisableStreaming: true, Model: "test"})
 			after, _ := os.ReadFile(filepath.Join(dir, "effect"))
 			if string(after) != string(data) {
 				t.Fatal("replay executed tools")
@@ -103,7 +103,7 @@ func TestPersistenceExecutionBoundaries(t *testing.T) {
 			}))
 			defer server.Close()
 			app := New(nil)
-			a, err := app.NewAgent(Config{APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"write_file"}})
+			a, err := app.NewAgent(Config{DisableStreaming: true, APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"write_file"}})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -150,7 +150,7 @@ func TestWorkspaceCapabilityAndLiveDeclarations(t *testing.T) {
 	}))
 	defer server.Close()
 	for i, dir := range dirs {
-		a, err := app.NewAgent(Config{APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"read_file"}})
+		a, err := app.NewAgent(Config{DisableStreaming: true, APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"read_file"}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -166,7 +166,7 @@ func TestWorkspaceCapabilityAndLiveDeclarations(t *testing.T) {
 		}
 		a.Close()
 	}
-	_, err := app.NewAgent(Config{APIKey: "test", Model: "test", LogPath: filepath.Join(t.TempDir(), "bad"), Tools: []ToolDefinition{{Name: "invented", Schema: json.RawMessage(`{"type":"object"}`)}}})
+	_, err := app.NewAgent(Config{DisableStreaming: true, APIKey: "test", Model: "test", LogPath: filepath.Join(t.TempDir(), "bad"), Tools: []ToolDefinition{{Name: "invented", Schema: json.RawMessage(`{"type":"object"}`)}}})
 	if err == nil {
 		t.Fatal("live arbitrary declarations accepted")
 	}
@@ -193,7 +193,7 @@ func TestGeminiSignedContinuationAndErrorSurface(t *testing.T) {
 		fmt.Fprint(w, `{"modelVersion":"resolved-model","candidates":[{"content":{"parts":[{"text":""}]}}],"usageMetadata":{"promptTokenCount":0,"candidatesTokenCount":0}}`)
 	}))
 	defer server.Close()
-	a, err := New(nil).NewAgent(Config{Vendor: "gemini", APIKey: "test", Model: "alias", ResolvedModel: "resolved-model", BaseURL: server.URL, LogPath: filepath.Join(t.TempDir(), "log")})
+	a, err := New(nil).NewAgent(Config{DisableStreaming: true, Vendor: "gemini", APIKey: "test", Model: "alias", ResolvedModel: "resolved-model", BaseURL: server.URL, LogPath: filepath.Join(t.TempDir(), "log")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -212,7 +212,7 @@ func TestGeminiSignedContinuationAndErrorSurface(t *testing.T) {
 
 func TestErrorRenderingEverySurface(t *testing.T) {
 	from := Provenance{Vendor: "anthropic", Model: "test", Surface: "messages"}
-	a, err := New(nil).NewAgent(Config{APIKey: "test", Model: "test", LogPath: filepath.Join(t.TempDir(), "log")})
+	a, err := New(nil).NewAgent(Config{DisableStreaming: true, APIKey: "test", Model: "test", LogPath: filepath.Join(t.TempDir(), "log")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -228,7 +228,7 @@ func TestErrorRenderingEverySurface(t *testing.T) {
 		}
 	}
 	for vendor, marker := range map[string]string{"anthropic": `"is_error":true`, "openai": "Tool failed: actionable path diagnostic", "gemini": `"error":"actionable path diagnostic"`} {
-		body, err := a.Render(Config{Vendor: vendor, Model: "test"})
+		body, err := a.Render(Config{DisableStreaming: true, Vendor: vendor, Model: "test"})
 		if err != nil || !strings.Contains(string(body), marker) {
 			t.Fatal(vendor, string(body), err)
 		}

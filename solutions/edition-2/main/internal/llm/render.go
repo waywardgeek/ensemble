@@ -186,6 +186,13 @@ func Render(owner common.Engine, c common.Context, config common.Config) ([]byte
 	if r.err != nil {
 		return nil, r.err
 	}
+	if !config.DisableStreaming && config.Vendor != "gemini" {
+		m := body.(map[string]any)
+		m["stream"] = true
+		if config.Vendor == "openai" {
+			m["stream_options"] = map[string]bool{"include_usage": true}
+		}
+	}
 	data, err := json.Marshal(body)
 	if err != nil {
 		return nil, failure(owner, "cannot encode request")

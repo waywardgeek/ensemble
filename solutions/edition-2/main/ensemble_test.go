@@ -51,7 +51,7 @@ func TestIndependentAgentsAndFailureAtomicity(t *testing.T) {
 	defer server.Close()
 	var diagnostics bytes.Buffer
 	app := ensemble.New(&diagnostics)
-	config := ensemble.Config{LogPath: filepath.Join(t.TempDir(), "history.log"), APIKey: "test", Model: "test", BaseURL: server.URL + "///"}
+	config := ensemble.Config{DisableStreaming: true, LogPath: filepath.Join(t.TempDir(), "history.log"), APIKey: "test", Model: "test", BaseURL: server.URL + "///"}
 	a, err := app.NewAgent(config)
 	if err != nil {
 		t.Fatal(err)
@@ -133,7 +133,7 @@ func TestCancellationAndDeadlineDiagnostics(t *testing.T) {
 				}
 				var diagnostics bytes.Buffer
 				app := ensemble.New(&diagnostics)
-				a, err := app.NewAgent(ensemble.Config{LogPath: filepath.Join(t.TempDir(), "history.log"), APIKey: "credential-marker", Model: "test", BaseURL: server.URL + "/private-url-marker"})
+				a, err := app.NewAgent(ensemble.Config{DisableStreaming: true, LogPath: filepath.Join(t.TempDir(), "history.log"), APIKey: "credential-marker", Model: "test", BaseURL: server.URL + "/private-url-marker"})
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -164,7 +164,7 @@ func TestRejectedResponses(t *testing.T) {
 			calls := 0
 			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { calls++; fmt.Fprint(w, body) }))
 			defer server.Close()
-			a, err := ensemble.New(nil).NewAgent(ensemble.Config{LogPath: filepath.Join(t.TempDir(), "history.log"), APIKey: "test", Model: "test", BaseURL: server.URL})
+			a, err := ensemble.New(nil).NewAgent(ensemble.Config{DisableStreaming: true, LogPath: filepath.Join(t.TempDir(), "history.log"), APIKey: "test", Model: "test", BaseURL: server.URL})
 			if err != nil {
 				t.Fatal(err)
 			}

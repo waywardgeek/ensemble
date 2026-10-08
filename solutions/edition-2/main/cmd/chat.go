@@ -17,6 +17,16 @@ const chatLineLimit = 1024 * 1024
 
 func runChat(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader, output io.Writer) error {
 	writer := bufio.NewWriter(output)
+	progress, err := newProgress(owner, agent.ID())
+	if err != nil {
+		return err
+	}
+	defer owner.Unsubscribe(progress.subscription)
+	show := func(o ensemble.Observation) error { return progress.chat(writer, o) }
+	gap := func() error {
+		fmt.Fprintln(writer, "\nIncomplete display: observation overflow; recovering from reliable completion.")
+		return writer.Flush()
+	}
 	config := agent.Config()
 	fmt.Fprintf(writer, "Ensemble — %s / %s\nType /help for commands.\n", config.Vendor, config.Model)
 	done := make(chan struct{})
@@ -118,7 +128,14 @@ func runChat(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader,
 			if err := prompt(); err != nil {
 				return err
 			}
+		case <-progress.wake:
+			if err := progress.drain(show, gap); err != nil {
+				return err
+			}
 		case item := <-completed:
+			if err := progress.beforeCompletion(agent, item.value, show, gap); err != nil {
+				return err
+			}
 			pending--
 			c := item.value
 			text := c.Text
@@ -126,8 +143,15 @@ func runChat(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader,
 				text = "[No text returned]"
 			}
 			fmt.Fprintf(writer, "\nRequest %s (%s; pending hints=%d)\n", c.RequestID, c.Outcome, c.PendingHints)
-			if text != "" {
+			if text != "" && (progress.reported || !progress.streamed[c.RequestID] || c.Text == "") {
+				if progress.reported {
+					fmt.Fprintln(writer, "Complete final answer (recovered):")
+				}
 				fmt.Fprintf(writer, "Assistant:\n%s\n", text)
+			}
+			switch c.StopReason {
+			case "max_tokens", "length", "MAX_TOKENS":
+				fmt.Fprintln(writer, "Generation limit reached; accepted answer may be incomplete.")
 			}
 			if c.Error != nil {
 				fmt.Fprintf(writer, "%s: %s\n", c.Error.Code, c.Error.Message)

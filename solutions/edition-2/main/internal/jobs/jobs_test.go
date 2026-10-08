@@ -38,7 +38,9 @@ type testAgent struct {
 }
 
 func (a *testAgent) Ensemble() common.Ensemble { return a.root }
-func (a *testAgent) Config() common.Config     { return common.Config{Workspace: a.workspace} }
+func (a *testAgent) Config() common.Config {
+	return common.Config{DisableStreaming: true, Workspace: a.workspace}
+}
 func (a *testAgent) Workspace() string         { return a.workspace }
 func (a *testAgent) Registry() common.Registry { return a.registry }
 func (a *testAgent) Fault(err error)           { a.mu.Lock(); defer a.mu.Unlock(); a.fault = err }
@@ -466,3 +468,5 @@ func TestPreparedReportDoesNotConsumeUntilAccepted(t *testing.T) {
 		t.Fatal("accepted cursor consumed twice")
 	}
 }
+
+func (*testAgent) ModelReady(common.ModelOperation) {}

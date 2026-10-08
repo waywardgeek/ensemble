@@ -25,7 +25,7 @@ func TestMalformedResponseAppendLeavesAgentUsable(t *testing.T) {
 			app := New(nil)
 			defer app.Close()
 			path := filepath.Join(t.TempDir(), "log")
-			a, err := app.NewAgent(Config{LogPath: path, APIKey: "fixture", Model: "fixture"})
+			a, err := app.NewAgent(Config{DisableStreaming: true, LogPath: path, APIKey: "fixture", Model: "fixture"})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -67,7 +67,7 @@ func TestLogDestinationIsImmutableAndTruthful(t *testing.T) {
 	defer app.Close()
 	dir := t.TempDir()
 	path := filepath.Join(dir, "original.log")
-	a, err := app.NewAgent(Config{LogPath: path, APIKey: "fixture", Model: "fixture"})
+	a, err := app.NewAgent(Config{DisableStreaming: true, LogPath: path, APIKey: "fixture", Model: "fixture"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -99,7 +99,7 @@ func TestLogDestinationIsImmutableAndTruthful(t *testing.T) {
 	if _, err = os.Stat(filepath.Join(dir, "other.log")); !os.IsNotExist(err) {
 		t.Fatal(err)
 	}
-	replay, err := app.Load(path, Config{LogPath: "misleading.log"})
+	replay, err := app.Load(path, Config{DisableStreaming: true, LogPath: "misleading.log"})
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -11,6 +11,7 @@ type RequestConfig struct {
 	ResolvedModel string           `json:"resolved_model,omitempty"`
 }
 type Completion struct {
+	StopReason   string      `json:"stop_reason,omitempty"`
 	AgentID      string      `json:"agent_id,omitempty"`
 	RequestID    string      `json:"request_id"`
 	Outcome      string      `json:"outcome"`
@@ -47,6 +48,8 @@ type ActorAgent interface {
 type ModelEngine interface {
 	Engine
 	ExchangeConfig(context.Context, []byte, Config) (ParsedResponse, error)
+	NewOperation(string, string, Config) ModelOperation
+	ExchangeOperation(context.Context, ModelOperation, []byte, Config) (ParsedResponse, error)
 	Usage() Usage
 }
 type Actor interface {
@@ -80,6 +83,7 @@ type ActorMessage struct {
 	RequestID string
 	Text      string
 	Event     Event
+	Model     ModelOperation
 	Operation uint64
 	Response  ParsedResponse
 	Report    PreparedReport
@@ -96,3 +100,19 @@ type ActorReply struct {
 type StoppedError struct{}
 
 func (StoppedError) Error() string { return "Agent stopped" }
+
+// ModelOperation is Engine-owned temporary delivery state, never durable history.
+type Fragment struct {
+	PartID        int
+	Channel, Text string
+}
+type ModelOperation interface {
+	Engine() ModelEngine
+	ID() string
+	RequestID() string
+	Delivery() string
+	Exchange(context.Context, []byte) (ParsedResponse, error)
+	Emit(context.Context, Fragment) error
+	Drain() ([]Fragment, bool)
+	Discard()
+}

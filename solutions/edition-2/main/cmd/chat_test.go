@@ -38,6 +38,7 @@ func TestChatLineBoundary(t *testing.T) {
 }
 
 func cliConfig(t *testing.T, url string) string {
+	t.Setenv("EN_DISABLE_STREAMING", "1")
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "session.log")
 	for k, v := range map[string]string{"LLM_VENDOR": "anthropic", "LLM_MODEL": "fixture", "LLM_API_KEY": "secret-marker", "LLM_BASE_URL": url, "LLM_RESOLVED_MODEL": "", "CH02_LOG": path} {
@@ -159,7 +160,7 @@ func TestChatFailuresAndEmptyExit(t *testing.T) {
 
 func TestChatHistoryAndRedactionOfControlledResult(t *testing.T) {
 	owner := ensemble.New(nil)
-	agent, err := owner.NewAgent(ensemble.Config{Model: "fixture", APIKey: "test", LogPath: filepath.Join(t.TempDir(), "log")})
+	agent, err := owner.NewAgent(ensemble.Config{DisableStreaming: true, Model: "fixture", APIKey: "test", LogPath: filepath.Join(t.TempDir(), "log")})
 	if err != nil {
 		t.Fatal(err)
 	}

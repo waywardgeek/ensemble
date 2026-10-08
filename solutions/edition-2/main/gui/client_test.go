@@ -21,12 +21,12 @@ func TestPublicClientBoundary(t *testing.T) {
 	defer server.Close()
 	var diagnostics bytes.Buffer
 	app := ensemble.New(&diagnostics)
-	a, err := app.NewAgent(ensemble.Config{APIKey: "test", Model: "test", BaseURL: server.URL, LogPath: filepath.Join(t.TempDir(), "a.log")})
+	a, err := app.NewAgent(ensemble.Config{DisableStreaming: true, APIKey: "test", Model: "test", BaseURL: server.URL, LogPath: filepath.Join(t.TempDir(), "a.log")})
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer a.Close()
-	b, err := app.NewAgent(ensemble.Config{APIKey: "test", Model: "test", BaseURL: server.URL, LogPath: filepath.Join(t.TempDir(), "b.log")})
+	b, err := app.NewAgent(ensemble.Config{DisableStreaming: true, APIKey: "test", Model: "test", BaseURL: server.URL, LogPath: filepath.Join(t.TempDir(), "b.log")})
 	if err != nil {
 		t.Fatal(err)
 	}

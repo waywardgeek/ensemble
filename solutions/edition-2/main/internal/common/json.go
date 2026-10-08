@@ -59,3 +59,25 @@ func (t *ToolEvent) UnmarshalJSON(data []byte) error {
 	*t = ToolEvent(value)
 	return nil
 }
+
+// A missing historical delivery means plain, but an explicit empty or null
+// value is invalid rather than a second spelling for that historical omission.
+func (r *RequestEvent) UnmarshalJSON(data []byte) error {
+	type wire RequestEvent
+	var value wire
+	if err := json.Unmarshal(data, &value); err != nil {
+		return err
+	}
+	var fields map[string]json.RawMessage
+	if err := json.Unmarshal(data, &fields); err != nil {
+		return err
+	}
+	if raw, ok := fields["delivery"]; ok {
+		var delivery string
+		if json.Unmarshal(raw, &delivery) != nil || (delivery != "stream" && delivery != "plain") {
+			return fmt.Errorf("invalid request delivery")
+		}
+	}
+	*r = RequestEvent(value)
+	return nil
+}

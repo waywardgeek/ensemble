@@ -9,7 +9,7 @@ import (
 type owner struct{ writes int }
 
 func (o *owner) Ensemble() common.Ensemble    { return o }
-func (o *owner) Config() common.Config        { return common.Config{} }
+func (o *owner) Config() common.Config        { return common.Config{DisableStreaming: true} }
 func (o *owner) Workspace() string            { return "" }
 func (o *owner) Logf(string, ...any)          {}
 func (o *owner) Publish(string, common.Event) {}
@@ -32,3 +32,5 @@ func TestPartialWritePermanentlyFaultsLog(t *testing.T) {
 
 func (*owner) Observe(common.Observation)                       {}
 func (*owner) Collect([]common.RequestHandle) common.Collection { return nil }
+
+func (owner) ModelReady(common.ModelOperation) {}

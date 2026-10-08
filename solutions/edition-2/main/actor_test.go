@@ -23,7 +23,7 @@ func actorAgent(t *testing.T, handler http.HandlerFunc, builtins ...string) (*En
 	t.Cleanup(server.Close)
 	app := New(nil)
 	dir := t.TempDir()
-	a, err := app.NewAgent(Config{APIKey: "fixture", Model: "fixture", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: builtins})
+	a, err := app.NewAgent(Config{DisableStreaming: true, APIKey: "fixture", Model: "fixture", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: builtins})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -330,7 +330,7 @@ func TestCollectionStaggeredReadinessAndIndependentWait(t *testing.T) {
 			replyText(w, fmt.Sprint(i))
 		}))
 		defer servers[i].Close()
-		a, err := app.NewAgent(Config{APIKey: "test", Model: "test", BaseURL: servers[i].URL, LogPath: filepath.Join(t.TempDir(), "log")})
+		a, err := app.NewAgent(Config{DisableStreaming: true, APIKey: "test", Model: "test", BaseURL: servers[i].URL, LogPath: filepath.Join(t.TempDir(), "log")})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -423,7 +423,7 @@ func TestRequestReplayHintAndTurnValidation(t *testing.T) {
 		enc.Encode(e)
 	}
 	f.Close()
-	offline, err := New(nil).Load(path, Config{Model: "fixture"})
+	offline, err := New(nil).Load(path, Config{DisableStreaming: true, Model: "fixture"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -558,7 +558,7 @@ func TestHintFixtureRendersAfterResultsOnEverySurface(t *testing.T) {
 		t.Run(vendor, func(t *testing.T) {
 			app := New(nil)
 			defer app.Close()
-			a, err := app.NewAgent(Config{APIKey: "fixture", Model: "fixture", Vendor: vendor, LogPath: filepath.Join(t.TempDir(), "log")})
+			a, err := app.NewAgent(Config{DisableStreaming: true, APIKey: "fixture", Model: "fixture", Vendor: vendor, LogPath: filepath.Join(t.TempDir(), "log")})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -576,7 +576,7 @@ func TestHintFixtureRendersAfterResultsOnEverySurface(t *testing.T) {
 					t.Fatal(err)
 				}
 			}
-			config := Config{Model: "fixture", Vendor: vendor}
+			config := Config{DisableStreaming: true, Model: "fixture", Vendor: vendor}
 			first, err := a.Render(config)
 			if err != nil {
 				t.Fatal(err)
@@ -612,11 +612,11 @@ func TestUnsupportedReferenceNamesModelAndMIMEWithoutLocator(t *testing.T) {
 			var diagnostics bytes.Buffer
 			app := New(&diagnostics)
 			defer app.Close()
-			a, err := app.NewAgent(Config{APIKey: "fixture", Vendor: test.vendor, Model: "new-text-model", LogPath: filepath.Join(t.TempDir(), "log")})
+			a, err := app.NewAgent(Config{DisableStreaming: true, APIKey: "fixture", Vendor: test.vendor, Model: "new-text-model", LogPath: filepath.Join(t.TempDir(), "log")})
 			if err != nil {
 				t.Fatal(err)
 			}
-			if _, err = a.Render(Config{Vendor: test.vendor, Model: "new-text-model"}); err != nil {
+			if _, err = a.Render(Config{DisableStreaming: true, Vendor: test.vendor, Model: "new-text-model"}); err != nil {
 				t.Fatal("unknown text model refused", err)
 			}
 			locator := "private-location-credential-marker"
@@ -624,7 +624,7 @@ func TestUnsupportedReferenceNamesModelAndMIMEWithoutLocator(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			_, err = a.Render(Config{Vendor: test.vendor, Model: "new-text-model"})
+			_, err = a.Render(Config{DisableStreaming: true, Vendor: test.vendor, Model: "new-text-model"})
 			if err == nil {
 				t.Fatal("unsupported media silently accepted")
 			}

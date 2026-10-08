@@ -183,6 +183,9 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 		}
 	case "request_sent":
 		r := e.Request
+		if r != nil && r.Delivery != "" && r.Delivery != "stream" && r.Delivery != "plain" {
+			return bad("invalid request delivery")
+		}
 		if r == nil || !validProvenance(owner, &r.To) || c.Active || unresolved(owner, c) || (c.Pending == nil && !c.Continuation) {
 			return bad("invalid event or conversation transition")
 		}

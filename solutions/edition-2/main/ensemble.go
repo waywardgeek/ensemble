@@ -308,6 +308,8 @@ type Agent struct {
 	faulted   bool
 }
 
+func (a *Agent) ModelReady(op common.ModelOperation) { a.actor.ModelReady(op) }
+
 func (a *Agent) ID() string                { return a.id }
 func (a *Agent) Ensemble() common.Ensemble { return a.parent }
 
@@ -690,7 +692,7 @@ func (a *Agent) ReconstructRequest(sequence uint64) ([]byte, error) {
 			}
 			request := event.Request
 			captured := request.Configuration
-			config := Config{Vendor: request.To.Vendor, Model: request.To.Model, System: captured.System, MaxTokens: captured.MaxTokens, Tools: captured.Tools, ResolvedModel: captured.ResolvedModel}
+			config := Config{DisableStreaming: request.Delivery != "stream", Vendor: request.To.Vendor, Model: request.To.Model, System: captured.System, MaxTokens: captured.MaxTokens, Tools: captured.Tools, ResolvedModel: captured.ResolvedModel}
 			return llm.Render(a.engine, state, config)
 		}
 		llm.Apply(a.engine, &state, event)

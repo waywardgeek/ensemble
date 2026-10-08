@@ -7,14 +7,20 @@ import (
 )
 
 type parser struct {
-	parent common.Engine
-	err    error
+	parent    common.Engine
+	operation common.ModelOperation
+	err       error
 }
 
-func (p *parser) Engine() common.Engine { return p.parent }
+func (p *parser) Engine() common.Engine {
+	if p.operation != nil {
+		return p.operation.Engine()
+	}
+	return p.parent
+}
 func (p *parser) invalid() {
 	if p.err == nil {
-		p.err = failure(p.parent, "malformed model response or usage")
+		p.err = failure(p.Engine(), "malformed model response or usage")
 	}
 }
 func (p *parser) obj(raw json.RawMessage) map[string]json.RawMessage {
@@ -59,7 +65,10 @@ func (p *parser) truth(raw json.RawMessage) bool {
 
 // Parse returns facts only. The Agent's durable append path owns all mutation.
 func Parse(owner common.Engine, config common.Config, body []byte, responseSeq uint64) (common.ParsedResponse, error) {
-	p := parser{parent: owner}
+	return parseResponse(owner, config, body, responseSeq, nil)
+}
+func parseResponse(owner common.Engine, config common.Config, body []byte, responseSeq uint64, op common.ModelOperation) (common.ParsedResponse, error) {
+	p := parser{parent: owner, operation: op}
 	var missing []int
 	root := p.obj(body)
 	requested := Route(owner, config)
@@ -86,6 +95,9 @@ func Parse(owner common.Engine, config common.Config, body []byte, responseSeq u
 	usage := common.Usage{}
 	switch config.Vendor {
 	case "anthropic":
+		if raw, ok := root["stop_reason"]; ok && string(raw) != "null" {
+			out.StopReason = p.str(raw)
+		}
 		usage = common.Usage{Input: p.count(u, "input_tokens", true), Output: p.count(u, "output_tokens", true), CacheWrite: p.count(u, "cache_creation_input_tokens", false), CacheRead: p.count(u, "cache_read_input_tokens", false)}
 		for _, raw := range p.list(root["content"]) {
 			b := p.obj(raw)
@@ -114,7 +126,11 @@ func Parse(owner common.Engine, config common.Config, body []byte, responseSeq u
 			p.invalid()
 			break
 		}
-		m := p.obj(p.obj(choices[0])["message"])
+		choice := selectZero(&p, choices)
+		if raw, ok := choice["finish_reason"]; ok && string(raw) != "null" {
+			out.StopReason = p.str(raw)
+		}
+		m := p.obj(choice["message"])
 		if raw, ok := m["content"]; ok && string(raw) != "null" {
 			s := p.str(raw)
 			out.Parts = append(out.Parts, Text(s))
@@ -130,6 +146,10 @@ func Parse(owner common.Engine, config common.Config, body []byte, responseSeq u
 				out.Parts = append(out.Parts, common.Part{Type: "tool_call", CallID: p.str(c["id"]), From: &from, Name: p.str(fn["name"]), Args: json.RawMessage(args)})
 			}
 		}
+		if raw, ok := m["refusal"]; ok && string(raw) != "null" {
+			_ = p.str(raw)
+			out.Parts = append(out.Parts, common.Part{Type: "opaque", From: &from, Data: rawValue(map[string]json.RawMessage{"refusal": raw})})
+		}
 	case "gemini":
 		usage.CacheRead = p.count(u, "cachedContentTokenCount", false)
 		usage.Input = p.count(u, "promptTokenCount", true) - usage.CacheRead
@@ -139,9 +159,22 @@ func Parse(owner common.Engine, config common.Config, body []byte, responseSeq u
 			p.invalid()
 			break
 		}
-		content := p.obj(p.obj(candidates[0])["content"])
-		for index, raw := range p.list(content["parts"]) {
+		candidate := selectZero(&p, candidates)
+		if raw, ok := candidate["finishReason"]; ok {
+			out.StopReason = p.str(raw)
+		}
+		content := p.obj(candidate["content"])
+		var normalized []json.RawMessage
+		for _, raw := range p.list(content["parts"]) {
+			normalized, _ = appendGemini(&p, normalized, raw)
+		}
+		for index, raw := range normalized {
 			b := p.obj(raw)
+			_, hasText := b["text"]
+			if hasText && !knownGeminiText(&p, b) {
+				out.Parts = append(out.Parts, common.Part{Type: "opaque", From: &from, Data: append(json.RawMessage(nil), raw...)})
+				continue
+			}
 			if thought, ok := b["thought"]; ok && p.truth(thought) {
 				out.Parts = append(out.Parts, common.Part{Type: "opaque", From: &from, Data: append(json.RawMessage(nil), raw...)})
 				continue
@@ -188,4 +221,24 @@ func Parse(owner common.Engine, config common.Config, body []byte, responseSeq u
 		p.invalid()
 	}
 	return common.ParsedResponse{Response: out, MissingCallIDs: missing}, p.err
+}
+
+func selectZero(p *parser, values []json.RawMessage) map[string]json.RawMessage {
+	for _, raw := range values {
+		m := p.obj(raw)
+		v, ok := m["index"]
+		if !ok && len(values) == 1 {
+			return m
+		}
+		var index int
+		if !ok || json.Unmarshal(v, &index) != nil {
+			p.invalid()
+			continue
+		}
+		if index == 0 {
+			return m
+		}
+	}
+	p.invalid()
+	return nil
 }

@@ -21,7 +21,7 @@ func loadText(t *testing.T, text string) (*ensemble.Agent, error) {
 	if err := os.WriteFile(path, []byte(text), 0600); err != nil {
 		t.Fatal(err)
 	}
-	return ensemble.New(nil).Load(path, ensemble.Config{Vendor: "anthropic", Model: "fixture-messages"})
+	return ensemble.New(nil).Load(path, ensemble.Config{DisableStreaming: true, Vendor: "anthropic", Model: "fixture-messages"})
 }
 func TestPublishedReplayFixtures(t *testing.T) {
 	source, err := os.ReadFile("testdata/history.log")
@@ -33,7 +33,7 @@ func TestPublishedReplayFixtures(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, vendor := range []string{"anthropic", "openai", "gemini"} {
-		config := ensemble.Config{Vendor: vendor, Model: "offline"}
+		config := ensemble.Config{DisableStreaming: true, Vendor: vendor, Model: "offline"}
 		one, err := a.Render(config)
 		if err != nil {
 			t.Fatal(err)
@@ -49,7 +49,7 @@ func TestPublishedReplayFixtures(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, vendor := range []string{"anthropic", "openai", "gemini"} {
-		data, err := b.Render(ensemble.Config{Vendor: vendor, Model: "offline"})
+		data, err := b.Render(ensemble.Config{DisableStreaming: true, Vendor: vendor, Model: "offline"})
 		if err != nil || bytes.Contains(data, []byte("port=8080")) || !bytes.Contains(data, []byte("call-config")) {
 			t.Fatalf("redaction %s: %s %v", vendor, data, err)
 		}
@@ -89,7 +89,7 @@ func TestEphemeraFailureAndUsageAttribution(t *testing.T) {
 	}))
 	defer server.Close()
 	app := ensemble.New(nil)
-	config := ensemble.Config{APIKey: "test", Model: "alias-v1", BaseURL: server.URL, LogPath: filepath.Join(t.TempDir(), "log")}
+	config := ensemble.Config{DisableStreaming: true, APIKey: "test", Model: "alias-v1", BaseURL: server.URL, LogPath: filepath.Join(t.TempDir(), "log")}
 	a, err := app.NewAgent(config)
 	if err != nil {
 		t.Fatal(err)
@@ -141,7 +141,7 @@ func TestEphemeraFailureAndUsageAttribution(t *testing.T) {
 }
 func TestToolResultsOpaqueAndOwnership(t *testing.T) {
 
-	config := ensemble.Config{Vendor: "gemini", APIKey: "test", Model: "alias", LogPath: filepath.Join(t.TempDir(), "log")}
+	config := ensemble.Config{DisableStreaming: true, Vendor: "gemini", APIKey: "test", Model: "alias", LogPath: filepath.Join(t.TempDir(), "log")}
 	app := ensemble.New(nil)
 	a, err := app.NewAgent(config)
 	if err != nil {
@@ -212,7 +212,7 @@ func TestOpenAIParsingAndInstructionRoles(t *testing.T) {
 		fmt.Fprint(w, `{"model":"reported","choices":[{"message":{"content":null,"tool_calls":[{"id":"issued","type":"function","function":{"name":"inspect","arguments":"{\"path\":\"x\"}"}}]}}],"usage":{"prompt_tokens":150,"prompt_tokens_details":{"cached_tokens":30,"cache_write_tokens":20},"completion_tokens":40}}`)
 	}))
 	defer server.Close()
-	a, err := ensemble.New(nil).NewAgent(ensemble.Config{Vendor: "openai", APIKey: "test", Model: "alias", BaseURL: server.URL, LogPath: filepath.Join(t.TempDir(), "log")})
+	a, err := ensemble.New(nil).NewAgent(ensemble.Config{DisableStreaming: true, Vendor: "openai", APIKey: "test", Model: "alias", BaseURL: server.URL, LogPath: filepath.Join(t.TempDir(), "log")})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -235,7 +235,7 @@ func TestOpenAIParsingAndInstructionRoles(t *testing.T) {
 
 func TestLoadOwnsConfiguration(t *testing.T) {
 	schema := json.RawMessage(`{"type":"object"}`)
-	config := ensemble.Config{Vendor: "anthropic", Model: "offline", Tools: []ensemble.ToolDefinition{{Name: "inspect", Schema: schema}}}
+	config := ensemble.Config{DisableStreaming: true, Vendor: "anthropic", Model: "offline", Tools: []ensemble.ToolDefinition{{Name: "inspect", Schema: schema}}}
 	a, err := ensemble.New(nil).Load("testdata/history.log", config)
 	if err != nil {
 		t.Fatal(err)
@@ -262,7 +262,7 @@ func TestDeferredHumanPreservesFactsAndProjectsAfterResults(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = pending.Render(ensemble.Config{Model: "offline"}); err == nil {
+	if _, err = pending.Render(ensemble.Config{DisableStreaming: true, Model: "offline"}); err == nil {
 		t.Fatal("render accepted unanswered call")
 	}
 	second := strings.Replace(deferred, `"seq":4`, `"seq":5`, 1)
@@ -281,7 +281,7 @@ func TestDeferredHumanPreservesFactsAndProjectsAfterResults(t *testing.T) {
 		t.Fatal("source sequences changed")
 	}
 	for _, vendor := range []string{"anthropic", "openai", "gemini"} {
-		body, err := a.Render(ensemble.Config{Vendor: vendor, Model: "offline"})
+		body, err := a.Render(ensemble.Config{DisableStreaming: true, Vendor: vendor, Model: "offline"})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -293,12 +293,12 @@ func TestDeferredHumanPreservesFactsAndProjectsAfterResults(t *testing.T) {
 }
 
 func TestGeminiPreservesToolJSONSchema(t *testing.T) {
-	a, err := ensemble.New(nil).Load("testdata/history.log", ensemble.Config{})
+	a, err := ensemble.New(nil).Load("testdata/history.log", ensemble.Config{DisableStreaming: true})
 	if err != nil {
 		t.Fatal(err)
 	}
 	schema := json.RawMessage(`{"type":"object","properties":{"path":{"type":"string"}},"required":["path"],"additionalProperties":false}`)
-	body, err := a.Render(ensemble.Config{Vendor: "gemini", Model: "offline", Tools: []ensemble.ToolDefinition{{Name: "inspect", Schema: schema}}})
+	body, err := a.Render(ensemble.Config{DisableStreaming: true, Vendor: "gemini", Model: "offline", Tools: []ensemble.ToolDefinition{{Name: "inspect", Schema: schema}}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -341,7 +341,7 @@ func TestLoadDiagnosticsGiveSafeReasons(t *testing.T) {
 			if err := os.WriteFile(path, []byte("{\"log_version\":1}\n"+tc.record+"\n"), 0600); err != nil {
 				t.Fatal(err)
 			}
-			_, err := ensemble.New(&diagnostics).Load(path, ensemble.Config{APIKey: private})
+			_, err := ensemble.New(&diagnostics).Load(path, ensemble.Config{DisableStreaming: true, APIKey: private})
 			if err == nil || !strings.Contains(err.Error(), "line 2") || !strings.Contains(err.Error(), tc.reason) {
 				t.Fatalf("missing safe reason: %v", err)
 			}

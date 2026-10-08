@@ -24,7 +24,7 @@ func (a testAgent) Workspace() string             { return a.config.Workspace }
 func (a testAgent) Ensemble() common.Ensemble     { return testRoot{} }
 func registry(t *testing.T) *Registry {
 	t.Helper()
-	r, err := New(testAgent{common.Config{Workspace: t.TempDir()}}, []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command"})
+	r, err := New(testAgent{common.Config{DisableStreaming: true, Workspace: t.TempDir()}}, []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -203,3 +203,5 @@ func TestLimitWireValidationAndExplicitPatternClear(t *testing.T) {
 
 func (testRoot) Observe(common.Observation)                       {}
 func (testRoot) Collect([]common.RequestHandle) common.Collection { return nil }
+
+func (testAgent) ModelReady(common.ModelOperation) {}

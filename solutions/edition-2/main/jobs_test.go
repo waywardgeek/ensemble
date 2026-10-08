@@ -42,7 +42,7 @@ func TestBackgroundCompletionFinalizesActualResponseIdentity(t *testing.T) {
 	app := New(nil)
 	defer app.Close()
 	dir := t.TempDir()
-	a, err := app.NewAgent(Config{Vendor: "gemini", APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"run_command", "read_file"}})
+	a, err := app.NewAgent(Config{DisableStreaming: true, Vendor: "gemini", APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"run_command", "read_file"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -86,11 +86,11 @@ func TestBackgroundCompletionFinalizesActualResponseIdentity(t *testing.T) {
 		t.Fatal(err)
 	}
 	os.RemoveAll(filepath.Join(dir, "cr"))
-	replay, err := New(nil).Load(filepath.Join(dir, "log"), Config{Model: "test"})
+	replay, err := New(nil).Load(filepath.Join(dir, "log"), Config{DisableStreaming: true, Model: "test"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err = replay.Render(Config{Model: "test"}); err != nil {
+	if _, err = replay.Render(Config{DisableStreaming: true, Model: "test"}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -111,7 +111,7 @@ func TestPublicAgentHandlesAndWorkspaceIsolation(t *testing.T) {
 	dir := t.TempDir()
 	os.WriteFile(filepath.Join(dir, "note"), []byte("shared\n"), 0600)
 	for i := 1; i <= 2; i++ {
-		a, err := app.NewAgent(Config{APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, fmt.Sprint("log", i)), Builtins: []string{"read_file"}})
+		a, err := app.NewAgent(Config{DisableStreaming: true, APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, fmt.Sprint("log", i)), Builtins: []string{"read_file"}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -130,7 +130,7 @@ func TestPublicAgentHandlesAndWorkspaceIsolation(t *testing.T) {
 	// A fresh application skips retained names; it cannot claim the old jobs.
 	second := New(nil)
 	defer second.Close()
-	a, err := second.NewAgent(Config{APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "restart"), Builtins: []string{"read_file"}})
+	a, err := second.NewAgent(Config{DisableStreaming: true, APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "restart"), Builtins: []string{"read_file"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -178,7 +178,7 @@ func TestWireLimitsConsumeEveryAttempt(t *testing.T) {
 	dir := t.TempDir()
 	app := New(nil)
 	defer app.Close()
-	a, err := app.NewAgent(Config{APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"run_command", "tool_limits"}})
+	a, err := app.NewAgent(Config{DisableStreaming: true, APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"run_command", "tool_limits"}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -229,7 +229,7 @@ func TestReadSourceCapIsReportMetadata(t *testing.T) {
 	os.WriteFile(filepath.Join(dir, "source"), []byte("ABCDEFGHIJ"), 0600)
 	app := New(nil)
 	defer app.Close()
-	a, err := app.NewAgent(Config{APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"read_file"}})
+	a, err := app.NewAgent(Config{DisableStreaming: true, APIKey: "test", Model: "test", BaseURL: server.URL, Workspace: dir, LogPath: filepath.Join(dir, "log"), Builtins: []string{"read_file"}})
 	if err != nil {
 		t.Fatal(err)
 	}

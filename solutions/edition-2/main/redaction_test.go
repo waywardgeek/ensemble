@@ -16,7 +16,7 @@ func TestRedactionRefusalsAreActionableAndDoNotMutate(t *testing.T) {
 	var diagnostics bytes.Buffer
 	app := ensemble.New(&diagnostics)
 	path := filepath.Join(t.TempDir(), "log")
-	agent, err := app.NewAgent(ensemble.Config{Model: "fixture", APIKey: "credential-marker", LogPath: path})
+	agent, err := app.NewAgent(ensemble.Config{DisableStreaming: true, Model: "fixture", APIKey: "credential-marker", LogPath: path})
 	if err != nil {
 		t.Fatal(err)
 	}

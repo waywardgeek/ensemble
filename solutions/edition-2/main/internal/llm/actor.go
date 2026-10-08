@@ -23,6 +23,7 @@ type Actor struct {
 	pending   []*request
 	active    *request
 	operation uint64
+	model     common.ModelOperation
 	cancel    context.CancelFunc
 	workers   sync.WaitGroup
 	state     string
@@ -43,6 +44,7 @@ type request struct {
 	calls      []common.Part
 	index      int
 	report     *common.ReportTask
+	stopReason string
 	ending     string
 }
 
@@ -224,6 +226,18 @@ func (a *Actor) receive(m common.ActorMessage) bool {
 		}
 	case "job":
 		err = a.recordJob(m.Event)
+	case "fragments":
+		if a.model != m.Model {
+			m.Model.Discard()
+			break
+		}
+		fragments, more := m.Model.Drain()
+		for _, f := range fragments {
+			a.observeModel(common.Observation{Kind: "part_delta", PartID: f.PartID, Channel: f.Channel, Text: f.Text})
+		}
+		if more {
+			a.ModelReady(m.Model)
+		}
 	case "model":
 		if a.active == nil || m.Operation != a.operation {
 			a.parent.Ensemble().Logf("discarded stale model operation")
@@ -231,6 +245,7 @@ func (a *Actor) receive(m common.ActorMessage) bool {
 		}
 		a.cancel = nil
 		if m.Error != nil {
+			a.endModel(false, 0, "error", m.Error.Error())
 			a.failTurn("error", m.Error)
 			break
 		}
@@ -241,15 +256,21 @@ func (a *Actor) receive(m common.ActorMessage) bool {
 		c := a.parent.TurnSnapshot()
 		entry := c.Entries[len(c.Entries)-1]
 		a.active.parts = entry.Parts
+		a.active.stopReason = m.Response.Response.StopReason
 		a.active.calls = nil
 		a.active.index = 0
 		for i, p := range entry.Parts {
 			copy, _ := Clone(a.parent.Engine(), p)
-			a.parent.Ensemble().Observe(common.Observation{AgentID: a.parent.ID(), RequestID: a.active.id, Kind: "part_final", Seq: entry.Seq, Position: i, Part: &copy})
+			partID := i + 1
+			if len(m.Response.PartIDs) > i {
+				partID = m.Response.PartIDs[i]
+			}
+			a.observeModel(common.Observation{Kind: "part_final", Seq: entry.Seq, ResponseSeq: entry.Seq, Position: i, PartIndex: i, PartID: partID, Part: &copy})
 			if p.Type == "tool_call" {
 				a.active.calls = append(a.active.calls, p)
 			}
 		}
+		a.endModel(true, entry.Seq, "", "")
 		if len(a.active.calls) == 0 {
 			a.finish("success", nil)
 		} else {
@@ -379,13 +400,15 @@ func (a *Actor) exchange() {
 	for _, e := range c.Hints {
 		hints = append(hints, e.Seq)
 	}
-	if a.record(common.Event{Type: "request_sent", Request: &common.RequestEvent{To: Route(a.parent.Engine(), r.config), Ephemera: ephemera, Hints: hints, Configuration: &common.RequestConfig{System: r.config.System, MaxTokens: r.config.MaxTokens, Tools: r.config.Tools, ResolvedModel: r.config.ResolvedModel}}}) != nil {
+	if a.record(common.Event{Type: "request_sent", Request: &common.RequestEvent{Delivery: delivery(r.config), To: Route(a.parent.Engine(), r.config), Ephemera: ephemera, Hints: hints, Configuration: &common.RequestConfig{System: r.config.System, MaxTokens: r.config.MaxTokens, Tools: r.config.Tools, ResolvedModel: r.config.ResolvedModel}}}) != nil {
 		return
 	}
 	r.rounds++
 	a.operation++
 	op := a.operation
-	config := r.config
+	a.model = a.parent.Engine().NewOperation(fmt.Sprintf("m%d", op), r.id, r.config)
+	model := a.model
+	a.observeModel(common.Observation{Kind: "model_begin", Delivery: model.Delivery()})
 	ctx, cancel := context.WithCancel(context.Background())
 	a.cancel = cancel
 	a.transition("in_flight")
@@ -393,7 +416,7 @@ func (a *Actor) exchange() {
 	go func() {
 		defer a.workers.Done()
 		defer cancel()
-		parsed, err := a.parent.Engine().ExchangeConfig(ctx, body, config)
+		parsed, err := model.Exchange(ctx, body)
 		_ = a.enqueue(common.ActorMessage{Kind: "model", Operation: op, Response: parsed, Error: err}, false)
 	}()
 }
@@ -526,6 +549,7 @@ func (a *Actor) interrupt(outcome string) {
 		return
 	}
 	a.transition("interrupted")
+	a.endModel(false, 0, outcome, "turn "+outcome)
 	if a.cancel != nil {
 		a.cancel()
 		a.cancel = nil
@@ -596,7 +620,7 @@ func (a *Actor) finish(outcome string, err error) {
 	a.wakeSelf()
 }
 func (a *Actor) complete(r *request, outcome string, err error) {
-	c := common.Completion{AgentID: a.parent.ID(), RequestID: r.id, Outcome: outcome, Text: TextAnswer(a.parent.Engine(), r.parts), Parts: r.parts, PendingHints: len(a.parent.TurnSnapshot().Hints), Usage: a.parent.Engine().Usage()}
+	c := common.Completion{StopReason: r.stopReason, AgentID: a.parent.ID(), RequestID: r.id, Outcome: outcome, Text: TextAnswer(a.parent.Engine(), r.parts), Parts: r.parts, PendingHints: len(a.parent.TurnSnapshot().Hints), Usage: a.parent.Engine().Usage()}
 	if err != nil {
 		c.Error = &common.EventError{Code: outcome, Message: err.Error()}
 	}
@@ -607,6 +631,7 @@ func (a *Actor) persistence(err error) {
 	if a.fault != nil {
 		return
 	}
+	a.endModel(false, 0, "persistence", "response acceptance failed")
 	a.fault = err
 	a.stopping = true
 	a.mu.Lock()
@@ -646,4 +671,28 @@ func (a *Actor) shutdown() {
 
 func (a *Actor) Fault(err error) {
 	_ = a.enqueue(common.ActorMessage{Kind: "fault", Error: err}, false)
+}
+
+func delivery(config common.Config) string {
+	if config.DisableStreaming {
+		return "plain"
+	}
+	return "stream"
+}
+func (a *Actor) ModelReady(op common.ModelOperation) {
+	_ = a.enqueue(common.ActorMessage{Kind: "fragments", Model: op}, false)
+}
+func (a *Actor) observeModel(o common.Observation) {
+	o.AgentID = a.parent.ID()
+	o.RequestID = a.model.RequestID()
+	o.OperationID = a.model.ID()
+	a.parent.Ensemble().Observe(o)
+}
+func (a *Actor) endModel(accepted bool, seq uint64, code, message string) {
+	if a.model == nil {
+		return
+	}
+	a.observeModel(common.Observation{Kind: "model_end", Accepted: accepted, ResponseSeq: seq, Code: code, Message: message})
+	a.model.Discard()
+	a.model = nil
 }

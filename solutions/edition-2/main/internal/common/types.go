@@ -16,17 +16,18 @@ type Message struct {
 type Conversation []Message
 
 type Config struct {
-	APIKey        string
-	Model         string
-	BaseURL       string
-	Vendor        string
-	ResolvedModel string
-	System        string
-	MaxTokens     int
-	Tools         []ToolDefinition
-	Workspace     string
-	Builtins      []string
-	LogPath       string
+	DisableStreaming bool
+	APIKey           string
+	Model            string
+	BaseURL          string
+	Vendor           string
+	ResolvedModel    string
+	System           string
+	MaxTokens        int
+	Tools            []ToolDefinition
+	Workspace        string
+	Builtins         []string
+	LogPath          string
 }
 type ToolDefinition struct {
 	Name        string          `json:"name"`
@@ -97,12 +98,14 @@ type HintEvent struct {
 	Text      string `json:"text"`
 }
 type RequestEvent struct {
+	Delivery      string         `json:"delivery,omitempty"`
 	Hints         []uint64       `json:"hints"`
 	Configuration *RequestConfig `json:"configuration,omitempty"`
 	To            Provenance     `json:"to"`
 	Ephemera      []uint64       `json:"ephemera"`
 }
 type Response struct {
+	StopReason    string          `json:"stop_reason,omitempty"`
 	From          Provenance      `json:"from"`
 	Requested     *Provenance     `json:"requested,omitempty"`
 	ModelReported *bool           `json:"model_reported,omitempty"`
@@ -113,6 +116,7 @@ type Response struct {
 
 // ParsedResponse carries temporary parser facts, never public event metadata.
 type ParsedResponse struct {
+	PartIDs        []int
 	Response       Response
 	MissingCallIDs []int
 }
@@ -172,15 +176,25 @@ type Context struct {
 	LastSeq       uint64
 }
 type Observation struct {
-	RequestID string `json:"request_id,omitempty"`
-	OldState  string `json:"old_state,omitempty"`
-	State     string `json:"state,omitempty"`
-	Position  int    `json:"position,omitempty"`
-	Part      *Part  `json:"part,omitempty"`
-	AgentID   string `json:"agent_id"`
-	Seq       uint64 `json:"seq"`
-	Kind      string `json:"kind"`
-	Event     Event  `json:"event"`
+	OperationID string `json:"operation_id,omitempty"`
+	Delivery    string `json:"delivery,omitempty"`
+	PartID      int    `json:"part_id,omitempty"`
+	Channel     string `json:"channel,omitempty"`
+	Text        string `json:"text,omitempty"`
+	ResponseSeq uint64 `json:"response_seq,omitempty"`
+	PartIndex   int    `json:"part_index"`
+	Accepted    bool   `json:"accepted"`
+	Code        string `json:"code,omitempty"`
+	Message     string `json:"message,omitempty"`
+	RequestID   string `json:"request_id,omitempty"`
+	OldState    string `json:"old_state,omitempty"`
+	State       string `json:"state,omitempty"`
+	Position    int    `json:"position,omitempty"`
+	Part        *Part  `json:"part,omitempty"`
+	AgentID     string `json:"agent_id"`
+	Seq         uint64 `json:"seq"`
+	Kind        string `json:"kind"`
+	Event       Event  `json:"event"`
 }
 type Observer interface{ Observe(Observation) }
 type ClientRequest struct {
@@ -206,6 +220,7 @@ type Agent interface {
 	Ensemble() Ensemble
 	Config() Config
 	Workspace() string
+	ModelReady(ModelOperation)
 }
 type Engine interface{ Agent() Agent }
 type EventLog interface {

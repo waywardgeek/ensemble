@@ -31,14 +31,22 @@ func configuration(owner ensemble.ClientOwner) ensemble.Config {
 	if path == "" {
 		path = filepath.Base(os.Args[0]) + ".log"
 	}
-	return ensemble.Config{Vendor: vendor, APIKey: value("API_KEY"), Model: value("MODEL"), BaseURL: value("BASE_URL"), ResolvedModel: os.Getenv("LLM_RESOLVED_MODEL"), LogPath: path}
+	return ensemble.Config{DisableStreaming: os.Getenv("EN_DISABLE_STREAMING") == "1", Vendor: vendor, APIKey: value("API_KEY"), Model: value("MODEL"), BaseURL: value("BASE_URL"), ResolvedModel: os.Getenv("LLM_RESOLVED_MODEL"), LogPath: path}
 }
 func run(input io.Reader, output, diagnostics io.Writer) error {
 	return runArgs(os.Args[1:], input, output, diagnostics)
 }
 func runArgs(args []string, input io.Reader, output, diagnostics io.Writer) error {
+	if value := os.Getenv("EN_DISABLE_STREAMING"); value != "" && value != "0" && value != "1" {
+		return fmt.Errorf("EN_DISABLE_STREAMING must be 0 or 1")
+	}
 	app := ensemble.New(diagnostics)
 	config := configuration(app)
+	observe := false
+	if len(args) == 2 && args[0] == "protocol" && args[1] == "--observe" {
+		observe = true
+		args = args[:1]
+	}
 	mode := "protocol"
 	if isTerminal(app, input) && isTerminal(app, output) {
 		mode = "chat"
@@ -92,5 +100,5 @@ func runArgs(args []string, input io.Reader, output, diagnostics io.Writer) erro
 	if mode == "chat" {
 		return runChat(app, agent, input, output)
 	}
-	return runProtocol(app, agent, input, output)
+	return runProtocolObserved(app, agent, input, output, observe)
 }

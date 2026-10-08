@@ -8,6 +8,7 @@ import (
 	"example.com/ensemble/internal/common"
 	"fmt"
 	"io"
+	"mime"
 	"net"
 	"net/http"
 	"net/url"
@@ -71,12 +72,18 @@ func (e *Engine) Exchange(ctx context.Context, body []byte, responseSeq uint64) 
 	return e.ExchangeConfig(ctx, body, e.parent.Config())
 }
 func (e *Engine) ExchangeConfig(ctx context.Context, body []byte, config common.Config) (common.ParsedResponse, error) {
+	return e.ExchangeOperation(ctx, nil, body, config)
+}
+func (e *Engine) ExchangeOperation(ctx context.Context, op common.ModelOperation, body []byte, config common.Config) (common.ParsedResponse, error) {
 	path := "/v1/messages"
 	if config.Vendor == "openai" {
 		path = "/v1/chat/completions"
 	}
 	if config.Vendor == "gemini" {
 		path = "/v1beta/models/" + url.PathEscape(strings.TrimPrefix(config.Model, "models/")) + ":generateContent"
+		if !config.DisableStreaming {
+			path = strings.TrimSuffix(path, ":generateContent") + ":streamGenerateContent?alt=sse"
+		}
 	}
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, config.BaseURL+path, bytes.NewReader(body))
 	if err != nil {
@@ -100,7 +107,20 @@ func (e *Engine) ExchangeConfig(ctx context.Context, body []byte, config common.
 	if response.StatusCode != http.StatusOK {
 		return common.ParsedResponse{}, failure(e, "model returned HTTP %d", response.StatusCode)
 	}
-	data, err := io.ReadAll(response.Body)
+	if !config.DisableStreaming {
+		media, _, mediaErr := mime.ParseMediaType(response.Header.Get("Content-Type"))
+		if mediaErr != nil || media != "text/event-stream" {
+			return common.ParsedResponse{}, failure(e, "stream response requires text/event-stream")
+		}
+		if op == nil {
+			return common.ParsedResponse{}, failure(e, "stream requires owned model operation")
+		}
+		return parseStream(ctx, op, config, response.Body)
+	}
+	data, err := io.ReadAll(io.LimitReader(response.Body, responseLimit+1))
+	if len(data) > responseLimit {
+		return common.ParsedResponse{}, failure(e, "model response exceeds 16 MiB")
+	}
 	if err != nil {
 		return common.ParsedResponse{}, requestFailure(e, err, "model response read failed")
 	}
