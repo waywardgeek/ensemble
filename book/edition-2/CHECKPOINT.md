@@ -12,12 +12,13 @@ revised live evidence `8c73f9b`, independent acceptance `37a37f7` and exact
 1,550-file export from `c3fa758` are bound in its manifest. All required gates
 pass; original attempts and limitations remain recorded. See
 [chapter-06-validation.md](chapter-06-validation.md). Fresh new-only
-student `/root/coder_ch07` has frozen initial browser/watch/pause source at
-`da162e8`, with initial live evidence at `8cc87f2`. All 33 deterministic groups
-and 44 request reconstructions pass. Comparative repairs are frozen at `9ba7855`
-and pass their independent grouped suite; revised live browser sessions and
-the retained full gate are underway.
-Remaining revised evidence and final acceptance are tracked in
+student `/root/coder_ch07` completed Chapter 7, accepted at `edition-2-ch07-r1`.
+Reviewed runtime `9ba7855` passes 33 full-gate and 12 comparative groups.
+Initial `8cc87f2` and revised `341f15d` evidence retain 44 and six exactly
+reconstructed requests, respectively. Independent live review `ffbad61` and
+final proofread `121b65d` close remaining gates. Exact export source `4897642`
+has 2,229 files across eight modules. A fresh Chapter 8 student handoff is next.
+Source identities and retained limitations are tracked in
 [chapter-07-validation.md](chapter-07-validation.md).
 Earlier log-destination corrections are independently accepted and checkpointed
 at `edition-2-ch02-r2` (`0a375d3`) and `edition-2-ch03-r2` (`799940c`). Their

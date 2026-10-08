@@ -1,0 +1,76 @@
+{
+  "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+  "note": "All successful and failed attempts checked. This is not the incomplete full-feature acceptance verifier.",
+  "runs": {
+    "workflow-openai": {
+      "exit_code": 0,
+      "requests": 7,
+      "exact_replays": 7
+    },
+    "collection-anthropic": {
+      "exit_code": 0,
+      "requests": 2,
+      "exact_replays": 2
+    },
+    "controls-gemini": {
+      "exit_code": 1,
+      "requests": 2,
+      "exact_replays": 2
+    },
+    "controls-gemini-attempt2": {
+      "exit_code": 1,
+      "requests": 6,
+      "exact_replays": 6
+    },
+    "collection-gemini": {
+      "exit_code": 0,
+      "requests": 2,
+      "exact_replays": 2
+    },
+    "workflow-anthropic": {
+      "exit_code": 0,
+      "requests": 7,
+      "exact_replays": 7
+    },
+    "eof-gemini": {
+      "exit_code": 0,
+      "requests": 2,
+      "exact_replays": 2
+    },
+    "collection-openai": {
+      "exit_code": 0,
+      "requests": 2,
+      "exact_replays": 2
+    },
+    "controls-anthropic": {
+      "exit_code": 0,
+      "requests": 9,
+      "exact_replays": 9
+    },
+    "eof-openai": {
+      "exit_code": 0,
+      "requests": 2,
+      "exact_replays": 2
+    },
+    "controls-gemini-attempt1": {
+      "exit_code": 1,
+      "requests": 2,
+      "exact_replays": 2
+    },
+    "workflow-gemini": {
+      "exit_code": 0,
+      "requests": 6,
+      "exact_replays": 6
+    },
+    "eof-anthropic": {
+      "exit_code": 0,
+      "requests": 2,
+      "exact_replays": 2
+    },
+    "controls-openai": {
+      "exit_code": 0,
+      "requests": 8,
+      "exact_replays": 8
+    }
+  }
+}

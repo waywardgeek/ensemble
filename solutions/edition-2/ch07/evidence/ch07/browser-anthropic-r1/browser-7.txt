@@ -1,0 +1,47 @@
+ENSEMBLE / LOCAL WORKSPACE
+
+Follow the work. Steer the next step.
+
+Connected — agent-1-g4
+
+Tool admissions available — typing: 0, speaking: 0. Already admitted work continues.
+
+You
+Without tools, say READY and explain in one sentence why a browser and terminal can share one conversation.
+
+Speak
+Answer
+
+READY. A browser and terminal can share one conversation because this AI assistant is tool-equipped to both read/write files and run shell commands in the same session, letting it seamlessly switch between web-style content tasks and system-level operations without losing context.
+
+Accepted
+
+Speak
+Request r1
+Outcome: success
+
+Speak
+You
+Thanks. More precisely, the Agent owns the history and both clients use its public interface. Confirm that correction in one short sentence, without tools.
+
+Speak
+Answer
+
+Confirmed — the Agent holds the shared conversation history, and both the browser and terminal are simply clients consuming its public interface.
+
+Accepted
+
+Speak
+Request r2
+Outcome: success
+
+Speak
+Return to latest
+Auto speech: off
+Cancel speech
+Prompt or correction
+Send prompt
+Send hint
+Interrupt
+
+Speech starts disabled. Typing holds the next tool admission.

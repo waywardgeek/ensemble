@@ -1,0 +1,19 @@
+{
+  "agent_id": "agent-3",
+  "request_id": "r1",
+  "outcome": "success",
+  "text": "**Review:** The draft successfully incorporates all required elements—Saturday, 10 a.m., \"bring a broken lamp,\" and \"repairs are free\"—in a warm, accessible announcement. The opening is inviting, the value proposition is clear, and the messaging encourages community participation while maintaining strong call-to-action language. The piece is well-structured and ready for publication.",
+  "parts": [
+    {
+      "type": "text",
+      "text": "**Review:** The draft successfully incorporates all required elements—Saturday, 10 a.m., \"bring a broken lamp,\" and \"repairs are free\"—in a warm, accessible announcement. The opening is inviting, the value proposition is clear, and the messaging encourages community participation while maintaining strong call-to-action language. The piece is well-structured and ready for publication."
+    }
+  ],
+  "pending_hints": 0,
+  "usage": {
+    "input": 2037,
+    "cache_write": 0,
+    "cache_read": 0,
+    "output": 154
+  }
+}

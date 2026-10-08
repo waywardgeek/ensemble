@@ -1,0 +1,28 @@
+Ensemble — gemini / models/gemini-2.5-flash
+Type /help for commands.
+You> /help
+/hint idle check
+/interrupt
+/ephemeral Remember EPHEMERAL-FIVE for this next request.
+Use run_command once with command "sleep 15; printf 'HINT-JOB-DONE\n'" and ai_callback_delay 20. After it returns, follow any hint I send and give a concise final answer. Do not call other tools.
+/help — show commands
+/usage — token totals
+/history — event sequences and tool call IDs
+/hint TEXT — guide the next request of the active turn
+/interrupt — interrupt the active turn
+/ephemeral TEXT — one-request directive
+/redact FROM TO REASON — redact tool results in a sequence span
+/quit — finish the session
+//TEXT — submit a literal leading slash
+Input: one UTF-8 line, at most 1 MiB (1048576 bytes), excluding LF or CRLF.
+You> Command error: hint requires nonempty text and an active turn.
+You> Interrupt: request= interrupted=false.
+You> Recorded ephemeral.
+You> Accepted r1.
+You> /hint In your final answer include exactly HINT-ACCEPTED-FIVE and briefly mention the command output.
+Hint received for r1 at seq 7; sent=false (pending next request).
+You> ensemble: malformed model response or usage
+
+Request r1 (error; pending hints=0)
+error: malformed model response or usage
+error: malformed model response or usage

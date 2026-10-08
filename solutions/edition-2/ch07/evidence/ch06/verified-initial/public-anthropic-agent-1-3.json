@@ -1,0 +1,1 @@
+{"max_tokens":512,"messages":[{"content":[{"text":"Start with AGENT-1. Then explain in about 80 words why a streamed proposal must wait for complete validation before any tool effect. Do not use tools.","type":"text"}],"role":"user"}],"model":"claude-haiku-4-5-20251001","stream":true,"system":"Answer helpfully and concisely. Retain the conversation's details."}

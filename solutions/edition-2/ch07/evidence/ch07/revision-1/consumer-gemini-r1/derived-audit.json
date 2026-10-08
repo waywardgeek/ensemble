@@ -1,0 +1,216 @@
+{
+  "source_revision": "9ba7855b31a5eb134819602b35eb9acb277f6342",
+  "provider": "gemini",
+  "model": "models/gemini-3.8-flash",
+  "browser": "154.0.8037.93",
+  "browser_pid": 12483,
+  "browser_raw_sha256": "43de88d96653ba181e5f3e06b33cc07fa34754011a2e1e298c794db2338cc573",
+  "launch_sha256": "4da216d3dfe840f5ba65b2f3019229744ad34d78ac9e529413b8b671645aa019",
+  "requests": 2,
+  "prompts": 2,
+  "exit_code": 0,
+  "responses": [
+    {
+      "log": "first.jsonl",
+      "seq": 4,
+      "stop_reason": "MAX_TOKENS",
+      "text": [
+        "FIRST VOICE A morning walk offers a rare, tranquil pause before the demands of the day unfold",
+        ""
+      ],
+      "usage": {
+        "input": 56,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 508
+      },
+      "raw_usage": {
+        "candidatesTokenCount": 18,
+        "promptTokenCount": 56,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 56
+          }
+        ],
+        "serviceTier": "standard",
+        "thoughtsTokenCount": 490,
+        "totalTokenCount": 564
+      }
+    },
+    {
+      "log": "second.jsonl",
+      "seq": 4,
+      "stop_reason": "MAX_TOKENS",
+      "text": [
+        "SECOND VOICE An evening garden offers a peaceful retreat as the day softens into dusk. The cooling air carries",
+        ""
+      ],
+      "usage": {
+        "input": 56,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 508
+      },
+      "raw_usage": {
+        "candidatesTokenCount": 20,
+        "promptTokenCount": 56,
+        "promptTokensDetails": [
+          {
+            "modality": "TEXT",
+            "tokenCount": 56
+          }
+        ],
+        "serviceTier": "standard",
+        "thoughtsTokenCount": 488,
+        "totalTokenCount": 564
+      }
+    }
+  ],
+  "audio": [
+    {
+      "file": "audio-4.wav",
+      "sha256": "165388a736a135ec151f4ed88761692eac2973ae561c5d276671a3cd38b4242b",
+      "frames": 385920,
+      "sample_rate": 48000,
+      "channels": 2,
+      "encoding": "IEEE float32",
+      "capture": {
+        "at": "2026-10-08T11:37:07.398Z",
+        "kind": "audio",
+        "sequence": 4,
+        "path": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch07/revision-1/consumer-gemini-r1/audio-4.wav",
+        "exit": 0,
+        "output": "capture_ready pid=12483 app=Google Chrome bundle=com.google.Chrome unix_ms=1791459419354.356\n2026-10-08 04:36:59.363 ensemble-ch07-capture-audio[13030:30871931] Audio files cannot be non-interleaved. Ignoring setting AVLinearPCMIsNonInterleaved YES.\ncaptured_frames=385920\n",
+        "browserPID": 12483,
+        "silent_control_seconds": 2
+      },
+      "silent_prefix": {
+        "start_seconds": 0,
+        "end_seconds": 1,
+        "rms_dbfs": -200.0,
+        "peak_dbfs": -200.0
+      },
+      "speech": {
+        "start_seconds": 2,
+        "end_seconds": 6,
+        "rms_dbfs": -20.15,
+        "peak_dbfs": -4.5
+      },
+      "speech_start": {
+        "at": "2026-10-08T11:37:01.403Z",
+        "kind": "speech",
+        "page": 0,
+        "detail": {
+          "type": "start",
+          "key": "manual/d/agent-1/4/0",
+          "text": "FIRST VOICE A morning walk offers a rare, tranquil pause before the demands of the day unfold",
+          "unix_ms": 1791459421400
+        }
+      },
+      "idle_close": {
+        "at": "2026-10-08T11:37:01.789Z",
+        "kind": "idle_view_closed",
+        "sequence": 4,
+        "panel": 1
+      },
+      "idle_reopen": {
+        "at": "2026-10-08T11:37:01.846Z",
+        "kind": "idle_view_reopened",
+        "sequence": 4,
+        "panel": 1
+      }
+    },
+    {
+      "file": "audio-16.wav",
+      "sha256": "906dd05072f08999f315622b641a913de6cdd4b5e8bee918dfb379721710b1d7",
+      "frames": 400320,
+      "sample_rate": 48000,
+      "channels": 2,
+      "encoding": "IEEE float32",
+      "capture": {
+        "at": "2026-10-08T11:37:52.401Z",
+        "kind": "audio",
+        "sequence": 16,
+        "path": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch07/revision-1/consumer-gemini-r1/audio-16.wav",
+        "exit": 0,
+        "output": "capture_ready pid=12483 app=Google Chrome bundle=com.google.Chrome unix_ms=1791459464041.014\n2026-10-08 04:37:44.053 ensemble-ch07-capture-audio[13079:30872941] Audio files cannot be non-interleaved. Ignoring setting AVLinearPCMIsNonInterleaved YES.\ncaptured_frames=400320\n",
+        "browserPID": 12483,
+        "silent_control_seconds": 2
+      },
+      "silent_prefix": {
+        "start_seconds": 0,
+        "end_seconds": 1,
+        "rms_dbfs": -200.0,
+        "peak_dbfs": -200.0
+      },
+      "speech": {
+        "start_seconds": 2,
+        "end_seconds": 6,
+        "rms_dbfs": -20.57,
+        "peak_dbfs": -5.13
+      },
+      "speech_start": {
+        "at": "2026-10-08T11:37:46.075Z",
+        "kind": "speech",
+        "page": 0,
+        "detail": {
+          "type": "start",
+          "key": "manual/d/agent-2/4/0",
+          "text": "SECOND VOICE An evening garden offers a peaceful retreat as the day softens into dusk. The cooling air carries",
+          "unix_ms": 1791459466074
+        }
+      },
+      "idle_close": {
+        "at": "2026-10-08T11:37:46.480Z",
+        "kind": "idle_view_closed",
+        "sequence": 16,
+        "panel": 0
+      },
+      "idle_reopen": {
+        "at": "2026-10-08T11:37:46.541Z",
+        "kind": "idle_view_reopened",
+        "sequence": 16,
+        "panel": 0
+      }
+    }
+  ],
+  "queue_control": {
+    "actions": [
+      9,
+      10,
+      11,
+      12,
+      13,
+      14
+    ],
+    "before_active_cancel": [
+      {
+        "at": "2026-10-08T11:37:37.424Z",
+        "kind": "speech",
+        "page": 0,
+        "detail": {
+          "type": "start",
+          "key": "manual/d/agent-1/4/0",
+          "text": "FIRST VOICE A morning walk offers a rare, tranquil pause before the demands of the day unfold",
+          "unix_ms": 1791459457424
+        }
+      }
+    ],
+    "after_active_cancel": [
+      {
+        "at": "2026-10-08T11:37:37.756Z",
+        "kind": "speech",
+        "page": 0,
+        "detail": {
+          "type": "start",
+          "key": "manual/d/agent-2/4/0",
+          "text": "SECOND VOICE An evening garden offers a peaceful retreat as the day softens into dusk. The cooling air carries",
+          "unix_ms": 1791459457755
+        }
+      }
+    ],
+    "result": "queued B canceled without starting; requeued B starts once after active A canceled; A typing retained"
+  },
+  "limits": "Two-second lead is wall time; PCM first second measured separately. RMS is sqrt(mean(float32 sample squared)); dBFS uses20log10 and floor1e-10. Exact process output is captured, with no transcription or human-listening claim. Gemini accepted MAX_TOKENS answers are short and do not satisfy requested70words. Native timing evidence complements deterministic stale-callback and whole-application-close controls."
+}

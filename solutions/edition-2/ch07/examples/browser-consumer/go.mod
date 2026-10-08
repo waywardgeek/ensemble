@@ -1,0 +1,17 @@
+module example.com/browser-consumer
+
+go 1.25
+
+require (
+	example.com/ensemble v0.0.0
+	example.com/ensemble-gui v0.0.0
+)
+
+require (
+	github.com/creack/pty v1.1.24 // indirect
+	github.com/gorilla/websocket v1.5.3 // indirect
+)
+
+replace example.com/ensemble => ../..
+
+replace example.com/ensemble-gui => ../../gui

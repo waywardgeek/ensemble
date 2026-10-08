@@ -1,0 +1,55 @@
+Ensemble — gemini / models/gemini-2.5-flash-lite
+Type /help for commands.
+You> /help
+/hint idle check
+/interrupt
+/ephemeral Remember EPHEMERAL-FIVE for this next request.
+Use run_command once with command "sleep 15; printf 'HINT-JOB-DONE\n'" and ai_callback_delay 20. After it returns, follow any hint I send and give a concise final answer. Do not call other tools.
+/help — show commands
+/usage — token totals
+/history — event sequences and tool call IDs
+/hint TEXT — guide the next request of the active turn
+/interrupt — interrupt the active turn
+/ephemeral TEXT — one-request directive
+/redact FROM TO REASON — redact tool results in a sequence span
+/quit — finish the session
+//TEXT — submit a literal leading slash
+Input: one UTF-8 line, at most 1 MiB (1048576 bytes), excluding LF or CRLF.
+You> Command error: hint requires nonempty text and an active turn.
+You> Interrupt: request= interrupted=false.
+You> Recorded ephemeral.
+You> Accepted r1.
+You> 
+Request r1 (success; pending hints=0)
+Assistant:
+The command has finished. Please provide the hint.
+You> /hint In your final answer include exactly HINT-ACCEPTED-FIVE and briefly mention the command output.
+Command error: hint requires nonempty text and an active turn.
+You> Use run_command once with command "sleep 30; printf 'HINT-JOB-DONE\n'" and ai_callback_delay 45. After it returns, follow any hint I send and give a concise final answer. Do not call other tools.
+Accepted r2.
+You> /hint In your final answer include exactly HINT-ACCEPTED-FIVE and briefly mention the command output.
+Hint received for r2 at seq 17; sent=false (pending next request).
+You> 
+Request r2 (success; pending hints=0)
+Assistant:
+ Do not call other tools.
+HINT-ACCEPTED-FIVE
+The command output was: HINT-JOB-DONE.
+You> Use run_command exactly once with command "sleep 180; printf 'LATE-JOB\n'" and ai_callback_delay 60. Do not use tool_limits or other tools; after that report give a short answer.
+Accepted r3.
+You> Reply with exactly QUEUED-FIVE; do not call tools.
+/ephemeral busy must refuse
+/redact 1 2 busy must refuse
+/interrupt
+Accepted r4.
+You> Command refused: Agent busy.
+You> Command refused: Agent busy.
+You> Interrupt: request=r3 interrupted=true.
+You> 
+Request r3 (interrupted; pending hints=0)
+interrupted: turn interrupted
+You> ensemble: malformed model response or usage
+
+Request r4 (error; pending hints=0)
+error: malformed model response or usage
+error: malformed model response or usage

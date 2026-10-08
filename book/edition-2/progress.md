@@ -12,15 +12,17 @@ Chapter 6 is accepted at `edition-2-ch06-r1`: reviewed runtime `75bd14d`,
 revised live evidence `8c73f9b`, final independent acceptance `37a37f7` and exact
 1,550-file export from `c3fa758`. All code, live, teaching and prose gates pass;
 see [chapter-06-validation.md](chapter-06-validation.md). Fresh new-only
-student `/root/coder_ch07` has frozen its initial Chapter 7 implementation at
-`da162e8` and actual nine-session evidence at `8cc87f2`. All 33 deterministic
-groups and independent reconstruction of 44 model requests pass. Comparative
-review repairs are frozen at `9ba7855`; the independent grouped revision suite
-passes, and revised real-provider browser sessions are underway.
+student `/root/coder_ch07` completed Chapter 7, accepted at
+`edition-2-ch07-r1`. Reviewed runtime `9ba7855` passes the full 33-group gate
+and 12-group comparative suite; independent live audits accept the original
+44 requests and six revised requests with their separate source identities.
+Final proofread `121b65d` closes the manuscript/feedback gates. The exact
+2,229-file export comes from `4897642`.
 See [chapter-07-validation.md](chapter-07-validation.md).
 The Chapter 8 settings contract is reviewed at `7200f17`; its initial partial
 wire/persistence checker is published at `b3f3137`, with no Chapter 8 student
-implementation or end-to-end positive claimed. See
+implementation or end-to-end positive claimed. Additional strict fixtures are
+prepared at `f6ccbf5`; a fresh student handoff is next. See
 [chapter-08-validation.md](chapter-08-validation.md). Chapter 9's full draft
 `49ae919` and transition clarification `0bca41c` are accepted for checker
 preparation; its student release still requires accepted Chapter 8 and published

@@ -1,0 +1,149 @@
+{
+  "scope": "partial reference deletion audit of offline CLI",
+  "source_sha256": {
+    "cmd/main.go": "dfe7407b1d7e4ac3159394a2d9ac00ca970922118586e1a54f9212e13e3ac48a",
+    "ensemble.go": "a3144cc129a6986d582efc16e1df849be98d01c42967cfa5aae347d38988dac7",
+    "ensemble_test.go": "9adb6af5eb4cec2dacf90af570c29fc4acbe929d8cef81120edcaf87f4d10740",
+    "events_test.go": "c3cefc319cf015c97249e2f4e39f2c187c170abc8c8b6d54f556f4973917a0fc",
+    "examples/consumer/go.mod": "eac2085fee2de1024f51977f2efbc19061bdad6d5abada5a9863d7e2ed0571e7",
+    "examples/consumer/main.go": "e19628ef423166058165d2919d81c972ee1ae0452930f35533fddb6e58b601ea",
+    "go.mod": "37c50c0191057ea818a2582626deb3d47cf7a624baef428c29a0168e910c1090",
+    "gui/client.go": "65ccdbab3ecb3ed30a9d88e9a4ae8800d645c48e8a62f0a52d5e71327b47dcea",
+    "gui/client_test.go": "40680f862f7452919aee870a3042054bb3e77a24a63e71d66861418fb28185e5",
+    "gui/go.mod": "aac2d9dd24ecdadd432654139cfaecff0b7fbab0891913579d551c5ce918a866",
+    "internal/common/json.go": "351498fa4f35016ea75e4fffe402a6b5c5d2273072c65d739f25bef7fa110175",
+    "internal/common/types.go": "6a4f481433762f9827e58199676ea03a38f3d28374feb4c8e80c7a6b34779d1d",
+    "internal/eventlog/log.go": "7f354f605fed4cc0434fc9751d56d2eb7803f05d84beb85ae96e7f3ee644e39d",
+    "internal/eventlog/log_test.go": "26143e5c8d19897bd106e77055bcbff5090bc612098c9882edc496153ea75e46",
+    "internal/llm/engine.go": "b10a788a59b0fcb9105f793e55a6314839d66eb26f9d677191d1fd5f6a5693a9",
+    "internal/llm/engine_test.go": "f1b886638f72f5814c9ba07fe88c5c628e8afa0ac1a83314aebfbd4a6cb65e59",
+    "internal/llm/events.go": "9f55c1513277aad859f171527bf30db5c148ff630ae5ecf9b45210a123635194",
+    "internal/llm/parse.go": "975524ae65c7fea96c5df78755b404ad58b3b5de6f4a5ef9cd48d88de4e4dda6",
+    "internal/llm/render.go": "5833ac01bb95347b8f0ab271145d48bbeada21dea36905126ae0815ad405044f"
+  },
+  "passed": true,
+  "mutations": [
+    {
+      "mutation": "control",
+      "passed": true,
+      "expected": [],
+      "actual": []
+    },
+    {
+      "mutation": "ignore-version",
+      "passed": true,
+      "expected": [
+        "unsupported-version"
+      ],
+      "actual": [
+        "unsupported-version"
+      ]
+    },
+    {
+      "mutation": "ignore-sequence-order",
+      "passed": true,
+      "expected": [
+        "duplicate-sequence"
+      ],
+      "actual": [
+        "duplicate-sequence"
+      ]
+    },
+    {
+      "mutation": "allow-zero-sequence",
+      "passed": true,
+      "expected": [
+        "zero-sequence"
+      ],
+      "actual": [
+        "zero-sequence"
+      ]
+    },
+    {
+      "mutation": "ignore-timestamp-error",
+      "passed": true,
+      "expected": [
+        "bad-timestamp"
+      ],
+      "actual": [
+        "bad-timestamp"
+      ]
+    },
+    {
+      "mutation": "render-unanswered-call",
+      "passed": true,
+      "expected": [
+        "unanswered-call-refuses-render"
+      ],
+      "actual": [
+        "unanswered-call-refuses-render"
+      ]
+    },
+    {
+      "mutation": "retain-redacted-content",
+      "passed": true,
+      "expected": [
+        "anthropic-redaction",
+        "gemini-redaction",
+        "openai-redaction"
+      ],
+      "actual": [
+        "anthropic-redaction",
+        "gemini-redaction",
+        "openai-redaction"
+      ]
+    },
+    {
+      "mutation": "omit-redaction-stub",
+      "passed": true,
+      "expected": [
+        "anthropic-redaction",
+        "gemini-redaction",
+        "openai-redaction"
+      ],
+      "actual": [
+        "anthropic-redaction",
+        "gemini-redaction",
+        "openai-redaction"
+      ]
+    },
+    {
+      "mutation": "break-messages-result-pairing",
+      "passed": true,
+      "expected": [
+        "anthropic-deterministic-render",
+        "anthropic-redaction",
+        "deferred-human-after-call"
+      ],
+      "actual": [
+        "anthropic-deterministic-render",
+        "anthropic-redaction",
+        "deferred-human-after-call"
+      ]
+    },
+    {
+      "mutation": "break-chat-result-pairing",
+      "passed": true,
+      "expected": [
+        "openai-deterministic-render",
+        "openai-redaction"
+      ],
+      "actual": [
+        "openai-deterministic-render",
+        "openai-redaction"
+      ]
+    },
+    {
+      "mutation": "break-gemini-result-pairing",
+      "passed": true,
+      "expected": [
+        "gemini-deterministic-render",
+        "gemini-redaction"
+      ],
+      "actual": [
+        "gemini-deterministic-render",
+        "gemini-redaction"
+      ]
+    }
+  ]
+}

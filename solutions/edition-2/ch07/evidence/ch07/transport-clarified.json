@@ -1,0 +1,125 @@
+{
+  "scope": "Partial Chapter 7 black-box local transport gate, derived before student code.\n\nUsage: python3 scripts/edition2/accept_ch07.py /absolute/path/to/ensemble-gui\nRequires Python websocket-client. No model request is expected or authorized.\nThis initial scope is not browser, watch-race, tool-admission or speech acceptance.\n",
+  "binary_sha256": "7a0c7621cfe02c0c5ef2c1b0b2541192e8b029e12da6b2509fccd9cdf83f2b2d",
+  "checker_sha256": "3f37531379820aae419ceaa479eab2c2a10d4c686cd0a8c10332135499e60f7b",
+  "passed": false,
+  "checks": [
+    {
+      "id": "empty-owned-snapshot-wire",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "two-client-pause-and-disconnect",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "agent-refusal-keeps-connection",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "origin-missing",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "origin-null",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "origin-foreign",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "origin-foreign-host",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "exact-command-size",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "correctable-unknown-field",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "correctable-bad-known-type",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "correctable-missing-required-field",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "correctable-unknown-command",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "subscription-and-command-id-boundaries",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "exact-command-count-and-overflow",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "malformed-binary",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "malformed-invalid-json",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "malformed-invalid-utf8",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "malformed-non-object",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "malformed-missing-id",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "malformed-empty-id",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "malformed-nonstring-id",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "malformed-oversize",
+      "passed": false,
+      "details": [
+        "BrokenPipeError: [Errno 32] Broken pipe"
+      ]
+    },
+    {
+      "id": "no-model-http",
+      "passed": true,
+      "details": []
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+[aist#0:0/pcm_f32le @ 0xc56c18180] Guessed Channel Layout: stereo
+Input #0, wav, from 'solutions/edition-2/main/evidence/ch07/audio-feasibility/browser-speech.wav':
+  Duration: 00:00:08.48, bitrate: 3075 kb/s
+  Stream #0:0: Audio: pcm_f32le ([3][0][0][0] / 0x0003), 48000 Hz, stereo, flt, 3072 kb/s
+[Parsed_volumedetect_0 @ 0xc57004540] n_samples: 0
+Stream mapping:
+  Stream #0:0 -> #0:0 (pcm_f32le (native) -> pcm_s16le (native))
+Press [q] to stop, [?] for help
+Output #0, null, to 'pipe:':
+  Metadata:
+    encoder         : Lavf62.12.102
+  Stream #0:0: Audio: pcm_s16le, 48000 Hz, stereo, s16, 1536 kb/s
+    Metadata:
+      encoder         : Lavc62.28.102 pcm_s16le
+[Parsed_volumedetect_0 @ 0xc570049c0] n_samples: 814080
+[Parsed_volumedetect_0 @ 0xc570049c0] mean_volume: -29.0 dB
+[Parsed_volumedetect_0 @ 0xc570049c0] max_volume: -3.8 dB
+[Parsed_volumedetect_0 @ 0xc570049c0] histogram_3db: 8
+[Parsed_volumedetect_0 @ 0xc570049c0] histogram_4db: 180
+[Parsed_volumedetect_0 @ 0xc570049c0] histogram_5db: 254
+[Parsed_volumedetect_0 @ 0xc570049c0] histogram_6db: 382
+[out#0/null @ 0xc57004240] video:0KiB audio:1590KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown
+size=N/A time=00:00:08.48 bitrate=N/A speed=2.69e+03x elapsed=0:00:00.00    

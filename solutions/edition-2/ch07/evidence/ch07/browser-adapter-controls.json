@@ -1,0 +1,12 @@
+[
+  {
+    "check": "actual-browser-adapter-valid-path",
+    "exit": 0,
+    "stdout": "{\"ready\":true,\"browser\":\"154.0.8037.93\",\"browserPID\":79001,\"url\":\"http://127.0.0.1:64991\"}\n{\"sequence\":1,\"ok\":true,\"text\":\"ENSEMBLE / LOCAL WORKSPACE\\n\\nFollow the work. Steer the next step.\\n\\nConnected \u2014 agent-1-g1\\n\\nTool admissions available \u2014 typing: 0, speaking: 0. Already admitted work continues.\\n\\nReturn to latest\\nAuto speech: off\\nCancel speech\\nPrompt or correction\\nSend prompt\\nSend hint\\nInterrupt\\n\\nSpeech starts disabled. Typing holds the next tool admission.\"}\n",
+    "passed": true
+  },
+  {
+    "check": "actual-browser-adapter-refuses-launch-before-derived-write",
+    "passed": true
+  }
+]

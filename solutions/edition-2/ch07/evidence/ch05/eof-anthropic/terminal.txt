@@ -1,0 +1,15 @@
+Ensemble — anthropic / claude-haiku-4-5-20251001
+Type /help for commands.
+You> Reply exactly EOF-FIRST; do not use tools.
+Reply exactly EOF-SECOND; do not use tools.
+Accepted r1.
+You> Accepted r2.
+You> 
+Request r1 (success; pending hints=0)
+Assistant:
+EOF-FIRST
+You> ^D
+Request r2 (success; pending hints=0)
+Assistant:
+EOF-SECOND
+Final usage: input=5108, cache write=0, cache read=0, output=14

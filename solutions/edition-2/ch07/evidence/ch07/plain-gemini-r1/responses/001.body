@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "PLAIN-READY. The Agent maintains a unified conversation and state history that is shared across both browser and terminal clients.",
+            "thoughtSignature": "Eq4DCqsDAWkUfRMyawIsmT2Iqn9SP7PXiMygRvWtcghyDFiD4EyXxzcyyWc1Qc6gGKSWDLfyaapZaWFevyoh86c9IfOSTzDIGYHr448hiMnGw8STRbIJ2mu8vOGA/tB8yXBsnlD88s/jAR83ADCVywLc/CO4sbAQN1jFHWgTbLD9LL/7P87n8k9VhqngyPRYPEjyBxN1qjvE19nAd1zg5PPXQCIWIXnRsnqJ98HFz9WGwvwU56BzTTj5xwaCxRkBeHFN/s+MhNCCKgDkzR5lwRN/bco2DtnhEquHcUQS8Gja2/T5rsoDQMxEHjJnT0GaFCC0KUTfJBinQggpyUlWxOuLUnfjDdrN1Klqhw0zvXNmN8HG6Q0aoCm6SU9RV8lyBBZ3uEFWXno28CTiOAwIQ2zrK5uha5AnZXiMun8eI3bv1NaRfK+X2zoKDO7YnpepIpv9YH4CIilwDKnogQ1VmTO1OW++4uE+TddwtjAM7VP3WWmjs7dEMdPalLc6z/+xs6nlRyUr0SxT0VZC0S9ywzPolmRpq5czRkvT2b1zLn9PZPV3R64dQOYxNqP0mJvXIg=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 1799,
+    "candidatesTokenCount": 23,
+    "totalTokenCount": 1889,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1799
+      }
+    ],
+    "thoughtsTokenCount": 67,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.8-flash",
+  "responseId": "cyTHatLmELSl1MkPiPLKmAg"
+}

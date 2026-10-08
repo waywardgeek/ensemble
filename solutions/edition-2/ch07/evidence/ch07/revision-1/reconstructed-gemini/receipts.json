@@ -1,0 +1,8 @@
+[
+  {
+    "run": "consumer-gemini-r1",
+    "requests": 2,
+    "reconstructed": 2,
+    "delivery": "stream"
+  }
+]

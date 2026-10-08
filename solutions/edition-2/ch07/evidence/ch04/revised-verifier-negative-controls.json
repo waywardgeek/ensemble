@@ -1,0 +1,19 @@
+{
+  "at": "2026-10-07T21:18:37.696199+00:00",
+  "cases": [
+    {
+      "fault": "last public vendor source_revision",
+      "exit_code": 1,
+      "whole_tree_unchanged": true,
+      "files_compared": 85,
+      "stderr": "Traceback (most recent call last):\n  File \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-revised-negative-kv5hck_x/solutions/edition-2/main/evidence/ch04/verify-revised.py\", line 27, in <module>\n    assert launch['source_revision'] == binding['source_revision']\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    },
+    {
+      "fault": "last public vendor binary_sha256",
+      "exit_code": 1,
+      "whole_tree_unchanged": true,
+      "files_compared": 85,
+      "stderr": "Traceback (most recent call last):\n  File \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-revised-negative-ccojj257/solutions/edition-2/main/evidence/ch04/verify-revised.py\", line 28, in <module>\n    assert launch['binary_sha256'] == binding['binaries']['cli' if kind=='live' else 'public']\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
+    }
+  ]
+}

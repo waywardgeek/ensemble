@@ -1,6 +1,7 @@
 # Chapter 7 validation
 
-Fresh new-only student `/root/coder_ch07` is active. Its accepted predecessor is
+Chapter 7 is accepted for checkpoint `edition-2-ch07-r1`. Fresh new-only student
+`/root/coder_ch07` completed the exercise. Its accepted predecessor is
 `edition-2-ch06-r1` at `1c6b1f065d11bd3a532c94bc53305394e17e7cc2`. The student's
 ownership plan was accepted before affected implementation. Bill's editorial
 approval is separate.
@@ -13,8 +14,8 @@ approval is separate.
 | Initial live use | Student, coordinator | Nine real sessions on all three providers; 44 requests exactly reconstructed; root audit `950cead` passes 24 controls, binds 386 original files and verifies four audio captures | Preserve initial source scope; revised browser behavior needs separate evidence |
 | Historical comparison | Independent reviewer, student | Four grouped repairs accepted at `691c2a4` / `17aa661`; no remaining material code finding | Preserve comparison and original attempts in checkpoint |
 | Revisions and final evidence | Student, coordinator | Revised evidence `341f15d`; six exact request replays, six PID-bound WAVs, 145 unchanged session files and ten independent controls pass; see `chapter-07-live-review.md` | Bind accepted original and revised evidence with their separate scopes |
-| Manuscript and feedback | Temporary author `/root/coder_ch04`, student, independent proofreader | Actual initial spin, screenshots, feedback responses and ownership clarifications published at `dd1ef42`; student confirms initial teaching resolutions | Reconcile revised evidence and independently proofread |
-| Export and checkpoint | Coordinator | Not started | After every gate passes, export exact source and create immutable `edition-2-ch07-r1` |
+| Manuscript and feedback | Temporary author `/root/coder_ch04`, student, independent proofreader | Final actual-use reconciliation `00cf641`, neutral opener `d7e097e`, feedback correction `2112af1`, student confirmation `4897642`; independent final proofread `121b65d` accepted | Preserve resolved teaching exchange and evidence limits |
+| Export and checkpoint | Coordinator | Exact 2,229-file export from `48976424ab75924f98f4ad01f75f8e046ec26872`; manifest `solutions/edition-2/manifests/ch07-r1.json` binds all gates | Immutable `edition-2-ch07-r1`; proceed to fresh Chapter 8 student |
 
 The student receives a fresh context, new-edition teaching and the accepted
 Chapter 6 source in `solutions/edition-2/main/`. It must read the entire
@@ -34,6 +35,21 @@ closing all views must stop speech admission before closing individual Pages,
 so cancellation cannot start a peer's queued utterance during root teardown.
 The independent speech control and its intended deletion protect this case.
 This is follow-through on shared-speech finding R3, not an extra feature.
+
+All eight source modules pass vet/tests through the immutable full gate. The
+coordinator independently matched its 101 non-evidence files to the export
+source: only README and the historical checkpoint document changed after the
+runtime freeze. Later student feedback and live evidence retain their own
+commits. No runtime or embedded asset changed after final deterministic/live
+validation. Export verification compares every file byte and mode to its
+committed source, so no additional runtime test is inferred from copying it.
+
+Accepted live scope comprises the original nine sessions/44 requests and the
+three revised two-Agent sessions/six requests. Initial and revised receipt
+identities remain separate. Gemini's revised short MAX_TOKENS answers, the
+unsuccessful first Anthropic queue timing, the reviewer capture-timing correction
+and all historical failed attempts remain visible. Audio establishes produced
+signal from the selected process, without claiming transcription or Bill use.
 
 Author commit `49ae919` captured the student's concurrently staged revision
 paths through the shared Git index. Both agents disclosed the race. The student
