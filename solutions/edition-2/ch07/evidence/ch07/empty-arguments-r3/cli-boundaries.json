@@ -1,0 +1,330 @@
+{
+  "scope": "Messages zero-byte argument deltas: local CLI effects and terminal barrier.\n\nThe recorded SSE positive is replayed from retained bytes; all variants and the\ncontinuation are local fixtures. No model backend or Go compilation is involved.\n",
+  "binary": "/Users/bill/projects/ensemble-edition-2-revisions/executables/ch07-empty-args-r3-cli",
+  "binary_sha256": "0fb64d370e6b48553faa448709f5e33bfab4ba97e00fa160af01390ca44fd307",
+  "unchanged": true,
+  "recorded_response_sha256": "e6f7b7446b3dab2fe5ef6466111a6790c31ac52d45eccc8296a416ea9a4971ef",
+  "recorded_source": "c0e3171fdc22834348f976f81fcaa7372bd13ed4",
+  "checker_files": {
+    "scripts/edition2/ch09-review-empty-stream.py": "745df76deb25c3f4f58498578f55046259acb76bea78a650c096d2e54d8d7564",
+    "scripts/edition2/accept_ch06_clients.py": "e10282f33b98e6323b704e7e84104817a2866ce686bc8928aceaed390c85a32b"
+  },
+  "passed": true,
+  "checks": [
+    {
+      "id": "recorded-empty-object",
+      "expected_acceptance": true,
+      "wire_sha256": "e6f7b7446b3dab2fe5ef6466111a6790c31ac52d45eccc8296a416ea9a4971ef",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "success"
+        ],
+        "requests": 2,
+        "calls": [
+          {
+            "job": {
+              "handle": 1,
+              "status": "running",
+              "output": {
+                "kind": 3,
+                "locator": "cr/io/1"
+              },
+              "bytes": 0
+            },
+            "call_id": "toolu_016SESESnNPBcQeGgpr1VvU5",
+            "name": "list_directory",
+            "args": {}
+          }
+        ],
+        "responses": 2,
+        "terminal_barrier": false
+      }
+    },
+    {
+      "id": "no-delta",
+      "expected_acceptance": true,
+      "wire_sha256": "c2d36c24b07b1acf93aac86723f9d6b1dffd3fb6f8c6b2bf503c4634121260ad",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "success"
+        ],
+        "requests": 2,
+        "calls": [
+          {
+            "job": {
+              "handle": 1,
+              "status": "running",
+              "output": {
+                "kind": 3,
+                "locator": "cr/io/1"
+              },
+              "bytes": 0
+            },
+            "call_id": "write-one",
+            "name": "write_file",
+            "args": {
+              "path": "accepted.txt",
+              "content": "review effect"
+            }
+          }
+        ],
+        "responses": 2,
+        "terminal_barrier": false
+      }
+    },
+    {
+      "id": "empty",
+      "expected_acceptance": true,
+      "wire_sha256": "b3ce113f2b017f724859cefa9dd9e54df4071345de27b5e61f009cba1fdf8c2e",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "success"
+        ],
+        "requests": 2,
+        "calls": [
+          {
+            "job": {
+              "handle": 1,
+              "status": "running",
+              "output": {
+                "kind": 3,
+                "locator": "cr/io/1"
+              },
+              "bytes": 0
+            },
+            "call_id": "write-one",
+            "name": "write_file",
+            "args": {
+              "path": "accepted.txt",
+              "content": "review effect"
+            }
+          }
+        ],
+        "responses": 2,
+        "terminal_barrier": false
+      }
+    },
+    {
+      "id": "multiple-empty",
+      "expected_acceptance": true,
+      "wire_sha256": "b21ad867d40f941d8c7619adc045d84e2de062900b9173aec64e16f60f394679",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "success"
+        ],
+        "requests": 2,
+        "calls": [
+          {
+            "job": {
+              "handle": 1,
+              "status": "running",
+              "output": {
+                "kind": 3,
+                "locator": "cr/io/1"
+              },
+              "bytes": 0
+            },
+            "call_id": "write-one",
+            "name": "write_file",
+            "args": {
+              "path": "accepted.txt",
+              "content": "review effect"
+            }
+          }
+        ],
+        "responses": 2,
+        "terminal_barrier": false
+      }
+    },
+    {
+      "id": "nonempty-replaces",
+      "expected_acceptance": true,
+      "wire_sha256": "7a76e7cb692b106fa4972086ca274f44281fdccd493f1c96fa728a0f7285cd3b",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "success"
+        ],
+        "requests": 2,
+        "calls": [
+          {
+            "job": {
+              "handle": 1,
+              "status": "running",
+              "output": {
+                "kind": 3,
+                "locator": "cr/io/1"
+              },
+              "bytes": 0
+            },
+            "call_id": "write-one",
+            "name": "write_file",
+            "args": {
+              "path": "accepted.txt",
+              "content": "review effect"
+            }
+          }
+        ],
+        "responses": 2,
+        "terminal_barrier": false
+      }
+    },
+    {
+      "id": "malformed-not-fallback",
+      "expected_acceptance": false,
+      "wire_sha256": "bef355864850c3ee1054f0f77d6575da85f991e84f0c13f03220e97935a5c650",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "error"
+        ],
+        "requests": 1,
+        "calls": [],
+        "responses": 0,
+        "terminal_barrier": false
+      }
+    },
+    {
+      "id": "whitespace-not-empty",
+      "expected_acceptance": false,
+      "wire_sha256": "7f16c417110257c869467fd8df20adea237a2c29c41aed5fc2f37c187da523bc",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "error"
+        ],
+        "requests": 1,
+        "calls": [],
+        "responses": 0,
+        "terminal_barrier": false
+      }
+    },
+    {
+      "id": "null-replacement-not-fallback",
+      "expected_acceptance": false,
+      "wire_sha256": "14dbe5b70be96f6ca82b0513103858f8b6ca81e4457f0d3281a31f27989a62c8",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "error"
+        ],
+        "requests": 1,
+        "calls": [],
+        "responses": 0,
+        "terminal_barrier": false
+      }
+    },
+    {
+      "id": "array-replacement-not-fallback",
+      "expected_acceptance": false,
+      "wire_sha256": "9a104f6ae687cadd65d548a4a73336d29667beb6a4191432cd497a25b3d751c7",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "error"
+        ],
+        "requests": 1,
+        "calls": [],
+        "responses": 0,
+        "terminal_barrier": false
+      }
+    },
+    {
+      "id": "null-start",
+      "expected_acceptance": false,
+      "wire_sha256": "47f80981abad7abf98630e050fa62a623deb65ef8f1fa0686f72d8e41c33c41a",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "error"
+        ],
+        "requests": 1,
+        "calls": [],
+        "responses": 0,
+        "terminal_barrier": false
+      }
+    },
+    {
+      "id": "wrong-delta-type",
+      "expected_acceptance": false,
+      "wire_sha256": "ba7ced36b906057547a6c45a74e0768f3015ca9295c96807c1fa6433da2ef03e",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "error"
+        ],
+        "requests": 1,
+        "calls": [],
+        "responses": 0,
+        "terminal_barrier": false
+      }
+    },
+    {
+      "id": "terminal-held-positive",
+      "expected_acceptance": true,
+      "wire_sha256": "b3ce113f2b017f724859cefa9dd9e54df4071345de27b5e61f009cba1fdf8c2e",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "success"
+        ],
+        "requests": 2,
+        "calls": [
+          {
+            "job": {
+              "handle": 1,
+              "status": "running",
+              "output": {
+                "kind": 3,
+                "locator": "cr/io/1"
+              },
+              "bytes": 0
+            },
+            "call_id": "write-one",
+            "name": "write_file",
+            "args": {
+              "path": "accepted.txt",
+              "content": "review effect"
+            }
+          }
+        ],
+        "responses": 2,
+        "terminal_barrier": true
+      }
+    },
+    {
+      "id": "missing-terminal",
+      "expected_acceptance": false,
+      "wire_sha256": "fd387d75a8f78c9e67ba4a67a23efdaf3685d2abdef66b8e2755173a72598ce2",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "error"
+        ],
+        "requests": 1,
+        "calls": [],
+        "responses": 0,
+        "terminal_barrier": true
+      }
+    },
+    {
+      "id": "provider-error",
+      "expected_acceptance": false,
+      "wire_sha256": "55f64e6f77ada75f8f33ab043908cd0e868b074e8acb634682a293337e6053cd",
+      "passed": true,
+      "result": {
+        "outcomes": [
+          "error"
+        ],
+        "requests": 1,
+        "calls": [],
+        "responses": 0,
+        "terminal_barrier": true
+      }
+    }
+  ]
+}

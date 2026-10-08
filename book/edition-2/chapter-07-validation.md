@@ -1,5 +1,12 @@
 # Chapter 7 validation
 
+Scoped streaming maintenance is accepted for `edition-2-ch07-r3`. Runtime
+`55ee774` and evidence/export source `662c09c` carry the independently reviewed
+Chapter 6 zero-byte argument correction into accepted Chapter 7 r2. The exact
+export has 2,239 files. Original acceptance and live receipts below retain their
+r2 identities; this is later-informed maintenance, not another cold student.
+See [the independent maintenance review](empty-arguments-backport-review.md).
+
 Chapter 7 is accepted for corrected checkpoint `edition-2-ch07-r2`. Fresh new-only student
 `/root/coder_ch07` completed the exercise. Its accepted predecessor is
 `edition-2-ch06-r1` at `1c6b1f065d11bd3a532c94bc53305394e17e7cc2`. The student's
@@ -162,3 +169,24 @@ positive groups and seven intended deletion failures pass against `da162e8`;
 passes vet. A nonunique mutation anchor interrupted the first audit and is
 retained separately as a reviewer setup failure. The complete combined gate
 remains pending.
+
+## Revision 3: propagated Messages correction
+
+Only the original parser changes. The five-line fix and added regression/SSE
+fixture exactly match reviewed Chapter 6 source `788c5e9`; 2,128 existing evidence
+files stay unchanged. Root review `8812461` verifies 103 source hashes, seven
+receipt hashes, 147 checker inputs and the archived executable. All 24 affected
+command groups and four local commands pass, including core race and eight-module
+vet/tests, early streaming and complete message barriers, watch/pause behavior,
+prior assertions and CLI overflow deletions. The original three regression
+failures are retained alongside 13 corrected passes. No new full-gate or paid
+browser run is claimed; unaffected accepted evidence retains its source identity.
+
+The coordinator verifies all 2,239 export hashes and complete eight-module test
+package discovery. The manifest `solutions/edition-2/manifests/ch07-r3.json`
+binds these receipts and original r2 acceptance. This immutable tag belongs to
+the isolated Chapter 7 branch with matching canonical main and ch07 trees;
+integrating its snapshot must not replace current Chapter 9 main. The original
+SSE frame delimiter is retained despite its blank-line whitespace warning.
+Chapter 8 propagation remains pending. Bill's editorial approval and publication
+remain separate.
