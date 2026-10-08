@@ -48,7 +48,7 @@ def evaluate(revision):
         run('incremental-projection-cost',['python3',HERE/'ch07-review-scaling.py',root])
         # Coordinator's independent actual-Connector probe is required; absence
         # remains a visible incomplete gate rather than silently skipping it.
-        run('actual-connector-lifetime',['python3',HERE/'ch07-review-connector.py',root])
+        run('actual-connector-lifetime-and-deletions',['python3',HERE/'ch07-review-connector-mutations.py',root])
         if cli_ok:
             run('retained-cli-early-barriers',['python3',HERE/'accept_ch06_clients.py',cli])
             run('retained-wire-61',['python3',HERE/'accept_ch06_wire.py',cli])
