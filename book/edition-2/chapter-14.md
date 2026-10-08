@@ -13,8 +13,9 @@ taking the task with it?
 
 This chapter gives tool traffic a shorter lifetime than dialogue. The Agent
 keeps the user's instructions, its recorded decisions and loaded manuals. It
-replaces old results with references, later removes complete call/result pairs,
-and can leave an explicit working note. Every change is recorded. A reader can
+replaces old results with stubs that preserve existing references, later removes
+complete call/result pairs, and can leave an explicit working note. Every change
+is recorded. A reader can
 inspect what was removed instead of trusting a summary to be an adequate receipt.
 
 This is the first full contract draft. Implementation, independent checks and
@@ -156,10 +157,32 @@ They belong respectively to keep_tool_results and micro_handoff; byte bounds
 are enforced after ordinary decoding, not through a Unicode-character maxLength.
 Use stable descriptions explaining previous-batch protection and staged handoff.
 A current enabled policy against a non-capable Agent refuses
-`context_profile_required`, including
-startup, before changing session or policy files. To continue an old store,
-explicitly select a separate disabled policy file through Chapter 8's existing
-policy-path option. Never silently reinterpret an enabled applied setting.
+`context_profile_required`, including startup, before changing session or policy
+files. Never silently reinterpret an enabled applied setting.
+
+This chapter adds `--policy PATH` to human CLI chat; Chapter 8 supplied that flag
+only to the GUI. For the CLI, omission keeps the in-memory default policy and
+reports persistent:false, without looking for the GUI's file. An explicitly
+blank path refuses. Resolve a supplied path once against the launch workspace,
+without changing cwd, and pass it to the existing Agent policy owner. The path
+is creation-only, remains outside session identity, and cannot change through
+SetConfig or a browser command. It may accompany either the session selector or
+the explicit fresh standalone-log route. GUI selection retains its existing
+default `.ensemble/agent-policy.json`; both clients use the same file lifecycle,
+directory creation, same-owner/path refusal and strict policy validation.
+
+For an old session requiring a separate disabled policy, create a new file
+`disabled-policy.json` containing the complete v2 defaults printed in §14.3,
+then run:
+
+```sh
+/tmp/ensemble-ch14-cli chat --session-dir .ensemble/session --policy ./disabled-policy.json
+```
+
+Keep that session's exact old catalog, primary, bindings and handler selection;
+omit --context-profile. This selects another policy authority deliberately,
+without rewriting the previously enabled file. A missing selected policy file
+also supplies disabled defaults and need not be written until an actual change.
 
 ## 14.3 One policy owner, one conversation authority
 
@@ -324,6 +347,32 @@ result is fully stubbed. Ordinary explicit Chapter 2 redaction stays available
 with its old semantics; it neither requires this policy nor acquires a paired-
 removal meaning. A stub that grows a tiny child still counts its actual new bytes.
 Repeated already-stubbed selection is not a change.
+
+Here is an illustrative selection for the configuration-repair task, using
+stipulated neutral sizes after canonical accounting, rather than a measured
+provider run. Set T=20,000, so S=200, R=2,500 and C=1,250. All four batches are
+completed and eligible; batch 19 is newest and has an unexpired keep:
+
+| Batch | Configuration evidence before this decision | Whole batch bytes | Bytes after stubbing its results |
+|---|---|---:|---:|
+| 7 | An older inspection, already all stubs | 2,600 | 2,600 |
+| 11 | A long comparison argument and a small result no larger than S | 3,100 | 3,000 |
+| 15 | A file read whose complete result is 210 bytes | 500 | 378 |
+| 19 | The kept current configuration read | 2,300 | Not selected |
+
+First, result 15 exceeds S and becomes a stub. The results band is now
+3,100+2,300=5,400 bytes, above 2R=5,000. The ladder stubs batch 11, leaving
+2,300 results-band bytes. The calls band now holds 2,600+3,000+378=5,978 bytes,
+above 2C=2,500. It removes batches 7 and 11 whole, oldest first, leaving 378
+bytes. Batch 15 survives as a call and stub; batch 19 retains its kept evidence.
+The committed fact records only the surviving stub target and removals 7/11,
+without a redundant stub target for the removed batch 11.
+
+For the reader checking the repair, the decision text “Use port 9090” and the
+loaded editing manual remain where they were. A reference on result 15 survives
+its stub; absence of a reference stays absence. The old comparisons are still
+in the full log. If the protected newest batch alone exceeds R or C, the same
+rules retain it and report overshoot instead of pretending the target was met.
 
 If no effective change is selected, append no maintenance event. Otherwise one
 exact context_changed fact commits the final candidate. Each stub target is a
@@ -496,10 +545,19 @@ route or silent stripping is introduced to obtain acceptance.
 If an automatic candidate is locally incompatible, publish safe runtime status
 deferred with context_incompatible and proceed once with the unchanged projection,
 provided that projection is renderable. Keep only the latest deferral key:
-effective projection revision, applied policy revision and target provenance.
+effective selection revision, applied policy revision and target provenance.
+The selection revision covers represented parts and anchors, batch completion,
+eligibility, newest-eligible selection and keep protection, including renewal
+and expiry. It is semantic state, not a hash of rendered bytes or the latest
+event sequence. An accepted empty response can make a batch eligible or expire
+a keep without changing those bytes; either transition requires reconsideration.
+Derive this invalidation from existing reducer transitions; it needs no new
+durable event solely to advance a runtime deferral key.
+
 Job facts, request bookkeeping and repeated failed HTTP attempts alone do not
-change the effective projection key. Reconsider only on relevant projection,
-policy or target change; never spin or accumulate deferred work. This status
+change the selection key. An unchanged blocked candidate gets no retry within
+that key; after a relevant semantic, policy or target change, reconsider once
+under the new key. Never spin or accumulate deferred work. This status
 changes no durable conversation. A failed automatic size candidate similarly
 defers with context_limit. Explicit handoff instead records refused for its
 pending intent, or returns a public refusal, with old projection unchanged.
@@ -552,6 +610,9 @@ response is settled state and may survive restart. No live job, collector,
 transport or native speech lifetime is restored.
 
 Snapshot-only import retains only the history represented by its semantic codec.
+For the configuration repair, a saved working note can still name port 9090
+after the old comparison body has gone. A reader asking what that earlier file
+actually contained needs the original log, not a plausible expansion of the note.
 If pre-cut original bodies are absent, a request needing them returns
 history_unavailable; neither rendering nor import fetches an artifact or contacts
 a model to guess them. The public inspector exposes the exact reconstructible
@@ -579,8 +640,10 @@ body, credential, arbitrary provider error or hidden reasoning.
 
 Add this owned value as context_state to capable Agents' safe watch snapshot and
 publish context_state_changed when its content changes, under the inherited
-ordered watch envelope. Uncapable Agents expose the typed getter with capable
-false and empty batch state, without changing old session facts. Browser counters,
+ordered watch envelope. That observation has exactly kind, agent_id and
+context_state, with the owned value described above. Uncapable Agents expose
+the typed getter with capable false and empty batch state, without changing old
+session facts. Browser counters,
 card keys and controls preserve exact newly introduced integer tokens. Settings
 updates retain the existing revision/conflict draft behavior and disabled-control
 lifetime rules; rendering old context facts cannot speak or submit a prompt.
@@ -591,6 +654,69 @@ Human CLI adds `/context` for that state, `/context on`, `/context off`, and
 numeric syntax refuses. These commands make no model request. The browser adds
 the same applied context policy controls and safe status, plus explicit idle
 keep/handoff actions; a busy action reports refusal without losing a human draft.
+Both actions use the subscribed connection's selected Agent and these exact
+ordinary command shapes:
+
+```json
+{"type":"context_keep","id":"k1"}
+```
+
+```json
+{"type":"context_handoff","id":"h1","note":"Port is 9090."}
+```
+
+Require exactly the shown fields, rejecting unknown, missing, duplicate or
+wrong-type members. Note uses §14.6's validation; an empty note is an
+invalid_command. Chapter 7's assembled ordinary text-message limit of 65,536
+bytes, usable-ID correlation, subscription and
+4096-command connection cap remain unchanged, including on an MCP-enabled socket.
+Malformed transport or unusable ID closes; a correctable shape error with a
+usable ID returns invalid_command and leaves the connection usable. Reused IDs
+retain the inherited refusal, rather than repeating an effect.
+
+These commands perform the idle public operations, not a prompt or staged model
+call. A busy owner immediately returns context_busy, for example:
+
+```json
+{"type":"error","id":"h1","code":"context_busy","message":"context control requires an idle settled Agent"}
+```
+
+Other semantic refusals use the same error shape and §14.7's safe code. Preserve
+the user's composer and handoff draft on failure. On success, publish the owned
+context-state change through the ordinary watch before this exact acknowledgement:
+
+```json
+{"type":"context_ack","id":"k1","action":"keep","changed":true,"seq":50,"batch":7,"watch_revision":90}
+```
+
+```json
+{"type":"context_ack","id":"h1","action":"handoff","changed":true,"seq":51,"batch":null,"watch_revision":91}
+```
+
+Action is keep or handoff. Seq is the committed fact's positive sequence; batch
+is the selected positive batch for keep and null for handoff. An unchanged keep
+acknowledges changed:false, seq:null, the same selected batch and current watch
+revision, without another fact or broadcast. Handoff always commits a new note
+on success. Preserve every numeric token exactly. The acknowledgement follows
+the Actor's owned result; an uncommitted operation cannot claim success because
+a socket write succeeded. Clear only the acknowledged handoff draft if it has
+not changed since submission. Reconnect shows committed state; it does not replay
+the command or retry an acknowledgement lost in transit.
+
+Context policy edits remain policy_update under Chapter 8's revision/conflict
+rules, with the added nested patch, for example:
+
+```json
+{"type":"policy_update","id":"p3","base_revision":2,"patch":{"context":{"enabled":true,"target_bytes":20000}}}
+```
+
+Extend the complete execution_policy snapshot with required context containing
+enabled and target_bytes. This is the same Agent-owned value shown with its
+revision in context_state.policy. A policy change still publishes policy_changed
+and returns policy_ack under the inherited ordering; publish any resulting
+context_state_changed before that acknowledgement too. A policy update alone
+does not run selection or contact a model.
+
 Do not add a context command to the inherited machine JSON protocol silently;
 public consumers already provide the transport-independent control seam.
 

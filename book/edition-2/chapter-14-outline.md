@@ -280,3 +280,12 @@ See [the validation record](chapter-14-validation.md) for current gates.
 - Full-log past requests and snapshot-only represented requests retain distinct
   reconstruction promises. MCP remains transport-independent and the actual GUI
   WebSocket tunnel stays optional-module code. The new draft adds no runtime.
+
+Full-review revision `389825f` preserves A1–A6 and narrows four teaching gaps:
+semantic selection invalidation includes eligibility/keep expiry; browser
+keep/handoff now have exact command/ack/error envelopes; human CLI explicitly
+gains a creation-only --policy selector with an old-session recovery invocation;
+and the configuration example now traces stubbing, paired removal and protected
+evidence through both bands. The illustration uses stipulated canonical sizes,
+not a reported live outcome. Stub wording preserves existing references without
+inventing a locator. The grouped manuscript revision awaits independent closure.

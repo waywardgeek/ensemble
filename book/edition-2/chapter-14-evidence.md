@@ -238,3 +238,45 @@ section links this first full draft. The coordinator and independent reviewer
 must review the exact shapes and lifetime choices before contract acceptance or
 checker assertions. No Chapter 14 student release, runtime or successful spin
 is claimed.
+
+## Grouped full-review corrections
+
+The author read complete review `389825f` and the affected predecessor policy
+and command passages. Current voice/procedure remained loaded from the full
+drafting pass; no compaction or rule change occurred in this correction pass.
+The reviewer supports A1–A6's owner, intent, compatibility and persistence choices.
+This revision retains them and resolves its four findings together:
+
+- R1: selection invalidation now includes completion, eligibility, newest-eligible
+  choice and keep renewal/expiry, including an accepted empty response with
+  byte-identical rendering. Pure request bookkeeping, Jobs facts and failed HTTP
+  alone cannot repeatedly retry a deferred candidate.
+- R2: exact browser commands, committed/no-op acknowledgements, safe correlated
+  errors and snapshot/watch policy correspondence are printed. Existing ordinary
+  assembled-message limits, subscription, command-ID cap, actor ordering, owned
+  drafts and exact numeric tokens remain. No command creates a model request.
+- R3: human CLI --policy is explicitly new here. Omission keeps in-memory policy;
+  explicit selection is resolved once and creation-only. The GUI retains its old
+  default. A complete old-session invocation selects a separate disabled file
+  while preserving the old catalog and installed ceiling.
+- R4: the opener says stubs preserve existing references. A compact configuration
+  example traces all three selection steps and the surviving decision/manual;
+  the snapshot paragraph returns to the reader who needs the original file.
+
+The worked case stipulates canonical sizes, rather than citing a provider run.
+An independent author calculation constructed ASCII typed call/result objects
+with call IDs c7/c11/c15/c19 and padded path/text values to check that its numbers
+are realizable: whole batch sizes 2,600/3,100/500/2,300; original result sizes
+87/188/210/1,800; fully stubbed batch sizes 2,600/3,000/378/588. Batch 19 is
+protected and is not stubbed in the example. The arithmetic gives results-band
+5,400 then 2,300, calls-band 5,978 then 378, with only the batch-15 stub and
+batch-7/11 removals committed. This was a prose-fixture calculation, not an
+execution of Ensemble or a claim that these padded paths were read.
+
+Six new command/ack/error JSON fixtures parse; all ten initial JSON fixtures are
+byte-unchanged. The retained prose checker passes hard rules at 6,324 words.
+The remaining soft warnings were read with the worked task and exact refusal
+distinctions in view; no invented scene was added to satisfy a person counter.
+Scoped diff validation and manual reading of the complete changed passages pass.
+The initial full draft and advisory chronology remain intact. No runtime, grader,
+provider or original receipt changed, and no student-ready claim is made.
