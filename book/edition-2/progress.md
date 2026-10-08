@@ -46,7 +46,7 @@ reviewed runtime `959c663` and revised evidence `469730f`. Checkpoint:
 `edition-2-ch05-r1` at `7a6ef036322e1cf362894bd30b073fc8399a3c30`.
 See [chapter-05-validation.md](chapter-05-validation.md)
 for the authoritative gate record, source identities and retained limitations.
-All six exported modules pass vet/tests. The Chapter 6 student extends this
+All six exported modules pass vet/tests. The Chapter 6 student extended this
 accepted predecessor in main; the frozen Chapter 5 export remains unchanged.
 
 Chapter 4 remains accepted at `edition-2-ch04-r1` (`55e6411`); its exact
@@ -194,14 +194,14 @@ old implementation into the new solution.
 
 ## Roles and next actions
 
-- Author: Chapter 5 final prose and feedback are accepted. Chapter 6's full
-  streaming contract and story proofreading were reviewed before handoff.
-  Active on student clarifications and Chapter 7 preparation.
-- Coder: `/root/coder_ch06` starts from accepted `edition-2-ch05-r1` in a
-  fresh new-only context. `/root/coder_ch05` completed Chapter 5.
-- Current reviewer: `/root/grader_ch05` prepares Chapter 6 independent checks;
-  historical comparison follows the student's frozen initial implementation
-  and live runs.
+- Author: `/root/coder_ch04` reconciles Chapter 8 receipts and teaching feedback,
+  then addresses the two Chapter 10 format clarifications. Its prior Chapter 4
+  student role is disclosed; it did not implement Chapter 8.
+- Grader engineer: `/root/coder_ch08` completed its Chapter 8 student attempt
+  before reassignment to Chapter 9 checks. A separate fresh student context will
+  implement Chapter 9 after its predecessor and initial checker are released.
+- Current reviewer: `/root/grader_ch05` completed Chapter 8 independent checks
+  and historical comparison; final live audit and manuscript proofreading follow.
 - Chapter 4 reviewer: `/root/coder_ch03_chat`, independent of this chapter's
   new coder, completed lifecycle/owner/fault/debugger and comparative review.
   This agent authored the preceding human-client integration; disclose that
@@ -221,8 +221,8 @@ independent offline/human CLI checks. Original-source controls exposed exactly
 the missing refusals while preserving the positive unchanged-path case.
 Validated isolated checkpoints are `edition-2-ch02-r2` (`0a375d3`) and
 `edition-2-ch03-r2` (`799940c`), with 201- and 500-file exact exports. Their
-canonical main trees match the relevant earlier chapter; current main continues
-Chapter 6. Revision manifests and the chapter validation records bind the
+canonical main trees match the relevant earlier chapter; current main contains
+Chapter 8. Revision manifests and the chapter validation records bind the
 exports and review. Old snapshots/tags and paid receipts retain their identities;
 no unchanged paid path was rerun. Chapter 4 onward already had the protection.
 

@@ -19,9 +19,9 @@ reconstructed requests, respectively. Independent live review `ffbad61` and
 final proofread `121b65d` close remaining gates. Corrected export source `9ec94ef`
 has 2,229 files across eight modules; it isolates a standalone evidence helper
 missed by the runtime-only gate. Actual full-tree checks pass and r1 is preserved.
-Fresh `/root/coder_ch08` is active with
-`fork_turns="none"`, new Chapters 1–8 and that accepted source. Its initial
-student attempt is frozen through `7f517d8`, with actual all-provider receipts.
+Fresh `/root/coder_ch08` used `fork_turns="none"`, new Chapters 1–8 and that
+accepted source. Its final student work is frozen through `7f517d8`, with
+actual all-provider receipts; the initial attempt remains separately preserved.
 Independent code review `270c3b6` accepts runtime `a06d4f3` with 52 accounted-for
 groups. Final live audit, author reconciliation and proofread remain before the
 Chapter 8 checkpoint. The former student is now preparing Chapter 9 checks;
