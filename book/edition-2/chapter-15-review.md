@@ -345,6 +345,18 @@ Keep the zero-model handoff observation, and explicitly enable automatic memory
 scheduling only for the separate model-tool demonstration. These are reader-path
 corrections, not requests for a paid repetition before implementation exists.
 
+Make the fact-survival demonstration distinguishing too. The running example
+puts port 9090 in the protected newest note, so a later correct answer alone
+could come from that note rather than generated memory. Root identified this
+evidence consequence at the full-review boundary. Use a separate planted fact
+whose only surviving request source after retirement is the generated memory;
+keep it out of the newest note, profile/curated entries, other surviving dialogue,
+hints/observations and answer-bearing follow-ups or fresh tool reads. Inspect the
+actual request to establish that condition. The external-file correction and
+generated-memory retention can use distinct markers so one demonstration does
+not supply the other's answer. This strengthens the prospective spin, not the
+runtime feature set.
+
 R1–R5 must be resolved before full contract closure/student release. They can
 land in one compatible author revision. No additional architecture redesign or
 runtime experiment is needed to settle them.
