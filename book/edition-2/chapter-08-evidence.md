@@ -70,3 +70,30 @@ No new external browser/API claim has been made in this research pass. Current
 platform behavior needed by the eventual browser contract will be checked
 against official sources when drafting. Existing browser tooling availability
 is coordinator evidence; it does not prove the new interface or audible speech.
+
+
+## Full draft contract, following coordinator decisions
+
+The coordinator accepted shared future-autoplay semantics before drafting:
+future enqueue uses each page's currently applied preference revision and rate;
+already queued/current utterances keep their captures; local Cancel affects
+only the owning page. No settings update impersonates a different registration.
+The new chapter publishes exact multi-tab tests for those distinctions.
+
+The draft includes strict patch/file validation, versioned full snapshots,
+separate persisted revisions and update commands, stale/busy/write-failure
+outcomes, bounded subscribe ordering, creation-only paths and one writer per
+domain. Agent policy keeps the existing default 16/model-request count and
+captures its effective value at turn activation. Its new optional historical
+turn payload is explicit; old absent fields retain the old policy meaning.
+These are proposed detailed contract choices for coordinator review, not claimed
+implementation behavior. The initial outline's open decisions are now answered
+in the draft; no Chapter 8 solution or passing checker exists.
+
+The author read Chapter 5's activation/configuration rule, Chapter 3's exact
+sixteen-request/final-batch rule, Chapter 7's pause/watch/wire/card/speech rules
+and the current workflow during this drafting pass. The new chapter deliberately
+extends only execution policy during an active turn; it does not silently lift
+other configuration restrictions. No current browser-vendor claim or new paid
+model observation was introduced. Scoping and local examples rely on the
+published predecessor contracts rather than an old implementation copied forward.

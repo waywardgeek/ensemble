@@ -1,6 +1,7 @@
 # Chapter 8 outline: Preferences that do something
 
-Status: author research and proposed contract structure, not a student handoff.
+Status: full draft manuscript/contract exists in `chapter-08.md`, awaiting
+coordinator review before a student handoff.
 Maps to first-edition Chapter 9. Chapter 7 must be accepted before implementation.
 No Chapter 8 code, passing check, browser session or live result is claimed.
 
@@ -27,7 +28,7 @@ browser tooling makes DOM and interaction checks available now. Omit promises
 that the next chapter introduces sub-agents: the current map's next topic is
 skills, and source chronology is not authority over dependencies.
 
-## Proposed teaching order
+## Draft teaching order
 
 1. A saved setting can still be dead: distinguish accepted value, durable value,
    rendered control state and observed effect. Each needs a check.
@@ -47,14 +48,15 @@ skills, and source chronology is not authority over dependencies.
 7. Provide keyboard-usable pane resizing, theme choice, font controls, speech
    controls and a one-Agent sidebar. Show authoritative state in semantic DOM
    attributes. Do not invent sub-agent execution for a decorative tree.
-8. Changing speech enablement reconciles queued/current speech and that client's
-   pause registration. Turning speech off cannot clear another client's typing.
+8. Shared autoplay governs future enqueue at the page's applied revision; queued
+   utterances keep captured rate/revision. A local cancel reconciles only that
+   page's pause. A settings patch cannot forge another client's transition.
 9. Demonstrate restart and two-tab updates, actual speech behavior and a bounded
    coding task through the real browser. Retain human CLI/public composition.
 10. Compare the initial student's answer only after its first implementation and
     real runs. Preserve the student teaching review and explicit revisions.
 
-## Coordinator-accepted ownership choices; detailed contract still pending
+## Coordinator-accepted ownership and speech choices
 
 The coordinator accepts GUI Server owning a persistent display-preference service in the optional
 module. Its children retain owner interfaces back to Server/public client and
@@ -116,3 +118,32 @@ preference edit to cancel another tab's speech or release its pause accidentally
 Agent settings stay actor-ordered and validated at load/update. No transaction
 across the two owners is implied. A new user-facing tradeoff should be surfaced
 before implementation rather than hidden in a store helper.
+
+
+## Complete draft ready for contract review
+
+The manuscript fixes the remaining routine choices: strict rejection rather
+than silent clamp, explicit presence in patches, complete snapshots, separate
+nonnegative domain revisions, stale-base conflict and one writer per domain.
+Checked temporary-file replacement precedes application/acknowledgement;
+filesystem work never holds the actor or socket reader. Startup validates
+complete version-1 files and refuses corruption instead of resetting it.
+An optional Agent policy path supports persistent or explicit memory-only use.
+
+The editable policy is max_model_requests, stored 0 for default 16 or 1–256;
+counting remains model requests and the last accepted tool batch stays paired.
+Activation captures policy in the new optional turn_started.turn.policy value;
+queued versus active turns, old logs and vendor-body reconstruction are explicit.
+Preference snapshots have their own subscribe boundary; Agent policy changes
+use the existing actor/watch boundary. The chapter promises no cross-domain
+transaction. These detailed mechanics await root review, not a new Bill ruling.
+
+The coordinator also accepted the speech semantics: current applied preference
+revision/rate are captured at enqueue, existing utterances survive a shared
+disable, and only the owning page cancels its queue. The draft adds a two-tab
+fixture and keeps pending automatic buffers/backlog separate from queued work.
+
+Scoped lint passes all hard checks; soft density/person-gap warnings were read.
+There is no student code or live evidence. Next action: coordinator full-contract
+review, then independent checker publication and handoff only after Chapter 7
+acceptance. The complete demonstration remains visibly planned, not performed.
