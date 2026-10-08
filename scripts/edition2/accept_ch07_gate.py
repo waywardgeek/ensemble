@@ -53,7 +53,7 @@ def evaluate(revision):
             run('retained-cli-early-barriers',['python3',HERE/'accept_ch06_clients.py',cli])
             run('retained-wire-61',['python3',HERE/'accept_ch06_wire.py',cli])
         run('retained-ch06-contract',['python3',HERE/'accept_ch06.py',root])
-        run('retained-ch05-assertions',['python3',HERE/'accept_ch06_prior.py',root])
+        run('retained-ch05-assertions',['python3',HERE/'accept_ch07_prior.py',root])
         run('retained-ch06-deletions',['python3',HERE/'audit_ch06_mutations.py',root])
         run('retained-cli-overflow-deletions',['python3',HERE/'ch07-review-prior-cli.py',revision],REPO)
         for module in sorted(root.rglob('go.mod')):
@@ -62,7 +62,7 @@ def evaluate(revision):
         optional=root/'gui';detached=Path(directory)/'detached-gui';optional.rename(detached)
         try:run('core-with-optional-gui-absent',['go','test','./...','-count=1','-timeout=120s'])
         finally:detached.rename(optional)
-    checkers={str(p.relative_to(HERE)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(HERE.iterdir()) if p.is_file() and ('ch07' in p.name or 'ch06' in p.name or 'ch05' in p.name)}
+    checkers={str(p.relative_to(HERE)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(HERE.rglob('*')) if p.is_file() and '__pycache__' not in p.parts and any(ch in str(p.relative_to(HERE)) for ch in ('ch07', 'ch06', 'ch05'))}
     return dict(scope=__doc__,source_revision=revision,source_files=hashes,checker_files=checkers,
                 passed=all(row['passed'] for row in rows),checks=rows)
 

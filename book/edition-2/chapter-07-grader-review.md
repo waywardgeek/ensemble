@@ -192,3 +192,76 @@ immutable gate is being assembled at `accept_ch07_gate.py SOURCE_COMMIT`, with
 all required embedded assets retained and hashed. It includes the coordinator's
 separate actual Connector lifetime probe. No complete immutable Chapter 7 gate,
 live demonstration, historical comparison or final acceptance is claimed yet.
+
+## Immutable deterministic gate and retained-check correction
+
+Source `da162e821369784b37cd6a6544610429af5f1cbe` is accepted for the
+33-group deterministic gate by composition of two preserved receipts:
+
+- [Original immutable gate](checkpoint-evidence/ch07-review-full-gate-initial.json):
+  32 groups passed; the retained Chapter 5 structural category failed, leaving
+  that retained score at 90/100. All 98 source files, including embedded browser
+  assets, were extracted from the committed source and bound in the receipt.
+- [Correction supplement](checkpoint-evidence/ch07-review-retained-supplement.json):
+  the identical 98-file source passes the retained seven categories at 100/100.
+  The original failure remains a failure; this is a targeted replacement result,
+  not a rewritten green full-run receipt.
+
+The old source heuristic classified a literal `fmt.Errorf` sentinel and a
+`go:embed` filesystem as mutable session state. The new Chapter 7 adapter
+recognizes immutable declaration forms and checks production files for direct
+writes or address escape, including other files and importing packages.
+Fourteen targeted controls include renamed/aliased values, a local shadow,
+missing embed directive, dynamic formatting, assignment and address escape.
+Original channel/counter rejection remains protected. Both original and new
+source checkers pass the accepted Chapter 6 runtime `75bd14d`. The historical
+checker and its assertion fixtures are unchanged; the separate adapter retains
+all behavioral assertions and the seven category weights.
+
+Reproduce the focused correction with:
+
+```sh
+python3 scripts/edition2/ch07-review-retained.py book/edition-2/checkpoint-evidence/ch07-review-full-gate-initial.json
+```
+
+For a fresh complete run, `python3 scripts/edition2/accept_ch07_gate.py SOURCE_COMMIT`
+now selects that adapter and also records nested checker source hashes. The
+accepted original groups include wire, public watch/pause, component bounds,
+actual Chrome DOM/speech-double/Connector/Page behavior, implementation and
+browser deletion controls, append-cost scaling, actual socket lifetime controls,
+retained Chapter 6 behavior and CLI overflow, all eight module vet/test pairs,
+and the headless build with the optional GUI absent. These deterministic results
+do not establish real audio, live provider use, historical comparative quality
+or final manuscript acceptance. Those remain separate gates.
+
+## Draft manuscript review while live work proceeds
+
+The [bound draft proofread](checkpoint-evidence/ch07-review-draft-proofread.json)
+reads the full chapter and author records at `71da5b5`, full current voice and
+procedure, and the corresponding first-edition Chapter 8 prose. It preserves
+the old implementation boundary: no historical solution code was opened before
+the initial live/student-experience freeze. The reviewer authored independent
+graders and inspected the new implementation but did not author student code.
+
+The chapter retains a concrete human reason to hear and steer the work, the
+radio/receiver explanation, Artifact lifecycle and the documented teardown
+failure. The finite window, safe snapshot, per-client causes and cancellation
+generation give those stories precise consequences. The new draft removes the
+unsupported Eloquence and diagnosis-duration claims and keeps the actual spin
+pending. Its 750-wpm motivation is supported by the dated GUI design document.
+The current opener already limits what graders can establish; an overlapping
+read initially reported its previous sentence and that finding was withdrawn.
+
+One current-instruction correction remains with the author: lead the TL;DR and
+outline with the complete immutable gate, distinguish the current 23 wire
+checks from the initial 15, and retain those initial counts as historical
+preparation. Hard prose lint passes. The two soft density warnings were read
+in context; they do not justify deleting contract requirements or adding an
+invented anecdote. This is draft acceptance subject to that instruction update,
+actual-use reconciliation and final proofread, not final chapter acceptance.
+
+The adapter's [affected-module checks](checkpoint-evidence/ch07-review-adapter-module-checks.json)
+pass: outer-module `go vet ./...`, full `go test ./... -count=1` (including the
+unchanged historical grader suite), clean formatting and Python compilation.
+The legacy grader suite completed in 511.997 seconds; no legacy implementation
+or fixture was edited.

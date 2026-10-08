@@ -1,0 +1,37 @@
+{
+  "scope": "Independent draft proofread only; required actual live receipts, historical implementation comparison, revisions and final proofreading remain open.",
+  "chapter_revision": "71da5b57f81d8f273cbd034aa30efb7acca45742",
+  "files": {
+    "book/voice.md": "17883353cf9653c0df46081c216b5b1623dfa640619e06fe89bff46fc29dfad1",
+    "book/chapter-writing-procedure.md": "6a7d3e497a116c53f1f51713d7edb864b24a4170f7f2df28c7ef856da998afa7",
+    "book/edition-2/architecture.md": "75e1c7422e0b0c32eded2be2ac8a89b31b4541995c20a96a05fddbf0be246957",
+    "book/edition-2/chapter-07.md": "906c778aec62aa125c9596a9a42a883031947e4366960017ef19fd4647c0c9dd",
+    "book/edition-2/chapter-07-outline.md": "579ce1b4aa2c28d61a82bfd929d7c997f736f2b80261f0e5356c0be67fc04bec",
+    "book/edition-2/chapter-07-evidence.md": "453fd3d15c84c7f8128b4782ef8993134cc7a63bab1c601152b46fdbef3823d4",
+    "book/edition-2/chapter-07-student-feedback.md": "a2de3fa2c4c443e26cea043c838ecd8586d17f95033bcf33dbece0a083be09d8",
+    "book/chapter-08.md": "207ae885a7a9d6210757b5f3b4d9773a98206a66e62710e5ce0be0a6ce180f56"
+  },
+  "reads": "Full current voice/procedure, full current Chapter 7, architecture, all three author support records, full first-edition Chapter 8 prose; gui-design opening supplied dated 750-wpm/mac dystrophy source. No historical solution implementation opened.",
+  "findings": [
+    {
+      "id": "P1",
+      "status": "sent to author",
+      "location": "Chapter 7 TL;DR and outline checks plan",
+      "finding": "Lead with accept_ch07_gate.py SOURCE_COMMIT; identify current wire command as 23 checks and retain initial 15 as dated history. Deterministic acceptance now uses original 32 passing groups plus corrected retained group."
+    },
+    {
+      "id": "P2",
+      "status": "withdrawn; already resolved at reviewed revision",
+      "location": "opener",
+      "finding": "Earlier read overlapped author edits. Exact 71da5b5 already narrows grader capability to controls versus human usability; no further edit requested."
+    }
+  ],
+  "assessment": "Scope, finite reconnect promise, explicit speech requirements, per-client pause/actor acknowledgement, typed recursive projection and pending spin are consistent. Historical radio/artifact attention story retained with durability and current architecture corrections. No remaining material contract contradiction found in this draft.",
+  "lint": "book/edition-2/chapter-07.md\n  ok   words                          5623   4000..7500\n  ok   confessions                       0   <=3\n  ok   self-defense                      0   <=1\n  WARN negation forms                   20   <=11 (1/500w)\n  ok   inventory openers                 0   <=3\n  ok   short closers                    11   <=27 of 81 paras\n  ok   pointer closers                   0   <=2\n  ok   scope superlatives                0   <=2\n  ok   won't pretend                     0   <=1\n  ok   em-dashes                         0   0\n  ok   LLM crutches                      0   0\n  WARN person gap (after L187)        2033   <=1200\n  ok   heading shape run                 1   <3\n",
+  "lint_limit": "Hard rules pass; 20 negation forms and 2033-word person gap remain soft reading prompts. Technical contract detail earns its place; no fabricated anecdote added.",
+  "prose_artifact_check": {
+    "compared_to": "71da5b5^",
+    "fenced_blocks_unchanged": 9,
+    "table_rows_unchanged": 14
+  }
+}
