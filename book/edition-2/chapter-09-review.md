@@ -104,3 +104,12 @@ The author is publishing clarifications. Only independent parser/catalog/common
 value and candidate-preparation work is released while those questions remain;
 affected environment, capture and rendering code must wait for the revised
 contract. No runtime gate, paid demonstration or historical comparison is claimed.
+
+The coordinator reviewed the complete `8f24360` clarification and accepted all
+three responses, including skill-mode-only hint anchoring and the literal
+results/H/manual/prompt fixtures. Chapter 10 now distinguishes completed-batch
+hint placement from unfinished work. Fresh pinned copies of Chapters 5 and 9
+and the direct author response were released to the same student; the original
+handoff remains preserved. Full implementation is authorized after those reads
+and the student's confirmation. Any remaining reported ambiguity still stops
+its affected code. This acceptance does not certify a runtime or live result.

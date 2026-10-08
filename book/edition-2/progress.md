@@ -32,8 +32,11 @@ groups, 47 exact request reconstructions and complete nine-module discovery. See
 `49ae919` and transition clarification `0bca41c` are accepted. The initial
 51-check command is published at `e6c3406`; numeric teaching and invocation are
 clarified at `77cd638`/`f303754`. Fresh local CLI student
-`01a11c0d-47b8-7241-8834-5ddf57ac5009` is reading new-only inputs at `8736c95`
-and preparing its owner/state/public API plan from accepted Chapter 8. Managed
+`01a11c0d-47b8-7241-8834-5ddf57ac5009` has an accepted owner/state/API plan
+at `5ac45e4` from accepted Chapter 8 and new-only teaching `8736c95`. Published
+answers `8f24360` resolve three initial teaching questions and are released for
+student confirmation. Catalog work is underway; complete implementation follows
+those reads. Core predecessor tests pass; no Chapter 9 live use is claimed. Managed
 spawn hit its thread limit; this new session inherits no conversation and has
 memory injection disabled. `/root/grader_ch05` continues independent checks. See
 [chapter-09-validation.md](chapter-09-validation.md).
