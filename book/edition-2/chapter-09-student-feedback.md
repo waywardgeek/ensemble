@@ -103,3 +103,29 @@ after the TL;DR built `/tmp/ensemble-ch09-cli`. The invocation now matches the
 build. This is a prose correction and does not relabel any actual executable or
 claim that the planned spin has occurred. Later live and completion feedback
 will be appended after the student's receipts are available.
+
+
+## Live empty-argument stream and confirmation
+
+The student read and confirmed `f4459a5` during its live-phase resume: the
+whole-record omission, import implementation bug and executable-path correction
+are accurately distinguished. The original failures remain in its review.
+
+The first Anthropic GUI stream exposed an inherited Messages assembly error:
+start input `{}` followed by partial_json `""` was treated as an empty replacement
+and rejected despite a complete stream. The author inspected the actual
+responses/002.body receipt and the student's repair account. Chapter 6 §6.4 now
+states zero concatenated argument bytes, even with empty delta events, and gives
+literal positive/negative fixtures. Whitespace or malformed nonempty replacement
+still refuses, and execution still waits for the complete accepted response.
+This clarifies the existing start-object fallback; it does not change tool
+rights or accept an incomplete stream. The student classifies the assembler's
+event-count interpretation as an implementation defect under that teaching.
+
+The original GUI refusal/browser timeout remains bound to `c0e3171`. The
+student's later explicit-path recovery, native audio and full-card text-delivery
+observations are separate receipts awaiting their complete author reconciliation.
+Its Anthropic public run retains exit 1 and a missing final beta report, even
+though the coordinator independently accepted the required Skills feature
+coverage from actual calls, bindings and isolation. Neither that partial task
+nor the empty-argument repair is rewritten as an originally successful run.

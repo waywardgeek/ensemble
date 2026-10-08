@@ -340,3 +340,37 @@ prose lint passes all hard checks (6756 words before the final link copyedit),
 and diff whitespace checks pass. Soft density warnings were read; no anecdote
 was manufactured to satisfy them. Final complete-chapter proofreading is now
 requested from the independent reviewer.
+
+
+## Zero-length tool argument delta observed in Chapter 9
+
+October 8, 2026 author follow-up, after the original Chapter 6 acceptance.
+The Chapter 9 student's actual Anthropic GUI run on `c0e3171` received a complete
+list_directory call with start input `{}` and one partial_json string of zero
+bytes. The inherited assembler treated the event's presence as replacement
+content and refused the assembled response. The original failed action remains
+at its original source identity; this is not a new Chapter 6 successful run.
+
+The author read the student's `Live runtime finding: empty Anthropic streamed
+tool arguments` and subsequent repair account, plus the exact original
+`solutions/edition-2/main/evidence/ch09/live-anthropic-g/responses/002.body`.
+Its 2,668 bytes hash to
+`e6f7b7446b3dab2fe5ef6466111a6790c31ac52d45eccc8296a416ea9a4971ef`.
+The tool block starts at index 1 with input `{}`, receives partial_json `""`,
+stops, then the stream supplies stop_reason tool_use and message_stop. The
+student reports `invalid assembled response` and no call effect. Its later
+explicit-path recovery is a separate observation, not proof that this original
+empty-argument stream executed successfully.
+
+The [official Messages streaming guide](https://platform.claude.com/docs/en/build-with-claude/streaming#input-json-delta)
+was checked on October 8: partial input strings accumulate, and completed tool
+input is an object. The guide supplies the general assembly model; the retained
+live response supplies this exact zero-length case. Section 6.4 now makes its
+existing fallback rule explicit in bytes rather than event count, with literal
+positive/replacement/whitespace/malformed/null controls. No response-completion,
+argument-validation or tool-admission gate is relaxed.
+
+The student reports a narrow runtime repair and local distinguishing tests;
+independent acceptance and historical Chapter 6–8 export/tag propagation belong
+to the coordinator. No legacy source, frozen snapshot or original tag was
+changed by this prose clarification.

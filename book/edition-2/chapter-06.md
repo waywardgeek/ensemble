@@ -368,14 +368,35 @@ Initialize usage from `message_start.message.usage`, then replace fields
 explicitly updated by subsequent usage snapshots. Omission does not erase an
 earlier count. The final output count replaces an initial zero. Require all
 started blocks to stop, a nonempty stop reason, and `message_stop`. Decode each
-completed tool argument string to an object; an empty delta sequence may use
-the complete object supplied at block start. If partial JSON arrives, it
-replaces the initial placeholder object. Never combine two argument objects
-by guessing what the model intended.
+completed tool argument string to an object. If concatenating all partial_json
+strings yields zero bytes, retain the complete object supplied at block start,
+even when one or more zero-length delta events occurred. Event presence is not
+argument content. Once any argument bytes arrive, parse their concatenation as
+the replacement object; never merge it with the initial object. Whitespace-only,
+malformed or non-object replacement bytes refuse instead of falling back. A
+missing or non-object start input cannot supply the zero-byte fallback.
 
-Publish a tool name when known. Publish argument deltas as supplied; when
-there are none, publish the complete start object once at block stop. This
-avoids showing `{}` as an argument prefix and later replacing it silently.
+These are local assembly fixtures inside an otherwise complete valid stream:
+
+| Start input | Ordered partial_json strings | Completed arguments |
+| --- | --- | --- |
+| `{}` | `[]` or `[""]` or `["",""]` | `{}` |
+| `{"path":"."}` | `[""]` | `{"path":"."}` |
+| `{"path":"old"}` | `["","{\"path\":\"new\"}",""]` | `{"path":"new"}` |
+| `{}` | `[" "]` or `["{"]` or `["null"]` | refuse |
+| `null` | `[""]` | refuse |
+
+The block stop, message stop, stop reason and whole-response validation gates
+still apply; an empty fragment never authorizes early execution. The current
+[Messages guide](https://platform.claude.com/docs/en/build-with-claude/streaming#input-json-delta)
+describes string-fragment accumulation and an object-valued completed input.
+The zero-length case was also observed in the Chapter 9 live run; its raw receipt
+is retained in the [evidence record](chapter-06-evidence.md#zero-length-tool-argument-delta-observed-in-chapter-9).
+
+Publish a tool name when known. Publish nonempty argument deltas as supplied;
+zero-length fragments produce no empty display observation. When their complete
+concatenation has zero bytes, publish the complete start object once at block
+stop. This avoids showing `{}` as a prefix before replacement bytes arrive.
 
 Retain the merged final usage object as `raw_usage`; it describes the accepted
 response without retaining every cumulative intermediate snapshot.
