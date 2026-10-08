@@ -27,9 +27,11 @@ pass the 93-row CLI, 9 client, 6 DOM and 38 physical-read groups on the prepared
 executable, preserved at initial checkpoint `41a5e72`. Expanded public checks then
 found a real Agent/Jobs lock cycle. The grouped repair passes all 16 public
 groups and is frozen at `122b04a`. A later fault control found wrong Close success
-and checkpoint replacement after a partial public Append; the student is repairing
-that behavior. The retained-suite run then exhausted disk before its final result;
-its failure is preserved and builds will run serially after cache maintenance.
+and checkpoint replacement after a partial public Append. Repair `8882a18`, with
+handback `e307d79`, passes all four independent fault groups and two lifecycle
+groups, retaining the original failure. The retained-suite run exhausted disk
+before its final result; its failure is preserved. Durable stage receipts now have
+nine passing orchestration controls (`c8353a2`), and builds run serially.
 Q5 exact durable watermark clarification
 `3a9e5b7` has review `2a24f7c` and student acknowledgment. Initial failures remain
 intact. Remaining independent gates, actual all-provider use and historical

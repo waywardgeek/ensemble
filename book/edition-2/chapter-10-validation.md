@@ -13,7 +13,7 @@ Bill's editorial approval is separate from technical acceptance.
 | Contract | Author, coordinator | Prepared-event clarification `c5ad6c0`/`c773b11` and exact watermark clarification `3a9e5b7`/`2a24f7c` published, pinned and acknowledged | Preserve exact representation and complete-state identity rules |
 | Independent checks | `/root/grader_ch05`, coordinator, `/root/coder_ch08` | Prepared executable passes CLI 93, clients 9, DOM 6 and physical reads 38; corrected public suite passes 16 groups on later mutable source. Initial failures remain retained | Bind repaired source; finish independent fault, allocation, storage and retained-behavior gates |
 | Fresh student and owner plan | Fresh CLI student `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0`, coordinator, independent reviewer | Plan `7cb8429` accepted at `72bf621`; answers `af5a762` proofread at `6766995`, fully acknowledged by student at `44056d1` | Preserve new-only read ledger and route new teaching gaps before affected code |
-| Implementation and local gates | Same student, grader | Initial `41a5e72`, revised `122b04a`, handback `1e041f5`. Frozen fault controls found a wrong Close success/checkpoint replacement after partial public Append | Repair and independently recheck; complete remaining frozen gates |
+| Implementation and local gates | Same student, grader | Initial `41a5e72`, revised `122b04a`, append-fault repair `8882a18`, handback `e307d79`. All four independent fault groups and two lifecycle groups pass on the repair | Finish bounds, deletion controls, structural and retained-behavior gates |
 | Actual use | Same student, reviewer | Unrun proposal reviewed at `c9ba32c`; five concrete plan/support corrections requested, no calls released | Finish deterministic clearance, executable schedule and immutable preflight before real demonstrations |
 | Historical comparison and revisions | Independent reviewer | Not started | Preserve initial source, runs and teaching review first |
 | Manuscript and feedback | Author, student, proofreader | Draft labels actual spin pending | Reconcile actual evidence and resolve student feedback |
@@ -148,3 +148,22 @@ subset labeling and explicit idle-only cache maintenance. No runtime result is
 recovered from the original disk failure, and the broad rerun remains pending.
 Author `4bb8a30` updates two stale manuscript status paragraphs only; it does not
 change the contract or present the planned spin as completed.
+
+The same student's resumed process completed successfully with source
+`8882a18cf98e9a4b70afccfbe980f6344630aae6` and evidence handback `e307d79`.
+Root read its source-bound targeted and complete independent fault receipts:
+all four groups pass, including actual one-byte partial append, no subsequent
+checkpoint replacement, truthful repeated Close and released ownership.
+All eleven modules' vet/tests and main/GUI race checks pass. A rejected ordinary
+event remains recoverable. The previous process exited 101 without a final
+handback; its files remain, and the successful same-conversation resume retains
+the original new-only context boundary. No provider or credential access occurred.
+
+The independent lifecycle check also passes against an immutable extraction of
+`8882a18`, with 158 runtime/asset/document files bound. A real independent job
+finishes while checkpoint replacement is held; the saved anchor still describes
+the earlier running state, and reopening that old checkpoint beside the newer
+log restores the terminal fact exactly once. A separate invalid-append control
+proves continued usability. Two initial reviewer fixture defects, System presence
+and the terminal event's name, remain in their first receipts. They do not count
+as runtime failures. Bounds and retained integration are the next serialized stages.
