@@ -1,0 +1,55 @@
+{
+  "status": "five genuine positive groups and five intended behavior deletions accepted; partial coverage only",
+  "source_commit": "8882a18cf98e9a4b70afccfbe980f6344630aae6",
+  "runtime_binding_files": 148,
+  "go_version": "go version go1.25.4 darwin/arm64",
+  "receipt": "book/edition-2/checkpoint-evidence/ch10-storage-bounds-8882-first.json",
+  "receipt_sha256": "518865062e3c561e34febaccbb54f29ee449250213976361ac9dd3435b0a1be9",
+  "initial_preparation": "ch10-storage-bounds-preparation.json preserves the earlier unrun122b04a preparation; it is not retroactively a8882 run",
+  "preflight_refusal": "ch10-storage-bounds-preflight-initial.json preserves evidence-helper/runtime-scope mismatch before any compiler; corrected binding covers every148runtimeGo/module/API-format file with no extraGo, not complete delivered tree",
+  "results": {
+    "format": "gofmt-l produced no output",
+    "vet": "go vet ./... exit0",
+    "positive": "go test-race-count1 over all five TestCh10Storage groups exit0",
+    "mutations": [
+      {
+        "name": "canonical-through-float",
+        "group": "Canonical",
+        "exit": 1,
+        "intended_failure_observed": true
+      },
+      {
+        "name": "nesting-one-extra",
+        "group": "Nesting",
+        "exit": 1,
+        "intended_failure_observed": true
+      },
+      {
+        "name": "handler-count-one-extra",
+        "group": "HandlerCount",
+        "exit": 1,
+        "intended_failure_observed": true
+      },
+      {
+        "name": "handler-bytes-one-extra",
+        "group": "HandlerBytes",
+        "exit": 1,
+        "intended_failure_observed": true
+      },
+      {
+        "name": "request-wrap",
+        "group": "RequestUint64",
+        "exit": 1,
+        "intended_failure_observed": true
+      }
+    ]
+  },
+  "coverage_limits": [
+    "Canonical/nesting/handler controls invoke the actual Agent-owned exported codec, not every construction/import admission path",
+    "Request cursor group is end-to-end public snapshot import, real controlled local response at maximum uint64, exhaustion without log mutation/HTTP, max cursor reimport",
+    "No actual million-element semantic collections,256MiB canonical state,512MiB file or1GiB log exact-bound acceptance",
+    "No allocation-memory measurement or event/activation/job whole-group overflow acceptance",
+    "No broad/full chapter, delivered-tree, GUI or paid-use claim; root retains remaining gates"
+  ],
+  "ownership": "Only new checker/receipt files changed; all immutable runtime files matched before/after. Temporary consumer/overlay files were removed; shared source extraction remains for coordinator. No compiler remains on reviewer side."
+}

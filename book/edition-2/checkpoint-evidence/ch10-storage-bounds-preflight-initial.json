@@ -1,0 +1,8 @@
+{
+  "source_commit": "8882a18cf98e9a4b70afccfbe980f6344630aae6",
+  "source_directory": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-lifecycle-8882-io2lvk__",
+  "status": "checker scope adapter refusal before Go commands",
+  "error": "source identity mismatch: evidence/ch07/revision-1/replay-server.go",
+  "cause": "Initial binder expected all historical evidence Go helpers; root supplied authorized immutable runtime-only extraction. All148non-evidence runtimeGo/module/API-format files are present and no extraGo exists. Binder now explicitly covers this runtime scope; complete delivered-tree gate remains separate.",
+  "runtime_defect": false
+}
