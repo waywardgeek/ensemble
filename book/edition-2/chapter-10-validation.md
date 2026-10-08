@@ -7,7 +7,7 @@ Bill's editorial approval is separate from technical acceptance.
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Contract | Author, coordinator | Draft `9181683`, clarifications `6cf8660`/`b4e3fb7` and inherited hint-state clarification `8f24360` accepted; see chapter-10-review.md | Retain exact compatibility and semantic-state obligations |
-| Independent checks | `/root/grader_ch05` | Initial CLI/store/lock/corruption checks being prepared from new teaching; no runtime positive | Publish scoped command and distinguishing controls |
+| Independent checks | `/root/grader_ch05` | Initial CLI/store/lock/corruption command published at `dfb4a72`; eleven canonical examples, one outer positive and eighteen intended refusals pass; preceding CLI passes 3 standalone controls with 90 session-feature absences | Extend semantic/public/browser coverage against genuine student exports; no Chapter 10 runtime positive exists yet |
 | Fresh student and owner plan | Future fresh student | Not started | Release accepted Chapter 9 and new-only teaching |
 | Implementation and local gates | Future student, grader | Not started | Implement and validate full contract, including semantic codec and inherited behavior |
 | Actual use | Future student, reviewer | Not started | Review bounded plan, then real CLI/browser/public all-provider demonstrations |
@@ -16,7 +16,8 @@ Bill's editorial approval is separate from technical acceptance.
 | Export and checkpoint | Coordinator | Not started | Complete all gates before immutable export/tag |
 
 The grader engineer has earlier grading/review exposure and no Chapter 10 runtime
-authorship. Its Chapter 9 checker integration remains the immediate priority.
+authorship. See [chapter-10-grader-review.md](chapter-10-grader-review.md) for
+the runnable command, preparation receipts and explicitly incomplete scope.
 Neither a synthetic control nor a preceding chapter's expected refusal is a
 Chapter 10 implementation positive. Private semantic codec spelling remains a
 student design choice under the published complete-state requirements.
