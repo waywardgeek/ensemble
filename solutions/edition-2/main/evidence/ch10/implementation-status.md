@@ -148,3 +148,42 @@ received for a prose refinement after this scoped repair validation.
 Append repair local validation complete: targeted race regression passed (append-fault-local-retry.out). append-repair-module-checks.jsonl retains all25 successful commands: empty-output gofmt on five changed Go files; vet/tests in main, GUI and all nine nested examples; full race suites in main and GUI. No further source change followed those checks. New tests distinguish absent checkpoint creation and existing checkpoint inode replacement, retain original append error on repeated Close, and prove corrupt-log refusal plus released path/SessionID ownership. Ordinary invalid input still permits a later valid append/checkpoint/clean close.
 
 The scoped source checkpoint is next, followed by the coordinator's frozen targeted and four-group fault commands. This commit-before-check order follows that command's required immutable source identity. Old retained CLI/GUI binaries still belong to122b04a; they have not been relabeled or rebuilt for this source. Live-matrix.md now contains exact proposed prompts, process/store schedule, deadlines/attempt accounting, concrete GUI policy/preference actions, public offline branches, truthful local limit seed and pending support-freeze controls responding to c9ba32c. No live support build or live request is claimed. Other independent graders remain deferred until this build stage is released.
+
+
+## Append/Close repaired handback — build stage released
+
+Immutable repair/source/local evidence:8882a18cf98e9a4b70afccfbe980f6344630aae6.
+The exclusive student Go build/test stage is COMPLETE and RELEASED. No student
+compiler/test/checker is running or planned in this handback; coordinator may
+start the deferred independent lifecycle/bounds stages. Last observed disk1.0GiB.
+No cache maintenance was performed by the student.
+
+Both source-bound frozen fault commands exited0 against that exact commit:
+
+```
+python3 scripts/edition2/accept_ch10_faults.py solutions/edition-2/main --source-commit 8882a18cf98e9a4b70afccfbe980f6344630aae6 --run '^TestCh10ReviewAppendFailure' --receipt /Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/append-repair-independent-targeted.json
+python3 scripts/edition2/accept_ch10_faults.py solutions/edition-2/main --source-commit 8882a18cf98e9a4b70afccfbe980f6344630aae6 --receipt /Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/append-repair-independent-all.json
+```
+
+Both receipts report passed=true, source_unchanged=true, checker_unchanged=true;
+format output is empty, overlay vet and race tests pass. The full command passes
+all four groups: seven checkpoint I/O outcomes, canceled waiter retaining captured
+write, close joining writer before unlocking, and terminal append preserving the
+checkpoint. Full stdout is separately retained in append-repair-independent-all.out.
+These new results supersede the specific append defect, preserving original frozen
+122b04a failures. They establish this local subset, not full Chapter10 acceptance.
+
+Other earlier coverage retains its original revision/binary association (CLI93,
+public16, clients9, browser6, read-bound38); this repair did not rerun those deferred
+suites. All25 local module/format/race command results are in
+append-repair-module-checks.jsonl. Test-fixture timeout, pre-fix failing regression,
+and disk-blocked attempt remain preserved and explained above.
+
+No open teaching question or architecture conflict. Public API and strict codec
+remain session-api.md and persistence-format.md, unchanged by this repair. The
+live-matrix.md proposal now answers the five relayed c9ba32c plan requests, within
+66 generation/3 discovery maximum; executable support freeze/identity-negative
+controls and coordinator completeness review remain prerequisites. No credentials,
+provider/discovery calls, actual spin, historical comparison, author runtime
+confirmation or final immutable chapter release occurred. Retained CLI/GUI binaries
+still represent122b04a and require newly bound builds before a later live stage.
