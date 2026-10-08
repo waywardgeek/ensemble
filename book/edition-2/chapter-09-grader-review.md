@@ -480,3 +480,34 @@ is an inherited resource regression; an invented universal raw cutoff would be
 unsound because retained summaries and offers can grow beyond newly activated
 material. No new cutoff is graded before publication. The green boundary rows
 above do not close log-resource acceptance or authorize a full-gate claim.
+
+
+### Prepared retained and immutable gate
+
+The concrete combined command is now:
+
+```sh
+python3 scripts/edition2/accept_ch09_gate.py SOURCE_COMMIT
+```
+
+It is prepared, **not yet executed on a frozen Chapter 9 source**. It requires a
+Git commit and retains every Chapter 8 gate row, including prior CLI/stream/jobs,
+settings/native speech, observer/queue controls and earlier deletion checks.
+New rows invoke the six Skills CLI supplements, public consumer, boundary audit,
+Chrome projection and actual GUI/local-HTTP scenario. `--only CHECK_ID` labels
+a selection partial and cannot establish complete chapter acceptance.
+
+A disposable checker bundle retains the preceding Chapter 8 adapters. One old
+non-management Registry test double now explicitly returns false from the added
+management classification method; its behavioral assertions remain unchanged.
+All 35 exact preparation anchors pass, recorded in
+`ch09-retained-adapter-preparation.json`. Historical checker sources are untouched.
+
+The runtime test extraction retains every non-evidence file, every delivered
+Go/module file and the two current student audit helpers. It hashes the complete
+original archive, including omitted historical raw captures. Full delivered-tree
+package discovery separately extracts/checks the complete delivery so an evidence
+helper cannot escape Go package discovery. This limits repeated raw-evidence
+copies while preserving the packaging regression check. No runtime row has been
+credited from preparation, and the open log-reading bound still blocks the
+affected acceptance decision.
