@@ -634,7 +634,7 @@ reasonable substitute for that decision.
 | Boundary | Limit |
 |---|---|
 | events.log file | 1 GiB, including header and line endings |
-| One encoded event record | 64 MiB, excluding its LF |
+| One encoded event record | 64 MiB, including its framing LF when present |
 | checkpoint.json or origin.json file | 512 MiB each, including whitespace |
 | Canonical semantic state | 256 MiB |
 | Event count; total entries; total parts; total recorded activations; seen request/call IDs | 1,000,000 each |

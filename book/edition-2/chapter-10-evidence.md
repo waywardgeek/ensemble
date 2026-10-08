@@ -372,3 +372,16 @@ exact public/browser representation and pre-mutation overflow refusal. Resource
 size bounds remain unchanged. This is a compatibility clarification before
 checker work, not an undocumented rejection of valid predecessor state. The CLI
 build now names its output to avoid collision with the existing cmd directory.
+
+## Framing-byte consistency correction, October 8
+
+Chapter 9's integration review exposed a missing independent encoded skill-record
+bound. Its new 67,108,864-byte cap includes a framing LF when present. During
+that decision the coordinator described Chapter 10 as already using the same
+boundary; the author checked §10.8 and found its table explicitly excluded LF.
+The coordinator then chose to correct Chapter 10 to the inclusive boundary.
+This is a new consistency correction, not a claim about the earlier draft.
+Whitespace, escaping and all payload bytes count; any otherwise permitted record
+without LF counts its actual bytes. Session parsing keeps its existing refusal
+of a partial final record. No student implementation, grader or old receipt was
+changed, and the current Chapter 9 student was not exposed to this later chapter.
