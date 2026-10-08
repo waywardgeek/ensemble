@@ -5,14 +5,15 @@ Chapter 9 is accepted at `edition-2-ch09-r1`, with exact 4,012-file export from
 `06c6787` has independent code acceptance `19d2fdf`; live review `2dc5841`
 and final manuscript proofread `d022176` close the other gates. The Chapter 9
 CLI worker has exited. The immutable tag points to `54d7b1d`. Fresh Chapter 10
-CLI student `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0` is running phase 1 through
-unified exec session `19997`. External inputs/events/result/inbox are under
+CLI student `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0` completed phase 1 at
+`7cb8429` and exited successfully. External inputs/events/result/inbox are under
 `/Users/bill/projects/ensemble-edition-2-revisions/ch10-student-inputs/`.
-Read its owner/state/API/semantic-format plan before releasing implementation;
+Root read the complete owner/state/API/semantic-format plan; independent review
+and author Q1–Q3 clarifications are pending before releasing implementation.
 no runtime changes, credentials or provider calls are authorized in this phase.
 Do not start a competing worker or resume paid Chapter 9 demonstrations.
-Chapter 14 draft `349aa64` has grouped independent findings `389825f`; the author
-is correcting them, with no implementation or contract acceptance yet.
+Chapter 14 correction `b951524` has independent closure `674b9a2` and coordinator
+contract acceptance. It has no checker, implementation or actual spin yet.
 
 Chapter 6 maintenance checkpoint: `edition-2-ch06-r2` points to isolated
 `3acdd8e`, whose main and exact 1,565-file export match source `5e48b38`.

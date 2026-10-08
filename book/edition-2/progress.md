@@ -12,9 +12,10 @@ Chapter 9 is accepted at `edition-2-ch09-r1`: exact 4,012-file export from
 `ac55f64`, runtime `06c6787`, code review `19d2fdf`, live review `2dc5841` and
 final proofread `d022176`. All eleven delivered Go modules pass package discovery.
 Initial runs and later local revisions retain separate identities. The tag points
-to `54d7b1d`. Fresh CLI student `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0` is now
-planning Chapter 10 from that predecessor and twelve pinned new-only sources.
-No runtime changes or paid calls are released until the appropriate later gates.
+to `54d7b1d`. Fresh CLI student `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0` completed
+the Chapter 10 plan at `7cb8429` from twelve pinned new-only sources. Independent
+ownership review and author answers to three concrete teaching questions are
+pending. No runtime changes or paid calls are released until the appropriate gates.
 See [chapter-10-validation.md](chapter-10-validation.md).
 
 The scoped Chapter 6 streaming correction is accepted at `edition-2-ch06-r2`
@@ -96,10 +97,10 @@ closure `88de827` and coordinator contract acceptance `4a2f8df`; see
 [chapter-13-validation.md](chapter-13-validation.md).
 Chapter 11 protocol/fixture foundation `c80af0a` is independently accepted at
 `d13346c`, with runtime coverage explicitly pending. Chapter 14 research and
-outline `9758e89` have advisory review `3a6ae52`. Full draft `349aa64` and evidence
-correction `2076cc1` are under independent review; see
-[chapter-14-validation.md](chapter-14-validation.md). No accepted full contract
-or student implementation exists yet. Earlier streaming-correction revisions are listed
+outline `9758e89` have advisory review `3a6ae52`. Full draft `349aa64` and grouped
+correction `b951524` have independent closure `674b9a2` and coordinator contract
+acceptance; see [chapter-14-validation.md](chapter-14-validation.md). No checker,
+student implementation or live result exists yet. Earlier streaming-correction revisions are listed
 above; original tags remain unchanged.
 Bill and CodeRhapsody are separately writing a new first-edition sandboxing
 chapter. Preserve that work; review it as a future source when available, without
