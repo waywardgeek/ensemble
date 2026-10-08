@@ -210,3 +210,185 @@ Disposition: recommended direction supported, with the intersections above to
 be settled and printed before a full contract/checker. This review deliberately
 does not prescribe private API names, a complete codec or unprinted numerical
 thresholds, and does not claim Chapter 15 acceptance.
+
+## Complete first-draft review
+
+Reviewed author freeze `a9fd1658b6a38613bdc182791374276e5f755b18` against
+coordinator decisions `f64805961f303ab11729d471c198c612ae651324` and the advisory
+above. The complete 773-line chapter and full draft additions to outline/evidence
+were read; the earlier preparation remains loaded and preserved. Working author
+files match the freeze. Current full voice/procedure and architecture remained
+loaded, with no intervening compaction. Focused new-contract reads rechecked
+Chapter 2's typed parts/provenance, Chapters 5/6 request captures, Chapter 8's
+effective turn cap, and the already-reviewed Chapter 9–14 boundaries.
+
+For historical story verification this pass read complete old Chapter 16 and the
+full commit messages of `9d7fa166bb3d0b7a3fd2fb0e146ea8521e016e3e` and
+`ca5d60fe7ea1316623ae96aa8f84b2f9ce4380b4`. Embedded old teaching examples
+are disclosed prose exposure. No historical implementation or grader source was
+opened or executed. This remains independent author/contract review, not a cold
+student attempt, runtime review or implementation validation.
+
+### D1–D8 assessment
+
+The finite graph, explicit input authority and ownership direction follow the
+coordinator decisions. Profile/curated are bounded operator inputs; generated
+session/recent/older form a finite chain with terminal capacity. Refresh applies
+a complete captured set, preserving IDs, changing versions, recording removals
+and acknowledging unchanged bytes without a new event. Visibility is a separate
+durable content operation. Paths may relocate without rewriting accepted text.
+
+One memory_changed fact commits source retirement and installation; export follows
+from committed bytes in an exclusively owned bounded area. Partial export failure
+is visible and retry spends no model call. The Memory service owns file resources,
+Actor owns one operation/worker and accepted content, Engine owns transport/usage,
+EventLog owns append, and SessionStore owns locking/checkpoints. No sibling bag,
+second mutable conversation or extra Agent is introduced.
+
+Operations have finite attempt/total deadlines and caps, responsive controls,
+joined cancellation, reliable completion and distinct usage/replacement/disposition
+facts. Unfinished operations remain busy for checkpoint and fail closed on resume.
+Accepted usage can survive a refused replacement without claiming rollback.
+The separate attempt start preserves the difference between paid admission and
+a usable memory; missing usage is not invented as zero.
+
+Source is represented work after the Chapter 14 handoff, with whole segments,
+newest/current protection, preserved manual/hint/instruction anchors and no hidden
+log/artifact/MCP fetch. Pressure retains the prompt, ends the turn with a stable
+outcome and makes no blocked HTTP request. It preserves Skills' union and gives
+the reader idle recovery without silently resending text. Free public handoff,
+explicit paid idle compression and opt-in model-turn scheduling are distinguished.
+
+Fresh v5 identity, initializer/anchor agreement, memory watermark, strict policy
+v3 and old-profile paths follow D7. Memory capability implies context capability,
+while visibility, scheduling and context maintenance remain separate controls.
+No new Registry handler or implicit shipped-catalog replacement is required.
+The remaining findings below concern exact spending, retained bytes, source
+protection, wire definitions and the usable demonstration sequence.
+
+### Grouped consequential findings
+
+**R1 — Zero selects the inherited default, not unlimited requests.** In §15.6,
+“A turn limit of zero keeps its inherited unlimited meaning” directly contradicts
+Chapter 8's named effective default of 16 and Chapter 14's preservation of that
+policy. Both foreground and turn-owned helper starts must consume the same
+captured *effective* allowance. Raw max_model_requests=0 still means 16; idle
+compression alone has its separately captured max_helpers allowance. Correct the
+sentence and preserve the already-taught budget-before-pressure precedence.
+The reviewer reported this blocker immediately; root independently agrees.
+
+**R2 — Retired helper output cannot become a hidden archive.** Section 15.8
+rightly drops source descriptors/request_body after source retirement but then
+says to keep “accepted output/usage.” After a session memory graduates to recent,
+its old helper output is that retired memory's entire text. Retaining it in every
+historical accepted response would defeat the same no-archive rule through a
+different field, including the raw response's submit arguments. Root identified
+this additional path during its independent read.
+
+State exactly which accepted-response metadata, digests, measures, provenance,
+usage and disposition remain after retirement. Retain output through references
+to represented memory versions while available; do not duplicate retired text in
+old raw responses or normalized candidate strings. Full logs keep the exact raw
+receipt. Snapshot-only state cannot authenticate or reconstruct absent original
+output; apply history_unavailable consistently when those bytes are needed.
+Provide a two-fold case so the contract checks retirement of generated memory,
+not merely retirement of the first dialogue source. This changes no usage total.
+
+**R3 — Protect signed visible text explicitly.** Section 15.5 names an opaque
+part and call-bound opaque value but Chapter 2 also has type:text with paired
+from/opaque fields, including Gemini visible text signatures. D5 protects whole
+opaque-bearing units; it must explicitly include that form. Use field presence,
+not a truthiness test on an opaque JSON value. Such a unit stays protected even
+if the current target's ordinary renderer could omit foreign signed-text metadata.
+Compression must not launder that protected source into unsigned text. Root
+independently raised this same missing case.
+
+**R4 — Complete the new neutral and nested wire grammar.** Section 15.6 introduces
+a new canonical pressure object but does not fully specify the neutral message
+role mapping or tool-definition members/order. A tool entry's human/agent/tool
+actor is not self-evidently the same as an adapter's user/assistant/tool role.
+Likewise schema versus input_schema changes the measured bytes. Define exact
+neutral message members/role values, ordered typed-part inclusion and the exact
+definition object plus sort order. Reuse Chapter 2's published Part schema by
+reference; no duplicate alternative part grammar is needed. Define exactly which
+decoded text fields/wrappers contribute to segment scheduling and quarter-size
+reduction, so a working-note wrapper cannot count differently in two implementations.
+
+Section 15.7 also calls config “ordinary captured provider/model/output
+configuration” and provenance an “inherited requested/producing object,” while
+declaring every nested object strict. The inherited contract gives provenance
+triples and requested/from/model_reported fields, not a single unambiguous new
+object with that name. Print the complete safe nested grammar, or explicitly
+delegate a documented predecessor-compatible representation before checks.
+Do not serialize wholesale Config, route credentials or private runtime state.
+An independent checker needs to reconstruct exact bodies and distinguish
+requested versus producing identity without inventing names after implementation.
+
+Finally, §15.9's memory_export_ack says its exact members omit code, then calls
+code required. Include code in the exact list (or choose one consistent shape).
+This is a small part of the same public-wire precision correction, not a request
+for a different ownership design. Root agrees the new objects need this exactness.
+
+**R5 — Initialize the demonstration's applied inputs and context policy.**
+The fresh §15.10 command selects capability but context.enabled defaults false.
+Its next idle handoff therefore returns inherited context_disabled. Print the
+explicit `/context on` step (and applied acknowledgement) before that handoff,
+or an explicitly selected compatible enabled policy. Explain that an already
+eligible source can be compressed independently of future context maintenance;
+the memory flag alone does not enable handoff.
+
+The later instruction to edit a “currently applied” external entry also lacks
+the initial file creation and refresh. Construction intentionally performs no
+scan. Supply a small complete initial manifest and explicit refresh before
+claiming the next request used that version, then edit/refresh/restart as planned.
+Keep the zero-model handoff observation, and explicitly enable automatic memory
+scheduling only for the separate model-tool demonstration. These are reader-path
+corrections, not requests for a paid repetition before implementation exists.
+
+R1–R5 must be resolved before full contract closure/student release. They can
+land in one compatible author revision. No additional architecture redesign or
+runtime experiment is needed to settle them.
+
+### Story, examples and scope
+
+The opener's memory-correction account agrees with old §16.8 and both scoped
+commit messages: identity-only presence reused stale text, then a test had to edit
+an actually represented memory rather than its superseded source. The chapter
+labels these repository findings, not a freshly reproduced user session. This
+review corroborates the written record, not the old runtime. Dropping the old
+ranking/internal-paper claims and guaranteed information-preservation language
+is justified. The new explicit refresh story resolves the reader's practical
+question while preserving earlier request evidence.
+
+The recurring configuration correction, illustrative selection and explicit
+lossiness keep a person/task on the page despite the linter's whole-chapter
+person-gap warning. No invented dialogue, provider benchmark, cache guarantee
+or successful memory demonstration was found. The prospective imported near-
+threshold live fixture is honestly distinguished from a wholly generated long
+conversation and can support bounded actual graduation without paying for every
+upstream fold. A concrete reviewed feature/action/call-budget matrix is still
+required before spending; the prose plan is not that release.
+
+Manual literal-example review checked all fourteen JSON blocks, the identical
+decoded SOURCE descriptor text in the three adapter fragments, the memory wrapper
+examples and their stated limits. The 72,000-byte illustration removes two 24,000
+units to leave 24,000 below 32,768; its 6,000-byte output is below both 8,192 and
+one quarter of selected 48,000. Sixteen maximal 8,192-byte entries equal the
+131,072 terminal capacity. These are arithmetic/rendering examples, not executed
+Ensemble checks. Automated JSON parsing remains the author's reported check;
+this reviewer wrote no fixture parser. The retained prose executable independently
+passes all hard rules at 6,168 words, with soft negation/person-gap warnings.
+
+Frozen hashes:
+
+- chapter-15.md: `dc405b9ec805cf44ebfe39f460bc455d880a2b5a71f0b5bc763ef12a289e87a4`.
+- chapter-15-outline.md: `8374a696943b0c9ef31c85227bad42ceecd50f8d77f5cf12a56368ac686f1bf4`.
+- chapter-15-evidence.md: `ed1d3a44c2f49b794464ea548bddf936b120c91025d42f1ce45c5277594b311f`.
+- chapter-15-decisions.md: `a3736c971457ebf8acb3840125a95d970875c9c73020dccc2d1ab02b2deeaa94`.
+- Old chapter-16.md: `4e8bb1ce58f73aa64b71b5fd57e531460e64d80ca6b2f1e934a1e222deb77791`.
+
+Disposition: complete first-draft review, awaiting grouped R1–R5 correction.
+No implementation, grader, provider call, new build or successful live outcome
+is claimed. The independent runnable acceptance command remains pending before
+student release; final implementation, comparative review and actual evidence
+remain separate future gates.
