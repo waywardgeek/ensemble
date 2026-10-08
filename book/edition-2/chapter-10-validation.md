@@ -10,10 +10,10 @@ Bill's editorial approval is separate from technical acceptance.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
-| Contract | Author, coordinator | Draft `9181683`, clarifications `6cf8660`/`b4e3fb7` and inherited hint-state clarification `8f24360` accepted; see chapter-10-review.md | Retain exact compatibility and semantic-state obligations |
-| Independent checks | `/root/grader_ch05` | Initial command `dfb4a72`; eleven canonical examples, one outer positive and eighteen intended refusals pass; predecessor passes 3 standalone controls with 90 expected feature absences. Remaining preparation resumed against published grammar/API `44056d1` | Extend semantic/public/browser coverage; genuine student-export positives are still pending |
+| Contract | Author, coordinator | Initial contract and Q1–Q3 accepted; Unicode-scalar clarification `cf73a64` has narrow proofreading closure `17a6356` | Retain exact compatibility, raw-byte and semantic-state obligations |
+| Independent checks | `/root/grader_ch05` | Initial command `dfb4a72`; public runner `c8c5ec3` and semantic generator `939b05a` prepare nine further groups. Generator-only controls pass; runtime groups are unrun | Extend client/lifecycle/limits coverage and establish genuine student-export positives before mutation claims |
 | Fresh student and owner plan | Fresh CLI student `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0`, coordinator, independent reviewer | Plan `7cb8429` accepted at `72bf621`; answers `af5a762` proofread at `6766995`, fully acknowledged by student at `44056d1` | Preserve new-only read ledger and route new teaching gaps before affected code |
-| Implementation and local gates | Same student, grader | Phase 2 running; complete nested grammar, public signatures and milestone status published at `44056d1`; no runtime acceptance yet | Implement and validate full contract/inherited behavior; coordinate explicit format/API changes |
+| Implementation and local gates | Same student, grader | Phase 2 running; grammar/API `44056d1`, dispatch/result witness correction and Unicode acknowledgment `81aa8cf`; no runtime acceptance yet | Implement and validate full contract/inherited behavior; coordinate explicit format/API changes |
 | Actual use | Future student, reviewer | Not started | Review bounded plan, then real CLI/browser/public all-provider demonstrations |
 | Historical comparison and revisions | Independent reviewer | Not started | Preserve initial source, runs and teaching review first |
 | Manuscript and feedback | Author, student, proofreader | Draft labels actual spin pending | Reconcile actual evidence and resolve student feedback |
@@ -45,3 +45,24 @@ complete revised chapter and plan and accepts the published Q1–Q3 resolutions.
 Private validation owners must remain inert until validation succeeds, and GUI
 delivery waits must release with their connection without blocking Actor or the
 checkpoint worker. These are ownership safeguards, not extra public API names.
+
+The early review found two implementation/design omissions: saved call state
+needed dispatch/result sequence positions to prove limit-fact ordering, and a
+checkpoint worker initially held a concrete Store parent. The student classifies
+both as its own deviations from the published requirements at `81aa8cf`, adds
+the required coordinates to the grammar and accepts the common parent-interface
+correction. The coordinator separately found the escaped-Unicode teaching gap;
+`cf73a64` and the student's new-only acknowledgment preserve that attribution.
+These early corrections are not a completed runtime or historical comparison.
+
+Additional black-box command, supplied to the student without fixture source:
+
+```sh
+python3 scripts/edition2/accept_ch10_public.py solutions/edition-2/main --receipt RECEIPT.json
+```
+
+Its nine prepared groups and generator-only controls do not replace the initial
+checker or complete the matrix. The initial predecessor evidence remains three
+standalone passes and ninety expected missing-session features, not student
+failures. Genuine runtime positives, intended negative controls and full local
+acceptance are still pending.

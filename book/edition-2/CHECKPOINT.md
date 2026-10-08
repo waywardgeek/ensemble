@@ -17,7 +17,11 @@ pin: `clarification-af5a762`. No credentials or provider calls are authorized in
 this phase. Milestone `44056d1` publishes complete persistence-format.md and
 session-api.md plus full student acknowledgment. Root read both; the independent
 grader is preparing remaining coverage against those seams, with genuine runtime
-positives still pending. The student continues implementation.
+positives still pending. Student `81aa8cf` acknowledges published Unicode
+clarification `cf73a64` (review `17a6356`) and adds dispatch/result witnesses to
+its grammar. The common Store-parent correction is also acknowledged. The new
+public checker `c8c5ec3`/`939b05a` is supplied through the inbox; nine groups are
+prepared, not runtime-validated. The student continues implementation.
 Do not start a competing worker or resume paid Chapter 9 demonstrations.
 Chapter 14 correction `b951524` has independent closure `674b9a2` and coordinator
 contract acceptance. It has no checker, implementation or actual spin yet.
