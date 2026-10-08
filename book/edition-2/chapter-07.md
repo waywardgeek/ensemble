@@ -274,10 +274,18 @@ the server must make the decision. The [WebSocket server guide](https://develope
 explains that boundary and the limits of Origin outside browsers.
 
 Use one UTF-8 JSON object per WebSocket text message, at most 65,536 bytes for
-an incoming command. Reject binary frames, malformed JSON, unknown command
-fields and invalid known fields without contacting the model. Close malformed
-transport with an explanatory static reason. A well-formed command refused by
-the Agent gets a correlated error and leaves the connection usable.
+an incoming command. Binary frames, invalid UTF-8, malformed JSON, an oversized
+message or a non-object value close the connection with an explanatory static
+reason, without contacting the model. A missing, empty or non-string command
+`id` also closes: the server cannot return the required correlation safely.
+
+A JSON object with a usable nonempty string `id` can contain a correctable
+command error. An unknown command or field, a missing required command field,
+or an invalid field value gets a correlated `invalid_command` error and leaves
+the connection usable. The same is true of a well-formed command refused by
+the Agent, using its appropriate error code. None of these refusals contacts
+the model. This distinction lets a client correct a command without treating
+a broken transport message as an admitted request.
 
 Each command has a nonempty client-generated `id`, unique on that connection.
 The server remembers accepted command IDs until disconnect and refuses reuse;
