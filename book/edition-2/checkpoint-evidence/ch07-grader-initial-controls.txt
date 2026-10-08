@@ -1,0 +1,11 @@
+test_ack_before_observation_refusal (test_accept_ch07.Controls.test_ack_before_observation_refusal) ... ok
+test_credential_refusal (test_accept_ch07.Controls.test_credential_refusal) ... ok
+test_empty_range_refusal (test_accept_ch07.Controls.test_empty_range_refusal) ... ok
+test_generation_and_watermark_refusal (test_accept_ch07.Controls.test_generation_and_watermark_refusal) ... ok
+test_pause_positive_and_cause_refusal (test_accept_ch07.Controls.test_pause_positive_and_cause_refusal) ... ok
+test_snapshot_positive (test_accept_ch07.Controls.test_snapshot_positive) ... ok
+
+----------------------------------------------------------------------
+Ran 6 tests in 0.000s
+
+OK
