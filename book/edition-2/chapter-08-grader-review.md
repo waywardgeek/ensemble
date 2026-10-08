@@ -71,3 +71,72 @@ shared grader; earlier legacy evidence remains separately attributed.
 
 Publish additional commands as those independent surfaces are prepared. The
 initial invocation does not waive §8.9 or permit a validated Chapter 8 tag.
+
+## Independent strict-validation preparation
+
+The independent Chapter 7 grader/reviewer resumed Chapter 8 preparation after
+the new contract, architecture and entire coding skill were reread. No Chapter 8
+student exists at this milestone; no Chapter 8 runtime or historical settings
+implementation was opened or edited. The six-group checker remains unchanged.
+
+The additional partial command is:
+
+```sh
+python3 scripts/edition2/accept_ch08_validation.py GUI_BINARY
+```
+
+It first requires a working nondefault complete-file startup. Only then can it
+credit negative file or patch tests. There are 54 preference-file fixtures and
+33 policy-file fixtures, including exact 65,536-byte valid inputs with identical
+JSON meaning to their one-byte-over refusals. Other cases distinguish missing,
+null, wrong-type, range, unknown, duplicate, version, revision, UTF-8 and trailing
+input failures. Single-member value fixtures retain all required unrelated
+members and avoid accidental duplicate keys; a duplicate-key parser failure
+cannot mask the intended range test. Invalid files must fail before listening,
+produce a safe reason and remain byte-identical. A timeout or generic failed
+fixture is not credited as the intended refusal.
+
+The subscribed patch sequence checks 24 preference and eight policy member
+refusals, unchanged persisted bytes, a fresh snapshot of the unchanged state,
+and valid false/zero recovery on the same connection. Raw duplicate members
+are sent without normalizing them through a dictionary encoder. The local
+backend counts forbidden model requests across the sequence.
+
+The [preparation receipt](checkpoint-evidence/ch08-validation-checker-preparation.json)
+records all six preceding assertion tests passing before this addition, then
+all 11 old/new assertion and fixture tests passing. The deliberate
+`/usr/bin/false` run fails at the required positive startup; it credits no file
+refusal. There is still **no end-to-end Chapter 8 positive**. These checker
+assertion controls do not substitute for later implementation deletion controls.
+
+Remaining validation includes command-shape errors, unreadable/non-file paths,
+same-path owner claims, extreme numeric input, persistence failures and all
+public/browser behavior below. The new checker is not advertised as complete.
+
+## Remaining acceptance plan before a student answer
+
+The next public fixtures will adapt to the student's declared public names,
+after the coordinator checks its ownership plan. They will use external
+consumers to observe separate Agent policies, owned getters, no-path memory
+mode, persistence identity and actual actor capture. A scripted local model
+will distinguish limits 1, 16 and 17, a complete final tool batch, held active
+HTTP and a queued turn activated after a policy update. Accepted effects and
+historical request reconstruction must survive unchanged.
+
+Persistence and concurrency probes will hold the writer at explicit boundaries
+to distinguish old applied state from a committed replacement, concurrent
+same-base updates, independently progressing domains, responsive controls,
+close/join and each pre-replace failure. Positives must reach the intended
+write stage before a mutation can establish its failure. Actual source
+inspection will confirm the owners and synchronization; a named interface
+alone is insufficient.
+
+Real Chrome probes will reuse the accepted Chapter 7 browser controls and add
+two panes, mixed typed parts, theme/font/width application, pointer and keyboard
+resizing, remote settings and stale-socket rejection. Controlled speech will
+distinguish buffered automatic text from queued utterances, preserve each
+queued revision/rate, keep current work through shared disable, and retain
+Page-local cancellation under the accepted document speech owner. Audible
+synthesis and actual three-provider CLI/browser/public use remain separate
+live requirements. Historical comparison begins only after the new student's
+initial source, user runs and teaching experience are frozen.
