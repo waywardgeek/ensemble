@@ -267,3 +267,45 @@ coordinator received the exact finding; any repair must preserve the published
 purpose-specific raw replay/semantic equality distinction, rather than accepting
 all snapshot/prefix differences. This reproduction uses the preserved initial
 binary, not a claim about the evolving replacement source.
+
+### CLI and WebSocket lifetime preparation
+
+The committed `81aa8cf` codec grammar now supplies required CalledAt and
+ReturnedAt witnesses with response/dispatch/result ordering. This resolves the
+reported missing-witness preparation block; genuine positive limit snapshots
+and repaired-hash ordering mutations remain to be exercised.
+
+A separate command is ready for coherent CLI and GUI binaries:
+
+```sh
+python3 scripts/edition2/accept_ch10_clients.py CLI_BINARY GUI_BINARY \
+  --source-directory solutions/edition-2/main --receipt RECEIPT.json
+```
+
+Its nine prepared groups cover human /session and /checkpoint with quit/EOF;
+WebSocket checkpoint publication before the correlated acknowledgement and
+reconnect; standalone checkpoint refusal; actual held-HTTP busy capture followed
+by a settled successful save; GUI terminal EOF detachment; SIGINT, SIGTERM and
+SIGKILL with a genuine mounted writer, refused second writer, retained lock inode
+and successful subsequent mount; and an actual local run_command whose restored
+job remains historical with live=false. The job fixture requires accepted output
+and two real local HTTP requests before it tests restart. It then requires no
+new HTTP, no rewritten accepted log, and no invented job_killed on historical
+close. It does not claim running-job import, stale supervision or allocator-floor
+coverage from this single completed-job path.
+
+The runner records both executable hashes, supplied Go/module/API/grammar and
+browser-asset hashes, and its helper hashes before/after execution. A source map
+alone does not prove that an executable was built from that source; the immutable
+build gate must establish their association. It makes no credential reads or
+provider calls. None of these nine runtime groups has yet been run against a
+student binary. The [preparation receipt](checkpoint-evidence/ch10-client-preparation.json)
+binds three passing oracle-only test methods, including seven intended
+checkpoint-order/identity refusals and four session-shape/type refusals. Synthetic
+records used there are checker controls, not simulated Ensemble acceptance.
+
+Actual browser DOM labels/controls, imported running/done/killed cards, native
+speech non-restoration, stale-job admission, checkpoint worker/fault concurrency,
+full storage bounds and implementation deletion controls remain open. Existing
+public and initial CLI coverage is retained; this milestone does not complete
+the `e693e04` matrix or substitute for a real user-facing spin.
