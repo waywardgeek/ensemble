@@ -254,6 +254,11 @@ reason; prose/evidence-only repairs need no repeated paid call unless they
 invalidate the demonstration. Retained earlier runs keep their original source
 identity. These rules preserve all required checks and live feature coverage.
 
+Start each verifier negative control from a passing, valid-path fixture. Change
+one intended identity and require its specific refusal before derived writes.
+A source-hash mutation rejected earlier for an escaping path proves only the
+path guard; do not count it as evidence that source identity was checked.
+
 Deterministic fake-server grading and mutation audits remain required where
 specified. They complement live demonstrations; neither replaces the other.
 A deliberately stubbed GUI must be labeled as such, never reported live-tested.

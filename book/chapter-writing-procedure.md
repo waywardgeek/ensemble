@@ -321,6 +321,10 @@ replay or derived write, including identities for the last provider in a batch.
 Resolve repository paths from an explicit repository root. Preserve raw
 receipts separately from derivatives.
 
+Verifier negative controls need a passing fixture with valid paths. Mutate one
+identity at a time and require the intended refusal, with originals unchanged.
+An earlier path or setup failure cannot establish a later identity check.
+
 Test all three initially supported vendors, Anthropic, OpenAI, and Gemini, as
 their adapters are introduced. A single-provider chapter tests its supported
 provider; the multi-provider chapter tests all three. Use provider discovery
