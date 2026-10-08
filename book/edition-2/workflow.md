@@ -81,6 +81,19 @@ Historical links in the coding skill are author/reviewer sources, not student
 prerequisites. If the new teaching is insufficient, repair it instead of sending
 the student to the old edition.
 
+If managed thread capacity prevents a fresh student, a separately supervised
+new CLI session can fill the role. Start a new conversation, exclude inherited
+memories and provide the same restricted handoff; never recycle an answer-exposed
+reviewer as a cold student. Record the worker's actual identity, launch inputs,
+read ledger and communication method. For Codex, a new `codex exec` starts this
+workflow; later phases resume its explicit session ID after the coordinator
+reviews its files. Disable memory injection for that invocation with
+`-c memories.use_memories=false`. These controls are documented in
+[non-interactive mode](https://learn.chatgpt.com/docs/non-interactive-mode) and
+[configuration reference](https://learn.chatgpt.com/docs/config-file/config-reference).
+This is a process boundary for context and supervision, not a filesystem access
+restriction or a promise that the managed subagent panel can steer that worker.
+
 All agents may raise questions. Route them through the coordinator with the
 question, source of ambiguity, consequence, and any recommendation. The
 coordinator asks Bill in the active conversation and relays the ruling to all
