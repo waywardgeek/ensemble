@@ -123,9 +123,6 @@ func (a *Agent) watermarks(cursor uint64) common.Watermarks {
 			w.Job = h
 		}
 	}
-	if w.Job < a.restoredJobFloor {
-		w.Job = a.restoredJobFloor
-	}
 	return w
 }
 func (a *Agent) captureSession(cursor uint64) (common.Checkpoint, error) {
@@ -309,6 +306,7 @@ func (a *Agent) installState(cp common.Checkpoint, live bool) error {
 	} else if snap.Skills != nil || c.SkillMode || c.SkillPrimary != "" {
 		return bad("plain session contains skill state")
 	}
+	llm.ReindexContext(a.engine, &c)
 	if err = llm.ValidateSemantic(a.engine, c); err != nil {
 		return err
 	}
@@ -337,10 +335,9 @@ func (a *Agent) installState(cp common.Checkpoint, live bool) error {
 	a.eventCount = snap.Window.EventCount
 	a.renderableCount = snap.Window.RenderableCount
 	w := a.watermarks(c.RequestCursor)
-	if w.Event != cp.HighWatermarks.Event || w.Request != cp.HighWatermarks.Request || w.Activation != cp.HighWatermarks.Activation || w.Job > cp.HighWatermarks.Job {
+	if w.Event != cp.HighWatermarks.Event || w.Request != cp.HighWatermarks.Request || w.Activation != cp.HighWatermarks.Activation || w.Job != cp.HighWatermarks.Job {
 		return bad("semantic watermarks disagree with durable maxima")
 	}
-	a.restoredJobFloor = cp.HighWatermarks.Job
 	return nil
 }
 func sameJSON(codec common.SessionCodec, a, b any) bool {
@@ -536,9 +533,11 @@ func (e *Ensemble) openSession(imported []byte, options SessionOptions) (_ *Agen
 	}
 	e.nextAgent++
 	a.id = fmt.Sprintf("agent-%d", e.nextAgent)
+	// Startup performs no I/O and all validation is complete. Publish only
+	// after the actor pointer is installed so readers cannot see a partial Agent.
+	a.actor = llm.NewActor(turnAgent{a})
 	e.agents[a.id] = a
 	e.mu.Unlock()
-	a.actor = llm.NewActor(turnAgent{a})
 	good = true
 	return a, nil
 }
@@ -631,12 +630,9 @@ func (a *Agent) AcceptSessionRecord(event common.Event, line int, r *common.Sess
 		if err != nil {
 			return err
 		}
-		if reduced.HighWatermarks.Event != cp.HighWatermarks.Event || reduced.HighWatermarks.Request != cp.HighWatermarks.Request || reduced.HighWatermarks.Activation != cp.HighWatermarks.Activation || reduced.HighWatermarks.Job > cp.HighWatermarks.Job {
+		if reduced.HighWatermarks.Event != cp.HighWatermarks.Event || reduced.HighWatermarks.Request != cp.HighWatermarks.Request || reduced.HighWatermarks.Activation != cp.HighWatermarks.Activation || reduced.HighWatermarks.Job != cp.HighWatermarks.Job {
 			return bad("checkpoint watermarks mismatch")
 		}
-		reduced.HighWatermarks.Job = cp.HighWatermarks.Job
-		reduced.State.Session.HighWatermarks.Job = cp.HighWatermarks.Job
-		a.restoredJobFloor = cp.HighWatermarks.Job
 		if cp.State != nil {
 			// Compare strict wire values: raw JSON is stored as strings, so canonical
 			// semantic numbers never erase its exact recorded replay spelling.

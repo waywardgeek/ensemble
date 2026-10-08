@@ -5,9 +5,12 @@ import (
 	"errors"
 	"example.com/ensemble/internal/common"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -102,5 +105,139 @@ func TestSessionCaptureTailAndCanceledWait(t *testing.T) {
 	}
 	if err = a.Close(); err != nil {
 		t.Fatal("repeated close", err)
+	}
+}
+
+func TestSessionUnsupportedWatermarksRefuseBeforeImport(t *testing.T) {
+	root := New(io.Discard)
+	defer root.Close()
+	dir := t.TempDir()
+	options := SessionOptions{Config: Config{DataDir: filepath.Join(dir, "original"), Model: "fixture", APIKey: "fixture", Workspace: dir}}
+	a, err := root.OpenSession(options)
+	if err != nil {
+		t.Fatal(err)
+	}
+	export, err := a.ExportCheckpoint()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = root.InspectCheckpoint(export.Bytes); err != nil {
+		t.Fatal("positive parent", err)
+	}
+	if err = a.Close(); err != nil {
+		t.Fatal(err)
+	}
+	for _, field := range []string{"job", "activation"} {
+		t.Run(field, func(t *testing.T) {
+			cp, err := a.codec.Decode(export.Bytes)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if field == "job" {
+				cp.HighWatermarks.Job = 1
+			} else {
+				cp.HighWatermarks.Activation = 1
+			}
+			cp.State.Session.HighWatermarks = cp.HighWatermarks
+			raw, err := a.codec.Encode(cp)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var problem *SessionError
+			if _, err = root.InspectCheckpoint(raw); !errors.As(err, &problem) || problem.Code != "session_corrupt" {
+				t.Fatalf("unsupported maximum: %v", err)
+			}
+			dest := filepath.Join(dir, field)
+			options.Config.DataDir = dest
+			if _, err = root.ImportSession(raw, options); !errors.As(err, &problem) || problem.Code != "session_corrupt" {
+				t.Fatalf("import: %v", err)
+			}
+			for _, name := range []string{"origin.json", "checkpoint.json", "events.log"} {
+				if _, err = os.Stat(filepath.Join(dest, name)); !os.IsNotExist(err) {
+					t.Fatalf("refused import wrote %s: %v", name, err)
+				}
+			}
+		})
+	}
+}
+
+func TestSessionAcceptedJobTailDuringCheckpoint(t *testing.T) {
+	var requests atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if requests.Add(1) == 1 {
+			io.WriteString(w, `{"model":"fixture","content":[{"type":"tool_use","id":"worker","name":"run_command","input":{"command":"while [ ! -e release-worker ]; do sleep 0.01; done; printf finished","ai_callback_delay":0}}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+		} else {
+			io.WriteString(w, `{"model":"fixture","content":[{"type":"text","text":"job retained"}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+		}
+	}))
+	defer server.Close()
+	root := New(io.Discard)
+	defer root.Close()
+	dir := t.TempDir()
+	a, err := root.OpenSession(SessionOptions{Config: Config{DataDir: filepath.Join(dir, "session"), Workspace: dir, Vendor: "anthropic", Model: "fixture", APIKey: "fixture", BaseURL: server.URL, DisableStreaming: true, Builtins: []string{"run_command"}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = a.Ask(context.Background(), "start controlled worker"); err != nil {
+		t.Fatal(err)
+	}
+	before := a.Snapshot()
+	if len(before.Jobs) != 1 {
+		t.Fatal("no actual job")
+	}
+	var handle uint64
+	for h, j := range before.Jobs {
+		handle = h
+		if j.Status != "running" {
+			t.Fatal("positive parent is not running")
+		}
+	}
+	gate := &gatedSessionCodec{SessionCodec: a.codec, entered: make(chan struct{}), release: make(chan struct{})}
+	a.codec = gate
+	released := false
+	defer func() {
+		if !released {
+			close(gate.release)
+		}
+	}()
+	saved := make(chan error, 1)
+	go func() { _, err := a.Checkpoint(); saved <- err }()
+	<-gate.entered
+	if err = os.WriteFile(filepath.Join(dir, "release-worker"), nil, 0600); err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.After(3 * time.Second)
+	for a.Snapshot().Jobs[handle].Status == "running" {
+		select {
+		case <-deadline:
+			t.Fatal("accepted job event parked behind checkpoint worker")
+		default:
+			time.Sleep(time.Millisecond)
+		}
+	}
+	if a.Snapshot().LastSeq <= before.LastSeq {
+		t.Fatal("worker state was mistaken for accepted tail")
+	}
+	close(gate.release)
+	released = true
+	if err = <-saved; err != nil {
+		t.Fatal(err)
+	}
+	raw, err := os.ReadFile(filepath.Join(dir, "session/checkpoint.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	inspected, err := root.InspectCheckpoint(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if inspected.Boundary().LogSeq != before.LastSeq || inspected.Snapshot().Jobs[handle].Status != "running" {
+		t.Fatal("checkpoint captured racing worker state")
+	}
+	if err = a.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if requests.Load() != 2 {
+		t.Fatal("unexpected model requests", requests.Load())
 	}
 }

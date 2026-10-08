@@ -1,6 +1,7 @@
 package persistence
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/json"
 	"example.com/ensemble/internal/common"
@@ -63,6 +64,9 @@ func (c *Codec) wire(v reflect.Value, semantic bool) (any, error) {
 		}
 		return out, nil
 	case reflect.Slice:
+		if v.Len() > CollectionLimit {
+			return nil, c.bad("semantic collection limit")
+		}
 		out := make([]any, 0, v.Len())
 		for i := 0; i < v.Len(); i++ {
 			x, err := c.wire(v.Index(i), false)
@@ -73,6 +77,9 @@ func (c *Codec) wire(v reflect.Value, semantic bool) (any, error) {
 		}
 		return out, nil
 	case reflect.Map:
+		if v.Len() > CollectionLimit {
+			return nil, c.bad("semantic collection limit")
+		}
 		out := map[string]any{}
 		it := v.MapRange()
 		for it.Next() {
@@ -265,6 +272,8 @@ func (c *Codec) unwire(x any, v reflect.Value, semantic bool) error {
 func (c *Codec) Encode(cp common.Checkpoint) ([]byte, error) {
 	// Generic struct serialization is used only after conversion to the strict
 	// wire grammar; raw fields have become strings and own their original bytes.
+	snapshot := cp.State
+	cp.State = nil
 	root, err := c.wire(reflect.ValueOf(cp), false)
 	if err != nil {
 		return nil, err
@@ -272,30 +281,24 @@ func (c *Codec) Encode(cp common.Checkpoint) ([]byte, error) {
 	obj := root.(map[string]any)
 	obj["state"] = nil
 	obj["state_sha256"] = nil
-	if cp.State != nil {
-		state, err := c.wire(reflect.ValueOf(*cp.State), false)
+	if snapshot != nil {
+		state, err := c.wire(reflect.ValueOf(*snapshot), false)
 		if err != nil {
 			return nil, err
 		}
-		raw, err := json.Marshal(state)
-		if err != nil {
-			return nil, c.bad("cannot encode state")
-		}
-		canonical, err := c.Canonical(raw)
-		if err != nil {
+		var canonical bytes.Buffer
+		if err := c.canonicalValue(&canonical, state); err != nil {
 			return nil, &common.SessionError{Code: "session_limit", Detail: "canonical state limit or invalid state"}
 		}
 		obj["state"] = state
-		obj["state_sha256"] = fmt.Sprintf("%x", sha256.Sum256(canonical))
+		obj["state_sha256"] = fmt.Sprintf("%x", sha256.Sum256(canonical.Bytes()))
 	}
-	raw, err := json.Marshal(obj)
-	if err != nil {
-		return nil, c.bad("cannot encode checkpoint")
-	}
-	if len(raw)+1 > FileLimit {
+	var output bytes.Buffer
+	if err = c.writeJSON(&output, obj, false, FileLimit-1); err != nil {
 		return nil, &common.SessionError{Code: "session_limit", Detail: "checkpoint file exceeds 512 MiB"}
 	}
-	return append(raw, '\n'), nil
+	output.WriteByte('\n')
+	return output.Bytes(), nil
 }
 func (c *Codec) Decode(raw []byte) (common.Checkpoint, error) {
 	var cp common.Checkpoint
@@ -321,7 +324,7 @@ func (c *Codec) Decode(raw []byte) (common.Checkpoint, error) {
 	if cp.Version != 1 || cp.StateVersion != 1 {
 		return cp, c.bad("unsupported checkpoint version")
 	}
-	if cp.AsOf == 0 || cp.HighWatermarks.Event != cp.AsOf || !hexadecimal(cp.SessionID, 32) {
+	if cp.AsOf == 0 || cp.HighWatermarks.Event != cp.AsOf || !c.hexadecimal(cp.SessionID, 32) {
 		return cp, c.bad("invalid checkpoint boundary")
 	}
 	if err = c.Identity(cp.Identity); err != nil {
@@ -333,18 +336,15 @@ func (c *Codec) Decode(raw []byte) (common.Checkpoint, error) {
 		}
 		return cp, nil
 	}
-	if cp.StateSHA256 == nil || !hexadecimal(*cp.StateSHA256, 64) {
+	if cp.StateSHA256 == nil || !c.hexadecimal(*cp.StateSHA256, 64) {
 		return cp, c.bad("invalid state hash")
 	}
-	encoded, err := json.Marshal(state)
-	if err != nil {
-		return cp, c.bad("invalid state")
-	}
-	canonical, err := c.Canonical(encoded)
+	var canonical bytes.Buffer
+	err = c.canonicalValue(&canonical, state)
 	if err != nil {
 		return cp, err
 	}
-	if fmt.Sprintf("%x", sha256.Sum256(canonical)) != *cp.StateSHA256 {
+	if fmt.Sprintf("%x", sha256.Sum256(canonical.Bytes())) != *cp.StateSHA256 {
 		return cp, c.bad("state hash mismatch")
 	}
 	cp.State = &common.SemanticState{}
@@ -359,7 +359,7 @@ func (c *Codec) Decode(raw []byte) (common.Checkpoint, error) {
 	}
 	return cp, nil
 }
-func hexadecimal(s string, n int) bool {
+func (c *Codec) hexadecimal(s string, n int) bool {
 	if len(s) != n {
 		return false
 	}
@@ -376,7 +376,7 @@ func (c *Codec) Identity(id common.SessionIdentity) error {
 			return c.bad("invalid plain identity")
 		}
 	} else if id.Mode == "skills" {
-		if id.System != nil || id.Skills == nil || id.Skills.Primary == "" || !hexadecimal(id.Skills.CatalogSHA256, 64) || !hexadecimal(id.Skills.BindingsSHA256, 64) {
+		if id.System != nil || id.Skills == nil || id.Skills.Primary == "" || !c.hexadecimal(id.Skills.CatalogSHA256, 64) || !c.hexadecimal(id.Skills.BindingsSHA256, 64) {
 			return c.bad("invalid skills identity")
 		}
 	} else {

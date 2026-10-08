@@ -349,7 +349,6 @@ type Agent struct {
 	origin              *common.SemanticState
 	recent              []Event
 	renderableCount     uint64
-	restoredJobFloor    uint64
 	eventCount          uint64
 	inspectedCheckpoint *uint64
 	codec               common.SessionCodec
@@ -661,6 +660,9 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int,
 			skillCandidate, err = a.skills.PrepareRecorded(*owned.Skills)
 		}
 	}
+	if err == nil {
+		err = llm.ValidateSessionCollections(a.engine, a.context, owned)
+	}
 	var encoded common.PreparedEvent
 	if err == nil && persist && a.store != nil {
 		encoded, err = a.log.Prepare(owned)
@@ -688,6 +690,10 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int,
 		}
 	}
 	if err != nil {
+		var storage *common.SessionError
+		if persist && errors.As(err, &storage) && storage.Code == "session_limit" {
+			a.faulted = true
+		}
 		a.mu.Unlock()
 		return err
 	}

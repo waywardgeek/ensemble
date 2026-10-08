@@ -253,5 +253,11 @@ lexemes and order, decoded text/manual/signature values and opaque meaning, whil
 normalizing line formatting/escape spelling as needed. Existing record reads
 preserve their actual accepted fragments and physical sizes. Strict snapshot and
 prefix comparisons remain byte-exact for Raw. This is distinct from canonical
-hash/equality normalization. See student-review Q5 for above-maximum watermark
-wording awaiting confirmation; ordinary exact-max paths are unchanged.
+hash/equality normalization.
+
+Watermark clarification 3a9e5b7: activation/job watermarks equal maxima represented
+in complete semantic facts (zero when absent), for both full-origin and imported
+state. Retired/out-of-window facts count. Unsupported higher/lower values refuse.
+Only the request cursor can exceed recorded admissions. Ensemble's allocator is
+separate. Context.Index is derived runtime admission data and is NOT a wire field;
+strict decoding rejects an Index member. It is rebuilt once from validated state.

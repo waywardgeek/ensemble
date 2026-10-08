@@ -55,7 +55,7 @@ func (c *Codec) eventFields(value any) error {
 		return c.unwire(fields["overrides"], reflect.ValueOf(&limits).Elem(), false)
 	}
 	id, ok := fields["session_id"].(string)
-	if !ok || !hexadecimal(id, 32) {
+	if !ok || !c.hexadecimal(id, 32) {
 		return c.bad("invalid session identity")
 	}
 	if kind == "session_initialized" {
@@ -66,7 +66,7 @@ func (c *Codec) eventFields(value any) error {
 		return c.Identity(identity)
 	}
 	hash, ok := fields["origin_sha256"].(string)
-	if !ok || !hexadecimal(hash, 64) {
+	if !ok || !c.hexadecimal(hash, 64) {
 		return c.bad("invalid origin hash")
 	}
 	seq, ok := fields["origin_as_of"].(json.Number)

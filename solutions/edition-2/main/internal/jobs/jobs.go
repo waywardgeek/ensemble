@@ -15,12 +15,16 @@ import (
 )
 
 type Service struct {
-	parent  common.JobAgent
-	mu      sync.Mutex
-	jobs    map[uint64]*job
-	pending *common.LimitValues
-	closed  bool
-	fault   error
+	// Accepted limits never share the worker lock: report workers can read
+	// Agent configuration while append holds Agent state and applies limits.
+	limitsMu  sync.Mutex
+	limitSeen map[string]bool
+	parent    common.JobAgent
+	mu        sync.Mutex
+	jobs      map[uint64]*job
+	pending   *common.LimitValues
+	closed    bool
+	fault     error
 }
 type job struct {
 	inputGate  chan struct{}

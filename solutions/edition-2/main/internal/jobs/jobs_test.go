@@ -494,3 +494,63 @@ func (*testRegistry) LimitCandidate(common.Part) (common.LimitValues, error) {
 func (*testRegistry) ResolveConsumed(common.Part, *common.LimitValues) (common.Limits, string, error) {
 	return common.Limits{}, "", errors.New("not a session registry")
 }
+
+// A report holds Jobs.mu while opening its output and consulting Agent. The
+// accepted limit projection must remain usable by an append holding Agent state.
+type lockedReportAgent struct {
+	common.JobAgent
+	state   sync.Mutex
+	gate    chan struct{}
+	enabled bool
+}
+
+func (a *lockedReportAgent) Workspace() string {
+	if a.enabled {
+		close(a.gate)
+		a.state.Lock()
+		defer a.state.Unlock()
+	}
+	return a.JobAgent.Workspace()
+}
+func TestReportDoesNotBlockAcceptedLimitProjection(t *testing.T) {
+	_, base := harness(t)
+	parent := &lockedReportAgent{JobAgent: base, gate: make(chan struct{})}
+	s := New(parent)
+	defer s.Close()
+	j, err := s.Create()
+	if err != nil {
+		t.Fatal(err)
+	}
+	s.mu.Lock()
+	s.write(j.(*job), []byte("retained output"))
+	s.mu.Unlock()
+	parent.enabled = true
+	parent.state.Lock()
+	done := make(chan error, 1)
+	go func() {
+		_, e := s.PrepareReport(context.Background(), j, common.JobReport{Limits: common.Limits{Delay: 0, MaxBytes: 64}, MatchStart: -1})
+		done <- e
+	}()
+	<-parent.gate
+	projected := make(chan error, 1)
+	go func() {
+		projected <- s.ValidateLimitEvent(common.Context{Session: &common.SessionFact{}}, common.Event{Type: "job_ended"})
+	}()
+	blocked := false
+	select {
+	case err = <-projected:
+	case <-time.After(time.Second):
+		blocked = true
+	}
+	parent.state.Unlock()
+	if e := <-done; e != nil {
+		t.Fatal(e)
+	}
+	if blocked {
+		<-projected
+		t.Fatal("accepted limit projection waited on report worker lock")
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+}

@@ -515,3 +515,56 @@ continue normal exact-max paths and all other work.
 Read the complete chapter-10.md and complete chapter-10-student-feedback.md in clarification-3a9e5b7 after verifying manifest.json and exact permitted Git blobs at 3a9e5b76053535ab22906959edb14609596f8a93. SHA256 respectively 56f52e6ac8d251f6c775d226c4b6c48fec1311542d15450f3b666617584cbbaa and eb4e7faf3b711c5e628a4d2e189eb384cfed0923cb3362ab4b8bb9a902f0953e. These resolve Q5: complete semantic facts establish exact activation/job maxima, including retired/out-of-window identities in snapshot-only origins. Unsupported higher values refuse too. Only request admissions have a burned-ordinal exception. Ensemble's live job floor remains separately monotonic. I withdraw the proposed snapshot-only arbitrary job-floor relaxation and will remove it; no missing raw prefix is required.
 
 After compaction read the entire mandatory skill again (a batched display truncated its tail, so repeated a standalone complete read). Read only the authorized coordinator inbox, published pins, main source and own receipts. No excluded implementation, credential or provider reads. Coordinator and student physical-bound checks overlapped before the inbox's avoid-duplication note was seen; both were already complete, and no repeat is planned for unchanged read-side code.
+
+### Revised local checkpoint and initial experience (before historical comparison)
+
+Q1–Q5 and escaped-Unicode clarification are resolved by published new teaching.
+No unresolved architecture/teaching question remains at this local checkpoint.
+The actual difficulty was preserving the distinction between provider text before
+acceptance, exact accepted event bytes, canonical equality, and reduced state.
+The published preparation boundary resolved it without weakening exact replay.
+Q5's exact complete-state maxima now replace my withdrawn arbitrary-floor idea.
+
+The first extended public run found my actual Agent/Jobs lock cycle, not another
+teaching gap. Accepted one-shot limits now have a Jobs-owned mutex independent of
+report workers; Watch copies Agent state before consulting live ownership. A
+controlled report/Agent interleaving regression and actual job completion during
+a gated checkpoint pass under race checks. The first timeout remains preserved.
+The unchanged inherited diagnostic returned0/100 at its old GUI/startup interface;
+coordinator must assess that harness coverage independently. No checker code was
+read and its failure was not silently waived.
+
+Further self-review corrections: indexed collection/unresolved-call admission
+and limit-fact lookups avoid newly introduced repeated full-history scans; the
+index is derived, omitted from the strict codec and rebuilt once on import.
+Bounded state encoding no longer marshals/parses the same large semantic tree
+repeatedly, and prechecks escaped strings. New session parts obey their published
+closed variants. Meaningful empty tool results retain an explicit parts array at
+preparation. Skills candidate validation precedes session collection admission.
+Construction installs Actor before publishing the accepted Agent in Ensemble.
+
+Initial local test-authoring failures in this correction group: used a nonexistent
+Job.Write in the deterministic interleaving test, then corrected to the actual
+Jobs write owner; a validation-helper receiver change missed two event parser
+call sites at compile time and was corrected. No assertions were removed. All
+modules and relevant race/format checks subsequently passed.
+
+Actual additional reads since Q5: permitted main source files in ensemble.go,
+session.go, watch.go, persistence-format.md, session_test.go,
+session_lifecycle_test.go; internal/common/types.go; internal/jobs/{jobs.go,
+jobs_test.go,limits.go,limit_facts.go,report.go,process.go}; internal/llm/{events.go,
+engine.go,semantic.go,session.go,session_limits.go,watch.go,actor.go};
+internal/persistence/{codec.go,json.go,store.go,event_fields.go};
+internal/eventlog/{prepared.go,log_test.go}; targeted permitted Chapter2 reference
+lines and own retained receipts/status. Some reads were targeted ranges/searches,
+not claims to reread those whole files. Git/source hashes and go list imports are
+metadata inspections. Full Q5 chapter/direct response and entire skill reads are
+recorded above. No excluded source, credentials, real provider or other worker
+conversation was opened. The allowed coordinator inbox supplied diagnoses and
+published clarification pins; reviewer implementations were not consulted.
+
+The live matrix is a proposal only. There has been no actual Chapter10 real-model
+spin, human-participation claim, historical comparison, author feedback confirmation
+of runtime results or chapter acceptance. Independent remaining fault/allocation/
+structural coverage needs the immutable revised source checkpoint. Preserve this
+initial student experience and original failed receipts for that later review.

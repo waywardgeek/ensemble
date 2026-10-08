@@ -90,6 +90,9 @@ func partProblem(owner common.Engine, p *common.Part, result bool) string {
 	return "unknown part type"
 }
 func unresolved(owner common.Engine, c common.Context) bool {
+	if c.Index.Ready {
+		return c.Index.Unresolved != 0
+	}
 	for _, call := range c.Calls {
 		if !call.Returned {
 			return true
@@ -107,9 +110,6 @@ func CanPrompt(owner common.Engine, c common.Context) error {
 	return nil
 }
 func Validate(owner common.Engine, c common.Context, e *common.Event) error {
-	if err := sessionCollections(owner, c, *e); err != nil {
-		return err
-	}
 	bad := func(reason string) error {
 		err := &validationError{reason: reason}
 		owner.Agent().Ensemble().Logf("%s", err)
@@ -122,6 +122,25 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 	}
 	if err != nil || offset != 0 {
 		return bad("invalid UTC timestamp")
+	}
+	if c.Session != nil {
+		var parts []common.Part
+		result := false
+		if e.Message != nil {
+			parts = e.Message.Parts
+		}
+		if e.Response != nil {
+			parts = e.Response.Parts
+		}
+		if e.Tool != nil {
+			parts = e.Tool.Parts
+			result = true
+		}
+		for _, p := range parts {
+			if reason := semanticPart(owner, p, result); reason != "" {
+				return bad(reason)
+			}
+		}
 	}
 	n := 0
 	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Turn != nil, e.Hint != nil, e.Skills != nil, e.Session != nil, e.Limits != nil} {
@@ -407,6 +426,7 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 // Apply runs only after validation and durable append; it cannot fail halfway.
 // Its event is a separate owned copy so redaction cannot rewrite history bytes.
 func Apply(owner common.Engine, c *common.Context, e common.Event) {
+	c.Index = nextIndex(owner, *c, e)
 	recordSemantic(owner, c, e)
 	c.LastSeq = e.Seq
 	if c.Calls == nil {

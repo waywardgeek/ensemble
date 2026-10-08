@@ -190,7 +190,27 @@ func (c *Codec) number(s string) string {
 	}
 	return s
 }
-func (c *Codec) quoted(b *bytes.Buffer, s string) {
+func (c *Codec) quoted(b *bytes.Buffer, s string, limit int) error {
+	// Check the escaped size before growing a buffer, including a single large string.
+	n := 2
+	for _, r := range s {
+		switch r {
+		case '"', '\\', '\b', '\f', '\n', '\r', '\t':
+			n += 2
+		default:
+			if r < 32 {
+				n += 6
+			} else {
+				n += utf8.RuneLen(r)
+			}
+		}
+		if n > limit-b.Len() {
+			return c.bad("encoded JSON byte limit")
+		}
+	}
+	if n > limit-b.Len() {
+		return c.bad("encoded JSON byte limit")
+	}
 	b.WriteByte('"')
 	for _, r := range s {
 		switch r {
@@ -216,9 +236,13 @@ func (c *Codec) quoted(b *bytes.Buffer, s string) {
 		}
 	}
 	b.WriteByte('"')
+	return nil
 }
 func (c *Codec) canonicalValue(b *bytes.Buffer, v any) error {
-	if b.Len() > StateLimit {
+	return c.writeJSON(b, v, true, StateLimit)
+}
+func (c *Codec) writeJSON(b *bytes.Buffer, v any, normalize bool, limit int) error {
+	if b.Len() > limit {
 		return c.bad("canonical JSON exceeds 256 MiB")
 	}
 	switch x := v.(type) {
@@ -231,16 +255,23 @@ func (c *Codec) canonicalValue(b *bytes.Buffer, v any) error {
 			b.WriteString("false")
 		}
 	case string:
-		c.quoted(b, x)
+		return c.quoted(b, x, limit)
 	case json.Number:
-		b.WriteString(c.number(string(x)))
+		number := string(x)
+		if normalize {
+			number = c.number(number)
+		}
+		if len(number) > limit-b.Len() {
+			return c.bad("encoded JSON byte limit")
+		}
+		b.WriteString(number)
 	case []any:
 		b.WriteByte('[')
 		for i, v := range x {
 			if i > 0 {
 				b.WriteByte(',')
 			}
-			if err := c.canonicalValue(b, v); err != nil {
+			if err := c.writeJSON(b, v, normalize, limit); err != nil {
 				return err
 			}
 		}
@@ -256,9 +287,11 @@ func (c *Codec) canonicalValue(b *bytes.Buffer, v any) error {
 			if i > 0 {
 				b.WriteByte(',')
 			}
-			c.quoted(b, k)
+			if err := c.quoted(b, k, limit); err != nil {
+				return err
+			}
 			b.WriteByte(':')
-			if err := c.canonicalValue(b, x[k]); err != nil {
+			if err := c.writeJSON(b, x[k], normalize, limit); err != nil {
 				return err
 			}
 		}
@@ -266,7 +299,7 @@ func (c *Codec) canonicalValue(b *bytes.Buffer, v any) error {
 	default:
 		return c.bad("invalid canonical value")
 	}
-	if b.Len() > StateLimit {
+	if b.Len() > limit {
 		return c.bad("canonical JSON exceeds 256 MiB")
 	}
 	return nil

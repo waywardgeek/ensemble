@@ -216,6 +216,10 @@ func encodeRecord(owner common.Agent, event common.Event, limit int) ([]byte, er
 				}
 				field := v.Field(i)
 				omit := len(tag) > 1 && tag[1] == "omitempty"
+				// Empty accepted results are distinct from an absent result payload.
+				if t == reflect.TypeOf(common.ToolEvent{}) && f.Name == "Parts" && !field.IsNil() {
+					omit = false
+				}
 				if omit {
 					empty := field.IsZero()
 					switch field.Kind() {

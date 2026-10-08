@@ -1,0 +1,27 @@
+{
+  "command": [
+    "gofmt",
+    "-l",
+    "solutions/edition-2/main/internal/llm/session_limits_test.go",
+    "solutions/edition-2/main/ensemble.go",
+    "solutions/edition-2/main/internal/common/types.go",
+    "solutions/edition-2/main/internal/eventlog/log_test.go",
+    "solutions/edition-2/main/internal/eventlog/prepared.go",
+    "solutions/edition-2/main/internal/jobs/jobs.go",
+    "solutions/edition-2/main/internal/jobs/jobs_test.go",
+    "solutions/edition-2/main/internal/jobs/limit_facts.go",
+    "solutions/edition-2/main/internal/jobs/limits.go",
+    "solutions/edition-2/main/internal/llm/events.go",
+    "solutions/edition-2/main/internal/llm/semantic.go",
+    "solutions/edition-2/main/internal/llm/session_limits.go",
+    "solutions/edition-2/main/internal/persistence/codec.go",
+    "solutions/edition-2/main/internal/persistence/event_fields.go",
+    "solutions/edition-2/main/internal/persistence/json.go",
+    "solutions/edition-2/main/session.go",
+    "solutions/edition-2/main/session_lifecycle_test.go",
+    "solutions/edition-2/main/watch.go"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": ""
+}

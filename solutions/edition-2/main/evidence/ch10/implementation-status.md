@@ -81,3 +81,32 @@ Coordinator response: `public-prepared.json` stops at fixture vet before runtime
 Milestone 6: browser-initial.json passes6/6, clients-initial.json passes9/9 and record-bounds-initial.json passes38/38 using local controlled fixtures. All nine nested example modules passed vet/tests again (nested-prepared-checks.json). Changed-file gofmt produced empty output (format-prepared.json). Main and GUI race runs complete successfully. Inherited diagnostic is running; full corrected public fixture run is running against unchanged source. Q5 full published chapter/direct response read/verified and acknowledged in student-review.md; its policy change follows this prepared-source checkpoint. Current source is not final: indexed collection admission, strict maxima and further semantic/fault coverage remain under review.
 
 First corrected public runtime run retained in public-prepared-corrected.json:15 groups passed, SkillsReplay/anthropic timed out. Stack evidence reveals a real new lock inversion: append holds Agent.mu and calls Jobs.PendingLimits; report holds Jobs.mu and calls Agent.Workspace. Fixing actual owner lock order, not fixture timeout. Inherited `make grade-dir CH=11 DIR=solutions/edition-2/main` returned0/100, with GUI-server startup/old invocation failures (full inherited-grade-initial.out); this is a diagnostic incompatibility to relay, not a waiver or inferred Chapter10 runtime acceptance. No checker implementation read.
+
+Milestone 7: initial prepared runtime/evidence committed at41a5e7266570a449e7470a9c5b06da3e601f0008, with prepared-source-manifest.json binding its changed source and retained binary hashes in independent receipts. This preserves the pre-Q5/lock-fix attempt, including its timeout. Targeted `TestCh10PublicSkillsReplay` now passes all three local API variants in public-skills-lockfix.json after the Jobs accepted-limit lock was separated from report-worker state and watch releases Agent state before live ownership lookup. Deterministic interleaving regression is added (initial test compile typo j.Write corrected to actual owner write helper); no timeout extension. Q5 removes unsupported job-floor relaxation. New derived Context.Index is excluded from all wire state and rebuilt once at import, eliminating per-event full conversation scans for collection admission/unresolved calls; Jobs indexes prior limit transitions. Bounded snapshot encoding now avoids repeated marshal/parse allocations and prechecks individual escaped strings. Full public rerun currently in progress against this coherent revision. No provider/credential access.
+
+## Revised local handback boundary
+
+Grouped runtime corrections are complete for coordinator completeness review.
+Current docs: persistence-format.md (complete strict nested state_version1 grammar),
+session-api.md (public signatures), and live-matrix.md (proposed66-generation-request
+ceiling across three providers, plus separately released discovery; nothing run).
+Q1–Q5 are closed; no outstanding teaching question. Do not interpret this as runtime,
+paid-spin, historical comparison, prose or final immutable chapter acceptance.
+
+Latest command receipts: revised-module-checks.json includes full vet/tests in main,
+GUI and all nine nested examples; revised-format.json has empty gofmt output;
+revised-race.out and revised-gui-race.out pass. revised-star-imports.json checks
+all present implementation spokes against common and records CLI composition.
+cli-revised.json passes93/93; public-revised.json passes all16 groups;
+clients-revised.json passes all9 groups. Initial browser6/6 and read-bound38/38
+remain applicable to unchanged assets/read-side code; no redundant large-file
+repeat. oracle-self-test.out passes. New local exact64MiB/one-over write preparation,
+log-byte/count admission, checked storage failure/retry, disconnected checkpoint
+waiter, accepted process-job tail, strict maxima and lock-cycle regressions pass.
+
+Inherited diagnostic remains failed at legacy GUI startup assumptions (retained
+inherited-grade-initial.out). Remaining source-bound independent fault/concurrency,
+allocation and structural controls are coordinator work to release after this
+checkpoint; no claim that the published initial subsets prove the full chapter.
+The source will remain unchanged for that review unless a concrete local finding
+requires correction. No credentials/provider/discovery calls are authorized here.

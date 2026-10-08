@@ -172,7 +172,15 @@ type CallState struct {
 	Dispatched bool
 	Returned   bool
 }
+
+// ContextIndex is derived admission data, never a second saved authority.
+type ContextIndex struct {
+	Ready                      bool
+	Entries, Parts, Unresolved int
+}
+
 type Context struct {
+	Index         ContextIndex `json:"-"`
 	Session       *SessionFact
 	RequestCursor uint64
 	RequestSeqs   []uint64

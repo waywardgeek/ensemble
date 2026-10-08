@@ -131,6 +131,10 @@ func Settled(owner common.Engine, c common.Context) bool {
 // ValidateSemantic checks reduced relationships directly. It does not reconstruct
 // an event archive or require the raw log prefix that a snapshot import omits.
 func ValidateSemantic(owner common.Engine, c common.Context) error {
+	ReindexContext(owner, &c)
+	if c.Index.Entries > 1000000 || c.Index.Parts > 1000000 {
+		return &common.SessionError{Code: "session_corrupt", Detail: "semantic entry or part limit"}
+	}
 	bad := func(detail string) error { return &common.SessionError{Code: "session_corrupt", Detail: detail} }
 	if c.LastSeq == 0 || c.Session == nil || c.Session.Identity == nil {
 		return bad("semantic session metadata missing")

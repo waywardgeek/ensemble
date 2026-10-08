@@ -51,7 +51,6 @@ func (e *Ensemble) RegisterPause(id string) (PauseRegistration, error) {
 // Actor fills scheduling fields at the same serialized boundary.
 func (a turnAgent) WatchSource() common.WatchSnapshot {
 	a.mu.Lock()
-	defer a.mu.Unlock()
 	s := common.WatchSnapshot{LogSeq: a.context.LastSeq, Events: []Event{}, Partials: []common.WatchPartial{}, State: common.WatchState{Model: a.config.Model, Usage: []common.UsageAccount{}}}
 	if a.skills != nil {
 		s.State.Skills = a.skills.State()
@@ -69,11 +68,6 @@ func (a turnAgent) WatchSource() common.WatchSnapshot {
 			handles[e.Tool.Job.Handle] = true
 		}
 	}
-	for h := range handles {
-		_, err := a.jobs.Lookup(h)
-		s.State.JobAccess = append(s.State.JobAccess, common.JobAccess{Handle: h, Live: err == nil})
-	}
-	sort.Slice(s.State.JobAccess, func(i, j int) bool { return s.State.JobAccess[i].Handle < s.State.JobAccess[j].Handle })
 	s.Events, _ = llm.Clone(a.engine, selected)
 	if len(s.Events) > 0 {
 		first, last := s.Events[0].Seq, s.Events[len(s.Events)-1].Seq
@@ -87,5 +81,14 @@ func (a turnAgent) WatchSource() common.WatchSnapshot {
 		x, y := s.State.Usage[i].From, s.State.Usage[j].From
 		return x.Vendor+"/"+x.Model+"/"+x.Surface < y.Vendor+"/"+y.Model+"/"+y.Surface
 	})
+	// Jobs may call back to Agent while holding its worker lock. Release the
+	// state-copy lock before consulting live ownership; Actor still orders
+	// the complete public boundary.
+	a.mu.Unlock()
+	for h := range handles {
+		_, err := a.jobs.Lookup(h)
+		s.State.JobAccess = append(s.State.JobAccess, common.JobAccess{Handle: h, Live: err == nil})
+	}
+	sort.Slice(s.State.JobAccess, func(i, j int) bool { return s.State.JobAccess[i].Handle < s.State.JobAccess[j].Handle })
 	return s
 }

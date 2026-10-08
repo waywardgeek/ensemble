@@ -8,8 +8,8 @@ import (
 // Resolve atomically spends pending settings on every admitted attempt. The
 // tool boundary supplies only validated overrides, or none after a refusal.
 func (s *Service) Resolve(explicit common.LimitOverrides) (common.Limits, bool) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.limitsMu.Lock()
+	defer s.limitsMu.Unlock()
 	pending := s.pending
 	s.pending = nil
 	limits := common.Limits{Delay: 3 * time.Second, MaxBytes: 16384}
@@ -20,8 +20,8 @@ func (s *Service) Resolve(explicit common.LimitOverrides) (common.Limits, bool) 
 	return limits, pending != nil
 }
 func (s *Service) SetLimits(value common.LimitOverrides) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.limitsMu.Lock()
+	defer s.limitsMu.Unlock()
 	next := common.LimitValues{MaxBytes: value.MaxBytes}
 	if value.Delay != nil {
 		v := value.Delay.Seconds()

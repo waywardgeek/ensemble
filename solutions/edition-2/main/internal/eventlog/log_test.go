@@ -6,6 +6,7 @@ import (
 	"errors"
 	"example.com/ensemble/internal/common"
 	"example.com/ensemble/internal/persistence"
+	"strings"
 	"testing"
 )
 
@@ -71,3 +72,74 @@ func TestPreparedSessionRecordExactAcceptedRaw(t *testing.T) {
 		t.Fatal("unpaired surrogate accepted")
 	}
 }
+
+func TestPreparedEmptyToolResultPreservesPresence(t *testing.T) {
+	o := &owner{}
+	l := &Log{parent: o, session: true}
+	p, err := l.Prepare(common.Event{Seq: 2, Type: "tool_returned", Time: "2026-10-08T00:00:00Z", Tool: &common.ToolEvent{CallID: "c", Parts: []common.Part{}}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Event().Tool.Parts == nil {
+		t.Fatal("empty result became absent at acceptance")
+	}
+}
+
+func TestPreparedSessionWriteExactRecordBound(t *testing.T) {
+	o := &owner{}
+	l := &Log{parent: o, session: true}
+	empty := ""
+	e := common.Event{Seq: 1, Type: "message_received", Time: "2026-10-08T00:00:00Z", Message: &common.Entry{Actor: "system", Purpose: "instruction", Parts: []common.Part{{Type: "text", Text: &empty}}}}
+	p, err := l.Prepare(e)
+	if err != nil {
+		t.Fatal(err)
+	}
+	overhead := len(p.(*preparedEvent).bytes)
+	body := strings.Repeat("x", common.SkillRecordLimit-overhead)
+	e.Message.Parts[0].Text = &body
+	p, err = l.Prepare(e)
+	if err != nil {
+		t.Fatal("exact64MiB refused", err)
+	}
+	if len(p.(*preparedEvent).bytes) != common.SkillRecordLimit {
+		t.Fatal("wrong physical size")
+	}
+	body += "x"
+	if _, err = l.Prepare(e); err == nil {
+		t.Fatal("one-over accepted")
+	}
+}
+
+func TestPreparedSessionLogAndCountAdmission(t *testing.T) {
+	for _, kind := range []string{"bytes", "count"} {
+		t.Run(kind, func(t *testing.T) {
+			o := &owner{}
+			w := &retainedWriter{}
+			l := &Log{parent: o, session: true, writer: w}
+			e := common.Event{Seq: 1, Type: "error_occurred", Time: "2026-10-08T00:00:00Z", Error: &common.EventError{Code: "fixture", Message: "fixture"}}
+			p, err := l.Prepare(e)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if kind == "bytes" {
+				l.bytes = (1 << 30) - int64(len(p.(*preparedEvent).bytes))
+			} else {
+				l.count = 999999
+			}
+			if err = l.AppendPrepared(p); err != nil {
+				t.Fatal("exact bound", err)
+			}
+			before := w.Len()
+			if err = l.AppendPrepared(p); err == nil {
+				t.Fatal("one-over admitted")
+			}
+			if w.Len() != before || !l.faulted {
+				t.Fatal("overflow wrote or failed to fault")
+			}
+		})
+	}
+}
+
+type retainedWriter struct{ bytes.Buffer }
+
+func (*retainedWriter) Close() error { return nil }

@@ -58,8 +58,8 @@ func overlayValues(s *Service, l *common.Limits, v common.LimitValues) {
 	}
 }
 func (s *Service) PendingLimits() *common.LimitValues {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.limitsMu.Lock()
+	defer s.limitsMu.Unlock()
 	return copyLimits(s.pending)
 }
 func (s *Service) ValidateLimitEvent(c common.Context, e common.Event) error {
@@ -69,19 +69,16 @@ func (s *Service) ValidateLimitEvent(c common.Context, e common.Event) error {
 	bad := func() error {
 		return &common.SessionError{Code: "session_corrupt", Detail: "invalid one-shot limit transition"}
 	}
-	pending := s.PendingLimits()
+	s.limitsMu.Lock()
+	defer s.limitsMu.Unlock()
+	pending := s.pending
 	if e.Type == "tool_called" && pending != nil {
 		return bad()
 	}
 	if e.Type == "tool_returned" && e.Tool != nil && !e.Tool.IsError {
 		call := c.Calls[e.Tool.CallID]
 		if call.Part.Name == "tool_limits" {
-			found := false
-			for _, f := range c.LimitFacts {
-				if f.Kind == "set" && f.CallID == e.Tool.CallID {
-					found = true
-				}
-			}
+			found := s.limitSeen["set/"+e.Tool.CallID]
 			if !found {
 				return bad()
 			}
@@ -95,10 +92,8 @@ func (s *Service) ValidateLimitEvent(c common.Context, e common.Event) error {
 	if !ok || call.Returned || !validLimitValues(l.Overrides) {
 		return bad()
 	}
-	for _, f := range c.LimitFacts {
-		if f.CallID == l.CallID && (f.Kind == "set" && e.Type == "tool_limits_set" || f.Kind == "consumed" && e.Type == "tool_limits_consumed") {
-			return bad()
-		}
+	if e.Type == "tool_limits_set" && s.limitSeen["set/"+l.CallID] || e.Type == "tool_limits_consumed" && s.limitSeen["consumed/"+l.CallID] {
+		return bad()
 	}
 	switch e.Type {
 	case "tool_limits_consumed":
@@ -122,11 +117,16 @@ func (s *Service) ApplyLimitEvent(e common.Event) {
 	if e.Limits == nil {
 		return
 	}
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.limitsMu.Lock()
+	defer s.limitsMu.Unlock()
+	if s.limitSeen == nil {
+		s.limitSeen = map[string]bool{}
+	}
 	if e.Type == "tool_limits_set" {
+		s.limitSeen["set/"+e.Limits.CallID] = true
 		s.pending = copyLimits(&e.Limits.Overrides)
 	} else if e.Type == "tool_limits_consumed" {
+		s.limitSeen["consumed/"+e.Limits.CallID] = true
 		s.pending = nil
 	}
 }
@@ -235,9 +235,10 @@ func (s *Service) RestoreLimits(c common.Context, expected *common.LimitValues) 
 	if !reflect.DeepEqual(pending, expected) {
 		return bad()
 	}
-	s.mu.Lock()
+	s.limitsMu.Lock()
 	s.pending = copyLimits(pending)
-	s.mu.Unlock()
+	s.limitSeen = seen
+	s.limitsMu.Unlock()
 	return nil
 }
 
