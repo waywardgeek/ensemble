@@ -219,6 +219,10 @@ Fail safely on overflow. A reader may hold one bounded frame, the assembled
 response and the bounded pending fragments above; it cannot buffer the entire
 HTTP body before delivering the first delta. Keep the configured request
 timeout and cancellation active during every read and capacity wait.
+Give the whole operation one deadline derived from that configured timeout,
+including the final wait for pending fragments to drain. An HTTP client's
+timer can stop its transport while a parser remains parked on a separate
+channel. The operation's waits must observe the same deadline.
 
 That memory ceiling does not make assembly cheap. Copying the entire answer
 for every small fragment makes each arriving word pay for all the words before
@@ -375,6 +379,15 @@ Preserve recognized refusal material as opaque rather than presenting it as
 ordinary text. It does not waive the earlier visible-text-or-call requirement.
 This chapter does not invent a generic reasoning field absent from the chosen
 API's documented schema.
+
+Retention must survive the next turn. For matching provenance, restore the
+recognized opaque `{"refusal":"..."}` payload as the original assistant
+message's string `refusal` field, alongside its visible content and calls.
+Reject malformed or unsupported opaque shapes and conflicting duplicate
+refusal material safely; keep the earlier foreign-target omission rule.
+Exercise a subsequent human turn and a tool continuation in both delivery
+modes. Accepting a response and then refusing to render that same recognized
+content would strand an otherwise usable conversation.
 
 Retain the final usage object as `raw_usage`. Across any adapter's operation,
 nonempty returned model identities must agree. Missing identity follows the

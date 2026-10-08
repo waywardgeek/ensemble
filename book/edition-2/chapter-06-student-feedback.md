@@ -63,3 +63,25 @@ This is a teaching improvement from comparative review, added before the
 affected repair. It does not rewrite the initial student's experience or relax
 any semantic, identity, cancellation or exact-bound requirement. The coder's
 plan and revised measurements remain pending.
+
+## Comparative feedback: replay, deadline and consumer ownership
+
+The initial refusal parser met the retention instruction, but the renderer
+could not send that recognized material on the next request. Section 6.4 now
+connects retention to the explicit matching-target assistant `refusal` field
+and requires both next-turn and tool-continuation checks in plain and stream
+modes. Unsupported material still fails safely. The initial live runs did not
+contain refusals; their absence cannot establish this behavior.
+
+The existing §6.3 requirement already covered timeouts during capacity waits.
+A short explanation now makes its ownership concrete: the deadline covers the
+whole model operation, including final fragment drain, because stopping an
+HTTP transport cannot wake an unrelated channel wait automatically. This is
+an implementation defect with a clearer teaching explanation, not permission
+to weaken the configured timeout.
+
+Independent review also found missing ownership back-pointers and ignored
+subscription errors in the public streaming example's observers. The existing
+skill applies to example clients as well as library runtime objects; that rule
+needs enforcement in the revised consumer. No new architectural exception is
+introduced. Student confirmation and reviewed repair outcomes remain pending.
