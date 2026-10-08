@@ -122,6 +122,7 @@
     "queued owner cancellation leaves active peer",
     "active owner cancellation advances peer once despite synchronous callback",
     "stale callbacks cannot settle replacement",
-    "error releases speech while typing remains"
+    "error releases speech while typing remains",
+    "whole-application close ends native admission before child cancellation"
   ]
 }

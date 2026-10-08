@@ -332,3 +332,12 @@ requests per provider, separate revision evidence/budgets. Root authorized that
 scope. The initial nine sessions remain bound to their original source; no job
 is regenerated merely to prove the snapshot projection repair. Retained-event
 replay is labeled as a local control, not a new provider session.
+
+After context compaction, re-read the entire coding skill, architecture, AGENTS
+and current Chapter 7 (no historical links followed). Root and reviewer found
+a teardown ordering flaw in the grouped R3 work: closing active Page A could
+start pending Page B before the root reached B. The root now closes native
+service admission before its Page children. A positive active/pending control
+with a synchronous stale callback proves whole-application close starts no new
+utterance; individual Page cancellation still advances healthy peers. This is
+an implementation correction within the accepted ownership contract.

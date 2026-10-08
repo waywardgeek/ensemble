@@ -17,7 +17,8 @@ export class BrowserApplication {
   close() {
     if (this.closed) return;
     this.closed = true;
-    for (const page of this.pages) page.close();
+    // End shared admission before canceling individual Pages can advance peers.
     this.service.close();
+    for (const page of this.pages) page.close();
   }
 }
