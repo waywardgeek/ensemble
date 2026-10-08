@@ -57,7 +57,7 @@ continues to consume the public library from its separate module.
    close, signals, imports, corruption, writer exclusion and stale handles through
    public consumers and the actual CLI/browser, on all three supported APIs.
 
-Build the main CLI with `go build ./cmd` and the optional GUI from `main/gui`
+Build the main CLI from main with `go build -o /tmp/ensemble-ch10-cli ./cmd` and the optional GUI from `main/gui`
 with `go build ./cmd/ensemble-gui`. The inherited diagnostic is
 `make grade-dir CH=11 DIR=solutions/edition-2/main`. It does not cover this
 contract. The independent Chapter 10 acceptance command is pending publication;
@@ -205,7 +205,7 @@ The outer checkpoint object has exactly these required fields:
 
 `high_watermarks.event` equals as_of. Every other watermark is at least the
 largest corresponding allocated durable identity represented by state; imported
-snapshots cannot reset one below a recorded use. Exact safe-integer bounds appear
+snapshots cannot reset one below a recorded use. Exact uint64 bounds appear
 in §10.8. Hashes are lowercase 64-digit hex. A hash detects mismatched bytes; it
 does not authenticate a file that its operator can edit.
 
@@ -226,11 +226,37 @@ Define canonical JSON for these hashes: valid UTF-8, no duplicate members, no
 insignificant whitespace, object keys sorted by UTF-8 byte order, array order
 preserved, strings escaped with JSON's short control escapes and lowercase
 `\u00xx` for remaining controls, otherwise literal UTF-8. Do not HTML-escape
-`<`, `>` or `&`, escape `/`, or normalize Unicode. Integers use shortest base-10
-notation. Noninteger numbers use shortest round-trippable binary64 decimal,
-with negative zero written as 0. Reject nonfinite numbers. Parse raw numbers
-without first rounding identity integers through a float. The public exporter
-and importer use this same documented codec.
+`<`, `>` or `&`, escape `/`, or normalize Unicode.
+
+Canonicalize every JSON number losslessly, including numbers nested in handler
+schemas or arbitrary accepted payloads. Parse the original token as sign,
+decimal digits, fractional digit count and signed decimal exponent. Remove the
+decimal point; its digits form an integer coefficient, and subtract the
+fractional digit count from the exponent. Remove leading coefficient zeroes.
+If the coefficient is zero, output `0`, including for negative zero. Otherwise,
+remove trailing coefficient zeroes and add their count to the exponent. Output
+the original negative sign if any, the remaining coefficient digits, and,
+only for a nonzero exponent, `e` followed by the shortest signed base-10 exponent
+without a plus sign or leading zeroes. Use exact decimal arithmetic throughout.
+
+| Accepted number spellings | Canonical hash token |
+|---|---|
+| `1`, `1.0`, `1e0`, `10e-1` | `1` |
+| `1000`, `1.000e+3`, `10e2` | `1e3` |
+| `12.30`, `123e-1` | `123e-1` |
+| `9007199254740992`, `9007199254740993` | Respectively `9007199254740992`, `9007199254740993` |
+| `18446744073709551615.0` | `18446744073709551615` |
+| `-0`, `-0.00e99`, `0` | `0` |
+
+Do not pass either coefficient or exponent through binary64. Keep the exponent
+as a bounded-input decimal quantity; never expand `1e1000000` into a million
+zeroes just to hash it. The file and canonical-output size limits still apply.
+Reject non-JSON numbers such as NaN or infinity. This normalization treats
+mathematically equal decimal values equally while preserving distinctions
+that floating-point conversion would erase. It does not change original log,
+manual or opaque payload bytes: use canonical bytes only where this contract
+asks for a canonical hash or equality comparison. The public exporter and
+importer use this same documented codec.
 
 The student publishes the state object's required fields/types in the source's
 persistence-format document before independent checks. Its names may follow the
@@ -342,7 +368,10 @@ fields. Allocate safely even where transient canceled handles burned an unused
 request number; never reuse a request ID present in recorded history. Compare
 the request cursor's lower-bound/no-reuse invariant, not equality of invisible
 ordinals burned by dead callers. Event, activation and historical-job watermarks
-must equal their corresponding reduced durable maxima.
+must equal their corresponding reduced durable maxima. The job watermark is
+the greatest historical handle represented anywhere in this session, including
+records outside the GUI window. It is not Ensemble's shared allocator cursor:
+other Agents and occupied artifact names can burn numbers absent from this session.
 
 An older snapshot with a genuinely newer log is the distinguishing fixture.
 Testing only the application's latest checkpoint produces an empty tail and
@@ -437,8 +466,9 @@ model/speech fragments. Historical accepted cards retain their event/part/call
 identities. Old job records stay available as evidence, with no live owner.
 wait_for_job, send_input and kill_job against such a handle return unavailable;
 they cannot target an unrelated process or a newly admitted job with the same
-number. Reserve the restored job high-watermark through Ensemble's actual
-allocator before permitting any new job. Continue occupied-artifact skipping
+number. Raise Ensemble's actual allocator floor to at least the restored
+session job maximum before permitting any new job; never lower its current
+position or require it to equal this session's watermark. Continue occupied-artifact skipping
 and exclusive creation under Chapter 4. Do not fetch artifact locators on load.
 Moving a store does not move the referenced files. Retain their recorded locator
 bytes and provenance; the interface must not promise that a historical relative
@@ -603,7 +633,14 @@ reasonable substitute for that decision.
 | Event count; total entries; total parts; total recorded activations; seen request/call IDs | 1,000,000 each |
 | JSON container nesting | 128 levels |
 | Installed handler definitions | 1,024, with at most 16 MiB canonical total |
-| Event/request/activation/job watermarks and durable identity integers | 0 through 9,007,199,254,740,991; required identities remain positive |
+| Event/request/activation/job watermarks and durable identity integers | Full uint64, 0 through 18,446,744,073,709,551,615; required identities remain positive |
+
+Preserve valid predecessor uint64 identities and counters through public,
+disk and browser projections. Refuse overflow before allocation or durable
+mutation, including a whole group requiring multiple identities; never wrap
+or round. This identity domain does not increase any file, record or collection
+size bound. A snapshot can carry a large validated allocator watermark without
+claiming that a small retained log contains every earlier allocation.
 
 Here MiB and GiB mean powers of 1024. Exact boundaries are accepted when all
 other rules hold. The outer object is nesting level 1; each contained object or

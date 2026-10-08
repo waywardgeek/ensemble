@@ -339,3 +339,36 @@ reader, catalog relocation and useful refusal stakes in the later mechanism.
 The evidence file's soft length/qualification warnings remain appropriate to an
 audit record. No old chapter, literal prior fixture or grader was edited, and
 no implementation tests or paid repeats were represented as run for this prose.
+
+## Coordinator review and numeric/allocator clarification
+
+The coordinator's [complete draft review](chapter-10-review.md) accepts all
+four proposed decisions from `9181683` as working choices: durable request
+indices with a lower-bound cursor comparison; immutable snapshot-only origin;
+plain-mode handler definition compatibility; and compact chronological skill
+transition provenance. They are coordinator choices, not new rulings attributed
+to Bill. Chapter 9 remains an unbuilt predecessor, and no Chapter 10 student or
+live spin is released.
+
+The requested narrow followups now distinguish the session's greatest historical
+job handle from Ensemble's shared allocator cursor. Other Agents and occupied
+artifact names burn values outside this session. Resume raises the live floor
+without lowering it; prefix equivalence compares the session's reduced durable
+maximum, including events beyond the GUI window.
+
+The first draft's binary64 canonicalization for noninteger values could collapse
+distinct handler definitions even though identity integers were preserved.
+Section 10.3 now defines an exact decimal coefficient/exponent normalization
+for every accepted JSON number, with literal integral-decimal, exponent, unsafe
+integer and negative-zero examples. It never expands large exponents. Canonical
+hash bytes are distinct from original stored/log/manual/opaque bytes; unchanged
+files are not rewritten merely to compute compatibility.
+
+The first draft also imposed a JavaScript-safe maximum on identity integers.
+The coordinator explicitly withdrew that restriction after the Chapter 8
+precision lesson and Chapter 9 uint64 activation contract. Section 10.8 now
+preserves valid predecessor uint64 values with positive/nonnegative distinctions,
+exact public/browser representation and pre-mutation overflow refusal. Resource
+size bounds remain unchanged. This is a compatibility clarification before
+checker work, not an undocumented rejection of valid predecessor state. The CLI
+build now names its output to avoid collision with the existing cmd directory.
