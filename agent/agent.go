@@ -9,6 +9,7 @@ package agent
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -267,6 +268,120 @@ type AgentSpec struct {
 	// the objects that enforce them ask the agent for it rather than
 	// keeping a copy, so the boundary has one source of truth.
 	SandboxRoot string
+
+	// SafeMode removes the tools that run arbitrary programs: run_command
+	// and the three job tools that attend it. The tools are removed from
+	// the registry rather than forbidden in the prompt, because a tool the
+	// model cannot see is a tool it cannot argue its way into calling.
+	//
+	// EnableWebSearch, when false, withholds the web-search skill, which is
+	// how chapter 21 delivered web access. Both default to the restrictive
+	// value, so a spec nobody thought about is the safe one.
+	//
+	// These two are the first non-path fields here, so they owe the rule
+	// above an answer. That rule bans a new CAPABILITY, and it names what
+	// it means by one: the dependency bag this type replaced, the engine
+	// stapled nine times. The sin was COLLABORATORS -- objects the agent
+	// reaches through, each arriving with its own lifetime and its own
+	// opinions. These are neither. They are two bits of policy describing
+	// what the agent may reach, and they hand out nothing: every value a
+	// caller can set is one that takes capability away. A field that can
+	// only subtract cannot grow a dependency bag.
+	SafeMode        bool
+	EnableWebSearch bool
+}
+
+// Child derives a specification for a sub-agent from its parent's.
+//
+// Deriving rather than constructing is the whole mechanism. A child spec that
+// starts as a copy of its parent inherits every restriction by construction,
+// so inheritance is not a rule anyone has to remember to apply. It is the
+// starting state. Whatever the caller then changes, it changed deliberately,
+// and that is the signal Clamp needs: with a fresh struct there is no way to
+// tell a field nobody thought about from one the caller means to widen, and
+// both arrive as the zero value.
+//
+// The child gets its own directory under the parent's. It does not inherit
+// LogPath or SavePath: those name single files, and two agents writing the
+// same save file would corrupt it.
+func (s AgentSpec) Child(dataDir string) AgentSpec {
+	c := s
+	c.DataDir = dataDir
+	c.LogPath = ""
+	c.SavePath = ""
+	return c
+}
+
+// SafeModeWithheldTools are the tools removed from the registry when an
+// agent runs in safe mode: the one that runs arbitrary programs, and the
+// three that address the jobs it starts.
+//
+// This is a variable rather than a literal inside NewAgent so that a test
+// can state the list it expects and compare, which is what keeps a tool
+// added in some later chapter from quietly joining the registry without
+// anyone deciding whether safe mode should withhold it.
+var SafeModeWithheldTools = []string{
+	"run_command",
+	"wait_for_job",
+	"send_input",
+	"kill_job",
+}
+
+// WebSearchSkill names the skill that carries web access. Chapter 21
+// delivered the web as a skill over an MCP server rather than as builtin
+// tools, so this is the thing EnableWebSearch withholds.
+const WebSearchSkill = "web-search"
+
+// ErrWidenedPermissions reports that a child specification asked for access
+// its parent did not have. The permissions in the returned spec have already
+// been narrowed; this error says the asking happened.
+var ErrWidenedPermissions = errors.New("sub-agent requested wider permissions than its parent")
+
+// Clamp narrows a child specification to its parent's permissions and reports
+// whether it had to.
+//
+// Two things happen here, and they are deliberately not alternatives. The
+// narrowing is unconditional, so it holds even if the error is dropped: a
+// caller that ignores the second return value still gets a child no wider
+// than its parent. The error is the alarm, not the wall. The distinction
+// matters because the obvious design -- validate, and refuse -- makes the
+// error path itself the security boundary, and then one early return added
+// by mistake silently removes it. Here, deleting the error entirely costs a
+// diagnostic and not a wall.
+//
+// Note which direction each field narrows in. EnableWebSearch is a
+// capability, so narrowing is AND. SafeMode is a restriction, which is the
+// same statement upside down, so narrowing is OR. Writing both as "AND the
+// permissions" is what makes the second one easy to get backwards.
+func (s AgentSpec) Clamp(parent AgentSpec) (AgentSpec, error) {
+	var widened []string
+
+	if parent.SafeMode && !s.SafeMode {
+		widened = append(widened, "safe mode")
+		s.SafeMode = true
+	}
+	if !parent.EnableWebSearch && s.EnableWebSearch {
+		widened = append(widened, "web search")
+		s.EnableWebSearch = false
+	}
+
+	// Two directory trees have no meet: if the child asked for somewhere
+	// outside its parent's sandbox there is no narrower root to clamp it
+	// to, only the parent's own. So the path case substitutes rather than
+	// intersects, which is the one place this is a refusal in spirit as
+	// well as in message.
+	if parent.SandboxRoot != "" {
+		inside, err := sandbox.Within(parent.SandboxRoot, s.SandboxRoot)
+		if err != nil || !inside {
+			widened = append(widened, "sandbox root")
+			s.SandboxRoot = parent.SandboxRoot
+		}
+	}
+
+	if len(widened) > 0 {
+		return s, fmt.Errorf("%w: %s", ErrWidenedPermissions, strings.Join(widened, ", "))
+	}
+	return s, nil
 }
 
 // Path returns the location of one of this agent's files.
@@ -303,6 +418,21 @@ func NewAgent(cfg Config, spec AgentSpec) (*Agent, error) {
 	a.jobs = jobs.NewJobs(a)
 	a.reg = tools.NewRegistry()
 
+	// Safe mode withholds the tools that run arbitrary programs. They are
+	// removed from the registry, not forbidden in the prompt, and the
+	// difference is the whole point: a declaration the model can see is a
+	// thing it can be talked into calling, and the one reliable way to
+	// stop a tool being called is for it not to exist.
+	//
+	// run_command is the obvious one. The other three attend it -- they
+	// address jobs it started -- and leaving any of them behind would be
+	// an interface onto a process the agent is no longer allowed to make.
+	if spec.SafeMode {
+		for _, name := range SafeModeWithheldTools {
+			a.reg.RemoveTool(name)
+		}
+	}
+
 	// Three log destinations, all inside this agent's own directory. The CLI
 	// root used to create these two in the working directory, which meant two
 	// agents in one process would have written over each other's wire logs.
@@ -327,6 +457,14 @@ func NewAgent(cfg Config, spec AgentSpec) (*Agent, error) {
 		if err := a.skills.DiscoverSkills(spec.SkillDir); err != nil {
 			a.Logf("skills: discover: %v", err)
 		}
+	}
+
+	// Web access arrived in chapter 21 as a skill rather than as builtin
+	// tools, so withholding it means forgetting the skill. This runs after
+	// discovery because discovery is what finds it: the skill is on disk
+	// either way, and the question is only whether this agent can see it.
+	if !spec.EnableWebSearch {
+		a.skills.Forget(WebSearchSkill)
 	}
 	for _, name := range spec.Skills {
 		if err := a.skills.LoadInitial(name, a.vars); err != nil {

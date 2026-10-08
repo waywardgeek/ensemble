@@ -969,11 +969,22 @@ func (r *Reg) SyncModelGatedTools(model string) {
 }
 
 // RemoveTool removes a tool from the registry by name.
+//
+// It deletes under both the literal name and the normalized one because the
+// registry is populated under both. Builtins are keyed by the exact name
+// from builtinTools, while tools that arrive through Register are keyed by
+// the normalized form, and Lookup papers over the difference by trying the
+// literal first and the normalized second. Removal has to cover the same
+// ground: deleting only the normalized key silently fails for every builtin
+// whose name contains an underscore, which is nearly all of them, and the
+// failure is invisible because a tool that is still present is a tool that
+// still works.
 func (r *Reg) RemoveTool(name string) {
-	n := common.NormalizeName(name)
-	delete(r.tools, n)
-	delete(r.meta, n)
-	delete(r.argSpec, n)
+	for _, key := range []string{name, common.NormalizeName(name)} {
+		delete(r.tools, key)
+		delete(r.meta, key)
+		delete(r.argSpec, key)
+	}
 }
 
 // declared snapshots the current declarations by name, so a skill load or

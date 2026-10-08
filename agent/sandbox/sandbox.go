@@ -253,6 +253,45 @@ func withinRoot(root, path string) bool {
 	return strings.HasPrefix(path, root+string(filepath.Separator))
 }
 
+// Within reports whether path lies inside root, canonicalizing both sides
+// first. It exists for callers deciding whether one boundary nests inside
+// another -- a sub-agent's sandbox against its parent's, say -- rather than
+// deciding whether one file may be opened.
+//
+// Both sides must be canonicalized, not just the path. On macOS /tmp and
+// /var are symlinks, so a root taken from mktemp or t.TempDir() is already
+// a symlink and a path resolved under it will never share its prefix. A
+// check that resolves only the path reports "outside" for every legitimate
+// file in the sandbox.
+//
+// An empty root means unconfined, which contains everything. An empty path
+// means an unconfined child, which is not inside a confined parent.
+func Within(root, path string) (bool, error) {
+	if root == "" {
+		return true, nil
+	}
+	if path == "" {
+		return false, nil
+	}
+	absRoot, err := filepath.Abs(root)
+	if err != nil {
+		return false, err
+	}
+	absPath, err := filepath.Abs(path)
+	if err != nil {
+		return false, err
+	}
+	canonRoot, err := resolveExistingPrefix(absRoot)
+	if err != nil {
+		return false, err
+	}
+	canonPath, err := resolveExistingPrefix(absPath)
+	if err != nil {
+		return false, err
+	}
+	return withinRoot(canonRoot, canonPath), nil
+}
+
 // resolveExistingPrefix resolves the longest existing ancestor of path and
 // rejoins the components that do not exist yet.
 //

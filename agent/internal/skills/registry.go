@@ -65,6 +65,16 @@ func (r *SkillRegistry) Register(props *common.SkillProperties) {
 	}
 }
 
+// Forget removes a skill from the registry entirely, so that it can be
+// neither listed nor loaded. It is how a capability is withheld: the skill
+// does not appear in the prompt as something refused, because a refusal is
+// an instruction and instructions can be argued with. It simply is not
+// there. Forgetting an absent skill is not an error, so a caller withholding
+// a capability need not know whether the skill was installed.
+func (r *SkillRegistry) Forget(name string) {
+	delete(r.skills, name)
+}
+
 // Get returns a skill entry by name, or nil if not found.
 func (r *SkillRegistry) Get(name string) *common.SkillEntry {
 	return r.skills[name]

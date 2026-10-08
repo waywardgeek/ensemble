@@ -56,6 +56,14 @@ usage:
   %[1]s dump           write the event log as JSON-lines
   %[1]s --help         print this table
 
+confinement:
+  --sandbox DIR        confine tools to DIR. File tools refuse paths outside
+                       it, and run_command runs under a kernel sandbox that
+                       denies the network and everything above DIR
+  --safe-mode          remove run_command and the job tools entirely
+  --no-web-search      withhold the web-search skill
+  --yolo               no confinement at all; announces itself on stderr
+
 environment:
   LLM_VENDOR           anthropic (default), openai or gemini
   LLM_MODEL            model id; overrides the vendor default
@@ -100,6 +108,16 @@ func main() {
 	// output is the conversation, not the machinery around it.
 	verbose := false
 
+	// The security policy. EnableWebSearch starts true here, which is the
+	// opposite of the zero value the library uses, and the difference is
+	// deliberate. A spec constructed in code should default to the safe
+	// thing, because the author of that code may not have thought about
+	// it. A person at a terminal has thought about it: they installed the
+	// skill, and silently withholding it would read as a bug. The flag
+	// that matters is the one that takes it away.
+	policy := agent.AgentSpec{EnableWebSearch: true}
+	yolo := false
+
 	// Parse flags manually to keep backward compat with positional commands.
 	var filtered []string
 	for i := 0; i < len(args); i++ {
@@ -123,6 +141,17 @@ func main() {
 			printURL = true
 		case args[i] == "--verbose":
 			verbose = true
+		case args[i] == "--sandbox" && i+1 < len(args):
+			policy.SandboxRoot = args[i+1]
+			i++
+		case strings.HasPrefix(args[i], "--sandbox="):
+			policy.SandboxRoot = strings.TrimPrefix(args[i], "--sandbox=")
+		case args[i] == "--safe-mode":
+			policy.SafeMode = true
+		case args[i] == "--no-web-search":
+			policy.EnableWebSearch = false
+		case args[i] == "--yolo":
+			yolo = true
 		case args[i] == "--mcp-pipe":
 			mcpPipe = true
 		case args[i] == "--gui-debug":
@@ -150,6 +179,22 @@ func main() {
 	if mcpPort != "" && port == "" {
 		fmt.Fprintln(os.Stderr, "--mcp-port relays to the GUI, so it needs --port as well")
 		os.Exit(2)
+	}
+
+	// --yolo removes the walls, and it wins over --sandbox rather than
+	// conflicting with it: an operator who asks for both has asked for no
+	// confinement, and the alternative is refusing to start over a
+	// contradiction the operator can resolve by reading one line.
+	//
+	// It announces itself on stderr every run. The point is not to shame
+	// anyone into turning it off. It is that afterwards, somebody will
+	// need to tell "the agent got out" apart from "the walls were taken
+	// down on purpose", and the only cheap moment to record that is now.
+	if yolo {
+		policy.SandboxRoot = ""
+		policy.SafeMode = false
+		fmt.Fprintln(os.Stderr,
+			"ensemble: --yolo: running with no sandbox. Tools may read and write anywhere this user can.")
 	}
 	if len(args) > 0 {
 		mode = args[0]
@@ -239,12 +284,12 @@ func main() {
 		// actor, skills, recall or save file, which meant the terminal could
 		// not reproduce a single GUI-reported bug. Pass --port as well to run
 		// both front ends against one agent.
-		if runActorLoop(cfg, logPath, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath, mcpPort, true, verbose) {
+		if runActorLoop(cfg, logPath, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath, mcpPort, true, verbose, policy) {
 			os.Exit(1)
 		}
 
 	case "":
-		if runActorLoop(cfg, logPath, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath, mcpPort, false, verbose) {
+		if runActorLoop(cfg, logPath, port, guiDir, savePath, mcpPipe, guiDebug, skillsDir, ttsLogPath, mcpPort, false, verbose, policy) {
 			os.Exit(1)
 		}
 
@@ -270,7 +315,7 @@ type stdinMsg struct {
 	Ephemeral *string `json:"ephemeral"`
 }
 
-func runActorLoop(cfg common.Config, logPath string, port string, guiDir string, savePath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string, mcpPort string, textMode, verboseText bool) (vendorFailed bool) {
+func runActorLoop(cfg common.Config, logPath string, port string, guiDir string, savePath string, mcpPipe bool, guiDebug bool, skillsDir string, ttsLogPath string, mcpPort string, textMode, verboseText bool, policy agent.AgentSpec) (vendorFailed bool) {
 	// One agent, built by the library's own constructor.
 	//
 	// Everything that follows used to be assembled here by hand: a second
@@ -284,13 +329,19 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 	}
 	primaryName := envOr("EN_PRIMARY_SKILL", "ensemble")
 
-	a, err := agent.NewAgent(cfg, agent.AgentSpec{
-		DataDir:  ".",
-		SkillDir: skillDir,
-		Skills:   []string{primaryName},
-		LogPath:  logPath,
-		SavePath: savePath,
-	})
+	// The security policy arrives already decided, and the rest of the
+	// specification is filled in around it. Deriving the spec from the
+	// policy rather than assembling both here means a policy field added
+	// later reaches the agent without this site being touched, which is
+	// the mistake that made the old composition root drift.
+	spec := policy
+	spec.DataDir = "."
+	spec.SkillDir = skillDir
+	spec.Skills = []string{primaryName}
+	spec.LogPath = logPath
+	spec.SavePath = savePath
+
+	a, err := agent.NewAgent(cfg, spec)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)

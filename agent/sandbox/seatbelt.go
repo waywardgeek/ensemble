@@ -65,6 +65,12 @@ func (s *Sandbox) Command(name string, args ...string) (*exec.Cmd, error) {
 	if err != nil {
 		return nil, err
 	}
+	// Git is pointed at a config inside the sandbox, so the file has to be
+	// there. A failure here is not fatal: everything except git still
+	// works, and refusing to run any command because git would be
+	// unconfigured would be a worse trade than running with git
+	// unconfigured.
+	_ = WriteGitConfig(root)
 	// -p takes the profile inline, which avoids writing a profile file and
 	// then having to decide who deletes it and when. The command outlives
 	// this function (output streams back over a PTY), so a temp file would
@@ -256,12 +262,72 @@ func SanitizedEnv(environ []string, root string) []string {
 			continue
 		}
 		name := kv[:eq]
-		if isSensitiveEnv(name) || name == "HOME" {
+		if isSensitiveEnv(name) || name == "HOME" || isGitConfigEnv(name) {
 			continue
 		}
 		out = append(out, kv)
 	}
-	return append(out, "HOME="+root)
+	out = append(out, "HOME="+root)
+
+	// Git is the one tool that reads a credential store as a matter of
+	// routine, so it gets named handling rather than being left to HOME.
+	//
+	// A real ~/.gitconfig is not merely a preferences file. It can carry
+	// url.<base>.insteadOf rewrites with a token embedded in the URL, and
+	// credential.helper = store points at ~/.git-credentials, which is
+	// plaintext. Allowing the host config into the sandbox to make git
+	// work would hand over exactly the thing the sandbox exists to keep
+	// back, and it is the obvious fix, which is what makes it dangerous.
+	//
+	// Pointing HOME at the sandbox already redirects the lookup. These
+	// two variables say it outright, so the protection does not rest on
+	// a side effect of HOME that some later change might undo.
+	out = append(out, "GIT_CONFIG_GLOBAL="+filepath.Join(root, gitConfigName))
+	out = append(out, "GIT_CONFIG_SYSTEM=/dev/null")
+
+	return out
+}
+
+// gitConfigName is the config git is pointed at inside the sandbox.
+const gitConfigName = ".gitconfig"
+
+// isGitConfigEnv reports whether a variable would let git find a config
+// outside the sandbox. They are dropped before the sandbox values are set,
+// so an inherited value cannot survive.
+func isGitConfigEnv(name string) bool {
+	switch name {
+	case "GIT_CONFIG_GLOBAL", "GIT_CONFIG_SYSTEM", "GIT_CONFIG", "GIT_CONFIG_NOSYSTEM":
+		return true
+	}
+	return false
+}
+
+// WriteGitConfig creates the minimal git config the sandbox points at, if
+// it is not already there.
+//
+// Git refuses to commit without an identity, so redirecting it at a file
+// that does not exist trades a credential leak for a tool that does not
+// work. This supplies the identity and nothing else: no credential helper,
+// no URL rewrites, no includes.
+//
+// An existing file is left alone. It lives inside the sandbox, so the agent
+// is entitled to have written it, and overwriting the agent's own config on
+// every command would be surprising in a way that confinement does not
+// require.
+func WriteGitConfig(root string) error {
+	if root == "" {
+		return nil
+	}
+	path := filepath.Join(root, gitConfigName)
+	if _, err := os.Stat(path); err == nil {
+		return nil
+	}
+	const minimal = "[user]\n" +
+		"\tname = Ensemble Agent\n" +
+		"\temail = agent@ensemble.invalid\n" +
+		"[init]\n" +
+		"\tdefaultBranch = main\n"
+	return os.WriteFile(path, []byte(minimal), 0o600)
 }
 
 // isSensitiveEnv reports whether a variable name is likely to carry a
