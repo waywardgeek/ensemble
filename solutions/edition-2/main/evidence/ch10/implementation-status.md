@@ -250,3 +250,34 @@ Local support observations: A1/A2 and D1 actual CLI PTYs succeeded with labeled 
 Offline support consumer reported branch mismatch. Existing evidence records that failure; adding detailed public-field comparison diagnostics without changing equality expectations to identify its owner before correcting it. All work stays local.
 
 The offline mismatch is now protected by an added public regression that failed before the correction. Public Context snapshot copies normalize absent structural collections; original events and replay Raw bytes retain exact accepted representation. Identity schemas use their documented semantic comparison, separately from exact replay values. New support comparison controls reject altered Raw number lexemes, Raw whitespace and state coordinates. Root vet/tests, root targeted race, consumer vet/tests and GUI tests passed after this correction; new argument replay field also refuses inactive non-call variants. Preparing a new immutable revision and fresh binding/checks; do not associate prior binaries with this corrected representation.
+
+## Compiler slot released — final runtime57d4aac
+
+Current immutable runtime/support revision57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4, fresh complete binding retained-repair-build-watch/binding.json. The offline public consumer now passes identical render/Context/history/usage/Skills/watch/request comparisons with endpoints disabled and zero provider calls. Checkpoint and full-tail call/result presence is repaired without relaxing comparisons.
+
+Current black-box results: Chapter9 main51/51; Chapter10 CLI93/93; public and clients passed. Fault format/vet passed but the first race link failed with no space left on device; no runtime verdict was obtained from that attempt. With no compiler/linker active, the explicitly authorized go clean -cache cleared ONLY regenerable build cache (source/binaries/evidence/module downloads untouched); retry watch-faults-after-cache passed all groups with unchanged source/checker identities. Both attempts remain. Free bytes after retry710627328. No more Go builds/tests are planned in this student stage; compiler slot is released now. Existing-binary local support runs and Python/JS receipt work continue.
+
+Management remains135/138, the same three duplicate/strict-ack failures with documented empty-name payload. Independent coordinator/checker review remains required; no checker source was opened and no test was weakened. No live/credential/discovery release or chapter acceptance is implied.
+
+## Final local handback — compiler remains released
+
+The complete source-specific report is
+[retained-repair-handback.md](retained-repair-handback.md). Runtime/support remains
+57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4; final source/support/build/dependency
+preflight passed again without Go. All completed final-revision local runs were
+sealed/verified. Actual PTY/browser/public paths cover each localhost wire route;
+33 proxied generation attempts (11/route), zero discovery, plus6 explicitly local
+seed exchanges. All three final offline consumers passed exact public comparisons
+with endpoints disabled. Final browser OpenAI/Gemini receipts verify applied-before-
+saved acknowledgment, policy/preference acknowledgments and measured speech
+boundaries. Earlier Anthropic browser/restart receipts keep their actual earlier
+source identities. Final actual-build identity controls passed15 intended refusals
+before derived writes, with restored-parent preflight passing. No live evidence
+or source identity is inferred for an old/planned executable.
+
+The three management acknowledgment failures remain the sole reported unresolved
+published-command result here; broader independent coverage and live completeness
+review remain coordinator gates. Final inbox read has no new resolution. No further
+Go work is planned in this stage. Compiler slot was released before receipt work;
+this handback does not reacquire it. No credentials/provider requests, push,
+historical comparison, chapter export/tag or acceptance occurred.

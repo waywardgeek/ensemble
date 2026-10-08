@@ -1,0 +1,24 @@
+{
+  "Role": "C1",
+  "Completion": {
+    "stop_reason": "end_turn",
+    "agent_id": "agent-1",
+    "request_id": "r4",
+    "outcome": "success",
+    "text": "LOCAL FIXTURE only. CH10-C-anthropic",
+    "parts": [
+      {
+        "type": "text",
+        "text": "LOCAL FIXTURE only. CH10-C-anthropic"
+      }
+    ],
+    "pending_hints": 0,
+    "usage": {
+      "input": 5,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 5
+    }
+  },
+  "Error": ""
+}

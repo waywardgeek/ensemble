@@ -1,0 +1,21 @@
+Ensemble — openai / fixture
+Type /help for commands.
+You> Remember CH10-A-openai. Use write_file once to create marker.txt with exactly CH10-A-openai followed by one newline. Then tell me why you made that edit.
+Accepted r1.
+You> 
+Request r1 / m1 (stream)
+
+[r1 proposed tool part 1] write_file
+[r1 proposed tool part 1] {"path": "marker.txt", "content": "CH10-A-openai\n", "overwrite": false, "append": false}
+
+Request r1 / m3 (stream)
+
+[r1 Assistant part 1] LOCAL FIXTURE only. synthetic continuation
+
+Request r1 (success; pending hints=0)
+You> /session
+/checkpoint
+/quit
+Session 536343a79bb9df57def461f99645df22; resumed=false; durable sequence=11; checkpoint=none
+You> Checkpoint saved at 11.
+You> Final usage: input=2, cache write=0, cache read=0, output=2

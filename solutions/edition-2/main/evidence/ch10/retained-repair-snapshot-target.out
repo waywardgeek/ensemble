@@ -1,0 +1,10 @@
+--- FAIL: TestRetainedArgumentsContinuationAndReplay (0.10s)
+    --- FAIL: TestRetainedArgumentsContinuationAndReplay/anthropic/session=true (0.02s)
+        retained_arguments_test.go:240: latest public Context representation changed
+    --- FAIL: TestRetainedArgumentsContinuationAndReplay/openai/session=true (0.03s)
+        retained_arguments_test.go:240: latest public Context representation changed
+    --- FAIL: TestRetainedArgumentsContinuationAndReplay/gemini/session=true (0.02s)
+        retained_arguments_test.go:240: latest public Context representation changed
+FAIL
+FAIL	example.com/ensemble	0.101s
+FAIL

@@ -1,0 +1,82 @@
+{
+  "actual_source_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "valid_actual_parent": true,
+  "negative_controls": [
+    {
+      "case": "source",
+      "refusal": "source identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-python",
+      "refusal": "python binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-node",
+      "refusal": "node binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-chrome",
+      "refusal": "chrome binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-recorder",
+      "refusal": "recorder binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-cli",
+      "refusal": "cli binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-gui",
+      "refusal": "gui binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-consumer",
+      "refusal": "consumer binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "support-map",
+      "refusal": "incomplete support map",
+      "no_derived_write": true
+    },
+    {
+      "case": "module",
+      "refusal": "module dependency identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "dependency",
+      "refusal": "browser dependency identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "association",
+      "refusal": "build association mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "launch-source",
+      "refusal": "launch source mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "launch-binary",
+      "refusal": "launch executable path mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "support-file",
+      "refusal": "support identity mismatch",
+      "no_derived_write": true
+    }
+  ],
+  "restored_parent_passed": true
+}

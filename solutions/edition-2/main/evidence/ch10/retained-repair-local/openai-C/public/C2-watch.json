@@ -1,0 +1,124 @@
+{
+  "agent_id": "agent-2",
+  "generation": "agent-2-g1",
+  "watermark": 13,
+  "first_seq": 2,
+  "last_seq": 6,
+  "log_seq": 6,
+  "omitted": 0,
+  "state": {
+    "session": {
+      "id": "85782f0f1999fdf357db43a5eea71fe7",
+      "resumed": false,
+      "checkpoint_seq": null
+    },
+    "job_access": [],
+    "skills": null,
+    "execution_policy": {
+      "revision": 1,
+      "persistent": false,
+      "max_model_requests": 2,
+      "effective_max_model_requests": 2
+    },
+    "active_max_model_requests": null,
+    "lifecycle": "idle",
+    "active_request_id": null,
+    "active_operation": null,
+    "queued_request_ids": [],
+    "paused": false,
+    "typing_clients": 0,
+    "speaking_clients": 0,
+    "model": "fixture",
+    "usage": [
+      {
+        "from": {
+          "vendor": "openai",
+          "model": "fixture",
+          "surface": "chat_completions"
+        },
+        "usage": {
+          "input": 1,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 1
+        }
+      }
+    ]
+  },
+  "events": [
+    {
+      "turn": {
+        "request_index": 1,
+        "policy": {
+          "revision": 1,
+          "max_model_requests": 2,
+          "effective_max_model_requests": 2
+        },
+        "request_id": "r1"
+      },
+      "seq": 2,
+      "type": "turn_started",
+      "time": "2026-10-08T21:45:40.171479Z"
+    },
+    {
+      "seq": 3,
+      "type": "message_received",
+      "time": "2026-10-08T21:45:40.171505Z",
+      "message": {
+        "actor": "human",
+        "purpose": "dialogue",
+        "parts": [
+          {
+            "type": "text",
+            "text": "Reply ONLY FRESH-openai. Do not call tools."
+          }
+        ]
+      }
+    },
+    {
+      "seq": 5,
+      "type": "response_ended",
+      "time": "2026-10-08T21:45:40.174135Z",
+      "response": {
+        "stop_reason": "stop",
+        "from": {
+          "vendor": "openai",
+          "model": "fixture",
+          "surface": "chat_completions"
+        },
+        "requested": {
+          "vendor": "openai",
+          "model": "fixture",
+          "surface": "chat_completions"
+        },
+        "model_reported": true,
+        "parts": [
+          {
+            "type": "text",
+            "text": "LOCAL FIXTURE only. synthetic continuation"
+          }
+        ],
+        "usage": {
+          "input": 1,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 1
+        },
+        "raw_usage": {
+          "completion_tokens": 1,
+          "prompt_tokens": 1
+        }
+      }
+    },
+    {
+      "turn": {
+        "request_id": "r1",
+        "outcome": "success"
+      },
+      "seq": 6,
+      "type": "turn_ended",
+      "time": "2026-10-08T21:45:40.174316Z"
+    }
+  ],
+  "partials": []
+}

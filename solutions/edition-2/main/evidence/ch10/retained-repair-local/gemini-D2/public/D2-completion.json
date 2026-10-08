@@ -1,0 +1,23 @@
+{
+  "completion": {
+    "stop_reason": "STOP",
+    "agent_id": "agent-1",
+    "request_id": "r3",
+    "outcome": "success",
+    "text": "LOCAL FIXTURE only. synthetic continuation",
+    "parts": [
+      {
+        "type": "text",
+        "text": "LOCAL FIXTURE only. synthetic continuation"
+      }
+    ],
+    "pending_hints": 0,
+    "usage": {
+      "input": 6,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 6
+    }
+  },
+  "error": ""
+}

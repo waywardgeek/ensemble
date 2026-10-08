@@ -1,0 +1,4 @@
+{"number": 9, "vendor": "gemini", "step": "D2", "row": "D", "kind": "generation", "at": 1791496205.797219, "phase": "admitted", "source": "loopback"}
+{"number": 9, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 345, "credential_redacted": false, "elapsed": 0.0009208330884575844}
+{"number": 10, "vendor": "gemini", "step": "D2", "row": "D", "kind": "generation", "at": 1791496205.7999418, "phase": "admitted", "source": "loopback"}
+{"number": 10, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 228, "credential_redacted": false, "elapsed": 0.0006166670937091112}

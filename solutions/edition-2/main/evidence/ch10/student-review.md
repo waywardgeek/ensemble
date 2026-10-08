@@ -642,3 +642,43 @@ Offline diagnosis: d161b121 diagnostics found exact public Context mismatch conf
 The expanded snapshot test additionally distinguished identity-schema object formatting from replay bytes. Identity comparison is explicitly semantic in Chapter10; raw Context/Part replay payloads remain exact. Support now compares only Session.Identity as parsed JSON with UseNumber (fixed CLI schema numeric lexemes), preserving exact reflection comparison elsewhere. Positive identity-format and negative replay-number/whitespace/state controls protect this distinction. Runtime snapshot normalization affects only absent structural collections in returned copies, not identity-schema Raw bytes, event history, codec acceptance or persisted state. Initial and diagnostic failures remain retained.
 
 After Context correction, offline branch controls reached a separate watch mismatch: only null/full reduction versus restored snapshot tool_called.parts differed (absent versus []). The semantic codec records unused lists as [], so restore must interpret the event variant: calls have no result-parts member; returned results retain a present list including empty results. Added this narrow codec decoding and a call/result presence regression. Original Events/Dump/logs are not rewritten. The support watch comparison remains unchanged. Browser support at 0d28ba7 completed and verify.py sealed/verified actual checkpoint-after-applied plus speech lifecycle observations before further source edits.
+
+Grouped repair final read/exposure ledger: reloaded the entire repository coding
+skill after each compaction, most recently as a separate unclipped read after a
+batched display truncated; reread the complete pinned new-only architecture.
+The complete dd1111e chapter/direct response and verified identities are recorded
+above. Read authorized inbox through “Grouped retained repair and local support
+build released”; its final reread contains no answer to the management question.
+Inspected own current common/session/types, persistence json/codec, Engine parser/
+renderer/events/session/semantic/Context-copy, Registry skill/limit validation,
+Agent snapshot and associated tests, API/format docs and scoped diffs. Reads were
+selected source ranges/searches as needed, not a claim to reread every entire
+source file. Read own support README, build/identity/driver/browser/consumer/
+fixture/verifier code and original local generated receipts, launches, binding
+maps, command outputs, screenshots/DOM and comparison diagnostics. Inspected Go
+module discovery/build metadata and exact Git-owned source identities. Final
+receipt summaries, immutable launch revisions and source preflight were checked
+again without invoking Go after releasing the compiler slot.
+
+Assistance remains the coordinator-supplied new teaching, observation-only
+retained receipts and sole inbox; reviewer closure was supplied as an identity,
+not read. No worker was spawned, no checker/reviewer implementation or historical/
+future solution, other worker conversation/memory, author research, credential or
+external provider endpoint was opened. An ignored prior log's bytes were hashed
+and preserved without displaying its contents; its unknown provenance and the
+corrected initial origin assumption are explicitly retained above and in the
+handback. Local fixture exchanges and prepared synthetic credential canaries are
+not credentials or real-provider evidence.
+
+Final runtime/support is57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4. All final
+published commands except management pass, including all four fault groups after
+a preserved ENOSPC attempt and explicitly authorized idle build-cache clear.
+Management remains135/138 with the same three empty-name acknowledgment failures;
+the coordinator question above remains unanswered. Actual local PTY/browser/
+public support runs, source-specific associations,15 identity-negative controls,
+bounded33 proxied plus6 local seed exchanges, failures and remaining gates are in
+[retained-repair-handback.md](retained-repair-handback.md). This is the initial
+student experience before historical comparison. The exact replay/duplicate
+teaching resolved the original contract distinction; the later Context/watch
+issues were implementation defects. No further teaching ambiguity is invented.
+Compiler slot is released. No chapter/live/comparative acceptance is claimed.
