@@ -1,0 +1,8 @@
+{"ack":{"revision":1,"watch_revision":1},"agent":"agent-1","kind":"policy","policy":{"revision":1,"persistent":true,"max_model_requests":1,"effective_max_model_requests":1}}
+{"ack":{"revision":1,"watch_revision":1},"agent":"agent-2","kind":"policy","policy":{"revision":1,"persistent":true,"max_model_requests":2,"effective_max_model_requests":2}}
+{"agent":"agent-1","completion":{"stop_reason":"tool_calls","agent_id":"agent-1","request_id":"r1","outcome":"round_limit","text":"","parts":[{"type":"tool_call","from":{"vendor":"openai","model":"gpt-4.1-mini-2025-04-14","surface":"chat_completions"},"call_id":"call_LM6GXjU8WuciPnRqRraMhsUG","name":"read_file","args":{"path":"notes.txt","start_line":1,"end_line":1}}],"pending_hints":0,"error":{"code":"round_limit","message":"round_limit: 1 model requests completed; final tool batch retained"},"usage":{"input":202,"cache_write":0,"cache_read":0,"output":25}},"kind":"completion"}
+{"agent":"agent-1","kind":"request_count","requests":1}
+{"agent":"agent-2","completion":{"stop_reason":"stop","agent_id":"agent-2","request_id":"r1","outcome":"success","text":"The first-line marker of notes.txt is \"CHAPTER-EIGHT-FILE-MARKER\".","parts":[{"type":"text","text":"The first-line marker of notes.txt is \"CHAPTER-EIGHT-FILE-MARKER\"."}],"pending_hints":0,"usage":{"input":447,"cache_write":0,"cache_read":0,"output":45}},"kind":"completion"}
+{"agent":"agent-2","kind":"request_count","requests":2}
+{"agent":"agent-1","kind":"restart","policy":{"revision":1,"persistent":true,"max_model_requests":1,"effective_max_model_requests":1}}
+{"agent":"agent-2","kind":"restart","policy":{"revision":1,"persistent":true,"max_model_requests":2,"effective_max_model_requests":2}}

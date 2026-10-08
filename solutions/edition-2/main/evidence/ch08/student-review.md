@@ -221,3 +221,70 @@ did not read checker internals. GUI and browser-consumer vet/test and rebuilt
 executables pass after the remount correction. The live adapter now reserves
 two prompts for a terminal-attached GUI, supports real pointer drags and retained
 card expansion, and tests the pointer path before paid launches.
+
+## First actual native-speech finding (before comparison)
+
+Chapter8 §8.7 says “only A's queue and speaking cause clear” and B remains
+paused until its own queue finishes or B cancels. I interpreted the inherited
+BrowserApplication-owned native SpeechService as enough because each browser
+tab owns its own application. The first real Anthropic two-tab autoplay run
+showed a5s no-start timeout in tab0 immediately followed by tab1's native
+`interrupted` callback. Chrome appears to serialize speech across those tabs;
+calling native cancel from a waiting tab can affect the sounding tab. Controlled
+multiple-Page callbacks did not reveal this platform interaction. Original
+source bd5c05a and all raw anthropic-browser speech timestamps are preserved.
+Root/reviewer notified immediately; affected speech coding and demonstrations
+paused pending contract/ownership review of a same-origin Web Locks protocol.
+The proposed lock belongs to BrowserApplication's native service, leaves Page
+queues local, starts the no-start timer only after native ownership is granted,
+and never lets a cancelled waiter call native cancel.
+
+Separate driver error: the active-limit demonstration waited for `Tool: read_file`
+when its paused card was correctly `Proposed tool: read_file`. The60s timeout
+remains in raw evidence. The following actions still showed active1/next2, then
+released the other tab's typing pause and completed round_limit1. No model
+request was retried for that label error. Another documentation append initially
+used the wrong working-directory-relative path and failed before writing.
+
+Before changing runtime speech, I found the live adapter's inherited
+`browser.newPage()` starts separate Playwright browser contexts. Such pages
+do not share a storage bucket, unlike ordinary same-profile tabs. This is a
+demonstration setup fault; the first observation is not yet proof of the
+same-profile isolation contract failing. A fresh local native control uses
+one shared browser context and existing real Gemini history, without another
+model request. The reviewer conditionally accepted the Web Locks owner/lifetime
+plan, while explicitly requiring this same-context evidence first.
+The Web Locks specification describes same-storage-bucket cooperation and
+release when the callback promise settles: https://www.w3.org/TR/web-locks/ .
+That API does not coordinate unrelated origins or separate browser profiles.
+
+The same-context native control confirms the implementation defect in
+native-context-1791464657900.json: page0 starts1791464648860, page1 waits,
+page0 reports interrupted1791464654899 and page1 reports no-start1791464654900.
+The first local control omitted capture:true for nonbubbling diagnostic events
+and produced an empty event list; it remains retained as setup failure.
+
+Reviewer-approved correction plan, published before runtime edits: BrowserApplication
+continues owning SpeechService and the browser lock manager. SpeechService owns
+its pending AbortController, lease and native request. A fixed name shared across
+cooperating same-origin/storage-bucket tabs (not Agent-specific) grants exclusive
+native ownership. Native speak and its5s no-start timer begin only after grant.
+Canceling a lock waiter only aborts its wait. A granted owner fences native
+callbacks, cancels its own native request when needed, and resolves its lease
+after cleanup. Stale grants/callbacks cannot advance a replaced page. Unsupported
+coordination shows unavailable speech and retains no speaking pause. This provides
+cooperating same-origin isolation, not control over unrelated sites/profiles.
+The live driver will create one browser context and ordinary pages inside it.
+
+Initial live checkpoint bd5c05a: all three providers were discovered with the
+requested exact models available (one discovery per provider). Actual human
+PTY conversations each completed read/report, followed by /usage and /history,
+then a fresh read/report under persistent limit1 returning round_limit after
+the final tool batch. Anthropic/OpenAI/Gemini public headless2-Agent consumers
+each demonstrate request counts1/2, independent files, owned getter copies,
+and reopen without another model call. Anthropic browser capture1 then next2
+and settings restart pass; native speech remains a found defect, not a pass.
+Exact request reconstruction matches all21 retained requests across eight
+launches, including the zero-request OpenAI browser session closed during the
+speech hold. Counts before correction: Anthropic6 prompts/9HTTP; OpenAI4/6;
+Gemini4/6. Remaining live work stays within original10/24 caps per provider.
