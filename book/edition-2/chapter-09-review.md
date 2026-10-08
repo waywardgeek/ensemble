@@ -209,3 +209,35 @@ implementation revisions, student confirmation of the final author response,
 and chapter checkpoint acceptance remain separate gates. If those revisions
 change teaching or described behavior, review the affected prose under its
 new identity rather than relabeling this closure.
+
+## Comparative factual prose closure
+
+Reviewed author freeze `05d160667e3daa5420cb91bede9fdbbbc60dbafe` after the
+complete manuscript review and closure above. The full current voice and writing
+procedure were reloaded. This narrow pass reads the complete three-file author
+delta, the student's comparison-revisions.md and final teaching append, the
+retained targeted-control output, and the independent final code review at
+`19d2fdf`, which accepts runtime `06c6787337d959c6d9b4874ee660025fe432a72a`.
+It does not repeat a runtime audit or claim a new provider observation.
+
+The §9.8 addition accurately separates narrow committed grant/state reads from
+deliberate full material/contributor inspection, while retaining every required
+retired summary. It introduces no timing promise, new owner or wire shape.
+Section 9.9 accurately reports the local first-Agent round-limit/second-Agent
+success control and aggregate failure. The original Anthropic public attempt
+remains partial under its original executable and receipts. The author's direct
+feedback records the student's already supplied confirmation without pretending
+that another blind attempt or paid demonstration occurred.
+
+The two new paragraphs leave the eleven literal JSON fixtures untouched; the
+complete author diff changes no fixture block. The retained prose executable
+passes hard rules at 7,402 words. The previously assessed soft warnings remain;
+this small factual revision does not introduce a new voice issue. Source hashes:
+
+- chapter-09.md: `0911816ba4a5f6fb7fb4e140c3fbfad6f3006337421e94dc1d9a23ec322e46f0`.
+- chapter-09-evidence.md: `ff7b8c92a5bb1b9d5ea48e680dbbbee307a5d544a101e07f8e7c9b2efac4b60c`.
+- chapter-09-student-feedback.md: `ba304948ad993849b194ef1a944de3c00847be620ba8e3fdcb40b244c8becf4a`.
+
+Factual proofreading is accepted with no remaining finding. Code acceptance,
+live acceptance and checkpoint/export retain their separate owners and source
+identities. No implementation, checker, provider call or build was run here.
