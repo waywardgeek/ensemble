@@ -129,7 +129,7 @@ with root before implementation. Repair and affected live results remain pending
 
 
 The student read the complete initial-live disposition table and confirmed that
-all eight items accurately resolve its teaching review, including uncertain
+all recorded items accurately resolve its teaching review, including uncertain
 prompt causation and preserved failures. It also recorded the affected
 BrowserApplication/SpeechService lifetime plan for root review before the
 shared-native-speech and disposal repairs. This confirmation resolves the
