@@ -108,3 +108,66 @@ add public APIs or another owner. The complete nested semantic codec grammar
 must still be published before semantic fixtures are written. This record
 accepts the ownership plan conditionally, not implementation, local tests,
 provider runs, historical comparison or final chapter readiness.
+
+## Independent accepted-byte clarification review
+
+October 8, 2026. `/root/coder_ch08` independently reviewed author freeze
+`c5ad6c04a67c0e2eeafde77f52d90dfdd7695d8e`. This is a narrow teaching review
+of the prepared-event boundary, separate from the preceding coordinator and
+ownership-plan reviews. The reviewer previously implemented Chapter 8, prepared
+early Chapter 9/11 checks and reviewed later contracts; this reviewer neither
+authored the correction nor implemented Chapter 10. Earlier Q1–Q3 and Unicode
+proofreading remains recorded in chapter-10-clarification-review.md.
+
+The complete three-file author delta/direct response, surrounding §§10.3/10.8,
+and the retained initial-prefix diagnostic were read. Focused predecessor reads
+checked Chapter 2's JSONL, typed parts and raw usage, Chapter 6's transient/accepted
+response and retained stream JSON distinctions, and Chapter 9's controlled
+whole-record preflight. Full current voice/procedure remained loaded from the
+immediately preceding review, without intervening compaction. Working author
+files match the frozen revision. No old implementation or checker source was read.
+
+The clarification closes the observed representation gap. New session admission
+validates first, prepares one bounded final event encoding, derives owned raw
+fragments from it, appends exactly those bytes, and only then applies/publishes
+the accepted event. The accepted-event ordering does not turn Chapter 6's earlier
+transient stream fragments into durable facts. Preparation may change formatting
+and escape spelling while preserving number lexemes, decoded string/manual/
+signature bytes, object-member and array order, and opaque semantics. Canonical
+hashing and floating-point conversion cannot substitute for that preparation.
+
+Once accepted, the recorded fragments define the exact state/watch/snapshot/
+replay comparison. Existing imported records already define their own accepted
+bytes and receive no read-side normalization; original physical bytes still
+determine their read limits. The strict scalar validation and dedicated raw-JSON
+wrapper rules remain applicable. Legacy standalone behavior is explicitly outside
+this new session-write boundary. Skills candidate and complete-record preflight
+still produces controlled skill_too_large before storage admission; bounded
+preparation cannot defer that refusal into a terminal writer failure. Separate
+session file/count/write failures retain their existing persistence disposition.
+
+The direct feedback and evidence consistently attribute this integration gap to
+the coordinator/grader diagnostic, separately from the student's Q1–Q3. The read
+receipt shows successful local creation, untouched inspect refusal at record 7,
+and a successful separate checkpoint-free rebuild, with the two raw_usage spacing
+differences in context and saved watch state. It records one local HTTP request
+and unchanged originals. This reviewer inspected that retained receipt rather
+than rerunning the binary; neither the receipt nor the author response proves a
+repair of current source or any real-provider result.
+
+No new consequential contradiction was found in the affected teaching. The sole
+existing fenced JSON fixture is unchanged by the complete diff. The retained
+prose executable independently passes all hard rules at 7,681 words; length,
+negation and person-gap warnings are soft. The new paragraphs explain an observed
+failure and its admission boundary without inventing a successful restart.
+
+Reviewed SHA-256 values:
+
+- chapter-10.md: `41ef91e7fad0308f32bd874c8cb952fddc8900d41f3534c847183adb0e66a26a`.
+- chapter-10-evidence.md: `b205861a3d915c7e0f96d1d118704dd7016a1b393be80da7f4c8e39e4d4fe102`.
+- chapter-10-student-feedback.md: `0b4ccab128da68c300c9a831693e2037ebc9e5291949e25bde8bc2318a9ca8d2`.
+- ch10-initial-prefix-diagnostic.json: `00305cf60c4cb33c7685edf4fe9a68a041e84dc62d53947233ebe31d2c4c0a1a`.
+
+Disposition: accepted-byte clarification proofreading accepted. Implementation,
+affected controls and student confirmation remain separate. No runtime edit,
+new build, checker edit, provider call or implementation acceptance occurred.
