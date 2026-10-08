@@ -1,5 +1,12 @@
 # Chapter 8 validation
 
+Scoped streaming maintenance is accepted for `edition-2-ch08-r2`. Runtime
+`c4d7aac` and evidence/export source `04d622d` carry the reviewed Chapter 6
+zero-byte argument correction into accepted Chapter 8 r1. The exact revised
+export has 3,321 files. Original acceptance and live receipts below retain
+r1 identities; this is later-informed maintenance, not another cold student.
+See [the independent maintenance review](empty-arguments-backport-review.md).
+
 Preferences and execution policy preparation, October 8, 2026. The required
 predecessor is accepted checkpoint `edition-2-ch07-r2` at
 `5b82971c3e667e08acfb2eca132307b9cdebbc51`. Fresh student `/root/coder_ch08`
@@ -92,3 +99,26 @@ independent runtime gates retain their own module vet/test/race and deletion
 evidence; no redundant paid run is used to validate a documentation change.
 All 38 executable availability checks and all 17 final proofread file bindings
 match. The manifest links these receipts, manuscript, skill and source identities.
+
+## Revision 2: propagated Messages correction
+
+Only the original parser changes; the five-line fix and added regression/SSE
+fixture exactly match reviewed Chapter 6 source `788c5e9`. All 3,195 existing
+evidence files remain unchanged. Root review `c5d7fac` verifies 115 source
+hashes, ten receipts, 147 checker inputs and the archived CLI. All 26 affected
+groups are accounted for: 24 initial passes and two selected same-source passes
+after canonicalizing a temporary checker path. The original receipt-writer
+failures and runner are retained. This support repair changes no assertion,
+fixture or mutation. Four local commands include 13 corrected regressions and
+core vet/tests; affected checks include core race and all nine module checks,
+streaming, watch/pause, prior assertions and CLI overflow deletions.
+
+The coordinator verifies all 3,321 export hashes and complete nine-module test
+package discovery. `solutions/edition-2/manifests/ch08-r2.json` binds the review,
+source, export audit and original r1 acceptance. The tag belongs to the isolated
+Chapter 8 branch where canonical main and ch08 trees match. Integrating its
+snapshot must not replace current Chapter 9 development. No new full 52-group
+chapter gate or paid browser/provider run is claimed; earlier unchanged paths
+and the Chapter 9 repaired live response retain their own source identities.
+The original SSE terminal delimiter remains intact despite its whitespace
+warning. Publication and Bill's editorial approval are separate.
