@@ -1,8 +1,9 @@
 # Chapter 13 outline: test the speech channel
 
-Preparation, October 8, 2026. New Chapter 13 maps to first-edition Chapter 14,
-“The Channel Nobody Tested.” This is an author proposal for review, not a
-student contract. Chapter 12 has an accepted design at `2d4ea47`, with no
+Initial preparation, October 8, 2026, frozen at `bb6e04c`. New Chapter 13 maps to first-edition Chapter 14,
+“The Channel Nobody Tested.” The original proposal below preserves the preparation chronology. The
+[full contract draft](chapter-13.md) now records the coordinator choices below;
+[validation](chapter-13-validation.md) remains incomplete. Chapter 12 has an accepted design at `2d4ea47`, with no
 implementation or actual-run acceptance yet; see its
 [gate record](chapter-12-validation.md). No Chapter 13 implementation, grader
 or live result is claimed. Historical sources belong to the author/reviewer
@@ -220,3 +221,37 @@ and failure-announcement selection remain proposals. Settle them before a
 student handoff; no runtime or grader should guess them. The full chapter can
 then publish literals and bounds without becoming a new general accessibility
 framework or a speech-engine portability project.
+
+
+## Full-draft decisions after outline review
+
+The coordinator accepted the outline direction and supplied working choices;
+these are not new Bill rulings. The full draft now fixes the following:
+
+- Automatic normalization has an 8,192-byte pending budget and bounded active
+  parsers. Overflow abandons the affected unqueued remainder visibly, preserves
+  admitted speech and permits the next part to recover. Literal chunk-invariant
+  fixtures specify the narrow grammar.
+- SpeechService owns a 4,096-record/8 MiB ring. Public scoped cursor export has
+  explicit gaps; the external harness owns bounded file output. No continuous
+  browser-to-server diagnostic writer is added.
+- Recorder_complete is the listener's fast channel. Native queued/submitted/
+  start/end/canceled/error facts remain distinct, without a claim of hearing.
+- Automatic failed-turn announcements use static safe text once per owned live
+  request and only with autoplay. Model transport failure produces that same
+  notice. GUI disconnect retains inherited cancel/status behavior; reconnect,
+  tool failures, intentional cancel and synthesis failures stay silent.
+- Explicit manual full-card speech is preserved. Journal entries may contain a
+  scalar-safe prefix, exact byte/omission counts, digest and truncation flag.
+  The digest covers the exact adapter text without journal normalization. A
+  truncated required listener entry is an incomplete evaluation. An oversize
+  manual positive must prove the adapter receives the whole text.
+- listener_attach/listener_attached explicitly select the separate endpoint on
+  the existing view. Endpoint-kind/view/mount identity lets target and listener
+  coexist. Existing frame/detach protocols and shared capacity count both kinds;
+  listener close cannot stop target watch or native speech.
+
+The old unresolved-proposal section above remains an account of the initial
+outline. Exact draft rules are now available for independent review, with no
+student release or implementation claim. The historical story choices survive;
+full native-audio and transcript-only demonstrations await actual receipts.

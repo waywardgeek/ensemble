@@ -150,3 +150,76 @@ published read-original/write-emitted distinction already governs; await the
 student's report before adding a teaching disposition. Its later spin commands
 also need to use the same executable path as its TL;DR build. No Chapter 9
 source or manuscript was edited during this preparation.
+
+
+## Full contract draft, October 8, 2026
+
+The initial preparation remains at `bb6e04ccb0309ffbac6e7eeee81666b3018013a1`.
+The coordinator accepted the four outline choices and subsequently the manual
+compatibility and explicit listener-attachment extensions. The full draft is
+[chapter-13.md](chapter-13.md); current gates live in
+[chapter-13-validation.md](chapter-13-validation.md), created by the coordinator
+at `31e1e76`. These directions are coordinator choices, not newly attributed
+Bill rulings. No implementation or successful spin has been written into them.
+
+The author reread the Chapter 12 startup, ownership, complete tunnel/attachment
+and browser-tool passages, Chapter 8 speech scope/preferences/native ownership,
+and the Chapter 5/6/7 public identity/completion passages needed by the new wire.
+The listener cannot silently reuse mcp_attach for a duplicate claim on the same
+view: listener_attach/listener_attached now make the separate endpoint kind
+explicit. They retain the existing transport, frame bounds and shared resource
+accounting. Closing the endpoint is independent of closing its target Page.
+
+A second compatibility check found that manual full-card speech can exceed a
+journal entry. The coordinator accepted preserving the actual manual adapter
+input while recording an honest UTF-8 prefix, complete byte count, omitted bytes,
+digest and truncation flag. Automatic normalization alone uses the new pending
+budget. The transcript-only listener refuses a required truncated entry; the
+manual positive independently verifies full adapter delivery. Journal export
+completeness and full-text delivery are explicitly different assertions.
+
+The draft chooses an 8,192-byte automatic pending budget, 64 pending part parsers
+per Page, a 4,096-record/8,388,608-byte service ring, 65,536-byte record cap,
+524,288-byte read-result cap, 64 records per read and 16,777,216-byte external
+journal export. These are proposed resource decisions printed for review, not
+historical measurements. Service sequences are global; filtered reads advance
+across other scopes without exposing their records, while eviction reports a
+service-range gap without guessing how many selected utterances were lost.
+
+The exact safe announcement is selected only from an owned completion with
+outcome error, including model transport failure. The author intentionally
+keeps GUI disconnect's inherited cancel/release/status rule rather than adding
+new speech after a lost registration. Round-limit and intentional control
+outcomes remain distinct. The full contract exposes that scope for review.
+
+Local verification parses the literal JSON record and harness plan, verifies
+the Ready. digest, checks every normalization table cell as JSON, and computes
+a worst-case escaped record against its printed cap. These are prose-fixture
+checks, not a speech implementation or evidence that the normalization works.
+The author performs scoped prose lint, a complete reread and a cut/ending pass
+before publication; independent whole-contract review remains required.
+
+Chapter 9 priority response was separately committed at `f4459a5`. It classifies
+the student's reported raw-import re-encoding bug as implementation error under
+the existing contract, preserves the original passing gate's limited scope,
+and fixes the build/spin executable mismatch. The coordinator subsequently
+reports actual Anthropic work with a partial public task; those runs have not
+been audited by this author or used to invent successful Chapter 9 prose.
+
+
+Before the draft freeze, self-review found that giving the restricted listener
+all journal phases would expose the planted answer in queued text even if
+recorder completion were removed. The coordinator accepted a mechanically fixed
+completion-only reader profile, with native mode explicitly unavailable. The
+privileged public diagnostic reader remains separate from listener authority.
+This is a pre-implementation contract correction; no faulty runtime or successful
+negative control is claimed. The proposed journal metadata may reveal service
+sequence gaps across scopes, but never another scope's records or text.
+
+Draft fixture checks passed: two JSON blocks, seven JSON normalization pairs,
+the exact Ready. digest and a conservative escaped record of 55,996 bytes below
+the 65,536-byte cap. These verify literal syntax and bound arithmetic only.
+Hard prose lint and scoped whitespace checks pass. The complete draft was read
+for ownership, lifecycle, literal consistency and paragraph endings; the soft
+person-gap warning was reviewed alongside the concrete listener/fence incidents
+and reader consequences. Independent contract/voice review follows the freeze.
