@@ -25,6 +25,60 @@
       "source_identity": "a347ce31511c4b124e486bb41ef98c07bd17cec5",
       "platform": "darwin/arm64",
       "bytes": 8994738
+    },
+    {
+      "original_path": "/private/tmp/ensemble-ed2-ch05-live",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch05-live",
+      "sha256": "080229a8681047440ae2ee4c2f5aed4c04016728abfe1cfb8fbb8966341eea81",
+      "source_identity": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "platform": "darwin/arm64",
+      "bytes": 9264338,
+      "binding": "solutions/edition-2/main/evidence/ch05/initial-binding.json"
+    },
+    {
+      "original_path": "/private/tmp/ensemble-ed2-ch05-workflow",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch05-workflow",
+      "sha256": "79f73126609c6b1f465a5b8aa15a05a4e70b834b7c4bbe8378062c6c93c8d17b",
+      "source_identity": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "platform": "darwin/arm64",
+      "bytes": 9195810,
+      "binding": "solutions/edition-2/main/evidence/ch05/initial-binding.json"
+    },
+    {
+      "original_path": "/private/tmp/ensemble-ed2-ch05-revised",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch05-revised",
+      "sha256": "7a4131954d3f6a35fdb149ba16faf041b579100695f4ac77f61446b6c91560de",
+      "source_identity": "959c663400b74927578a3609ce58b0a51263e654",
+      "platform": "darwin/arm64",
+      "bytes": 9265554,
+      "binding": "solutions/edition-2/main/evidence/ch05/revised-binding.json"
+    },
+    {
+      "original_path": "/private/tmp/ensemble-ed2-ch05-workflow-revised",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch05-workflow-revised",
+      "sha256": "3a7a2572a225aed1f49ce022ff49c256412e1267d42aa9b689d39ee5bc397cb4",
+      "source_identity": "959c663400b74927578a3609ce58b0a51263e654",
+      "platform": "darwin/arm64",
+      "bytes": 9213538,
+      "binding": "solutions/edition-2/main/evidence/ch05/revised-binding.json"
+    },
+    {
+      "original_path": "/tmp/ensemble-ed2-ch04-boundary",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch04-boundary",
+      "sha256": "e44de00ce893f8fe13f8d7dc2be4f861ea920ead049705c996c66854ed116f10",
+      "source_identity": "d25d3fd4e552cd17c75bf814c9899903878cfbd5",
+      "platform": "darwin/arm64",
+      "bytes": 9120322,
+      "binding": "solutions/edition-2/ch04/evidence/ch04/boundary-live-anthropic/launch.json"
+    },
+    {
+      "original_path": "/tmp/ensemble-ed2-ch04-boundary-public",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch04-boundary-public",
+      "sha256": "441b74ff065a72bf94d4d018f5b2f7192a32522c49e76787588e014d6b6815a3",
+      "source_identity": "d25d3fd4e552cd17c75bf814c9899903878cfbd5",
+      "platform": "darwin/arm64",
+      "bytes": 9738418,
+      "binding": "solutions/edition-2/ch04/evidence/ch04/boundary-public-anthropic/launch.json"
     }
   ]
 }
