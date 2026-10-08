@@ -1,6 +1,6 @@
-// Package gui is a client-boundary stub, not a browser or WebSocket server.
-// A future WebSocket transport attaches here and translates browser requests
-// into Submit calls; the core library remains independent of that transport.
+// Package gui provides optional browser transport and reusable public clients.
+// Client retains the earlier observation adapter; Server and Connector provide
+// the atomic watch browser path. The core library remains independent of both.
 package gui
 
 import (

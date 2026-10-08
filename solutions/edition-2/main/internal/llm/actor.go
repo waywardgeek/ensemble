@@ -13,25 +13,31 @@ import (
 // Actor owns turn decisions. Its mailbox mutex only guards admission and transfer;
 // it never spans persistence, model I/O, job waits, or display callbacks.
 type Actor struct {
-	parent    common.ActorAgent
-	mu        sync.Mutex
-	queue     []common.ActorMessage
-	wake      chan struct{}
-	done      chan struct{}
-	accepting bool
-	next      uint64
-	pending   []*request
-	active    *request
-	operation uint64
-	model     common.ModelOperation
-	cancel    context.CancelFunc
-	workers   sync.WaitGroup
-	state     string
-	stopping  bool
-	closing   bool
-	fault     error
-	closeErr  error
-	faulted   *request
+	revision, nextWatch, nextPause uint64
+	watches                        []*watch
+	pauses                         map[uint64][2]bool
+	partials                       map[int]map[string][]byte
+	projectionInvalid              bool
+	partialBytes                   int
+	parent                         common.ActorAgent
+	mu                             sync.Mutex
+	queue                          []common.ActorMessage
+	wake                           chan struct{}
+	done                           chan struct{}
+	accepting                      bool
+	next                           uint64
+	pending                        []*request
+	active                         *request
+	operation                      uint64
+	model                          common.ModelOperation
+	cancel                         context.CancelFunc
+	workers                        sync.WaitGroup
+	state                          string
+	stopping                       bool
+	closing                        bool
+	fault                          error
+	closeErr                       error
+	faulted                        *request
 }
 type request struct {
 	parent     common.Actor
@@ -49,7 +55,7 @@ type request struct {
 }
 
 func NewActor(parent common.ActorAgent) *Actor {
-	a := &Actor{parent: parent, wake: make(chan struct{}, 1), done: make(chan struct{}), accepting: true, state: "idle"}
+	a := &Actor{pauses: map[uint64][2]bool{}, parent: parent, wake: make(chan struct{}, 1), done: make(chan struct{}), accepting: true, state: "idle"}
 	go a.run()
 	return a
 }
@@ -149,7 +155,7 @@ func (a *Actor) transition(state string) {
 	if a.active != nil {
 		id = a.active.id
 	}
-	a.parent.Ensemble().Observe(common.Observation{AgentID: a.parent.ID(), RequestID: id, Kind: "state", OldState: old, State: state})
+	a.publish(common.Observation{AgentID: a.parent.ID(), RequestID: id, Kind: "state", OldState: old, State: state})
 }
 func (a *Actor) run() {
 	defer close(a.done)
@@ -178,9 +184,16 @@ func (a *Actor) run() {
 	}
 }
 func (a *Actor) receive(m common.ActorMessage) bool {
+	if a.receiveWatch(m) {
+		return false
+	}
 	var ack common.ControlAck
 	var err error
 	switch m.Kind {
+	case "resume_tools":
+		if a.active != nil && a.state == "tools_pending" && a.active.report == nil {
+			a.dispatch()
+		}
 	case "prompt":
 		r := m.Handle.(*request)
 		if a.stopping {
@@ -309,6 +322,11 @@ func (a *Actor) receive(m common.ActorMessage) bool {
 			a.interrupt("stopped")
 		}
 	case "closed":
+		for _, w := range a.watches {
+			w.stop("Agent closed")
+		}
+		a.watches = nil
+		a.pauses = nil
 		if a.faulted != nil {
 			a.complete(a.faulted, "error", fmt.Errorf("persistence failure; completion could not be recorded; inspect actual effects before retry"))
 			a.faulted = nil
@@ -427,6 +445,9 @@ func (a *Actor) dispatch() {
 		return
 	}
 	a.transition("tools_pending")
+	if a.pauseState().Paused {
+		return
+	}
 	p := r.calls[r.index]
 	registry := a.parent.Registry()
 	manager := a.parent.Jobs()
@@ -686,7 +707,7 @@ func (a *Actor) observeModel(o common.Observation) {
 	o.AgentID = a.parent.ID()
 	o.RequestID = a.model.RequestID()
 	o.OperationID = a.model.ID()
-	a.parent.Ensemble().Observe(o)
+	a.publish(o)
 }
 func (a *Actor) endModel(accepted bool, seq uint64, code, message string) {
 	if a.model == nil {

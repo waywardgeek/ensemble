@@ -176,25 +176,28 @@ type Context struct {
 	LastSeq       uint64
 }
 type Observation struct {
-	OperationID string `json:"operation_id,omitempty"`
-	Delivery    string `json:"delivery,omitempty"`
-	PartID      int    `json:"part_id,omitempty"`
-	Channel     string `json:"channel,omitempty"`
-	Text        string `json:"text,omitempty"`
-	ResponseSeq uint64 `json:"response_seq,omitempty"`
-	PartIndex   int    `json:"part_index"`
-	Accepted    bool   `json:"accepted"`
-	Code        string `json:"code,omitempty"`
-	Message     string `json:"message,omitempty"`
-	RequestID   string `json:"request_id,omitempty"`
-	OldState    string `json:"old_state,omitempty"`
-	State       string `json:"state,omitempty"`
-	Position    int    `json:"position,omitempty"`
-	Part        *Part  `json:"part,omitempty"`
-	AgentID     string `json:"agent_id"`
-	Seq         uint64 `json:"seq"`
-	Kind        string `json:"kind"`
-	Event       Event  `json:"event"`
+	Paused          bool   `json:"paused"`
+	TypingClients   int    `json:"typing_clients"`
+	SpeakingClients int    `json:"speaking_clients"`
+	OperationID     string `json:"operation_id,omitempty"`
+	Delivery        string `json:"delivery,omitempty"`
+	PartID          int    `json:"part_id,omitempty"`
+	Channel         string `json:"channel,omitempty"`
+	Text            string `json:"text,omitempty"`
+	ResponseSeq     uint64 `json:"response_seq,omitempty"`
+	PartIndex       int    `json:"part_index"`
+	Accepted        bool   `json:"accepted"`
+	Code            string `json:"code,omitempty"`
+	Message         string `json:"message,omitempty"`
+	RequestID       string `json:"request_id,omitempty"`
+	OldState        string `json:"old_state,omitempty"`
+	State           string `json:"state,omitempty"`
+	Position        int    `json:"position,omitempty"`
+	Part            *Part  `json:"part,omitempty"`
+	AgentID         string `json:"agent_id"`
+	Seq             uint64 `json:"seq"`
+	Kind            string `json:"kind"`
+	Event           Event  `json:"event"`
 }
 type Observer interface{ Observe(Observation) }
 type ClientRequest struct {
@@ -231,6 +234,8 @@ type EventLog interface {
 
 // ClientOwner is public through an alias; optional clients never import internal packages.
 type ClientOwner interface {
+	Watch(string) (WatchSnapshot, Watch, error)
+	RegisterPause(string) (PauseRegistration, error)
 	Logf(string, ...any)
 	Submit(context.Context, ClientRequest) (ClientResult, error)
 	SubmitPrompt(string, string) (RequestHandle, error)

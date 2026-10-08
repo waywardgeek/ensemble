@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"example.com/ensemble"
@@ -8,6 +8,6 @@ import (
 
 func terminalFD(owner ensemble.ClientOwner, fd uintptr) bool {
 	var state syscall.Termios
-	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, syscall.TIOCGETA, uintptr(unsafe.Pointer(&state)))
+	_, _, errno := syscall.Syscall(syscall.SYS_IOCTL, fd, syscall.TCGETS, uintptr(unsafe.Pointer(&state)))
 	return errno == 0
 }

@@ -1,4 +1,4 @@
-package main
+package cli
 
 import (
 	"bufio"
@@ -15,7 +15,19 @@ import (
 
 const chatLineLimit = 1024 * 1024
 
+// ErrQuit asks an embedding application to shut down after /quit.
+var ErrQuit = fmt.Errorf("terminal requested application shutdown")
+
+// Chat reuses the human CLI on an existing Agent. With detachEOF, EOF drains
+// this client's accepted requests and leaves the Agent running; /quit returns ErrQuit.
+func Chat(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader, output io.Writer, detachEOF bool) error {
+	return runChatOptions(owner, agent, input, output, detachEOF)
+}
 func runChat(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader, output io.Writer) error {
+	return runChatOptions(owner, agent, input, output, false)
+}
+func runChatOptions(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader, output io.Writer, detachEOF bool) error {
+	quitRequested := false
 	writer := bufio.NewWriter(output)
 	progress, err := newProgress(owner, agent.ID())
 	if err != nil {
@@ -41,8 +53,13 @@ func runChat(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader,
 		return err
 	}
 	finish := func() error {
-		if err := agent.Close(); fatal == nil {
-			fatal = err
+		if !detachEOF {
+			if err := agent.Close(); fatal == nil {
+				fatal = err
+			}
+		}
+		if quitRequested && detachEOF {
+			return ErrQuit
 		}
 		if fatal != nil {
 			return fatal
@@ -101,6 +118,7 @@ func runChat(owner ensemble.ClientOwner, agent *ensemble.Agent, input io.Reader,
 						}
 					}
 					if quit {
+						quitRequested = true
 						reading = false
 						lines = nil
 						_ = agent.Close()

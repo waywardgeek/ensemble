@@ -44,6 +44,7 @@ type ActorAgent interface {
 	FinishClose() error
 	BeginTurn() error
 	EndTurn()
+	WatchSource() WatchSnapshot
 }
 type ModelEngine interface {
 	Engine
@@ -61,6 +62,10 @@ type Actor interface {
 	Record(Event) error
 	Append(Event) error
 	Close() error
+	Watch() (WatchSnapshot, Watch, error)
+	CloseWatch(uint64)
+	RegisterPause() (PauseRegistration, error)
+	UpdatePause(uint64, bool, bool, bool) (PauseState, error)
 }
 type ReportTask struct {
 	Ready   <-chan struct{}
@@ -78,22 +83,28 @@ type PreparedReport struct {
 // ActorMessage is the mailbox vocabulary. Private worker paths construct worker
 // variants; clients use the Actor operations rather than injecting messages.
 type ActorMessage struct {
-	Handle    RequestHandle
-	Kind      string
-	RequestID string
-	Text      string
-	Event     Event
-	Model     ModelOperation
-	Operation uint64
-	Response  ParsedResponse
-	Report    PreparedReport
-	Error     error
-	Reply     chan ActorReply
+	Handle           RequestHandle
+	Kind             string
+	RequestID        string
+	Text             string
+	Event            Event
+	Model            ModelOperation
+	Operation        uint64
+	Response         ParsedResponse
+	Report           PreparedReport
+	Error            error
+	Registration     uint64
+	Typing, Speaking bool
+	Reply            chan ActorReply
 }
 type ActorReply struct {
-	Ack    ControlAck
-	Handle RequestHandle
-	Error  error
+	Snapshot     WatchSnapshot
+	Watch        Watch
+	Registration PauseRegistration
+	Pause        PauseState
+	Ack          ControlAck
+	Handle       RequestHandle
+	Error        error
 }
 
 // StoppedError lets callers distinguish closed admission without parsing text.

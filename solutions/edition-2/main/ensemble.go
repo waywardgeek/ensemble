@@ -518,7 +518,11 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int)
 	}
 	a.mu.Unlock()
 	if notify {
-		a.parent.Publish(a.id, owned)
+		if a.actor != nil {
+			a.actor.PublishDurable(owned)
+		} else {
+			a.parent.Publish(a.id, owned)
+		}
 	}
 	return nil
 }
