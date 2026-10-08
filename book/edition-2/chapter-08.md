@@ -18,9 +18,9 @@ An execution setting reaches the actor that actually enforces it. The screen
 must show the applied value, and the running program must use that value at
 the promised boundary.
 
-**Draft contract:** ownership and speech semantics are coordinator-accepted
-working choices. The complete contract below awaits review before student
-handoff. Build only from accepted Chapter 7. No Chapter 8 implementation,
+**Reviewed contract:** ownership, persistence and speech semantics are
+coordinator-accepted working choices. The student handoff still requires an
+accepted Chapter 7 and the published independent checker. No Chapter 8 implementation,
 passing checker, browser session or audible result is claimed.
 
 ## TL;DR
@@ -269,6 +269,13 @@ not consume Agent watch revisions. Preference subscription and socket queues
 inherit Chapter 7's bounds and close/resync behavior; they cannot silently
 lose an applied update while the page claims to be current.
 
+Preference messages belong to the current Connector connection even though
+they have their own revisions and arrive before the Agent snapshot generation.
+Bind their handlers to that connection's lifetime. A late callback from a
+replaced socket cannot overwrite the new connection's settings. The new initial
+preference snapshot establishes its applied state; do not mix a partial handoff
+with messages from the abandoned connection.
+
 Agent policy uses the existing atomic watch. Add `execution_policy` to safe
 snapshot state, containing `revision`, `persistent`, `max_model_requests` and
 `effective_max_model_requests`. Add `active_max_model_requests`, null while
@@ -292,8 +299,11 @@ watch revision. A watch joining before or after application sees the change
 in its tail or snapshot, respectively. Never emit a policy change by bypassing
 the actor or by directly calling browser connections.
 
-Use correlated `error` records for failures. Codes are `invalid_command` for
-malformed command shape, `invalid_preferences` or `invalid_policy` for invalid
+Preserve Chapter 7's transport boundary: invalid JSON/UTF-8, binary, oversized
+or non-object messages, and unusable command IDs close the connection. A JSON
+object with a usable ID receives a correlated error for a correctable command
+or settings failure and leaves the connection usable. Codes are `invalid_command` for
+invalid command shape, `invalid_preferences` or `invalid_policy` for invalid
 values, `revision_conflict`, `settings_busy`, `settings_persist_failed` and
 `settings_closed`. Messages give a useful static reason such as
 `speech_rate must be between 0.5 and 2`. A conflict also supplies `domain`
@@ -508,7 +518,7 @@ usage. Preserve unexpected model behavior and the corrective follow-up.
 | Validation | Unknown/duplicate keys, null, wrong kinds, fractional integers, ranges, oversize file, trailing input and unsupported file version fail before mutation |
 | Persistence | Nondefault positive survives restart; failure before replace preserves original bytes/revision/state; no-change patch performs no write |
 | Concurrency | Two same-base patches produce one change and busy/conflict; deliberate fresh-base retry retains the first change; controls work while persistence is held |
-| Subscribe handoff | Hold a change at the snapshot boundary; each client gets either the old snapshot plus newer change or the new snapshot, with no gap or regression |
+| Subscribe handoff | Hold a change at the snapshot boundary; each client gets either the old snapshot plus newer change or the new snapshot, with no gap or regression; old-socket callbacks cannot overwrite the new connection's preferences |
 | Runtime effect | Limit 1 pairs its final tool batch and prevents HTTP 2; limit 17 permits HTTP 17; zero restores 16; settings-consumer deletion fails |
 | Turn timing | Change policy during held HTTP and while a turn is queued; active turn retains its capture, queued turn uses policy at activation; two Agents remain independent |
 | Recorded policy | New capture validates/replays, malformed capture fails, old absent capture retains historical 16; request reconstruction gets no invented vendor field |

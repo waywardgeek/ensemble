@@ -2,8 +2,8 @@
 
 Coordinator review of the complete draft at `cfb0d87`, October 7, 2026.
 The ownership, persistence and execution-policy choices are accepted as working
-design decisions. Two wire/lifetime clarifications below must be reconciled
-before the student handoff. Chapter 7 acceptance and publication of the initial
+design decisions. The coordinator reconciled the two wire/lifetime clarifications
+below before any Chapter 8 student handoff. Chapter 7 acceptance and publication of the initial
 independent Chapter 8 checker remain prerequisites; no implementation or live
 result is claimed here.
 
@@ -29,17 +29,15 @@ applied revision/rate on enqueue, owns its existing queue and sends only its own
 pause transitions. Disabling future speech and canceling present speech remain
 separate user actions.
 
-## Clarifications before handoff
+## Clarifications found during review
 
-1. Section 8.4 says all malformed command shapes receive correlated errors,
-   while Chapter 7 closes malformed transport/command input. Preserve that
-   earlier boundary explicitly. Invalid JSON, invalid UTF-8, binary/oversized
-   messages and the earlier strict envelope failures keep their Chapter 7
-   behavior. A valid settings command whose domain patch has a rejected value,
-   null/duplicate/unknown member, stale revision or persistence failure gets
-   its attributable settings error and leaves the connection usable. Specify
-   envelope errors separately so a grader cannot silently choose a conflicting
-   interpretation of the two chapters.
+1. Section 8.4 says malformed command shapes receive correlated errors,
+   while Chapter 7's original “malformed transport” wording could be read more
+   broadly. The printed Chapter 7 unknown-field error also supports the
+   nonfatal interpretation. Specify transport, usable correlation and domain
+   validation separately so a grader cannot silently choose a conflicting
+   interpretation of the two chapters. The student finding and settled
+   behavior below resolve this ambiguity in both contracts.
 2. Preference snapshots/changes have their own revision and arrive before the
    Agent snapshot generation is known. State that they remain bound to the
    current socket/Connector connection lifetime. Late callbacks from a replaced
@@ -49,11 +47,20 @@ separate user actions.
    revision for Server-owned preferences. A controlled old-socket callback must
    distinguish this behavior.
 
+Chapter 7's fresh student subsequently found the same transport ambiguity in
+its printed unknown-field error example. The coordinator clarified §7.4 at
+`1bba1bc`: correlatable semantic command errors leave a usable connection,
+while malformed transport and unusable IDs close. Chapter 8 now explicitly
+inherits that settled boundary. Section 8.4 also binds preference callbacks to
+the current Connector lifetime, with an old-socket distinguishing control in
+§8.9. Root made these narrow prose changes while the author thread was idle for
+Chapter 7 grader capacity; final independent proofreading remains required.
+
 These are precision fixes to the published wire/lifetime boundary, not requests
 for a new owner or additional settings feature. Method names, CSS breakpoint,
 storage representation and reusable component implementation remain student
-choices. After author reconciliation, update this review with exact revision
-and disposition before releasing a fresh student.
+choices. The full contract is accepted for checker preparation; its eventual
+student still requires accepted Chapter 7 and a published acceptance command.
 
 Final story/voice proofreading follows actual implementation and receipts.
 The draft already keeps the omitted-zero failure and dead execution-limit
