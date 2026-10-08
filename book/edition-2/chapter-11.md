@@ -340,8 +340,9 @@ booleans except the required object input root. Support exactly these keywords:
 
 Reject every other keyword, including pattern, format, dynamic references,
 external/relative references and unevaluated vocabulary. Reject malformed keyword
-values, unresolved pointers and cycles in the schema-reference graph. `$ref`
-siblings apply too. Enforce the bounds below on the physical schema and on
+values, unresolved pointers and cycles reached by traversing schema containment
+and reference expansion together. For example, a child property with `$ref":"#"`
+returns to its containing root and is refused. `$ref` siblings apply too. Enforce the bounds below on the physical schema and on
 validation work so repeated references cannot create exponential work unnoticed.
 Validation failure or budget exhaustion cannot fall through to sending a call.
 Numeric comparisons and enum equality retain arbitrary accepted JSON number
@@ -396,8 +397,9 @@ to exactly name, description, inputSchema and outputSchema, using the empty
 description and null absent output described above. Sum the canonical byte length
 of each such object, with no surrounding array brackets or separators. Ignored
 descriptor metadata is absent from this sum; retained schema annotations count.
-The 8 MiB received-message and generic-node bounds include all ignored metadata
-and original wire whitespace, so discarding metadata cannot evade input bounds.
+The 8 MiB received-message bound includes ignored metadata and original wire
+whitespace. The generic-node bound includes ignored metadata values, but whitespace
+is not a JSON node. Discarding metadata cannot evade either input bound.
 
 ## 11.6 A remote call is still a Job
 
