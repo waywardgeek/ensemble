@@ -10,11 +10,14 @@ in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 
 Chapter 6 is active with fresh new-only student `/root/coder_ch06` and
 independent grader/reviewer `/root/grader_ch05`. Root accepted the student's
-ownership plan before affected implementation. Streaming implementation is
-underway, and the initial independent CLI barrier checks are committed at
-`c6272a4`; broader contract checks remain pending. See
+ownership plan before affected implementation. Initial runtime `aa5f86a` and
+nine real-model sessions are frozen. Independent comparison found refusal
+replay and quadratic assembly costs; the original student is repairing both
+after teaching/plan review. Broader acceptance and mutation checks continue. See
 [chapter-06-validation.md](chapter-06-validation.md) for the current gates.
-The author has resumed Chapter 7 preparation and Chapter 6 clarifications.
+The author reconciled Chapter 6's initial live prose at `ca511e4`; Chapter 7's
+browser/pause contract passed coordinator review, conditional on accepted
+Chapter 6 and published independent checks before its student handoff.
 The first student gap, preserving Gemini text parts with unknown fields, was
 taught explicitly at `f085b95` before affected implementation.
 

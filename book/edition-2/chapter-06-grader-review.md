@@ -116,3 +116,40 @@ with preserved prior coverage once the groups exist. Do not label the initial
 CLI command full chapter acceptance in the manuscript. No paid call is needed
 for any work in this plan. Actual live receipts and the later historical
 comparison remain separate mandatory gates.
+
+### Coordinator CLI overflow/recovery probe
+
+`ch06-review-cli-recovery.py SOURCE_COMMIT` exports committed Go/module files
+to disposable directories and injects `ch06-review-cli-recovery_test.go.txt`.
+It runs the real human and observed-protocol loops, real HTTP parser, Agent and
+Observer, with an output writer blocked at the first visible fragment. Each
+following wire fragment waits for acknowledgment that the real client bridge
+received the previous one. Three hundred deliveries therefore overflow its
+bounded queue without relying on a scheduling race or a fast producer. The
+server completes and the observer sees durable `turn_ended` while output is
+still blocked. Releasing output must recover the complete reliable answer.
+
+The four cases cover two-fragment controls and 300-fragment overflow for both
+clients. Protocol must report exactly one correctly identified gap before its
+single complete successful completion. Human chat must report the gap before
+completion and label the recovered whole answer; ordinary small streams must
+show neither a gap nor duplicated final text. The writer seam makes ordering
+deterministic; this fixture complements actual PTY delivery tests and is not a
+claim of live-provider or PTY overflow.
+
+On initial `aa5f86a`, all four pass under race detection. Suppressing the gap
+callback fails exactly the two overflow cases; suppressing human recovered
+text fails exactly that human overflow case. Both small-stream controls still
+pass. The retained receipt is
+`checkpoint-evidence/ch06-cli-recovery-initial.json`, binding all 68 historical
+Go/module sources, both probe files, commands and exact failed leaf-test sets.
+No production source or historical grader is changed. Full Chapter 6 acceptance
+remains the reviewer's broader gate.
+
+The first attempt to broaden this probe to the whole main module omitted
+committed `testdata/history.log` from its disposable export. The targeted probe
+passed, while four existing replay-fixture tests correctly failed at missing
+input. That failed receipt remains as `ch06-cli-recovery-fixture-omission.json`.
+The corrected runner includes and hashes committed testdata; whole-module vet
+and tests then pass. An intermediate directory-entry path error stopped the
+runner before tests and was corrected by filtering non-files first.

@@ -1,0 +1,209 @@
+package main
+
+import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"path/filepath"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+
+	"example.com/ensemble"
+)
+
+// The test client's real parent remains Ensemble. This wrapper adds delivery
+// acknowledgments, not fake observations or a fake overflow status.
+type reviewRecoveryClient struct {
+	ensemble.ClientOwner
+	delivered chan struct{}
+	ended     chan struct{}
+	stop      chan struct{}
+}
+
+type reviewRecoveryObserver struct {
+	parent *reviewRecoveryClient
+	child  ensemble.Observer
+}
+
+func (p *reviewRecoveryClient) Subscribe(id string, child ensemble.Observer) (uint64, error) {
+	return p.ClientOwner.Subscribe(id, &reviewRecoveryObserver{parent: p, child: child})
+}
+
+func (o *reviewRecoveryObserver) Observe(event ensemble.Observation) {
+	o.child.Observe(event)
+	if event.Kind == "part_delta" {
+		select {
+		case o.parent.delivered <- struct{}{}:
+		case <-o.parent.stop:
+		}
+	}
+	if event.Kind == "turn_ended" {
+		close(o.parent.ended)
+	}
+}
+
+type reviewRecoveryWriter struct {
+	parent *reviewRecoveryClient
+	bytes.Buffer
+	entered chan struct{}
+	release chan struct{}
+	once    sync.Once
+}
+
+func (w *reviewRecoveryWriter) Write(data []byte) (int, error) {
+	if bytes.Contains(data, []byte("FIRST_FRAGMENT")) {
+		w.once.Do(func() {
+			close(w.entered)
+			select {
+			case <-w.release:
+			case <-w.parent.stop:
+			}
+		})
+	}
+	return w.Buffer.Write(data)
+}
+
+func TestReviewCLIRecovery(t *testing.T) {
+	for _, human := range []bool{false, true} {
+		for _, fragments := range []int{2, 300} {
+			t.Run(fmt.Sprintf("human=%t/fragments=%d", human, fragments), func(t *testing.T) {
+				owner := ensemble.New(io.Discard)
+				client := &reviewRecoveryClient{ClientOwner: owner, delivered: make(chan struct{}, 1), ended: make(chan struct{}), stop: make(chan struct{})}
+				output := &reviewRecoveryWriter{parent: client, entered: make(chan struct{}), release: make(chan struct{})}
+				// Deadlines guard hangs. Ordering comes exclusively from channels.
+				await := func(ch <-chan struct{}, what string) bool {
+					select {
+					case <-ch:
+						return true
+					case <-client.stop:
+						return false
+					case <-time.After(10 * time.Second):
+						t.Errorf("barrier timed out: %s", what)
+						return false
+					}
+				}
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					defer r.Body.Close()
+					var request map[string]any
+					if err := json.NewDecoder(r.Body).Decode(&request); err != nil || request["stream"] != true {
+						t.Error("fixture requires actual streaming request", err)
+						return
+					}
+					w.Header().Set("Content-Type", "text/event-stream")
+					send := func(value string) {
+						fmt.Fprintf(w, "data: %s\n\n", value)
+						w.(http.Flusher).Flush()
+					}
+					send(`{"type":"message_start","message":{"model":"fixture-ch06","content":[],"usage":{"input_tokens":10,"output_tokens":0}}}`)
+					send(`{"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}`)
+					for i := 0; i < fragments; i++ {
+						text := "x"
+						if i == 0 {
+							text = "FIRST_FRAGMENT"
+						}
+						send(fmt.Sprintf(`{"type":"content_block_delta","index":0,"delta":{"type":"text_delta","text":%q}}`, text))
+						// Each separate fragment has reached the real client bridge
+						// before the next is sent; the producer cannot coalesce them.
+						if !await(client.delivered, "fragment delivered") {
+							return
+						}
+						if i == 0 && !await(output.entered, "CLI output blocked") {
+							return
+						}
+					}
+					send(`{"type":"content_block_stop","index":0}`)
+					send(`{"type":"message_delta","delta":{"stop_reason":"end_turn"},"usage":{"output_tokens":2}}`)
+					send(`{"type":"message_stop"}`)
+				}))
+				defer server.Close()
+				// Closing this before server.Close releases all fixture barriers on
+				// failure, so the diagnostic cannot strand an HTTP handler.
+				defer close(client.stop)
+				agent, err := owner.NewAgent(ensemble.Config{Vendor: "anthropic", Model: "fixture-ch06", APIKey: "LOCAL-ONLY", BaseURL: server.URL, LogPath: filepath.Join(t.TempDir(), "events.jsonl")})
+				if err != nil {
+					t.Fatal(err)
+				}
+				defer agent.Close()
+				finished := make(chan error, 1)
+				go func() {
+					if human {
+						finished <- runChat(client, agent, strings.NewReader("Explain.\n"), output)
+					} else {
+						finished <- runProtocolObserved(client, agent, strings.NewReader("{\"kind\":\"prompt\",\"text\":\"Explain.\"}\n"), output, true)
+					}
+				}()
+				if !await(client.ended, "durable turn end while CLI output remains blocked") {
+					t.Fatal("model/actor did not finish behind blocked output")
+				}
+				close(output.release)
+				select {
+				case err := <-finished:
+					if err != nil {
+						t.Fatal(err)
+					}
+				case <-time.After(10 * time.Second):
+					t.Fatal("CLI did not recover after output release")
+				}
+				text := output.String()
+				want := "FIRST_FRAGMENT" + strings.Repeat("x", fragments-1)
+				overflow := fragments > 256
+				if human {
+					gap := strings.Index(text, "Incomplete display: observation overflow;")
+					completion := strings.Index(text, "(success; pending hints=0)")
+					if completion < 0 {
+						t.Fatal("missing successful human completion")
+					}
+					if overflow {
+						if gap < 0 || gap > completion || strings.Count(text, "Incomplete display: observation overflow;") != 1 {
+							t.Fatal("missing single human gap before completion")
+						}
+						if !strings.Contains(text, "Complete final answer (recovered):\nAssistant:\n"+want+"\n") {
+							t.Fatal("missing labeled complete recovered human answer")
+						}
+					} else if gap >= 0 || strings.Contains(text, "(recovered)") || strings.Count(text, want) != 1 {
+						t.Fatal("small-stream control falsely recovered or duplicated answer")
+					}
+				} else {
+					gap, completion, gaps, completions := -1, -1, 0, 0
+					for i, line := range strings.Split(strings.TrimSpace(text), "\n") {
+						var record map[string]json.RawMessage
+						if err := json.Unmarshal([]byte(line), &record); err != nil {
+							t.Fatal("invalid serialized protocol record", err)
+						}
+						if raw := record["observation_gap"]; raw != nil {
+							var value map[string]string
+							if json.Unmarshal(raw, &value) != nil || len(value) != 2 || value["reason"] != "overflow" || value["agent_id"] != agent.ID() {
+								t.Fatal("incorrect protocol gap fields")
+							}
+							gap, gaps = i, gaps+1
+						}
+						if raw := record["completion"]; raw != nil {
+							var value struct {
+								Text, Outcome string
+								RequestID     string `json:"request_id"`
+							}
+							if json.Unmarshal(raw, &value) != nil || value.Text != want || value.Outcome != "success" || value.RequestID == "" {
+								t.Fatal("incorrect reliable protocol completion")
+							}
+							completion, completions = i, completions+1
+						}
+					}
+					if completions != 1 {
+						t.Fatal("missing unique reliable protocol completion")
+					}
+					if overflow && (gaps != 1 || gap > completion) {
+						t.Fatal("missing single protocol gap before completion")
+					}
+					if !overflow && gaps != 0 {
+						t.Fatal("small-stream control falsely reported protocol gap")
+					}
+				}
+			})
+		}
+	}
+}
