@@ -415,3 +415,19 @@ hard rules at 7,289 chapter words; the existing dense-contract person-gap warnin
 was reviewed. The original JSON fixture is byte-unchanged and parses. Scoped diff
 validation and manual reading of the amended passages pass. No runtime, grader,
 model call or accepted historical receipt changed.
+
+## Unicode clarification before affected grading
+
+October 8, 2026. The coordinator/grader identified a lexical-validation gap in
+session admission: raw ASCII JSON containing a lone surrogate escape passes a
+UTF-8 byte check but Go's decoder replaces the invalid escape with U+FFFD.
+The author read the complete local primary documentation using
+`go doc encoding/json.Unmarshal`, including its explicit replacement behavior.
+This is a coordinator/grader finding, not a new student question or runtime
+reproduction. The coordinator chose strict Unicode-scalar validation for session
+strings/keys and canonicalized JSON before replacement. Chapter 10 §10.3/§10.8
+now print lone-high/lone-low refusals, paired/U+FFFD acceptance and the valid
+escaped-backslash distinction; replay-bearing raw fields preserve original valid
+bytes after validation. Legacy standalone decoding retains its earlier contract.
+A separate direct-feedback addendum preserves that attribution. No code, grader,
+provider, snapshot or legacy edit occurred.

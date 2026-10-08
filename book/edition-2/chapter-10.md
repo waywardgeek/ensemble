@@ -234,6 +234,19 @@ preserved, strings escaped with JSON's short control escapes and lowercase
 `\u00xx` for remaining controls, otherwise literal UTF-8. Do not HTML-escape
 `<`, `>` or `&`, escape `/`, or normalize Unicode.
 
+For session admission and this canonicalization, decoded JSON strings and object
+keys must contain Unicode scalar values. Reject a lone high or low UTF-16
+surrogate escape; accept a valid adjacent high/low escape pair and genuine
+U+FFFD, whether literal or escaped. For example, `"\ud800"` and `"\udc00"`
+refuse, while `"\ud83d\ude00"` and `"\ufffd"` pass this check. JSON
+`"\\ud800"` also passes: its escaped backslash introduces literal text, not a
+surrogate escape. Validate before a decoder can replace invalid escapes with
+U+FFFD: ASCII source bytes can pass a raw UTF-8 check while containing an invalid
+escaped string. Apply the same validation to replay-bearing raw JSON, including
+JSON carried inside a validated string wrapper, while preserving its original
+valid bytes. This explicitly stricter session/canonicalization boundary leaves
+legacy standalone decoding under its preceding contract.
+
 Canonicalize every JSON number losslessly, including numbers nested in handler
 schemas or arbitrary accepted payloads. Parse the original token as sign,
 decimal digits, fractional digit count and signed decimal exponent. An absent
@@ -726,7 +739,8 @@ or truncation conceals the limit. Diagnose early enough for an operator to choos
 a new session rather than promise unbounded storage.
 
 Strict outer/identity/state parsing rejects duplicate or unknown fields, invalid
-UTF-8, trailing JSON, wrong types and unsupported versions. Existing event metadata
+UTF-8 or invalid surrogate escapes under §10.3, trailing JSON, wrong types and
+unsupported versions. Existing event metadata
 compatibility remains Chapter 2's; a new outer parser must not reject an otherwise
 allowed harmless annotation on an old event. Detect duplicate event members and
 invalid known payloads without echoing their contents. Validate integer ranges

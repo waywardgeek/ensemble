@@ -58,3 +58,19 @@ state without disguising a whole event archive as a semantic snapshot. The
 coordinator/reviewer is checking that owner/API plan separately. No failed run,
 successful restart or live demonstration is claimed by this response. The student
 should record whether Q1–Q3 now resolve the original questions.
+
+## Coordinator/grader addendum: escaped Unicode validation
+
+October 8, 2026. This is a coordinator/grader finding during source review,
+separate from the student's original Q1–Q3. Go's documented JSON decoder replaces
+invalid UTF-16 surrogate escapes with U+FFFD; checking raw UTF-8 alone does not
+detect an ASCII escape spelling such as `"\ud800"`.
+
+Section 10.3 now explicitly requires Unicode scalar values in decoded session
+JSON strings and keys, including replay-bearing raw JSON. Reject lone high/low
+surrogates before replacement; accept valid pairs and genuine U+FFFD. An escaped
+backslash followed by literal u/digits remains ordinary valid text. Preserve
+valid original raw bytes. Section 10.8 includes that validation in the strict
+session boundary. Legacy standalone decoding keeps its prior contract. This is
+published before affected grading; it neither reports a student-discovered
+question nor claims that the new validation has already been implemented.
