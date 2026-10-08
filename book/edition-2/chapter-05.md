@@ -812,6 +812,6 @@ thinking, request handles that let multiple callers get their own answers,
 and a human at a terminal who can always type. The model is still
 stateless. The agent remembers.
 
-The next chapter adds the part the model cares about most: the ability to
-see its own tools arrive and depart while it is running, and to carry
-instructions that change what it can do.
+The next chapter shows the answer while it arrives. The terminal can display
+proposed work early, while the actor keeps execution behind the complete-response
+boundary established here.

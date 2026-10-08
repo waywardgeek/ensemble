@@ -446,6 +446,11 @@ Each activation has exactly `activation` (positive uint64), `name`, `type`,
 to active dependency activations, including earlier nodes of this same new
 material group. The primary body occurs only in its activation record; the
 initial event does not contain a second copy in a message or Config payload.
+This also applies to later request captures: in skill mode, retain the existing
+request configuration `system` field with the exact empty string, rather than
+copying the primary into every request. Rendering and request reconstruction
+resolve the base from the recorded immutable primary activation at that prefix.
+No-skills request captures retain their previous System bytes and meaning.
 A complete activation with no dependencies or offers is:
 
 ```json
@@ -512,11 +517,56 @@ order. Empty material still has its identity but adds no provider text.
 A transition during an unresolved accepted batch records its fact immediately,
 but its material is projected after every call in that batch has a matched
 result, in transition order. This includes typed public changes during a held
-batch. Preserve Chapter 5's ordered post-batch material: merge deferred skill
-entries and hints by their durable event sequence after the complete results.
+batch. In skill mode, when an accepted call batch becomes unresolved, give all
+then-pending, unanchored hints a stable placement anchor immediately after its
+complete results. Give the same anchor to skill entries and unanchored hints
+accepted while that batch remains unresolved. Never reassign an existing anchor.
+Merge material sharing that anchor by durable event sequence; activations from
+one transition keep their defined material order. Derive the anchor from the
+accepted batch and receipt events, without a second durable hint record.
 Rendering an unresolved prefix still refuses rather than inventing missing
 results. A round limit or interruption can end the turn after pairing; the
-recorded material remains available to a later request.
+anchor survives and its material remains available to a later request.
+
+For these skill-mode anchored hints, this chapter supersedes Chapter 5's
+placement after a pending ordinary prompt. A hint received after completion
+retains that earlier request-tail placement until a later unresolved batch
+anchors it. No-skills Agents retain Chapter 5's exact placement behavior. Never globally sort conversation entries or move a retained manual
+to the tail. Request captures still list consumed hint sequences in their
+original receipt order, independently of where each anchored hint renders.
+Consumption removes only the one-request hint text; it does not relocate the
+skill entry or its anchor.
+
+For a literal ordering fixture, a held read_file batch has call c1. Hint H at
+sequence 10 says `Remember H.`; a typed skill change at 11 activates edit with
+body `Use write_file.` and activation 2. The final matched result at 12 is
+`done`. The turn then ends before another HTTP request, and the next ordinary
+prompt P says `Continue P.`. These selected facts illustrate ordering, not a
+complete importable event log. The next provider suffix is results, H, S, P.
+Messages has:
+
+```json
+{"role":"user","content":[{"type":"tool_result","tool_use_id":"c1","content":"done","is_error":false},{"type":"text","text":"Remember H."},{"type":"text","text":"[skill edit activation 2]\nUse write_file.\n[/skill]"},{"type":"text","text":"Continue P."}]}
+```
+
+Chat Completions has these consecutive messages:
+
+```json
+[{"role":"tool","tool_call_id":"c1","content":"done"},{"role":"user","content":"Remember H."},{"role":"user","content":"[skill edit activation 2]\nUse write_file.\n[/skill]"},{"role":"user","content":"Continue P."}]
+```
+
+generateContent has:
+
+```json
+{"role":"user","parts":[{"functionResponse":{"id":"c1","name":"read_file","response":{"result":"done"}}},{"text":"Remember H."},{"text":"[skill edit activation 2]\nUse write_file.\n[/skill]"},{"text":"Continue P."}]}
+```
+
+Each excerpt follows the same complete assistant call group; other request
+fields are omitted. The ensuing request_sent records `hints:[10]` and consumes
+H. At the next projection, remove the entire `Remember H.` text part/message
+from these suffixes, leaving results, S, P in that order. Repeated rendering
+before consumption is identical. Replay derives the same placement and
+consumption without consulting the live catalog.
 
 This is not an enduring-instruction append. Place each nonempty skill entry at
 its chronological dialogue position with the exact envelope:
@@ -592,12 +642,21 @@ error. Both present select skill mode. Resolve a relative directory against the
 launch workspace once; never change process cwd. Do not silently discover a
 nearby skill directory or silently select a full primary.
 
-Use the shared configuration reader for both commands. In skill mode it leaves
-the default System unset so the primary supplies the base; an explicitly
-supplied nonempty system override is an error, not discarded input. A public
-caller passing a prefilled default System must clear it deliberately before
-selecting skills. No-skills callers retain the inherited default and explicit
-System behavior. The chapter adds no environment-based custom-variable lookup.
+Use the shared configuration reader for both commands. Add the explicit
+`LLM_SYSTEM` input, inspecting its presence with LookupEnv; there is no
+provider-specific fallback name. In skill mode an absent or explicitly empty
+value leaves System unset so the primary supplies the base. A supplied nonempty
+value is a startup conflict, even if it happens to equal the primary body; never
+silently discard it. A public caller passing a prefilled nonempty default System
+must clear it deliberately before selecting skills.
+
+Without skills, pass an explicit LLM_SYSTEM value through the inherited Config
+normalization: a nonempty override is used and an absent or empty value retains
+the established default. This adds the CLI spelling without changing public
+no-skills System semantics. The chapter adds no environment-based custom-variable
+lookup. General Config() reads may still expose the effective primary and an
+unchanged round trip remains allowed under §9.7; that owned view is distinct
+from the empty system field persisted in a skill-mode request capture.
 
 The public library provides an owned skill-state getter and actor-ordered typed
 load/unload. The state and Chapter 7 watch snapshot's new `skills` field are

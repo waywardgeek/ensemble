@@ -271,7 +271,10 @@ their data keys are not new snapshot fields. Required contents are:
   identity, purpose, provenance, opaque material and exact text/reference bytes.
 - Effective redaction spans, pending ephemera and their consumed status, enduring
   instructions, base identity and any deferred ordered material needed by the
-  inherited reducer. A settled live candidate has no deferred unresolved batch.
+  inherited reducer. Retain unconsumed hints and their completed-batch placement
+  anchors from Chapter 9, including exact sequence order relative to manuals.
+  These are settled one-request state; a settled live candidate has no deferred
+  unresolved batch.
 - Seen calls/requests, pairing and terminal turn outcomes needed to reject reuse
   and invalid subsequent appends. Dropping rendered text never erases identities.
 - Per-producing-model normalized usage and associated accepted-response facts
@@ -387,7 +390,9 @@ whether an effect should run again. Serialization cannot choose that for its cal
 
 Checkpoint capture runs as an actor control. It succeeds only when there is no
 active turn, queued admitted prompt, active response slot, unresolved call,
-model/report/input worker operation, or deferred batch material. Otherwise return
+model/report/input worker operation, or material awaiting an unresolved batch.
+Unconsumed hints anchored to an already completed batch do not make capture busy.
+Otherwise return
 `session_busy` immediately; do not queue an unbounded series of save requests or
 wait for a paused model call to finish. A running independent job whose initial
 report was paired does not itself make the conversation unsettled. Its current
@@ -452,8 +457,10 @@ process finished. That report correctly completed the original tool call. It
 says nothing about whether an OS process exists in a later application.
 
 Live resume requires a settled reduced conversation: no active turn or response
-slot, unanswered call, pending human dialogue awaiting completion, or deferred
-batch material. Errors and interruptions already committed under their original
+slot, unanswered call, pending human dialogue awaiting completion, or material
+awaiting an unresolved batch. Pending one-request hints with a completed-batch
+anchor remain settled state and retain their Chapter 9 placement after restart.
+Errors and interruptions already committed under their original
 rules can be settled. An unfinished accepted turn refuses with
 `session_unfinished`; offline inspection can still report the last accepted
 boundary. No startup HTTP request, tool invocation, completion handle or terminal
