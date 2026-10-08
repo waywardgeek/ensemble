@@ -105,7 +105,7 @@ states closed admission, cleanup by the exiting owned worker, and retained
 terminal reason. It does not promise forced termination of a user callback.
 The student confirmed the clarification and revised the implementation;
 `959c663` and independent review `743dca3` resolve the finding. Deterministic
-lifetime controls establish this behavior; the live GUI remains a stub.
+lifetime controls establish this behavior; the GUI remains a stub.
 
 ## Actual use and evidence correction
 
