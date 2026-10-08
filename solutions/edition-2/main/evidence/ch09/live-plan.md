@@ -1,5 +1,7 @@
 # Chapter 9 proposed live coverage and identity binding
 
+Execution is now recorded in [live-results.md](live-results.md). The planning text below preserves the reviewed pre-run expectations and local-phase status; it is not a claim that later live work made no calls. Actual failures, revised bindings and bounded recovery releases are recorded separately.
+
 Status: coordinator accepted matrix coverage and the 108/36 HTTP ceilings in `live-plan-review-1`; **local/support review is complete and `paid-phase-release` authorizes the live phase on frozen c0e3171**. This local milestone ends ready for the same session to resume demonstrations. Bill’s standing credential authorization is not a new permission request. This phase has read no credentials and made no real-provider calls. Initial implementation is not chapter-accepted. Current teaching is `d8c7738f206fb5c95cfe9fb53d70f64e04f8884e`; historical comparison has not occurred.
 
 ## Interfaces, providers and hard bounds

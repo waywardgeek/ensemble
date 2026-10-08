@@ -1,0 +1,29 @@
+Ensemble — anthropic / claude-sonnet-4-6
+Type /help for commands.
+You> Load the edit skill, then call list_directory with exactly the empty arguments object {} and no path argument. Make those actual calls, change no files, then briefly report the directory result. Do not make other calls.
+Accepted r1.
+You> 
+Request r1 / m1 (stream)
+
+[r1 Assistant part 1] I'll start by loading the edit skill, then call `list_directory` with exactly `{}` as requested — both steps in parallel since they're independent.
+[r1 proposed tool part 2] load_skill
+[r1 proposed tool part 2] {"name": "edit"}
+
+Request r1 / m2 (stream)
+
+[r1 Assistant part 1] Now I'll call `list_directory` with exactly `{}`:
+[r1 proposed tool part 2] list_directory
+[r1 proposed tool part 2] {}
+
+Request r1 / m4 (stream)
+
+[r1 Assistant part 1] Here's the directory result:
+
+- **`cr/`** — a subdirectory
+- **`notes.txt`** — a file
+
+Those are the two items found in the workspace. No files were changed.
+
+Request r1 (success; pending hints=0)
+You> /quit
+Final usage: input=4141, cache write=0, cache read=0, output=188
