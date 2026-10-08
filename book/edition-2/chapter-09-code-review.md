@@ -1,7 +1,8 @@
 # Chapter 9 independent code comparison
 
-October 8, 2026. The historical comparison is complete; two scoped quality
-revisions are requested below. This review found no additional Skills
+October 8, 2026. The historical comparison is complete. Both scoped quality
+revisions requested below are now accepted; the final disposition follows the
+preserved initial findings. This review found no additional Skills
 correctness blocker. It does not replace the separate final live audit or
 manuscript proofread, and it does not turn a partial provider attempt into a
 successful task outcome.
@@ -194,3 +195,83 @@ evidence before its final code-quality disposition. It does not reopen already
 accepted deterministic checks or authorize paid retries. Final live acceptance,
 the author's actual-run reconciliation and a complete final manuscript
 proofread remain separately recorded gates.
+
+## Final revision review — R1 and R2 closed
+
+The reviewed repair is `06c6787337d959c6d9b4874ee660025fe432a72a`. The reviewer
+read its complete production delta, both narrow-read tests, the consumer's
+subprocess test and all five comparison JSON receipts plus the revision
+handoff. The coding skill was reloaded in full. Independent identity checks
+confirm all 137 revised runtime/support-source files against that commit and
+the current tree, all 13 affected-module source hashes, all 123 Go/module
+hashes in the selected public receipt, and its three checker hashes. The
+[revision review receipt](checkpoint-evidence/ch09-code-revision-review.json)
+records those bindings and the precise reuse of student-run results. This
+review did not rerun the tests or make a provider call.
+
+R1 is resolved without a cache or second authority. `Service.GrantedTools`
+copies only current names; `State` copies the required safe state. Full
+inspection still performs historical material/contributor work when explicitly
+requested. Public state uses an Actor query, while Actor management and watch
+paths use the non-enqueuing Agent adapter under the existing lock. Nil
+uninitialized/no-skills behavior, owned slices, offline state and full inspection
+are preserved. The tests use real repeated transitions and distinguish short
+from long retired history. Their observed allocations are 1/1 for grant reads,
+543 for the long full service inspection, and 8 versus 64 for public state
+versus inspection. These are the recorded local observations, not general
+latency promises. The material-map removal is honestly labeled an owner-test
+seam; it is not presented as a valid historical log.
+
+R2 is resolved through public `Submit`/`Wait` completion handles. Each attempted
+Agent emits its identity and actual completion, including available text,
+parts, usage and error. A failed first turn does not suppress the second
+Agent's attempt; joined errors produce overall failure after reporting both.
+The two-request policy and prompt are unchanged. Waiting's deadline is treated
+as a wait error: the example cancels and collects the actual request terminal
+receipt, rather than inventing a successful outcome.
+
+The consumer control invokes the actual command entrypoint in a child test
+process. Its all-success parent emits two success records and exits 0. The
+distinguishing case emits `round_limit` then `success`, retains the first
+Agent's partial text and parts and each Agent's usage of 20 input/4 output
+tokens, makes exactly two local HTTP requests per Agent, verifies both durable
+policy captures remain 2, and exits 1. These are local fixture tokens and
+responses, not additional live provider evidence.
+
+Both fixture-development corrections are justified. The pre-existing Actor
+completion contains the latest accepted response's parts, not every earlier
+response's text. Requiring the earlier partial text in a successful final
+completion was therefore wrong. The corrected control still requires the
+failed Agent's available partial text/parts and the successful Agents' actual
+final text, along with usage and outcomes. The original allocation overlay
+removed an uninitialized-state nil guard and failed during construction; it
+proved no allocation property. The corrected overlay preserves that guard and
+fails on the intended history-dependent allocation assertion. The student
+handoff describes those original console failures; this review does not claim
+independently verified raw transcripts for those two development attempts.
+
+The retained positive commands pass, followed by four specific overlay failures:
+history-dependent grants (18/61 allocations), public state rebuilding full
+inspection (64/64), returning before either terminal record, and erased usage.
+The last combined mutation clears text/parts/usage and is caught first by the
+usage assertion; it is not counted as three separate mutation proofs. The
+positive test checks the other available fields, and source inspection confirms
+the complete terminal value is retained. All overlay source hashes and unique
+replacement anchors match the repaired source; none of the four credited
+failures is a compilation error or panic.
+
+The two affected modules passed vet/tests and formatting produced no filenames.
+The seven selected public groups passed with race detection, including owned
+snapshots, two-Agent/no-skills behavior, paused publication, concurrent single
+commit, held-HTTP revocation, admitted-job survival, and anchored material/hint
+replay. Their receipt remains explicitly a selected suite, not another full
+67-row gate. These results and the inspected narrow delta are sufficient for
+the requested quality revision.
+
+**Code-quality disposition: accepted; R1 and R2 closed.** Original live runs
+retain their original source, binaries and limitations. In particular, the
+Anthropic P attempt remains partial with its missing beta final report; the
+new reporting format is validated locally and is not attributed to that old
+executable. Current-grant read economy does not change provider semantics.
+No paid repeat is required for either repair. The separate live audit and
+final manuscript proofread retain their own acceptance scope.
