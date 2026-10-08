@@ -110,3 +110,14 @@ allocation and structural controls are coordinator work to release after this
 checkpoint; no claim that the published initial subsets prove the full chapter.
 The source will remain unchanged for that review unless a concrete local finding
 requires correction. No credentials/provider/discovery calls are authorized here.
+
+Immutable revised source/check receipts:122b04a57e7c6ea158901d00bfc0f1a3a8c75329.
+Retained revised CLI SHA256 f5589f003b1b2f3a496e80d941e36749005753e603ca6178a658e929a16bb7e1;
+GUI SHA256450e43048a42da9cd974615ab2ed5fff9d2d59e0c336afcb55f13114bf41d0dc.
+Complete source/build mapping is revised-source-manifest.json. Earlier initial
+runtime/evidence checkpoint41a5e7266570a449e7470a9c5b06da3e601f0008 and all its
+failures are preserved. Contract milestones were44056d18846ba29e8bcd703143fb1b99ba613f62,
+81aa8cf504ff88f3156b9c815f98e8db7f260be2 andb92692955edbf2ecf64bcfd0fc135087600176a0.
+Accepted initial plan remains7cb84290af3e8bac5359339f8ab5d4e7e941bf74.
+Coordinator may run remaining independent coverage against122b04a without concurrent
+student source mutation. This final status-only update changes no runtime or binary.
