@@ -12,9 +12,10 @@ Chapter 6 is accepted at `edition-2-ch06-r1`: reviewed runtime `75bd14d`,
 revised live evidence `8c73f9b`, final independent acceptance `37a37f7` and exact
 1,550-file export from `c3fa758`. All code, live, teaching and prose gates pass;
 see [chapter-06-validation.md](chapter-06-validation.md). Fresh new-only
-student `/root/coder_ch07` is preparing Chapter 7’s owner plan. Its reviewed browser/pause contract and
-partial checker are published; full browser, speech and concurrency checks
-remain required. See [chapter-07-validation.md](chapter-07-validation.md).
+student `/root/coder_ch07` has frozen its initial Chapter 7 implementation at
+`da162e8`. Local browser/transport checks pass; exact evidence-adapter controls,
+the complete deterministic gate and bounded real-model runs are underway.
+See [chapter-07-validation.md](chapter-07-validation.md).
 The Chapter 8 settings contract is reviewed at `7200f17`; its initial partial
 wire/persistence checker is published at `b3f3137`, with no Chapter 8 student
 implementation or end-to-end positive claimed.

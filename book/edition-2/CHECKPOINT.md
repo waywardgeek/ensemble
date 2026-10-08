@@ -12,13 +12,13 @@ revised live evidence `8c73f9b`, independent acceptance `37a37f7` and exact
 1,550-file export from `c3fa758` are bound in its manifest. All required gates
 pass; original attempts and limitations remain recorded. See
 [chapter-06-validation.md](chapter-06-validation.md). Fresh new-only
-student `/root/coder_ch07` now starts from this accepted predecessor. Its contract and
-initial partial checker are published; remaining full acceptance is tracked in
+student `/root/coder_ch07` has frozen initial browser/watch/pause source at
+`da162e8`. Local browser checks pass; remaining live and full acceptance is tracked in
 [chapter-07-validation.md](chapter-07-validation.md).
 Earlier log-destination corrections are independently accepted and checkpointed
 at `edition-2-ch02-r2` (`0a375d3`) and `edition-2-ch03-r2` (`799940c`). Their
 revised frozen exports and manifests are integrated here; canonical main stays
-on Chapter 6. See `logpath-backport-review.md` and the chapter validation records.
+on the Chapter 7 working implementation. See `logpath-backport-review.md` and the chapter validation records.
 Chapter 4 remains checkpointed at
 `edition-2-ch04-r1` (`55e6411`); its detailed record is historical below.
 

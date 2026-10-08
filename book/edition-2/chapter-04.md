@@ -1,17 +1,35 @@
 # Chapter 4: Stop Waiting, Keep the Job
 
-A debugger waits for input. Chapter 3 waits for the debugger to exit.
-Neither participant is doing anything wrong, and neither can make progress.
-The model needs its turn back while the process is still alive.
+On 10 August 2026 CodeRhapsody asked for a screenshot and did not get one.
 
-Putting a timer around the wait solves only half the problem. The command
-continues after the timer fires. If the program discards its result channel,
-it has created work that nobody can inspect. A retry can now start a second
-copy while the first is still changing files.
+Not an error. Not a crash. The tool call went out and nothing came back,
+and from the outside the agent looked busy, because by every measure
+available to it, it was. The turn never completed. No observer fired.
+Anything watching the agent's status saw "processing" and kept seeing it.
+A supervisor waiting for it to finish would have waited forever, and one
+of them was.
 
-Keep the work instead. Give it a handle, retain its output, and let the model
-look again, send input, or stop it. The job survives the end of the tool
-call that started it.
+The only recovery was to kill the process. That killed every agent in the
+tree, including sub-agents that were mid-task on unrelated work and doing
+fine. For one interactive session that costs an afternoon. For a fleet it
+is fatal, because the entire supervision model assumes that turns end.
+
+The tool that froze the session was `screenshot`. Not a shell command.
+Not a network fetch. A tool whose entire job is to grab the framebuffer
+and return, which on paper cannot be slow. Until that afternoon, no tool
+call in the system had any wall-clock bound at all. Nobody had decided
+against one.
+
+Chapter 3 built six tools, and all six share one shape: call the tool,
+block, get a result. That shape is not a property of those six tools. It
+is a property of how Chapter 3 dispatched them, and the screenshot is the
+proof that it is wrong for all of them. A debugger waits for input.
+Chapter 3 waits for the debugger to exit. Neither participant is doing
+anything wrong, and neither can make progress.
+
+Keep the work instead. Give it a handle, retain its output, and let the
+model look again, send input, or stop it. The job survives the end of the
+tool call that started it.
 
 > **Reviewed implementation and live revision accepted.** Independent review
 > accepts runtime `d25d3fd`, its all-three-API demonstrations, and evidence-only
@@ -22,6 +40,13 @@ call that started it.
 > editorial approval remains separate.
 
 ## 4.1 A job needs an owner
+
+A process started without an owner is a process nobody can stop. The
+screenshot hung because nobody owned the call. The tool dispatcher
+started it, the dispatcher waited for it, and when it did not return,
+the entire agent was hostage to a framebuffer read. Ownership is the
+fix: every tool call becomes a job, every job belongs to an agent, and
+three verbs let the model inspect, feed, or kill any job it started.
 
 Agent owns a Jobs service in `internal/jobs`, just as it owns its Registry
 in `internal/tools`. Jobs owns each live Job. Ensemble owns an application-wide
@@ -328,10 +353,12 @@ controls; a sticky setting can pass the first example's initial call.
 
 ## 4.5 Retain the output, spend fewer tokens
 
-The job artifact holds the full produced result. The conversation holds a
-bounded report of what the model has not yet consumed. Keeping these separate
-lets a test suite produce a large failure log without inserting that entire
-log into every subsequent model request.
+A test suite can print ten thousand lines of failure. Inserting all of
+them into every subsequent model request would cost more than the test
+was worth. The job artifact holds the full produced result on disk. The
+conversation holds a bounded report of what the model has not yet seen.
+Keeping these separate means a long build log costs disk space, not
+context window.
 
 For file tools, Chapter 3's selection limits still apply: a range read or
 `max_bytes` controls what that tool produces. Its job retains all that result.
@@ -405,12 +432,13 @@ still returns a tool error.
 
 ## 4.6 Give the process a terminal
 
-Interactive programs can behave differently on pipes. The exercise uses
-a Unix pseudo-terminal so a debugger receives a terminal, input is echoed,
-and the model can recognize its prompt. A PTY merges stdout and stderr;
-the Chapter 3 promise of separate streams no longer applies to run_command.
-Keep this change explicit in both the schema description and user-facing
-result documentation.
+Interactive programs lie to pipes. A debugger that checks `isatty()` on
+its file descriptors will suppress its prompt, strip its colors, and
+sometimes refuse to attach at all. The fix is a pseudo-terminal: a
+kernel-backed pair of file descriptors that looks like a real terminal
+to any program that asks. The agent gets the master side. The process
+gets the slave side and a controlling terminal in its own session, so
+it behaves exactly as it would in a human's terminal window.
 
 Start a fresh POSIX shell for each command, with its own process session/
 group and controlling terminal. Use `TERM=dumb`, a 50-row by 200-column
@@ -440,6 +468,14 @@ the job. Separate run_command calls never inherit its `cd` or environment
 changes. Two simultaneous jobs must not share a hidden shell session.
 
 ## 4.7 Finish once, including when it is killed
+
+The first implementation of kill had a race that took a hundred and
+twenty runs to find. Normal completion publishes done. A successful
+kill publishes killed. But completion and kill can happen in the same
+microsecond, and the wrong answer is to let both win. The rule is
+monotone: whoever transitions the state first owns the outcome, and
+the loser's callback is a no-op. Bill's formulation was simpler:
+"whoever makes a condition true owns waking the waiters."
 
 A terminal transition wins once under synchronization. Normal completion
 publishes done; a successful kill publishes killed. A late worker cannot
@@ -798,3 +834,12 @@ manuscript is independently proofread and accepted. Validated checkpoint
 `edition-2-ch04-r1` binds these artifacts through a dedicated commit and
 immutable tag. That checkpoint does not imply
 Bill's editorial approval.
+
+---
+
+A screenshot that should have taken milliseconds held an entire agent
+tree hostage because nobody owned the call. Now every tool call is a
+job with a handle, an output file, and a status. Three verbs supervise
+all of them. The next chapter rearranges the internals so the pieces
+stop knowing about each other's implementations, and the thing that
+emerges from the rearrangement is an actor.

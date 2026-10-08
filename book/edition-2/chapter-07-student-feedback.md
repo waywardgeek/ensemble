@@ -30,3 +30,11 @@ ambiguity. The grader must strengthen the distinguishing valid/error/recovery
 cases and remove the untaught pause-frame order assumption. The student must
 read the clarification and record whether it resolves the difficulty; results
 and final author/proofreader reconciliation remain pending.
+
+The student subsequently read `1bba1bc` and confirmed the distinction resolves
+the difficulty in its retained review. The updated independent wire checker
+passes 23/23, including exact message-size and correctable-error recovery
+controls. The oversized fixture now reads the close frame directly rather
+than treating its own automatic close reply's broken pipe as a server failure.
+The initial failed receipt remains intact. Final author/proofreader review
+still follows the completed demonstrations and comparative review.

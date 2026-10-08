@@ -158,13 +158,73 @@ def cases(url):
     yield 'exact-command-size',exact_command
     oversized=json.dumps(dict(type='subscribe',id=exact_id+'x'),separators=(',', ':')).encode()
     assert len(oversized)==65537
-    for name,payload,opcode in [('binary',b'{}',2),('invalid-json',b'{',1),('invalid-utf8',b'{"type":"subscribe","id":"\xff"}',1),('unknown-field',b'{"type":"subscribe","id":"bad","extra":1}',1),('bad-known-type',b'{"type":"pause","id":"bad","typing":"yes","speaking":false}',1),('oversize',oversized,1)]:
+    for label,command in [
+        ('unknown-field',dict(type='pause',id='bad',typing=True,speaking=False,extra=1)),
+        ('bad-known-type',dict(type='pause',id='bad',typing='yes',speaking=False)),
+        ('missing-required-field',dict(type='pause',id='bad',typing=True)),
+        ('unknown-command',dict(type='not-a-command',id='bad')),
+    ]:
+        def correctable(command=command):
+            with contextlib.closing(Socket(url)) as client:
+                subscribe(client)
+                client.send(command)
+                error=client.until(lambda x:x.get('type')=='error')
+                assert error.get('id')=='bad' and error.get('code')=='invalid_command', 'correctable command lost refusal correlation'
+                pause(client,'recovery',True,False,1,0)
+                pause(client,'clear-recovery',False,False,0,0)
+        yield 'correctable-'+label,correctable
+
+    def pre_subscription():
+        with contextlib.closing(Socket(url)) as client:
+            client.send(dict(type='prompt',id='before',text='must not contact model'))
+            error=client.until(lambda x:x.get('type')=='error')
+            assert error.get('id')=='before', 'pre-subscription refusal lost correlation'
+            subscribe(client)
+            client.send(dict(type='pause',id='subscribe',typing=True,speaking=False))
+            error=client.until(lambda x:x.get('type')=='error')
+            assert error.get('id')=='subscribe', 'accepted command ID reuse was not refused'
+            pause(client,'fresh-id',True,False,1,0)
+            pause(client,'clear-id',False,False,0,0)
+    yield 'subscription-and-command-id-boundaries',pre_subscription
+
+    def command_capacity():
+        with contextlib.closing(Socket(url)) as client:
+            subscribe(client)
+            for index in range(4095):
+                identity='capacity-'+str(index)
+                client.send(dict(type='pause',id=identity,typing=False,speaking=False))
+                reply=client.until(lambda x:x.get('id')==identity)
+                assert reply.get('type')=='ack', 'valid command refused before 4096-command capacity'
+            client.send(dict(type='pause',id='one-command-over',typing=False,speaking=False))
+            for _ in range(10):
+                frame=client.ws.recv_frame()
+                kind,data=frame.opcode,frame.data
+                if kind==websocket.ABNF.OPCODE_CLOSE:
+                    assert len(data)>2 and data[2:].decode('utf-8').strip(), 'command capacity close lacks reason'
+                    return
+            raise AssertionError('4097th command admitted instead of closing')
+    yield 'exact-command-count-and-overflow',command_capacity
+
+    for name,payload,opcode in [('binary',b'{}',2),('invalid-json',b'{',1),
+                               ('invalid-utf8',b'{"type":"subscribe","id":"\xff"}',1),
+                               ('non-object',b'[]',1),('missing-id',b'{"type":"subscribe"}',1),
+                               ('empty-id',b'{"type":"subscribe","id":""}',1),
+                               ('nonstring-id',b'{"type":"subscribe","id":12}',1),
+                               ('oversize',oversized,1)]:
         def malformed(payload=payload,opcode=opcode):
             with contextlib.closing(Socket(url)) as client:
                 subscribe(client)
-                client.ws.send(payload,opcode=opcode)
+                try:
+                    client.ws.send(payload,opcode=opcode)
+                except (BrokenPipeError, websocket.WebSocketConnectionClosedException):
+                    # A peer may reject the advertised oversized length before
+                    # this sender finishes its body. Still require its close
+                    # frame and explanatory reason, not just a broken send.
+                    if len(payload)<=65536:
+                        raise
                 for _ in range(10):
-                    kind,data=client.ws.recv_data(control_frame=True)
+                    frame=client.ws.recv_frame()
+                    kind,data=frame.opcode,frame.data
                     if kind==websocket.ABNF.OPCODE_CLOSE:
                         assert len(data)>2 and data[2:].decode('utf-8').strip(), 'malformed close lacks explanatory reason'
                         return

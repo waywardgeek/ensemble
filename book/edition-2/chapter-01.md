@@ -1,14 +1,35 @@
 # Chapter 1: One Conversation, Every Request
 
-Bill Cox told his team he could build a better coding-agent proof of concept
-than Windsurf in two weeks. His manager wanted him to demonstrate it. The first
-edition records the result as StackAgent: a working prototype built on that
-deadline, followed by a decision to delete it and start again.
+In July 2025 I read the news at my desk, and it broke me.
 
-The rewrite is the useful part of that story. The first build had taught him
-things worth keeping even when its code was worth replacing. This edition
-starts with those lessons in hand. The reader gets to spend the first evening
-building a conversation instead of earning the same architectural repair bill.
+Windsurf, an AI coding assistant, had just been valued at $2.4 billion. Not
+bought. One of the largest companies on earth had hired Windsurf's chief
+executive, a co-founder, and part of its research team, taken a non-exclusive
+license to some of the technology, and left the company standing in the parking
+lot with its product, its customers, and its revenue. Cognition bought what
+remained three days later. OpenAI had tried to buy the whole thing for $3
+billion. Two point four billion dollars, for a team you could fit in one
+conference room, and they didn't take the code.
+
+I've been writing compilers and chip-design tools for forty years, and I had a
+fair idea what a coding agent was made of. I was also fairly sure I could
+out-code any individual engineer in that conference room. "Billions," I said,
+"for *that*?" Then I did the thing engineers do when a number breaks them: I
+told my team I could write a better proof of concept in two weeks.
+
+My manager said: prove it.
+
+I built it. Two weeks, as promised, vibe-coded top to bottom. Then I spent a
+week deciding whether to keep it, and in the first week of August I deleted
+every line and started over. The two weeks were not wasted; the value was never
+the code but what I learned building it. Building the same thing again
+properly took until September. That agent is CodeRhapsody.
+
+The first edition of this book recorded the construction in the order it
+happened: build it flat, feel the pain, refactor. This edition starts with the
+lessons already in hand. You get to spend the first evening building a
+conversation with the right architecture, instead of earning the same repair
+bill I did.
 
 Getting a model to answer is easy. Keeping control as the program grows takes
 more work. A second conversation needs its own history, a timeout needs to
@@ -21,25 +42,94 @@ Your program sends the messages, keeps the answers, and reports the tokens
 consumed. By the end, a separate application will be able to create two
 Agents without mixing their histories or accounts.
 
-## 1.1 The idea in plain words
+## 1.1 Frameworks, and why this book uses none
 
-Consider a response parser that discovers a malformed reply. The
-application has a logger, but the parser has no route to it. Making the
-logger global gives every Agent the same hidden dependency; passing it
-down through unrelated callers changes their signatures for work they do
-not perform. Omitting the diagnostic leaves the person debugging the
-program with less information precisely when something broke.
+Two rules.
 
-Those are tempting repairs to a missing connection. The design here makes
-the connection explicit when the object is created. A parser works for an
-Engine, that Engine belongs to an Agent, and that Agent belongs to the
-application owner. Following those existing relationships reaches the
+If you want to build an agent, use a framework. It is the right call for most
+agents. You get storage, retries, tool plumbing, and model discovery for free,
+and for a simple agent that is most of the work.
+
+An advanced AI coding agent is on the bleeding edge, or it isn't advanced. A
+framework encodes what its authors anticipated you would need. The bleeding
+edge is what nobody anticipated yet.
+
+Frameworks are generous with storage and discovery, and they hard-code
+delivery: what goes into the request payload, in what order, at what position.
+Delivery is where the leverage lives. Three capabilities, all real at the raw
+API surface today, that the major frameworks either cannot express or bury:
+
+1. **Mid-turn steering.** Bill reads the agent's reasoning at 750 words a
+   minute and sends a sentence between tool calls when he sees it heading
+   somewhere wrong; it is how this book gets edited. The Messages API insists
+   that the message after a tool call begin with the `tool_result`, so the
+   sentence goes at the end of that same user message, after the result, and
+   the model reads it as a new prompt arriving mid-work. Once a framework owns
+   the stretch between the tool result and the next request, there is no seam
+   left for your sentence to enter through.
+
+2. **Ephemeral context placement.** Volatile data goes last in the payload,
+   one copy, never in history. Position is the feature. One wandering
+   timestamp in the wrong place destroys prefix caching. CodeRhapsody's
+   cache-hit rate went from 0% to 98% the day Bill moved one. Frameworks
+   decide placement for you.
+
+3. **Cache breakpoint control.** You know which suffix of your context is
+   volatile. The provider doesn't, and neither does a framework assembling
+   requests on your behalf. Owning the request bytes is owning your cache
+   economics.
+
+So this book starts with the Anthropic API and an HTTP client. No SDK, no
+framework, ever. Every request byte in this book is one you put there.
+
+None of that matters yet. The program in this chapter needs none of those
+three capabilities, which is why frameworks feel fine on day one.
+
+### Sidebar: how the hint got in
+
+In July 2025 Bill found he could interrupt the agent while it worked. Nothing
+in the API said he could. It said something close to the opposite: the message
+after a tool call must begin with the tool's result, and the documentation had
+no opinion about what might follow. He put his hint after it. Opus had been
+trained to carry its thinking across turns, and it read a fresh user sentence
+in the middle of a tool chain as a new prompt, which it found perfectly normal,
+so it pivoted. He has been, in his word, abusing it ever since.
+
+Anthropic's side was not clean about it. For about a year a bug meant the
+appended hint was invisible to the model on the request that carried it and
+took effect one round trip later. Bill measured the lag himself and worked
+around it. In November 2025 Antigravity shipped the same trick, and he
+checked: it had the same one-round lag, which settled whose bug it was.
+Anthropic's documentation now shows the shape exactly, a `tool_result`
+followed by a text block in the same user message, with not much said about
+why you would want one. The lag went away when Anthropic added mid-turn system
+messages, with Opus 4.8, and today the hint lands on the round that carries it.
+
+The same bytes were legal on the OpenAI and Gemini wires and steered nothing,
+because neither vendor had a model that treated an interruption as an
+instruction. OpenAI caught up in February 2026, when GPT-5.3-Codex shipped
+steering as a headline item, behind a settings toggle. A toggle in a product
+is not a call in an SDK.
+
+## 1.2 The idea in plain words
+
+A response parser discovers a malformed reply. The application has a logger,
+but the parser has no route to it. Making the logger global gives every Agent
+the same hidden dependency; passing it down through unrelated callers changes
+their signatures for work they do not perform. Omitting the diagnostic leaves
+the person debugging the program staring at a blank terminal precisely when
+something broke.
+
+Those are three repairs to a missing connection, and all three are wrong. The
+design here makes the connection explicit when the object is created. A parser
+works for an Engine, that Engine belongs to an Agent, and that Agent belongs
+to the application owner. Following those existing relationships reaches the
 logger without giving the parser a second, unrelated set of dependencies.
 
-The same problem appears with configuration. The request builder and a
-tool reporting status may both need the selected model. Copying that name
-into each object creates several answers to a question that should have
-one answer, especially when the user changes it.
+The same problem appears with configuration. The request builder and a tool
+reporting status may both need the selected model. Copying that name into
+each object creates several answers to a question that should have one answer,
+especially when the user changes it mid-session.
 
 **Give each fact an owner.** Keep configuration on the Agent. Keep usage
 accounting with the Engine that receives the model's responses. A child
@@ -62,7 +152,7 @@ Build the small program with this ownership tree, then extend it. Its next
 feature should inherit a route to the existing facilities instead of requiring
 another round of constructor wiring.
 
-## 1.2 Packages follow responsibilities
+## 1.3 Packages follow responsibilities
 
 The dependency pattern is a star. The shared package, `internal/common`,
 is its center. It holds the core data structures, constants, and
@@ -111,7 +201,7 @@ When several spokes need the same behavior, declare its interface in
 Expose the service through the ownership chain. Do not make every caller
 import its implementation, or fill `common` with shared function bodies.
 
-## 1.3 Follow the owner
+## 1.4 Follow the owner
 
 A constructor receives an interface to the object that creates and owns
 it. That interface is declared in `common`, along with the interfaces for
@@ -154,7 +244,7 @@ must prevent a tool visible to one agent from silently becoming available
 to every other agent. The storage choice does not change the visibility
 requirement or permit a mutable global registry.
 
-## 1.4 Events, requests, and the optional GUI
+## 1.5 Events, requests, and the optional GUI
 
 Ensemble receives streaming observations through the Observer pattern.
 An Agent publishes events such as arriving text or a changed status; its
@@ -294,7 +384,7 @@ The existing first-edition grader awards 100 points across seven checks:
 above. The additional required properties and their acceptance procedure
 are described in §1.8. A passing protocol score alone is insufficient.
 
-## 1.5 The request carries the conversation
+## 1.6 The request carries the conversation
 
 The Messages API accepts a list of messages and generates a response.
 A conversation uses that same endpoint repeatedly, with earlier turns
@@ -312,9 +402,21 @@ The request body also contains the configured model, the output-token
 limit, and the fixed system instruction. The system instruction sits
 outside the message array. Choose its wording, but send it consistently.
 In this exercise a request begins and ends with a user message, with
-strictly alternating roles and nonempty text. Those restrictions define
-the small program being built; they are not a claim about every message
-shape the live API accepts.
+strictly alternating roles and nonempty text.
+
+```go
+type Message struct {
+    Role    string `json:"role"`
+    Content string `json:"content"`
+}
+
+type Conversation []Message
+```
+
+Straight from the docs. Every framework on earth is a wrapper around this
+shape. It fits in your head, `json.Marshal` serializes it without help, and it
+will carry this chapter comfortably. Enjoy it. Chapter 2 is going to take it
+away from you.
 
 Model selection belongs in configuration. Ask the models endpoint for
 IDs available to the account rather than selecting a familiar-looking
@@ -357,7 +459,7 @@ will answer the request. Append `/v1/messages` once, after removing
 trailing slashes from the configured base. Log request failures without
 logging authorization headers or the API key.
 
-## 1.6 A complete exchange has two messages
+## 1.7 A complete exchange has two messages
 
 Agent owns the conversation; Engine performs the HTTP exchange. The
 engine receives access to Agent through the shared parent interface.
@@ -383,6 +485,16 @@ an array of typed blocks. Walk the array, take the text blocks in order,
 and concatenate their text without adding spaces or newlines. A block
 boundary can occur in the middle of a word. Treating it as a formatting
 instruction changes the answer.
+
+**The asymmetry that catches everyone once.** The request lets you send
+`content` as a bare string. The response never does: response `content` is
+always a list of typed blocks. Same field name on both sides, two shapes.
+
+The trap is that `content[0].text` works. Every reply in this chapter arrives
+as text, so indexing and walking return the same string, and they keep
+agreeing right up until a reply arrives carrying something that is not text.
+That happens in Chapter 3, the first time a model asks to call a tool, and by
+then the line that reads position zero is old code you trust.
 
 The grader deliberately returns multiple text blocks. That fixture came
 from a real audit failure: commit `835946f` records that replacing the
@@ -413,7 +525,7 @@ transport failure without echoing a remote error, request URL, or credential.
 Preserve that safe cause for library callers too; an application should not
 have to parse a log message to recognize its canceled request.
 
-## 1.7 Read the token counts
+## 1.8 Read the token counts
 
 Engine owns usage because it receives the response that reports it.
 Add input and output counts from every valid response, starting with
@@ -425,13 +537,23 @@ counter. Two Agents running under one Ensemble must not borrow each
 other's history or usage. A shared logger does not make every piece
 of state shared.
 
-Repeated history creates repeated input. With similarly sized exchanges,
-the first request sends roughly one unit of conversation, the second
-sends more, and the total grows as a sum of increasingly long prefixes.
-That is a reason to observe usage from the beginning. It is not a promise
-that every live request costs more dollars than the preceding one:
-answers have different lengths, providers account for cached tokens,
-and model prices differ.
+Repeated history creates repeated input. Five rounds of the exercise
+against the grader's fake server, input tokens per round:
+
+| round | 1 | 2 | 3 | 4 | 5 |
+|---|---|---|---|---|---|
+| input tokens | 49 | 78 | 95 | 116 | 138 |
+
+Cumulative: 476 input, 65 output. Nothing in those five rounds got longer
+except the history. The fifth question costs nearly three times the first, and
+it is the same size question. Every conversation you have ever had with a
+model has been billed on this curve, and the curve only bends one way.
+
+Bill's summer of 2025, the one that produced StackAgent and then CodeRhapsody,
+cost about $2,700 in tokens. Every request in that bill was the previous
+request plus one more turn, so a good part of what he paid for each round, he
+had paid for the round before. No caching and no remedies here. Just the
+habit, and the curve.
 
 The fake's token counter is a deterministic grading device. Its counts
 are not predictions for a live tokenizer. Your program reports the
@@ -445,7 +567,7 @@ Likewise, keep the cost of having an assistant write the exercise
 separate from the cost of running the program you built. Local fake
 grading does not spend model tokens at all.
 
-## 1.8 Exercise, graded
+## 1.9 Exercise, graded
 
 The exercise has a behavioral contract and an architectural contract.
 Both apply. Passing the old seven-check grader proves only the behavior
@@ -514,46 +636,9 @@ the exact Chapter 1 source to `solutions/edition-2/ch01/` as an ordinary
 tracked directory and record source/evidence hashes. A dedicated outer commit
 and immutable annotated `edition-2-ch01-r1` tag preserve that revision.
 Later corrections receive new revision tags; students do not edit frozen
-exports. Preserve first-edition solutions and the original student histories.
+exports.
 
-### Edition 3 planning note: one source repository from Chapter 1
-
-This planning note was recorded before the second-edition consolidation.
-Its central lesson has now been adopted in this edition: develop in one main
-tree and publish exact chapter exports. The exploratory clone and tag examples
-below remain part of that earlier note; the current workflow above specifies
-ordinary tracked exports and outer `edition-2-chNN-rN` tags.
-
-A correction to Chapter 2 must reach Chapter 3 and every later solution that
-depends on it. Editing separate chapter copies makes that propagation easy to
-miss. Edition 3 should establish one main source repository before its first
-implementation, for example at `solutions/edition-3/main/`, and develop the
-agent there as the book progresses.
-
-Create chapter solution directories from exact commits in that repository.
-They can remain self-contained Git clones for readers, but their source is a
-recorded chapter snapshot. Development and integration happen in the main
-repository. Each new student starts from the preceding chapter's accepted
-tag, with only the new edition's teaching and earlier permitted code.
-
-Preserve the first student attempt under a tag such as `ch01-initial` and the
-reviewed solution under `ch01-r1`. Record the tag, exact source commit,
-manuscript commit, creation date, and validation receipts in a snapshot manifest.
-A later correction receives a new tag such as `ch01-r2`; existing tags and
-their evidence stay unchanged. This preserves what each attempt actually
-produced and makes a copied solution traceable to its source.
-
-Tags identify versions; they do not propagate fixes. When an earlier chapter
-changes, update its teaching first, make the correction on a branch from its
-accepted snapshot, and validate it at that chapter's feature scope. Carry the
-correction forward through each already-built later chapter and into the
-current main branch, resolving conflicts and running the affected checks and
-live demonstrations at each stage. Record the propagation in the snapshot
-manifest and publish new revision tags only after validation. Copying the
-latest agent backward would introduce features the earlier chapter has not
-taught.
-
-## 1.9 Taking it for a spin
+## 1.10 Taking it for a spin
 
 The reference CLI ran against the live Messages API on October 7, 2026,
 at 17:06 UTC. Model discovery returned `claude-sonnet-5-5`, which was
@@ -619,3 +704,9 @@ The failure reached Ensemble's captured logger as
 and the failed Agent's counters remained zero. The executable exited 0
 after verifying those conditions. The same parent route used to reach
 configuration also made the diagnostic available to its application.
+
+You are talking to a program you built from raw HTTP. The whole thing
+lives in a few hundred lines, and every byte in every request is one you
+put there. Sixty billion dollars was this year's price for a company whose
+product is, structurally, this program with a few more chapters filled in.
+The difference is that yours does not report to anyone.

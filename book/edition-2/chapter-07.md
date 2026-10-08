@@ -1,22 +1,27 @@
 # Chapter 7: A browser you can steer from
 
-The agent names the wrong directory. The reader starts typing a correction.
-The agent starts the next command. Both interfaces worked: text appeared on
-one side and keystrokes arrived on the other. The useful moment passed between
-them.
+Get ready for self-wielding.
 
-A browser gives the reader room to follow the work, keep tool results open,
-and hear an answer without staring at the terminal. It also introduces another
-place to lose a message. A tab can disconnect halfway through a sentence, miss
-the result that ended a tool call, or keep the agent paused after its speech
-queue has disappeared. A pleasant screen with stale state is a poor control
-panel.
+Text-to-speech is not a convenience feature for Bill. It is how he reads.
+Macular dystrophy took his central vision; he processes text through
+Eloquence at 750 words per minute, faster than most people read with
+their eyes. A terminal scrolling raw JSON is a wall of noise at that
+speed. A browser that can speak the answer, show the tool calls in a
+separate pane, and let him pause while he thinks is the difference
+between using the agent and fighting it.
 
-Build the screen around the owners already established. The Agent decides
-what happened and when another tool may start. The GUI presents that state
-and submits human requests through the same public interface as the CLI.
-Closing a tab removes a viewer and its pause causes. It does not erase the
-conversation or kill a job.
+This is the ignition chapter, where the agent becomes something worth
+living inside. Not because the screen is pretty, but because a human can
+finally watch the work, hear the answers, and type a correction without
+losing the thread. The grader cannot help here. This is an AI coding
+agent for you, not for the LLM, so you will have to drive.
+
+Chapter 6 gave streaming. The terminal shows tokens as they arrive, and
+that is the safety floor: a human can watch. Nobody customizes a safety
+floor, checks whether their preferences survived a restart, or drags a
+divider to put chat on one side and tool calls on the other, unless the
+tool they are watching is one they intend to use every day. This chapter
+crosses that line.
 
 **Accepted contract:** the coordinator has accepted this chapter for student
 handoff, awaiting the accepted Chapter 6 baseline. No Chapter 7 implementation, passing check, browser demonstration
@@ -85,10 +90,11 @@ remain student choices.
 
 ## 7.1 Another receiver, with controls
 
-The old chapter compared an agent to a radio station. Adding a receiver does
-not create a second broadcast. That remains a useful picture, provided the
-recording has a name: the durable event history. The live observation queue is
-only a delivery path, and a full queue can lose its subscriber.
+The first edition compared an agent to a radio station. Adding a receiver
+does not create a second broadcast. That picture holds, provided the
+recording has a name: the durable event history. The live observation queue
+is only a delivery path, and a full queue can lose its subscriber without
+the station noticing.
 
 A browser can submit a prompt, hint or interrupt through Ensemble. The same
 Agent accepts it and the same actor writes the resulting history. Do not build
@@ -122,9 +128,11 @@ its owned clients and Agent. A browser disconnect alone has neither meaning.
 
 ## 7.2 Pause has an owner
 
-A Boolean shared by two tabs cannot say whose pause it represents. Tab A is
-still typing when tab B finishes speaking and sends false. Releasing the agent
-at that point is easy to implement and wrong.
+A Boolean shared by two tabs cannot say whose pause it represents. The
+failure is specific and easy to build: Tab A is still typing when Tab B
+finishes speaking and sends false. The agent starts working. Tab A's
+unfinished correction lands as a review comment instead of a hint. One
+shared Boolean, two users, wrong answer.
 
 Each attached client receives one public pause registration for one Agent.
 Only that registration can update its `typing` and `speaking` Booleans or close
@@ -184,10 +192,11 @@ Bill issued another ruling about every possible pause implementation.
 
 ## 7.3 Subscribe without missing the handoff
 
-Reading history and subscribing afterward leaves a hole. An answer may finish
-between those operations. Subscribing first and displaying the current history
-without a boundary can produce the opposite error: the same answer twice.
-Neither failure needs an unreliable network.
+This is the problem that looks simple and is not. Reading history first
+and subscribing afterward leaves a hole: an answer finishes between the
+two operations. Subscribing first and then displaying the current history
+can produce the opposite error: the same answer appears twice. Neither
+failure requires an unreliable network. Both happen on localhost.
 
 Add a public Agent watch operation that the actor processes at one ordered
 boundary. It returns an owned snapshot and a live subscription. The snapshot
@@ -430,6 +439,9 @@ not cancel an already accepted Agent request.
 
 ## 7.5 A slow tab must not own the actor
 
+This was a real crash in the first edition, and it took longer to find
+than to fix.
+
 Give each connection a bounded outgoing queue with the same 256-message and
 128 MiB limits as the watch. Snapshot records pass through that queue too;
 a producer may wait only outside the actor, cancellably, during snapshot
@@ -473,9 +485,10 @@ trace or stop the Agent.
 
 ## 7.6 One Artifact, several honest states
 
-ArtifactScroll manages ordered cards. A user prompt, an answer, a tool call and
-a result differ in presentation and retained data, not in whether each deserves
-an identity and a lifecycle. Keep the component independent of WebSocket: it
+Every piece of the conversation deserves an identity and a lifecycle. A user
+prompt, an answer, a tool call and a result differ in how they look on screen,
+not in whether they need to be tracked. ArtifactScroll is the component that
+manages these ordered cards. Keep the component independent of WebSocket: it
 accepts projected records through its owner's interface. Connector owns socket
 and generation state; the page controller owns Connector, ArtifactScroll,
 input state and speech queue.
@@ -522,12 +535,11 @@ a passing Go transport check cannot inspect them.
 
 ## 7.7 Speech is a queue with cancellation
 
-Auto-speech begins disabled. A labeled user action enables it; unavailable or
-failed browser synthesis is reported without disabling text or controls.
-Auto-speech reads new visible answer text and explicitly exposed thinking,
-plus a concise tool name/path summary. Tool results and replay are silent.
-The speaker action on each card reads its full accessible text on demand.
-Neither path reads signatures or opaque provider payloads.
+For Bill, this is the whole chapter. Auto-speech begins disabled, and a
+labeled user action enables it. When it works, the agent speaks its answers
+while the human's hands stay on the keyboard. When it breaks, half a sentence
+repeats, a finalized answer restarts from the top, or a canceled utterance
+fires its callback and accidentally resumes the queue.
 
 Own one queue per page controller. Buffer stream text into sentence-sized
 pieces, flush any remaining text at accepted end, and track the already queued
@@ -654,3 +666,11 @@ ran, proves nothing about the advertised property. Preserve required legacy
 coverage and add the new checks rather than calling the old score a browser
 audit. Implementation, live receipts, comparative revisions and final
 proofreading remain required after implementation of this accepted contract.
+
+---
+
+The terminal was a safety floor. Now the agent has a screen worth
+living inside: cards that track every artifact, speech that keeps
+the human's hands free, pause controls that know which tab owns them,
+and a reconnect that never loses a completed answer. The next chapter
+makes the screen remember what the human prefers.

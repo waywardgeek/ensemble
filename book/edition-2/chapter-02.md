@@ -1,29 +1,93 @@
 # Chapter 2: One History, Three APIs
 
-The first edition describes an interface extracted from a working Messages
-client. Its methods accepted `ClaudeMessage` and returned `ClaudeResponse`.
-It looked like preparation for a second provider: the declaration even had
-`interface` in front of it. When another API arrived, it still had to pretend
-to be the first one before it could enter the program.
+Somewhere in a previous source tree there is an interface called
+`AIClientInterface`, and for about a year it was the most expensive
+thing its author owned.
 
-The clients grew separately, and fixes acquired several places to land.
-That is the mistake this chapter avoids at the first real boundary. Build
-one account of the conversation, then let each API ask for its own spelling.
-The reader should spend a model switch checking its behavior, not untangling
-ownership of the conversation it inherited.
+It started out reasonable. When the first edition's agent talked to one
+vendor, every request went through a `ClaudeClient`, and early on an
+interface was extracted from it, with every method `ClaudeClient` happened
+to have, because that was the only list of methods anyone had. It looked
+like foresight. It had the keyword in front of it.
 
-Changing the model should not require rewriting what happened. A tool
-result still came from a tool, even if the next API wants it inside a
-user message. A cached token still belongs to the response that reported
-it, even after another model takes over. Borrow one API's vocabulary for
-the whole program and every new provider has to argue with those decisions.
+Then Bill wanted Gemini.
+
+The interface did not fit, and no amount of editing could make it fit,
+because it had never been vendor-neutral. It was Claude-shaped with
+`interface` written in front of it. `SendMessage` took a slice of
+`ClaudeMessage`. `CountTokens` took the same slice. There was nothing a
+Gemini implementation could do with a `ClaudeMessage` except translate it,
+which means the "interface" was really a demand that every future vendor
+pretend to be Claude first. So the second client was made the way second
+clients get made when the abstraction is wrong: copy, paste, edit until
+it compiles. The third, for OpenAI, the same way.
+
+At the commit where the damage was finally measured, the three clients and
+their tests came to 31,364 lines of Go. The right seam, when it was
+eventually found, brought all three vendors to 16,175 lines. Half. The
+number says what the keyword `interface` did not: copying a client is not
+the same as abstracting one.
+
+That is the mistake this chapter avoids at the first real boundary.
+
+```go
+// The mistake, in its natural habitat.
+type AIClientInterface interface {
+	SendMessage(msgs []ClaudeMessage) (*ClaudeResponse, error)
+	CountTokens(msgs []ClaudeMessage) (int, error)
+	// ...eighteen more methods, each shaped by what ClaudeClient
+	//    already happened to do
+}
+```
+
+Twenty methods, and vendor types in the signature. An interface extracted
+from one implementation records that implementation's accidents as if they
+were requirements, then defends them against every future vendor that
+disagrees.
+
+This chapter builds one account of the conversation, then lets each API
+ask for its own spelling. Changing the model does not require rewriting
+what happened. A tool result still came from a tool, even if the next API
+wants it inside a user message. A cached token still belongs to the response
+that reported it, even after another model takes over. Borrow one vendor's
+vocabulary for the whole program and every new provider has to argue with
+those decisions.
 
 Chapter 1 made the requests visible. This chapter gives them a history
-you can trust when an answer goes wrong: what arrived, what was sent,
-what the model returned, and what later changed. Three adapters will
-read that same history without each acquiring its own conversation.
+worth trusting when an answer goes wrong: what arrived, what was sent,
+what the model returned, and what later changed. Three adapters will read
+that same history without each acquiring its own conversation.
 
-## 2.1 The idea in plain words
+## 2.1 Taking Chapter 1 apart
+
+Chapter 1 gave you this and told you to enjoy it:
+
+```go
+type Message struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+
+type Conversation []Message
+```
+
+That struct carried a working agent. Now list what it cannot say.
+
+It cannot say what the model actually returned as opposed to what the
+program decided to keep. It cannot hold a tool call, or the result of
+one, or tell them apart from prose. It cannot record that something was
+removed, so a redaction is indistinguishable from a conversation that
+never had the content. It has no place for token counts, so usage lives
+in two integers on the client and dies with the process. It cannot say
+which model produced a reply, which will matter the first time the model
+switches mid-conversation and a vendor asks for material only the original
+model can read. And its one structural field, `Role`, belongs to a
+vendor. It is one company's word for one company's rule, hardcoded into
+a struct the whole program shares.
+
+That struct did its job. It is now in the way.
+
+### The idea in plain words
 
 When an answer is wrong, the useful question is what the model received.
 Suppose a recorded tool result contains `port=8080`, then a later request
@@ -238,10 +302,17 @@ not let its recipient mutate the authoritative log through a shared slice.
 
 ## 2.3 One application path, including failures
 
+A request can fail halfway through. The model might time out, the parse
+might choke, the network might vanish between sending the request and
+receiving the response. Most programs handle this by pretending the turn
+never happened. That works until somebody asks why the agent stopped
+answering, and nobody can tell them, because the failed attempt left no
+trace.
+
 A failed request leaves two facts worth keeping: the user asked a question,
 and no answer was accepted. Deleting the question hides the attempt. Leaving
-it in the next request mixes an unanswered question into completed turns. The log
-retains the failed attempt while the current context excludes it.
+it in the next request mixes an unanswered question into completed turns. The
+log retains the failed attempt while the current context excludes it.
 
 Agent owns the log and current context. Engine owns the accounting. An
 accepted event travels through one application path that updates each
@@ -536,8 +607,12 @@ response, and never while rendering or dumping.
 ## 2.7 User paths and the optional GUI
 
 The terminal is a client for a person. Requiring JSON around every sentence
-makes the person operate a test harness. Give chat its own presentation while
-both human and machine clients call the same public Agent operations.
+makes the person operate a test harness instead of having a conversation.
+Give chat its own presentation while both human and machine clients call the
+same public Agent operations. This is not cosmetic. The program's first user
+is its developer, and a developer who cannot talk to the agent in plain text
+will stop testing it interactively, which means the agent stops being tested
+by a human at all.
 
 `chat` explicitly selects the human interface. `protocol` explicitly selects
 Chapter 1's JSON-lines interface. With no arguments, select chat only when
@@ -1024,3 +1099,12 @@ The human chat addition has its accepted checkpoint and terminal receipts
 above; the [validation record](chapter-02-validation.md) records its review
 and remaining scope limits. Bill's editorial approval is separate. Earlier
 successful checks remain evidence for their original scope.
+
+---
+
+Three vendors, three wire formats, one history that belongs to no vendor.
+The seam you built in this chapter is the reason the first edition
+eventually cut 15,000 lines. You paid for it up front, in a few hundred
+lines of adapter code, instead of in a year of copy-paste drift. The next
+chapter asks the agent to do something with the tool calls it can now
+record. Until then, the conversation is yours.

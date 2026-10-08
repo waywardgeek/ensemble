@@ -1,17 +1,35 @@
 # Chapter 3: Six Tools, One Turn
 
-A conversation can describe a fix without changing a byte. This chapter
-lets the model read the file, make the edit, and run a command to check it.
-That makes the distinction between an answer and an action matter: a
-confident sentence is no evidence that the file changed.
+In September 2026, after thirteen months of daily sessions, Bill exported
+every tool call CodeRhapsody had ever made. 70,401 of them. He sorted by
+frequency and found a curve so steep it looked like a rendering error.
+Five tools accounted for ninety percent of all calls: run a command, read
+a file, edit a file, search for text, write a file. Eight tools covered
+ninety-three percent. The remaining thirty-odd tools, each lovingly
+designed, collectively mattered less than a rounding error.
+
+The numbers also revealed four things about the agent that its builder had
+not known. It called `edit_file` thirty times more often than
+`replace_lines`, even though both do the same job. It almost never used
+`move_file`. And it preferred `search_files` over `semantic_search` by a
+wide margin, despite the latter being objectively smarter. Models are
+creatures of habit, and their habits are not yours.
+
+This chapter gives the agent six tools. Not because six is the right number
+forever, but because a conversation that can describe a fix without
+changing a byte is not yet an agent. The distinction between an answer and
+an action matters: a confident sentence is no evidence that the file
+changed.
 
 The second-edition run supplied a useful example. A model omitted the flag
 that permitted an overwrite, then offered an explanation about parallel
-execution. The call log showed no overwrite request. The file still held the
-old lines. The coder's follow-up supplied the missing instruction, and the next
-calls finally changed the bytes. §3.10 retains that exchange because the
-difference between a proposed edit, an executed edit and a story about an
-edit is the subject of this chapter.
+execution. The call log showed no overwrite request. The file still held
+the old lines. The coder's follow-up supplied the missing instruction, and
+the next calls finally changed the bytes. §3.10 retains that exchange
+because the difference between a proposed edit, an executed edit, and a
+story about an edit is the subject of this chapter.
+
+## 3.1 Why six tools
 
 The useful unit is a completed turn. A model can ask for a file, inspect
 the result, ask for another file, and only then answer the human. The
@@ -19,21 +37,14 @@ program must keep that exchange moving without losing a result, confusing
 two calls to the same tool, or forgetting what already happened when the
 next request fails.
 
-## 3.1 Why six tools
-
-Bill's [September 2026 tool-use exhibit](../exhibit-ch03-tools.md) records
-a steep concentration of work in running commands, reading, editing,
-searching, and writing files. It is a historical account of his own archived
-sessions, not a measurement of every engineer or today's models. The
-chapter uses it to choose a small working set, then tests whether each
-tool is useful through the user interface.
-
-A shell can perform all these operations. Dedicated tools still give the
-model better ways to express what it wants. A range read limits the text
-entering the conversation. An edit names an exact old fragment and refuses
-an ambiguous match. A write distinguishes creating a file from replacing
-one. Their arguments and failures are easier to inspect than a shell
-command containing several layers of quoting.
+Bill's tool-use corpus tells the story. Out of 70,401 calls across
+thirteen months, five tools did ninety percent of the work. A shell can
+perform all these operations, but dedicated tools give the model better
+ways to express intent. A range read limits the text entering the
+conversation. An edit names an exact old fragment and refuses an ambiguous
+match. A write distinguishes creating a file from replacing one. Their
+arguments and failures are easier to inspect than a shell command buried
+in several layers of quoting.
 
 Separate tools also let one Agent read without granting it a shell or a
 writer. Hiding a tool's declaration is insufficient if dispatch will still
@@ -46,6 +57,12 @@ this chapter. Jobs arrive in Chapter 4; they extend the work recorded here
 with a lifecycle that can outlast one dispatch.
 
 ## 3.2 Put the tools under their Agent
+
+The first instinct is a global registry: one map of tool names to
+functions, shared by every agent in the process. It works until the second
+agent arrives, and that agent should not have a shell. A shared registry
+either grants every agent every tool, or it requires a per-call permission
+check that duplicates what per-agent ownership provides for free.
 
 An Agent owns its Registry. This chapter chooses per-Agent storage because
 the first requirement is independent capability sets, and no shared registry
@@ -154,6 +171,13 @@ table in §3.9 covers requirements that the original grader never protected.
 
 ## 3.3 A call is the middle of an answer
 
+Here is a thing that surprises people who build their first agent: a tool
+call is not a separate operation. It arrives embedded inside a response,
+between two fragments of text. The model is mid-sentence, realizes it
+needs to check something, asks for a file, gets the result, and continues
+the sentence. The turn is one thought with an interruption in the middle.
+Get the interruption wrong and the thought dies.
+
 Chapter 2 stopped at a tool-only response and explained that execution was
 not yet available. Replace that notice now. Its old one-response fixtures
 also need a continuation: return the tool result, then a final model answer,
@@ -200,6 +224,13 @@ model; it cannot register another tool or increase the Agent's permissions.
 
 ## 3.4 Three ways a turn can fail
 
+Failure during tool use is different from failure during conversation.
+In a pure chat exchange, a failed request loses a question. In a tool
+turn, a failed request may lose a question after the tools have already
+changed the file system. The conversation record says the edit happened.
+The model's next turn will assume it happened. The file on disk proves it
+happened. Pretending otherwise is not an option.
+
 The tool may fail while the conversation continues. A failed file lookup
 answers the model's question with an error. The next response can repair
 the path. This is why `is_error` belongs on the result, rather than being
@@ -230,6 +261,12 @@ interrupt a running shell command, and this chapter makes no promise of
 process cancellation or a background handle.
 
 ## 3.5 The six contracts
+
+Every tool is a promise: give me these arguments, and I will do exactly
+this thing. Not approximately. Not usually. Exactly. A model that sends
+`{"file_path": "main.go", "start_line": 10, "end_line": 20}` to `read_file`
+expects ten lines back, not a summary, not the whole file, not a helpful
+suggestion to try a different file. The schema is the contract.
 
 All argument payloads are JSON objects. Require the stated types; reject
 missing required fields, unknown fields, invalid regular expressions or
@@ -457,11 +494,14 @@ accidental side effect during replay.
 
 ## 3.8 Fakes need witnesses too
 
-The original tool loop passed its fake without declaring any tools. The
-fake volunteered calls, so the program could exercise dispatch without
-ever telling a real model which functions existed. Commit `6f4b4c1`
-records the added declaration checks and their deletion controls. A
-fixture that supplies a call is not evidence that a model can discover it.
+A cautionary discovery from the first implementation: the tool loop
+initially passed its fake without declaring any tools. The fake
+volunteered calls, so the program exercised dispatch without ever telling
+a real model which functions existed. Every test passed. None of them
+proved a model could find the tools, because the tests never checked
+whether the model was told they existed. A fake that can send an
+unrealistically helpful response is not evidence that a real conversation
+works.
 
 Build deterministic behavior against the fake, then probe a real API when
 a wire question remains. Turn the observed answer into a repeatable
@@ -762,3 +802,12 @@ requests. That evidence-only repair changed no production code and required
 no repeated paid run. The accepted checkpoint is `edition-2-ch03-r1`; its
 manifest binds source, frozen export and evidence. Editorial approval remains
 separate from these checks.
+
+---
+
+Six tools, sixty lines of dispatch, and the agent can finally change the
+world instead of talking about changing the world. The tool corpus said
+five tools do ninety percent of the work. This chapter implemented six
+and left the seventh for later. The next chapter gives those tools
+something the shell has had since 1979: the ability to start a job and
+come back for the result.

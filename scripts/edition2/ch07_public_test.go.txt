@@ -5,10 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	ens "example.com/ensemble"
+	"fmt"
 	"io"
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -418,5 +420,103 @@ func TestC7PublicPauseAdmission(t *testing.T) {
 				t.Fatal("released turn did not complete")
 			}
 		})
+	}
+}
+
+//go:noinline
+func c7ClosedChild(t *testing.T, a *ens.Agent) <-chan struct{} {
+	t.Helper()
+	_, w, err := a.Watch()
+	if err != nil {
+		t.Fatal(err)
+	}
+	collected := make(chan struct{})
+	runtime.SetFinalizer(w, func(any) { close(collected) })
+	if err := w.Close(); err != nil {
+		t.Fatal(err)
+	}
+	// A nonpublishing mailbox operation ensures asynchronous close admission has
+	// been processed, without another watch or observation overwriting stale slots.
+	p, err := a.RegisterPause()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = p.Close(); err != nil {
+		t.Fatal(err)
+	}
+	return collected
+}
+func TestC7PublicIdleWatchRelease(t *testing.T) {
+	e := ens.New(io.Discard)
+	defer e.Close()
+	f := c6New(t, e, "openai", false)
+	released := c7ClosedChild(t, f.a)
+	deadline := time.After(3 * time.Second)
+	for {
+		runtime.GC()
+		select {
+		case <-released:
+			runtime.KeepAlive(f.a)
+			return
+		case <-deadline:
+			t.Fatal("idle actor retained closed watch child after close boundary")
+		case <-time.After(10 * time.Millisecond):
+		}
+	}
+}
+
+func TestC7PublicWatchAgentIsolation(t *testing.T) {
+	e := ens.New(io.Discard)
+	defer e.Close()
+	agents := []*c6Fixture{c6New(t, e, "openai", false), c6New(t, e, "openai", false)}
+	watches := make([]ens.Watch, 2)
+	handles := make([]ens.RequestHandle, 2)
+	calls := make([]c6Call, 2)
+	revisions := make([]uint64, 2)
+	ids := make([]ens.WatchPartial, 2)
+	for i, f := range agents {
+		s, w := c7Watch(t, f.a)
+		watches[i] = w
+		revisions[i] = s.Watermark
+		handles[i] = c6Submit(t, f.a)
+	}
+	for i, f := range agents {
+		calls[i] = c6Receive(t, f.requests)
+		first, _ := c6TextStream("openai", fmt.Sprintf("AGENT-%d", i))
+		calls[i].pieces <- first
+	}
+	for i, f := range agents {
+		rows := c7Until(t, watches[i], revisions[i], func(o ens.Observation) bool { return o.Kind == "part_delta" })
+		revisions[i] = rows[len(rows)-1].Revision
+		for _, r := range rows {
+			if r.Observation.AgentID != f.a.ID() {
+				t.Fatal("live watch crossed Agent boundary")
+			}
+		}
+		s, w := c7Watch(t, f.a)
+		_ = w.Close()
+		if len(s.Partials) != 1 || s.Partials[0].Channels["text"] != fmt.Sprintf("AGENT-%d", i) {
+			t.Fatal("snapshot crossed Agent partial state")
+		}
+		ids[i] = s.Partials[0]
+	}
+	if ids[0].AgentID == ids[1].AgentID || ids[0].RequestID != ids[1].RequestID || ids[0].OperationID != ids[1].OperationID || ids[0].PartID != ids[1].PartID {
+		t.Fatal("fixture did not exercise reused local identities on distinct Agents")
+	}
+	for i := range agents {
+		_, tail := c6TextStream("openai", "")
+		calls[i].pieces <- tail
+		close(calls[i].pieces)
+	}
+	for i, f := range agents {
+		if got := c6Wait(t, handles[i]); got.Text != fmt.Sprintf("AGENT-%d", i) {
+			t.Fatal("completion crossed Agent boundary")
+		}
+		rows := c7Until(t, watches[i], revisions[i], func(o ens.Observation) bool { return o.Kind == "model_end" })
+		for _, r := range rows {
+			if r.Observation.AgentID != f.a.ID() {
+				t.Fatal("final watch identity crossed Agent boundary")
+			}
+		}
 	}
 }

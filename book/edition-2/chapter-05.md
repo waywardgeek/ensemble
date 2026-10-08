@@ -1,18 +1,29 @@
 # Chapter 5: Hear the Next Instruction
 
-A build is running, and the reader notices the agent chose the wrong file.
-The correction is short. The wait for somewhere to type it is the problem.
-An interface that accepts the correction only after the work has finished
-turns an instruction into a review comment.
-Chapter 4 keeps the build alive after a tool returns, but a client submitting
-a turn still waits while the model requests another operation. A goroutine
-running the process does not make the conversation responsive.
+It was 2 AM and I was watching CodeRhapsody edit the wrong file.
 
-Let input arrive during that wait. Give one actor responsibility for deciding
-what each input means, and let slow operations return their results as
-messages. The actor can acknowledge a correction while an HTTP request or a
-job-report wait is outstanding. Whether the model has received that correction
-is a separate fact, recorded at the next request.
+Not the wrong kind of file. The right kind, the right directory, three
+characters off in the name. I could see the mistake in the reasoning, I
+knew the fix was four words long, and I could not type them. The model
+was mid-turn, waiting on an HTTP response that would come back in eight
+seconds, and the interface did not accept input during a turn. So I sat
+there, mass-producing adrenaline, watching a 200,000-token agent burn
+$0.40 of reasoning on a file that did not contain what it expected.
+
+Eight seconds is not a long time. It felt like surgery with the lights off.
+
+The correction arrived as a review comment after the turn finished, by
+which time the model had already written forty lines of code against the
+wrong file, discovered nothing matched, reasoned its way into a second
+tool call to investigate, and was now confidently heading toward a
+theory about a "refactored module structure." The four words I could not
+type were: "You mean auth.go."
+
+This is the chapter where input stops waiting for permission. An actor
+owns the conversation, slow operations return their results as messages,
+and a correction can arrive while an HTTP request is still in flight.
+Whether the model has received that correction is a separate fact,
+recorded at the next request. The human can always type.
 
 > **Reviewed runtime and live demonstrations are recorded below.** Initial
 > attempts and affected-path reruns keep their own source identities. The
@@ -22,29 +33,21 @@ is a separate fact, recorded at the next request.
 
 ## 5.1 One Agent, one turn owner
 
-The existing Agent already owns its history, configuration and services.
-It now owns an Actor, implemented in `internal/llm`, that schedules turns and
-serializes conversation changes. Engine still owns transport and usage; Jobs
-still owns running work, output and report cursors. Actor reaches Engine and
-Jobs through its actual Agent parent interface. There is no new application
-coordinator alongside Ensemble and no second copy of the conversation.
+Up through Chapter 4, every turn is a function call: submit a prompt, wait
+for the model, dispatch tools, repeat until the model stops requesting them,
+return the answer. The caller's goroutine walks the entire loop. That
+simplicity has a cost: while the goroutine is inside `client.Do(req)`, nobody
+is listening.
 
-Declare shared actor state, messages, completion data and parent interfaces
-in `internal/common`. Implement operations in llm as free functions where
-shared types require it. Mailbox helpers keep their owner and logging path.
-Tools and jobs still cannot import llm. Their parent interfaces provide the
-route for returning immutable facts to the Agent's actor.
-
-Retire the synchronous orchestration implementation after moving its callers.
-The public blocking call remains: it submits a request to the actor and waits
-for that particular request's completion. A CLI, GUI stub, and embedding
-program must not choose different execution loops merely because one caller
-wants a blocking API.
-
-The first edition put the danger plainly: two loops over one engine mean two
-owners of mutable state. Keeping the old loop for familiar callers would make
-the new actor compete for its own conversation. Preserve the familiar call
-by giving it another entrance to the same owner.
+The fix is the oldest trick in concurrent programming. Give one goroutine
+exclusive ownership of the mutable state, and let everyone else talk to it
+through a mailbox. The HTTP call, the job-report wait, the process I/O all
+happen on worker goroutines. When they finish, they post a message. The
+actor applies it, persists the change, and notifies anyone watching. The
+human types a hint, it goes into the mailbox. The human types `/interrupt`,
+it goes into the mailbox. The actor decides what each message means, in the
+order they arrive, and the conversation is never touched by two goroutines
+at once.
 
 ## TL;DR
 
@@ -117,18 +120,19 @@ Local acceptance still needs the live demonstrations and independent review.
 
 ## 5.2 A queue needs a meaning
 
-Two callers can ask the same Agent different questions before either answer
-returns. An Idle notification tells both that something finished. A shared
-last-answer field then gives both the same text. The program can pass a
-single-caller demonstration while answering one of its real callers incorrectly.
+When two callers ask the same Agent different questions before either answer
+returns, something has to break. A shared "last answer" field gives both
+callers the same text, and neither knows whose question it answered. A
+demonstration that submits one prompt at a time passes perfectly while the
+real program silently delivers wrong answers.
 
-Assign each admitted request a nonempty identity unique within the Agent's
-lifetime. The pair of Agent ID and request ID identifies its result. Return
-a handle immediately from asynchronous submission. Its completion contains
-that identity, final text and typed response parts, outcome, count of unsent
-hints, and safe error when present. A completion is stored once and can be
-read by several waiters;
-one waiter cannot consume it away from another. Callers can release completed
+The fix is identity. Every admitted request gets a nonempty ID, unique within
+that Agent's lifetime. The caller gets a handle back immediately. The handle
+has a `Done()` channel and a `Wait(ctx)` method. When the answer arrives,
+it carries the ID, the final text, the typed response parts, an outcome, a
+count of unsent hints, and (when something went wrong) a safe error. The
+completion is stored once and can be read by several waiters. One waiter
+cannot consume it away from another. Callers can release completed
 handles, so the Agent need not retain an unbounded second answer archive.
 
 The blocking API submits through this path and waits on its own handle.
@@ -158,6 +162,10 @@ actor rather than appending through a competing writer. Offline load still
 uses the same reducer; it does not start a live actor or worker.
 
 ## 5.3 Record the decisions that change context
+
+A hint that is accepted but never persisted will vanish on restart. The model
+followed the correction, the conversation moved forward, and the replay has
+no idea why. Three new event types close that gap.
 
 Extend version 1 with the following event types. Each retains Chapter 2's
 positive increasing sequence, UTC timestamp and exactly one matching payload.
@@ -297,6 +305,12 @@ must fail validation. A turn end inserted before the result fails too.
 
 ## 5.4 Let slow work send its answer back
 
+The temptation is to hold the lock across the HTTP call. The actor knows the
+request, it knows the context, why not just wait for the response right there?
+Because that is exactly the 2 AM bug. While the actor is blocked on
+`client.Do(req)`, nobody is reading the mailbox. No hints, no interrupts, no
+second prompt. The whole agent is frozen behind one network round trip.
+
 The actor prepares an immutable request snapshot and records `request_sent`,
 then starts model I/O on an owned operation. It goes back to its mailbox.
 The worker returns parsed facts or a safe error, tagged with the operation
@@ -349,6 +363,12 @@ bounded owner operation with a documented lock order. More goroutines do
 not repair two owners waiting on one another's locks.
 
 ## 5.5 Interrupt the turn, keep the Agent
+
+At 2 AM, the only thing worse than not being able to type a correction is
+watching the agent race through four more tool calls after the correction
+finally arrives. Interruption means: stop this turn, save what you have,
+and let the next instruction in. The Agent stays alive. Running jobs survive.
+The conversation keeps its history. Only the current turn ends early.
 
 An interrupt targets the turn active when the actor processes that control
 message. With no active turn it acknowledges a no-op. The public API also
@@ -410,7 +430,12 @@ caller with an error. Cleanup cannot guarantee a durable final event when
 the log itself failed, and the owned logger must say so without claiming
 rollback or silently leaving a managed process alive.
 
-## 5.6 Progress does not acknowledge a request
+## 5.6 Show progress without owning the answer
+
+A GUI needs to see the agent thinking. A CLI needs to print tokens as they
+arrive. Neither of these display consumers should be able to stop the agent
+from working, delay a completion, or steal an answer from another caller. The
+actor owns the facts; observers receive copies.
 
 Keep the existing Agent-attributed durable event observations. Add transient
 state observations carrying Agent ID, active request ID where applicable,
@@ -468,6 +493,9 @@ Use completion notification rather than periodic polling; channel layout is
 an implementation choice, not the proof of either behavior.
 
 ## 5.7 Keep the terminal usable while work runs
+
+The whole point of this chapter is that a human can type while work runs.
+The terminal is where that promise becomes real.
 
 Extend Chapter 2's human `chat`, not a second debug-only command. Its input
 reader remains available during a turn. Ordinary text always submits a new
@@ -689,14 +717,18 @@ reinterpret the second prompt as a hint or cancel it.
 ### A responsive answer can still hide a blocked write
 
 The first implementation passed the new checker and the ordinary Messages
-and Chat Completions control
-paths, but comparative review found that `send_input` still wrote to the PTY
-on the actor itself. A process that stopped reading could fill that buffer
-and prevent the actor from hearing a hint. Moving HTTP and report waits had
-left one more wait in the owner's path. The repair described in §5.4 makes
-input I/O owned and cancelable too. Review also found that closed display
-subscriptions retained client references and could be created after shutdown;
-§5.6 now states their complete lifetime.
+and Chat Completions control paths. It looked done. Then a comparative
+review caught what the tests had not: `send_input` still wrote to the PTY
+on the actor itself. A process that stopped reading could fill the kernel's
+pipe buffer, and the actor would block trying to push bytes into a full PTY
+while the human sat there, unable to type `/interrupt`, because the goroutine
+that reads the mailbox was wedged on a write that would never complete.
+
+Moving HTTP and report waits had solved the headline problem. This was the
+same bug in a smaller pipe. The repair described in §5.4 makes input I/O
+owned and cancelable too. Review also found that closed display subscriptions
+retained client references and could be created after shutdown; §5.6 now
+states their complete lifetime.
 
 The corrected runtime was `959c663`. Its Gemini controls and focused Messages
 and Chat Completions sessions started a line reader, sent `LIVE-SEND-CHECK`
@@ -770,3 +802,16 @@ earlier path guard. Thirteen isolated identity mutations then reached their
 intended refusals before replay or derived writes, while the passing control
 reproduced all 78 requests. The original masked fixtures remain in the record.
 That correction required a local evidence audit, not another paid run.
+
+---
+
+Five chapters ago, this agent was 278 lines that could ask a model one
+question and print the answer. Now it has an actor that serializes
+conversation changes, a mailbox that accepts hints while the model is
+thinking, request handles that let multiple callers get their own answers,
+and a human at a terminal who can always type. The model is still
+stateless. The agent remembers.
+
+The next chapter adds the part the model cares about most: the ability to
+see its own tools arrive and depart while it is running, and to carry
+instructions that change what it can do.

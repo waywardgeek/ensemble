@@ -19,6 +19,8 @@ GROUPS = {
     'window-owned-copies': '^TestC7PublicWindowAndCopies$',
     'watch-count-overflow': '^TestC7PublicWatchOverflowAndClose$',
     'pause-tool-admission': '^TestC7PublicPauseAdmission$',
+    'idle-watch-release': '^TestC7PublicIdleWatchRelease$',
+    'watch-agent-isolation': '^TestC7PublicWatchAgentIsolation$',
 }
 
 

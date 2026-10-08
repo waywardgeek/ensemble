@@ -8,9 +8,9 @@ approval is separate.
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Contract | Author, coordinator | Accepted at `74928f1`; incremental projection lesson `2f105ce`; published initial checker command `7b116b7` | Preserve the new teaching in the fresh student handoff |
-| Structure and implementation | `/root/coder_ch07`, coordinator | Root accepted the retained owner/state/lifetime plan before affected code; initial source/read ledger records new-only inputs | Implement and test public watch, pause, optional GUI and reused CLI |
-| Independent checks | Grader engineer | Initial partial checker and coverage plan at `a5a07ba`; 15 local transport/snapshot/pause cases, with assertion controls | Add public watch/admission/capacity/teardown and real-browser checks; partial checker is not full acceptance |
-| Initial live use | Student, coordinator | Full feature/action matrix accepted with proxy-enforced 32 HTTP requests and 12 prompts per provider; local real-speech capture feasibility under test | Freeze source/binaries and pass adapter controls/known local checks before authorized paid launches |
+| Structure and implementation | `/root/coder_ch07`, coordinator | Initial new-only source/support frozen at `da162e8`; core and GUI race tests, affected module vet/tests pass; public CLI extracted and optional browser components implemented | Bind exact executables; preserve initial attempt before comparative review |
+| Independent checks | Grader engineer, coordinator | Local wire 23/23, public 6 groups, queue/projection 5 groups, actual Chrome 6 groups; root's actual Connector 6 groups pass | Finish deletion audits and complete immutable Chapter 7 gate including retained Chapter 6 assertions |
+| Initial live use | Student, coordinator | Full feature/action matrix accepted with proxy-enforced 32 HTTP requests and 12 prompts per provider; isolated browser audio captured with silent baseline | Pass historical source/binary adapter controls and retained regressions, then run authorized paid launches |
 | Historical comparison | Independent reviewer, student | Not started | Freeze initial implementation, runs and student teaching review before old-answer comparison |
 | Revisions and final evidence | Student, reviewer | Not started | Group compatible repairs; repeat only affected live paths with exact new bindings |
 | Manuscript and feedback | Author, student, proofreader | Contract prose reviewed; demonstration remains explicitly pending | Reconcile actual receipts and teaching findings, then independently proofread |
@@ -35,10 +35,11 @@ The initial checker invocation is:
 python3 scripts/edition2/accept_ch07.py GUI_BINARY
 ```
 
-Its current scope is partial. The complete required coverage remains §7.9 and
-the [grader plan](chapter-07-grader-review.md). The preserved Chapter 6 gate is
-also required. No student code, browser result, live speech, successful chapter
-grade, push or publication is implied by this preparation.
+Its scope is partial. The complete required coverage remains §7.9 and
+the [grader plan](chapter-07-grader-review.md). Retained Chapter 6 assertions
+are also required, with fixture placement adapted to the public CLI package.
+Local results above do not imply completed live use, successful chapter
+acceptance, push or publication.
 
 ## Handoff and scheduling
 
@@ -80,4 +81,18 @@ three providers through browser, actual human PTY, shared-Agent CLI, plain
 delivery and public two-Agent component reuse. Exact timing/failure boundaries
 retain deterministic controls. Native speech start/end callbacks were observed
 locally, and macOS screen/audio capture preflight returned true without a
-permission change; actual captured audio remains a separate pending result.
+permission change. The subsequent isolated recording selects the launched
+Chrome process by PID. Its first 1.8 seconds are silent; the utterance's
+time-aligned interval contains non-silent stereo audio. The raw receipt and WAV
+are retained with `main/evidence/ch07/audio-isolated/audit.json`. This is a
+local fixture feasibility result, without a transcription or human-listening
+claim; each required paid browser demonstration still needs its own receipts.
+
+The coordinator's actual Connector probes use disposable source copies and
+real sockets. They distinguish 256 accepted outgoing items from the 257th,
+exact 128 MiB encoded capacity from aggregate/single-item excess, and verify
+drain accounting, selected-sender teardown, independent peer usability and
+pause release. A deliberately blocked transport honors the production write
+deadline; the writer closes and joins within its five-second bound. A peer
+that never dispatches pongs closes within the 30-second contract. Targeted
+deletions and immutable source receipts remain the next acceptance step.

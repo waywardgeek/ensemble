@@ -1,16 +1,19 @@
 # Chapter 8: Preferences that do something
 
 The settings panel says speech is off. The next answer starts talking.
-Somewhere, a Boolean was saved successfully. The person listening has a more
-useful definition of successfully.
 
-The first edition found a related failure after fixing input validation.
-The server corrected a value to zero, then omitted that zero from its state
-broadcast. The browser kept displaying the rejected value. The same encoding
-could not represent speech being turned off: false disappeared too. The
-[historical account](chapter-08-evidence.md) records both failures. Saving,
-applying and displaying a preference are different jobs. A settings panel can
-get two of them right and still be wrong where the reader notices.
+This is not a hypothetical. It happened in the first edition's reference
+implementation, and the bug survived undetected until Chapter 13 drove
+the GUI with a second agent. The encoding could not represent false.
+`omitempty` dropped the zero, the browser kept displaying the rejected
+value, and text-to-speech could never be turned off from the server. A
+related failure made it impossible to broadcast a temperature of zero:
+the server clamped -5 to 0, dropped the zero from its state message,
+and the client displayed the number the server had already rejected.
+
+Saving a preference, applying it, and displaying it are three different
+jobs. A settings panel can get two of them right and still be wrong where
+the reader notices.
 
 This chapter makes the interface worth keeping open. Chat and actions get
 separate panes; preferences survive a restart; every tab learns what changed.
@@ -79,8 +82,9 @@ names, storage implementation and visual styling remain student choices.
 ## 8.1 Give each setting an owner and a consumer
 
 A font size has no reason to enter Engine. A model-request limit has no reason
-to be read from a browser's settings store. Putting both in one convenient JSON
-object makes the first screen easy and the second client difficult.
+to be read from a browser's settings store. The temptation is to put both in
+one convenient JSON object, because that makes the first screen easy and the
+second client impossible.
 
 Server owns a display-preference service inside the optional GUI module. It
 holds the applied preference value, its revision and its file identity. Shared
@@ -111,6 +115,9 @@ coordinator's working design under the existing architecture rules, not a new
 claim that every application must share preferences in exactly this way.
 
 ## 8.2 A patch needs to say whether a field exists
+
+This is where the zero-broadcast bug lived, and where it will come back if
+the lesson is not structural.
 
 The display-preference snapshot has exactly these fields:
 
@@ -329,9 +336,12 @@ Settings commands are controls, not model requests, and incur no model call.
 
 ## 8.5 A budget the actor actually reads
 
-The old interface once saved 200 while its execution paths still stopped at 16.
-The settings store and broadcast worked. The setting did not. The new budget
-must be read at the decision that could send the next request.
+The first edition shipped a settings interface that saved 200 while the
+execution paths still stopped at 16. The persistence worked. The broadcast
+worked. The setting was furniture. A number on a screen that nothing in the
+running system ever looked at.
+
+The new budget must be read at the decision that could send the next request.
 
 Preserve the existing counting unit: model requests per human turn, including
 automatic continuations. It is not the number of tools, response fragments or
@@ -374,6 +384,9 @@ turn already running. Prove this through a public consumer, not a package-privat
 setter that skips the actor.
 
 ## 8.6 Reuse the screen instead of forking it
+
+Nobody customizes a safety floor. A three-pane layout means this is
+a tool the human intends to use every day.
 
 The wide layout has a sidebar, a chat pane and an actions pane. Chat contains
 human input, hints, answer and exposed thinking cards. Actions contains tool
@@ -423,9 +436,10 @@ of the old interface.
 
 ## 8.7 Shared speech defaults, locally owned speech
 
-Label the shared control “Autoplay new answers”. Its help text states the
-existing automatic scope: new visible answer text, exposed thinking and concise
-tool summaries; tool results and replay remain silent. An explicit card speaker
+The shared control is labeled "Autoplay new answers." The word "shared" is
+load-bearing. Two tabs can disagree about whether speech is happening right
+now, and both can be right, because speech is local work. The preference
+controls whether that work starts automatically. An explicit card speaker
 action still works while autoplay is off.
 
 At each automatic enqueue decision, use the newest preference snapshot already
@@ -540,3 +554,13 @@ rationale from that comparison, not old answer code. The author updates missing
 teaching, the student checks the response, and the reviewer verifies revisions.
 A pleasing screenshot and a green settings-roundtrip check are both useful.
 Neither closes the other obligations in this chapter.
+
+---
+
+The screen remembers what the human prefers: where the dividers sit,
+whether answers are spoken aloud, how many requests the model may make
+before stopping for permission. Two bugs from the first edition taught
+the lesson that drove this chapter: a setting that saves but does not
+apply is furniture, and a setting that applies but cannot represent zero
+is a lie. The next chapter gives the agent a way to learn new capabilities
+while it is running.
