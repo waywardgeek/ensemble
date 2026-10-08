@@ -7,20 +7,20 @@ Bill's editorial approval is separate from technical validation.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
-| Research and outline | Author `/root/coder_ch04` | Outline and evidence frozen at `bb6e04c`; historical listener, fence and missing-event wiring lessons retained with limits | Draft the full student-facing contract |
-| Contract and design review | Coordinator, author | Outline reviewed; working directions below accepted | Review exact grammar, bounds, failure behavior and public fixtures before release |
+| Research and outline | Author `/root/coder_ch04` | Outline/evidence `bb6e04c` and full draft `e4ef9a9`; historical listener, fence and missing-event wiring lessons retained with limits | Reconcile future student experience without inventing outcomes |
+| Contract and design review | Coordinator, independent proofreader `/root/coder_ch08` | Grouped revision `f3a50d3` accepted for checker preparation; independent closure `88de827` resolves both findings, with full coordinator reading | Derive checks from exact grammar, public boundaries and failure semantics |
 | Independent checks | Grader engineer, unassigned | Not started | Derive controls from the published contract and actual public seams |
 | Student implementation | Fresh student, unassigned | Not started; accepted Chapter 12 implementation required | Freeze permitted new teaching and predecessor source, then review owner plan |
 | Initial live use | Student, coordinator | Not started | Review bounded all-provider CLI/browser/public/listener matrix before calls |
 | Historical comparison | Independent code reviewer | Not started | Preserve initial source, runs and teaching review before comparison |
-| Manuscript and feedback | Author, student, proofreader | Outline only; no successful demonstration claimed | Reconcile actual evidence and resolve reviewer/student findings |
+| Manuscript and feedback | Author, student, proofreader | Full contract draft independently proofread; no successful demonstration claimed | Reconcile actual evidence and resolve future reviewer/student findings |
 | Export and checkpoint | Coordinator | Not started | Complete required gates before export and immutable tag |
 
 ## Working directions
 
 These are coordinator choices under the authorized architecture, not additional
-decisions attributed to Bill. Exact limits and literal formats remain subject
-to the full contract review.
+decisions attributed to Bill. Revision `f3a50d3` now publishes the reviewed exact
+limits, literal fixtures and failure behavior.
 
 - Keep Page normalization and queue ownership, application-owned SpeechService,
   native arbitration, captured preferences and inherited pause behavior. Bound
@@ -47,3 +47,21 @@ Historical accounts motivate these decisions. They are not new native-audio
 receipts or claims that a transcript-only model perceived sound. No new general
 accessibility framework, sub-agent runtime or speech-engine portability layer
 is required by these directions.
+
+## Contract review closure
+
+Independent review [chapter-13-review.md](chapter-13-review.md) closes the
+journal-exhaustion and demonstration-ownership findings. Recording faults latch
+bounded out-of-band status, preserve retained records and native work, and
+explicitly fail recorder delivery and listener/export completeness. A fault
+does not require another sequence number or a fabricated terminal record.
+The human launcher and public listener example create distinct applications
+and retain separate launch/service identities.
+
+The coordinator read the complete revised contract. Three JSON fixtures, the
+maximum uint64 read shape, seven unchanged normalization pairs and the `Ready.`
+digest are independently checked. Initial prose lint remains bound to the
+original draft; the grouped revision has manual voice and exact-literal review.
+These establish a reviewed teaching contract, not runtime or live acceptance.
+Chapter 12's accepted implementation and a runnable new checker remain required
+before the fresh Chapter 13 student starts.
