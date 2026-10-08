@@ -7,7 +7,7 @@ required before student release. Bill's editorial approval is separate.
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Contract | Author, coordinator | Draft `a5fc9ea`, clarifications `302d77e`/`39bc526` accepted; see chapter-11-review.md | Derive independent checks from published contract |
-| Independent checks | Future grader phase | Not started; inherited CH=12 is diagnostic only | Publish distinguishing command and controls before student handoff |
+| Independent checks | Author `/root/coder_ch08`, reviewer `/root/grader_ch05` | Foundation `ee89051`, repaired at `c80af0a`, independently reviewed at `d13346c`: 90 fixture/oracle controls and nine intended predicate deletions; [coverage](chapter-11-grader-review.md), [review](chapter-11-foundation-review.md) | Add actual student client, custom-transport, lifecycle and persistent-identity controls after public seams exist; preparation is not runtime acceptance |
 | Fresh student and owner plan | Future fresh student | Not started | Release accepted Chapter 10 and new-only teaching |
 | Implementation and local gates | Future student, grader | Not started | Implement and check full contract plus inherited behavior |
 | Actual use | Future student, independent reviewer | Planned only | Review bounded matrix, then actual CLI/browser/public all-provider runs |
