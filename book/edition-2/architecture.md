@@ -132,6 +132,18 @@ browser dependency in the agent library. See Chapter 7 and its validation
 record for implementation/review status; this paragraph records the design
 decision, not a completed revision claim.
 
+Chapter 8's actual native-speech test found that application-local ownership
+alone did not coordinate ordinary tabs: a waiting tab's playback timeout could
+cancel another tab's utterance. The accepted correction keeps SpeechService
+under BrowserApplication and adds a same-origin/storage-bucket Web Locks lease
+before native speech and its start timer. A canceled waiter aborts only its
+wait; a leaseholder cleans up native work before releasing ownership. Page
+queues, captured rates and pause causes remain local. This coordinates
+cooperating documents, not unrelated sites or profiles. Missing coordination
+is a visible unavailable-speech state with no retained speaking pause. See the
+Chapter 8 validation and comparison records for source-bound checks and live
+limitations. No browser facility becomes a core Agent dependency.
+
 ## Source reconciliation
 
 `docs/ensemble-topology-decisions.md` already distinguishes the application

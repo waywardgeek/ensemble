@@ -1,4 +1,4 @@
-# Chapter 7 student implementation
+# Chapter 8 student implementation
 
 A Go Agent library with human and JSON-lines CLI clients, plus a separate,
 optional browser module. The browser shares the Agent with the CLI, supports
@@ -6,11 +6,12 @@ atomic reconnect snapshots, owned typing/speaking pauses, safe cards and
 opt-in speech. This is the canonical second-edition source in the outer
 repository; frozen chapter exports are separate.
 
-The reviewed runtime is `9ba7855b31a5eb134819602b35eb9acb277f6342`. Its
-33-group deterministic gate and 12-group comparative repair suite passed.
-Initial Chapter 7 runs retain their original identity under `evidence/ch07/`;
-revised two-Agent browser/audio receipts are under `evidence/ch07/revision-1/`.
-See the [Chapter 7 validation record](../../../book/edition-2/chapter-07-validation.md)
+Chapter 8 adds persistent GUI preferences, separate Agent execution policy and
+three-pane controls. Reviewed runtime `a06d4f3c848685d81306166279df7c977d71bddd`
+has 52 accounted-for deterministic groups: 12 affected checks on that repair
+and 40 retained checks with their earlier `cd9de3e` identity. Student live
+evidence is frozen through `7f517d8` under `evidence/ch08/`.
+See the [Chapter 8 validation record](../../../book/edition-2/chapter-08-validation.md)
 for final acceptance, export and tag status.
 
 Build the CLI with `go build -o ensemble ./cmd`. Select `LLM_VENDOR`, a discovered
@@ -32,8 +33,9 @@ The CLI enables read, list, search, write, edit, `run_command`, `wait_for_job`,
 `send_input`, `kill_job`, and `tool_limits`. Managed commands use a PTY and can
 continue between reports. Use a scratch working directory: this workspace is
 not a sandbox.
-The same public submission operation runs up to sixteen model requests per
-turn, records tool results, and returns the final answer. Ordinary tool errors
+The same public submission operation records tool results and returns the final
+answer. A turn captures its Agent's applied model-request limit when activated;
+zero selects the default sixteen, and positive values select 1–256. Ordinary tool errors
 can be corrected by the model; provider or persistence failures end the session.
 
 `ensemble dump` reads `CH02_LOG`; `ensemble render LOG` renders the specified log
@@ -68,6 +70,16 @@ Run `/tmp/ensemble-gui --port 0 --terminal` in a scratch directory with the same
 the CLI while the browser remains usable; `/quit` closes the application.
 `--gui-log PATH` optionally records conversation-bearing transport traces.
 
+`--preferences PATH` selects the Server's display-preference file and
+`--policy PATH` selects the Agent's execution-policy file. Their defaults are
+`.ensemble/gui-preferences.json` and `.ensemble/agent-policy.json` beneath the
+launch workspace. Settings survive a restart; conversation logs still require
+a fresh path. Appearance and speech preferences do not enter core Agent code.
+Headless clients use `Config.PolicyPath`, `Agent.ExecutionPolicy` and
+`Agent.UpdatePolicy`; without a path policy is explicitly in memory.
+The independent `examples/policy-consumer` demonstrates two Agents with
+separate files, limits and fresh-log restarts.
+
 Cards show provisional text, accepted answers, tool reports and terminal job
 facts. Speech begins disabled; enable auto-speech or use a card's Speak button.
 Typing and queued/current speech each hold that connection's new tool admissions.
@@ -81,21 +93,27 @@ embeddings create one `BrowserApplication` per document and Pages through
 `createPage(root, url)`. Pages retain local queues while the application owns
 one FIFO native speech service. Close a Page before replacing it on the same
 DOM root. The embedding example provides Close view/Reconnect view controls.
+SpeechService coordinates cooperating same-origin/storage-bucket documents
+through Web Locks before native playback. It cannot isolate unrelated sites or
+browser profiles. Missing coordination is reported without retaining a speech
+pause. Settings use lossless numeric revision parsing; a browser lacking the
+required parser support refuses visibly instead of submitting rounded revisions.
 
 Run `go vet ./...` and `go test ./... -count=1` separately in the root,
 `gui`, and each module under `examples/`; use the race detector on concurrency
 checks. The independent immutable gate runs from the course repository root:
 
 ```sh
-python3 scripts/edition2/accept_ch07_gate.py 9ba7855b31a5eb134819602b35eb9acb277f6342
+python3 scripts/edition2/accept_ch08_gate.py a06d4f3c848685d81306166279df7c977d71bddd
 ```
 
-Initial live evidence covers browser, actual human CLI and public embedding on
-all three providers (44 requests). Revised public embedding uses two prompts/provider
-(six requests total) and actual shared-document speech/audio. Gemini's revised
-answers hit the example's 512-token budget and remain labeled `MAX_TOKENS` in
-raw evidence; the requested paragraph length was not achieved. Earlier chapter
-receipts and failed initial checks remain unchanged.
+Chapter 8 receipts cover actual human CLI, browser and public consumers on all
+three providers: Anthropic 18 model requests, OpenAI 14 and Gemini 15. Original
+failures and bounded corrective prompts remain recorded. OpenAI/Gemini's final
+speech-overlap supplements replay retained real-provider events with the endpoint
+disabled and new admission timestamps; they are not fresh model generations.
+Audio captures establish native output, not a human listening/transcription claim.
+Earlier chapter receipts retain their original source identities and limitations.
 
 ## Chapter 5: responsive turns
 

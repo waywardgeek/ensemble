@@ -1,6 +1,24 @@
 # Source checkpoint records
 
-The current implementation is Chapter 7. Reviewed runtime/support identity:
+The current implementation is Chapter 8. Reviewed runtime is
+`a06d4f3c848685d81306166279df7c977d71bddd`, with independent code acceptance
+`270c3b6`. Student evidence is frozen through `7f517d8`; final replay support
+is `52c9561`. The independent reconciliation accounts for 52 groups, with
+affected repair checks and unchanged earlier results separately bound.
+
+Initial source/live/student freeze `5f9684b` precedes historical comparison.
+Later native speech coordination and exact uint64 revision repairs retain
+their original failures. Real-provider totals are Anthropic 18 HTTP requests,
+OpenAI 14 and Gemini 15. Endpoint-disabled native replay supplements are
+separately labeled, including rewritten admission timestamps. No paid rerun
+was needed for the numeric repair. See `evidence/ch08/student-review.md` and
+the [Chapter 8 validation record](../../../book/edition-2/chapter-08-validation.md)
+for teaching, final independent live audit, manuscript and checkpoint status.
+This coordinator documentation update changes no runtime or raw evidence.
+
+## Historical Chapter 7 checkpoint
+
+At this earlier checkpoint, the implementation was Chapter 7. Reviewed runtime/support identity:
 `9ba7855b31a5eb134819602b35eb9acb277f6342`. The independent immutable gate
 passed 33/33 and comparative repair suite passed 12/12, including distinguishing
 deletion controls. Initial runtime `da162e8`, support binding `ba902b7` and
