@@ -178,3 +178,38 @@ Main vet/test/race pass; race including large-bound fixtures takes about52s.
 The repeated doubling benchmark remains approximately linear; retained in
 assembly-opaque-after.txt (Messages2.75→5.36MB, Chat3.12→6.10MB,
 Gemini5.01→9.83MB). No paid calls occurred on the intermediate repair.
+
+### Revised real-provider demonstration at 75bd14d
+
+After root accepted the bounded rerun plan and independent review confirmed the
+escaped opaque boundary and R1–R4 source repairs, I drove all seven approved
+sessions in actual PTYs on October 7 local / October 8 UTC. Runtime stayed at
+75bd14d throughout. Revision1 evidence helpers and four executables were bound
+before calls; nine local controls included a valid batch followed by an intended
+late-launch identity failure before any derived write. Original helpers/binding,
+initial 33 requests and intermediate 3cca remain unchanged.
+
+The reruns used exactly the minimal 20 requests: four streamed human requests per
+API (file tool+continuation, actual interrupted integer stream, recovery), two
+requests per API in the public two-Agent consumer, and two requests for Gemini's
+plain file tool+continuation. All three interruptions acknowledged true after
+visible text, each interrupted turn has no accepted response/usage, and each
+next turn answered RECOVERED-SIX-REVISION. All four file operations retained the
+exact marker/8080 artifact. Gemini plain displayed its accepted answer once.
+No extra retry was needed; the raw interrupted responses remain partial evidence.
+
+Every public ordinary/finals-only typed part equals its reliable completion;
+both agents complete before the deliberately stalled callbacks are released.
+No live overflow or thinking delta occurred. Gemini's public 512-token requests
+again reached MAX_TOKENS with signed empty text parts and short partial answers;
+these are valid accepted partial responses, not completed 80-word explanations.
+The public receipt preserves that outcome rather than spending another request.
+
+Revision1 identity-first verification reconstructs all 20 captured requests from
+logs. summarize.py checks chronology, exact file artifact, interrupt accounting,
+terminal usage, public correlation and typed-final equality; live-summary.json
+records results. receipts-manifest.json binds 75 raw files, including all 10 logs
+and four tool artifacts. Credentials were scanned programmatically in memory;
+none occur in revised evidence. The GUI remains a stub. No new teaching
+ambiguity arose during these reruns; final independent acceptance and receipt
+review remain the coordinator's open gates.
