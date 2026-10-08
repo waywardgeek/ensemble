@@ -19,9 +19,9 @@ because its manual survived. Remembering requires fewer powers than resuming.
 
 The coordinator has accepted this contract for independent checker preparation.
 An initial checker covers part of it; the [validation
-record](chapter-10-validation.md) tracks the remaining gates. Student release
-still awaits accepted Chapter 9 source. No Chapter 10 implementation, successful
-restart or actual spin is claimed.
+record](chapter-10-validation.md) tracks the remaining gates. Student planning
+has been released from accepted Chapter 9 source. No Chapter 10 implementation,
+successful restart or actual spin is claimed.
 
 ## TL;DR
 
