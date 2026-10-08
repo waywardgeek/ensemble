@@ -5,7 +5,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
-from evidence import HERE,ROOT,digest,historical,preflight
+from evidence import HERE,ROOT,compare_neutral_events,digest,historical,preflight
 p=argparse.ArgumentParser();p.add_argument('vendor',choices=['anthropic','openai','gemini']);p.add_argument('name');p.add_argument('log');p.add_argument('retained_revision');a=p.parse_args()
 b=json.loads((HERE/'initial-binding.json').read_text());paths={k:v['path'] for k,v in b['executables'].items()};preflight(b,paths)
 source=(HERE/a.log).resolve();relative=str(source.relative_to(ROOT));data=source.read_bytes()
@@ -19,6 +19,6 @@ code=subprocess.call([paths['recorder'],'-q',str(run/'terminal.txt'),*command],c
 receipt.update(exit_code=code,end=datetime.datetime.now(datetime.timezone.utc).isoformat());(run/'launch.json').write_text(json.dumps(receipt,indent=2)+'\n')
 if code==0:
     admitted=(workspace/'readmitted.jsonl').read_bytes()
-    assert [json.loads(x) for x in data.splitlines()]==[json.loads(x) for x in admitted.splitlines()],'readmitted facts changed'
-    (run/'replay-match.json').write_text(json.dumps({'retained_sha256':digest(data),'readmitted_sha256':digest(admitted),'identical_events':True,'new_model_requests':0},indent=2)+'\n')
+    comparison=compare_neutral_events(data,admitted)
+    (run/'replay-match.json').write_text(json.dumps({**comparison,'retained_sha256':digest(data),'readmitted_sha256':digest(admitted),'new_model_requests':0},indent=2)+'\n')
 raise SystemExit(code)

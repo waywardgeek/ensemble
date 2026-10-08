@@ -9,7 +9,7 @@ import subprocess
 import tempfile
 import threading
 import urllib.request
-from evidence import HERE, preflight
+from evidence import HERE, compare_neutral_events, preflight
 
 def module(name,path):
     spec=importlib.util.spec_from_file_location(name,path);value=importlib.util.module_from_spec(spec);spec.loader.exec_module(value);return value
@@ -144,6 +144,19 @@ with tempfile.TemporaryDirectory() as temp:
         assert not any(row.get('type')=='prompt' for row in sent)
         results.append({'check':'public-retained-replay-and-two-page-settings-race','passed':True})
     finally:replay.terminate();replay.wait(timeout=10)
+    original=(fixture/'session.log').read_bytes();admitted=(replay_run/'readmitted.jsonl').read_bytes()
+    comparison=compare_neutral_events(original,admitted)
+    assert comparison['rewritten_admission_times']==comparison['event_count']>0
+    for name,reason in [('count','event count changed'),('order','non-time facts changed'),('seq','non-time facts changed'),('payload','non-time facts changed'),('time','admission time missing')]:
+        changed=[json.loads(x) for x in admitted.splitlines()]
+        if name=='count':changed.pop()
+        if name=='order':changed[1],changed[2]=changed[2],changed[1]
+        if name=='seq':changed[1]['seq']+=1
+        if name=='payload':changed[1]['type']='modified'
+        if name=='time':del changed[1]['time']
+        try:compare_neutral_events(original,'\n'.join(json.dumps(x) for x in changed).encode());raise RuntimeError('replay mutation accepted')
+        except AssertionError as error:assert reason in str(error)
+    results.append({'check':'replay-admission-time-only-positive-and-five-exact-refusals','passed':True})
     stream_release=threading.Event()
     class LiveStream(http.server.BaseHTTPRequestHandler):
         def log_message(self,*args):pass

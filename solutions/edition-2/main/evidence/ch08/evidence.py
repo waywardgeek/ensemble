@@ -10,6 +10,17 @@ PREFIX='solutions/edition-2/main/'
 SUPPORT=['evidence.py','terminal-run.py','verify-receipts.py','browser-live.mjs','capture-audio.swift','test-evidence.py','replay-server.go','replay-run.py']
 EXECUTABLES={'cli','gui','consumer','headless','interpreter','node','recorder','capture','chrome','replay'}
 def digest(data):return hashlib.sha256(data).hexdigest()
+def compare_neutral_events(original,admitted):
+    """Public Append owns admission time; every other retained fact stays exact."""
+    before=[json.loads(x) for x in original.splitlines()];after=[json.loads(x) for x in admitted.splitlines()]
+    assert before and len(before)==len(after),'readmitted event count changed'
+    assert before[0]==after[0],'readmitted header changed'
+    changed=0
+    for old,new in zip(before[1:],after[1:]):
+        assert isinstance(old.get('time'),str) and isinstance(new.get('time'),str) and old['time'] and new['time'],'readmitted admission time missing'
+        assert {k:v for k,v in old.items() if k!='time'}=={k:v for k,v in new.items() if k!='time'},'readmitted non-time facts changed'
+        changed+=old['time']!=new['time']
+    return {'label':'neutral-event replay with rewritten admission times','event_count':len(before)-1,'order_seq_and_all_non_time_fields_exact':True,'rewritten_admission_times':changed}
 def historical(revision,path):return subprocess.check_output(['git','show',revision+':'+path],cwd=ROOT)
 def source_set(revision):
     paths=subprocess.check_output(['git','ls-tree','-r','--name-only',revision,'--',PREFIX],cwd=ROOT,text=True).splitlines()
