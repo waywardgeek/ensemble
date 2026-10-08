@@ -190,3 +190,36 @@ requires precisely that core-module refusal, then restores discovery with a
 build constraint and builds the helper explicitly from its optional module.
 This package-discovery check supplements module vet/tests and documented helper
 invocations; it does not replace them or the existing runtime gates.
+
+## Public headless policy milestone
+
+```sh
+python3 scripts/edition2/accept_ch08_public.py SOURCE_DIRECTORY
+```
+
+The independent consumer uses the student's declared public Agent policy API,
+without a GUI or core implementation import. A disposable copy binds its Go and
+module files before tests. Core vet and four race-tested groups now pass against
+the evolving working source: owned memory snapshots and separate Agents, watch
+revision matching and stale/duplicate recovery, persistent no-change/restart
+and path claims, and actual two-Agent HTTP limits with accepted file reads and
+exact request reconstruction. Fifteen append/load fixtures distinguish absent
+historical capture, two valid captures and twelve malformed present captures.
+The [passing receipt](checkpoint-evidence/ch08-public-passed.json) is a working
+source milestone, not final immutable chapter acceptance.
+
+Two preparation failures remain visible. The first copy stopped at a newly
+adapted test helper passing a mutex owner by value; the student corrected its
+receiver, and the [blocked receipt](checkpoint-evidence/ch08-public-vet-blocked.json)
+is not credited as a behavioral run. The next run exposed a checker mistake:
+the raw historical-log fixture lacked its required version header. Its three
+positive loads failed, masking the malformed-capture negatives. The
+[failed fixture receipt](checkpoint-evidence/ch08-public-log-fixture-failed.json)
+retains that result. The corrected fixture supplies the header and requires
+all three positive append/load controls before testing malformed captures.
+
+These results do not prove every disk failure, held-writer responsiveness,
+simultaneous subscription handoff or browser consumer. Actor publication timing
+also needs the planned source/lifecycle review; matching public revisions alone
+cannot establish all internal ordering. Implementation deletion controls and
+the immutable final run remain outstanding.
