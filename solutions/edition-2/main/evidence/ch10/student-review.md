@@ -568,3 +568,41 @@ spin, human-participation claim, historical comparison, author feedback confirma
 of runtime results or chapter acceptance. Independent remaining fault/allocation/
 structural coverage needs the immutable revised source checkpoint. Preserve this
 initial student experience and original failed receipts for that later review.
+
+### Phase 2 repair: acknowledged terminal append/close failure
+
+Reread the entire mandatory coding skill, complete permitted pinned architecture,
+and complete clarification-3a9e5b7 Chapter10/direct feedback. Verified both teaching
+files against manifest SHA256 and exact3a9e5b76053535ab22906959edb14609596f8a93 blobs;
+identities remain as recorded above. A batched display clipped the join between
+feedback/chapter; reread the affected tail/opening so no missing text is assumed.
+Read authorized inbox additions and the complete safe result fields in
+results/ch10-fault-first.json and results/ch10-append-fault-diagnostic.json (not
+checker implementations). The frozen122b04a one-byte partial public Append fails,
+but Close returns nil and performs create=1/replace=1. Equal resulting bytes do
+not satisfy Chapter10.5's explicit no-replacement requirement. This is my runtime
+fault-propagation defect, not missing teaching or a reason to revise expectations.
+
+Repair plan within existing owners: Agent retains the first terminal append
+cause at actual storage failure/terminal storage-bound admission. A common Actor
+parent accessor distinguishes it from ordinary rejected input. Actor enters its
+existing persistence cleanup path on that terminal public append, prevents new
+checkpoint capture and checks owner fault before final save. Retain Close's result
+for repeat callers while releasing log/store locks and root reservations. Tests
+must observe unchanged checkpoint inode or no created checkpoint, not just bytes;
+include invalid-input positive recovery, terminal size admission, repeated close,
+and released ownership. No second writer or mutable Context is introduced.
+
+The supervised process stopped101 during the disk-blocked validation; uncommitted
+source and originals remained. The attempted status write was aborted, so this
+records the failure now: Go could not create vet.cfg/build directories (`no space
+left on device`); the redirected after-fix receipt was empty, not a passing test.
+No student cache deletion occurred. After coordinator maintenance, reloaded entire
+mandatory skill and only appended coordinator-inbox messages; resumed exclusive
+build stage without redoing completed source edits. First local test adapter's
+Config-under-append-lock timeout was a fixture mistake, corrected by capturing
+the log path before injection. Baseline then independently reproduced runtime
+faulty checkpoint replacement and nil repeated close. No new teaching ambiguity.
+
+
+Repair read/exposure ledger continued: reloaded the full mandatory skill after compaction; read authorized inbox through “Repair validation progress received.” Inspected own four-file runtime diff and new session_append_fault_test.go, own append-repair command receipts and current review/status/live plan; searched own skills.go, GUI preferences service and GUI web preference controls to bind the proposed public APIs/font_size16→18 action to actual implementation. Earlier repair reads also covered own CLI/GUI launch/configuration, session/persistence/eventlog tests and safe supplied diagnostic fields. No reviewer/checker source, old/future teaching, other worker conversation, credential or provider endpoint was accessed. Module and race checks now pass; prior baseline/fixture-timeout/disk failure remain retained. No teaching question is open; live support completeness and separate release remain future gates.

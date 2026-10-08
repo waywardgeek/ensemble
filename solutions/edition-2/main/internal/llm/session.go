@@ -64,6 +64,10 @@ func (a *Actor) startCheckpoint(m common.ActorMessage) {
 			_ = a.enqueue(common.ActorMessage{Kind: "closed", Error: err}, false)
 		}
 	}
+	if err := a.parent.AppendFailure(); err != nil {
+		fail(err)
+		return
+	}
 	if a.parent.SessionState() == nil {
 		fail(&common.SessionError{Code: "session_conflict", Detail: "standalone Agent has no session"})
 		return

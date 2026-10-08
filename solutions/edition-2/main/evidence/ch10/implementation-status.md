@@ -121,3 +121,30 @@ failures are preserved. Contract milestones were44056d18846ba29e8bcd703143fb1b99
 Accepted initial plan remains7cb84290af3e8bac5359339f8ab5d4e7e941bf74.
 Coordinator may run remaining independent coverage against122b04a without concurrent
 student source mutation. This final status-only update changes no runtime or binary.
+
+## Append-fault repair resumed after build-space maintenance
+
+Supervised interruption preserved the uncommitted repair and receipts. The aborted
+status write did not land; this records the facts now. Local pre-fix regression
+append-fault-local-baseline.out reproduced both missing-checkpoint creation and
+existing-checkpoint inode replacement, explicit checkpoint acceptance after fault,
+and nil repeated Close. First test adapter timed out because it called Config
+while append held Agent state (append-fault-local-before.out); corrected test by
+capturing its immutable selected log path before installation. No production
+assertion was weakened. Post-fix build initially failed `no space left on device`
+(vet.cfg/mkdir); redirected append-fault-local-after.out was empty and is not a
+pass. Student removed no caches/artifacts. Coordinator cleared only build cache,
+released exclusive build stage with1.4GiB; current retry is running.
+
+Reloaded complete mandatory skill again and read only authorized inbox additions.
+Full permitted architecture and3a9e5b7 chapter/direct response were already reread
+and verified during this same repair; no completed source work was redone. Frozen
+fault-check command f572cd3 received: run only after repaired source commit,
+first TestCh10ReviewAppendFailure, then all four groups. Other graders deferred.
+No live/provider/discovery/credentials released. Bounded plan review feedback is
+received for a prose refinement after this scoped repair validation.
+
+
+Append repair local validation complete: targeted race regression passed (append-fault-local-retry.out). append-repair-module-checks.jsonl retains all25 successful commands: empty-output gofmt on five changed Go files; vet/tests in main, GUI and all nine nested examples; full race suites in main and GUI. No further source change followed those checks. New tests distinguish absent checkpoint creation and existing checkpoint inode replacement, retain original append error on repeated Close, and prove corrupt-log refusal plus released path/SessionID ownership. Ordinary invalid input still permits a later valid append/checkpoint/clean close.
+
+The scoped source checkpoint is next, followed by the coordinator's frozen targeted and four-group fault commands. This commit-before-check order follows that command's required immutable source identity. Old retained CLI/GUI binaries still belong to122b04a; they have not been relabeled or rebuilt for this source. Live-matrix.md now contains exact proposed prompts, process/store schedule, deadlines/attempt accounting, concrete GUI policy/preference actions, public offline branches, truthful local limit seed and pending support-freeze controls responding to c9ba32c. No live support build or live request is claimed. Other independent graders remain deferred until this build stage is released.

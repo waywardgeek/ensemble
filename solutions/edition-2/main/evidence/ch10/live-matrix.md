@@ -48,3 +48,149 @@ it writes. Record unexpected failures and missing observables, never substitute 
 fake response for a missing live result. Freeze the initial student experience
 before independent historical comparison. No runtime acceptance, live acceptance,
 author prose acceptance or immutable chapter release is claimed by this plan.
+
+## Executable schedule refinement after coordinator review c9ba32c
+
+Still a proposal: no discovery, credentials or real requests are released. Use one
+scratch root R per provider P. Record the exact absolute R, executable paths,
+workspace, arguments and sanitized configuration in the launch manifest. Its
+layout is R/A (plain session shared sequentially by A/B/C), R/C-fresh (different
+SessionID), R/C-import (initially absent), R/D (skill session), R/catalog-original,
+R/catalog-relocated, R/checkpoints and R/offline-branches. Never mount two copies
+of one SessionID in a single Ensemble. Close each owner before the next process.
+Markers are literal CH10-A-P, CH10-C-P and CH10-D-P after substituting the recorded
+provider label only. Scratch content is ASCII, each file at most1KiB; prompt plus
+fixture manual material at most8KiB per row. Bind actual files, not just this layout.
+
+Use max output4096 tokens (the actual CLI/GUI setting and the public consumer's
+explicit setting), one120-second deadline per generation attempt and a10-minute
+row deadline. Set per-turn policy limits as specified below, count each outgoing
+attempt BEFORE transport, and keep a root-wide22-attempt budget per provider plus
+row ceilings6/4/6/6. Failed, canceled or timed-out attempts spend their slot. No
+transport retry, model retry, alternative endpoint probe or automatic prompt
+resubmission. Stop a row on refusal, missing required observation, limit or deadline;
+unused slots are not an invitation to repeat it. The recorder/proxy must be locally
+proven before live use. Native engine request timeout may expire earlier. CLI/GUI
+wire output bounds remain4096; a proxy must not silently rewrite the request body.
+
+Discovery: a single request per provider, including any pagination (therefore do
+not follow another page). Select only a returned permitted model. Gemini target is
+Gemini3.8Flash as Bill requires; record unavailability, do not substitute an older
+model or spend a probe. No remembered exact provider identifier is treated as
+verified. Credential carriage will be memory/environment only after release.
+
+A: launch actual PTY process1 with `CLI --session-dir R/A chat`, policy max requests3.
+Prompt exactly: "Remember CH10-A-P. Use write_file once to create marker.txt with
+exactly CH10-A-P followed by one newline. Then tell me why you made that edit."
+Observe response and actual file, then type /session, /checkpoint, /history, /quit,
+observing each command before the next. Preserve checkpoint export A1.json at its
+acknowledged boundary plus original store files after close. Launch PTY process2
+with the same selection and type: "What exact marker did you save in marker.txt,
+and why did you write it? Answer from this conversation; do not call any tool or
+change a file." Observe, /session, /quit. Require file unchanged and no new tool
+call on recall. At most3 attempts per process,6 total. No expected output is inserted
+into the transcript. A missing edit/recall is a failed observation, not replaced
+with a local fixture.
+
+B: after A exits, launch `GUI --session-dir R/A --terminal --port 0 --policy
+R/current-policy.json --preferences R/preferences.json` in a PTY. Browser navigates
+to the actual printed loopback origin. Record exact keyboard/pointer actions,
+launch-bound WebSocket frame IDs/revisions, screenshot and accessible DOM text.
+Click Checkpoint and require applied session_changed before saved ack. Disconnect
+and reconnect that Page's socket; close a second Page separately; enter EOF in the
+attached terminal separately. After each, verify server/session still usable.
+Using actual Settings controls, change current max_model_requests from the recorded
+A value3 to1; change the actual Font size input from its initial16 to18
+(`font_size`, supported range12–28), record the applied revision and acknowledgment.
+Prompt: "Use write_file once to create policy-proof.txt containing CH10-B-P and a
+newline, then explain the result." A real returned call plus paired effect/result
+and round-limit completion with no continuation is required to demonstrate the
+current cap; a plain answer alone is explicitly missing evidence. Preserve old
+turn.policy revision/value3 and new turn.policy revision/value1. Stop the server
+via SIGTERM and restart it, reopen Settings and verify both the current policy and
+changed preference independently persisted. Server restart is distinct from socket
+reconnect, Page close and terminal detach. Historical cards must show no live owner.
+No native hearing/speech claim. At most4 attempts overall, with cap1 on this turn;
+unused slots stay unused. The driver must check the actual initial preference16
+and record a failed precondition if the prepared launch differs.
+
+C: compiled headless public consumer opens R/A and R/C-fresh in one Ensemble with
+current per-turn cap2. Agent1 prompt: "Remember CH10-C-P in this conversation and
+repeat it once. Do not call tools." Agent2 prompt: "Reply ONLY FRESH-P. Do not call
+tools." Collect each completion independently; retain partial success if its peer
+fails. Before these calls, export R/A to checkpoints/C-old.json. After both finish,
+export checkpoints/C-new.json and retain the complete events.log containing the
+newer tail. Close both. For differential controls, use three inert offline branches:
+(1) full log with C-new; (2) same full log with C-old; (3) same full log with C-old's
+state/hash explicitly nulled. Endpoints/credentials are disabled; public inspection
+and Render use identical copied current inputs, and ReconstructRequest uses the
+same genuine recorded send. Compare byte-identical request bodies, per-model usage,
+Skills and normalized watch facts. No paid duplicate request is needed for equality.
+
+Import C-new through ImportSession into the initially empty R/C-import after the
+old owner is closed. Save SHA256 of exact origin.json. Check actual Events/Dump
+contain anchor/tail only and a genuine pre-origin request sequence refuses with
+history_unavailable. Make one actual prompt: "What marker beginning CH10-C is in
+this conversation? Answer without tools." Save, close, reopen, compare unchanged
+origin bytes/hash, once-restored usage and retained coordinates/window. Mount this
+identity only once per root at every step. This row permits at most2+2+2 attempts,
+6 total. Checkpoint export bytes and null-state modifications are local branch
+artifacts, kept separately from untouched original records.
+
+D: use a frozen primary plus narrow scratch capability, with bindings object
+`{"MARKER":"CH10-D-P"}` and exact catalog/handler hashes in the manifest. Primary
+has tool_limits available and offers scratch; scratch grants only write_file plus
+required Chapter9 management tools. Public LoadSkill/UnloadSkill/LoadSkill records
+retired and new activation identities; record actual returned IDs/revisions rather
+than assuming contiguous numeric literals in the evidence. Prompt in the actual
+PTY: "Use write_file once to create skill-proof.txt containing CH10-D-P and one
+newline. Explain what capability allowed it." Cap3, observe file and response.
+
+To leave pending limits without trusting model compliance, use the permitted public
+local-HTTP fixture pattern already tested by TestSessionOneShotSettingSurvivesAndConsumesUnknownCall:
+while idle, retain current Config, replace only BaseURL/APIKey with a loopback fixture
+and dummy key via SetConfig, keep the selected wire API/model, and Ask exactly
+"LOCAL FIXTURE: seed one-shot tool_limits; this is not a provider demonstration."
+The local fixture emits one accepted tool_limits call with
+`{"ai_callback_pattern":"","max_output_bytes":17}`, then a final text response,
+using unique fixture call IDs. Actor/Tools/Jobs perform the actual set transition;
+the harness does not append a limits fact or edit state. Record both fixture HTTP
+requests, nominal selected vendor/model provenance, and explicitly mark their
+source as loopback fixture, never actual provider output. Restore the prior Config
+before saving. These two bounded local responses spend zero paid slots and are
+excluded from claimed real-model usage/response evidence (their known fixture
+usage is separately identified in the cumulative session ledger).
+
+Copy only the small unchanged catalog to catalog-relocated, then close/reopen R/D
+through public session opening with the relocated catalog. Inspect exact retained
+manual bytes, retired/new identities, pending17-byte setting and empty-pattern
+presence. Actual resumed prompt: "Use write_file once to create after-resume.txt
+containing CH10-D-P and one newline, then confirm completion." Require a real next
+attempted call, one consumed fact with exact copied overrides before called/result,
+and the observed effect or refusal. If it produces no call, record missing evidence
+and stop; do not manufacture a live consumption claim. Cap3 on each real turn,6
+paid attempts total. If no opaque signature appears in actual output, keep opaque
+restrictions covered deterministically and explicitly report no live instance.
+
+## Support freeze prerequisite (pending; no claim it already exists)
+
+Before credentials, produce a reviewed immutable manifest covering all core/GUI/
+consumer Go source, every nested go.mod/go.sum and dependency selections, GUI assets,
+CLI/GUI/compiled-public-consumer SHA256 and exact build association, format/API docs,
+catalog/bindings, driver, enforcing proxy, recorder, verifier and sanitized launches.
+The public consumer/driver must implement this schedule and budget as reviewed;
+these prose edits do not claim a compiled consumer or an enforced live counter.
+Original PTY/socket/provider bytes and timestamps remain separate from reconstructed
+requests and comparisons. The proxy must omit authorization/credential data from
+receipts and decline attempt N+1 before forwarding it; test cancellation/timeout
+accounting and no automatic retries with a local server.
+
+From one complete valid local parent manifest/run, independently change source,
+CLI binary, GUI binary, consumer binary, support script, dependency/module mapping,
+catalog/binding, and sanitized launch identity. Each intended mismatch must refuse
+before any derived write; retain target-directory before/after hashes and controls
+for missing/incomplete map. A bad path rejected before the intended hash check is
+not that negative control. Only then freeze support for coordinator review. Support
+build/testing follows the serialized disk schedule; no competing broad build is
+started while independent graders hold it. This remains a separate prerequisite
+and does not expand the66/3 ceiling or authorize live access.

@@ -370,6 +370,8 @@ type Agent struct {
 	engine              *llm.Engine
 	log                 common.EventLog
 	faulted             bool
+	appendFailure       error
+	closeErr            error
 }
 
 func (a *Agent) ModelReady(op common.ModelOperation) { a.actor.ModelReady(op) }
@@ -552,7 +554,7 @@ func (a *Agent) finishClose() error {
 	a.mu.Lock()
 	if a.closed {
 		a.mu.Unlock()
-		return nil
+		return a.closeErr
 	}
 	a.closed = true
 	a.mu.Unlock()
@@ -562,6 +564,7 @@ func (a *Agent) finishClose() error {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	a.faulted = true
+	err = a.appendFailure
 	if a.log != nil {
 		if closeErr := a.log.Close(); err == nil {
 			err = closeErr
@@ -580,6 +583,7 @@ func (a *Agent) finishClose() error {
 		a.parent.ReleaseSession("path:" + a.reservedPath)
 		a.reservedPath = ""
 	}
+	a.closeErr = err
 	return err
 }
 func Text(text string) Part { return llm.Text(text) }
@@ -602,14 +606,19 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int,
 	defer a.appendMu.Unlock()
 	a.mu.Lock()
 	if persist && (a.faulted || a.log == nil) {
+		err := a.appendFailure
 		a.mu.Unlock()
+		if err != nil {
+			return err
+		}
 		return fmt.Errorf("Agent log is read-only or faulted")
 	}
 	if persist {
 		if a.context.LastSeq == ^uint64(0) {
 			a.faulted = true
+			a.appendFailure = sessionError("session_limit", "event identities exhausted")
 			a.mu.Unlock()
-			return sessionError("session_limit", "event identities exhausted")
+			return a.appendFailure
 		}
 		event.Seq = a.context.LastSeq + 1
 		event.Time = time.Now().UTC().Format(time.RFC3339Nano)
@@ -668,11 +677,6 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int,
 		encoded, err = a.log.Prepare(owned)
 		if err == nil {
 			owned = encoded.Event()
-		} else {
-			var problem *common.SessionError
-			if errors.As(err, &problem) && problem.Code == "session_limit" {
-				a.faulted = true
-			}
 		}
 	}
 	var applied Event
@@ -687,12 +691,14 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int,
 		}
 		if err != nil {
 			a.faulted = true
+			a.appendFailure = err
 		}
 	}
 	if err != nil {
 		var storage *common.SessionError
 		if persist && errors.As(err, &storage) && storage.Code == "session_limit" {
 			a.faulted = true
+			a.appendFailure = err
 		}
 		a.mu.Unlock()
 		return err
@@ -784,7 +790,16 @@ func (a *Agent) Prompt(ctx context.Context, question string) (ClientResult, erro
 // The private adapter exposes actor-only persistence and lifecycle operations.
 type turnAgent struct{ *Agent }
 
-func (a turnAgent) TurnSnapshot() common.Context        { return a.Snapshot() }
+func (a turnAgent) TurnSnapshot() common.Context { return a.Snapshot() }
+
+// AppendFailure is owned by Agent and set only at a terminal storage boundary.
+// Ordinary candidate validation returns an error without changing this fact.
+func (a turnAgent) AppendFailure() error {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	return a.appendFailure
+}
+
 func (a turnAgent) RecordTurn(event common.Event) error { return a.append(event, true, true) }
 func (a turnAgent) RecordResponse(parsed common.ParsedResponse) error {
 	return a.appendPrepared(Event{Type: "response_ended", Response: &parsed.Response}, true, true, parsed.MissingCallIDs, nil)

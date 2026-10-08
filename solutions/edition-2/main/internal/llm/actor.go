@@ -260,6 +260,11 @@ func (a *Actor) receive(m common.ActorMessage) bool {
 			err = fmt.Errorf("Agent busy")
 		} else {
 			err = a.parent.RecordTurn(m.Event)
+			if err != nil {
+				if terminal := a.parent.AppendFailure(); terminal != nil {
+					a.persistence(terminal)
+				}
+			}
 		}
 	case "job":
 		err = a.recordJob(m.Event)
@@ -346,6 +351,9 @@ func (a *Actor) receive(m common.ActorMessage) bool {
 			a.interrupt("stopped")
 		}
 	case "closed":
+		if a.fault == nil {
+			a.fault = a.parent.AppendFailure()
+		}
 		if a.parent.SessionState() != nil && a.fault == nil && !a.finalCheckpoint {
 			a.finalCheckpoint = true
 			a.startCheckpoint(common.ActorMessage{Kind: "final_checkpoint", Save: true, Error: m.Error})
