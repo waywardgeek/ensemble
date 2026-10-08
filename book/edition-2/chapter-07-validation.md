@@ -52,5 +52,7 @@ The original author is preparing Chapter 8 while the fresh student prepares its
 Chapter 7 plan. Resuming `/root/grader_ch05` for full Chapter 7 engineering hit
 the active thread limit. Its initial checker/coverage plan remain available;
 resume that independent role when the author's next checkpoint frees a slot.
-Root checks the new student plan in the meantime. No Chapter 7 implementation
-acceptance is implied by its initial partial checker.
+Root accepted the new student plan before implementation. After the author
+checkpointed Chapter 8 at `cfb0d87`, the independent grader resumed Chapter 7
+engineering. No Chapter 7 implementation acceptance is implied by its initial
+partial checker.
