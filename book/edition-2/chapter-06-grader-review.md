@@ -70,6 +70,42 @@ does not claim a newly rerun historical regression suite.
 
 ## Next handoff
 
+### Coordinator wire-check milestone
+
+The coordinator added `accept_ch06_wire.py` and its receipt-assertion controls
+while the author occupied the available worker slot. This is independent of
+the Chapter 6 student implementation. The coordinator had inspected preceding
+second-edition public data declarations and the new ownership plan, but did not
+read the historical Chapter 7 answer to derive these checks.
+
+```sh
+python3 scripts/edition2/accept_ch06_wire.py /absolute/path/to/ensemble
+python3 -m unittest discover -s scripts/edition2 -p 'test_accept_ch06_*.py' -v
+```
+
+All 61 wire cases passed against the CLI built from initial student source
+`aa5f86a4782c7479ea61b0e6abcbd4163968b574`. The coordinator verified all 68
+historical Go/module file identities. The receipt
+`checkpoint-evidence/ch06-wire-initial.json` binds source, binary and both
+checker files. The earlier 57-case development result remains separately
+recorded; it predates the additional cumulative-usage and model-conflict cases.
+
+These checks exercise paired full plain/stream typed responses and accounting,
+known expected parts, CRLF/CR/BOM/comments/multiline framing, exact data/comment
+frame sizes and overflow, repeated frame-counter reset, one-byte server writes,
+required usage and terminals, invalid UTF-8, non-SSE success, cumulative snapshot
+replacement and conflicting returned identities. A complete-looking proposed
+write without the required API terminal must leave no file, accepted response,
+final observation or `tool_called` event. Its filesystem witness is independent
+of the model's or CLI's description.
+
+One-byte server writes do not prove every possible client read split. Receipt
+assertion controls prove their intended refusal with valid positives; they are
+not substitutes for deleting the corresponding student behavior. Full public,
+concurrency, capacity, replay, ownership and implementation-mutation coverage
+remain pending. Neither this command nor the initial client checker awards a
+chapter score. Historical graders and shared infrastructure remain unchanged.
+
 Resume this independent role after the author has capacity. Reload the entire
 `book/edition-2/skills/ensemble-coding/SKILL.md` before edits, and the current
 chapter before extending fixtures. Implement public consumer checks through
