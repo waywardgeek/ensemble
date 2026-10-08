@@ -1,0 +1,422 @@
+// Contract-derived public Chapter 7 probes. API names adapt the student's public seam.
+package ensemble_test
+
+import (
+	"context"
+	"encoding/json"
+	ens "example.com/ensemble"
+	"io"
+	"os"
+	"path/filepath"
+	"reflect"
+	"strings"
+	"testing"
+	"time"
+)
+
+func c7Watch(t *testing.T, a *ens.Agent) (ens.WatchSnapshot, ens.Watch) {
+	t.Helper()
+	s, w, err := a.Watch()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = w.Close() })
+	return s, w
+}
+func c7Next(t *testing.T, w ens.Watch) ens.WatchRecord {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	r, err := w.Next(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return r
+}
+func c7Until(t *testing.T, w ens.Watch, watermark uint64, p func(ens.Observation) bool) []ens.WatchRecord {
+	t.Helper()
+	var out []ens.WatchRecord
+	for i := 0; i < 256; i++ {
+		r := c7Next(t, w)
+		if r.Revision <= watermark {
+			t.Fatalf("watch tail revision %d did not follow %d", r.Revision, watermark)
+		}
+		watermark = r.Revision
+		out = append(out, r)
+		if p(r.Observation) {
+			return out
+		}
+	}
+	t.Fatal("watch did not reach expected barrier")
+	return nil
+}
+func c7Pause(t *testing.T, a *ens.Agent) ens.PauseRegistration {
+	t.Helper()
+	p, err := a.RegisterPause()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = p.Close() })
+	return p
+}
+func c7Update(t *testing.T, p ens.PauseRegistration, typing, speaking bool, nt, ns int) ens.PauseState {
+	t.Helper()
+	s, err := p.Update(typing, speaking)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s.Paused != (nt+ns > 0) || s.TypingClients != nt || s.SpeakingClients != ns {
+		t.Fatalf("independent pause causes: %+v", s)
+	}
+	return s
+}
+func c7PauseRecord(t *testing.T, w ens.Watch, s ens.PauseState) {
+	t.Helper()
+	r := c7Next(t, w)
+	o := r.Observation
+	if r.Revision != s.Revision || o.Kind != "pause_changed" || o.Paused != s.Paused || o.TypingClients != s.TypingClients || o.SpeakingClients != s.SpeakingClients {
+		t.Fatalf("pause acknowledgement and published state disagree: %+v / %+v", s, r)
+	}
+}
+func TestC7PublicPauseOwnership(t *testing.T) {
+	e := ens.New(io.Discard)
+	defer e.Close()
+	f := c6New(t, e, "openai", false)
+	other := c6New(t, e, "openai", false)
+	first, w := c7Watch(t, f.a)
+	a, b := c7Pause(t, f.a), c7Pause(t, f.a)
+	one := c7Update(t, a, true, false, 1, 0)
+	c7PauseRecord(t, w, one)
+	two := c7Update(t, b, false, true, 1, 1)
+	c7PauseRecord(t, w, two)
+	three := c7Update(t, b, true, true, 2, 1)
+	c7PauseRecord(t, w, three)
+	if !(first.Watermark < one.Revision && one.Revision < two.Revision && two.Revision < three.Revision) {
+		t.Fatal("pause revisions not increasing")
+	}
+	same := c7Update(t, b, true, true, 2, 1)
+	if same.Revision != three.Revision {
+		t.Fatal("identical update created a revision")
+	}
+	s, ow := c7Watch(t, other.a)
+	_ = ow.Close()
+	if s.State.Paused || s.State.TypingClients != 0 {
+		t.Fatal("one Agent's registration paused another")
+	}
+	if err := a.Close(); err != nil {
+		t.Fatal(err)
+	}
+	r := c7Next(t, w)
+	if r.Observation.Kind != "pause_changed" || !r.Observation.Paused || r.Observation.TypingClients != 1 || r.Observation.SpeakingClients != 1 {
+		t.Fatalf("registration close erased another cause: %+v", r)
+	}
+	if err := a.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.Update(false, false); err == nil {
+		t.Fatal("closed registration accepted update")
+	}
+	clear := c7Update(t, b, false, false, 0, 0)
+	c7PauseRecord(t, w, clear)
+	cut, cw := c7Watch(t, f.a)
+	_ = cw.Close()
+	if cut.Watermark != clear.Revision || cut.State.Paused {
+		t.Fatal("watch cut missed applied pause")
+	}
+	if len(f.a.Events()) != 0 {
+		t.Fatal("transient pause polluted durable conversation")
+	}
+	select {
+	case <-f.requests:
+		t.Fatal("pause/watch contacted model")
+	default:
+	}
+}
+
+func TestC7PublicAtomicPartialWatch(t *testing.T) {
+	for _, vendor := range []string{"anthropic", "openai", "gemini"} {
+		t.Run(vendor, func(t *testing.T) {
+			e := ens.New(io.Discard)
+			defer e.Close()
+			f := c6New(t, e, vendor, false)
+			tape := c6Record(t, f)
+			h := c6Submit(t, f.a)
+			call := c6Receive(t, f.requests)
+			tape.wait(t, func(xs []ens.Observation) bool {
+				for _, o := range xs {
+					if o.Kind == "model_begin" {
+						return true
+					}
+				}
+				return false
+			})
+			early, ew := c7Watch(t, f.a)
+			_ = ew.Close()
+			if early.State.ActiveOperation == nil || early.State.ActiveOperation.AgentID != f.a.ID() || early.State.ActiveOperation.RequestID != h.ID() || early.State.ActiveOperation.Delivery != "stream" || len(early.Partials) != 0 {
+				t.Fatalf("joining after begin lost empty active operation: %s", c6JSON(early))
+			}
+			first, _ := c6TextStream(vendor, "Hel")
+			call.pieces <- first
+			tape.wait(t, func(xs []ens.Observation) bool {
+				for _, o := range xs {
+					if o.Kind == "part_delta" && o.Channel == "text" && o.Text == "Hel" {
+						return true
+					}
+				}
+				return false
+			})
+			cut, w := c7Watch(t, f.a)
+			if len(cut.Partials) != 1 || cut.Partials[0].Channels["text"] != "Hel" || cut.Partials[0].AgentID != f.a.ID() || cut.Partials[0].RequestID != h.ID() || cut.Partials[0].OperationID != early.State.ActiveOperation.OperationID {
+				t.Fatalf("snapshot missed published partial: %s", c6JSON(cut))
+			}
+			cut.Partials[0].Channels["text"] = "CORRUPTED"
+			cut.State.ActiveOperation.OperationID = "CORRUPTED"
+			if len(cut.Events) > 0 {
+				cut.Events[0].Type = "CORRUPTED"
+			}
+			check, cw := c7Watch(t, f.a)
+			_ = cw.Close()
+			if check.Partials[0].Channels["text"] != "Hel" || check.State.ActiveOperation.OperationID == "CORRUPTED" || check.Events[0].Type == "CORRUPTED" {
+				t.Fatal("returned snapshot aliases owner values")
+			}
+			var rest []byte
+			switch vendor {
+			case "anthropic":
+				rest = c6Frame(map[string]any{"type": "content_block_delta", "index": 0, "delta": map[string]string{"type": "text_delta", "text": "lo."}})
+			case "openai":
+				rest = c6Frame(map[string]any{"model": c6Model, "choices": []any{map[string]any{"index": 0, "delta": map[string]string{"content": "lo."}}}})
+			default:
+				rest = c6Frame(map[string]any{"modelVersion": c6Model, "candidates": []any{map[string]any{"index": 0, "content": map[string]any{"parts": []any{map[string]string{"text": "lo."}}}}}})
+			}
+			_, tail := c6TextStream(vendor, "")
+			call.pieces <- append(rest, tail...)
+			close(call.pieces)
+			done := c6Wait(t, h)
+			if done.Outcome != "success" || done.Text != "Hello." {
+				t.Fatalf("fixture completion: %+v", done)
+			}
+			rows := c7Until(t, w, cut.Watermark, func(o ens.Observation) bool { return o.Kind == "model_end" })
+			delta, finals, responses := "", 0, 0
+			for _, r := range rows {
+				o := r.Observation
+				if o.Kind == "model_begin" {
+					t.Fatal("watch manufactured another begin")
+				}
+				if o.Kind == "part_delta" {
+					delta += o.Text
+				}
+				if o.Kind == "part_final" {
+					finals++
+					if o.Part == nil || o.Part.Text == nil || *o.Part.Text != "Hello." || o.ResponseSeq == 0 {
+						t.Fatal("final identity/content missing")
+					}
+				}
+				if o.Event.Type == "response_ended" {
+					responses++
+				}
+			}
+			if delta != "lo." || finals != 1 || responses != 1 {
+				t.Fatalf("partial/final cut duplicated or lost content: delta=%q finals=%d responses=%d", delta, finals, responses)
+			}
+			final, fw := c7Watch(t, f.a)
+			_ = fw.Close()
+			if final.State.ActiveOperation != nil || len(final.Partials) != 0 {
+				t.Fatal("completed operation retained recoverable partial")
+			}
+			count := 0
+			for _, v := range final.Events {
+				if v.Type == "response_ended" {
+					count++
+				}
+			}
+			if count != 1 {
+				t.Fatal("completed snapshot lost/duplicated response")
+			}
+		})
+	}
+}
+
+func TestC7PublicWindowAndCopies(t *testing.T) {
+	e := ens.New(io.Discard)
+	defer e.Close()
+	f := c6New(t, e, "openai", false)
+	for i := 0; i < 28; i++ {
+		h := c6Submit(t, f.a)
+		call := c6Receive(t, f.requests)
+		call.pieces <- c6Text("openai", "WINDOW", false)
+		close(call.pieces)
+		if c6Wait(t, h).Outcome != "success" {
+			t.Fatal("window fixture failed")
+		}
+	}
+	renderable := map[string]bool{"message_received": true, "hint_received": true, "response_ended": true, "tool_called": true, "tool_returned": true, "job_ended": true, "turn_started": true, "turn_ended": true, "error_occurred": true}
+	var selected []ens.Event
+	all := f.a.Events()
+	for _, v := range all {
+		if renderable[v.Type] {
+			selected = append(selected, v)
+		}
+	}
+	if len(selected) <= 100 {
+		t.Fatal("window fixture did not cross boundary")
+	}
+	s, w := c7Watch(t, f.a)
+	_ = w.Close()
+	want := selected[len(selected)-100:]
+	if len(s.Events) != 100 || s.Omitted != len(selected)-100 || s.FirstSeq == nil || *s.FirstSeq != want[0].Seq || s.LastSeq == nil || *s.LastSeq != want[99].Seq || s.LogSeq != all[len(all)-1].Seq || !reflect.DeepEqual(s.Events, want) {
+		t.Fatal("snapshot is not exact last 100 renderable events")
+	}
+	var totals ens.Usage
+	for _, u := range s.State.Usage {
+		totals.Input += u.Usage.Input
+		totals.Output += u.Usage.Output
+	}
+	if totals.Input != 280 || totals.Output != 56 {
+		t.Fatalf("window truncated lifetime usage: %+v", totals)
+	}
+	for i := range s.Events {
+		if s.Events[i].Response != nil {
+			s.Events[i].Response.Parts[0].Text = new(string)
+			*s.Events[i].Response.Parts[0].Text = "CORRUPTED"
+			break
+		}
+	}
+	again, aw := c7Watch(t, f.a)
+	_ = aw.Close()
+	if !reflect.DeepEqual(again.Events, want) {
+		t.Fatal("nested returned event aliases owner history")
+	}
+	b, _ := json.Marshal(again)
+	for _, secret := range []string{"api_key", "base_url", "Authorization"} {
+		if strings.Contains(string(b), secret) {
+			t.Fatalf("snapshot leaked configuration %s", secret)
+		}
+	}
+	select {
+	case <-f.requests:
+		t.Fatal("snapshot triggered HTTP")
+	default:
+	}
+}
+
+func TestC7PublicWatchOverflowAndClose(t *testing.T) {
+	e := ens.New(io.Discard)
+	defer e.Close()
+	f := c6New(t, e, "openai", false)
+	_, slow := c7Watch(t, f.a)
+	_, fast := c7Watch(t, f.a)
+	p := c7Pause(t, f.a)
+	for i := 0; i < 256; i++ {
+		on := i%2 == 0
+		s := c7Update(t, p, on, false, btoi(on), 0)
+		c7PauseRecord(t, fast, s)
+	}
+	select {
+	case <-slow.Done():
+		t.Fatal("256 valid observations overflowed exact count limit")
+	default:
+	}
+	s := c7Update(t, p, true, false, 1, 0)
+	c7PauseRecord(t, fast, s)
+	select {
+	case <-slow.Done():
+	case <-time.After(time.Second):
+		t.Fatal("257th observation did not close saturated watch")
+	}
+	if slow.Status() != "overflow" {
+		t.Fatalf("watch overflow reason=%q", slow.Status())
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if _, err := slow.Next(ctx); err == nil {
+		t.Fatal("invalidated generation returned stale queued observation")
+	}
+	c7PauseRecord(t, fast, c7Update(t, p, false, false, 0, 0))
+	fresh, fw := c7Watch(t, f.a)
+	if fresh.State.Paused {
+		t.Fatal("fresh snapshot lost recovered pause state")
+	}
+	_ = fw.Close()
+	if _, err := fw.Next(ctx); err == nil {
+		t.Fatal("closed watch remained readable")
+	}
+	h := c6Submit(t, f.a)
+	call := c6Receive(t, f.requests)
+	call.pieces <- c6Text("openai", "AFTER-OVERFLOW", false)
+	close(call.pieces)
+	if c6Wait(t, h).Text != "AFTER-OVERFLOW" {
+		t.Fatal("overflow blocked reliable completion")
+	}
+	_ = fast.Close()
+}
+func btoi(v bool) int {
+	if v {
+		return 1
+	}
+	return 0
+}
+
+func TestC7PublicPauseAdmission(t *testing.T) {
+	for _, interrupt := range []bool{false, true} {
+		name := "release"
+		if interrupt {
+			name = "interrupt"
+		}
+		t.Run(name, func(t *testing.T) {
+			e := ens.New(io.Discard)
+			defer e.Close()
+			f := c6New(t, e, "gemini", false, "write_file")
+			p, q := c7Pause(t, f.a), c7Pause(t, f.a)
+			c7Update(t, p, true, false, 1, 0)
+			c7Update(t, q, false, true, 1, 1)
+			s, w := c7Watch(t, f.a)
+			h := c6Submit(t, f.a)
+			call := c6Receive(t, f.requests)
+			call.pieces <- c6GeminiCall("write_file", map[string]string{"path": "held.txt", "content": "ADMITTED"}, "held-call", true)
+			close(call.pieces)
+			c7Until(t, w, s.Watermark, func(o ens.Observation) bool { return o.Kind == "model_end" })
+			cut, cw := c7Watch(t, f.a)
+			_ = cw.Close()
+			for _, ev := range cut.Events {
+				if ev.Type == "tool_called" {
+					t.Fatal("paused call admitted before cause clear")
+				}
+			}
+			if _, err := os.Stat(filepath.Join(f.root, "held.txt")); !os.IsNotExist(err) {
+				t.Fatal("paused write had effect")
+			}
+			c7Update(t, q, false, false, 1, 0)
+			if interrupt {
+				ack, err := f.a.Interrupt()
+				if err != nil || !ack.Interrupted {
+					t.Fatalf("interrupt unavailable while paused: %+v %v", ack, err)
+				}
+				if c6Wait(t, h).Outcome != "interrupted" {
+					t.Fatal("paused request did not settle interrupted")
+				}
+				if _, err := os.Stat(filepath.Join(f.root, "held.txt")); !os.IsNotExist(err) {
+					t.Fatal("interrupted unadmitted tool had effect")
+				}
+				return
+			}
+			check, ww := c7Watch(t, f.a)
+			_ = ww.Close()
+			for _, ev := range check.Events {
+				if ev.Type == "tool_called" {
+					t.Fatal("clearing one client admitted while another held pause")
+				}
+			}
+			c7Update(t, p, false, false, 0, 0)
+			continuation := c6Receive(t, f.requests)
+			got, err := os.ReadFile(filepath.Join(f.root, "held.txt"))
+			if err != nil || string(got) != "ADMITTED" {
+				t.Fatalf("released tool did not run: %q %v", got, err)
+			}
+			continuation.pieces <- c6Text("gemini", "DONE", false)
+			close(continuation.pieces)
+			if c6Wait(t, h).Outcome != "success" {
+				t.Fatal("released turn did not complete")
+			}
+		})
+	}
+}

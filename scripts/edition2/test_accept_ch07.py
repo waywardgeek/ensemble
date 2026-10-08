@@ -40,8 +40,13 @@ class Controls(unittest.TestCase):
         rows=pause();rows[1]['typing_clients']=0
         with self.assertRaisesRegex(AssertionError,'independent pause causes lost'):check_pause_ack(rows,'c2',1,1)
 
-    def test_ack_before_observation_refusal(self):
-        with self.assertRaisesRegex(AssertionError,'ack preceded'):check_pause_ack(list(reversed(pause())),'c2',1,1)
+    def test_socket_interleaving_and_wrong_revision(self):
+        # Actor publication precedes its acknowledgement; asynchronous transport
+        # delivery is not required to preserve that ordering across its producers.
+        check_pause_ack(list(reversed(pause())), 'c2', 1, 1)
+        rows = pause(); rows[0]['revision'] = 41
+        with self.assertRaisesRegex(AssertionError, 'applied pause observation/revision missing'):
+            check_pause_ack(rows, 'c2', 1, 1)
 
 
 if __name__=='__main__':unittest.main()

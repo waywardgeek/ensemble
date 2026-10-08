@@ -67,3 +67,50 @@ published seams. Required real all-provider browser/CLI/public demonstrations
 and independent historical comparison follow the initial source and student
 experience freeze. Historical graders and earlier independent checks are
 unchanged.
+
+## Public API integration milestone
+
+The initial five public groups now run with:
+
+```sh
+python3 scripts/edition2/accept_ch07_public.py solutions/edition-2/main
+```
+
+The fixture derives from the published watch/pause contract and adapts only the
+student's public `Watch`, `WatchSnapshot`, `PauseRegistration` and `PauseState`
+spellings. It reuses this reviewer's Chapter 6 local HTTP fixture helpers. No
+historical GUI implementation was read. A disposable copy of the current student
+worktree passes all five groups under the race detector, with exact source and
+checker hashes in [the initial receipt](checkpoint-evidence/ch07-public-initial-pass.json).
+This is integration evidence for unfinished source, not an immutable Chapter 7
+acceptance checkpoint. The initial fixture compile failure used `Accepted`
+instead of the established `ControlAck.Interrupted`; its [failed receipt](checkpoint-evidence/ch07-public-adapter-failure.json)
+is a checker adapter mistake, not a student defect.
+
+The groups establish independent registration causes, no-change revisions,
+idempotent close and refusal afterward, two-Agent isolation; joining after begin
+before any fragment and after `Hel` on all three adapters, then receiving `lo.`
+and one accepted final; shallow and nested returned-snapshot ownership; exactly
+100 retained renderable events with omission/range metadata and lifetime usage;
+256 queued watch observations accepted with overflow at the next item, a healthy
+peer and reliable completion continuing; and a complete model-proposed write
+held by two independent registrations, released only after the last cause or
+interrupted without its file effect. All network requests are local fixtures.
+
+Coordinator review clarified the initial wire checker: actor publication must
+precede the pause API return, but asynchronous socket delivery need only carry
+the eventual matching observation revision/counts. The checker no longer
+requires an unpublished observation-before-ack socket order. Its positive
+control accepts either transport interleaving; the targeted negative changes
+the observation revision and still fails. This corrects a private assumption,
+not a weakening of the actor's published ordering requirement. Direct actor
+publication-order inspection/control remains part of the unfinished audit.
+
+The remaining plan above still applies, including encoded-byte capacity,
+registration retention after idle close, invalidation of an unrecoverable
+projection, deterministic selected-recipient teardown, socket saturation,
+recursive typed projection, browser cards/accessibility, speech, immutable
+mutation controls and retained Chapter 6 behavior. The new public CLI module
+`example.com/ensemble/cli` is a permitted client of the public root, not an
+implementation spoke. Existing CLI recovery assertions must follow that moved
+public client rather than enforce their former `cmd` package location.

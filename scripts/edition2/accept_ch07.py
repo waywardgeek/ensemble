@@ -89,7 +89,7 @@ def check_pause_ack(records, command_id, typing, speaking):
     assert ack is not None, 'pause acknowledgement missing'
     assert (ack['paused'], ack['typing_clients'], ack['speaking_clients']) == (bool(typing or speaking), typing, speaking), 'independent pause causes lost'
     observed = next((x for x in records if x.get('type') == 'observation' and x.get('revision') == ack['revision']), None)
-    assert observed is not None and records.index(observed) < records.index(ack), 'pause ack preceded its applied observation'
+    assert observed is not None, 'applied pause observation/revision missing'
     payload = observed['observation']
     assert payload['kind'] == 'pause_changed'
     assert (payload['paused'],payload['typing_clients'],payload['speaking_clients']) == (bool(typing or speaking),typing,speaking)
@@ -99,7 +99,10 @@ def check_pause_ack(records, command_id, typing, speaking):
 def pause(client, command_id, typing, speaking, expected_typing, expected_speaking):
     start = len(client.records)
     client.send(dict(type='pause', id=command_id, typing=typing, speaking=speaking))
-    client.until(lambda x:x.get('type') == 'ack' and x.get('id') == command_id)
+    ack = client.until(lambda x:x.get('type') == 'ack' and x.get('id') == command_id)
+    if not any(x.get('type') == 'observation' and x.get('revision') == ack['revision']
+               for x in client.records[start:]):
+        client.until(lambda x:x.get('type') == 'observation' and x.get('revision') == ack['revision'])
     return check_pause_ack(client.records[start:], command_id, expected_typing, expected_speaking)
 
 
