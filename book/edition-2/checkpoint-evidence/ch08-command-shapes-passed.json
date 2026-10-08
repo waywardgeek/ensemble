@@ -1,0 +1,169 @@
+{
+  "scope": "Strict settings command shapes, no-mutation recovery and no model HTTP.",
+  "passed": true,
+  "checks": [
+    {
+      "id": "required-positive-settings-subscription",
+      "passed": true
+    },
+    {
+      "id": "preferences-base-null",
+      "passed": true
+    },
+    {
+      "id": "preferences-base-boolean",
+      "passed": true
+    },
+    {
+      "id": "preferences-base-string",
+      "passed": true
+    },
+    {
+      "id": "preferences-base-negative",
+      "passed": true
+    },
+    {
+      "id": "preferences-base-fraction",
+      "passed": true
+    },
+    {
+      "id": "preferences-base-array",
+      "passed": true
+    },
+    {
+      "id": "preferences-base-object",
+      "passed": true
+    },
+    {
+      "id": "preferences-missing-base",
+      "passed": true
+    },
+    {
+      "id": "preferences-missing-patch",
+      "passed": true
+    },
+    {
+      "id": "preferences-patch-null",
+      "passed": true
+    },
+    {
+      "id": "preferences-patch-boolean",
+      "passed": true
+    },
+    {
+      "id": "preferences-patch-number",
+      "passed": true
+    },
+    {
+      "id": "preferences-patch-string",
+      "passed": true
+    },
+    {
+      "id": "preferences-patch-array",
+      "passed": true
+    },
+    {
+      "id": "preferences-patch-empty",
+      "passed": true
+    },
+    {
+      "id": "preferences-extra-path",
+      "passed": true
+    },
+    {
+      "id": "preferences-duplicate-base",
+      "passed": true
+    },
+    {
+      "id": "preferences-duplicate-patch",
+      "passed": true
+    },
+    {
+      "id": "policy-base-null",
+      "passed": true
+    },
+    {
+      "id": "policy-base-boolean",
+      "passed": true
+    },
+    {
+      "id": "policy-base-string",
+      "passed": true
+    },
+    {
+      "id": "policy-base-negative",
+      "passed": true
+    },
+    {
+      "id": "policy-base-fraction",
+      "passed": true
+    },
+    {
+      "id": "policy-base-array",
+      "passed": true
+    },
+    {
+      "id": "policy-base-object",
+      "passed": true
+    },
+    {
+      "id": "policy-missing-base",
+      "passed": true
+    },
+    {
+      "id": "policy-missing-patch",
+      "passed": true
+    },
+    {
+      "id": "policy-patch-null",
+      "passed": true
+    },
+    {
+      "id": "policy-patch-boolean",
+      "passed": true
+    },
+    {
+      "id": "policy-patch-number",
+      "passed": true
+    },
+    {
+      "id": "policy-patch-string",
+      "passed": true
+    },
+    {
+      "id": "policy-patch-array",
+      "passed": true
+    },
+    {
+      "id": "policy-patch-empty",
+      "passed": true
+    },
+    {
+      "id": "policy-extra-path",
+      "passed": true
+    },
+    {
+      "id": "policy-duplicate-base",
+      "passed": true
+    },
+    {
+      "id": "policy-duplicate-patch",
+      "passed": true
+    },
+    {
+      "id": "original-revisions-and-valid-recovery",
+      "passed": true
+    },
+    {
+      "id": "no-model-http",
+      "passed": true,
+      "requests": []
+    }
+  ],
+  "binary_sha256": "fbe0f86cd6ff7c83c7e12ef40888286d6d67122012aae2abd104915937674920",
+  "checker_files": {
+    "accept_ch08_commands.py": "38d15ed3140a969db49376efaff9333920c34499d1698c79f0903c55b0dbd0c5",
+    "accept_ch08.py": "4892e6e8e64deb2e9a24f98ecd223d12cbfa2929822abe5be8aae3f69238ef11",
+    "accept_ch07.py": "27cf57f089c44363155f551966258df79d5c3dbc390c38a5e7f18aac950595ae"
+  }
+}

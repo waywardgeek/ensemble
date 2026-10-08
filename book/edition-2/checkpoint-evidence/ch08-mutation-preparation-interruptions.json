@@ -1,0 +1,11 @@
+{
+  "scope": "No mutation acceptance credit for these interrupted preparation runs",
+  "attempts": [
+    {
+      "result": "Adapter assertion before mutants: expected two close Wait paths, student had independently consolidated idempotent close into one Wait plus closeDone. Adapted instrumentation to actual owned writer join."
+    },
+    {
+      "result": "Disk exhausted while retaining multiple temporary mutant source trees. Temporary tree removed automatically. Changed runner to remove each completed mutant copy. Coordinated with coder that no compiler was active, then ran go clean -cache only;3.4GiB free afterward. Source/raw evidence unchanged."
+    }
+  ]
+}

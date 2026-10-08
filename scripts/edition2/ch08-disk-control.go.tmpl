@@ -1,0 +1,76 @@
+package PACKAGE
+
+// Reviewer-only instrumentation, inserted in a disposable copy. Every control
+// belongs to the actual service; no production test hook or global is required.
+import (
+	"errors"
+	"os"
+	"sync"
+)
+
+type Ch08DiskControl struct {
+	Stage   string
+	Fail    bool
+	Entered chan struct{}
+	Release chan struct{}
+	once    sync.Once
+}
+
+func (s *Service) Ch08Arm(stage string, fail bool) *Ch08DiskControl {
+	c := &Ch08DiskControl{Stage: stage, Fail: fail, Entered: make(chan struct{}), Release: make(chan struct{})}
+	s.mu.Lock()
+	s.ch08Control = c
+	s.mu.Unlock()
+	return c
+}
+func (s *Service) ch08Step(stage string) error {
+	s.mu.Lock()
+	c := s.ch08Control
+	s.mu.Unlock()
+	if c == nil || c.Stage != stage {
+		return nil
+	}
+	c.once.Do(func() { close(c.Entered) })
+	<-c.Release
+	if c.Fail {
+		return errors.New("independent pre-replace failure")
+	}
+	return nil
+}
+func ch08Create(s *Service, dir, pattern string) (*os.File, error) {
+	if err := s.ch08Step("create"); err != nil {
+		return nil, err
+	}
+	return os.CreateTemp(dir, pattern)
+}
+func ch08Write(s *Service, f *os.File, data []byte) (int, error) {
+	if err := s.ch08Step("write"); err != nil {
+		return 0, err
+	}
+	if err := s.ch08Step("short-write"); err != nil {
+		return f.Write(data[:len(data)-1])
+	}
+	return f.Write(data)
+}
+func ch08Sync(s *Service, f *os.File) error {
+	if err := s.ch08Step("sync"); err != nil {
+		return err
+	}
+	return f.Sync()
+}
+func ch08Close(s *Service, f *os.File) error {
+	actual := f.Close()
+	if err := s.ch08Step("close"); err != nil {
+		return err
+	}
+	return actual
+}
+func ch08Rename(s *Service, from, to string) error {
+	if err := s.ch08Step("replace"); err != nil {
+		return err
+	}
+	if err := os.Rename(from, to); err != nil {
+		return err
+	}
+	return s.ch08Step("committed")
+}

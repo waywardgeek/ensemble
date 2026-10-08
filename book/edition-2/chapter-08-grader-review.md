@@ -223,3 +223,74 @@ simultaneous subscription handoff or browser consumer. Actor publication timing
 also needs the planned source/lifecycle review; matching public revisions alone
 cannot establish all internal ordering. Implementation deletion controls and
 the immutable final run remain outstanding.
+
+## Disk, browser and command-shape milestone
+
+The following independent commands are now available:
+
+```sh
+python3 scripts/edition2/accept_ch08_persistence.py SOURCE_DIRECTORY
+python3 scripts/edition2/audit_ch08_policy.py SOURCE_DIRECTORY
+node scripts/edition2/accept_ch08_browser.cjs SOURCE_DIRECTORY
+python3 scripts/edition2/audit_ch08_browser.py SOURCE_DIRECTORY
+python3 scripts/edition2/accept_ch08_commands.py GUI_BINARY
+```
+
+The [disk and policy receipt](checkpoint-evidence/ch08-policy-persistence-deletions.json)
+contains passing public controls and six disk/concurrency groups, followed by
+fourteen exact intended deletion failures. Reviewer instrumentation substitutes
+only filesystem operations in disposable copies of the actual owners. Each
+controlled stage has a matching real-operation positive. Create, write, short
+write, sync, close and replacement failures must preserve the old file and
+applied value; successful replacement remains committed through close. Held
+writers leave getters, pause, interrupt and the other domain responsive. Tests
+also cover stale retries, snapshot/subscription handoff, no-change writes,
+subscription overflow and accepted writes after socket disconnection. The
+actual service, actor and socket control paths remain in use.
+
+Preparation failures are retained: an invalid test origin, a mismatched Host
+fixture, an adapter anchor changed by an idempotent-close repair, and disk
+exhaustion before a mutation audit finished. None earns negative-control credit.
+The final audit requires the exact failing leaf set and intended reason, so a
+compile error or unrelated early refusal cannot count. The fixture template was
+formatted afterward; its [formatting receipt](checkpoint-evidence/ch08-template-formatting.json)
+proves the generated, formatted Go bytes are identical.
+
+The [browser audit](checkpoint-evidence/ch08-browser-twelve-deletions.json)
+records eight actual Chrome groups and twelve intended deletion failures. It
+uses delivered HTML, CSS and public components with controlled sockets and
+native-speech callbacks. It checks visible remote styles without replacing
+cards or focus, keyboard and pointer divider behavior, unsaved drafts and
+false/zero controls, viewport clamping, mixed-part routing and safe expansion,
+enqueue revision/rate capture, discarded automatic backlog, Page-local cancel,
+abandoned socket fencing, complete initial settings readiness and unavailable
+playback. It also checks pending settings disposal and reuse of the same DOM
+for a replacement Page.
+
+That last case found a student defect: the old Page left disabled controls in
+the reused DOM. The [original failure](checkpoint-evidence/ch08-browser-remount-failed.json)
+is preserved. The corrected constructor restores the new owner's transient
+control state, and closed continuations remain fenced. Both preference and
+policy requests now pass the remount control; deleting either protection
+produces its intended failure. Earlier seven-group and ten-deletion receipts
+remain dated preparation, not replacements for the final eight/twelve result.
+
+These speech controls cover Pages sharing one BrowserApplication in one
+document. They establish neither audible synthesis nor cross-tab native
+cancellation isolation. The student's subsequent actual browser run reported
+a no-start timeout in one tab followed by native interruption in another.
+That live finding requires separate diagnosis and contract review; it is not
+cleared by this controlled result.
+
+The [command-shape receipt](checkpoint-evidence/ch08-command-shapes-passed.json)
+records 39 checks: a valid subscribed positive, eighteen invalid command shapes
+per domain, same-revision recovery and no model HTTP. Invalid base types,
+missing or malformed patches, duplicate envelope fields and unknown path
+members receive the intended safe correlated refusal before mutation.
+
+All receipts bind their actual evolving source/checker bytes. They do not
+claim final immutable Chapter 8 acceptance. The retained Chapter 7 adapter,
+full delivered-tree/module gate, initial snapshot/control interleaving,
+architecture review, live evidence and post-freeze historical comparison
+remain separate obligations. Historical grader files and assertions were not
+edited for this milestone.
