@@ -20,14 +20,24 @@ grader is preparing remaining coverage against those seams, with genuine runtime
 positives still pending. Student `81aa8cf` acknowledges published Unicode
 clarification `cf73a64` (review `17a6356`) and adds dispatch/result witnesses to
 its grammar. The common Store-parent correction is also acknowledged. The new
-public checker `c8c5ec3`/`939b05a` is supplied through the inbox; nine groups are
-prepared, not runtime-validated. The student continues implementation.
+public checker `c8c5ec3`/`939b05a` first run has seven passing groups and two
+failures; targeted corrections pass. Initial CLI 12/93 exposed an untouched-store
+raw-usage representation mismatch, confirmed at `63dea39` and independently
+reproduced in student Q4. Published acceptance boundary `c5ad6c0`, reviewed at
+`c773b11`, is pinned new-only in `clarification-c5ad6c0` and released after student
+acknowledgment. Preserve the initial binary/receipts. Checker-only repairs
+`e118f78` (canonical path) and `d2d8481` (mutation numeric tokens/diagnostics)
+are separate from the runtime defect. Additional client runner `2bec837` has
+nine unrun groups. Student grammar/API `b926929` adds RequestSeqs and cancellable
+checkpoint waiting; source remains mutable and the full local matrix pending.
 Do not start a competing worker or resume paid Chapter 9 demonstrations.
 Chapter 14 correction `b951524` has independent closure `674b9a2` and coordinator
 contract acceptance. It has no checker, implementation or actual spin yet.
-Chapter 15 outline/research `d66e9b1`, advisory `0be42f4` and coordinator decisions
-`f648059` release the author's full draft. No checker, runtime or paid work is
-released. See chapter-15-validation.md and chapter-15-decisions.md.
+Chapter 15 draft `a9fd165` and grouped correction `a80138d` have independent
+closure `738fe0f` and coordinator contract acceptance. No checker, runtime or paid
+work exists. See chapter-15-validation.md and chapter-15-decisions.md. Author is
+researching/outlining new Chapter 16 (old Chapter 17); reviewer is auditing Ch10
+coverage completeness while grader prepares remaining independent checks.
 
 Chapter 6 maintenance checkpoint: `edition-2-ch06-r2` points to isolated
 `3acdd8e`, whose main and exact 1,565-file export match source `5e48b38`.
