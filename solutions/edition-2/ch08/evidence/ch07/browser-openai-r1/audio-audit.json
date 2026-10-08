@@ -1,0 +1,37 @@
+{
+  "source_revision": "ba902b7322a9cb5dd71c8352d45d6975663409c0",
+  "provider": "openai",
+  "browser": "Chrome 154.0.8037.93",
+  "platform": "macOS 26.3.1(a)",
+  "audio": [
+    {
+      "raw_audio": "audio-3.wav",
+      "sha256": "50acf7b5f1113b26fbc8634fe34745b38346aef9ce13994f6b70c64ce041177d",
+      "capture": {
+        "at": "2026-10-08T04:59:48.464Z",
+        "kind": "audio",
+        "sequence": 3,
+        "path": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch07/browser-openai-r1/audio-3.wav",
+        "exit": 0,
+        "output": "capture_ready pid=91653 app=Google Chrome bundle=com.google.Chrome unix_ms=1791435580033.0452\n2026-10-07 21:59:40.039 ensemble-ch07-capture-audio[92712:30609749] Audio files cannot be non-interleaved. Ignoring setting AVLinearPCMIsNonInterleaved YES.\ncaptured_frames=404160\n",
+        "browserPID": 91653,
+        "silent_control_seconds": 2
+      },
+      "metrics": {
+        "silent_prefix": {
+          "start_seconds": 0,
+          "end_seconds": 1,
+          "mean_db": -91.0,
+          "peak_db": -91.0
+        },
+        "speech": {
+          "start_seconds": 2,
+          "end_seconds": 6,
+          "mean_db": -19.7,
+          "peak_db": -3.9
+        }
+      }
+    }
+  ],
+  "limits": "Exact application PID selected. Capture begins asynchronously; requested two-second lead is wall time, not an asserted two seconds of PCM silence. First one-second PCM prefix is measured separately. This proves produced audio, not human listening or transcription. Gemini audio-4 speaks the selected user prompt; audio-6 selects the model answer specifically."
+}

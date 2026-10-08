@@ -1,0 +1,89 @@
+{
+  "scope": "Partial Chapter 7 black-box local transport gate, derived before student code.\n\nUsage: python3 scripts/edition2/accept_ch07.py /absolute/path/to/ensemble-gui\nRequires Python websocket-client. No model request is expected or authorized.\nThis initial scope is not browser, watch-race, tool-admission or speech acceptance.\n",
+  "binary_sha256": "0a16939c9a3b3de9270b2fb433db24e1697ee21ff5f3b3cb45b76ccce7f49643",
+  "checker_sha256": "df40c645dca381da0d624c1524f4094c436289fdbbb57cc2088300167b6e93c7",
+  "passed": false,
+  "checks": [
+    {
+      "id": "empty-owned-snapshot-wire",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "two-client-pause-and-disconnect",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "agent-refusal-keeps-connection",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "origin-missing",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "origin-null",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "origin-foreign",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "origin-foreign-host",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "exact-command-size",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "malformed-binary",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "malformed-invalid-json",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "malformed-invalid-utf8",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "malformed-unknown-field",
+      "passed": false,
+      "details": [
+        "WebSocketTimeoutException: Connection timed out"
+      ]
+    },
+    {
+      "id": "malformed-bad-known-type",
+      "passed": false,
+      "details": [
+        "WebSocketTimeoutException: Connection timed out"
+      ]
+    },
+    {
+      "id": "malformed-oversize",
+      "passed": false,
+      "details": [
+        "BrokenPipeError: [Errno 32] Broken pipe"
+      ]
+    },
+    {
+      "id": "no-model-http",
+      "passed": true,
+      "details": []
+    }
+  ]
+}

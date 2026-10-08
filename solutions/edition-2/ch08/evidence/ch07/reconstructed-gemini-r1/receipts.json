@@ -1,0 +1,20 @@
+[
+  {
+    "run": "browser-gemini-r1",
+    "requests": 12,
+    "reconstructed": 12,
+    "delivery": "stream"
+  },
+  {
+    "run": "plain-gemini-r1",
+    "requests": 1,
+    "reconstructed": 1,
+    "delivery": "plain"
+  },
+  {
+    "run": "consumer-gemini-r1",
+    "requests": 2,
+    "reconstructed": 2,
+    "delivery": "stream"
+  }
+]

@@ -1,0 +1,26 @@
+[
+  {
+    "file": "anthropic-browser-native/audio-29.wav",
+    "sha256": "19f7904865760bdc28458f5a7e3516d09f08b320831e441cfcefbfd46aeea94f",
+    "seconds": 8.46,
+    "silent_prefix_rms": 0.0,
+    "speech_segment_rms": 0.09193217379934095,
+    "peak": 0.6588382720947266
+  },
+  {
+    "file": "gemini-browser-native/audio-51.wav",
+    "sha256": "5515acef651ed88beb4f08c116cfeb79a9693cf906c8ee150374413aa8f0fc37",
+    "seconds": 8.52,
+    "silent_prefix_rms": 0.0,
+    "speech_segment_rms": 0.09186144359762301,
+    "peak": 0.6578786373138428
+  },
+  {
+    "file": "openai-browser-native/audio-51.wav",
+    "sha256": "8c8b02077fe19b85a932b1425d750ef2a242567065d8e0cf039a976dfcd5d849",
+    "seconds": 8.16,
+    "silent_prefix_rms": 0.0,
+    "speech_segment_rms": 0.09289000642276829,
+    "peak": 0.6579439640045166
+  }
+]

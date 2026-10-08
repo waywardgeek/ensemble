@@ -1,0 +1,140 @@
+{
+  "anthropic": {
+    "source_revision": "7061d7c64a1ea9c1523d9d06597cff26ba0ca0e3",
+    "binary_sha256": "e48c3669cda3b99d9c33002634643e221fef7641270b9cd958adfd56435c9912",
+    "agents": [
+      {
+        "agent": 1,
+        "handle": 2,
+        "job_terminal_seq": 8,
+        "usage": {
+          "input": 5039,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 320
+        },
+        "returned_identity": {
+          "vendor": "anthropic",
+          "model": "claude-sonnet-5-5",
+          "surface": "messages"
+        },
+        "artifact_sha256": "e94b8ec447d09083478bafa388b84dc1fd87f690718b5222365cc4be7393fb7a",
+        "model_requests": 4
+      },
+      {
+        "agent": 2,
+        "handle": 1,
+        "job_terminal_seq": 8,
+        "usage": {
+          "input": 2257,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 198
+        },
+        "returned_identity": {
+          "vendor": "anthropic",
+          "model": "claude-sonnet-5-5",
+          "surface": "messages"
+        },
+        "artifact_sha256": "f717fca2a365665b709b5cbba4d5ab9e2be62c506cf82a8efab8e5c6754df2f4",
+        "model_requests": 2
+      }
+    ],
+    "public_seam": "Submit, Subscribe, Snapshot, Close",
+    "observers_per_agent": 2,
+    "foreign_handle": "refused",
+    "scope": "supplemental actual model public-only feature coverage; human chat remains separate"
+  },
+  "openai": {
+    "source_revision": "7061d7c64a1ea9c1523d9d06597cff26ba0ca0e3",
+    "binary_sha256": "e48c3669cda3b99d9c33002634643e221fef7641270b9cd958adfd56435c9912",
+    "agents": [
+      {
+        "agent": 1,
+        "handle": 2,
+        "job_terminal_seq": 8,
+        "usage": {
+          "input": 1897,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 97
+        },
+        "returned_identity": {
+          "vendor": "openai",
+          "model": "gpt-4.1-mini-2025-04-14",
+          "surface": "chat_completions"
+        },
+        "artifact_sha256": "e94b8ec447d09083478bafa388b84dc1fd87f690718b5222365cc4be7393fb7a",
+        "model_requests": 4
+      },
+      {
+        "agent": 2,
+        "handle": 1,
+        "job_terminal_seq": 8,
+        "usage": {
+          "input": 825,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 48
+        },
+        "returned_identity": {
+          "vendor": "openai",
+          "model": "gpt-4.1-mini-2025-04-14",
+          "surface": "chat_completions"
+        },
+        "artifact_sha256": "f717fca2a365665b709b5cbba4d5ab9e2be62c506cf82a8efab8e5c6754df2f4",
+        "model_requests": 2
+      }
+    ],
+    "public_seam": "Submit, Subscribe, Snapshot, Close",
+    "observers_per_agent": 2,
+    "foreign_handle": "refused",
+    "scope": "supplemental actual model public-only feature coverage; human chat remains separate"
+  },
+  "gemini": {
+    "source_revision": "7061d7c64a1ea9c1523d9d06597cff26ba0ca0e3",
+    "binary_sha256": "e48c3669cda3b99d9c33002634643e221fef7641270b9cd958adfd56435c9912",
+    "agents": [
+      {
+        "agent": 1,
+        "handle": 2,
+        "job_terminal_seq": 8,
+        "usage": {
+          "input": 2894,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 379
+        },
+        "returned_identity": {
+          "vendor": "gemini",
+          "model": "gemini-3.8-flash",
+          "surface": "generate_content"
+        },
+        "artifact_sha256": "e94b8ec447d09083478bafa388b84dc1fd87f690718b5222365cc4be7393fb7a",
+        "model_requests": 4
+      },
+      {
+        "agent": 2,
+        "handle": 1,
+        "job_terminal_seq": 8,
+        "usage": {
+          "input": 1171,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 170
+        },
+        "returned_identity": {
+          "vendor": "gemini",
+          "model": "gemini-3.8-flash",
+          "surface": "generate_content"
+        },
+        "artifact_sha256": "f717fca2a365665b709b5cbba4d5ab9e2be62c506cf82a8efab8e5c6754df2f4",
+        "model_requests": 2
+      }
+    ],
+    "public_seam": "Submit, Subscribe, Snapshot, Close",
+    "observers_per_agent": 2,
+    "foreign_handle": "refused",
+    "scope": "supplemental actual model public-only feature coverage; human chat remains separate"
+  }
+}

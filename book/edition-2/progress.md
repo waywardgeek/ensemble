@@ -23,19 +23,21 @@ actual full-tree checks and the independent packaging review pass.
 See [chapter-07-validation.md](chapter-07-validation.md).
 The Chapter 8 settings contract is reviewed at `7200f17`; its initial partial
 wire/persistence checker is published at `b3f3137`, with additional independent
-checks culminating in independent code acceptance `270c3b6`. Fresh
-`/root/coder_ch08` completed the new-only build and froze final live receipts at
-`7f517d8`. Runtime `a06d4f3` has 52 accounted-for check groups. Final independent
-live audit, author reconciliation and proofread are underway before checkpoint. See
+checks culminating in independent code acceptance `270c3b6`. Chapter 8 is
+accepted at `edition-2-ch08-r1`: reviewed runtime `a06d4f3`, evidence `7f517d8`,
+student confirmation/export source `446d7f2` and final independent acceptance
+`d528419`. Its 3,308-file snapshot matches main, with 52 accounted-for check
+groups, 47 exact request reconstructions and complete nine-module discovery. See
 [chapter-08-validation.md](chapter-08-validation.md). Chapter 9's full draft
 `49ae919` and transition clarification `0bca41c` are accepted for checker
 preparation; its student release still requires accepted Chapter 8 and published
-checks. The former Chapter 8 student now prepares independent Chapter 9 checks;
-the future student will use a separate fresh context. See
+checks. The initial 51-check command is published at `e6c3406`; numeric teaching
+and invocation are clarified at `77cd638`/`f303754`. The next Chapter 9 student
+will use a separate fresh context. See
 [chapter-09-validation.md](chapter-09-validation.md).
-Chapter 10 draft `9181683` has coordinator review and two narrow format
-clarifications pending. The author first closes Chapter 8. No implementation
-or live result is claimed for those future chapters.
+Chapter 10 draft `9181683`, clarified at `6cf8660`/`b4e3fb7`, is accepted for
+checker preparation. The author prepares Chapter 11's MCP outline. No
+implementation or live result is claimed for those future chapters.
 Bill and CodeRhapsody are separately writing a new first-edition sandboxing
 chapter. Preserve that work; review it as a future source when available, without
 assuming its conclusions or changing the chapter map before review.

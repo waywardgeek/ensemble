@@ -1,0 +1,11 @@
+{"action": "settings"}
+{"action": "wait", "text": "light, 16px"}
+{"action": "wait", "text": "autoplay on"}
+{"action": "wait", "text": "Next turn: 2 model requests; revision 1; persistent"}
+{"action": "inspect"}
+{"action": "preference", "field": "autoplay", "value": false}
+{"action": "wait", "text": "autoplay off"}
+{"action": "policy", "value": 0}
+{"action": "wait", "text": "Next turn: Default (16) model requests; revision 2; persistent"}
+{"action": "inspect"}
+{"action": "quit"}

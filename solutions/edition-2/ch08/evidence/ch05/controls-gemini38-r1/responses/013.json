@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "- **Before status (via `wait_for_job`):** `running`\n- **After status (via `kill_job`):** `killed`",
+            "thoughtSignature": "ErIBCq8BAWkUfROlFQX1E+r6u5VXvvhY6wtksS0NQj6us7frPZLXUaoU0T0/F+vX9EFUzKuvp/U5sUVM0nVL3oWikkkLD9sw5WUWthJiM94Bcmzg8RbXCMstZX2Kl8UBef7+I4N7PhiBgwRS05p/V3IT3/qpIKv8LOybkdTxr/GCJXRD+Oqf9JSMoYCBUC1hDoBOlv/ARde4pwz4tR7F8+Gx0ANWpzgIxwwyEpk7dJ6zEkQ6Ow=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 3632,
+    "candidatesTokenCount": 35,
+    "totalTokenCount": 3684,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 3632
+      }
+    ],
+    "thoughtsTokenCount": 17,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.8-flash",
+  "responseId": "ndXGap-VJLrM_PUP7-DFkAE"
+}

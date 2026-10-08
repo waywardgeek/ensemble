@@ -1,0 +1,8 @@
+[
+  {
+    "run": "anthropic-interrupt-final",
+    "requests": 1,
+    "reconstructed": 1,
+    "delivery": "stream"
+  }
+]

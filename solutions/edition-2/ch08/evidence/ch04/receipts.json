@@ -1,0 +1,561 @@
+{
+  "binding": "9f76d9e99ad1c52c6af5d5c4496bbe2410e3ae70",
+  "binary_sha256": "296c6f9bd0f529e9765be9d53a980b21c9e02d60a732b981da8109d75d32b68a",
+  "runs": {
+    "anthropic": {
+      "launch": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch04/live-anthropic/launch.json",
+      "events": 168,
+      "tool_calls": 36,
+      "jobs": 19,
+      "debugger_handle": 16,
+      "debugger_artifact": "workspace/cr/io/16",
+      "recovery_calls": [
+        {
+          "call_seq": 78,
+          "result_seq": 80,
+          "path": "cr/io/9"
+        }
+      ],
+      "consumption_notes": [
+        {
+          "seq": 89,
+          "text": "tool_limits consumed by read_file: ai_callback_delay=3 ai_callback_pattern=\"\" max_output_bytes=8\njob 11 status: done; output: cr/io/11; total bytes: 42\nalph\n[truncated: 34 bytes omitted; total bytes: 42; output: cr/io/11]\nour\n"
+        },
+        {
+          "seq": 101,
+          "text": "tool_limits consumed by run_command: ai_callback_delay=1 ai_callback_pattern=\"\" max_output_bytes=100\njob 13 status: done; output: cr/io/13; total bytes: 35\nEXPLICIT-WINS\nDONE-OK\nexit_code: 0\n"
+        },
+        {
+          "seq": 153,
+          "text": "tool_limits consumed by kill_job: ai_callback_delay=0 ai_callback_pattern=\"\" max_output_bytes=8\njob 17 status: killed; output: cr/io/17; total bytes: 0\n"
+        }
+      ],
+      "usage": {
+        "input": 269672,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 5817
+      },
+      "identities": [
+        {
+          "from": {
+            "model": "claude-sonnet-5-5",
+            "surface": "messages",
+            "vendor": "anthropic"
+          },
+          "model_reported": true,
+          "requested": {
+            "model": "claude-sonnet-5-5",
+            "surface": "messages",
+            "vendor": "anthropic"
+          }
+        }
+      ],
+      "shutdown_event": {
+        "job": {
+          "handle": 19,
+          "status": "killed",
+          "output": {
+            "kind": 3,
+            "locator": "cr/io/19"
+          },
+          "bytes": 0,
+          "reason": "shutdown"
+        },
+        "seq": 168,
+        "type": "job_killed",
+        "time": "2026-10-07T20:42:24.202116Z"
+      },
+      "artifacts": {
+        "2": {
+          "bytes": 42,
+          "sha256": "b676f1a05ae4ad0ed1cd4844b9a12907a7d8722283cd719f86417a1876fe38b4",
+          "status": "done",
+          "locator": "cr/io/2"
+        },
+        "1": {
+          "bytes": 33,
+          "sha256": "463292d0c852f93b76012a7e626b3ee4f94f7de145481abea28db2fc1e4474fd",
+          "status": "done",
+          "locator": "cr/io/1"
+        },
+        "3": {
+          "bytes": 55,
+          "sha256": "feecc6345fa1362f5fa2b47068ba275db321e04a753b282d056253f1aa506b57",
+          "status": "killed",
+          "locator": "cr/io/3"
+        },
+        "5": {
+          "bytes": 107,
+          "sha256": "076af3a82e9ae4948e861d44a6f7601ba377ab9835c54f0be0263ee5bb89ff7e",
+          "status": "done",
+          "locator": "cr/io/5"
+        },
+        "6": {
+          "bytes": 114,
+          "sha256": "27a109f5a6706cdc3aa699bacca20adf797e71ed9dfc74aaa1ceff61c792f4aa",
+          "status": "done",
+          "locator": "cr/io/6"
+        },
+        "7": {
+          "bytes": 177,
+          "sha256": "dde5c4d428f8599520f54852c5ab10cf681295acea092567f3fab4ca4f05ddd7",
+          "status": "done",
+          "locator": "cr/io/7"
+        },
+        "8": {
+          "bytes": 114,
+          "sha256": "27a109f5a6706cdc3aa699bacca20adf797e71ed9dfc74aaa1ceff61c792f4aa",
+          "status": "done",
+          "locator": "cr/io/8"
+        },
+        "4": {
+          "bytes": 132,
+          "sha256": "8526600d902c78247ebbf1f40dbee2ef7bcf22072d72db58abb1e391c82a06b5",
+          "status": "killed",
+          "locator": "cr/io/4"
+        },
+        "9": {
+          "bytes": 913,
+          "sha256": "efa34a2234d46544ee37cc72ca82ba281d0934701c795b7293d98926b648378f",
+          "status": "done",
+          "locator": "cr/io/9"
+        },
+        "10": {
+          "bytes": 27,
+          "sha256": "c2efb552bdf85167d9d6fdbf726f076c83537e12413bc3b7200976f3742a0b64",
+          "status": "done",
+          "locator": "cr/io/10"
+        },
+        "11": {
+          "bytes": 42,
+          "sha256": "b676f1a05ae4ad0ed1cd4844b9a12907a7d8722283cd719f86417a1876fe38b4",
+          "status": "done",
+          "locator": "cr/io/11"
+        },
+        "12": {
+          "bytes": 42,
+          "sha256": "b676f1a05ae4ad0ed1cd4844b9a12907a7d8722283cd719f86417a1876fe38b4",
+          "status": "done",
+          "locator": "cr/io/12"
+        },
+        "13": {
+          "bytes": 35,
+          "sha256": "ff4ced2095b887835f400efbb8120521a0f8987eea5c8d259e0ae6916ff37500",
+          "status": "done",
+          "locator": "cr/io/13"
+        },
+        "14": {
+          "bytes": 75,
+          "sha256": "8fe768c2c087e1b2aed76cca766be9a152c0427bddc58544e4d261f10e053a8d",
+          "status": "done",
+          "locator": "cr/io/14"
+        },
+        "15": {
+          "bytes": 13,
+          "sha256": "849b5308ba7bcccd173022e0041ad23d29f0c18d9443404c8beff30520eed937",
+          "status": "done",
+          "locator": "cr/io/15"
+        },
+        "16": {
+          "bytes": 400,
+          "sha256": "ee0268e7b992d27e4f11ddae05df4c19d5f1aed3c4f1a3c99e0e8f1f9bf49fcf",
+          "status": "done",
+          "locator": "cr/io/16"
+        },
+        "17": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "status": "killed",
+          "locator": "cr/io/17"
+        },
+        "18": {
+          "bytes": 32,
+          "sha256": "369ccbeada1d344b372e2bd69d482f56b451314a88e383103f48c50e89d627f7",
+          "status": "done",
+          "locator": "cr/io/18"
+        },
+        "19": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "status": "killed",
+          "locator": "cr/io/19"
+        }
+      },
+      "offline_replay": "two deterministic renders, no API credentials",
+      "observed_model_misstatements": "See student review; tool records are authoritative."
+    },
+    "openai": {
+      "launch": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch04/live-openai/launch.json",
+      "events": 194,
+      "tool_calls": 39,
+      "jobs": 20,
+      "debugger_handle": 17,
+      "debugger_artifact": "workspace/cr/io/17",
+      "recovery_calls": [
+        {
+          "call_seq": 104,
+          "result_seq": 106,
+          "path": "cr/io/10"
+        }
+      ],
+      "consumption_notes": [
+        {
+          "seq": 114,
+          "text": "tool_limits consumed by read_file: ai_callback_delay=0 ai_callback_pattern=\"\" max_output_bytes=8\njob 12 status: running; output: cr/io/12; total bytes: 0; use wait_for_job, send_input, or kill_job\n"
+        },
+        {
+          "seq": 129,
+          "text": "tool_limits consumed by run_command: ai_callback_delay=1 ai_callback_pattern=\"\" max_output_bytes=100\njob 14 status: done; output: cr/io/14; total bytes: 31\nTESTING-ARGUMENTS\nexit_code: 0\n"
+        },
+        {
+          "seq": 177,
+          "text": "tool_limits consumed by kill_job: ai_callback_delay=0 ai_callback_pattern=\"\" max_output_bytes=8\njob 18 status: killed; output: cr/io/18; total bytes: 0\n"
+        }
+      ],
+      "usage": {
+        "input": 8783,
+        "cache_write": 0,
+        "cache_read": 136192,
+        "output": 1601
+      },
+      "identities": [
+        {
+          "from": {
+            "model": "gpt-4.1-mini-2025-04-14",
+            "surface": "chat_completions",
+            "vendor": "openai"
+          },
+          "model_reported": true,
+          "requested": {
+            "model": "gpt-4.1-mini-2025-04-14",
+            "surface": "chat_completions",
+            "vendor": "openai"
+          }
+        }
+      ],
+      "shutdown_event": {
+        "job": {
+          "handle": 20,
+          "status": "killed",
+          "output": {
+            "kind": 3,
+            "locator": "cr/io/20"
+          },
+          "bytes": 0,
+          "reason": "shutdown"
+        },
+        "seq": 194,
+        "type": "job_killed",
+        "time": "2026-10-07T20:42:44.345043Z"
+      },
+      "artifacts": {
+        "2": {
+          "bytes": 42,
+          "sha256": "b676f1a05ae4ad0ed1cd4844b9a12907a7d8722283cd719f86417a1876fe38b4",
+          "status": "done",
+          "locator": "cr/io/2"
+        },
+        "1": {
+          "bytes": 33,
+          "sha256": "463292d0c852f93b76012a7e626b3ee4f94f7de145481abea28db2fc1e4474fd",
+          "status": "done",
+          "locator": "cr/io/1"
+        },
+        "3": {
+          "bytes": 36,
+          "sha256": "309e9e24edb022a5f7f6d35d058b9e163b165ce92f7a60f9bcd73d091d97b7d7",
+          "status": "killed",
+          "locator": "cr/io/3"
+        },
+        "4": {
+          "bytes": 30,
+          "sha256": "16736120bb8495e14553154ee738f28e69095fb215f28d389d3a062e87a198a5",
+          "status": "killed",
+          "locator": "cr/io/4"
+        },
+        "6": {
+          "bytes": 104,
+          "sha256": "e7759f5dbaedf996421eb317d591ee2d4226d479ba4edaaa010f28fc8ee72f0c",
+          "status": "done",
+          "locator": "cr/io/6"
+        },
+        "7": {
+          "bytes": 111,
+          "sha256": "8e344724c8741f9efe15f645b12fc5634aa0ef5a8d7fa1a8f9708a48dc1d3874",
+          "status": "done",
+          "locator": "cr/io/7"
+        },
+        "8": {
+          "bytes": 174,
+          "sha256": "9e48982c27808c9cd2fe9e62ca87593a0f67956d87ffd7904e98b7de96fd3897",
+          "status": "done",
+          "locator": "cr/io/8"
+        },
+        "9": {
+          "bytes": 111,
+          "sha256": "8e344724c8741f9efe15f645b12fc5634aa0ef5a8d7fa1a8f9708a48dc1d3874",
+          "status": "done",
+          "locator": "cr/io/9"
+        },
+        "5": {
+          "bytes": 129,
+          "sha256": "6a6eb4f5179e54330f4dd8de493336c81e2e88cab3263801b15dc8d9576b687f",
+          "status": "killed",
+          "locator": "cr/io/5"
+        },
+        "10": {
+          "bytes": 913,
+          "sha256": "efa34a2234d46544ee37cc72ca82ba281d0934701c795b7293d98926b648378f",
+          "status": "done",
+          "locator": "cr/io/10"
+        },
+        "11": {
+          "bytes": 27,
+          "sha256": "c2efb552bdf85167d9d6fdbf726f076c83537e12413bc3b7200976f3742a0b64",
+          "status": "done",
+          "locator": "cr/io/11"
+        },
+        "12": {
+          "bytes": 42,
+          "sha256": "b676f1a05ae4ad0ed1cd4844b9a12907a7d8722283cd719f86417a1876fe38b4",
+          "status": "done",
+          "locator": "cr/io/12"
+        },
+        "13": {
+          "bytes": 42,
+          "sha256": "b676f1a05ae4ad0ed1cd4844b9a12907a7d8722283cd719f86417a1876fe38b4",
+          "status": "done",
+          "locator": "cr/io/13"
+        },
+        "14": {
+          "bytes": 31,
+          "sha256": "6291800a9f62a21bc54d2ea8a94c292521ff1e31b34cda9a35c3402b152aa162",
+          "status": "done",
+          "locator": "cr/io/14"
+        },
+        "15": {
+          "bytes": 75,
+          "sha256": "8fe768c2c087e1b2aed76cca766be9a152c0427bddc58544e4d261f10e053a8d",
+          "status": "done",
+          "locator": "cr/io/15"
+        },
+        "16": {
+          "bytes": 13,
+          "sha256": "849b5308ba7bcccd173022e0041ad23d29f0c18d9443404c8beff30520eed937",
+          "status": "done",
+          "locator": "cr/io/16"
+        },
+        "17": {
+          "bytes": 400,
+          "sha256": "f9c419b119d1dfce3b41233bd78dc2013455413fc664a4953ba6a3671b0054fb",
+          "status": "done",
+          "locator": "cr/io/17"
+        },
+        "18": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "status": "killed",
+          "locator": "cr/io/18"
+        },
+        "19": {
+          "bytes": 32,
+          "sha256": "369ccbeada1d344b372e2bd69d482f56b451314a88e383103f48c50e89d627f7",
+          "status": "done",
+          "locator": "cr/io/19"
+        },
+        "20": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "status": "killed",
+          "locator": "cr/io/20"
+        }
+      },
+      "offline_replay": "two deterministic renders, no API credentials",
+      "observed_model_misstatements": "See student review; tool records are authoritative."
+    },
+    "gemini": {
+      "launch": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch04/live-gemini/launch.json",
+      "events": 178,
+      "tool_calls": 35,
+      "jobs": 19,
+      "debugger_handle": 16,
+      "debugger_artifact": "workspace/cr/io/16",
+      "recovery_calls": [
+        {
+          "call_seq": 82,
+          "result_seq": 84,
+          "path": "cr/io/9"
+        }
+      ],
+      "consumption_notes": [
+        {
+          "seq": 93,
+          "text": "tool_limits consumed by read_file: ai_callback_delay=3 ai_callback_pattern=\"\" max_output_bytes=8\njob 11 status: done; output: cr/io/11; total bytes: 42\nalph\n[truncated: 34 bytes omitted; total bytes: 42; output: cr/io/11]\nour\n"
+        },
+        {
+          "seq": 107,
+          "text": "tool_limits consumed by run_command: ai_callback_delay=1 ai_callback_pattern=\"\" max_output_bytes=100\njob 13 status: done; output: cr/io/13; total bytes: 48\nexplicit-arguments-win-test-string\nexit_code: 0\n"
+        },
+        {
+          "seq": 161,
+          "text": "tool_limits consumed by kill_job: ai_callback_delay=0 ai_callback_pattern=\"\" max_output_bytes=8\njob 17 status: killed; output: cr/io/17; total bytes: 0\n"
+        }
+      ],
+      "usage": {
+        "input": 252517,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 6413
+      },
+      "identities": [
+        {
+          "from": {
+            "model": "gemini-3.8-flash",
+            "surface": "generate_content",
+            "vendor": "gemini"
+          },
+          "model_reported": true,
+          "requested": {
+            "model": "models/gemini-3.8-flash",
+            "surface": "generate_content",
+            "vendor": "gemini"
+          }
+        }
+      ],
+      "shutdown_event": {
+        "job": {
+          "handle": 19,
+          "status": "killed",
+          "output": {
+            "kind": 3,
+            "locator": "cr/io/19"
+          },
+          "bytes": 0,
+          "reason": "shutdown"
+        },
+        "seq": 178,
+        "type": "job_killed",
+        "time": "2026-10-07T20:43:22.975116Z"
+      },
+      "artifacts": {
+        "2": {
+          "bytes": 42,
+          "sha256": "b676f1a05ae4ad0ed1cd4844b9a12907a7d8722283cd719f86417a1876fe38b4",
+          "status": "done",
+          "locator": "cr/io/2"
+        },
+        "1": {
+          "bytes": 33,
+          "sha256": "463292d0c852f93b76012a7e626b3ee4f94f7de145481abea28db2fc1e4474fd",
+          "status": "done",
+          "locator": "cr/io/1"
+        },
+        "3": {
+          "bytes": 55,
+          "sha256": "feecc6345fa1362f5fa2b47068ba275db321e04a753b282d056253f1aa506b57",
+          "status": "killed",
+          "locator": "cr/io/3"
+        },
+        "5": {
+          "bytes": 104,
+          "sha256": "51c4e12a6af8f84b3217fad54ed3a52784c11c4d822a3486f742504e58bd98be",
+          "status": "done",
+          "locator": "cr/io/5"
+        },
+        "6": {
+          "bytes": 111,
+          "sha256": "9f9a6dab76037465692cb6ea6f828f85dc8fec90015bb4eae54b9176140582e6",
+          "status": "done",
+          "locator": "cr/io/6"
+        },
+        "7": {
+          "bytes": 174,
+          "sha256": "b5b99a7b8519d1399e6034f6a9b38da4fe237562cd170146951f6ffe51d34439",
+          "status": "done",
+          "locator": "cr/io/7"
+        },
+        "8": {
+          "bytes": 111,
+          "sha256": "9f9a6dab76037465692cb6ea6f828f85dc8fec90015bb4eae54b9176140582e6",
+          "status": "done",
+          "locator": "cr/io/8"
+        },
+        "4": {
+          "bytes": 129,
+          "sha256": "602e6d2c36b7e0369549d1aa17aa83584ce45247af83fe76f3eb1c982194c764",
+          "status": "killed",
+          "locator": "cr/io/4"
+        },
+        "9": {
+          "bytes": 913,
+          "sha256": "efa34a2234d46544ee37cc72ca82ba281d0934701c795b7293d98926b648378f",
+          "status": "done",
+          "locator": "cr/io/9"
+        },
+        "10": {
+          "bytes": 27,
+          "sha256": "c2efb552bdf85167d9d6fdbf726f076c83537e12413bc3b7200976f3742a0b64",
+          "status": "done",
+          "locator": "cr/io/10"
+        },
+        "11": {
+          "bytes": 42,
+          "sha256": "b676f1a05ae4ad0ed1cd4844b9a12907a7d8722283cd719f86417a1876fe38b4",
+          "status": "done",
+          "locator": "cr/io/11"
+        },
+        "12": {
+          "bytes": 42,
+          "sha256": "b676f1a05ae4ad0ed1cd4844b9a12907a7d8722283cd719f86417a1876fe38b4",
+          "status": "done",
+          "locator": "cr/io/12"
+        },
+        "13": {
+          "bytes": 48,
+          "sha256": "53d3f40466e1b75f88664163a8df55602b844a575d53d8829a86a57e0d992501",
+          "status": "done",
+          "locator": "cr/io/13"
+        },
+        "14": {
+          "bytes": 75,
+          "sha256": "8fe768c2c087e1b2aed76cca766be9a152c0427bddc58544e4d261f10e053a8d",
+          "status": "done",
+          "locator": "cr/io/14"
+        },
+        "15": {
+          "bytes": 13,
+          "sha256": "849b5308ba7bcccd173022e0041ad23d29f0c18d9443404c8beff30520eed937",
+          "status": "done",
+          "locator": "cr/io/15"
+        },
+        "16": {
+          "bytes": 400,
+          "sha256": "3e10a3846290cdf7155c1a69ec6d8b2f364074ad49b57f329ebdccd306e3bcea",
+          "status": "done",
+          "locator": "cr/io/16"
+        },
+        "17": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "status": "killed",
+          "locator": "cr/io/17"
+        },
+        "18": {
+          "bytes": 32,
+          "sha256": "369ccbeada1d344b372e2bd69d482f56b451314a88e383103f48c50e89d627f7",
+          "status": "done",
+          "locator": "cr/io/18"
+        },
+        "19": {
+          "bytes": 0,
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "status": "killed",
+          "locator": "cr/io/19"
+        }
+      },
+      "offline_replay": "two deterministic renders, no API credentials",
+      "observed_model_misstatements": "See student review; tool records are authoritative."
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "scope": "Fake launch only: bound /usr/bin/true, injected fake credential, zero provider requests",
+  "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+  "passed": true,
+  "receipt": "revised-launcher-smoke/launch.json"
+}

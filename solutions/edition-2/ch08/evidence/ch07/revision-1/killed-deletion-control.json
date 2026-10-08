@@ -1,0 +1,8 @@
+{
+  "purpose": "Deletion control for corrected public snapshot killed fact; no model HTTP beyond local fixture",
+  "changed_file_sha256": "3b15626dfd112676bd98cc0c8793c988dba4c7a0fecf316e102a44f823901713",
+  "test_sha256": "af0ff8ac9a7105f024c9e1b41d989d60bebac8808e5cdb205b62ef3338b9774d",
+  "deleted_behavior": "job_killed omitted from renderable event selection",
+  "exit_code": 1,
+  "output": "--- FAIL: TestWatchRetainsKilledJobOutcome (0.00s)\n    watch_test.go:53: reconnect must retain the terminal fact after the running report: running=6 killed=0\nFAIL\nFAIL\texample.com/ensemble\t0.011s\nFAIL\n"
+}

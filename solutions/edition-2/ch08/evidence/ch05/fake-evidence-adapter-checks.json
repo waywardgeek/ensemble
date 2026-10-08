@@ -1,0 +1,13 @@
+{
+  "backend": "local fake only; no paid calls",
+  "capture": "exact body, selected header forwarding, no header receipts",
+  "preflight_fixture_revision": "55e64115ee5243cac6b4958fd12e6811862ae033",
+  "negative_controls": [
+    "empty",
+    "missing",
+    "extra",
+    "hash",
+    "executable"
+  ],
+  "raw_live_receipts": "none yet; no live files modified"
+}

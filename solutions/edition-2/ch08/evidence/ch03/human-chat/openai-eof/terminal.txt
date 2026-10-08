@@ -1,0 +1,4 @@
+Ensemble — openai / gpt-4.1-mini-2025-04-14
+Type /help for commands.
+You> ^D
+Final usage: input=0, cache write=0, cache read=0, output=0

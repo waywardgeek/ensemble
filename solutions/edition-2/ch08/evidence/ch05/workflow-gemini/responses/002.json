@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The draft.txt file has been created with the announcement."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 497,
+    "candidatesTokenCount": 12,
+    "totalTokenCount": 509,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 497
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-2.5-flash-lite",
+  "responseId": "k8rGaty_OMOl1MkP5qDzsA8"
+}

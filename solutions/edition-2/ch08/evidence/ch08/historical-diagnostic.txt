@@ -1,0 +1,45 @@
+go run ./cmd/grade -ch 9 solutions/edition-2/main
+usage: ensemble [chat | protocol | dump | render LOG | replay LOG SEQ]
+usage: ensemble [chat | protocol | dump | render LOG | replay LOG SEQ]
+usage: ensemble [chat | protocol | dump | render LOG | replay LOG SEQ]
+usage: ensemble [chat | protocol | dump | render LOG | replay LOG SEQ]
+usage: ensemble [chat | protocol | dump | render LOG | replay LOG SEQ]
+cannot create fresh event log
+Chapter 9 — Build Your Dream GUI
+============================================================
+
+[FAIL]      update_settings returns settings_changed  (0/25)
+       roundtrip error: HTTP server did not start
+
+[FAIL]      new connection receives current_settings  (0/20)
+       new connection did not receive current_settings on subscribe
+
+[FAIL]      settings broadcast to all clients  (0/20)
+       broadcast error: HTTP server did not start
+
+[FAIL]      settings survive server restart  (0/15)
+       settings did not survive server restart
+
+[FAIL]      chapter 8 behavior is unchanged  (0/20)
+       5 ch8 check(s) now fail: [websocket-streams (harness error: HTTP
+       server did not start within 10s) event-replay (replay test error: HTTP
+       server did not start) gui-log (harness error: HTTP server did not
+       start within 10s) pause-holds-tools (pause test error: HTTP server did
+       not start) ch7-parity (6 ch7 check(s) now fail: [stream-deltas (saw 0
+       text deltas, want at least 8) deltas-match-final (no text part_final
+       observations were reported) thinking-streamed (saw 0 deltas of kind
+       "thinking", want at least 2) tool-params-streamed (saw 0 deltas of
+       kind "tool_call", want at least 3 (a name and several argument
+       fragments)) delivery-not-content (neither run produced an assistant
+       line) ch6-parity (3 ch6 check(s) now fail: [ch5-parity (ch5 check
+       "logger-accessible" failed: no back-pointer interface reaches the
+       logger from a tool: common.ClientOwner has [Logf], but no struct
+       outside package common stores it as a field and logs through it (a
+       closure field does not count)) observer-fires (no state_changed
+       observations) loud-refusal (no loud refusal for unknown model -
+       expected error mentioning model name)])])]
+
+------------------------------------------------------------
+score: 0/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1

@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Ensemble — Agent workspace</title><link rel="stylesheet" href="style.css"></head>
+<body><main class="workspace" data-theme="dark">
+<header><p class="eyebrow">ENSEMBLE / LOCAL WORKSPACE</p><h1>Agent workspace</h1><p data-status role="status">Connecting</p><p data-pause>Loading Agent state</p><p data-agent role="status">Loading Agent</p></header>
+<div class="panes">
+<aside aria-label="Sidebar"><nav role="tablist" aria-label="Workspace sidebar"><button role="tab" data-tab="agents" aria-selected="true" aria-controls="agents">Agents</button><button role="tab" data-tab="settings" aria-selected="false" aria-controls="settings">Settings</button></nav>
+<section id="agents" data-tab-panel="agents" role="tabpanel"><h2>Agents</h2><ul class="agent-tree"><li>Current Agent <span>Independent conversation and policy</span></li></ul><p>Lifecycle and pause state stay visible above.</p></section>
+<section id="settings" data-tab-panel="settings" role="tabpanel" hidden><h2>Appearance and speech</h2>
+<label>Theme<select data-preference="theme"><option value="dark">Dark</option><option value="light">Light</option><option value="system">System</option></select></label>
+<label>Font size<input data-preference="font_size" type="number" min="12" max="28" step="1" value="16"></label>
+<label>Sidebar width<input data-preference="sidebar_width" type="number" min="180" max="480" step="10" value="260"></label>
+<label>Actions width<input data-preference="actions_width" type="number" min="200" max="640" step="10" value="380"></label>
+<label class="checkbox"><input data-preference="autoplay" type="checkbox">Autoplay new answers</label>
+<p class="help">Shared across tabs. New visible answers, exposed thinking and concise tool summaries can speak. Tool results and replay remain silent. Existing speech continues when autoplay turns off.</p>
+<label>Speech rate<input data-preference="speech_rate" type="number" min="0.5" max="2" step="0.1" value="1"></label>
+<p data-preferences-applied class="applied">Loading applied preferences</p>
+<h2>Agent policy</h2><p data-policy-applied class="applied">Loading applied policy</p><label>Maximum model requests per turn<input data-policy type="number" min="0" max="256" step="1" value="0"></label><p class="help">0 selects Default (16). Changes apply when a later turn activates.</p><button data-policy-save>Apply Agent policy</button>
+</section></aside>
+<button class="divider" data-divider="sidebar_width" role="separator" aria-label="Sidebar width" aria-orientation="vertical" aria-valuemin="180" aria-valuemax="480" aria-valuenow="260" title="Drag, or use arrow keys to change width"></button>
+<section class="chat-pane" aria-label="Chat pane"><h2>Chat</h2><section aria-label="Conversation" data-artifacts class="artifacts" tabindex="0"></section>
+<div class="toolbar"><button data-latest>Return to latest</button><button data-enable-playback>Enable playback on this page</button><button data-cancel-speech>Cancel speech</button></div>
+<section class="composer" aria-label="Agent controls"><label for="message">Prompt or correction</label><textarea id="message" data-input rows="3" placeholder="Ask a question, or send a hint while work is running."></textarea><div class="toolbar"><button data-prompt class="primary">Send prompt</button><button data-hint>Send hint</button><button data-interrupt>Interrupt</button></div><p data-notice role="status">Typing holds the next tool admission. Speech work is local to this page.</p></section></section>
+<button class="divider" data-divider="actions_width" role="separator" aria-label="Actions width" aria-orientation="vertical" aria-valuemin="200" aria-valuemax="640" aria-valuenow="380" title="Drag, or use arrow keys to change width"></button>
+<section class="actions-pane" aria-label="Actions pane"><h2>Actions</h2><section data-actions class="artifacts" tabindex="0" aria-label="Tool calls, results and jobs"></section></section>
+</div></main><script type="module" src="app.js"></script></body></html>

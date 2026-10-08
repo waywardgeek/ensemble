@@ -1,0 +1,100 @@
+{
+  "canceled": {
+    "agent_id": "agent-1",
+    "request_id": "r2",
+    "outcome": "canceled",
+    "text": "",
+    "pending_hints": 0,
+    "error": {
+      "code": "canceled",
+      "message": "request canceled before activation"
+    },
+    "usage": {
+      "input": 0,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 0
+    }
+  },
+  "exhausted": true,
+  "independent_results": [
+    {
+      "agent_id": "agent-1",
+      "request_id": "r1",
+      "outcome": "success",
+      "text": "COLLECTION-1",
+      "parts": [
+        {
+          "type": "text",
+          "text": "COLLECTION-1"
+        }
+      ],
+      "pending_hints": 0,
+      "usage": {
+        "input": 46,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 7
+      }
+    },
+    {
+      "agent_id": "agent-2",
+      "request_id": "r1",
+      "outcome": "success",
+      "text": "COLLECTION-2",
+      "parts": [
+        {
+          "type": "text",
+          "text": "COLLECTION-2"
+        }
+      ],
+      "pending_hints": 0,
+      "usage": {
+        "input": 46,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 7
+      }
+    }
+  ],
+  "results": [
+    {
+      "agent_id": "agent-1",
+      "request_id": "r1",
+      "outcome": "success",
+      "text": "COLLECTION-1",
+      "parts": [
+        {
+          "type": "text",
+          "text": "COLLECTION-1"
+        }
+      ],
+      "pending_hints": 0,
+      "usage": {
+        "input": 46,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 7
+      }
+    },
+    {
+      "agent_id": "agent-2",
+      "request_id": "r1",
+      "outcome": "success",
+      "text": "COLLECTION-2",
+      "parts": [
+        {
+          "type": "text",
+          "text": "COLLECTION-2"
+        }
+      ],
+      "pending_hints": 0,
+      "usage": {
+        "input": 46,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 7
+      }
+    }
+  ]
+}

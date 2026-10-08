@@ -1,0 +1,44 @@
+{
+  "scope": "Chapter 8 policy consumption through actual GUI/Agent/tools and local model HTTP.\n\nTests captured limits and complete final batches, not merely settings echoes.\nNo paid model, public-headless API, persistence fault or browser claim is made.\n",
+  "passed": true,
+  "checks": [
+    {
+      "id": "captured-limit-one",
+      "passed": true
+    },
+    {
+      "id": "captured-limit-seventeen",
+      "passed": true
+    },
+    {
+      "id": "captured-limit-default",
+      "passed": true
+    },
+    {
+      "id": "captured-limit-normal",
+      "passed": true
+    },
+    {
+      "id": "active-and-queued-policy-capture",
+      "passed": true
+    },
+    {
+      "id": "durable-capture-and-final-batch-pairing",
+      "passed": true
+    }
+  ],
+  "http_by_prompt": {
+    "ONE": 1,
+    "SEVENTEEN": 17,
+    "DEFAULT": 16,
+    "NORMAL": 1,
+    "ACTIVE": 1,
+    "QUEUED": 2
+  },
+  "binary_sha256": "c067d0bd77556e509b8964de9085f60dbf807987f4f8a2dea1a9d5fb3f13cd3b",
+  "checker_files": {
+    "accept_ch08_policy_effect.py": "a1cfa5c1fa3bbbdb55c0da27bb006fb9ed0a23ef3b715eef81e2c76c166709be",
+    "accept_ch08.py": "4892e6e8e64deb2e9a24f98ecd223d12cbfa2929822abe5be8aae3f69238ef11",
+    "accept_ch07.py": "27cf57f089c44363155f551966258df79d5c3dbc390c38a5e7f18aac950595ae"
+  }
+}

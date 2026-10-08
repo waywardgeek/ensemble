@@ -1,0 +1,14 @@
+{
+  "scope": "Local fake-model browser and controlled speech callbacks, no live or audible claim",
+  "passed": false,
+  "checks": [
+    "initial-snapshot-remains-contiguous-with-fast-control"
+  ],
+  "failures": [
+    {
+      "name": "shared-theme-font-and-keyboard-width",
+      "error": "page.waitForFunction: Timeout 30000ms exceeded.\n    at /Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch08/browser-local.mjs:32:96\n    at async check (/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch08/browser-local.mjs:20:35)\n    at async file:///Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch08/browser-local.mjs:29:2"
+    }
+  ],
+  "model_requests": 0
+}

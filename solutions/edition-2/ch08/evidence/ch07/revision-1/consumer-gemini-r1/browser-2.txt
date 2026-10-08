@@ -1,0 +1,28 @@
+Two independent Agents, one application
+first Agent
+Close viewReconnect view
+
+Connected — agent-1-g2
+
+Tool admissions available — typing: 0, speaking: 0. Already admitted work continues.
+
+You
+For this answer only, use no tools. Write one calm paragraph of about 70 words explaining why a morning walk can be pleasant. Begin your answer with FIRST VOICE and end with MORNING END.
+
+Speak
+Return to latestAuto speech: offCancel speech
+Prompt or correction
+Send promptSend hintInterrupt
+
+Accepted r1
+
+second Agent
+Close viewReconnect view
+
+Connected — agent-2-g2
+
+Tool admissions available — typing: 0, speaking: 0. Already admitted work continues.
+
+Return to latestAuto speech: offCancel speech
+Prompt or correction
+Send promptSend hintInterrupt

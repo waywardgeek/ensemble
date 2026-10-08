@@ -1,0 +1,232 @@
+{
+  "chapter": 3,
+  "binary_sha256": "3d49d9037077929b7380fbbae020e968c79075ac94eb95c939535aa606523990",
+  "checker_sha256": "45c8b05d7eec4a4d478b6ee3a996b61a4ab49b61e87f5df01c36b0c22dde9606",
+  "checks": [
+    {
+      "id": "anthropic/pty-chat",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/pty-default",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/empty",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/exact-limit-crlf",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/over-limit",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/invalid-utf8",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/operation-refusal",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/provider-failure",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/missing-model",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/unknown-subcommand",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/protocol",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/redirected-default",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/empty-response",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/tool-turn-redaction",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/tool-continuation-failure",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/pty-chat",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/pty-default",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/empty",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/exact-limit-crlf",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/over-limit",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/invalid-utf8",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/operation-refusal",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/provider-failure",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/missing-model",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/unknown-subcommand",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/protocol",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/redirected-default",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/empty-response",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/tool-turn-redaction",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/tool-continuation-failure",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/pty-chat",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/pty-default",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/empty",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/exact-limit-crlf",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/over-limit",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/invalid-utf8",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/operation-refusal",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/provider-failure",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/missing-model",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/unknown-subcommand",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/protocol",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/redirected-default",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/empty-response",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/tool-turn-redaction",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/tool-continuation-failure",
+      "passed": true,
+      "details": []
+    }
+  ]
+}

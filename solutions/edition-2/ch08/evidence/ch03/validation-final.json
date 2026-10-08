@@ -1,0 +1,131 @@
+{
+  "utc": "2026-10-07T18:50:30.816177+00:00",
+  "checks": [
+    {
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/ch03",
+      "argv": [
+        "gofmt",
+        "-l",
+        "cmd/main.go",
+        "ensemble.go",
+        "ensemble_test.go",
+        "events_test.go",
+        "examples/consumer/main.go",
+        "examples/tools-consumer/main.go",
+        "gui/client.go",
+        "gui/client_test.go",
+        "internal/common/json.go",
+        "internal/common/types.go",
+        "internal/eventlog/log.go",
+        "internal/eventlog/log_test.go",
+        "internal/llm/engine.go",
+        "internal/llm/engine_test.go",
+        "internal/llm/events.go",
+        "internal/llm/parse.go",
+        "internal/llm/render.go",
+        "internal/llm/turn.go",
+        "internal/tools/command.go",
+        "internal/tools/files.go",
+        "internal/tools/registry.go",
+        "internal/tools/text.go",
+        "internal/tools/tools_test.go",
+        "turn_test.go"
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/ch03",
+      "argv": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/ch03",
+      "argv": [
+        "go",
+        "test",
+        "./...",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "stdout": "ok  \texample.com/ensemble\t0.360s\n?   \texample.com/ensemble/cmd\t[no test files]\n?   \texample.com/ensemble/internal/common\t[no test files]\nok  \texample.com/ensemble/internal/eventlog\t0.005s\nok  \texample.com/ensemble/internal/llm\t0.006s\nok  \texample.com/ensemble/internal/tools\t0.167s\n",
+      "stderr": ""
+    },
+    {
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/ch03/gui",
+      "argv": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/ch03/gui",
+      "argv": [
+        "go",
+        "test",
+        "./...",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "stdout": "ok  \texample.com/ensemble-gui\t0.009s\n",
+      "stderr": ""
+    },
+    {
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/ch03/examples/consumer",
+      "argv": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/ch03/examples/consumer",
+      "argv": [
+        "go",
+        "test",
+        "./...",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "stdout": "?   \texample.com/ensemble-consumer\t[no test files]\n",
+      "stderr": ""
+    },
+    {
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/ch03/examples/tools-consumer",
+      "argv": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/ch03/examples/tools-consumer",
+      "argv": [
+        "go",
+        "test",
+        "./...",
+        "-count=1"
+      ],
+      "exit_code": 0,
+      "stdout": "?   \texample.com/ensemble-tools-consumer\t[no test files]\n",
+      "stderr": ""
+    }
+  ]
+}

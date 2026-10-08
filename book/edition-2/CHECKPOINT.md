@@ -23,9 +23,11 @@ Fresh `/root/coder_ch08` used `fork_turns="none"`, new Chapters 1–8 and that
 accepted source. Its final student work is frozen through `7f517d8`, with
 actual all-provider receipts; the initial attempt remains separately preserved.
 Independent code review `270c3b6` accepts runtime `a06d4f3` with 52 accounted-for
-groups. Final live audit, author reconciliation and proofread remain before the
-Chapter 8 checkpoint. The former student is now preparing Chapter 9 checks;
-Chapter 9 will receive a separate fresh student context.
+groups. Final live audit, author reconciliation and proofread are accepted at
+`d528419`, with student confirmation `446d7f2`. Chapter 8 is checkpointed as
+`edition-2-ch08-r1`, an exact 3,308-file export from that confirmation source.
+Chapter 9's initial checker is published at `e6c3406`; the next student receives
+a separate fresh context.
 Source identities and retained limitations are tracked in
 [chapter-07-validation.md](chapter-07-validation.md).
 Earlier log-destination corrections are independently accepted and checkpointed
@@ -107,7 +109,7 @@ that limitation; their implementation validation is a separate claim.
 
 ## Current state
 
-- **Latest accepted source:** Chapter 7 r2, source `9ec94ef`; see its gate record.
+- **Latest accepted source:** Chapter 8 r1, source `446d7f2`; see its gate record.
 - Earlier Chapter 4 checkpoint, runtime d25/final evidence e1c6488.
   Five-module checks, grade100, independent53/53 and public3/3, eleven mutations,
   race/fault/boundary controls, actual all-provider PTYs and public consumers,

@@ -1,0 +1,42 @@
+{
+  "binary": "/private/tmp/ensemble-ch07-review-gui",
+  "sha256": "7e0a21dd9e935eec9724990ee0e6a303a8888be29f17510e61c70b5e53bcbadb",
+  "model_requests": 0,
+  "results": [
+    {
+      "size": 65536,
+      "fragmented": false,
+      "send_error": null,
+      "ok": true,
+      "reply": "snapshot_begin"
+    },
+    {
+      "size": 65537,
+      "fragmented": false,
+      "send_error": null,
+      "ok": true,
+      "reply": "message exceeds 65536 bytes"
+    },
+    {
+      "size": 131072,
+      "fragmented": false,
+      "send_error": null,
+      "ok": true,
+      "reply": "message exceeds 65536 bytes"
+    },
+    {
+      "size": 1048576,
+      "fragmented": false,
+      "send_error": "ConnectionResetError",
+      "ok": true,
+      "reply": "message exceeds 65536 bytes"
+    },
+    {
+      "size": 131072,
+      "fragmented": true,
+      "send_error": "BrokenPipeError",
+      "ok": true,
+      "reply": "message exceeds 65536 bytes"
+    }
+  ]
+}

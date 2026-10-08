@@ -1,0 +1,10 @@
+{
+  "killed": {
+    "pid": 62088,
+    "alive": false
+  },
+  "shutdown": {
+    "pid": 62111,
+    "alive": false
+  }
+}

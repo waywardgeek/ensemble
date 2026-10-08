@@ -1,0 +1,128 @@
+{
+  "ok": true,
+  "submitted": [
+    "A one",
+    "B one",
+    "A three"
+  ],
+  "events": [
+    {
+      "page": "A",
+      "typing": true,
+      "speaking": true
+    },
+    {
+      "page": "A",
+      "typing": true,
+      "speaking": true
+    },
+    {
+      "page": "A",
+      "typing": true,
+      "speaking": true
+    },
+    {
+      "page": "B",
+      "typing": true,
+      "speaking": true
+    },
+    {
+      "page": "B",
+      "typing": true,
+      "speaking": true
+    },
+    {
+      "page": "A",
+      "event": {
+        "type": "start",
+        "key": "A1",
+        "text": "A one"
+      }
+    },
+    {
+      "page": "idle",
+      "typing": true,
+      "speaking": false
+    },
+    {
+      "page": "A",
+      "event": {
+        "type": "end",
+        "key": "A1"
+      }
+    },
+    {
+      "page": "A",
+      "typing": true,
+      "speaking": true
+    },
+    {
+      "page": "B",
+      "event": {
+        "type": "start",
+        "key": "B1",
+        "text": "B one"
+      }
+    },
+    {
+      "page": "A",
+      "typing": true,
+      "speaking": false
+    },
+    {
+      "page": "B",
+      "typing": true,
+      "speaking": true
+    },
+    {
+      "page": "A",
+      "typing": true,
+      "speaking": true
+    },
+    {
+      "page": "A",
+      "typing": true,
+      "speaking": true
+    },
+    "native-cancel",
+    {
+      "page": "A",
+      "event": {
+        "type": "start",
+        "key": "A3",
+        "text": "A three"
+      }
+    },
+    {
+      "page": "B",
+      "typing": true,
+      "speaking": false
+    },
+    {
+      "page": "A",
+      "message": "Speech error: fixture error"
+    },
+    {
+      "page": "A",
+      "event": {
+        "type": "error",
+        "key": "A3",
+        "error": "fixture error"
+      }
+    },
+    {
+      "page": "A",
+      "typing": true,
+      "speaking": false
+    }
+  ],
+  "controls": [
+    "idle close does not native-cancel peer",
+    "FIFO submitted heads",
+    "queued owner cancellation leaves active peer",
+    "active owner cancellation advances peer once despite synchronous callback",
+    "stale callbacks cannot settle replacement",
+    "error releases speech while typing remains",
+    "whole-application close ends native admission before child cancellation"
+  ]
+}

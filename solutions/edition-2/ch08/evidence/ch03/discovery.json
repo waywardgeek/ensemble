@@ -1,0 +1,1023 @@
+{
+  "utc": "2026-10-07T18:35:07.595404+00:00",
+  "providers": {
+    "anthropic": [
+      {
+        "id": "claude-haiku-5-5",
+        "methods": null
+      },
+      {
+        "id": "claude-sonnet-5-5",
+        "methods": null
+      },
+      {
+        "id": "claude-opus-5-5",
+        "methods": null
+      },
+      {
+        "id": "claude-fable-5-1",
+        "methods": null
+      },
+      {
+        "id": "claude-opus-5",
+        "methods": null
+      },
+      {
+        "id": "claude-sonnet-5",
+        "methods": null
+      },
+      {
+        "id": "claude-fable-5",
+        "methods": null
+      },
+      {
+        "id": "claude-opus-4-8",
+        "methods": null
+      },
+      {
+        "id": "claude-opus-4-7",
+        "methods": null
+      },
+      {
+        "id": "claude-sonnet-4-6",
+        "methods": null
+      },
+      {
+        "id": "claude-opus-4-6",
+        "methods": null
+      },
+      {
+        "id": "claude-opus-4-5-20251101",
+        "methods": null
+      },
+      {
+        "id": "claude-haiku-4-5-20251001",
+        "methods": null
+      },
+      {
+        "id": "claude-sonnet-4-5-20250929",
+        "methods": null
+      }
+    ],
+    "openai": [
+      {
+        "id": "omni-moderation-latest",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.4-mini",
+        "methods": null
+      },
+      {
+        "id": "o3-deep-research-2025-06-26",
+        "methods": null
+      },
+      {
+        "id": "o4-mini-2025-04-16",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-2024-11-20",
+        "methods": null
+      },
+      {
+        "id": "tts-1-hd",
+        "methods": null
+      },
+      {
+        "id": "gpt-realtime-1.5",
+        "methods": null
+      },
+      {
+        "id": "gpt-realtime-2",
+        "methods": null
+      },
+      {
+        "id": "gpt-realtime",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.1",
+        "methods": null
+      },
+      {
+        "id": "gpt-5-search-api",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.5-2026-04-23",
+        "methods": null
+      },
+      {
+        "id": "o1-pro",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.1-codex",
+        "methods": null
+      },
+      {
+        "id": "whisper-1",
+        "methods": null
+      },
+      {
+        "id": "gpt-5-pro",
+        "methods": null
+      },
+      {
+        "id": "gpt-realtime-whisper",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.2-pro",
+        "methods": null
+      },
+      {
+        "id": "gpt-5-chat-latest",
+        "methods": null
+      },
+      {
+        "id": "gpt-live-1",
+        "methods": null
+      },
+      {
+        "id": "gpt-5-2025-08-07",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-mini-transcribe-2025-12-15",
+        "methods": null
+      },
+      {
+        "id": "o3-pro-2025-06-10",
+        "methods": null
+      },
+      {
+        "id": "chat-latest",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.5-pro",
+        "methods": null
+      },
+      {
+        "id": "gpt-realtime-translate",
+        "methods": null
+      },
+      {
+        "id": "gpt-audio-2025-08-28",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-mini-transcribe-2025-03-20",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.4-pro-2026-03-05",
+        "methods": null
+      },
+      {
+        "id": "gpt-5-pro-2025-10-06",
+        "methods": null
+      },
+      {
+        "id": "tts-1-1106",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.5-pro-2026-04-23",
+        "methods": null
+      },
+      {
+        "id": "gpt-audio-mini-2025-10-06",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.2-pro-2025-12-11",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.6-sol",
+        "methods": null
+      },
+      {
+        "id": "tts-1-hd-1106",
+        "methods": null
+      },
+      {
+        "id": "gpt-realtime-mini",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-transcribe-diarize",
+        "methods": null
+      },
+      {
+        "id": "o3-mini-2025-01-31",
+        "methods": null
+      },
+      {
+        "id": "o4-mini-deep-research",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.4",
+        "methods": null
+      },
+      {
+        "id": "gpt-5-codex",
+        "methods": null
+      },
+      {
+        "id": "gpt-audio-1.5",
+        "methods": null
+      },
+      {
+        "id": "gpt-image-1-mini",
+        "methods": null
+      },
+      {
+        "id": "gpt-4-0613",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-search-preview-2025-03-11",
+        "methods": null
+      },
+      {
+        "id": "gpt-image-1.5",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.1-2025-11-13",
+        "methods": null
+      },
+      {
+        "id": "text-embedding-3-small",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-search-preview",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.6-terra",
+        "methods": null
+      },
+      {
+        "id": "gpt-3.5-turbo-instruct-0914",
+        "methods": null
+      },
+      {
+        "id": "gpt-6-astra",
+        "methods": null
+      },
+      {
+        "id": "tts-1",
+        "methods": null
+      },
+      {
+        "id": "omni-moderation-2024-09-26",
+        "methods": null
+      },
+      {
+        "id": "gpt-4-turbo-2024-04-09",
+        "methods": null
+      },
+      {
+        "id": "gpt-realtime-2.1-mini",
+        "methods": null
+      },
+      {
+        "id": "gpt-realtime-2025-08-28",
+        "methods": null
+      },
+      {
+        "id": "gpt-live-transcribe",
+        "methods": null
+      },
+      {
+        "id": "gpt-3.5-turbo-0125",
+        "methods": null
+      },
+      {
+        "id": "gpt-5-mini",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.4-2026-03-05",
+        "methods": null
+      },
+      {
+        "id": "gpt-5-mini-2025-08-07",
+        "methods": null
+      },
+      {
+        "id": "gpt-5-nano",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.6-luna",
+        "methods": null
+      },
+      {
+        "id": "gpt-4",
+        "methods": null
+      },
+      {
+        "id": "gpt-image-2.5-sunburst-2026-09-08",
+        "methods": null
+      },
+      {
+        "id": "gpt-4.1-nano",
+        "methods": null
+      },
+      {
+        "id": "gpt-4-turbo",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.4-mini-2026-03-17",
+        "methods": null
+      },
+      {
+        "id": "o3-pro",
+        "methods": null
+      },
+      {
+        "id": "babbage-002",
+        "methods": null
+      },
+      {
+        "id": "gpt-image-2",
+        "methods": null
+      },
+      {
+        "id": "gpt-3.5-turbo-16k",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.4-pro",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-mini-tts",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-2024-05-13",
+        "methods": null
+      },
+      {
+        "id": "gpt-realtime-mini-2025-12-15",
+        "methods": null
+      },
+      {
+        "id": "text-embedding-ada-002",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-2024-08-06",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.1-codex-max",
+        "methods": null
+      },
+      {
+        "id": "gpt-realtime-2.1",
+        "methods": null
+      },
+      {
+        "id": "o3-deep-research",
+        "methods": null
+      },
+      {
+        "id": "o3",
+        "methods": null
+      },
+      {
+        "id": "gpt-4.1",
+        "methods": null
+      },
+      {
+        "id": "text-embedding-3-large",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.5",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-mini-search-preview-2025-03-11",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-mini-search-preview",
+        "methods": null
+      },
+      {
+        "id": "gpt-6-sol",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.1-chat-latest",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.3-chat-latest",
+        "methods": null
+      },
+      {
+        "id": "o3-2025-04-16",
+        "methods": null
+      },
+      {
+        "id": "gpt-4.1-mini",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.2-2025-12-11",
+        "methods": null
+      },
+      {
+        "id": "sora-2",
+        "methods": null
+      },
+      {
+        "id": "chatgpt-image-latest",
+        "methods": null
+      },
+      {
+        "id": "gpt-3.5-turbo",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-mini",
+        "methods": null
+      },
+      {
+        "id": "gpt-image-2.5-sunburst",
+        "methods": null
+      },
+      {
+        "id": "gpt-image-2.5-flare-2026-09-08",
+        "methods": null
+      },
+      {
+        "id": "gpt-6-luna",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.2-codex",
+        "methods": null
+      },
+      {
+        "id": "gpt-5-nano-2025-08-07",
+        "methods": null
+      },
+      {
+        "id": "gpt-3.5-turbo-1106",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-mini-tts-2025-03-20",
+        "methods": null
+      },
+      {
+        "id": "gpt-audio-mini",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-transcribe",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.2",
+        "methods": null
+      },
+      {
+        "id": "o4-mini",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-mini-2024-07-18",
+        "methods": null
+      },
+      {
+        "id": "gpt-4.1-2025-04-14",
+        "methods": null
+      },
+      {
+        "id": "gpt-4.1-mini-2025-04-14",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.1-codex-mini",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.4-nano-2026-03-17",
+        "methods": null
+      },
+      {
+        "id": "o1",
+        "methods": null
+      },
+      {
+        "id": "gpt-image-2.5-flare",
+        "methods": null
+      },
+      {
+        "id": "gpt-6.1-sol",
+        "methods": null
+      },
+      {
+        "id": "o1-2024-12-17",
+        "methods": null
+      },
+      {
+        "id": "gpt-5",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-mini-transcribe",
+        "methods": null
+      },
+      {
+        "id": "davinci-002",
+        "methods": null
+      },
+      {
+        "id": "gpt-image-2-2026-04-21",
+        "methods": null
+      },
+      {
+        "id": "gpt-4o-mini-tts-2025-12-15",
+        "methods": null
+      },
+      {
+        "id": "gpt-image-1",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.2-chat-latest",
+        "methods": null
+      },
+      {
+        "id": "gpt-audio",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.4-nano",
+        "methods": null
+      },
+      {
+        "id": "gpt-5.3-codex",
+        "methods": null
+      },
+      {
+        "id": "o3-mini",
+        "methods": null
+      },
+      {
+        "id": "o4-mini-deep-research-2025-06-26",
+        "methods": null
+      },
+      {
+        "id": "sora-2-pro",
+        "methods": null
+      },
+      {
+        "id": "gpt-3.5-turbo-instruct",
+        "methods": null
+      },
+      {
+        "id": "gpt-5-search-api-2025-10-14",
+        "methods": null
+      },
+      {
+        "id": "gpt-audio-mini-2025-12-15",
+        "methods": null
+      },
+      {
+        "id": "gpt-transcribe",
+        "methods": null
+      },
+      {
+        "id": "o1-pro-2025-03-19",
+        "methods": null
+      },
+      {
+        "id": "gpt-4.1-nano-2025-04-14",
+        "methods": null
+      }
+    ],
+    "gemini": [
+      {
+        "id": "models/gemini-2.5-flash",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-2.5-pro",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-2.5-flash-preview-tts",
+        "methods": [
+          "countTokens",
+          "generateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-2.5-pro-preview-tts",
+        "methods": [
+          "countTokens",
+          "generateContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemma-4-26b-a4b-it",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/gemma-4-31b-it",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/gemini-flash-latest",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-flash-lite-latest",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-pro-latest",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-2.5-flash-lite",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-2.5-flash-image",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3-flash-preview",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3.1-pro-preview",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3.1-pro-preview-customtools",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3.1-flash-lite-preview",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3.1-flash-lite",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3-pro-image-preview",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3-pro-image",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/nano-banana-pro-preview",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3.1-flash-image-preview",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3.1-flash-image",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3.1-flash-lite-image",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-nano-banana-2.1",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3.5-flash",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3.5-flash-lite",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-omni-flash-preview",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/gemini-omni-1.1-flash",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/gemini-3.5-transcribe",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/gemini-3.6-flash",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3.7-flash",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3.8-flash",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/lyria-3-clip-preview",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/lyria-3-pro-preview",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/lyria-3.5",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/gemini-3.1-flash-tts-preview",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3.8-flash-tts",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-3.8-flash-lite-tts",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-robotics-er-2-preview",
+        "methods": [
+          "generateContent",
+          "countTokens",
+          "createCachedContent",
+          "batchGenerateContent"
+        ]
+      },
+      {
+        "id": "models/gemini-2.5-computer-use-preview-10-2025",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/antigravity-preview-05-2026",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/antigravity-preview-09-2026",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/antigravity-preview-latest",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/deep-research-max-preview-04-2026",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/deep-research-preview-04-2026",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/deep-research-pro-preview-12-2025",
+        "methods": [
+          "generateContent",
+          "countTokens"
+        ]
+      },
+      {
+        "id": "models/gemini-embedding-001",
+        "methods": [
+          "embedContent",
+          "countTextTokens",
+          "countTokens",
+          "asyncBatchEmbedContent"
+        ]
+      },
+      {
+        "id": "models/gemini-embedding-2-preview",
+        "methods": [
+          "embedContent",
+          "countTextTokens",
+          "countTokens",
+          "asyncBatchEmbedContent"
+        ]
+      },
+      {
+        "id": "models/gemini-embedding-2",
+        "methods": [
+          "embedContent",
+          "countTextTokens",
+          "countTokens",
+          "asyncBatchEmbedContent"
+        ]
+      },
+      {
+        "id": "models/aqa",
+        "methods": [
+          "generateAnswer"
+        ]
+      },
+      {
+        "id": "models/veo-3.1-generate-preview",
+        "methods": [
+          "predictLongRunning"
+        ]
+      }
+    ]
+  }
+}
