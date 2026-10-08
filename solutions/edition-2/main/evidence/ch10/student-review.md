@@ -382,3 +382,28 @@ current policy authority. Freeze the initial source/experience/evidence before
 independent historical comparison, implement reviewed improvements, rerun affected
 checks, and verify recorded author feedback. No fake-only or initial-subset pass
 can complete this chapter. This plan commit creates no acceptance tag or snapshot.
+
+## Phase 2 acknowledgment — 2026-10-08
+
+Continued from plan 7cb84290af3e8bac5359339f8ab5d4e7e941bf74. Reread the entire
+repository coding skill and pinned architecture. Read full revised Chapter 10
+and full direct author response in clarification-af5a762; verified both manifest
+hashes and exact bytes at af5a7625282f1c1fffe4a18ba508e69252b647c1. Chapter hash:
+46249bc8fadd59f55c5dc12aebfe2c3ca22ce9c031d4a7972aa97e7140b22d60; feedback hash:
+63bea996ae2e31aa96e9f609287d1d9c6f6c834289fef263ab4013ca73beb46c.
+Read the sole coordinator inbox's phase-2 release; no excluded source opened.
+
+Q1 resolved: 64 MiB all session events, inherited headers/standalone bounds;
+controlled skill_too_large candidate preflight precedes terminal session storage
+admission. Q2 resolved: actual anchor/tail raw history, labeled origin boundary,
+stable history_unavailable before origin, origin-seeded available-tail replay.
+Q3 resolved: exact raw JSON bytes/lexemes, validated dedicated raw strings in the
+codec; canonical parsed equality only for its specified semantic purpose.
+These author responses close the original questions; no Bill permission needed.
+
+Accepted safeguards: validation owners remain inert children of the real Ensemble,
+unregistered, with no Actor/process/policy write/shared allocator change before
+acceptance. Restoring accepted usage is not charging replay as a new response.
+GUI delivery waits belong to connection lifetime and release on disconnect/loss.
+The early grammar and signatures are persistence-format.md and session-api.md;
+status/evidence are in implementation-status.md. No live access is released.
