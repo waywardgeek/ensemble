@@ -559,9 +559,11 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int,
 		event.Seq = a.context.LastSeq + 1
 		event.Time = time.Now().UTC().Format(time.RFC3339Nano)
 	}
-	if err := eventlog.CheckSkillRecord(a, event); err != nil {
-		a.mu.Unlock()
-		return err
+	if persist {
+		if err := eventlog.CheckSkillRecord(a, event); err != nil {
+			a.mu.Unlock()
+			return err
+		}
 	}
 	owned, err := llm.Clone(a.engine, event)
 	if err == nil && len(missing) != 0 {

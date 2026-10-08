@@ -1,15 +1,20 @@
 package ensemble
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"example.com/ensemble/internal/common"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 // This is an ordinary valid catalog, not an invented exhausted-history log.
@@ -125,5 +130,64 @@ func TestSkillOversizeInitializationRefuses(t *testing.T) {
 	data, err := os.ReadFile(c.LogPath)
 	if err != nil || string(data) != "{\"log_version\":1}\n" {
 		t.Fatal("initial transition appended on refusal", err)
+	}
+}
+
+func TestSkillImportCountsOriginalEncodingAndFraming(t *testing.T) {
+	app := New(nil)
+	defer app.Close()
+	c := repeatedOffersConfig(t)
+	a, err := app.NewAgent(c)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// The owner prepares an ordinary valid frozen-catalog candidate. Import may
+	// use a different valid JSON encoding from the live writer; it is bounded
+	// by the original physical bytes, not a later escaped serialization.
+	a.mu.Lock()
+	candidate, err := a.skills.Prepare(common.SkillOperation{Action: "load", Name: "bomb"})
+	a.mu.Unlock()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fact := candidate.Transition()
+	event := Event{Seq: a.Snapshot().LastSeq + 1, Time: time.Now().UTC().Format(time.RFC3339Nano), Type: "skills_changed", Skills: &fact}
+	canonical, err := json.Marshal(event)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(canonical)+1 <= common.SkillRecordLimit {
+		t.Fatal("fixture does not distinguish encodings")
+	}
+	var plain bytes.Buffer
+	encoder := json.NewEncoder(&plain)
+	encoder.SetEscapeHTML(false)
+	if err = encoder.Encode(event); err != nil {
+		t.Fatal(err)
+	}
+	if plain.Len() >= common.SkillRecordLimit {
+		t.Fatal("original encoding is oversize")
+	}
+	before, err := os.ReadFile(c.LogPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, lf := range []bool{true, false} {
+		data := plain.Bytes()
+		if !lf {
+			data = bytes.TrimSuffix(data, []byte{'\n'})
+		}
+		path := filepath.Join(t.TempDir(), "original.jsonl")
+		if err = os.WriteFile(path, append(append([]byte{}, before...), data...), 0600); err != nil {
+			t.Fatal(err)
+		}
+		loaded, err := app.Load(path, Config{})
+		if err != nil {
+			t.Fatalf("valid raw encoding (LF=%v) rejected: %v", lf, err)
+		}
+		state, err := loaded.SkillState()
+		if err != nil || state.Revision != 1 || len(state.Active) != 128 {
+			t.Fatalf("wrong imported state: %+v %v", state, err)
+		}
 	}
 }

@@ -1,0 +1,273 @@
+{
+  "scope": "raw-import repair; all 12 delivery modules",
+  "source_sha256": {
+    "ensemble.go": "57dd84e0171a4292201d06a851b72f9967a18ff24190099ca4efab92c5582884",
+    "skills_record_test.go": "0c3a133a2c4ade64f15d24aed8a1996e34377a19d688eded1ddbf50e6e8f3a0e"
+  },
+  "modules": [
+    {
+      "module": ".",
+      "checks": [
+        {
+          "command": [
+            "go",
+            "vet",
+            "./..."
+          ],
+          "exit": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "go",
+            "test",
+            "./...",
+            "-count=1"
+          ],
+          "exit": 0,
+          "output": "ok  \texample.com/ensemble\t8.846s\nok  \texample.com/ensemble/cli\t0.056s\n?   \texample.com/ensemble/cmd\t[no test files]\n?   \texample.com/ensemble/internal/common\t[no test files]\nok  \texample.com/ensemble/internal/eventlog\t0.289s\nok  \texample.com/ensemble/internal/jobs\t0.836s\nok  \texample.com/ensemble/internal/llm\t6.111s\n?   \texample.com/ensemble/internal/policy\t[no test files]\nok  \texample.com/ensemble/internal/skills\t0.051s\nok  \texample.com/ensemble/internal/tools\t0.013s\n"
+        }
+      ]
+    },
+    {
+      "module": "examples/browser-consumer",
+      "checks": [
+        {
+          "command": [
+            "go",
+            "vet",
+            "./..."
+          ],
+          "exit": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "go",
+            "test",
+            "./...",
+            "-count=1"
+          ],
+          "exit": 0,
+          "output": "?   \texample.com/browser-consumer\t[no test files]\n"
+        }
+      ]
+    },
+    {
+      "module": "examples/consumer",
+      "checks": [
+        {
+          "command": [
+            "go",
+            "vet",
+            "./..."
+          ],
+          "exit": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "go",
+            "test",
+            "./...",
+            "-count=1"
+          ],
+          "exit": 0,
+          "output": "?   \texample.com/ensemble-consumer\t[no test files]\n"
+        }
+      ]
+    },
+    {
+      "module": "examples/jobs-consumer",
+      "checks": [
+        {
+          "command": [
+            "go",
+            "vet",
+            "./..."
+          ],
+          "exit": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "go",
+            "test",
+            "./...",
+            "-count=1"
+          ],
+          "exit": 0,
+          "output": "?   \texample.com/ensemble-jobs-consumer\t[no test files]\n"
+        }
+      ]
+    },
+    {
+      "module": "examples/policy-consumer",
+      "checks": [
+        {
+          "command": [
+            "go",
+            "vet",
+            "./..."
+          ],
+          "exit": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "go",
+            "test",
+            "./...",
+            "-count=1"
+          ],
+          "exit": 0,
+          "output": "?   \texample.com/policy-consumer\t[no test files]\n"
+        }
+      ]
+    },
+    {
+      "module": "examples/skills-consumer",
+      "checks": [
+        {
+          "command": [
+            "go",
+            "vet",
+            "./..."
+          ],
+          "exit": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "go",
+            "test",
+            "./...",
+            "-count=1"
+          ],
+          "exit": 0,
+          "output": "?   \texample.com/skills-consumer\t[no test files]\n"
+        }
+      ]
+    },
+    {
+      "module": "examples/skills-redaction",
+      "checks": [
+        {
+          "command": [
+            "go",
+            "vet",
+            "./..."
+          ],
+          "exit": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "go",
+            "test",
+            "./...",
+            "-count=1"
+          ],
+          "exit": 0,
+          "output": "?   \texample.com/skills-redaction\t[no test files]\n"
+        }
+      ]
+    },
+    {
+      "module": "examples/stream-consumer",
+      "checks": [
+        {
+          "command": [
+            "go",
+            "vet",
+            "./..."
+          ],
+          "exit": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "go",
+            "test",
+            "./...",
+            "-count=1"
+          ],
+          "exit": 0,
+          "output": "?   \texample.com/ensemble/stream-consumer\t[no test files]\n"
+        }
+      ]
+    },
+    {
+      "module": "examples/tools-consumer",
+      "checks": [
+        {
+          "command": [
+            "go",
+            "vet",
+            "./..."
+          ],
+          "exit": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "go",
+            "test",
+            "./...",
+            "-count=1"
+          ],
+          "exit": 0,
+          "output": "?   \texample.com/ensemble-tools-consumer\t[no test files]\n"
+        }
+      ]
+    },
+    {
+      "module": "examples/workflow",
+      "checks": [
+        {
+          "command": [
+            "go",
+            "vet",
+            "./..."
+          ],
+          "exit": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "go",
+            "test",
+            "./...",
+            "-count=1"
+          ],
+          "exit": 0,
+          "output": "?   \texample.com/ensemble-workflow\t[no test files]\n"
+        }
+      ]
+    },
+    {
+      "module": "gui",
+      "checks": [
+        {
+          "command": [
+            "go",
+            "vet",
+            "./..."
+          ],
+          "exit": 0,
+          "output": ""
+        },
+        {
+          "command": [
+            "go",
+            "test",
+            "./...",
+            "-count=1"
+          ],
+          "exit": 0,
+          "output": "ok  \texample.com/ensemble-gui\t0.010s\n?   \texample.com/ensemble-gui/cmd/ensemble-gui\t[no test files]\n?   \texample.com/ensemble-gui/internal/common\t[no test files]\n?   \texample.com/ensemble-gui/internal/preferences\t[no test files]\n"
+        }
+      ]
+    }
+  ]
+}

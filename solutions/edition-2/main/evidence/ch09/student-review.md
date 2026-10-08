@@ -517,3 +517,12 @@ Read at the pre-commit boundary. The final browser-original log, screenshot/text
 
 
 Frozen initial checkpoint: `654075b8a3becd0c23f0a0ed2d2531cb0d362156`, main tree `8a40809127f4c28c3b08d6b7b0fdf1c7affa411f`. Combined source-bound gate launched against that revision. The first immutable support run failed before replay: my fixture enumerated workspace immediate children as files, but actual write_file also creates the inherited `cr/` directory. `local-evidence-controls-initial.json` preserves the traceback. Corrected fixture enumeration to recursive regular files, matching the launcher's complete workspace outputs; this is a support-test bug, not a runtime or teaching change. The initial binding remains retained unchanged; a new binding will identify the corrected support checkpoint. No provider calls occurred.
+
+
+### Boundary responses: source-freeze-654075b and record-import-confirmed
+
+The combined gate had already launched against 654075b before I read the narrow hold; I will retain its actual output and will not treat it as validation of later changes. The independent reviewer confirmed that my new emitted-record check also ran during import, re-encoding accepted physical bytes with HTML escaping and a fresh LF. This violated the published distinction. I restricted emitted-record measurement to actual persistence; imported records still pass the bounded physical reader and all semantic transition validation. This was my implementation bug under the clarified teaching, not a new teaching gap.
+
+Added `TestSkillImportCountsOriginalEncodingAndFraming`: prepare a real valid candidate from the owned frozen catalog, encode its exact fact with literal HTML characters, and load the physical log with and without final LF. Its original encoding fits, while canonical escaped serialization exceeds 64 MiB; both imports must install the complete revision-1 state. My first fixture omitted the inherited required UTC timestamp and correctly failed validation; corrected that fixture and the regression now passes. Existing write-side oversized typed/model/initialization refusals still pass. The initial source remains preserved unchanged. No grader or historical implementation source was read.
+
+Post-import-repair all 12 delivery modules again passed vet/test, with empty changed-Go formatting output. Exact receipt: `evidence/ch09/module-checks-import.json`. Freezing this repair for the final combined gate and support binding.
