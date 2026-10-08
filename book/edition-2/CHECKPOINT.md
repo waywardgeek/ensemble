@@ -17,8 +17,10 @@ student's external results directory. Other tested checkpoint I/O outcomes,
 canceled waiting and close/join/lock controls pass. No paid calls are released.
 
 CLI phase 2 exited 0 (exec `52654`). The SAME student conversation
-`01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0` is resumed for this repair: exec `15768`,
-external `phase-2-repair.txt`, events, stderr and eventual result under
+`01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0` was resumed for this repair as exec `15768`,
+which exited 101 without a final result. Its uncommitted repair and original
+receipts remain. The same conversation is now running as exec `30578`, using
+external `phase-2-repair-resume.txt`, events, stderr and eventual result under
 `/Users/bill/projects/ensemble-edition-2-revisions/ch10-student-inputs/`.
 Its regression reproduced the fault; repair validation then encountered disk
 exhaustion. Cache maintenance is now complete and its build stage is released.
@@ -31,6 +33,12 @@ on disk exhaustion during final GUI-directory rename, before emitting its final
 JSON. External ch10-retained-initial.json is empty; the matching .stderr preserves
 the failure. Do not claim any recovered pass count or repeat without durable
 per-command receipts. No original runtime/checker code was modified by that run.
+Root orchestration correction `c8353a2` adds optional callbacks to the preceding
+gate and a separate `accept_ch10_retained.py` runner. Nine Python controls pass:
+default command/result equivalence including a failure, partial receipts across
+interruptions, source refusal before writes, subset labeling, and guarded cache
+maintenance. These are orchestration tests, not recovered runtime results.
+The broad retained suite has not yet been rerun.
 Root will own the retained/structural gate; grader `/root/grader_ch05` owns fault
 and real-job tail controls, reviewer `/root/coder_ch08` owns remaining bounds and
 uint64 controls. Pending lifecycle files are separate from stable `f572cd3`.
@@ -50,9 +58,13 @@ comparison has started for Chapter 10.
 
 Chapter 15 contract is accepted (`a80138d`, closure `738fe0f`). Chapter 16 outline
 `d4b17a3`, advisory `0320911` and decisions `81e2065` led to full draft `f097e24`.
-The draft needs independent full review; reviewer currently prioritizes Chapter 10
-bounds. Root gate chapter-16-validation.md exists. Author `/root/coder_ch04` is
-available for feedback; no Chapter 16 checker/runtime/live result exists.
+The draft needs independent full review; reviewer `/root/coder_ch08` is reading it
+while Chapter 10 builds are serialized. Root gate chapter-16-validation.md exists.
+Author `/root/coder_ch04` completed a narrow Chapter 10 status correction at
+`4bb8a30`, acknowledging implementation while retaining the unrun spin label.
+The author reconfirmed Chapters 11/12 explicitly teach replaceable MCP transports
+and the required optional-module GUI WebSocket tunnel. No Chapter 16
+checker/runtime/live result exists.
 
 ## Previous handoff narrative
 

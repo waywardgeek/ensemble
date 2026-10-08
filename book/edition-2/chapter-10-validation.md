@@ -138,3 +138,13 @@ Only regenerable build cache was cleared after compilers stopped. Remaining runs
 must serialize builds and retain per-command results. Other source/artifacts and
 module downloads are preserved. The live matrix remains pending its independent
 `c9ba32c` corrections, local clearance and immutable support preflight.
+
+Retained-gate orchestration is corrected at `c8353a2`: the existing gate accepts
+optional progress callbacks without changing its checks, and the Chapter 10
+wrapper saves each started/completed command atomically. Nine Python controls
+pass, including identical default commands/results with a deliberately failing
+check, interruption and callback-failure receipts, source refusal before writes,
+subset labeling and explicit idle-only cache maintenance. No runtime result is
+recovered from the original disk failure, and the broad rerun remains pending.
+Author `4bb8a30` updates two stale manuscript status paragraphs only; it does not
+change the contract or present the planned spin as completed.
