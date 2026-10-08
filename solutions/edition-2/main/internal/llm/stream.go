@@ -122,6 +122,20 @@ func parseStream(ctx context.Context, owner common.ModelOperation, config common
 		return common.ParsedResponse{}, err
 	}
 	parsed, err := parseResponse(owner.Engine(), config, body, 0, owner)
+	if err == nil {
+		// Serialization may expand raw argument escapes. Measure normalized
+		// owned parts once at completion, never by rescanning growing history.
+		size := 0
+		for _, part := range parsed.Response.Parts {
+			size += len(part.Data) + len(part.Opaque) + len(part.Args) + len(part.Name)
+			if part.Text != nil {
+				size += len(*part.Text)
+			}
+		}
+		if size > responseLimit {
+			return common.ParsedResponse{}, s.fail("assembled response exceeds 16 MiB")
+		}
+	}
 	parsed.PartIDs = ids
 	return parsed, err
 }
@@ -152,7 +166,7 @@ func (s *streamParser) messages(ctx context.Context, root map[string]json.RawMes
 		b := &streamBlock{id: s.allocate(), raw: s.p.obj(root["content_block"]), values: map[string]*strings.Builder{}}
 		b.kind = s.p.str(b.raw["type"])
 		s.blocks[index] = b
-		size := len(root["content_block"])
+		size := len(rawValue(b.raw))
 		initial := ""
 		if b.kind == "text" || b.kind == "thinking" {
 			field := b.kind
@@ -167,6 +181,14 @@ func (s *streamParser) messages(ctx context.Context, root map[string]json.RawMes
 				b.values["signature"] = &strings.Builder{}
 				b.values["signature"].WriteString(s.p.str(signature))
 				delete(b.raw, "signature")
+			}
+		}
+		if b.kind == "thinking" {
+			// This block is retained as JSON, so escaping and newly inserted
+			// fields count too. Only initial values are materialized here.
+			size = len(rawValue(b.raw))
+			for field, value := range b.values {
+				size += 1 + len(rawValue(field)) + 1 + len(rawValue(value.String()))
 			}
 		}
 		if err = s.add(size); err != nil {
@@ -220,11 +242,18 @@ func (s *streamParser) messages(ctx context.Context, root map[string]json.RawMes
 		if field == "partial_json" {
 			field = "input"
 			if b.values[field] == nil {
-				s.size -= len(b.raw[field])
+				s.size -= len(rawValue(b.raw[field]))
 				delete(b.raw, field)
 			}
 		}
-		if err = s.add(len(text)); err != nil {
+		size := len(text)
+		if b.kind == "thinking" {
+			size = len(rawValue(text)) - 2
+			if b.values[field] == nil {
+				size += 1 + len(rawValue(field)) + 1 + 2
+			}
+		}
+		if err = s.add(size); err != nil {
 			return err
 		}
 		if b.values[field] == nil {
@@ -315,7 +344,11 @@ func (s *streamParser) chat(ctx context.Context, root map[string]json.RawMessage
 		}
 		if value, ok := d["refusal"]; ok && string(value) != "null" {
 			text := s.p.str(value)
-			if err = s.add(len(text)); err != nil {
+			size := len(rawValue(text)) - 2
+			if s.refusalID == 0 {
+				size += len(`{"refusal":""}`)
+			}
+			if err = s.add(size); err != nil {
 				return err
 			}
 			if s.refusalID == 0 {
@@ -391,7 +424,7 @@ type geminiPart struct {
 
 func classifyGemini(p *parser, raw json.RawMessage) (*geminiPart, []common.Fragment) {
 	b := p.obj(raw)
-	part := &geminiPart{raw: raw, fields: b, cost: len(raw)}
+	part := &geminiPart{raw: raw, fields: b, cost: len(rawValue(raw))}
 	if value, hasText := b["text"]; hasText {
 		text := p.str(value)
 		thought := false
@@ -413,7 +446,10 @@ func classifyGemini(p *parser, raw json.RawMessage) (*geminiPart, []common.Fragm
 		}
 		part.mergeable = !signed
 		if !thought {
-			part.cost = len(text) + len(signature)
+			part.cost = len(text)
+			if signed {
+				part.cost += len(rawValue(signature))
+			}
 		}
 		if part.mergeable {
 			part.text.WriteString(text)

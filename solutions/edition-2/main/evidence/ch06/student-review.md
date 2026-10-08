@@ -150,3 +150,31 @@ Independent black-box client checks passed 6/6 and wire checks 61/61 using
 remains 0/100 under its older contract; its new receipt is retained separately
 from the initial failure. This is not relabeled chapter validation. Reviewer
 reports no further established findings beyond R1–R4 before this repair freeze.
+
+### Escaped opaque bound correction after intermediate freeze
+
+Independent review found that 3ccaed6 still counted Messages thinking deltas as
+decoded strings although the accepted part retained JSON. Forty-eight 64 KiB
+NUL fragments yielded an opaque payload above 16 MiB. This is my accounting
+defect; the intermediate revision and its passing narrower checks are retained.
+I read the additional explanation in 3792a19: retained representation, including
+six-byte JSON escapes, is the correct cost. That clarification resolves the
+representation distinction without changing the ownership plan or size limit.
+
+The revised counters charge canonical initial opaque objects, the encoded cost
+of each arriving thinking/signature/refusal fragment, and fixed structure when
+a field is first inserted. They never rescan the accumulated prefix. Incoming
+Gemini opaque/signature payloads charge their serialized representation; a single
+completion-boundary check measures normalized retained parts and catches raw
+argument serialization expansion. Messages replacement subtracts the same
+canonical input cost it originally charged.
+
+New meaningful fixtures cover small positives, exactly 16 MiB combined visible
+plus opaque data, and one-byte overflow for thinking, newly added signatures,
+and Chat refusals. Each frame stays below 1 MiB. All nine pass with the fix;
+the 3cca implementation fails the thinking overflow case for the intended
+reason (acceptance with nil error), retained in repair-opaque-negative.txt.
+Main vet/test/race pass; race including large-bound fixtures takes about52s.
+The repeated doubling benchmark remains approximately linear; retained in
+assembly-opaque-after.txt (Messages2.75→5.36MB, Chat3.12→6.10MB,
+Gemini5.01→9.83MB). No paid calls occurred on the intermediate repair.
