@@ -1,5 +1,12 @@
 # Working checkpoint
 
+Chapter 6 maintenance checkpoint: `edition-2-ch06-r2` points to isolated
+`3acdd8e`, whose main and exact 1,565-file export match source `5e48b38`.
+The five-line Messages repair and its evidence are independently accepted at
+`f87f160`. This tag preserves the Chapter 6 source stage; current development
+main remains Chapter 9. Original r1/live identities remain intact. Chapter 7/8
+forward propagation continues in separate worktrees.
+
 Date: 2026-10-08. Autonomous work is active. Chapter 5 code, live evidence,
 student feedback and manuscript are accepted at `c1cc0b4`. Its exact 1,254-file
 export uses source `185ba76`, reviewed runtime `959c663` and revised evidence

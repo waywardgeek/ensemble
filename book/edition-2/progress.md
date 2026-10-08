@@ -8,6 +8,14 @@ in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 
 ## Current chapter
 
+The scoped Chapter 6 streaming correction is accepted at `edition-2-ch06-r2`
+(`3acdd8e`), with exact 1,565-file export from `5e48b38`. Main and export match
+on that isolated tag; current development remains Chapter 9. Root review
+`f87f160` accepts the five-line correction and its source-bound controls.
+Original r1 and all earlier live evidence remain unchanged. Separate Chapter
+7/8 propagation is underway; see the Chapter 6 gate and
+[maintenance review](empty-arguments-backport-review.md).
+
 Chapter 6 is accepted at `edition-2-ch06-r1`: reviewed runtime `75bd14d`,
 revised live evidence `8c73f9b`, final independent acceptance `37a37f7` and exact
 1,550-file export from `c3fa758`. All code, live, teaching and prose gates pass;

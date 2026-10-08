@@ -1,5 +1,12 @@
 # Chapter 6 validation
 
+Scoped maintenance revision `edition-2-ch06-r2` is accepted. Source `5e48b38`
+contains the isolated zero-byte Messages argument correction, reviewed at
+`f87f160`; the exact revised export has 1,565 files. Initial acceptance and live
+receipts below retain their original r1 identities. This maintenance does not
+repeat the initial cold-student evaluation or create a new all-provider run.
+See [the independent maintenance review](empty-arguments-backport-review.md).
+
 Accepted for checkpoint `edition-2-ch06-r1`. Final independent code, teaching,
 live-evidence and manuscript acceptance is recorded at `37a37f7`. Bill's
 editorial approval remains separate.
@@ -73,3 +80,31 @@ cover those specified stream/overflow behaviors. Gemini token-limited answers
 remain accepted partial output, with no claim that the requested explanation
 finished. Earlier unaffected paths retain their initial source identity.
 Scoped tests and mutations are evidence, not an exhaustive proof.
+
+## Revision 2: zero-byte argument fragments
+
+Runtime/regression `788c5e9` starts from accepted source `c3fa758`; evidence freeze
+and export source is `5e48b38`. The only changed original runtime file is
+`internal/llm/stream.go`; all 1,470 original evidence files are unchanged.
+The exact 2,668-byte later observed SSE becomes a regression fixture. The 13
+regressions, 14 independent CLI controls, core race and seven module vet/tests
+pass. The original full gate remains 22/23 because of a duplicate mutation
+anchor; a separate containing-method-qualified adapter detects the same
+thinking deletion with unchanged positive/refusal checks. Other 18 deletions
+pass. This preserves the failed run and coverage instead of rewriting its result.
+
+The coordinator matched all source, checker, receipt and executable identities,
+then verified all 1,565 exported hashes and complete seven-module test-package
+discovery. See `checkpoint-evidence/ch06-r2-export-checks.json` and
+`solutions/edition-2/manifests/ch06-r2.json`. Module vet/tests retain their actual
+maintenance gate source; no redundant full test execution on identical exported
+Go source is claimed. The original SSE final delimiter is preserved even though
+whitespace diff checking flags its blank terminal line.
+
+Current main already has the independently implemented Chapter 9 repair and its
+actual successful supplemental Messages call. That real run retains its own
+runtime identity. Chapter 7/8 isolated forward propagation is pending; their
+existing tags are not overwritten. This revision tag must point to the isolated
+Chapter 6 checkpoint where canonical main and ch06 export match, rather than to
+later Chapter 9 development. Publication and Bill's editorial approval remain
+separate.

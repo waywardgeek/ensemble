@@ -1,0 +1,34 @@
+=== RUN   TestMessagesZeroByteArguments
+=== RUN   TestMessagesZeroByteArguments/recorded
+    empty_argument_test.go:98: invalid assembled response
+=== RUN   TestMessagesZeroByteArguments/no-deltas
+=== RUN   TestMessagesZeroByteArguments/one-empty
+    empty_argument_test.go:98: invalid assembled response
+=== RUN   TestMessagesZeroByteArguments/two-empty
+    empty_argument_test.go:98: invalid assembled response
+=== RUN   TestMessagesZeroByteArguments/replacement
+=== RUN   TestMessagesZeroByteArguments/whitespace
+=== RUN   TestMessagesZeroByteArguments/malformed
+=== RUN   TestMessagesZeroByteArguments/null-replacement
+=== RUN   TestMessagesZeroByteArguments/array-replacement
+=== RUN   TestMessagesZeroByteArguments/null-start
+=== RUN   TestMessagesZeroByteArguments/missing-start
+=== RUN   TestMessagesZeroByteArguments/wrong-delta-type
+=== RUN   TestMessagesZeroByteArguments/missing-terminal
+--- FAIL: TestMessagesZeroByteArguments (0.00s)
+    --- FAIL: TestMessagesZeroByteArguments/recorded (0.00s)
+    --- PASS: TestMessagesZeroByteArguments/no-deltas (0.00s)
+    --- FAIL: TestMessagesZeroByteArguments/one-empty (0.00s)
+    --- FAIL: TestMessagesZeroByteArguments/two-empty (0.00s)
+    --- PASS: TestMessagesZeroByteArguments/replacement (0.00s)
+    --- PASS: TestMessagesZeroByteArguments/whitespace (0.00s)
+    --- PASS: TestMessagesZeroByteArguments/malformed (0.00s)
+    --- PASS: TestMessagesZeroByteArguments/null-replacement (0.00s)
+    --- PASS: TestMessagesZeroByteArguments/array-replacement (0.00s)
+    --- PASS: TestMessagesZeroByteArguments/null-start (0.00s)
+    --- PASS: TestMessagesZeroByteArguments/missing-start (0.00s)
+    --- PASS: TestMessagesZeroByteArguments/wrong-delta-type (0.00s)
+    --- PASS: TestMessagesZeroByteArguments/missing-terminal (0.00s)
+FAIL
+FAIL	example.com/ensemble/internal/llm	0.009s
+FAIL

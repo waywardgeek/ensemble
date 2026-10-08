@@ -1,0 +1,93 @@
+{
+  "source_commit": "5e48b3818147cbfd5d2e064794146f211802d5e1",
+  "source_tree": "82d7a0aacad9f7ec18a4ec2a2965a056fa3260ef",
+  "files_verified": 1565,
+  "scope": "Complete delivered-tree package discovery; existing immutable gate retains module vet/test executions",
+  "passed": true,
+  "modules": [
+    {
+      "module": "examples/consumer",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "output": "example.com/ensemble-consumer\n",
+      "seconds": 0.026
+    },
+    {
+      "module": "examples/jobs-consumer",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "output": "example.com/ensemble-jobs-consumer\n",
+      "seconds": 0.019
+    },
+    {
+      "module": "examples/stream-consumer",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "output": "example.com/ensemble/stream-consumer\n",
+      "seconds": 0.02
+    },
+    {
+      "module": "examples/tools-consumer",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "output": "example.com/ensemble-tools-consumer\n",
+      "seconds": 0.019
+    },
+    {
+      "module": "examples/workflow",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "output": "example.com/ensemble-workflow\n",
+      "seconds": 0.019
+    },
+    {
+      "module": ".",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "output": "example.com/ensemble\nexample.com/ensemble/cmd\nexample.com/ensemble/internal/common\nexample.com/ensemble/internal/eventlog\nexample.com/ensemble/internal/jobs\nexample.com/ensemble/internal/llm\nexample.com/ensemble/internal/tools\nexample.com/ensemble.test\nexample.com/ensemble [example.com/ensemble.test]\nexample.com/ensemble_test [example.com/ensemble.test]\nexample.com/ensemble/cmd.test\nexample.com/ensemble/cmd [example.com/ensemble/cmd.test]\nexample.com/ensemble/internal/eventlog.test\nexample.com/ensemble/internal/eventlog [example.com/ensemble/internal/eventlog.test]\nexample.com/ensemble/internal/jobs.test\nexample.com/ensemble/internal/jobs [example.com/ensemble/internal/jobs.test]\nexample.com/ensemble/internal/llm.test\nexample.com/ensemble/internal/llm [example.com/ensemble/internal/llm.test]\nexample.com/ensemble/internal/tools.test\nexample.com/ensemble/internal/tools [example.com/ensemble/internal/tools.test]\n",
+      "seconds": 0.049
+    },
+    {
+      "module": "gui",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "output": "example.com/ensemble-gui\nexample.com/ensemble-gui.test\nexample.com/ensemble-gui_test [example.com/ensemble-gui.test]\n",
+      "seconds": 0.022
+    }
+  ]
+}
