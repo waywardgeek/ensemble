@@ -431,3 +431,37 @@ escaped-backslash distinction; replay-bearing raw fields preserve original valid
 bytes after validation. Legacy standalone decoding retains its earlier contract.
 A separate direct-feedback addendum preserves that attribution. No code, grader,
 provider, snapshot or legacy edit occurred.
+
+## Accepted-byte boundary from initial prefix diagnostic
+
+October 8, 2026. The author read the full retained diagnostic in
+checkpoint-evidence/ch10-initial-prefix-diagnostic.json and its grader-review
+explanation at `63dea39`. This is the reviewer's reproduction of the preserved
+initial binary, not an author execution or a claim about evolving current source.
+One local HTTP request created the store; unchanged inspection refused at record
+7. A checkpoint-free separate copy rebuilt. The two differing fields were live
+context and saved-window raw_usage, with spaced provider JSON versus compact
+recorded JSON. Original files remained unchanged; no real provider was contacted.
+
+Focused teaching reads checked Chapter 2's physical JSONL/typed Part/provenance
+contract, Chapter 6's retained JSON/merged final usage and framing distinctions,
+and Chapter 9's exact material and original-read/emitted-write bounds. They did
+not specify a pre-acceptance representation boundary capable of reconciling legal
+raw formatting LF with a one-line event. The author proposed bounded final-record
+preparation; the coordinator selected it before affected implementation.
+
+Chapter 10 §10.3 now makes the final prepared event encoding authoritative for
+new accepted session raw fragments, with validation first, number lexemes and
+decoded values/order/opaque semantics preserved, and append before state/observe.
+Imported fragments remain exact and are never normalized on load. Controlled
+Skills preflight still precedes session storage admission. This resolves the
+observed integration gap without relaxing all byte comparisons or adding a second
+raw archive. Direct feedback identifies the coordinator/grader finding separately
+from original student Q1–Q3; no earlier chapter, frozen snapshot, runtime, grader,
+legacy implementation or policy file was edited.
+
+Scoped hard prose lint passes at 7,681 words. The soft length warning reflects
+the added admission contract; the paragraph resolves a concrete observed failure
+rather than padding. Existing JSON fixture bytes are unchanged and parse; scoped
+diff validation is clean. These checks validate prose/literals only, not a runtime
+repair. Independent narrow clarification review remains required.

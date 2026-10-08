@@ -74,3 +74,28 @@ valid original raw bytes. Section 10.8 includes that validation in the strict
 session boundary. Legacy standalone decoding keeps its prior contract. This is
 published before affected grading; it neither reports a student-discovered
 question nor claims that the new validation has already been implemented.
+
+## Coordinator/grader addendum: accepted raw-record boundary
+
+October 8, 2026. An independent local diagnostic of the preserved initial binary
+created a session with legal spaced raw usage. Its untouched checkpoint retained
+that spacing in context and the saved window, while replay read the writer's
+compact fragment and refused the mismatch. Rebuilding from the complete log on
+a separate copy succeeded. This exposed an unprinted acceptance boundary; it is
+not a new Bill ruling or a reason to blame the student for that missing rule.
+
+The coordinator selected one preparation boundary, now taught in §10.3. Validate
+the candidate, prepare a bounded final one-line encoding once, and derive its
+owned raw fragments from that exact encoding. Append those bytes before applying
+or observing the accepted event. Formatting/escape normalization at preparation
+preserves number lexemes, decoded text/manual/signature values, member/array order
+and opaque semantics. It is neither canonical hashing nor floating-point decoding.
+After acceptance preserve exact recorded fragments across state, watch, snapshots
+and replay. This covers call arguments/opaque fields as well as raw usage.
+
+Imported records already establish their accepted bytes; preserve them and their
+original physical read-size accounting. Existing standalone behavior remains
+unchanged. Keep Skills' controlled preflight before session storage admission
+and preserve append-before-apply/observe. A second raw archive or blanket semantic
+comparison of snapshot/prefix data is unnecessary and would weaken the contract.
+No repaired runtime, successful rerun or paid call is claimed by this response.

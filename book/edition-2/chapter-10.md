@@ -277,8 +277,34 @@ manual or opaque payload bytes: use canonical bytes only where this contract
 asks for a canonical hash or equality comparison. The public exporter and
 importer use this same documented codec.
 
-Choose the comparison by its purpose. Original opaque and other raw JSON used
-for replay retain their exact bytes, including original number lexemes. A
+Establish accepted bytes at one explicit boundary for new session event writes.
+A provider can return `{"prompt_tokens": 1, "completion_tokens": 1}`, or format
+that object across physical lines. JSONL needs one event per line. Keeping the
+provider fragment in live state while the writer compacts it creates two versions
+of the same accepted fact, so the application's own checkpoint can fail replay.
+
+Validate the candidate first, including scalar escapes and all typed invariants.
+Prepare its bounded final one-line event encoding exactly once. This preparation
+may normalize JSON formatting and escape spellings, but must preserve number
+lexemes, decoded string/manual/signature bytes, object-member and array order,
+and opaque semantics. It must not use hash canonicalization, sort members or
+round-trip numbers through floating point. Derive the owned raw-JSON fragments
+for the prepared candidate from that exact encoding. Append those same prepared
+bytes, then apply state and publish observations; no accepted mutation or observer
+notification precedes successful append. Context, Events, watch values, snapshots
+and prefix reduction consequently agree on the recorded fragments. This applies
+to raw usage, call arguments and opaque payloads, not merely the observed example.
+
+The prepared bytes also supply write-side size checks. Preserve controlled Skills
+candidate/whole-record preflight before session storage admission under §10.8;
+preparation cannot turn skill_too_large into a terminal write failure. Preparation
+itself must stay bounded, not allocate an unlimited encoded record to measure it.
+For imported existing records, their actual raw fragments already define accepted
+bytes: do not normalize or rewrite them on load, and count their original physical
+bytes against the read limit. Legacy standalone behavior remains unchanged.
+
+Choose the comparison by its purpose. Once accepted, recorded opaque and other
+raw JSON used for replay retain those exact bytes, including number lexemes. A
 snapshot must not replace those bytes with canonical encoding: `1.0` and `1`
 compare equally for a schema or argument's semantic value, but they are different
 recorded spellings. Historical reconstruction restores the recorded spelling
