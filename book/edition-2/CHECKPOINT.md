@@ -29,8 +29,8 @@ groups. Final live audit, author reconciliation and proofread are accepted at
 Chapter 9's initial checker is published at `e6c3406`. Fresh local CLI student
 `01a11c0d-47b8-7241-8834-5ddf57ac5009` has an accepted ownership plan at
 `5ac45e4`; new-only teaching `8736c95` is supplemented by published answers
-`8f24360`. Catalog implementation is underway; complete implementation is
-released after those clarification reads. Managed spawn hit its thread limit; this
+`8f24360`, confirmed by the student and recorded at `080fbca`. Catalog/replay
+local checks pass and full integration is underway. Managed spawn hit its thread limit; this
 separate session inherits no conversation and disables memories. See
 [chapter-09-validation.md](chapter-09-validation.md) for its handoff and limits.
 Source identities and retained limitations are tracked in
@@ -97,6 +97,19 @@ coder, and global reviewer; the reviewer performs independent code-review and
 proofreading phases. Three worker threads fit in this session; scheduling
 roles in phases is not a requirement of every reader's platform. Inspect
 actual agent status after interruptions rather than assuming thread state.
+
+Chapter 9 uses a separate local `codex exec` worker because managed fresh spawn
+hit its thread limit. Active session: `01a11c0d-47b8-7241-8834-5ddf57ac5009`.
+Its external directory is
+`/Users/bill/projects/ensemble-edition-2-revisions/ch09-student-inputs/`.
+`phase-2-events.jsonl` and `phase-2-result.txt` describe implementation progress;
+`coordinator-inbox.md` is the authorized handoff channel the student checks at
+work boundaries. Preserve previous messages when appending. Keep excluded
+research and grader internals out of that inbox. Check the existing process and
+event/result status before resuming; do not start a competing worker on main.
+Later phases resume this explicit session ID, with memory use/generation disabled
+as in the retained launch. The current phase stops for live-plan review before
+credential reads or paid provider demonstrations.
 
 The initial student attempt uses the new teaching and preceding new solution,
 not old implementation or grader internals. AFTER the first implementation
