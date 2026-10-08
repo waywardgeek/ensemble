@@ -1,4 +1,4 @@
-# Chapter 8 student implementation
+# Chapter 9 student implementation
 
 A Go Agent library with human and JSON-lines CLI clients, plus a separate,
 optional browser module. The browser shares the Agent with the CLI, supports
@@ -6,12 +6,14 @@ atomic reconnect snapshots, owned typing/speaking pauses, safe cards and
 opt-in speech. This is the canonical second-edition source in the outer
 repository; frozen chapter exports are separate.
 
-Chapter 8 adds persistent GUI preferences, separate Agent execution policy and
-three-pane controls. Reviewed runtime `a06d4f3c848685d81306166279df7c977d71bddd`
-has 52 accounted-for deterministic groups: 12 affected checks on that repair
-and 40 retained checks with their earlier `cd9de3e` identity. Student live
-evidence is frozen through `7f517d8` under `evidence/ch08/`.
-See the [Chapter 8 validation record](../../../book/edition-2/chapter-08-validation.md)
+Chapter 9 adds Agent-owned skills, per-Agent grants, retained manuals, typed
+public controls and browser skill cards. Initial implementation and live evidence
+are frozen at `786ff23`; comparative improvements are at `06c6787`, independently
+accepted at `19d2fdf`. Current grant/state reads avoid historical inspection,
+and the public two-Agent example preserves each partial result and terminal
+outcome before reporting overall failure. Local revision tests complement the
+original source-bound live runs.
+See the [Chapter 9 validation record](../../../book/edition-2/chapter-09-validation.md)
 for final acceptance, export and tag status.
 
 Build the CLI with `go build -o ensemble ./cmd`. Select `LLM_VENDOR`, a discovered
@@ -23,13 +25,13 @@ the machine protocol. Explicit `ensemble protocol` takes one JSON directive per
 line, including legacy `user`, `ephemeral` and `redact` records and Chapter 5's
 correlated prompt, hint and interrupt records.
 
-Human commands are `/help`, `/usage`, `/history`, `/ephemeral TEXT`,
+Human commands are `/help`, `/usage`, `/history`, `/skills`, `/ephemeral TEXT`,
 `/redact FROM TO REASON`, `/hint TEXT`, `/interrupt`, and `/quit`. History shows `tool_returned` sequences
 and call IDs so a person can select a real redaction target. EOF also exits with
 four usage counts. Prefix a literal leading slash with another slash. Human
 input is UTF-8, at most 1 MiB per line excluding LF or CRLF.
 
-The CLI enables read, list, search, write, edit, `run_command`, `wait_for_job`,
+Without skills, the CLI enables read, list, search, write, edit, `run_command`, `wait_for_job`,
 `send_input`, `kill_job`, and `tool_limits`. Managed commands use a PTY and can
 continue between reports. Use a scratch working directory: this workspace is
 not a sandbox.
@@ -50,6 +52,22 @@ public append path ingests supplied tool results. Agents explicitly select their
 built-in tools; an omitted set exposes none. Each Agent owns its absolute
 workspace and Registry; declaration and dispatch use the same visible set.
 Loading a log is read-only. A persistence failure permanently faults that Agent.
+
+To use skills, set both `LLM_SKILLS_DIR` to the absolute `skills` directory and
+`LLM_PRIMARY_SKILL` to `base` (narrow) or `ensemble` (full). Leave `LLM_SYSTEM`
+absent or empty so the primary supplies the base instruction. Both skill settings
+absent preserves no-skills mode; incomplete or blank selections refuse startup.
+The GUI uses the same settings. `/skills` inspects current authority without a
+model call. Ask the model to load or unload an offered skill through its tools;
+retained manual text does not grant permission after unload.
+
+Build `examples/skills-consumer` in its own module for a headless two-Agent
+demonstration. Its default mode uses typed controls; `--ask` also performs two
+bounded model turns. Prepare separate `alpha/notes.txt` and `beta/notes.txt` in a
+fresh workspace. Each invocation creates exclusive logs, so use a new workspace
+to try the other mode. The example reports both terminal outcomes even if one
+fails. `evidence/ch09/` preserves actual CLI/browser/public runs on all three
+providers, including failed attempts and the limits of keyboard/audio evidence.
 
 The independently built program in `examples/tools-consumer` demonstrates
 workspace isolation, per-Agent tools and observations. `examples/consumer`

@@ -1,6 +1,25 @@
 # Source checkpoint records
 
-The current implementation is Chapter 8. Reviewed runtime is
+The current implementation is Chapter 9. Initial source/live/teaching freeze
+`786ff23` preserves 93 generation attempts plus three discovery calls across
+all three providers. Independent live review `2dc5841` accepts the required
+feature evidence with explicit partial-task, keyboard-linkage and native-audio
+limits. The original Anthropic public attempt remains exit 1 and incomplete.
+
+Comparative improvements at `06c6787` narrow current skill reads and retain
+each public Agent's partial terminal outcome. Independent code review `19d2fdf`
+accepts both changes, affected-module checks, seven selected public race groups
+and four specific mutation controls. These local changes do not relabel earlier
+live receipts as runs of a new executable. The student confirms the final
+author feedback and teaching in `evidence/ch09/student-review.md`.
+
+See the [Chapter 9 validation record](../../../book/edition-2/chapter-09-validation.md)
+for final manuscript, exact export and immutable tag status. This coordinator
+documentation update changes no runtime or original evidence.
+
+## Historical Chapter 8 checkpoint
+
+At this earlier checkpoint, the implementation was Chapter 8. Reviewed runtime is
 `a06d4f3c848685d81306166279df7c977d71bddd`, with independent code acceptance
 `270c3b6`. Student evidence is frozen through `7f517d8`; final replay support
 is `52c9561`. The independent reconciliation accounts for 52 groups, with
