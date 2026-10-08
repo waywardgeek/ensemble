@@ -14,8 +14,11 @@ final proofread `d022176`. All eleven delivered Go modules pass package discover
 Initial runs and later local revisions retain separate identities. The tag points
 to `54d7b1d`. Fresh CLI student `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0` completed
 the Chapter 10 plan at `7cb8429` from twelve pinned new-only sources. Independent
-ownership review and author answers to three concrete teaching questions are
-pending. No runtime changes or paid calls are released until the appropriate gates.
+ownership review `72bf621` accepts that plan; author answers `af5a762` have narrow
+proofreading closure `6766995`. The same student has resumed for implementation
+and local validation after reading/acknowledging the pinned answers. No credentials
+or paid calls are released in this phase. Complete codec/API publication precedes
+the remaining independent semantic checks.
 See [chapter-10-validation.md](chapter-10-validation.md).
 
 The scoped Chapter 6 streaming correction is accepted at `edition-2-ch06-r2`
