@@ -192,3 +192,65 @@ sanitized observations. After correction, revalidate affected checks against the
 new immutable source; the 8882a18 receipts do not automatically validate a revision.
 No chapter tag, acceptance claim, push, provider demonstration or student source
 change is part of this scoped repair.
+
+## Clarification review closure at dd1111e
+
+October 8, 2026. Independently reviewed the complete two-file grouped change at
+`dd1111e0b09513ea59fd3b524d5446e8c5ec773f`, including the author feedback addendum,
+against both retained failures and the coordinator's narrow session ruling.
+Reloaded the complete voice guide and chapter-writing procedure. Read the complete
+Chapter 10 contract during the retained task and reread surrounding §10.3/§10.8,
+Chapter 9 §9.6, and the relevant standalone/replay requirements for this closure.
+The reviewer retains the grader/runtime exposure disclosed above and is not acting
+as the student. This is a prose/contract review, not runtime repair validation.
+
+**No blocking finding remains in this clarification.** It resolves the two
+standalone findings under existing teaching and defines the previously ambiguous
+session case without weakening structural validation:
+
+- Chapter 10 lines 328–336 confine duplicate tolerance to designated argument
+  data. The object must remain syntactically valid and bounded; applicable scalar
+  rules still apply. Malformed envelopes, broken JSON, non-object arguments and
+  duplicate event/payload/call/snapshot structural members still refuse. Existing
+  scalar rules at lines 241–252 and storage/client bounds in §10.8 remain intact.
+- Lines 338–346 keep the containing semantic codec strict. Hashing uses the
+  wrapper's decoded original text without collapsing duplicate members into a
+  map. Import validates the wrapped data. If either argument has duplicates,
+  correspondence requires exact accepted text, tool name and call identity;
+  first/last-key selection and a single-member replacement are explicitly invalid.
+- Lines 348–376 provide literal data and acknowledgement. The duplicate-name case
+  returns `invalid_skill_arguments`, `name:""`, the unchanged current revision and
+  the error flag. Pending limits are consumed once with their normal note; paired
+  facts remain, no Skills transition or Job occurs, and the next valid call and
+  continuation work in both modes. The text also requires preserved outcomes
+  through checkpoint, full-log rebuild and snapshot-plus-tail. This agrees with
+  Chapter 9's controlled-error, counter and next-call-default rules.
+- Lines 378–383 explicitly preserve whitespace inside the decoded valid Chat
+  Completions argument string. Outer layout normalization is still permitted;
+  semantic equality cannot excuse changing the replay string. The independent
+  spaced-valid-argument fixture prevents the duplicate-error case from being the
+  only replay check.
+
+The author addendum accurately distinguishes observations reported by the
+coordinator/reviewer from the author's own source reads. It identifies the new
+session clarification as a coordinator decision, preserves the failed runtime
+status, and leaves student confirmation pending. The inserted explanation leads
+with the bad-arguments/corrupt-structure distinction and uses literal examples
+where bytes matter; no unsupported incident or successful result is invented.
+
+Scoped whitespace and manual voice/fixture review passed. An existing executable
+was found at
+`/Users/bill/projects/ensemble-edition-2-revisions/executables/edition2-lintprose`;
+no compiler was invoked. Running it against a temporary exact export of
+`dd1111e:book/edition-2/chapter-10.md` exited 0, with soft warnings: 8,241 words,
+17 negation forms versus 16, and a 4,329-word person gap after line 8. These remain
+whole-chapter editorial warnings, not a claim of final manuscript acceptance.
+Chapter SHA-256:
+`51e32b2d336238255c5253f9f92fe3354e28ff778fdb7443e16498a0722bfd32`.
+Existing lint executable SHA-256:
+`1d5bc762ce42dcb15ec9c8d885d31c0d7ab848dde1c60c19f9573ed29cea5831`.
+
+The coordinator may pin this contract for the grouped student repair. The student
+must still confirm the clarification and implement/revalidate affected behavior
+on a new source identity. The retained 66/68 result and all failed receipts remain
+unchanged; this closure grants no runtime acceptance, live-run approval or chapter tag.
