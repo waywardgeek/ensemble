@@ -177,3 +177,17 @@ lessons before that thread became unavailable; the durable map remains the
 source for those recommendations. The coordinator's contract review is now
 accepted, as is the separate editorial proofreading. Chapter 4/5 validation
 and a fresh new-only student context remain prerequisites for implementation.
+
+
+## Student clarification: unknown combined Gemini text parts
+
+October 7: the student identified an unspecified preservation boundary in
+§6.4. Chapter 2's text-bound opaque value carries a signature; silently placing
+an entire raw object there would change its replay format. The coordinator
+accepted a conservative text-bearing rule: validate recognized field types,
+then retain an object with additional unknown fields as one standalone opaque
+part with exact provenance and no provisional text/thinking output. Known
+signed text, calls and recognized thought parts keep their prior semantics.
+Chapter 6 §§6.4–6.5 teach the rule and exact paired controls before affected
+implementation. No provider observation establishes the fictional fixture
+field. Student feedback and resolution are recorded separately.

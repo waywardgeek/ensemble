@@ -375,6 +375,30 @@ successive payloads. A functionCall object supplies complete arguments; there
 is no requirement to manufacture partial JSON. Use a supplied call ID or leave
 it for the actor's append-time rule.
 
+Classify a complete Gemini part before publishing fragments from it. For a
+text-bearing part, the recognized top-level fields are `text`, `thought` and
+`thoughtSignature`. Validate their types first: text is a string, thought is a
+Boolean when present, and a signature is a string when present. A malformed
+known field is an error, even if an unknown field accompanies it. If additional
+unrecognized fields remain, retain the entire original JSON part as one
+provenance-bound opaque part. Do not discard the extra fields, split out a
+second text part, or emit visible/thinking deltas from text whose surrounding
+meaning the adapter does not understand. An accepted opaque final still carries
+its original part position and identity.
+
+Use that same classification in plain and streaming normalization. Matching
+provenance restores the whole original part; a foreign target omits it under
+Chapter 2's standalone-opaque rule. This conservative choice does not invent a
+schema for a future field. A recognized signed text part continues to use the
+existing text-plus-signature representation, and recognized `thought:true`
+material keeps its existing non-answer semantics. `thought:false` has the same
+ordinary-text meaning as an absent thought flag and permits coalescing when
+no signature or unknown field is present. `thought:true` plus an unknown field
+falls under the whole-object opaque rule and emits no synthetic thinking delta.
+This clarification concerns text-bearing parts; it adds no new function-call
+classification or dispatch permission. Opaque material alone still
+cannot satisfy the required visible-text-or-call answer boundary.
+
 Coalesce adjacent unsigned text-only parts into one text run, including across
 frames. Do the same in plain normalization. Any call, signature, opaque field,
 or change between ordinary and thought text ends that run. Contiguous unsigned
@@ -492,6 +516,23 @@ The plain counterpart has parts `[{"text":"Hello."},{"text":"",`
 Both normalize to an unsigned `Hello.` part followed by a distinct signed empty
 part. A renderer to matching provenance must retain that second part. Withhold
 the second frame and close: no accepted answer or usage survives.
+
+Add a Gemini plain/stream pair with these ordered parts and otherwise valid
+identity, STOP and usage:
+
+```json
+[{"text":"A"},{"text":"hidden","future_payload":{"tag":"retain-me"}},{"text":"B"}]
+```
+
+The neutral response contains text `A`, one opaque part holding the entire
+middle object, then text `B`. Its visible answer is `AB`; the unknown part
+emits no text or thinking delta. The two text parts must not coalesce across
+it. Matching replay restores the middle object with `future_payload` intact;
+foreign rendering omits that object and preserves `A` and `B`. Removing both
+recognized text parts leaves an opaque-only response and must fail acceptance.
+Changing the middle `text` to a number must also fail, rather than conceal a
+malformed known field inside opaque storage. These fixtures use a fictional
+field to test preservation, not a claimed current provider feature.
 
 Add a two-call fixture using the actual `read_file` and `list_directory`
 declarations. For Messages use block indices 0 and 1, with IDs `read-a` and
