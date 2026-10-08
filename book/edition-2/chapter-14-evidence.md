@@ -229,7 +229,7 @@ planned reader steps; none was run for this prose task.
 Consulted current source hashes at this boundary:
 
 - Chapter 14 advisory: `3973728bda1cc1e39260b2b122a11d9673c49feaa0d6c9f9186e4019f8f52a71`.
-- Chapter 9: `2febacc4bed833601a2a0c005e235be5d5f1cc50a31903f198359`.
+- Chapter 9: `2febacc4bed833601a2a0c005e235be5d5f63d61297d5f1cc50a31903f198359`.
 - Chapter 10: `9eef50b45bdd40cdb47d9cee6e939e80b96b5b9aeefb51206543875013460b3c`.
 - Chapter 12: `f381782792b83e7f5e39c5313281299878f816b77c422a2da7515faa19deef60`.
 
