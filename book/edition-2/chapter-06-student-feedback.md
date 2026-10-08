@@ -24,3 +24,29 @@ implemented the paired and negative fixtures before initial runtime freeze
 `aa5f86a`. The coordinator reports local module/race and initial independent
 checks passing. Live evidence and final validation remain separate; this
 confirmation closes the teaching question, not those gates.
+
+## Initial teaching experience and actual use
+
+The full initial student account is now frozen with runtime `aa5f86a` and
+initial live evidence `f73b01e`, `d12a0cb`, `3417575`. It reports no remaining
+teaching contradiction after `f085b95`. The following dispositions preserve
+that pre-comparison account; independent code quality and acceptance remain
+separate gates.
+
+| Student finding | Author disposition |
+|---|---|
+| The three completion boundaries, actual-sequence identity and exact SSE/usage examples made the design testable. | Retain §§6.1–6.5. They explain why early display cannot authorize effects or count successful usage. |
+| Bounding/draining fragments and ordering display against reliable completion were the hardest implementation work. | Retain the explicit queue, cancellation and overflow contracts; difficulty alone does not justify weaker ownership or completion rules. No additional ambiguity was reported. |
+| A fixture receiver copied a mutex; a usage assertion compared JSON key order. | Student implementation/test mistakes, corrected locally. Keep semantic usage comparison and exact opaque-byte assertions distinct; do not alter the contract to hide either mistake. |
+| The inherited grader reports 0/100 under old observation and structural assumptions. | Retain the result and disclose the incompatibility in §6.9. Coordinator/new independent acceptance remains necessary; no passing score is claimed. |
+| Initial prompts finished before a hint or interrupt could be sent. | §6.8 retains the actual attempts and bounded follow-ups. A received hint, wire inclusion and model compliance remain different observations. A late interrupt correctly reports false. |
+| Gemini hit MAX_TOKENS in human and public runs. | §6.8 distinguishes valid accepted partial output from completing the requested explanation, and records the human limit notice. |
+| No supported thinking delta or live overflow occurred. | State that absence explicitly. Keep deterministic fixtures separate from the demonstrated stalled-subscriber completion path. |
+| Actual use confirmed tool proposals, accepted file reads, interruption/recovery and plain delivery. | Replace the planned spin with the actual human path, exact abridged excerpts and reproducible scratch-file commands; link the detailed ledger. |
+
+The student explicitly confirmed the Gemini clarification before runtime
+freeze. Confirmation of this broader author reconciliation remains requested;
+no review completion is inferred from silence. Initial all-seven-module checks
+and race results belong to the student's retained local receipts. Independent
+broader checks, comparison and final receipt/prose review remain open in the
+[gate record](chapter-06-validation.md).

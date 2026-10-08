@@ -1,9 +1,10 @@
 # Chapter 6 source research
 
-Status: full draft contract/prose exists; independent review and validated
-predecessor remain required before implementation. No student code,
-grader changes, live API probes, paid calls or new measurements. Sources below
-are author/reviewer evidence and must not enter the cold student's context.
+Status: contract review is accepted and initial implementation/live receipts
+are now retained. Broad independent acceptance, comparison/revisions and final
+receipt/prose review remain open; [the gate record](chapter-06-validation.md)
+is authoritative. Historical research below records the drafting chronology
+and must not enter the cold student's context.
 
 ## Reads and source boundaries
 
@@ -170,13 +171,13 @@ actual implementation evidence. The separate voice-v5 editorial pass preserves
 the old terminal-flush explanation. Independent proofreading is now accepted,
 with the final status resolution recorded in review commit `3d6effd`.
 
-## Next action
+## Earlier contract handoff
 
 The earlier global reviewer supplied identity, loss, actor and finalization
 lessons before that thread became unavailable; the durable map remains the
 source for those recommendations. The coordinator's contract review is now
-accepted, as is the separate editorial proofreading. Chapter 4/5 validation
-and a fresh new-only student context remain prerequisites for implementation.
+accepted, as is the separate editorial proofreading. Those were the prerequisites at contract handoff; the initial student record
+below now starts from validated Chapter 5.
 
 
 ## Student clarification: unknown combined Gemini text parts
@@ -191,3 +192,81 @@ signed text, calls and recognized thought parts keep their prior semantics.
 Chapter 6 §§6.4–6.5 teach the rule and exact paired controls before affected
 implementation. No provider observation establishes the fictional fixture
 field. Student feedback and resolution are recorded separately.
+
+## Initial actual-use reconciliation
+
+Read on October 7 local / October 8 UTC 2026 after reloading the full current
+voice and chapter procedure. Initial runtime is
+`aa5f86a4782c7479ea61b0e6abcbd4163968b574`; evidence commits are `f73b01e`,
+`d12a0cb` and `3417575`. No production runtime change occurred during the runs.
+The student source/read ledger and initial account precede comparative review.
+Coordinator design/coverage review and the author's `f085b95` clarification
+are disclosed assistance, not historical answer exposure.
+
+Actual evidence under `solutions/edition-2/main/evidence/ch06/` inspected:
+
+- Full student review and live summary; nine launch records; full streamed and
+  plain human terminal records on all three APIs.
+- All three public-consumer terminal JSON objects parsed in full, then selected
+  completion, finals-only and observation fields inspected. Large signature
+  payloads were not reproduced in prose. An initial combined display truncated;
+  conclusions use the subsequent structured inspection, not an unread tail.
+- All 12 event logs parsed to recompute accepted usage, requested/returned model
+  identities, hint receipt/consumption, interruption and read results. All six
+  `cr/io/1` read artifacts contain exactly
+  `CHAPTER-SIX-FILE-MARKER\nport=8080\n`.
+- `verified-initial/receipts.json` records eight runs and 30 reconstructed
+  requests; `verified-plain-gemini/receipts.json` adds one run and three requests.
+  The author's independent semantic JSON multiset comparison covers all 33
+  raw and derived bodies. Prefix-to-request assignment remains the retained
+  student's verifier claim pending the independent reviewer's stronger audit;
+  a multiset comparison alone does not prove that ordering.
+
+All nine launch records exit zero. Human chat ran through actual PTYs, driven
+by the Codex student, not Bill. The recorded UTC launch dates are October 8;
+local operation was October 7. Returned identities: Messages
+`claude-haiku-4-5-20251001`; Chat Completions `gpt-4.1-mini-2025-04-14`
+(selected `gpt-4.1-mini`); generateContent `gemini-3.8-flash` (selected
+`models/gemini-3.8-flash`).
+
+| Session | Requests | Input | Cache write | Cache read | Output |
+|---|---:|---:|---:|---:|---:|
+| Stream Messages | 5 | 13133 | 0 | 0 | 960 |
+| Stream Chat Completions | 6 | 1930 | 0 | 10112 | 1746 |
+| Stream generateContent | 7 | 52233 | 0 | 0 | 10730 |
+| Plain Messages | 3 | 7794 | 0 | 0 | 91 |
+| Plain Chat Completions | 3 | 1480 | 0 | 2304 | 55 |
+| Plain generateContent | 3 | 5571 | 0 | 0 | 163 |
+| Public Messages, both Agents | 2 | 114 | 0 | 0 | 276 |
+| Public Chat Completions, both Agents | 2 | 118 | 0 | 0 | 182 |
+| Public generateContent, both Agents | 2 | 98 | 0 | 0 | 1016 |
+
+§6.8 preserves the late-hint and late-interrupt attempts, the subsequent
+successful interruption/recovery on every API, and Gemini's generation-limit
+notice. Its public 512-token requests yielded partial accepted explanations;
+no completed-task claim is made. Accepted usage excludes incomplete operations
+without claiming zero provider charges. No supported thinking delta or live
+subscription overflow was observed. These paths retain deterministic fixtures;
+public reliable completions did arrive before stalled callbacks were released.
+The GUI remains a stub.
+
+The inherited grader's source-bound 0/100 is retained in `inherited-grade.txt`.
+Its old protocol/structural assumptions differ from the new contract. Neither
+that incompatibility nor initial independent delivery success substitutes for
+full new-contract acceptance and mutation controls. Those checks, independent
+comparison/revisions, receipt verification and final proofreading remain open.
+This author reconciliation makes no new runtime acceptance claim or paid call.
+
+Scoped reconciliation checks: `go run ./cmd/lintprose
+book/edition-2/chapter-06.md` passes all hard checks at 5921 prose words;
+soft negation/person-gap warnings were read without adding filler. The technical
+contract remains unchanged. `git diff --check` passes. A separate byte check
+confirms all six source files match their read artifacts, and the selected
+Messages transcript lines match the raw terminal record.
+
+At this reconciliation boundary the coordinator reports an independent finding:
+accepted Chat Completions refusal opaque material cannot replay into a
+continuation. Correction and distinguishing checks remain pending. The ordinary
+live runs above do not exercise that refusal path; they are not evidence that
+it works. This is a subsequent review finding, not a relabeled initial provider
+failure or a reason to discard the retained successful sessions.

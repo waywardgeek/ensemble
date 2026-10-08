@@ -12,10 +12,10 @@ or nothing at all because the connection broke. Let the reader see the work
 early. Keep the decision to act at the boundary already established by the
 actor: one complete, validated, durably accepted response.
 
-**Draft status:** the coordinator has reviewed this Chapter 6 student contract,
-including the bounded-fragment and exact frame-size clarifications.
-Implementation still requires the validated Chapter 5 predecessor.
-No Chapter 6 implementation, passing checks, or live run is claimed here.
+**Draft status:** the reviewed contract has an initial implementation and real
+user runs on all three APIs. The source and retained attempts below precede
+independent comparative review. Broad acceptance checks, revisions and final
+proofreading remain open; see the [Chapter 6 gate record](chapter-06-validation.md).
 
 ## TL;DR
 
@@ -639,39 +639,148 @@ observer. A line-count check after process exit cannot detect that failure.
 
 ## 6.8 Taking it for a spin
 
-**Live evidence is pending.** The following is the required demonstration plan,
-not a claimed transcript. Use discovered models, bounded scratch workspaces,
-environment-held credentials, and the same human interface a reader uses.
-The coder drives the PTY and retains sanitized inputs and observations; this
-does not claim that Bill personally ran the session.
+Start with a file whose answer is easy to check. Build from
+`solutions/edition-2/main`, then launch human chat in a scratch directory:
 
-On each of Messages, Chat Completions, and generateContent, launch the built
-program in chat with streaming enabled. Ask for a sufficiently long but bounded
-explanation, observe visible text before completion, and send a hint or queued
-follow-up after observing it. Retain the actual ordering and resulting answer.
-Then ask the Agent to inspect a small scratch file: observe a proposed tool,
-the accepted call and result in history, and the model's continuation. Inspect
-the file and tool result rather than trusting its narration.
+```sh
+go build -o /tmp/ensemble-ch06 ./cmd
+demo_dir=$(mktemp -d)
+cd "$demo_dir"
+printf 'CHAPTER-SIX-FILE-MARKER\nport=8080\n' > notes.txt
+CH02_LOG="$demo_dir/session.log" /tmp/ensemble-ch06 chat
+```
 
-Start another bounded long response, wait for a fragment, and interrupt it.
-Observe incomplete display and the interrupted outcome, then submit a short
-new question to prove the client remains usable. Retain any already accepted
-tool effects honestly. A fake fixture supplies the stronger deterministic
-proof that an incomplete proposed call never acts.
+Use the earlier chapters' environment-held credentials and discovered model
+configuration. Keep `LLM_RESOLVED_MODEL` accurate when provenance requires it.
+No streaming switch is needed for the default. Ask for a bounded explanation,
+watch actual words arrive, and type `/hint Keep the final answer concise.`
+while that request is active. A hint acknowledged as pending reaches the next
+request; it cannot edit the request already on the wire.
 
-Restart with `EN_DISABLE_STREAMING=1` and exercise text plus a tool continuation.
-Observe completed answers without provisional fragments. Separate live
-generations may use different words, parts, or token counts; semantic equality
-belongs to the controlled paired fixtures. Record actual first-fragment and
-completion times only when measured, without promising a speedup.
+The student coder drove these actual PTYs on October 7, 2026 local time
+(October 8 UTC). The initial runtime is `aa5f86a`; no runtime edit was needed
+during the nine live sessions. Bill did not run these demonstrations. The
+selected Messages model was `claude-haiku-4-5-20251001`, which returned the
+same identity. Chat Completions selected `gpt-4.1-mini` and returned
+`gpt-4.1-mini-2025-04-14`. generateContent selected
+`models/gemini-3.8-flash` and returned `gemini-3.8-flash`. These are dated run
+identities, not a permanent recommendation table.
 
-Use the public consumer to observe operation/part correlation, independent
-Agents, finals-only delivery and a deliberately slow subscription. Retain
-actual supported thinking observations when a selected model exposes them;
-otherwise record their absence and cover that parser path with the published
-local fixture. Streaming transport alone does not promise visible reasoning.
-Keep the GUI described as a stub until its own chapter implements and exercises
-the browser interface.
+The first prompt requested 30 short numbered paragraphs. Messages remained
+active long enough to receive the hint. Chat Completions finished before the
+coder's next observation call; a second, longer bounded prompt provided the
+opportunity. With Gemini, the first hint arrived while idle and received:
+
+```text
+Command error: hint requires nonempty text and an active turn.
+```
+
+A subsequent request for 150 sentences ended with `MAX_TOKENS` after only a
+short visible answer. Chat printed `Generation limit reached; accepted answer
+may be incomplete.` The request had produced a valid response. It had not
+produced 150 sentences. Asking for a bounded sequence of integers then made
+early output easy to observe, and an active hint succeeded. All three logs
+retain hint receipt separately from consumption in the next model request.
+
+Next, enter this ordinary human prompt:
+
+```text
+Use read_file to read notes.txt. Report its exact marker and port, then stop. Do not modify files.
+```
+
+The Messages terminal showed the proposed call before its continuation. This
+excerpt omits intervening acknowledgement and completion lines:
+
+```text
+[r2 proposed tool part 1] read_file
+[r2 proposed tool part 1] {"path": "notes.txt"}
+Request r2 / m4 (stream)
+[r2 Assistant part 1] **Exact marker:** `CHAPTER-SIX-FILE-MARKER`
+
+**Port:** `8080`
+Request r2 (success; pending hints=0)
+```
+
+Each API retained the accepted call and matching result, then returned the
+marker and port. The six reads across streamed and plain sessions left six
+tool artifacts containing exactly the two source lines. The artifact provides
+a better check than a model saying that it read the file. A local fixture
+supplies the stronger boundary test: interrupt or truncate a complete-looking
+proposed write and require that no file effect occurs.
+
+For interruption, ask for another bounded long answer. After seeing a fragment,
+enter `/interrupt`, then ask `Reply exactly RECOVERED-SIX. Do not use tools.`
+The Messages run included:
+
+```text
+Interrupt: request=r3 interrupted=true.
+You>
+Incomplete display: interrupted: turn interrupted
+
+Request r3 (interrupted; pending hints=0)
+interrupted: turn interrupted
+You> Reply exactly RECOVERED-SIX. Do not use tools.
+Accepted r4.
+You>
+Request r4 / m7 (stream)
+[r4 Assistant part 1] RECOVERED-SIX
+Request r4 (success; pending hints=0)
+```
+
+The retained Gemini attempts show why the acknowledgement matters. One
+interrupt arrived after completion and reported `interrupted=false`. The next
+attempt used a bounded integer stream; the coder read its first visible
+fragment and immediately interrupted. That request ended as interrupted, and
+the following turn returned `RECOVERED-SIX`. All three APIs eventually
+exercised actual interruption and recovery. Their interrupted operations have
+no accepted response or usage increment; that accounting rule does not claim
+the provider charged nothing for discarded output.
+
+Restart with a separate log and plain delivery:
+
+```sh
+CH02_LOG="$demo_dir/plain.log" EN_DISABLE_STREAMING=1 /tmp/ensemble-ch06 chat
+```
+
+Enter `Reply exactly PLAIN-SIX. Do not use tools.`, then the same file prompt.
+All three plain sessions returned `PLAIN-SIX` and the marker/port answer once,
+without provisional fragments. Independent paid generations can use different
+words and token counts. The paired local fixtures test exact normalized
+content equivalence; these sessions test whether a person can use both modes.
+
+The streamed human sessions retained these accepted-response totals. Cache
+columns stay separate from input; output follows the normalization already
+taught in Chapter 2.
+
+| API | Input | Cache write | Cache read | Output |
+|---|---:|---:|---:|---:|
+| Messages | 13,133 | 0 | 0 | 960 |
+| Chat Completions | 1,930 | 0 | 10,112 | 1,746 |
+| generateContent | 52,233 | 0 | 0 | 10,730 |
+
+The public example in `examples/stream-consumer` adds a different user path.
+From that module, build its executable, give `ENSEMBLE_RUN_DIRECTORY` a fresh
+directory, and use the same model environment. It creates two Agents with
+ordinary, finals-only and deliberately stalled subscribers. On each real API,
+both reliable completions arrived before the stalled callbacks were released.
+Agent identity kept their otherwise repeated `r1`, `m1` and part numbers
+separate; finals-only typed parts matched their corresponding completions.
+
+Those small public runs did not overflow a subscriber. None of the selected
+models exposed a supported thinking delta. Local fixtures cover guaranteed
+overflow and exposed thinking separately; a signature is not visible reasoning.
+Gemini's two public requests each reached the example's 512-token limit and
+retained signed empty text parts. Their partial explanations were accepted
+responses, with `MAX_TOKENS` recorded, rather than completed explanatory tasks.
+The optional GUI remains a stub.
+
+The [run summary](../../solutions/edition-2/main/evidence/ch06/live-summary.json)
+links the nine sessions, original terminals and logs. The retained verifier
+receipts reconstruct all 33 captured requests semantically from their logged
+prefixes and configuration, including hint inclusion and stream options.
+That comparison does not assert identical JSON serialization or identical
+answers from separate generations. See the [evidence record](chapter-06-evidence.md)
+for source binding, read scope and the still-open independent review gates.
 
 ## 6.9 What the checks must establish
 
@@ -702,6 +811,10 @@ records dispositions in `chapter-06-student-feedback.md`; the student checks
 that material questions were resolved. A passing build still needs this
 teaching review.
 
-Implementation, mutation evidence, live receipts, comparative review and final
-proofreading remain pending. A reviewed contract is permission to build from
-the validated predecessor; it is not evidence that the feature already works.
+The initial implementation and live receipts are retained for review. The
+inherited grader reported 0/100 under its older observation and structural
+contract; that result remains visible rather than being relabeled a pass.
+Initial independent delivery checks cover a narrower scope than this table.
+Broad acceptance and mutation evidence, historical comparison, any resulting
+revisions and final proofreading must close in the linked gate record before
+this chapter receives a validated checkpoint.

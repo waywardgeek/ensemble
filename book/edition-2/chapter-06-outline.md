@@ -1,10 +1,10 @@
 # Second edition: Chapter 6 outline
 
-Status: full draft contract/prose now exists in `chapter-06.md`; the coordinator
-accepted its full contract review and the two resulting clarifications.
-Chapter 4 and Chapter 5 must establish their
-validated predecessors before implementation. No new streaming implementation,
-passing checks or live run is claimed. New Chapter 6 maps to first-edition Chapter 7.
+Status: the coordinator accepted the full contract and its clarifications.
+The fresh student has implemented from validated Chapter 5 and retained initial
+real runs. Independent comparative review, broader acceptance and final prose
+review remain open in [the gate record](chapter-06-validation.md). New Chapter 6
+maps to first-edition Chapter 7.
 
 ## Stake and voice plan
 
@@ -163,8 +163,32 @@ actual first-observation timing and total timing without a speedup guarantee.
 Label local truncated-stream and framing tests separately. Preserve all prior
 human commands, usage, tools and cleanup behavior.
 
-Next action: independent full-draft review, then reconcile any findings before
-the fresh student handoff after Chapter 5 validation. Current official sources
-and the earlier global reviewer's forward lessons are recorded in evidence.
-Development will extend the accepted Chapter 5 source in
-`solutions/edition-2/main/`; `ch06/` will be a frozen validated export.
+## Initial live reconciliation, October 7 local / October 8 UTC
+
+Runtime `aa5f86a4782c7479ea61b0e6abcbd4163968b574` remained unchanged during
+nine sessions: streamed human chat, plain human chat and a public two-Agent
+consumer on each API. §6.8 now follows actual terminal use, with a short
+Messages tool/interruption excerpt and the retained timing difficulties:
+Chat Completions finished before the first hint opportunity; Gemini refused an
+idle hint, reached a generation limit, and completed before one interrupt.
+A later observed fragment permitted actual interruption and recovery. The
+reader's opportunity to act resolves the opening's silent-terminal problem;
+no universal latency or task-completion claim follows from these runs.
+
+The public consumer demonstrates independent identities, complete finals and
+reliable completion despite stalled subscribers. Guaranteed overflow and
+thinking deltas remain local-fixture scope. Gemini's limited public responses
+are accepted partial output, not completed explanations. The prose links the
+ledger instead of printing all nine run counters.
+
+The author checked all human terminals, public completion/observation data,
+12 event logs, six read artifacts and the retained 33-request reconstruction
+receipts. Detailed read scope and the student teaching response are in the
+corresponding evidence and feedback files. The inherited 0/100 grader result
+remains recorded as an incompatible historical contract, not a passing gate.
+
+Next action: independent receipt/prose review and comparative findings; amend
+the teaching before any affected student correction. Keep this initial runtime
+and evidence identity. Development remains in `solutions/edition-2/main/`;
+`ch06/` becomes a frozen export only after validation. No new checker command
+is invented while the coordinator completes that acceptance surface.
