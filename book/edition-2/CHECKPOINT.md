@@ -106,7 +106,9 @@ Chapter 9 uses a separate local `codex exec` worker because managed fresh spawn
 hit its thread limit. Active session: `01a11c0d-47b8-7241-8834-5ddf57ac5009`.
 Its external directory is
 `/Users/bill/projects/ensemble-edition-2-revisions/ch09-student-inputs/`.
-`phase-2-events.jsonl` and `phase-2-result.txt` describe implementation progress;
+`phase-2-events.jsonl` and `phase-2-result.txt` retain the completed local phase;
+`phase-3-live.txt`, `phase-3-events.jsonl` and `phase-3-result.txt` describe the
+released live phase in that same session, launched after local evidence `10a58f2`.
 `coordinator-inbox.md` is the authorized handoff channel the student checks at
 work boundaries. Preserve previous messages when appending. Keep excluded
 research and grader internals out of that inbox. Check the existing process and
@@ -117,8 +119,10 @@ student receipts and timestamps/tool-call metadata in that session's local
 rollout before treating silence as a stopped worker. Do not copy private
 reasoning or credentials into the progress record.
 Later phases resume this explicit session ID, with memory use/generation disabled
-as in the retained launch. The current phase stops for live-plan review before
-credential reads or paid provider demonstrations.
+as in the retained launch. Phase 3 may perform the reviewed bounded provider
+demonstrations with `review-binding.json`; the earlier initial binding remains
+historical. Preserve the 36/provider and 108-total HTTP ceilings and all original
+attempts. No historical comparison until initial live work/review is frozen.
 
 The initial student attempt uses the new teaching and preceding new solution,
 not old implementation or grader internals. AFTER the first implementation

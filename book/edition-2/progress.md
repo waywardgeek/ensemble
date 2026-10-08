@@ -40,9 +40,12 @@ commands pass after five independent fixture repairs at `a294aac`; original
 failures remain recorded. Boundary/deletion controls are at `f70b49d` and the
 combined immutable gate is at `3050a66`. Root identified unbounded log reads;
 the author published a complete skill-record limit at `d8c7738`, released to the
-student before repair. The live matrix and request ceilings are accepted,
-pending source-bound local and recording-support checks. No Chapter 9 live use
-or full acceptance is claimed. Managed
+student before repair. Initial source `654075b` passes the complete 67-row local
+gate. Import repair `c0e3171` passes targeted independent checks at `3531fa0`,
+all 11 module checks and immutable recording-support controls. Evidence is
+preserved through `10a58f2`; the same student is now resumed for the released
+live matrix with `review-binding.json`, at most 36 HTTP requests per provider
+and 108 overall. No completed Chapter 9 live use or full acceptance is claimed. Managed
 spawn hit its thread limit; this new session inherits no conversation and has
 memory injection disabled. `/root/grader_ch05` continues independent checks. See
 [chapter-09-validation.md](chapter-09-validation.md).
@@ -57,6 +60,10 @@ at `2d4ea47`. Root accepted all seven contract corrections at `8df7046`,
 including explicit browser bootstrap and actual GUI tunneling; see
 [chapter-12-validation.md](chapter-12-validation.md). No
 implementation or live result is claimed for those future chapters.
+Chapter 13 outline/evidence `bb6e04c` and working review decisions are recorded
+in [chapter-13-validation.md](chapter-13-validation.md); the author is drafting
+its speech-channel contract. `/root/coder_ch08` is preparing independent Chapter
+11 protocol fixtures and checks, with runtime coverage explicitly pending.
 Bill and CodeRhapsody are separately writing a new first-edition sandboxing
 chapter. Preserve that work; review it as a future source when available, without
 assuming its conclusions or changing the chapter map before review.
