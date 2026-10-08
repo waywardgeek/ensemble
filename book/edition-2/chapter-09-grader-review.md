@@ -209,3 +209,31 @@ full gate will retain Chapter 8 behavior, complete delivered-tree module
 inspection and architecture, with targeted runtime deletions only after genuine
 implementation positives. All real-provider demonstrations remain the student's
 bounded, reviewed live plan; no paid calls were made for this preparation.
+
+### Offline transition preparation
+
+The independent continuation adds `accept_ch09_replay.py CLI_BINARY` (optional
+`--receipt PATH`), using the inherited `render LOG` interface. Its 105 checks
+are three catalog-free valid-history renderings and 34 forged-history refusals
+per adapter. The positive history initializes a primary, loads, unloads and
+reloads one manual, and requires both distinct activation envelopes in their
+chronological positions, exact body line endings, and the recorded primary as
+system text. A forgery refusal earns no credit unless its valid parent renders
+successfully. Every invocation also preserves the input log bytes.
+
+The mutations cover initialization constraints, revision/activation sequencing,
+body digest, retained-record immutability, closure/dependency types, ceiling and
+grant union, discoverable roots, retirement and exact payload fields. These are
+offline reader fixtures, not runtime deletion mutants and not live public-append
+authorization tests. They neither assume an environment name for explicit System
+overrides nor settle the pending request-configuration or deferred-hint questions.
+
+`python3 -m unittest discover -s scripts/edition2 -p test_accept_ch09_replay.py -v`
+passes two methods: three canned rendering positives, twelve output mutations,
+and fixture uniqueness/envelope checks. The accepted Chapter 8 executable gives
+0/105 as expected; its general rejection of skill facts cannot masquerade as
+successful forgery protection. Preparation and absence receipts are
+`checkpoint-evidence/ch09-replay-preparation.json` and
+`checkpoint-evidence/ch09-replay-predecessor-absent.json`. Real Chapter 9 positives
+and intended implementation deletion controls remain pending. No student runtime,
+initial checker, historical grader or historical solution was changed or read.
