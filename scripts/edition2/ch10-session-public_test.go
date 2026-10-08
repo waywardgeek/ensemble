@@ -108,7 +108,11 @@ func TestCh10PublicSelectorsAndConfig(t *testing.T) {
 		t.Fatalf("invalid fresh identity: %+v", s)
 	}
 	c := a.Config()
-	if c.DataDir != o.Config.DataDir || c.LogPath != filepath.Join(o.Config.DataDir, "events.log") || c.System != *o.System {
+	resolved, err := filepath.EvalSymlinks(o.Config.DataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c.DataDir != resolved || c.LogPath != filepath.Join(resolved, "events.log") || c.System != *o.System {
 		t.Fatal("returned creation configuration differs")
 	}
 	if err = a.SetConfig(c); err != nil {

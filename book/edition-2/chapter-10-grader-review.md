@@ -223,3 +223,27 @@ binds this narrow result. No runtime positive, semantic refusal or implementatio
 deletion is credited until the public fixture obtains an actual accepted export.
 The same public runner command now includes the ninth group; all remaining
 matrix gaps and the reported limit-order grammar correction remain open.
+
+### First runtime integration: canonical path assertion correction
+
+The student's first public receipt (`public-initial.json`) establishes genuine
+positives for owned capture/resume, reservations, snapshot-only origin, System
+presence, inert/owned inspection, all three nonempty-tail/rebuild/import paths
+and held-HTTP busy capture. The selector/config assertion incorrectly compared
+returned canonical paths with Go's temporary-directory spelling. On macOS,
+`/var` and `/private/var` can identify the same directory. The fixture now
+resolves the created directory with `filepath.EvalSymlinks` before requiring
+exact returned DataDir and events.log. This follows the printed canonical-path
+contract; it does not relax creation-only identity or SetConfig refusals.
+The failed original receipt remains unchanged. The corrected selector group
+has not yet been rerun by this reviewer.
+
+The separate equivalent-schema-number positive exposed a genuine initial
+metadata comparison defect. The student reports its repair and has a separate
+`public-semantic-second.json`; this is distinct from the path-fixture correction.
+The first CLI receipt also retains subprocess diagnostics in its `runs` object,
+even though the compact terminal summary omits that object. Initial resume and
+inspection both report `session_corrupt: record 7: checkpoint differs from
+reduced prefix`. The checker performs no file mutation between genuine creation
+and those opens. Further narrow diagnosis will identify whether this is already
+covered by the schema repair before claiming a current implementation finding.
