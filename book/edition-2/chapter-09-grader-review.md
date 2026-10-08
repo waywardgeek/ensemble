@@ -423,3 +423,60 @@ wire Skills projection; and retained behavior, complete delivered-module checks
 and architectural inspection covering the new Skills spoke. Student tests and
 these corrected positives do not replace that work, the live matrix review,
 or the post-freeze historical quality comparison.
+
+
+### Reviewed student boundary evidence and independent mutations
+
+`python3 scripts/edition2/ch09-review-boundaries.py SOURCE_DIRECTORY --receipt PATH`
+uses small Go overlays, never edits the delivered runtime or tests. The reviewer
+read the student's actual persistence, counter, pause, watch-window and GUI
+projection tests before reusing their scenarios. These remain student-authored
+scenarios, not relabeled independent implementations. The reviewer adds a matched
+call/error-result assertion to the paused-management scenario and diagnostic-safe
+nil handling to the post-result failure assertion in disposable overlays.
+
+The current source-bound audit passes five positive groups under `-race`, then
+six intended runtime mutation failures: remove revision exhaustion; remove the
+whole-group activation check; apply the candidate before the durable append;
+roll back authority after a later result append fails; decode projected uint64
+values through float; and clear the interrupted management result's error flag.
+Each mutation must fail its named semantic assertion, not compilation or a race.
+The maximum-counter fixture is an explicit owner-state seam. Its positive fits
+the whole two-record group exactly at the maximum; it does not invent a tiny log
+with an impossible allocation history. Original initialization-failure, complete
+prior-state comparison and post-commit retention assertions are preserved.
+
+The reviewed student deletion runner is also executed independently and bound
+with all relevant source bytes. Its three passing controls precede three specific
+failures: actual forbidden file creation while declarations remain filtered;
+lost dedicated manual after result redaction; and changed complete ledger when
+a diamond's second branch fails. See `ch09-boundaries-current.json`. This is
+legitimate reused evidence, not nine new reviewer-authored scenarios.
+
+`ch09-reviewed-student-browser.json` binds an independent execution of the
+student's actual GUI/WebSocket/Chrome scenario to GUI hash
+`5f7cf133983711c3fc9aec20f93b46f2813cb59a09a6f0d6c6ca5375e2e29787`.
+Six local HTTP requests load, write real bytes and unload; a retained manual is
+safe, keyboard-expandable, retired and unique after reconnect. The receipt
+separately labels synthetic counter/component inputs. This executable is not
+asserted to contain later mutable-source edits. No provider or audible claim.
+
+The dynamic package checker passes the current main module, discovering the new
+Skills spoke. Inspection confirms Agent owns creation configuration, Skills owns
+parsed definitions and its committed ledger, candidates hold `common.Skills`
+parent interfaces, and failure/parser paths reach Ensemble logging through Agent.
+The public and tool adapters enter the actor path; the composition root alone
+imports concrete Skills. This is a narrow current-code ownership assessment,
+not the post-freeze historical quality comparison. Complete delivered-module and
+retained behavioral acceptance remain pending a stable source boundary.
+
+**Open resource-bound finding:** the student legitimately enlarged skill-record
+support for escaped material, but `eventlog.Read` now calls `ReadBytes` before
+checking the ordinary/header 16 MiB bound. An arbitrarily large unfinished line
+therefore allocates before refusal, unlike the preceding Scanner. Skill-bearing
+lines bypass the raw guard. The coordinator independently identified this and is
+resolving a compatible bound with the author/student. The reviewer agrees this
+is an inherited resource regression; an invented universal raw cutoff would be
+unsound because retained summaries and offers can grow beyond newly activated
+material. No new cutoff is graded before publication. The green boundary rows
+above do not close log-resource acceptance or authorize a full-gate claim.
