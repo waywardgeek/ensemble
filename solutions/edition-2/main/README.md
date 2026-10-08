@@ -40,7 +40,7 @@ return their own result. Observers receive ordered owned event snapshots. The
 public append path ingests supplied tool results. Agents explicitly select their
 built-in tools; an omitted set exposes none. Each Agent owns its absolute
 workspace and Registry; declaration and dispatch use the same visible set.
-Loading a log is read-only. A failed append permanently faults that Agent.
+Loading a log is read-only. A persistence failure permanently faults that Agent.
 
 The independently built program in `examples/tools-consumer` demonstrates
 workspace isolation, per-Agent tools and observations. `examples/consumer`
