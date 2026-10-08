@@ -3,8 +3,8 @@
 Chapter 6 scoped maintenance accepted by the coordinator on October 8, 2026.
 The maintenance coder `/root/grader_ch05` had seen later second-edition work;
 this is explicitly not a new cold-student attempt. The coordinator is independent
-of that maintenance implementation. Chapter 7 propagation is accepted below;
-Chapter 8 remains pending.
+of that maintenance implementation. Chapter 7 and 8 propagation are accepted
+below.
 
 The isolated Chapter 6 branch starts at accepted source
 `c3fa7583c5e4c3dcf026b3d5a0a93da000dd8307`. Runtime and regression commit
@@ -87,3 +87,31 @@ The shared parser's actual Chapter 9 repair demonstration and these stage-bound
 local controls establish the narrow changed path; their source identities remain
 separate. This is propagation of an accepted repair, with independent review,
 not a replacement for the original student attempt or historical comparison.
+
+## Chapter 8 propagation
+
+Accepted on October 8 from runtime `c4d7aac6d1d72c1578fccf50d6dd7c7afbc05090`,
+evidence `04d622d87f2458e0022af8aedbe816fe6b33299e`, based on accepted r1
+source `446d7f2`. The three runtime/test blobs again exactly match reviewed
+Chapter 6 source `788c5e9`. All 3,195 original evidence files and unchanged
+settings/browser code keep their identities.
+
+The coordinator verified 115 source hashes, ten receipts, the 147 checker
+inputs of both runs and archived CLI
+`eb079ff28db11beb0b513b66c0f7dbe53c0ae95f2558652a8130d1ea7c223741`.
+The initial 26-command affected run has 24 passes and two failures writing
+receipts after tests: macOS temporary-directory aliases differed between
+`/var` and `/private/var`. The original runner and failed rows remain retained.
+The coordinator inspected the runner correction: resolve that temporary path,
+select the two named checks and reject unknown/unrun selections. Assertions,
+fixtures and mutations are unchanged. Both selected rows then pass on the same
+runtime. They supplement the initial result rather than relabel it.
+
+Together the recorded controls establish all 26 affected groups, four local
+commands, the 13 new regression cases, core race and nine-module vet/tests.
+They retain the early-delivery, wire, watch/pause, terminal-effect and prior
+behavior checks described for Chapter 7, with the already reviewed Chapter 8
+fixture adapters confined to a disposable checker bundle. Complete delivered
+package discovery includes the original evidence helpers. This is no new
+52-group gate or paid speech/provider run. Scope remains the inherited parser
+correction, its forward compatibility and exact preservation of unchanged work.
