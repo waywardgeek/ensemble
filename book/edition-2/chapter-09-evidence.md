@@ -331,3 +331,47 @@ outside the cold student's reading set. Full public/browser/ownership/race and
 boundary checks remain required; the predecessor's 6/51 absent-feature result
 is not a Skills positive. Chapter 8 checkpoint remains the release prerequisite.
 The earlier missing-command chronology remains in the preparation record.
+
+## Interim live-feedback reconciliation, October 8, 2026
+
+The author reloaded the complete current voice and chapter-writing procedure,
+read the student's continuation through `bounded-public-recovery` and support
+checkpoint `3da764b`, and reread the existing author feedback and the relevant
+Chapter 2/6 usage and streaming passages. This is an interim reading of an active
+working-tree review, not an immutable final live matrix. The observed review
+bytes were 67,307 bytes, SHA-256
+`f60e0156638b3d09e5ba06aaaadd37aa7c7dc3f1a8f2853f19dc1405692eca98`.
+Later student additions need their own reconciliation.
+
+Direct raw reads under `solutions/edition-2/main/evidence/ch09/`:
+
+- `live-gemini-n-recovery/responses/004.body`: 350 bytes, SHA-256
+  `dced5fb8afae1d77f0131822a88ea6b42cc117919de693db8a65cb37cdedc5f6`.
+  Its single SSE payload contains an empty text part, finishReason STOP,
+  promptTokenCount and totalTokenCount both 1064, and no candidatesTokenCount.
+- `live-anthropic-g/responses/002.body`: 2,668 bytes, SHA-256
+  `e6f7b7446b3dab2fe5ef6466111a6790c31ac52d45eccc8296a416ea9a4971ef`.
+  This remains the original empty-argument failure examined for clarification
+  `305b1b0`; it is not the later repaired supplement.
+- The original `live-openai-p/terminal.txt` and `live-gemini-n/terminal.txt`
+  both retain HTTP 502 failures. The local relay exception classification and
+  absent exception-class diagnosis come from the student's investigation;
+  terminal text alone cannot distinguish a relay response from an upstream one.
+
+The author checked the current primary
+[generateContent UsageMetadata reference](https://ai.google.dev/api/generate-content#UsageMetadata)
+on October 8. It describes candidate tokens across generated responses and the
+total as prompt, thinking and candidate tokens. That section does not explicitly
+define omission of candidatesTokenCount as zero. This limited documentation read
+does not establish the cause of the observed omission or rule out a broader
+serialization convention. The recommendation is to retain the existing strict
+contract for this receipt; any later compatibility decision must name its
+authority, exact cases and negative controls rather than infer a silent fix.
+
+The feedback response records the student's explicit confirmation of `305b1b0`,
+support mistakes, bounded partial public outcome, audio limits and outstanding
+keyboard/public observations. Reported later successes remain attributed to the
+student or coordinator until the full immutable matrix is audited. No runtime,
+grader, original receipt or chapter demonstration was changed. Checks for this
+evidence-only addition are scoped diff validation and a manual voice/claim pass;
+no Go rebuild, model call or new audio observation was performed.

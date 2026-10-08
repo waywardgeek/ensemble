@@ -129,3 +129,36 @@ Its Anthropic public run retains exit 1 and a missing final beta report, even
 though the coordinator independently accepted the required Skills feature
 coverage from actual calls, bindings and isolation. Neither that partial task
 nor the empty-argument repair is rewritten as an originally successful run.
+
+## Interim live continuation, October 8, 2026
+
+This response covers the student's review through the `bounded-public-recovery`
+response naming support checkpoint `3da764b`. The live matrix is still active;
+this is an author disposition, not its final freeze or acceptance. The original
+attempts, corrections and source bindings remain separate. Section 9.9's final
+demonstration will be reconciled from the completed immutable matrix.
+
+| Experience | Author disposition |
+|---|---|
+| Published empty-argument clarification | The student explicitly confirms that `305b1b0` resolves the distinction between receiving a delta event and receiving argument bytes. The author agrees with the narrow repair and the retained whitespace/malformed/incomplete refusals. The later real Messages supplement reports the same empty-object/empty-delta path executing successfully under the repaired binding; it does not turn the original GUI failure into a pass. Final receipt reconciliation remains pending. |
+| Relay HTTP 502 in OpenAI P and Gemini N | The terminals establish a failed call. The student's relay diagnosis establishes a local transport-exception response with no retained upstream response, but the original relay omitted exception class. That is a support diagnostic limitation: the evidence cannot identify timeout, network failure or an upstream rejection. No runtime or usage rule needs weakening. The separately frozen recovery support adds safe diagnostics and reviewed caps while preserving the original support and shared budget accounting. |
+| OpenAI public coverage after its first failed request | Constructing two typed Agents does not prove either model read its file. The missing reads remain outstanding at this boundary. Recovery requires the coordinator's bounded plan and a new binding; the author does not convert unspent calls in another scenario into permission or count a planned recovery as an observation. |
+| Anthropic public beta run ended at round_limit | Keep exit 1 and the absent final beta report. Actual file reads, distinct literal bindings and isolated skill state can establish the required public features, as the coordinator's independent audit found, while the requested task still ends partially. A model's redundant load followed by unload spent its remaining request budget; this is useful human experience, not evidence that isolation failed. |
+| Gemini empty STOP with missing candidate count | The inspected response contains empty text and STOP, promptTokenCount 1064 and totalTokenCount 1064, but omits candidatesTokenCount. Chapter 2 requires that base count and Chapter 6 retains the final usage snapshot. Refusal follows the published contract. Do not infer a missing count from subtraction, label the omission a provider bug, or claim a successful answer from terminal metadata alone. Any compatibility change needs an explicit grouped contract and distinguishing tests before code changes. |
+| Browser wait after a terminal-origin OpenAI request | The student waited for a local-composer status belonging to a different input path. Its report identifies the actual terminal success and browser outcome/card/state separately. This is an evidence-driver selector mistake; retain the timeout and verify the appropriate observations without repeating an already completed model prompt. |
+| Click expansion where the reviewed live plan required a keyboard action | A mouse click and a local keyboard fixture prove different things. Keep the live keyboard capture gap until the separately bound, zero-model-call keyboard action is observed and reviewed. The frozen helper alone does not close it. |
+| Native speech and audio capture | Full text delivered to the adapter, native callbacks and captured sound are separate observations. Quiet lead-in duration and later waveform energy can qualify a recording, but cannot establish intelligibility or model hearing. Preserve the student's unsupported-audio-input limitation and both original and corrective capture scopes. |
+
+The current primary usage reference describes the counters but does not give an
+explicit rule in its UsageMetadata section for interpreting this omitted field.
+The author recommends preserving the taught refusal for this attempt and keeping
+zero-output compatibility as a separately reviewed question if stronger evidence
+or a deliberate policy change warrants it. Neither a missing field nor this
+conservative client contract alone establishes a provider defect.
+
+For eventual spin prose, preserve the request the reader cared about: beta was
+asked to read and report, but spent its last opportunity changing an already
+usable skill. Authority and data isolation can work while the model leaves the
+task unfinished. The final account must show both, with the actual file/tool
+receipts and the bounded partial outcome. No all-provider completion, successful
+recovery, or student confirmation of this new response is claimed here.
