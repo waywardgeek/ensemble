@@ -236,3 +236,99 @@ rewrite accepted core behavior. The transport-error clarification resolved the
 one initial chapter ambiguity. Other corrections above were implementation or
 checker issues. I have not read historical answers or comparative reviewer
 notes; this is the preserved initial student experience, ready for that review.
+
+## Revision phase after initial checkpoint 8cc87f2
+
+Reread the entire skill, architecture ledger and current Chapter 7 before
+revision work. The independent reviewer receives the historical standard;
+I receive rationale and public failures, not its code or grader internals.
+Original evidence scripts, binding, launches and receipts remain unchanged.
+
+Read the author's published §7.3/§7.6 correction adding `job_killed` to the
+snapshot window and explaining both inherited terminal facts. This resolves
+the teaching omission I reported. The narrow filter now includes it. A public
+regression starts and kills a real local scratch process through a controlled
+model, then requires the watch snapshot to retain its running report followed
+by the killed fact. The first draft fixture omitted mandatory usage and was
+rejected as malformed; adding valid fixture usage resolved that test-only
+mistake. The valid control passes. Removing just the filter addition in a
+disposable source copy fails with running=6, killed=0 as intended; receipt is
+`revision-1/killed-deletion-control.json`. No paid request was made.
+
+The reviewer also found that `Page.close()` leaves DOM listeners installed,
+so constructing a replacement Page on the same root loses a new submission
+to the old closed handler. Proposed lifetime plan: Page owns and removes its
+control listeners; ArtifactScroll owns and removes its scroll listener and
+closes its cards; each Artifact removes its expand/speak listeners. Closing
+is idempotent and preserves Connector/speech teardown. Awaiting published
+teaching/coordinator check before that affected repair. This is a reusable
+component lifetime defect, not an excuse to change model or provider behavior.
+
+### Browser ownership revision plan (published clarification read)
+
+Read the new §7.1 application parent, §7.6 idempotent listener disposal, and
+§7.7 shared native speech/FIFO/cancellation paragraphs before affected code.
+The proposed public `BrowserApplication` is the document root. It owns Pages,
+the native synthesis/utterance constructors, a `SpeechService`, and diagnostic
+logging. `createPage(root, url)` constructs a Page with its actual application
+parent. Application close closes its Pages and service; there is no module
+registry. Existing bootstrap and the public two-Agent embedding each create
+one application and use it to construct their Page children.
+
+Page continues owning Connector, ArtifactScroll, input causes and SpeechQueue.
+SpeechQueue reaches the native service through Page.application(), not an
+injected sibling. It offers its current utterance after the speaking pause ack;
+other queued text remains local and still holds the cause. The service owns
+FIFO requests from these Page heads, with Page identity, and submits exactly
+one native utterance. A settled head allows its Page to offer the next one.
+Service cancellation removes the requester's pending head and native-cancels
+only when that Page owns the active utterance. Other Pages remain queued and
+continue. Active-request identity and local queue generations fence stale
+callbacks. Native availability and diagnostics stay reachable through the
+application parent. No locks are needed in this single-threaded browser state;
+await boundaries and native callbacks require explicit closed/generation checks.
+
+Page closes idempotently: mark closed, remove its owned control listeners,
+close Connector (including reconnect timer), close SpeechQueue, and dispose
+ArtifactScroll/cards. Pending submit/reconcile/native callbacks cannot write
+old notices, clear replacement input or move its focus. ArtifactScroll closes
+its own scroll handler and child Artifact listeners. Creator back-pointers are
+retained throughout; new Pages on the same root get fresh owned state.
+
+Existing public component fixture adapters must use the new application parent;
+no old behavioral assertion is removed. Local controls will distinguish active
+and idle Page cancellation, FIFO pending speech, stale native callbacks,
+continued typing causes, same-root Page replacement and component disposal.
+Real native speech with retained answer cards can validate the changed browser
+owner path without paying to regenerate identical provider output.
+
+The coordinator accepted this owner plan, including FIFO over submitted ready
+heads and cancellation fencing before invoking native cancel. Implemented the
+application/service chain, updated bootstrap/public embedding, and added Close
+view/Reconnect view controls to the example for actual lifetime use. Page closes
+its handlers before closing children; Connector cancels reconnect work, rejects
+pending promises, and detaches socket handlers. Late promises cannot update the
+old Page's notice or focus. Component reset also closes discarded Artifact
+handlers. Local service controls cover idle close, queued and active cancellation,
+FIFO heads, synchronous/stale callbacks, and typing through an error. The
+independent reviewer reports the six retained browser groups, same-root remount
+and five shared-native groups passing this revision.
+
+My own boundary audit found the initial oversized-message workaround only
+covered 65,537 bytes. Larger/fragmented messages hit Gorilla's automatic empty
+close first. The retained before probe passes 65,536/65,537 and fails 131,072,
+1 MiB and fragmented 131,072; the revised bounded NextReader/LimitReader path
+passes all five with explanatory closes and zero model requests. This proves
+why the old comment about only draining the exact boundary is replaced; the
+underlying general explanatory-close requirement is now handled at our bounded
+reader instead of the library's header-level limit. Before/after binary hashes
+and untouched failures are under `revision-1/oversize-*.json`.
+
+Read the author's final initial-live disposition table and confirmed it resolves
+all recorded teaching suggestions without altering original outcomes. The
+revised shared speech/application behavior requires a narrow fresh demonstration:
+two prompts per provider in the public two-Agent consumer, at most four HTTP
+requests per provider, separate revision evidence/budgets. Root authorized that
+scope. The initial nine sessions remain bound to their original source; no job
+is regenerated merely to prove the snapshot projection repair. Retained-event
+replay is labeled as a local control, not a new provider session.

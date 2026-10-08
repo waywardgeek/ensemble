@@ -1,11 +1,11 @@
 # Chapter 9 outline: Capabilities with an owner
 
-Preparation only, October 7, 2026. New Chapter 9 maps to first-edition
-Chapter 10 under `workflow.md` and `global-review.md`. These are proposed
-contract choices for coordinator review, not a student handoff. No Chapter 9
-implementation, passing checker or live result exists. Draft the complete
-chapter only after outline review; release a fresh student only after accepted
-Chapter 8 and a published independent contract checker.
+Full draft prepared for contract review, October 8, 2026. New Chapter 9 maps
+to first-edition Chapter 10 under `workflow.md` and `global-review.md`.
+Coordinator review `5c517f` accepts the architecture direction and two policy
+choices below. The full chapter is not yet accepted or ready for a student:
+Chapter 8 and a published independent contract checker remain prerequisites.
+No Chapter 9 implementation, passing checker or live result exists.
 
 ## Stake and story decision
 
@@ -48,13 +48,13 @@ settings, remote plugin connection, automatic compaction, saved Agent restart,
 sub-agent orchestration or provider-specific cache protocol. The next persistence
 chapter may restore live sessions; replay here reconstructs recorded facts only.
 
-## Proposed ownership and data contract
+## Ownership and data contract for full review
 
 | Owner | Authoritative facts and permitted work | Parent path and lifetime |
 |---|---|---|
 | Ensemble | Application composition and logger; installs the handlers available to each Agent | Application root; never a package-global skill registry |
-| Agent | Creation-time skill selection, installed-tool ceiling, Skills service and actor | Agent→Ensemble; a skill cannot replace Agent configuration or widen the ceiling |
-| Skills | Immutable parsed catalog, active roots/dependency closure, effective grants, available loadable names, material revisions and variable bindings | Skills→Agent; declarations/interfaces in core common, behavior in `internal/skills` |
+| Agent | Creation-time skill selection and scalar bindings, installed-tool ceiling, Skills service and actor | Agent→Ensemble; a skill cannot replace Agent configuration or widen the ceiling |
+| Skills | Immutable parsed catalog, active roots/dependency closure, effective grants, available loadable names, material revisions and derived renders | Skills→Agent; declarations/interfaces in core common, behavior in `internal/skills` |
 | Actor | Orders load/unload acceptance, durable mutation and observations with turns, hints, pause, interrupt and close | Actor→Agent→Skills/Registry; no sibling implementation imports or injected service closures |
 | Registry | Handler/schema storage and decoding of load/unload tool arguments; declarations and dispatch use the same committed effective grants | Registry→Agent; reaches Skills through the real parent interface |
 | Catalog parser and variable rendering helpers | Produce owned candidate facts and safe errors; no hidden mutation, provider calls or filesystem effects during replay | Receive their Skills owner/context; can reach Agent→Ensemble logging |
@@ -85,16 +85,15 @@ which supports external consumers and tests without a private filesystem hook.
 - Use UTF-8 Markdown with a leading and closing frontmatter delimiter line.
   Body horizontal rules survive unchanged. Require name, description and type;
   support primary, loadable and dependency. Tools, depends and loadable-skills
-  accept a space-separated scalar or a YAML sequence of strings. The full draft
-  must publish exact allowed scalar/list forms and error fixtures, including
+  accept a space-separated scalar or a YAML sequence of strings. Section 9.3 publishes exact allowed scalar/list forms and error fixtures, including
   duplicate/unknown fields, wrong kinds, missing delimiters and trailing syntax.
 - Unsupported integration headers fail explicitly. Do not accept mcp_servers,
   commands, secrets or network configuration and quietly do nothing with them.
   No parser behavior creates an executable plugin in this chapter.
-- Proposed resource limits for review: 256 definitions, 64 KiB per source or
+- Draft resource limits: 256 definitions, 64 KiB per source or
   rendered body and 8 MiB aggregate catalog bytes. Enforce before publication;
-  the complete draft will define whether delimiters/frontmatter count toward
-  each bound and include exact boundary cases. Do not hide grader-only limits.
+  §9.3 counts delimiters/frontmatter toward source bounds, and §9.5 defines
+  expanded-body bounds. Do not hide grader-only limits.
 - The selected primary and its dependency closure load before the first request.
   All required names, types, handlers and grants must validate or creation fails
   without publishing a partly initialized Agent. Reachable discovery edges may
@@ -119,8 +118,7 @@ roots loads once and remains active until its last active root no longer needs
 it. The primary is a permanent root. A diamond is valid; a cycle is an error.
 Repeated load of an already active skill is an acknowledged no-op without a
 second instruction entry. Loading a previously retired skill is a new activation
-with a new recorded body identity. Exact revision/no-op/error payloads belong
-in the complete draft and fixtures.
+with a new recorded body identity. Section 9.6 specifies revision/no-op/error payloads.
 
 Unload removes an explicitly active dynamic root. It cannot remove the primary
 or directly remove a dependency still required by a root. Recompute the closure,
@@ -140,10 +138,9 @@ do not implement a hypothetical compactor now or claim unload erases history.
 Use actor-local capability control operations for these bounded in-memory
 transitions. Tools owns wire decoding; Skills prepares typed candidates; Actor
 commits them through Agent's existing durable path. This avoids a tool worker
-blocking on the actor that is waiting for that worker. The full contract must
-explicitly classify management tools under Chapter 4's literal-next-call
-one-shot-limit rule and retain Chapter 5 pause/admission/pairing semantics.
-Proposed choice: paired control tools without a process Job, consuming pending
+blocking on the actor that is waiting for that worker. Section 9.6 classifies management tools under Chapter 4's literal-next-call
+one-shot-limit rule and retains Chapter 5 pause/admission/pairing semantics:
+ paired control tools without a process Job, consuming pending
 limits just as any next call does; manuals have their own bounded durable entry.
 
 Authorization is checked at each admission against committed current state.
@@ -171,12 +168,11 @@ recovery or permission to reopen external services.
 Land dynamic instruction material at the completed batch boundary so the next
 provider request preserves every call/result pair. It remains a distinct neutral
 purpose and is rendered at its chronological dialogue position, not appended to
-the enduring system prefix or only buried in a result. The full chapter needs
-literal valid render fixtures for all three APIs before this becomes a student
-requirement. No unsupported inline-tool protocol or cache-hit guarantee follows
+the enduring system prefix or only buried in a result. Section 9.7 supplies literal valid render fixtures for all three APIs,
+subject to full contract review before student handoff. No unsupported inline-tool protocol or cache-hit guarantee follows
 from retaining provenance.
 
-Proposed bounded variable seam: Skills owns built-in TOOLS/SKILLS rendering over
+Accepted bounded variable seam: Skills owns built-in TOOLS/SKILLS rendering over
 its complete candidate state; the application supplies per-Agent named scalar
 bindings through the public constructor. No arbitrary environment lookup or
 registered closure captures sibling services. Built-ins cannot be overridden.
@@ -185,21 +181,28 @@ and unknown-variable error. Freeze the expanded bytes in each recorded body;
 never recursively expand a substituted value. A public consumer adds a third
 variable without editing a core package and proves two-Agent isolation.
 
-Two substantive choices need coordinator disposition before the full draft:
+Coordinator disposition at `5c517f` resolves both preparation questions:
 
-1. **Primary versus existing System configuration.** Recommended: skill mode
-   treats primary identity as creation-only and rejects a competing explicit
-   System override or later replacement; Agents without skills keep earlier
-   behavior. Existing deliberate instruction appends need a stated policy.
-   Claim stability of the primary's rendered bytes, not unconditional stability
-   of every system byte after a caller explicitly adds enduring instructions.
-2. **Variable extension scope.** Prefer immutable scalar application bindings
-   now, with built-in computed lists evaluated at each load. If computed custom
-   variables are required at this introduction, define an owned typed service
-   and bounded execution contract before implementation. Do not silently retain
-   the historical closure registry as the architecture.
+1. Skill mode rejects nonempty competing creation-time Config.System. The
+   rendered primary supplies the base; no-skills mode keeps earlier defaults.
+   Deliberate enduring instruction appends are allowed supplements under the
+   inherited rendering rules, without replacing primary identity or promising
+   that every provider-prefix byte remains fixed. The draft teaches shared CLI
+   configuration conflict/default handling and recorded-primary offline replay.
+2. Custom variables are immutable per-Agent scalar bindings. Agent owns their
+   authoritative configuration; Skills reaches them through its Agent parent.
+   TOOLS/SKILLS are computed from the complete candidate, with no custom callback
+   registry or sibling service closure. The draft gives exact token/escape,
+   ordering and no-recursive-expansion fixtures.
 
-## Public and human surfaces to specify in the draft
+The coordinator also accepted a single durable transition commit: Skills
+prepares, Actor appends/applies/publishes. Initialization and changes record
+complete state and new activations. Coherent reads and watch snapshots use the
+same actor boundary. Initial dependency manuals and dynamic manuals have their
+own entries; primary bytes appear once as the base prefix. A later tool-result
+append failure cannot undo the committed permission fact.
+
+## Public and human surfaces specified in the draft
 
 Expose owned Skills state and actor-ordered load/unload through public library
 interfaces. A headless caller can inspect the primary, active roots and
@@ -219,8 +222,7 @@ Human CLI gains a read-only /skills view; ordinary prompts ask the model to load
 or unload through its declared tools. Preserve prior machine protocol unless a
 new opt-in record is explicitly specified. The browser displays authoritative
 state alongside its existing cards and can submit the same ordinary prompts.
-The GUI and CLI on --terminal continue sharing one Agent. Exact command/wire
-payloads and safe snapshot fields are required in the full contract.
+The GUI and CLI on --terminal continue sharing one Agent. Section 9.8 supplies exact configuration/wire payloads and safe snapshot fields.
 
 ## Required checks and actual-use plan
 
@@ -263,3 +265,22 @@ the new contracts. Publish a new independent acceptance command and audited
 coverage before handoff. Preserve legacy positive results and add intended
 negative controls; never treat the old declaration-oriented score as complete
 capability enforcement. Author writes the actual spin only from retained runs.
+
+
+## Full draft additions for review
+
+`chapter-09.md` now supplies exact restricted frontmatter forms, identifiers,
+source/catalog/render/binding limits, deterministic graph order and no-op/error
+rules. It specifies paired actor-local management tools, consumption of next-call
+limits and public-control distinctions. Recorded activation fields carry exact
+body hashes, dependency/contributor facts and offers; replay uses those facts
+without rediscovering files. Literal request excerpts cover all three inherited
+adapter surfaces while preserving their current result representation.
+
+The public watch state, skill change observation, browser card routing/speech
+behavior and read-only human /skills surface are explicit. New
+LLM_SKILLS_DIR/LLM_PRIMARY_SKILL configuration is opt-in, shared by commands and
+conflict-aware. The shipped full primary uses the ten observed predecessor
+builtins plus the management pair; the narrow fixture teaches disclosure/shared
+unload. The actual spin remains a plan. The independent checker command is
+explicitly unavailable, blocking handoff instead of inventing a passing gate.

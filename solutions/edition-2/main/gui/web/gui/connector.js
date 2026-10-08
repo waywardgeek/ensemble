@@ -17,22 +17,31 @@ export class Connector {
     socket.onclose = () => {
       if (socket !== this.socket) return;
       this.staging = null; this.generation = null;
-      for (const p of this.pending.values()) {
-        const message = p.type === 'prompt' ? 'Prompt acceptance unknown; inspect history after reconnect. Do not resend automatically.' : 'Connection lost';
-        p.reject(new Error(message));
-      }
-      this.pending.clear(); this.owner.connection('Disconnected — this page no longer holds a pause');
+      this.rejectPending(); this.owner.connection('Disconnected — this page no longer holds a pause');
       if (!this.closed) this.timer = setTimeout(() => this.connect(), 500);
     };
-    socket.onerror = () => this.owner.diagnostic('Connection failed');
+    socket.onerror = () => { if (socket === this.socket) this.owner.diagnostic('Connection failed'); };
   }
-  close() { this.closed = true; clearTimeout(this.timer); this.socket?.close(); }
+  rejectPending() {
+    for (const p of this.pending.values()) {
+      const message = p.type === 'prompt' ? 'Prompt acceptance unknown; inspect history after reconnect. Do not resend automatically.' : 'Connection lost';
+      p.reject(new Error(message));
+    }
+    this.pending.clear();
+  }
+  close() {
+    if (this.closed) return;
+    this.closed = true; clearTimeout(this.timer);
+    const socket = this.socket; this.socket = null; this.staging = null; this.generation = null;
+    this.rejectPending();
+    if (socket) { socket.onopen = socket.onmessage = socket.onclose = socket.onerror = null; socket.close(); }
+  }
   send(type, fields = {}) {
-    if (!this.socket || this.socket.readyState !== WebSocket.OPEN) return Promise.reject(new Error('Not connected'));
+    if (this.closed || !this.socket || this.socket.readyState !== WebSocket.OPEN) return Promise.reject(new Error('Not connected'));
     const id = 'c' + (++this.count);
     return new Promise((resolve, reject) => {
       this.pending.set(id, {type, resolve, reject});
-      this.socket.send(JSON.stringify({type, id, ...fields}));
+      try { this.socket.send(JSON.stringify({type, id, ...fields})); } catch (error) { this.pending.delete(id); reject(error); }
     });
   }
   receive(m) {

@@ -95,6 +95,15 @@ func run() error {
 	return nil
 }
 
-const page = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Two Agent workbench</title><link rel="stylesheet" href="/style.css"><body><h1>Two independent Agents, one application</h1><div id="workbench"></div><template id="panel"><main><h2 data-name></h2><p data-status></p><p data-pause></p><section data-artifacts class="artifacts" tabindex="0" aria-label="Conversation"></section><button data-latest>Return to latest</button><button data-auto-speech>Auto speech: off</button><button data-cancel-speech>Cancel speech</button><label>Prompt or correction<textarea data-input></textarea></label><button data-prompt>Send prompt</button><button data-hint>Send hint</button><button data-interrupt>Interrupt</button><p data-notice role="status"></p></main></template><script type="module" src="/consumer.js"></script></body></html>`
-const script = `import {Page} from '/page.js';
-const pages=[];for(const name of ['first','second']){const panel=document.querySelector('#panel').content.firstElementChild.cloneNode(true);panel.querySelector('[data-name]').textContent=name+' Agent';document.querySelector('#workbench').append(panel);pages.push(new Page(panel,location.origin.replace(/^http/,'ws')+'/'+name+'/ws'))};window.addEventListener('pagehide',()=>pages.forEach(page=>page.close()));`
+const page = `<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width"><title>Two Agent workbench</title><link rel="stylesheet" href="/style.css"><body><h1>Two independent Agents, one application</h1><div id="workbench"></div><template id="panel"><main><h2 data-name></h2><button data-close-view>Close view</button><button data-open-view disabled>Reconnect view</button><p data-status></p><p data-pause></p><section data-artifacts class="artifacts" tabindex="0" aria-label="Conversation"></section><button data-latest>Return to latest</button><button data-auto-speech>Auto speech: off</button><button data-cancel-speech>Cancel speech</button><label>Prompt or correction<textarea data-input></textarea></label><button data-prompt>Send prompt</button><button data-hint>Send hint</button><button data-interrupt>Interrupt</button><p data-notice role="status"></p></main></template><script type="module" src="/consumer.js"></script></body></html>`
+const script = `import {BrowserApplication} from '/application.js';
+const application=new BrowserApplication();
+for(const name of ['first','second']){
+ const panel=document.querySelector('#panel').content.firstElementChild.cloneNode(true);
+ panel.querySelector('[data-name]').textContent=name+' Agent';document.querySelector('#workbench').append(panel);
+ const close=panel.querySelector('[data-close-view]'),open=panel.querySelector('[data-open-view]');let page;
+ const mount=()=>{page=application.createPage(panel,location.origin.replace(/^http/,'ws')+'/'+name+'/ws');close.disabled=false;open.disabled=true};
+ close.addEventListener('click',()=>{page.close();close.disabled=true;open.disabled=false;panel.querySelector('[data-status]').textContent='View closed';panel.querySelector('[data-pause]').textContent='No pause held by this view'});
+ open.addEventListener('click',mount);mount();
+}
+window.addEventListener('pagehide',()=>application.close(),{once:true});`

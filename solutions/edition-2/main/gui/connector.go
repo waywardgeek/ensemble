@@ -3,6 +3,7 @@ package gui
 import (
 	"context"
 	"encoding/json"
+	"io"
 	"strings"
 	"sync"
 	"time"
@@ -142,15 +143,18 @@ func (c *Connector) writer() {
 func (c *Connector) Run() {
 	defer close(c.done)
 	defer func() { c.Close(); c.workers.Wait() }()
-	// Read one extra byte so the exact oversized boundary can be drained before
-	// closing; rejecting at the frame header can reset TCP before the close arrives.
-	c.socket.SetReadLimit(65537)
+	// Bound the accumulated payload ourselves. Gorilla's header-level read limit
+	// sends its own empty-reason close before we can explain an oversized command.
 	_ = c.socket.SetReadDeadline(time.Now().Add(25 * time.Second))
 	c.socket.SetPongHandler(func(string) error { return c.socket.SetReadDeadline(time.Now().Add(25 * time.Second)) })
 	c.workers.Add(1)
 	go c.writer()
 	for {
-		kind, data, err := c.socket.ReadMessage()
+		kind, reader, err := c.socket.NextReader()
+		if err != nil {
+			return
+		}
+		data, err := io.ReadAll(io.LimitReader(reader, 65537))
 		if err != nil {
 			return
 		}

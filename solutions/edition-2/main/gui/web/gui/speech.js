@@ -1,15 +1,16 @@
 import {partKey} from './artifacts.js';
 // The page owns one queue. Every callback is fenced by its queue generation.
 export class SpeechQueue {
-  constructor(owner, synthesis = globalThis.speechSynthesis, Utterance = globalThis.SpeechSynthesisUtterance) {
-    this.owner = owner; this.synthesis = synthesis; this.Utterance = Utterance;
+  constructor(owner) {
+    this.owner = owner;
     this.queue = []; this.generation = 0; this.current = null; this.cursors = new Map(); this.enabled = false;
   }
   busy() { return this.queue.length > 0 || this.current !== null; }
-  enable(value) { this.enabled = value; if (value && (!this.synthesis || !this.Utterance)) { this.owner.diagnostic('Speech synthesis unavailable'); this.enabled = false; } }
+  service() { return this.owner.application().speech(); }
+  enable(value) { this.enabled = value; if (value && !this.service().available()) { this.owner.diagnostic('Speech synthesis unavailable'); this.enabled = false; } }
   enqueue(key, text, operation = null) {
-    if (!text.trim()) return;
-    if (!this.synthesis || !this.Utterance) { this.owner.diagnostic('Speech synthesis unavailable'); return; }
+    if (this.closed || !text.trim()) return;
+    if (!this.service().available()) { this.owner.diagnostic('Speech synthesis unavailable'); return; }
     this.queue.push({key, text, operation}); this.owner.reconcile().catch(e => this.owner.diagnostic(e.message)); this.pump();
   }
   async pump() {
@@ -17,7 +18,7 @@ export class SpeechQueue {
     const item = this.queue.shift(), generation = this.generation; this.current = item;
     try { await this.owner.reconcile(); } catch (e) { if (generation === this.generation) this.cancel(); this.owner.diagnostic(e.message); return; }
     if (generation !== this.generation || this.current !== item) return;
-    const utterance = new this.Utterance(item.text); let settled = false;
+    let settled = false;
     const settle = error => {
       if (settled || generation !== this.generation || this.current !== item) return;
       settled = true; this.current = null;
@@ -25,19 +26,21 @@ export class SpeechQueue {
       this.owner.speechEvent({type: error ? 'error' : 'end', key: item.key, error});
       if (this.queue.length) this.pump(); else this.owner.reconcile().catch(e => this.owner.diagnostic(e.message));
     };
-    utterance.onstart = () => { if (generation === this.generation) this.owner.speechEvent({type: 'start', key: item.key, text: item.text}); };
-    utterance.onend = () => settle(); utterance.onerror = event => settle(event.error || 'unknown');
-    try { this.synthesis.speak(utterance); } catch (e) { settle(e.message); }
+    this.service().submit(this.owner, item.text, {
+      start: () => { if (generation === this.generation) this.owner.speechEvent({type: 'start', key: item.key, text: item.text}); },
+      end: settle,
+    });
   }
   cancel(operation = null) {
     const retained = operation ? this.queue.filter(item => item.operation !== operation) : [];
     if (operation && this.current && this.current.operation !== operation) {
       this.queue = retained; this.owner.reconcile().catch(e => this.owner.diagnostic(e.message)); return;
     }
-    this.generation++; this.current = null; this.queue = retained; this.synthesis?.cancel();
+    this.generation++; this.current = null; this.queue = retained; this.service().cancel(this.owner);
     this.owner.reconcile().catch(e => this.owner.diagnostic(e.message)); this.pump();
   }
   reset() { this.cancel(); this.cursors.clear(); }
+  close() { if (this.closed) return; this.closed = true; this.enabled = false; this.cancel(); this.cursors.clear(); }
   seed(partials) {
     for (const p of partials) {
       const text = [p.channels.thinking, p.channels.text].filter(v => v !== undefined).join('');

@@ -193,3 +193,81 @@ author working changes; they do not claim that every source file was committed.
 - `book/chapter-10.md`: `b04d6facb19ae61b78a8246028ac505955bb8c139a710b9aaaaf29f5c4fb3476`.
 - `internal/grade/ch10_checks.go`: `cfc30c3e6cd78d3880c40d7e3e8cceb3faee84f880161831db75212d674aed49`.
 - `internal/grade/ch10_harness.go`: `47628bffc3da79b63a16feeeff8f070d229ca44e802cb18f4ed9d4df9b8e9a9c`.
+
+
+## Coordinator-accepted direction and full draft, October 8
+
+Preparation checkpoint `db86e0c` was reviewed in `chapter-09-review.md` at
+`5c517f`. The coordinator accepted immutable scalar custom bindings and explicit
+primary/System conflict rejection, with existing enduring instruction appends
+retained as supplements. Agent owns creation configuration; Skills reaches it
+through its parent. The coordinator also accepted the single durable commit
+formulation: prepare an owned candidate, then actor append/apply/publication;
+no independent Skills mutation authority and no rollback claim after a later
+result-append failure. These are working choices, not new Bill rulings.
+
+Write scope now includes `chapter-09.md` in addition to this record and the
+outline. The Chapter 7 author checkpoint is preserved while its affected runtime
+repairs proceed. No Chapter 9 runtime, grader or old solution was edited.
+
+Additional actual reads for the full draft: complete current Chapter 8 and
+architecture; complete first-edition Chapter 10; new Chapter 2's enduring/neutral
+provider rendering and configuration passages; new Chapter 4's management/limit
+rules; first-edition Chapter 15's explicit skill-entry and manual-clearing
+passages; path-scoped Chapter 10/15 Git history; the coordinator's complete
+Chapter 9 outline review. Read the preceding new main Registry's builtin table
+and renderer's result/call/system mappings to verify exact inventory and retained
+wire shapes. This is author research, not student exposure or a cold attempt.
+The full current voice/procedure read for Chapter 7 remains in this context.
+
+The ten predecessor builtin names were checked against
+`main/internal/tools/registry.go`: five file/directory/search handlers,
+run_command, wait_for_job, send_input, kill_job and tool_limits. The new shipped
+primary grants those names; management adds load_skill/unload_skill in skill
+mode. This replaces the historical twelve-tool roster containing think, without
+claiming a Chapter 9 implementation exists.
+
+Literal provider fixtures follow the predecessor's renderer representation:
+Messages uses result text as content, Chat Completions retains empty assistant
+content alongside calls, and generateContent carries functionResponse before
+the chronological user text. The draft's new skill envelope is a course
+rendering contract over those existing surfaces. It claims no new provider API,
+inline declaration protocol or measured cache behavior. The body digest is
+computed from exact UTF-8 `Use write_file.` bytes with no final LF.
+
+Section 9.3 now gives a restricted frontmatter grammar and exact source/catalog
+limits rather than depending on arbitrary YAML library acceptance. Section 9.5
+gives exact variable grammar, escapes, candidate lists, scalar and rendered-byte
+limits. Section 9.6 specifies atomic graph/permission outcomes, typed public
+control behavior, management pairing and literal-next-call consumption. Section
+9.7 fixes durable activation/state payloads, one-copy primary storage, initial
+dependency manuals, completed-batch chronological placement and all three wire
+fixtures. Section 9.8 gives explicit opt-in CLI configuration, safe watch fields,
+public inspection, card identity and silent automatic/replay treatment.
+
+The story choice remains the documented constitution/manual distinction and the
+later tool-clearing lifetime defect. It is framed as historical design evidence,
+not an invented new run. The live spin is a required plan on all three providers,
+including full/narrow primary, CLI/browser/public isolation, actual file effects,
+revocation and retained material. No model answer, audible result or screenshot
+is fabricated. The accepted Chapter 8 baseline, complete contract review and a
+published independent checker still block student release.
+
+Scoped author checks: all literal JSON excerpts parse; the body hash and identical
+material envelope across the three provider fixtures were recomputed. Prose lint
+passes all hard rules at 5,200 words. Soft warnings are 15 negation forms and a
+whole-chapter person gap. The reading pass retained precise capability/replay
+exclusions, varied paragraph endings and the concrete reader's editing task;
+it did not add a fictional anecdote to satisfy the detector. This is a new
+draft with deliberately new schemas/fixtures, not a prose-only alteration of
+existing runtime artifacts. No build, grader or live gate is claimed.
+
+- Full-draft read `book/edition-2/chapter-08.md`: SHA-256 `6b705930bff324c8930446e1993e2a750cd30801b38799c124443d1da8ba9347`.
+
+- Full-draft read `book/edition-2/architecture.md`: SHA-256 `4d40b6ce0d223b286b4b5000413fb5a2f7ad40c7ff8e6848e81740bcbf6c33de`.
+
+- Full-draft read `book/edition-2/chapter-09-review.md`: SHA-256 `dcd2526adb64398ef4c551ec61c35657f22596fa8dc4565f8eedd8c2487974c1`.
+
+- Full-draft read `solutions/edition-2/main/internal/tools/registry.go`: SHA-256 `41ccba00940d0aa789817e85ff2939d26acbfdc1e15ab7db2148ebebace5d4fb`.
+
+- Full-draft read `solutions/edition-2/main/internal/llm/render.go`: SHA-256 `a16794d7e8df463db8111403289ea94507f2fccc4344d8cd12d44bbc4263a89f`.

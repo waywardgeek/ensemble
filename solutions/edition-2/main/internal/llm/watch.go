@@ -283,7 +283,7 @@ func (a *Actor) publish(o common.Observation) {
 
 func RenderableEvent(owner common.Engine, kind string) bool {
 	switch kind {
-	case "message_received", "hint_received", "response_ended", "tool_called", "tool_returned", "job_ended", "turn_started", "turn_ended", "error_occurred":
+	case "message_received", "hint_received", "response_ended", "tool_called", "tool_returned", "job_ended", "job_killed", "turn_started", "turn_ended", "error_occurred":
 		return true
 	}
 	return false

@@ -26,8 +26,8 @@ export class Artifact {
     this.owner = owner; this.key = key; this.title = title; this.text = text; this.markdown = markdown; this.expanded = false;
     this.element = document.createElement('article'); this.element.className = 'artifact'; this.element.dataset.key = key;
     this.heading = document.createElement('h2'); this.content = document.createElement('div'); this.meta = document.createElement('p'); this.meta.className = 'meta';
-    this.expand = document.createElement('button'); this.expand.addEventListener('click', () => { this.expanded = !this.expanded; this.render(); });
-    this.speaker = document.createElement('button'); this.speaker.textContent = 'Speak'; this.speaker.setAttribute('aria-label', 'Speak full card'); this.speaker.addEventListener('click', () => this.owner.speak(this.key, this.text));
+    this.expand = document.createElement('button'); this.onExpand = () => { this.expanded = !this.expanded; this.render(); }; this.expand.addEventListener('click', this.onExpand);
+    this.speaker = document.createElement('button'); this.speaker.textContent = 'Speak'; this.speaker.setAttribute('aria-label', 'Speak full card'); this.onSpeak = () => this.owner.speak(this.key, this.text); this.speaker.addEventListener('click', this.onSpeak);
     this.element.append(this.heading, this.content, this.meta, this.expand, this.speaker); this.render();
   }
   render() {
@@ -37,12 +37,16 @@ export class Artifact {
     this.meta.textContent = [this.status || '', short ? `${this.text.length - limit} characters omitted from preview` : '', this.reference || ''].filter(Boolean).join(' · ');
     this.expand.hidden = this.text.length <= limit; this.expand.textContent = this.expanded ? 'Show preview' : 'Expand full retained text'; this.expand.setAttribute('aria-expanded', String(this.expanded));
   }
+  close() {
+    if (this.closed) return;
+    this.closed = true; this.expand.removeEventListener('click', this.onExpand); this.speaker.removeEventListener('click', this.onSpeak); this.element.remove();
+  }
 }
 // ArtifactScroll accepts projected records; its owner supplies speech/control.
 export class ArtifactScroll {
   constructor(owner, element) {
     this.owner = owner; this.element = element; this.cards = new Map(); this.calls = new Map(); this.jobs = new Map(); this.follow = true;
-    element.addEventListener('scroll', () => { this.follow = element.scrollHeight - element.scrollTop - element.clientHeight < 80; });
+    this.onScroll = () => { this.follow = element.scrollHeight - element.scrollTop - element.clientHeight < 80; }; element.addEventListener('scroll', this.onScroll);
   }
   speak(key, text) { this.owner.speak(key, text); }
   diagnostic(message) { this.owner.diagnostic(message); }
@@ -55,6 +59,8 @@ export class ArtifactScroll {
     this.changed(); return card;
   }
   reset(snapshot) {
+    if (this.closed) return;
+    for (const card of this.cards.values()) card.close();
     this.cards.clear(); this.calls.clear(); this.jobs.clear(); this.element.replaceChildren(); this.agent = snapshot.agent_id;
     if (snapshot.omitted) this.card('omitted', 'Earlier history omitted', `${snapshot.omitted} earlier renderable events omitted; this view contains the most recent 100 events.`);
     for (const e of snapshot.events) this.event(e, true, snapshot.agent_id);
@@ -105,6 +111,7 @@ export class ArtifactScroll {
     if (e.type === 'error_occurred') this.card(key, 'Error', e.error.message);
   }
   observation(o) {
+    if (this.closed) return;
     if (o.event?.type) this.event(o.event, false, o.agent_id);
     if (o.kind === 'part_delta') { const key = 'p/' + partKey(o), previous = this.cards.get(key)?.channels?.[o.channel] || ''; this.partial(o, {[o.channel]: previous + o.text}); }
     if (o.kind === 'part_final') this.final(o);
@@ -113,5 +120,11 @@ export class ArtifactScroll {
   }
   incomplete(operation = null) {
     for (const card of this.cards.values()) if (card.status === 'Provisional' && (!operation || card.identity?.operation_id === operation.operation_id && card.identity?.agent_id === operation.agent_id && card.identity?.request_id === operation.request_id)) { card.status = 'Incomplete — not accepted'; card.render(); }
+  }
+  close() {
+    if (this.closed) return;
+    this.closed = true; this.element.removeEventListener('scroll', this.onScroll);
+    for (const card of this.cards.values()) card.close();
+    this.cards.clear(); this.calls.clear(); this.jobs.clear();
   }
 }

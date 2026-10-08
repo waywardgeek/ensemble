@@ -1,0 +1,21 @@
+import assert from 'node:assert/strict';
+import {SpeechService} from '../../../gui/web/gui/speech-service.js';
+import {SpeechQueue} from '../../../gui/web/gui/speech.js';
+import {writeFileSync} from 'node:fs';
+const submitted=[],events=[];
+const root={synthesis:{speak(u){submitted.push(u);u.onstart()},cancel(){events.push('native-cancel');submitted.at(-1)?.onend()}},Utterance:class{constructor(text){this.text=text}},diagnostic(message){events.push(message)},speech(){return this.service}};
+root.service=new SpeechService(root);
+function page(name){const owner={name,typing:true,application:()=>root,reconcile(){events.push({page:name,typing:this.typing,speaking:this.queue.busy()});return Promise.resolve()},diagnostic(message){events.push({page:name,message})},speechEvent(event){events.push({page:name,event})}};owner.queue=new SpeechQueue(owner);return owner}
+const a=page('A'),b=page('B'),idle=page('idle'),tick=()=>new Promise(resolve=>setImmediate(resolve));
+a.queue.enqueue('A1','A one');a.queue.enqueue('A2','A two');b.queue.enqueue('B1','B one');await tick();
+assert.deepEqual(submitted.map(u=>u.text),['A one']);assert(b.queue.busy());
+idle.queue.close();assert.equal(events.filter(e=>e==='native-cancel').length,0);
+const stale=submitted[0];stale.onend();await tick();assert.deepEqual(submitted.map(u=>u.text),['A one','B one']);
+a.queue.cancel();assert.equal(events.filter(e=>e==='native-cancel').length,0);assert(b.queue.busy());
+stale.onend();stale.onerror({error:'late'});assert.equal(submitted.length,2);
+b.queue.enqueue('B2','B two');a.queue.enqueue('A3','A three');await tick();
+b.queue.cancel();await tick();assert.equal(events.filter(e=>e==='native-cancel').length,1);assert.equal(submitted.at(-1).text,'A three');
+submitted[1].onend();assert(a.queue.busy());submitted.at(-1).onerror({error:'fixture error'});await tick();assert(!a.queue.busy());assert(a.typing);
+root.service.close();root.service.close();assert.equal(events.filter(e=>e==='native-cancel').length,1);
+const receipt={ok:true,submitted:submitted.map(u=>u.text),events,controls:['idle close does not native-cancel peer','FIFO submitted heads','queued owner cancellation leaves active peer','active owner cancellation advances peer once despite synchronous callback','stale callbacks cannot settle replacement','error releases speech while typing remains']};
+writeFileSync(new URL('./speech-control.json',import.meta.url),JSON.stringify(receipt,null,2)+'\n');console.log(JSON.stringify({ok:true,submitted:receipt.submitted,controls:receipt.controls}));

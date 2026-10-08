@@ -1,3 +1,4 @@
-import {Page} from './page.js';
-const page = new Page(document.querySelector('main'));
-window.addEventListener('pagehide', () => page.close());
+import {BrowserApplication} from './application.js';
+const application = new BrowserApplication();
+application.createPage(document.querySelector('main'));
+window.addEventListener('pagehide', () => application.close(), {once: true});
