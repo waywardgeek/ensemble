@@ -1,7 +1,7 @@
 # Chapter 7 outline: A browser you can steer from
 
-Status: proposed student contract, awaiting independent/coordinator review and
-validated Chapter 6 predecessor. No Chapter 7 implementation or live evidence.
+Status: coordinator-accepted student contract, awaiting the accepted Chapter 6
+baseline. The initial partial checker invocation is published. No Chapter 7 implementation or live evidence.
 Maps to first-edition Chapter 8. Development stays in `solutions/edition-2/main`;
 only the coordinator exports a validated `ch07`.
 
@@ -39,7 +39,7 @@ universals, send-site counts, timings or an invented Bill/browser session.
 8. Actual browser/PTY/public-client acceptance, adversarial fixtures and
    deletion controls; record real spin only after use.
 
-## Architecture choices for review
+## Accepted working architecture choices
 
 Coordinator accepted Agent-owned pause registrations and actor-ordered updates,
 with acknowledgement defining admission order. This supersedes historical
@@ -63,8 +63,11 @@ component seams, and the headless module acquires no browser dependencies.
 The historical `CH=8` grader remains a diagnostic at its historical scope;
 its fixture tool, binary layout and wire shapes differ from this contract.
 New independent checks must exercise real browser state as well as transport.
-A missing checker invocation remains a handoff gate, not permission to claim
-100 from the old five checks. Publish the command before student grading.
+The published initial command is
+`python3 scripts/edition2/accept_ch07.py GUI_BINARY` (checker commit `a5a07ba`).
+Its 15 local transport/snapshot/pause/origin/malformed-command checks are only
+part of §7.9. The grader is adding public, concurrency and browser checks as
+interfaces emerge; the historical score cannot substitute for that coverage.
 
 Local fixtures cover snapshot/live races at partial/final/tool boundaries;
 two Agents reusing local part IDs; slow-client close/resync; sender/teardown;
@@ -96,5 +99,5 @@ Projection recurses through response/message/result part lists, preserves order
 and empty text, strips bound signatures and replaces raw opaque payloads with
 placeholders. Exact valid payload fixtures cover response opaque data, nested
 result signatures and an argument whose ordinary key is named opaque. No new
-neutral result child kind or runtime architecture is introduced. Final review
-and accepted Chapter 6 remain before student release.
+neutral result child kind or runtime architecture is introduced. Coordinator
+contract review is accepted; accepted Chapter 6 remains before student release.

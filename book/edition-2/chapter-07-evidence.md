@@ -104,9 +104,9 @@ The 128 MiB encoded queue byte limit accommodates ordinary JSON escaping of a
 Chapter 6 bounded response; overflow still explicitly invalidates the watch.
 Core logical content bounds and per-connection encoded transport bounds differ.
 
-This draft needs complete public-contract review, an independently published
-new-checker invocation, and the accepted Chapter 6 predecessor before student
-release. Source research and an outline are not those gates. Scoped prose lint
+The complete public-contract review is accepted. The initial partial checker
+invocation is now published; the accepted Chapter 6 predecessor remains required
+before student release. Source research and an outline do not replace those gates. Scoped prose lint
 has no hard failures; soft density/person-gap warnings receive a reading pass,
 not fabricated anecdotes or padding.
 
@@ -127,3 +127,15 @@ text/blob/redacted only. It tests a bound signature on a valid nested result
 text part and raw nested opaque bytes in a standalone accepted response part,
 instead of grading an invalid opaque result child. These are fictional local
 fixtures, not new model observations. No implementation or live claim added.
+
+
+## Published initial checker
+
+The coordinator accepted the complete contract in `chapter-07-review.md`.
+Checker `a5a07ba` publishes
+`python3 scripts/edition2/accept_ch07.py GUI_BINARY`, now printed in the TL;DR.
+Its 15 initial local checks cover transport, snapshot, pause, origin and malformed
+commands. This author update does not run the checker or claim a student pass.
+Full §7.9 coverage remains required, including public, concurrency and browser
+checks being developed as the interfaces emerge. Chapter 7 implementation and
+live evidence still await the accepted Chapter 6 baseline and student handoff.

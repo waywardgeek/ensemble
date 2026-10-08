@@ -18,8 +18,8 @@ and submits human requests through the same public interface as the CLI.
 Closing a tab removes a viewer and its pause causes. It does not erase the
 conversation or kill a job.
 
-**Proposed contract:** this chapter is being reviewed ahead of Chapter 6
-validation. No Chapter 7 implementation, passing check, browser demonstration
+**Accepted contract:** the coordinator has accepted this chapter for student
+handoff, awaiting the accepted Chapter 6 baseline. No Chapter 7 implementation, passing check, browser demonstration
 or speech result is claimed. Build only after the coordinator releases the
 accepted preceding source.
 
@@ -70,9 +70,17 @@ Build the headless CLI from main with `go build ./cmd`. Build the GUI command
 from `main/gui` with `go build ./cmd/ensemble-gui`. `make grade-dir CH=8
 DIR=solutions/edition-2/main` selects the historical GUI grader; its old binary
 and wire assumptions are diagnostic, not acceptance of this new contract.
-The coordinator must publish the new acceptance command before student grading.
-The checks in §7.9 define its scope; they are not waived while that command is
-being prepared. WebSocket library, internal method names and visual styling
+Run the initial independent checker from the repository root with the built
+GUI executable's path:
+
+```sh
+python3 scripts/edition2/accept_ch07.py GUI_BINARY
+```
+
+Its 15 initial local checks cover transport, snapshots, pause, origin handling
+and malformed commands. This is partial coverage, not the complete chapter
+gate. The grader's public, concurrency and browser checks are being added as
+the interfaces become available; all of §7.9 remains required. WebSocket library, internal method names and visual styling
 remain student choices.
 
 ## 7.1 Another receiver, with controls
@@ -637,4 +645,4 @@ that never rendered its seeded payload, or a disconnect race whose sender never
 ran, proves nothing about the advertised property. Preserve required legacy
 coverage and add the new checks rather than calling the old score a browser
 audit. Implementation, live receipts, comparative revisions and final
-proofreading remain ahead of this proposed contract.
+proofreading remain required after implementation of this accepted contract.
