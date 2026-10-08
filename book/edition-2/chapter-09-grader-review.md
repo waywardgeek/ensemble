@@ -537,3 +537,62 @@ all inspected authority/material. Its one-byte-over decoded controls remain.
 The immutable gate includes the raw reader command; write-side refusal, complete
 prior state and enclosing ordinary model-call facts need their separate repaired
 source audit. No unpublished cutoff or historical fixture exemption is introduced.
+
+### Complete-record repair audit
+
+The full reader run now passes against initial repaired source
+`654075b8a3becd0c23f0a0ed2d2531cb0d362156`:
+`ch09-record-bound-repair-initial.json` retains all six rows, including genuine
+public exact-limit/+1 imports with and without LF, the smaller ordinary limit,
+and bounded consumption of unfinished generated input. All 95 recorded Go source
+hashes match that commit. This is a consumption bound, not a peak-memory claim.
+
+A separate valid-catalog control found an import defect in that source. A skill
+record occupying 13,088,007 original bytes was rejected because the new-write
+serializer would escape it into 75,674,887 bytes. Imported records are bounded
+by their actual bytes; they do not have to fit a different encoding. The original
+failure and passing diagnostic overlay are preserved in
+`ch09-import-encoding-initial.json` and
+`ch09-import-encoding-distinguishing-control.json`. The overlay established that
+the same valid history passes once new-write measurement is limited to writes;
+it was never presented as a student repair or edited into the runtime.
+
+The student committed that narrow repair as
+`c0e3171fdc22834348f976f81fcaa7372bd13ed4`. The independent original-encoding
+fixture now passes unchanged. The student's additional regression also exercises
+both LF and EOF framing over a genuine catalog-derived transition. Review found
+no remaining raw-import or controlled record-refusal blocker.
+
+The new command is:
+
+```sh
+python3 scripts/edition2/ch09-review-record-write.py SOURCE_DIRECTORY --receipt RECEIPT
+```
+
+`ch09-record-write-repaired.json` binds all 95 Go files to `c0e3171`, verifies
+they remained unchanged, and records three positive rows and three intended
+mutation failures. The physical writer admits exactly 67,108,864 bytes including
+LF, rejects one more byte without an append, and remains usable. Removing LF
+from accounting admits the oversized write; changing `>` to `>=` rejects the
+valid boundary. Removing the early controlled refusal while retaining the
+storage guard wrongly faults the Agent and fails the complete-state check.
+
+The exact writer fixture changes an owned candidate copy to reach the physical
+boundary and recomputes body hashes; it does not claim live catalog material may
+be substituted. Separately, reviewed student scenarios exercise genuine public,
+model-issued and initialization refusals, including unchanged authority and
+counters, ordinary call/result/limit facts, and later successful activation.
+Those reused scenarios are explicitly attributed, not counted as independently
+authored tests. The independent import fixture reuses only their valid catalog
+construction. A first audit overlapped the authorized source repair and stopped
+at its mutation anchor; `ch09-record-write-aborted.json` preserves that unbound
+attempt without crediting it as a pass.
+
+The student's original immutable combined gate passed all 67 rows on `654075b`.
+That result remains historical and does not retroactively cover the newly found
+encoding distinction. The corrected write/import audit, post-repair all-module
+checks and unchanged retained rows are separate evidence. Future combined runs
+include `skills-record-write-deletions` as an additional row. The source/receipt
+association is recorded in `ch09-record-audit-bindings.json`. No provider use,
+historical quality comparison or final chapter acceptance follows from these
+local results.

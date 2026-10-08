@@ -1,0 +1,39 @@
+{
+  "scope": "Independent association of retained read/write/import results with immutable sources; no repeated full gate or provider calls.",
+  "verified_at": "2026-10-08T16:48:18.895405+00:00",
+  "initial_source": "654075b8a3becd0c23f0a0ed2d2531cb0d362156",
+  "repaired_source": "c0e3171fdc22834348f976f81fcaa7372bd13ed4",
+  "read_source_hashes_verified": 95,
+  "write_source_hashes_verified": 95,
+  "read_rows": 6,
+  "write_rows": 6,
+  "initial_full_gate_rows": 67,
+  "initial_full_gate_complete": true,
+  "postrepair_modules": 11,
+  "postrepair_module_names": [
+    ".",
+    "examples/browser-consumer",
+    "examples/consumer",
+    "examples/jobs-consumer",
+    "examples/policy-consumer",
+    "examples/skills-consumer",
+    "examples/skills-redaction",
+    "examples/stream-consumer",
+    "examples/tools-consumer",
+    "examples/workflow",
+    "gui"
+  ],
+  "receipts": {
+    "book/edition-2/checkpoint-evidence/ch09-record-bound-repair-initial.json": "6628a1b79828d3b83384a5a02dceb6fe00fae4228a537787ff0b8e6aa8f25eb0",
+    "book/edition-2/checkpoint-evidence/ch09-import-encoding-initial.json": "8fac1c3d7352bbc350668bd2f0e4acb592644e745b6cf31f6b0a65e6c4cec0cb",
+    "book/edition-2/checkpoint-evidence/ch09-import-encoding-distinguishing-control.json": "97b6415dc98900cf58b3c5b198239d40adc11b3f9d618a5cd22dafc069681a0b",
+    "book/edition-2/checkpoint-evidence/ch09-record-write-aborted.json": "cadf1cf0cef75ca70139a074404374cd898d7b60d682bd89c58e33a02e627e3f",
+    "book/edition-2/checkpoint-evidence/ch09-record-write-repaired.json": "04d2d5871bdb57d273dc4c42d7becbe11c02e7d8639352b177ce61e49007a562",
+    "solutions/edition-2/main/evidence/ch09/full-gate-initial.json": "bdb3f708447f1ddc64c13b71d0ace2d0c0ba1d5a61f5181813a6dd18bb217376",
+    "solutions/edition-2/main/evidence/ch09/module-checks-import.json": "15c0e9b414988e510b5ca33b40b230a7ebdaec2ec71e3c01afa8e87741bbaab0"
+  },
+  "read_cli": {},
+  "build_provenance": "Reviewer built /tmp/ensemble-ch09-review-raw-cli from unchanged initial source with go build -o /tmp/ensemble-ch09-review-raw-cli ./cmd; read receipt verifies executable identity before and after its checks. Initial gate independently builds its archived source.",
+  "runtime_repair_scope": " solutions/edition-2/main/ensemble.go           |  8 ++--\n solutions/edition-2/main/skills_record_test.go | 64 ++++++++++++++++++++++++++\n 2 files changed, 69 insertions(+), 3 deletions(-)\n",
+  "limits": "Original 67-row full gate lacks new write/import controls. The repaired six-row audit is a supplement, not a relabeling of initial gate. Student postrepair all-module results are reviewed reused evidence. No historical comparison or live acceptance."
+}

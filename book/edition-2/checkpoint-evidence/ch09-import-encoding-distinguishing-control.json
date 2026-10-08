@@ -1,0 +1,10 @@
+{
+  "scope": "Temporary diagnostic overlay skips newly-encoded write check only for offline input; confirms no other invalid transition masks the valid raw import. No production edit.",
+  "passed": true,
+  "exit": 0,
+  "stdout": "=== RUN   TestCh09IndependentImportCountsOriginalEncoding\n    zz_ch09_import_encoding_test.go:63: original=13088007 reencoded=75674887\n--- PASS: TestCh09IndependentImportCountsOriginalEncoding (3.24s)\nPASS\nok  \texample.com/ensemble\t3.260s\n",
+  "stderr": "",
+  "original_sha256": "d62e29b5820a7c680cc74e5000ba6ef0c3f1e8e0daea600d55e69cfd94608c3f",
+  "overlay_sha256": "825c5fa4047b2afe0b5a32b57a4e0eaecf8024b4fa3c471a7cee9359bc3ef143",
+  "source_unchanged": true
+}

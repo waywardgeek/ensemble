@@ -1,0 +1,25 @@
+{
+  "passed": false,
+  "command": [
+    "go",
+    "test",
+    "-overlay",
+    "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch09-import-4yh6_95x/overlay.json",
+    ".",
+    "-run",
+    "^TestCh09IndependentImportCountsOriginalEncoding$",
+    "-count=1",
+    "-timeout=90s",
+    "-v"
+  ],
+  "exit": 1,
+  "stdout": "=== RUN   TestCh09IndependentImportCountsOriginalEncoding\n    zz_ch09_import_encoding_test.go:57: raw-valid import rejected by re-encoding: original=13088007 reencoded=75674887 error=invalid event log at line 3: invalid event data\n--- FAIL: TestCh09IndependentImportCountsOriginalEncoding (0.47s)\nFAIL\nFAIL\texample.com/ensemble\t0.488s\nFAIL\n",
+  "stderr": "",
+  "inputs": {
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/ensemble.go": "d62e29b5820a7c680cc74e5000ba6ef0c3f1e8e0daea600d55e69cfd94608c3f",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/internal/eventlog/log.go": "2ee9c34b6f0d02a0ef88562e511a9b5b458d20bf18409b68eaa6ff94d7416ac9",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/skills_record_test.go": "49520198ef9953aab88ddeab889339042bbc6399ad6784b6f45f2e5576a8d5df",
+    "/Users/bill/projects/ensemble/scripts/edition2/ch09-import-encoding_test.go.txt": "86ea1ca42123a02f41c04051ae78872dc337e1428e57201bd6f3f51c33733e2c"
+  },
+  "unchanged": true
+}

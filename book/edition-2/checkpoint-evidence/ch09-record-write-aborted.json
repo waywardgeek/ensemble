@@ -1,0 +1,7 @@
+{
+  "accepted": false,
+  "scope": "First write audit overlapped authorized student repair from654075b to c0e3171. It aborted at the final deletion anchor after the root precheck gained its persist-only guard. No combined positive or mutation result is credited; rerun required.",
+  "error": "AssertionError: expected unique unconditional CheckSkillRecord precheck anchor; repaired source uses persist-only block",
+  "initial_source_revision": "654075b8a3becd0c23f0a0ed2d2531cb0d362156",
+  "observed_repair_revision": "c0e3171"
+}

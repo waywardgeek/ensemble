@@ -1,0 +1,104 @@
+// Independent encoded-write boundary over genuine catalog-derived skill material.
+// The student scenario separately covers typed/model/constructor refusal.
+package ensemble
+
+import (
+	"crypto/sha256"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"strings"
+	"testing"
+
+	"example.com/ensemble/internal/common"
+	"example.com/ensemble/internal/eventlog"
+)
+
+func TestCh09IndependentWriteRecordExactBoundary(t *testing.T) {
+	app := New(nil)
+	defer app.Close()
+	a, err := app.NewAgent(repeatedOffersConfig(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.mu.Lock()
+	candidate, err := a.skills.Prepare(common.SkillOperation{Action: "load", Name: "bomb"})
+	a.mu.Unlock()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fact := candidate.Transition()
+	event := Event{Seq: 2, Time: "2026-01-01T00:00:00Z", Type: "skills_changed", Skills: &fact}
+	raw, err := json.Marshal(event)
+	if err != nil {
+		t.Fatal(err)
+	}
+	delta := len(raw) + 1 - common.SkillRecordLimit
+	if delta <= 0 {
+		t.Fatal("candidate no longer distinguishes complete wire bound")
+	}
+	// Text changes cannot alter the typed graph. Replace escaped '<' by one-byte
+	// ASCII, then trim at most four ASCII bytes. Bodies and their recomputed hashes
+	// remain valid and individually/collectively below decoded limits. This is a
+	// physical writer test, not an assertion that live catalog bytes may change.
+	replaceCount, trim := delta/5, delta%5
+	for i := range fact.Activated {
+		record := &fact.Activated[i]
+		n := min(replaceCount, strings.Count(record.Body, "<"))
+		record.Body = strings.Replace(record.Body, "<", "x", n)
+		replaceCount -= n
+		if i == 0 && trim > 0 {
+			record.Body = record.Body[trim:]
+		}
+		record.SHA256 = fmt.Sprintf("%x", sha256.Sum256([]byte(record.Body)))
+	}
+	if replaceCount != 0 {
+		t.Fatal("insufficient distinguishing text")
+	}
+	raw, err = json.Marshal(event)
+	if err != nil || len(raw)+1 != common.SkillRecordLimit {
+		t.Fatalf("exact fixture arithmetic: %d %v", len(raw)+1, err)
+	}
+	if err = eventlog.CheckSkillRecord(a, event); err != nil {
+		t.Fatalf("exact encoded writer limit refused: %v", err)
+	}
+	file := filepath.Join(t.TempDir(), "physical.log")
+	log, err := eventlog.New(a, file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer log.Close()
+	if err = log.Append(event); err != nil {
+		t.Fatalf("exact encoded write refused: %v", err)
+	}
+	before, err := os.Stat(file)
+	if err != nil || before.Size() != int64(common.SkillRecordLimit+len("{\"log_version\":1}\n")) {
+		t.Fatal("exact physical size", err)
+	}
+	if len(fact.Activated[0].Body) >= 65536 {
+		t.Fatal("over fixture would hit decoded guard first")
+	}
+	fact.Activated[0].Body += "x"
+	fact.Activated[0].SHA256 = fmt.Sprintf("%x", sha256.Sum256([]byte(fact.Activated[0].Body)))
+	raw, err = json.Marshal(event)
+	if err != nil || len(raw)+1 != common.SkillRecordLimit+1 {
+		t.Fatal("one-over arithmetic")
+	}
+	var failure *SkillError
+	if err = eventlog.CheckSkillRecord(a, event); !errors.As(err, &failure) || failure.Code != "skill_too_large" {
+		t.Fatalf("one-over encoded writer limit not refused: %v", err)
+	}
+	if err = log.Append(event); !errors.As(err, &failure) || failure.Code != "skill_too_large" {
+		t.Fatalf("direct oversized write not refused: %v", err)
+	}
+	after, err := os.Stat(file)
+	if err != nil || after.Size() != before.Size() {
+		t.Fatal("refused append changed original bytes", err)
+	}
+	if err = log.Append(Event{Seq: 3, Type: "error_occurred", Error: &common.EventError{Code: "review", Message: "small later fact"}}); err != nil {
+		t.Fatalf("size refusal faulted healthy storage: %v", err)
+	}
+	t.Logf("exact=%d over=%d including LF", common.SkillRecordLimit, common.SkillRecordLimit+1)
+}

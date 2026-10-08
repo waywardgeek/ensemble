@@ -1,0 +1,64 @@
+// Independent regression for physical bytes versus a different re-encoding.
+// Reuses the student's reviewed, valid repeated-offer catalog construction.
+package ensemble
+
+import (
+	"bytes"
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"testing"
+
+	"example.com/ensemble/internal/common"
+)
+
+func TestCh09IndependentImportCountsOriginalEncoding(t *testing.T) {
+	app := New(nil)
+	defer app.Close()
+	config := repeatedOffersConfig(t)
+	a, err := app.NewAgent(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	// No turn is active. This read-only candidate preparation is an explicit
+	// owner-state test seam, not an impossible history or an unvalidated schema.
+	a.mu.Lock()
+	candidate, err := a.skills.Prepare(common.SkillOperation{Action: "load", Name: "bomb"})
+	a.mu.Unlock()
+	if err != nil {
+		t.Fatal(err)
+	}
+	fact := candidate.Transition()
+	events := a.Events()
+	event := Event{Seq: events[len(events)-1].Seq + 1, Time: "2026-01-01T00:00:00Z", Type: "skills_changed", Skills: &fact}
+	escaped, err := json.Marshal(event)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var original bytes.Buffer
+	encoder := json.NewEncoder(&original)
+	encoder.SetEscapeHTML(false)
+	if err = encoder.Encode(event); err != nil {
+		t.Fatal(err)
+	}
+	if len(escaped)+1 <= common.SkillRecordLimit || original.Len() > common.SkillRecordLimit {
+		t.Fatalf("encoding control not distinguishing: original=%d reencoded=%d", original.Len(), len(escaped)+1)
+	}
+	prefix, err := a.Dump()
+	if err != nil {
+		t.Fatal(err)
+	}
+	file := filepath.Join(t.TempDir(), "original.log")
+	if err = os.WriteFile(file, append(prefix, original.Bytes()...), 0600); err != nil {
+		t.Fatal(err)
+	}
+	reader, err := app.Load(file, Config{Vendor: "anthropic", Model: "fixture"})
+	if err != nil {
+		t.Fatalf("raw-valid import rejected by re-encoding: original=%d reencoded=%d error=%v", original.Len(), len(escaped)+1, err)
+	}
+	view, err := reader.InspectSkills()
+	if err != nil || view.State == nil || view.State.Revision != 1 {
+		t.Fatalf("import did not install validated history: %v", err)
+	}
+	t.Logf("original=%d reencoded=%d", original.Len(), len(escaped)+1)
+}

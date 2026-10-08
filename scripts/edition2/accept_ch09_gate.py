@@ -56,6 +56,7 @@ def evaluate(revision, only=None):
             for name in ('accept_ch09','accept_ch09_catalog','accept_ch09_graph','accept_ch09_management','accept_ch09_configuration','accept_ch09_replay'):
                 run(name,['python3',HERE/(name+'.py'),cli])
         run('skills-public',['python3',HERE/'accept_ch09_public.py',root])
+        run('skills-record-write-deletions',['python3',HERE/'ch09-review-record-write.py',root])
         run('skills-boundary-deletions',['python3',HERE/'ch09-review-boundaries.py',root])
         run('skills-browser',['node',HERE/'accept_ch09_browser.cjs',root])
         gui_ok=run('build-optional-gui',['go','build','-o',gui,'./cmd/ensemble-gui'],root/'gui',required=True)
