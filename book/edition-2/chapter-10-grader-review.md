@@ -86,3 +86,58 @@ runs and the post-freeze historical comparison remain separate required gates.
 
 The initial command is ready for a new-only student handoff once Chapter 9 is
 accepted. It does not waive any remaining contract or gate.
+
+## Resumption after the Chapter 9 checkpoint
+
+October 8, 2026. Chapter 9 is now accepted at immutable `edition-2-ch09-r1`
+(`54d7b1d`), from source `ac55f64`. A fresh Chapter 10 student is preparing its
+ownership/API/semantic-format plan. The grader engineer reloaded the entire
+coding skill, architecture, complete current Chapter 10, contract review and
+validation. No Chapter 10 runtime positive exists. The initial checker at
+`dfb4a72` is unchanged; its documented command remains the only released
+Chapter 10 checker command at this milestone.
+
+Exposure update: this engineer has since completed the authorized Chapter 9
+comparison with old Chapter 10's Skills implementation and performed disclosed
+isolated Chapter 6–8 streaming maintenance. Neither is Chapter 10 persistence
+authorship. No first-edition persistence solution was read for this preparation.
+Historical persistence comparison waits for the new student's initial source,
+real runs and teaching experience to be frozen.
+
+The remaining acceptance work is organized around independent observations,
+not private codec names:
+
+| Group | Distinguishing positive and refusal controls | Integration prerequisite |
+|---|---|---|
+| Public construction and ownership | Fresh versus session selectors; unchanged Config round trip; stable SessionID/fresh runtime identity; duplicate resolved path and copied SessionID in one root; failed construction releases reservations; unrelated Agent remains responsive | Reviewed constructor/options and root reservation plan |
+| Semantic export/import | Genuine owned export without its log prefix; import preserves exact origin bytes; further save/reopen still validates origin; caller mutation cannot change live state; strict nested structural mutations start from valid student exports and have recomputed outer hashes | Published versioned state document and public export/import/inspect seams |
+| Tail and state equivalence | An older checkpoint with a genuinely newer settled tail, null-state rebuild, and imported-origin tail produce equal next bodies on all three local APIs and equal usage/skills/safe watch facts; transient IDs excluded explicitly | Working session positive, inspect/render adapters and codec vocabulary |
+| Authority and exact numbers | Equivalent catalog syntax/path passes with identical bodies; changed inactive definition, binding, ceiling, primary or live rendered activation refuses; plain System presence table; adjacent unsafe integers and arbitrary JSON retain distinct canonical identities | Compatible public skill/session inputs; semantic exports provide valid mutation parents |
+| Actor capture and persistence | Immediate busy during held model/report/input or queued turn; settled pending hint allowed; independent running Job allowed; actual accepted job event during blocked checkpoint I/O remains tail; one worker; failure before/after replace has truthful persistence status | Actual capture/worker lifetime; deterministic local I/O fault seams identified after implementation |
+| Limits and historical work | Pending typed limits survive snapshot and full replay; accepted invalid/disabled/management attempts consume exactly once; paused/malformed/public controls do not; append failure cannot restore consumed authority; restored running/done handles are unavailable and allocator floor does not regress | Session limit vocabulary and public tool/job paths working |
+| Client and lifetime behavior | Real local CLI EOF/quit/signals; lock descriptor not inherited by a tool child; GUI terminal EOF detaches; browser checkpoint publishes applied session state before ack, returns busy for overlap, and survives client disconnect; historical job labels, retained window and no resumed speech/pause/prompt | GUI/session startup and safe watch fields; existing browser public components |
+| Physical limits and retained behavior | Exact valid boundary precedes each one-over refusal; raw bytes include framing; bounded reads, collection/nesting and whole-group overflow controls; complete delivered-module discovery and affected retained chapter checks | Valid fixtures and coordinated disk/build budget; no large duplicate source trees |
+
+Names and layouts will be adapted only after the student's public proposal and
+format document. An invalid outer hash is not evidence that inner semantic
+validation works; structural mutations must repair the outer hash where needed
+and require the intended refusal. Likewise, snapshot-only import must genuinely
+lack the omitted prefix, and a tail fixture must contain new events rather than
+another copy of the latest checkpoint. Deletion controls wait for coherent
+runtime positives and target the responsible behavior without unrelated earlier
+failures masking them.
+
+The actor review will distinguish capture cost from off-actor encoding/I/O and
+accepted durable Job facts from unrecorded worker status. Root locking must not
+span filesystem validation. Repeated resume comparison should reduce/index the
+available history once, rather than reprocess every prefix. The semantic codec
+must install reduced authority; merely naming an event array `state` is not a
+positive. These are printed Chapter 10 requirements, not extra performance
+thresholds or a prescribed implementation.
+
+Preparation remains bounded: no paid calls, student source edits, repeated
+Chapter 9 gates, new Go builds or large file fixtures at this milestone. Actual
+provider use, full delivered-tree validation and post-freeze historical quality
+review remain separate gates. The coordinator will review the student's owner
+plan before affected implementation; the reviewer is ready to assess public
+seams and then publish runnable additions.
