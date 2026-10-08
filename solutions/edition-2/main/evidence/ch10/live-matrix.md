@@ -79,7 +79,10 @@ Gemini3.8Flash as Bill requires; record unavailability, do not substitute an old
 model or spend a probe. No remembered exact provider identifier is treated as
 verified. Credential carriage will be memory/environment only after release.
 
-A: launch actual PTY process1 with `CLI --session-dir R/A chat`, policy max requests3.
+A: launch actual PTY process1 with `CLI --session-dir R/A chat`. The CLI has no
+policy selector: historical turn policy is raw0/effective16. The enforcing proxy
+independently stops each process at3 outgoing attempts; this is a spending bound,
+not a captured runtime policy value.
 Prompt exactly: "Remember CH10-A-P. Use write_file once to create marker.txt with
 exactly CH10-A-P followed by one newline. Then tell me why you made that edit."
 Observe response and actual file, then type /session, /checkpoint, /history, /quit,
@@ -100,13 +103,14 @@ Click Checkpoint and require applied session_changed before saved ack. Disconnec
 and reconnect that Page's socket; close a second Page separately; enter EOF in the
 attached terminal separately. After each, verify server/session still usable.
 Using actual Settings controls, change current max_model_requests from the recorded
-A value3 to1; change the actual Font size input from its initial16 to18
+A raw0/effective16 to raw1/effective1; change the actual Font size input from its initial16 to18
 (`font_size`, supported range12–28), record the applied revision and acknowledgment.
 Prompt: "Use write_file once to create policy-proof.txt containing CH10-B-P and a
 newline, then explain the result." A real returned call plus paired effect/result
 and round-limit completion with no continuation is required to demonstrate the
 current cap; a plain answer alone is explicitly missing evidence. Preserve old
-turn.policy revision/value3 and new turn.policy revision/value1. Stop the server
+turn.policy raw0/effective16 and new turn.policy raw1/effective1, with their actual
+revisions. No CLI policy flag or new runtime setting is introduced. Stop the server
 via SIGTERM and restart it, reopen Settings and verify both the current policy and
 changed preference independently persisted. Server restart is distinct from socket
 reconnect, Page close and terminal detach. Historical cards must show no live owner.
@@ -137,14 +141,18 @@ identity only once per root at every step. This row permits at most2+2+2 attempt
 6 total. Checkpoint export bytes and null-state modifications are local branch
 artifacts, kept separately from untouched original records.
 
-D: use a frozen primary plus narrow scratch capability, with bindings object
-`{"MARKER":"CH10-D-P"}` and exact catalog/handler hashes in the manifest. Primary
+D: use a frozen primary plus narrow scratch capability, with explicit empty
+bindings `{}` and exact catalog/handler hashes in the manifest. The actual CLI
+configuration reader has no scalar-binding input, so the marker is supplied in
+the literal prompt. Do not claim an unsupported CLI binding selection. Primary
 has tool_limits available and offers scratch; scratch grants only write_file plus
 required Chapter9 management tools. Public LoadSkill/UnloadSkill/LoadSkill records
 retired and new activation identities; record actual returned IDs/revisions rather
 than assuming contiguous numeric literals in the evidence. Prompt in the actual
 PTY: "Use write_file once to create skill-proof.txt containing CH10-D-P and one
-newline. Explain what capability allowed it." Cap3, observe file and response.
+newline. Explain what capability allowed it." Observe file and response. The CLI
+records raw0/effective16; proxy D1 spending cap3 is separate. Public D2 deliberately
+sets runtime policy3 via UpdatePolicy and the proxy also enforces its cap3.
 
 To leave pending limits without trusting model compliance, use the permitted public
 local-HTTP fixture pattern already tested by TestSessionOneShotSettingSurvivesAndConsumesUnknownCall:
@@ -194,3 +202,43 @@ not that negative control. Only then freeze support for coordinator review. Supp
 build/testing follows the serialized disk schedule; no competing broad build is
 started while independent graders hold it. This remains a separate prerequisite
 and does not expand the66/3 ceiling or authorize live access.
+
+
+## Support preparation corrections and executable seam
+
+Coordinator's latest two corrections are incorporated above: CLI history is
+raw0/effective16, and no restored speech requires measured admission/owner state.
+The earlier conceptual row table's “policy” refers to actual captured values;
+request spending ceilings are independently enforced by support/schedule.json.
+The support CLI configuration inspection also required empty D bindings, as
+explained above. No runtime feature is added for the demonstration.
+
+Browser driver support/browser.mjs installs native speech `speak` counting before
+Page startup, wraps the actual application-owned SpeechService.submit to count
+logical admissions, and reads each actual Page's queue/current work and pause
+causes plus service pending/active ownership. It exposes the real application via
+a recorded app.js instrumentation suffix; runtime source is unchanged. At initial
+resume, after connection generation replacement, after Page.close, and after
+replacement Page creation, require zero new native/logical admission, no queued or
+current work, and no speaking pause. Socket frames retain connection identity;
+applied session_changed and saved acknowledgment are recorded at the actual Page
+methods. These are explicit local instrumentation observations, not inference from
+silence, screenshot, or a claim of hearing. Ordinary tab close and server restart
+remain separately recorded operations. No extra model turn is needed.
+
+The support tree contains the bounded schedule, source/build identity preflight,
+proxy/attempt journal, deliberate PTY/browser recorders, public C/D consumer,
+original-receipt sealer/verifier and small Python/JS controls. New Go consumer is
+formatted but uncompiled pending the coordinator's compiler slot. Its source is
+support only. No runtime files have changed and no actual binary binding exists.
+The binding builder must execute real commands and collect module/build identity
+evidence before creating one. Local synthetic identity controls are explicitly
+fixtures, not evidence of a Go build or actual browser/provider behavior.
+
+Current driver admits literal loopback upstreams only. This makes its prepared
+schedule exercisable against bounded local fixtures without credential access.
+The future provider transport/discovery activation remains a separately reviewed
+support step: no current command opens a real-provider origin, reads a key, or
+performs discovery. The one-request discovery counter is locally tested, but
+there is no discovery result. Pending browser/consumer integration must be checked
+with freshly source-bound builds before any live release.

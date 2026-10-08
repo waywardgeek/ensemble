@@ -187,3 +187,40 @@ controls and coordinator completeness review remain prerequisites. No credential
 provider/discovery calls, actual spin, historical comparison, author runtime
 confirmation or final immutable chapter release occurred. Retained CLI/GUI binaries
 still represent122b04a and require newly bound builds before a later live stage.
+
+
+## Support preparation readiness — compiler slot remains with root
+
+Prepared only evidence/ch10/support/ and corrected live-matrix.md. Runtime8882a18
+and evidencee307d79 remain preserved; no runtime edits or new runtime acceptance.
+Coordinator's CLI policy correction is reflected: raw0/effective16 in A/D1, proxy
+cap3 separate; GUI current1 versus actual historical default. Browser support now
+measures native/service admissions and actual owned queue/pause state. D bindings
+are explicitly empty because the CLI has no scalar-binding selector.
+
+Concrete prepared files: bounded schedule/catalog/bindings; identity/source/build
+preflight; durable capped loopback relay; deliberate PTY and browser recorders;
+public C/D/inspection consumer module; original sealer/limited verifier; local
+three-wire fixture and Python/JS controls. See support/README.md for the exact
+component boundaries and next-stage commands. Driver currently refuses external
+origins before launch artifacts; provider-facing activation/discovery remains a
+later reviewed support step, never an implicit release.
+
+support-prebuild-checks.jsonl:14 Python controls pass (budget restart/concurrency,
+step/row/provider caps, timeout/disconnect/no-retry/redirect behavior, credential
+canary redaction, identity/dependency/launch/extra-source refusal before derived
+writes, and synthetic wire construction). JS owner-probe positive plus seven
+intended negatives pass. JS syntax and Python compile() pass; changed Go file
+format output is empty. Original earlier outputs retained, including the harmless
+fake-backend teardown diagnostic fixed before the final clean run. No Go compiler,
+vet/test, browser integration, credentials, discovery or real-provider action ran.
+
+READY for the next coordinated support build/local integration stage. Still needed:
+compile/vet/test the new nested consumer, build freshly bound CLI/GUI/consumer,
+collect actual complete dependency/build/browser identities, exercise valid real
+preflight plus intended identity mutations, then drive local PTY/browser/public
+C/D integration and review any source/fixture/observation failures. No actual
+binding is created from planned binaries. support/README.md is a reproduction
+plan, not a success transcript. Root retains compiler ownership; this worker starts
+no Go build and does not wait for another repeated fault run. Full chapter/live/
+historical comparison/author confirmation/release gates remain open.

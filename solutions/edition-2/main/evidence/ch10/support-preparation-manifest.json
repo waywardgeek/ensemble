@@ -1,0 +1,32 @@
+{
+  "kind": "support-preparation-only",
+  "runtime_source": "8882a18cf98e9a4b70afccfbe980f6344630aae6",
+  "prior_evidence": "e307d79ab67c0b4b64c6c54dc0d4cd904191ccb6",
+  "support_sha256": {
+    "support/README.md": "0f7a5169218dcb7063e3074ff5fb936c103db8430342e6c8681ed91ac8af3430",
+    "support/bindings.json": "ca3d163bab055381827226140568f3bef7eaac187cebd76878e0b63e9e442356",
+    "support/browser.mjs": "b721a796b60db86a78c2411aa6a6600397ee273c1623c2b539b92ef0c0ca48c4",
+    "support/build-binding.py": "1ff19e28f7a1ba8c99839b62bfe8de26ad67288dd25671cdca16e48e2039dff3",
+    "support/catalog/base/SKILL.md": "2063cf0051694af89d2705c92d38bea85d48cce8ac229c7c874a0beec6f2d586",
+    "support/catalog/scratch/SKILL.md": "19e3942eff6827c88a0f571cee5a38f1c1cac75e39dea9a1677e62f72e5ca433",
+    "support/consumer/go.mod": "3f1d58dc2be091f64aec1fb0c3f4269bdb8790b666252ff5cbfe23c88c640462",
+    "support/consumer/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "support/consumer/main.go": "550b05c03b4858f7c2e6619d905489eaf4b67f5a9a206d4f6f813b9edeb64468",
+    "support/driver.py": "b461a620d8a3dcf84b3da894d720a314e2b18d642ea5d537bc71139f6eab44a1",
+    "support/identity.py": "1fcd79a5412bd049e42ecdba52bad33c873ab03e25c533e2481d974320a66b95",
+    "support/local-fixture.py": "305ec0a4fdd8d2ed5104ecf68af60c761d08bb85648cd4ad25bddd7bbb98ba91",
+    "support/relay.py": "c2160c738f9d69f37cadff2dbcbd24292ada8429eac022e5aafd2e4bc4d3a844",
+    "support/schedule.json": "55cbcc602566c64e6053f2d71b4f4977272d8942aa0562ed4d002ae39a895b2c",
+    "support/speech-probe.mjs": "83b5749a1d83f60a4ad08fc0848bc6f1a96e9fce61d5da52e2ca5fa121184dc7",
+    "support/test-speech.mjs": "0ff1908737622f09c11acb5b936b212386d60effedf729d29842c9973d77511a",
+    "support/test_support.py": "98a978e5a1abe91b9d6133d0347124ace3d7776a0dc8d50facd840dffb53be91",
+    "support/verify.py": "fe90e9d98a7dcb3d6428f89f9b90fceda0f53599c4d2dfde611b64307360bab2"
+  },
+  "checks_sha256": "54331b913f8ff838a0047be2060c152b03af17809581556545f224053ab9de8e",
+  "go_builds": 0,
+  "live_calls": 0,
+  "discovery_calls": 0,
+  "credential_reads": 0,
+  "binding_created": false,
+  "pending": "serialized support compilation and actual binary/dependency preflight plus local PTY/browser/public integration"
+}
