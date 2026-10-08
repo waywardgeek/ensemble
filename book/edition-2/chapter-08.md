@@ -1,15 +1,14 @@
 # Chapter 8: Preferences that do something
 
-The settings panel says speech is off. The next answer starts talking.
+The server accepts a temperature of zero. The settings panel still displays -5.
 
-This is not a hypothetical. It happened in the first edition's reference
-implementation, and the bug survived undetected until Chapter 13 drove
-the GUI with a second agent. The encoding could not represent false.
-`omitempty` dropped the zero, the browser kept displaying the rejected
-value, and text-to-speech could never be turned off from the server. A
-related failure made it impossible to broadcast a temperature of zero:
-the server clamped -5 to 0, dropped the zero from its state message,
-and the client displayed the number the server had already rejected.
+The first edition's frozen Chapter 9 client reproduces that discrepancy:
+`omitempty` removes zero from the state message, and the browser keeps the
+rejected draft. The neighboring speech field behaves differently. That client
+coerces an omitted speech flag to false, so it does turn speech off. A shared
+encoding mistake does not prove an identical failure in every consumer. The
+[historical control](checkpoint-evidence/ch08-review-historical-settings.json)
+keeps both results, including the one that contradicts the stronger story.
 
 Saving a preference, applying it, and displaying it are three different
 jobs. A settings panel can get two of them right and still be wrong where
@@ -21,10 +20,10 @@ An execution setting reaches the actor that actually enforces it. The screen
 must show the applied value, and the running program must use that value at
 the promised boundary.
 
-**Reviewed contract:** ownership, persistence and speech semantics are
-coordinator-accepted working choices. The student handoff still requires an
-accepted Chapter 7 and the published independent checker. No Chapter 8 implementation,
-passing checker, browser session or audible result is claimed.
+The worked example below uses the student's actual October 8, 2026 runs,
+including the failures that led to the speech and numeric corrections. The
+[validation record](chapter-08-validation.md) tracks independent acceptance
+and the final checkpoint; the example does not imply personal testing by Bill.
 
 ## TL;DR
 
@@ -72,12 +71,13 @@ export, never a second development tree.
 Build the CLI from main with `go build ./cmd` and the GUI command from
 `main/gui` with `go build ./cmd/ensemble-gui`. The historical diagnostic is
 `make grade-dir CH=9 DIR=solutions/edition-2/main`; its old layout and wire
-assumptions do not grade this new contract. The initial partial checker is
-`python3 scripts/edition2/accept_ch08.py GUI_BINARY`. It checks local settings
-wire, persistence and refusal/recovery behavior; browser, speech, concurrency
-faults and actual turn-limit effects remain separate required checks. Section 8.9
-specifies complete coverage; the partial checker does not waive it. Public method
-names, storage implementation and visual styling remain student choices.
+assumptions do not grade this new contract. Run the complete new gate with
+`python3 scripts/edition2/accept_ch08_gate.py SOURCE_COMMIT`, using the immutable
+commit containing the intended main tree. The focused
+`python3 scripts/edition2/accept_ch08.py GUI_BINARY` remains useful for settings
+wire and persistence diagnosis. It does not replace the full gate, browser
+checks or actual use. Public method names, storage implementation and visual
+styling remain student choices.
 
 ## 8.1 Give each setting an owner and a consumer
 
@@ -154,7 +154,9 @@ The earlier zero-broadcast defect still matters under rejection. Turning
 are valid writes. Every complete snapshot includes all fields, without an
 omit-empty encoding. An invalid submission may leave the user's draft text in
 the editor, but the page must distinguish it from the applied value. Do not
-label unsaved text as the current setting.
+label unsaved text as the current setting. Keep drafts separate from applied
+snapshots: an acknowledgement for an earlier edit must not erase text the
+reader has since entered.
 
 No file path, API key, endpoint, authorization header, entire Agent Config or
 provider payload appears in these snapshots. Diagnostic messages identify a
@@ -162,8 +164,10 @@ static field or failure reason without printing the invalid file or message.
 
 ## 8.3 Save, apply, then announce
 
-Each domain has a nonnegative integer revision, initially 0. A successful change
-increments it once. A valid patch producing the same complete value acknowledges
+Each domain has a nonnegative `uint64` revision, initially 0, through
+18446744073709551615 inclusive. A successful change increments it once. Refuse
+a change at the maximum before writing or applying anything; report a safe
+exhaustion error. A no-change patch still acknowledges the existing value. A valid patch producing the same complete value acknowledges
 the current revision without a write or change broadcast. Revisions are local
 to their domain: preference revision 4 and policy revision 4 are unrelated.
 Persisted revisions survive a restart; they are not Chapter 7 watch revisions.
@@ -198,7 +202,7 @@ The complete on-disk forms are:
 
 A missing file means these defaults. It need not be created until a change.
 An existing file must be one complete UTF-8 JSON object, no larger than 64 KiB,
-with all required fields, a supported version and a nonnegative revision.
+with all required fields, a supported version and a revision in that range.
 Reject unknown/duplicate fields, trailing data, wrong types and invalid values.
 A malformed, unsupported or unreadable file fails startup with a safe reason;
 do not overwrite it with defaults. The complete-file parser does not treat
@@ -322,6 +326,29 @@ domain with its revision: `{revision,preferences}` for preferences, or the
 state and ask the reader
 to retry; it must not quietly overwrite a competing update.
 
+Revisions must reach the browser exactly. The persisted integer
+9007199254740993 is valid, but ordinary JavaScript numeric parsing rounds it to
+9007199254740992. Sending that rounded base back makes an uncontested edit look
+stale. Restricting the file to JavaScript's safe-integer range would silently
+change the storage contract.
+
+Keep revision and identity counters lossless through every projection: settings
+snapshots, changes, acknowledgements, conflicts, Agent watch envelopes and
+retained event identities. They remain JSON numbers on the wire; a browser may
+hold them as `BigInt` or exact decimal text internally. Emit an exact, unquoted
+number for `base_revision`. A Go sanitizing projection must preserve number
+lexemes or typed integers rather than round-trip through `float64`.
+
+A browser parser can recover the primitive token from the reviver's
+`context.source`, specified by [ECMAScript](https://tc39.es/ecma262/multipage/structured-data.html#sec-internalizejsonproperty).
+Scope conversion to the protocol's known counter fields; arbitrary tool
+arguments and strings must remain unchanged. Verify that the chosen lossless
+facility works before settings become ready. An unsupported browser reports
+that limitation visibly and sends no rounded command. Test the last safe
+integer, its successors, the maximum revision and exhaustion, including a live
+change received before reconnect. A correct startup snapshot alone misses a
+lossy change-message encoder.
+
 Two settings do not conflict merely because they use different fields. They
 conflict when their base revision is stale. If tabs A and B both send at
 revision 3, only the first applied candidate advances to 4; the second gets busy
@@ -405,7 +432,11 @@ accessible label and current value. Arrow keys move the associated requested
 width by 10 CSS pixels within its range. A completed pointer drag or keyboard
 change sends the preference patch; do not write a file for every mousemove.
 A pending control can be disabled until its acknowledgement, provided the
-reader can still type, interrupt and cancel speech.
+reader can still type, interrupt and cancel speech. That disabled state belongs
+to the current Page. Closing during a save must remove owned handlers and fence
+late callbacks; a replacement mounted on the same DOM resets transient disabled
+controls before accepting input. It must not inherit a permanently disabled
+Save button from an owner that no longer exists.
 
 Stored widths are desired widths. Constrain actual layout to the available
 viewport so the central input remains usable; a smaller viewport may stack
@@ -476,6 +507,30 @@ speech still leaves the aggregate pause true. The UI shows current speech
 separately from the shared autoplay checkbox, so “off” is not presented as
 “this page is now silent”.
 
+The native speech engine also needs an owner across cooperating tabs. In the
+actual run, one tab waited for playback to start, reached its five-second
+start timeout and called native cancel. Another tab's utterance stopped.
+Chapter 7's document-local service could protect two Pages in one document;
+it could not serialize two documents by itself.
+
+Keep the existing BrowserApplication → SpeechService ownership. Before calling
+native speak or starting its no-start timer, the service obtains an exclusive
+Web Locks lease using a shared application lock name. Web Locks coordinate
+cooperating contexts within the same origin and storage bucket; they do not
+coordinate unrelated sites or browser profiles. The lock lasts until its
+callback's returned promise settles. See the [Web Locks specification](https://www.w3.org/TR/web-locks/).
+
+A waiting request keeps its Page's queued-speech cause but starts no playback
+timeout until granted. Canceling that request aborts its wait without calling
+native cancel. Only the current leaseholder may cancel its native work; finish
+its terminal cleanup before releasing the lease. Fence stale grants and native
+callbacks using the owning request's lifetime. Closing the application first
+ends admission, then disposes work, as Chapter 7 requires. If coordination is
+unavailable, show unavailable speech and release its speaking pause instead
+of falling back to uncoordinated native cancellation. These rules preserve
+local cancellation among cooperating tabs, without promising control over
+speech initiated by unrelated applications.
+
 A newly connected page loads the persisted default but never replays history
 into speech. If synthesis requires a local user activation or is unavailable,
 show that status and let the reader enable that page's playback explicitly.
@@ -485,50 +540,145 @@ report that an API exists.
 
 ## 8.8 Taking it for a spin
 
-**Actual Chapter 8 evidence is pending.** The following is the required exercise,
-not an invented successful session. Use the actual browser and human CLI with
-real models, scratch workspaces and environment-held credentials. The coder may
-drive them; do not claim that Bill personally ran them.
+Start with a file whose result is easy to recognize:
 
-Start the GUI with explicit preference/policy paths and a fresh conversation
-log. Open two tabs. Change theme, font size and a pane width in one; observe
-the controls and rendered result in the other. Use the keyboard divider and
-inspect its exposed value. Close and restart with the same settings paths but
-a new log, then confirm that applied values return. Do not count a browser's
-cached input as server persistence.
+```text
+CHAPTER-EIGHT-FILE-MARKER
+port=8080
+```
 
-Enable autoplay and actually listen to or capture synthesized output. Change
-its rate for a later utterance. Use both pages to exercise the example in §8.7:
-existing speech survives a shared disable, new automatic speech does not start,
-and Cancel on one page leaves the other's queue and typing cause intact.
-Use deterministic speech callbacks for exact revision/cancellation races, and
-label them separately from audible results. If the environment cannot produce
-actual speech, leave that feature's live gate open.
+Save it as `notes.txt` in a scratch workspace. Build the GUI command from its
+optional module, launch it in that workspace with `--terminal`, and select
+explicit `--preferences` and `--policy` paths. Use a fresh `CH02_LOG` for each
+process and the existing `LLM_VENDOR`, `LLM_MODEL` and environment-held credential
+configuration.
+Open the printed local URL in two tabs of the same browser profile. Reuse the
+settings paths when restarting; use a new conversation log. This chapter
+persists settings, not conversations. For example, build from `main/gui`:
 
-Give the Agent a bounded scratch-file task through the browser, then inspect
-its proposed calls, artifacts and final answer in their respective panes.
-Try a correction while streaming, inspect pause acknowledgement before the next
-tool admission, and interrupt an active turn. Reconnect once during work and
-once after completion; preferences, policy and conversation must converge
-without replaying a prompt or speaking historical text. Reuse the public GUI
-components in the embedding example rather than copying the application.
+```sh
+go build -o /tmp/ensemble-ch08-gui ./cmd/ensemble-gui
+```
 
-Set the model-request policy to 1, ask explicitly for one file read followed by
-a report, and inspect what the model actually requests. When it requests the
-read, the accepted tool batch completes, the turn stops at `round_limit`, and
-there is no continuation HTTP request. Restore zero/default of 16, repeat the task
-and observe the continuation. If a model declines the requested tool or answers
-without it, retain that outcome and use a bounded corrective prompt; do not
-claim it exercised the limit. The longer-than-16 proof is a local scripted
-control, not a reason to buy many unnecessary live requests.
+Then, from the scratch workspace with the selected provider environment ready:
 
-Exercise the same current Agent through `--terminal`; a limit reached there
-retains the existing CLI failure/cleanup behavior. A public headless consumer
-uses two Agents with different policy files and demonstrates isolation and
-restart. All three APIs need actual browser task/policy and public behavior
-as introduced, with the full live plan checked before paid runs. Record exact
-source, binaries, selected/returned identities, inputs, visible outputs and
-usage. Preserve unexpected model behavior and the corrective follow-up.
+```sh
+CH02_LOG="$PWD/conversation-1.jsonl" /tmp/ensemble-ch08-gui --port 0 --terminal --preferences "$PWD/preferences.json" --policy "$PWD/policy.json"
+```
+
+The retained run used `claude-sonnet-4-6`, `gpt-4.1-mini-2025-04-14` and
+`models/gemini-3.8-flash`, selected on October 8, 2026. Those are observed
+identities, not a promise that today's discovery will return the same list.
+The initial human CLI and headless runs used source `bd5c05a`; browser runs
+after the native ownership correction used `cd9de3e`. The final numeric repair
+is `a06d4f3`. Its fresh interruption and restart receipts, plus retained-text
+speech replay, are kept separately. [The evidence ledger](chapter-08-evidence.md)
+links the exact launches, original request bodies, usage and revision bindings.
+
+At the human terminal, enter:
+
+```text
+Use read_file on notes.txt, then report the marker and port in one sentence.
+```
+
+All three APIs requested the read, received its result and answered with the
+marker and port 8080. Their first-turn usage differed: the Messages receipt
+reported 5,420 input and 96 output tokens; Chat Completions reported 1,533 input,
+1,152 cache-read and 41 output; Gemini reported 3,860 input and 106 output.
+These are the client's normalized counters, with cache-read shown separately.
+Use `/usage` to inspect them rather than estimating cost from answer length.
+
+Set the Agent policy to 1 in the browser and wait for its acknowledgement.
+Then enter this second prompt in the same terminal:
+
+```text
+Read notes.txt again with read_file now, then report its marker. Do not rely on the earlier read.
+```
+
+Each run accepted the read and retained its result, then ended before the
+continuation request. The terminal showed this outcome; omitted tool detail
+is available in the full transcripts:
+
+```text
+Request r2 (round_limit; pending hints=0)
+round_limit: round_limit: 1 model requests completed; final tool batch retained
+```
+
+The file read happened. The follow-up answer did not. A public headless consumer
+then exercised two Agents with separate policy files: limit 1 made one request
+and stopped at `round_limit`; limit 2 made two and completed. Closing and
+reopening each with a fresh log restored its own policy on all three APIs.
+That is the missing consumer from the first-edition settings panel, observed
+through an interface that has no browser.
+
+For the browser timing check, keep text in tab B's input to hold tool admission.
+Set policy 1, submit the file-read task from A and wait for its proposed call.
+Change the next-turn policy to 2 while that turn is still paused. In the
+retained OpenAI run, the text receipt showed “Active turn: 1” alongside the
+new next-turn value 2. Clearing B's input released the accepted read; the old
+turn still stopped after one request. The subsequent task used two.
+
+![Dark three-pane Ensemble page showing a read_file proposal accepted but not started, with tool admissions paused by one typing cause and no speaking cause.](../../solutions/edition-2/main/evidence/ch08/openai-browser-native/browser-11.png)
+
+The screenshot shows the held proposal and pause status. The policy controls
+are below this captured viewport; the adjacent full text and wire receipts
+establish their values. A screenshot should not be asked to prove a number it
+does not contain.
+
+Next, request a bounded edit to `scratch-report.txt` and send a one-request hint
+to include `port=9090` while keeping `notes.txt` unchanged. Inspect the actual
+file after the final answer. OpenAI and Gemini retained both marker and port.
+The Anthropic request following the hint wrote both, then a later request
+replaced the report with the marker alone. The hint reached its promised next
+request; it did not become an enduring instruction. The retained request bodies
+show both writes, so a successful delivery cannot be reported as lasting task
+compliance.
+
+The public embedding example deliberately exposed no tools. Two Anthropic
+prompts asking it to read a file produced refusals, correctly respecting that
+boundary. The allowed corrective prompt requested a long plain-text story.
+The browser showed provisional `The`; Interrupt changed that card to
+“Incomplete”, with an interrupted request outcome. That fresh correction on
+`a06d4f3` used one HTTP request. Gemini's first embedding answer ended before
+the interrupt click, so it did not prove cancellation. Its bounded corrective
+file-read prompt reached a typing-paused proposal and was interrupted before
+tool execution. Both the late click and the successful corrective path remain
+in the record.
+
+To test shared appearance, change theme, font size and a divider with the
+keyboard, then inspect the other tab's applied controls. Restart after setting
+nondefault values. The final persistence exercise used three fresh processes:
+positive settings first, false/zero second, then an unchanged confirmation.
+The confirmation loaded preference revision 3 with light theme and autoplay
+false, and policy revision 2 with stored zero and effective default 16. It made
+no model request.
+
+![Fresh Ensemble process with a light theme, empty conversation and actions panes, idle pause status, and Autoplay new answers unchecked.](../../solutions/edition-2/main/evidence/ch08/settings-restart-confirm/browser-5.png)
+
+This capture shows the light theme and unchecked autoplay. The below-viewport
+policy value is established by the full text and persisted JSON. Fresh process
+load, rather than a remembered checkbox in an old tab, establishes persistence.
+
+Finally enable autoplay, queue speech on both pages, change its rate, and turn
+autoplay off while speech is still queued. Cancel A, confirm B still owns its
+queue, then cancel B while leaving B's draft in place. Its typing pause must
+remain. The initial native run exposed the cross-tab timeout defect described
+in §8.7. After the lease repair, the Anthropic paid browser run showed an older
+queued utterance starting at its captured rate 1.2 after the shared setting had
+changed to rate 1.6 and autoplay off.
+
+The OpenAI and Gemini paid queues had already finished before their off-toggle.
+Those runs did not establish overlap. Their supplements on `a06d4f3` loaded
+retained real-provider neutral events through the public API with the provider
+endpoint disabled, then used card speakers and actual native synthesis to
+repeat the queue/rate/off/cancel sequence. This was fresh browser and audio
+use of retained text, with zero model calls. Public append assigned new
+top-level admission timestamps; the verifier compared every other event field,
+order and sequence exactly. It did not claim byte-identical replay of time.
+
+Native callbacks and captured WAVs document playback, with the source and capture mode retained for each file; audio energy
+alone does not establish intelligibility or what a human heard. Keep controlled
+speech-callback races separate from those recordings.
 
 ## 8.9 Checks that can distinguish a working preference
 
@@ -536,6 +686,7 @@ usage. Preserve unexpected model behavior and the corrective follow-up.
 |---|---|
 | Presence and snapshot | True→false and positive→zero survive acknowledgement, broadcast and fresh process load; omitted field stays unchanged |
 | Validation | Unknown/duplicate keys, null, wrong kinds, fractional integers, ranges, oversize file, trailing input and unsupported file version fail before mutation |
+| Exact counters | Values above 2^53, maximum uint64 and exhaustion survive disk, live changed records, conflicts and outgoing bases; unsupported browser parsing fails visibly; unrelated payload values stay unchanged |
 | Persistence | Nondefault positive survives restart; failure before replace preserves original bytes/revision/state; no-change patch performs no write |
 | Concurrency | Two same-base patches produce one change and busy/conflict; deliberate fresh-base retry retains the first change; controls work while persistence is held |
 | Subscribe handoff | Hold a change at the snapshot boundary; each client gets either the old snapshot plus newer change or the new snapshot, with no gap or regression; old-socket callbacks cannot overwrite the new connection's preferences |
@@ -543,7 +694,8 @@ usage. Preserve unexpected model behavior and the corrective follow-up.
 | Turn timing | Change policy during held HTTP and while a turn is queued; active turn retains its capture, queued turn uses policy at activation; two Agents remain independent |
 | Recorded policy | New capture validates/replays, malformed capture fails, old absent capture retains historical 16; request reconstruction gets no invented vendor field |
 | Speech scope | Enqueue revision/rate captured; off discards only unqueued automatic buffer; existing queues remain; one page's cancel cannot clear another page or a typing cause |
-| Browser behavior | Theme/font/width visibly change; dividers work by pointer and keyboard; applied versus unsaved values and selected controls are inspectable |
+| Native ownership | Same-context tabs serialize actual native admission; canceling a waiter leaves the holder sounding; missing coordination clears speaking pause; controlled races and native audio remain separate evidence |
+| Browser behavior | Theme/font/width visibly change; dividers work by pointer and keyboard; applied versus unsaved values and selected controls are inspectable; close during pending save and remount restores usable controls while late old callbacks stay fenced |
 | Card reuse | Mixed text/call response reaches both panes, finals replace correct partials, malicious content stays inert in preview and expanded views |
 | Compatibility | Chapter 7 reconnect/watch/pause/queue bounds survive; CLI protocol stays exact; optional GUI/public/headless consumers keep their module boundary |
 
