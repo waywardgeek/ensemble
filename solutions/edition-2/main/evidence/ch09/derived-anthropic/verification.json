@@ -1,0 +1,20 @@
+[
+  {
+    "run": "live-anthropic-n",
+    "requests": 11,
+    "reconstructed": 11,
+    "comparison": "exact HTTP body bytes; CLI output LF removed"
+  },
+  {
+    "run": "live-anthropic-f",
+    "requests": 5,
+    "reconstructed": 5,
+    "comparison": "exact HTTP body bytes; CLI output LF removed"
+  },
+  {
+    "run": "live-anthropic-g",
+    "requests": 9,
+    "reconstructed": 9,
+    "comparison": "exact HTTP body bytes; CLI output LF removed"
+  }
+]

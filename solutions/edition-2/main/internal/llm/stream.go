@@ -240,6 +240,11 @@ func (s *streamParser) messages(ctx context.Context, root map[string]json.RawMes
 		}
 		text := s.p.str(d[field])
 		if field == "partial_json" {
+			// Providers may send an empty argument delta even for a complete
+			// input:{} start object. Only actual JSON bytes replace that object.
+			if text == "" {
+				return nil
+			}
 			field = "input"
 			if b.values[field] == nil {
 				s.size -= len(rawValue(b.raw[field]))
