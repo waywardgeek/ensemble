@@ -23,6 +23,10 @@ func (fakeAgent) Logf(string, ...any)    {}
 func (fakeAgent) APILogf(string, ...any) {}
 func (fakeAgent) Debugf(string, ...any)  {}
 
+// SandboxRoot: this fake is unconfined, which is what every test that does
+// not exercise the sandbox wants.
+func (fakeAgent) SandboxRoot() string { return "" }
+
 type fakeUsage struct {
 	session common.Usage
 	last    common.Usage

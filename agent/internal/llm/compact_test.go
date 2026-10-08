@@ -81,6 +81,10 @@ func (h testHost) Logf(format string, args ...any)    { h.t.Logf(format, args...
 func (h testHost) APILogf(format string, args ...any) { h.t.Logf(format, args...) }
 func (h testHost) Debugf(format string, args ...any)  { h.t.Logf(format, args...) }
 
+// SandboxRoot: unconfined, as every test that does not exercise the
+// sandbox wants.
+func (h testHost) SandboxRoot() string { return "" }
+
 // testHost is a value type, so it cannot embed common.UsageCounter: that would
 // copy a mutex on every assignment. These tests exercise compaction and assert
 // nothing about spend, so the counts are discarded rather than tracked.

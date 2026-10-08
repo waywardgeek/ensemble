@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"regexp"
 	"time"
@@ -170,6 +171,68 @@ type Agent interface {
 	APILogf(format string, args ...any)
 	// Debugf logs to both the terminal and the debug log file.
 	Debugf(format string, args ...any)
+
+	// SandboxRoot reports the directory this agent's file operations and
+	// commands are confined to, or "" for no confinement.
+	//
+	// This belongs on the parent, and it is worth saying why, because the
+	// comment above warns against exactly the move of adding a capability
+	// here just because the parent happens to be reachable. Usage failed
+	// that test and went to Engine, the object that spends the tokens.
+	//
+	// The boundary passes it. The AGENT is the unit of confinement: the
+	// root is set once in its spec, every object it owns is confined by
+	// the same boundary, and a sub-agent is a different agent precisely
+	// because it has a different one. Asking "what am I confined to" is
+	// asking the agent about itself, not reaching through it for something
+	// that belongs elsewhere.
+	//
+	// It is a PATH, not a capability, which is what keeps it out of the
+	// dependency bag AgentSpec replaced. Nothing here hands out the power
+	// to do anything; it reports where the walls are.
+	SandboxRoot() string
+}
+
+// Sandbox is the confined filesystem every internal package reaches
+// through, rather than calling the os package directly.
+//
+// It is an interface on the hub with its implementation in a spoke, which
+// is the third case of the rule from Chapter 22: several spokes need the
+// behavior, so the hub declares it and one package implements it. The
+// implementation is the PUBLIC agent/sandbox package, because an
+// application built on this framework needs confined file access just as
+// much as the agent's own tools do, and confinement is the last thing that
+// should be reimplemented per-application.
+//
+// The two sides never import each other. This interface names the
+// operations; *sandbox.Sandbox satisfies it structurally. That is what
+// lets the implementation stay public and importable from outside the
+// module while internal packages still depend only on the hub.
+//
+// Note what is NOT here: the os package. A tool that reaches for
+// os.ReadFile has left the sandbox, and the absence of any path-returning
+// convenience in this interface is deliberate. Resolve exists for the
+// cases a subprocess needs a working directory, and is the one method that
+// can be misused by passing the ORIGINAL string onward.
+type Sandbox interface {
+	// Root reports the canonical boundary, or "" when unconfined.
+	Root() string
+	// IsConfined reports whether this sandbox restricts anything.
+	IsConfined() bool
+	// Resolve returns an absolute path guaranteed to be inside the
+	// boundary, or an error naming the violation.
+	Resolve(path string) (string, error)
+
+	ReadFile(name string) ([]byte, error)
+	WriteFile(name string, data []byte, perm os.FileMode) error
+	Append(name string, data []byte, perm os.FileMode) error
+	Open(name string) (*os.File, error)
+	Create(name string) (*os.File, error)
+	Stat(name string) (os.FileInfo, error)
+	ReadDir(name string) ([]os.DirEntry, error)
+	MkdirAll(name string, perm os.FileMode) error
+	Remove(name string) error
+	WalkDir(name string, fn fs.WalkDirFunc) error
 }
 
 // Engine is the back-pointer interface for the object that runs model

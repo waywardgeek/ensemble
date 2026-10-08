@@ -52,6 +52,10 @@ func (js *Jobs) Logf(format string, args ...any)    { js.host.Logf(format, args.
 func (js *Jobs) APILogf(format string, args ...any) { js.host.APILogf(format, args...) }
 func (js *Jobs) Debugf(format string, args ...any)  { js.host.Debugf(format, args...) }
 
+// SandboxRoot delegates to the parent, like every other method here. The
+// jobs system does not get its own opinion about where the walls are.
+func (js *Jobs) SandboxRoot() string { return js.host.SandboxRoot() }
+
 // Start allocates a handle and its output file. It is called by the
 // dispatcher for every job-creating tool before the tool runs.
 func (js *Jobs) Start(tool, callID string) (common.JobHandle, error) {

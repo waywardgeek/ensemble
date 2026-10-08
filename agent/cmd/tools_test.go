@@ -16,6 +16,22 @@ import (
 	"github.com/waywardgeek/ensemble/agent/internal/tools"
 )
 
+// unconfinedAgent is a parent that reports no sandbox.
+//
+// Chapter 23 made the file tools resolve every path through their call's
+// agent, and a tool handed a nil call now FAILS CLOSED rather than
+// quietly running unconfined. These tests predate the sandbox and are
+// about edit_file's refusals, not about confinement, so they supply a
+// parent that explicitly declares no boundary.
+type unconfinedAgent struct{}
+
+func (unconfinedAgent) Logf(string, ...any)    {}
+func (unconfinedAgent) APILogf(string, ...any) {}
+func (unconfinedAgent) Debugf(string, ...any)  {}
+func (unconfinedAgent) SandboxRoot() string    { return "" }
+
+func unconfinedCall() *common.Call { return &common.Call{Agent: unconfinedAgent{}} }
+
 // The reference REFUSES an anchor it cannot resolve to exactly one place —
 // both when it matches nothing and when it matches more than once — and in
 // neither case touches the file. §3.5 states this as part of the declined
@@ -31,7 +47,7 @@ func TestEditFileRefusesZeroAndManyMatches(t *testing.T) {
 	}
 	call := func(old string) (string, error) {
 		args, _ := json.Marshal(map[string]string{"path": path, "old_text": old, "new_text": "X"})
-		return tools.ToolEditFile(nil, args)
+		return tools.ToolEditFile(unconfinedCall(), args)
 	}
 	cases := []struct{ name, old, wantErr string }{
 		{"zero matches", "seven", "not found"},
@@ -78,7 +94,7 @@ func TestWriteFileRefusesSilentOverwrite(t *testing.T) {
 	}
 	call := func(m map[string]any) (string, error) {
 		args, _ := json.Marshal(m)
-		return tools.ToolWriteFile(nil, args)
+		return tools.ToolWriteFile(unconfinedCall(), args)
 	}
 
 	out, err := call(map[string]any{"path": path, "content": "X"})
@@ -135,7 +151,7 @@ func TestSearchFilesContextLines(t *testing.T) {
 	}
 	call := func(ctx int) string {
 		args, _ := json.Marshal(map[string]any{"pattern": "hit", "path": dir, "context_lines": ctx})
-		out, err := tools.ToolSearchFiles(nil, args)
+		out, err := tools.ToolSearchFiles(unconfinedCall(), args)
 		if err != nil {
 			t.Fatal(err)
 		}

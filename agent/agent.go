@@ -26,10 +26,17 @@ import (
 	"github.com/waywardgeek/ensemble/agent/internal/skills"
 	"github.com/waywardgeek/ensemble/agent/internal/tools"
 	"github.com/waywardgeek/ensemble/agent/internal/ws"
+	"github.com/waywardgeek/ensemble/agent/sandbox"
 )
 
 // Re-export the types external programs need.
 type Config = common.Config
+
+// Sandbox is the confined filesystem an agent's tools reach files
+// through. The concrete implementation is the public agent/sandbox
+// package; this alias exists so external callers never have to name an
+// internal/ type to hold the value Agent.Sandbox returns.
+type Sandbox = common.Sandbox
 type ToolDecl = common.ToolDecl
 type Vendor = common.Vendor
 type Surface = common.Surface
@@ -197,8 +204,24 @@ type Agent struct {
 	journal    *llm.Journal
 	spec       AgentSpec
 	Logger     *Logger
-	mcpClients []*mcp.Client // active MCP connections for cleanup
+	sb         *sandbox.Sandbox // confinement; holds a back-pointer to this agent
+	mcpClients []*mcp.Client    // active MCP connections for cleanup
 }
+
+// *sandbox.Sandbox must satisfy common.Sandbox. The public implementation
+// and the hub interface deliberately never import each other, so this
+// assertion is the only thing keeping them in step. Without it the two
+// drift apart and the failure shows up as an inscrutable type error at a
+// distant call site.
+var _ common.Sandbox = (*sandbox.Sandbox)(nil)
+
+// Sandbox returns the agent's confined filesystem.
+//
+// Every internal package reaches files through this rather than the os
+// package. It is never nil: an unconfined agent gets a Sandbox whose root
+// is empty, so call sites have no reason to branch and no opportunity to
+// forget.
+func (a *Agent) Sandbox() common.Sandbox { return a.sb }
 
 // AgentSpec is everything that distinguishes one agent from another: where
 // its files live, where it finds skills, and which skills define it.
@@ -234,6 +257,16 @@ type AgentSpec struct {
 	// CAPABILITY must never be added here -- that is the dependency bag this
 	// type replaced, and it is how the engine came to be stapled nine times.
 	SavePath string
+
+	// SandboxRoot confines this agent's file operations and commands to a
+	// directory tree. Empty means no confinement, which is how every
+	// chapter before this one behaved.
+	//
+	// It qualifies under the rule stated just above: it is a path, which
+	// is data. It hands out no power. It names where the walls are, and
+	// the objects that enforce them ask the agent for it rather than
+	// keeping a copy, so the boundary has one source of truth.
+	SandboxRoot string
 }
 
 // Path returns the location of one of this agent's files.
@@ -263,6 +296,10 @@ func NewAgent(cfg Config, spec AgentSpec) (*Agent, error) {
 		vars:   skills.NewVarRegistry(),
 		spec:   spec,
 	}
+	// The sandbox holds a back-pointer to the agent, so it must be built
+	// after the agent exists. It is never nil, confined or not, so no call
+	// site has to branch on whether confinement is on.
+	a.sb = sandbox.New(a)
 	a.jobs = jobs.NewJobs(a)
 	a.reg = tools.NewRegistry()
 
@@ -460,6 +497,10 @@ func NewBareAgent(cfg Config, logPath string) *Agent {
 		skills: skills.NewSkillRegistry(),
 		vars:   skills.NewVarRegistry(),
 	}
+	// Unconfined by default: this agent has no spec, so there is no root
+	// to confine it to. The Sandbox is still built, so Sandbox() is never
+	// nil here either.
+	a.sb = sandbox.New(a)
 	j := jobs.NewJobs(a)
 	a.reg = tools.NewBareRegistry()
 
@@ -533,6 +574,14 @@ func (a *Agent) WireSkillTools() {
 func (a *Agent) Logf(format string, args ...any)    { a.Logger.Logf(format, args...) }
 func (a *Agent) APILogf(format string, args ...any) { a.Logger.APILogf(format, args...) }
 func (a *Agent) Debugf(format string, args ...any)  { a.Logger.Debugf(format, args...) }
+
+// SandboxRoot reports the boundary this agent's tools are confined to.
+//
+// The agent is the only object that knows this, and every object it owns
+// asks it rather than holding a copy. That is the whole point of the
+// back-pointer: a copy is correct until the value changes, and then it is
+// a wall in the wrong place that nothing reports.
+func (a *Agent) SandboxRoot() string { return a.spec.SandboxRoot }
 
 // Ask sends a prompt and runs the full tool loop until the model replies.
 func (a *Agent) Ask(prompt string) (string, error) {

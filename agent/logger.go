@@ -61,6 +61,17 @@ func (l *Logger) Debugf(format string, args ...any) {
 	l.mu.Unlock()
 }
 
+// SandboxRoot reports no confinement.
+//
+// A Logger genuinely has no sandbox, so "" is the honest answer rather
+// than a stub. But the method is here only because *Logger satisfies
+// common.Agent, and that is worth noticing: Chapter 22 used exactly this
+// type as the exhibit for an interface that never grew past its name, and
+// Chapter 23 grew it. The interface is now one method wider than "the
+// thing you log to", and the next capability added to common.Agent will
+// land here too.
+func (l *Logger) SandboxRoot() string { return "" }
+
 func (l *Logger) write(w io.Writer, format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	stamp := time.Now().Format("15:04:05.000")

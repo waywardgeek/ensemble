@@ -15,6 +15,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io/fs"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -26,7 +27,29 @@ import (
 	"github.com/creack/pty"
 
 	"github.com/waywardgeek/ensemble/agent/internal/common"
+	"github.com/waywardgeek/ensemble/agent/sandbox"
 )
+
+// confined returns the sandbox a tool call runs inside.
+//
+// A *common.Call embeds common.Agent, which carries SandboxRoot, so the
+// call itself IS the back-pointer the sandbox needs. Nothing new is
+// plumbed: this follows the rule stated on Call, that a tool reaches the
+// agent through what it already has rather than through a second field.
+//
+// A Sandbox is a single pointer, so building one per call costs nothing
+// and keeps the boundary live. Caching one would mean caching the root,
+// which is exactly the staleness the back-pointer exists to prevent.
+//
+// A nil call yields a sandbox with a nil parent, which FAILS CLOSED:
+// every operation on it returns ErrNoSandbox rather than quietly
+// behaving as though no confinement was configured.
+func confined(c *common.Call) *sandbox.Sandbox {
+	if c == nil {
+		return sandbox.New(nil)
+	}
+	return sandbox.New(c)
+}
 
 // builtinArgSpec returns a human-readable summary of each builtin tool's arguments.
 func builtinArgSpec() map[string]string {
@@ -268,25 +291,26 @@ func toolRunCommand(c *common.Call, args json.RawMessage) (string, error) {
 		return "", fmt.Errorf("run_command: empty command")
 	}
 
-	cmd := exec.Command("sh", "-c", a.Command)
-	cmd.Env = append(os.Environ(), "TERM=dumb")
-	// cwd is a property of THIS call. It is resolved against the working
-	// directory, checked before anything starts, and recorded on the job. A
-	// directory that is not there is an error: running in the working
-	// directory instead would be a command executed somewhere the model did
-	// not ask for, with output that looks like an answer.
+	cmd, err := confined(c).Command("sh", "-c", a.Command)
+	if err != nil {
+		return "", fmt.Errorf("run_command: %v", err)
+	}
+	cmd.Env = append(cmd.Env, "TERM=dumb")
+	// cwd is a property of THIS call. It is resolved against the sandbox,
+	// checked before anything starts, and recorded on the job. A directory
+	// that is not there is an error: running in the working directory
+	// instead would be a command executed somewhere the model did not ask
+	// for, with output that looks like an answer.
+	//
+	// Resolving through the sandbox is what stops cwd being the escape
+	// hatch: without it, `cwd: "/"` would relocate an otherwise confined
+	// command. The kernel profile would still deny the reads, but the
+	// refusal would be mystifying rather than named.
 	if a.Cwd != "" {
-		dir := a.Cwd
-		if !filepath.IsAbs(dir) {
-			// The working directory is the process's: every other tool
-			// resolves paths against it the same way.
-			wd, err := os.Getwd()
-			if err != nil {
-				return "", fmt.Errorf("run_command: working directory: %v", err)
-			}
-			dir = filepath.Join(wd, dir)
+		dir, err := confined(c).Resolve(a.Cwd)
+		if err != nil {
+			return "", fmt.Errorf("run_command: cwd %q: %v", a.Cwd, err)
 		}
-		dir = filepath.Clean(dir)
 		st, err := os.Stat(dir)
 		if err != nil {
 			return "", fmt.Errorf("run_command: cwd %q: %v", a.Cwd, err)
@@ -358,7 +382,7 @@ const defaultMaxBytes = 64 * 1024
 // student pays for those tokens again on every subsequent turn of the
 // conversation. The tool that reads is also the tool that decides how much of
 // the window to spend.
-func ToolReadFile(_ *common.Call, args json.RawMessage) (string, error) {
+func ToolReadFile(c *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Path      string `json:"path"`
 		StartLine int    `json:"start_line"`
@@ -371,7 +395,7 @@ func ToolReadFile(_ *common.Call, args json.RawMessage) (string, error) {
 	if a.Path == "" {
 		return "", fmt.Errorf("read_file: path is required")
 	}
-	data, err := os.ReadFile(a.Path)
+	data, err := confined(c).ReadFile(a.Path)
 	if err != nil {
 		return "", fmt.Errorf("read_file: %v", err)
 	}
@@ -409,7 +433,7 @@ func ToolReadFile(_ *common.Call, args json.RawMessage) (string, error) {
 
 // --- write_file ------------------------------------------------------------
 
-func ToolWriteFile(_ *common.Call, args json.RawMessage) (string, error) {
+func ToolWriteFile(c *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Path      string `json:"path"`
 		Content   string `json:"content"`
@@ -422,18 +446,9 @@ func ToolWriteFile(_ *common.Call, args json.RawMessage) (string, error) {
 	if a.Path == "" {
 		return "", fmt.Errorf("write_file: path is required")
 	}
-	if dir := filepath.Dir(a.Path); dir != "" && dir != "." {
-		if err := os.MkdirAll(dir, 0o755); err != nil {
-			return "", fmt.Errorf("write_file: %v", err)
-		}
-	}
+	sb := confined(c)
 	if a.Append {
-		f, err := os.OpenFile(a.Path, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0o644)
-		if err != nil {
-			return "", fmt.Errorf("write_file: %v", err)
-		}
-		defer f.Close()
-		if _, err := f.WriteString(a.Content); err != nil {
+		if err := sb.Append(a.Path, []byte(a.Content), 0o644); err != nil {
 			return "", fmt.Errorf("write_file: %v", err)
 		}
 		return fmt.Sprintf("appended %d bytes to %s", len(a.Content), a.Path), nil
@@ -445,18 +460,18 @@ func ToolWriteFile(_ *common.Call, args json.RawMessage) (string, error) {
 	// and reports what would have been lost. edit_file is the same rule seen
 	// from the other side; the dangerous call is the one that makes you be
 	// specific.
-	info, statErr := os.Stat(a.Path)
+	info, statErr := sb.Stat(a.Path)
 	exists := statErr == nil && !info.IsDir()
 	var prior string
 	if exists {
-		b, _ := os.ReadFile(a.Path) // best effort, for the line count only
+		b, _ := sb.ReadFile(a.Path) // best effort, for the line count only
 		prior = string(b)
 	}
 	if exists && !a.Overwrite {
 		return "", fmt.Errorf("write_file refused: %s exists (%d bytes, %d lines); pass overwrite:true to replace it, or use edit_file to change part of it",
 			a.Path, info.Size(), lineCount(prior))
 	}
-	if err := os.WriteFile(a.Path, []byte(a.Content), 0o644); err != nil {
+	if err := sb.WriteFile(a.Path, []byte(a.Content), 0o644); err != nil {
 		return "", fmt.Errorf("write_file: %v", err)
 	}
 	if exists {
@@ -501,7 +516,7 @@ func lineCount(s string) int {
 // Ambiguity is refused for the same reason: an anchor matching three places
 // does not identify an edit site. Guessing the first is a coin flip the model
 // cannot see being tossed.
-func ToolEditFile(_ *common.Call, args json.RawMessage) (string, error) {
+func ToolEditFile(c *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Path    string `json:"path"`
 		OldText string `json:"old_text"`
@@ -516,7 +531,8 @@ func ToolEditFile(_ *common.Call, args json.RawMessage) (string, error) {
 	if a.OldText == "" {
 		return "", fmt.Errorf("edit_file: old_text is required; to create or replace a whole file use write_file")
 	}
-	data, err := os.ReadFile(a.Path)
+	sb := confined(c)
+	data, err := sb.ReadFile(a.Path)
 	if err != nil {
 		return "", fmt.Errorf("edit_file: %v", err)
 	}
@@ -534,7 +550,7 @@ func ToolEditFile(_ *common.Call, args json.RawMessage) (string, error) {
 	}
 
 	updated := strings.Replace(text, a.OldText, a.NewText, 1)
-	if err := os.WriteFile(a.Path, []byte(updated), 0o644); err != nil {
+	if err := sb.WriteFile(a.Path, []byte(updated), 0o644); err != nil {
 		return "", fmt.Errorf("edit_file: %v", err)
 	}
 	return fmt.Sprintf("edited %s: replaced %d bytes with %d bytes",
@@ -557,7 +573,7 @@ func quoteAnchor(s string) string {
 // than by the measurement: it is well under one percent of real calls. It
 // stays because orientation is cheap, and an agent that cannot see the tree
 // guesses at paths.
-func ToolListDirectory(_ *common.Call, args json.RawMessage) (string, error) {
+func ToolListDirectory(c *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Path string `json:"path"`
 	}
@@ -567,7 +583,7 @@ func ToolListDirectory(_ *common.Call, args json.RawMessage) (string, error) {
 	if a.Path == "" {
 		a.Path = "."
 	}
-	entries, err := os.ReadDir(a.Path)
+	entries, err := confined(c).ReadDir(a.Path)
 	if err != nil {
 		return "", fmt.Errorf("list_directory: %v", err)
 	}
@@ -593,7 +609,7 @@ const maxMatches = 200
 
 // ToolSearchFiles is what makes read_file usable on a codebase bigger than one
 // directory. An agent that cannot grep cannot find what to read.
-func ToolSearchFiles(_ *common.Call, args json.RawMessage) (string, error) {
+func ToolSearchFiles(c *common.Call, args json.RawMessage) (string, error) {
 	var a struct {
 		Pattern      string `json:"pattern"`
 		Path         string `json:"path"`
@@ -617,13 +633,22 @@ func ToolSearchFiles(_ *common.Call, args json.RawMessage) (string, error) {
 	if root == "" {
 		root = "."
 	}
-	if _, err := os.Stat(root); err != nil {
+	sb := confined(c)
+	// start is the resolved absolute path the walk actually traverses. It
+	// is needed to turn each hit back into a path the MODEL asked about:
+	// the walk yields absolute host paths, and printing those would leak
+	// the host layout through every search result, one line at a time.
+	start, err := sb.Resolve(root)
+	if err != nil {
+		return "", fmt.Errorf("search_files: %v", err)
+	}
+	if _, err := sb.Stat(root); err != nil {
 		return "", fmt.Errorf("search_files: %v", err)
 	}
 
 	var out []string
 	matches := 0
-	err = filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+	err = sb.WalkDir(root, func(path string, d fs.DirEntry, err error) error {
 		if err != nil || d.IsDir() || matches >= maxMatches {
 			if d != nil && d.IsDir() && d.Name() == ".git" {
 				return filepath.SkipDir
@@ -640,6 +665,12 @@ func ToolSearchFiles(_ *common.Call, args json.RawMessage) (string, error) {
 		if err != nil {
 			return nil
 		}
+		// Report the path as the caller would name it, relative to what
+		// they asked for, never as an absolute host path.
+		display := path
+		if rel, rerr := filepath.Rel(start, path); rerr == nil {
+			display = filepath.Join(root, rel)
+		}
 		lines := strings.Split(string(data), "\n")
 		if n := len(lines); n > 0 && lines[n-1] == "" {
 			lines = lines[:n-1] // a trailing newline ends a line, it does not start one
@@ -654,7 +685,7 @@ func ToolSearchFiles(_ *common.Call, args json.RawMessage) (string, error) {
 			}
 		}
 		matches += len(hits)
-		out = append(out, withContext(path, lines, hits, a.ContextLines, len(out) > 0)...)
+		out = append(out, withContext(display, lines, hits, a.ContextLines, len(out) > 0)...)
 		return nil
 	})
 	if err != nil {
