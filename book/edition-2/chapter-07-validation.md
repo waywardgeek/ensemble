@@ -9,11 +9,11 @@ approval is separate.
 |---|---|---|---|
 | Contract | Author, coordinator | Accepted at `74928f1`; incremental projection lesson `2f105ce`; published initial checker command `7b116b7` | Preserve the new teaching in the fresh student handoff |
 | Structure and implementation | `/root/coder_ch07`, coordinator | Initial new-only source/support frozen at `da162e8`; core and GUI race tests, affected module vet/tests pass; public CLI extracted and optional browser components implemented | Bind exact executables; preserve initial attempt before comparative review |
-| Independent checks | Grader engineer, coordinator | Local wire 23/23, public 6 groups, queue/projection 5 groups, actual Chrome 6 groups; root's actual Connector 6 groups pass | Finish deletion audits and complete immutable Chapter 7 gate including retained Chapter 6 assertions |
-| Initial live use | Student, coordinator | Full feature/action matrix accepted with proxy-enforced 32 HTTP requests and 12 prompts per provider; isolated browser audio captured with silent baseline | Pass historical source/binary adapter controls and retained regressions, then run authorized paid launches |
+| Independent checks | Grader engineer, coordinator | Combined immutable gate passes 32/33 groups on `da162e8`; inherited mutable-global heuristic falsely flags an error sentinel and embedded assets | Preserve failed receipt; verify narrow structural adapter with legacy and write-negative controls |
+| Initial live use | Student, coordinator | Support revision `ba902b7` passes 17 adapter controls; all 91 runtime hashes equal `da162e8`; isolated browser audio captured with silent baseline; caps remain 32 HTTP requests/12 prompts per provider | Corrected retained structural check closes local prerequisite, then authorized paid launches proceed |
 | Historical comparison | Independent reviewer, student | Not started | Freeze initial implementation, runs and student teaching review before old-answer comparison |
 | Revisions and final evidence | Student, reviewer | Not started | Group compatible repairs; repeat only affected live paths with exact new bindings |
-| Manuscript and feedback | Author, student, proofreader | Contract prose reviewed; demonstration remains explicitly pending | Reconcile actual receipts and teaching findings, then independently proofread |
+| Manuscript and feedback | Temporary author `/root/coder_ch04`, student, independent proofreader | Original author unavailable at thread limit; existing Chapter 4 thread reassigned to narrow prose reconciliation, with prior implementation exposure disclosed | Correct scope/factual wording now; reconcile actual receipts afterward, then independently proofread |
 | Export and checkpoint | Coordinator | Not started | After every gate passes, export exact source and create immutable `edition-2-ch07-r1` |
 
 The student receives a fresh context, new-edition teaching and the accepted
@@ -57,6 +57,14 @@ Root accepted the new student plan before implementation. After the author
 checkpointed Chapter 8 at `cfb0d87`, the independent grader resumed Chapter 7
 engineering. No Chapter 7 implementation acceptance is implied by its initial
 partial checker.
+
+At the Chapter 7 source freeze, the original author still could not resume at
+the thread limit. The coordinator reused the available completed Chapter 4
+student thread as a temporary author. It has Chapter 4 implementation exposure,
+has not authored Chapter 7 code, and must read the complete current voice and
+chapter procedure. Its scope is Chapter 7 prose/outline/evidence/feedback; the
+independent grader retains later code comparison and proofreading. The role
+change avoids blocking prose preparation on the original thread's availability.
 
 ## Early implementation invariants
 
