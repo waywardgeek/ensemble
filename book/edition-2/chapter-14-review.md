@@ -209,3 +209,140 @@ cut/stub/keep/handoff effects from deterministic malformed/interrupt/overflow
 controls and remote refusals. It must not need a repeated paid prompt to discover
 that its default session cannot select v4. This advisory introduces no checker
 assertions, implementation requirement by private naming, or runtime acceptance.
+
+## Complete first-draft review
+
+Reviewed manuscript and outline `349aa64565ebc50fdd3daa1076dc8b68872cbb91`,
+with evidence-only correction `2076cc1c53e05819604f7ec2b375c93d47e16fab`.
+The working files match those frozen versions. This continues the same independent
+role disclosed above; it is full contract/prose review, not a student attempt,
+implementation review or live acceptance.
+
+The complete current voice and writing procedure were reloaded, including after
+compaction, followed by the complete manuscript, outline, evidence and advisory.
+Architecture was reread in full. Focused predecessor rereads checked Chapter 8
+policy paths/persistence/wire semantics and Chapter 10 selection/creation identity;
+the earlier explicitly scoped Chapter 2/9/11/12 contract reads remain applicable.
+For the required story comparison, this pass additionally read complete
+first-edition Chapter 15 prose. Embedded code examples in that chapter are
+historical prose exposure; no historical implementation or grader file was opened.
+No source under main was edited, no runtime or checker was built, and no provider
+call occurred. A short interruption closed Chapter 9's separately assigned factual
+proofread; it did not change this review's frozen Chapter 14 input.
+
+### A1–A6 disposition
+
+| Advisory | Full-draft assessment |
+| --- | --- |
+| A1: capability and strict compatibility | §§14.2/14.8 supply an explicit fresh v4 profile, preserved old ceiling/catalog, no hidden filtering/conversion, exact version/identity agreement and a separate standalone route. The old-session CLI policy selection still needs R3 below. |
+| A2: policy authority | §14.3 keeps one Agent policy owner, strict complete v2, read-only v1 defaults, no-op at maximum, pre-write capability refusal and independent turn-limit capture. Disable cancels an uncommitted intent without resurrecting it; target changes preserve its admitted policy. No competing snapshot authority is introduced. |
+| A3: intent and atomic completion | §§14.6–14.7 define first-valid admission, intact staged acknowledgement, whole-batch pairing, atomic cut/note, terminal refusal/cancellation, append-fault limits and immediate-busy public controls. The tool never waits for its own missing result. |
+| A4: target and placement | §14.4 identifies the preceding newest represented eligible batch and accepted-response expiry, including renew/no-op/no-target. §14.6 preserves logical anchors with the H/S/N/P example and literal provider note shapes. Manual/primary/grant lifetimes and request observations remain distinct. |
+| A5: bounds and represented history | §§14.5/14.7–14.8 give exact canonical accounting, checked fractions, strict thresholds, whole-batch overshoot, literal stub/ref behavior, encoded record/state limits and no counter reuse. Full-log reconstruction is explicitly stronger than snapshot-only reconstruction; no absent body is fabricated. |
+| A6: compatibility and progress | §14.7 distinguishes local render validity from remote acceptance, preserves opaque provenance, records committed cuts, and offers truthful recovery. R1 below must clarify which semantic transitions invalidate a deferred selection. |
+
+The owner plan is coherent with the architecture: Agent owns policy, Actor owns
+ordered conversation decisions and its bounded candidate worker, Engine owns
+transport/usage, Jobs owns jobs/limits, and SessionStore remains the single durable
+path. A handoff is not a new Agent, a second journal or a skill transition. Optional
+GUI and all MCP transports consume the same public seam; removing a result cannot
+dispose a Connection, physical socket, channel or unrelated Agent. The Chapter 12
+pause/independent-observer distinction remains explicit in the planned browser run.
+
+The planned demonstration covers disabled preservation, actual eligibility/stub,
+keep/expiry, both bands, handoff, public/two-Agent isolation, real browser controls,
+restart and full-log versus snapshot-only history on all three provider paths.
+Boundary faults are correctly separate from paid behavior. This is a feature
+plan, not an approved concrete spending/launch matrix or evidence of implementation.
+The runnable independent acceptance command is expressly pending publication
+before student release, and remains a release prerequisite.
+
+### Consolidated findings for one author revision
+
+**R1 — Include semantic selection changes in the deferral key.** Location:
+§14.7, “effective projection revision” (lines 495–501 of the frozen manuscript),
+with §14.4 eligibility/protection. Root independently raised this same point.
+A byte-identical projection can acquire newly eligible batches after an accepted
+empty response, or lose keep protection after a later accepted response. Those
+transitions change the lawful selection even if no rendered text changes. Define
+the effective revision to include eligibility and protection/expiry changes, not
+just body bytes or the event sequence. Retain the exclusion for bookkeeping,
+Jobs facts and failed HTTP alone. Require reconsideration after a relevant
+semantic transition and no repeat for an unchanged blocked candidate. This
+prevents an implementation from treating a legitimate later cut as permanently
+deferred or turning every request receipt into an automatic retry trigger.
+
+**R2 — Publish the browser control seam or explicitly delegate its spelling.**
+Location: §14.8's browser keep/handoff paragraph (lines 586–590), against the
+strict command/ack/error protocol inherited from Chapters 7/8. Root independently
+raised this same point. The draft prints context state but supplies no command
+envelope for these new actions. Either print exact command, acknowledgement and
+correlated refusal shapes, or expressly leave their spellings to the student
+under a documented public equivalent. In either case retain usable-ID correlation,
+strict unknown/missing/duplicate/type/size validation, exact integer identities,
+owned committed acknowledgement/state ordering, no model request, immediate busy
+refusal and draft preservation. The checker must adapt only where names are
+actually delegated. It cannot invent a private protocol after the student starts.
+
+**R3 — Make the CLI's disabled-policy recovery route runnable.** Location:
+§14.2 lines 158–162. Chapter 8 introduces `--policy PATH` for the GUI command
+and an optional public Agent policy path; it does not print a human CLI selector.
+Chapter 10 adds session selectors but no CLI policy flag. An old-session CLI
+reader encountering an enabled policy is therefore sent to an option the cited
+teaching has not provided. Print the CLI spelling and a complete invocation with
+an explicitly selected separate disabled policy file. If this adds CLI support,
+teach it as this chapter's extension, including creation-only path/default/presence
+semantics, rather than calling it an inherited CLI option. No new policy owner
+or storage format is needed.
+
+**R4 — Carry the concrete task through the selection rules.** Locations:
+§§14.3–14.8; the outline's proposed small literal sequence crossing both bands.
+The opening configuration repair makes the stake clear, but the middle becomes
+more than four thousand words of rules without returning to that reader's work.
+The H/S/N/P fixture makes placement inspectable; it does not show the practical
+effect of the three-step selection. Add a compact explicitly illustrative worked
+case tied to the configuration task: what result is stubbed, what complete batch
+is removed, why the newest/kept evidence survives, and which decision/manual stays.
+Use measured or transparently stipulated neutral sizes and label it as a contract
+example, not a successful spin. A short return to the task at the handoff or
+snapshot boundary would explain why the reader needs these distinctions. This
+is a teaching/voice finding, not a demand to satisfy a linter quota or invent
+another human incident. Also change the opener's “replaces old results with
+references” to deterministic stubs that preserve existing references: a result
+without a ref does not acquire one under the printed rule.
+
+R1–R3 require resolution before this contract's student release. R4 should be
+included in the same prose revision before complete manuscript review closes.
+No further architectural redesign is requested.
+
+### Historical story, voice and scoped checks
+
+The new account preserves the old story's consequential failure: trying to
+continue a confused chat by discarding its beginning can remove its goal. It
+accurately labels eighty percent as the historical report; the old §15.9 contains
+the attributed account, not a recovered raw interaction. The new draft does not
+claim a current Gemini measurement. The loaded-manual explanation preserves the
+old §15.4 lesson while recognizing that new Chapter 9 already corrected it.
+Dropping the old superlative, breakfast timing, repeated cache figure, silent
+clamp and unlimited-growth promise is justified by evidence and the revised
+contract. No invented scene, heard-audio claim or new provider result was found.
+
+The retained prose executable independently passes every hard rule at 5,488
+counted words. It reports twelve negation forms and a 4,108-word person gap after
+line 172. The negations largely state consequential compatibility/refusal rules;
+cutting them mechanically would weaken teaching. R4 addresses the substantive
+loss of a concrete task through the dense middle, rather than the count itself.
+The author's ten parsed JSON fixtures and 24-byte canonical control remain
+author-reported local checks; this reviewer read their printed forms but did not
+run a new fixture parser or infer runtime conformance from them.
+
+Frozen source hashes:
+
+- chapter-14.md: `e66837e3d015e1f9ce863e0cb3b8458bb3a2249722fd00a401ad8b458e368fd3`.
+- chapter-14-outline.md: `57b4d8ba1e50d14bd3167677885c145383d80e459f9567ea618eee1fc2f8eef6`.
+- chapter-14-evidence.md: `0e27439bb711c2df02831707f02365bce8b38363aefc1f408305c8fee23d21d4`.
+- First-edition chapter-15.md: `6c6d953e754f73b8bafd45a2f6009cab5dce9d7557c008e79fcc4084f27c2e79`.
+
+Disposition: complete independent first-draft read, with R1–R4 sent together for
+author correction and subsequent closure. No implementation, successful live spin
+or final chapter validation is claimed.
