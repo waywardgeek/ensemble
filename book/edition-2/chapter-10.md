@@ -17,11 +17,11 @@ piece is a safe way to mount those facts as a live conversation. A saved shell
 job cannot become a process again. A retired skill cannot acquire new permission
 because its manual survived. Remembering requires fewer powers than resuming.
 
-**Contract draft:** the coordinator accepted the outline and its construction,
-ownership and storage direction. The detailed format remains under review.
-The Chapter 9 implementation and Chapter 10 independent
-checker are not yet accepted. No student implementation, successful restart or
-actual spin is claimed.
+The coordinator has accepted this contract for independent checker preparation.
+An initial checker covers part of it; the [validation
+record](chapter-10-validation.md) tracks the remaining gates. Student release
+still awaits accepted Chapter 9 source. No Chapter 10 implementation, successful
+restart or actual spin is claimed.
 
 ## TL;DR
 
@@ -60,8 +60,14 @@ continues to consume the public library from its separate module.
 Build the main CLI from main with `go build -o /tmp/ensemble-ch10-cli ./cmd` and the optional GUI from `main/gui`
 with `go build ./cmd/ensemble-gui`. The inherited diagnostic is
 `make grade-dir CH=11 DIR=solutions/edition-2/main`. It does not cover this
-contract. The independent Chapter 10 acceptance command is pending publication;
-that absence blocks student release. Section 10.10 maps the required checks.
+contract. From the repository root, run the initial independent checker with
+`python3 scripts/edition2/accept_ch10.py CLI_BINARY --receipt RECEIPT.json`;
+`python3 scripts/edition2/accept_ch10.py --self-test` checks its local oracle.
+Its 93 planned rows cover an initial subset, not the full public, semantic
+snapshot, lifecycle, browser and boundary matrix. Section 10.10 maps the required
+checks; the [grader coverage record](chapter-10-grader-review.md) documents the
+subset for author/reviewer context. Students run the checker without reading its
+implementation or reviewer internals.
 Public Go names and private payload field spelling remain student choices;
 shared ownership, outer bytes, semantic requirements and errors do not.
 
