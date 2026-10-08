@@ -751,7 +751,7 @@ catalog in a scratch workspace, keeping model credentials in the inherited
 environment. For example, with an absolute catalog path:
 
 ```sh
-LLM_SKILLS_DIR=/absolute/path/to/skills LLM_PRIMARY_SKILL=base /tmp/ensemble-cli chat
+LLM_SKILLS_DIR=/absolute/path/to/skills LLM_PRIMARY_SKILL=base /tmp/ensemble-ch09-cli chat
 ```
 
 Inspect `/skills` before the first request. Ask the model to load edit, wait

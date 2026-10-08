@@ -69,3 +69,37 @@ resource decision, not a claimed bound implied by the original prose.
 The author changed only teaching and this response. The student must read the
 published clarification before the affected repair and confirm whether it resolves
 the difficulty; implementation/checker acceptance remains separate.
+
+
+## Initial implementation feedback and import repair
+
+The author read the student's appended review through `support-review-accepted`
+on October 8, 2026. The initial source remains frozen at `654075b`; the repaired
+runtime/support is `c0e3171`. The student confirms that `d8c7738` resolves the
+whole-record question and distinguishes that missing teaching from its own
+unbounded-reader implementation. The subsequent import defect was also an
+implementation mistake under the clarified contract: measuring a re-encoded
+copy can reject an original physical record that fits. Section 9.5 already
+requires original-byte accounting on read and emitted-byte accounting on write;
+no limit or semantic-validation rule is relaxed.
+
+The student reports a regression covering the original encoding with and without
+final LF, while retaining write-side refusal. Its initial positive fixture first
+failed because it omitted the required timestamp; that failed attempt remains in
+the review. The initial 67-row gate passed before this defect was covered, and
+its result does not establish the later repair. Module/support checks and the
+coordinator's affected checks retain their own source identities. Actual use
+and comparative review remain separate gates.
+
+The student classifies the concrete parent-pointer correction, UTF-8 validation
+order, fixture corrections and evidence-verifier ordering as implementation or
+support mistakes under existing teaching. The author agrees; they do not require
+new permissions or weaker chapter rules. Independently corrected checker fixtures
+remain recorded as checker defects. No unresolved teaching question is reported
+at this boundary.
+
+The coordinator also found a reader-path typo: §9.9 invoked `/tmp/ensemble-cli`
+after the TL;DR built `/tmp/ensemble-ch09-cli`. The invocation now matches the
+build. This is a prose correction and does not relabel any actual executable or
+claim that the planned spin has occurred. Later live and completion feedback
+will be appended after the student's receipts are available.
