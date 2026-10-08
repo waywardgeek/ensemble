@@ -1,0 +1,14 @@
+[
+  {
+    "module": ".",
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "module": "gui",
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  }
+]

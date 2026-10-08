@@ -1,0 +1,223 @@
+// Narrow entry adapters for independently specified capacity and ordering checks.
+package llm
+
+import (
+	"context"
+	"encoding/json"
+	"example.com/ensemble/internal/common"
+	"fmt"
+	"strings"
+	"testing"
+	"time"
+)
+
+type c7Root struct {
+	common.Ensemble
+	observed func(common.Observation)
+}
+
+func (r *c7Root) Logf(string, ...any) {}
+func (r *c7Root) Observe(o common.Observation) {
+	if r.observed != nil {
+		r.observed(o)
+	}
+}
+
+type c7Agent struct {
+	common.ActorAgent
+	root   *c7Root
+	engine *Engine
+}
+
+func (a *c7Agent) ID() string                 { return "independent-agent" }
+func (a *c7Agent) Ensemble() common.Ensemble  { return a.root }
+func (a *c7Agent) Engine() common.ModelEngine { return a.engine }
+func (a *c7Agent) WatchSource() common.WatchSnapshot {
+	return common.WatchSnapshot{Events: []common.Event{}, State: common.WatchState{Lifecycle: "idle", Usage: []common.UsageAccount{}}}
+}
+func c7Actor(t *testing.T) *Actor {
+	t.Helper()
+	engine, _ := c6Engine()
+	t.Cleanup(engine.Close)
+	p := &c7Agent{root: &c7Root{}, engine: engine}
+	return &Actor{parent: p, pauses: map[uint64][2]bool{}, partials: map[int]map[string][]byte{}, state: "idle"}
+}
+func c7Queue(a *Actor) *watch {
+	return &watch{parent: a, wake: make(chan struct{}, 1), done: make(chan struct{})}
+}
+func c7SizedRecord(t *testing.T, size int) common.WatchRecord {
+	t.Helper()
+	text := ""
+	r := common.WatchRecord{Revision: 1, Observation: common.Observation{Kind: "message_received", AgentID: "a", Event: common.Event{Seq: 1, Type: "message_received", Message: &common.Entry{Actor: "user", Parts: []common.Part{{Type: "text", Text: &text}}}}}}
+	raw, err := json.Marshal(r)
+	if err != nil || len(raw) > size {
+		t.Fatal("invalid size fixture")
+	}
+	text = strings.Repeat("x", size-len(raw))
+	raw, err = json.Marshal(r)
+	if err != nil || len(raw) != size {
+		t.Fatal("actual JSON payload did not match credited bytes")
+	}
+	return r
+}
+func TestC7WatchEncodedByteCapacity(t *testing.T) {
+	const limit = 128 << 20
+	const piece = 8 << 20
+	t.Run("exact-drain-over", func(t *testing.T) {
+		a := c7Actor(t)
+		w := c7Queue(a)
+		r := c7SizedRecord(t, piece)
+		for i := 0; i < 16; i++ {
+			w.push(r, piece)
+		}
+		if w.Status() != "" {
+			t.Fatal("exact 128MiB valid payload queue rejected")
+		}
+		if len(w.items) != 16 || w.bytes != limit {
+			t.Fatal("positive queue did not retain all payloads")
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+		defer cancel()
+		if _, err := w.Next(ctx); err != nil {
+			t.Fatal(err)
+		}
+		w.push(r, piece)
+		if w.Status() != "" || w.bytes != limit {
+			t.Fatal("drain did not release exact encoded-byte capacity")
+		}
+		if _, err := w.Next(ctx); err != nil {
+			t.Fatal(err)
+		}
+		over := c7SizedRecord(t, piece+1)
+		w.push(over, piece+1)
+		if w.Status() != "overflow" {
+			t.Fatal("one encoded byte over aggregate capacity accepted")
+		}
+		if len(w.items) != 0 || w.bytes != 0 {
+			t.Fatal("invalidated watch retained queued payloads")
+		}
+	})
+	t.Run("single-over", func(t *testing.T) {
+		a := c7Actor(t)
+		w := c7Queue(a)
+		r := c7SizedRecord(t, limit+1)
+		w.push(r, limit+1)
+		if w.Status() != "overflow" {
+			t.Fatal("single over-limit payload accepted")
+		}
+	})
+}
+func TestC7PausePublicationBeforeAck(t *testing.T) {
+	a := c7Actor(t)
+	a.pauses[1] = [2]bool{}
+	w := c7Queue(a)
+	a.watches = []*watch{w}
+	entered, release, finished := make(chan struct{}), make(chan struct{}), make(chan struct{})
+	a.parent.(*c7Agent).root.observed = func(o common.Observation) {
+		if o.Kind == "pause_changed" {
+			close(entered)
+			<-release
+		}
+	}
+	reply := make(chan common.ActorReply, 1)
+	go func() {
+		defer close(finished)
+		a.receiveWatch(common.ActorMessage{Kind: "pause", Registration: 1, Typing: true, Reply: reply})
+	}()
+	select {
+	case <-entered:
+	case <-time.After(time.Second):
+		close(release)
+		t.Fatal("pause never reached publication")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	r, err := w.Next(ctx)
+	if err != nil {
+		close(release)
+		t.Fatal("watch publication missing before update returned", err)
+	}
+	select {
+	case <-reply:
+		close(release)
+		<-finished
+		t.Fatal("pause acknowledged before publication completed")
+	default:
+	}
+	close(release)
+	<-finished
+	ack := <-reply
+	if r.Revision != ack.Pause.Revision || r.Observation.Kind != "pause_changed" || !ack.Pause.Paused {
+		t.Fatal("applied revision not shared by publication and acknowledgment")
+	}
+}
+func TestC7ProjectionOverflowInvalidatesWatch(t *testing.T) {
+	a := c7Actor(t)
+	w := c7Queue(a)
+	a.watches = []*watch{w}
+	a.publish(common.Observation{Kind: "model_begin", AgentID: "a", RequestID: "r", OperationID: "m", Delivery: "stream"})
+	chunk := strings.Repeat("x", 1<<20)
+	for i := 0; i < 16; i++ {
+		a.publish(common.Observation{Kind: "part_delta", AgentID: "a", RequestID: "r", OperationID: "m", PartID: 1, Channel: "text", Text: chunk})
+	}
+	if a.projectionInvalid || a.partialBytes != 16<<20 {
+		t.Fatal("exact projection capacity rejected")
+	}
+	a.publish(common.Observation{Kind: "part_delta", AgentID: "a", RequestID: "r", OperationID: "m", PartID: 1, Channel: "text", Text: "x"})
+	if !a.projectionInvalid || w.Status() == "" {
+		t.Fatal("lost projection remained an intact watch")
+	}
+	reply := make(chan common.ActorReply, 1)
+	a.receiveWatch(common.ActorMessage{Kind: "watch", Reply: reply})
+	if r := <-reply; r.Error == nil {
+		t.Fatal("truncated active projection claimed complete catch-up")
+	}
+	a.publish(common.Observation{Kind: "model_end", AgentID: "a", RequestID: "r", OperationID: "m"})
+	a.receiveWatch(common.ActorMessage{Kind: "watch", Reply: reply})
+	r := <-reply
+	if r.Error != nil || len(r.Snapshot.Partials) != 0 {
+		t.Fatal("settled operation did not restore snapshot availability")
+	}
+}
+func TestC7SelectedRecipientClose(t *testing.T) {
+	a := c7Actor(t)
+	w := c7Queue(a)
+	selected := w
+	// Sender has selected its recipient. Teardown wins before the send resumes.
+	selected.stop("closed")
+	text := "queued after close"
+	r := common.WatchRecord{Revision: 1, Observation: common.Observation{Kind: "part_delta", PartID: 1, Channel: "text", Text: text}}
+	raw, _ := json.Marshal(r)
+	selected.push(r, len(raw))
+	if selected.Status() != "closed" || len(selected.items) != 0 || selected.bytes != 0 {
+		t.Fatal("late selected sender resurrected closed queue")
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+	if _, err := selected.Next(ctx); err == nil {
+		t.Fatal("closed recipient exposed late payload")
+	}
+}
+
+// Fixed fragment sizes isolate whether recoverability repeatedly copies the
+// growing answer. This measures cumulative allocation, not peak resident memory.
+func BenchmarkC7ProjectionScaling(b *testing.B) {
+	for _, size := range []int{64 << 10, 128 << 10} {
+		b.Run(fmt.Sprintf("bytes=%d", size), func(b *testing.B) {
+			engine, _ := c6Engine()
+			defer engine.Close()
+			parent := &c7Agent{root: &c7Root{}, engine: engine}
+			chunk := strings.Repeat("x", 128)
+			b.ReportAllocs()
+			b.SetBytes(int64(size))
+			b.ResetTimer()
+			for iteration := 0; iteration < b.N; iteration++ {
+				a := &Actor{parent: parent, pauses: map[uint64][2]bool{}, partials: map[int]map[string][]byte{}}
+				a.publish(common.Observation{Kind: "model_begin", AgentID: "a", RequestID: "r", OperationID: "m"})
+				for n := 0; n < size; n += len(chunk) {
+					a.publish(common.Observation{Kind: "part_delta", AgentID: "a", RequestID: "r", OperationID: "m", PartID: 1, Channel: "text", Text: chunk})
+				}
+			}
+		})
+	}
+}
