@@ -79,6 +79,24 @@
       "platform": "darwin/arm64",
       "bytes": 9738418,
       "binding": "solutions/edition-2/ch04/evidence/ch04/boundary-public-anthropic/launch.json"
+    },
+    {
+      "original_path": "/private/tmp/ensemble-ch06",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch06-initial-cli",
+      "sha256": "cb73dc4b9d11b6bc26497339e0df402f6cd0274d06584fe6f7721ad339f226f2",
+      "source_identity": "aa5f86a4782c7479ea61b0e6abcbd4163968b574",
+      "platform": "darwin/arm64",
+      "bytes": 9353586,
+      "archived_at": "2026-10-08T03:15:14.593428+00:00"
+    },
+    {
+      "original_path": "/private/tmp/ensemble-stream-consumer",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch06-initial-consumer",
+      "sha256": "67c58f2163af6d5bbcf2e34320fd7fbd4d69d0888703a70c8db3c3d298feca59",
+      "source_identity": "aa5f86a4782c7479ea61b0e6abcbd4163968b574",
+      "platform": "darwin/arm64",
+      "bytes": 9283250,
+      "archived_at": "2026-10-08T03:15:14.617056+00:00"
     }
   ]
 }
