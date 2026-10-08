@@ -1,0 +1,29 @@
+{
+  "source_revision": "ba902b7322a9cb5dd71c8352d45d6975663409c0",
+  "files": [
+    {
+      "role": "cli",
+      "original_path": "/private/tmp/ensemble-ch07-ba902b7-cli",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-revisions/executables/ch07-ba902b7/cli",
+      "sha256": "69746961b9adfca6d7e777279ee73fb64722d07597d016b5f7d1efd42c4d3d21"
+    },
+    {
+      "role": "gui",
+      "original_path": "/private/tmp/ensemble-ch07-ba902b7-gui",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-revisions/executables/ch07-ba902b7/gui",
+      "sha256": "dc16f3b27fef82f46fdb37af7eb1ad7930340188afebd0ce50faf433e030a4b0"
+    },
+    {
+      "role": "consumer",
+      "original_path": "/private/tmp/ensemble-ch07-ba902b7-consumer",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-revisions/executables/ch07-ba902b7/consumer",
+      "sha256": "889450f3356fe963658a1387dd19b1225602bdab4f42f735a9dad838b1ecfc33"
+    },
+    {
+      "role": "capture",
+      "original_path": "/private/tmp/ensemble-ch07-capture-audio",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-revisions/executables/ch07-ba902b7/capture",
+      "sha256": "9caf5d382162596f74339d2e603723d2d1e77de786c155f47ef36895005e8633"
+    }
+  ]
+}
