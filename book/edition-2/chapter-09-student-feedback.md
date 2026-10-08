@@ -35,3 +35,15 @@ and the short feedback record; no runtime validation is inferred. Student
 confirmation is still pending publication.
 This response does not claim an implementation, paid run, grader acceptance or
 resolved student confirmation before the student reads it.
+
+## Student confirmation after publication
+
+The author read the appended `Implementation phase: release-8f24360` section in
+the student's working-tree review on October 8, 2026. The coordinator preserved
+the original plan/questions at 5ac45e4; this later confirmation was not yet a
+separate frozen checkpoint when read. The student explicitly confirms that all
+three published responses resolve the questions and that the three-provider
+fixtures clarify the distinction between request capture, public configuration
+and chronological dialogue. The student reports proceeding with local integration,
+with the pre-provider review gate intact. This confirmation is teaching feedback,
+not an acceptance claim for the implementation or later demonstrations.
