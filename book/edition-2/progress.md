@@ -22,16 +22,20 @@ that broke complete-tree package discovery. Original r1 remains unchanged;
 actual full-tree checks and the independent packaging review pass.
 See [chapter-07-validation.md](chapter-07-validation.md).
 The Chapter 8 settings contract is reviewed at `7200f17`; its initial partial
-wire/persistence checker is published at `b3f3137`, with no Chapter 8 student
-implementation or end-to-end positive claimed. Additional strict fixtures are
-prepared at `f6ccbf5`. Fresh `/root/coder_ch08` is active with `fork_turns="none"`,
-only new teaching and accepted Chapter 7 source; its ownership plan is next. See
+wire/persistence checker is published at `b3f3137`, with additional independent
+checks at `f6ccbf5` and `10b17c8`. Fresh `/root/coder_ch08` is implementing from
+only new teaching and accepted Chapter 7 r2 source. Its ownership plan is
+accepted; it reports initial backend/local-check passes and is building browser
+controls. Independent acceptance and paid demonstrations remain pending. See
 [chapter-08-validation.md](chapter-08-validation.md). Chapter 9's full draft
 `49ae919` and transition clarification `0bca41c` are accepted for checker
 preparation; its student release still requires accepted Chapter 8 and published
 checks. See [chapter-09-validation.md](chapter-09-validation.md).
-The author is preparing Chapter 10's persistence outline from historical
-lessons; no implementation or live result is claimed for those future chapters.
+The author is drafting Chapter 10's persistence contract following outline
+review; no implementation or live result is claimed for those future chapters.
+Bill and CodeRhapsody are separately writing a new first-edition sandboxing
+chapter. Preserve that work; review it as a future source when available, without
+assuming its conclusions or changing the chapter map before review.
 
 Chapter 5 code, actual live evidence, teaching and manuscript review are
 accepted at `c1cc0b4`. The exact 1,254-file export comes from `185ba76`, with

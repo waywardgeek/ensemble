@@ -21,13 +21,15 @@ has 2,229 files across eight modules; it isolates a standalone evidence helper
 missed by the runtime-only gate. Actual full-tree checks pass and r1 is preserved.
 Fresh `/root/coder_ch08` is active with
 `fork_turns="none"`, new Chapters 1–8 and that accepted source. Its initial
-ownership plan awaits coordinator review; independent grader work proceeds.
+ownership plan is accepted. Core policy and GUI preference work has initial
+student-reported local passes; browser controls and independent checks proceed.
+No Chapter 8 paid demonstration or final acceptance is claimed.
 Source identities and retained limitations are tracked in
 [chapter-07-validation.md](chapter-07-validation.md).
 Earlier log-destination corrections are independently accepted and checkpointed
 at `edition-2-ch02-r2` (`0a375d3`) and `edition-2-ch03-r2` (`799940c`). Their
 revised frozen exports and manifests are integrated here; canonical main stays
-on the Chapter 7 working implementation. See `logpath-backport-review.md` and the chapter validation records.
+on the Chapter 8 working implementation. See `logpath-backport-review.md` and the chapter validation records.
 Chapter 4 remains checkpointed at
 `edition-2-ch04-r1` (`55e6411`); its detailed record is historical below.
 
@@ -103,7 +105,7 @@ that limitation; their implementation validation is a separate claim.
 
 ## Current state
 
-- **Latest accepted source:** Chapter 5, runtime959/evidence469; see its gate record.
+- **Latest accepted source:** Chapter 7 r2, source `9ec94ef`; see its gate record.
 - Earlier Chapter 4 checkpoint, runtime d25/final evidence e1c6488.
   Five-module checks, grade100, independent53/53 and public3/3, eleven mutations,
   race/fault/boundary controls, actual all-provider PTYs and public consumers,
