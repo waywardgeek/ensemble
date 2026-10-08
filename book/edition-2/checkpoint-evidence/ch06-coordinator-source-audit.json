@@ -1,0 +1,14 @@
+{
+  "passed": true,
+  "source_revision": "75bd14d5d2424778ebf45cb9025e9dbf314f956a",
+  "checker_revision": "5a95578c68b816793ffc866a0f855aaa51a1a602",
+  "source_files_checked": 76,
+  "checker_files_checked": 14,
+  "gate_receipt_sha256": "9b70d8f630060e387701721f79d33e0d68ffebba479309cd4d7cead1ac915e3a",
+  "supplementary_receipt_sha256": "9efcf9522eb7a8fc6ccc6fe2e379da45def0e21c857a0b11dc7c00a55f6e9908",
+  "scope": "Independent immutable blob identity audit; execution results remain in separately bound gate receipts.",
+  "supplementary_checker_revision": "340c6782d2b0ff098d21a5496142e401a2899a0d",
+  "supplementary_source_files_checked": 73,
+  "supplementary_checker_files_checked": 4,
+  "supplementary_mutations_passed": 3
+}
