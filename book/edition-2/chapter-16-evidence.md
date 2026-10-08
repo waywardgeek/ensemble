@@ -196,3 +196,47 @@ lifetime and whole-profile compatibility before selection. The outline now
 proposes those details without treating the interim response as final mechanism
 approval. The separate Ch10 accepted-record clarification received independent
 closure `c773b11`; no new Ch10 author question is pending at this boundary.
+
+## Full draft after consequential review
+
+The author read all of coordinator decisions `81e2065` and independent advisory
+`0320911`. Full current voice/procedure remained loaded after the preparation
+reload. Focused predecessor rereads covered Chapter 15 profile/policy/owner,
+helper config/usage/event grammar, pressure and public controls; Chapter 14 handoff,
+strict transition/version and browser error envelopes; Chapter 5 admitted prompt
+identity; Chapter 2 provider request fields; and Chapter 9's 256-byte description
+bound. No runtime implementation was opened for this drafting step.
+
+The complete draft adopts the selected corpus/profile, anchored recall, budget,
+ranking/verdict and reduced-state choices. It preserves the source's human
+motivation while declining unsupported speed/quality/cache claims. The interim
+outline's per-source statistics, zero-based verdict and unspecified cumulative
+lifetime are explicitly superseded, rather than left as competing instructions.
+A ready external index yields a bounded operation view after current offer and
+deduplication filtering; its statistics must match that view. Root/reviewer
+precision about current pressure versus captured recall mode is printed.
+
+The author calculated the three-chunk BM25 fixture directly: scores
+0.5981864372218454 and 0.42081720292932145, with zero for the unrelated chunk.
+The nine JSON blocks parse. All three full judge fixtures contain identical
+system/user text; that user text is canonical JSON. All three rendered attachment
+fixtures match the specified canonical selected array/wrapper and its SHA-256;
+the illustrative complete block is 221 UTF-8 bytes. A first local fixture-check
+script accidentally selected the earlier formula text block as the system
+literal and failed; selecting the named system literal corrected that check.
+No manuscript/provider defect is inferred from that verification-script mistake.
+
+A complete manual contract/read pass checked public error-envelope compatibility,
+old strict versions, captured-set limits, source/Skills identity, handoff lifetime,
+helper billing and body retirement. Hard prose lint passes; specification-density
+soft warnings are reviewed alongside the worked configuration task, not treated
+as a reason to pad the chapter. The root-owned gate `51240ce` records runtime,
+checker, comparative and actual-spin requirements as pending. This is the first
+full-draft freeze for independent review, not student release or validation.
+
+Final scoped lint reports 6,044 chapter words and no hard failure. Soft negation
+and long technical-span warnings remain for independent voice review. A tiny
+outline/evidence wording patch initially failed to write while the shared volume
+reported 116 MiB available; the author inspected all three complete files and
+saved only those wording corrections on retry. No shared cleanup or build was
+performed. The freeze includes only this chapter, its outline and this evidence.

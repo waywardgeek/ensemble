@@ -315,3 +315,40 @@ implementation and teaching review before comparative feedback.
 
 The original account is motivation, not a receipt for these runs. No new speed,
 price, cache-hit, semantic-retention or “model remembered” result is asserted.
+
+## Full-draft decision reconciliation
+
+Coordinator decisions `81e2065`, after independent advisory `0320911`, release
+chapter-16.md for full contract review. These supersede the corresponding proposals
+above without rewriting preparation chronology. All execution remains pending;
+current gates live in [Chapter 16 validation](chapter-16-validation.md).
+
+- D1 chooses frozen external sources in archive/project categories, explicit
+  bounded idle refresh and complete ready-index preparation before atomic
+  publication. The draft defines source/version/read accounting and captured-set
+  limitations; no external scan occurs on resume.
+- D2 selects explicit fresh v6 extending v5, strict policy v4 with disabled defaults,
+  current foreground Engine route for the judge and unchanged old-profile routes.
+- D3 preserves normal prompt admission, then records recall at a later event
+  sequence with a logical before-prompt anchor. Accepted material persists until
+  the v6 handoff extension atomically retires all of it. Limits are 64 attachments
+  and 64 KiB of represented blocks; checkpoint remains save-only.
+- D4 selects one 15-second operation/at-most-one judge, captured effective turn
+  allowance and foreground reservation. Current pressure is measured with the
+  actual canonical neutral-projection delta; pause expiry/stale/canceled work
+  settles without another paid attempt or late attachment.
+- D5 replaces the outline's per-source statistics and zero-based proposal with
+  global BM25, positive scores, one-per-category reserve then ranked filling,
+  pool of 20/final three and strict one-based verdicts. Query is only the human prompt,
+  bounded to 8,192 bytes. Request/reply/output bounds are 256 KiB/8 KiB/256 tokens.
+- D6 retains only current offered IDs/descriptions for new skill candidates;
+  accepted suggestions remain historical/as-of after offer revocation.
+- D7 specifies 1,024-byte whole chunks, 6,144-byte blocks, exact-text dedupe and
+  explicit omitted-item reasons. Reduced snapshots drop retired corpus/helper
+  body copies while preserving usage/identity metadata and history_unavailable.
+
+The draft's public/browser commands, strict event/identity/policy shapes and
+three-provider literals are new teaching before implementation. No tool, old
+solution, current student source or grader was edited. The historical format
+mismatch and unused-search story remain attributed; the actual spin is a reader
+plan awaiting source-bound evidence rather than a fabricated successful run.
