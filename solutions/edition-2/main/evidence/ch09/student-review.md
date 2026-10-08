@@ -507,7 +507,7 @@ Additional permitted read ledger for evidence adaptation: complete accepted stud
 
 ### Initial coherent checkpoint, still incomplete as a chapter
 
-Post-clarification formatting is empty, and all 12 discovered modules passed both `go vet ./...` and `go test ./... -count=1`; exact receipt `evidence/ch09/module-checks-bound.json`. The source now implements catalog/graph/grants, actor management, durable material/replay, public configuration/inspection/controls, CLI and optional GUI without runtime authority in Context/Registry snapshots. Actual service paths remain Skills→SkillAgent→Ensemble logger, Registry→ToolAgent→Agent authority, and actor→TurnAgent direct access; no same-actor mailbox reentry is used for those parent calls. CLI/GUI/public examples call the public Ensemble constructor. The dynamic import audit includes the new skills spoke.
+Post-clarification formatting is empty, and all 11 discovered modules passed both `go vet ./...` and `go test ./... -count=1`; exact receipt `evidence/ch09/module-checks-bound.json`. The source now implements catalog/graph/grants, actor management, durable material/replay, public configuration/inspection/controls, CLI and optional GUI without runtime authority in Context/Registry snapshots. Actual service paths remain Skills→SkillAgent→Ensemble logger, Registry→ToolAgent→Agent authority, and actor→TurnAgent direct access; no same-actor mailbox reentry is used for those parent calls. CLI/GUI/public examples call the public Ensemble constructor. The dynamic import audit includes the new skills spoke.
 
 This checkpoint preserves my initial implementation before independent historical comparison. The coherent source and support are frozen so immutable-binding controls and the coordinator-authorized combined gate can run. All eight earlier corrected black boxes and current local module gates pass; source-bound full gate and support controls are next. Live feature coverage remains unperformed, with no chapter-accepted claim. No runtime teaching question remains unresolved under d8c7738.
 
@@ -525,4 +525,20 @@ The combined gate had already launched against 654075b before I read the narrow 
 
 Added `TestSkillImportCountsOriginalEncodingAndFraming`: prepare a real valid candidate from the owned frozen catalog, encode its exact fact with literal HTML characters, and load the physical log with and without final LF. Its original encoding fits, while canonical escaped serialization exceeds 64 MiB; both imports must install the complete revision-1 state. My first fixture omitted the inherited required UTC timestamp and correctly failed validation; corrected that fixture and the regression now passes. Existing write-side oversized typed/model/initialization refusals still pass. The initial source remains preserved unchanged. No grader or historical implementation source was read.
 
-Post-import-repair all 12 delivery modules again passed vet/test, with empty changed-Go formatting output. Exact receipt: `evidence/ch09/module-checks-import.json`. Freezing this repair for the final combined gate and support binding.
+Post-import-repair all 11 delivery modules again passed vet/test, with empty changed-Go formatting output. Exact receipt: `evidence/ch09/module-checks-import.json`. Freezing this repair for the final combined gate and support binding.
+
+
+### Boundary response: module-count; immutable support result
+
+Coordinator correctly counted 11 module entries, not my prose count of 12. Corrected the two appended review references; receipt command/results and hashes were already correct and unchanged. No runtime or test rerun is needed for that prose correction.
+
+The repaired frozen runtime/support revision is `c0e3171fdc22834348f976f81fcaa7372bd13ed4`, main tree `3a3f9f48456dea6d0df9b2c1dddcbcd6aec6e02b`. `review-binding.json` identifies all 133 delivery source files, nine executable hashes, six support hashes, exact catalog and browser dependencies. Four Go executables were rebuilt from that revision; the unchanged Swift capture source/binary is included. `initial-binding.json` stays historical to the failed initial support attempt, and must not be used as the current launch binding.
+
+`local-evidence-controls-review.json` now passes against the complete immutable binding: streaming first-fragment relay and pre-forward cap refusal; actual local CLI load/write capture with byte-exact replay and separate public redaction projection; 13 individual identity negatives; passing two-run fixture followed by eight last-run identity/missing-set controls, all refusing before replay/redaction; empty run-set refusal; actual GUI plus two browser views/reconnect and exact browser-original/screenshot/text hashes; changed browser launch executable refusal before browser receipts. No paid calls or credentials were involved, and the zero-request browser control is explicitly local. Native audio capture was built and bound but not executed; no audible-speech claim is made.
+
+
+### Boundary response: support-review-accepted
+
+Coordinator accepted the concrete support, repaired import change/regression and immutable positive/negative controls. The current launch binding is review-binding.json; native audible speech remains an actual-run obligation. Combined gate against 654075b is still running, with no intermediate stdout exposed by my capture wrapper. Following the coordinator’s new bounded instruction, retain that result and rerun affected repair rows rather than repeating unrelated passing local gates solely to rename the source. No paid launch is performed in this phase.
+
+Space observation while the already-running combined gate continues: approximately 451 MiB free, down from 1.3 GiB before it. I have not removed retained receipts, sources, settings, other work or shared caches. Coordinator may need to manage disposable cache space before additional heavy builds. All own runtime/module/support checks described above have completed; the combined process remains the pending result.
