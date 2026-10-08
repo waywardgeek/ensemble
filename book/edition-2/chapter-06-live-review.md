@@ -1,7 +1,7 @@
 # Chapter 6 independent live-evidence review
 
-Initial evidence accepted at its original source identity; final revised-source
-demonstrations remain open. Coordinator review, October 7 local / October 8 UTC
+Initial and revised evidence accepted at their respective source identities.
+Coordinator review, October 7 local / October 8 UTC
 2026. No paid requests were made during this audit.
 
 The initial runtime is `aa5f86a4782c7479ea61b0e6abcbd4163968b574`. Initial live
@@ -90,3 +90,47 @@ This accepts the initial evidence's identity and stated scope. R1–R4 repairs,
 full independent acceptance and final revised live use remain separate gates.
 Earlier receipts must retain their original source identity; repeat only the
 demonstrations affected by the reviewed changes.
+
+## Revised live acceptance
+
+The repaired runtime is `75bd14d5d2424778ebf45cb9025e9dbf314f956a`. Seven revised
+sessions, frozen at `8c73f9b77d9f162079d11ce305b03528c023f3e9`, made exactly 20
+requests. The CLI and consumer binaries were archived with their recorded
+hashes. Reproduce the independent local audit with:
+
+```sh
+python3 scripts/edition2/ch06-review-evidence.py --revision1
+```
+
+The [revised receipt](checkpoint-evidence/ch06-live-independent-revised.json)
+binds 73 historical source files, both executables and all 75 original run
+files. All 16 controls pass, including copied-path positives and intended
+identity/body refusals before derived writes. All 20 requests replay; the four
+single-Agent sessions also match wire order. The same generalized checker was
+rerun against the initial batch and retained all 16 passing controls and 33
+matching requests. It does not relabel that earlier batch as revised runtime.
+
+The coordinator read all four revised human terminal transcripts. Each of the
+three streamed sessions completed a real file read and continuation, accepted
+an interruption after visible integer output, labeled the display incomplete,
+and answered the next prompt with `RECOVERED-SIX-REVISION`. The Gemini plain
+session completed the same read without provisional display. All four read
+artifacts match their workspace files and durable tool results. Accepted usage
+matches each printed total; interrupted operations contain no accepted
+response or tool effect. The revised plan did not repeat hint demonstrations
+or the unchanged Messages/Chat Completions plain paths; those retain the
+initial source-bound evidence above.
+
+Each revised public session completed two independently identified Agents.
+Finals-only observations match reliable completion and durable response parts.
+The revised consumer's owner interfaces, checked subscription errors and
+deferred release were inspected: completion and output precede release of
+the slow callbacks. Neither live overflow nor exposed thinking is claimed.
+Both Gemini public responses again ended with `MAX_TOKENS`; accepted partial
+output is not evidence that the explanatory task finished.
+
+All original revised files remain unchanged. An in-memory comparison against
+the three authorized keys found no credential matches. No model request was
+made by this independent audit. Refusal replay, deadline stalls, escaped-byte
+limits and guaranteed display overflow retain their separate deterministic
+fault coverage in the final gate at `5a95578`.

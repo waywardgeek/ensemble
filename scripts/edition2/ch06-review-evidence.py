@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Independent local review of the initial Chapter 6 live receipts. No HTTP."""
+"""Independent local review of initial or revised Chapter 6 receipts. No HTTP."""
+import argparse
 import copy
 import hashlib
 import importlib.util
@@ -22,25 +23,27 @@ def read(path):
     return json.loads(path.read_text())
 
 
-def run():
-    sys.path.insert(0, str(HERE))
-    spec = importlib.util.spec_from_file_location("reviewed_verifier", HERE / "verify-receipts.py")
+def run(revision1=False):
+    here = HERE / "revision1" if revision1 else HERE
+    expected_runs, expected_requests = (7, 20) if revision1 else (9, 33)
+    sys.path.insert(0, str(here))
+    spec = importlib.util.spec_from_file_location("reviewed_verifier", here / "verify-receipts.py")
     verifier = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(verifier)
-    binding = read(HERE / "initial-binding.json")
+    binding = read(here / ("binding.json" if revision1 else "initial-binding.json"))
     archived = read(REPO / "book/edition-2/checkpoint-evidence/executable-archive.json")["files"]
     paths = {name: next(x["archive_path"] for x in archived if x["sha256"] == binding["executables"][name]["sha256"])
              for name in ("cli", "consumer")}
-    runs = sorted(p.parent for p in HERE.glob("*/launch.json"))
-    assert len(runs) == 9
+    runs = sorted(p.parent for p in here.glob("*/launch.json"))
+    assert len(runs) == expected_runs
     # Bind originals and assert that replay/control exercises leave them intact.
-    originals = {str(p.relative_to(HERE)): sha(p) for root in runs for p in root.rglob("*") if p.is_file()}
+    originals = {str(p.relative_to(here)): sha(p) for root in runs for p in root.rglob("*") if p.is_file()}
     controls, reviewed = [], []
     with tempfile.TemporaryDirectory(prefix="ch06-receipt-review-") as directory:
         temporary = Path(directory)
         results = verifier.verify(binding, runs, paths, temporary / "positive")
-        assert sum(r["requests"] for r in results) == 33
-        controls.append({"id": "all-nine-valid-original-runs", "passed": True, "requests": 33})
+        assert sum(r["requests"] for r in results) == expected_requests
+        controls.append({"id": "all-valid-original-runs", "passed": True, "requests": expected_requests})
         # Valid copies retain all original logs and bodies. Mutate only the
         # intended identity; late-batch failures must precede any output write.
         copies = []
@@ -49,7 +52,7 @@ def run():
             shutil.copytree(source, dest)
             copies.append(dest)
         verifier.verify(binding, copies, paths, temporary / "valid-copy-control")
-        controls.append({"id": "all-nine-valid-copy-paths-before-mutation", "passed": True, "requests": 33})
+        controls.append({"id": "all-valid-copy-paths-before-mutation", "passed": True, "requests": expected_requests})
         mutations = [
             ("source-hash", "historical source mismatch"),
             ("incomplete-source", "incomplete historical source set"),
@@ -170,7 +173,7 @@ def run():
                 ending = f"Final usage: input={usage['input']}, cache write={usage['cache_write']}, cache read={usage['cache_read']}, output={usage['output']}"
                 assert ending in terminal
                 if launch["delivery"] == "stream":
-                    assert len(hints) == 1
+                    assert len(hints) == (0 if revision1 else 1)
                     assert "interrupted=true" in terminal and "Incomplete display:" in terminal
                     assert "proposed tool" in terminal and "RECOVERED-SIX" in terminal
                     interrupted = [e for e in history if e["type"] == "turn_ended" and e["turn"]["outcome"] == "interrupted"]
@@ -181,7 +184,9 @@ def run():
                     assert "thinking part" not in terminal and "observation overflow" not in terminal
                     record["interrupted_request"] = end["turn"]["request_id"]
                 else:
-                    assert not hints and "Assistant:\nPLAIN-SIX\n" in terminal
+                    assert not hints
+                    if not revision1:
+                        assert "Assistant:\nPLAIN-SIX\n" in terminal
                     assert "proposed tool" not in terminal and "(stream)" not in terminal
                 record.update(chronological_replay=True, hints=hint_receipts, read_artifact_sha256=sha(artifact))
             else:
@@ -205,12 +210,12 @@ def run():
                 assert len({c["agent_id"] for c in public["completions"]}) == 2
                 record.update(distinct_full_part_identities=len(identities), thinking_deltas=0, live_overflow=False)
             reviewed.append(record)
-    assert all(sha(HERE / name) == identity for name, identity in originals.items())
+    assert all(sha(here / name) == identity for name, identity in originals.items())
     # Compare secret bytes only in memory. Neither the settings nor values enter
     # the output, subprocess arguments, exceptions or retained evidence.
     settings = read(Path.home() / ".cr/settings.json")
     keys = [settings[name].encode() for name in ("directClaudeAPIKey", "directOpenAIAPIKey", "directGeminiAPIKey")]
-    files = [p for p in HERE.rglob("*") if p.is_file() and "__pycache__" not in p.parts]
+    files = [p for p in here.rglob("*") if p.is_file() and "__pycache__" not in p.parts]
     assert not any(key and key in p.read_bytes() for p in files for key in keys), "credential match in evidence"
     return {"passed": True, "source_revision": binding["source_revision"], "historical_source_files": len(binding["sources"]),
             "archived_executables": paths, "checker_sha256": sha(Path(__file__)), "controls": controls,
@@ -220,4 +225,6 @@ def run():
 
 
 if __name__ == "__main__":
-    print(json.dumps(run(), indent=2))
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--revision1", action="store_true", help="audit the seven revised runs")
+    print(json.dumps(run(parser.parse_args().revision1), indent=2))

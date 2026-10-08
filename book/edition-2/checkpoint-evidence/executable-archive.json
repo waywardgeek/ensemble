@@ -97,6 +97,24 @@
       "platform": "darwin/arm64",
       "bytes": 9283250,
       "archived_at": "2026-10-08T03:15:14.617056+00:00"
+    },
+    {
+      "original_path": "/private/tmp/ensemble-ch06-revised",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch06-revised-cli",
+      "sha256": "be968c30cb054097f06c99c23addebc56206a619ad1f95916c9a77be68e8e232",
+      "source_identity": "75bd14d5d2424778ebf45cb9025e9dbf314f956a",
+      "platform": "darwin/arm64",
+      "bytes": 9387346,
+      "archived_at": "2026-10-08T03:54:52.791156+00:00"
+    },
+    {
+      "original_path": "/private/tmp/ensemble-stream-consumer-revised",
+      "archive_path": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch06-revised-consumer",
+      "sha256": "b2eba641d093e6990d1bed0aeffc7a442ecf3e7472691ea8be0ee5a95daf3baa",
+      "source_identity": "75bd14d5d2424778ebf45cb9025e9dbf314f956a",
+      "platform": "darwin/arm64",
+      "bytes": 9284226,
+      "archived_at": "2026-10-08T03:54:52.810962+00:00"
     }
   ]
 }

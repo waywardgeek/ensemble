@@ -1,0 +1,276 @@
+{
+  "passed": true,
+  "source_revision": "75bd14d5d2424778ebf45cb9025e9dbf314f956a",
+  "historical_source_files": 73,
+  "archived_executables": {
+    "cli": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch06-revised-cli",
+    "consumer": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch06-revised-consumer"
+  },
+  "checker_sha256": "3fe2af1739f13d96136bf78862a32a9816461357cf276b7c7f27afb2a77fb8ef",
+  "controls": [
+    {
+      "id": "all-valid-original-runs",
+      "passed": true,
+      "requests": 20
+    },
+    {
+      "id": "all-valid-copy-paths-before-mutation",
+      "passed": true,
+      "requests": 20
+    },
+    {
+      "id": "source-hash",
+      "passed": true,
+      "refusal": "historical source mismatch; no evidence modified"
+    },
+    {
+      "id": "incomplete-source",
+      "passed": true,
+      "refusal": "incomplete historical source set; no evidence modified"
+    },
+    {
+      "id": "empty-source",
+      "passed": true,
+      "refusal": "empty source set; no evidence modified"
+    },
+    {
+      "id": "cli-hash",
+      "passed": true,
+      "refusal": "executable mismatch; no evidence modified"
+    },
+    {
+      "id": "consumer-hash",
+      "passed": true,
+      "refusal": "executable mismatch; no evidence modified"
+    },
+    {
+      "id": "interpreter-hash",
+      "passed": true,
+      "refusal": "interpreter mismatch; no evidence modified"
+    },
+    {
+      "id": "recorder-hash",
+      "passed": true,
+      "refusal": "executable mismatch; no evidence modified"
+    },
+    {
+      "id": "support-hash",
+      "passed": true,
+      "refusal": "support identity mismatch; no evidence modified"
+    },
+    {
+      "id": "missing-support",
+      "passed": true,
+      "refusal": "incomplete support identities; no evidence modified"
+    },
+    {
+      "id": "last-launch-source",
+      "passed": true,
+      "refusal": "launch source mismatch; no evidence modified"
+    },
+    {
+      "id": "last-launch-binary",
+      "passed": true,
+      "refusal": "launch executable mismatch; no evidence modified"
+    },
+    {
+      "id": "last-launch-support",
+      "passed": true,
+      "refusal": "launch support mismatch; no evidence modified"
+    },
+    {
+      "id": "last-launch-role",
+      "passed": true,
+      "refusal": "unknown launch executable"
+    },
+    {
+      "id": "last-request-body-mismatch",
+      "passed": true,
+      "refusal": "request reconstruction mismatch: stream-openai"
+    }
+  ],
+  "runs": [
+    {
+      "run": "plain-gemini",
+      "requests": 2,
+      "logs": 1,
+      "accepted_usage": {
+        "input": 3685,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 138
+      },
+      "chronological_replay": true,
+      "hints": [],
+      "read_artifact_sha256": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9"
+    },
+    {
+      "run": "public-anthropic",
+      "requests": 2,
+      "logs": 2,
+      "accepted_usage": {
+        "input": 114,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 219
+      },
+      "distinct_full_part_identities": 2,
+      "thinking_deltas": 0,
+      "live_overflow": false
+    },
+    {
+      "run": "public-gemini",
+      "requests": 2,
+      "logs": 2,
+      "accepted_usage": {
+        "input": 98,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 1016
+      },
+      "distinct_full_part_identities": 4,
+      "thinking_deltas": 0,
+      "live_overflow": false
+    },
+    {
+      "run": "public-openai",
+      "requests": 2,
+      "logs": 2,
+      "accepted_usage": {
+        "input": 118,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 178
+      },
+      "distinct_full_part_identities": 2,
+      "thinking_deltas": 0,
+      "live_overflow": false
+    },
+    {
+      "run": "stream-anthropic",
+      "requests": 4,
+      "logs": 1,
+      "accepted_usage": {
+        "input": 7909,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 108
+      },
+      "interrupted_request": "r2",
+      "chronological_replay": true,
+      "hints": [],
+      "read_artifact_sha256": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9"
+    },
+    {
+      "run": "stream-gemini",
+      "requests": 4,
+      "logs": 1,
+      "accepted_usage": {
+        "input": 5672,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 182
+      },
+      "interrupted_request": "r2",
+      "chronological_replay": true,
+      "hints": [],
+      "read_artifact_sha256": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9"
+    },
+    {
+      "run": "stream-openai",
+      "requests": 4,
+      "logs": 1,
+      "accepted_usage": {
+        "input": 370,
+        "cache_write": 0,
+        "cache_read": 3456,
+        "output": 52
+      },
+      "interrupted_request": "r2",
+      "chronological_replay": true,
+      "hints": [],
+      "read_artifact_sha256": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9"
+    }
+  ],
+  "original_receipt_hashes": {
+    "plain-gemini/terminal.txt": "8bce27d04715f437bca6729de2b8536bc585ef5b56e8d5addd3033e0378cdf17",
+    "plain-gemini/session.log": "233e3583523a525c09cec219e4eab3e5fa6e9f61ec4e5e762b45d66d9d4c6bf4",
+    "plain-gemini/launch.json": "c07f701b1fb35bef8c4a736a4872886b505eaa8ec9493754989f95c1741ddaff",
+    "plain-gemini/workspace/notes.txt": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9",
+    "plain-gemini/responses/002.body": "35ac949a63f3a18ef71add3116d7e8de1317b83e47fee97507a0d6035631ca2b",
+    "plain-gemini/responses/001.body": "ae2deeef0605fd424ff86226e4ac193081f857d760aa396e01fe1b0b4c36ceb8",
+    "plain-gemini/requests/001.json": "8639c376158bfbd9d3f824dc3836fe8d41dccc2565beb5bfdc37be1b2c2656ae",
+    "plain-gemini/requests/002.json": "104ea1bb66c14ecf73bab4654bfa57bc463ab3912a16736d6f556d76ac30e0bb",
+    "plain-gemini/workspace/cr/io/1": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9",
+    "public-anthropic/agent-1.log": "59187d37fb2eb2df8cace5ce24d09b41bd233c01beec3218ed99396557715ddf",
+    "public-anthropic/terminal.txt": "dd057444fa74c7404c9f72ac94f962e1d438d34041c8d5e40613a027a8dc8f5b",
+    "public-anthropic/agent-2.log": "dd15a5f3a4bec1956358695800241397c15579b625c583a8fe4e44e8cc1b5355",
+    "public-anthropic/launch.json": "f6a2ea62bd97648a5db08ce2b904db68d927d6cc3d80d31184493ae8e9900ee2",
+    "public-anthropic/workspace/notes.txt": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9",
+    "public-anthropic/responses/002.body": "87cb15fb2a22b1925b612b705370293fae2846d645564b99a4d38563af283c5a",
+    "public-anthropic/responses/001.body": "d3a9d9b4fb6bf4ddcc5802c1590765303bc463ff39110a872761a8f5b38fe7de",
+    "public-anthropic/requests/001.json": "e63cf1b0e4fc99aa179378ccf852d2121edf64ac97485fcd1c40b9d2c5d69f7d",
+    "public-anthropic/requests/002.json": "d856de94d812c49b0c8917d09ad8564f39de2731f3a97e7242419911f4a73ef0",
+    "public-gemini/agent-1.log": "cc8a6b18822094abad53f43f7d1fe49c32c0796dd7d9b3edd92ae12fcfc1f3bf",
+    "public-gemini/terminal.txt": "4624c9b45a8ec5ca53b1d8c01ce3dad159866907afda76895ca1e81d4ef8bcd1",
+    "public-gemini/agent-2.log": "93f9f2f4480f672ab7b12ab23473f4059c2dac1990d5d30b56383d955ea9dcf7",
+    "public-gemini/launch.json": "2eac4246494a2ed3948868f0784d2777ab1d4772701b4612168c078f2cc6c984",
+    "public-gemini/workspace/notes.txt": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9",
+    "public-gemini/responses/002.body": "675fb82235fc0666f9d7c6faa0f5b17ba53040d4d42c604f506207bc34baf01d",
+    "public-gemini/responses/001.body": "4310cb19294908aa1627ef5cf50850dce3429b58ebdb920ed9fb91a08dac65a6",
+    "public-gemini/requests/001.json": "540ca376cccff5c7ef859e5827b0ec90938c204c1afbf3c2ea653ea183beda68",
+    "public-gemini/requests/002.json": "e8931ad17a9821c0e07eee7c2d5ab48aef30f3db2aea1a0952d521a5a2b282e8",
+    "public-openai/agent-1.log": "805263ea7334756689a0fc4b086596d5208e2387ca2e373085d4f1a0f918c6bd",
+    "public-openai/terminal.txt": "719007af1a2bcb3ff6f0c24b7a42039ae320701f0ee38923e6b33f8e36e6d80e",
+    "public-openai/agent-2.log": "ca25cdaad8a752a1cfb88485a1a599fdcae898d2b1e98e49de0fa2bf6c891628",
+    "public-openai/launch.json": "6518400465aa9f9dad2a5f482cf9d9e23bd54ad581934e919c04503582de326d",
+    "public-openai/workspace/notes.txt": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9",
+    "public-openai/responses/002.body": "3828c7c1e445c46e7a4f76f5635c8d2ba004b55e70d96da6cffb40b6644e5b80",
+    "public-openai/responses/001.body": "167f3e803a4d228db35d76fa8049586185440f8db4a4ac9ae8ac10fe7f2b5b14",
+    "public-openai/requests/001.json": "83e87104fc922874c67dfa24c3cb73d15b3796cc79c49027655ad7d6700b14af",
+    "public-openai/requests/002.json": "f1d0145cf9e39ce9f9c7cc6e071751fa7581cf2cab8218e65c02b24bc4c37afa",
+    "stream-anthropic/terminal.txt": "cf52792339db89222683249a62fd31451f895bebf2587a1ba77367518b18ab7d",
+    "stream-anthropic/session.log": "17c505f754f1fe921906d75c2a68f93070d2fb234ec7bafc9ad28f8abe918cc5",
+    "stream-anthropic/launch.json": "98462339d47bcddbe960fda79372fa52bcd11009a7ddc3a2c6556bcdf2a053d1",
+    "stream-anthropic/workspace/notes.txt": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9",
+    "stream-anthropic/responses/004.body": "4ac78116c6031ca3c766d1e3747dd88684df4bca2a53021b16fbab60d39dae90",
+    "stream-anthropic/responses/003.body": "6f457e52280eb13ab4aabf42e0ee56993abd34838ebdb4837b9535add2f1c103",
+    "stream-anthropic/responses/002.body": "407e888c48783a203ef227c7952f6a4ac5c8fe3e11dd7f6bf144763f1f8bf1f2",
+    "stream-anthropic/responses/001.body": "414fd575369dd6661be38414354bdcff4f91b635ed6fb2f75d765c2424d69ca7",
+    "stream-anthropic/requests/001.json": "b8ae1e4964fe5d633de562f0d46457a2cc8551e4d8a4e3ed3cfae2689da2745f",
+    "stream-anthropic/requests/003.json": "c7a97311430672ee4b3f2502ae2cb346f6c5fdc34ef2a18bf2b2b0802b2acf3e",
+    "stream-anthropic/requests/002.json": "77595677fe1d758da8b56fd17fbaa2033ce24a0130dd9489aa19096f2d88db2f",
+    "stream-anthropic/requests/004.json": "b3fce07c9eee51379c16091675b5a56c5e44752ac775b8b98e4c669b860da537",
+    "stream-anthropic/workspace/cr/io/1": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9",
+    "stream-gemini/terminal.txt": "2daf070ffe54109b415b2ec4fe21e4d46a8bceebc313f50f412ebb8553f398b7",
+    "stream-gemini/session.log": "5c2496c230792de5bdbeb4454a962c47367c1e16bdd2f5cddefc98db4e64feaa",
+    "stream-gemini/launch.json": "271a4e674b251a1e7b0370a90b9b075e53af2f2f81d5241382b71556cf8bacd9",
+    "stream-gemini/workspace/notes.txt": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9",
+    "stream-gemini/responses/004.body": "eb3bddadeafd1143845f30d64f8137a7f835293f80e5bc56b48dac827d9e0bcb",
+    "stream-gemini/responses/003.body": "2ee7054f46a07373038b89c2ab7361d308ef5344e16c4a92c3a63f545c6e84f7",
+    "stream-gemini/responses/002.body": "4f305d3b85ac4ddae00d227c5fb322ff5d17b69c9bfba78048dfe35c928164a2",
+    "stream-gemini/responses/001.body": "b614291e719b6a7b8df83d7968fba23557f212203b1b47c2d986f39cd264e0a6",
+    "stream-gemini/requests/001.json": "8639c376158bfbd9d3f824dc3836fe8d41dccc2565beb5bfdc37be1b2c2656ae",
+    "stream-gemini/requests/003.json": "94ca8016c5065f4704f58b6d584286167912c2706fc5cbaf87b3539bba642fac",
+    "stream-gemini/requests/002.json": "d9609b19823ab9699e01f61e4ee7c28ecc8b44d01b0b895e49c83f1cd91f8014",
+    "stream-gemini/requests/004.json": "9830340d6a08c9b64f4a8650fda91eab947e1ce98e35a840c00c9061fdfdfed8",
+    "stream-gemini/workspace/cr/io/1": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9",
+    "stream-openai/terminal.txt": "39111838559b1664769ca9e9663d1ae28b86b572035aa7ed7f707681b479355a",
+    "stream-openai/session.log": "076531481206e17911ad919245725404357d68d238deb41f7fe9094116506b6a",
+    "stream-openai/launch.json": "3d409d4aae228cce916353386f58239f5ef42be72bc07000dc2bbc2567dffa32",
+    "stream-openai/workspace/notes.txt": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9",
+    "stream-openai/responses/004.body": "e2a1d91c0514f2d3f38ec01c99330a3ab894c240043752b5b07c54e74b55c6d6",
+    "stream-openai/responses/003.body": "7a85134f34a0c9b863a6d7aa2b64b3804c5e7cda1d212d117043577075fa239b",
+    "stream-openai/responses/002.body": "2272407129a5aa5771475e6162d93b35b9db2188f1dd0f297b51b80992bde927",
+    "stream-openai/responses/001.body": "aaac6a7f8ede57328e06cedcebbb5f69f6e173f92fb22c77e50641fae761a922",
+    "stream-openai/requests/001.json": "28858de893b92fe00d54e61b74a521e6c0779837fc5d95886e1ac92f581153b7",
+    "stream-openai/requests/003.json": "07af0aac8a38c6a781365f3ff910872a53129aa0f3709b0dc12bcca27e95133e",
+    "stream-openai/requests/002.json": "4a1fbe31a0729b0c9c4666f87404eb6ce05d2961c27b51207a89c536acb4d59a",
+    "stream-openai/requests/004.json": "a327f2a926de2bf0c4f71ad5ef98117c9ee242281cba92ac39b0b0b732b94bfa",
+    "stream-openai/workspace/cr/io/1": "c082788a1d999684ab5b3779f33d38918f2ec611be208b32797d5bc3fd99fee9"
+  },
+  "originals_unchanged": true,
+  "credential_scan_files": 106,
+  "credential_matches": 0,
+  "limits": "Local replay/control and receipt consistency audit; no new model calls. Public callback-release ordering additionally inspected in archived consumer source. No live thinking or overflow claimed."
+}
