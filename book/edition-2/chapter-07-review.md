@@ -52,3 +52,20 @@ Final prose reconciliation, actual live evidence, student feedback, grader
 coverage and independent comparative code review remain required after the
 initial implementation. No Chapter 7 code, passing chapter grade, browser
 session, publication or editorial approval is claimed by this review.
+
+## Browser tooling preparation
+
+While Chapter 6 repairs ran, the coordinator installed pinned Playwright
+1.64.0 outside the repository at
+`/Users/bill/projects/ensemble-edition-2-revisions/browser-tools/`; its local
+package lock records the dependency. The installed Chrome 154.0.8037.93 launched
+in an isolated headless session, rendered a local test button and accepted a
+real locator click. Its speech API enumerated 180 local voices. No speech was
+requested, no audio was verified and no Ensemble browser implementation exists
+yet. This only establishes an available browser driver for the later student;
+it cannot satisfy the chapter's real synthesis or GUI gates.
+
+The driver uses the documented [Playwright library lifecycle](https://playwright.dev/docs/library)
+and [Chrome channel launch option](https://playwright.dev/docs/api/class-browsertype#browser-type-launch-option-channel).
+No dependency or frontend framework was added to the student source. Keep the
+browser choice separate from the student's GUI implementation choices.
