@@ -20,7 +20,7 @@ REPO=HERE.parents[1]
 PREFIX='solutions/edition-2/main/'
 
 
-def evaluate(revision, only=None, progress=None):
+def evaluate(revision, only=None, progress=None, prepare_adapters=None, prepared_checkers=False):
     revision=subprocess.check_output(['git','rev-parse',revision+'^{commit}'],cwd=REPO,text=True).strip()
     archive=subprocess.check_output(['git','archive',revision,PREFIX],cwd=REPO)
     rows=[];hashes={}
@@ -44,10 +44,12 @@ def evaluate(revision, only=None, progress=None):
                 hashes[str(relative)]=hashlib.sha256(data).hexdigest()
         assert hashes, 'empty source set'
         if progress:progress(dict(phase='source', source_revision=revision, source_files=hashes))
-        adapters=prepare(bundle,root)
+        adapters=(prepare_adapters or prepare)(bundle,root)
         cli=temporary/'cli';gui=temporary/'gui'
         def run(name,args,cwd=root,timeout=1800,required=False):
             if only and name not in only and not required:return None
+            if prepared_checkers:
+                args=[bundle/Path(arg).name if Path(arg).parent==HERE else arg for arg in args]
             if progress:progress(dict(phase='started', id=name, args=list(map(str,args)), cwd=str(cwd)))
             result=command(args,cwd,timeout=timeout)
             rows.append(dict(id=name,passed=result['exit']==0,command=result))

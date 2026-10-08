@@ -15,6 +15,7 @@ import subprocess
 import traceback
 
 import accept_ch09_gate as gate
+from ch10_retained_adapters import prepare
 
 
 def save(path, value):
@@ -77,13 +78,15 @@ def evaluate(revision, receipt, only=None, maintain_cache=False, reserve_mib=768
     revision = subprocess.check_output(['git', 'rev-parse', revision + '^{commit}'],
                                        cwd=gate.REPO, text=True).strip()
     observer = Progress(receipt, maintain_cache, reserve_mib)
-    files = [Path(__file__).resolve(), Path(gate.__file__).resolve()]
+    files = [Path(__file__).resolve(), Path(gate.__file__).resolve(),
+             Path(__file__).with_name('ch10_retained_adapters.py')]
     before = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in files}
     observer.state.update(source_revision=revision, orchestration_files=before,
                           selected_checks=only, full_retained_run=False)
     save(receipt, observer.state)
     try:
-        result = gate.evaluate(revision, only, progress=observer)
+        result = gate.evaluate(revision, only, progress=observer,
+                               prepare_adapters=prepare, prepared_checkers=True)
         if before != {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in files}:
             raise RuntimeError('Orchestration changed during retained checks')
         observer.state.update(complete_run=True, passed=result['passed'],

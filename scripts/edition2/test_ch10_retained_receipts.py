@@ -69,7 +69,7 @@ class DurableControls(unittest.TestCase):
         return json.loads(self.path.read_text())
 
     @staticmethod
-    def stages(revision, only, progress):
+    def stages(revision, only, progress, **unused):
         progress(dict(phase='source', source_revision=revision, source_files={'main.go': 'sha'}))
         progress(dict(phase='started', id='one', args=['fixture-one'], cwd='/fixture'))
         progress(dict(phase='completed', check=dict(id='one', passed=True)))
@@ -157,7 +157,7 @@ class DurableControls(unittest.TestCase):
         self.assertEqual(self.saved()['maintenance'][0]['after_bytes'], 2**40)
 
     def test_callback_failure_is_a_durable_incomplete_result(self):
-        def started(revision, only, progress):
+        def started(revision, only, progress, **unused):
             progress(dict(phase='started', id='blocked', args=['fixture'], cwd='/fixture'))
         with patch.object(retained.Progress, 'ensure_space', side_effect=RuntimeError('fixture reserve')):
             result = self.run_gate(started)
