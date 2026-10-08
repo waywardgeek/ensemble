@@ -441,3 +441,13 @@ strict-parser service parameters intentionally preserve actual-owner diagnostics
 No historical answer code, reviewer implementation or future teaching was read.
 Root still owns author reconciliation, final ledger/export/tag; these student
 receipts do not claim those coordinator acceptance steps are complete.
+
+The support-only correction52c9561 now compares neutral facts with only the
+documented top-level admission-time exception. All21 local evidence controls pass,
+including five exact refusals for changed count/order/seq/payload/missing time.
+A fresh bound endpoint-disabled replay-helper-final-control run exits0 and retains
+38 exact non-time events with38 rewritten admission timestamps. Runtime source
+hashes are identical to a06d4f3; old paid/native receipts retain their a06d4f3
+binding in binding-a06d4f3.json. No further provider calls occurred. All six final
+browser runs have zero action_failed/pageerror records; final-live-summary.json
+records action counts and the actual per-provider counters.

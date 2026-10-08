@@ -1,6 +1,6 @@
 {
   "browser_root": "/Users/bill/projects/ensemble-edition-2-revisions/browser-tools",
-  "source_revision": "a06d4f3",
+  "source_revision": "52c9561",
   "sources": {
     "solutions/edition-2/main/actor_test.go": "15b72316f072f427a12bf9bc731f584df85fd164286847f76402e71f90375318",
     "solutions/edition-2/main/boundaries_test.go": "4a00766c2c9badf13aac4292268e9ebf5ec8227dde54fa71c6d72c6a95930610",
@@ -152,14 +152,14 @@
     }
   },
   "support": {
-    "evidence.py": "9dc491bd148fbf9205d057fdefbc36c2ba5e3677b2fc8012e5793598b554f9a0",
+    "evidence.py": "732b3db201cd95cc16221dac948a2449ea3c73ec03fd426a4d78d0ea0e953a8e",
     "terminal-run.py": "fb7eed8fb901015592b3f4e20cfa098cc00ef301e0c24d6b696ce8b0bf6fdc98",
     "verify-receipts.py": "f10ba05570d810f8cdd2593d7560b3de03a4d77be926d90f5c623e276461d21e",
     "browser-live.mjs": "4910f162f7e74f85266810f8fc7558086846cbfd36d43f63839eda306dcb35d7",
     "capture-audio.swift": "e987dc3d1a32e2a604dfe3fb2185e2ed2b6404cae989bc304223e8e57eb5db57",
-    "test-evidence.py": "e8041caabeee61401580a7458e471a042f8a9cae9e3a3c6361028526e45b1686",
+    "test-evidence.py": "2b2c36427f69d3665dc7b2eb49267a315c6736376e9739eb4e87612b15b8f9a8",
     "replay-server.go": "9ba514f5b154e8d7a1787cb711dcd4ef0898e498e34ef19879c5ea26aee0edfd",
-    "replay-run.py": "476a14ecfc8ec1e09e3defc325ac9ae784f34a94eaf0b445e0c06b494666317d"
+    "replay-run.py": "17b6e9986cd5216b6a4964ccbd36e7ba07d7fe4f106f318120ad781b06d0a49c"
   },
   "browser_tools": {
     "/Users/bill/projects/ensemble-edition-2-revisions/browser-tools/node_modules/.package-lock.json": "55a4bcf9c5d0463fed42d78f9725c2b47687ff56a4bdaf342c5941fce8f6c237",
