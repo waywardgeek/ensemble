@@ -1,6 +1,6 @@
 # Second-edition progress
 
-Date: 2026-10-07. Autonomous work is active. Source consolidation is complete
+Date: 2026-10-08. Autonomous work is active. Source consolidation is complete
 and independently verified at `8831ce2`; original histories and unfinished
 migration state remain preserved in the archive and tracked bundles.
 `solutions/edition-2/main/` is the authoritative source. Frozen exports belong
@@ -13,12 +13,14 @@ revised live evidence `8c73f9b`, final independent acceptance `37a37f7` and exac
 1,550-file export from `c3fa758`. All code, live, teaching and prose gates pass;
 see [chapter-06-validation.md](chapter-06-validation.md). Fresh new-only
 student `/root/coder_ch07` has frozen its initial Chapter 7 implementation at
-`da162e8`. Local browser/transport checks pass; exact evidence-adapter controls,
-the complete deterministic gate and bounded real-model runs are underway.
+`da162e8` and actual nine-session evidence at `8cc87f2`. All 33 deterministic
+groups and independent reconstruction of 44 model requests pass. Comparative
+review now drives grouped browser lifetime, speech and reconnect repairs.
 See [chapter-07-validation.md](chapter-07-validation.md).
 The Chapter 8 settings contract is reviewed at `7200f17`; its initial partial
 wire/persistence checker is published at `b3f3137`, with no Chapter 8 student
-implementation or end-to-end positive claimed.
+implementation or end-to-end positive claimed. Chapter 9 outline/research is
+prepared at `db86e0c`, awaiting coordinator review before a complete draft.
 
 Chapter 5 code, actual live evidence, teaching and manuscript review are
 accepted at `c1cc0b4`. The exact 1,254-file export comes from `185ba76`, with

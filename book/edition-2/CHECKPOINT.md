@@ -1,6 +1,6 @@
 # Working checkpoint
 
-Date: 2026-10-07. Autonomous work is active. Chapter 5 code, live evidence,
+Date: 2026-10-08. Autonomous work is active. Chapter 5 code, live evidence,
 student feedback and manuscript are accepted at `c1cc0b4`. Its exact 1,254-file
 export uses source `185ba76`, reviewed runtime `959c663` and revised evidence
 `469730f`, with checkpoint `edition-2-ch05-r1`. All six exported modules pass
@@ -13,7 +13,9 @@ revised live evidence `8c73f9b`, independent acceptance `37a37f7` and exact
 pass; original attempts and limitations remain recorded. See
 [chapter-06-validation.md](chapter-06-validation.md). Fresh new-only
 student `/root/coder_ch07` has frozen initial browser/watch/pause source at
-`da162e8`. Local browser checks pass; remaining live and full acceptance is tracked in
+`da162e8`, with initial live evidence at `8cc87f2`. All 33 deterministic groups
+and 44 request reconstructions pass; comparative browser repairs are underway.
+Remaining revised evidence and final acceptance are tracked in
 [chapter-07-validation.md](chapter-07-validation.md).
 Earlier log-destination corrections are independently accepted and checkpointed
 at `edition-2-ch02-r2` (`0a375d3`) and `edition-2-ch03-r2` (`799940c`). Their
