@@ -44,3 +44,40 @@ Frozen author hashes:
 Disposition: Q1–Q3 clarification proofreading accepted, no remaining finding in
 this scoped pass. This does not replace full final manuscript review after
 implementation, actual runs and author reconciliation.
+
+## Separate Unicode clarification closure
+
+Reviewed the complete three-file author correction
+`cf73a646ba665d2070bb51a77bc0b1c5c4912a2b` and its placement in §§10.3/10.8.
+Current voice/procedure remained loaded with no intervening compaction. Working
+author bytes match the freeze. This addendum is a coordinator/grader-discovered
+lexical-validation gap; neither the chapter evidence nor direct feedback
+retroactively attributes it to the student's Q1–Q3.
+
+The new boundary is coherent: session/canonicalization strings and keys require
+Unicode scalar values, so lone high/low surrogate escapes refuse before lossy
+decoder replacement. Valid adjacent pairs and genuine literal/escaped U+FFFD
+remain valid. The escaped-backslash example correctly represents ordinary text,
+not a surrogate escape. Replay-bearing raw JSON, including its dedicated string
+wrappers, receives the same nested validation while retaining exact valid original
+bytes. This does not turn arbitrary text strings into JSON documents or replace
+byte-preserving replay with canonical equality. Legacy standalone decoding is
+expressly unchanged; the strict session admission scope is named rather than
+silently rewriting predecessor behavior.
+
+No new contradiction or unresolved wording issue was found. The author's local
+Go documentation read remains its attributed evidence; this proofreading pass
+does not claim a runtime reproduction or completed implementation. The retained
+prose executable independently passes hard rules at 7,422 words, with soft
+negation/person-gap warnings. The correction's necessary lexical distinctions
+introduce no new story or success claim. Existing fenced JSON is unchanged.
+
+Reviewed hashes:
+
+- chapter-10.md: `3faa154f60e875497d96594a1afdc219f398856b0a9bd46b39cf72f36ca126df`.
+- chapter-10-evidence.md: `de9e470e5a0d8cef173b61a1ce8f90700198e2537889a789c3fcf41c7dabf0b0`.
+- chapter-10-student-feedback.md: `cfb93f93cf7b53440a92c7304c8cb690a65e69f887d6c758cdfa1370d5b7f264`.
+
+Disposition: Unicode clarification proofreading accepted. No implementation,
+grader, legacy, provider or build work occurred; future affected checks and
+student confirmation remain separate.
