@@ -7,15 +7,15 @@ export uses source `185ba76`, reviewed runtime `959c663` and revised evidence
 vet/tests. See [chapter-05-validation.md](chapter-05-validation.md).
 
 Chapter 5's tag points to `7a6ef036322e1cf362894bd30b073fc8399a3c30`.
-Fresh new-only student `/root/coder_ch06` froze initial runtime `aa5f86a` and
-nine real-model sessions before comparative feedback. The original student now
-repairs recognized refusal replay and incremental assembly costs found by
-`/root/grader_ch05`. Initial live prose is reconciled at `ca511e4`; assembly
-teaching precedes the repair at `0c10608`. Independent acceptance/mutations and
-final review remain open. Chapter 7's draft contract passed coordinator review;
-implementation awaits accepted Chapter 6 and independent check publication. See
-[chapter-06-validation.md](chapter-06-validation.md) for current gates.
-No completed Chapter 6 acceptance or final live validation is claimed yet.
+Chapter 6’s original cold student completed repairs at `75bd14d` and revised
+live evidence at `8c73f9b`. The complete deterministic gate passes at `5a95578`,
+with three supplementary mutation controls at `340c678`. Independent live audit
+`15e9590` accepts all seven revised sessions / 20 requests; earlier nine sessions
+retain their original source. Final author reconciliation, proofread and exact
+export/tag remain pending in [chapter-06-validation.md](chapter-06-validation.md).
+Chapter 7’s reviewed contract and partial initial checker are ready at `a5a07ba`;
+start a fresh new-only student after the Chapter 6 checkpoint. Complete browser,
+speech and concurrency acceptance still needs the remaining planned checks.
 Earlier log-destination corrections are independently accepted and checkpointed
 at `edition-2-ch02-r2` (`0a375d3`) and `edition-2-ch03-r2` (`799940c`). Their
 revised frozen exports and manifests are integrated here; canonical main stays

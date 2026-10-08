@@ -8,18 +8,15 @@ in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 
 ## Current chapter
 
-Chapter 6 is active with fresh new-only student `/root/coder_ch06` and
-independent grader/reviewer `/root/grader_ch05`. Root accepted the student's
-ownership plan before affected implementation. Initial runtime `aa5f86a` and
-nine real-model sessions are frozen. Independent comparison found refusal
-replay and quadratic assembly costs; the original student is repairing both
-after teaching/plan review. Broader acceptance and mutation checks continue. See
-[chapter-06-validation.md](chapter-06-validation.md) for the current gates.
-The author reconciled Chapter 6's initial live prose at `ca511e4`; Chapter 7's
-browser/pause contract passed coordinator review, conditional on accepted
-Chapter 6 and published independent checks before its student handoff.
-The first student gap, preserving Gemini text parts with unknown fields, was
-taught explicitly at `f085b95` before affected implementation.
+Chapter 6 runtime `75bd14d` and revised live evidence `8c73f9b` are accepted:
+all seven module checks, full independent gate and targeted mutation controls
+pass; the independent live audit at `15e9590` verifies seven revised sessions
+and 20 requests. Original nine-session/33-request evidence remains bound to its
+initial source. Final author reconciliation, independent proofreading and
+export/tag remain open. See [chapter-06-validation.md](chapter-06-validation.md).
+Chapter 7’s reviewed browser/pause contract and initial partial checker are
+published at `a5a07ba`; its fresh student starts after the Chapter 6 checkpoint.
+The checker does not yet claim full browser, speech or concurrency acceptance.
 
 Chapter 5 code, actual live evidence, teaching and manuscript review are
 accepted at `c1cc0b4`. The exact 1,254-file export comes from `185ba76`, with
