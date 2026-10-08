@@ -1,12 +1,14 @@
 # Chapter 7 validation
 
-Contract preparation is accepted; implementation has not begun. The student
-handoff awaits the Chapter 6 checkpoint. Bill's editorial approval is separate.
+Fresh new-only student `/root/coder_ch07` is active. Its accepted predecessor is
+`edition-2-ch06-r1` at `1c6b1f065d11bd3a532c94bc53305394e17e7cc2`. The student
+is preparing its ownership plan before affected implementation. Bill's editorial
+approval is separate.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Contract | Author, coordinator | Accepted at `74928f1`; incremental projection lesson `2f105ce`; published initial checker command `7b116b7` | Preserve the new teaching in the fresh student handoff |
-| Structure and implementation | Fresh student, coordinator | Not started | Read mandatory skill and new contract; review owner/state/lifetime plan before affected code |
+| Structure and implementation | `/root/coder_ch07`, coordinator | Fresh student released from accepted Chapter 6; read/owner plan pending | Review owner/state/lifetime plan before affected code |
 | Independent checks | Grader engineer | Initial partial checker and coverage plan at `a5a07ba`; 15 local transport/snapshot/pause cases, with assertion controls | Add public watch/admission/capacity/teardown and real-browser checks; partial checker is not full acceptance |
 | Initial live use | Student, coordinator | Not started; browser driver is available outside the repository | Review complete feature/action plan before paid browser, CLI and public demonstrations on all three APIs |
 | Historical comparison | Independent reviewer, student | Not started | Freeze initial implementation, runs and student teaching review before old-answer comparison |
@@ -37,3 +39,18 @@ Its current scope is partial. The complete required coverage remains §7.9 and
 the [grader plan](chapter-07-grader-review.md). The preserved Chapter 6 gate is
 also required. No student code, browser result, live speech, successful chapter
 grade, push or publication is implied by this preparation.
+
+## Handoff and scheduling
+
+Root supplied committed-only copies of new Chapters 1–7 at
+`/Users/bill/projects/ensemble-edition-2-revisions/ch07-student-inputs/`, bound
+to the Chapter 6 checkpoint by their manifest. Concurrent external edits to
+earlier manuscript files are preserved and excluded from this handoff. The
+mandatory repository skill and architecture remain direct required reads.
+
+The original author is preparing Chapter 8 while the fresh student prepares its
+Chapter 7 plan. Resuming `/root/grader_ch05` for full Chapter 7 engineering hit
+the active thread limit. Its initial checker/coverage plan remain available;
+resume that independent role when the author's next checkpoint frees a slot.
+Root checks the new student plan in the meantime. No Chapter 7 implementation
+acceptance is implied by its initial partial checker.

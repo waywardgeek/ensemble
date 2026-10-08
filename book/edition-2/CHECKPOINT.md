@@ -11,8 +11,8 @@ Chapter 6 is accepted at `edition-2-ch06-r1`. Reviewed runtime `75bd14d`,
 revised live evidence `8c73f9b`, independent acceptance `37a37f7` and exact
 1,550-file export from `c3fa758` are bound in its manifest. All required gates
 pass; original attempts and limitations remain recorded. See
-[chapter-06-validation.md](chapter-06-validation.md). Next: release the fresh
-new-only Chapter 7 student from this accepted predecessor. Its contract and
+[chapter-06-validation.md](chapter-06-validation.md). Fresh new-only
+student `/root/coder_ch07` now starts from this accepted predecessor. Its contract and
 initial partial checker are published; remaining full acceptance is tracked in
 [chapter-07-validation.md](chapter-07-validation.md).
 Earlier log-destination corrections are independently accepted and checkpointed
