@@ -48,6 +48,8 @@ try{for await(const line of lines){if(!line.trim())continue;const action=JSON.pa
    case 'preference':{const control=root.locator(`[data-preference="${action.field}"]`);if(action.field==='theme')await control.selectOption(action.value);else if(action.field==='autoplay')await control.setChecked(action.value);else{await control.fill(String(action.value));await control.press('Tab');}break;}
    case 'policy':await root.locator('[data-policy]').fill(String(action.value));await root.locator('[data-policy-save]').click();break;
    case 'divider':await root.locator(`[data-divider="${action.field}"]`).press(action.key);break;
+   case 'drag-divider':{const box=await root.locator(`[data-divider="${action.field}"]`).boundingBox();if(!box)throw new Error('divider is not visible');await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+action.delta,box.y+box.height/2,{steps:8});await page.mouse.up();break;}
+   case 'expand':await root.locator('.artifact').filter({hasText:action.text}).first().getByRole('button',{name:'Expand full retained text'}).click();break;
    case 'viewport':await page.setViewportSize({width:action.width,height:action.height});break;
    case 'playback':await root.locator('[data-enable-playback]').click();break;
    case 'auto-speech':if(await root.locator('[data-preference=autoplay]').count())await root.locator('[data-preference=autoplay]').setChecked(action.value??true);else await root.locator('[data-auto-speech]').click();break;

@@ -103,7 +103,7 @@ def launch(args):
     if args.mode=='browser':
         command.extend(['--port','0','--gui-log',str(run/'gui.jsonl')])
         if args.terminal:command.append('--terminal')
-    reserve=2 if args.mode=='headless' else 1 if args.terminal or args.mode=='chat' else 0
+    reserve=2 if args.mode=='headless' or args.terminal else 1 if args.mode=='chat' else 0
     if reserve:
         budget=HERE/('prompt-budget-'+args.vendor+'.json')
         with budget.open('a+') as counter:

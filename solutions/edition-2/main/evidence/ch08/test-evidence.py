@@ -87,9 +87,13 @@ with tempfile.TemporaryDirectory() as temp:
     try:
         url=gui.stdout.readline().strip();assert url.startswith('http://127.0.0.1:')
         command=[paths['node'],str(HERE/'browser-live.mjs'),str(browser_run),url]
-        valid=subprocess.run(command,input='{"action":"inspect"}\n{"action":"quit"}\n',capture_output=True,text=True,timeout=30)
+        actions=[{'action':'settings'},{'action':'drag-divider','field':'sidebar_width','delta':20},{'action':'inspect'},{'action':'quit'}]
+        valid=subprocess.run(command,input=''.join(json.dumps(a)+'\n' for a in actions),capture_output=True,text=True,timeout=30)
         assert valid.returncode==0,(valid.stdout,valid.stderr)
-        assert (browser_run/'browser-original.jsonl').exists()
+        rows=[json.loads(line) for line in (browser_run/'browser-original.jsonl').read_text().splitlines()]
+        assert not [row for row in rows if row['kind']=='action_failed'],valid.stdout
+        sent=[json.loads(row['payload']) for row in rows if row['kind']=='browser_sent']
+        assert any(row.get('type')=='preferences_update' and row.get('patch',{}).get('sidebar_width')==280 for row in sent),sent
         results.append({'check':'actual-browser-launch-valid-path','passed':True})
         for name,reason in [('browser-launch-source','launch source mismatch'),('browser-launch-dependencies','launch browser tools mismatch')]:
             bad=root/name;bad.mkdir();badlaunch=copy.deepcopy(browser_launch)

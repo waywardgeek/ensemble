@@ -2,6 +2,8 @@
 export class SettingsPanel {
   constructor(page) {
     this.page = page; this.root = page.root; this.closed = false; this.drafts = new Set(); this.policyDraft = false;
+    // A new Page owns pending controls, even when an embedding reuses its DOM.
+    for (const control of this.root.querySelectorAll('[data-preference], [data-policy-save], [data-divider]')) control.disabled = false;
     this.media = globalThis.matchMedia?.('(prefers-color-scheme: dark)');
     if (this.media) page.listen(this.media, 'change', () => this.style());
     for (const control of this.root.querySelectorAll('[data-preference]')) {

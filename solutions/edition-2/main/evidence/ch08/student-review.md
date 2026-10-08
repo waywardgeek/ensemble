@@ -195,3 +195,29 @@ remain committed. This is an implementation correction, not a teaching ambiguity
 Independent mutation testing exhausted generated Go build-cache space. After both
 coder and grader confirmed no compiler remained, the grader cleared only that
 cache and recovered3.4GiB. No source, support or raw evidence was removed.
+
+## Independent browser lifecycle finding
+
+The grader's actual-Chrome pending-settings-disposal/remount case found a disabled
+Theme control remained disabled after a new Page reused the DOM. The old callback
+fence worked, but no new owner restored the transient pending-control state.
+Policy-save and divider controls share that risk. The new SettingsPanel constructor
+now restores these owned controls; stale callbacks still cannot alter replacement
+state. The independent narrow check passes on corrected preferences.js
+08be359ce21aca87c04d7b874f3e8e6633dfb4c169a8ec2af349c1fa9f233ac5.
+This follows the taught Page lifetime requirement and is an implementation issue.
+
+The first full evidence-utility preflight suite passed18 controls on immutable
+858f0df, including valid-path replay, binary/source/support/dependency/launch
+identity refusals before writes, real browser launch, and HTTP/prompt ceilings.
+Its source binding and report are preserved under that revision's name. Because
+the remount fix changes browser assets, GUI and embedding binaries will be rebuilt
+and rebound before any paid run. No paid demonstration has started.
+
+All eight independent actual-Chrome groups now pass, including both pending
+preference and pending policy-save remounts. The original reviewer receipt is
+book/edition-2/checkpoint-evidence/ch08-browser-remount-failed.json; the student
+did not read checker internals. GUI and browser-consumer vet/test and rebuilt
+executables pass after the remount correction. The live adapter now reserves
+two prompts for a terminal-attached GUI, supports real pointer drags and retained
+card expansion, and tests the pointer path before paid launches.
