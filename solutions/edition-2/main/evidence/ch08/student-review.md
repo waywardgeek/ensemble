@@ -451,3 +451,33 @@ hashes are identical to a06d4f3; old paid/native receipts retain their a06d4f3
 binding in binding-a06d4f3.json. No further provider calls occurred. All six final
 browser runs have zero action_failed/pageerror records; final-live-summary.json
 records action counts and the actual per-provider counters.
+
+## Final teaching confirmation after role reassignment
+
+October 8, 2026. After the Chapter 8 initial and final student attempts were
+frozen, the coordinator reassigned this agent to independent Chapter 9 grader
+preparation. That separate role has now read Chapter 9 teaching, as recorded in
+`book/edition-2/chapter-09-grader-review.md`. This paragraph is a post-build
+Chapter 8 teaching confirmation, not a new blind attempt or runtime revision.
+
+I read the author's complete `chapter-08-student-feedback.md`, the revised
+§§8.2–8.4 and §§8.6–8.8 at `cf2e070`, and the final affected §8.4 wording and
+appended feedback at `acd1a01`. The dispositions accurately resolve the recorded
+difficulties. In particular, the final text resolves both precision caveats I
+raised: browser normalization is scoped to known settings/conflict/watch-envelope
+counters, while server projection preserves numeric tokens more broadly; safe
+integers may operate normally, but an unsafe counter requires lossless support
+before accepting the frame, claiming current settings or sending its base.
+It does not claim exact browser handling for every nested event/part number or
+require safe-only browsers to fail an unconditional startup feature check.
+
+The responses also preserve the original classifications and evidence limits:
+draft/application separation, replacement Page control usability, snapshot
+ordering, same-origin native speech ownership and driver-context chronology,
+bounded hint delivery, the no-tools refusals and corrective interruptions,
+native overlap supplements versus fresh generation, rewritten replay admission
+timestamps, ignored-log recovery, and screenshot/audio limits. No remaining
+material teaching difficulty from my Chapter 8 student experience is unresolved.
+I did not inspect historical answers to make this confirmation. No implementation,
+test or paid run was needed or performed for it. Coordinator checkpoint/export
+and editorial approval remain separate from this student confirmation.
