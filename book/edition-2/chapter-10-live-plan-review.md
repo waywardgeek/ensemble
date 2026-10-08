@@ -137,3 +137,68 @@ Source bindings at review:
 Disposition: useful bounded proposal, pending the five concrete plan corrections,
 known runtime-fault repair, remaining local clearance and immutable preflight.
 No provider release or complete runtime acceptance is implied.
+
+## Revised plan review: 8882a18
+
+October 8, 2026. Read the complete revised matrix frozen in
+`8882a18cf98e9a4b70afccfbe980f6344630aae6`, against the five corrections above.
+Its SHA-256 is `d7c273ab81cc81fbb396904a342ce3540aee55dc2e0ae8757d9caf470bcbb4ee`.
+This is another proposal review, not a live receipt. Full mandatory skill and
+Chapter 10 contract remain loaded. The coordinator reports the append/Close
+repair and affected fault/lifecycle clearance on this source; the independently
+run storage subset has its own bound receipt. Neither replaces the remaining
+local gates or support freeze. No credentials or provider traffic occurred here.
+
+The revised matrix now supplies exact prompts, small scratch inputs, process and
+store ownership, 4,096 output tokens, 120-second attempt/ten-minute row deadlines,
+and hard before-send accounting for all generation outcomes. The proposed ceiling
+remains 6/4/6/6 per provider, 22/provider and 66 overall, plus one discovery/provider.
+There is no retry/pagination/older-Gemini escape from those caps.
+
+C now names the genuine older checkpoint and later real-model tail, three inert
+comparison branches, the snapshot-only import, unavailable pre-origin send, and
+save/reopen check of immutable origin. Identical render inputs and endpoint-disabled
+comparison avoid duplicate paid work. Its two Agents must both be attempted and
+their partial completions/usage retained independently; the support implementation
+must preserve that explicit exception to a blanket stop-on-peer-failure rule.
+
+D names a legitimate loopback model-response fixture through the public Config
+and Ask path, so Actor/Tools/Jobs actually create the pending setting. Exact
+empty-pattern and 17-byte values, the later real attempted call, moved catalog,
+retired/reloaded identities and missing-opaque limitation are explicit. Local
+fixture usage/provenance is separated from real-provider outcomes. It is not a
+forged limits event or a claim that the provider chose that setter.
+
+The support-freeze section correctly binds compiled consumers, all runtime and
+GUI assets, nested modules/dependency selections, catalogs, recorder/proxy/verifier
+and sanitized launch identities. It requires a valid positive parent before
+each intended identity refusal and before-write verification. These controls are
+still prerequisites to execute, not evidence created by revising the prose.
+
+Two small but concrete setup corrections remain before calling the plan complete:
+
+1. **Use the actual CLI policy authority.** A promises recorded turn policy 3
+   from a bare CLI launch, and B later compares that history with current 1.
+   Chapter 8 supplies the policy path option to GUI/public construction, not the
+   standalone CLI. A targeted read of frozen `cmd/main.go`, `cli/main.go` and
+   `cli/selection.go` confirms that this CLI has no policy selection and uses
+   raw zero/effective 16. It does select write_file and 4,096 output tokens.
+   Keep the CLI's actual raw-zero/effective-16 capture, enforce three attempts
+   with the separate live proxy, and compare GUI current 1 with that actual
+   historical capture. D's first PTY ceiling 3 likewise means proxy spend bound,
+   not an unavailable CLI policy setting. Public C/resumed D may deliberately
+   update their own policy through the existing public seam. Do not add a new
+   runtime feature merely to make the proposed transcript true.
+2. **Name the no-restored-speech observation.** B's top row requires this feature,
+   while its detailed schedule says no native hearing/speech claim. Keep the
+   honest no-hearing limitation, but specify actual native-speech API admission
+   and Page pause/queue observations for historical load/reconnect. An absence of
+   audible output or displayed text alone cannot prove no speech was requested.
+   This requires local browser evidence support, not another generation prompt.
+
+Both findings were sent promptly to root for student-safe correction. The frozen
+CLI reads above were for feasibility only; this pass did not inspect mutable
+implementation, change runtime, rerun a broad gate or begin historical comparison.
+Most original plan corrections are now satisfied at the proposal level. Full
+plan closure awaits those two wording/setup fixes; paid launch still separately
+requires remaining local clearance and the actual immutable support preflight.
