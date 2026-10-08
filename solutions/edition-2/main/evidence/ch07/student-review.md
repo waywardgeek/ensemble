@@ -341,3 +341,32 @@ service admission before its Page children. A positive active/pending control
 with a synchronous stale callback proves whole-application close starts no new
 utterance; individual Page cancellation still advances healthy peers. This is
 an implementation correction within the accepted ownership contract.
+
+Revised runtime/support froze at 9ba7855 after the shared-index author commit
+49ae919 had captured my staged batch; the later explicit-path commit preserves
+that chronology rather than rewriting it. No Chapter 9 text was read. Final
+independent checks pass 33/33 and comparative revisions 12/12. Revised evidence
+adapters pass 18 local controls before paid use. Fresh public two-Agent sessions
+on all three backends each used two prompts/two HTTP requests, exit 0, with six
+exact independent request reconstructions and six real captured audio samples.
+The revised live results detail real Page remount, idle-peer lifetime, owned
+queued/active cancellation and retained typing. Initial evidence is unchanged.
+
+The revised Gemini example hit MAX_TOKENS on both 512-token requests because
+thinking consumed most of the budget. The actual short text still exercised the
+changed client and produced audio; there was no retry or claim of paragraph
+completion. This is a demonstration budget limitation, reported to the author,
+not an invented teaching/ownership defect. Anthropic's first queue exercise
+started after A had finished naturally; its repeated speaker-only selection
+supplied the necessary overlapping sequence without another model call. A first
+local WAV inspection using Python wave failed because the audio is IEEE float32;
+explicit RIFF fmt/data decoding then measured silence and speech correctly.
+
+Read current main README/CHECKPOINT for documentation reconciliation, including
+its dated historical student records; no old implementation or grader was read.
+Updated current usability/identity statements while retaining earlier checkpoint
+history. The author's initial-live dispositions accurately resolved the recorded
+teaching findings. The later explicit killed-event list, component disposal and
+application/native-service ownership paragraphs now resolve the comparative
+ambiguities and match the final implementation. Final export/tag remains the
+coordinator's task, and no additional runtime or paid revision is pending.

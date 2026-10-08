@@ -1,6 +1,29 @@
 # Source checkpoint records
 
-The current implementation is Chapter 6. Its repaired runtime is frozen at
+The current implementation is Chapter 7. Reviewed runtime/support identity:
+`9ba7855b31a5eb134819602b35eb9acb277f6342`. The independent immutable gate
+passed 33/33 and comparative repair suite passed 12/12, including distinguishing
+deletion controls. Initial runtime `da162e8`, support binding `ba902b7` and
+initial live/student freeze `8cc87f2` remain preserved. The reviewed batch fixes
+killed-job snapshot replay, DOM disposal/remount, shared native speech ownership
+and explanatory refusal of larger/fragmented oversized messages.
+
+Revised launch binding and receipts live in `evidence/ch07/revision-1/`:
+three public two-Agent browser sessions, two prompts and two HTTP requests per
+provider, six exact request reconstructions, and two captured audio samples per
+provider. No retries. Gemini returned short `MAX_TOKENS` answers under the
+example's 512-token budget; retained audio and UI checks use that actual text.
+Initial full-feature browser/CLI/embedding runs retain their 44 requests and
+original source identity. This documentation update changes no runtime.
+
+The [Chapter 7 validation record](../../../book/edition-2/chapter-07-validation.md)
+tracks final coordinator acceptance, export and tag. No final tag is asserted
+by this student checkpoint. No historical answer or grader implementation was
+read for the Chapter 7 revision; reviewer rationale and new teaching guided it.
+
+## Historical Chapter 6 checkpoint
+
+At this earlier checkpoint, the implementation was Chapter 6. Its repaired runtime is frozen at
 `75bd14d5d2424778ebf45cb9025e9dbf314f956a`; revised launch bindings are in
 `8946020` and revised live/student receipts in `8c73f9b`. Changes to this file
 and README are documentation only. Current acceptance, export and immutable tag

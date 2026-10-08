@@ -1,0 +1,14 @@
+[
+  {
+    "run": "consumer-anthropic-r1",
+    "requests": 2,
+    "reconstructed": 2,
+    "delivery": "stream"
+  },
+  {
+    "run": "consumer-openai-r1",
+    "requests": 2,
+    "reconstructed": 2,
+    "delivery": "stream"
+  }
+]

@@ -1,0 +1,71 @@
+{
+  "source_revision": "9ba7855b31a5eb134819602b35eb9acb277f6342",
+  "runs": [
+    {
+      "provider": "anthropic",
+      "requests": 2,
+      "prompts": 2,
+      "browser_pid": 9992,
+      "audio": [
+        [
+          "audio-3.wav",
+          -200.0,
+          -19.93
+        ],
+        [
+          "audio-19.wav",
+          -200.0,
+          -21.06
+        ]
+      ],
+      "stop_reasons": [
+        "end_turn",
+        "end_turn"
+      ]
+    },
+    {
+      "provider": "openai",
+      "requests": 2,
+      "prompts": 2,
+      "browser_pid": 11054,
+      "audio": [
+        [
+          "audio-3.wav",
+          -200.0,
+          -21.08
+        ],
+        [
+          "audio-15.wav",
+          -200.0,
+          -21.42
+        ]
+      ],
+      "stop_reasons": [
+        "stop",
+        "stop"
+      ]
+    },
+    {
+      "provider": "gemini",
+      "requests": 2,
+      "prompts": 2,
+      "browser_pid": 12483,
+      "audio": [
+        [
+          "audio-4.wav",
+          -200.0,
+          -20.15
+        ],
+        [
+          "audio-16.wav",
+          -200.0,
+          -20.57
+        ]
+      ],
+      "stop_reasons": [
+        "MAX_TOKENS",
+        "MAX_TOKENS"
+      ]
+    }
+  ]
+}

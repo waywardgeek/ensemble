@@ -1,13 +1,17 @@
-# Chapter 6 student implementation
+# Chapter 7 student implementation
 
-A Go library, human and JSON-lines CLI clients, and separate
-optional GUI client stub. This is the canonical second-edition source in the
-outer repository. Earlier student checkpoints and receipts remain preserved;
-Chapter 6 evidence is in `evidence/ch06/`, with repaired-runtime runs under
-`evidence/ch06/revision1/`. Earlier receipts, including `evidence/ch05/`, retain
-their original source identities. The
-[Chapter 6 validation record](../../../book/edition-2/chapter-06-validation.md)
-tracks current acceptance, export and tag status.
+A Go Agent library with human and JSON-lines CLI clients, plus a separate,
+optional browser module. The browser shares the Agent with the CLI, supports
+atomic reconnect snapshots, owned typing/speaking pauses, safe cards and
+opt-in speech. This is the canonical second-edition source in the outer
+repository; frozen chapter exports are separate.
+
+The reviewed runtime is `9ba7855b31a5eb134819602b35eb9acb277f6342`. Its
+33-group deterministic gate and 12-group comparative repair suite passed.
+Initial Chapter 7 runs retain their original identity under `evidence/ch07/`;
+revised two-Agent browser/audio receipts are under `evidence/ch07/revision-1/`.
+See the [Chapter 7 validation record](../../../book/edition-2/chapter-07-validation.md)
+for final acceptance, export and tag status.
 
 Build the CLI with `go build -o ensemble ./cmd`. Select `LLM_VENDOR`, a discovered
 `LLM_MODEL`, and an API key through the process environment. Use a fresh
@@ -49,34 +53,49 @@ The independently built program in `examples/tools-consumer` demonstrates
 workspace isolation, per-Agent tools and observations. `examples/consumer`
 retains the earlier controlled-result ingestion example and its independent
 Agents and model switching; its second model uses `DEMO_SECOND_MODEL`.
-The optional `gui` module demonstrates the same public client boundary using a
-fake-backed integration test. It has no browser or WebSocket transport yet.
+The optional `gui` module implements that public client boundary over local
+WebSocket. `examples/browser-consumer` reuses its public Server and browser
+components with two independent Agents and a different layout.
 
-Checks run separately in all seven Go modules: the root, `gui`,
-`examples/consumer`, `examples/jobs-consumer`, `examples/tools-consumer`,
-`examples/workflow` and `examples/stream-consumer`. Run `go vet ./...` and
-`go test ./... -count=1` in each, plus `go test -race ./... -count=1` in the root
-module. The immutable Chapter 6 gate command below runs from the course
-repository root against the recorded runtime revision:
+Build the browser command from `gui`:
 
 ```sh
-python3 scripts/edition2/accept_ch06_gate.py 75bd14d5d2424778ebf45cb9025e9dbf314f956a
+go build -o /tmp/ensemble-gui ./cmd/ensemble-gui
 ```
 
-The gate exports that immutable main tree; human use with real providers remains
-a separate required gate. For another checkpoint, supply its source commit.
-The required inherited command remains:
+Run `/tmp/ensemble-gui --port 0 --terminal` in a scratch directory with the same
+`LLM_*` environment. Open the printed local URL. Terminal EOF drains and detaches
+the CLI while the browser remains usable; `/quit` closes the application.
+`--gui-log PATH` optionally records conversation-bearing transport traces.
+
+Cards show provisional text, accepted answers, tool reports and terminal job
+facts. Speech begins disabled; enable auto-speech or use a card's Speak button.
+Typing and queued/current speech each hold that connection's new tool admissions.
+Cancel speech preserves unfinished input. Interrupt stops the turn, not running
+jobs. Closing a tab releases its causes. Reconnect restores the last 100 selected
+events and current partials, with an explicit count of older omitted events.
+
+The public `Agent.Watch` returns one atomic snapshot plus bounded tail;
+`Agent.RegisterPause` creates an independently owned pause registration. Browser
+embeddings create one `BrowserApplication` per document and Pages through
+`createPage(root, url)`. Pages retain local queues while the application owns
+one FIFO native speech service. Close a Page before replacing it on the same
+DOM root. The embedding example provides Close view/Reconnect view controls.
+
+Run `go vet ./...` and `go test ./... -count=1` separately in the root,
+`gui`, and each module under `examples/`; use the race detector on concurrency
+checks. The independent immutable gate runs from the course repository root:
 
 ```sh
-make grade-dir CH=7 DIR=solutions/edition-2/main
+python3 scripts/edition2/accept_ch07_gate.py 9ba7855b31a5eb134819602b35eb9acb277f6342
 ```
 
-Its older contract reports 0/100; the retained initial and repair receipts are
-not relabeled as passes. Independent Chapter 6 acceptance and mutation evidence
-are tracked in the validation record. Initial live evidence covers nine sessions
-and 33 requests on all three APIs; revised evidence covers seven affected-path
-sessions and 20 requests at runtime `75bd14d`. Earlier Chapter 5 demonstrations,
-including the Gemini 3.8 Flash addendum, remain under `evidence/ch05/`.
+Initial live evidence covers browser, actual human CLI and public embedding on
+all three providers (44 requests). Revised public embedding uses two prompts/provider
+(six requests total) and actual shared-document speech/audio. Gemini's revised
+answers hit the example's 512-token budget and remain labeled `MAX_TOKENS` in
+raw evidence; the requested paragraph length was not achieved. Earlier chapter
+receipts and failed initial checks remain unchanged.
 
 ## Chapter 5: responsive turns
 
@@ -93,8 +112,7 @@ is a blocking wrapper over the same actor. `Ensemble.Collect` creates an
 independent collection that drains all currently ready handles in declared
 order; cancellation of a collection wait does not cancel any request.
 
-The optional GUI module exposes these public seams and remains a transport
-stub. Display subscriptions have their own bounded queues and report
+The optional GUI module consumes these public seams. Display subscriptions have their own bounded queues and report
 `overflow` through `SubscriptionStatus`; reliable request completion does not
 rely on display delivery. Chapter 6 adds the streaming observations described
 below while keeping this completion boundary.
@@ -139,5 +157,5 @@ finals-only and deliberately stalled subscribers. Give its built executable a
 fresh `ENSEMBLE_RUN_DIRECTORY` and the ordinary `LLM_*` environment. It reports
 full identities, typed finals and reliable completions before releasing its
 stalled callbacks. Its real-provider receipts include Gemini `MAX_TOKENS`
-partial answers; no live overflow or thinking delta is claimed. The optional
-GUI remains a transport stub.
+partial answers; no live overflow or thinking delta is claimed for those
+historical Chapter 6 runs.
