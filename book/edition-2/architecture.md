@@ -81,6 +81,27 @@ Distinguish GUI components from transport-independent data they display.
 The mention of an Artifact GUI component does not by itself settle the home
 of every artifact data type. Specify that public seam before implementation.
 
+## MCP transport and the later GUI tunnel
+
+Bill explicitly requires transport-independent MCP on October 8, 2026. A later
+chapter must tunnel MCP over WebSocket so the Agent can inspect and control its
+GUI. This is a required capability, not an optional optimization. The MCP chapter
+must teach the transport seam before its first implementation; stdio cannot be
+hard-coded into protocol parsing, discovery, request correlation or cancellation.
+
+Declare the shared transport and parent interfaces in common and expose the
+public construction seam needed by an embedding application. Keep message
+transport separate from stdio line framing and WebSocket frames. Concrete GUI
+tunneling belongs in the optional GUI module. Specify actual adapter ownership,
+logger access, close/unblock behavior and the distinction between a logical MCP
+channel and a GUI-owned physical socket. Closing one channel must not dispose
+unrelated GUI work. The chapter's reviewed owner plan will settle concrete APIs.
+
+The MCP chapter must exercise an alternative message transport and a public
+custom-transport consumer. The later GUI chapter implements and demonstrates
+the real WebSocket tunnel and GUI observation/control. These checks establish
+the seam early while preserving the later chapter's actual feature work.
+
 ## Decisions still open
 
 - Final name: Ensemble is the coordinator's recommendation, not yet Bill's
