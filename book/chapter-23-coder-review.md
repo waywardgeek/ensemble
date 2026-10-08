@@ -58,7 +58,7 @@ rather than running it unconfined.
 ### Test results
 
 `go test ./...` — 13 packages pass, zero failures.
-`go test ./sandbox/` — 25 tests, 37 including subtests, **zero skips**.
+`go test ./sandbox/` — 30 tests, 42 including subtests, **zero skips**.
 The integration tests spawn real processes under the real kernel sandbox.
 
 ### Mutation audit
@@ -79,15 +79,45 @@ only `TestResolveRejectsSiblingPrefix`. Removing `EvalSymlinks` kills the
 symlink tests and the absolute-path positive controls — a blunt mutant,
 which incidentally demonstrates the macOS canonicalization requirement.
 
+### Built in the second pass
+
+Everything below was added after the first review was written, once the
+author had ruled on the open questions. Commit `1a152d9`.
+
+**Child permissions.** `AgentSpec.Child(dataDir)` *derives* a sub-agent
+spec from its parent's instead of constructing a fresh one, and
+`Clamp(parent)` narrows it. See section 6 for why derivation is the
+mechanism and not a convenience.
+
+**Safe mode** removes `run_command`, `wait_for_job`, `send_input` and
+`kill_job` from the registry. The list is the exported
+`SafeModeWithheldTools` rather than a literal inside `NewAgent`, so a
+test can state the list it expects, and a tool added in a later chapter
+cannot join the registry without someone deciding whether safe mode
+should withhold it.
+
+**Web search** is withheld by forgetting the skill, via a new
+`SkillRegistry.Forget`. Chapter 21 delivered the web as a skill over MCP,
+so there are no builtin tools to remove.
+
+**Git** reads a generated config inside the sandbox. Verified: `init`,
+`add`, `commit` and `log` all succeed while the host `~/.gitconfig` stays
+unreadable, and an inherited `GIT_CONFIG_GLOBAL` does not survive into
+the child environment.
+
+**CLI**: `--sandbox DIR`, `--safe-mode`, `--no-web-search`, `--yolo`.
+
 ### NOT built, deliberately
 
-- `SafeMode`, `EnableWebSearch` — Booleans rather than paths; see decision 3.
-- CLI flags `--sandbox`, `--safe-mode`, `--yolo`.
-- `GIT_CONFIG_GLOBAL` redirection (decision 2, my recommendation, not yet
-  implemented).
 - The grader and mutants script. Deliberately held: the check list in
   23.10 changes with the mechanism, and writing a grader against the old
-  checks would be work thrown away.
+  checks would be work thrown away. Section 7 lists what the checks
+  should now assert.
+- `send_secret`. It is a genuinely separate feature rather than part of
+  the boundary, and section 5 recommends it as the chapter's exercise.
+- Confinement is still **opt-in**: with no `--sandbox` flag the agent
+  behaves exactly as it did in chapters 1 through 22. Flipping the
+  default to on is a one-line change and a real decision; see section 5.
 
 ---
 
@@ -164,20 +194,58 @@ The honest framing: this is the same mechanism OpenAI's Codex CLI ships on
 macOS, and `sandbox-exec` is **deprecated in its own man page** while
 remaining what everyone uses. Say both; hiding either is worse.
 
-### 2.5 23.6 `validateChildSpec`: refusal versus AND
+### 2.5 23.6 `validateChildSpec`: RESOLVED, and the resolution is better than either option
 
-The sample returns errors, and the prose makes a point of it: *"a refusal,
-not a negotiation"*, *"Return an error, not a silent downgrade."*
+This was raised as a contradiction. The sample returns errors and the
+prose insists on *"a refusal, not a negotiation"*, while the author's AND
+rule silently downgrades. The resolution is that these answer two
+different questions and are not alternatives at all:
 
-The author has since ruled that a child's flags are the **AND** of what was
-requested and what the parent has. That is a silent downgrade, and it
-contradicts the text. One of the two must change.
+- **AND** answers *what permissions does the child end up with?* That is
+  enforcement.
+- **Refusal** answers *what happens when someone asks for more than they
+  have?* That is diagnosis.
 
-Note the rule cannot be uniform: you can AND two Booleans, but not two
-paths. The child's sandbox root still needs "must be inside the parent's,
-else error". So the honest rule is mixed — **Booleans narrow silently,
-paths refuse** — and the prose should say so rather than claim one
-principle covers both.
+**Do both.** `Clamp` narrows unconditionally and also returns an error
+naming what was clamped. The prose keeps its sentence, and the mechanism
+gets something the original design did not have.
+
+**Why this matters more than tidiness.** In the chapter as written, the
+error path *is* the security boundary. If `validateChildSpec` returns
+`nil` by mistake, the child really is wider. One early return added
+carelessly in a later chapter removes a wall, and nothing fails. With the
+AND applied unconditionally, deleting the validator entirely cannot widen
+anything. It costs a diagnostic. **The wall and the alarm are separate
+things, and the error should never be the only one of the two.**
+
+That is a better lesson than the chapter currently teaches, and it is a
+lesson about security engineering rather than about Go.
+
+**The thing that made AND tempting was a modelling error, not a safety
+argument.** A two-state Boolean cannot distinguish "I did not specify"
+from "I demand this", so refusing on a `false` would fire on ordinary
+defaults. The fix is not a three-valued type. It is to stop constructing
+the child spec from nothing: `AgentSpec.Child` copies the parent's, so
+every untouched field already equals the parent's value, and any field
+that differs was set deliberately. Inheritance becomes the starting state
+instead of a rule someone has to remember. Two-state Booleans are then
+entirely sufficient.
+
+This is the same shape as the sandbox holding a back-pointer rather than
+a copy of the root: a child's permissions are *derived* from its parent's,
+not independently declared.
+
+**Paths still refuse, and it is no longer an awkward exception.** Two
+directory trees have no meet. If the child asks for somewhere outside the
+parent's sandbox there is no narrower root to clamp to, so the path case
+substitutes the parent's root and reports. Same rule, degenerate case.
+
+**One asymmetry the prose should name, because it is a live footgun.**
+`EnableWebSearch` is a capability, so narrowing is AND. `SafeMode` is a
+restriction, which is the same statement upside down, so narrowing is OR.
+Writing both as "AND the permissions" is exactly how the second one gets
+implemented backwards, and backwards here means a safe-mode parent
+spawning an unrestricted child.
 
 ### 2.6 `EnableWebSearch` gates a skill, not tools
 
@@ -347,46 +415,34 @@ testing, and is completely unconfined. Make the safe thing the easy thing.
    rationale survives: exfiltration needs something to exfiltrate, and
    Codex's weaker choice is a single point of failure (3.5). Cost is the
    allowlist and some toolchain fragility, both documented.
-2. **`git`** — my call, per your delegation: redirect via
-   `GIT_CONFIG_GLOBAL` rather than allowing the real file (3.6). Not yet
-   implemented; say the word and it is a small change.
-3. **`SafeMode` and `EnableWebSearch` on `AgentSpec`.** The field comment
-   bans a new CAPABILITY, meaning the dependency bag that got the engine
-   stapled nine times — collaborators the agent *uses*. These are policy
-   data, not collaborators, and your AND rule makes them a ceiling the
-   child inherits rather than a capability the spec grants. I believe they
-   belong, but the comment is explicit enough that I want your ruling
-   before adding them.
-4. **Refusal versus AND** (2.5). Needs resolving in prose and in code
-   together. Note it also changes a grader check: `child-cannot-widen`
-   currently asserts an ERROR, and under a pure AND rule there is no
-   error, so it would have to assert the child's effective flags instead.
+2. **`git` — DECIDED and IMPLEMENTED.** Redirect `GIT_CONFIG_GLOBAL` to a
+   generated config inside the sandbox rather than allowing the real file
+   (3.6). Verified: `init`, `add`, `commit` and `log` all work, the host
+   `~/.gitconfig` stays unreadable, and an inherited `GIT_CONFIG_GLOBAL`
+   does not survive into the child. Worth a paragraph in the chapter: the
+   obvious fix was to allow one more file, and the obvious fix was the
+   dangerous one.
+3. **`SafeMode` and `EnableWebSearch` on `AgentSpec` — DECIDED and
+   IMPLEMENTED.** The field comment bans a new CAPABILITY, and it names
+   what it means: the dependency bag that got the engine stapled nine
+   times. The sin was COLLABORATORS, objects the agent reaches through.
+   These are two bits of policy, and every value a caller can set takes
+   capability away. A field that can only subtract cannot grow a
+   dependency bag. That argument is now in the code comment, so the next
+   person to add a field has to answer it rather than rediscover it.
+4. **Refusal versus AND — RESOLVED and IMPLEMENTED** (2.5). They answer
+   different questions, so the code now does both: `Clamp` narrows
+   unconditionally and reports what it narrowed. The prose keeps *"a
+   refusal, not a negotiation"*. The chapter gains a lesson it did not
+   have: the error path must never be the only thing holding a security
+   boundary, because deleting it should cost a diagnostic rather than a
+   wall. Mutation tested in both directions, and the two properties fail
+   independently.
 
-   **A resolution that keeps both, recommended.** The reason AND is
-   tempting is that a two-state Boolean cannot distinguish "I did not
-   specify" from "I demand this", so erroring on over-request would make
-   ordinary spawns fail on defaults. Make the flags TRI-STATE and the
-   conflict dissolves:
-
-   | Child says | Result |
-   |---|---|
-   | omitted | inherit the parent's value |
-   | requests less | granted; narrowing is always allowed |
-   | requests more than the parent has | loud error |
-
-   This keeps AND's structural guarantee (a child can never end up wider
-   than its parent even if a check is buggy) while preserving the
-   chapter's "a refusal, not a negotiation", because the only refusals
-   are for agents that explicitly demanded more than they had. Paths keep
-   the error either way: two Booleans can be ANDed, two directory trees
-   cannot, and silently substituting the parent's root would hand a child
-   a sandbox it never asked about.
-
-   Precedent worth citing in the prose: CodeRhapsody's own
-   `spawn_sub_agent` works exactly this way. Omit to inherit; "You may
-   only narrow... Attempting either fails loudly with an error rather
-   than quietly downgrading." The two-state Boolean was the root of the
-   problem, not the enforcement rule.
+   Two-state Booleans turned out to be sufficient once the child spec is
+   *derived* from the parent's rather than constructed fresh, so the
+   three-valued type I first proposed is not needed. Deriving is also the
+   honest model: a child's permissions come from its parent's.
 5. **Chapter 22 note.** Widening `common.Agent` forced `SandboxRoot()`
    onto five implementers including `*Logger` — the exact type ch22 used
    as its exhibit for an interface that "never grew past its name".
@@ -402,3 +458,100 @@ testing, and is completely unconfined. Make the safe thing the easy thing.
 8. **Chapter scope — DECIDED: one chapter.** Recorded so the rewrite does
    not relitigate it. The kernel mechanism, the credential work and the
    trust hierarchy stay together under a single unified thesis.
+
+
+---
+
+## 6. A real bug the chapter should probably mention
+
+Writing the first safe-mode test turned up a live bug in
+`Reg.RemoveTool`, and it is worth the author's attention because it is a
+better illustration of this chapter's thesis than anything invented for
+the purpose.
+
+**What it was.** `RemoveTool` deleted only the *normalized* form of the
+name:
+
+```go
+n := common.NormalizeName(name)   // "run_command" -> "runcommand"
+delete(r.tools, n)
+```
+
+Builtins are registered under their *literal* name, and `Lookup` tries
+the literal first. So `RemoveTool("run_command")` deleted a key that did
+not exist, left the real entry untouched, and returned normally.
+**Removing any builtin whose name contains an underscore silently did
+nothing** — which is nearly all of them.
+
+**Why it survived.** Four production callers, zero tests. And the failure
+is invisible by construction: when tool removal fails, the tool is still
+there, and a tool that is still there still works. Nothing errors.
+Nothing logs. The only way to notice is to ask whether something that
+should be absent is absent, which is not a question anyone asks about
+code that appears to work.
+
+The one caller that *did* work, `SyncModelGatedTools`, worked by
+accident: it happens to use the normalized key consistently on both
+sides.
+
+**Why it belongs in this chapter.** Section 23.8 argues that security
+theater is worse than no security, because it buys confidence without
+buying protection. Here is that failure in the codebase, found by writing
+the first test that asserted an absence rather than a presence. A safe
+mode built on this function would have reported itself enabled, shown no
+`run_command` anywhere in its own configuration, and left the tool fully
+callable.
+
+It also makes a sharp point about test design: **withholding is the kind
+of behavior that rots silently, because nothing fails when it stops
+working.** Every test of a restriction therefore needs a paired positive
+control, or "the tool is gone" cannot be distinguished from "the registry
+is empty" or "the test is asking the wrong question".
+
+Fixed in `1a152d9`; removal now covers both keys, with four tests.
+
+---
+
+## 7. What the 23.10 checks should now assert
+
+The seven checks and the 100-point budget are a published contract, so
+this keeps the count and the shape and changes only what each one
+measures. Written down now so the grader can be built straight from the
+rewritten prose.
+
+| # | Check | Points | What it must now assert |
+|---|---|---|---|
+| 1 | `path-confinement` | 15 | File tools refuse `..`, absolute paths, and symlinks pointing out. The in-process half. |
+| 2 | `kernel-confinement` | 20 | `run_command` cannot read or write outside the root, and **a grandchild process is still confined**. This is the check that would have failed the original design. |
+| 3 | `no-network` | 15 | A command inside the sandbox cannot reach the network, while the agent itself still can. |
+| 4 | `no-credentials` | 15 | No credential reaches a tool result: not via the child environment, not via a log file inside the sandbox. |
+| 5 | `child-cannot-widen` | 10 | **Split into two independent assertions**: the child's *effective* permissions are narrowed (survives deleting the validator), and an explicit over-request *returns an error* (dies with it). |
+| 6 | `safe-mode-absence` | 15 | The exec tools are absent from the registry, **and ordinary file tools are still present**. The second half is the positive control, and section 6 explains why it is not optional. |
+| 7 | `no-host-path-leak` | 10 | A refusal names the model's own string and never the resolved host path. |
+
+Two notes for whoever writes the mutants:
+
+- Check 5 now needs **two** mutants, not one, and each must kill exactly
+  one half. That is the whole point of splitting it: removing the AND
+  must not fail the error test, and removing the error must not fail the
+  permissions test. Both have been verified against the shipped code.
+- Check 2 needs a mutant that removes only the `sandbox-exec` wrapping.
+  Verified: it fails exactly the four confinement tests while the
+  positive control still passes.
+
+---
+
+## 8. Status
+
+Two commits on `main`:
+
+- `fe98828` — Seatbelt confinement and the public `agent/sandbox` package
+- `1a152d9` — child clamping, safe mode, the web gate, the git redirect,
+  the CLI flags, and the `RemoveTool` fix
+
+`go test ./...` — 13 packages, zero failures. Build, vet and `gofmt`
+clean. Nothing under `solutions/edition-2/` or `book/edition-2/` was
+touched.
+
+The grader remains unwritten by design. Section 7 is its specification,
+and it should be built once the prose settles, not before.
