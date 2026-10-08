@@ -1,0 +1,24 @@
+{
+  "command": [
+    "python3",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch09/verify-receipts.py",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch09/live-anthropic-n",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch09/live-anthropic-f",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch09/live-anthropic-g",
+    "--binding",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch09/review-binding.json",
+    "--output",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch09/derived-anthropic",
+    "--cli",
+    "/tmp/ensemble-ch09-student-cli",
+    "--redaction",
+    "/tmp/ensemble-ch09-student-redaction",
+    "--redact-log",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch09/live-anthropic-n/session.log",
+    "--result",
+    "8"
+  ],
+  "exit": 0,
+  "stdout": "[\n  {\n    \"run\": \"live-anthropic-n\",\n    \"requests\": 11,\n    \"reconstructed\": 11,\n    \"comparison\": \"exact HTTP body bytes; CLI output LF removed\"\n  },\n  {\n    \"run\": \"live-anthropic-f\",\n    \"requests\": 5,\n    \"reconstructed\": 5,\n    \"comparison\": \"exact HTTP body bytes; CLI output LF removed\"\n  },\n  {\n    \"run\": \"live-anthropic-g\",\n    \"requests\": 9,\n    \"reconstructed\": 9,\n    \"comparison\": \"exact HTTP body bytes; CLI output LF removed\"\n  }\n]\n",
+  "stderr": ""
+}

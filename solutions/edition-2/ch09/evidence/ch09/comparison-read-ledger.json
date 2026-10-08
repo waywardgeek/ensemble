@@ -1,0 +1,37 @@
+{
+  "teaching_revision": "29a938021a4766fe9ff89d1fab48e5364914d1e4",
+  "feedback_last_changed": "01049b7 (as supplied by coordinator)",
+  "reads": [
+    {
+      "path": "/Users/bill/projects/ensemble-edition-2-revisions/ch09-student-inputs/clarification-29a9380/chapter-09.md",
+      "bytes": 59230,
+      "sha256": "2febacc4bed833601a2a0c005e235be5d5f63d61297d5f1cc50a31903f198359",
+      "read": "entire"
+    },
+    {
+      "path": "/Users/bill/projects/ensemble-edition-2-revisions/ch09-student-inputs/clarification-29a9380/chapter-09-student-feedback.md",
+      "bytes": 17708,
+      "sha256": "d7520e5c9db4ed6095d0071224fbc05da7159407b2943795fe520fe9c2b3b699",
+      "read": "entire"
+    },
+    {
+      "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+      "bytes": 19879,
+      "sha256": "0180e3eb5d4f6032936729f31b473c70c421bce22001790a9709b05c57893bd1",
+      "read": "entire"
+    },
+    {
+      "path": "book/edition-2/architecture.md",
+      "bytes": 11459,
+      "sha256": "9dada72e65c36fb649659f9076b4ca2bdfc8379fef919a3b575652dca0e49327",
+      "read": "entire"
+    },
+    {
+      "path": "AGENTS.md",
+      "bytes": 2439,
+      "sha256": "a6e88dd804e8aabce0823d0fc48c6653f89d94870c57cd7ec0be0f0bfdfc1b4a",
+      "read": "entire"
+    }
+  ],
+  "excluded_sources_read": false
+}

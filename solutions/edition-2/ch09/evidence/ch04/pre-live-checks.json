@@ -1,0 +1,27 @@
+{
+  "gofmt_l": "empty output",
+  "modules": {
+    ".": {
+      "go vet ./...": "passed",
+      "go test ./... -count=1": "passed"
+    },
+    "gui": {
+      "go vet ./...": "passed",
+      "go test ./... -count=1": "passed"
+    },
+    "examples/consumer": {
+      "go vet ./...": "passed",
+      "go test ./... -count=1": "passed"
+    },
+    "examples/tools-consumer": {
+      "go vet ./...": "passed",
+      "go test ./... -count=1": "passed"
+    }
+  },
+  "race": "go test -race ./... -count=1 passed before final admission cleanup additions",
+  "grader": "100/100 after published collision clarification",
+  "binary": {
+    "path": "/tmp/ensemble-ed2-ch04-live",
+    "sha256": "296c6f9bd0f529e9765be9d53a980b21c9e02d60a732b981da8109d75d32b68a"
+  }
+}

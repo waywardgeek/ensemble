@@ -1,0 +1,18 @@
+[
+  {
+    "file": "gemini-native-overlap-replay/audio-19.wav",
+    "sha256": "cedb861cdf4d8defccf6c0870a84427f1de121a2c9c8235f8cd633c8e06a7bf3",
+    "seconds": 8.24,
+    "silent_prefix_rms": 0.0,
+    "speech_segment_rms": 0.04788157504306677,
+    "peak": 0.5996576547622681
+  },
+  {
+    "file": "openai-native-overlap-replay/audio-19.wav",
+    "sha256": "4901cba897a35b80a9468a8261b83e59267882cc8ef7c444a12c7f9ec6839ba4",
+    "seconds": 8.48,
+    "silent_prefix_rms": 0.0,
+    "speech_segment_rms": 0.04711491264437775,
+    "peak": 0.5996501445770264
+  }
+]

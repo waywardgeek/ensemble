@@ -1,0 +1,14 @@
+[
+  {
+    "run": "live-gemini-g",
+    "requests": 7,
+    "reconstructed": 7,
+    "comparison": "exact HTTP body bytes; CLI output LF removed"
+  },
+  {
+    "run": "live-gemini-n-management",
+    "requests": 4,
+    "reconstructed": 4,
+    "comparison": "exact HTTP body bytes; CLI output LF removed"
+  }
+]

@@ -1,0 +1,125 @@
+{
+  "at": "2026-10-07T19:57:11.703966+00:00",
+  "boundary": "New chapters through 3, mandatory skill/architecture, preceding/current second-edition solution only. No first-edition/agent/grader source or reviewer research consulted. Mandatory architecture document includes future decision summary; no future chapter text or implementation consulted.",
+  "note": "Hashes are current bytes at ledger creation; explicit scopes describe actual reads, including pre-migration reads.",
+  "reads": [
+    {
+      "path": "AGENTS.md",
+      "scope": "entire current file; also read pre-migration version",
+      "sha256": "a6e88dd804e8aabce0823d0fc48c6653f89d94870c57cd7ec0be0f0bfdfc1b4a"
+    },
+    {
+      "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+      "scope": "entire current file; also read pre-migration version",
+      "sha256": "8b67328be3d2e12f01b2dbdafb007f1141f7a2edf12ad839790e312285fa259b"
+    },
+    {
+      "path": "book/edition-2/architecture.md",
+      "scope": "entire file",
+      "sha256": "1f9ebba645b5020c8ebec8632290f7120d5931842b9d17cfb7e27ad20eecb702"
+    },
+    {
+      "path": "book/edition-2/chapter-01.md",
+      "scope": "architecture sections 1.1\u20131.4 and TL;DR before migration",
+      "sha256": "2906097109361d480882cfa9c2c2eb913de2e142109505bdeb4d9955842659ef"
+    },
+    {
+      "path": "book/edition-2/chapter-02.md",
+      "scope": "entire chapter before migration; current human client sections reread",
+      "sha256": "56e58217931b62f8ba5cbc16d16ebffc0609cf5eb3f46aadc85f3094206f7796"
+    },
+    {
+      "path": "book/edition-2/chapter-03.md",
+      "scope": "entire chapter before migration; current human client contract reread",
+      "sha256": "5bb0794aa4cc598f1377ce77c07bfb93d3ad8a00c69c6b9af709f7e42bf9f86d"
+    },
+    {
+      "path": "solutions/edition-2/main/cmd/main.go",
+      "scope": "entire inherited new solution file read before adaptation",
+      "sha256": "835483b147ffb828e96de7381b22cb601f911e54c66278ff34aac24793d75637"
+    },
+    {
+      "path": "solutions/edition-2/main/cmd/chat.go",
+      "scope": "entire inherited new solution file read before adaptation",
+      "sha256": "ef7d60e7afd2f6dc41c425fe28d63c2492921e8b3dd1ae25f11afbf8b7da0b31"
+    },
+    {
+      "path": "solutions/edition-2/main/cmd/chat_test.go",
+      "scope": "entire inherited new solution file read before adaptation",
+      "sha256": "5c1e8690feb42ab68ded45306291c6c051006c45315fd660865ac57ab3101383"
+    },
+    {
+      "path": "solutions/edition-2/main/cmd/terminal.go",
+      "scope": "entire inherited new solution file read before adaptation",
+      "sha256": "b0230318e64f3a6f190be72326ce93a519367b4f328d29266dc2f1e413d24169"
+    },
+    {
+      "path": "solutions/edition-2/main/cmd/terminal_darwin.go",
+      "scope": "entire inherited new solution file read before adaptation",
+      "sha256": "d08027b3da0e6056fab15fe4cc979c7214470d024aab9156f87b99fe4476d3ea"
+    },
+    {
+      "path": "solutions/edition-2/main/cmd/terminal_linux.go",
+      "scope": "entire inherited new solution file read before adaptation",
+      "sha256": "7130f243fcaf6cbc347725052a45305a1faf4116a7986b1dd1015f5f29b0c8fe"
+    },
+    {
+      "path": "solutions/edition-2/main/cmd/terminal_other.go",
+      "scope": "entire inherited new solution file read before adaptation",
+      "sha256": "f10d70d18f22b0434a49048b42988ca617aad2d76ca77431ba4c00c35ed8a3f9"
+    },
+    {
+      "path": "solutions/edition-2/main/internal/llm/turn.go",
+      "scope": "entire inherited new solution file read before adaptation",
+      "sha256": "fad85a7cc73c4faea4f74e0b4e571620451f0aa29d17a7eb2b4a7333377d95e1"
+    },
+    {
+      "path": "solutions/edition-2/main/evidence/ch02/human-chat/terminal-run.py",
+      "scope": "entire inherited new solution file read before adaptation",
+      "sha256": "354c2a40120c55992812a8c4855454380eefd90bed46a494f697f216a3b6369f"
+    },
+    {
+      "path": "solutions/edition-2/main/ensemble.go",
+      "scope": "lines 1\u2013120; constructors and composition",
+      "sha256": "bd0485c9d824b09a200376385ce7ef76f4589239e39e9c479cbd22c448ee0510"
+    },
+    {
+      "path": "solutions/edition-2/main/README.md",
+      "scope": "entire existing second-edition file; README subsequently refreshed for Chapter3",
+      "sha256": "9171f05c3001fd5dccdd8aae3180d8953975115c46ff5d30d9e8041700b4a985"
+    },
+    {
+      "path": "solutions/edition-2/main/CHECKPOINT.md",
+      "scope": "entire existing second-edition file; README subsequently refreshed for Chapter3",
+      "sha256": "f0305516e45591e4a62343abe3862175c3db823e0d3a673d58f1aad002a32bfc"
+    },
+    {
+      "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+      "scope": "entire skill reread before verifier revision; includes newly taught immutable source/executable binding rule",
+      "at": "2026-10-07T20:12:31.475376+00:00",
+      "sha256": "b0e2735225c29a43787dabd7647f6e5a837eb988a89311463764e283f81df4f7"
+    },
+    {
+      "path": "solutions/edition-2/main/evidence/ch03/human-chat/verify-receipts.py",
+      "scope": "entire initial verifier read before targeted revision; original bytes are preserved in a347ce3",
+      "at": "2026-10-07T20:12:31.475730+00:00"
+    }
+  ],
+  "official_documentation": [
+    {
+      "url": "https://platform.claude.com/docs/en/api/models/list",
+      "accessed": "2026-10-07T19:58:46.882475+00:00",
+      "purpose": "Verify model-discovery route; selected IDs obtained from actual fresh authorized discovery."
+    },
+    {
+      "url": "https://developers.openai.com/api/reference/resources/models/methods/list",
+      "accessed": "2026-10-07T19:58:46.882632+00:00",
+      "purpose": "Verify model-discovery route; selected IDs obtained from actual fresh authorized discovery."
+    },
+    {
+      "url": "https://ai.google.dev/api/models",
+      "accessed": "2026-10-07T19:58:46.882635+00:00",
+      "purpose": "Verify model-discovery route; selected IDs obtained from actual fresh authorized discovery."
+    }
+  ]
+}

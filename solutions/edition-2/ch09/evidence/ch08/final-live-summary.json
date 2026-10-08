@@ -1,0 +1,53 @@
+[
+  {
+    "run": "anthropic-interrupt-final",
+    "browser_actions": 7,
+    "errors": 0,
+    "label": "fresh production GUI/consumer"
+  },
+  {
+    "run": "openai-native-overlap-replay",
+    "browser_actions": 25,
+    "errors": 0,
+    "label": "neutral-event replay; provider endpoint disabled"
+  },
+  {
+    "run": "gemini-native-overlap-replay",
+    "browser_actions": 21,
+    "errors": 0,
+    "label": "neutral-event replay; provider endpoint disabled"
+  },
+  {
+    "run": "settings-restart-positive",
+    "browser_actions": 8,
+    "errors": 0,
+    "label": "fresh production GUI/consumer"
+  },
+  {
+    "run": "settings-restart-false-zero",
+    "browser_actions": 10,
+    "errors": 0,
+    "label": "fresh production GUI/consumer"
+  },
+  {
+    "run": "settings-restart-confirm",
+    "browser_actions": 5,
+    "errors": 0,
+    "label": "fresh production GUI/consumer"
+  },
+  {
+    "vendor": "anthropic",
+    "prompts": 11,
+    "http": 18
+  },
+  {
+    "vendor": "openai",
+    "prompts": 9,
+    "http": 14
+  },
+  {
+    "vendor": "gemini",
+    "prompts": 10,
+    "http": 15
+  }
+]

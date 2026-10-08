@@ -1,0 +1,79 @@
+{
+  "source_revision": "55e64115ee5243cac6b4958fd12e6811862ae033",
+  "sources": {
+    "solutions/edition-2/main/boundaries_test.go": "af738a39dd51d0eb70143e2317dec14edef9c658384c7500a7e8e7a6df6c9041",
+    "solutions/edition-2/main/cmd/chat.go": "bb0a648bfbc881dfcf6553d1ec548a353cc9bbd0bf1924001cbfb445b5df9944",
+    "solutions/edition-2/main/cmd/chat_test.go": "5c1e8690feb42ab68ded45306291c6c051006c45315fd660865ac57ab3101383",
+    "solutions/edition-2/main/cmd/main.go": "4184fea4938f055a60231e410d68c1a040cb95357f48a547295ea37fb99d6776",
+    "solutions/edition-2/main/cmd/terminal.go": "b0230318e64f3a6f190be72326ce93a519367b4f328d29266dc2f1e413d24169",
+    "solutions/edition-2/main/cmd/terminal_darwin.go": "d08027b3da0e6056fab15fe4cc979c7214470d024aab9156f87b99fe4476d3ea",
+    "solutions/edition-2/main/cmd/terminal_linux.go": "7130f243fcaf6cbc347725052a45305a1faf4116a7986b1dd1015f5f29b0c8fe",
+    "solutions/edition-2/main/cmd/terminal_other.go": "f10d70d18f22b0434a49048b42988ca617aad2d76ca77431ba4c00c35ed8a3f9",
+    "solutions/edition-2/main/ensemble.go": "5b3001209aed7ccd58e7cd9566cef8f9bbfb61d3f2519f9516ce2117b3eb9bfc",
+    "solutions/edition-2/main/ensemble_test.go": "9adb6af5eb4cec2dacf90af570c29fc4acbe929d8cef81120edcaf87f4d10740",
+    "solutions/edition-2/main/events_test.go": "1aaa23460229d112297f8e3a134d7593ba4cfb5cd00beee7dae107bc88e7700b",
+    "solutions/edition-2/main/examples/consumer/go.mod": "11d2d0f4a0185183a834d8c2249a80a465919daa05a62960afb9954affc74042",
+    "solutions/edition-2/main/examples/consumer/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "solutions/edition-2/main/examples/consumer/main.go": "e19628ef423166058165d2919d81c972ee1ae0452930f35533fddb6e58b601ea",
+    "solutions/edition-2/main/examples/jobs-consumer/go.mod": "547b09a39f937439a7dad55a6673da21d6886c196c9e06b1c4b9a6719d5645cd",
+    "solutions/edition-2/main/examples/jobs-consumer/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "solutions/edition-2/main/examples/jobs-consumer/live.go": "9cadb11a5c691753e13f2bf2d0828c9a15cbf7bf1793d488b9ec58ca79e06a49",
+    "solutions/edition-2/main/examples/jobs-consumer/main.go": "43d3b792c53e4d66c7d5f444085e42f03a555e7e7900c2142d4ab41c4d5578cc",
+    "solutions/edition-2/main/examples/tools-consumer/go.mod": "c042caac50933d3f41f7af61173cb85d04d524ea1b03d1b4c7da2f6ad80d0342",
+    "solutions/edition-2/main/examples/tools-consumer/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "solutions/edition-2/main/examples/tools-consumer/main.go": "b8e5ccfd2858804abc584e722ed9d88505178acc1f563c104c8b0f1c7969fb25",
+    "solutions/edition-2/main/go.mod": "32af916f47ea7ce4e40b5f8b6329e731b8cb25cf416777f999d48abbb5fb1ca7",
+    "solutions/edition-2/main/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "solutions/edition-2/main/gui/client.go": "65ccdbab3ecb3ed30a9d88e9a4ae8800d645c48e8a62f0a52d5e71327b47dcea",
+    "solutions/edition-2/main/gui/client_test.go": "40680f862f7452919aee870a3042054bb3e77a24a63e71d66861418fb28185e5",
+    "solutions/edition-2/main/gui/go.mod": "9b8b3c1680d86c3cce7d5f3ec2c61a1fb7bcde052d8db981837bc8cfe02861a7",
+    "solutions/edition-2/main/gui/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "solutions/edition-2/main/internal/common/json.go": "351498fa4f35016ea75e4fffe402a6b5c5d2273072c65d739f25bef7fa110175",
+    "solutions/edition-2/main/internal/common/types.go": "8038e26047a5041c68a7a777908711ab3c0f8ffb731ed0696910871bcf50e8eb",
+    "solutions/edition-2/main/internal/eventlog/log.go": "f3006daf420e94343a1141b3255acb4cdadaaffaefb4432d35455108e1a27b95",
+    "solutions/edition-2/main/internal/eventlog/log_test.go": "f4feb48913129799176b5ff6919d6361abd34c84f26627f71826b6402ac2e961",
+    "solutions/edition-2/main/internal/jobs/jobs.go": "3b40034b079cba9604a3d2d45b459c8b541e6d43b19504217e6307b3376324ed",
+    "solutions/edition-2/main/internal/jobs/jobs_test.go": "eafe7f09d43cfab97122982a652c140c01fa5af53fa54614b29f09d281d852cb",
+    "solutions/edition-2/main/internal/jobs/limits.go": "e0c84405eedcdfbbe0234a9cdb72a59f397020124182b71698bbf13afadb2ef4",
+    "solutions/edition-2/main/internal/jobs/process.go": "31e67bde9bc085f09cef5357a2a4c98b297175b9bb17d6b47433bfb1bae38fc0",
+    "solutions/edition-2/main/internal/jobs/report.go": "5b73458d95f60c3070aad24c11f9cf6e68c904ab15230b21f3f41522e46173c4",
+    "solutions/edition-2/main/internal/llm/engine.go": "da0d55a0ec9202df123e63aaca538411c7784310ef3dcb129032d3c2612ea879",
+    "solutions/edition-2/main/internal/llm/engine_test.go": "f1b886638f72f5814c9ba07fe88c5c628e8afa0ac1a83314aebfbd4a6cb65e59",
+    "solutions/edition-2/main/internal/llm/events.go": "6def7894d5b90994f5bcfec00f44892dd1e7b9d007d683a0b2d866837f36e483",
+    "solutions/edition-2/main/internal/llm/parse.go": "599b5cff7d161a3a807a5598f4dee91581941ef92bb7a47d6139dc6c89dd6a03",
+    "solutions/edition-2/main/internal/llm/render.go": "0707d81b69113351b5712eb4438c7074bfa84e7a62232979c7f28cc4a7555944",
+    "solutions/edition-2/main/internal/llm/turn.go": "72048946b768d32eb18b049525f522f38ae7b1a1b62774f9a77b35bf978e27d9",
+    "solutions/edition-2/main/internal/tools/command.go": "5694afff95ac331bff418460311cb0ff7d0379afb3d3add463b9fea31d9ae10a",
+    "solutions/edition-2/main/internal/tools/files.go": "c7db80bd7b1bb0af299535c23dadc5bab6ef24b607606897f506ef192b969d3f",
+    "solutions/edition-2/main/internal/tools/registry.go": "41ccba00940d0aa789817e85ff2939d26acbfdc1e15ab7db2148ebebace5d4fb",
+    "solutions/edition-2/main/internal/tools/supervision.go": "10ad9eb40489f07270d6e27b452dd6780f0b6f81e644dca6312986405c5f9fa0",
+    "solutions/edition-2/main/internal/tools/text.go": "46dceb3bcf9c0ecdfb608102c38b4f30ec71231bf0ddd695741d0a0af40d9aa7",
+    "solutions/edition-2/main/internal/tools/tools_test.go": "9e87a497b18d8b01017b872e27c28c8f6249e3dc77b3eb5da8824b63ae847ca4",
+    "solutions/edition-2/main/jobs_test.go": "ee5ffd3f1875ce9db14a56065dcd3c2cbbd0185abc5fde9712eab4e9637b02c5",
+    "solutions/edition-2/main/redaction_test.go": "4b2b5f0f9dac67d31e956b546576286e67aa04785a4976ffbb5b224d765a379b",
+    "solutions/edition-2/main/turn_test.go": "f894d9fac8501b54b06ce2b4172b45013e61b127b7dfd2254763e33ce2e5da2d"
+  },
+  "executables": {
+    "cli": {
+      "path": "/usr/bin/true",
+      "sha256": "15f37d0373ed0cd76a3c5d6d742f017246e3006c2b5de47056f9f62b37163a6e"
+    },
+    "workflow": {
+      "path": "/usr/bin/true",
+      "sha256": "15f37d0373ed0cd76a3c5d6d742f017246e3006c2b5de47056f9f62b37163a6e"
+    },
+    "interpreter": {
+      "path": "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+      "sha256": "e81eb555fbfb8c6bd4ea528c60d4b3a8f9a94e53c31b0470f4f1524b4b9548c0"
+    },
+    "recorder": {
+      "path": "/usr/bin/script",
+      "sha256": "24eb6e2db60591c435afcde853a18caac9626047b1aceecda2a93e84cc0cccad"
+    }
+  },
+  "support": {
+    "evidence.py": "6e95058b1e429abd256d1973c017139031a214dbf926a8ae08d8cae45af2f84d",
+    "terminal-run.py": "b2ba41e8bdb34b4caab80641950e52eb63a70b97436a1768c101af02b6567314",
+    "verify-receipts.py": "b8d4f9a3c4f08bf48441be3d611efd56fb52f83613694f875c4249d9ceffad03"
+  }
+}

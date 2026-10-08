@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "QUEUED-FIVE",
+            "thoughtSignature": "ErkBCrYBAWkUfRNckpZg63748D04NqDMVg3Be+3llNuHLNp8ZYfPLf+nTcv0xustgE9rhOhHuVDb1rQjOXMMi0A5tHHJuyikVcehJpHL+na0Yis+O2kGQD1A2Zf2plj8jNa06Q5Z3YNrh9VvRGUw8Y11Tqj9xS2cOuBVg0Uxpizlkhqdt+rsHSHsyAPZHs/xec13AxOjQ87dhoa9OqRj7P4D5h/07FKUD+Y3oEO2SChd0qlwiUWYbNWJv6o="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 3341,
+    "candidatesTokenCount": 4,
+    "totalTokenCount": 3367,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 3341
+      }
+    ],
+    "thoughtsTokenCount": 22,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.8-flash",
+  "responseId": "jNXGargqgK7f0g_VlaWACQ"
+}

@@ -1,0 +1,20 @@
+[
+  {
+    "run": "browser-openai-r1",
+    "requests": 11,
+    "reconstructed": 11,
+    "delivery": "stream"
+  },
+  {
+    "run": "plain-openai-r1",
+    "requests": 1,
+    "reconstructed": 1,
+    "delivery": "plain"
+  },
+  {
+    "run": "consumer-openai-r1",
+    "requests": 2,
+    "reconstructed": 2,
+    "delivery": "stream"
+  }
+]

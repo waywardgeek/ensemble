@@ -1,5 +1,13 @@
 # Working checkpoint
 
+Chapter 9 is accepted at `edition-2-ch09-r1`, with exact 4,012-file export from
+`ac55f64` (tree `94315d7`) and eleven complete delivered modules. Runtime
+`06c6787` has independent code acceptance `19d2fdf`; live review `2dc5841`
+and final manuscript proofread `d022176` close the other gates. The Chapter 9
+CLI worker has exited. Release the prepared fresh Chapter 10 student next;
+do not resume paid Chapter 9 demonstrations. Chapter 14 full contract draft
+`349aa64` is under independent review, with no implementation or acceptance.
+
 Chapter 6 maintenance checkpoint: `edition-2-ch06-r2` points to isolated
 `3acdd8e`, whose main and exact 1,565-file export match source `5e48b38`.
 The five-line Messages repair and its evidence are independently accepted at
@@ -120,12 +128,12 @@ Its external directory is
 completed live phase in that same session, frozen at `786ff23`. It used 93
 generation requests plus three discovery calls. Historical comparison `13b48ef`
 requests narrow grant/state reads and per-Agent partial-outcome reporting.
-The same session is now running `phase-4.txt`, with events/results in the matching
-external phase-4 files. Unified exec session is `82212`. This phase is local-only;
-no provider calls or credential reads are released. Final new teaching and direct
-author feedback are pinned at `clarification-29a9380`; research is excluded.
-Await the grouped source/local-evidence freeze, independent code review and
-student confirmation before chapter export. Do not start a competing worker.
+The same session completed `phase-4.txt`, with events/results in the matching
+external phase-4 files and successful process exit. Runtime `06c6787` and local
+evidence are independently accepted at `19d2fdf`. No provider calls or credential
+reads occurred. Final new teaching/direct feedback pinned at
+`clarification-29a9380` is confirmed in the student review; research was excluded.
+This student is finished. Use a fresh context for Chapter 10.
 `coordinator-inbox.md` is the authorized handoff channel the student checks at
 work boundaries. Preserve previous messages when appending. Keep excluded
 research and grader internals out of that inbox. Check the existing process and
@@ -135,17 +143,12 @@ while the worker remained active. If that recurs, check process status, current
 student receipts and timestamps/tool-call metadata in that session's local
 rollout before treating silence as a stopped worker. Do not copy private
 reasoning or credentials into the progress record.
-Later phases resume this explicit session ID, with memory use/generation disabled
-as in the retained launch. Phase 3 may perform the reviewed bounded provider
-demonstrations with `review-binding.json`; repaired runtime `75a7255` uses
-`stream-binding.json`. Preserve the 36/provider and 108-total HTTP ceilings and
-all original attempts. The inbox authorizes one OpenAI P recovery transferring
-its unused F sixth allowance to P5, with prior failed request counted; distinct
-locally checked support binding precedes launch. No historical comparison until
-initial live work/review is frozen. See the Chapter 9 gate for the independently
-accepted streaming repair and actual Messages supplement. An isolated accepted
-Chapter 6 maintenance worktree carries that repair for review before any new
-earlier-chapter export/tag; do not merge its older main tree over current main.
+The completed paid phase used `review-binding.json`, then repaired runtime
+`75a7255` with `stream-binding.json`. Its bounded OpenAI recovery and actual
+Messages supplement retain all original attempts and ceilings; these are closed
+historical releases, not permission for more calls. Earlier Chapter 6–8 propagation
+is fully checkpointed as recorded above. Do not merge an older maintenance main
+tree over the accepted current source.
 
 The initial student attempt uses the new teaching and preceding new solution,
 not old implementation or grader internals. AFTER the first implementation

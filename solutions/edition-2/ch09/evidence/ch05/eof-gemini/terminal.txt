@@ -1,0 +1,15 @@
+Ensemble — gemini / models/gemini-2.5-flash-lite
+Type /help for commands.
+You> Reply exactly EOF-FIRST; do not use tools.
+Reply exactly EOF-SECOND; do not use tools.
+Accepted r1.
+You> Accepted r2.
+You> 
+Request r1 (success; pending hints=0)
+Assistant:
+EOF-FIRST
+You> 
+Request r2 (success; pending hints=0)
+Assistant:
+EOF-SECOND
+You> ^DFinal usage: input=3306, cache write=0, cache read=0, output=6

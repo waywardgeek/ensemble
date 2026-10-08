@@ -1,0 +1,152 @@
+{
+  "source_commit": "ac55f641e69220a612debbcd6f75e77fa9259b36",
+  "source_tree": "94315d7fa4cbd4d26ec00ca59d608ec3757e38cf",
+  "files_verified": 4012,
+  "passed": true,
+  "scope": "Complete delivered-tree package discovery and exact export hash verification; accepted source-bound module/gate/live evidence retains its separate identities.",
+  "modules": [
+    {
+      "module": "examples/browser-consumer",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "example.com/browser-consumer\n",
+      "stderr": "",
+      "seconds": 0.138
+    },
+    {
+      "module": "examples/consumer",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "example.com/ensemble-consumer\n",
+      "stderr": "",
+      "seconds": 0.105
+    },
+    {
+      "module": "examples/jobs-consumer",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "example.com/ensemble-jobs-consumer\n",
+      "stderr": "",
+      "seconds": 0.107
+    },
+    {
+      "module": "examples/policy-consumer",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "example.com/policy-consumer\n",
+      "stderr": "",
+      "seconds": 0.107
+    },
+    {
+      "module": "examples/skills-consumer",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "example.com/skills-consumer\nexample.com/skills-consumer.test\nexample.com/skills-consumer [example.com/skills-consumer.test]\n",
+      "stderr": "",
+      "seconds": 0.109
+    },
+    {
+      "module": "examples/skills-redaction",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "example.com/skills-redaction\n",
+      "stderr": "",
+      "seconds": 0.106
+    },
+    {
+      "module": "examples/stream-consumer",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "example.com/ensemble/stream-consumer\n",
+      "stderr": "",
+      "seconds": 0.105
+    },
+    {
+      "module": "examples/tools-consumer",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "example.com/ensemble-tools-consumer\n",
+      "stderr": "",
+      "seconds": 0.107
+    },
+    {
+      "module": "examples/workflow",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "example.com/ensemble-workflow\n",
+      "stderr": "",
+      "seconds": 0.11
+    },
+    {
+      "module": ".",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "example.com/ensemble\nexample.com/ensemble/cli\nexample.com/ensemble/cmd\nexample.com/ensemble/internal/common\nexample.com/ensemble/internal/eventlog\nexample.com/ensemble/internal/jobs\nexample.com/ensemble/internal/llm\nexample.com/ensemble/internal/policy\nexample.com/ensemble/internal/skills\nexample.com/ensemble/internal/tools\nexample.com/ensemble.test\nexample.com/ensemble [example.com/ensemble.test]\nexample.com/ensemble_test [example.com/ensemble.test]\nexample.com/ensemble/cli.test\nexample.com/ensemble/cli [example.com/ensemble/cli.test]\nexample.com/ensemble/internal/eventlog.test\nexample.com/ensemble/internal/eventlog [example.com/ensemble/internal/eventlog.test]\nexample.com/ensemble/internal/jobs.test\nexample.com/ensemble/internal/jobs [example.com/ensemble/internal/jobs.test]\nexample.com/ensemble/internal/llm.test\nexample.com/ensemble/internal/llm [example.com/ensemble/internal/llm.test]\nexample.com/ensemble/internal/skills.test\nexample.com/ensemble/internal/skills [example.com/ensemble/internal/skills.test]\nexample.com/ensemble/internal/tools.test\nexample.com/ensemble/internal/tools [example.com/ensemble/internal/tools.test]\n",
+      "stderr": "",
+      "seconds": 0.162
+    },
+    {
+      "module": "gui",
+      "command": [
+        "go",
+        "list",
+        "-test",
+        "./..."
+      ],
+      "exit_code": 0,
+      "stdout": "example.com/ensemble-gui\nexample.com/ensemble-gui/cmd/ensemble-gui\nexample.com/ensemble-gui/internal/common\nexample.com/ensemble-gui/internal/preferences\nexample.com/ensemble-gui.test\nexample.com/ensemble-gui [example.com/ensemble-gui.test]\nexample.com/ensemble-gui_test [example.com/ensemble-gui.test]\n",
+      "stderr": "",
+      "seconds": 0.113
+    }
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "HINT-ACCEPTED-FIVE\n\nThe command completed successfully with output `HINT-JOB-DONE`.",
+            "thoughtSignature": "EvYDCvMDAWkUfRP9P9n9sXaVV/IvTrsHfpSBx8jdmTLoMnMkEepYffQEYsORJT70gb/iCGuj5uDTIjNDvkVFMUGorytWkUVmXPTqmSaFLWz7P0BFHwBHl9XY5CxCytr1/q56BarJE2KBqsbYWbunb0fn/XhyokssMmPXJg2zwUGnN1D7qsWDaqqiRW10hAVumK63X353LQNHny7SM/LhWUmul36jTTkRWqhL0PQhf7Rq0LsAtf7XyRrUXhFLjmCl6S1crU0tDnEq88PEJFEFObx3VDPCobAW68ut3rqb1NBQ+0Jx85MuMKSxifb8EoeqSTe/hwXwgpT8zXF0IEXIPZszDZAyWMnj8alOTaBVN/n6gmUW/mIjmH5422K0YPGzTPpARPs+hViSC8YeK2tGNr5zXra1ouq3IWbBevtSyBtbpiCVYIsSqObuQ7248NkqTihqxjkIEiS0pQwokXa66KsO2FqLC2kJvBOrReKi68RHDYMZtFPDZLf1tumWVwOBssQKpC0YyQwjEQwrvMMzDPoq72z0DQsR3DmkVNsJE2tkJikEecKFvji589wgz7/uHzJ2PkdUXVpaR/5LjLS/GX27bL/RESkJFM4XtKSQk5QjPaSXpSs/C9gVYTbbFNmZh5asGqlNxCTda4ZSQE8lmNY8iSZfowSvzg=="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2113,
+    "candidatesTokenCount": 21,
+    "totalTokenCount": 2228,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2113
+      }
+    ],
+    "thoughtsTokenCount": 94,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.8-flash",
+  "responseId": "NdXGatHQMYiwsOIPwbeo6Ac"
+}

@@ -1,0 +1,16 @@
+{
+  "label": "neutral-event replay with rewritten admission times",
+  "source_revision": "a06d4f3",
+  "retained": {
+    "source_revision": "0aad851",
+    "path": "solutions/edition-2/main/evidence/ch08/gemini-browser-native/session.log",
+    "sha256": "bea9e5bcb6b0b516a505e287476ddc2a76ead9e343284107d902024d242f98d7"
+  },
+  "readmitted_sha256": "f7d29fdca3376e9ef2dbd938bb8ee61ad795010b5f6669f2888759cde7aea6e0",
+  "event_count": 35,
+  "order_seq_and_all_non_time_fields_exact": true,
+  "top_level_admission_timestamps_rewritten": true,
+  "new_model_requests": 0,
+  "original_exact_assertion": "failed and preserved; public Append owns new top-level admission time",
+  "browser_sha256": "ca1ff5dcdc769669dded11c9861e7e2bf87cabdb45a1809ba5d80bc8d29ebfa5"
+}

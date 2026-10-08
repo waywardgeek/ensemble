@@ -1,0 +1,1 @@
+{"contents":[{"parts":[{"text":"Reply with exactly COLLECTION-1 and no tools."}],"role":"user"}],"generationConfig":{"maxOutputTokens":1024},"systemInstruction":{"parts":[{"text":"You are the collection-1 in a bounded writing workflow. Follow the user's exact file and role instructions. Be concise."}]}}

@@ -8,6 +8,12 @@ in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 
 ## Current chapter
 
+Chapter 9 is accepted at `edition-2-ch09-r1`: exact 4,012-file export from
+`ac55f64`, runtime `06c6787`, code review `19d2fdf`, live review `2dc5841` and
+final proofread `d022176`. All eleven delivered Go modules pass package discovery.
+Initial runs and later local revisions retain separate identities. A fresh
+Chapter 10 student handoff is prepared for immediate release from this checkpoint.
+
 The scoped Chapter 6 streaming correction is accepted at `edition-2-ch06-r2`
 (`3acdd8e`), with exact 1,565-file export from `5e48b38`. Main and export match
 on that isolated tag; current development remains Chapter 9. Root review
@@ -63,11 +69,11 @@ F allowance to P, preserving 36 requests per provider and 108 overall.
 Failed relay attempts and the partial Messages public outcome remain recorded.
 Independent live review `2dc5841` accepts all 93 generation attempts plus three
 discovery calls, with partial task, keyboard-linkage and audio limitations
-explicit. Historical comparison `13b48ef` requests narrow current-grant/state
-reads and complete per-Agent partial-outcome reporting. The same student is
-running one local-only revision round; final teaching `29a9380` and direct author
-response are pinned for confirmation. Final proofread `7f5a0a4` accepts the
-revised manuscript and unchanged eleven JSON fixtures. Full chapter acceptance is still pending. Managed
+explicit. Historical comparison `13b48ef` led to narrow current-grant/state
+reads and complete per-Agent partial-outcome reporting at `06c6787`, accepted
+at `19d2fdf`. The student confirms final teaching and author feedback; final
+proofread `d022176` accepts reconciliation `05d1606`. Chapter acceptance is
+complete, as checkpointed above. Managed
 spawn hit its thread limit; this new session inherits no conversation and has
 memory injection disabled. `/root/grader_ch05` continues independent checks. See
 [chapter-09-validation.md](chapter-09-validation.md).
@@ -87,8 +93,8 @@ closure `88de827` and coordinator contract acceptance `4a2f8df`; see
 [chapter-13-validation.md](chapter-13-validation.md).
 Chapter 11 protocol/fixture foundation `c80af0a` is independently accepted at
 `d13346c`, with runtime coverage explicitly pending. Chapter 14 research and
-outline `9758e89` have advisory review `3a6ae52`. The author is drafting the full
-contract from coordinator working choices; see
+outline `9758e89` have advisory review `3a6ae52`. Full draft `349aa64` and evidence
+correction `2076cc1` are under independent review; see
 [chapter-14-validation.md](chapter-14-validation.md). No accepted full contract
 or student implementation exists yet. Earlier streaming-correction revisions are listed
 above; original tags remain unchanged.

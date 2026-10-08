@@ -1,0 +1,24 @@
+goos: darwin
+goarch: arm64
+pkg: example.com/ensemble/internal/llm
+cpu: Apple M4
+BenchmarkStreamAssembly/anthropic/64KiB-10         	       1	   3498541 ns/op	  18.73 MB/s	 2752088 B/op	   24439 allocs/op
+BenchmarkStreamAssembly/anthropic/64KiB-10         	       1	   3091709 ns/op	  21.20 MB/s	 2749496 B/op	   24380 allocs/op
+BenchmarkStreamAssembly/anthropic/64KiB-10         	       1	   2996209 ns/op	  21.87 MB/s	 2749496 B/op	   24380 allocs/op
+BenchmarkStreamAssembly/anthropic/128KiB-10        	       1	   6224084 ns/op	  21.06 MB/s	 5357344 B/op	   48451 allocs/op
+BenchmarkStreamAssembly/anthropic/128KiB-10        	       1	   6217250 ns/op	  21.08 MB/s	 5357344 B/op	   48451 allocs/op
+BenchmarkStreamAssembly/anthropic/128KiB-10        	       1	   6103625 ns/op	  21.47 MB/s	 5357488 B/op	   48452 allocs/op
+BenchmarkStreamAssembly/openai/64KiB-10            	       1	   3678833 ns/op	  17.81 MB/s	 3122080 B/op	   27384 allocs/op
+BenchmarkStreamAssembly/openai/64KiB-10            	       1	   3631292 ns/op	  18.05 MB/s	 3121856 B/op	   27377 allocs/op
+BenchmarkStreamAssembly/openai/64KiB-10            	       1	   3590833 ns/op	  18.25 MB/s	 3121856 B/op	   27377 allocs/op
+BenchmarkStreamAssembly/openai/128KiB-10           	       1	   7237625 ns/op	  18.11 MB/s	 6103744 B/op	   54516 allocs/op
+BenchmarkStreamAssembly/openai/128KiB-10           	       1	   7192917 ns/op	  18.22 MB/s	 6103744 B/op	   54516 allocs/op
+BenchmarkStreamAssembly/openai/128KiB-10           	       1	   7255792 ns/op	  18.06 MB/s	 6103744 B/op	   54516 allocs/op
+BenchmarkStreamAssembly/gemini/64KiB-10            	       1	   6418834 ns/op	  10.21 MB/s	 5014712 B/op	   42267 allocs/op
+BenchmarkStreamAssembly/gemini/64KiB-10            	       1	   6500625 ns/op	  10.08 MB/s	 5014424 B/op	   42259 allocs/op
+BenchmarkStreamAssembly/gemini/64KiB-10            	       1	   6404625 ns/op	  10.23 MB/s	 5014376 B/op	   42258 allocs/op
+BenchmarkStreamAssembly/gemini/128KiB-10           	       1	  12902375 ns/op	  10.16 MB/s	 9832664 B/op	   84250 allocs/op
+BenchmarkStreamAssembly/gemini/128KiB-10           	       1	  12914250 ns/op	  10.15 MB/s	10111752 B/op	   84261 allocs/op
+BenchmarkStreamAssembly/gemini/128KiB-10           	       1	  12931042 ns/op	  10.14 MB/s	 9833240 B/op	   84259 allocs/op
+PASS
+ok  	example.com/ensemble/internal/llm	0.130s

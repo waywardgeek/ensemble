@@ -1,0 +1,9 @@
+{
+  "source_revision": "ba902b7322a9cb5dd71c8352d45d6975663409c0",
+  "binary_sha256": "dc16f3b27fef82f46fdb37af7eb1ad7930340188afebd0ce50faf433e030a4b0",
+  "terminal": "http://127.0.0.1:50305\nEnsemble \u2014 anthropic / fixture\nType /help for commands.\nYou> /help \u2014 show commands\n/usage \u2014 token totals\n/history \u2014 event sequences and tool call IDs\n/hint TEXT \u2014 guide the next request of the active turn\n/interrupt \u2014 interrupt the active turn\n/ephemeral TEXT \u2014 one-request directive\n/redact FROM TO REASON \u2014 redact tool results in a sequence span\n/quit \u2014 finish the session\n//TEXT \u2014 submit a literal leading slash\nInput: one UTF-8 line, at most 1 MiB (1048576 bytes), excluding LF or CRLF.\nYou> Final usage: input=0, cache write=0, cache read=0, output=0\n",
+  "eof_detached_server_responds": true,
+  "model_calls": 0,
+  "exit": 0,
+  "stderr": ""
+}

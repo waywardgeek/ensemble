@@ -1,0 +1,52 @@
+Ensemble — anthropic / claude-sonnet-4-6
+Type /help for commands.
+You> /skills
+Primary: ensemble
+Revision: 0
+Roots: 
+Active:
+  ensemble (primary, activation 1)
+Available:
+Tools: edit_file, kill_job, list_directory, load_skill, read_file, run_command, search_files, send_input, tool_limits, unload_skill, wait_for_job, write_file
+You> Perform this small coding task with actual tools in the exact order: first tool_limits with ai_callback_delay 0 and max_output_bytes 1; next unload_skill with name edit (it is not loaded); next read_file for notes.txt; then write_file summary.txt containing a one-line summary of the actual notes plus a newline. Do not run a shell or load any skill. Keep the final explanation short.
+Accepted r1.
+You> 
+Request r1 / m1 (stream)
+
+[r1 Assistant part 1] I'll execute the four tools in the exact order specified, without running a shell or loading any skill.
+
+**Step 1 — tool_limits**
+[r1 proposed tool part 2] tool_limits
+[r1 proposed tool part 2] {"ai_callback_delay": 0, "max_output_bytes": 1}
+
+Request r1 / m2 (stream)
+
+[r1 Assistant part 1] **Step 2 — unload_skill (name: edit)**
+[r1 proposed tool part 2] unload_skill
+[r1 proposed tool part 2] {"name": "edit"}
+
+Request r1 / m3 (stream)
+
+[r1 Assistant part 1] Confirmed: `edit` was not loaded — status is `unchanged`, as expected.
+
+**Step 3 — read_file (notes.txt)**
+[r1 proposed tool part 2] read_file
+[r1 proposed tool part 2] {"path": "notes.txt"}
+
+Request r1 / m5 (stream)
+
+[r1 Assistant part 1] The file contains two lines: a chapter marker (`CHAPTER-NINE-NOTE-MARKER`) and a port setting (`port=8080`).
+
+**Step 4 — write_file (summary.txt)**
+[r1 proposed tool part 2] write_file
+[r1 proposed tool part 2] {"path": "summary.txt", "content": "Notes mark Chapter Nine and set the application port to 8080.\n"}
+
+Request r1 / m7 (stream)
+
+[r1 Assistant part 1] ---
+
+**Done.** All four tools ran in the prescribed order — no shell, no skill loaded. `notes.txt` held a chapter-nine marker and a port assignment (`8080`); `summary.txt` was created with a single-line summary of those contents followed by a newline.
+
+Request r1 (success; pending hints=0)
+You> /quit
+Final usage: input=15695, cache write=0, cache read=0, output=471

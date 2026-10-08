@@ -1,0 +1,48 @@
+{
+  "scope": "Real Chrome public-component DOM and controlled socket/speech tests; not actual speech/audio or live model evidence",
+  "browser": "154.0.8037.93",
+  "source": "/Users/bill/projects/ensemble/solutions/edition-2/main",
+  "asset_sha256": {
+    "app.js": "ec71ed571b9104dba2b0c89cf99f506352fad4f3a9fb270c10a03519a648fcf9",
+    "artifacts.js": "e29ae7defd91d8aac2dbe7c32f05b8cfdcef69ce45fc1922677e5c846d5ec7d6",
+    "connector.js": "7218396824aaa84230c0a510285bc9b851403806e73b291d8b948c23d18f1db6",
+    "index.html": "a54ec0b106931441e39a630cddc028ed0883070b129753042d224f19a74785da",
+    "page.js": "8ef564644a8e18439df64240bc62d2a387f2898bfc00d61616b6b787606f8c63",
+    "speech.js": "5838364d42133a1bb3eaf2fc1e43ad0828c98a1d7de20b66fbed93e52fb650b2",
+    "style.css": "c3ed398b0feb524a7a122533c1d9bc0019c7954cadf9493855402ea4cf2e5512"
+  },
+  "checker_sha256": "eef09fb1a03f3584f873113c9e3928d54b292e25507cbd7856b1d5ac2bcde77b",
+  "passed": true,
+  "checks": [
+    {
+      "id": "cards-identity-partial-final-window",
+      "passed": true,
+      "page_errors": []
+    },
+    {
+      "id": "hostile-content-expansion-keyboard-focus-scroll",
+      "passed": true,
+      "page_errors": []
+    },
+    {
+      "id": "running-report-and-job-terminal",
+      "passed": true,
+      "page_errors": []
+    },
+    {
+      "id": "speech-cancel-stale-callback-and-final-dedup",
+      "passed": true,
+      "page_errors": []
+    },
+    {
+      "id": "connector-atomic-reset-and-uncertain-prompt",
+      "passed": true,
+      "page_errors": []
+    },
+    {
+      "id": "page-input-submit-and-lost-acceptance",
+      "passed": true,
+      "page_errors": []
+    }
+  ]
+}

@@ -1,0 +1,167 @@
+Ensemble — gemini / models/gemini-3.8-flash
+Type /help for commands.
+You> /help
+/hint idle check
+/interrupt
+/ephemeral Remember EPHEMERAL-FIVE for this next request.
+Use run_command once with command "sleep 30; printf 'HINT-JOB-DONE\n'" and ai_callback_delay 45. After it returns, follow any hint I send and give a concise final answer. Do not call other tools.
+/help — show commands
+/usage — token totals
+/history — event sequences and tool call IDs
+/hint TEXT — guide the next request of the active turn
+/interrupt — interrupt the active turn
+/ephemeral TEXT — one-request directive
+/redact FROM TO REASON — redact tool results in a sequence span
+/quit — finish the session
+//TEXT — submit a literal leading slash
+Input: one UTF-8 line, at most 1 MiB (1048576 bytes), excluding LF or CRLF.
+You> Command error: hint requires nonempty text and an active turn.
+You> Interrupt: request= interrupted=false.
+You> Recorded ephemeral.
+You> Accepted r1.
+You> /hint In your final answer include exactly HINT-ACCEPTED-FIVE and briefly mention the command output.
+Hint received for r1 at seq 7; sent=false (pending next request).
+You> 
+Request r1 (success; pending hints=0)
+Assistant:
+HINT-ACCEPTED-FIVE
+
+The command completed successfully with output `HINT-JOB-DONE`.
+You> Use run_command to start this command: printf 'READY\n'; while IFS= read -r line; do printf 'seen:%s\n' "$line"; done . Set ai_callback_pattern to READY and ai_callback_delay to 5. Leave the job running and tell me its handle; do not call other tools.
+Accepted r2.
+You> 
+Request r2 (success; pending hints=0)
+Assistant:
+The command has been started and is running with handle `2`.
+You> Use send_input on handle 2, input LIVE-SEND-CHECK, append_newline true, ai_callback_pattern seen:LIVE-SEND-CHECK and ai_callback_delay 5. Show me the observed echo and input acceptance result. Leave it running; do not call other tools.
+Accepted r3.
+You> 
+Request r3 (success; pending hints=0)
+Assistant:
+The input was successfully accepted and processed:
+
+- **Input acceptance:** `send_input accepted 16 of 16 bytes`
+- **Observed echo & output:**
+  ```
+  LIVE-SEND-CHECK
+  seen:LIVE-SEND-CHECK
+  ```
+
+Job `2` remains running.
+You> Use kill_job on handle 2 and report its terminal status. Do not call other tools.
+Accepted r4.
+You> 
+Request r4 (success; pending hints=0)
+Assistant:
+Job `2` has been terminated with status: `killed`.
+You> Use run_command once with command "sleep 180; printf 'LATE-JOB\n'" and ai_callback_delay 60. Do not call other tools.
+Accepted r5.
+You> Reply exactly QUEUED-FIVE; do not call tools.
+/ephemeral This busy change must be refused.
+/redact 1 2 busy change
+/interrupt
+Accepted r6.
+You> Command refused: Agent busy.
+You> Command refused: Agent busy.
+You> Interrupt: request=r5 interrupted=true.
+You> 
+Request r5 (interrupted; pending hints=0)
+interrupted: turn interrupted
+You> 
+Request r6 (success; pending hints=0)
+Assistant:
+QUEUED-FIVE
+You> Inspect handle 3 using wait_for_job with ai_callback_delay 0, then explicitly kill it with kill_job. Report the before and after status.
+Accepted r7.
+You> 
+Request r7 (success; pending hints=0)
+Assistant:
+- **Before status (via `wait_for_job`):** `running`
+- **After status (via `kill_job`):** `killed`
+You> Use run_command once with command "sleep 180; printf 'SHUTDOWN-JOB\n'" and ai_callback_delay 0. Tell me the running handle and leave it running for application shutdown. Do not wait again or kill it.
+Accepted r8.
+You> 
+Request r8 (success; pending hints=0)
+Assistant:
+The command has been started and is running with handle `4`. It has been left running as requested.
+You> /history
+/usage
+/quit
+History:
+1 message_received
+2 turn_started
+3 message_received
+4 request_sent
+5 response_ended
+6 tool_called call_id=call_245528
+7 hint_received
+8 job_ended
+9 tool_returned call_id=call_245528
+10 request_sent
+11 response_ended
+12 turn_ended
+13 turn_started
+14 message_received
+15 request_sent
+16 response_ended
+17 tool_called call_id=call_243670
+18 tool_returned call_id=call_243670
+19 request_sent
+20 response_ended
+21 turn_ended
+22 turn_started
+23 message_received
+24 request_sent
+25 response_ended
+26 tool_called call_id=call_163516
+27 tool_returned call_id=call_163516
+28 request_sent
+29 response_ended
+30 turn_ended
+31 turn_started
+32 message_received
+33 request_sent
+34 response_ended
+35 tool_called call_id=call_201459
+36 job_killed
+37 tool_returned call_id=call_201459
+38 request_sent
+39 response_ended
+40 turn_ended
+41 turn_started
+42 message_received
+43 request_sent
+44 response_ended
+45 tool_called call_id=call_210282
+46 tool_returned call_id=call_210282
+47 turn_ended
+48 turn_started
+49 message_received
+50 request_sent
+51 response_ended
+52 turn_ended
+53 turn_started
+54 message_received
+55 request_sent
+56 response_ended
+57 tool_called call_id=call_192652
+58 tool_returned call_id=call_192652
+59 request_sent
+60 response_ended
+61 tool_called call_id=call_141426
+62 job_killed
+63 tool_returned call_id=call_141426
+64 request_sent
+65 response_ended
+66 turn_ended
+67 turn_started
+68 message_received
+69 request_sent
+70 response_ended
+71 tool_called call_id=call_113496
+72 tool_returned call_id=call_113496
+73 request_sent
+74 response_ended
+75 turn_ended
+You> Usage: input=45025, cache write=0, cache read=0, output=1423
+You> Final usage: input=45025, cache write=0, cache read=0, output=1423

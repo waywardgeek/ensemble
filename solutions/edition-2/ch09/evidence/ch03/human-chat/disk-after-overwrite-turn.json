@@ -1,0 +1,107 @@
+{
+  "anthropic": {
+    "created": "replacement\ntail\n",
+    "calls": [
+      {
+        "call_id": "toolu_017g3RaeMdYcKs7Z8kCHsned",
+        "name": "write_file",
+        "args": {
+          "path": "created.txt",
+          "content": "replacement\n"
+        }
+      },
+      {
+        "call_id": "toolu_01YXVvFJBGDSoMmMTZqQRQMD",
+        "name": "write_file",
+        "args": {
+          "path": "created.txt",
+          "content": "replacement\n",
+          "overwrite": true
+        }
+      },
+      {
+        "call_id": "toolu_01LXSCFNWj9AZRgwbKwJ2h2E",
+        "name": "write_file",
+        "args": {
+          "path": "created.txt",
+          "content": "tail\n",
+          "append": true
+        }
+      },
+      {
+        "call_id": "toolu_01B2t8PyoGv4FySpyJGbea44",
+        "name": "read_file",
+        "args": {
+          "path": "created.txt"
+        }
+      }
+    ]
+  },
+  "openai": {
+    "created": "first edited\nsecond line\ntail\n",
+    "calls": [
+      {
+        "call_id": "call_KhKKvwRo5iTiVvoMvKvxtWxM",
+        "name": "write_file",
+        "args": {
+          "path": "created.txt",
+          "content": "replacement\n"
+        }
+      },
+      {
+        "call_id": "call_iU6Q0u9UzvIzhSTolVuJYbjU",
+        "name": "write_file",
+        "args": {
+          "path": "created.txt",
+          "content": "tail\n",
+          "append": true
+        }
+      },
+      {
+        "call_id": "call_mJudMYCGgItlP5gACUzm7Qus",
+        "name": "read_file",
+        "args": {
+          "path": "created.txt"
+        }
+      }
+    ]
+  },
+  "gemini": {
+    "created": "replacement\ntail\n",
+    "calls": [
+      {
+        "call_id": "call_92299",
+        "name": "write_file",
+        "args": {
+          "path": "created.txt",
+          "content": "replacement\n"
+        }
+      },
+      {
+        "call_id": "call_51301",
+        "name": "write_file",
+        "args": {
+          "content": "replacement\n",
+          "overwrite": true,
+          "path": "created.txt"
+        }
+      },
+      {
+        "call_id": "call_99348",
+        "name": "write_file",
+        "args": {
+          "append": true,
+          "content": "tail\n",
+          "path": "created.txt"
+        }
+      },
+      {
+        "call_id": "call_58797",
+        "name": "read_file",
+        "args": {
+          "path": "created.txt"
+        }
+      }
+    ]
+  }
+}

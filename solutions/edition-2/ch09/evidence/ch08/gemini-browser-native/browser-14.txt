@@ -1,0 +1,83 @@
+ENSEMBLE / LOCAL WORKSPACE
+
+Agent workspace
+
+Connected — agent-1-g1
+
+Tool admissions paused — typing: 1, speaking: 0. Already admitted work continues.
+
+agent-1 — idle
+
+Agents
+Settings
+Appearance and speech
+Theme
+Dark
+Light
+System
+Font size
+Sidebar width
+Actions width
+Autoplay new answers
+
+Shared across tabs. New visible answers, exposed thinking and concise tool summaries can speak. Tool results and replay remain silent. Existing speech continues when autoplay turns off.
+
+Speech rate
+
+Applied revision 0: dark, 16px, widths 260/380, autoplay off, rate 1.
+
+Agent policy
+
+Next turn: 2 model requests; revision 2; persistent. Active turn: none.
+
+Maximum model requests per turn
+
+0 selects Default (16). Changes apply when a later turn activates.
+
+Apply Agent policy
+Chat
+You
+Use read_file to read notes.txt now, then report its exact marker and port in one sentence.
+
+Speak
+Answer
+
+Accepted
+
+Speak
+Error
+round_limit: 1 model requests completed; final tool batch retained
+
+Speak
+Request r1
+Outcome: round_limit
+
+Speak
+Return to latest
+Enable playback on this page
+Cancel speech
+Prompt or correction
+Send prompt
+Send hint
+Interrupt
+
+Request r1: round_limit — round_limit: 1 model requests completed; final tool batch retained
+
+Actions
+Tool: read_file
+read_file
+{
+  "path": "notes.txt"
+}
+
+Report delivered — done
+
+Speak
+Tool result: call_318494
+CHAPTER-EIGHT-FILE-MARKER
+port=8080
+The workspace remembers settings while each page owns its current speech and unfinished corrections. A queued sentence keeps its original speaking rate. The workspace remembers settings while each page owns its current speech and unfinished corrections. A queued sentence keeps its original speaking rate. The workspace remembers settings while each page owns its current speech and unfinished corrections. A queued sentence keeps its original speaking rate. The workspace remembers settings while each page owns its current speech and unfinished corrections. A queued sentence keeps its original speaking rate. The workspace remembers settings while each page owns its current speech and unfinished corrections. A queued sentence keeps its original speaking rate. The workspace remembers settings while each page owns its current speech and unfinished corrections. A queued sentence keeps its original speaking rate. The workspace remembers settings while each page owns its current speech and unfinished corrections. A queued sentence keeps its original speaking rate. The workspace remembers settings while each page owns its current speech and unfinished corre
+
+Report delivered · done · 61 characters omitted from preview
+
+Expand full retained textSpeak

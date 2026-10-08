@@ -1,0 +1,27 @@
+go run ./cmd/grade -ch 4 solutions/edition-2/main
+Chapter 4 — Jobs: Containment, Not Cancellation
+============================================================
+
+[FAIL]      Chapter 3's six tools and the tool loop still work  (0/10)
+       turning tool calls into jobs broke Chapter 3: ch2parity (0/10)
+
+[PASS]      handle at the dispatch site for every tool; result retrievable after the call  (25/25)
+
+[PASS]      wait_for_job blocks until done and works on an already-finished job  (10/10)
+
+[PASS]      input reaches a running process and its response comes back  (10/10)
+
+[PASS]      the agent drives dlv: breakpoint, continue, print, quit  (5/5)
+
+[PASS]      kill_job stops the process and anything waiting on it is told  (10/10)
+
+[PASS]      full output on disk, stub with byte count and path in context, truncation at dispatch  (15/15)
+
+[PASS]      tool_limits applies to exactly the next call; defaults otherwise; explicit args win  (10/10)
+
+[PASS]      at exit, running jobs are killed and the log says so  (5/5)
+
+------------------------------------------------------------
+score: 90/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1

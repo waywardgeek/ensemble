@@ -1,18 +1,24 @@
 # Chapter 9 validation
 
-Skills chapter work, October 8, 2026. A fresh student is implementing from
+Skills chapter accepted, October 8, 2026. The fresh student implemented from
 accepted `edition-2-ch08-r1` (`bfdadaf5`), source `446d7f2` and tree
 `58d3fbf4`. Bill's editorial approval remains separate from technical validation.
+
+All chapter gates are accepted. Checkpoint `edition-2-ch09-r1` preserves the
+exact 4,012-file export from `ac55f64`, tree `94315d7`, including eleven Go
+modules. Runtime `06c6787`, independent code acceptance `19d2fdf`, live acceptance
+`2dc5841`, final manuscript `05d1606` and proofread `d022176` retain their
+distinct scopes. See the source manifest and export-check receipt for identities.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Contract | Author, coordinator | Earlier contract/three-question responses accepted and confirmed; complete encoded skill-record boundary `d8c7738` confirmed by the student | Preserve original-raw import measurement separately from newly emitted write size |
-| Independent checks | Initial `/root/coder_ch08`; continuing `/root/grader_ch05` | Complete initial gate passes all 67 rows on `654075b`; reviewer confirms six targeted write/import controls on repair `c0e3171`, including exact-size and intended deletion failures; original fixture failures retained | Reconcile any affected selected rerun and retain each result's original source identity |
+| Independent checks | Initial `/root/coder_ch08`; continuing `/root/grader_ch05` | Initial 67-row gate on `654075b`, targeted import/stream repairs and accepted comparative checks on `06c6787`; all delivered modules discovered successfully | Complete; preserve each check's actual source identity |
 | Student and ownership plan | Fresh CLI student `01a11c0d-47b8-7241-8834-5ddf57ac5009` | Initial new-only read ledger and plan `5ac45e4`; owners/API accepted; author responses `8f24360` confirmed, recorded at `080fbca` | Retain initial experience and append new findings |
 | Initial implementation and live use | Same fresh student, independent reviewer `/root/coder_ch08` | Accepted at `2dc5841`: freeze `786ff23` accounts for 93 generation attempts plus three discovery calls; all 499 original hashes and exact request reconstructions reconcile, with partial outcomes and keyboard/audio limits preserved | Retain source identities; repeat only demonstrations affected by later corrections |
-| Historical comparison and revisions | Independent code reviewer `/root/grader_ch05`, same student | Grouped R1/R2 revision `06c6787` passes both affected modules, seven selected public/race groups and four targeted deletion controls; final independent source/receipt review is closing | Record final comparative disposition; no paid repeat |
-| Manuscript and feedback | Author, student, proofreader | Actual spin reconciled at `01049b7`; final independent proofread `7f5a0a4` accepts `29a9380`, including eleven unchanged JSON fixtures | Obtain student confirmation of pinned final chapter/direct response |
-| Export and checkpoint | Coordinator | Not started | Complete all gates before immutable chapter export/tag |
+| Historical comparison and revisions | Independent code reviewer `/root/grader_ch05`, same student | Accepted at `19d2fdf`: R1/R2 closed on `06c6787`, with both affected modules, seven selected public/race groups and four specific overlay failures | Complete; original live identities remain unchanged |
+| Manuscript and feedback | Author, student, proofreader | Student confirms final teaching/feedback in `06c6787`; author reconciliation `05d1606` and final independent proofread `d022176` accepted; eleven JSON fixtures unchanged | Complete; Bill's editorial approval remains separate |
+| Export and checkpoint | Coordinator | Exact 4,012-file export and all eleven delivered-module discovery checks pass; immutable `edition-2-ch09-r1` checkpoint | Release this accepted predecessor to a fresh Chapter 10 student |
 
 The draft commit also captured concurrently staged Chapter 7 student files.
 The author disclosed the shared-index race; the Chapter 7 student inspected its
@@ -91,14 +97,14 @@ hearing, intelligibility or Bill participation is asserted.
 
 ## Fresh worker launch
 
-The same session resumed for a local-only comparative revision phase after
+The same session completed a local-only comparative revision phase after
 initial freeze `786ff23`. The external `phase-4.txt` supplies R1/R2 rationale
 without historical code or reviewer research. `clarification-29a9380` pins only
 the new chapter and direct author response, with immutable hashes. The student
 must confirm the final reconciliation and append the effect of revisions to
 its initial teaching review. Earlier paid-phase releases are closed; this phase
-authorizes no provider calls or credential reads. The independent review will
-check the grouped source/evidence freeze before export.
+authorized no provider calls or credential reads. The independent review accepts
+the grouped source/evidence freeze `06c6787`; the worker exited successfully.
 
 The managed spawn tool returned `agent thread limit reached` twice. Interrupting
 a completed worker did not release a slot. The coordinator started a new local

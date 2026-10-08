@@ -1,0 +1,41 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "functionCall": {
+              "name": "run_command",
+              "args": {
+                "command": "printf 'READY\\n'; while IFS= read -r line; do printf 'seen:%s\\n' \"$line\"; done",
+                "ai_callback_delay": 5,
+                "ai_callback_pattern": "READY"
+              },
+              "id": "call_243670"
+            },
+            "thoughtSignature": "Et0DCtoDAWkUfRMNudLQp7tU0Pirp+jRH9AkOK9HxRhqK47OOx9WG3iQ5JDnET2RgaBBQYB/8FbCyo8zfZKqsahMBM81dZLuPDr4OOjsttboH8JGxgEKlYUMBC8W1ZD5k4kCzsKf8PsRsJPJXrFl0/LSBHd7F9/H5o0HYPaadUcByZn3Did73QteHiM9RaUJn3Nt03Hme5Gdn/E/Tv0ku0QWREszzRWxyouVqO8YjyAFjvRFm4cK6CFPXN62D3c/NjHyCVvU2PeNlsz6fg3RIvJPvYvtwIVweSU7VMh/usKrjxs99XrGSjYC2yvaodssE27zMhm5aS7Q/Obp2dYSPn+as3rWw+0T/Io+y0ldJ7FidxYCUt+xyhFAmcTQQbRXX0Jhs0XvS8z+G2FMLu7dxmeE+Aaqh7qvplYuLyHlZV2DsmOBsJ76NH4y3Ptu2L2DWxIu9pj4Zee0eLH9u3rqyZVEGINFK+0IDZ2QdKisabwQZuMYVzAeK7drdBDZ9j3CEUriljh0eJxJIZmQCUmSi4BceiQzWUCV3bhV1M38+Fh41EWBXi1tu4Vlc3lSOAdtl98U/hx4JbJbd4OTs/PbNxB2BDaKjIc0hOfsdXOjkU5r2o9iVilamR3QHakrdeqb"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0,
+      "finishMessage": "Model generated function call(s)."
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2282,
+    "candidatesTokenCount": 60,
+    "totalTokenCount": 2454,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2282
+      }
+    ],
+    "thoughtsTokenCount": 112,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.8-flash",
+  "responseId": "SNXGavakEqu31MkPhsylqA8"
+}

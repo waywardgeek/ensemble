@@ -1,0 +1,89 @@
+{
+  "scope": "two affected modules; no paid calls or credentials",
+  "source_sha256": {
+    "skills.go": "cef3127b79b4f384c72119135ae35bb5ca6cbd8dbda740756a6bc4ebb2fb6dac",
+    "watch.go": "d7ebb74f5350e4660dd241012fa8476d46bd17c42bf6193767743fd7d8a61c1f",
+    "skills_reads_test.go": "1502eb4e892759e3f2a8f70d0f43ba675a16d61e84d2aab6f08e8a35a4408afd",
+    "internal/common/skills.go": "5f8a6315cb3e2de70921ed237bf68fe6232596fcbe6b8e135f0a82c05695dd9f",
+    "internal/common/types.go": "63ab13fc8cb4ad4badab7c03bfae882bc0677dacdd19e9b85f64975c4e37caa9",
+    "internal/common/actor.go": "e9746931047c9ff55063e49a0c593ab71d902f99bf65ddd1d5b691102ae2a236",
+    "internal/skills/skills.go": "23b338951c4917025ccabc89e11c8c121ddf53a2f5cf77fb25c437aa155b0ae6",
+    "internal/skills/reads_test.go": "3fd1083fc7c2b2f0f07c6c95e64dcd2588aca3c9318b20b11b34880dc531c28e",
+    "internal/llm/skills.go": "edbea9ff6860ff0cc152d2273e0cba7ce57416185da6a4a18315e23fa3626615",
+    "internal/llm/watch.go": "f0117990243efe5080f631dd7d163e49fd6081e9e5a6aceb888b3d8071e39a41",
+    "internal/llm/actor.go": "cc5d6175a8d13012efd74e36f902f9c89239872d9aa6bf3ae8646ab7d3298d0b",
+    "examples/skills-consumer/main.go": "7bf3af89038fc87030dff7db0c27b1e9449dc54f6f507f1bd9633e9e27d34817",
+    "examples/skills-consumer/main_test.go": "3ba270f454572079c4d41c74d57be67d24e6dab752d790a778d38c98a054392b"
+  },
+  "commands": [
+    {
+      "command": [
+        "gofmt",
+        "-l",
+        "skills.go",
+        "watch.go",
+        "skills_reads_test.go",
+        "internal/common/skills.go",
+        "internal/common/types.go",
+        "internal/common/actor.go",
+        "internal/skills/skills.go",
+        "internal/skills/reads_test.go",
+        "internal/llm/skills.go",
+        "internal/llm/watch.go",
+        "internal/llm/actor.go",
+        "examples/skills-consumer/main.go",
+        "examples/skills-consumer/main_test.go"
+      ],
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/main",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/main",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "./...",
+        "-count=1"
+      ],
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/main",
+      "exit_code": 0,
+      "stdout": "ok  \texample.com/ensemble\t9.081s\nok  \texample.com/ensemble/cli\t0.060s\n?   \texample.com/ensemble/cmd\t[no test files]\n?   \texample.com/ensemble/internal/common\t[no test files]\nok  \texample.com/ensemble/internal/eventlog\t0.314s\nok  \texample.com/ensemble/internal/jobs\t0.897s\nok  \texample.com/ensemble/internal/llm\t6.152s\n?   \texample.com/ensemble/internal/policy\t[no test files]\nok  \texample.com/ensemble/internal/skills\t0.068s\nok  \texample.com/ensemble/internal/tools\t0.013s\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "go",
+        "vet",
+        "./..."
+      ],
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/main/examples/skills-consumer",
+      "exit_code": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "./...",
+        "-count=1"
+      ],
+      "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/main/examples/skills-consumer",
+      "exit_code": 0,
+      "stdout": "ok  \texample.com/skills-consumer\t0.083s\n",
+      "stderr": ""
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "source": "a347ce31511c4b124e486bb41ef98c07bd17cec5:solutions/edition-2/main",
+  "verifier_sha256": "4cda28de5f131a0327317d9b1814f9ef716450fdb1e964c0a216d2be5af60641",
+  "controls_sha256": "0e2d8a9e14a5c23c9ffb6f063be839e501e85f0525d0888d4fc681c8955cc951",
+  "binary_sha256": "3d49d9037077929b7380fbbae020e968c79075ac94eb95c939535aa606523990",
+  "original_evidence_unchanged": true,
+  "cases": [
+    {
+      "case": "wrong-executable",
+      "exit": 1,
+      "stderr": "Binding verification failed: executable hash differs from the recorded binary\n",
+      "evidence_byte_identical": true,
+      "output_exists": false
+    },
+    {
+      "case": "wrong-source",
+      "exit": 1,
+      "stderr": "Binding verification failed: source must identify the immutable initial commit and path prefix\n",
+      "evidence_byte_identical": true,
+      "output_exists": false
+    },
+    {
+      "case": "changed-launch",
+      "exit": 1,
+      "stderr": "Binding verification failed: gemini-main/launch.json differs from the immutable receipt\n",
+      "evidence_byte_identical": true,
+      "output_exists": false
+    },
+    {
+      "case": "original-binary-and-revision",
+      "exit": 0,
+      "stderr": "",
+      "evidence_byte_identical": true,
+      "output_exists": true,
+      "all_derived_bytes_equal_initial": true
+    }
+  ]
+}

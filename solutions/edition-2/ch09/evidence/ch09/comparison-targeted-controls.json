@@ -1,0 +1,33 @@
+[
+  {
+    "command": [
+      "go",
+      "test",
+      "./internal/skills",
+      ".",
+      "-run",
+      "Test(NarrowReadsExcludeRetainedMaterial|CurrentSkillReadsStayNarrowAndOwned)$",
+      "-count=1",
+      "-v"
+    ],
+    "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/main",
+    "exit_code": 0,
+    "stdout": "=== RUN   TestNarrowReadsExcludeRetainedMaterial\n    reads_test.go:41: grant allocations short=1 long=1; full long inspection=543; retired=256\n--- PASS: TestNarrowReadsExcludeRetainedMaterial (0.01s)\nPASS\nok  \texample.com/ensemble/internal/skills\t0.017s\n=== RUN   TestCurrentSkillReadsStayNarrowAndOwned\n    skills_reads_test.go:71: Agent grants short=1 long=1 allocations; state=8 inspection=64\n--- PASS: TestCurrentSkillReadsStayNarrowAndOwned (0.03s)\nPASS\nok  \texample.com/ensemble\t0.040s\n",
+    "stderr": ""
+  },
+  {
+    "command": [
+      "go",
+      "test",
+      "./...",
+      "-run",
+      "TestConsumerIndependentTerminalOutcomes",
+      "-count=1",
+      "-v"
+    ],
+    "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/main/examples/skills-consumer",
+    "exit_code": 0,
+    "stdout": "=== RUN   TestConsumerIndependentTerminalOutcomes\n=== RUN   TestConsumerIndependentTerminalOutcomes/all-success\n    main_test.go:184: terminal outcomes: success/success; each2 HTTP; aggregate error=false\n=== RUN   TestConsumerIndependentTerminalOutcomes/first-round-limit-second-success\n    main_test.go:184: terminal outcomes: round_limit/success; each2 HTTP; aggregate error=true\n--- PASS: TestConsumerIndependentTerminalOutcomes (0.05s)\n    --- PASS: TestConsumerIndependentTerminalOutcomes/all-success (0.03s)\n    --- PASS: TestConsumerIndependentTerminalOutcomes/first-round-limit-second-success (0.02s)\nPASS\nok  \texample.com/skills-consumer\t0.058s\n",
+    "stderr": ""
+  }
+]

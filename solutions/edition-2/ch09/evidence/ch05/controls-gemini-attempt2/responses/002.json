@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The command has finished. Please provide the hint."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 1760,
+    "candidatesTokenCount": 10,
+    "totalTokenCount": 1770,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 1760
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-2.5-flash-lite",
+  "responseId": "acrGaqqIJLO3jrEP1qWHeA"
+}

@@ -1,0 +1,300 @@
+{
+  "runs": [
+    {
+      "run": "anthropic-eof",
+      "exit_code": 0,
+      "vendor": "anthropic",
+      "selected_model": "claude-sonnet-5-5",
+      "mode": "chat",
+      "requests": 0,
+      "kind": "actual terminal clean EOF; no paid request"
+    },
+    {
+      "run": "anthropic-invalid-target",
+      "exit_code": 1,
+      "vendor": "anthropic",
+      "selected_model": "claude-sonnet-5-5",
+      "mode": "chat",
+      "requests": 0,
+      "kind": "local invalid redaction target control; no paid request"
+    },
+    {
+      "run": "anthropic-main",
+      "exit_code": 0,
+      "vendor": "anthropic",
+      "selected_model": "claude-sonnet-5-5",
+      "mode": "default",
+      "requests": 3,
+      "answers": [
+        "Silent Harbor",
+        "Silent Harbor\nrobraH tneliS",
+        "SLASH-OK"
+      ],
+      "usage": {
+        "input": 418,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 168
+      },
+      "identities": [
+        {
+          "requested": {
+            "vendor": "anthropic",
+            "model": "claude-sonnet-5-5",
+            "surface": "messages"
+          },
+          "returned": {
+            "vendor": "anthropic",
+            "model": "claude-sonnet-5-5",
+            "surface": "messages"
+          },
+          "model_reported": true
+        },
+        {
+          "requested": {
+            "vendor": "anthropic",
+            "model": "claude-sonnet-5-5",
+            "surface": "messages"
+          },
+          "returned": {
+            "vendor": "anthropic",
+            "model": "claude-sonnet-5-5",
+            "surface": "messages"
+          },
+          "model_reported": true
+        },
+        {
+          "requested": {
+            "vendor": "anthropic",
+            "model": "claude-sonnet-5-5",
+            "surface": "messages"
+          },
+          "returned": {
+            "vendor": "anthropic",
+            "model": "claude-sonnet-5-5",
+            "surface": "messages"
+          },
+          "model_reported": true
+        }
+      ],
+      "ephemera_offline_reconstruction": [
+        {
+          "request_seq": 2,
+          "consumed_sequences": [],
+          "marker_in_reconstructed_request": false
+        },
+        {
+          "request_seq": 6,
+          "consumed_sequences": [
+            4
+          ],
+          "marker_in_reconstructed_request": true
+        },
+        {
+          "request_seq": 9,
+          "consumed_sequences": [],
+          "marker_in_reconstructed_request": false
+        }
+      ],
+      "offline_dump_and_pure_render": true
+    },
+    {
+      "run": "gemini-eof",
+      "exit_code": 0,
+      "vendor": "gemini",
+      "selected_model": "models/gemini-3.8-flash",
+      "mode": "default",
+      "requests": 0,
+      "kind": "actual terminal clean EOF; no paid request"
+    },
+    {
+      "run": "gemini-invalid-target",
+      "exit_code": 1,
+      "vendor": "gemini",
+      "selected_model": "models/gemini-3.8-flash",
+      "mode": "chat",
+      "requests": 0,
+      "kind": "local invalid redaction target control; no paid request"
+    },
+    {
+      "run": "gemini-main",
+      "exit_code": 0,
+      "vendor": "gemini",
+      "selected_model": "models/gemini-3.8-flash",
+      "mode": "chat",
+      "requests": 3,
+      "answers": [
+        "Cobalt Echo",
+        "Cobalt Echo\nohcE tlaboC",
+        "SLASH-OK"
+      ],
+      "usage": {
+        "input": 212,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 894
+      },
+      "identities": [
+        {
+          "requested": {
+            "vendor": "gemini",
+            "model": "models/gemini-3.8-flash",
+            "surface": "generate_content"
+          },
+          "returned": {
+            "vendor": "gemini",
+            "model": "gemini-3.8-flash",
+            "surface": "generate_content"
+          },
+          "model_reported": true
+        },
+        {
+          "requested": {
+            "vendor": "gemini",
+            "model": "models/gemini-3.8-flash",
+            "surface": "generate_content"
+          },
+          "returned": {
+            "vendor": "gemini",
+            "model": "gemini-3.8-flash",
+            "surface": "generate_content"
+          },
+          "model_reported": true
+        },
+        {
+          "requested": {
+            "vendor": "gemini",
+            "model": "models/gemini-3.8-flash",
+            "surface": "generate_content"
+          },
+          "returned": {
+            "vendor": "gemini",
+            "model": "gemini-3.8-flash",
+            "surface": "generate_content"
+          },
+          "model_reported": true
+        }
+      ],
+      "ephemera_offline_reconstruction": [
+        {
+          "request_seq": 2,
+          "consumed_sequences": [],
+          "marker_in_reconstructed_request": false
+        },
+        {
+          "request_seq": 6,
+          "consumed_sequences": [
+            4
+          ],
+          "marker_in_reconstructed_request": true
+        },
+        {
+          "request_seq": 9,
+          "consumed_sequences": [],
+          "marker_in_reconstructed_request": false
+        }
+      ],
+      "offline_dump_and_pure_render": true
+    },
+    {
+      "run": "openai-eof",
+      "exit_code": 0,
+      "vendor": "openai",
+      "selected_model": "gpt-6-luna",
+      "mode": "default",
+      "requests": 0,
+      "kind": "actual terminal clean EOF; no paid request"
+    },
+    {
+      "run": "openai-invalid-target",
+      "exit_code": 1,
+      "vendor": "openai",
+      "selected_model": "gpt-6-luna",
+      "mode": "chat",
+      "requests": 0,
+      "kind": "local invalid redaction target control; no paid request"
+    },
+    {
+      "run": "openai-main",
+      "exit_code": 0,
+      "vendor": "openai",
+      "selected_model": "gpt-6-luna",
+      "mode": "chat",
+      "requests": 3,
+      "answers": [
+        "Velvet Comet",
+        "Velvet Comet\ntemoC tevleV",
+        "SLASH-OK"
+      ],
+      "usage": {
+        "input": 263,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 160
+      },
+      "identities": [
+        {
+          "requested": {
+            "vendor": "openai",
+            "model": "gpt-6-luna",
+            "surface": "chat_completions"
+          },
+          "returned": {
+            "vendor": "openai",
+            "model": "gpt-6-luna",
+            "surface": "chat_completions"
+          },
+          "model_reported": true
+        },
+        {
+          "requested": {
+            "vendor": "openai",
+            "model": "gpt-6-luna",
+            "surface": "chat_completions"
+          },
+          "returned": {
+            "vendor": "openai",
+            "model": "gpt-6-luna",
+            "surface": "chat_completions"
+          },
+          "model_reported": true
+        },
+        {
+          "requested": {
+            "vendor": "openai",
+            "model": "gpt-6-luna",
+            "surface": "chat_completions"
+          },
+          "returned": {
+            "vendor": "openai",
+            "model": "gpt-6-luna",
+            "surface": "chat_completions"
+          },
+          "model_reported": true
+        }
+      ],
+      "ephemera_offline_reconstruction": [
+        {
+          "request_seq": 2,
+          "consumed_sequences": [],
+          "marker_in_reconstructed_request": false
+        },
+        {
+          "request_seq": 6,
+          "consumed_sequences": [
+            4
+          ],
+          "marker_in_reconstructed_request": true
+        },
+        {
+          "request_seq": 9,
+          "consumed_sequences": [],
+          "marker_in_reconstructed_request": false
+        }
+      ],
+      "offline_dump_and_pure_render": true
+    }
+  ],
+  "credential_scan": "all evidence scanned against actual authorized keys; no matches",
+  "ephemera_note": "Requests reconstructed offline from actual durable log prefixes; not intercepted live HTTP bodies."
+}
