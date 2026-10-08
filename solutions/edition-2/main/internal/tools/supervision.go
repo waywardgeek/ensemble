@@ -171,10 +171,9 @@ func (r *Registry) LimitCandidate(call common.Part) (common.LimitValues, error) 
 	if call.Name != "tool_limits" {
 		return value, r.failure("not a limit setter")
 	}
-	entry, ok := r.entries[call.Name]
-	if !ok {
-		return value, r.failure("limit setter unavailable")
-	}
+	// Historical validation has an inert Registry with no installed handlers.
+	// Decoding belongs here, while live availability is checked by dispatch.
+	entry := entry{fields: r.limitFields()}
 	if _, err := r.decode(call.Name, entry, call.Args); err != nil {
 		return value, err
 	}

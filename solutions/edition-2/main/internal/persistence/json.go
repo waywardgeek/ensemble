@@ -33,13 +33,16 @@ func (c *Codec) parse(data []byte) (any, error) {
 	return c.parseJSON(data, true)
 }
 func (c *Codec) ValidateLogJSON(data []byte, session bool) error {
-	v, err := c.parseJSON(data, session)
+	v, err := c.parseMode(data, session, true, false, nil)
 	if err != nil {
 		return err
 	}
 	return c.eventFields(v)
 }
 func (c *Codec) parseJSON(data []byte, scalar bool) (any, error) {
+	return c.parseMode(data, scalar, false, false, nil)
+}
+func (c *Codec) parseMode(data []byte, scalar, event, arguments bool, duplicate *bool) (any, error) {
 	if !utf8.Valid(data) {
 		return nil, c.bad("JSON is not UTF-8")
 	}
@@ -50,7 +53,7 @@ func (c *Codec) parseJSON(data []byte, scalar bool) (any, error) {
 	}
 	d := json.NewDecoder(bytes.NewReader(data))
 	d.UseNumber()
-	v, err := c.value(d, 0)
+	v, err := c.value(d, 0, "", event, arguments, duplicate)
 	if err != nil {
 		return nil, err
 	}
@@ -104,7 +107,7 @@ func (c *Codec) scalarEscapes(data []byte) error {
 	}
 	return nil
 }
-func (c *Codec) value(d *json.Decoder, depth int) (any, error) {
+func (c *Codec) value(d *json.Decoder, depth int, path string, event, arguments bool, duplicate *bool) (any, error) {
 	t, err := d.Token()
 	if err != nil {
 		return nil, c.bad("invalid JSON")
@@ -119,6 +122,7 @@ func (c *Codec) value(d *json.Decoder, depth int) (any, error) {
 	switch delim {
 	case '{':
 		out := map[string]any{}
+		count := 0
 		for d.More() {
 			t, err := d.Token()
 			if err != nil {
@@ -129,14 +133,27 @@ func (c *Codec) value(d *json.Decoder, depth int) (any, error) {
 				return nil, c.bad("invalid object key")
 			}
 			if _, ok = out[key]; ok {
-				return nil, c.bad("duplicate JSON member")
+				if !arguments {
+					return nil, c.bad("duplicate JSON member")
+				}
+				if duplicate != nil {
+					*duplicate = true
+				}
 			}
-			if len(out) >= CollectionLimit {
+			count++
+			if count > CollectionLimit {
 				return nil, c.bad("object collection limit")
 			}
-			v, err := c.value(d, depth+1)
+			child := path + "/" + key
+			argumentField := event && c.argumentPath(child)
+			v, err := c.value(d, depth+1, child, event, arguments || argumentField, duplicate)
 			if err != nil {
 				return nil, err
+			}
+			if argumentField {
+				if _, ok := v.(map[string]any); !ok {
+					return nil, c.bad("arguments must be an object")
+				}
 			}
 			out[key] = v
 		}
@@ -150,7 +167,7 @@ func (c *Codec) value(d *json.Decoder, depth int) (any, error) {
 			if len(out) >= CollectionLimit {
 				return nil, c.bad("array collection limit")
 			}
-			v, err := c.value(d, depth+1)
+			v, err := c.value(d, depth+1, path+"/*", event, arguments, duplicate)
 			if err != nil {
 				return nil, err
 			}
@@ -323,4 +340,57 @@ func (c *Codec) EqualJSON(a, b []byte) bool {
 	}
 	y, e := c.Canonical(b)
 	return e == nil && bytes.Equal(x, y)
+}
+
+// Only typed event argument positions may contain ambiguous JSON members.
+// All surrounding structures (including the args member itself) remain strict.
+func (c *Codec) argumentPath(path string) bool {
+	if path == "/tool/args" {
+		return true
+	}
+	for _, prefix := range []string{"/response/parts/*", "/message/parts/*", "/tool/parts/*"} {
+		if !strings.HasPrefix(path, prefix) {
+			continue
+		}
+		rest := strings.TrimPrefix(path, prefix)
+		for strings.HasPrefix(rest, "/parts/*") {
+			rest = strings.TrimPrefix(rest, "/parts/*")
+		}
+		if rest == "/args" {
+			return true
+		}
+	}
+	return false
+}
+func (c *Codec) arguments(raw []byte, scalar bool) (any, bool, error) {
+	if len(raw) > common.SkillRecordLimit {
+		return nil, false, c.bad("argument byte limit")
+	}
+	duplicate := false
+	value, err := c.parseMode(raw, scalar, false, true, &duplicate)
+	if err != nil {
+		return nil, false, err
+	}
+	if _, ok := value.(map[string]any); !ok {
+		return nil, false, c.bad("arguments must be an object")
+	}
+	return value, duplicate, nil
+}
+
+// Ambiguous objects have no canonical map meaning. Never discard their members
+// to compare them; exact accepted text is the only correspondence in that case.
+func (c *Codec) EqualArguments(a, b []byte, scalar bool) bool {
+	x, xd, err := c.arguments(a, scalar)
+	if err != nil {
+		return false
+	}
+	y, yd, err := c.arguments(b, scalar)
+	if err != nil {
+		return false
+	}
+	if xd || yd {
+		return bytes.Equal(a, b)
+	}
+	var left, right bytes.Buffer
+	return c.canonicalValue(&left, x) == nil && c.canonicalValue(&right, y) == nil && bytes.Equal(left.Bytes(), right.Bytes())
 }

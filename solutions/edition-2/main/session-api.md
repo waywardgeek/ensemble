@@ -81,3 +81,12 @@ Cancellation stops only the caller's wait after admission; Actor/SessionStore
 finish the accepted save and publish its result. It never rolls back a commit.
 The optional GUI uses the connection context for this wait and its watch-delivery
 barrier, so disconnect or overflow releases both without parking the Actor.
+
+### Exact provider argument strings
+
+`Part.ArgumentsText *string` (`arguments_text,omitempty`) optionally retains the
+decoded Chat Completions function.arguments string separately from `Args` object
+JSON. Engine checks correspondence and uses it for Chat replay, including changed
+current model aliases. It is not target-bound opaque material. Existing records
+without the field use their accepted Args bytes. See persistence-format.md for
+strict optional semantic encoding and duplicate-argument comparison.

@@ -143,7 +143,7 @@ func parseResponse(owner common.Engine, config common.Config, body []byte, respo
 				}
 				fn := p.obj(c["function"])
 				args := p.str(fn["arguments"])
-				out.Parts = append(out.Parts, common.Part{Type: "tool_call", CallID: p.str(c["id"]), From: &from, Name: p.str(fn["name"]), Args: json.RawMessage(args)})
+				out.Parts = append(out.Parts, common.Part{Type: "tool_call", CallID: p.str(c["id"]), From: &from, Name: p.str(fn["name"]), Args: json.RawMessage(args), ArgumentsText: &args})
 			}
 		}
 		if raw, ok := m["refusal"]; ok && string(raw) != "null" {

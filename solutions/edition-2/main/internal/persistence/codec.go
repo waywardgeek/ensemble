@@ -53,10 +53,18 @@ func (c *Codec) wire(v reflect.Value, semantic bool) (any, error) {
 			if name == "-" {
 				continue
 			}
-			if t == reflect.TypeOf(common.LimitValues{}) && v.Field(i).IsNil() {
+			if (t == reflect.TypeOf(common.LimitValues{}) || t == reflect.TypeOf(common.Part{}) && name == "arguments_text") && v.Field(i).IsNil() {
 				continue
 			}
-			value, err := c.wire(v.Field(i), t == reflect.TypeOf(common.HandlerIdentity{}) && name == "schema")
+			var value any
+			var err error
+			if c.argumentField(t, name) && !v.Field(i).IsNil() {
+				raw := v.Field(i).Bytes()
+				_, _, err = c.arguments(raw, true)
+				value = string(raw)
+			} else {
+				value, err = c.wire(v.Field(i), t == reflect.TypeOf(common.HandlerIdentity{}) && name == "schema")
+			}
 			if err != nil {
 				return nil, err
 			}
@@ -162,7 +170,7 @@ func (c *Codec) unwire(x any, v reflect.Value, semantic bool) error {
 			names[name] = true
 			value, found := obj[name]
 			if !found {
-				if t == reflect.TypeOf(common.LimitValues{}) {
+				if t == reflect.TypeOf(common.LimitValues{}) || t == reflect.TypeOf(common.Part{}) && name == "arguments_text" {
 					continue
 				}
 				return c.bad("missing structural field " + name)
@@ -170,7 +178,16 @@ func (c *Codec) unwire(x any, v reflect.Value, semantic bool) error {
 			if t == reflect.TypeOf(common.LimitValues{}) && value == nil {
 				return c.bad("null limit override")
 			}
-			if err := c.unwire(value, v.Field(i), t == reflect.TypeOf(common.HandlerIdentity{}) && name == "schema"); err != nil {
+			if c.argumentField(t, name) && value != nil {
+				raw, ok := value.(string)
+				if !ok {
+					return c.bad("argument Raw must be a string")
+				}
+				if _, _, err := c.arguments([]byte(raw), true); err != nil {
+					return err
+				}
+				v.Field(i).SetBytes([]byte(raw))
+			} else if err := c.unwire(value, v.Field(i), t == reflect.TypeOf(common.HandlerIdentity{}) && name == "schema"); err != nil {
 				return err
 			}
 		}
@@ -406,4 +423,8 @@ func (c *Codec) Identity(id common.SessionIdentity) error {
 		return c.bad("handler definition byte limit")
 	}
 	return nil
+}
+
+func (c *Codec) argumentField(t reflect.Type, name string) bool {
+	return name == "args" && (t == reflect.TypeOf(common.Part{}) || t == reflect.TypeOf(common.ToolEvent{}))
 }

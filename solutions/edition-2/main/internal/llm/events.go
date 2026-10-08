@@ -1,6 +1,7 @@
 package llm
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"example.com/ensemble/internal/common"
@@ -58,6 +59,20 @@ func partProblem(owner common.Engine, p *common.Part, result bool) string {
 		return "invalid text part or replay provenance"
 	case "tool_call":
 		if p.CallID != "" && p.Name != "" && object(owner, p.Args) && validProvenance(owner, p.From) && (len(p.Opaque) == 0 || json.Valid(p.Opaque)) {
+			if p.ArgumentsText != nil {
+				if p.From.Vendor != "openai" {
+					return "invalid argument replay provenance"
+				}
+				original := *p.ArgumentsText
+				// Marshal RawMessage only for this correspondence check: it
+				// retains member order/duplicates and number tokens while
+				// removing outer whitespace and applying JSON string escaping.
+				left, le := json.Marshal(json.RawMessage(original))
+				right, re := json.Marshal(p.Args)
+				if le != nil || re != nil || !bytes.Equal(left, right) {
+					return "argument replay string disagrees with call"
+				}
+			}
 			return ""
 		}
 		return "invalid tool-call fields"
@@ -330,7 +345,7 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 			return bad("invalid event or conversation transition")
 		}
 		if e.Type == "tool_called" {
-			if call.Dispatched || t.Name != call.Part.Name || !object(owner, t.Args) || !owner.Agent().Codec().EqualJSON(t.Args, call.Part.Args) {
+			if call.Dispatched || t.Name != call.Part.Name || !object(owner, t.Args) || !owner.Agent().Codec().EqualArguments(t.Args, call.Part.Args, c.Session != nil) {
 				return bad("invalid event or conversation transition")
 			}
 			if t.Job != nil {

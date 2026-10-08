@@ -75,3 +75,66 @@ func TestUnicodeScalarEscapes(t *testing.T) {
 		t.Fatal("changed standalone scope", err)
 	}
 }
+
+func TestArgumentExceptionIsNarrowAndLossless(t *testing.T) {
+	c := NewCodec(&testAgent{})
+	duplicate := `{"name": "edit", "name": "edit"}`
+	for _, session := range []bool{false, true} {
+		if !c.EqualArguments([]byte(duplicate), []byte(duplicate), session) {
+			t.Fatal("ambiguous identical text refused")
+		}
+		for _, other := range []string{`{"name":"edit"}`, `{"name":"edit","name":"edit"}`} {
+			if c.EqualArguments([]byte(duplicate), []byte(other), session) {
+				t.Fatal("ambiguous correspondence normalized")
+			}
+		}
+		if !c.EqualArguments([]byte(`{"n":9007199254740993.0}`), []byte(`{"n":9007199254740993}`), session) {
+			t.Fatal("exact canonical correspondence")
+		}
+		if c.EqualArguments([]byte(`{"n":9007199254740993}`), []byte(`{"n":9007199254740992}`), session) {
+			t.Fatal("rounded decimal comparison")
+		}
+		for _, event := range []string{
+			`{"response":{"parts":[{"type":"tool_call","args":` + duplicate + `}]}}`,
+			`{"tool":{"args":` + duplicate + `}}`,
+		} {
+			if err := c.ValidateLogJSON([]byte(event), session); err != nil {
+				t.Fatal(err)
+			}
+		}
+		for _, event := range []string{
+			`{"response":{"parts":[{"args":{},"args":{}}]}}`,
+			`{"tool":{"args":{},"args":{}}}`, `{"tool":{"args":[]}}`,
+			`{"response":{"raw_usage":{"n":1,"n":2}}}`, `{"response":{},"response":{}}`,
+			`{"unknown":{"args":` + duplicate + `}}`,
+		} {
+			if err := c.ValidateLogJSON([]byte(event), session); err == nil {
+				t.Fatalf("structural refusal lost: %s", event)
+			}
+		}
+	}
+	for _, raw := range []string{`[]`, `null`, `{"name":}`, `{"name":"\ud800","name":"x"}`} {
+		if c.EqualArguments([]byte(raw), []byte(raw), true) {
+			t.Fatalf("bad argument accepted: %s", raw)
+		}
+	}
+	if !c.EqualArguments([]byte(`{"name":"\ud800"}`), []byte(`{"name":"\ud800"}`), false) {
+		t.Fatal("standalone scalar scope changed")
+	}
+	base := "base"
+	id := common.SessionIdentity{Mode: "plain", System: &base, Handlers: []common.HandlerIdentity{}}
+	cp := common.Checkpoint{Version: 1, StateVersion: 1, SessionID: strings.Repeat("a", 32), Identity: id, AsOf: 1, HighWatermarks: common.Watermarks{Event: 1}}
+	cp.State = &common.SemanticState{Session: common.SnapshotSession{ID: cp.SessionID, Identity: id, AsOf: 1, HighWatermarks: cp.HighWatermarks}}
+	cp.State.Context.Entries = []common.Entry{{Parts: []common.Part{{Type: "tool_call", Args: []byte(duplicate)}}}}
+	raw, err := c.Encode(cp)
+	if err != nil {
+		t.Fatal(err)
+	}
+	decoded, err := c.Decode(raw)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(decoded.State.Context.Entries[0].Parts[0].Args) != duplicate {
+		t.Fatal("snapshot lost original ambiguous text")
+	}
+}

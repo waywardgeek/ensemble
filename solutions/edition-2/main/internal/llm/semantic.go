@@ -371,6 +371,7 @@ func semanticPart(owner common.Engine, p common.Part, result bool) string {
 		allowed.Name = p.Name
 		allowed.From = p.From
 		allowed.Args = p.Args
+		allowed.ArgumentsText = p.ArgumentsText
 		allowed.Opaque = p.Opaque
 	case "tool_result":
 		allowed.CallID = p.CallID

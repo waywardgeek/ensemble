@@ -168,6 +168,7 @@ type SessionCodec interface {
 	Identity(SessionIdentity) error
 	Canonical([]byte) ([]byte, error)
 	EqualJSON([]byte, []byte) bool
+	EqualArguments([]byte, []byte, bool) bool
 	ValidateLogJSON([]byte, bool) error
 	Encode(Checkpoint) ([]byte, error)
 	Decode([]byte) (Checkpoint, error)

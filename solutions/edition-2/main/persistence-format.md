@@ -53,11 +53,27 @@ Canonical tokens are hash material; stored structural integers remain decimal.
 
 `Raw` below means null for absent raw data, otherwise a JSON string containing
 its **exact original JSON text**, not a JSON value encoded by this codec. Decode
-and validate that text with duplicate/depth/UTF-8/type checks and inherited
-payload constraints. JSON syntax cannot hide inside a string wrapper. Arguments
-must decode to objects; opaque/data/raw_usage retain inherited JSON types.
-Compare replay Raw strings and text byte-for-byte. Compare schema/identity and
-call argument correspondence via canonical parsed values, without changing Raw.
+and validate that text with depth/UTF-8/scalar/type checks and inherited
+payload constraints. JSON syntax cannot hide inside a string wrapper. Only Part.args
+and ToolEvent.args object payloads permit duplicate members, for controlled typed
+tool rejection. All other raw values and structural objects reject duplicates.
+The original ambiguous argument text remains a string in the state hash; it is
+never reduced to a map. Compare call correspondence canonically only when BOTH
+objects have unique keys; if either has duplicates require exact accepted text.
+Opaque/data/raw_usage retain inherited JSON types. Compare replay Raw strings and
+text byte-for-byte; schema/identity comparison uses canonical parsed values.
+
+For newly parsed Chat Completions calls, optional Part.arguments_text contains the
+original decoded function.arguments STRING, including all inner whitespace.
+Part.args remains the parsed object text, subject to session record preparation.
+The Engine validates their correspondence by compacting both object texts with
+identical JSON escaping, preserving member order, duplicate members and numeric
+lexemes. This typed portable string is distinct from target-bound opaque material;
+existing opaque restrictions remain unchanged. Only tool_call with OpenAI producing
+provenance may populate arguments_text. It is optional/nullable in the semantic
+Part grammar and is omitted when absent, preserving old state_version1 snapshots.
+Older calls without this field retain their accepted args bytes; no old history
+is rewritten or invented.
 
 ## Closed nested grammar
 
@@ -85,7 +101,8 @@ surface with exact nonempty model. Usage = `{input,cache_write,cache_read,output
 all nonnegative signed int64 with checked sums. Ref = `{kind:integer,locator:string}`
 with kind 1/2/3 and nonempty locator; no automatic reference access.
 
-Part = `{type,text,from,opaque,call_id,name,args,parts,is_error,data,mime,ref,stub}`.
+Part = `{type,text,from,opaque,call_id,name,args,parts,is_error,data,mime,ref,stub}`
+plus optional nullable string `arguments_text`, constrained as above.
 text is nullable string; from nullable Provenance; opaque/args/data Raw; parts
 array of Part; ref nullable Ref; is_error Boolean; remaining members strings.
 Unused strings are empty, unused raw/pointers null, unused parts []. Variants:

@@ -1,0 +1,15 @@
+--- FAIL: TestOpenAIParsingAndInstructionRoles (0.00s)
+    events_test.go:225: error: incompatible call-bound replay material
+FAIL
+FAIL	example.com/ensemble	2.572s
+ok  	example.com/ensemble/cli	0.135s
+?   	example.com/ensemble/cmd	[no test files]
+?   	example.com/ensemble/internal/common	[no test files]
+ok  	example.com/ensemble/internal/eventlog	1.381s
+ok  	example.com/ensemble/internal/jobs	0.923s
+ok  	example.com/ensemble/internal/llm	6.042s
+ok  	example.com/ensemble/internal/persistence	0.086s
+?   	example.com/ensemble/internal/policy	[no test files]
+ok  	example.com/ensemble/internal/skills	0.107s
+ok  	example.com/ensemble/internal/tools	0.027s
+FAIL

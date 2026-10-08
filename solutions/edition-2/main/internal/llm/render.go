@@ -167,7 +167,7 @@ func Render(owner common.Engine, c common.Context, config common.Config) ([]byte
 					if len(part.Opaque) > 0 && !r.match(part.From) {
 						r.fail("incompatible call-bound replay material")
 					}
-					calls = append(calls, map[string]any{"id": part.CallID, "type": "function", "function": map[string]any{"name": part.Name, "arguments": string(part.Args)}})
+					calls = append(calls, map[string]any{"id": part.CallID, "type": "function", "function": map[string]any{"name": part.Name, "arguments": r.chatArguments(part)}})
 				case "blob":
 					r.unsupportedReference(part)
 				case "opaque":
@@ -318,4 +318,13 @@ func (r *renderer) chatRefusal(part common.Part) (json.RawMessage, bool) {
 		return nil, false
 	}
 	return raw, true
+}
+
+// The provider's arguments STRING is replay material, independent of the parsed
+// object used by tools and of permitted outer JSONL record preparation.
+func (r *renderer) chatArguments(p common.Part) string {
+	if p.ArgumentsText != nil {
+		return *p.ArgumentsText
+	}
+	return string(p.Args)
 }

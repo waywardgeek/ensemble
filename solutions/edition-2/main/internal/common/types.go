@@ -72,19 +72,21 @@ type Ref struct {
 	Locator string `json:"locator"`
 }
 type Part struct {
-	Type    string          `json:"type"`
-	Text    *string         `json:"text,omitempty"`
-	From    *Provenance     `json:"from,omitempty"`
-	Opaque  json.RawMessage `json:"opaque,omitempty"`
-	CallID  string          `json:"call_id,omitempty"`
-	Name    string          `json:"name,omitempty"`
-	Args    json.RawMessage `json:"args,omitempty"`
-	Parts   []Part          `json:"parts,omitempty"`
-	IsError bool            `json:"is_error,omitempty"`
-	Data    json.RawMessage `json:"data,omitempty"`
-	MIME    string          `json:"mime,omitempty"`
-	Ref     *Ref            `json:"ref,omitempty"`
-	Stub    string          `json:"stub,omitempty"`
+	Type   string          `json:"type"`
+	Text   *string         `json:"text,omitempty"`
+	From   *Provenance     `json:"from,omitempty"`
+	Opaque json.RawMessage `json:"opaque,omitempty"`
+	CallID string          `json:"call_id,omitempty"`
+	Name   string          `json:"name,omitempty"`
+	Args   json.RawMessage `json:"args,omitempty"`
+	// ArgumentsText retains a portable provider argument STRING, not a signature.
+	ArgumentsText *string         `json:"arguments_text,omitempty"`
+	Parts         []Part          `json:"parts,omitempty"`
+	IsError       bool            `json:"is_error,omitempty"`
+	Data          json.RawMessage `json:"data,omitempty"`
+	MIME          string          `json:"mime,omitempty"`
+	Ref           *Ref            `json:"ref,omitempty"`
+	Stub          string          `json:"stub,omitempty"`
 }
 type Entry struct {
 	SkillName  string `json:"skill_name,omitempty"`

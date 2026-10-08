@@ -62,9 +62,9 @@ func New(parent common.ToolAgent, selected []string) (*Registry, error) {
 	}
 	for _, name := range []string{"run_command", "wait_for_job", "send_input", "tool_limits"} {
 		fields := builtins[name].fields
-		fields["ai_callback_delay"] = field{Type: "number", Description: "Finite nonnegative wait seconds; default 3. Zero polls."}
-		fields["ai_callback_pattern"] = textField("Go regular expression matching new output; empty clears the pattern.", false, true, "")
-		fields["max_output_bytes"] = numberField("Positive inline content budget; default 16384. Complete output stays on disk.", 16384, 1)
+		for name, value := range r.limitFields() {
+			fields[name] = value
+		}
 	}
 	for _, name := range selected {
 		item, ok := builtins[name]
@@ -287,4 +287,13 @@ func (r *Registry) ExecuteJob(call common.Part, job common.Job) *common.Executio
 	result.IsError = true
 	result.Text = text
 	return &result
+}
+
+// Typed limit syntax is independent of whether a live Agent installs a setter.
+func (r *Registry) limitFields() map[string]field {
+	return map[string]field{
+		"ai_callback_delay":   {Type: "number", Description: "Finite nonnegative wait seconds; default 3. Zero polls."},
+		"ai_callback_pattern": textField("Go regular expression matching new output; empty clears the pattern.", false, true, ""),
+		"max_output_bytes":    numberField("Positive inline content budget; default 16384. Complete output stays on disk.", 16384, 1),
+	}
 }

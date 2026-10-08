@@ -72,7 +72,7 @@ func ValidateWindow(owner common.Engine, c common.Context, window []common.Windo
 			}
 			t := e.Tool
 			call, ok := c.Calls[t.CallID]
-			if !ok || call.CalledAt != e.Seq || t.Name != call.Part.Name || !owner.Agent().Codec().EqualJSON(t.Args, call.Part.Args) || t.IsError || len(t.Parts) != 0 {
+			if !ok || call.CalledAt != e.Seq || t.Name != call.Part.Name || !owner.Agent().Codec().EqualArguments(t.Args, call.Part.Args, true) || t.IsError || len(t.Parts) != 0 {
 				return bad()
 			}
 			if t.Job != nil && (call.JobHandle != t.Job.Handle || jobProblem(owner, *t.Job, nil) != "") {

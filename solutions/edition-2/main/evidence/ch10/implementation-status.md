@@ -224,3 +224,15 @@ binding is created from planned binaries. support/README.md is a reproduction
 plan, not a success transcript. Root retains compiler ownership; this worker starts
 no Go build and does not wait for another repeated fault run. Full chapter/live/
 historical comparison/author confirmation/release gates remain open.
+
+## Grouped retained runtime repair — local freeze preparation
+
+Acknowledged verified dd1111e teaching before implementation. Runtime now permits duplicate JSON members only within designated argument objects, retains ambiguous argument text through the strict semantic Raw wrapper, and uses exact-text correspondence for duplicates. Chat Completions original argument STRING bytes occupy optional typed Part.arguments_text; opaque target restrictions remain unchanged. Registry emits empty name for ambiguous duplicate name members and can validate recorded limit syntax without installing live handlers.
+
+Own localhost tests exercise Anthropic/OpenAI/Gemini in standalone and session modes: setter, duplicate load_skill, untruncated default-limits read, valid load, continuation, paired controlled refusal/no invalid Job/no invalid Skills transition, one consumed fact, actual captured request versus public replay, latest/older-tail/null/full-log checkpoints, checkpoint inspection, semantic import/tail and resume with once-restored usage. Strict codec tests distinguish malformed/nonobject/scalar/structural duplicate refusals, exact decimals, changed duplicate spelling and unique replacement. Public malformed replay correspondence refuses without terminal Close fault.
+
+Command ledger: retained-repair-commands.jsonl (start/end and free bytes per command), separate original output files. First test setup omitted setter capability (fixed); next found offline limit validation wrongly required handler selection (fixed). First full suite caught opaque alias restriction (fixed with typed replay field); two inadvertently repeated unchanged attempts are preserved. New negative controls independently remove string retention or restore old strict argument equality and fail their intended behavior; restored-source root vet/tests and empty gofmt output pass. All 12 discovered Go modules, including the separate support consumer, passed vet/tests; root and persistence targeted race passed. The first race selector matched no internal/llm/tools tests, so separate complete spoke race follows. No original receipts were edited. No cache maintenance was needed.
+
+This is a runtime freeze before revision-bound independent checks and local support build/actual-binding integration; compiler stage remains owned for those authorized tasks. No paid/live or chapter-acceptance claim.
+
+Complete internal/llm and internal/tools race suites also passed (spoke-race receipt); the no-match caveat above is resolved by actual execution. Final root gofmt output is zero bytes and final root vet/tests pass.

@@ -23,6 +23,7 @@ func (r *Registry) SkillOperation(p common.Part, revision uint64) (common.SkillO
 		return fail()
 	}
 	count := 0
+	names := 0
 	invalid := false
 	for d.More() {
 		key, err := d.Token()
@@ -38,6 +39,10 @@ func (r *Registry) SkillOperation(p common.Part, revision uint64) (common.SkillO
 			invalid = true
 			continue
 		}
+		names++
+		if names > 1 {
+			name = ""
+		}
 		var value string
 		if json.Unmarshal(raw, &value) != nil {
 			invalid = true
@@ -51,7 +56,7 @@ func (r *Registry) SkillOperation(p common.Part, revision uint64) (common.SkillO
 		}
 		if !valid {
 			invalid = true
-		} else {
+		} else if names == 1 {
 			name = value
 		}
 	}
