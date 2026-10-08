@@ -9,9 +9,10 @@ in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 ## Current chapter
 
 Chapter 6 is active with fresh new-only student `/root/coder_ch06` and
-independent grader/reviewer `/root/grader_ch05`. The student is preparing its
-ownership plan before affected implementation; the reviewer is deriving
-checks from the published streaming contract. See
+independent grader/reviewer `/root/grader_ch05`. Root accepted the student's
+ownership plan before affected implementation. Streaming implementation is
+underway, and the initial independent CLI barrier checks are committed at
+`c6272a4`; broader contract checks remain pending. See
 [chapter-06-validation.md](chapter-06-validation.md) for the current gates.
 The author is awaiting a worker slot after a tool thread-limit rejection;
 root handles immediate teaching questions meanwhile.
@@ -192,9 +193,14 @@ old implementation into the new solution.
 
 Earlier correction to propagate: the manual review's immutable LogPath fix
 first lands in Chapter 4 runtime d25. The new Chapter 2 teaching now explains
-that invariant; frozen ch02/ch03 need a scoped backport and validation before
-new revision tags claim the clarification is implemented there. Preserve the
-old tags and receipts. The current Chapter 5 baseline already contains the fix.
+that invariant. Coordinator-authored isolated backports are ready at
+`9fed66a` (Chapter 2) and `ea4bcea` (Chapter 3), under
+`/Users/bill/projects/ensemble-edition-2-revisions/`. Both pass all module
+vet/tests, race, formatting, inherited grading and their independent offline
+and human CLI checks. Original-source controls expose exactly the new refusal
+failures while preserving the valid same-path case. Independent review and
+revision exports/tags remain pending; current frozen ch02/ch03 are unchanged.
+Keep old tags and receipts. Chapter 4 onward already contains the fix.
 
 The current plan is 22 chapters, 0–21, including the newly requested final
 edition-comparison chapter. Bill now permits chapter adjustments
