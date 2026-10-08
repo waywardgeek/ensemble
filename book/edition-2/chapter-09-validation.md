@@ -9,8 +9,8 @@ accepted `edition-2-ch08-r1` (`bfdadaf5`), source `446d7f2` and tree
 | Contract | Author, coordinator | Earlier contract/three-question responses accepted and confirmed; complete encoded skill-record boundary `d8c7738` confirmed by the student | Preserve original-raw import measurement separately from newly emitted write size |
 | Independent checks | Initial `/root/coder_ch08`; continuing `/root/grader_ch05` | Complete initial gate passes all 67 rows on `654075b`; reviewer confirms six targeted write/import controls on repair `c0e3171`, including exact-size and intended deletion failures; original fixture failures retained | Reconcile any affected selected rerun and retain each result's original source identity |
 | Student and ownership plan | Fresh CLI student `01a11c0d-47b8-7241-8834-5ddf57ac5009` | Initial new-only read ledger and plan `5ac45e4`; owners/API accepted; author responses `8f24360` confirmed, recorded at `080fbca` | Retain initial experience and append new findings |
-| Initial implementation and live use | Same fresh student | Initial source `654075b`, import repair `c0e3171` and live repair `75a7255` preserved; initial live/teaching freeze `786ff23` accounts for 93 generation attempts plus three discovery calls; preliminary independent audit `b0745a6` verifies 499 original hashes | Complete final independent receipt/coverage review, preserving partial outcomes and keyboard/audio evidence limits |
-| Historical comparison and revisions | Independent code reviewer | Initial source, runs and teaching review frozen at `786ff23`; review handoff follows the maintenance reviewer's Chapter 8 evidence handoff | Compare with old Chapter 10 standard and return actionable quality findings |
+| Initial implementation and live use | Same fresh student, independent reviewer `/root/coder_ch08` | Accepted at `2dc5841`: freeze `786ff23` accounts for 93 generation attempts plus three discovery calls; all 499 original hashes and exact request reconstructions reconcile, with partial outcomes and keyboard/audio limits preserved | Retain source identities; repeat only demonstrations affected by later corrections |
+| Historical comparison and revisions | Independent code reviewer `/root/grader_ch05` | In progress after initial source, runs and teaching review freeze `786ff23`; reviewer did not implement Chapter 9 runtime | Compare with old Chapter 10 standard and return actionable quality findings |
 | Manuscript and feedback | Author, student, proofreader | Student confirms direct author response `5063f35`; author is reconciling actual spin from frozen matrix | Resolve final prose/evidence findings and student confirmation |
 | Export and checkpoint | Coordinator | Not started | Complete all gates before immutable chapter export/tag |
 
@@ -64,15 +64,14 @@ provider and 108 overall. Original support/launch identities must remain
 verifiable. A separately bound keyboard-expansion action needs no new model
 request; click-only evidence cannot stand in for that promised interaction.
 
-Earlier Chapters 6–8 contain the same inherited streaming defect. An isolated
-Chapter 6 maintenance correction is under review, derived from its accepted
-source and the new Chapter 6 contract. No earlier tag or export has been
-replaced, and this later-informed maintenance is not a new cold-student trial.
-
-The later maintenance review accepts new immutable checkpoints
+Earlier Chapters 6–8 contained the same inherited streaming defect. Isolated
+maintenance derived the correction from accepted Chapter 6 source and teaching,
+then carried it forward. This is not a new cold-student trial. The independent
+maintenance review accepts new immutable checkpoints
 `edition-2-ch06-r2` (`3acdd8e`) and `edition-2-ch07-r3` (`2c436db`), integrated
 as exact revised exports without replacing current Chapter 9 main. Original
-tags remain intact. Chapter 8 propagation is finishing its affected checks.
+tags remain intact. Chapter 8 propagation is accepted at `edition-2-ch08-r2`
+(`2b00338`), with its exact export from `04d622d`.
 
 The initial live phase is now closed at `786ff23`: Anthropic 32, OpenAI 29 and
 Gemini 32 generation attempts. OpenAI's bounded public recovery completed both

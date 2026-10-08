@@ -5,7 +5,9 @@ Chapter 6 maintenance checkpoint: `edition-2-ch06-r2` points to isolated
 The five-line Messages repair and its evidence are independently accepted at
 `f87f160`. This tag preserves the Chapter 6 source stage; current development
 main remains Chapter 9. Original r1/live identities remain intact. Chapter 7/8
-forward propagation continues in separate worktrees.
+forward propagation is checkpointed separately at `edition-2-ch07-r3`
+(`2c436db`) and `edition-2-ch08-r2` (`2b00338`); their revised exports are
+integrated without replacing development main.
 
 Date: 2026-10-08. Autonomous work is active. Chapter 5 code, live evidence,
 student feedback and manuscript are accepted at `c1cc0b4`. Its exact 1,254-file
