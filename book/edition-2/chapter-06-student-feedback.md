@@ -45,10 +45,10 @@ separate gates.
 | Actual use confirmed tool proposals, accepted file reads, interruption/recovery and plain delivery. | Replace the planned spin with the actual human path, exact abridged excerpts and reproducible scratch-file commands; link the detailed ledger. |
 
 The student explicitly confirmed the Gemini clarification before runtime
-freeze. Confirmation of this broader author reconciliation remains requested;
-no review completion is inferred from silence. Initial all-seven-module checks
-and race results belong to the student's retained local receipts. Independent
-broader checks, comparison and final receipt/prose review remain open in the
+freeze. In the appended R1 review, the student explicitly confirms the broader
+author reconciliation resolves the recorded initial teaching feedback. Initial
+all-seven-module checks and race results keep their original local receipts.
+Current independent acceptance and final receipt/prose status are in the
 [gate record](chapter-06-validation.md).
 
 ## Comparative feedback: incremental assembly cost
@@ -61,8 +61,11 @@ failure, requires append-oriented owned accumulation and incremental size
 accounting, and calls for a size-doubling benchmark with fixed-size fragments.
 This is a teaching improvement from comparative review, added before the
 affected repair. It does not rewrite the initial student's experience or relax
-any semantic, identity, cancellation or exact-bound requirement. The coder's
-plan and revised measurements remain pending.
+any semantic, identity, cancellation or exact-bound requirement. The coordinator
+accepted the coder's owned-buffer plan; revised local
+measurements and the independent gate now confirm the intended approximately
+linear allocation growth. The chapter preserves the initial defect and the
+measured comparison without turning local timings into a provider benchmark.
 
 ## Comparative feedback: replay, deadline and consumer ownership
 
@@ -84,7 +87,10 @@ Independent review also found missing ownership back-pointers and ignored
 subscription errors in the public streaming example's observers. The existing
 skill applies to example clients as well as library runtime objects; that rule
 needs enforcement in the revised consumer. No new architectural exception is
-introduced. Student confirmation and reviewed repair outcomes remain pending.
+introduced. The student confirms that the ownership finding was an
+implementation mistake under the existing methodology, and that the deadline
+explanation resolves the missed channel lifetime. The repaired example and
+operation pass the independent deterministic gate on `75bd14d`.
 
 The first bundled repair at `3ccaed6` still undercounted escaped thinking data
 retained as opaque JSON. Independent review supplied a passing small control
@@ -92,3 +98,28 @@ and a valid oversized opaque response. Section 6.3 now spells out that the
 existing bound counts the retained representation, including JSON escapes.
 This clarification preserves the original limit and the intermediate failed
 repair; a decoded text-length counter does not establish an opaque-byte bound.
+
+## Revised demonstration and final author dispositions
+
+The student's appended review confirms reading the escaped-representation
+clarification before the second repair and reports no new ambiguity in the
+seven revised sessions. Initial runtime `aa5f86a`, intermediate `3ccaed6`,
+corrected runtime `75bd14d` and evidence `8c73f9b` retain their own identities.
+The author inspected the revised human terminals, public completion data,
+10 logs, four artifacts and reconstruction receipts before updating §6.8.
+
+| Review finding | Resolution and teaching status |
+|---|---|
+| R1: retained refusal could strand the next turn. | §6.4 explicitly teaches matching assistant-field replay and plain/stream continuation checks. Corrected runtime passes independent deterministic controls; paid runs did not contain refusal material. |
+| R2: repeatedly rebuilt accumulated content. | §6.3 teaches owned append-oriented storage, incremental counters and a size-doubling measurement. Revised measurements preserve semantic/signature equivalence; the initial allocation defect remains visible. |
+| R3: transport timeout did not cover pending-store/final-drain waits. | §6.3 teaches one operation deadline. Independent deadline deletion and repaired controls distinguish the behavior; live interruption remains separate evidence. |
+| R4: public example observers lacked actual owner interfaces and ignored subscription failures. | Enforce the existing methodology; revised consumers retain creator access, propagate errors and release callbacks before close. All three revised real public paths preserve reliable completion and typed finals. |
+| Intermediate escaped opaque accounting still exceeded the retained bound. | Preserve `3ccaed6` failure; teach JSON retained bytes explicitly. Corrected `75bd14d` passes exact-bound/overflow controls and the independent complete gate. |
+| Revised Gemini public output ends mid-explanation. | §6.8 quotes the actual unfinished endings and retains MAX_TOKENS and signed empty parts. Accepted response does not imply completed task. |
+
+No code or evidence was changed by this reconciliation and no paid call was
+added. The initial teaching response and repair clarifications are explicitly
+confirmed in the student's append-only review. Independent complete-chapter
+proofreading of this final reconciliation remains open; the coordinator's
+revised-receipt audit now passes. The checkpoint and Bill's editorial approval
+remain separate.

@@ -1,9 +1,9 @@
 # Second edition: Chapter 6 outline
 
-Status: the coordinator accepted the full contract and its clarifications.
-The fresh student has implemented from validated Chapter 5 and retained initial
-real runs. Independent comparative review, broader acceptance and final prose
-review remain open in [the gate record](chapter-06-validation.md). New Chapter 6
+Status: contract and comparative repairs are implemented, the complete
+independent deterministic gate passes on `75bd14d`, and revised real runs are
+retained at `8c73f9b`. Final proofreading and the coordinator checkpoint
+remain separate in [the gate record](chapter-06-validation.md). New Chapter 6
 maps to first-edition Chapter 7.
 
 ## Stake and voice plan
@@ -187,8 +187,29 @@ receipts. Detailed read scope and the student teaching response are in the
 corresponding evidence and feedback files. The inherited 0/100 grader result
 remains recorded as an incompatible historical contract, not a passing gate.
 
-Next action: independent receipt/prose review and comparative findings; amend
-the teaching before any affected student correction. Keep this initial runtime
-and evidence identity. Development remains in `solutions/edition-2/main/`;
-`ch06/` becomes a frozen export only after validation. No new checker command
-is invented while the coordinator completes that acceptance surface.
+## Revised evidence and teaching closure
+
+Sections 6.3–6.4 retain the review additions: append-oriented assembly and
+incremental retained-size accounting, escaped opaque-byte cost, a whole-operation
+deadline including final drain, and recognized refusal replay on continuation.
+Example observers remain subject to the existing owner-interface rules. These
+changes precede the affected repairs; the original attempts remain accessible.
+
+The added end of §6.8 records revised runtime `75bd14d` and evidence `8c73f9b`:
+seven sessions, 20 requests, three actual interruptions and successful recovery,
+four exact file artifacts, three public two-Agent runs and Gemini plain mode.
+The initial nine sessions/33 requests remain a separate account. The partial
+Gemini public explanations close the earlier acceptance-versus-task-completion
+lesson without pretending a token-limited answer finished its assignment.
+
+The independent complete deterministic gate passes (receipt at `5a95578`),
+with a further three-mutant supplement at `340c678`. This is scoped runtime
+validation, not a claim of final editorial approval. Student confirmations and
+revision dispositions are reconciled in the feedback record.
+
+Next action: independent complete-chapter proofreading, then coordinator
+export/tag. The coordinator's revised-receipt audit now passes. Development
+remains in `solutions/edition-2/main/`;
+`ch06/` becomes a frozen export only after acceptance. The chapter now publishes
+the exact independent `accept_ch06_gate.py SOURCE_COMMIT` command, while keeping
+the incompatible inherited 0/100 diagnostic result visible.

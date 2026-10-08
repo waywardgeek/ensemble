@@ -13,8 +13,10 @@ early. Keep the decision to act at the boundary already established by the
 actor: one complete, validated, durably accepted response.
 
 **Draft status:** the initial implementation and real user runs remain preserved.
-Comparative review led to the repairs taught below; revised validation and live
-demonstrations are in progress. See the [Chapter 6 gate record](chapter-06-validation.md).
+Comparative review led to the repairs taught below. The revised deterministic
+gate and revised receipt audit pass. Final complete-chapter proofreading and
+the coordinator checkpoint remain separate. See the
+[Chapter 6 gate record](chapter-06-validation.md).
 
 ## TL;DR
 
@@ -798,7 +800,7 @@ without provisional fragments. Independent paid generations can use different
 words and token counts. The paired local fixtures test exact normalized
 content equivalence; these sessions test whether a person can use both modes.
 
-The streamed human sessions retained these accepted-response totals. Cache
+The initial streamed human sessions retained these accepted-response totals. Cache
 columns stay separate from input; output follows the normalization already
 taught in Chapter 2.
 
@@ -830,7 +832,59 @@ receipts reconstruct all 33 captured requests semantically from their logged
 prefixes and configuration, including hint inclusion and stream options.
 That comparison does not assert identical JSON serialization or identical
 answers from separate generations. See the [evidence record](chapter-06-evidence.md)
-for source binding, read scope and the still-open independent review gates.
+for source binding and read scope; the revised results follow below.
+
+### After review: repeat the changed paths
+
+The first demonstrations established that the feature was usable. They did
+not discover the repeated assembly work described in §6.3, the refusal replay
+omission, the incomplete operation timeout, or the public example's missing
+owner interfaces. Independent review did. The intermediate repair also missed
+the escaped size of opaque JSON; it was corrected before any revised paid run.
+These defects keep their original source and failing checks in the
+[comparison record](chapter-06-code-review.md).
+
+The student repeated the affected paths with runtime `75bd14d`, retaining the
+new receipts at `8c73f9b`. Seven sessions made exactly 20 model requests:
+streamed file read, interruption and recovery on each API; the two-Agent public
+consumer on each API; and Gemini's plain file read and continuation. They used
+the same selected and returned model identities listed above, on October 7
+local time / October 8 UTC. The original nine sessions and 33 requests remain
+bound to `aa5f86a`.
+
+For the revised interruption, the human prompt was deliberately easy to watch:
+
+```text
+Print every integer from 1 through 4000, one integer per line. Do not use tools. Begin immediately.
+```
+
+After numbers appeared, the coder sent `/interrupt`. All three acknowledged
+`Interrupt: request=r2 interrupted=true.`, labeled the display incomplete, and
+accepted a new turn. The next prompt asked for `RECOVERED-SIX-REVISION`; each
+returned it. No retry was needed in these revised sessions. Their logs retain
+the interrupted request without an accepted response or usage for that operation.
+The four file reads again produced the exact marker/port artifact, and Gemini's
+plain answer appeared once.
+
+The revised public example retained the same independent-Agent and finals-only
+behavior. Both completions arrived before the stalled subscribers were released.
+Gemini again reached `MAX_TOKENS`: one Agent's explanation ended at “incrementally
+and”, the other's at “partial, un”. The signed empty parts survived. Those are
+valid partial responses, not finished explanations. No live thinking delta or
+subscriber overflow occurred; local controls establish those behaviors.
+
+The [revised run summary](../../solutions/edition-2/main/evidence/ch06/revision1/live-summary.json)
+and its raw terminals keep this smaller rerun separate. All 20 captured requests
+reconstruct semantically. The complete independent deterministic gate passes
+on `75bd14d`, including actual early-delivery barriers, exact retained-byte
+bounds, timeout and replay checks, and controlled CLI overflow/recovery.
+Deliberate broken implementations fail their distinguishing checks. Refusal
+replay and guaranteed overflow remain deterministic evidence; ordinary paid
+answers cannot be made to stand in for those cases. The independent
+[live review](chapter-06-live-review.md) and
+[revised audit](checkpoint-evidence/ch06-live-independent-revised.json) accept
+these receipts. Final proofreading and the validated checkpoint remain
+separate in the gate record.
 
 ## 6.9 What the checks must establish
 
@@ -867,5 +921,6 @@ The inherited 0/100 result retains its original scope. Independent review
 identified refusal replay, repeated assembly work, timeout coverage and example
 observer ownership defects; the revised source addresses them, including a
 second correction for escaped opaque-byte accounting. The complete deterministic
-gate, affected revised demonstrations and final proofreading must close in the
-linked gate record before this chapter receives a validated checkpoint.
+gate now passes and the affected revised demonstrations are retained. Final
+independent proofreading and the coordinator checkpoint must close in
+the linked gate record before this chapter receives a validated tag.

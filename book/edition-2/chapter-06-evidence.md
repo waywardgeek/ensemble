@@ -1,10 +1,10 @@
 # Chapter 6 source research
 
-Status: contract review is accepted and initial implementation/live receipts
-are now retained. Broad independent acceptance, comparison/revisions and final
-receipt/prose review remain open; [the gate record](chapter-06-validation.md)
-is authoritative. Historical research below records the drafting chronology
-and must not enter the cold student's context.
+Status: the complete independent deterministic gate and revised live audit
+pass on the corrected runtime. Initial and revised evidence remain separately
+bound. Final complete-chapter proofreading and coordinator checkpoint remain
+open in [the gate record](chapter-06-validation.md). Historical research below
+records the chronology and must not enter the cold student's context.
 
 ## Reads and source boundaries
 
@@ -270,3 +270,73 @@ continuation. Correction and distinguishing checks remain pending. The ordinary
 live runs above do not exercise that refusal path; they are not evidence that
 it works. This is a subsequent review finding, not a relabeled initial provider
 failure or a reason to discard the retained successful sessions.
+
+## Revised reconciliation, October 7 local / October 8 UTC
+
+Reloaded the entire current voice and chapter procedure, the full current
+Chapter 6 (recovering truncated combined output with targeted full-range reads),
+and the student's appended repair/actual-use review. Retained the coordinator's
+teaching additions through `838fc1b`, including R1–R4, the allocation lesson,
+the exact retained opaque-byte distinction and independent checker invocation.
+No normative fixture, code or immutable historical receipt was edited.
+
+Revised runtime is `75bd14d5d2424778ebf45cb9025e9dbf314f956a`; live evidence is
+frozen at `8c73f9b`. Intermediate `3ccaed6` remains preserved, including its
+escaped-opaque undercount. No paid call used that intermediate repair. Initial
+runtime `aa5f86a` and its nine sessions/33 requests remain unchanged.
+
+Read the complete four revised human terminal records and parsed all three
+public terminal JSON records. Inspected completion text, stop reasons, ordinary
+and finals-only observations, and completion-before-slow-release results.
+Signature values remain opaque and are not reproduced in prose. Read the full
+revision README, live summary and reconstruction receipt array; parsed all
+10 logs to recount 20 request events and recompute accepted usage. All four
+read artifacts equal `CHAPTER-SIX-FILE-MARKER\nport=8080\n`. Independently
+hashed all 75 manifest files against the retained manifest, with no mismatch.
+This author inspection did not rerun a model or replace the independent audit.
+
+| Revised session | Requests | Input | Cache write | Cache read | Output |
+|---|---:|---:|---:|---:|---:|
+| Stream Messages | 4 | 7909 | 0 | 0 | 108 |
+| Stream Chat Completions | 4 | 370 | 0 | 3456 | 52 |
+| Stream generateContent | 4 | 5672 | 0 | 0 | 182 |
+| Plain generateContent | 2 | 3685 | 0 | 0 | 138 |
+| Public Messages, both Agents | 2 | 114 | 0 | 0 | 219 |
+| Public Chat Completions, both Agents | 2 | 118 | 0 | 0 | 178 |
+| Public generateContent, both Agents | 2 | 98 | 0 | 0 | 1016 |
+
+Selected/returned identities match the initial model choices. All seven launches
+exit zero. The three streaming interruptions acknowledge true after visible
+integer output; each recovery returns `RECOVERED-SIX-REVISION`. Each interrupted
+operation has no accepted response/usage. Four exact file results survive;
+Gemini plain displays the completed answer once. Revised public Agents complete
+before stalled callbacks release and typed finals match their reliable
+completions. Gemini's public outputs again stop at MAX_TOKENS with signed empty
+parts. No live thinking or overflow is claimed. Refusal replay, guaranteed
+overflow and exact storage/deadline failures remain deterministic evidence.
+
+The independent complete deterministic gate receipt
+`checkpoint-evidence/ch06-review-final-gate.json`, retained at `5a95578`, reports
+passed on `75bd14d`. Its parsed check list includes early-delivery barriers,
+wire/contract/prior-behavior assertions, deletions, CLI recovery controls,
+assembly measurements and seven-module checks. Supplemental three-mutant
+controls are retained at `340c678`. A large first display of the gate JSON
+truncated embedded command logs; this author relies on its parsed verdict/check
+list and the independent review, not a claim to have read every embedded log.
+
+The coordinator's independent revised audit now passes at
+`checkpoint-evidence/ch06-live-independent-revised.json`: 73 historical source
+identities, both archived executables, all 75 unchanged raw files, 20 ordered
+and multiset request comparisons, and 16 valid-path positive/negative controls.
+It also checks usage, artifacts, interruption, public finals and credentials
+without exposing secrets. This supersedes the pending audit status at the
+initial reconciliation boundary. Final complete-chapter proofreading and
+coordinator export/tag remain separate; no Bill editorial approval is inferred.
+
+The independent live audit is committed at `15e9590`; see the
+[live review](chapter-06-live-review.md) and
+[audit receipt](checkpoint-evidence/ch06-live-independent-revised.json). Scoped
+prose lint passes all hard checks (6756 words before the final link copyedit),
+and diff whitespace checks pass. Soft density warnings were read; no anecdote
+was manufactured to satisfy them. Final complete-chapter proofreading is now
+requested from the independent reviewer.
