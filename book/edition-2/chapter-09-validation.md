@@ -9,9 +9,9 @@ accepted `edition-2-ch08-r1` (`bfdadaf5`), source `446d7f2` and tree
 | Contract | Author, coordinator | Earlier contract/three-question responses accepted and confirmed; complete encoded skill-record boundary `d8c7738` confirmed by the student | Preserve original-raw import measurement separately from newly emitted write size |
 | Independent checks | Initial `/root/coder_ch08`; continuing `/root/grader_ch05` | Complete initial gate passes all 67 rows on `654075b`; reviewer confirms six targeted write/import controls on repair `c0e3171`, including exact-size and intended deletion failures; original fixture failures retained | Reconcile any affected selected rerun and retain each result's original source identity |
 | Student and ownership plan | Fresh CLI student `01a11c0d-47b8-7241-8834-5ddf57ac5009` | Initial new-only read ledger and plan `5ac45e4`; owners/API accepted; author responses `8f24360` confirmed, recorded at `080fbca` | Retain initial experience and append new findings |
-| Initial implementation and live use | Same fresh student | Initial source `654075b` and import repair `c0e3171` preserved; live-discovered Messages repair `75a7255` passes all 11 modules and 14 independent HTTP controls at `7da5052`; actual repaired empty-argument call succeeds in a supplemental Messages CLI run | Finish and freeze all-provider CLI/browser/public receipts, preserving failures and the 36/provider, 108-total HTTP ceilings |
-| Historical comparison and revisions | Independent code reviewer | Not started | Preserve initial source, live receipts and teaching review first |
-| Manuscript and feedback | Author, student, proofreader | Draft explicitly labels actual spin pending | Reconcile actual receipts and resolve student findings |
+| Initial implementation and live use | Same fresh student | Initial source `654075b`, import repair `c0e3171` and live repair `75a7255` preserved; initial live/teaching freeze `786ff23` accounts for 93 generation attempts plus three discovery calls; preliminary independent audit `b0745a6` verifies 499 original hashes | Complete final independent receipt/coverage review, preserving partial outcomes and keyboard/audio evidence limits |
+| Historical comparison and revisions | Independent code reviewer | Initial source, runs and teaching review frozen at `786ff23`; review handoff follows the maintenance reviewer's Chapter 8 evidence handoff | Compare with old Chapter 10 standard and return actionable quality findings |
+| Manuscript and feedback | Author, student, proofreader | Student confirms direct author response `5063f35`; author is reconciling actual spin from frozen matrix | Resolve final prose/evidence findings and student confirmation |
 | Export and checkpoint | Coordinator | Not started | Complete all gates before immutable chapter export/tag |
 
 The draft commit also captured concurrently staged Chapter 7 student files.
@@ -68,6 +68,27 @@ Earlier Chapters 6–8 contain the same inherited streaming defect. An isolated
 Chapter 6 maintenance correction is under review, derived from its accepted
 source and the new Chapter 6 contract. No earlier tag or export has been
 replaced, and this later-informed maintenance is not a new cold-student trial.
+
+The later maintenance review accepts new immutable checkpoints
+`edition-2-ch06-r2` (`3acdd8e`) and `edition-2-ch07-r3` (`2c436db`), integrated
+as exact revised exports without replacing current Chapter 9 main. Original
+tags remain intact. Chapter 8 propagation is finishing its affected checks.
+
+The initial live phase is now closed at `786ff23`: Anthropic 32, OpenAI 29 and
+Gemini 32 generation attempts. OpenAI's bounded public recovery completed both
+actual reads. Sixteen closed launches preserve all failures; replay accounts
+for 76 requests through strict successful-run verification, 13 through the
+student's explicitly failed-attempt diagnostic, and four through the independent
+partial-public audit. Final independent review remains separate from those
+student reports.
+
+The real keyboard action records Enter, expanded retained text and a screenshot.
+Its helper sampled the active launch hash but omitted the sampled launch bytes;
+the final launch has changed. `keyboard-linkage.json` therefore documents only
+the independently matching source/binding, executables, URL, within-run time
+and material identity. No byte-exact historical launch comparison is claimed.
+Audio establishes bounded native capture beside full-text submission; no model
+hearing, intelligibility or Bill participation is asserted.
 
 ## Fresh worker launch
 

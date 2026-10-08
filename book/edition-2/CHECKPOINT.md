@@ -115,7 +115,10 @@ Its external directory is
 `/Users/bill/projects/ensemble-edition-2-revisions/ch09-student-inputs/`.
 `phase-2-events.jsonl` and `phase-2-result.txt` retain the completed local phase;
 `phase-3-live.txt`, `phase-3-events.jsonl` and `phase-3-result.txt` describe the
-released live phase in that same session, launched after local evidence `10a58f2`.
+completed live phase in that same session, frozen at `786ff23`. It used 93
+generation requests plus three discovery calls and is ready for independent
+historical comparison. The worker has exited; do not resume paid demonstrations.
+Any later coding phase resumes this same session with explicit review findings.
 `coordinator-inbox.md` is the authorized handoff channel the student checks at
 work boundaries. Preserve previous messages when appending. Keep excluded
 research and grader internals out of that inbox. Check the existing process and
