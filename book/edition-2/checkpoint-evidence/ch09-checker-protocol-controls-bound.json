@@ -1,0 +1,102 @@
+{
+  "label": "checker canned-protocol controls, not runtime acceptance",
+  "positive_vendors": [
+    "anthropic",
+    "openai",
+    "gemini"
+  ],
+  "deletions": [
+    {
+      "vendor": "anthropic",
+      "mutation": "effect",
+      "expected_failure": "forced-admission",
+      "passed": true
+    },
+    {
+      "vendor": "anthropic",
+      "mutation": "manual",
+      "expected_failure": "manual-after-batch",
+      "passed": true
+    },
+    {
+      "vendor": "anthropic",
+      "mutation": "job",
+      "expected_failure": "management-no-jobs",
+      "passed": true
+    },
+    {
+      "vendor": "anthropic",
+      "mutation": "hash",
+      "expected_failure": "material-identities",
+      "passed": true
+    },
+    {
+      "vendor": "anthropic",
+      "mutation": "ack",
+      "expected_failure": "management-acks",
+      "passed": true
+    },
+    {
+      "vendor": "openai",
+      "mutation": "effect",
+      "expected_failure": "forced-admission",
+      "passed": true
+    },
+    {
+      "vendor": "openai",
+      "mutation": "manual",
+      "expected_failure": "manual-after-batch",
+      "passed": true
+    },
+    {
+      "vendor": "openai",
+      "mutation": "job",
+      "expected_failure": "management-no-jobs",
+      "passed": true
+    },
+    {
+      "vendor": "openai",
+      "mutation": "hash",
+      "expected_failure": "material-identities",
+      "passed": true
+    },
+    {
+      "vendor": "openai",
+      "mutation": "ack",
+      "expected_failure": "management-acks",
+      "passed": true
+    },
+    {
+      "vendor": "gemini",
+      "mutation": "effect",
+      "expected_failure": "forced-admission",
+      "passed": true
+    },
+    {
+      "vendor": "gemini",
+      "mutation": "manual",
+      "expected_failure": "manual-after-batch",
+      "passed": true
+    },
+    {
+      "vendor": "gemini",
+      "mutation": "job",
+      "expected_failure": "management-no-jobs",
+      "passed": true
+    },
+    {
+      "vendor": "gemini",
+      "mutation": "hash",
+      "expected_failure": "material-identities",
+      "passed": true
+    },
+    {
+      "vendor": "gemini",
+      "mutation": "ack",
+      "expected_failure": "management-acks",
+      "passed": true
+    }
+  ],
+  "checker_sha256": "7296940dc5533dc246126085fa7e3da3339b934bf8444755757e7d52b95e6fa8",
+  "contract_sha256": "23ec0b75a0a948beaa8a1a1604969f2b2b040cfa01250c998e70ad48c79d4072"
+}
