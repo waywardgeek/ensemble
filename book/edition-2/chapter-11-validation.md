@@ -1,0 +1,16 @@
+# Chapter 11 validation
+
+MCP contract preparation, October 8, 2026. No Chapter 11 student implementation
+or live demonstration exists. Accepted Chapter 10 and independent checks are
+required before student release. Bill's editorial approval is separate.
+
+| Gate | Owner | Status and evidence | Next action |
+|---|---|---|---|
+| Contract | Author, coordinator | Draft `a5fc9ea`, clarifications `302d77e`/`39bc526` accepted; see chapter-11-review.md | Derive independent checks from published contract |
+| Independent checks | Future grader phase | Not started; inherited CH=12 is diagnostic only | Publish distinguishing command and controls before student handoff |
+| Fresh student and owner plan | Future fresh student | Not started | Release accepted Chapter 10 and new-only teaching |
+| Implementation and local gates | Future student, grader | Not started | Implement and check full contract plus inherited behavior |
+| Actual use | Future student, independent reviewer | Planned only | Review bounded matrix, then actual CLI/browser/public all-provider runs |
+| Historical comparison and revisions | Independent reviewer | Not started | Preserve initial implementation, runs and teaching experience first |
+| Manuscript and feedback | Author, student, proofreader | Draft honestly labels spin pending | Reconcile receipts, resolve feedback and proofread final chapter |
+| Export and checkpoint | Coordinator | Not started | Complete all gates before immutable export/tag |
