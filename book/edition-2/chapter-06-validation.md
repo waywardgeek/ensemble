@@ -1,0 +1,39 @@
+# Chapter 6 validation
+
+Started 2026-10-07. Implementation is in progress; this chapter is not validated.
+The accepted predecessor is `edition-2-ch05-r1`, an annotated immutable tag at
+`7a6ef036322e1cf362894bd30b073fc8399a3c30`. Its main source matches the export
+from `185ba767545af567d3d2d3917e807222ff0b2771`.
+
+| Gate | Owner | Status and evidence | Next action |
+|---|---|---|---|
+| Contract and structure | Author, coordinator, student | Chapter 6 streaming contract reviewed before handoff; student structure plan pending | Check actual ownership, mutable facts, locks and lifetime against new teaching before affected implementation |
+| Initial implementation and local checks | `/root/coder_ch06` | Fresh `fork_turns="none"` student launched with new-only reading boundary | Extend accepted main; retain read ledger and initial teaching review; run module checks and inherited grader |
+| Independent acceptance and mutations | `/root/grader_ch05` | Contract-derived coverage planning started; no passing result claimed | Prepare independent Chapter 6 checks and meaningful deletion controls; preserve prior and legacy coverage |
+| Initial live use | Student, coordinator | Pending; no Chapter 6 paid calls claimed | Review complete feature/provider/public-consumer plan, then exercise real human PTYs and public clients |
+| Historical comparison and revisions | Independent reviewer, student | Pending initial implementation and actual runs | Freeze initial attempt, then compare old Chapter 7 at matching scope; return rationale and review revisions |
+| Final live evidence | Student, reviewer | Pending | Bind original receipts to source/executables; repeat only behavior affected by corrections |
+| Manuscript and teaching feedback | Author, student, proofreader | Reviewed draft; author resume currently blocked by tool thread limit | Resume author when capacity opens; reconcile actual student experience and receipts, then proofread |
+| Export and checkpoint | Coordinator | Pending all acceptance gates | Export exact accepted source, verify manifest, commit and create immutable `edition-2-ch06-r1` |
+
+The student reads the complete coding skill, architecture and new Chapter 6,
+with earlier second-edition contracts and source as needed. First-edition
+chapters, historical implementations, later teaching, grader internals and
+author/reviewer research are excluded from its initial context. Actual reads
+belong in `solutions/edition-2/main/evidence/ch06/`; an instruction boundary
+in a shared filesystem is not a claim of operating-system isolation.
+
+The independent grader role previously wrote Chapter 5 checks and review
+probes, not that chapter's student implementation. Its historical comparison
+begins only after this chapter's initial student attempt and runs are frozen.
+Root handles immediate contract questions while the author awaits capacity.
+
+New Gemini live validation uses the discovered `models/gemini-3.8-flash`
+target selected by Bill. All three API adapters require actual human-mode
+streaming, tools, interruption and plain-mode demonstrations, with the public
+consumer paths in §6.8. Strong deterministic barriers and fault injections
+complement those runs. Credentials remain in memory or subprocess environments;
+the optional GUI remains an explicitly identified stub.
+
+Local commits and tags are authorized. No push, publication, successful
+Chapter 6 outcome or Bill editorial approval is implied by this handoff.

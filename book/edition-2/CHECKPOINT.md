@@ -6,9 +6,14 @@ export uses source `185ba76`, reviewed runtime `959c663` and revised evidence
 `469730f`, with checkpoint `edition-2-ch05-r1`. All six exported modules pass
 vet/tests. See [chapter-05-validation.md](chapter-05-validation.md).
 
-The next step is a fresh new-only Chapter 6 student using the already reviewed
-streaming contract and accepted Chapter 5 source. No Chapter 6 code or live
-validation is claimed yet. Chapter 4 remains checkpointed at
+Chapter 5's tag points to `7a6ef036322e1cf362894bd30b073fc8399a3c30`.
+Fresh new-only student `/root/coder_ch06` is now working from that accepted
+source and the reviewed streaming contract. `/root/grader_ch05` prepares
+independent checks; the author awaits capacity after a tool thread-limit
+rejection. Root handles immediate contract questions. See
+[chapter-06-validation.md](chapter-06-validation.md) for current gates.
+No Chapter 6 passing implementation or live validation is claimed yet.
+Chapter 4 remains checkpointed at
 `edition-2-ch04-r1` (`55e6411`); its detailed record is historical below.
 
 Chapter 3 human integration is

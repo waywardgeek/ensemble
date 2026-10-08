@@ -8,13 +8,22 @@ in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 
 ## Current chapter
 
+Chapter 6 is active with fresh new-only student `/root/coder_ch06` and
+independent grader/reviewer `/root/grader_ch05`. The student is preparing its
+ownership plan before affected implementation; the reviewer is deriving
+checks from the published streaming contract. See
+[chapter-06-validation.md](chapter-06-validation.md) for the current gates.
+The author is awaiting a worker slot after a tool thread-limit rejection;
+root handles immediate teaching questions meanwhile.
+
 Chapter 5 code, actual live evidence, teaching and manuscript review are
 accepted at `c1cc0b4`. The exact 1,254-file export comes from `185ba76`, with
 reviewed runtime `959c663` and revised evidence `469730f`. Checkpoint:
-`edition-2-ch05-r1`. See [chapter-05-validation.md](chapter-05-validation.md)
+`edition-2-ch05-r1` at `7a6ef036322e1cf362894bd30b073fc8399a3c30`.
+See [chapter-05-validation.md](chapter-05-validation.md)
 for the authoritative gate record, source identities and retained limitations.
-All six exported modules pass vet/tests. Chapter 6's reviewed streaming
-contract is next; its student must start in a fresh new-only context.
+All six exported modules pass vet/tests. The Chapter 6 student extends this
+accepted predecessor in main; the frozen Chapter 5 export remains unchanged.
 
 Chapter 4 remains accepted at `edition-2-ch04-r1` (`55e6411`); its exact
 780-file export and source/evidence bindings are recorded in
@@ -162,9 +171,13 @@ old implementation into the new solution.
 ## Roles and next actions
 
 - Author: Chapter 5 final prose and feedback are accepted. Chapter 6's full
-  streaming contract and story proofreading are reviewed and ready for handoff.
-- Coder: `/root/coder_ch05` completed Chapter 5. The next student needs a fresh
-  new-only context from accepted `edition-2-ch05-r1`.
+  streaming contract and story proofreading were reviewed before handoff.
+  Resume for student clarifications and Chapter 7 preparation when capacity opens.
+- Coder: `/root/coder_ch06` starts from accepted `edition-2-ch05-r1` in a
+  fresh new-only context. `/root/coder_ch05` completed Chapter 5.
+- Current reviewer: `/root/grader_ch05` prepares Chapter 6 independent checks;
+  historical comparison follows the student's frozen initial implementation
+  and live runs.
 - Chapter 4 reviewer: `/root/coder_ch03_chat`, independent of this chapter's
   new coder, completed lifecycle/owner/fault/debugger and comparative review.
   This agent authored the preceding human-client integration; disclose that
