@@ -8,11 +8,16 @@ vet/tests. See [chapter-05-validation.md](chapter-05-validation.md).
 
 Chapter 5's tag points to `7a6ef036322e1cf362894bd30b073fc8399a3c30`.
 Fresh new-only student `/root/coder_ch06` is now working from that accepted
-source and the reviewed streaming contract. `/root/grader_ch05` prepares
-independent checks; the author awaits capacity after a tool thread-limit
-rejection. Root handles immediate contract questions. See
+source and the reviewed streaming contract. `/root/grader_ch05` committed initial
+independent CLI barrier checks; the author has resumed Chapter 7 preparation
+and Chapter 6 clarifications. The coder reports all six initial barriers pass;
+full acceptance remains pending. See
 [chapter-06-validation.md](chapter-06-validation.md) for current gates.
 No Chapter 6 passing implementation or live validation is claimed yet.
+Earlier log-destination corrections are independently accepted and checkpointed
+at `edition-2-ch02-r2` (`0a375d3`) and `edition-2-ch03-r2` (`799940c`). Their
+revised frozen exports and manifests are integrated here; canonical main stays
+on Chapter 6. See `logpath-backport-review.md` and the chapter validation records.
 Chapter 4 remains checkpointed at
 `edition-2-ch04-r1` (`55e6411`); its detailed record is historical below.
 

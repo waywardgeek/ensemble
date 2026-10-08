@@ -272,8 +272,13 @@ func (a *Agent) SetConfig(config Config) error {
 		return err
 	}
 	a.mu.Lock()
+	defer a.mu.Unlock()
+	// The open writer belongs to this Agent's lifetime; configuration updates
+	// cannot move its history or claim that it is being written elsewhere.
+	if owned.LogPath != a.config.LogPath {
+		return fmt.Errorf("Agent log destination cannot change")
+	}
 	a.config = owned
-	a.mu.Unlock()
 	return nil
 }
 func (a *Agent) Usage() Usage { a.mu.Lock(); defer a.mu.Unlock(); return a.engine.Usage() }

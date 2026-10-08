@@ -14,8 +14,9 @@ ownership plan before affected implementation. Streaming implementation is
 underway, and the initial independent CLI barrier checks are committed at
 `c6272a4`; broader contract checks remain pending. See
 [chapter-06-validation.md](chapter-06-validation.md) for the current gates.
-The author is awaiting a worker slot after a tool thread-limit rejection;
-root handles immediate teaching questions meanwhile.
+The author has resumed Chapter 7 preparation and Chapter 6 clarifications.
+The first student gap, preserving Gemini text parts with unknown fields, was
+taught explicitly at `f085b95` before affected implementation.
 
 Chapter 5 code, actual live evidence, teaching and manuscript review are
 accepted at `c1cc0b4`. The exact 1,254-file export comes from `185ba76`, with
@@ -173,7 +174,7 @@ old implementation into the new solution.
 
 - Author: Chapter 5 final prose and feedback are accepted. Chapter 6's full
   streaming contract and story proofreading were reviewed before handoff.
-  Resume for student clarifications and Chapter 7 preparation when capacity opens.
+  Active on student clarifications and Chapter 7 preparation.
 - Coder: `/root/coder_ch06` starts from accepted `edition-2-ch05-r1` in a
   fresh new-only context. `/root/coder_ch05` completed Chapter 5.
 - Current reviewer: `/root/grader_ch05` prepares Chapter 6 independent checks;
@@ -191,16 +192,17 @@ old implementation into the new solution.
 
 ## Scope and enduring decisions
 
-Earlier correction to propagate: the manual review's immutable LogPath fix
-first lands in Chapter 4 runtime d25. The new Chapter 2 teaching now explains
-that invariant. Coordinator-authored isolated backports are ready at
-`9fed66a` (Chapter 2) and `ea4bcea` (Chapter 3), under
-`/Users/bill/projects/ensemble-edition-2-revisions/`. Both pass all module
-vet/tests, race, formatting, inherited grading and their independent offline
-and human CLI checks. Original-source controls expose exactly the new refusal
-failures while preserving the valid same-path case. Independent review and
-revision exports/tags remain pending; current frozen ch02/ch03 are unchanged.
-Keep old tags and receipts. Chapter 4 onward already contains the fix.
+The immutable LogPath correction is now propagated to earlier frozen sources.
+Coordinator-authored backports `9fed66a` and `ea4bcea` passed independent review
+at `42becb6`, all source/export module checks, race, inherited grading and
+independent offline/human CLI checks. Original-source controls exposed exactly
+the missing refusals while preserving the positive unchanged-path case.
+Validated isolated checkpoints are `edition-2-ch02-r2` (`0a375d3`) and
+`edition-2-ch03-r2` (`799940c`), with 201- and 500-file exact exports. Their
+canonical main trees match the relevant earlier chapter; current main continues
+Chapter 6. Revision manifests and the chapter validation records bind the
+exports and review. Old snapshots/tags and paid receipts retain their identities;
+no unchanged paid path was rerun. Chapter 4 onward already had the protection.
 
 The current plan is 22 chapters, 0–21, including the newly requested final
 edition-comparison chapter. Bill now permits chapter adjustments

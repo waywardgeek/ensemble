@@ -1,0 +1,26 @@
+{
+  "original_source": "edition-2-ch03-r1:solutions/edition-2/main/ensemble.go",
+  "control": "original production with new regression test",
+  "command": [
+    "go",
+    "test",
+    "-json",
+    ".",
+    "-run",
+    "^TestConfigurationPreservesLogIdentity$",
+    "-count=1"
+  ],
+  "exit_code": 1,
+  "failed_tests": [
+    "TestConfigurationPreservesLogIdentity",
+    "TestConfigurationPreservesLogIdentity/different",
+    "TestConfigurationPreservesLogIdentity/empty"
+  ],
+  "expected_failed_tests": [
+    "TestConfigurationPreservesLogIdentity",
+    "TestConfigurationPreservesLogIdentity/different",
+    "TestConfigurationPreservesLogIdentity/empty"
+  ],
+  "unchanged_path_positive_passed": true,
+  "output": "{\"Time\":\"2026-10-07T19:50:15.128667-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T19:50:15.134366-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity\"}\n{\"Time\":\"2026-10-07T19:50:15.134397-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity\",\"Output\":\"=== RUN   TestConfigurationPreservesLogIdentity\\n\"}\n{\"Time\":\"2026-10-07T19:50:15.134406-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/different\"}\n{\"Time\":\"2026-10-07T19:50:15.134411-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/different\",\"Output\":\"=== RUN   TestConfigurationPreservesLogIdentity/different\\n\"}\n{\"Time\":\"2026-10-07T19:50:15.134862-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/different\",\"Output\":\"    config_identity_test.go:41: accepted a different log destination\\n\"}\n{\"Time\":\"2026-10-07T19:50:15.135066-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/different\",\"Output\":\"--- FAIL: TestConfigurationPreservesLogIdentity/different (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T19:50:15.135071-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/different\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T19:50:15.135077-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/empty\"}\n{\"Time\":\"2026-10-07T19:50:15.135082-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/empty\",\"Output\":\"=== RUN   TestConfigurationPreservesLogIdentity/empty\\n\"}\n{\"Time\":\"2026-10-07T19:50:15.135219-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/empty\",\"Output\":\"    config_identity_test.go:41: accepted a different log destination\\n\"}\n{\"Time\":\"2026-10-07T19:50:15.135368-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/empty\",\"Output\":\"--- FAIL: TestConfigurationPreservesLogIdentity/empty (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T19:50:15.135371-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/empty\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T19:50:15.135374-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/same_path_retains_a_usable_writer_and_permits_model_changes\"}\n{\"Time\":\"2026-10-07T19:50:15.135375-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/same_path_retains_a_usable_writer_and_permits_model_changes\",\"Output\":\"=== RUN   TestConfigurationPreservesLogIdentity/same_path_retains_a_usable_writer_and_permits_model_changes\\n\"}\n{\"Time\":\"2026-10-07T19:50:15.136607-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/same_path_retains_a_usable_writer_and_permits_model_changes\",\"Output\":\"--- PASS: TestConfigurationPreservesLogIdentity/same_path_retains_a_usable_writer_and_permits_model_changes (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T19:50:15.13661-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity/same_path_retains_a_usable_writer_and_permits_model_changes\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T19:50:15.136612-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity\",\"Output\":\"--- FAIL: TestConfigurationPreservesLogIdentity (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T19:50:15.136613-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestConfigurationPreservesLogIdentity\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T19:50:15.136614-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T19:50:15.137011-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\texample.com/ensemble\\t0.008s\\n\"}\n{\"Time\":\"2026-10-07T19:50:15.137025-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.008}\n"
+}

@@ -13,7 +13,7 @@ from `185ba767545af567d3d2d3917e807222ff0b2771`.
 | Initial live use | Student, coordinator | Pending; no Chapter 6 paid calls claimed | Review complete feature/provider/public-consumer plan, then exercise real human PTYs and public clients |
 | Historical comparison and revisions | Independent reviewer, student | Pending initial implementation and actual runs | Freeze initial attempt, then compare old Chapter 7 at matching scope; return rationale and review revisions |
 | Final live evidence | Student, reviewer | Pending | Bind original receipts to source/executables; repeat only behavior affected by corrections |
-| Manuscript and teaching feedback | Author, student, proofreader | Reviewed draft; author resume currently blocked by tool thread limit | Resume author when capacity opens; reconcile actual student experience and receipts, then proofread |
+| Manuscript and teaching feedback | Author, student, proofreader | Author resumed; first Gemini unknown-text-part ambiguity taught at `f085b95` before affected code | Reconcile student response and actual receipts, then independently proofread |
 | Export and checkpoint | Coordinator | Pending all acceptance gates | Export exact accepted source, verify manifest, commit and create immutable `edition-2-ch06-r1` |
 
 The student reads the complete coding skill, architecture and new Chapter 6,
@@ -26,7 +26,8 @@ in a shared filesystem is not a claim of operating-system isolation.
 The independent grader role previously wrote Chapter 5 checks and review
 probes, not that chapter's student implementation. Its historical comparison
 begins only after this chapter's initial student attempt and runs are frozen.
-Root handles immediate contract questions while the author awaits capacity.
+Root and the resumed author handle contract questions; the author also prepares
+Chapter 7 while the student implements Chapter 6.
 The initial independent checker and remaining coverage are documented in
 [chapter-06-grader-review.md](chapter-06-grader-review.md).
 

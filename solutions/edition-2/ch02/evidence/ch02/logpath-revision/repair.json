@@ -1,0 +1,13 @@
+{
+  "chapter": 2,
+  "predecessor": "ad0d80e33a3a2857e8e0887117d9b099f1a4786d",
+  "repair_author": "coordinator; scoped guided backport, not a fresh blind student build",
+  "teaching": "book/edition-2/chapter-02.md: log destination is fixed for Agent lifetime",
+  "source_sha256": {
+    "ensemble.go": "17164bda59c104183f0ed43b32e60dca499ef53d1fd4aac6affcfaa2ba45b0c4",
+    "config_identity_test.go": "c980af1da241f88e1061f570063043882a806a22a10fd27947d20c2833012672"
+  },
+  "historical_evidence": "unchanged; retains original source identities",
+  "paid_rerun": "none; local configuration refusal does not change transport, prompts, tools or successful same-path requests",
+  "status": "local checks complete; independent review and revision export/tag pending"
+}

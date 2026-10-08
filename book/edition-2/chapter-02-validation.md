@@ -139,3 +139,27 @@ See the student's `evidence/ch02/SOURCE-EXPOSURE.md`. Subsequent cold chapters u
 fresh contexts without coordinator-history inheritance. The later human-client
 revision used a fresh new-only coder context but is a guided correction of
 Chapter 2, not a second cold evaluation of the entire chapter.
+
+## Revision 2: fixed log destination
+
+The scoped correction is independently accepted in
+[logpath-backport-review.md](logpath-backport-review.md). Its isolated source
+is `9fed66a8c8f2e25081cb3b9ee6e5eba2bef5cc17`. The exact 201-file export comes from
+`2945a47cb84ae99f0e933ebdd2019346766c1207` and is bound by
+`solutions/edition-2/manifests/ch02-r2.json`. Checkpoint:
+`edition-2-ch02-r2`. The prior snapshot and its receipts remain in history.
+
+A changed or removed log destination is rejected before any configuration
+changes. A same-path model update remains usable and writes its accepted
+response to the original file. All 3 source and exported modules pass
+vet/tests; source race and formatting pass. The inherited grade is 100/100,
+independent offline checks pass 44/44, and fixture-based human CLI checks pass
+42/42. Original-production controls expose precisely the two missing
+refusals while their positive unchanged-path case passes. The reviewer
+independently reran the new public regression under the race detector.
+
+This is a coordinator-authored guided backport, not a new blind student build.
+The prior paid demonstrations retain their original source identities: only a
+local configuration refusal changed, with no new provider or wire behavior.
+No paid rerun, browser implementation, new platform result, push or editorial
+approval is claimed.

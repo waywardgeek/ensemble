@@ -150,3 +150,27 @@ old real-model JSON sessions establish the machine interface, not interactive
 human usability. The later correction described above carries Chapter 2's new
 chat contract forward and closes the implementation/live-review gate with actual
 terminal evidence. These later receipts do not change what the earlier runs prove.
+
+## Revision 2: fixed log destination
+
+The scoped correction is independently accepted in
+[logpath-backport-review.md](logpath-backport-review.md). Its isolated source
+is `ea4bceac5f5b43774050559861845595a89a7eaa`. The exact 500-file export comes from
+`ea4bceac5f5b43774050559861845595a89a7eaa` and is bound by
+`solutions/edition-2/manifests/ch03-r2.json`. Checkpoint:
+`edition-2-ch03-r2`. The prior snapshot and its receipts remain in history.
+
+A changed or removed log destination is rejected before any configuration
+changes. A same-path model update remains usable and writes its accepted
+response to the original file. All 4 source and exported modules pass
+vet/tests; source race and formatting pass. The inherited grade is 100/100,
+independent offline checks pass 39/39, and fixture-based human CLI checks pass
+45/45. Original-production controls expose precisely the two missing
+refusals while their positive unchanged-path case passes. The reviewer
+independently reran the new public regression under the race detector.
+
+This is a coordinator-authored guided backport, not a new blind student build.
+The prior paid demonstrations retain their original source identities: only a
+local configuration refusal changed, with no new provider or wire behavior.
+No paid rerun, browser implementation, new platform result, push or editorial
+approval is claimed.
