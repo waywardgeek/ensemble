@@ -20,7 +20,7 @@ import (
 func options(t *testing.T, name string) ensemble.SessionOptions {
 	t.Helper()
 	workspace := t.TempDir()
-	base := "CH10 public base <&> with exact final newline.\n"
+	base := "CH10 public base <&> 😀 � literal \\ud800 with exact final newline.\n"
 	return ensemble.SessionOptions{Config: ensemble.Config{
 		Vendor: "openai", Model: "fixture-public", APIKey: "CH10_PRIVATE_CONFIG_ONLY",
 		BaseURL: "http://127.0.0.1:1", Workspace: workspace,

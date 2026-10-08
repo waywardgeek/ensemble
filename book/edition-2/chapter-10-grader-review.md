@@ -193,3 +193,33 @@ escape check. The existing valid-UTF-8 language does not explicitly settle
 those ASCII escape sequences. A narrow published Unicode-scalar clarification
 will precede rejection fixtures; no hidden acceptance rule is imposed and no
 inherited standalone-decoder change is assumed.
+
+The Unicode policy is now explicit in `cf73a646`. A ninth prepared public group
+first exports a real completed session and requires its public inspection to
+pass. It then invokes `ch10-semantic-cases.py` to prepare strict nested-field,
+metadata, usage, turn/response-coordinate and window-count refusals. Semantic
+mutations repair the canonical state hash. Duplicate-member cases preserve the
+otherwise identical state hash. Structural integer tokens remain ordinary
+integers in the envelope: applying the canonical hash spelling to the entire
+file could turn `10` into `1e1` and mask a semantic defect with an earlier type
+refusal. The generator explicitly prevents that fixture error.
+
+Three equivalent positives cover valid surrogate pairs, genuine replacement
+characters/literal escaped backslash text, and equivalent handler-schema number
+spellings varied separately in outer identity and state identity. Unicode
+negatives include lone surrogate escapes that a replacement-decoding bug would
+otherwise map to the exact valid U+FFFD parent, plus invalid JSON escapes inside
+the validated Raw usage wrapper. Arbitrary Raw bytes are not canonicalized into
+replacement replay data. These controls follow the published clarification;
+the accepted initial checker and standalone decoder contract remain unchanged.
+
+Run generator-only controls with
+`python3 scripts/edition2/test_ch10_semantic_cases.py -v`. All three unit methods
+pass, checking three equivalent outer envelopes and 47 generated refusals from
+an explicitly skeletal oracle-only state. That state is **not** a valid Ensemble
+snapshot and is never sent to the runtime. The
+[semantic preparation receipt](checkpoint-evidence/ch10-semantic-preparation.json)
+binds this narrow result. No runtime positive, semantic refusal or implementation
+deletion is credited until the public fixture obtains an actual accepted export.
+The same public runner command now includes the ninth group; all remaining
+matrix gaps and the reported limit-order grammar correction remain open.

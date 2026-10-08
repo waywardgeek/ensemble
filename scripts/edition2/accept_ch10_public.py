@@ -7,6 +7,7 @@ student source, invoke providers, or establish full Chapter 10 acceptance.
 import argparse
 import hashlib
 import json
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -28,6 +29,8 @@ def identities(source):
 def evaluate(source, pattern):
     before = identities(source)
     fixtures = [HERE / name for name in ('ch10-session-public_test.go', 'ch10-session-roundtrip_test.go')]
+    checker_paths = [Path(__file__), *fixtures, HERE / 'ch10-semantic-cases.py', HERE / 'accept_ch10.py', HERE / 'accept_ch09.py']
+    checker_before = {p.name: digest(p) for p in checker_paths}
     rows = []
     with tempfile.TemporaryDirectory(prefix='ch10-public-') as directory:
         work = Path(directory)
@@ -40,16 +43,18 @@ def evaluate(source, pattern):
             ['go', 'mod', 'tidy'], ['gofmt', '-l'] + [p.name for p in fixtures], ['go', 'vet', './...'],
             ['go', 'test', '-race', '-count=1', '-timeout=90s', '-run', pattern, '-v', './...'],
         ]:
-            result = subprocess.run(command, cwd=work, text=True, capture_output=True, timeout=180)
+            env = dict(os.environ, CH10_SEMANTIC_CASES=str(HERE / 'ch10-semantic-cases.py'))
+            result = subprocess.run(command, cwd=work, env=env, text=True, capture_output=True, timeout=180)
             passed = result.returncode == 0 and (command[0] != 'gofmt' or not result.stdout)
             rows.append(dict(command=command, exit=result.returncode, stdout=result.stdout,
                              stderr=result.stderr, passed=passed))
             if not passed:
                 break
     assert before == identities(source), 'source changed during public session checks'
+    assert checker_before == {p.name: digest(p) for p in checker_paths}, 'checker changed during public session checks'
     return dict(passed=len(rows) == 4 and all(r['passed'] for r in rows), checks=rows,
                 source_directory=str(source), source_files=before, test_pattern=pattern,
-                checker_files={p.name: digest(p) for p in [Path(__file__)] + fixtures},
+                checker_files=checker_before,
                 scope=__doc__, full_chapter_acceptance=False)
 
 

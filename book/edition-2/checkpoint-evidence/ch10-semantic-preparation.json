@@ -1,0 +1,31 @@
+{
+  "scope": "Semantic generator unit controls and prepared ninth public runtime group; no accepted student export available",
+  "unicode_contract_revision": "cf73a646ba665d2070bb51a77bc0b1c5c4912a2b",
+  "files": {
+    "scripts/edition2/accept_ch10_public.py": "5745fb92ed518b32ad39bcc569765d2ace755bcb21ed855c2133627d10679d25",
+    "scripts/edition2/ch10-session-public_test.go": "7e9f52a3b221cc34aae104e638ce00b63eac84071a8cb056795f5072ffeafe7c",
+    "scripts/edition2/ch10-session-roundtrip_test.go": "561ffccdd7e40b02a92f55cd38164f457a754cf07ab2759daa6d63ffb37b6d41",
+    "scripts/edition2/ch10-semantic-cases.py": "6894857a1d6acb22a95a399608f29828e52004cd99c648469dc1eaeb0a804c03",
+    "scripts/edition2/test_ch10_semantic_cases.py": "b77eecfa1d90bc20fc10a60724e5bca704851e873fbf90c14e501e5d59f0df87",
+    "scripts/edition2/accept_ch10.py": "ab30fb539b431ee1952c0f750c079dedeb1f494edfe98b67934301f8a6baf1aa",
+    "scripts/edition2/accept_ch09.py": "3b2b5a98954351abe268f3cd6ae082b003003465e4538874aaef95d410ec8c9e",
+    "solutions/edition-2/main/session-api.md": "dd1697792a9d4f095b9712ef2554338e234f0872fb805c4564f7510335facdf6",
+    "solutions/edition-2/main/persistence-format.md": "f08c74deddc2a40cee9f12b2e78506addbf099735f7861cf152535efa1047f56",
+    "book/edition-2/chapter-10.md": "3faa154f60e875497d96594a1afdc219f398856b0a9bd46b39cf72f36ca126df"
+  },
+  "generator_control_command": [
+    "python3",
+    "scripts/edition2/test_ch10_semantic_cases.py",
+    "-v"
+  ],
+  "exit": 0,
+  "stdout": "",
+  "stderr": "test_duplicate_controls_fail_for_duplicate (__main__.GeneratorTests.test_duplicate_controls_fail_for_duplicate) ... ok\ntest_positive_envelopes_preserve_identity (__main__.GeneratorTests.test_positive_envelopes_preserve_identity) ... ok\ntest_semantic_mutations_repair_hash_not_structural_integer_tokens (__main__.GeneratorTests.test_semantic_mutations_repair_hash_not_structural_integer_tokens) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.030s\n\nOK\n",
+  "generator_only_equivalent_envelopes": 3,
+  "generator_only_negative_cases": 47,
+  "unit_fixture": "Explicit skeletal oracle-only state, never submitted as valid Ensemble state",
+  "runtime_positives": 0,
+  "runtime_mutation_results": 0,
+  "prepared_public_top_level_groups": 9,
+  "pending": "Complete grammar limit-order witness; additional skills/opaque/counter/fault/lifetime/browser/bounds controls and all runtime positives/deletions"
+}

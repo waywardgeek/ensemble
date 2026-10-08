@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"reflect"
 	"strings"
@@ -75,7 +76,7 @@ func answer(t *testing.T, vendor string, x exchange) {
 	case "anthropic":
 		response = map[string]any{"model": "claude-sonnet-4-6", "content": []any{map[string]any{"type": "text", "text": "accepted fixture answer"}}, "stop_reason": "end_turn", "usage": map[string]int{"input_tokens": 3, "output_tokens": 2}}
 	case "openai":
-		response = map[string]any{"model": "gpt-4.1-mini-2025-04-14", "choices": []any{map[string]any{"index": 0, "message": map[string]any{"role": "assistant", "content": "accepted fixture answer"}, "finish_reason": "stop"}}, "usage": map[string]int{"prompt_tokens": 3, "completion_tokens": 2}}
+		response = map[string]any{"model": "gpt-4.1-mini-2025-04-14", "choices": []any{map[string]any{"index": 0, "message": map[string]any{"role": "assistant", "content": "accepted fixture answer"}, "finish_reason": "stop"}}, "usage": map[string]any{"prompt_tokens": 3, "completion_tokens": 2, "raw_marker": "�"}}
 	case "gemini":
 		response = map[string]any{"modelVersion": "gemini-3.8-flash", "candidates": []any{map[string]any{"content": map[string]any{"role": "model", "parts": []any{map[string]any{"text": "accepted fixture answer"}}}, "finishReason": "STOP"}}, "usageMetadata": map[string]int{"promptTokenCount": 3, "candidatesTokenCount": 2}}
 	}
@@ -245,5 +246,56 @@ func TestCh10PublicCaptureBusyDuringHTTP(t *testing.T) {
 	finish(t, h)
 	if _, err = a.Checkpoint(); err != nil {
 		t.Fatalf("settled positive failed after busy refusal: %v", err)
+	}
+}
+
+func TestCh10PublicSemanticRefusalsFromGenuineExport(t *testing.T) {
+	e := localEndpoint(t)
+	app := application(t)
+	a := opened(t, app, wireOptions(t, "openai", e))
+	turn(t, a, e, "openai", "semantic positive parent")
+	x := export(t, a)
+	if _, err := app.InspectCheckpoint(x.Bytes); err != nil {
+		t.Fatalf("genuine semantic positive refused before mutations: %v", err)
+	}
+	generator := os.Getenv("CH10_SEMANTIC_CASES")
+	if generator == "" {
+		t.Fatal("run through the independent public runner")
+	}
+	cmd := exec.Command("python3", generator)
+	cmd.Stdin = bytes.NewReader(x.Bytes)
+	var stdout, stderr bytes.Buffer
+	cmd.Stdout, cmd.Stderr = &stdout, &stderr
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("mutation preparation failed: %v: %s", err, stderr.String())
+	}
+	var generated struct {
+		Positives []struct {
+			Name  string `json:"name"`
+			Bytes []byte `json:"bytes"`
+		} `json:"positives"`
+		Cases []struct {
+			Name         string `json:"name"`
+			Bytes        []byte `json:"bytes"`
+			ExpectedCode string `json:"expected_code"`
+		} `json:"cases"`
+	}
+	if err := json.Unmarshal(stdout.Bytes(), &generated); err != nil || len(generated.Cases) == 0 {
+		t.Fatalf("no semantic cases: %v", err)
+	}
+	for _, c := range generated.Positives {
+		if _, err := app.InspectCheckpoint(c.Bytes); err != nil {
+			t.Fatalf("semantic equivalence positive %s refused: %v", c.Name, err)
+		}
+	}
+	for _, c := range generated.Cases {
+		t.Run(c.Name, func(t *testing.T) {
+			_, err := app.InspectCheckpoint(c.Bytes)
+			code(t, err, c.ExpectedCode)
+		})
+	}
+	noStartupHTTP(t, e)
+	if _, err := app.InspectCheckpoint(x.Bytes); err != nil {
+		t.Fatal("failed imports mutated the original positive")
 	}
 }
