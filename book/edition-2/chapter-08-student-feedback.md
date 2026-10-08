@@ -36,3 +36,16 @@ The final source-bound runtime repair and actual-run scopes remain separate in
 §8.8 and the evidence ledger. The author's teaching response is ready for the
 student to confirm; confirmation will be appended rather than backdated into
 this initial response.
+
+
+## Student response and scope correction
+
+The student read `cf2e070` and confirmed that the dispositions resolve the
+recorded difficulties, while identifying two overbroad author phrases in §8.4.
+Browser lossless normalization currently covers settings revisions, conflict
+snapshots and watch-envelope counters, rather than every nested event/part
+number. Server projection preserves numeric tokens more broadly. Detection of
+missing source-context support is required upon an unsafe counter, not before
+operating on safe integers. The author narrowed the wording to that implemented
+and tested scope rather than inventing stronger coverage. Final confirmation of
+this correction and independent prose review remain separately recorded.

@@ -1,9 +1,11 @@
 # Chapter 8 outline: Preferences that do something
 
-Status: full draft manuscript/contract exists in `chapter-08.md`, awaiting
-coordinator review before a student handoff.
-Maps to first-edition Chapter 9. Chapter 7 must be accepted before implementation.
-No Chapter 8 code, passing check, browser session or live result is claimed.
+Current reconciliation: the student implementation, actual runs and independent
+live audit are recorded in [the evidence ledger](chapter-08-evidence.md) and
+[live review](chapter-08-live-review.md). Student feedback and final prose review
+are tracked by [the validation record](chapter-08-validation.md). The outline
+below preserves the preparation decisions; its initial pre-handoff status is
+historical, superseded by those receipts. New Chapter 8 maps to old Chapter 9.
 
 ## Stake and story preservation
 
@@ -17,7 +19,11 @@ without promising that using it automatically makes it better. Retain the
 three-pane reuse test: two ArtifactScroll instances should not require two
 renderers. The historical settings failure is the sharper opener: validation
 corrected a value to zero, `omitempty` omitted it, and the browser continued
-to show the rejected value. False speech enablement was equally unrepresentable.
+to show the rejected value. The initial outline also inferred that omitted
+false prevented speech disablement; the independent frozen-client control
+refutes that outcome. The old client coerces absence to false and does turn
+speech off. The revised opener keeps that distinction rather than repeating
+the stronger historical account.
 Sources: old Chapter 9 TL;DR, old Chapter 13's “The bug that only appears after
 you fix the bug”, and commit `3d7b7d1`. Use the incident as an earlier recorded
 failure, not a freshly reproduced measurement or an invented Bill session.

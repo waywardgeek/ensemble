@@ -219,3 +219,21 @@ conclusion; paragraph endings were read in sequence. Literal schema fixtures
 are unchanged. New command/transcript blocks are deliberate reconciliation
 additions, with their source receipts above; no runtime grade was claimed for
 this prose-only edit. `git diff --check` is clean.
+
+
+Independent live audit accepted at `c84f46b`; see
+[chapter-08-live-review.md](chapter-08-live-review.md). It checks all 47 model
+requests and five WAVs with their separate paid/replay scopes. This closes live
+evidence review, not the still-separate manuscript/student checkpoint gates.
+The proofreader corrected the CLI build to name an output, removed adjacent
+no-change repetition, clarified the layout opener and changed the budget's
+ending from permission to actual turn completion. Outline reconciliation now
+labels the initial plan historical and corrects its speech-false inference.
+
+The student's response also prevented an author overclaim: browser exact
+conversion covers settings/conflict/watch-envelope counters, while the server
+preserves all projected numeric tokens. The current browser does not promise
+lossless interpretation of every nested event/part number. Unsupported source
+context refuses an unsafe counter when encountered; safe-counter-only browsers
+can operate. Section 8.4 now states those exact supported boundaries. New skill
+activation identities will receive their own explicit requirement in Chapter 9.

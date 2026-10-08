@@ -68,7 +68,7 @@ export, never a second development tree.
    Then use the real browser, human CLI and public consumers on all three APIs,
    preserving initial attempts before independent comparison and review.
 
-Build the CLI from main with `go build ./cmd` and the GUI command from
+Build the CLI from main with `go build -o /tmp/ensemble-ch08-cli ./cmd` and the GUI command from
 `main/gui` with `go build ./cmd/ensemble-gui`. The historical diagnostic is
 `make grade-dir CH=9 DIR=solutions/edition-2/main`; its old layout and wire
 assumptions do not grade this new contract. Run the complete new gate with
@@ -167,8 +167,8 @@ static field or failure reason without printing the invalid file or message.
 Each domain has a nonnegative `uint64` revision, initially 0, through
 18446744073709551615 inclusive. A successful change increments it once. Refuse
 a change at the maximum before writing or applying anything; report a safe
-exhaustion error. A no-change patch still acknowledges the existing value. A valid patch producing the same complete value acknowledges
-the current revision without a write or change broadcast. Revisions are local
+exhaustion error. A valid patch producing the same complete value acknowledges
+the current revision without a write or change broadcast, including at the maximum. Revisions are local
 to their domain: preference revision 4 and policy revision 4 are unrelated.
 Persisted revisions survive a restart; they are not Chapter 7 watch revisions.
 
@@ -332,19 +332,19 @@ Revisions must reach the browser exactly. The persisted integer
 stale. Restricting the file to JavaScript's safe-integer range would silently
 change the storage contract.
 
-Keep revision and identity counters lossless through every projection: settings
-snapshots, changes, acknowledgements, conflicts, Agent watch envelopes and
-retained event identities. They remain JSON numbers on the wire; a browser may
+Keep settings revisions and Agent watch counters lossless through their
+projections: snapshots, changes, acknowledgements, conflicts and watch envelopes. They remain JSON numbers on the wire; a browser may
 hold them as `BigInt` or exact decimal text internally. Emit an exact, unquoted
 number for `base_revision`. A Go sanitizing projection must preserve number
 lexemes or typed integers rather than round-trip through `float64`.
 
 A browser parser can recover the primitive token from the reviver's
 `context.source`, specified by [ECMAScript](https://tc39.es/ecma262/multipage/structured-data.html#sec-internalizejsonproperty).
-Scope conversion to the protocol's known counter fields; arbitrary tool
-arguments and strings must remain unchanged. Verify that the chosen lossless
-facility works before settings become ready. An unsupported browser reports
-that limitation visibly and sends no rounded command. Test the last safe
+Scope browser conversion to these known counter fields; arbitrary tool
+arguments and strings must remain unchanged. Safe integer tokens can use ordinary
+exact numeric parsing. Before accepting an unsafe counter, verify the required
+lossless facility. If it is unavailable, report that limitation visibly and
+stop the connection from claiming current settings or sending a rounded command. Test the last safe
 integer, its successors, the maximum revision and exhaustion, including a live
 change received before reconnect. A correct startup snapshot alone misses a
 lossy change-message encoder.
@@ -412,8 +412,8 @@ setter that skips the actor.
 
 ## 8.6 Reuse the screen instead of forking it
 
-Nobody customizes a safety floor. A three-pane layout means this is
-a tool the human intends to use every day.
+A reader who arranges the panes for daily work expects them to stay arranged.
+The layout must survive new answers, remote changes and the next launch.
 
 The wide layout has a sidebar, a chat pane and an actions pane. Chat contains
 human input, hints, answer and exposed thinking cards. Actions contains tool
@@ -676,8 +676,10 @@ use of retained text, with zero model calls. Public append assigned new
 top-level admission timestamps; the verifier compared every other event field,
 order and sequence exactly. It did not claim byte-identical replay of time.
 
-Native callbacks and captured WAVs document playback, with the source and capture mode retained for each file; audio energy
-alone does not establish intelligibility or what a human heard. Keep controlled
+Native callbacks and five captured WAVs document playback: three from provider
+runs and two from endpoint-disabled supplements. The
+[independent live audit](chapter-08-live-review.md) binds each source and capture.
+Audio energy alone does not establish intelligibility or what a human heard. Keep controlled
 speech-callback races separate from those recordings.
 
 ## 8.9 Checks that can distinguish a working preference
@@ -715,7 +717,7 @@ Neither closes the other obligations in this chapter.
 
 The screen remembers what the human prefers: where the dividers sit,
 whether answers are spoken aloud, how many requests the model may make
-before stopping for permission. Two bugs from the first edition taught
+before the turn ends. Two bugs from the first edition taught
 the lesson that drove this chapter: a setting that saves but does not
 apply is furniture, and a setting that applies but cannot represent zero
 is a lie. The next chapter gives the agent a way to learn new capabilities
