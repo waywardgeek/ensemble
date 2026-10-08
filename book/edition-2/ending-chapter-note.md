@@ -171,6 +171,31 @@ timeout/cancellation diagnostics and clearer comments. Its initial live
 checkpoint and reviewed checkpoint are separately retained. The final chapter
 can use that record without pretending one chapter proves the whole thesis.
 
+Chapter 8 supplies three more candidate case studies, recorded in its
+[independent comparison](chapter-08-code-review.md) at `270c3b6`:
+
+- The old settings store accepted a model-request limit that the execution
+  paths did not read. The new actor captures and enforces the policy, with
+  independent controls for one, seventeen and the default sixteen requests.
+  Compare the actual execution consumers and matched effects, rather than
+  treating a successful settings round trip as equivalent functionality.
+- Local browser controls passed while actual native speech across tabs exposed
+  a cancellation defect. Keep the initial result, the live counterexample and
+  the corrected ownership scope together. This tests the value of actual use
+  and review; it does not show that the initial teaching prevented every bug.
+- Review also corrected the new book's account of the old implementation.
+  The frozen old client could turn speech off despite an omitted false value;
+  its temperature-zero display still exposed the presence defect. A fair
+  comparison must be able to improve its account of the earlier edition as
+  well as criticize it. Retain the controlled historical-client receipt.
+
+The same comparison found lost uint64 revisions in both browser parsing and
+server projection, after the initial deterministic gate had passed. The repair
+preserves exact numeric values instead of narrowing the accepted input to make
+the boundary disappear. Use this as a specific test-coverage lesson, not a
+claim that the expanded suite proves correctness exhaustively. These are dated
+development findings; the final matched examination remains to be conducted.
+
 The same records may later support model-training research. That is a future
 use of the evidence; the present workflow changes instructions and software,
 not trained model weights. Reserve independent evaluation data if such
