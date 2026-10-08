@@ -66,8 +66,8 @@ discovery calls, with partial task, keyboard-linkage and audio limitations
 explicit. Historical comparison `13b48ef` requests narrow current-grant/state
 reads and complete per-Agent partial-outcome reporting. The same student is
 running one local-only revision round; final teaching `29a9380` and direct author
-response are pinned for confirmation. Complete proofread `a35dc8d` awaits closure
-of those narrow prose fixes. Full chapter acceptance is still pending. Managed
+response are pinned for confirmation. Final proofread `7f5a0a4` accepts the
+revised manuscript and unchanged eleven JSON fixtures. Full chapter acceptance is still pending. Managed
 spawn hit its thread limit; this new session inherits no conversation and has
 memory injection disabled. `/root/grader_ch05` continues independent checks. See
 [chapter-09-validation.md](chapter-09-validation.md).
