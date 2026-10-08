@@ -1,0 +1,146 @@
+{
+  "scope": "Independent comparative source identities, second-edition Chapter8 versus first-edition Chapter9",
+  "initial_runtime": "bd5c05a62069266c6bc5bd3b1a859bc76c85f4f3",
+  "initial_experience_freeze": "5f9684b07fc02081ca91fa48cceeb676f27d8051",
+  "later_history": [
+    "c2b24f6313fe79a5669d09bf4c61fefd3b740dea",
+    "6c99a1990235be2088c9729572303425541cd8d6"
+  ],
+  "files": [
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/policy.go",
+      "sha256": "ce624a797807a6bdc8e8e956f8d6ec02e97bc01db98ed46e36ec29af7d7eda3a"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/internal/policy/policy.go",
+      "sha256": "3aee5c32f773ee5a7faa7133ef370d8f14b8b872687e57edd5156c32f4838b35"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/internal/llm/policy.go",
+      "sha256": "397b97c328e405e29b8485689ed53f98ad5614413252f3d2c67f8e1f4b751869"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/internal/llm/actor.go",
+      "sha256": "cc27488ba25e55c4224bfd493248a45db72f0bc3a86e1ccd0347384d3c7badd5"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/internal/common/policy.go",
+      "sha256": "4572c5aa8debbd1981bfee0320240cd76371dda8cf1611fd4a4d6873d4d845f8"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/internal/common/preferences.go",
+      "sha256": "c411ea34b87f4fc5ec97629ba8315d68eecf88da351c3630d0afb189dcc17320"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/internal/preferences/preferences.go",
+      "sha256": "a680af7cdcd7c8e8c85fd8616e72a24927d13cb51575390c066beed41592839b"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/connector.go",
+      "sha256": "e49b9e550c31cc6a8669e17b249c32c604c38d25cb0c68eadb58aacde821f079"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/settings.go",
+      "sha256": "398479de9f008334b754180c234da9982bd8e3b341f573fced0c06dceb11b5ee"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/server.go",
+      "sha256": "5ccdbf917ce1f9a447896c1d6a60a5b8812bb95865ad4caf41c3225cb83c67af"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/web/gui/application.js",
+      "sha256": "08026bc76bb7018ef3c1b94ed32792ef193f68506df31c4c20a8ba74b40a17fe"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/web/gui/page.js",
+      "sha256": "247c0a9b1d0b8c7e93ec080e19242ef99ae76fa8d8ea33d5f39e491721c2257e"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/web/gui/preferences.js",
+      "sha256": "08be359ce21aca87c04d7b874f3e8e6633dfb4c169a8ec2af349c1fa9f233ac5"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/web/gui/connector.js",
+      "sha256": "9bf0b23ac83648ea4cf779e42431b3a643c1f2e5edbb938156b858ad76c15811"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/web/gui/speech.js",
+      "sha256": "7fb05ba0cbf7b8c8c0e7c998cb29747561c35c52446f5f4dae2191c942f296b3"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/web/gui/speech-service.js",
+      "sha256": "3e8e32698ca04dacbe74a59e2bacb5d8873abb4247aed5083c0c668a6d744db8"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/web/gui/artifacts.js",
+      "sha256": "ae04e4d454e08bec70756caa93816a6cb4eb673cfa5de6666eac3218cbf2eb66"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/web/gui/index.html",
+      "sha256": "f6e04dd914a80febdfbbc03634d1b469341b0d7ccb55e9a9edb299c93982bb6c"
+    },
+    {
+      "revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "path": "solutions/edition-2/main/gui/web/gui/style.css",
+      "sha256": "acce34326e6d532647daf632bf4a1b64df78c1fc51416b28086749d526b7c2cd"
+    },
+    {
+      "revision": "fd93089b8f53bdde42f9846c9aa36d5d0e6a9051",
+      "path": "solutions/ch09/internal/common/settings.go",
+      "sha256": "b7546ae32d125b13a952751f1432b72913ad390a9761bc6898adc82870eaad62"
+    },
+    {
+      "revision": "fd93089b8f53bdde42f9846c9aa36d5d0e6a9051",
+      "path": "solutions/ch09/internal/ws/handler.go",
+      "sha256": "a53e69e23a483088b485b72ff050d7f7c38ddf45bd25173bb6b173b3ee0a9c59"
+    },
+    {
+      "revision": "fd93089b8f53bdde42f9846c9aa36d5d0e6a9051",
+      "path": "solutions/ch09/internal/llm/actor.go",
+      "sha256": "d1f54f3d15407338ca9581c5a4b0706ded9c27c4c238c68d4667c4695b71ee92"
+    },
+    {
+      "revision": "fd93089b8f53bdde42f9846c9aa36d5d0e6a9051",
+      "path": "solutions/ch09/internal/llm/engine.go",
+      "sha256": "7255d69975afd5c48e9dd01ee349e30bfe0d1ed6484e0bc104bc07fcb6b7573a"
+    },
+    {
+      "revision": "fd93089b8f53bdde42f9846c9aa36d5d0e6a9051",
+      "path": "solutions/ch09/agent.go",
+      "sha256": "4118682e24e0db5e056618e962a541a51e28cac2b5897c16da61e195cd55f8a8"
+    },
+    {
+      "revision": "fd93089b8f53bdde42f9846c9aa36d5d0e6a9051",
+      "path": "solutions/ch09/cmd/main.go",
+      "sha256": "7a50627e0c90ca0c4b6108182e011f69ab8c94e9b91211fb32fd651d47cfb028"
+    },
+    {
+      "revision": "fd93089b8f53bdde42f9846c9aa36d5d0e6a9051",
+      "path": "solutions/ch09/web/gui/gui.js",
+      "sha256": "daee63252fa8553deb60259b3444b40d161b990ae7dd82138b8a39dbe92d848b"
+    },
+    {
+      "revision": "fd93089b8f53bdde42f9846c9aa36d5d0e6a9051",
+      "path": "solutions/ch09/web/gui/tts.js",
+      "sha256": "b44fdec3079b1b9e237793ebd373fe143286dd4c00dde3b802e634af238118f3"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "historical_commit": "fd93089b8f53bdde42f9846c9aa36d5d0e6a9051",
+  "source": "solutions/ch09/web/gui/gui.js",
+  "sha256": "daee63252fa8553deb60259b3444b40d161b990ae7dd82138b8a39dbe92d848b",
+  "scope": "Whole frozen gui.js executed in vm with controlled DOM/socket; no browser or live provider claim",
+  "positive_enabled": true,
+  "after_omitted_false": false,
+  "checkbox": false,
+  "temperature_after_omitted_zero": -5
+}

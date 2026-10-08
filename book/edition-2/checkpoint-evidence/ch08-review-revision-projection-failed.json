@@ -1,0 +1,62 @@
+{
+  "outbound": [
+    "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+    "{\"type\":\"pause\",\"id\":\"c2\",\"typing\":false,\"speaking\":false}",
+    "{\"type\":\"preferences_update\",\"id\":\"c3\",\"patch\":{\"theme\":\"dark\"},\"base_revision\":18446744073709551614}",
+    "{\"type\":\"policy_update\",\"id\":\"c4\",\"patch\":{\"max_model_requests\":0},\"base_revision\":18446744073709551614}",
+    "{\"type\":\"preferences_update\",\"id\":\"c5\",\"patch\":{\"theme\":\"light\"},\"base_revision\":18446744073709551614}",
+    "{\"type\":\"policy_update\",\"id\":\"c6\",\"patch\":{\"max_model_requests\":2},\"base_revision\":18446744073709551614}",
+    "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+    "{\"type\":\"pause\",\"id\":\"c2\",\"typing\":false,\"speaking\":false}"
+  ],
+  "inbound": [
+    "{\"preferences\":{\"theme\":\"dark\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":18446744073709551614,\"type\":\"preferences_snapshot\"}",
+    "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g1\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":18446744073709551614,\"persistent\":true,\"max_model_requests\":0,\"effective_max_model_requests\":16},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":0}",
+    "{\"generation\":\"agent-1-g1\",\"type\":\"snapshot_end\",\"watermark\":0}",
+    "{\"id\":\"c2\",\"paused\":false,\"revision\":0,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+    "{\"id\":\"c3\",\"revision\":18446744073709551614,\"type\":\"preferences_ack\"}",
+    "{\"id\":\"c4\",\"revision\":18446744073709551614,\"type\":\"policy_ack\",\"watch_revision\":0}",
+    "{\"preferences\":{\"theme\":\"light\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":18446744073709551615,\"type\":\"preferences_changed\"}",
+    "{\"id\":\"c5\",\"revision\":18446744073709551615,\"type\":\"preferences_ack\"}",
+    "{\"generation\":\"agent-1-g1\",\"observation\":{\"accepted\":false,\"agent_id\":\"agent-1\",\"execution_policy\":{\"effective_max_model_requests\":2,\"max_model_requests\":2,\"persistent\":true,\"revision\":18446744073709552000},\"kind\":\"policy_changed\",\"part_index\":0,\"paused\":false,\"seq\":0,\"speaking_clients\":0,\"typing_clients\":0},\"revision\":1,\"type\":\"observation\"}",
+    "{\"id\":\"c6\",\"revision\":18446744073709551615,\"type\":\"policy_ack\",\"watch_revision\":1}",
+    "{\"preferences\":{\"theme\":\"light\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":18446744073709551615,\"type\":\"preferences_snapshot\"}",
+    "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g2\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":18446744073709551615,\"persistent\":true,\"max_model_requests\":2,\"effective_max_model_requests\":2},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":1}",
+    "{\"generation\":\"agent-1-g2\",\"type\":\"snapshot_end\",\"watermark\":1}",
+    "{\"id\":\"c2\",\"paused\":false,\"revision\":1,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}"
+  ],
+  "errors": [],
+  "steps": [
+    {
+      "label": "preferences-no-change",
+      "command": "{\"type\":\"preferences_update\",\"id\":\"c3\",\"patch\":{\"theme\":\"dark\"},\"base_revision\":18446744073709551614}",
+      "reply": "{\"id\":\"c3\",\"revision\":18446744073709551614,\"type\":\"preferences_ack\"}",
+      "notice": "Preferences applied"
+    },
+    {
+      "label": "policy-no-change",
+      "command": "{\"type\":\"policy_update\",\"id\":\"c4\",\"patch\":{\"max_model_requests\":0},\"base_revision\":18446744073709551614}",
+      "reply": "{\"id\":\"c4\",\"revision\":18446744073709551614,\"type\":\"policy_ack\",\"watch_revision\":0}",
+      "notice": "Policy applied for later turns"
+    },
+    {
+      "label": "preferences-first",
+      "command": "{\"type\":\"preferences_update\",\"id\":\"c5\",\"patch\":{\"theme\":\"light\"},\"base_revision\":18446744073709551614}",
+      "reply": "{\"id\":\"c5\",\"revision\":18446744073709551615,\"type\":\"preferences_ack\"}",
+      "notice": "Preferences applied"
+    },
+    {
+      "label": "policy-first",
+      "command": "{\"type\":\"policy_update\",\"id\":\"c6\",\"patch\":{\"max_model_requests\":2},\"base_revision\":18446744073709551614}",
+      "reply": "{\"id\":\"c6\",\"revision\":18446744073709551615,\"type\":\"policy_ack\",\"watch_revision\":1}",
+      "notice": "Policy not saved: Connection lost. Applied policy remains shown above."
+    }
+  ],
+  "error": "Error: preferences-second command absent\n    at until (/Users/bill/projects/ensemble/scripts/edition2/ch08-review-revisions.cjs:7:99)\n    at async action (/Users/bill/projects/ensemble/scripts/edition2/ch08-review-revisions.cjs:22:4)\n    at async /Users/bill/projects/ensemble/scripts/edition2/ch08-review-revisions.cjs:32:3",
+  "scope": "Provisional revised gui-final before source freeze; actual Chrome and server; provider endpoint disabled; policy projection rounded uint64 before browser parsing",
+  "binary_sha256": "98d1a1982d19c23dadb142a0a90ef86141d06f54a7c1f9a3a4448601b0e58f09",
+  "relevant_inspected_worktree_files": {
+    "solutions/edition-2/main/gui/projection.go": "a1be665574f1fe2dfebffdd932528d6b9936cc7e7947ba3fc1e102e936d95bfe",
+    "solutions/edition-2/main/gui/web/gui/connector.js": "ceb1419710dfba6e6ceb90519ec41d3fc31be4298c5f7d4e09b3dfc79bee3cbf"
+  }
+}

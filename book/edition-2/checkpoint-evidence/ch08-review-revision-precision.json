@@ -1,0 +1,497 @@
+{
+  "scope": "Diagnostic reproduction: actual production Chrome UI and server; safe positive plus unsafe numeric revisions; no model traffic",
+  "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+  "binary": "/Users/bill/projects/ensemble-edition-2-revisions/ch08-live-bin/gui-native",
+  "binary_sha256": "6cae6399675914545efc897cef9c1203e8e913e3be269b81d46b89c419d6b617",
+  "checker_files": {
+    "ch08-review-revision-precision.py": "556064ef262ec08f56bce079b0a29c73145808a401151fdb7f7cf0c7f65ba381",
+    "ch08-review-revision-precision.cjs": "295aa5de54bfff371aa158fb1a6505a815f6ee256d3d17adcf4f1e87ff50b13d"
+  },
+  "requests": [],
+  "reproduced": true,
+  "rows": [
+    {
+      "seed_revision": 7,
+      "browser": {
+        "outbound": [
+          {
+            "type": "subscribe",
+            "id": "c1"
+          },
+          {
+            "type": "pause",
+            "id": "c2",
+            "typing": false,
+            "speaking": false
+          },
+          {
+            "type": "preferences_update",
+            "id": "c3",
+            "base_revision": 7,
+            "patch": {
+              "theme": "light"
+            }
+          },
+          {
+            "type": "policy_update",
+            "id": "c4",
+            "base_revision": 7,
+            "patch": {
+              "max_model_requests": 2
+            }
+          }
+        ],
+        "inbound": [
+          {
+            "preferences": {
+              "theme": "dark",
+              "font_size": 16,
+              "sidebar_width": 260,
+              "actions_width": 380,
+              "autoplay": false,
+              "speech_rate": 1
+            },
+            "revision": 7,
+            "type": "preferences_snapshot"
+          },
+          {
+            "agent_id": "agent-1",
+            "first_seq": null,
+            "generation": "agent-1-g1",
+            "id": "c1",
+            "last_seq": null,
+            "log_seq": 0,
+            "omitted": 0,
+            "state": {
+              "execution_policy": {
+                "revision": 7,
+                "persistent": true,
+                "max_model_requests": 0,
+                "effective_max_model_requests": 16
+              },
+              "active_max_model_requests": null,
+              "lifecycle": "idle",
+              "active_request_id": null,
+              "active_operation": null,
+              "queued_request_ids": [],
+              "paused": false,
+              "typing_clients": 0,
+              "speaking_clients": 0,
+              "model": "fixture-ch08-independent",
+              "usage": []
+            },
+            "type": "snapshot_begin",
+            "watermark": 0
+          },
+          {
+            "generation": "agent-1-g1",
+            "type": "snapshot_end",
+            "watermark": 0
+          },
+          {
+            "id": "c2",
+            "paused": false,
+            "revision": 0,
+            "speaking_clients": 0,
+            "type": "ack",
+            "typing_clients": 0
+          },
+          {
+            "preferences": {
+              "theme": "light",
+              "font_size": 16,
+              "sidebar_width": 260,
+              "actions_width": 380,
+              "autoplay": false,
+              "speech_rate": 1
+            },
+            "revision": 8,
+            "type": "preferences_changed"
+          },
+          {
+            "id": "c3",
+            "revision": 8,
+            "type": "preferences_ack"
+          },
+          {
+            "generation": "agent-1-g1",
+            "observation": {
+              "accepted": false,
+              "agent_id": "agent-1",
+              "execution_policy": {
+                "effective_max_model_requests": 2,
+                "max_model_requests": 2,
+                "persistent": true,
+                "revision": 8
+              },
+              "kind": "policy_changed",
+              "part_index": 0,
+              "paused": false,
+              "seq": 0,
+              "speaking_clients": 0,
+              "typing_clients": 0
+            },
+            "revision": 1,
+            "type": "observation"
+          },
+          {
+            "id": "c4",
+            "revision": 8,
+            "type": "policy_ack",
+            "watch_revision": 1
+          }
+        ],
+        "inboundRaw": [
+          "{\"preferences\":{\"theme\":\"dark\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":7,\"type\":\"preferences_snapshot\"}",
+          "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g1\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":7,\"persistent\":true,\"max_model_requests\":0,\"effective_max_model_requests\":16},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":0}",
+          "{\"generation\":\"agent-1-g1\",\"type\":\"snapshot_end\",\"watermark\":0}",
+          "{\"id\":\"c2\",\"paused\":false,\"revision\":0,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+          "{\"preferences\":{\"theme\":\"light\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":8,\"type\":\"preferences_changed\"}",
+          "{\"id\":\"c3\",\"revision\":8,\"type\":\"preferences_ack\"}",
+          "{\"generation\":\"agent-1-g1\",\"observation\":{\"accepted\":false,\"agent_id\":\"agent-1\",\"execution_policy\":{\"effective_max_model_requests\":2,\"max_model_requests\":2,\"persistent\":true,\"revision\":8},\"kind\":\"policy_changed\",\"part_index\":0,\"paused\":false,\"seq\":0,\"speaking_clients\":0,\"typing_clients\":0},\"revision\":1,\"type\":\"observation\"}",
+          "{\"id\":\"c4\",\"revision\":8,\"type\":\"policy_ack\",\"watch_revision\":1}"
+        ],
+        "notice": "Policy applied for later turns",
+        "applied": "Applied revision 8: light, 16px, widths 260/380, autoplay off, rate 1."
+      },
+      "files": {
+        "preferences": {
+          "version": 1,
+          "revision": 8,
+          "preferences": {
+            "theme": "light",
+            "font_size": 16,
+            "sidebar_width": 260,
+            "actions_width": 380,
+            "autoplay": false,
+            "speech_rate": 1
+          }
+        },
+        "policy": {
+          "version": 1,
+          "revision": 8,
+          "policy": {
+            "max_model_requests": 2
+          }
+        }
+      }
+    },
+    {
+      "seed_revision": 9007199254740992,
+      "browser": {
+        "outbound": [
+          {
+            "type": "subscribe",
+            "id": "c1"
+          },
+          {
+            "type": "pause",
+            "id": "c2",
+            "typing": false,
+            "speaking": false
+          },
+          {
+            "type": "preferences_update",
+            "id": "c3",
+            "base_revision": 9007199254740992,
+            "patch": {
+              "theme": "light"
+            }
+          },
+          {
+            "type": "policy_update",
+            "id": "c4",
+            "base_revision": 9007199254740992,
+            "patch": {
+              "max_model_requests": 2
+            }
+          }
+        ],
+        "inbound": [
+          {
+            "preferences": {
+              "theme": "dark",
+              "font_size": 16,
+              "sidebar_width": 260,
+              "actions_width": 380,
+              "autoplay": false,
+              "speech_rate": 1
+            },
+            "revision": 9007199254740992,
+            "type": "preferences_snapshot"
+          },
+          {
+            "agent_id": "agent-1",
+            "first_seq": null,
+            "generation": "agent-1-g1",
+            "id": "c1",
+            "last_seq": null,
+            "log_seq": 0,
+            "omitted": 0,
+            "state": {
+              "execution_policy": {
+                "revision": 9007199254740992,
+                "persistent": true,
+                "max_model_requests": 0,
+                "effective_max_model_requests": 16
+              },
+              "active_max_model_requests": null,
+              "lifecycle": "idle",
+              "active_request_id": null,
+              "active_operation": null,
+              "queued_request_ids": [],
+              "paused": false,
+              "typing_clients": 0,
+              "speaking_clients": 0,
+              "model": "fixture-ch08-independent",
+              "usage": []
+            },
+            "type": "snapshot_begin",
+            "watermark": 0
+          },
+          {
+            "generation": "agent-1-g1",
+            "type": "snapshot_end",
+            "watermark": 0
+          },
+          {
+            "id": "c2",
+            "paused": false,
+            "revision": 0,
+            "speaking_clients": 0,
+            "type": "ack",
+            "typing_clients": 0
+          },
+          {
+            "preferences": {
+              "theme": "light",
+              "font_size": 16,
+              "sidebar_width": 260,
+              "actions_width": 380,
+              "autoplay": false,
+              "speech_rate": 1
+            },
+            "revision": 9007199254740992,
+            "type": "preferences_changed"
+          },
+          {
+            "id": "c3",
+            "revision": 9007199254740992,
+            "type": "preferences_ack"
+          },
+          {
+            "generation": "agent-1-g1",
+            "observation": {
+              "accepted": false,
+              "agent_id": "agent-1",
+              "execution_policy": {
+                "effective_max_model_requests": 2,
+                "max_model_requests": 2,
+                "persistent": true,
+                "revision": 9007199254740992
+              },
+              "kind": "policy_changed",
+              "part_index": 0,
+              "paused": false,
+              "seq": 0,
+              "speaking_clients": 0,
+              "typing_clients": 0
+            },
+            "revision": 1,
+            "type": "observation"
+          },
+          {
+            "id": "c4",
+            "revision": 9007199254740992,
+            "type": "policy_ack",
+            "watch_revision": 1
+          }
+        ],
+        "inboundRaw": [
+          "{\"preferences\":{\"theme\":\"dark\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9007199254740992,\"type\":\"preferences_snapshot\"}",
+          "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g1\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":9007199254740992,\"persistent\":true,\"max_model_requests\":0,\"effective_max_model_requests\":16},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":0}",
+          "{\"generation\":\"agent-1-g1\",\"type\":\"snapshot_end\",\"watermark\":0}",
+          "{\"id\":\"c2\",\"paused\":false,\"revision\":0,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+          "{\"preferences\":{\"theme\":\"light\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9007199254740993,\"type\":\"preferences_changed\"}",
+          "{\"id\":\"c3\",\"revision\":9007199254740993,\"type\":\"preferences_ack\"}",
+          "{\"generation\":\"agent-1-g1\",\"observation\":{\"accepted\":false,\"agent_id\":\"agent-1\",\"execution_policy\":{\"effective_max_model_requests\":2,\"max_model_requests\":2,\"persistent\":true,\"revision\":9007199254740992},\"kind\":\"policy_changed\",\"part_index\":0,\"paused\":false,\"seq\":0,\"speaking_clients\":0,\"typing_clients\":0},\"revision\":1,\"type\":\"observation\"}",
+          "{\"id\":\"c4\",\"revision\":9007199254740993,\"type\":\"policy_ack\",\"watch_revision\":1}"
+        ],
+        "notice": "Policy applied for later turns",
+        "applied": "Applied revision 9007199254740992: light, 16px, widths 260/380, autoplay off, rate 1."
+      },
+      "files": {
+        "preferences": {
+          "version": 1,
+          "revision": 9007199254740993,
+          "preferences": {
+            "theme": "light",
+            "font_size": 16,
+            "sidebar_width": 260,
+            "actions_width": 380,
+            "autoplay": false,
+            "speech_rate": 1
+          }
+        },
+        "policy": {
+          "version": 1,
+          "revision": 9007199254740993,
+          "policy": {
+            "max_model_requests": 2
+          }
+        }
+      }
+    },
+    {
+      "seed_revision": 9007199254740993,
+      "browser": {
+        "outbound": [
+          {
+            "type": "subscribe",
+            "id": "c1"
+          },
+          {
+            "type": "pause",
+            "id": "c2",
+            "typing": false,
+            "speaking": false
+          },
+          {
+            "type": "preferences_update",
+            "id": "c3",
+            "base_revision": 9007199254740992,
+            "patch": {
+              "theme": "light"
+            }
+          },
+          {
+            "type": "policy_update",
+            "id": "c4",
+            "base_revision": 9007199254740992,
+            "patch": {
+              "max_model_requests": 2
+            }
+          }
+        ],
+        "inbound": [
+          {
+            "preferences": {
+              "theme": "dark",
+              "font_size": 16,
+              "sidebar_width": 260,
+              "actions_width": 380,
+              "autoplay": false,
+              "speech_rate": 1
+            },
+            "revision": 9007199254740992,
+            "type": "preferences_snapshot"
+          },
+          {
+            "agent_id": "agent-1",
+            "first_seq": null,
+            "generation": "agent-1-g1",
+            "id": "c1",
+            "last_seq": null,
+            "log_seq": 0,
+            "omitted": 0,
+            "state": {
+              "execution_policy": {
+                "revision": 9007199254740992,
+                "persistent": true,
+                "max_model_requests": 0,
+                "effective_max_model_requests": 16
+              },
+              "active_max_model_requests": null,
+              "lifecycle": "idle",
+              "active_request_id": null,
+              "active_operation": null,
+              "queued_request_ids": [],
+              "paused": false,
+              "typing_clients": 0,
+              "speaking_clients": 0,
+              "model": "fixture-ch08-independent",
+              "usage": []
+            },
+            "type": "snapshot_begin",
+            "watermark": 0
+          },
+          {
+            "generation": "agent-1-g1",
+            "type": "snapshot_end",
+            "watermark": 0
+          },
+          {
+            "id": "c2",
+            "paused": false,
+            "revision": 0,
+            "speaking_clients": 0,
+            "type": "ack",
+            "typing_clients": 0
+          },
+          {
+            "code": "revision_conflict",
+            "current": {
+              "revision": 9007199254740992,
+              "preferences": {
+                "theme": "dark",
+                "font_size": 16,
+                "sidebar_width": 260,
+                "actions_width": 380,
+                "autoplay": false,
+                "speech_rate": 1
+              }
+            },
+            "domain": "preferences",
+            "id": "c3",
+            "message": "preferences revision changed",
+            "type": "error"
+          },
+          {
+            "code": "revision_conflict",
+            "current": {
+              "revision": 9007199254740992,
+              "persistent": true,
+              "max_model_requests": 0,
+              "effective_max_model_requests": 16
+            },
+            "domain": "policy",
+            "id": "c4",
+            "message": "policy revision changed",
+            "type": "error"
+          }
+        ],
+        "inboundRaw": [
+          "{\"preferences\":{\"theme\":\"dark\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9007199254740993,\"type\":\"preferences_snapshot\"}",
+          "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g1\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":9007199254740993,\"persistent\":true,\"max_model_requests\":0,\"effective_max_model_requests\":16},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":0}",
+          "{\"generation\":\"agent-1-g1\",\"type\":\"snapshot_end\",\"watermark\":0}",
+          "{\"id\":\"c2\",\"paused\":false,\"revision\":0,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+          "{\"code\":\"revision_conflict\",\"current\":{\"revision\":9007199254740993,\"preferences\":{\"theme\":\"dark\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1}},\"domain\":\"preferences\",\"id\":\"c3\",\"message\":\"preferences revision changed\",\"type\":\"error\"}",
+          "{\"code\":\"revision_conflict\",\"current\":{\"revision\":9007199254740993,\"persistent\":true,\"max_model_requests\":0,\"effective_max_model_requests\":16},\"domain\":\"policy\",\"id\":\"c4\",\"message\":\"policy revision changed\",\"type\":\"error\"}"
+        ],
+        "notice": "Policy not saved: policy revision changed. Applied policy remains shown above.",
+        "applied": "Applied revision 9007199254740992: dark, 16px, widths 260/380, autoplay off, rate 1."
+      },
+      "files": {
+        "preferences": {
+          "version": 1,
+          "revision": 9007199254740993,
+          "preferences": {
+            "theme": "dark",
+            "font_size": 16,
+            "sidebar_width": 260,
+            "actions_width": 380,
+            "autoplay": false,
+            "speech_rate": 1
+          }
+        },
+        "policy": {
+          "version": 1,
+          "revision": 9007199254740993,
+          "policy": {
+            "max_model_requests": 0
+          }
+        }
+      }
+    }
+  ]
+}
