@@ -8,11 +8,11 @@ approval is separate.
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Contract | Author, coordinator | Accepted at `74928f1`; incremental projection lesson `2f105ce`; published initial checker command `7b116b7` | Preserve the new teaching in the fresh student handoff |
-| Structure and implementation | `/root/coder_ch07`, coordinator | Initial runtime `da162e8`, support `ba902b7`, initial experience/evidence frozen at `8cc87f2`; browser revision owner plan accepted before affected code | Implement grouped review repairs without changing the initial record |
-| Independent checks | Grader engineer, coordinator | All 33 groups accepted by supplement `043e6de`; retained 100/100, 14 declaration controls and unchanged historical grader suite pass; original 32/33 receipt preserved | Extend distinguishing checks for review findings and validate revised source |
+| Structure and implementation | `/root/coder_ch07`, coordinator | Initial runtime `da162e8`, support `ba902b7`, initial experience/evidence `8cc87f2`; grouped revised runtime frozen at `9ba7855b31a5eb134819602b35eb9acb277f6342` | Preserve both identities through final evidence |
+| Independent checks | Grader engineer, coordinator | Initial 33 groups accepted by supplement `043e6de`, unchanged historical grader suite passes; revised grouped comparative checks pass against `9ba7855` | Finish full retained gate against revised runtime |
 | Initial live use | Student, coordinator | Nine real sessions on all three providers; 44 requests exactly reconstructed; root audit `950cead` passes 24 controls, binds 386 original files and verifies four audio captures | Preserve initial source scope; revised browser behavior needs separate evidence |
-| Historical comparison | Independent reviewer, student | Active after `8cc87f2`; killed-job reconnect omission, closed-page listeners and shared-native-speech ownership identified | Review quality against the old standard and consolidate dispositions |
-| Revisions and final evidence | Student, reviewer | Grouped repairs underway; coder also found larger/fragmented oversize messages lack the explanatory close | Local positive/deletion controls, then narrowly affected actual-browser/audio checks with new bindings |
+| Historical comparison | Independent reviewer, student | Four grouped repairs implemented: killed-job reconnect, view disposal, shared native speech, explanatory oversized-message close; independent revision suite passes | Commit consolidated comparison and final dispositions |
+| Revisions and final evidence | Student, reviewer | Revised source/binary/support bindings prepared; 18 local adapter controls pass; real-provider revision sessions next | Two fresh prompts per provider through revised public two-Agent browser, at most four HTTP requests each |
 | Manuscript and feedback | Temporary author `/root/coder_ch04`, student, independent proofreader | Actual initial spin, screenshots, feedback responses and ownership clarifications published at `dd1ef42`; student confirms initial teaching resolutions | Reconcile revised evidence and independently proofread |
 | Export and checkpoint | Coordinator | Not started | After every gate passes, export exact source and create immutable `edition-2-ch07-r1` |
 
@@ -28,6 +28,19 @@ belong to Agent; browser connections and components use public owner interfaces.
 The combined application reuses the CLI and the same Ensemble/Agent. Real
 browser synthesis requires observable evidence of produced audio; mocked queue
 tests and available voice names alone cannot close that gate.
+
+The grouped revision also corrects shutdown of the browser application itself:
+closing all views must stop speech admission before closing individual Pages,
+so cancellation cannot start a peer's queued utterance during root teardown.
+The independent speech control and its intended deletion protect this case.
+This is follow-through on shared-speech finding R3, not an extra feature.
+
+Author commit `49ae919` captured the student's concurrently staged revision
+paths through the shared Git index. Both agents disclosed the race. The student
+reviewed only its owned files and committed the remaining teardown repair at
+`9ba7855`; no future chapter text was supplied to the student. History remains
+intact, and validation names the actual frozen revision. The procedure now
+requires explicit owned pathspecs on commits as well as staging.
 
 The initial checker invocation is:
 

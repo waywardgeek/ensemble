@@ -52,3 +52,29 @@ provider render fixtures, and safe public/watch/browser state. Keep policy and
 GUI preferences inherited from Chapter 8, native speech ownership inherited
 from Chapter 7, and no-skills behavior backward compatible. A static declaration
 count cannot substitute for attempted dispatch after revocation.
+
+## Full draft review, October 8
+
+The coordinator read the complete draft at `49ae919`, current voice and chapter
+procedure, architecture, and the author's research record. The constitution/manual
+distinction and documented lost-manual defect survive the rewrite; the opening
+connects them to a reader's actual editing authority rather than inventing a
+historical user session. The draft supplies the requested format, limits,
+management semantics, provider fixtures and public/browser state. Its pending
+spin and checker are accurately labeled. This is contract review, not runtime
+acceptance or a cold student attempt.
+
+One grouped clarification remains before checker development. Section 9.7 must
+make replay/public-append transition validation as strict as live transitions:
+preserve earlier activation records, allocate fresh identities, change only the
+requested explicit root, recompute its exact closure, and preserve discovery
+and ceiling restrictions. Effective tools include the mandatory management pair
+as well as active grants. A structurally plausible state replacement must not
+bypass the live rules. Distinguish offline reconstruction from appending an
+initializer to a live Agent whose skill configuration is creation-only. The
+author is revising these instructions; no student implementation is authorized
+by this review.
+
+Chapter 8 acceptance and a published independent checker remain prerequisites.
+The author retains ownership of prose, and a later independent proofreader
+must reconcile the eventual implementation and actual spin.

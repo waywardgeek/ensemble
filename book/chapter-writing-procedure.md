@@ -542,5 +542,11 @@ Local commits and tags do not authorize a push or a published release.
 
 Stage only owned changes explicitly. Never `git add -A`, stage Bill's
 unrelated files, mutate first-edition solutions for an audit, or push.
+Agents in this workspace share Git's index. An explicit `git add` does not
+isolate a later unqualified commit from another agent's staged work. Commit
+with the same explicit owned pathspec, and inspect the resulting file list.
+Coordinate a commit that intentionally spans owners. If a race captures
+another agent's work, disclose it and bind subsequent evidence to the actual
+commit; do not silently rewrite history to make the handoff look cleaner.
 Continue autonomously to the next chapter when the current work meets these
 conditions. Ask Bill when a real unresolved decision requires his judgment.
