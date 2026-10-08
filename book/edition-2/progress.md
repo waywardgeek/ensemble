@@ -11,8 +11,11 @@ in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 Chapter 9 is accepted at `edition-2-ch09-r1`: exact 4,012-file export from
 `ac55f64`, runtime `06c6787`, code review `19d2fdf`, live review `2dc5841` and
 final proofread `d022176`. All eleven delivered Go modules pass package discovery.
-Initial runs and later local revisions retain separate identities. A fresh
-Chapter 10 student handoff is prepared for immediate release from this checkpoint.
+Initial runs and later local revisions retain separate identities. The tag points
+to `54d7b1d`. Fresh CLI student `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0` is now
+planning Chapter 10 from that predecessor and twelve pinned new-only sources.
+No runtime changes or paid calls are released until the appropriate later gates.
+See [chapter-10-validation.md](chapter-10-validation.md).
 
 The scoped Chapter 6 streaming correction is accepted at `edition-2-ch06-r2`
 (`3acdd8e`), with exact 1,565-file export from `5e48b38`. Main and export match
