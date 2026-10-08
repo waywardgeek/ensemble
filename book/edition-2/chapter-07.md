@@ -71,7 +71,7 @@ validated `ch07/` directory will be a frozen export, never a working copy.
    malicious markup and speech errors. Preserve initial source, student review
    and runs before independent historical comparison.
 
-Build the headless CLI from main with `go build ./cmd`. Build the GUI command
+Build the headless CLI from main with `go build -o /tmp/ensemble-ch07-cli ./cmd`. Build the GUI command
 from `main/gui` with `go build ./cmd/ensemble-gui`. `make grade-dir CH=8
 DIR=solutions/edition-2/main` selects the historical GUI grader; its old binary
 and wire assumptions are diagnostic, not acceptance of this new contract.
