@@ -16,6 +16,7 @@ type Message struct {
 type Conversation []Message
 
 type Config struct {
+	DataDir          string
 	Skills           *SkillConfig
 	PolicyPath       string
 	DisableStreaming bool
@@ -95,9 +96,10 @@ type Entry struct {
 	Parts      []Part `json:"parts"`
 }
 type TurnEvent struct {
-	Policy    *TurnPolicy `json:"policy,omitempty"`
-	RequestID string      `json:"request_id"`
-	Outcome   string      `json:"outcome,omitempty"`
+	RequestIndex uint64      `json:"request_index,omitempty"`
+	Policy       *TurnPolicy `json:"policy,omitempty"`
+	RequestID    string      `json:"request_id"`
+	Outcome      string      `json:"outcome,omitempty"`
 }
 type HintEvent struct {
 	RequestID string `json:"request_id"`
@@ -146,6 +148,8 @@ type EventError struct {
 	Message string `json:"message"`
 }
 type Event struct {
+	Session  *SessionFact     `json:"session,omitempty"`
+	Limits   *LimitsEvent     `json:"limits,omitempty"`
 	Skills   *SkillTransition `json:"skills,omitempty"`
 	Turn     *TurnEvent       `json:"turn,omitempty"`
 	Hint     *HintEvent       `json:"hint,omitempty"`
@@ -161,12 +165,22 @@ type Event struct {
 	Error    *EventError      `json:"error,omitempty"`
 }
 type CallState struct {
+	CalledAt   uint64
+	ReturnedAt uint64
 	JobHandle  uint64
 	Part       Part
 	Dispatched bool
 	Returned   bool
 }
 type Context struct {
+	Session       *SessionFact
+	RequestCursor uint64
+	RequestSeqs   []uint64
+	Turns         map[string]TurnFact
+	Responses     []ResponseFact
+	Redactions    []RedactionFact
+	Guidance      []GuidanceFact
+	LimitFacts    []LimitFact
 	// Dialogue projection only. Runtime grants and material authority belong to Skills.
 	SkillMode      bool
 	SkillPrimary   string
@@ -189,6 +203,7 @@ type Context struct {
 	LastSeq        uint64
 }
 type Observation struct {
+	Session         *SessionState   `json:"session,omitempty"`
 	Skills          *SkillState     `json:"skills,omitempty"`
 	ExecutionPolicy *PolicySnapshot `json:"execution_policy,omitempty"`
 	Paused          bool            `json:"paused"`
@@ -228,6 +243,7 @@ type ClientResult struct {
 }
 
 type Ensemble interface {
+	ReleaseSession(string)
 	ClaimSettingsPath(string) (string, error)
 	ReleaseSettingsPath(string)
 	Logf(string, ...any)
@@ -237,6 +253,7 @@ type Ensemble interface {
 	Collect([]RequestHandle) Collection
 }
 type Agent interface {
+	Codec() SessionCodec
 	Ensemble() Ensemble
 	Config() Config
 	Workspace() string
@@ -246,11 +263,19 @@ type Engine interface{ Agent() Agent }
 type EventLog interface {
 	Agent() Agent
 	Append(Event) error
+	Prepare(Event) (PreparedEvent, error)
+	AppendPrepared(PreparedEvent) error
 	Close() error
+}
+type PreparedEvent interface {
+	Log() EventLog
+	Event() Event
 }
 
 // ClientOwner is public through an alias; optional clients never import internal packages.
 type ClientOwner interface {
+	Checkpoint(string) (CheckpointAck, error)
+	CheckpointContext(context.Context, string) (CheckpointAck, error)
 	SkillState(string) (*SkillState, error)
 	InspectSkills(string) (SkillInspection, error)
 	LoadSkill(string, string) (SkillResult, error)
@@ -287,6 +312,8 @@ type TurnAgent interface {
 	Jobs() Jobs
 }
 type Registry interface {
+	ResolveConsumed(Part, *LimitValues) (Limits, string, error)
+	LimitCandidate(Part) (LimitValues, error)
 	Management(string) bool
 	SkillOperation(Part, uint64) (SkillOperation, error)
 	SkillAcknowledgement(Part, SkillResult, error, string) ToolEvent
@@ -347,6 +374,11 @@ type JobReport struct {
 	MatchStart int64 // -1 starts at the unconsumed report cursor.
 }
 type Jobs interface {
+	ResolveConsumed(LimitOverrides, *LimitValues) (Limits, bool)
+	PendingLimits() *LimitValues
+	ValidateLimitEvent(Context, Event) error
+	ApplyLimitEvent(Event)
+	RestoreLimits(Context, *LimitValues) error
 	Agent() JobAgent
 	Resolve(LimitOverrides) (Limits, bool)
 	SetLimits(LimitOverrides)

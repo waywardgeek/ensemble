@@ -18,7 +18,7 @@ type Service struct {
 	parent  common.JobAgent
 	mu      sync.Mutex
 	jobs    map[uint64]*job
-	pending *common.LimitOverrides
+	pending *common.LimitValues
 	closed  bool
 	fault   error
 }
@@ -76,6 +76,9 @@ func (s *Service) Create() (common.Job, error) {
 	var file *os.File
 	for {
 		handle = s.parent.Ensemble().AllocateHandle()
+		if handle == 0 {
+			return nil, &common.SessionError{Code: "session_limit", Detail: "job identities exhausted"}
+		}
 		locator = fmt.Sprintf("cr/io/%d", handle)
 		path := filepath.Join(s.parent.Workspace(), locator)
 		if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {

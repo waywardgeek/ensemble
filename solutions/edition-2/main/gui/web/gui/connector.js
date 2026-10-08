@@ -37,7 +37,7 @@ export class Connector {
       return value;
     });
     const counter = (object, key = 'revision') => {
-      if (!object || object[key] === undefined) return;
+      if (!object || object[key] === undefined || object[key] === null) return;
       const value = object[key];
       if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) throw new Error('Invalid server counter');
       if (Number.isSafeInteger(value)) return;
@@ -47,6 +47,18 @@ export class Connector {
       object[key] = BigInt(source);
     };
     counter(message); counter(message, 'watermark'); counter(message, 'watch_revision');
+    for (const key of ['first_seq','last_seq','log_seq','as_of']) counter(message,key);
+    counter(message.state?.session,'checkpoint_seq'); counter(message.observation?.session,'checkpoint_seq');
+    for (const job of message.state?.job_access || []) counter(job,'handle');
+    const eventCounters = e => {
+      if (!e) return;
+      counter(e,'seq'); counter(e.job,'handle'); counter(e.tool?.job,'handle');
+      counter(e.turn,'request_index');
+      for (const key of ['from','to']) counter(e.redact,key);
+      for (const key of ['hints','ephemera']) for (let i=0;i<(e.request?.[key]?.length||0);i++) counter(e.request[key],String(i));
+    };
+    eventCounters(message.event); eventCounters(message.observation?.event);
+    counter(message.observation,'response_seq'); counter(message.observation,'seq');
     counter(message.state?.execution_policy); counter(message.observation?.execution_policy);
     const skillState = state => {
       if (!state) return;
@@ -125,7 +137,7 @@ export class Connector {
       this.revision = m.revision; this.owner.observation(m.observation); return;
     }
     const pending = this.pending.get(m.id);
-    if (pending) { this.pending.delete(m.id); m.type === 'error' ? pending.reject(Object.assign(new Error(m.message), {code:m.code, domain:m.domain, current:m.current})) : pending.resolve(m); }
+    if (pending) { this.pending.delete(m.id); ['error','command_error'].includes(m.type) ? pending.reject(Object.assign(new Error(m.message), {code:m.code, domain:m.domain, current:m.current})) : pending.resolve(m); }
     this.owner.reply(m);
   }
 }

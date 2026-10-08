@@ -13,15 +13,14 @@ import (
 )
 
 func Clone[T any](owner common.Engine, value T) (T, error) {
-	var out T
-	data, err := json.Marshal(value)
-	if err == nil {
-		err = json.Unmarshal(data, &out)
+	// Copying never encodes: capture remains proportional copying on Actor, while
+	// validation and bounded serialization belong to their explicit boundaries.
+	v := cloneValue(reflect.ValueOf(value))
+	if !v.IsValid() {
+		var zero T
+		return zero, nil
 	}
-	if err != nil {
-		return out, failure(owner, "cannot copy malformed owned data")
-	}
-	return out, nil
+	return v.Interface().(T), nil
 }
 func Text(text string) common.Part { return common.Part{Type: "text", Text: &text} }
 func validProvenance(owner common.Engine, p *common.Provenance) bool {
@@ -108,6 +107,9 @@ func CanPrompt(owner common.Engine, c common.Context) error {
 	return nil
 }
 func Validate(owner common.Engine, c common.Context, e *common.Event) error {
+	if err := sessionCollections(owner, c, *e); err != nil {
+		return err
+	}
 	bad := func(reason string) error {
 		err := &validationError{reason: reason}
 		owner.Agent().Ensemble().Logf("%s", err)
@@ -122,7 +124,7 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 		return bad("invalid UTC timestamp")
 	}
 	n := 0
-	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Turn != nil, e.Hint != nil, e.Skills != nil} {
+	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Turn != nil, e.Hint != nil, e.Skills != nil, e.Session != nil, e.Limits != nil} {
 		if present {
 			n++
 		}
@@ -130,13 +132,31 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 	if n != 1 {
 		return bad("exactly one event payload is required")
 	}
+	if c.Session != nil && e.Seq != c.LastSeq+1 {
+		return bad("session sequence gap")
+	}
 	switch e.Type {
+	case "session_initialized":
+		if c.LastSeq != 0 || e.Seq != 1 || e.Session == nil || e.Session.Identity == nil || e.Session.OriginAsOf != 0 || e.Session.OriginSHA256 != "" || e.Session.HighWatermarks != nil {
+			return bad("invalid session initializer")
+		}
+	case "session_anchor":
+		if c.Session == nil || e.Session == nil || e.Session.Identity != nil || e.Session.SessionID != c.Session.SessionID || e.Session.OriginAsOf != c.LastSeq || e.Session.HighWatermarks == nil || e.Session.HighWatermarks.Event != c.LastSeq {
+			return bad("invalid session anchor")
+		}
+	case "tool_limits_set", "tool_limits_consumed":
+		if c.Session == nil || e.Limits == nil {
+			return bad("limits facts require a session")
+		}
 	case "skills_initialized", "skills_changed":
-		if e.Skills == nil || (e.Type == "skills_initialized") != (e.Skills.Action == "initialize") || e.Type == "skills_initialized" && c.LastSeq != 0 {
+		if e.Skills == nil || (e.Type == "skills_initialized") != (e.Skills.Action == "initialize") || e.Type == "skills_initialized" && (c.LastSeq != 0 && !(c.Session != nil && c.LastSeq == 1)) {
 			return bad("invalid skill event placement")
 		}
 		// Skills validates the graph through the composition root before this reducer.
 	case "turn_started":
+		if c.Session != nil && (e.Turn == nil || e.Turn.RequestIndex == 0 || e.Turn.RequestIndex <= c.RequestCursor) {
+			return bad("session request index must advance")
+		}
 		if e.Turn != nil && e.Turn.Policy != nil {
 			p := e.Turn.Policy
 			effective := p.MaxModelRequests
@@ -291,10 +311,7 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 			return bad("invalid event or conversation transition")
 		}
 		if e.Type == "tool_called" {
-			var a, b any
-			_ = json.Unmarshal(t.Args, &a)
-			_ = json.Unmarshal(call.Part.Args, &b)
-			if call.Dispatched || t.Name != call.Part.Name || !object(owner, t.Args) || !reflect.DeepEqual(a, b) {
+			if call.Dispatched || t.Name != call.Part.Name || !object(owner, t.Args) || !owner.Agent().Codec().EqualJSON(t.Args, call.Part.Args) {
 				return bad("invalid event or conversation transition")
 			}
 			if t.Job != nil {
@@ -390,6 +407,7 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 // Apply runs only after validation and durable append; it cannot fail halfway.
 // Its event is a separate owned copy so redaction cannot rewrite history bytes.
 func Apply(owner common.Engine, c *common.Context, e common.Event) {
+	recordSemantic(owner, c, e)
 	c.LastSeq = e.Seq
 	if c.Calls == nil {
 		c.Calls = map[string]common.CallState{}
@@ -502,6 +520,7 @@ func Apply(owner common.Engine, c *common.Context, e common.Event) {
 			call.JobHandle = e.Tool.Job.Handle
 		}
 		call.Dispatched = true
+		call.CalledAt = e.Seq
 		c.Calls[e.Tool.CallID] = call
 	case "job_ended", "job_killed":
 		c.Jobs[e.Job.Handle] = *e.Job
@@ -511,6 +530,7 @@ func Apply(owner common.Engine, c *common.Context, e common.Event) {
 		}
 		call := c.Calls[e.Tool.CallID]
 		call.Returned = true
+		call.ReturnedAt = e.Seq
 		c.Calls[e.Tool.CallID] = call
 		c.Entries = append(c.Entries, common.Entry{Seq: e.Seq, Actor: "tool", Purpose: "dialogue", Parts: []common.Part{{Type: "tool_result", CallID: e.Tool.CallID, Parts: e.Tool.Parts, IsError: e.Tool.IsError}}})
 		c.Continuation = !unresolved(owner, *c)

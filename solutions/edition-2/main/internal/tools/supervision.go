@@ -14,6 +14,12 @@ import (
 // Tool names and wire validation belong here. Jobs sees validated durations,
 // compiled expressions and report requests, never tool schemas or JSON fields.
 func (r *Registry) ResolveLimits(call common.Part) (common.Limits, string, error) {
+	return r.resolve(call, nil, false)
+}
+func (r *Registry) ResolveConsumed(call common.Part, pending *common.LimitValues) (common.Limits, string, error) {
+	return r.resolve(call, pending, true)
+}
+func (r *Registry) resolve(call common.Part, pending *common.LimitValues, recorded bool) (common.Limits, string, error) {
 	var supplied common.LimitOverrides
 	var err error
 	switch call.Name {
@@ -23,7 +29,13 @@ func (r *Registry) ResolveLimits(call common.Part) (common.Limits, string, error
 	if err != nil {
 		supplied = common.LimitOverrides{}
 	}
-	limits, consumed := r.parent.Jobs().Resolve(supplied)
+	var limits common.Limits
+	var consumed bool
+	if recorded {
+		limits, consumed = r.parent.Jobs().ResolveConsumed(supplied, pending)
+	} else {
+		limits, consumed = r.parent.Jobs().Resolve(supplied)
+	}
 	note := ""
 	if consumed {
 		if err != nil {
@@ -118,7 +130,9 @@ func (r *Registry) BeginSupervision(call common.Part, limits common.Limits, note
 		if supplied.Delay == nil && supplied.MaxBytes == nil && !supplied.PatternSet {
 			return finish("", r.failure("supply at least one limit field"))
 		}
-		manager.SetLimits(supplied)
+		if r.parent.Config().DataDir == "" {
+			manager.SetLimits(supplied)
+		}
 		return finish("tool_limits set: supplied overrides apply to the next attempted call only, including invalid calls or another setter.", nil)
 	}
 	handle := args["handle"].(int)
@@ -149,4 +163,29 @@ func (r *Registry) BeginSupervision(call common.Part, limits common.Limits, note
 		return finish("", err)
 	}
 	return nil, &common.ReportTask{Job: job, Request: request, Ready: ready, Input: input}
+}
+
+// LimitCandidate decodes a setter without committing Jobs' pending setting.
+func (r *Registry) LimitCandidate(call common.Part) (common.LimitValues, error) {
+	value := common.LimitValues{}
+	if call.Name != "tool_limits" {
+		return value, r.failure("not a limit setter")
+	}
+	entry, ok := r.entries[call.Name]
+	if !ok {
+		return value, r.failure("limit setter unavailable")
+	}
+	if _, err := r.decode(call.Name, entry, call.Args); err != nil {
+		return value, err
+	}
+	if _, err := r.limitOverrides(call.Args); err != nil {
+		return value, err
+	}
+	if err := json.Unmarshal(call.Args, &value); err != nil {
+		return value, r.failure("invalid typed limits")
+	}
+	if value.Delay == nil && value.Pattern == nil && value.MaxBytes == nil {
+		return value, r.failure("supply at least one limit field")
+	}
+	return value, nil
 }

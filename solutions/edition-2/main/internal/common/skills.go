@@ -54,9 +54,9 @@ type SkillMaterial struct {
 	Retired  bool
 }
 type SkillContributors struct {
-	Tool        string
-	Activations []uint64
-	Mandatory   bool
+	Tool        string   `json:"tool"`
+	Activations []uint64 `json:"activations"`
+	Mandatory   bool     `json:"mandatory"`
 }
 type SkillInspection struct {
 	State        *SkillState

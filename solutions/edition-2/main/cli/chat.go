@@ -242,12 +242,34 @@ func chatCommand(owner ensemble.ClientOwner, agent *ensemble.Agent, out *bufio.W
 		return false, nil
 	}
 	switch command {
-	case "/help", "/usage", "/history", "/skills", "/quit":
+	case "/help", "/usage", "/history", "/skills", "/session", "/checkpoint", "/quit":
 		if rest != "" {
 			return localError()
 		}
 		switch command {
+		case "/session":
+			s, err := agent.Session()
+			if err != nil {
+				return false, err
+			}
+			if s == nil {
+				fmt.Fprintln(out, "Standalone fresh-log Agent.")
+			} else {
+				anchor := "none"
+				if s.CheckpointSeq != nil {
+					anchor = strconv.FormatUint(*s.CheckpointSeq, 10)
+				}
+				fmt.Fprintf(out, "Session %s; resumed=%t; durable sequence=%d; checkpoint=%s\n", s.ID, s.Resumed, agent.Snapshot().LastSeq, anchor)
+			}
+		case "/checkpoint":
+			ack, err := agent.Checkpoint()
+			if err != nil {
+				fmt.Fprintf(out, "Checkpoint refused: %s\n", err)
+			} else {
+				fmt.Fprintf(out, "Checkpoint saved at %d.\n", ack.AsOf)
+			}
 		case "/help":
+			fmt.Fprintln(out, "/session — session identity and saved boundary\n/checkpoint — save the settled session")
 			fmt.Fprintln(out, "/help — show commands\n/usage — token totals\n/skills — current skills and tool grants\n/history — event sequences and tool call IDs\n/hint TEXT — guide the next request of the active turn\n/interrupt — interrupt the active turn\n/ephemeral TEXT — one-request directive\n/redact FROM TO REASON — redact tool results in a sequence span\n/quit — finish the session\n//TEXT — submit a literal leading slash\nInput: one UTF-8 line, at most 1 MiB (1048576 bytes), excluding LF or CRLF.")
 		case "/skills":
 			state, err := agent.SkillState()
@@ -272,6 +294,12 @@ func chatCommand(owner ensemble.ClientOwner, agent *ensemble.Agent, out *bufio.W
 			return false, showUsage(owner, out, agent.Usage(), false)
 		case "/history":
 			fmt.Fprintln(out, "History:")
+			for _, e := range agent.Events() {
+				if e.Type == "session_anchor" && e.Session != nil {
+					fmt.Fprintf(out, "Snapshot origin at %d; only retained anchor/tail events follow.\n", e.Session.OriginAsOf)
+					break
+				}
+			}
 			hasResult := false
 			for _, event := range agent.Events() {
 				fmt.Fprintf(out, "%d %s", event.Seq, event.Type)

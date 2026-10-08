@@ -482,3 +482,36 @@ This implements the coordinator's disconnect safeguard without an unjoined clien
 wait. Parent interfaces retain actual Store -> I/O -> file creator chains for
 local checked-write fault controls. All nine nested example modules passed vet
 and tests in nested-module-checks.json (before this API addition).
+
+## Q4 acknowledgment — prepared accepted event boundary
+
+Read complete revised Chapter 10 and complete direct feedback in
+clarification-c5ad6c0; verified manifest and exact Git bytes at
+c5ad6c04a67c0e2eeafde77f52d90dfdd7695d8e. Chapter SHA-256:
+41ef91e7fad0308f32bd874c8cb952fddc8900d41f3534c847183adb0e66a26a;
+feedback SHA-256: 0b4ccab128da68c300c9a831693e2037ebc9e5291949e25bde8bc2318a9ca8d2.
+Q4 is resolved before the affected implementation: candidate validation precedes
+one bounded JSONL preparation; prepared bytes define accepted raw fragments;
+append those exact bytes before applying/publishing. Preserve original number
+lexemes/order and decoded text/signatures, with no hash canonicalization or float
+round trip. Existing imported records are already accepted; no read-side rewrite.
+Skills preflight stays controlled; transient streaming remains inherited.
+My local whitespace-only reproduction converged with independent preserved-binary
+diagnosis, rather than supplying the only discovery. Keep both initial failures.
+
+Q5 wording check, independent of Q4: §10.3 says every non-event watermark is "at
+least" represented allocated identities, whereas §10.4 says event/activation/job
+watermarks "must equal" reduced durable maxima. Proposed distinction: snapshot-only
+import validates allocator lower bounds; an available prefix proves its actual
+maxima (seeded from validated origin for imports), so an ordinary later checkpoint
+cannot arbitrarily raise that seed without a durable allocation. Confirm whether
+snapshot-only activation/job watermarks above all represented identities are
+valid, or equality is required even there. Request cursor explicitly allows burned
+ordinals. Pause only the ambiguous above-maximum activation/job import case;
+continue normal exact-max paths and all other work.
+
+### Q5 published read and acknowledgment
+
+Read the complete chapter-10.md and complete chapter-10-student-feedback.md in clarification-3a9e5b7 after verifying manifest.json and exact permitted Git blobs at 3a9e5b76053535ab22906959edb14609596f8a93. SHA256 respectively 56f52e6ac8d251f6c775d226c4b6c48fec1311542d15450f3b666617584cbbaa and eb4e7faf3b711c5e628a4d2e189eb384cfed0923cb3362ab4b8bb9a902f0953e. These resolve Q5: complete semantic facts establish exact activation/job maxima, including retired/out-of-window identities in snapshot-only origins. Unsupported higher values refuse too. Only request admissions have a burned-ordinal exception. Ensemble's live job floor remains separately monotonic. I withdraw the proposed snapshot-only arbitrary job-floor relaxation and will remove it; no missing raw prefix is required.
+
+After compaction read the entire mandatory skill again (a batched display truncated its tail, so repeated a standalone complete read). Read only the authorized coordinator inbox, published pins, main source and own receipts. No excluded implementation, credential or provider reads. Coordinator and student physical-bound checks overlapped before the inbox's avoid-duplication note was seen; both were already complete, and no repeat is planned for unchanged read-side code.

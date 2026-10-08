@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"example.com/ensemble/internal/common"
 	"fmt"
-	"reflect"
 	"sort"
 )
 
@@ -88,6 +87,17 @@ func (r *Registry) Declarations() []common.ToolDefinition {
 	if grants := r.parent.GrantedTools(); grants != nil {
 		names = grants
 	}
+	return r.definitions(names)
+}
+func (r *Registry) Installed() []common.ToolDefinition {
+	names := make([]string, 0, len(r.entries))
+	for name := range r.entries {
+		names = append(names, name)
+	}
+	sort.Strings(names)
+	return r.definitions(names)
+}
+func (r *Registry) definitions(names []string) []common.ToolDefinition {
 	out := make([]common.ToolDefinition, 0, len(names))
 	for _, name := range names {
 		e := r.entries[name]
@@ -125,8 +135,7 @@ func (r *Registry) Match(defs []common.ToolDefinition) bool {
 			return false
 		}
 		seen[got.Name] = true
-		var a, b any
-		if json.Unmarshal(got.Schema, &a) != nil || json.Unmarshal(found.Schema, &b) != nil || !reflect.DeepEqual(a, b) {
+		if !r.parent.Codec().EqualJSON(got.Schema, found.Schema) {
 			return false
 		}
 	}

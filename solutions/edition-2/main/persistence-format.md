@@ -245,3 +245,13 @@ including parsed inner raw-JSON strings, must encode Unicode scalar values.
 Reject lone escaped high/low surrogates before decoding; accept adjacent valid
 pairs, genuine U+FFFD and escaped-backslash literal text. Legacy standalone
 JSON behavior is unchanged by this added session rule.
+
+Prepared-event clarification c5ad6c0: new session candidates validate before one
+bounded JSONL preparation. Those prepared bytes define accepted Raw fragments;
+append exactly them before applying/publishing. Preparation preserves number
+lexemes and order, decoded text/manual/signature values and opaque meaning, while
+normalizing line formatting/escape spelling as needed. Existing record reads
+preserve their actual accepted fragments and physical sizes. Strict snapshot and
+prefix comparisons remain byte-exact for Raw. This is distinct from canonical
+hash/equality normalization. See student-review Q5 for above-maximum watermark
+wording awaiting confirmation; ordinary exact-max paths are unchanged.

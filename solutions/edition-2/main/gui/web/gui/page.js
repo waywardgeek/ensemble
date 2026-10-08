@@ -24,6 +24,8 @@ export class Page {
     const auto = root.querySelector('[data-auto-speech]');
     if (auto) this.listen(auto, 'click', () => { this.speech.activate(); this.settings.change({autoplay: !this.speech.enabled}, auto); });
     const playback = root.querySelector('[data-enable-playback]'); if (playback) this.listen(playback, 'click', () => this.speech.activate());
+    const checkpoint = root.querySelector('[data-checkpoint]');
+    if (checkpoint) this.listen(checkpoint,'click',()=>this.connector.send('checkpoint').then(a=>this.diagnostic(`Checkpoint saved at ${a.as_of}.`)).catch(e=>this.diagnostic(e.message)));
     this.connector.connect();
   }
   application() { return this.parent; }
@@ -38,9 +40,14 @@ export class Page {
     else this.reconcile().catch(e => this.diagnostic(e.message));
   }
   preferences(snapshot) { if (this.closed) return; this.settings.apply(snapshot); const auto=this.root.querySelector('[data-auto-speech]'); if(auto){auto.setAttribute('aria-pressed',String(snapshot.preferences.autoplay));auto.textContent='Autoplay new answers: '+(snapshot.preferences.autoplay?'on':'off');} }
-  snapshot(snapshot) { if (this.closed) return; this.speech.reset(); this.speech.seed(snapshot.partials); this.artifacts.reset(snapshot); this.actions?.reset(snapshot); this.pause(snapshot.state); this.skills(snapshot.state.skills); this.settings.policy(snapshot.state.execution_policy, snapshot.state.active_max_model_requests); this.lifecycle(snapshot.state.lifecycle, snapshot.agent_id); }
+  snapshot(snapshot) { if (this.closed) return; this.speech.reset(); this.speech.seed(snapshot.partials); this.artifacts.reset(snapshot); this.actions?.reset(snapshot); this.pause(snapshot.state); this.session(snapshot.state.session); this.skills(snapshot.state.skills); this.settings.policy(snapshot.state.execution_policy, snapshot.state.active_max_model_requests); this.lifecycle(snapshot.state.lifecycle, snapshot.agent_id); }
   lifecycle(state, agent) { const el=this.root.querySelector('[data-agent]'); if(el){if(agent)this.agentID=agent;el.textContent=`${this.agentID || ''} — ${state}`;} }
-  observation(o) { if (this.closed) return; this.artifacts.observation(o); this.actions?.observation(o); this.speech.observe(o); if(o.skills)this.skills(o.skills); if (o.kind === 'pause_changed') this.pause(o); if(o.kind==='policy_changed')this.settings.policy(o.execution_policy); if(o.kind==='state')this.lifecycle(o.state,o.agent_id); if(o.event?.type==='turn_started')this.settings.policy(this.settings.executionPolicy,o.event.turn.policy?.effective_max_model_requests ?? 16); if(o.event?.type==='turn_ended')this.settings.policy(this.settings.executionPolicy,null); }
+  observation(o) { if (this.closed) return; this.artifacts.observation(o); this.actions?.observation(o); this.speech.observe(o); if(o.kind==='session_changed')this.session(o.session); if(o.skills)this.skills(o.skills); if (o.kind === 'pause_changed') this.pause(o); if(o.kind==='policy_changed')this.settings.policy(o.execution_policy); if(o.kind==='state')this.lifecycle(o.state,o.agent_id); if(o.event?.type==='turn_started')this.settings.policy(this.settings.executionPolicy,o.event.turn.policy?.effective_max_model_requests ?? 16); if(o.event?.type==='turn_ended')this.settings.policy(this.settings.executionPolicy,null); }
+  session(state) {
+    const element=this.root.querySelector('[data-session]');
+    if(element) element.textContent=state ? `Session ${state.id} — ${state.resumed?'resumed':'new'} — checkpoint ${state.checkpoint_seq ?? 'none'}` : 'Standalone fresh-log Agent';
+    const button=this.root.querySelector('[data-checkpoint]'); if(button) button.disabled=!state;
+  }
   skills(state) {
     const element = this.root.querySelector('[data-skills]'); if (!element) return;
     element.replaceChildren();

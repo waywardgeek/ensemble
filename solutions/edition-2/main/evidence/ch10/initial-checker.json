@@ -1,0 +1,3025 @@
+{
+  "passed": 12,
+  "total": 93,
+  "checks": [
+    {
+      "id": "anthropic/legacy-protocol-positive",
+      "passed": true
+    },
+    {
+      "id": "anthropic/genuine-session-create",
+      "passed": true
+    },
+    {
+      "id": "anthropic/resume-dialogue-once",
+      "passed": false
+    },
+    {
+      "id": "anthropic/identity-sequence-request-index",
+      "passed": false
+    },
+    {
+      "id": "anthropic/safe-configuration-files",
+      "passed": true
+    },
+    {
+      "id": "anthropic/offline-inspect",
+      "passed": false
+    },
+    {
+      "id": "anthropic/null-state-rebuild",
+      "passed": false
+    },
+    {
+      "id": "anthropic/plain-system-presence",
+      "passed": false
+    },
+    {
+      "id": "anthropic/corrupt/unsupported-version",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/unsupported-state-version",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/unknown-outer-field",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/missing-required-field",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/invalid-session-id",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/numeric-session-id",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/numeric-system",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/numeric-hash",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/zero-anchor",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/overflow-anchor",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/negative-job-watermark",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/anchor-event-disagreement",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/state-hash-mismatch",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/null-state-with-hash",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/unknown-identity-field",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/anchor-beyond-log",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/duplicate-outer-member",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/invalid-checkpoint-utf8",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/trailing-json",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/partial-log-record",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/corrupt/duplicate-event-member",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "anthropic/writer-lock",
+      "passed": false
+    },
+    {
+      "id": "anthropic/default-human-and-selectors",
+      "passed": true
+    },
+    {
+      "id": "openai/legacy-protocol-positive",
+      "passed": true
+    },
+    {
+      "id": "openai/genuine-session-create",
+      "passed": true
+    },
+    {
+      "id": "openai/resume-dialogue-once",
+      "passed": false
+    },
+    {
+      "id": "openai/identity-sequence-request-index",
+      "passed": false
+    },
+    {
+      "id": "openai/safe-configuration-files",
+      "passed": true
+    },
+    {
+      "id": "openai/offline-inspect",
+      "passed": false
+    },
+    {
+      "id": "openai/null-state-rebuild",
+      "passed": false
+    },
+    {
+      "id": "openai/plain-system-presence",
+      "passed": false
+    },
+    {
+      "id": "openai/corrupt/unsupported-version",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/unsupported-state-version",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/unknown-outer-field",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/missing-required-field",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/invalid-session-id",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/numeric-session-id",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/numeric-system",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/numeric-hash",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/zero-anchor",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/overflow-anchor",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/negative-job-watermark",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/anchor-event-disagreement",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/state-hash-mismatch",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/null-state-with-hash",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/unknown-identity-field",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/anchor-beyond-log",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/duplicate-outer-member",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/invalid-checkpoint-utf8",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/trailing-json",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/partial-log-record",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/corrupt/duplicate-event-member",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "openai/writer-lock",
+      "passed": false
+    },
+    {
+      "id": "openai/default-human-and-selectors",
+      "passed": true
+    },
+    {
+      "id": "gemini/legacy-protocol-positive",
+      "passed": true
+    },
+    {
+      "id": "gemini/genuine-session-create",
+      "passed": true
+    },
+    {
+      "id": "gemini/resume-dialogue-once",
+      "passed": false
+    },
+    {
+      "id": "gemini/identity-sequence-request-index",
+      "passed": false
+    },
+    {
+      "id": "gemini/safe-configuration-files",
+      "passed": true
+    },
+    {
+      "id": "gemini/offline-inspect",
+      "passed": false
+    },
+    {
+      "id": "gemini/null-state-rebuild",
+      "passed": false
+    },
+    {
+      "id": "gemini/plain-system-presence",
+      "passed": false
+    },
+    {
+      "id": "gemini/corrupt/unsupported-version",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/unsupported-state-version",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/unknown-outer-field",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/missing-required-field",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/invalid-session-id",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/numeric-session-id",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/numeric-system",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/numeric-hash",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/zero-anchor",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/overflow-anchor",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/negative-job-watermark",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/anchor-event-disagreement",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/state-hash-mismatch",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/null-state-with-hash",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/unknown-identity-field",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/anchor-beyond-log",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/duplicate-outer-member",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/invalid-checkpoint-utf8",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/trailing-json",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/partial-log-record",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/corrupt/duplicate-event-member",
+      "passed": false,
+      "blocked_by": "offline-inspect"
+    },
+    {
+      "id": "gemini/writer-lock",
+      "passed": false
+    },
+    {
+      "id": "gemini/default-human-and-selectors",
+      "passed": true
+    }
+  ],
+  "runs": {
+    "anthropic/legacy-protocol-positive": {
+      "argv": [
+        "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+        "protocol"
+      ],
+      "exit": 0,
+      "stdout": "{\"assistant\":\"done\"}\n{\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1}}\n",
+      "stderr": "",
+      "requests": [
+        "{\"max_tokens\":4096,\"messages\":[{\"content\":[{\"text\":\"Legacy local control.\",\"type\":\"text\"}],\"role\":\"user\"}],\"model\":\"claude-sonnet-4-6\",\"system\":\"Answer helpfully and concisely. Retain the conversation's details.\",\"tools\":[{\"name\":\"edit_file\",\"description\":\"Replace exactly one non-overlapping exact anchor. Refuse zero or multiple matches; read the file and choose a unique anchor.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"new_text\":{\"type\":\"string\",\"description\":\"Replacement; empty text deletes the anchor. Identical text succeeds as a no-op.\"},\"old_text\":{\"type\":\"string\",\"description\":\"Nonempty exact unique anchor.\"},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"new_text\",\"old_text\",\"path\"],\"type\":\"object\"}},{\"name\":\"kill_job\",\"description\":\"Kill a running job's process group. Repeated kill preserves the existing terminal status.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"handle\":{\"type\":\"integer\",\"description\":\"\"}},\"required\":[\"handle\"],\"type\":\"object\"}},{\"name\":\"list_directory\",\"description\":\"List one directory level in name order, distinguishing directories.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_entries\":{\"type\":\"integer\",\"description\":\"Maximum entries; default 200. Further entries cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"}},\"required\":[],\"type\":\"object\"}},{\"name\":\"read_file\",\"description\":\"Read an inclusive one-based line range; report I/O and range errors.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"end_line\":{\"type\":\"integer\",\"description\":\"Last line; default 0 reads through EOF.\",\"default\":0,\"minimum\":0},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"},\"start_line\":{\"type\":\"integer\",\"description\":\"First line, default 1.\",\"default\":1,\"minimum\":1}},\"required\":[\"path\"],\"type\":\"object\"}},{\"name\":\"run_command\",\"description\":\"Start a fresh POSIX shell on a PTY with merged stdout/stderr and input echo. Retain all output and exit_code on disk; wait delay never kills the job.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"command\":{\"type\":\"string\",\"description\":\"Nonempty shell command.\"},\"cwd\":{\"type\":\"string\",\"description\":\"Optional working-directory override, absolute or relative to Agent workspace.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"command\"],\"type\":\"object\"}},{\"name\":\"search_files\",\"description\":\"Search regular text files recursively using Go regexp; skip .git, symlinks, and files with NUL in the first 8192 bytes.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"context_lines\":{\"type\":\"integer\",\"description\":\"Neighbor lines around selected matching lines; default 0. Overlapping or adjacent groups merge.\",\"default\":0,\"minimum\":0},\"file_pattern\":{\"type\":\"string\",\"description\":\"Optional filepath.Match glob matched against basenames; omitted means no filter.\"},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_matches\":{\"type\":\"integer\",\"description\":\"Maximum matching lines, default 200. Further matches cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"},\"pattern\":{\"type\":\"string\",\"description\":\"Nonempty Go regular expression.\"}},\"required\":[\"pattern\"],\"type\":\"object\"}},{\"name\":\"send_input\",\"description\":\"Send input to a running PTY job, then wait using only output since this input for pattern matching.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"append_newline\":{\"type\":\"boolean\",\"description\":\"Append one LF, default true; false sends exact bytes.\",\"default\":true},\"handle\":{\"type\":\"integer\",\"description\":\"\"},\"input\":{\"type\":\"string\",\"description\":\"Input bytes; empty is valid.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\",\"input\"],\"type\":\"object\"}},{\"name\":\"tool_limits\",\"description\":\"Set supplied wait/report overrides for the next attempted tool call only, including invalid calls and setters.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[],\"type\":\"object\"}},{\"name\":\"wait_for_job\",\"description\":\"Report unseen job output; wait for completion, new-output pattern, or delay. Finished jobs return immediately.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"handle\":{\"type\":\"integer\",\"description\":\"Positive job handle owned by this Agent.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\"],\"type\":\"object\"}},{\"name\":\"write_file\",\"description\":\"Create a file and missing parents. Refuse replacing an existing file without overwrite:true; append mode creates or appends.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"append\":{\"type\":\"boolean\",\"description\":\"Append or create; default false. When true, overwrite is irrelevant.\",\"default\":false},\"content\":{\"type\":\"string\",\"description\":\"Exact text to write; empty text is valid.\"},\"overwrite\":{\"type\":\"boolean\",\"description\":\"Allow replacement of existing bytes; default false.\",\"default\":false},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"content\",\"path\"],\"type\":\"object\"}}]}"
+      ],
+      "elapsed": 0.00910750008188188,
+      "endpoint": "http://127.0.0.1:56947"
+    },
+    "anthropic/genuine-session-create": {
+      "run": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/session",
+          "protocol"
+        ],
+        "exit": 0,
+        "stdout": "{\"assistant\":\"done\"}\n{\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1}}\n",
+        "stderr": "",
+        "requests": [
+          "{\"max_tokens\":4096,\"messages\":[{\"content\":[{\"text\":\"REMEMBER_ALPHA\",\"type\":\"text\"}],\"role\":\"user\"}],\"model\":\"claude-sonnet-4-6\",\"system\":\"Answer helpfully and concisely. Retain the conversation's details.\",\"tools\":[{\"name\":\"edit_file\",\"description\":\"Replace exactly one non-overlapping exact anchor. Refuse zero or multiple matches; read the file and choose a unique anchor.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"new_text\":{\"type\":\"string\",\"description\":\"Replacement; empty text deletes the anchor. Identical text succeeds as a no-op.\"},\"old_text\":{\"type\":\"string\",\"description\":\"Nonempty exact unique anchor.\"},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"new_text\",\"old_text\",\"path\"],\"type\":\"object\"}},{\"name\":\"kill_job\",\"description\":\"Kill a running job's process group. Repeated kill preserves the existing terminal status.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"handle\":{\"type\":\"integer\",\"description\":\"\"}},\"required\":[\"handle\"],\"type\":\"object\"}},{\"name\":\"list_directory\",\"description\":\"List one directory level in name order, distinguishing directories.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_entries\":{\"type\":\"integer\",\"description\":\"Maximum entries; default 200. Further entries cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"}},\"required\":[],\"type\":\"object\"}},{\"name\":\"read_file\",\"description\":\"Read an inclusive one-based line range; report I/O and range errors.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"end_line\":{\"type\":\"integer\",\"description\":\"Last line; default 0 reads through EOF.\",\"default\":0,\"minimum\":0},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"},\"start_line\":{\"type\":\"integer\",\"description\":\"First line, default 1.\",\"default\":1,\"minimum\":1}},\"required\":[\"path\"],\"type\":\"object\"}},{\"name\":\"run_command\",\"description\":\"Start a fresh POSIX shell on a PTY with merged stdout/stderr and input echo. Retain all output and exit_code on disk; wait delay never kills the job.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"command\":{\"type\":\"string\",\"description\":\"Nonempty shell command.\"},\"cwd\":{\"type\":\"string\",\"description\":\"Optional working-directory override, absolute or relative to Agent workspace.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"command\"],\"type\":\"object\"}},{\"name\":\"search_files\",\"description\":\"Search regular text files recursively using Go regexp; skip .git, symlinks, and files with NUL in the first 8192 bytes.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"context_lines\":{\"type\":\"integer\",\"description\":\"Neighbor lines around selected matching lines; default 0. Overlapping or adjacent groups merge.\",\"default\":0,\"minimum\":0},\"file_pattern\":{\"type\":\"string\",\"description\":\"Optional filepath.Match glob matched against basenames; omitted means no filter.\"},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_matches\":{\"type\":\"integer\",\"description\":\"Maximum matching lines, default 200. Further matches cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"},\"pattern\":{\"type\":\"string\",\"description\":\"Nonempty Go regular expression.\"}},\"required\":[\"pattern\"],\"type\":\"object\"}},{\"name\":\"send_input\",\"description\":\"Send input to a running PTY job, then wait using only output since this input for pattern matching.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"append_newline\":{\"type\":\"boolean\",\"description\":\"Append one LF, default true; false sends exact bytes.\",\"default\":true},\"handle\":{\"type\":\"integer\",\"description\":\"\"},\"input\":{\"type\":\"string\",\"description\":\"Input bytes; empty is valid.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\",\"input\"],\"type\":\"object\"}},{\"name\":\"tool_limits\",\"description\":\"Set supplied wait/report overrides for the next attempted tool call only, including invalid calls and setters.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[],\"type\":\"object\"}},{\"name\":\"wait_for_job\",\"description\":\"Report unseen job output; wait for completion, new-output pattern, or delay. Finished jobs return immediately.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"handle\":{\"type\":\"integer\",\"description\":\"Positive job handle owned by this Agent.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\"],\"type\":\"object\"}},{\"name\":\"write_file\",\"description\":\"Create a file and missing parents. Refuse replacing an existing file without overwrite:true; append mode creates or appends.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"append\":{\"type\":\"boolean\",\"description\":\"Append or create; default false. When true, overwrite is irrelevant.\",\"default\":false},\"content\":{\"type\":\"string\",\"description\":\"Exact text to write; empty text is valid.\"},\"overwrite\":{\"type\":\"boolean\",\"description\":\"Allow replacement of existing bytes; default false.\",\"default\":false},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"content\",\"path\"],\"type\":\"object\"}}]}"
+        ],
+        "elapsed": 0.012280374998226762,
+        "endpoint": "http://127.0.0.1:56949"
+      },
+      "validation_error": "",
+      "files": {
+        "checkpoint.json": "e055e6269c2aaae473bac4aa574dd0f3336077f6a19d91c5a106691f8170e105",
+        "events.log": "4af4fd412f132d8f8c01572235ee422b300d8cce427bcd9563a3cb73a1a14d6c",
+        "owner.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "anthropic/resume-dialogue-once": {
+      "argv": [
+        "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+        "--session-dir",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/session",
+        "protocol"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+      "requests": [],
+      "elapsed": 0.010489374864846468,
+      "endpoint": "http://127.0.0.1:56951"
+    },
+    "anthropic/identity-sequence-request-index": {
+      "indices": [
+        1
+      ],
+      "ids": [
+        "r1"
+      ]
+    },
+    "anthropic/offline-inspect": {
+      "argv": [
+        "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+        "session",
+        "inspect",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/session"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+      "requests": [],
+      "elapsed": 0.009607417043298483,
+      "endpoint": "http://127.0.0.1:56952"
+    },
+    "anthropic/null-state-rebuild": {
+      "snapshot": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/normal",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+        "requests": [],
+        "elapsed": 0.01001454098150134,
+        "endpoint": "http://127.0.0.1:56953"
+      },
+      "rebuild": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/rebuilt",
+          "protocol"
+        ],
+        "exit": 0,
+        "stdout": "{\"assistant\":\"done\"}\n{\"usage\":{\"input\":2,\"cache_write\":0,\"cache_read\":0,\"output\":2}}\n",
+        "stderr": "",
+        "requests": [
+          "{\"max_tokens\":4096,\"messages\":[{\"content\":[{\"text\":\"REMEMBER_ALPHA\",\"type\":\"text\"}],\"role\":\"user\"},{\"content\":[{\"text\":\"done\",\"type\":\"text\"}],\"role\":\"assistant\"},{\"content\":[{\"text\":\"COMPARE_NEXT\",\"type\":\"text\"}],\"role\":\"user\"}],\"model\":\"claude-sonnet-4-6\",\"system\":\"Answer helpfully and concisely. Retain the conversation's details.\",\"tools\":[{\"name\":\"edit_file\",\"description\":\"Replace exactly one non-overlapping exact anchor. Refuse zero or multiple matches; read the file and choose a unique anchor.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"new_text\":{\"type\":\"string\",\"description\":\"Replacement; empty text deletes the anchor. Identical text succeeds as a no-op.\"},\"old_text\":{\"type\":\"string\",\"description\":\"Nonempty exact unique anchor.\"},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"new_text\",\"old_text\",\"path\"],\"type\":\"object\"}},{\"name\":\"kill_job\",\"description\":\"Kill a running job's process group. Repeated kill preserves the existing terminal status.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"handle\":{\"type\":\"integer\",\"description\":\"\"}},\"required\":[\"handle\"],\"type\":\"object\"}},{\"name\":\"list_directory\",\"description\":\"List one directory level in name order, distinguishing directories.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_entries\":{\"type\":\"integer\",\"description\":\"Maximum entries; default 200. Further entries cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"}},\"required\":[],\"type\":\"object\"}},{\"name\":\"read_file\",\"description\":\"Read an inclusive one-based line range; report I/O and range errors.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"end_line\":{\"type\":\"integer\",\"description\":\"Last line; default 0 reads through EOF.\",\"default\":0,\"minimum\":0},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"},\"start_line\":{\"type\":\"integer\",\"description\":\"First line, default 1.\",\"default\":1,\"minimum\":1}},\"required\":[\"path\"],\"type\":\"object\"}},{\"name\":\"run_command\",\"description\":\"Start a fresh POSIX shell on a PTY with merged stdout/stderr and input echo. Retain all output and exit_code on disk; wait delay never kills the job.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"command\":{\"type\":\"string\",\"description\":\"Nonempty shell command.\"},\"cwd\":{\"type\":\"string\",\"description\":\"Optional working-directory override, absolute or relative to Agent workspace.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"command\"],\"type\":\"object\"}},{\"name\":\"search_files\",\"description\":\"Search regular text files recursively using Go regexp; skip .git, symlinks, and files with NUL in the first 8192 bytes.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"context_lines\":{\"type\":\"integer\",\"description\":\"Neighbor lines around selected matching lines; default 0. Overlapping or adjacent groups merge.\",\"default\":0,\"minimum\":0},\"file_pattern\":{\"type\":\"string\",\"description\":\"Optional filepath.Match glob matched against basenames; omitted means no filter.\"},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_matches\":{\"type\":\"integer\",\"description\":\"Maximum matching lines, default 200. Further matches cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"},\"pattern\":{\"type\":\"string\",\"description\":\"Nonempty Go regular expression.\"}},\"required\":[\"pattern\"],\"type\":\"object\"}},{\"name\":\"send_input\",\"description\":\"Send input to a running PTY job, then wait using only output since this input for pattern matching.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"append_newline\":{\"type\":\"boolean\",\"description\":\"Append one LF, default true; false sends exact bytes.\",\"default\":true},\"handle\":{\"type\":\"integer\",\"description\":\"\"},\"input\":{\"type\":\"string\",\"description\":\"Input bytes; empty is valid.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\",\"input\"],\"type\":\"object\"}},{\"name\":\"tool_limits\",\"description\":\"Set supplied wait/report overrides for the next attempted tool call only, including invalid calls and setters.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[],\"type\":\"object\"}},{\"name\":\"wait_for_job\",\"description\":\"Report unseen job output; wait for completion, new-output pattern, or delay. Finished jobs return immediately.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"handle\":{\"type\":\"integer\",\"description\":\"Positive job handle owned by this Agent.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\"],\"type\":\"object\"}},{\"name\":\"write_file\",\"description\":\"Create a file and missing parents. Refuse replacing an existing file without overwrite:true; append mode creates or appends.\",\"input_schema\":{\"additionalProperties\":false,\"properties\":{\"append\":{\"type\":\"boolean\",\"description\":\"Append or create; default false. When true, overwrite is irrelevant.\",\"default\":false},\"content\":{\"type\":\"string\",\"description\":\"Exact text to write; empty text is valid.\"},\"overwrite\":{\"type\":\"boolean\",\"description\":\"Allow replacement of existing bytes; default false.\",\"default\":false},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"content\",\"path\"],\"type\":\"object\"}}]}"
+        ],
+        "elapsed": 0.01437179185450077,
+        "endpoint": "http://127.0.0.1:56954"
+      }
+    },
+    "anthropic/plain-system-presence": [
+      {
+        "label": "equal",
+        "run": {
+          "argv": [
+            "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+            "--session-dir",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/presence-equal",
+            "protocol"
+          ],
+          "exit": 1,
+          "stdout": "",
+          "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+          "requests": [],
+          "elapsed": 0.010209416970610619,
+          "endpoint": "http://127.0.0.1:56956"
+        },
+        "passed": false
+      },
+      {
+        "label": "empty",
+        "run": {
+          "argv": [
+            "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+            "--session-dir",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/presence-empty",
+            "protocol"
+          ],
+          "exit": 1,
+          "stdout": "",
+          "stderr": "session_incompatible: base System or skill mode differs\n",
+          "requests": [],
+          "elapsed": 0.005873250076547265,
+          "endpoint": "http://127.0.0.1:56957"
+        },
+        "passed": true
+      },
+      {
+        "label": "different",
+        "run": {
+          "argv": [
+            "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+            "--session-dir",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/presence-different",
+            "protocol"
+          ],
+          "exit": 1,
+          "stdout": "",
+          "stderr": "session_incompatible: base System or skill mode differs\n",
+          "requests": [],
+          "elapsed": 0.005814207950606942,
+          "endpoint": "http://127.0.0.1:56958"
+        },
+        "passed": true
+      }
+    ],
+    "anthropic/corrupt/unsupported-version": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unsupported checkpoint version\nsession_corrupt: unsupported checkpoint version\n",
+        "requests": [],
+        "elapsed": 0.0044830418191850185,
+        "endpoint": "http://127.0.0.1:56959"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unsupported checkpoint version\nsession_corrupt: unsupported checkpoint version\n",
+        "requests": [],
+        "elapsed": 0.00451070792041719,
+        "endpoint": "http://127.0.0.1:56960"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/unsupported-state-version": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unsupported checkpoint version\nsession_corrupt: unsupported checkpoint version\n",
+        "requests": [],
+        "elapsed": 0.004543292103335261,
+        "endpoint": "http://127.0.0.1:56961"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unsupported checkpoint version\nsession_corrupt: unsupported checkpoint version\n",
+        "requests": [],
+        "elapsed": 0.004421500023454428,
+        "endpoint": "http://127.0.0.1:56962"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/unknown-outer-field": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unknown structural field\nsession_corrupt: unknown structural field\n",
+        "requests": [],
+        "elapsed": 0.00457320804707706,
+        "endpoint": "http://127.0.0.1:56963"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unknown structural field\nsession_corrupt: unknown structural field\n",
+        "requests": [],
+        "elapsed": 0.004703291924670339,
+        "endpoint": "http://127.0.0.1:56964"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/missing-required-field": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: missing structural field state_version\nsession_corrupt: missing structural field state_version\n",
+        "requests": [],
+        "elapsed": 0.004827332915738225,
+        "endpoint": "http://127.0.0.1:56965"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: missing structural field state_version\nsession_corrupt: missing structural field state_version\n",
+        "requests": [],
+        "elapsed": 0.004598583094775677,
+        "endpoint": "http://127.0.0.1:56966"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/invalid-session-id": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.004925791872665286,
+        "endpoint": "http://127.0.0.1:56967"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.004659249912947416,
+        "endpoint": "http://127.0.0.1:56968"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/numeric-session-id": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.004957916913554072,
+        "endpoint": "http://127.0.0.1:56969"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.0049660420045256615,
+        "endpoint": "http://127.0.0.1:56970"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/numeric-system": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.004869291791692376,
+        "endpoint": "http://127.0.0.1:56971"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.004970040870830417,
+        "endpoint": "http://127.0.0.1:56972"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/numeric-hash": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.005060833878815174,
+        "endpoint": "http://127.0.0.1:56973"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.00525258295238018,
+        "endpoint": "http://127.0.0.1:56974"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/zero-anchor": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.005170542048290372,
+        "endpoint": "http://127.0.0.1:56975"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.005690624937415123,
+        "endpoint": "http://127.0.0.1:56976"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/overflow-anchor": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid uint64\nsession_corrupt: invalid uint64\n",
+        "requests": [],
+        "elapsed": 0.0051125418394804,
+        "endpoint": "http://127.0.0.1:56977"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid uint64\nsession_corrupt: invalid uint64\n",
+        "requests": [],
+        "elapsed": 0.0051855838391929865,
+        "endpoint": "http://127.0.0.1:56978"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/negative-job-watermark": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid uint64\nsession_corrupt: invalid uint64\n",
+        "requests": [],
+        "elapsed": 0.00550458300858736,
+        "endpoint": "http://127.0.0.1:56979"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid uint64\nsession_corrupt: invalid uint64\n",
+        "requests": [],
+        "elapsed": 0.005309666972607374,
+        "endpoint": "http://127.0.0.1:56980"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/anchor-event-disagreement": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.005517832934856415,
+        "endpoint": "http://127.0.0.1:56981"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.005366750061511993,
+        "endpoint": "http://127.0.0.1:56982"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/state-hash-mismatch": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: state hash mismatch\nsession_corrupt: state hash mismatch\n",
+        "requests": [],
+        "elapsed": 0.00640349998138845,
+        "endpoint": "http://127.0.0.1:56983"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: state hash mismatch\nsession_corrupt: state hash mismatch\n",
+        "requests": [],
+        "elapsed": 0.006621750071644783,
+        "endpoint": "http://127.0.0.1:56984"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/null-state-with-hash": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: null state hash mismatch\nsession_corrupt: null state hash mismatch\n",
+        "requests": [],
+        "elapsed": 0.005838582990691066,
+        "endpoint": "http://127.0.0.1:56985"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: null state hash mismatch\nsession_corrupt: null state hash mismatch\n",
+        "requests": [],
+        "elapsed": 0.005533290794119239,
+        "endpoint": "http://127.0.0.1:56986"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/unknown-identity-field": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unknown structural field\nsession_corrupt: unknown structural field\n",
+        "requests": [],
+        "elapsed": 0.005811665905639529,
+        "endpoint": "http://127.0.0.1:56987"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unknown structural field\nsession_corrupt: unknown structural field\n",
+        "requests": [],
+        "elapsed": 0.005629834020510316,
+        "endpoint": "http://127.0.0.1:56988"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/anchor-beyond-log": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: state metadata mismatch\nsession_corrupt: state metadata mismatch\n",
+        "requests": [],
+        "elapsed": 0.0065833330154418945,
+        "endpoint": "http://127.0.0.1:56989"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: state metadata mismatch\nsession_corrupt: state metadata mismatch\n",
+        "requests": [],
+        "elapsed": 0.0065559581853449345,
+        "endpoint": "http://127.0.0.1:56990"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/duplicate-outer-member": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: duplicate JSON member\nsession_corrupt: duplicate JSON member\n",
+        "requests": [],
+        "elapsed": 0.0050260829739272594,
+        "endpoint": "http://127.0.0.1:56991"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: duplicate JSON member\nsession_corrupt: duplicate JSON member\n",
+        "requests": [],
+        "elapsed": 0.00537395803257823,
+        "endpoint": "http://127.0.0.1:56992"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/invalid-checkpoint-utf8": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: JSON is not UTF-8\nsession_corrupt: JSON is not UTF-8\n",
+        "requests": [],
+        "elapsed": 0.004780415911227465,
+        "endpoint": "http://127.0.0.1:56993"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: JSON is not UTF-8\nsession_corrupt: JSON is not UTF-8\n",
+        "requests": [],
+        "elapsed": 0.004949124995619059,
+        "endpoint": "http://127.0.0.1:56994"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/trailing-json": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: trailing JSON\nsession_corrupt: trailing JSON\n",
+        "requests": [],
+        "elapsed": 0.005554208066314459,
+        "endpoint": "http://127.0.0.1:56995"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: trailing JSON\nsession_corrupt: trailing JSON\n",
+        "requests": [],
+        "elapsed": 0.00543070794083178,
+        "endpoint": "http://127.0.0.1:56996"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/partial-log-record": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+        "requests": [],
+        "elapsed": 0.011594959069043398,
+        "endpoint": "http://127.0.0.1:56997"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+        "requests": [],
+        "elapsed": 0.011712625157088041,
+        "endpoint": "http://127.0.0.1:56998"
+      },
+      "unchanged": true
+    },
+    "anthropic/corrupt/duplicate-event-member": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: duplicate JSON member\nensemble: invalid event log at line 2: invalid JSON or duplicate member\ninvalid event log at line 2: invalid JSON or duplicate member\n",
+        "requests": [],
+        "elapsed": 0.0064194591250270605,
+        "endpoint": "http://127.0.0.1:56999"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: duplicate JSON member\nensemble: invalid event log at line 2: invalid JSON or duplicate member\ninvalid event log at line 2: invalid JSON or duplicate member\n",
+        "requests": [],
+        "elapsed": 0.006228625075891614,
+        "endpoint": "http://127.0.0.1:57000"
+      },
+      "unchanged": true
+    },
+    "anthropic/writer-lock": {
+      "error": "live holder did not acquire lock"
+    },
+    "anthropic/default-human-and-selectors": [
+      {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "chat"
+        ],
+        "exit": 0,
+        "stdout": "Ensemble \u2014 anthropic / claude-sonnet-4-6\nType /help for commands.\nYou> Session 2ca7dd9e4a6f77675d4649bb115b7bec; resumed=false; durable sequence=1; checkpoint=none\nYou> Checkpoint saved at 1.\nYou> Final usage: input=0, cache write=0, cache read=0, output=0\n",
+        "stderr": "",
+        "requests": [],
+        "elapsed": 0.017415625043213367,
+        "endpoint": "http://127.0.0.1:57001"
+      },
+      {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-pd_jtj2g/conflict",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_conflict: CH02_LOG conflicts with --session-dir\n",
+        "requests": [],
+        "elapsed": 0.004253959050402045,
+        "endpoint": "http://127.0.0.1:57002"
+      },
+      {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_conflict: blank session directory\n",
+        "requests": [],
+        "elapsed": 0.004255292005836964,
+        "endpoint": "http://127.0.0.1:57003"
+      }
+    ],
+    "openai/legacy-protocol-positive": {
+      "argv": [
+        "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+        "protocol"
+      ],
+      "exit": 0,
+      "stdout": "{\"assistant\":\"done\"}\n{\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1}}\n",
+      "stderr": "",
+      "requests": [
+        "{\"max_completion_tokens\":4096,\"messages\":[{\"content\":\"Answer helpfully and concisely. Retain the conversation's details.\",\"role\":\"system\"},{\"content\":\"Legacy local control.\",\"role\":\"user\"}],\"model\":\"gpt-4.1-mini-2025-04-14\",\"tools\":[{\"function\":{\"description\":\"Replace exactly one non-overlapping exact anchor. Refuse zero or multiple matches; read the file and choose a unique anchor.\",\"name\":\"edit_file\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"new_text\":{\"type\":\"string\",\"description\":\"Replacement; empty text deletes the anchor. Identical text succeeds as a no-op.\"},\"old_text\":{\"type\":\"string\",\"description\":\"Nonempty exact unique anchor.\"},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"new_text\",\"old_text\",\"path\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Kill a running job's process group. Repeated kill preserves the existing terminal status.\",\"name\":\"kill_job\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"handle\":{\"type\":\"integer\",\"description\":\"\"}},\"required\":[\"handle\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"List one directory level in name order, distinguishing directories.\",\"name\":\"list_directory\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_entries\":{\"type\":\"integer\",\"description\":\"Maximum entries; default 200. Further entries cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"}},\"required\":[],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Read an inclusive one-based line range; report I/O and range errors.\",\"name\":\"read_file\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"end_line\":{\"type\":\"integer\",\"description\":\"Last line; default 0 reads through EOF.\",\"default\":0,\"minimum\":0},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"},\"start_line\":{\"type\":\"integer\",\"description\":\"First line, default 1.\",\"default\":1,\"minimum\":1}},\"required\":[\"path\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Start a fresh POSIX shell on a PTY with merged stdout/stderr and input echo. Retain all output and exit_code on disk; wait delay never kills the job.\",\"name\":\"run_command\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"command\":{\"type\":\"string\",\"description\":\"Nonempty shell command.\"},\"cwd\":{\"type\":\"string\",\"description\":\"Optional working-directory override, absolute or relative to Agent workspace.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"command\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Search regular text files recursively using Go regexp; skip .git, symlinks, and files with NUL in the first 8192 bytes.\",\"name\":\"search_files\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"context_lines\":{\"type\":\"integer\",\"description\":\"Neighbor lines around selected matching lines; default 0. Overlapping or adjacent groups merge.\",\"default\":0,\"minimum\":0},\"file_pattern\":{\"type\":\"string\",\"description\":\"Optional filepath.Match glob matched against basenames; omitted means no filter.\"},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_matches\":{\"type\":\"integer\",\"description\":\"Maximum matching lines, default 200. Further matches cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"},\"pattern\":{\"type\":\"string\",\"description\":\"Nonempty Go regular expression.\"}},\"required\":[\"pattern\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Send input to a running PTY job, then wait using only output since this input for pattern matching.\",\"name\":\"send_input\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"append_newline\":{\"type\":\"boolean\",\"description\":\"Append one LF, default true; false sends exact bytes.\",\"default\":true},\"handle\":{\"type\":\"integer\",\"description\":\"\"},\"input\":{\"type\":\"string\",\"description\":\"Input bytes; empty is valid.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\",\"input\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Set supplied wait/report overrides for the next attempted tool call only, including invalid calls and setters.\",\"name\":\"tool_limits\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Report unseen job output; wait for completion, new-output pattern, or delay. Finished jobs return immediately.\",\"name\":\"wait_for_job\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"handle\":{\"type\":\"integer\",\"description\":\"Positive job handle owned by this Agent.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Create a file and missing parents. Refuse replacing an existing file without overwrite:true; append mode creates or appends.\",\"name\":\"write_file\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"append\":{\"type\":\"boolean\",\"description\":\"Append or create; default false. When true, overwrite is irrelevant.\",\"default\":false},\"content\":{\"type\":\"string\",\"description\":\"Exact text to write; empty text is valid.\"},\"overwrite\":{\"type\":\"boolean\",\"description\":\"Allow replacement of existing bytes; default false.\",\"default\":false},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"content\",\"path\"],\"type\":\"object\"}},\"type\":\"function\"}]}"
+      ],
+      "elapsed": 0.006447541993111372,
+      "endpoint": "http://127.0.0.1:57004"
+    },
+    "openai/genuine-session-create": {
+      "run": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/session",
+          "protocol"
+        ],
+        "exit": 0,
+        "stdout": "{\"assistant\":\"done\"}\n{\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1}}\n",
+        "stderr": "",
+        "requests": [
+          "{\"max_completion_tokens\":4096,\"messages\":[{\"content\":\"Answer helpfully and concisely. Retain the conversation's details.\",\"role\":\"system\"},{\"content\":\"REMEMBER_ALPHA\",\"role\":\"user\"}],\"model\":\"gpt-4.1-mini-2025-04-14\",\"tools\":[{\"function\":{\"description\":\"Replace exactly one non-overlapping exact anchor. Refuse zero or multiple matches; read the file and choose a unique anchor.\",\"name\":\"edit_file\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"new_text\":{\"type\":\"string\",\"description\":\"Replacement; empty text deletes the anchor. Identical text succeeds as a no-op.\"},\"old_text\":{\"type\":\"string\",\"description\":\"Nonempty exact unique anchor.\"},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"new_text\",\"old_text\",\"path\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Kill a running job's process group. Repeated kill preserves the existing terminal status.\",\"name\":\"kill_job\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"handle\":{\"type\":\"integer\",\"description\":\"\"}},\"required\":[\"handle\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"List one directory level in name order, distinguishing directories.\",\"name\":\"list_directory\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_entries\":{\"type\":\"integer\",\"description\":\"Maximum entries; default 200. Further entries cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"}},\"required\":[],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Read an inclusive one-based line range; report I/O and range errors.\",\"name\":\"read_file\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"end_line\":{\"type\":\"integer\",\"description\":\"Last line; default 0 reads through EOF.\",\"default\":0,\"minimum\":0},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"},\"start_line\":{\"type\":\"integer\",\"description\":\"First line, default 1.\",\"default\":1,\"minimum\":1}},\"required\":[\"path\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Start a fresh POSIX shell on a PTY with merged stdout/stderr and input echo. Retain all output and exit_code on disk; wait delay never kills the job.\",\"name\":\"run_command\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"command\":{\"type\":\"string\",\"description\":\"Nonempty shell command.\"},\"cwd\":{\"type\":\"string\",\"description\":\"Optional working-directory override, absolute or relative to Agent workspace.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"command\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Search regular text files recursively using Go regexp; skip .git, symlinks, and files with NUL in the first 8192 bytes.\",\"name\":\"search_files\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"context_lines\":{\"type\":\"integer\",\"description\":\"Neighbor lines around selected matching lines; default 0. Overlapping or adjacent groups merge.\",\"default\":0,\"minimum\":0},\"file_pattern\":{\"type\":\"string\",\"description\":\"Optional filepath.Match glob matched against basenames; omitted means no filter.\"},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_matches\":{\"type\":\"integer\",\"description\":\"Maximum matching lines, default 200. Further matches cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"},\"pattern\":{\"type\":\"string\",\"description\":\"Nonempty Go regular expression.\"}},\"required\":[\"pattern\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Send input to a running PTY job, then wait using only output since this input for pattern matching.\",\"name\":\"send_input\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"append_newline\":{\"type\":\"boolean\",\"description\":\"Append one LF, default true; false sends exact bytes.\",\"default\":true},\"handle\":{\"type\":\"integer\",\"description\":\"\"},\"input\":{\"type\":\"string\",\"description\":\"Input bytes; empty is valid.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\",\"input\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Set supplied wait/report overrides for the next attempted tool call only, including invalid calls and setters.\",\"name\":\"tool_limits\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Report unseen job output; wait for completion, new-output pattern, or delay. Finished jobs return immediately.\",\"name\":\"wait_for_job\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"handle\":{\"type\":\"integer\",\"description\":\"Positive job handle owned by this Agent.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Create a file and missing parents. Refuse replacing an existing file without overwrite:true; append mode creates or appends.\",\"name\":\"write_file\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"append\":{\"type\":\"boolean\",\"description\":\"Append or create; default false. When true, overwrite is irrelevant.\",\"default\":false},\"content\":{\"type\":\"string\",\"description\":\"Exact text to write; empty text is valid.\"},\"overwrite\":{\"type\":\"boolean\",\"description\":\"Allow replacement of existing bytes; default false.\",\"default\":false},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"content\",\"path\"],\"type\":\"object\"}},\"type\":\"function\"}]}"
+        ],
+        "elapsed": 0.014877249952405691,
+        "endpoint": "http://127.0.0.1:57006"
+      },
+      "validation_error": "",
+      "files": {
+        "checkpoint.json": "a14488ed4374c09b81d80afc3bdf77acb95707da11399de057c6c4a0ba842876",
+        "events.log": "2cb92c54038a96479beafb6e402adae822407a63ba270d27b3986c5c2bb0bd17",
+        "owner.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "openai/resume-dialogue-once": {
+      "argv": [
+        "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+        "--session-dir",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/session",
+        "protocol"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+      "requests": [],
+      "elapsed": 0.011876791017130017,
+      "endpoint": "http://127.0.0.1:57008"
+    },
+    "openai/identity-sequence-request-index": {
+      "indices": [
+        1
+      ],
+      "ids": [
+        "r1"
+      ]
+    },
+    "openai/offline-inspect": {
+      "argv": [
+        "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+        "session",
+        "inspect",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/session"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+      "requests": [],
+      "elapsed": 0.010539582930505276,
+      "endpoint": "http://127.0.0.1:57009"
+    },
+    "openai/null-state-rebuild": {
+      "snapshot": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/normal",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+        "requests": [],
+        "elapsed": 0.010577291017398238,
+        "endpoint": "http://127.0.0.1:57010"
+      },
+      "rebuild": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/rebuilt",
+          "protocol"
+        ],
+        "exit": 0,
+        "stdout": "{\"assistant\":\"done\"}\n{\"usage\":{\"input\":2,\"cache_write\":0,\"cache_read\":0,\"output\":2}}\n",
+        "stderr": "",
+        "requests": [
+          "{\"max_completion_tokens\":4096,\"messages\":[{\"content\":\"Answer helpfully and concisely. Retain the conversation's details.\",\"role\":\"system\"},{\"content\":\"REMEMBER_ALPHA\",\"role\":\"user\"},{\"content\":\"done\",\"role\":\"assistant\"},{\"content\":\"COMPARE_NEXT\",\"role\":\"user\"}],\"model\":\"gpt-4.1-mini-2025-04-14\",\"tools\":[{\"function\":{\"description\":\"Replace exactly one non-overlapping exact anchor. Refuse zero or multiple matches; read the file and choose a unique anchor.\",\"name\":\"edit_file\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"new_text\":{\"type\":\"string\",\"description\":\"Replacement; empty text deletes the anchor. Identical text succeeds as a no-op.\"},\"old_text\":{\"type\":\"string\",\"description\":\"Nonempty exact unique anchor.\"},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"new_text\",\"old_text\",\"path\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Kill a running job's process group. Repeated kill preserves the existing terminal status.\",\"name\":\"kill_job\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"handle\":{\"type\":\"integer\",\"description\":\"\"}},\"required\":[\"handle\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"List one directory level in name order, distinguishing directories.\",\"name\":\"list_directory\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_entries\":{\"type\":\"integer\",\"description\":\"Maximum entries; default 200. Further entries cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"}},\"required\":[],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Read an inclusive one-based line range; report I/O and range errors.\",\"name\":\"read_file\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"end_line\":{\"type\":\"integer\",\"description\":\"Last line; default 0 reads through EOF.\",\"default\":0,\"minimum\":0},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"},\"start_line\":{\"type\":\"integer\",\"description\":\"First line, default 1.\",\"default\":1,\"minimum\":1}},\"required\":[\"path\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Start a fresh POSIX shell on a PTY with merged stdout/stderr and input echo. Retain all output and exit_code on disk; wait delay never kills the job.\",\"name\":\"run_command\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"command\":{\"type\":\"string\",\"description\":\"Nonempty shell command.\"},\"cwd\":{\"type\":\"string\",\"description\":\"Optional working-directory override, absolute or relative to Agent workspace.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"command\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Search regular text files recursively using Go regexp; skip .git, symlinks, and files with NUL in the first 8192 bytes.\",\"name\":\"search_files\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"context_lines\":{\"type\":\"integer\",\"description\":\"Neighbor lines around selected matching lines; default 0. Overlapping or adjacent groups merge.\",\"default\":0,\"minimum\":0},\"file_pattern\":{\"type\":\"string\",\"description\":\"Optional filepath.Match glob matched against basenames; omitted means no filter.\"},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_matches\":{\"type\":\"integer\",\"description\":\"Maximum matching lines, default 200. Further matches cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"},\"pattern\":{\"type\":\"string\",\"description\":\"Nonempty Go regular expression.\"}},\"required\":[\"pattern\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Send input to a running PTY job, then wait using only output since this input for pattern matching.\",\"name\":\"send_input\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"append_newline\":{\"type\":\"boolean\",\"description\":\"Append one LF, default true; false sends exact bytes.\",\"default\":true},\"handle\":{\"type\":\"integer\",\"description\":\"\"},\"input\":{\"type\":\"string\",\"description\":\"Input bytes; empty is valid.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\",\"input\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Set supplied wait/report overrides for the next attempted tool call only, including invalid calls and setters.\",\"name\":\"tool_limits\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Report unseen job output; wait for completion, new-output pattern, or delay. Finished jobs return immediately.\",\"name\":\"wait_for_job\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"handle\":{\"type\":\"integer\",\"description\":\"Positive job handle owned by this Agent.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\"],\"type\":\"object\"}},\"type\":\"function\"},{\"function\":{\"description\":\"Create a file and missing parents. Refuse replacing an existing file without overwrite:true; append mode creates or appends.\",\"name\":\"write_file\",\"parameters\":{\"additionalProperties\":false,\"properties\":{\"append\":{\"type\":\"boolean\",\"description\":\"Append or create; default false. When true, overwrite is irrelevant.\",\"default\":false},\"content\":{\"type\":\"string\",\"description\":\"Exact text to write; empty text is valid.\"},\"overwrite\":{\"type\":\"boolean\",\"description\":\"Allow replacement of existing bytes; default false.\",\"default\":false},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"content\",\"path\"],\"type\":\"object\"}},\"type\":\"function\"}]}"
+        ],
+        "elapsed": 0.013573958072811365,
+        "endpoint": "http://127.0.0.1:57011"
+      }
+    },
+    "openai/plain-system-presence": [
+      {
+        "label": "equal",
+        "run": {
+          "argv": [
+            "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+            "--session-dir",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/presence-equal",
+            "protocol"
+          ],
+          "exit": 1,
+          "stdout": "",
+          "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+          "requests": [],
+          "elapsed": 0.010562916984781623,
+          "endpoint": "http://127.0.0.1:57013"
+        },
+        "passed": false
+      },
+      {
+        "label": "empty",
+        "run": {
+          "argv": [
+            "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+            "--session-dir",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/presence-empty",
+            "protocol"
+          ],
+          "exit": 1,
+          "stdout": "",
+          "stderr": "session_incompatible: base System or skill mode differs\n",
+          "requests": [],
+          "elapsed": 0.0061767499428242445,
+          "endpoint": "http://127.0.0.1:57014"
+        },
+        "passed": true
+      },
+      {
+        "label": "different",
+        "run": {
+          "argv": [
+            "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+            "--session-dir",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/presence-different",
+            "protocol"
+          ],
+          "exit": 1,
+          "stdout": "",
+          "stderr": "session_incompatible: base System or skill mode differs\n",
+          "requests": [],
+          "elapsed": 0.005725583992898464,
+          "endpoint": "http://127.0.0.1:57015"
+        },
+        "passed": true
+      }
+    ],
+    "openai/corrupt/unsupported-version": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unsupported checkpoint version\nsession_corrupt: unsupported checkpoint version\n",
+        "requests": [],
+        "elapsed": 0.004483042052015662,
+        "endpoint": "http://127.0.0.1:57016"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unsupported checkpoint version\nsession_corrupt: unsupported checkpoint version\n",
+        "requests": [],
+        "elapsed": 0.004651917144656181,
+        "endpoint": "http://127.0.0.1:57017"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/unsupported-state-version": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unsupported checkpoint version\nsession_corrupt: unsupported checkpoint version\n",
+        "requests": [],
+        "elapsed": 0.004433917114511132,
+        "endpoint": "http://127.0.0.1:57018"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unsupported checkpoint version\nsession_corrupt: unsupported checkpoint version\n",
+        "requests": [],
+        "elapsed": 0.004471666878089309,
+        "endpoint": "http://127.0.0.1:57019"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/unknown-outer-field": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unknown structural field\nsession_corrupt: unknown structural field\n",
+        "requests": [],
+        "elapsed": 0.004856333136558533,
+        "endpoint": "http://127.0.0.1:57020"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unknown structural field\nsession_corrupt: unknown structural field\n",
+        "requests": [],
+        "elapsed": 0.004676291951909661,
+        "endpoint": "http://127.0.0.1:57021"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/missing-required-field": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: missing structural field state_version\nsession_corrupt: missing structural field state_version\n",
+        "requests": [],
+        "elapsed": 0.0044460000935941935,
+        "endpoint": "http://127.0.0.1:57022"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: missing structural field state_version\nsession_corrupt: missing structural field state_version\n",
+        "requests": [],
+        "elapsed": 0.0043849588837474585,
+        "endpoint": "http://127.0.0.1:57023"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/invalid-session-id": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.004690833855420351,
+        "endpoint": "http://127.0.0.1:57024"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.0045282498467713594,
+        "endpoint": "http://127.0.0.1:57025"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/numeric-session-id": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.004818874876946211,
+        "endpoint": "http://127.0.0.1:57026"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.004782541887834668,
+        "endpoint": "http://127.0.0.1:57027"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/numeric-system": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.005014375085011125,
+        "endpoint": "http://127.0.0.1:57028"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.004976124968379736,
+        "endpoint": "http://127.0.0.1:57029"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/numeric-hash": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.0050152919720858335,
+        "endpoint": "http://127.0.0.1:57030"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.0050207499880343676,
+        "endpoint": "http://127.0.0.1:57031"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/zero-anchor": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.005188083974644542,
+        "endpoint": "http://127.0.0.1:57032"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.005171541124582291,
+        "endpoint": "http://127.0.0.1:57033"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/overflow-anchor": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid uint64\nsession_corrupt: invalid uint64\n",
+        "requests": [],
+        "elapsed": 0.005361833842471242,
+        "endpoint": "http://127.0.0.1:57034"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid uint64\nsession_corrupt: invalid uint64\n",
+        "requests": [],
+        "elapsed": 0.005304125137627125,
+        "endpoint": "http://127.0.0.1:57035"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/negative-job-watermark": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid uint64\nsession_corrupt: invalid uint64\n",
+        "requests": [],
+        "elapsed": 0.005093416199088097,
+        "endpoint": "http://127.0.0.1:57036"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid uint64\nsession_corrupt: invalid uint64\n",
+        "requests": [],
+        "elapsed": 0.005184208042919636,
+        "endpoint": "http://127.0.0.1:57037"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/anchor-event-disagreement": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.005204000044614077,
+        "endpoint": "http://127.0.0.1:57038"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.005419166991487145,
+        "endpoint": "http://127.0.0.1:57039"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/state-hash-mismatch": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: state hash mismatch\nsession_corrupt: state hash mismatch\n",
+        "requests": [],
+        "elapsed": 0.006459375144913793,
+        "endpoint": "http://127.0.0.1:57040"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: state hash mismatch\nsession_corrupt: state hash mismatch\n",
+        "requests": [],
+        "elapsed": 0.006146749947220087,
+        "endpoint": "http://127.0.0.1:57041"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/null-state-with-hash": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: null state hash mismatch\nsession_corrupt: null state hash mismatch\n",
+        "requests": [],
+        "elapsed": 0.005593209061771631,
+        "endpoint": "http://127.0.0.1:57042"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: null state hash mismatch\nsession_corrupt: null state hash mismatch\n",
+        "requests": [],
+        "elapsed": 0.005461082793772221,
+        "endpoint": "http://127.0.0.1:57043"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/unknown-identity-field": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unknown structural field\nsession_corrupt: unknown structural field\n",
+        "requests": [],
+        "elapsed": 0.005778792081400752,
+        "endpoint": "http://127.0.0.1:57044"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unknown structural field\nsession_corrupt: unknown structural field\n",
+        "requests": [],
+        "elapsed": 0.005470125004649162,
+        "endpoint": "http://127.0.0.1:57045"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/anchor-beyond-log": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: state metadata mismatch\nsession_corrupt: state metadata mismatch\n",
+        "requests": [],
+        "elapsed": 0.006533457897603512,
+        "endpoint": "http://127.0.0.1:57046"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: state metadata mismatch\nsession_corrupt: state metadata mismatch\n",
+        "requests": [],
+        "elapsed": 0.006432750029489398,
+        "endpoint": "http://127.0.0.1:57047"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/duplicate-outer-member": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: duplicate JSON member\nsession_corrupt: duplicate JSON member\n",
+        "requests": [],
+        "elapsed": 0.005299125099554658,
+        "endpoint": "http://127.0.0.1:57048"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: duplicate JSON member\nsession_corrupt: duplicate JSON member\n",
+        "requests": [],
+        "elapsed": 0.005508208880200982,
+        "endpoint": "http://127.0.0.1:57049"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/invalid-checkpoint-utf8": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: JSON is not UTF-8\nsession_corrupt: JSON is not UTF-8\n",
+        "requests": [],
+        "elapsed": 0.005390665959566832,
+        "endpoint": "http://127.0.0.1:57050"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: JSON is not UTF-8\nsession_corrupt: JSON is not UTF-8\n",
+        "requests": [],
+        "elapsed": 0.005232291994616389,
+        "endpoint": "http://127.0.0.1:57051"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/trailing-json": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: trailing JSON\nsession_corrupt: trailing JSON\n",
+        "requests": [],
+        "elapsed": 0.0054333750158548355,
+        "endpoint": "http://127.0.0.1:57052"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: trailing JSON\nsession_corrupt: trailing JSON\n",
+        "requests": [],
+        "elapsed": 0.005525459069758654,
+        "endpoint": "http://127.0.0.1:57053"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/partial-log-record": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+        "requests": [],
+        "elapsed": 0.01184716704301536,
+        "endpoint": "http://127.0.0.1:57054"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+        "requests": [],
+        "elapsed": 0.01184775005094707,
+        "endpoint": "http://127.0.0.1:57055"
+      },
+      "unchanged": true
+    },
+    "openai/corrupt/duplicate-event-member": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: duplicate JSON member\nensemble: invalid event log at line 2: invalid JSON or duplicate member\ninvalid event log at line 2: invalid JSON or duplicate member\n",
+        "requests": [],
+        "elapsed": 0.006187374936416745,
+        "endpoint": "http://127.0.0.1:57056"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: duplicate JSON member\nensemble: invalid event log at line 2: invalid JSON or duplicate member\ninvalid event log at line 2: invalid JSON or duplicate member\n",
+        "requests": [],
+        "elapsed": 0.005712707992643118,
+        "endpoint": "http://127.0.0.1:57057"
+      },
+      "unchanged": true
+    },
+    "openai/writer-lock": {
+      "error": "live holder did not acquire lock"
+    },
+    "openai/default-human-and-selectors": [
+      {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "chat"
+        ],
+        "exit": 0,
+        "stdout": "Ensemble \u2014 openai / gpt-4.1-mini-2025-04-14\nType /help for commands.\nYou> Session 983950c771b159b09a941988de9ff96e; resumed=false; durable sequence=1; checkpoint=none\nYou> Checkpoint saved at 1.\nYou> Final usage: input=0, cache write=0, cache read=0, output=0\n",
+        "stderr": "",
+        "requests": [],
+        "elapsed": 0.018232000060379505,
+        "endpoint": "http://127.0.0.1:57058"
+      },
+      {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-l85y52mm/conflict",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_conflict: CH02_LOG conflicts with --session-dir\n",
+        "requests": [],
+        "elapsed": 0.004338457947596908,
+        "endpoint": "http://127.0.0.1:57059"
+      },
+      {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_conflict: blank session directory\n",
+        "requests": [],
+        "elapsed": 0.004301083041355014,
+        "endpoint": "http://127.0.0.1:57060"
+      }
+    ],
+    "gemini/legacy-protocol-positive": {
+      "argv": [
+        "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+        "protocol"
+      ],
+      "exit": 0,
+      "stdout": "{\"assistant\":\"done\"}\n{\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1}}\n",
+      "stderr": "",
+      "requests": [
+        "{\"contents\":[{\"parts\":[{\"text\":\"Legacy local control.\"}],\"role\":\"user\"}],\"generationConfig\":{\"maxOutputTokens\":4096},\"systemInstruction\":{\"parts\":[{\"text\":\"Answer helpfully and concisely. Retain the conversation's details.\"}]},\"tools\":[{\"functionDeclarations\":[{\"description\":\"Replace exactly one non-overlapping exact anchor. Refuse zero or multiple matches; read the file and choose a unique anchor.\",\"name\":\"edit_file\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"new_text\":{\"type\":\"string\",\"description\":\"Replacement; empty text deletes the anchor. Identical text succeeds as a no-op.\"},\"old_text\":{\"type\":\"string\",\"description\":\"Nonempty exact unique anchor.\"},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"new_text\",\"old_text\",\"path\"],\"type\":\"object\"}},{\"description\":\"Kill a running job's process group. Repeated kill preserves the existing terminal status.\",\"name\":\"kill_job\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"handle\":{\"type\":\"integer\",\"description\":\"\"}},\"required\":[\"handle\"],\"type\":\"object\"}},{\"description\":\"List one directory level in name order, distinguishing directories.\",\"name\":\"list_directory\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_entries\":{\"type\":\"integer\",\"description\":\"Maximum entries; default 200. Further entries cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"}},\"required\":[],\"type\":\"object\"}},{\"description\":\"Read an inclusive one-based line range; report I/O and range errors.\",\"name\":\"read_file\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"end_line\":{\"type\":\"integer\",\"description\":\"Last line; default 0 reads through EOF.\",\"default\":0,\"minimum\":0},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"},\"start_line\":{\"type\":\"integer\",\"description\":\"First line, default 1.\",\"default\":1,\"minimum\":1}},\"required\":[\"path\"],\"type\":\"object\"}},{\"description\":\"Start a fresh POSIX shell on a PTY with merged stdout/stderr and input echo. Retain all output and exit_code on disk; wait delay never kills the job.\",\"name\":\"run_command\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"command\":{\"type\":\"string\",\"description\":\"Nonempty shell command.\"},\"cwd\":{\"type\":\"string\",\"description\":\"Optional working-directory override, absolute or relative to Agent workspace.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"command\"],\"type\":\"object\"}},{\"description\":\"Search regular text files recursively using Go regexp; skip .git, symlinks, and files with NUL in the first 8192 bytes.\",\"name\":\"search_files\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"context_lines\":{\"type\":\"integer\",\"description\":\"Neighbor lines around selected matching lines; default 0. Overlapping or adjacent groups merge.\",\"default\":0,\"minimum\":0},\"file_pattern\":{\"type\":\"string\",\"description\":\"Optional filepath.Match glob matched against basenames; omitted means no filter.\"},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_matches\":{\"type\":\"integer\",\"description\":\"Maximum matching lines, default 200. Further matches cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"},\"pattern\":{\"type\":\"string\",\"description\":\"Nonempty Go regular expression.\"}},\"required\":[\"pattern\"],\"type\":\"object\"}},{\"description\":\"Send input to a running PTY job, then wait using only output since this input for pattern matching.\",\"name\":\"send_input\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"append_newline\":{\"type\":\"boolean\",\"description\":\"Append one LF, default true; false sends exact bytes.\",\"default\":true},\"handle\":{\"type\":\"integer\",\"description\":\"\"},\"input\":{\"type\":\"string\",\"description\":\"Input bytes; empty is valid.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\",\"input\"],\"type\":\"object\"}},{\"description\":\"Set supplied wait/report overrides for the next attempted tool call only, including invalid calls and setters.\",\"name\":\"tool_limits\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[],\"type\":\"object\"}},{\"description\":\"Report unseen job output; wait for completion, new-output pattern, or delay. Finished jobs return immediately.\",\"name\":\"wait_for_job\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"handle\":{\"type\":\"integer\",\"description\":\"Positive job handle owned by this Agent.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\"],\"type\":\"object\"}},{\"description\":\"Create a file and missing parents. Refuse replacing an existing file without overwrite:true; append mode creates or appends.\",\"name\":\"write_file\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"append\":{\"type\":\"boolean\",\"description\":\"Append or create; default false. When true, overwrite is irrelevant.\",\"default\":false},\"content\":{\"type\":\"string\",\"description\":\"Exact text to write; empty text is valid.\"},\"overwrite\":{\"type\":\"boolean\",\"description\":\"Allow replacement of existing bytes; default false.\",\"default\":false},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"content\",\"path\"],\"type\":\"object\"}}]}]}"
+      ],
+      "elapsed": 0.006496083922684193,
+      "endpoint": "http://127.0.0.1:57061"
+    },
+    "gemini/genuine-session-create": {
+      "run": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/session",
+          "protocol"
+        ],
+        "exit": 0,
+        "stdout": "{\"assistant\":\"done\"}\n{\"usage\":{\"input\":1,\"cache_write\":0,\"cache_read\":0,\"output\":1}}\n",
+        "stderr": "",
+        "requests": [
+          "{\"contents\":[{\"parts\":[{\"text\":\"REMEMBER_ALPHA\"}],\"role\":\"user\"}],\"generationConfig\":{\"maxOutputTokens\":4096},\"systemInstruction\":{\"parts\":[{\"text\":\"Answer helpfully and concisely. Retain the conversation's details.\"}]},\"tools\":[{\"functionDeclarations\":[{\"description\":\"Replace exactly one non-overlapping exact anchor. Refuse zero or multiple matches; read the file and choose a unique anchor.\",\"name\":\"edit_file\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"new_text\":{\"type\":\"string\",\"description\":\"Replacement; empty text deletes the anchor. Identical text succeeds as a no-op.\"},\"old_text\":{\"type\":\"string\",\"description\":\"Nonempty exact unique anchor.\"},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"new_text\",\"old_text\",\"path\"],\"type\":\"object\"}},{\"description\":\"Kill a running job's process group. Repeated kill preserves the existing terminal status.\",\"name\":\"kill_job\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"handle\":{\"type\":\"integer\",\"description\":\"\"}},\"required\":[\"handle\"],\"type\":\"object\"}},{\"description\":\"List one directory level in name order, distinguishing directories.\",\"name\":\"list_directory\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_entries\":{\"type\":\"integer\",\"description\":\"Maximum entries; default 200. Further entries cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"}},\"required\":[],\"type\":\"object\"}},{\"description\":\"Read an inclusive one-based line range; report I/O and range errors.\",\"name\":\"read_file\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"end_line\":{\"type\":\"integer\",\"description\":\"Last line; default 0 reads through EOF.\",\"default\":0,\"minimum\":0},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"},\"start_line\":{\"type\":\"integer\",\"description\":\"First line, default 1.\",\"default\":1,\"minimum\":1}},\"required\":[\"path\"],\"type\":\"object\"}},{\"description\":\"Start a fresh POSIX shell on a PTY with merged stdout/stderr and input echo. Retain all output and exit_code on disk; wait delay never kills the job.\",\"name\":\"run_command\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"command\":{\"type\":\"string\",\"description\":\"Nonempty shell command.\"},\"cwd\":{\"type\":\"string\",\"description\":\"Optional working-directory override, absolute or relative to Agent workspace.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"command\"],\"type\":\"object\"}},{\"description\":\"Search regular text files recursively using Go regexp; skip .git, symlinks, and files with NUL in the first 8192 bytes.\",\"name\":\"search_files\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"context_lines\":{\"type\":\"integer\",\"description\":\"Neighbor lines around selected matching lines; default 0. Overlapping or adjacent groups merge.\",\"default\":0,\"minimum\":0},\"file_pattern\":{\"type\":\"string\",\"description\":\"Optional filepath.Match glob matched against basenames; omitted means no filter.\"},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_matches\":{\"type\":\"integer\",\"description\":\"Maximum matching lines, default 200. Further matches cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"},\"pattern\":{\"type\":\"string\",\"description\":\"Nonempty Go regular expression.\"}},\"required\":[\"pattern\"],\"type\":\"object\"}},{\"description\":\"Send input to a running PTY job, then wait using only output since this input for pattern matching.\",\"name\":\"send_input\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"append_newline\":{\"type\":\"boolean\",\"description\":\"Append one LF, default true; false sends exact bytes.\",\"default\":true},\"handle\":{\"type\":\"integer\",\"description\":\"\"},\"input\":{\"type\":\"string\",\"description\":\"Input bytes; empty is valid.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\",\"input\"],\"type\":\"object\"}},{\"description\":\"Set supplied wait/report overrides for the next attempted tool call only, including invalid calls and setters.\",\"name\":\"tool_limits\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[],\"type\":\"object\"}},{\"description\":\"Report unseen job output; wait for completion, new-output pattern, or delay. Finished jobs return immediately.\",\"name\":\"wait_for_job\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"handle\":{\"type\":\"integer\",\"description\":\"Positive job handle owned by this Agent.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\"],\"type\":\"object\"}},{\"description\":\"Create a file and missing parents. Refuse replacing an existing file without overwrite:true; append mode creates or appends.\",\"name\":\"write_file\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"append\":{\"type\":\"boolean\",\"description\":\"Append or create; default false. When true, overwrite is irrelevant.\",\"default\":false},\"content\":{\"type\":\"string\",\"description\":\"Exact text to write; empty text is valid.\"},\"overwrite\":{\"type\":\"boolean\",\"description\":\"Allow replacement of existing bytes; default false.\",\"default\":false},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"content\",\"path\"],\"type\":\"object\"}}]}]}"
+        ],
+        "elapsed": 0.014352583093568683,
+        "endpoint": "http://127.0.0.1:57063"
+      },
+      "validation_error": "",
+      "files": {
+        "checkpoint.json": "7983c3f6ba46225a40234dd802529f3a3cdac891aed8bf3554baf98471261d08",
+        "events.log": "0ccae36c970f356d319b6a7fc3a489001f5db35388b952591805773198468fc9",
+        "owner.lock": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    },
+    "gemini/resume-dialogue-once": {
+      "argv": [
+        "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+        "--session-dir",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/session",
+        "protocol"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+      "requests": [],
+      "elapsed": 0.011562583968043327,
+      "endpoint": "http://127.0.0.1:57065"
+    },
+    "gemini/identity-sequence-request-index": {
+      "indices": [
+        1
+      ],
+      "ids": [
+        "r1"
+      ]
+    },
+    "gemini/offline-inspect": {
+      "argv": [
+        "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+        "session",
+        "inspect",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/session"
+      ],
+      "exit": 1,
+      "stdout": "",
+      "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+      "requests": [],
+      "elapsed": 0.010677832877263427,
+      "endpoint": "http://127.0.0.1:57066"
+    },
+    "gemini/null-state-rebuild": {
+      "snapshot": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/normal",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+        "requests": [],
+        "elapsed": 0.010618709027767181,
+        "endpoint": "http://127.0.0.1:57067"
+      },
+      "rebuild": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/rebuilt",
+          "protocol"
+        ],
+        "exit": 0,
+        "stdout": "{\"assistant\":\"done\"}\n{\"usage\":{\"input\":2,\"cache_write\":0,\"cache_read\":0,\"output\":2}}\n",
+        "stderr": "",
+        "requests": [
+          "{\"contents\":[{\"parts\":[{\"text\":\"REMEMBER_ALPHA\"}],\"role\":\"user\"},{\"parts\":[{\"text\":\"done\"}],\"role\":\"model\"},{\"parts\":[{\"text\":\"COMPARE_NEXT\"}],\"role\":\"user\"}],\"generationConfig\":{\"maxOutputTokens\":4096},\"systemInstruction\":{\"parts\":[{\"text\":\"Answer helpfully and concisely. Retain the conversation's details.\"}]},\"tools\":[{\"functionDeclarations\":[{\"description\":\"Replace exactly one non-overlapping exact anchor. Refuse zero or multiple matches; read the file and choose a unique anchor.\",\"name\":\"edit_file\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"new_text\":{\"type\":\"string\",\"description\":\"Replacement; empty text deletes the anchor. Identical text succeeds as a no-op.\"},\"old_text\":{\"type\":\"string\",\"description\":\"Nonempty exact unique anchor.\"},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"new_text\",\"old_text\",\"path\"],\"type\":\"object\"}},{\"description\":\"Kill a running job's process group. Repeated kill preserves the existing terminal status.\",\"name\":\"kill_job\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"handle\":{\"type\":\"integer\",\"description\":\"\"}},\"required\":[\"handle\"],\"type\":\"object\"}},{\"description\":\"List one directory level in name order, distinguishing directories.\",\"name\":\"list_directory\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_entries\":{\"type\":\"integer\",\"description\":\"Maximum entries; default 200. Further entries cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"}},\"required\":[],\"type\":\"object\"}},{\"description\":\"Read an inclusive one-based line range; report I/O and range errors.\",\"name\":\"read_file\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"end_line\":{\"type\":\"integer\",\"description\":\"Last line; default 0 reads through EOF.\",\"default\":0,\"minimum\":0},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"},\"start_line\":{\"type\":\"integer\",\"description\":\"First line, default 1.\",\"default\":1,\"minimum\":1}},\"required\":[\"path\"],\"type\":\"object\"}},{\"description\":\"Start a fresh POSIX shell on a PTY with merged stdout/stderr and input echo. Retain all output and exit_code on disk; wait delay never kills the job.\",\"name\":\"run_command\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"command\":{\"type\":\"string\",\"description\":\"Nonempty shell command.\"},\"cwd\":{\"type\":\"string\",\"description\":\"Optional working-directory override, absolute or relative to Agent workspace.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"command\"],\"type\":\"object\"}},{\"description\":\"Search regular text files recursively using Go regexp; skip .git, symlinks, and files with NUL in the first 8192 bytes.\",\"name\":\"search_files\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"context_lines\":{\"type\":\"integer\",\"description\":\"Neighbor lines around selected matching lines; default 0. Overlapping or adjacent groups merge.\",\"default\":0,\"minimum\":0},\"file_pattern\":{\"type\":\"string\",\"description\":\"Optional filepath.Match glob matched against basenames; omitted means no filter.\"},\"max_bytes\":{\"type\":\"integer\",\"description\":\"Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.\",\"default\":65536,\"minimum\":1},\"max_matches\":{\"type\":\"integer\",\"description\":\"Maximum matching lines, default 200. Further matches cause a truncation notice.\",\"default\":200,\"minimum\":1},\"path\":{\"type\":\"string\",\"description\":\"File or directory path; defaults to the Agent workspace (.).\",\"default\":\".\"},\"pattern\":{\"type\":\"string\",\"description\":\"Nonempty Go regular expression.\"}},\"required\":[\"pattern\"],\"type\":\"object\"}},{\"description\":\"Send input to a running PTY job, then wait using only output since this input for pattern matching.\",\"name\":\"send_input\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"append_newline\":{\"type\":\"boolean\",\"description\":\"Append one LF, default true; false sends exact bytes.\",\"default\":true},\"handle\":{\"type\":\"integer\",\"description\":\"\"},\"input\":{\"type\":\"string\",\"description\":\"Input bytes; empty is valid.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\",\"input\"],\"type\":\"object\"}},{\"description\":\"Set supplied wait/report overrides for the next attempted tool call only, including invalid calls and setters.\",\"name\":\"tool_limits\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[],\"type\":\"object\"}},{\"description\":\"Report unseen job output; wait for completion, new-output pattern, or delay. Finished jobs return immediately.\",\"name\":\"wait_for_job\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"ai_callback_delay\":{\"type\":\"number\",\"description\":\"Finite nonnegative wait seconds; default 3. Zero polls.\"},\"ai_callback_pattern\":{\"type\":\"string\",\"description\":\"Go regular expression matching new output; empty clears the pattern.\"},\"handle\":{\"type\":\"integer\",\"description\":\"Positive job handle owned by this Agent.\"},\"max_output_bytes\":{\"type\":\"integer\",\"description\":\"Positive inline content budget; default 16384. Complete output stays on disk.\",\"default\":16384,\"minimum\":1}},\"required\":[\"handle\"],\"type\":\"object\"}},{\"description\":\"Create a file and missing parents. Refuse replacing an existing file without overwrite:true; append mode creates or appends.\",\"name\":\"write_file\",\"parametersJsonSchema\":{\"additionalProperties\":false,\"properties\":{\"append\":{\"type\":\"boolean\",\"description\":\"Append or create; default false. When true, overwrite is irrelevant.\",\"default\":false},\"content\":{\"type\":\"string\",\"description\":\"Exact text to write; empty text is valid.\"},\"overwrite\":{\"type\":\"boolean\",\"description\":\"Allow replacement of existing bytes; default false.\",\"default\":false},\"path\":{\"type\":\"string\",\"description\":\"File path, relative to the Agent workspace or absolute; not confined to workspace.\"}},\"required\":[\"content\",\"path\"],\"type\":\"object\"}}]}]}"
+        ],
+        "elapsed": 0.015355959068983793,
+        "endpoint": "http://127.0.0.1:57068"
+      }
+    },
+    "gemini/plain-system-presence": [
+      {
+        "label": "equal",
+        "run": {
+          "argv": [
+            "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+            "--session-dir",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/presence-equal",
+            "protocol"
+          ],
+          "exit": 1,
+          "stdout": "",
+          "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+          "requests": [],
+          "elapsed": 0.01055420795455575,
+          "endpoint": "http://127.0.0.1:57070"
+        },
+        "passed": false
+      },
+      {
+        "label": "empty",
+        "run": {
+          "argv": [
+            "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+            "--session-dir",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/presence-empty",
+            "protocol"
+          ],
+          "exit": 1,
+          "stdout": "",
+          "stderr": "session_incompatible: base System or skill mode differs\n",
+          "requests": [],
+          "elapsed": 0.006143500097095966,
+          "endpoint": "http://127.0.0.1:57071"
+        },
+        "passed": true
+      },
+      {
+        "label": "different",
+        "run": {
+          "argv": [
+            "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+            "--session-dir",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/presence-different",
+            "protocol"
+          ],
+          "exit": 1,
+          "stdout": "",
+          "stderr": "session_incompatible: base System or skill mode differs\n",
+          "requests": [],
+          "elapsed": 0.005856042029336095,
+          "endpoint": "http://127.0.0.1:57072"
+        },
+        "passed": true
+      }
+    ],
+    "gemini/corrupt/unsupported-version": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unsupported checkpoint version\nsession_corrupt: unsupported checkpoint version\n",
+        "requests": [],
+        "elapsed": 0.004296125145629048,
+        "endpoint": "http://127.0.0.1:57073"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unsupported checkpoint version\nsession_corrupt: unsupported checkpoint version\n",
+        "requests": [],
+        "elapsed": 0.004600333049893379,
+        "endpoint": "http://127.0.0.1:57074"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/unsupported-state-version": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unsupported checkpoint version\nsession_corrupt: unsupported checkpoint version\n",
+        "requests": [],
+        "elapsed": 0.004228499950841069,
+        "endpoint": "http://127.0.0.1:57075"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unsupported checkpoint version\nsession_corrupt: unsupported checkpoint version\n",
+        "requests": [],
+        "elapsed": 0.00444299983792007,
+        "endpoint": "http://127.0.0.1:57076"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/unknown-outer-field": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unknown structural field\nsession_corrupt: unknown structural field\n",
+        "requests": [],
+        "elapsed": 0.004546999931335449,
+        "endpoint": "http://127.0.0.1:57077"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unknown structural field\nsession_corrupt: unknown structural field\n",
+        "requests": [],
+        "elapsed": 0.004604540998116136,
+        "endpoint": "http://127.0.0.1:57078"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/missing-required-field": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: missing structural field state_version\nsession_corrupt: missing structural field state_version\n",
+        "requests": [],
+        "elapsed": 0.004638666985556483,
+        "endpoint": "http://127.0.0.1:57079"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: missing structural field state_version\nsession_corrupt: missing structural field state_version\n",
+        "requests": [],
+        "elapsed": 0.0047818750608712435,
+        "endpoint": "http://127.0.0.1:57080"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/invalid-session-id": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.004763999953866005,
+        "endpoint": "http://127.0.0.1:57081"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.0049387919716537,
+        "endpoint": "http://127.0.0.1:57082"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/numeric-session-id": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.0050377920269966125,
+        "endpoint": "http://127.0.0.1:57083"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.005078749964013696,
+        "endpoint": "http://127.0.0.1:57084"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/numeric-system": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.005488333059474826,
+        "endpoint": "http://127.0.0.1:57085"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.005280916811898351,
+        "endpoint": "http://127.0.0.1:57086"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/numeric-hash": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.005589749896898866,
+        "endpoint": "http://127.0.0.1:57087"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: expected string\nsession_corrupt: expected string\n",
+        "requests": [],
+        "elapsed": 0.005564457969740033,
+        "endpoint": "http://127.0.0.1:57088"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/zero-anchor": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.005588124971836805,
+        "endpoint": "http://127.0.0.1:57089"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.005565291969105601,
+        "endpoint": "http://127.0.0.1:57090"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/overflow-anchor": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid uint64\nsession_corrupt: invalid uint64\n",
+        "requests": [],
+        "elapsed": 0.0054510829504579306,
+        "endpoint": "http://127.0.0.1:57091"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid uint64\nsession_corrupt: invalid uint64\n",
+        "requests": [],
+        "elapsed": 0.00549108418636024,
+        "endpoint": "http://127.0.0.1:57092"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/negative-job-watermark": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid uint64\nsession_corrupt: invalid uint64\n",
+        "requests": [],
+        "elapsed": 0.005604417063295841,
+        "endpoint": "http://127.0.0.1:57093"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid uint64\nsession_corrupt: invalid uint64\n",
+        "requests": [],
+        "elapsed": 0.0056257909163832664,
+        "endpoint": "http://127.0.0.1:57094"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/anchor-event-disagreement": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.0055985411163419485,
+        "endpoint": "http://127.0.0.1:57095"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: invalid checkpoint boundary\nsession_corrupt: invalid checkpoint boundary\n",
+        "requests": [],
+        "elapsed": 0.005712042097002268,
+        "endpoint": "http://127.0.0.1:57096"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/state-hash-mismatch": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: state hash mismatch\nsession_corrupt: state hash mismatch\n",
+        "requests": [],
+        "elapsed": 0.0068365419283509254,
+        "endpoint": "http://127.0.0.1:57097"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: state hash mismatch\nsession_corrupt: state hash mismatch\n",
+        "requests": [],
+        "elapsed": 0.006444917060434818,
+        "endpoint": "http://127.0.0.1:57098"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/null-state-with-hash": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: null state hash mismatch\nsession_corrupt: null state hash mismatch\n",
+        "requests": [],
+        "elapsed": 0.005480708088725805,
+        "endpoint": "http://127.0.0.1:57099"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: null state hash mismatch\nsession_corrupt: null state hash mismatch\n",
+        "requests": [],
+        "elapsed": 0.005459500011056662,
+        "endpoint": "http://127.0.0.1:57100"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/unknown-identity-field": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unknown structural field\nsession_corrupt: unknown structural field\n",
+        "requests": [],
+        "elapsed": 0.005596457980573177,
+        "endpoint": "http://127.0.0.1:57101"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: unknown structural field\nsession_corrupt: unknown structural field\n",
+        "requests": [],
+        "elapsed": 0.005426834104582667,
+        "endpoint": "http://127.0.0.1:57102"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/anchor-beyond-log": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: state metadata mismatch\nsession_corrupt: state metadata mismatch\n",
+        "requests": [],
+        "elapsed": 0.006293666083365679,
+        "endpoint": "http://127.0.0.1:57103"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: state metadata mismatch\nsession_corrupt: state metadata mismatch\n",
+        "requests": [],
+        "elapsed": 0.006514208158478141,
+        "endpoint": "http://127.0.0.1:57104"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/duplicate-outer-member": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: duplicate JSON member\nsession_corrupt: duplicate JSON member\n",
+        "requests": [],
+        "elapsed": 0.005325415870174766,
+        "endpoint": "http://127.0.0.1:57105"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: duplicate JSON member\nsession_corrupt: duplicate JSON member\n",
+        "requests": [],
+        "elapsed": 0.005122792208567262,
+        "endpoint": "http://127.0.0.1:57106"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/invalid-checkpoint-utf8": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: JSON is not UTF-8\nsession_corrupt: JSON is not UTF-8\n",
+        "requests": [],
+        "elapsed": 0.005171250086277723,
+        "endpoint": "http://127.0.0.1:57107"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: JSON is not UTF-8\nsession_corrupt: JSON is not UTF-8\n",
+        "requests": [],
+        "elapsed": 0.004797125002369285,
+        "endpoint": "http://127.0.0.1:57108"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/trailing-json": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: trailing JSON\nsession_corrupt: trailing JSON\n",
+        "requests": [],
+        "elapsed": 0.0053613749332726,
+        "endpoint": "http://127.0.0.1:57109"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: trailing JSON\nsession_corrupt: trailing JSON\n",
+        "requests": [],
+        "elapsed": 0.005465791095048189,
+        "endpoint": "http://127.0.0.1:57110"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/partial-log-record": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+        "requests": [],
+        "elapsed": 0.011946624843403697,
+        "endpoint": "http://127.0.0.1:57111"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_corrupt: record 7: checkpoint differs from reduced prefix\n",
+        "requests": [],
+        "elapsed": 0.011864458210766315,
+        "endpoint": "http://127.0.0.1:57112"
+      },
+      "unchanged": true
+    },
+    "gemini/corrupt/duplicate-event-member": {
+      "inspect": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "session",
+          "inspect",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: duplicate JSON member\nensemble: invalid event log at line 2: invalid JSON or duplicate member\ninvalid event log at line 2: invalid JSON or duplicate member\n",
+        "requests": [],
+        "elapsed": 0.006206500111147761,
+        "endpoint": "http://127.0.0.1:57113"
+      },
+      "live": {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/mutated",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "ensemble: session validation: duplicate JSON member\nensemble: invalid event log at line 2: invalid JSON or duplicate member\ninvalid event log at line 2: invalid JSON or duplicate member\n",
+        "requests": [],
+        "elapsed": 0.0061407911125570536,
+        "endpoint": "http://127.0.0.1:57114"
+      },
+      "unchanged": true
+    },
+    "gemini/writer-lock": {
+      "error": "live holder did not acquire lock"
+    },
+    "gemini/default-human-and-selectors": [
+      {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "chat"
+        ],
+        "exit": 0,
+        "stdout": "Ensemble \u2014 gemini / models/gemini-3.8-flash\nType /help for commands.\nYou> Session b6f50eb859af14936e9d33675e4e7216; resumed=false; durable sequence=1; checkpoint=none\nYou> Checkpoint saved at 1.\nYou> Final usage: input=0, cache write=0, cache read=0, output=0\n",
+        "stderr": "",
+        "requests": [],
+        "elapsed": 0.015351332956925035,
+        "endpoint": "http://127.0.0.1:57115"
+      },
+      {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-session-z0sdle0u/conflict",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_conflict: CH02_LOG conflicts with --session-dir\n",
+        "requests": [],
+        "elapsed": 0.004356625024229288,
+        "endpoint": "http://127.0.0.1:57116"
+      },
+      {
+        "argv": [
+          "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli",
+          "--session-dir",
+          "",
+          "protocol"
+        ],
+        "exit": 1,
+        "stdout": "",
+        "stderr": "session_conflict: blank session directory\n",
+        "requests": [],
+        "elapsed": 0.004151750123128295,
+        "endpoint": "http://127.0.0.1:57117"
+      }
+    ]
+  },
+  "argument_order": "flags-first",
+  "limits": "Initial CLI/plain-session subset. No private codec completeness, public import, Skills compatibility, nonempty-tail differential, fault injection, full size limits, GUI or live acceptance.",
+  "input_sha256": {
+    "/Users/bill/projects/ensemble/scripts/edition2/accept_ch10.py": "ab30fb539b431ee1952c0f750c079dedeb1f494edfe98b67934301f8a6baf1aa",
+    "/Users/bill/projects/ensemble/scripts/edition2/accept_ch09.py": "3b2b5a98954351abe268f3cd6ae082b003003465e4538874aaef95d410ec8c9e",
+    "/Users/bill/projects/ensemble/book/edition-2/chapter-10.md": "3faa154f60e875497d96594a1afdc219f398856b0a9bd46b39cf72f36ca126df",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/ensemble-ch10-cli": "ccbff99ab39dbea6c7e2f64d27cc6d641d19d2ecd66ea150d51bc4e1cc98c91b"
+  }
+}

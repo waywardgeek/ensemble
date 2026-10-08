@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"example.com/ensemble/internal/persistence"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -480,4 +481,16 @@ func (*testRegistry) SkillOperation(common.Part, uint64) (common.SkillOperation,
 }
 func (*testRegistry) SkillAcknowledgement(common.Part, common.SkillResult, error, string) common.ToolEvent {
 	panic("not a management fixture")
+}
+
+// Test fixture is a composition root for the owner interface.
+func (a *testAgent) Codec() common.SessionCodec { return persistence.NewCodec(a) }
+
+func (*testRoot) ReleaseSession(string) {}
+
+func (*testRegistry) LimitCandidate(common.Part) (common.LimitValues, error) {
+	return common.LimitValues{}, errors.New("not a session registry")
+}
+func (*testRegistry) ResolveConsumed(common.Part, *common.LimitValues) (common.Limits, string, error) {
+	return common.Limits{}, "", errors.New("not a session registry")
 }

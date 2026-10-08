@@ -23,12 +23,13 @@ func main() {
 		os.Exit(1)
 	}
 }
-func run() error {
+func run() (result error) {
 	port := flag.Int("port", 8088, "local listening port (0 chooses a free port)")
 	terminal := flag.Bool("terminal", false, "attach the human terminal to this Agent")
 	tracePath := flag.String("gui-log", "", "optional conversation trace path")
 	preferencesPath := flag.String("preferences", ".ensemble/gui-preferences.json", "display preferences file")
 	policyPath := flag.String("policy", ".ensemble/agent-policy.json", "Agent execution policy file")
+	sessionDir := flag.String("session-dir", "", "open or resume a session directory")
 	flag.Parse()
 	if *port < 0 || *port > 65535 {
 		return fmt.Errorf("invalid port")
@@ -37,7 +38,11 @@ func run() error {
 		return fmt.Errorf("EN_DISABLE_STREAMING must be 0 or 1")
 	}
 	app := ensemble.New(os.Stderr)
-	defer app.Close()
+	defer func() {
+		if err := app.Close(); result == nil {
+			result = err
+		}
+	}()
 	config := cli.Configuration(app)
 	config.PolicyPath = *policyPath
 	prefResolved, err := filepath.Abs(*preferencesPath)
@@ -57,7 +62,13 @@ func run() error {
 		config.Builtins = append(config.Builtins, "load_skill", "unload_skill")
 	}
 	config.MaxTokens = 4096
-	a, err := app.NewAgent(config)
+	selection := cli.SessionSelector{Path: *sessionDir}
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == "session-dir" {
+			selection.Present = true
+		}
+	})
+	a, err := cli.SelectAgent(app, config, true, selection)
 	if err != nil {
 		return err
 	}

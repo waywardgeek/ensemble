@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"unicode/utf8"
 
 	"example.com/ensemble/internal/common"
@@ -13,6 +14,8 @@ import (
 // Actor owns turn decisions. Its mailbox mutex only guards admission and transfer;
 // it never spans persistence, model I/O, job waits, or display callbacks.
 type Actor struct {
+	checkpointBusy                 bool
+	finalCheckpoint                bool
 	revision, nextWatch, nextPause uint64
 	watches                        []*watch
 	pauses                         map[uint64][2]bool
@@ -32,6 +35,7 @@ type Actor struct {
 	model                          common.ModelOperation
 	cancel                         context.CancelFunc
 	workers                        sync.WaitGroup
+	transientWorkers               atomic.Int64
 	state                          string
 	stopping                       bool
 	closing                        bool
@@ -40,6 +44,7 @@ type Actor struct {
 	faulted                        *request
 }
 type request struct {
+	ordinal    uint64
 	parent     common.Actor
 	id, text   string
 	done       chan struct{}
@@ -56,7 +61,7 @@ type request struct {
 }
 
 func NewActor(parent common.ActorAgent) *Actor {
-	a := &Actor{pauses: map[uint64][2]bool{}, parent: parent, wake: make(chan struct{}, 1), done: make(chan struct{}), accepting: true, state: "idle"}
+	a := &Actor{pauses: map[uint64][2]bool{}, parent: parent, wake: make(chan struct{}, 1), done: make(chan struct{}), accepting: true, state: "idle", next: parent.TurnSnapshot().RequestCursor}
 	go a.run()
 	return a
 }
@@ -95,8 +100,17 @@ func (a *Actor) Submit(text string) (common.RequestHandle, error) {
 	if !a.accepting {
 		return nil, common.StoppedError{}
 	}
-	a.next++
-	r := &request{parent: a, id: fmt.Sprintf("r%d", a.next), text: text, done: make(chan struct{})}
+	seen := a.parent.TurnSnapshot().TurnIDs
+	for {
+		if a.next == ^uint64(0) {
+			return nil, &common.SessionError{Code: "session_limit", Detail: "request identities exhausted"}
+		}
+		a.next++
+		if !seen[fmt.Sprintf("r%d", a.next)] {
+			break
+		}
+	}
+	r := &request{ordinal: a.next, parent: a, id: fmt.Sprintf("r%d", a.next), text: text, done: make(chan struct{})}
 	a.queue = append(a.queue, common.ActorMessage{Kind: "prompt", Handle: r})
 	select {
 	case a.wake <- struct{}{}:
@@ -185,6 +199,9 @@ func (a *Actor) run() {
 	}
 }
 func (a *Actor) receive(m common.ActorMessage) bool {
+	if a.receiveSession(m) {
+		return false
+	}
 	if a.receiveSkills(m) {
 		return false
 	}
@@ -329,6 +346,11 @@ func (a *Actor) receive(m common.ActorMessage) bool {
 			a.interrupt("stopped")
 		}
 	case "closed":
+		if a.parent.SessionState() != nil && a.fault == nil && !a.finalCheckpoint {
+			a.finalCheckpoint = true
+			a.startCheckpoint(common.ActorMessage{Kind: "final_checkpoint", Save: true, Error: m.Error})
+			return false
+		}
 		for _, w := range a.watches {
 			w.stop("Agent closed")
 		}
@@ -393,7 +415,7 @@ func (a *Actor) activate() {
 	r.config = a.parent.Config()
 	r.config.Tools = a.parent.Registry().Declarations()
 	a.transition("input_pending")
-	if a.record(common.Event{Type: "turn_started", Turn: &common.TurnEvent{RequestID: r.id, Policy: &r.policy}}) != nil {
+	if a.record(common.Event{Type: "turn_started", Turn: &common.TurnEvent{RequestID: r.id, Policy: &r.policy, RequestIndex: a.requestIndex(r)}}) != nil {
 		return
 	}
 	if a.record(common.Event{Type: "message_received", Message: &common.Entry{Actor: "human", Purpose: "dialogue", Parts: []common.Part{Text(r.text)}}}) != nil {
@@ -444,8 +466,10 @@ func (a *Actor) exchange() {
 	a.cancel = cancel
 	a.transition("in_flight")
 	a.workers.Add(1)
+	a.transientWorkers.Add(1)
 	go func() {
 		defer a.workers.Done()
+		defer a.transientWorkers.Add(-1)
 		defer cancel()
 		parsed, err := model.Exchange(ctx, body)
 		_ = a.enqueue(common.ActorMessage{Kind: "model", Operation: op, Response: parsed, Error: err}, false)
@@ -464,7 +488,10 @@ func (a *Actor) dispatch() {
 	p := r.calls[r.index]
 	registry := a.parent.Registry()
 	manager := a.parent.Jobs()
-	limits, note, limitErr := registry.ResolveLimits(p)
+	limits, note, limitErr := a.resolveLimits(p)
+	if a.fault != nil {
+		return
+	}
 	available, supervision := registry.Kind(p.Name)
 	management := registry.Management(p.Name)
 	var job common.Job
@@ -520,6 +547,16 @@ func (a *Actor) dispatch() {
 		task = &common.ReportTask{Job: job, Request: common.JobReport{CallID: p.CallID, Limits: limits, Note: note, Original: true, MatchStart: -1}}
 	}
 	if result != nil {
+		if p.Name == "tool_limits" && !result.IsError && r.config.DataDir != "" {
+			value, err := registry.LimitCandidate(p)
+			if err != nil {
+				a.persistence(err)
+				return
+			}
+			if a.record(common.Event{Type: "tool_limits_set", Limits: &common.LimitsEvent{CallID: p.CallID, Overrides: value}}) != nil {
+				return
+			}
+		}
 		if a.record(common.Event{Type: "tool_returned", Tool: result}) != nil {
 			return
 		}
@@ -533,8 +570,10 @@ func (a *Actor) dispatch() {
 	ctx, cancel := context.WithCancel(context.Background())
 	a.cancel = cancel
 	a.workers.Add(1)
+	a.transientWorkers.Add(1)
 	go func() {
 		defer a.workers.Done()
+		defer a.transientWorkers.Add(-1)
 		defer cancel()
 		if task.Ready != nil {
 			select {
@@ -641,7 +680,10 @@ func (a *Actor) finishInterrupted(outcome string) {
 	r := a.active
 	for ; r.index < len(r.calls); r.index++ {
 		p := r.calls[r.index]
-		_, note, _ := a.parent.Registry().ResolveLimits(p)
+		_, note, _ := a.resolveLimits(p)
+		if a.fault != nil {
+			return
+		}
 		if a.record(common.Event{Type: "tool_called", Tool: &common.ToolEvent{CallID: p.CallID, Name: p.Name, Args: p.Args}}) != nil {
 			return
 		}

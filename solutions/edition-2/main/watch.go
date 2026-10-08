@@ -56,16 +56,24 @@ func (a turnAgent) WatchSource() common.WatchSnapshot {
 	if a.skills != nil {
 		s.State.Skills = a.skills.State()
 	}
-	selected := []Event{}
-	for _, e := range a.events {
-		if llm.RenderableEvent(a.engine, e.Type) {
-			selected = append(selected, e)
+	s.State.Session = a.sessionState()
+	s.State.JobAccess = []common.JobAccess{}
+	selected := a.recent
+	s.Omitted = int(a.renderableCount - uint64(len(selected)))
+	handles := map[uint64]bool{}
+	for _, e := range selected {
+		if e.Job != nil {
+			handles[e.Job.Handle] = true
+		}
+		if e.Tool != nil && e.Tool.Job != nil {
+			handles[e.Tool.Job.Handle] = true
 		}
 	}
-	if len(selected) > 100 {
-		s.Omitted = len(selected) - 100
-		selected = selected[s.Omitted:]
+	for h := range handles {
+		_, err := a.jobs.Lookup(h)
+		s.State.JobAccess = append(s.State.JobAccess, common.JobAccess{Handle: h, Live: err == nil})
 	}
+	sort.Slice(s.State.JobAccess, func(i, j int) bool { return s.State.JobAccess[i].Handle < s.State.JobAccess[j].Handle })
 	s.Events, _ = llm.Clone(a.engine, selected)
 	if len(s.Events) > 0 {
 		first, last := s.Events[0].Seq, s.Events[len(s.Events)-1].Seq

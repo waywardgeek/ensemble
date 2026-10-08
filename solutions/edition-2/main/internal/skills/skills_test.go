@@ -2,6 +2,7 @@ package skills
 
 import (
 	"crypto/sha256"
+	"example.com/ensemble/internal/persistence"
 	"fmt"
 	"math"
 	"os"
@@ -542,3 +543,6 @@ func TestNewMaterialAggregateExactAndOneOver(t *testing.T) {
 		}
 	}
 }
+
+// Test fixture is a composition root for the owner interface.
+func (a *testAgent) Codec() common.SessionCodec { return persistence.NewCodec(a) }

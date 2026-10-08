@@ -41,6 +41,10 @@ type ControlAck struct {
 	Interrupted bool   `json:"interrupted"`
 }
 type ActorAgent interface {
+	CaptureSession(uint64) (Checkpoint, error)
+	BeginCheckpoint(Checkpoint, bool) (<-chan CheckpointResult, error)
+	ApplyCheckpoint(CheckpointResult)
+	SessionState() *SessionState
 	Policy() PolicyService
 	TurnAgent
 	ID() string
@@ -58,6 +62,9 @@ type ModelEngine interface {
 	Usage() Usage
 }
 type Actor interface {
+	Session() (*SessionState, error)
+	Checkpoint(bool) (ActorReply, error)
+	CheckpointContext(context.Context, bool) (ActorReply, error)
 	UpdatePolicy(uint64, json.RawMessage) (PolicyAck, error)
 	Agent() ActorAgent
 	Submit(string) (RequestHandle, error)
@@ -88,6 +95,8 @@ type PreparedReport struct {
 // ActorMessage is the mailbox vocabulary. Private worker paths construct worker
 // variants; clients use the Actor operations rather than injecting messages.
 type ActorMessage struct {
+	Save             bool
+	Checkpoint       CheckpointResult
 	SkillOperation   SkillOperation
 	Policy           PolicySnapshot
 	BaseRevision     uint64
@@ -107,17 +116,20 @@ type ActorMessage struct {
 	Reply            chan ActorReply
 }
 type ActorReply struct {
-	SkillState      *SkillState
-	SkillResult     SkillResult
-	SkillInspection SkillInspection
-	PolicyAck       PolicyAck
-	Snapshot        WatchSnapshot
-	Watch           Watch
-	Registration    PauseRegistration
-	Pause           PauseState
-	Ack             ControlAck
-	Handle          RequestHandle
-	Error           error
+	Session          *SessionState
+	CheckpointAck    CheckpointAck
+	CheckpointExport CheckpointExport
+	SkillState       *SkillState
+	SkillResult      SkillResult
+	SkillInspection  SkillInspection
+	PolicyAck        PolicyAck
+	Snapshot         WatchSnapshot
+	Watch            Watch
+	Registration     PauseRegistration
+	Pause            PauseState
+	Ack              ControlAck
+	Handle           RequestHandle
+	Error            error
 }
 
 // StoppedError lets callers distinguish closed admission without parsing text.

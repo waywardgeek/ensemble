@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"example.com/ensemble-gui/internal/common"
 	"io"
 	"strings"
@@ -232,7 +233,7 @@ func (c *Connector) command(f map[string]json.RawMessage) {
 	case "preferences_update", "policy_update":
 		allowed["base_revision"] = true
 		allowed["patch"] = true
-	case "subscribe", "interrupt":
+	case "subscribe", "interrupt", "checkpoint":
 	default:
 		c.refuse(id, "unknown command")
 		return
@@ -283,6 +284,9 @@ func (c *Connector) command(f map[string]json.RawMessage) {
 	owner := c.parent.Ensemble()
 	agent := c.parent.AgentID()
 	switch kind {
+	case "checkpoint":
+		c.workers.Add(1)
+		go c.checkpoint(id)
 	case "subscribe":
 		if subscribed {
 			c.refuse(id, "already subscribed")
@@ -365,6 +369,36 @@ func (c *Connector) command(f map[string]json.RawMessage) {
 		}
 		c.send(out, false)
 	}
+}
+
+// This waiter belongs to the connection. The store worker and Actor finish
+// independently; loss cancels only delivery, never the durable save.
+func (c *Connector) checkpoint(id string) {
+	defer c.workers.Done()
+	ack, err := c.parent.Ensemble().CheckpointContext(c.ctx, c.parent.AgentID())
+	if err != nil {
+		code := "session_io"
+		var problem *ensemble.SessionError
+		if errors.As(err, &problem) {
+			code = problem.Code
+		}
+		c.send(map[string]any{"type": "command_error", "id": id, "code": code, "message": "Checkpoint refused: " + code}, false)
+		return
+	}
+	for {
+		c.mu.Lock()
+		ready, advanced := c.revision >= ack.WatchRevision, c.advanced
+		c.mu.Unlock()
+		if ready {
+			break
+		}
+		select {
+		case <-advanced:
+		case <-c.ctx.Done():
+			return
+		}
+	}
+	c.send(map[string]any{"type": "command_ack", "id": id, "status": "saved", "as_of": ack.AsOf, "watch_revision": ack.WatchRevision}, false)
 }
 func (c *Connector) advance(revision uint64) {
 	c.mu.Lock()

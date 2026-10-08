@@ -49,6 +49,12 @@ func (e *Ensemble) ClaimSettingsPath(path string) (string, error) {
 	if e.settingsPaths[resolved] {
 		return "", fmt.Errorf("settings path already has a live owner")
 	}
+	if e.sessionReservations["path:"+filepath.Dir(resolved)] {
+		switch filepath.Base(resolved) {
+		case "owner.lock", "events.log", "checkpoint.json", "origin.json":
+			return "", fmt.Errorf("settings path conflicts with session storage")
+		}
+	}
 	e.settingsPaths[resolved] = true
 	return resolved, nil
 }

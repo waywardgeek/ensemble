@@ -65,6 +65,9 @@ export class ArtifactScroll {
     this.cards.clear(); this.calls.clear(); this.jobs.clear(); this.element.replaceChildren(); this.agent = snapshot.agent_id;
     if (snapshot.omitted) this.card('omitted', 'Earlier history omitted', `${snapshot.omitted} earlier renderable events omitted; this view contains the most recent 100 events.`);
     for (const e of snapshot.events) this.event(e, true, snapshot.agent_id);
+    for (const access of snapshot.state?.job_access || []) {
+      if (!access.live) for (const card of this.jobs.get(`${snapshot.agent_id}/${access.handle}`) || []) { card.status += ' · historical; no live owner'; card.historical=true; card.render(); }
+    }
     this.skillState(snapshot.state?.skills);
     for (const p of snapshot.partials) this.partial(p, p.channels);
     this.changed();

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"example.com/ensemble/internal/common"
+	"example.com/ensemble/internal/persistence"
 	"io"
 	"reflect"
 	"strings"
@@ -418,3 +419,8 @@ func TestStreamExactAssembledTextBound(t *testing.T) {
 
 func (streamRoot) ClaimSettingsPath(path string) (string, error) { return path, nil }
 func (streamRoot) ReleaseSettingsPath(string)                    {}
+
+// Test fixture is a composition root for the owner interface.
+func (a *streamAgent) Codec() common.SessionCodec { return persistence.NewCodec(a) }
+
+func (streamRoot) ReleaseSession(string) {}

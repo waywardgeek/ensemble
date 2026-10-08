@@ -3,6 +3,7 @@ package tools
 import (
 	"encoding/json"
 	"example.com/ensemble/internal/common"
+	"example.com/ensemble/internal/persistence"
 	"fmt"
 	"os"
 	"strings"
@@ -210,3 +211,8 @@ func (testRoot) ClaimSettingsPath(path string) (string, error) { return path, ni
 func (testRoot) ReleaseSettingsPath(string)                    {}
 
 func (testAgent) GrantedTools() []string { return nil }
+
+// Test fixture is a composition root for the owner interface.
+func (a testAgent) Codec() common.SessionCodec { return persistence.NewCodec(a) }
+
+func (testRoot) ReleaseSession(string) {}

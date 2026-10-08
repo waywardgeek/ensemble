@@ -119,3 +119,24 @@ func TestProtocolInvalidControlsRecoverAndEOFDrains(t *testing.T) {
 		}
 	}
 }
+
+func TestCLISessionRestartLocal(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprint(w, `{"content":[{"type":"text","text":"saved"}],"usage":{ "input_tokens": 1, "output_tokens": 1 }}`)
+	}))
+	defer server.Close()
+	cliConfig(t, server.URL)
+	t.Setenv("CH02_LOG", "")
+	directory := t.TempDir() + "/session"
+	for i := 0; i < 2; i++ {
+		var out, diagnostics bytes.Buffer
+		err := runArgs([]string{"--session-dir", directory, "protocol"}, strings.NewReader("{\"user\":\"hello\"}\n"), &out, &diagnostics)
+		if err != nil {
+			t.Fatalf("mount %d: %v\n%s\n%s", i, err, out.String(), diagnostics.String())
+		}
+	}
+	var out, diagnostics bytes.Buffer
+	if err := runArgs([]string{"session", "inspect", directory}, strings.NewReader(""), &out, &diagnostics); err != nil {
+		t.Fatalf("inspect: %v; %s", err, diagnostics.String())
+	}
+}

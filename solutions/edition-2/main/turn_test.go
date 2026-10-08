@@ -243,8 +243,15 @@ type failingEventLog struct {
 	failType string
 }
 
-func (l *failingEventLog) Agent() common.Agent { return l.parent }
-func (l *failingEventLog) Close() error        { return l.inner.Close() }
+func (l *failingEventLog) Agent() common.Agent                           { return l.parent }
+func (l *failingEventLog) Close() error                                  { return l.inner.Close() }
+func (l *failingEventLog) Prepare(e Event) (common.PreparedEvent, error) { return l.inner.Prepare(e) }
+func (l *failingEventLog) AppendPrepared(e common.PreparedEvent) error {
+	if e.Event().Type == l.failType {
+		return fmt.Errorf("injected persistence failure")
+	}
+	return l.inner.AppendPrepared(e)
+}
 func (l *failingEventLog) Append(e Event) error {
 	if e.Type == l.failType {
 		return fmt.Errorf("injected durable write failure")

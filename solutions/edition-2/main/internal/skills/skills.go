@@ -13,9 +13,10 @@ import (
 // Service is actor-confined after construction. Its ledger is the authority;
 // candidates share only immutable retained records and cannot publish themselves.
 type Service struct {
-	parent    common.SkillAgent
-	catalog   map[string]common.SkillDefinition
-	committed *ledger
+	transitions []common.SkillTransitionRef
+	parent      common.SkillAgent
+	catalog     map[string]common.SkillDefinition
+	committed   *ledger
 }
 type ledger struct {
 	state    common.SkillState
@@ -211,6 +212,11 @@ func (s *Service) Apply(value common.SkillCandidate, eventSeq uint64) {
 		record.EventSeq = eventSeq
 		c.next.material[activation.Activation] = record
 	}
+	ids := []uint64{}
+	for _, record := range c.transition.Activated {
+		ids = append(ids, record.Activation)
+	}
+	s.transitions = append(s.transitions, common.SkillTransitionRef{Seq: eventSeq, Action: c.transition.Action, Name: c.transition.Name, State: copyState(s, c.transition.State), Activated: ids})
 	s.committed = c.next
 }
 

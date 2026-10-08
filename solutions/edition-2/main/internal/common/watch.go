@@ -32,6 +32,8 @@ type UsageAccount struct {
 	Usage Usage      `json:"usage"`
 }
 type WatchState struct {
+	Session                *SessionState    `json:"session"`
+	JobAccess              []JobAccess      `json:"job_access"`
 	Skills                 *SkillState      `json:"skills"`
 	ExecutionPolicy        PolicySnapshot   `json:"execution_policy"`
 	ActiveMaxModelRequests *int             `json:"active_max_model_requests"`

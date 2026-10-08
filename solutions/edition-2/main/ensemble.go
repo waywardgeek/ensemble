@@ -3,10 +3,12 @@ package ensemble
 
 import (
 	"context"
+	"errors"
 	"example.com/ensemble/internal/common"
 	"example.com/ensemble/internal/eventlog"
 	"example.com/ensemble/internal/jobs"
 	"example.com/ensemble/internal/llm"
+	"example.com/ensemble/internal/persistence"
 	"example.com/ensemble/internal/policy"
 	"example.com/ensemble/internal/skills"
 	"example.com/ensemble/internal/tools"
@@ -61,6 +63,7 @@ type subscription struct {
 	reason   string
 }
 type Ensemble struct {
+	sessionReservations     map[string]bool
 	settingsPaths           map[string]bool
 	logger                  *log.Logger
 	mu                      sync.Mutex
@@ -103,6 +106,7 @@ func normalize(owner common.Ensemble, config Config) Config {
 }
 func (e *Ensemble) construct(config Config) (*Agent, error) {
 	a := &Agent{parent: e, config: normalize(e, config)}
+	a.codec = persistence.NewCodec(a)
 	a.engine = llm.New(turnAgent{a})
 	if config.Skills != nil {
 		copied, err := skills.CopyConfiguration(skillAgent{a}, config.Skills)
@@ -139,6 +143,9 @@ func (e *Ensemble) publishAgent(a *Agent) error {
 	return nil
 }
 func (e *Ensemble) NewAgent(config Config) (*Agent, error) {
+	if config.DataDir != "" {
+		return nil, sessionError("session_conflict", "use OpenSession for DataDir")
+	}
 	if config.Skills != nil && config.System != "" {
 		return nil, fmt.Errorf("System conflicts with selected primary skill")
 	}
@@ -217,6 +224,9 @@ func (e *Ensemble) Load(path string, config Config) (*Agent, error) {
 		return nil, err
 	}
 	for i, event := range events {
+		if i == 0 && event.Type == "session_anchor" {
+			return nil, sessionError("session_origin_required", "anchor log requires session inspection with origin")
+		}
 		if err = a.append(event, false, false); err != nil {
 			return nil, llm.ParseEventError(a.engine, lines[i], err)
 		}
@@ -330,27 +340,42 @@ func (e *Ensemble) Publish(agentID string, event Event) {
 }
 
 type Agent struct {
-	skills    *skills.Service
-	policy    *policy.Service
-	actor     *llm.Actor
-	parent    common.Ensemble
-	id        string
-	config    Config
-	mu        sync.Mutex
-	appendMu  sync.Mutex
-	closeMu   sync.Mutex
-	closed    bool
-	jobs      *jobs.Service
-	operation sync.Mutex
-	events    []Event
-	context   common.Context
-	registry  *tools.Registry
-	engine    *llm.Engine
-	log       common.EventLog
-	faulted   bool
+	store               *persistence.Store
+	sessionID           string
+	identity            common.SessionIdentity
+	resumed             bool
+	reservedPath        string
+	reservedID          bool
+	origin              *common.SemanticState
+	recent              []Event
+	renderableCount     uint64
+	restoredJobFloor    uint64
+	eventCount          uint64
+	inspectedCheckpoint *uint64
+	codec               common.SessionCodec
+	skills              *skills.Service
+	policy              *policy.Service
+	actor               *llm.Actor
+	parent              common.Ensemble
+	id                  string
+	config              Config
+	mu                  sync.Mutex
+	appendMu            sync.Mutex
+	closeMu             sync.Mutex
+	closed              bool
+	jobs                *jobs.Service
+	operation           sync.Mutex
+	events              []Event
+	context             common.Context
+	registry            *tools.Registry
+	engine              *llm.Engine
+	log                 common.EventLog
+	faulted             bool
 }
 
 func (a *Agent) ModelReady(op common.ModelOperation) { a.actor.ModelReady(op) }
+
+func (a *Agent) Codec() common.SessionCodec { return a.codec }
 
 func (a *Agent) ID() string                { return a.id }
 func (a *Agent) Ensemble() common.Ensemble { return a.parent }
@@ -387,6 +412,12 @@ func (a *Agent) SetConfig(config Config) error {
 	}
 	defer a.operation.Unlock()
 	current := a.Config()
+	if config.DataDir != current.DataDir {
+		return sessionError("session_conflict", "DataDir is creation-only")
+	}
+	if a.store != nil && a.identity.Mode == "plain" && config.System != current.System {
+		return sessionError("session_incompatible", "base System is fixed for a session")
+	}
 	if !reflect.DeepEqual(config.Skills, current.Skills) {
 		return fmt.Errorf("skill configuration is creation-only")
 	}
@@ -489,6 +520,13 @@ func (a *Agent) History() Conversation {
 }
 func (a *Agent) Render(config Config) ([]byte, error) {
 	c := a.Snapshot()
+	if c.Session != nil && c.Session.Identity != nil && c.Session.Identity.Mode == "plain" {
+		base := *c.Session.Identity.System
+		if config.System != "" && config.System != base {
+			return nil, sessionError("session_incompatible", "render base differs")
+		}
+		config.System = base
+	}
 	if c.SkillMode {
 		if config.System != "" && config.System != c.SkillPrimary {
 			return nil, fmt.Errorf("render System conflicts with recorded primary")
@@ -530,6 +568,19 @@ func (a *Agent) finishClose() error {
 			err = closeErr
 		}
 	}
+	if a.store != nil {
+		if closeErr := a.store.Close(); err == nil {
+			err = closeErr
+		}
+	}
+	if a.reservedID {
+		a.parent.ReleaseSession("id:" + a.sessionID)
+		a.reservedID = false
+	}
+	if a.reservedPath != "" {
+		a.parent.ReleaseSession("path:" + a.reservedPath)
+		a.reservedPath = ""
+	}
 	return err
 }
 func Text(text string) Part { return llm.Text(text) }
@@ -556,10 +607,15 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int,
 		return fmt.Errorf("Agent log is read-only or faulted")
 	}
 	if persist {
+		if a.context.LastSeq == ^uint64(0) {
+			a.faulted = true
+			a.mu.Unlock()
+			return sessionError("session_limit", "event identities exhausted")
+		}
 		event.Seq = a.context.LastSeq + 1
 		event.Time = time.Now().UTC().Format(time.RFC3339Nano)
 	}
-	if persist {
+	if persist && a.store == nil {
 		if err := eventlog.CheckSkillRecord(a, event); err != nil {
 			a.mu.Unlock()
 			return err
@@ -577,6 +633,15 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int,
 	}
 	if err == nil {
 		err = llm.Validate(a.engine, a.context, &owned)
+	}
+	if err == nil && owned.Session != nil && persist && a.id != "" {
+		err = sessionError("session_conflict", "session facts are construction-only")
+	}
+	if err == nil {
+		err = a.jobs.ValidateLimitEvent(a.context, owned)
+	}
+	if err == nil && owned.Type == "response_ended" {
+		err = a.engine.ValidateAccount(*owned.Response)
 	}
 	var skillCandidate common.SkillCandidate
 	if err == nil && owned.Skills != nil {
@@ -596,12 +661,28 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int,
 			skillCandidate, err = a.skills.PrepareRecorded(*owned.Skills)
 		}
 	}
+	var encoded common.PreparedEvent
+	if err == nil && persist && a.store != nil {
+		encoded, err = a.log.Prepare(owned)
+		if err == nil {
+			owned = encoded.Event()
+		} else {
+			var problem *common.SessionError
+			if errors.As(err, &problem) && problem.Code == "session_limit" {
+				a.faulted = true
+			}
+		}
+	}
 	var applied Event
 	if err == nil {
 		applied, err = llm.Clone(a.engine, owned)
 	}
 	if err == nil && persist {
-		err = a.log.Append(owned)
+		if encoded != nil {
+			err = a.log.AppendPrepared(encoded)
+		} else {
+			err = a.log.Append(owned)
+		}
 		if err != nil {
 			a.faulted = true
 		}
@@ -614,6 +695,15 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int,
 		a.skills.Apply(skillCandidate, owned.Seq)
 	}
 	a.events = append(a.events, owned)
+	a.eventCount++
+	if llm.RenderableEvent(a.engine, owned.Type) {
+		a.renderableCount++
+		a.recent = append(a.recent, owned)
+		if len(a.recent) > 100 {
+			a.recent = append([]Event{}, a.recent[len(a.recent)-100:]...)
+		}
+	}
+	a.jobs.ApplyLimitEvent(owned)
 	llm.Apply(a.engine, &a.context, applied)
 	if owned.Type == "response_ended" {
 		a.engine.Account(*owned.Response)
@@ -711,6 +801,9 @@ func (a turnAgent) Registry() common.Registry { return a.registry }
 func (e *Ensemble) AllocateHandle() uint64 {
 	e.mu.Lock()
 	defer e.mu.Unlock()
+	if e.nextHandle == ^uint64(0) {
+		return 0
+	}
 	e.nextHandle++
 	return e.nextHandle
 }
@@ -792,6 +885,25 @@ func (e *Ensemble) Interrupt(id string) (ControlAck, error) {
 // It performs no model or tool effect and does not consume pending guidance.
 func (a *Agent) ReconstructRequest(sequence uint64) ([]byte, error) {
 	state := common.Context{}
+	if a.origin != nil {
+		if sequence <= a.origin.Session.AsOf {
+			return nil, sessionError("history_unavailable", "request precedes available raw history")
+		}
+		state, _ = llm.Clone(a.engine, a.origin.Context)
+		if a.origin.Skills != nil {
+			for _, m := range a.origin.Skills.Material {
+				if m.Record.Type == "primary" {
+					state.SkillPrimary = m.Record.Body
+				}
+				for i := range state.Entries {
+					entry := &state.Entries[i]
+					if entry.Purpose == "skill" && entry.Activation == m.Record.Activation && m.Record.Body != "" {
+						entry.Parts = []Part{Text(fmt.Sprintf("[skill %s activation %d]\n%s\n[/skill]", m.Record.Name, m.Record.Activation, m.Record.Body))}
+					}
+				}
+			}
+		}
+	}
 	for _, event := range a.Events() {
 		if event.Seq == sequence {
 			if event.Type != "request_sent" || event.Request.Configuration == nil {

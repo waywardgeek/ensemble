@@ -1,0 +1,218 @@
+[
+  {
+    "module": "examples/browser-consumer",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "module": "examples/browser-consumer",
+    "command": [
+      "go",
+      "test",
+      "./...",
+      "-count=1",
+      "-timeout=60s"
+    ],
+    "exit": 0,
+    "stdout": "?   \texample.com/browser-consumer\t[no test files]\n",
+    "stderr": ""
+  },
+  {
+    "module": "examples/consumer",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "module": "examples/consumer",
+    "command": [
+      "go",
+      "test",
+      "./...",
+      "-count=1",
+      "-timeout=60s"
+    ],
+    "exit": 0,
+    "stdout": "?   \texample.com/ensemble-consumer\t[no test files]\n",
+    "stderr": ""
+  },
+  {
+    "module": "examples/jobs-consumer",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "module": "examples/jobs-consumer",
+    "command": [
+      "go",
+      "test",
+      "./...",
+      "-count=1",
+      "-timeout=60s"
+    ],
+    "exit": 0,
+    "stdout": "?   \texample.com/ensemble-jobs-consumer\t[no test files]\n",
+    "stderr": ""
+  },
+  {
+    "module": "examples/policy-consumer",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "module": "examples/policy-consumer",
+    "command": [
+      "go",
+      "test",
+      "./...",
+      "-count=1",
+      "-timeout=60s"
+    ],
+    "exit": 0,
+    "stdout": "?   \texample.com/policy-consumer\t[no test files]\n",
+    "stderr": ""
+  },
+  {
+    "module": "examples/skills-consumer",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "module": "examples/skills-consumer",
+    "command": [
+      "go",
+      "test",
+      "./...",
+      "-count=1",
+      "-timeout=60s"
+    ],
+    "exit": 0,
+    "stdout": "ok  \texample.com/skills-consumer\t0.066s\n",
+    "stderr": ""
+  },
+  {
+    "module": "examples/skills-redaction",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "module": "examples/skills-redaction",
+    "command": [
+      "go",
+      "test",
+      "./...",
+      "-count=1",
+      "-timeout=60s"
+    ],
+    "exit": 0,
+    "stdout": "?   \texample.com/skills-redaction\t[no test files]\n",
+    "stderr": ""
+  },
+  {
+    "module": "examples/stream-consumer",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "module": "examples/stream-consumer",
+    "command": [
+      "go",
+      "test",
+      "./...",
+      "-count=1",
+      "-timeout=60s"
+    ],
+    "exit": 0,
+    "stdout": "?   \texample.com/ensemble/stream-consumer\t[no test files]\n",
+    "stderr": ""
+  },
+  {
+    "module": "examples/tools-consumer",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "module": "examples/tools-consumer",
+    "command": [
+      "go",
+      "test",
+      "./...",
+      "-count=1",
+      "-timeout=60s"
+    ],
+    "exit": 0,
+    "stdout": "?   \texample.com/ensemble-tools-consumer\t[no test files]\n",
+    "stderr": ""
+  },
+  {
+    "module": "examples/workflow",
+    "command": [
+      "go",
+      "vet",
+      "./..."
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  {
+    "module": "examples/workflow",
+    "command": [
+      "go",
+      "test",
+      "./...",
+      "-count=1",
+      "-timeout=60s"
+    ],
+    "exit": 0,
+    "stdout": "?   \texample.com/ensemble-workflow\t[no test files]\n",
+    "stderr": ""
+  }
+]
