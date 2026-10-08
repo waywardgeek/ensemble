@@ -341,7 +341,7 @@ booleans except the required object input root. Support exactly these keywords:
 Reject every other keyword, including pattern, format, dynamic references,
 external/relative references and unevaluated vocabulary. Reject malformed keyword
 values, unresolved pointers and cycles reached by traversing schema containment
-and reference expansion together. For example, a child property with `$ref":"#"`
+and reference expansion together. For example, a child property with `{"$ref":"#"}`
 returns to its containing root and is refused. `$ref` siblings apply too. Enforce the bounds below on the physical schema and on
 validation work so repeated references cannot create exponential work unnoticed.
 Validation failure or budget exhaustion cannot fall through to sending a call.
