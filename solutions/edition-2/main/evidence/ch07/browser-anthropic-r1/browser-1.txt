@@ -1,0 +1,17 @@
+ENSEMBLE / LOCAL WORKSPACE
+
+Follow the work. Steer the next step.
+
+Connected — agent-1-g1
+
+Tool admissions available — typing: 0, speaking: 0. Already admitted work continues.
+
+Return to latest
+Auto speech: off
+Cancel speech
+Prompt or correction
+Send prompt
+Send hint
+Interrupt
+
+Speech starts disabled. Typing holds the next tool admission.

@@ -1,0 +1,20 @@
+Two independent Agents, one application
+first Agent
+
+Connected — agent-1-g2
+
+Tool admissions paused — typing: 1, speaking: 0. Already admitted work continues.
+
+Return to latestAuto speech: offCancel speech
+Prompt or correction
+Send promptSend hintInterrupt
+
+second Agent
+
+Connected — agent-2-g2
+
+Tool admissions paused — typing: 1, speaking: 0. Already admitted work continues.
+
+Return to latestAuto speech: offCancel speech
+Prompt or correction
+Send promptSend hintInterrupt

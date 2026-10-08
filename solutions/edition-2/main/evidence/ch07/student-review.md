@@ -142,3 +142,97 @@ Consulted official Apple ScreenCaptureKit documentation for audio capture API.
 No historical solution or grader implementation was read. Local source tests
 and `go vet` pass in affected modules; `gofmt -l` is empty. Paid sessions and
 initial student-experience conclusion are still pending.
+
+### Pre-launch freeze and checker boundaries
+
+Initial source is preserved at `da162e821369784b37cd6a6544610429af5f1cbe`.
+Evidence-only support repair `ba902b7322a9cb5dd71c8352d45d6975663409c0`
+requires the complete browser dependency map and launch equality before writes;
+17 local adapter controls pass, including valid paths and intended mismatches.
+No runtime source changed for that repair. The old zero-call browser launch and
+its original binding remain retained separately.
+
+The retained Chapter 6 gate failed because its source copier omitted embedded
+assets and its CLI test injected into the former command package. The Chapter 7
+adapter retains the assertions and accepts the public client location. Its
+prior CLI checks pass. The initial full Chapter 7 gate passes 32/33 groups;
+the remaining inherited structural heuristic mistakes an immutable error
+sentinel and embedded asset filesystem for mutable session globals. The grader
+is correcting its declaration/write analysis; no runtime repair is requested.
+These checker limitations are not chapter teaching failures and their failed
+receipts remain historical.
+
+After context restoration I reread the entire coding skill, AGENTS.md,
+architecture ledger, all 648 lines of the committed-only new Chapter 7 input,
+and the current clarified §7.4 transport paragraph. No old solutions, grader
+implementations or historical reviewer notes were read.
+
+### First live provider difficulty
+
+Anthropic completed the initial planned matrix in 9 prompts and 15 forwarded
+model requests. Exact replay reproduced all 15 raw request bodies. OpenAI's
+third prompt described its intention to write/read the file but made no tool
+calls. The first two prompts had requested no tools, which may have influenced
+that response; this is an interpretation, not proven causation. Preserved the
+response and reported it to root. A deliberate human correction explicitly
+ends that restriction and requests the missing calls within the original cap;
+there is no automatic replay or claim that descriptive text proves tool use.
+
+### Initial live experience completed before historical comparison
+
+All nine planned sessions completed on the frozen binding: Messages with
+`claude-sonnet-4-6`, Chat Completions with `gpt-4.1-mini-2025-04-14`, and
+explicitly mapped generateContent with `models/gemini-3.8-flash`. Totals were
+9/10/9 admitted prompts and 15/14/15 forwarded model requests respectively.
+The cap was not reached. All application exits were zero, all 44 original
+request bodies exactly matched independent replay, and actual browser drivers
+recorded no page errors or failed actions. See `live-receipts.json` and the
+separate `reconstructed-*-r1` derivatives; raw originals are unchanged.
+
+The shared terminal/browser path was usable. I entered ordinary terminal text,
+observed the answer, then `/history` and a follow-up. New tabs and reloads caught
+up while operations were active. Anthropic happened to expose two nonempty
+partial snapshots; OpenAI/Gemini cuts captured active-operation metadata before
+fragments. Those timing differences are not substituted for the deterministic
+held-response tests. Each provider wrote/read the exact 13-byte scratch file,
+started a delayed job, received a browser hint, and was interrupted from the
+terminal while typing held the next supervision admission. The next prompt
+observed the job still running and deliberately killed it. Terminal EOF detached,
+then a browser-only prompt completed. Standalone plain CLI and the custom
+public two-Agent embedding also completed for all three providers.
+
+The correction marker reached the next raw request for every provider.
+Anthropic and Gemini printed it; OpenAI continued waiting without printing it.
+The distinction between delivery and model compliance in §7.8 was useful here.
+Likewise, models' explanations of reports sometimes overstated that a result
+means a process finished; the UI's actual running report and later killed
+lifecycle are stronger evidence than that explanatory prose.
+
+Actual Chrome 154.0.8037.93 on macOS 26.3.1(a) synthesized selected cards. Each
+provider's answer has an exact-browser-PID ScreenCaptureKit audio receipt, a
+silent first second of PCM at the -91 dB analysis floor, and a later 2–6 second
+speech window around -20 dB mean. Capturing starts asynchronously: the requested
+two-second wall-time lead does not imply two whole silent seconds in the WAV.
+One initial Gemini selection matched its user prompt, so it remains retained
+and is labeled separately; a second deliberate selection captured the model
+answer. No human-listening or transcription claim is made. Cross-tab speech
+cancellation caused Chrome's real interrupted callbacks, while typing remained
+registered; local controlled callbacks prove the stronger queue fences.
+
+I visually inspected actual initial, provisional-answer and tool-result
+screenshots. Anthropic `browser-26.png` and OpenAI `browser-25.png` show the
+refused pending call, interrupted outcome, still-typed correction and connected
+status. Gemini `browser-25.png` shows the running report, supervision call and
+combined typing/speaking pause. The cards are readable and input focus survives
+streaming. Text receipts retain offscreen cards; screenshots do not pretend to
+show the whole scrollable history at once.
+
+Teaching suggestions: keep the explicit receipt/model-behavior distinction;
+state no-tools restrictions as applying to one turn in demonstrations; explain
+that inherited deliberate cleanup emits `job_killed` while normal completion
+emits `job_ended`. The first is a prompt-writing lesson, and the last is a small
+terminology reconciliation with the inherited lifecycle, not a reason to
+rewrite accepted core behavior. The transport-error clarification resolved the
+one initial chapter ambiguity. Other corrections above were implementation or
+checker issues. I have not read historical answers or comparative reviewer
+notes; this is the preserved initial student experience, ready for that review.
