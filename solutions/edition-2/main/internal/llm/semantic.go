@@ -1,12 +1,13 @@
 package llm
 
 import (
+	"encoding/json"
 	"example.com/ensemble/internal/common"
 	"reflect"
 	"sort"
 )
 
-func cloneValue(v reflect.Value) reflect.Value {
+func cloneValue(v reflect.Value, collections bool) reflect.Value {
 	if !v.IsValid() {
 		return v
 	}
@@ -16,25 +17,31 @@ func cloneValue(v reflect.Value) reflect.Value {
 			return reflect.Zero(v.Type())
 		}
 		out := reflect.New(v.Type().Elem())
-		out.Elem().Set(cloneValue(v.Elem()))
+		out.Elem().Set(cloneValue(v.Elem(), collections))
 		return out
 	case reflect.Slice:
 		if v.IsNil() {
+			if collections && v.Type() != reflect.TypeOf(json.RawMessage{}) {
+				return reflect.MakeSlice(v.Type(), 0, 0)
+			}
 			return reflect.Zero(v.Type())
 		}
 		out := reflect.MakeSlice(v.Type(), v.Len(), v.Len())
 		for i := 0; i < v.Len(); i++ {
-			out.Index(i).Set(cloneValue(v.Index(i)))
+			out.Index(i).Set(cloneValue(v.Index(i), collections))
 		}
 		return out
 	case reflect.Map:
 		if v.IsNil() {
+			if collections {
+				return reflect.MakeMap(v.Type())
+			}
 			return reflect.Zero(v.Type())
 		}
 		out := reflect.MakeMap(v.Type())
 		it := v.MapRange()
 		for it.Next() {
-			out.SetMapIndex(it.Key(), cloneValue(it.Value()))
+			out.SetMapIndex(it.Key(), cloneValue(it.Value(), collections))
 		}
 		return out
 	case reflect.Struct:
@@ -42,7 +49,7 @@ func cloneValue(v reflect.Value) reflect.Value {
 		out.Set(v)
 		for i := 0; i < v.NumField(); i++ {
 			if out.Field(i).CanSet() && v.Type().Field(i).IsExported() {
-				out.Field(i).Set(cloneValue(v.Field(i)))
+				out.Field(i).Set(cloneValue(v.Field(i), collections))
 			}
 		}
 		return out
@@ -51,7 +58,7 @@ func cloneValue(v reflect.Value) reflect.Value {
 			return reflect.Zero(v.Type())
 		}
 		out := reflect.New(v.Type()).Elem()
-		out.Set(cloneValue(v.Elem()))
+		out.Set(cloneValue(v.Elem(), collections))
 		return out
 	}
 	return v

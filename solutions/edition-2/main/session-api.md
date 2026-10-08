@@ -90,3 +90,8 @@ JSON. Engine checks correspondence and uses it for Chat replay, including change
 current model aliases. It is not target-bound opaque material. Existing records
 without the field use their accepted Args bytes. See persistence-format.md for
 strict optional semantic encoding and duplicate-argument comparison.
+
+Public Context snapshots normalize absent structural collections to empty
+collections in the owned copy, so full-log and checkpoint/tail inspection have
+identical Go representations. Raw JSON nil/bytes remain exact. Events/Dump and
+stored history retain their original accepted representation.

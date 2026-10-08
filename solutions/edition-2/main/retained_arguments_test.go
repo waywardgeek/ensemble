@@ -10,6 +10,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -180,6 +181,7 @@ func TestRetainedArgumentsContinuationAndReplay(t *testing.T) {
 					}
 				}
 				check("accepted", a)
+				acceptedContext := a.Snapshot()
 				if err = a.Close(); err != nil {
 					t.Fatal(err)
 				}
@@ -234,6 +236,23 @@ func TestRetainedArgumentsContinuationAndReplay(t *testing.T) {
 						t.Fatalf("%s: %v", branch.name, e)
 					}
 					check(branch.name, inspected)
+					currentContext := inspected.Snapshot()
+					// Identity schemas compare canonically by contract; their
+					// JSON object spelling is not replay payload spelling.
+					leftIdentity, _ := json.Marshal(acceptedContext.Session.Identity)
+					rightIdentity, _ := json.Marshal(currentContext.Session.Identity)
+					if !a.codec.EqualJSON(leftIdentity, rightIdentity) {
+						t.Fatal("identity changed")
+					}
+					leftSession, rightSession := *acceptedContext.Session, *currentContext.Session
+					leftSession.Identity = nil
+					rightSession.Identity = nil
+					expectedContext := acceptedContext
+					expectedContext.Session = &leftSession
+					currentContext.Session = &rightSession
+					if !reflect.DeepEqual(expectedContext, currentContext) {
+						t.Fatalf("%s public Context representation changed", branch.name)
+					}
 				}
 				if err = os.WriteFile(checkpoint, latest, 0600); err != nil {
 					t.Fatal(err)
@@ -310,6 +329,12 @@ func TestRetainedChatReplayStringCorrespondenceRefusal(t *testing.T) {
 		if err == nil || !strings.Contains(err.Error(), "argument replay") {
 			t.Fatalf("correspondence refusal: %v", err)
 		}
+	}
+	text := "answer"
+	original := `{}`
+	err = a.Append(Event{Type: "response_ended", Response: &Response{From: from, Usage: &Usage{}, Parts: []Part{{Type: "text", Text: &text, ArgumentsText: &original}}}})
+	if err == nil || !strings.Contains(err.Error(), "argument replay") {
+		t.Fatalf("inactive replay field accepted: %v", err)
 	}
 	if err = a.Close(); err != nil {
 		t.Fatal("validation refusal became terminal", err)

@@ -480,8 +480,7 @@ func (a *Agent) UsageByModel() map[Provenance]Usage {
 func (a *Agent) Snapshot() common.Context {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	out, _ := llm.Clone(a.engine, a.context)
-	return out
+	return llm.SnapshotContext(a.engine, a.context)
 }
 
 // Internal checks borrow state only while locked; public snapshots still own copies.

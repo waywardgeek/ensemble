@@ -16,7 +16,7 @@ import (
 func Clone[T any](owner common.Engine, value T) (T, error) {
 	// Copying never encodes: capture remains proportional copying on Actor, while
 	// validation and bounded serialization belong to their explicit boundaries.
-	v := cloneValue(reflect.ValueOf(value))
+	v := cloneValue(reflect.ValueOf(value), false)
 	if !v.IsValid() {
 		var zero T
 		return zero, nil
@@ -40,6 +40,9 @@ func object(owner common.Engine, raw json.RawMessage) bool {
 
 // partProblem returns only static categories, never content supplied by a caller.
 func partProblem(owner common.Engine, p *common.Part, result bool) string {
+	if p.ArgumentsText != nil && p.Type != "tool_call" {
+		return "argument replay string requires a tool call"
+	}
 	if p.Ref != nil {
 		if p.Ref.Kind < 1 || p.Ref.Kind > 3 {
 			return "invalid reference kind"
@@ -680,4 +683,11 @@ func jobProblem(owner common.Engine, job common.JobSnapshot, previous *common.Jo
 		return "job locator, cwd, or bytes changed inconsistently"
 	}
 	return ""
+}
+
+// SnapshotContext gives callers one stable representation for empty structural
+// collections, whether reduction followed a checkpoint or the complete log.
+// Raw JSON keeps its exact bytes and absence; Clone of events never normalizes.
+func SnapshotContext(owner common.Engine, value common.Context) common.Context {
+	return cloneValue(reflect.ValueOf(value), true).Interface().(common.Context)
 }

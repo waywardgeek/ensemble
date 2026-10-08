@@ -510,7 +510,7 @@ func (o *owner) offline() error {
 			snapshot = inspect.Snapshot()
 			usage = inspect.UsageByModel()
 			skills = inspect.InspectSkills()
-		} else if !bytes.Equal(baseline, rendered) || !reflect.DeepEqual(events, inspect.Events()) || !reflect.DeepEqual(snapshot, inspect.Snapshot()) || !reflect.DeepEqual(usage, inspect.UsageByModel()) || !reflect.DeepEqual(skills, inspect.InspectSkills()) {
+		} else if !bytes.Equal(baseline, rendered) || !reflect.DeepEqual(events, inspect.Events()) || !sameContext(snapshot, inspect.Snapshot()) || !reflect.DeepEqual(usage, inspect.UsageByModel()) || !reflect.DeepEqual(skills, inspect.InspectSkills()) {
 			current := inspect.Snapshot()
 			differences := map[string]any{}
 			left, right := reflect.ValueOf(snapshot), reflect.ValueOf(current)
@@ -583,4 +583,32 @@ func (o *owner) offline() error {
 		}
 	}
 	return o.save("offline-result.json", map[string]any{"equal_render_context_history_usage_skills_watch_requests": true, "provider_calls": 0, "inputs": "identical current Config; endpoints disabled; no new prompt admitted"})
+}
+
+// Only identity schemas use semantic JSON comparison. Replay Raw fields in the
+// rest of Context retain exact byte comparison. UseNumber avoids binary64 loss;
+// this bounded CLI catalog uses identical numeric lexemes in its fixed schemas.
+func sameContext(left, right ensemble.Context) bool {
+	if left.Session == nil || right.Session == nil {
+		return reflect.DeepEqual(left, right)
+	}
+	a, b := *left.Session, *right.Session
+	encode := func(v any) any {
+		raw, _ := json.Marshal(v)
+		d := json.NewDecoder(bytes.NewReader(raw))
+		d.UseNumber()
+		var value any
+		if d.Decode(&value) != nil {
+			return nil
+		}
+		return value
+	}
+	if !reflect.DeepEqual(encode(a.Identity), encode(b.Identity)) {
+		return false
+	}
+	a.Identity = nil
+	b.Identity = nil
+	left.Session = &a
+	right.Session = &b
+	return reflect.DeepEqual(left, right)
 }
