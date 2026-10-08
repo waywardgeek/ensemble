@@ -778,16 +778,16 @@ effective tools. The inspection made no model request. Then ask:
 Load edit with load_skill, then use write_file to create notes-created.txt containing exactly CH09-N-WRITE followed by one newline. Do not use a shell. Confirm the actual tool result briefly.
 ```
 
-Wait for completion and inspect `/skills` again. The actual file held the exact
-13 bytes `CH09-N-WRITE` plus LF. Revision 1 had read dependency activation 2 and
-edit activation 3, and search had become discoverable. Follow with:
+Wait for completion and inspect `/skills` again. The actual file held
+`CH09-N-WRITE` followed by LF: 13 bytes in total. Revision 1 had read dependency
+activation 2 and edit activation 3, and search had become discoverable. Follow with:
 
 ```text
 Call load_skill for review, then load_skill for search, then unload_skill for edit, in that order. Make the actual calls, do not write files, and summarize the resulting permissions briefly.
 ```
 
 All three paths reached revision 4: review and search remained explicit roots,
-read remained their dependency, edit was retired and write_file was absent.
+read remained as review's dependency, edit was retired and write_file was absent.
 The retained manual still described editing. Its presence did not grant writing.
 
 The next Chat Completions exchange, abridged from the [actual
@@ -816,8 +816,14 @@ an answer. The complete Chat Completions normal session reported input 7,562,
 cache write 0, cache read 2,176 and output 253; failed or refused responses are
 not evidence of zero provider billing.
 
-For the full primary, start another fresh workspace with
-LLM_PRIMARY_SKILL=ensemble and put a short marker and `port=8080` in notes.txt.
+For the full primary, start another fresh workspace and put a short marker and
+`port=8080` in notes.txt. Select the catalog and primary again; the earlier inline
+environment assignments applied only to that command:
+
+```sh
+LLM_SKILLS_DIR=/absolute/path/to/main/skills LLM_PRIMARY_SKILL=ensemble LLM_SYSTEM= /tmp/ensemble-ch09-cli chat
+```
+
 Ask for tool_limits with ai_callback_delay 0 and max_output_bytes 1, then an
 inactive unload_skill edit, read_file notes.txt and a one-line summary.txt.
 All three actual runs made that sequence. The management acknowledgement stayed
@@ -851,7 +857,7 @@ cannot establish a byte-exact historical launch comparison. It does establish
 the observed Enter expansion, with that disclosed support limitation.
 
 Manual speech submitted the complete 2,455-character retained body on every
-provider path. Four original eight-second Chrome-only recordings had quiet
+provider path. Four original roughly eight-second Chrome-only recordings had quiet
 control samples followed by sound energy; the second Messages recording supplied
 the longer controlled lead-in. This establishes bounded native output, not a
 complete heard manual, intelligibility or model hearing. Ordinary answer/tool
@@ -860,9 +866,12 @@ automatically speak the manuals.
 
 For public embedding, build `examples/skills-consumer` in its own module with
 `go build -o /tmp/ensemble-ch09-skills-consumer .`. In a fresh working directory,
-create alpha/notes.txt and beta/notes.txt with distinct final markers. Run the
-consumer without flags for typed controls; `--ask` additionally sends one bounded
-read-and-report turn per Agent using the configured provider. It supplies its
+create alpha/notes.txt and beta/notes.txt with distinct final markers. Choose
+either `/tmp/ensemble-ch09-skills-consumer` for typed controls only, or
+`/tmp/ensemble-ch09-skills-consumer --ask` to additionally send one bounded
+read-and-report turn per Agent using the configured provider. To try both,
+use a separate fresh workspace for each: the consumer creates its event logs
+exclusively and refuses to reuse them. It supplies its
 own catalog and literal PROJECT bindings. Alpha can load edit; beta's narrower
 installed ceiling refuses it. Both can read their separate notes.
 
@@ -873,6 +882,11 @@ inspect on its second response. Its two-request allowance was spent. The
 consumer exited 1 with `round_limit` and no final beta report. The actual reads,
 distinct alpha-$TOOLS/beta-$TOOLS manuals and isolated grants still establish
 the public features; they do not finish the requested report.
+
+An embedding example must retain each Agent's partial result, usage and terminal
+outcome, finish both independent bounded attempts, then report aggregate failure.
+Comparative review requires that correction to the consumer; it does not change
+the original partial run above or establish a successful revised demonstration.
 
 Chat Completions completed both reads after a separately bounded recovery from
 a relay transport failure. Beta's final answer shortened its marker to beta,

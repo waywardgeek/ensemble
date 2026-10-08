@@ -437,3 +437,24 @@ the precise refusal/receipt distinctions and the concrete reader task. The
 eleven pre-spin JSON fixtures are byte-unchanged and parse; both image links
 resolve; scoped diff validation passes. No runtime check or paid rerun was
 performed for these prose changes.
+
+## Grouped proofread correction
+
+The independent complete reading at `a35dc8d` requested four narrow corrections
+to the `01049b7` manuscript. Section 9.9 now names review as read's dependent,
+prints the complete full-primary environment invocation, makes the public
+consumer modes alternatives in separate fresh workspaces, and describes the
+four audio captures as roughly eight seconds. The coordinator also clarified
+that the file's 13 bytes include its LF and requested the public-embedding
+lesson from comparative review: preserve per-Agent partial results, usage and
+terminal outcomes, finish independent bounded attempts, then aggregate failure.
+The manuscript labels that consumer correction as required work, without
+rewriting the original partial outcome or claiming a revised demonstration.
+
+The author reloaded the complete current voice and procedure, read the grouped
+review and the changed passages, and checked the resulting diff. The retained
+prose executable passes every hard rule at 7,346 words; the existing soft
+negation/person-gap warnings retain the previously reviewed reasons. All eleven
+JSON fixtures remain byte-identical to `01049b7` and parse. Scoped diff validation
+passes. Only prose and this evidence entry change; no runtime, original receipt,
+grader, model request or new audio observation is involved.
