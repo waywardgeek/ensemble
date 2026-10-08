@@ -196,6 +196,15 @@ func (c *Codec) unwire(x any, v reflect.Value, semantic bool) error {
 				return c.bad("unknown structural field")
 			}
 		}
+		if t == reflect.TypeOf(common.Event{}) {
+			event := v.Addr().Interface().(*common.Event)
+			// The semantic grammar writes unused lists as []. A call has no
+			// result-parts field; preserve that public variant on restoration.
+			// A returned empty result must retain its present empty list.
+			if event.Type == "tool_called" && event.Tool != nil && len(event.Tool.Parts) == 0 {
+				event.Tool.Parts = nil
+			}
+		}
 		return nil
 	case reflect.Slice:
 		list, ok := x.([]any)

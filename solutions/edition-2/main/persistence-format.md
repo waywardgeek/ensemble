@@ -221,7 +221,10 @@ activated; ceiling=[] on changes. This is a bounded witness only. Payload shapes
   (object Raw; schema field in Identity remains semantic JSON).
 - response: stop_reason,from,requested,model_reported,parts,usage,raw_usage;
   requested/model_reported/usage nullable, parts [Part]; remaining as above.
-- tool: job nullable JobSnapshot,call_id,name,args Raw,parts [Part],is_error Boolean.
+- tool: job nullable JobSnapshot,call_id,name,args Raw,parts [Part],is_error Boolean. For
+  tool_called, the unused empty parts list restores to an absent public result
+  field; tool_returned retains a present list even when empty. This variant
+  decoding does not rewrite original raw event history.
 - redact: from,to,level,reason; error: code,message strings; job as above.
 - session: SessionFact; limits: `{call_id,name,overrides:LimitValues}`.
 

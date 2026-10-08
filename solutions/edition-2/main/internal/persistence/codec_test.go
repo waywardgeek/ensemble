@@ -41,6 +41,7 @@ func TestCheckpointStrictAndRaw(t *testing.T) {
 	cp.State = &common.SemanticState{Session: common.SnapshotSession{ID: cp.SessionID, Identity: id, AsOf: 1, HighWatermarks: cp.HighWatermarks}}
 	rawUsage := []byte(`{ "tokens": 9007199254740993.0 }`)
 	cp.State.Context.Responses = []common.ResponseFact{{RawUsage: rawUsage}}
+	cp.State.Window.Events = []common.WindowEvent{{Event: common.Event{Type: "tool_called", Tool: &common.ToolEvent{CallID: "c", Args: []byte(`{}`)}}}, {Event: common.Event{Type: "tool_returned", Tool: &common.ToolEvent{CallID: "c", Parts: []common.Part{}}}}}
 	raw, err := c.Encode(cp)
 	if err != nil {
 		t.Fatal(err)
@@ -48,6 +49,9 @@ func TestCheckpointStrictAndRaw(t *testing.T) {
 	got, err := c.Decode(raw)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if got.State.Window.Events[0].Event.Tool.Parts != nil || got.State.Window.Events[1].Event.Tool.Parts == nil {
+		t.Fatal("call/result parts presence changed in restored watch")
 	}
 	if !bytes.Equal(got.State.Context.Responses[0].RawUsage, rawUsage) {
 		t.Fatal("raw replay bytes changed")
