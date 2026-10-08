@@ -291,14 +291,42 @@ maximum canonical record is 65,536 bytes; reject an invalid oversized producer
 value before journal insertion. The text prefix and bounded identity fields
 below fit even with JSON escaping.
 
-Seq is positive uint64, local to the service. Utterance is a positive uint64
-allocated by the service for a Page-owned request; generation is that Page's
-positive cancellation generation. Preserve exact integer tokens through the
-browser/public seam. Elapsed_ms is nonnegative uint64 milliseconds from the
-service's monotonic start, ordered nondecreasing with seq; equal times are
-legal. Overflow of any required counter visibly stops new recording/admission
-through that exhausted service instead of wrapping; existing native work still
-cleans up. A deliberately new application obtains a new identity.
+Seq is positive uint64, local to the journal. Utterance is a positive uint64
+diagnostic identity assigned to a Page-owned speech request; elapsed_ms is
+nonnegative uint64 milliseconds from the journal's monotonic start, ordered
+nondecreasing with seq. Equal times are legal. These recording counters do not
+own actual playback. Generation records the Page's positive cancellation
+generation, whose live fencing remains independently required. Preserve exact
+integer tokens through the browser/public seam.
+
+The journal also owns bounded out-of-band status: journal_status is recording
+or faulted, and journal_error is null while recording or counter_exhausted or
+invalid_record while faulted. A required record that would overflow a
+diagnostic counter faults recording before allocation or wrap; an invalid or
+oversized producer record faults it before insertion. Latch the first error,
+retain all previous records and the last written seq, and show `Speech
+recording is incomplete.` A fault requires no additional journal record or
+sequence number. Later recording attempts cannot clear the error, evict
+retained records or advance the written sequence. A newly constructed application obtains
+a fresh service identity; clearing, remounting or reconnecting a Page does not
+reset this state.
+
+A recording fault must not stop native speech admission, output or cleanup.
+Existing and later native work continue under actual owned request identities,
+FIFO, cancellation fencing and the native lease, without requiring a new
+journal ID. Another Page's playback remains independent. Never wrap or reuse a
+live ownership identity because its diagnostic representation failed; an
+ownership identity's own exhaustion still follows its lifecycle refusal rule.
+This distinction lets a failed diagnostic store remain outside speech
+authority.
+
+Recorder mode requires a recorded completion. If the queued or
+recorder_complete fact cannot be recorded, fail that recorder delivery
+explicitly, settle its owned work once and release its speaking cause.
+Pending/later recorder requests also fail promptly while faulted; do not invent
+recorder_complete, wait forever or switch to native output. This output failure
+remains visible outside the failed journal and invalidates the listener
+evaluation.
 
 View/mount follow Chapter 12. Agent, request, operation and
 connection_generation use existing public string identities, at most 256 UTF-8
@@ -331,10 +359,14 @@ and part. Other phases repeat the immutable utterance text metadata. Queued is
 first; a native request can fail/cancel while waiting without submitted/start.
 End requires submitted, but start may be missing if the platform omits that
 callback. Recorder_complete requires queued and recorder mode. Exactly one
-terminal phase end/recorder_complete/canceled/error settles a queued utterance.
-Ignore stale callbacks after settlement and record no invented success. Ring
-eviction may leave a suffix without its earlier queued record; report the gap
-rather than rejecting genuine terminal facts.
+terminal phase end/recorder_complete/canceled/error settles a queued utterance
+while recording is healthy. If recording faults before that phase, actual
+playback still settles, but its terminal record may be absent. Every later read
+must expose the sticky fault; absence then cannot be presented as a complete
+trace. Ignore stale callbacks after settlement and record no invented success.
+Ring eviction is a different loss: it may leave a suffix without an earlier
+queued record, and its gap must be reported even when recording remains
+healthy.
 
 The public journal read and the listener's speech_read tool accept exactly
 service, mount, after and limit. Public reader construction fixes its
@@ -351,17 +383,27 @@ uses Chapter 10's canonical JSON representation. New subscriptions begin with
 after 0; this means start of this service's retained history, with any loss
 reported, not “ignore whatever happened before now.”
 
-The structured success has exactly version, service, view, mount, agent_id,
-after, first_available, through, next, more, gap and records. Through is the
-service's current last seq at the read's coherent boundary; first_available is
-the first retained seq, or 1 before any record has been written. The ring is
-never cleared during a service lifetime; disposed services refuse reads. Gap is
-null or exactly from/to, the lost inclusive service sequence interval after the
-requested cursor and before first_available. Records contain only the selected
-scope and reader profile and are ordered by seq. Service-wide sequences can
-skip other Pages; that alone is not a loss. A reported eviction gap may include
-other Pages' records; it makes no claim about how many selected utterances were
-lost. It never exposes those Pages' IDs or text.
+The structured read result has exactly version, service, view, mount, agent_id,
+after, first_available, through, next, more, gap, journal_status, journal_error
+and records. Transport success means a diagnostic read succeeded; it does not
+assert that recording remained complete. Both reader profiles expose the sticky
+status on every read, even when records is empty or the cursor is already at
+the last written sequence. The status fields count within the existing response
+byte cap. A faulted result remains readable for diagnosis; the public listener
+consumer must stop with an explicit incomplete evaluation, and export must fail
+with complete false and error journal_fault. Retained recorder_complete entries
+cannot override that fault. File-export failure alone does not fault recording.
+
+Through is the service's current last seq at the read's coherent boundary;
+first_available is the first retained seq, or 1 before any record has been
+written. The ring is never cleared during a service lifetime; disposed services
+refuse reads. Gap is null or exactly from/to, the lost inclusive service
+sequence interval after the requested cursor and before first_available.
+Records contain only the selected scope and reader profile and are ordered by
+seq. Service-wide sequences can skip other Pages; that alone is not a loss. A
+reported eviction gap may include other Pages' records; it makes no claim about
+how many selected utterances were lost. It never exposes those Pages' IDs or
+text.
 
 Advance next over every scanned service record, including records outside the
 selected scope/profile. Stop before a selected record that would exceed limit
@@ -378,6 +420,20 @@ For example, with retained service sequences 4–9, request after 1 reports gap
 next 7, more true, through 9. The next call after 7 returns record 8 and
 advances to 9. An exporter must not silently call either page a complete trace
 starting at sequence 1.
+
+If a queued record takes the last available sequence, the next required phase
+faults recording. Through freezes at that last written value; never manufacture
+a missing sequence or advance next beyond it. Reads keep their usual filtering,
+limits and gap semantics, with journal_status faulted even after the caller has
+consumed every retained record. A listener-profile read at that cursor can be:
+
+```json
+{"version":1,"service":"11111111111111111111111111111111","view":"main","mount":"0123456789abcdef0123456789abcdef","agent_id":"agent-1","after":18446744073709551615,"first_available":18446744073709551615,"through":18446744073709551615,"next":18446744073709551615,"more":false,"gap":null,"journal_status":"faulted","journal_error":"counter_exhausted","records":[]}
+```
+
+This is a constructed maximum-counter seam, not a claim that a short complete
+history reached that value. A new service rejects the old service ID; recovery
+never makes an old cursor refer to newly recorded speech.
 
 ## 13.5 Give the listener a smaller endpoint
 
@@ -438,10 +494,10 @@ Speech_read has §13.4's exact arguments/result with its mechanically enforced
 completion-only profile. It never returns queued/submitted text, manual records
 or native phases. The transcript-only evaluation requires omitted_bytes 0 in
 every relevant returned entry. Public diagnostic records cannot be supplied to
-this listener as another source of answers. A gap, unexpected mode or truncated
-relevant entry is an explicit incomplete evaluation, rather than a successful
-complete-transcript assertion. There is no native “heard transcript” mode.
-Public diagnostics can inspect native phases separately.
+this listener as another source of answers. A recording fault, gap, unexpected
+mode or truncated relevant entry is an explicit incomplete evaluation, rather
+than a successful complete-transcript assertion. There is no native “heard
+transcript” mode. Public diagnostics can inspect native phases separately.
 
 Listener_input takes exactly mount and text, with the inherited 4,096-scalar
 limit, and writes only the selected Page's prompt through its Chapter 12
@@ -488,10 +544,10 @@ is excluded from this automatic-channel acceptance task.
 The reader who hears a turn stop needs to distinguish completion from failure.
 Add an automatic announcement for a new completion with outcome error for an
 owned live request, including model HTTP/stream transport failure. The exact
-text is `The request failed; check the displayed error for details.` A transport
-failure is the cause of that same failed request, not a second announcement.
-Never read a raw provider body, URL, exception, stderr or credential-bearing
-diagnostic.
+text is `The request failed; check the displayed error for details.` A
+transport failure is the cause of that same failed request, not a second
+announcement. Never read a raw provider body, URL, exception, stderr or
+credential-bearing diagnostic.
 
 Use the Page's request identity and connection generation to deduplicate this
 selection. Only a request already tracked by that Page's accepted live-request
@@ -561,10 +617,10 @@ human_clear (null), cancel_speech (null), wait_turn_end (null), and wait_ms
 input uses the actual browser input path; assigning a property and dispatching
 an untrusted event cannot prove a browser gesture-dependent action. Submit the
 plan's prompt once through the Page's ordinary prompt action before executing
-operations. First enable autoplay through its ordinary control and wait for its applied
-acknowledgement; do not change the product's default-off behavior. The driver
-waits for that submission's admission acknowledgement;
-it does not wait for completion before subsequent operations.
+operations. First enable autoplay through its ordinary control and wait for its
+applied acknowledgement; do not change the product's default-off behavior. The
+driver waits for that submission's admission acknowledgement; it does not wait
+for completion before subsequent operations.
 
 The minimal local plan is:
 
@@ -574,39 +630,41 @@ The minimal local plan is:
 
 The harness waits at most 120 seconds overall from launch to owned cleanup,
 including readiness and all waits. Expiry fails the run; it does not fabricate
-turn completion. Record mode drains admitted speech before final export; native
-mode drains admitted speech too, or ends with an explicitly recorded cancel
-when the plan requests it.
-Produce a final scoped journal read before disposing the service when possible.
-No slow export may park the Actor or grow an unbounded memory queue. The
-bounded journal is the source of exported pages; polling does not create a
-second unbounded list in the browser or harness.
+turn completion. Recorder mode drains admitted speech before final export;
+native mode drains admitted speech too, or ends with an explicitly recorded
+cancel when the plan requests it. Produce a final scoped journal read before
+disposing the service when possible. No slow export may park the Actor or grow
+an unbounded memory queue. The bounded journal is the source of exported pages;
+polling does not create a second unbounded list in the browser or harness.
 
 Create the output directory exclusively; refuse an existing path. Write a
 strict manifest with exactly version, mode, service, view, mount, agent_id,
 profile, sources, binaries, plan_sha256, artifacts, started_at, ended_at,
 complete and error. Version is 1; profile is diagnostics or recorder_complete.
-Identity strings follow the journal; times are UTC RFC3339Nano strings. Sources,
-binaries and artifacts are arrays of unique objects with exactly path and sha256,
-using documented base directories and lowercase SHA-256 values. Require nonempty
-sources/binaries, at most 1,024 source entries, 64 binaries and 4,096 artifacts,
-within the byte cap below. Before attachment fails, unavailable runtime identities
-may be null only in a complete:false manifest. Bind actual source and executable
-bytes before launch; never hash credential files. Plan_sha256 binds the exact
-input file. Complete is Boolean. Error is null on success or one of launch_failed,
-export_limit, export_io, scope_changed, journal_gap, timeout or incomplete_listener
-on failure; report a more specific safe explanation outside the machine value. Write journal reads as `journal.jsonl`, one complete §13.4 result per
-LF-framed line, in cursor order, at most 16,777,216 bytes including LF. A
-version-1 manifest is at most 65,536 UTF-8 bytes and may not contain
-credentials or raw environment values. Persist a page before requesting
-another; retain the last persisted cursor and never mark a skipped page
-complete. Each line has the same 524,288-byte result cap plus its LF. On export
-cap, filesystem failure, scope mismatch or eviction gap, visibly fail with
-complete false. A truncated record remains an honest export; complete here
-means complete cursor export, not full text or native hearing. The
-transcript-only listener separately refuses a required truncated record, while
-the oversized-manual control expects it. Preserve partial original evidence. Do
-not truncate the file to turn a failed run into a passing one.
+Identity strings follow the journal; times are UTC RFC3339Nano strings.
+Sources, binaries and artifacts are arrays of unique objects with exactly path
+and sha256, using documented base directories and lowercase SHA-256 values.
+Require nonempty sources/binaries, at most 1,024 source entries, 64 binaries
+and 4,096 artifacts, within the byte cap below. If startup fails before
+attachment, unavailable runtime identities may be null only in a complete:false
+manifest.
+Bind actual source and executable bytes before launch; never hash credential
+files. Plan_sha256 binds the exact input file. Complete is Boolean. Error is
+null on success or one of launch_failed, export_limit, export_io,
+scope_changed, journal_gap, journal_fault, timeout or incomplete_listener on
+failure; report a more specific safe explanation outside the machine value.
+Write journal reads as `journal.jsonl`, one complete §13.4 result per LF-framed
+line, in cursor order, at most 16,777,216 bytes including LF. A version-1
+manifest is at most 65,536 UTF-8 bytes and may not contain credentials or raw
+environment values. Persist a page before requesting another; retain the last
+persisted cursor and never mark a skipped page complete. Each line has the same
+524,288-byte result cap plus its LF. On export cap, filesystem failure, scope
+mismatch, eviction gap or recording fault, visibly fail with complete false. A
+truncated record remains an honest export; complete here means complete cursor
+export, not full text or native hearing. The transcript-only listener
+separately refuses a required truncated record, while the oversized-manual
+control expects it. Preserve partial original evidence. Do not truncate the
+file to turn a failed run into a passing one.
 
 Record actual browser actions, received public events and screenshots
 separately, with bounded original artifacts and their hashes in the manifest.
@@ -650,18 +708,22 @@ Start the optional GUI with an explicitly selected view:
 Complete Chapter 12's view attachment and target preparation. Enable autoplay
 through its ordinary control. Ask for two short sentences, a fenced code
 example and a final sentence. Compare the actual deltas, visible answer and
-journal rather than assuming the model followed the formatting request. Then
-use the public example to construct the restricted listener on that endpoint
-and carry out the independently seeded hearing task. Its answer must come from
-complete recorder_complete entries. Retain its actual offered tools and
-provider requests.
+journal rather than assuming the model followed the formatting request. This
+launcher demonstration exercises the human terminal and its browser. Preserve
+its source, service and launch identities when closing it.
 
-The standalone public example supports `go run . --mode recorder` from its own
-module, prints its actual local URL and uses the shared provider configuration
-for fresh target and listener Agents. It creates its own public application; it
-does not attach a hidden second Ensemble to the running launcher's state. Its
-native mode uses `--mode native`. Document actual readiness and action controls
-alongside the example so the reader can repeat its observed run.
+Run a separate public-consumer demonstration from `examples/listener-consumer/`
+with `go run . --mode recorder`. The example constructs its own application,
+prints its own local URL and uses the shared provider configuration for fresh
+target and listener Agents. Attach that new view and enable its autoplay, then
+carry out the independently seeded hearing task on its own scoped endpoint. The
+listener's answer must come from complete recorder_complete entries in this
+second application's healthy journal; it cannot establish delivery by the first
+application's target. Retain this run's own source/launch identities, offered
+tools and provider requests. The example has no attach-to-another-launcher
+mode. Its native mode uses `--mode native`. Document actual readiness and
+action controls alongside the example so the reader can repeat each observed
+run.
 
 Repeat the feature matrix on each supported provider with bounded calls and
 fresh source/launch bindings. Use deterministic local fixtures for exact
@@ -709,7 +771,7 @@ independent fixtures at the published boundaries.
 | Manual compatibility | Oversize manual text reaches the adapter whole; journal prefix, digest, omitted bytes and truncation agree, without applying automatic overflow. |
 | Identity/lifetime | Two Pages, repeated provider-local IDs, stale callbacks, replaced mount, cancel and close; no cross-owner settlement or disclosure. |
 | Native arbitration | Retain same-context multi-tab lease and unavailable-platform controls; actual audio evidence is separate from controlled callbacks. |
-| Journal bounds | Record and byte eviction, cursor exact/+1, coherent page snapshot, filtered scope advancement, explicit gaps, phase transitions, exact uint64 and exhausted-counter seam. |
+| Journal bounds | Record and byte eviction, cursor exact/+1, coherent reads, scope/profile filtering and gaps; counter/invalid-record faults stay visible after cursor exhaustion, preserve native work and fail recorder/export/listener completeness. Recovery requires a new service identity. |
 | Listener attachment | Authorized target/listener coexistence, malformed/unauthorized/duplicate refusal, stale mount/generation, shared budgets and independent close. |
 | Listener isolation | Real fixed ceiling, guessed alias refusal, no DOM/automatic observations, planted answer obtainable only through recorder_complete; denied-delivery control exposes no answer. |
 | Export and cleanup | Source-bound passing export before changed identities, truncated/gapped/file-failed negatives, bounded bytes; normal and timeout teardown with a proven-running owned canary. |

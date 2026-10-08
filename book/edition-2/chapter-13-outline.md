@@ -255,3 +255,22 @@ The old unresolved-proposal section above remains an account of the initial
 outline. Exact draft rules are now available for independent review, with no
 student release or implementation claim. The historical story choices survive;
 full native-audio and transcript-only demonstrations await actual receipts.
+
+
+## First complete-draft review response
+
+Independent review of `e4ef9a9`, recorded at `e7e8c26`, found two material
+ambiguities. The revised §13.4 gives the journal a sticky out-of-band fault,
+with exact status/error fields on every read. Diagnostic exhaustion stops
+recording while native work continues under its own valid ownership identities;
+recorder delivery without completion evidence fails and settles. Export/listener
+completeness refuses the fault, and recovery requires a fresh service lifetime.
+The author initially proposed stopping native admission too; the coordinator
+corrected that proposal before the revision, keeping diagnostics outside speech
+authority. The initial draft and review retain that chronology.
+
+Section 13.8 now explicitly separates the launcher/PTY/browser session from
+the standalone public example's fresh application and scoped listener. No
+unpublished attach mode or cross-run delivery claim is implied. The reviewer
+supports the full contract's remaining ownership and story choices; resolution
+verification remains independent of this author response.

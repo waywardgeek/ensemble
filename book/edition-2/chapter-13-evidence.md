@@ -223,3 +223,51 @@ Hard prose lint and scoped whitespace checks pass. The complete draft was read
 for ownership, lifecycle, literal consistency and paragraph endings; the soft
 person-gap warning was reviewed alongside the concrete listener/fence incidents
 and reader consequences. Independent contract/voice review follows the freeze.
+
+
+## Grouped R1/R2 revision after independent full review
+
+The initial manuscript is frozen at `e4ef9a9299b570fff615c1567fcd42d3951dd70b`.
+Independent complete review is `e7e8c26`, in chapter-13-review.md. It found exactly
+two material ambiguities and supported the remaining owner/parser/listener/manual
+contracts and historical story treatment. That is a pre-implementation review;
+it supplies no runtime or actual-use acceptance.
+
+R1 exposed an impossible unconditional journal promise: the last available seq
+could record queued and leave no value for a terminal record. Section 13.4 now
+makes recording failure a sticky out-of-band state, reflected by journal_status
+and journal_error on every read, including empty reads at the last cursor. Prior
+records and the last written sequence remain unchanged after fault. The public
+listener consumer refuses complete evaluation; exports use complete:false and
+journal_fault. Native speech continues under independently valid playback owners,
+while recorder deliveries missing their required completion explicitly fail and
+release owned work. File-export failure does not fault the journal. Reset requires
+a new service identity; no old cursor is silently rebound. The maximum-counter
+JSON fixture is explicitly a constructed owner-state seam.
+
+The author's first response would also stop native admission; the coordinator
+rejected that coupling before the grouped edit. The final boundary preserves
+native admission/output/cleanup and other Pages, while forbidding wrap or reuse
+of actual playback identities. Review and this response preserve the superseded
+proposal instead of presenting it as the accepted direction.
+
+R2 removes the implied public-example attach mode. The launcher and standalone
+example are separate demonstrations with fresh application/Agent identities and
+separate receipts. Recorder naming is consistent. No runtime or protocol feature
+was added to solve that prose ambiguity.
+
+An initial guarded prose-replacement command found a differently wrapped anchor
+and exited before writing any file. The subsequent targeted patch changed only
+the owned manuscript; no partial first edit remained. Literal and whitespace
+checks are rerun below the revision boundary. Disk pressure makes another Go
+compile unnecessary for these scoped edits; the initial hard-lint receipt remains
+bound to e4ef9a9, and this revision receives a manual voice/cut pass rather than
+a mislabeled full lint rerun. No runtime, grader, snapshot or tag was changed.
+
+
+Revision checks pass: three complete JSON fixtures parse, the maximum uint64
+fault cursor remains exact, the two earlier JSON fixtures and all seven
+normalization pairs are unchanged, and the Ready. digest still matches. Scoped
+git diff --check is clean. The author read the complete grouped diff and the
+new status, identity, phase, export and demonstration passages together before
+freezing this response. Independent R1/R2 closure is requested next.
