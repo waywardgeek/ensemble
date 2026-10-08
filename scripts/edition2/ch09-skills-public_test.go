@@ -491,6 +491,19 @@ func TestCh09PublicWholeTransitionRenderedBudget(t *testing.T) {
 				if total != 8388608 {
 					t.Fatalf("positive material byte total %d", total)
 				}
+				if escaped {
+					stat, err := os.Stat(c.LogPath)
+					if err != nil || stat.Size() <= 16*1024*1024 || stat.Size() > 64*1024*1024 {
+						t.Fatalf("escaped positive did not fit expanded raw budget: %v", err)
+					}
+					offline, err := app.Load(c.LogPath, ensemble.Config{Vendor: c.Vendor, Model: c.Model})
+					if err != nil {
+						t.Fatalf("exact escaped decoded budget failed public replay: %v", err)
+					}
+					if !reflect.DeepEqual(inspection(t, a), inspection(t, offline)) {
+						t.Fatal("escaped replay changed owned material or authority")
+					}
+				}
 			})
 		}
 	}

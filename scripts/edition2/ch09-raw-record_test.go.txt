@@ -1,0 +1,115 @@
+// Independent physical-reader bounds. Inject only through a disposable Go overlay.
+package eventlog
+
+import (
+	"bytes"
+	"errors"
+	"io"
+	"strings"
+	"testing"
+
+	"example.com/ensemble/internal/common"
+)
+
+const reviewRawCap = 64 * 1024 * 1024
+
+type rawReviewRoot struct{ common.Ensemble }
+
+func (*rawReviewRoot) Logf(string, ...any) {}
+
+type rawReviewOwner struct {
+	common.Agent
+	root *rawReviewRoot
+}
+
+func (a *rawReviewOwner) Ensemble() common.Ensemble { return a.root }
+
+// This source can describe a long line without storing it. Crossing stop is a
+// fixture failure, distinct from a production record-size refusal.
+type rawReviewReader struct {
+	prefix  *bytes.Reader
+	left    int64
+	lf      bool
+	read    int64
+	stop    int64
+	crossed bool
+}
+
+func (r *rawReviewReader) Read(p []byte) (int, error) {
+	if r.read >= r.stop {
+		r.crossed = true
+		return 0, errors.New("review source read beyond bounded allowance")
+	}
+	if int64(len(p)) > r.stop-r.read {
+		p = p[:r.stop-r.read]
+	}
+	n := 0
+	if r.prefix.Len() > 0 {
+		n, _ = r.prefix.Read(p)
+	} else if r.left > 0 {
+		n = len(p)
+		if int64(n) > r.left {
+			n = int(r.left)
+		}
+		for i := 0; i < n; i++ {
+			p[i] = ' '
+		}
+		r.left -= int64(n)
+	} else if r.lf {
+		p[0] = '\n'
+		n = 1
+		r.lf = false
+	} else {
+		return 0, io.EOF
+	}
+	r.read += int64(n)
+	return n, nil
+}
+func rawReviewInput(record string, size int64, lf bool) *rawReviewReader {
+	ending := int64(0)
+	if lf {
+		ending = 1
+	}
+	prefix := []byte("{\"log_version\":1}\n" + record)
+	return &rawReviewReader{prefix: bytes.NewReader(prefix), left: size - int64(len(record)) - ending, lf: lf, stop: int64(len(prefix)) + reviewRawCap + 65536}
+}
+func TestCh09RawSkillReaderBounds(t *testing.T) {
+	// A real minimal initializer vocabulary; this test targets physical framing
+	// and typed decoding, with public semantic render validated separately.
+	record := `{"seq":1,"time":"2026-01-01T00:00:00Z","type":"skills_initialized","skills":{"action":"initialize","name":"base","ceiling":["load_skill","unload_skill"],"state":{"revision":0,"primary":"base","roots":[],"active":[{"name":"base","type":"primary","activation":1}],"available":[],"tools":["load_skill","unload_skill"],"retired":[]},"activated":[{"activation":1,"name":"base","type":"primary","body":"Identity.","sha256":"009a60e5059e1a053549dba03e8a7f656628ab1c5287a1e351b2a7016527a1ea","tools":[],"dependencies":[],"offers":[]}]}}`
+	for _, tc := range []struct {
+		name     string
+		size     int64
+		lf, want bool
+	}{
+		{"small-parent", int64(len(record) + 1), true, true},
+		{"exact-with-LF", reviewRawCap, true, true},
+		{"exact-without-LF", reviewRawCap, false, true},
+		{"one-over-with-LF", reviewRawCap + 1, true, false},
+		{"one-over-without-LF", reviewRawCap + 1, false, false},
+		{"unfinished-far-overflow", reviewRawCap * 16, false, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			input := rawReviewInput(record, tc.size, tc.lf)
+			events, _, err := Read(&rawReviewOwner{root: &rawReviewRoot{}}, input)
+			if input.crossed {
+				t.Fatal("unbounded physical line read crossed allowance")
+			}
+			if tc.want {
+				if err != nil || len(events) != 1 || events[0].Skills == nil || events[0].Skills.Activated[0].Body != "Identity." {
+					t.Fatalf("valid raw boundary rejected: %v", err)
+				}
+			} else if err == nil {
+				t.Fatal("oversized raw skill record accepted")
+			} else if !strings.Contains(err.Error(), "line 2") {
+				t.Fatalf("missing safe line diagnostic: %v", err)
+			}
+		})
+	}
+	// The larger physical budget does not enlarge ordinary-record admission.
+	ordinary := `{"seq":1,"time":"2026-01-01T00:00:00Z","type":"message_received","message":{"actor":"human","purpose":"dialogue","parts":[{"type":"text","text":"small"}]}}`
+	input := rawReviewInput(ordinary, 16*1024*1024+1, true)
+	if _, _, err := Read(&rawReviewOwner{root: &rawReviewRoot{}}, input); err == nil {
+		t.Fatal("ordinary record inherited bound enlarged")
+	}
+}

@@ -511,3 +511,29 @@ helper cannot escape Go package discovery. This limits repeated raw-evidence
 copies while preserving the packaging regression check. No runtime row has been
 credited from preparation, and the open log-reading bound still blocks the
 affected acceptance decision.
+
+
+### Published complete-record bound preparation
+
+The coordinator/author published `d8c7738`: a complete skill fact is limited to
+67,108,864 raw bytes, including LF when present, with controlled pre-append
+refusal and unchanged smaller ordinary/header limits. This resolves the prior
+unbounded-reader contract decision; implementation acceptance is still pending.
+
+`python3 scripts/edition2/ch09-review-record-bounds.py SOURCE_DIRECTORY --cli CLI_BINARY`
+checks physical reading through a generated input and public offline rendering.
+A genuine minimal initializer passes both paths in
+`ch09-record-bound-small-parent.json`. The full prepared matrix includes exact
+and one-over raw sizes, with and without LF; it preserves ordinary-record refusal
+and supplies a much longer unfinished generated line without allocating that
+whole line. A fixed 64 KiB lookahead allowance lets a physical reader inspect its
+buffer while detecting a reader that keeps consuming. This proves bounded input
+consumption, not a claim about exact peak-memory measurements.
+
+Large cases have not yet run on the repaired implementation. Public negatives
+receive no credit unless their small semantic parent passes. The existing exact
+8 MiB decoded material positive now also reopens its escaped log and compares
+all inspected authority/material. Its one-byte-over decoded controls remain.
+The immutable gate includes the raw reader command; write-side refusal, complete
+prior state and enclosing ordinary model-call facts need their separate repaired
+source audit. No unpublished cutoff or historical fixture exemption is introduced.

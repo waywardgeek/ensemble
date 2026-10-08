@@ -52,6 +52,7 @@ def evaluate(revision, only=None):
             return result['exit']==0
         cli_ok=run('build-headless-cli',['go','build','-o',cli,'./cmd'],required=True)
         if cli_ok:
+            run('skills-raw-record-read',['python3',HERE/'ch09-review-record-bounds.py',root,'--cli',cli])
             for name in ('accept_ch09','accept_ch09_catalog','accept_ch09_graph','accept_ch09_management','accept_ch09_configuration','accept_ch09_replay'):
                 run(name,['python3',HERE/(name+'.py'),cli])
         run('skills-public',['python3',HERE/'accept_ch09_public.py',root])
