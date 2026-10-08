@@ -4,12 +4,17 @@ Through-line stake: a developer can get the right answer while paying repeatedly
 for the same context; the chapter resolves that uncertainty with an instrument
 whose request evidence, provider observations and cost estimates remain distinct.
 
-October 8, 2026. Research and proposed design only, mapped from first-edition
-Chapter 18. This is not a student contract or an implementation release. The
-consequential choices below require coordinator and independent review before a
-full draft. Chapter 16 currently has a reviewed draft and grouped corrections,
-not an accepted runtime. Historical and current primary sources are recorded in
-[the evidence ledger](chapter-17-evidence.md).
+October 8, 2026. A [partial manuscript](chapter-17.md) now develops the independent
+diagnostic, marker, arithmetic and public-display teaching under the coordinator's
+working decisions at `e9d78da`. It is not a complete student contract or an
+implementation release. Route/output-cap choice D6, complete strict v7/interface
+schemas, capability/rate selection and the acceptance command remain unfinished.
+The [validation record](chapter-17-validation.md) owns current gates. Historical
+and current primary sources are recorded in [the evidence ledger](chapter-17-evidence.md).
+
+The initial outline at `580ce83`, mapped from first-edition Chapter 18, preserved
+D1–D7 as proposals. Their research and reasoning remain below; the dated drafting
+disposition at the end distinguishes selected choices from still-open work.
 
 ## Story and teaching order
 
@@ -261,3 +266,45 @@ matrix. Extend behavior and structural checks independently, preserve historical
 baselines and use compiling deletion controls with valid positives. A fake usage
 reply can establish normalization and presentation, never a provider cache hit.
 Actual spin, comparative review, student feedback and final prose remain pending.
+
+## Partial drafting disposition, October 8
+
+The coordinator accepted D1–D5/D7 direction at `e9d78da`; D6 remains a real
+question for Bill. The partial manuscript follows those choices without assuming
+an answer, releasing a student or claiming predecessor runtime acceptance.
+
+- D1: §17.2 specifies the selected 48 MiB retained-body cap plus separate
+  auxiliary work, export, metadata and wire bounds. Busy/oversize observations
+  create explicit adjacency gaps. Retirement cancels unpublished affected work;
+  export success is manifest publication, while prior selected exports have
+  independent lifetime.
+- D2: §17.3 publishes raw A/A, A/B and A/C byte coordinates, compact/indented
+  marker fixtures, marker-like schema data, member order and opaque lexemes.
+  Structural comparison ignores layout only; original bodies remain exact.
+- D3: §17.4 verifies and prints the selected wire fragments. Earliest transient
+  material bounds the entire reusable prefix, with H/S/P and text-split fixtures.
+  Default/off preserves inherited bytes. The documented lookup-window conflict
+  stays visible. Capabilities must be exact verified entries, not name sorting.
+- D4: §17.5 fixes the capture-before-render rule and prints proposed cache-member
+  examples. Full v7 capability/initializer/record-class composition and the
+  route-dependent provenance extension remain explicitly unfinished; no checker
+  may fill them privately. No automatic enablement of memory or recall follows.
+- D5: §17.6 uses explicitly synthetic rational-rate fixtures, mixed-model totals,
+  browser integer boundaries, rounding, overflow and visible partial estimates.
+  Actual price-table identities and citations await the finite live selection.
+- D7: §17.7 proposes the shared copied status, bounded view, mount fencing and
+  explicit local export. Exact nested command/status grammar remains a full
+  contract gate. The existing GUI MCP inspection path remains available only
+  under its inherited grants and transport boundary.
+
+The historical instrument's compact/indented mismatch opens the mechanism, and
+the environment-selected model's empty price lookup returns in the meter section.
+The draft keeps the reader's correct-result/wrong-cost problem visible without
+reusing unverified invoice amounts, claimed savings or original live percentages.
+The illustrative manual/hint/read/handoff exercise is still a plan; it contains
+no manufactured exchange. Original historical chapters and code are unchanged.
+
+Next: coordinator/reviewer inspect this partial teaching, resolve D6, then complete
+the strict persistence/public grammar and actual capability/rate/live matrix before
+any Chapter 17 student handoff. Full draft proofreading and lint remain separate
+from scoped partial-draft checks recorded in evidence.

@@ -170,3 +170,55 @@ report, current documentation and unperformed measurement. No build was needed.
 Root agreed that the documented route/settings conflict and lookup-window
 disagreement should remain explicit design questions. They are not permission
 to choose a different client's credentials or silently weaken inherited caps.
+
+## Partial manuscript preparation, October 8, 2026
+
+The resumed author read the entire current voice, procedure, architecture and
+workflow, complete preparation outline/evidence and `/root/reviewer_ch17`'s
+advisory. Read the coordinator decisions at `e9d78da` before drafting. This phase
+has broad historical author/reviewer context and is unsuitable for a cold student.
+The earlier read ledger above remains attributed to its preparation phase; this
+entry does not claim another whole-textbook read or a new audit of old raw runs.
+
+Read the full local OpenAI Docs skill, searched the requested official topic,
+then opened the primary pages. No dedicated callable official docs search was
+available. Targeted body passages were read after the broad page retrievals;
+search snippets were not used alone. The sources accessed again were:
+
+- [Chat Completions create](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create),
+  text-content fields, tool messages, request controls and usage detail.
+- [Prompt caching](https://developers.openai.com/api/docs/guides/prompt-caching),
+  selected mode, lookup-window description and disjoint input arithmetic.
+- [Messages caching](https://platform.claude.com/docs/en/build-with-claude/prompt-caching),
+  selected manual placement, eligibility, duration, prefix order and usage.
+- [Generate Content caching](https://ai.google.dev/gemini-api/docs/generate-content/caching?hl=en),
+  implicit path and model-specific floors. No new remote-cache lifecycle selected.
+
+The chapter cites the exact pages beside the supported claims and preserves
+their conflicting lookup-window descriptions. This author did not reopen plan
+authorization documentation in this phase: D6 remains attributed to the existing
+research and coordinator gate, and no dependent route was chosen. No capability
+probe, price query, credential access, inference or provider call occurred.
+
+Focused predecessor rereads covered Chapter 15 profile/initializers and request
+reconstruction/retirement, Chapter 16 profile/initializers and strict helper facts,
+and Chapter 2 usage normalization. Reread the complete `3746095` and `40afc7a`
+commit messages and the historical caching-design motivation/capture sections.
+These support the preserved incidents, without authenticating their old reported
+percentages. Literal byte-fixture arithmetic was independently checked from the
+printed strings: A is 44 bytes, B 74; equal prefixes A/A 44, A/B 42, A/C 39.
+The synthetic rate fixtures are hand-derived exact fractions: 656/1,000,000,
+1312/1,000,000 and their sum 1968/1,000,000 USD. They are not live prices.
+
+The draft is deliberately partial. Sections 17.5, 17.7 and 17.8 name unfinished
+strict schemas and route decisions rather than allowing a student to infer them.
+No implementation or grader was edited. No build was run while the reviewer
+owned the compiler. No reusable lint executable was found at the checked local
+temporary paths; scoped prose lint is pending. Scoped whitespace, literal fixture,
+story/cut and manual voice checks cover only the three author-owned files.
+
+At the coordinator's separate request, this author also read Chapter 9 §9.6 and
+Chapter 10's strict/admitted-byte/standalone/limit rules and sent grouped judgments
+about the retained standalone duplicate-skill-argument and argument-string replay
+regressions. No Chapter 9/10 teaching was changed in this phase. Those runtime
+failures and fixes belong to their own gate, not Chapter 17 evidence.
