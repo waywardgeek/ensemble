@@ -49,3 +49,10 @@ missing source-context support is required upon an unsafe counter, not before
 operating on safe integers. The author narrowed the wording to that implemented
 and tested scope rather than inventing stronger coverage. Final confirmation of
 this correction and independent prose review remain separately recorded.
+
+
+Final student confirmation is preserved at `446d7f2`, after reading `acd1a01`.
+The student confirms both numeric scope corrections and all substantive
+teaching dispositions, with original failures and limitations intact. This is
+explicitly post-build confirmation after reassignment to Chapter 9 grader;
+it introduces no new Chapter 8 runtime or paid work.
