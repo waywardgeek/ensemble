@@ -1,20 +1,21 @@
 # Chapter 14 validation
 
 Context maintenance preparation, October 8, 2026. Outline `9758e89` has advisory
-review `3a6ae52`; there is no accepted full contract, checker or implementation.
-The coordinator has supplied working design choices for the author's full draft.
+review `3a6ae52`; full draft `349aa64` and research correction `2076cc1` are now
+under independent review. There is no accepted full contract, checker or implementation.
+The coordinator supplied working design choices for the author's full draft.
 These are implementation proposals within Bill's authorized scope, not new
 personal rulings from Bill. Chapter 13 must be validated before student release.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
-| Contract and ownership | Author, coordinator, independent reviewer | Outline `9758e89`; advisory `3a6ae52` identifies six boundaries requiring exact teaching | Publish full contract, literal shapes and reader path; resolve A1–A6 before acceptance |
+| Contract and ownership | Author, coordinator, independent reviewer | Full draft `349aa64` implements working choices after advisory `3a6ae52`; root has read the complete draft | Resolve independent review, including deferral-key eligibility changes and explicit browser control protocol |
 | Independent checks | Future grader phase | Not started | Derive checks from accepted teaching, with genuine positives before runtime credit |
 | Fresh student and owner plan | Future new-only student | Not started | Release accepted Chapter 13 source and new teaching |
 | Implementation and local gates | Future student, reviewer | Not started | Validate recorded cuts, ownership, compatibility, bounds and inherited behavior |
 | Actual use | Future student, reviewer | Not started | Review bounded CLI/browser/public all-provider feature matrix before paid use |
 | Historical comparison and revisions | Independent code reviewer | Not started | Preserve initial source, experience and actual runs first |
-| Manuscript and feedback | Author, student, proofreader | Outline only | Reconcile actual evidence and resolve student/proofreader feedback |
+| Manuscript and feedback | Author, future student, proofreader | Full draft: hard prose checks and ten literal JSON fixtures pass; no actual spin yet | Complete contract/prose review, then reconcile future student experience and actual use |
 | Export and checkpoint | Coordinator | Not started | Complete all gates before immutable export/tag |
 
 The working direction is an explicitly selected fresh v4 context-capable session,
