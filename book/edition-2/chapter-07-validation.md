@@ -56,3 +56,21 @@ Root accepted the new student plan before implementation. After the author
 checkpointed Chapter 8 at `cfb0d87`, the independent grader resumed Chapter 7
 engineering. No Chapter 7 implementation acceptance is implied by its initial
 partial checker.
+
+## Early implementation invariants
+
+During the new-contract ownership check, root accepted the public reusable CLI
+client outside the internal spokes, importing only the public core and standard
+library. The grader will adapt inherited fixture placement while preserving its
+assertions; an old `cmd` directory layout is not an architectural requirement.
+
+Root also asked the student to ensure idle watch close releases its actor-owned
+recipient registration without requiring a later publication, and that an
+overflowed partial projection cannot produce a falsely complete new snapshot.
+These are work-in-progress lifetime/completeness findings, before historical
+comparison or initial source acceptance; outcomes belong in the student review.
+
+The grader clarified that pause publication precedes the public update return,
+but the contract does not require a same-socket observation frame before its
+acknowledgement. Wire checks require the matching applied revision/counts and
+ordered watch delivery, without inventing a stronger interleaving requirement.
