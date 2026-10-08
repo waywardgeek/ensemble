@@ -375,3 +375,65 @@ student or coordinator until the full immutable matrix is audited. No runtime,
 grader, original receipt or chapter demonstration was changed. Checks for this
 evidence-only addition are scoped diff validation and a manual voice/claim pass;
 no Go rebuild, model call or new audio observation was performed.
+
+## Frozen initial demonstration reconciliation
+
+The author read the complete frozen live-results.md and the final student-review
+continuation at `786ff239ddf337a5ebb39a12f6552d047f52c1ab`, the machine-readable
+matrix through a bounded per-run extraction, and the complete independent live
+review accepted at `2dc5841`. The current Chapter 9 contract was reread across
+this author session, including the full literal ordering/material and public
+interface passages. Current voice/procedure remained loaded from the Chapter 14
+preparation; that outline was frozen at `9758e89` before returning here.
+
+The live matrix records 93 generation attempts: Messages 32, Chat Completions 29,
+generateContent 32, plus three discovery requests. The independent report checks
+16 sealed launches and 499 original hashes. Its reconstruction accounting is
+76 successful-run, 13 explicitly failed-attempt and four separately audited
+partial-public request bodies. The author inspected that accounting rather than
+rerunning provider requests or claiming to have independently executed every
+replay. The report separately recomputes usage for 89 accepted responses; the
+two retained but refused responses and two missing transport responses remain
+outside accepted durable usage, without a zero-billing claim.
+
+Direct author reads included the complete OpenAI normal/full-primary terminals,
+Anthropic public terminal, OpenAI public recovery terminal, the public consumer
+source and relevant README invocation. The exact notes-created.txt bytes were
+checked in all three original normal workspaces. The author viewed the actual
+OpenAI browser-12 image and the separate Gemini keyboard image before writing
+their descriptions. These show current revision/grants and the retained visible
+material; they are not invented layouts or evidence that a whole scrollable
+manual fits on screen.
+
+The following consulted bytes were independently matched to freeze `786ff23`:
+
+| Path beneath main/evidence/ch09 | SHA-256 |
+|---|---|
+| live-results.md | 19c5cfc54155d79a3e22f0fbabe934fec5c04b0c1b592947eae323b61cb79ff7 |
+| live-results.json | 64169343d3e7f123cc75e81124a16196319572918e40f4028da6e16dab7ff1c7 |
+| student-review.md | baca4ff4fb3afac6bbc6bc5ba89e038050cad5cb835b7cf6517d9ed5a9524b61 |
+| live-openai-n/terminal.txt | 2ae3ab690dae3948e423b9b325a4a4a4538ec698d4c8e4fa7a484cc6d6956012 |
+| live-anthropic-p/terminal.txt | e0d067c2c66239c76ff770ae0eb409c1e3a0e3240a5c1ba68288a983e84e1332 |
+| live-openai-g/browser-12.png | 7e70356f5f7f6f20632f63c4d82da41b00feb8a75d30f6a5481ad7f0def7a4ed |
+| keyboard-gemini-live/keyboard.png | dc3707eaf955163be0ec5b58ef7c63457ea5c8d9203a18081aec15d9e5d042a4 |
+| keyboard-linkage.json | d684696b639d6954c5122fb50aec293ea42a492760ff51f5f1ee92a12ea805d6 |
+
+Section 9.9 now gives actual reader commands, prompts, an abridged original
+answer, file/state results and images. It preserves original c0e3171 versus
+repaired 75a7255 runtime and 3da764b support identity; the original failures
+are not relabeled. Its public-consumer narrative keeps the missing beta report,
+unnecessary management calls and two-request policy consequence. Gemini's absent
+revoked-write answer, missing usage field, incomplete keyboard launch-byte
+linkage and bounded audio scope remain explicit. No Bill participation or model
+hearing is inferred. Comparative runtime review and final manuscript proofreading
+remain separate gates.
+
+Author verification: the retained prose checker at
+`/Users/bill/projects/ensemble-edition-2-revisions/executables/edition2-lintprose`
+(SHA-256 `1d5bc762ce42dcb15ec9c8d885d31c0d7ab848dde1c60c19f9573ed29cea5831`)
+passes all hard rules for chapter, feedback and evidence. The chapter has 7,260
+counted prose words; soft negation/person-gap warnings were reviewed against
+the precise refusal/receipt distinctions and the concrete reader task. The
+eleven pre-spin JSON fixtures are byte-unchanged and parse; both image links
+resolve; scoped diff validation passes. No runtime check or paid rerun was
+performed for these prose changes.

@@ -162,3 +162,30 @@ usable skill. Authority and data isolation can work while the model leaves the
 task unfinished. The final account must show both, with the actual file/tool
 receipts and the bounded partial outcome. No all-provider completion, successful
 recovery, or student confirmation of this new response is claimed here.
+
+## Frozen initial live matrix and author reconciliation
+
+Student freeze `786ff239ddf337a5ebb39a12f6552d047f52c1ab` preserves the initial
+source/live/teaching experience before historical comparison. The student read
+the complete direct response `5063f35`, checked its supplied manifest and confirms
+the classifications above. Independent live review `2dc5841` accepts the stated
+feature evidence with explicit limits. Neither checkpoint is final chapter
+acceptance. Section 9.9 now describes the actual demonstrations and reproduction
+steps; it no longer presents the initial plan as an unperformed exercise.
+
+| Later finding or suggestion | Disposition in the reconciled account |
+|---|---|
+| OpenAI public recovery | Both real reads completed in four new calls under the reviewed transfer of one unused F allowance to P. The first transport failure remains a spent attempt. Beta's shortened final marker is recorded separately from its exact literal captured binding; no full prose-compliance claim is made. |
+| Gemini remaining management actions | The final bounded run established unchanged review and absent-name refusal. It does not supply the missing answer to the earlier revoked-write prompt. Section 9.9 distinguishes offered-schema removal and unchanged file bytes from model refusal and local forced-admission enforcement. |
+| Keyboard linkage | The actual focused Enter expansion is retained, with the source/binding, browser identity, URL, within-run time and material linkage accepted by independent review. The sampled launch bytes were not retained. Neither the prose nor feedback claims an exact historical launch-byte comparison or derives a minimal finalization diff. This is an evidence-support omission; future capture should retain the sampled bytes alongside their hash. |
+| Empty-object stream fixture | The explicit Chapter 6 examples at `305b1b0` resolve the student's suggestion. Section 9.9 distinguishes the original runtime defect, the old-binary explicit-path recovery and the real repaired empty-object demonstration. The latter was independently checked; no new acceptance rule is introduced here. |
+| Safe transport diagnostics before live use | Accept the support improvement: capture safe stage/class information without exception text, URLs, headers or credentials. The separate recovery support added bounded diagnostics and local controls. The missing original exception details cannot be reconstructed; the chapter leaves the original cause unknown. This is evidence practice, not a new Skills runtime obligation. |
+| Authority versus task completion | Preserve beta's unnecessary load/unload and round-limit exit, even though isolated capabilities, material and reads were demonstrated. Section 9.9 makes the reader's missing report concrete instead of calling every scenario successful. |
+| Exact replay and sound | All 93 attempted request bodies are accounted for, while only accepted durable responses contribute normalized usage. Four bounded native captures and full-text submission remain separate from hearing or intelligibility. The two distinct browser screenshots have accessible descriptions and viewport limits. |
+
+The student reports that the owner/API/material separation and literal provider
+fixtures were useful in implementation and real use. The author retains them.
+No unresolved architecture question is reported in this frozen student phase.
+Independent historical comparison may still produce teaching revisions; its
+findings will be appended rather than rewriting this initial experience. Student
+confirmation of this final reconciliation is requested after publication.

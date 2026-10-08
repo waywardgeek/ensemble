@@ -20,11 +20,10 @@ The reader should be able to give one Agent an editing capability without
 changing its neighbor, its identity or the history of work already done. The
 next sections make that small sentence an enforceable contract.
 
-**Accepted contract:** Chapter 8 is checkpointed and the initial Chapter 9
-checker is published. Implementation, actual Chapter 9 use and independent
-review remain to be completed; this chapter does not claim a successful spin.
-See [the Chapter 9 validation record](chapter-09-validation.md) for the current
-handoff and acceptance gates.
+The initial student implementation and actual demonstrations are frozen, with
+their failures retained below. The independent live audit accepts the stated
+feature evidence; comparative code review and final chapter acceptance remain
+separate gates in [the validation record](chapter-09-validation.md).
 
 ## TL;DR
 
@@ -67,11 +66,13 @@ exports are references, never worktrees.
    attempt and teaching review before independent historical comparison.
 
 Build the CLI from main with `go build -o /tmp/ensemble-ch09-cli ./cmd` and the optional GUI from
-`main/gui` with `go build ./cmd/ensemble-gui`. The inherited diagnostic is
+`main/gui` with `go build -o /tmp/ensemble-ch09-gui ./cmd/ensemble-gui`. The inherited diagnostic is
 `make grade-dir CH=10 DIR=solutions/edition-2/main`; its old binary, wire and
 fixture assumptions do not cover this contract. The independent Chapter 9
 initial command is `python3 scripts/edition2/accept_ch09.py CLI_BINARY`, with
-an absolute path to the built CLI. Its 51 checks cover an initial subset;
+an absolute path to the built CLI. Its 51 checks cover an initial subset.
+The combined source-bound command, from the repository root, is
+`python3 scripts/edition2/accept_ch09_gate.py SOURCE_COMMIT`;
 §9.10's full required matrix, public/browser checks, retained behavior and
 actual use remain mandatory. Run it as a black box; do not read the checker or
 reviewer internals. The [coverage record](chapter-09-grader-review.md) is for
@@ -742,54 +743,159 @@ continue to control one Agent through public interfaces.
 
 ## 9.9 Taking it for a spin
 
-**Actual Chapter 9 runs are pending.** These are reproducible exercise steps,
-not a transcript. The author will replace this plan with retained observations
-after the fresh student implements and runs the chapter.
-
-Build both executables from their respective modules. Use the shipped narrow
-catalog in a scratch workspace, keeping model credentials in the inherited
-environment. For example, with an absolute catalog path:
+Start in a fresh scratch directory with the CLI built above and model credentials
+in the inherited environment. Select the shipped catalog by absolute path and
+the narrow base primary. An empty LLM_SYSTEM leaves that primary in charge:
 
 ```sh
-LLM_SKILLS_DIR=/absolute/path/to/skills LLM_PRIMARY_SKILL=base /tmp/ensemble-ch09-cli chat
+LLM_SKILLS_DIR=/absolute/path/to/main/skills LLM_PRIMARY_SKILL=base LLM_SYSTEM= /tmp/ensemble-ch09-cli chat
 ```
 
-Inspect `/skills` before the first request. Ask the model to load edit, wait
-for its answer and inspect the new state. Ask it to write a small scratch file;
-inspect the actual bytes and the recorded calls. Then load review and search,
-observe the revealed offer and shared dependency, and unload edit. Confirm
-write_file is gone while list_directory and the explicitly loaded search
-capability remain. Ask for a formerly granted action and retain what the model
-actually does; a refusal to propose the call is useful behavior but does not
-replace a local forced-call authorization check.
+The student drove this human interface in actual PTYs on October 8, 2026,
+observing each answer before continuing. These are student-operated runs, not
+sessions Bill personally tested. The frozen [feature matrix and
+receipts](../../solutions/edition-2/main/evidence/ch09/live-results.md) cover
+normal CLI use, the full primary, browser use and public two-Agent embedding:
 
-Repeat an ordinary coding task with the shipped ensemble primary and inspect
-its first actual request. It should contain that primary's expanded body and
-the expected complete declarations. Check a pending tool_limits setter followed
-by a management call, then an ordinary call: the middle attempt consumed the
-one-shot settings. Retain no-op and unavailable-load outcomes too.
+| API | Selected model | Generation attempts, including failures |
+|---|---|---:|
+| Messages | claude-sonnet-4-6 | 32 |
+| Chat Completions | gpt-4.1, reported as gpt-4.1-2025-04-14 | 29 |
+| generateContent | models/gemini-3.8-flash, resolved/reported as gemini-3.8-flash | 32 |
 
-Run the GUI with the same skill environment and `--terminal`. Follow the load,
-file operation and unload from both clients, reconnect one tab and inspect
-current state and the retained manual card. Neither reconnect nor retirement
-should speak historical material. A public consumer constructs two Agents with
-different ceilings and PROJECT bindings; loading one changes only that Agent,
-and its captured manual contains its own literal scalar value. Exercise this
-through reusable public components, not a copied page or internal setter.
+There were 93 generation attempts and three separate discovery requests. These
+are dated identities, not permanent model recommendations. The original Messages
+runs used c0e3171; an inherited empty-argument streaming repair produced
+75a7255 for later runs. Recovery support at 3da764b used those same repaired
+runtime bytes. The initial evidence freeze is 786ff23; the [independent live
+review](chapter-09-live-review.md) preserves the complete binding and limits.
 
-The pre-launch feature/action matrix covers Messages, Chat Completions and the
-current supported generateContent model scope through human CLI PTYs, the real
-browser and public consumers. Bind sources, executables and catalog bytes before
-launch. Retain actual request declarations, material, observed tool results,
-file hashes, screenshots with descriptions, identities and usage. A model that
-claims success without a call gets an observed, bounded corrective follow-up;
-its first answer stays in the evidence.
+Enter `/skills` before a prompt. In all three normal runs it showed revision 0,
+base as the only active skill, and load_skill, read_file and unload_skill as the
+effective tools. The inspection made no model request. Then ask:
 
-Use local fixtures for malformed graphs, forced disabled calls, exact batch
-ordering, persistence failure and races. No paid run can reliably force those
-interleavings. Preserve the initial source, actual runs and student teaching
-review before historical comparison. A passing declarations check does not
-finish this exercise.
+```text
+Load edit with load_skill, then use write_file to create notes-created.txt containing exactly CH09-N-WRITE followed by one newline. Do not use a shell. Confirm the actual tool result briefly.
+```
+
+Wait for completion and inspect `/skills` again. The actual file held the exact
+13 bytes `CH09-N-WRITE` plus LF. Revision 1 had read dependency activation 2 and
+edit activation 3, and search had become discoverable. Follow with:
+
+```text
+Call load_skill for review, then load_skill for search, then unload_skill for edit, in that order. Make the actual calls, do not write files, and summarize the resulting permissions briefly.
+```
+
+All three paths reached revision 4: review and search remained explicit roots,
+read remained their dependency, edit was retired and write_file was absent.
+The retained manual still described editing. Its presence did not grant writing.
+
+The next Chat Completions exchange, abridged from the [actual
+terminal](../../solutions/edition-2/main/evidence/ch09/live-openai-n/terminal.txt),
+made the distinction visible:
+
+```text
+You> Now change notes-created.txt to REVOKED-WRITE using write_file, but do not load or reload any skill. If unavailable, say so and leave the file untouched.
+[r3 Assistant part 1] The write_file capability is unavailable because the edit skill is not loaded. The file notes-created.txt will remain unchanged.
+Request r3 (success; pending hints=0)
+```
+
+The file did remain unchanged. Messages also answered with a refusal. Gemini's
+captured follow-up omitted write_file from its declarations, but that request
+failed in the local relay before an answer arrived. It supplies schema and file
+evidence, not a verbal refusal or a forced unauthorized-call test. Deterministic
+controls separately force that call and require a paired error with no effect.
+
+Ask for an already active skill and an absent name as actual management calls.
+Messages and Chat Completions returned unchanged search and refused absent,
+leaving revision 4. Gemini's later bounded management run demonstrated the same
+no-op on review and refused absent at revision 1. Its intervening empty-text STOP
+omitted required candidatesTokenCount; the parser correctly refused under the
+published usage contract. No inferred zero or hidden retry converted it into
+an answer. The complete Chat Completions normal session reported input 7,562,
+cache write 0, cache read 2,176 and output 253; failed or refused responses are
+not evidence of zero provider billing.
+
+For the full primary, start another fresh workspace with
+LLM_PRIMARY_SKILL=ensemble and put a short marker and `port=8080` in notes.txt.
+Ask for tool_limits with ai_callback_delay 0 and max_output_bytes 1, then an
+inactive unload_skill edit, read_file notes.txt and a one-line summary.txt.
+All three actual runs made that sequence. The management acknowledgement stayed
+intact and consumed the limit; the following read returned the full notes.
+The first requests contained the full primary and all twelve declarations.
+
+Build the optional GUI from its own module. In another fresh workspace, use the
+same narrow skill environment with `/tmp/ensemble-ch09-gui --port 0 --terminal`,
+then open the printed URL. Load edit and write a scratch file from the browser;
+inspect and unload from the terminal. Both clients address one Agent. Open a
+second tab, reconnect it, and compare the current sidebar with the retained
+manual card and ordinary management records in Actions.
+
+![Actual OpenAI browser after unload: revision 4, review and search roots, retained read dependency, no write_file, successful request r2, and the unload call and result in Actions.](../../solutions/edition-2/main/evidence/ch09/live-openai-g/browser-12.png)
+
+That screenshot shows the completed terminal-originated turn. The browser driver
+had waited for a composer-local status and timed out, even though the outcome
+card and terminal showed success. The wrong selector remains in the evidence;
+no extra model prompt was sent to repair a test's expectation.
+
+Expand the retained edit card and use its explicit Speak action. Actual click
+expansion was observed with all three providers; a separate live Gemini action
+focused the card and pressed Enter after retirement:
+
+![Actual Gemini keyboard-expansion view: retained manual text occupies Chat while the sidebar remains at revision 4 with review and search active and no write_file; Actions retains the successful edit unload.](../../solutions/edition-2/main/evidence/ch09/keyboard-gemini-live/keyboard.png)
+
+The screenshot is a viewport into scrollable text. The full receipt retains the
+manual through step 20 and literal `<example>` text. The keyboard action's sampled
+launch bytes were not saved, so its source, URL, timing and material linkage
+cannot establish a byte-exact historical launch comparison. It does establish
+the observed Enter expansion, with that disclosed support limitation.
+
+Manual speech submitted the complete 2,455-character retained body on every
+provider path. Four original eight-second Chrome-only recordings had quiet
+control samples followed by sound energy; the second Messages recording supplied
+the longer controlled lead-in. This establishes bounded native output, not a
+complete heard manual, intelligibility or model hearing. Ordinary answer/tool
+speech continued afterward; skill transitions and reconnect did not
+automatically speak the manuals.
+
+For public embedding, build `examples/skills-consumer` in its own module with
+`go build -o /tmp/ensemble-ch09-skills-consumer .`. In a fresh working directory,
+create alpha/notes.txt and beta/notes.txt with distinct final markers. Run the
+consumer without flags for typed controls; `--ask` additionally sends one bounded
+read-and-report turn per Agent using the configured provider. It supplies its
+own catalog and literal PROJECT bindings. Alpha can load edit; beta's narrower
+installed ceiling refuses it. Both can read their separate notes.
+
+The Messages beta turn shows why the task outcome must stay beside the authority
+checks. The prompt asked for one read and a report, with no other tools. Beta
+read its note, also loaded its already active inspect skill, and then unloaded
+inspect on its second response. Its two-request allowance was spent. The
+consumer exited 1 with `round_limit` and no final beta report. The actual reads,
+distinct alpha-$TOOLS/beta-$TOOLS manuals and isolated grants still establish
+the public features; they do not finish the requested report.
+
+Chat Completions completed both reads after a separately bounded recovery from
+a relay transport failure. Beta's final answer shortened its marker to beta,
+although its captured manual correctly retained beta-$TOOLS. Gemini completed
+both reports with the literal markers. These are model outcomes, not changes
+to the one-pass variable-expansion rule.
+
+Finally, inspect the recorded history offline. The public redaction demonstration
+replaced a load result with `[redacted]` while retaining exactly one unchanged
+retired edit manual on every provider projection. Separate OS-denied controls
+reconstructed one actual request per provider with catalog reads and networking
+unavailable. All 93 attempted request bodies are accounted for by exact replay
+evidence: 76 in successful-run verification, 13 in explicitly failed-attempt
+verification and four in the independent partial public-run audit. That count
+describes request reconstruction, not 93 successful model responses.
+
+The first Messages GUI attempt also remains visible: a complete streamed call
+began with input `{}` and supplied an empty argument delta, which the old assembler
+incorrectly treated as replacement JSON. Chapter 6's explicit zero-byte fallback
+now covers it. The later repaired run elicited that same shape and executed the
+empty-object call. The original failure, explicit-path recovery and repaired
+demonstration retain their separate identities. Local fault/race/graph controls
+and the subsequent comparative review remain necessary alongside these runs.
 
 ## 9.10 Checks that protect the boundary
 
