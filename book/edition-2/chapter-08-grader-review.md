@@ -140,3 +140,53 @@ Page-local cancellation under the accepted document speech owner. Audible
 synthesis and actual three-provider CLI/browser/public use remain separate
 live requirements. Historical comparison begins only after the new student's
 initial source, user runs and teaching experience are frozen.
+
+## Request-limit fixture and delivered-tree checks
+
+The next partial command is:
+
+```sh
+python3 scripts/edition2/accept_ch08_policy_effect.py GUI_BINARY
+```
+
+It exercises actual Agent HTTP and two real `write_file` effects per accepted
+response. Limits 1, 17 and zero/default 16 must stop at the exact request count
+after finishing both tools in the final batch. A normal answer at limit 1 must
+still succeed. A held first HTTP request permits a queued prompt and policy
+change; the active capture stays 1 while the queued turn later uses 2. A fresh
+watch exposes both values during the hold. The durable captures and call/result
+pairing must agree. Completion delivery is correlated by request identity;
+the fixture does not invent an order between independent completion workers.
+
+The [model-fixture preparation receipt](checkpoint-evidence/ch08-policy-effect-preparation.json)
+records successful stream and plain runs against the accepted, archived
+Chapter 7 CLI: one normal request and sixteen tool requests in each mode.
+Both files from every accepted batch contain the required text. This proves
+the fixture can drive real tools; it does **not** establish Chapter 8 policy
+application. All eleven preceding assertion tests and two new assertion tests
+pass. There is still no end-to-end Chapter 8 policy positive or implementation
+deletion control at this preparation milestone.
+
+Chapter 7's first delivered export exposed a separate gap: a standalone Go
+helper under evidence imported the optional GUI and broke ordinary core package
+discovery. Runtime test copies had excluded evidence. The narrow correction
+adds a build constraint while preserving every executable helper byte; the
+[independent packaging review](checkpoint-evidence/ch07-packaging-r2-independent.json)
+records that scope without relabeling the original failed export.
+
+Subsequent acceptance must also run:
+
+```sh
+python3 scripts/edition2/accept_delivered_tree.py SOURCE_COMMIT
+```
+
+This extracts the entire immutable main tree, including retained support and
+evidence, and runs `go list ./...` in every discovered module. The
+[preparation receipt](checkpoint-evidence/ch08-delivered-tree-preparation.json)
+preserves the actual original missing-module failure and the corrected
+2,229-file, eight-module positive. An independent small Go fixture starts with
+two working modules, adds one evidence helper with the missing optional import,
+requires precisely that core-module refusal, then restores discovery with a
+build constraint and builds the helper explicitly from its optional module.
+This package-discovery check supplements module vet/tests and documented helper
+invocations; it does not replace them or the existing runtime gates.
