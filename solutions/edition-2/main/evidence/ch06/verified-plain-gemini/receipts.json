@@ -1,0 +1,8 @@
+[
+  {
+    "run": "plain-gemini",
+    "requests": 3,
+    "reconstructed": 3,
+    "delivery": "plain"
+  }
+]
