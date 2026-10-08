@@ -361,3 +361,12 @@ preparation checks and unchanged initial-checker digest are recorded in
 `ch09-clarification-preparation.json`. Server projection, genuine student browser
 positives, counter allocation exhaustion, persistence faults, runtime deletions
 and the complete retained gate still require validation.
+
+The prepared public suite also has an aggregate-render boundary group: 128
+small-source dependency definitions expand to individually legal bodies totaling
+exactly 8,388,608 bytes with the primary, followed by a one-byte-over candidate.
+A second pair uses a permitted non-NUL control character whose JSON encoding is
+larger than its decoded material. It protects the rendered-byte contract from an
+unrelated serialized-line cap. These four leaves are not yet run and allocate a
+larger temporary log only when the public suite runs; no such log or Go build
+was created during preparation. The public suite now has twelve top-level groups.

@@ -444,3 +444,54 @@ func TestCh09PublicAppendFrozenAuthority(t *testing.T) {
 		t.Fatal("initializer refusal changed log")
 	}
 }
+
+func TestCh09PublicWholeTransitionRenderedBudget(t *testing.T) {
+	// Source bytes are small. All 128 dependency bodies individually fit; only
+	// the complete candidate crosses the aggregate boundary in the negative.
+	// Escaping changes log bytes, not the published decoded material allowance.
+	for _, escaped := range []bool{false, true} {
+		for _, over := range []bool{false, true} {
+			t.Run(fmt.Sprintf("escaped-%v/over-%v", escaped, over), func(t *testing.T) {
+				app := ensemble.New(io.Discard)
+				defer app.Close()
+				c := configuration(t, "aggregate")
+				character := "x"
+				if escaped {
+					character = "\x01"
+				}
+				c.Skills.Variables = map[string]string{"PROJECT": strings.Repeat(character, 4096), "LAST": strings.Repeat(character, 4095)}
+				c.Skills.Catalog = map[string][]byte{}
+				var dependencies []string
+				for i := range 128 {
+					name := fmt.Sprintf("d%03d", i)
+					dependencies = append(dependencies, name)
+					body := strings.Repeat("$PROJECT", 16)
+					if i == 127 && !over {
+						body = strings.Repeat("$PROJECT", 15) + "$LAST"
+					}
+					c.Skills.Catalog[name] = []byte("---\nname: " + name + "\ndescription: Dependency\ntype: dependency\n---\n" + body)
+				}
+				c.Skills.Catalog["base"] = []byte("---\nname: base\ndescription: Base\ntype: primary\ndepends: " + strings.Join(dependencies, " ") + "\n---\nP")
+				a, err := app.NewAgent(c)
+				if over {
+					if err == nil {
+						a.Close()
+						t.Fatal("one byte beyond aggregate rendered bound accepted")
+					}
+					return
+				}
+				if err != nil {
+					t.Fatalf("exact rendered limit rejected (escaped=%v): %v", escaped, err)
+				}
+				defer a.Close()
+				total := 0
+				for _, m := range inspection(t, a).Material {
+					total += len(m.Record.Body)
+				}
+				if total != 8388608 {
+					t.Fatalf("positive material byte total %d", total)
+				}
+			})
+		}
+	}
+}
