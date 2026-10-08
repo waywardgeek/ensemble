@@ -85,3 +85,10 @@ subscription errors in the public streaming example's observers. The existing
 skill applies to example clients as well as library runtime objects; that rule
 needs enforcement in the revised consumer. No new architectural exception is
 introduced. Student confirmation and reviewed repair outcomes remain pending.
+
+The first bundled repair at `3ccaed6` still undercounted escaped thinking data
+retained as opaque JSON. Independent review supplied a passing small control
+and a valid oversized opaque response. Section 6.3 now spells out that the
+existing bound counts the retained representation, including JSON escapes.
+This clarification preserves the original limit and the intermediate failed
+repair; a decoded text-length counter does not establish an opaque-byte bound.

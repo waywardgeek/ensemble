@@ -215,6 +215,9 @@ until its possible following LF has been counted with the same event.
 
 Count accumulated part strings, opaque payloads, and argument bytes against
 16 MiB, without charging repeated usage snapshots as new response content.
+Charge opaque data in its retained representation: a control character inside
+retained JSON may occupy six escaped bytes even though its decoded string has
+only one. A visible-text counter cannot stand in for that opaque payload size.
 Fail safely on overflow. A reader may hold one bounded frame, the assembled
 response and the bounded pending fragments above; it cannot buffer the entire
 HTTP body before delivering the first delta. Keep the configured request
