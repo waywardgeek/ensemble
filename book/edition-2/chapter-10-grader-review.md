@@ -508,3 +508,46 @@ They do not count as Ensemble runtime coverage. Targeted implementation deletion
 audits are the next reviewer step; storage/collection/allocation and retained
 structural coverage remain separate work. No paid call or historical solution
 comparison occurred during this milestone.
+
+### Fault/lifecycle behavior deletions on the repaired source
+
+The independent deletion audit passes against the same immutable `8882a18`
+extraction. Its command is separate from both earlier stable runners:
+
+```sh
+python3 scripts/edition2/audit_ch10_faults.py SOURCE_DIRECTORY \
+  --source-commit SOURCE_COMMIT --receipt RECEIPT.json
+```
+
+The [complete audit receipt](checkpoint-evidence/ch10-fault-deletions-first.json)
+first records empty formatting output, vet and a genuine race-tested baseline
+of seven top-level groups. The additional admission control reaches a real
+partial log write, then requires public Submit to refuse a new request. This
+passes before its production guard is deleted. All 158 source identities and
+all checker hashes remain unchanged throughout.
+
+Only after that positive does the audit place one altered production file in
+a disposable Go overlay. It records the exact original/mutated hashes, source
+edit and command. Each of the nine deletions fails its intended runtime
+assertion and exact test set:
+
+| Deleted behavior | Observed distinguishing failure |
+|---|---|
+| Check complete checkpoint write length | Short write returns nil instead of session_io |
+| Honor checkpoint Sync error | Failed sync returns nil instead of session_io |
+| Honor temporary-file Close error | Failed close returns nil instead of session_io |
+| Honor atomic replacement error | Failed replacement returns nil instead of session_io |
+| Expose Agent's retained append failure to Actor | Faulted close creates/replaces a checkpoint once |
+| Propagate public append's terminal fault | Submit still admits a new request |
+| Retain the store lock during its active worker | An actual second root acquires the store |
+| Join checkpoint worker during shutdown | Original admitted save cannot deliver its completion |
+| Reduce post-checkpoint terminal job facts | Old-checkpoint/new-log resume loses the done job |
+
+No compilation, setup or source-identity rejection counts as detecting a
+behavior deletion. The altered files never replace student source or the
+verified extraction; temporary overlays are removed afterward. Each mutant
+runs its affected selector, while the complete positive parent remains bound
+in the same receipt. This closes these targeted deletion checks, not every
+Chapter 10 promise. Consumption/preflight fault combinations, remaining resource
+and identity boundaries, and the coordinator's retained/structural gate still
+have their separately assigned scopes.
