@@ -8,7 +8,7 @@ import {tmpdir} from 'node:os';
 import {join,dirname} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import assert from 'node:assert/strict';
-const here=dirname(fileURLToPath(import.meta.url)),dir=await mkdtemp(join(tmpdir(),'ensemble-ch08-ui-')),checks=[],failures=[];
+const runID=Date.now(),here=dirname(fileURLToPath(import.meta.url)),dir=await mkdtemp(join(tmpdir(),'ensemble-ch08-ui-')),checks=[],failures=[];
 let requests=0,gui,browser;
 const fixture=createServer(async(req,res)=>{let body='';for await(const data of req)body+=data;requests++;res.setHeader('content-type','application/json');res.end(JSON.stringify({content:requests===1?[{type:'text',text:'I will inspect the file.'},{type:'tool_use',id:'read-one',name:'read_file',input:{path:'notes.txt'}}]:[{type:'text',text:'**Completed.**\n[unsafe](javascript:alert(1))'}],usage:{input_tokens:1,output_tokens:1}}));});
 await new Promise(r=>fixture.listen(0,'127.0.0.1',r));
@@ -23,6 +23,9 @@ try{
  let url=await start('first.log');browser=await chromium.launch({headless:true,channel:'chrome'});
  const a=await browser.newPage({viewport:{width:1500,height:1000}}),b=await browser.newPage({viewport:{width:1500,height:1000}});
  for(const p of [a,b]){p.on('pageerror',e=>failures.push({name:'pageerror',error:e.message}));await p.goto(url);await p.locator('[data-status]').filter({hasText:'Connected'}).waitFor();await p.getByRole('tab',{name:'Settings'}).click();}
+ await check('initial-snapshot-remains-contiguous-with-fast-control',async()=>{
+  const frames=await a.evaluate(()=>new Promise((resolve,reject)=>{const socket=new WebSocket(location.origin.replace(/^http/,'ws')+'/ws'),frames=[];socket.onopen=()=>{socket.send(JSON.stringify({type:'subscribe',id:'s'}));socket.send(JSON.stringify({type:'pause',id:'p',typing:false,speaking:false}));};socket.onmessage=e=>{const m=JSON.parse(e.data);frames.push(m.type);if(m.id==='p'){socket.close();resolve(frames);}};socket.onerror=()=>reject(new Error('fixture socket failed'));}));assert.equal(frames[0],'preferences_snapshot');assert.equal(frames.at(-1),'ack');assert.equal(frames.at(-2),'snapshot_end');
+ });
  await check('shared-theme-font-and-keyboard-width',async()=>{
   await a.locator('[data-preference=theme]').selectOption('light');await b.waitForFunction(()=>document.querySelector('main').dataset.theme==='light');
   await a.locator('[data-preference=font_size]').fill('20');await a.locator('[data-preference=font_size]').press('Tab');await b.waitForFunction(()=>getComputedStyle(document.querySelector('main')).fontSize==='20px');
@@ -49,7 +52,7 @@ try{
  });
  await check('system-theme-and-browser-restart-persistence',async()=>{
   await a.locator('[data-preference=theme]').selectOption('system');await b.waitForFunction(()=>document.querySelector('[data-preference=theme]').value==='system');await a.emulateMedia({colorScheme:'light'});await a.waitForFunction(()=>document.querySelector('main').dataset.theme==='light');await a.emulateMedia({colorScheme:'dark'});await a.waitForFunction(()=>document.querySelector('main').dataset.theme==='dark');
-  await a.screenshot({path:join(here,'local-browser.png'),fullPage:true});await a.close();await b.close();await stop();url=await start('restart.log');const p=await browser.newPage();await p.goto(url);await p.locator('[data-status]').filter({hasText:'Connected'}).waitFor();assert.equal(await p.locator('[data-preference=font_size]').inputValue(),'20');assert.equal(await p.locator('[data-divider=sidebar_width]').getAttribute('aria-valuenow'),'270');assert.equal(await p.locator('[data-preference=autoplay]').isChecked(),false);assert.match(await p.locator('[data-policy-applied]').textContent(),/Default \(16\)/);assert.equal(await p.locator('.artifact').count(),0);await p.close();
+  await a.screenshot({path:join(here,`local-browser-${runID}.png`),fullPage:true});await a.close();await b.close();await stop();url=await start('restart.log');const p=await browser.newPage();await p.goto(url);await p.locator('[data-status]').filter({hasText:'Connected'}).waitFor();assert.equal(await p.locator('[data-preference=font_size]').inputValue(),'20');assert.equal(await p.locator('[data-divider=sidebar_width]').getAttribute('aria-valuenow'),'270');assert.equal(await p.locator('[data-preference=autoplay]').isChecked(),false);assert.match(await p.locator('[data-policy-applied]').textContent(),/Default \(16\)/);assert.equal(await p.locator('.artifact').count(),0);await p.close();
  });
  const p=await browser.newPage();await p.goto(url);await p.locator('[data-status]').filter({hasText:'Connected'}).waitFor();
  await check('controlled-speech-revision-rate-and-page-cancellation',async()=>{
@@ -79,4 +82,4 @@ try{
  assert.equal(failures.length,0,JSON.stringify(failures));
 } catch(error){if(!failures.length)failures.push({name:'setup',error:error.stack});}
 finally{await browser?.close();await stop();await new Promise(r=>fixture.close(r));await rm(dir,{recursive:true,force:true});}
-const result={scope:'Local fake-model browser and controlled speech callbacks, no live or audible claim',passed:failures.length===0,checks,failures,model_requests:requests};await writeFile(join(here,`browser-local-${Date.now()}.json`),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result,null,2));if(failures.length)process.exitCode=1;
+const result={scope:'Local fake-model browser and controlled speech callbacks, no live or audible claim',passed:failures.length===0,checks,failures,model_requests:requests};await writeFile(join(here,`browser-local-${runID}.json`),JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result,null,2));if(failures.length)process.exitCode=1;

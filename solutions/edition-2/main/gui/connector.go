@@ -37,6 +37,8 @@ type Connector struct {
 	workers             sync.WaitGroup
 	mu                  sync.Mutex
 	queue               []outgoing
+	deferred            []outgoing
+	snapshotPending     bool
 	bytes               int
 	wake, space         chan struct{}
 	watch               ensemble.Watch
@@ -87,9 +89,13 @@ func (c *Connector) send(message any, wait bool) bool {
 			c.mu.Unlock()
 			return false
 		}
-		fits := len(data) <= ensemble.WatchBytes-c.bytes && len(c.queue) < ensemble.WatchItems
+		fits := len(data) <= ensemble.WatchBytes-c.bytes && len(c.queue)+len(c.deferred) < ensemble.WatchItems
 		if fits {
-			c.queue = append(c.queue, outgoing{data, message})
+			if !wait && c.snapshotPending {
+				c.deferred = append(c.deferred, outgoing{data, message})
+			} else {
+				c.queue = append(c.queue, outgoing{data, message})
+			}
 			c.bytes += len(data)
 			c.parent.Trace(c.id, "server_to_client", "queued", message)
 			c.mu.Unlock()
@@ -99,8 +105,9 @@ func (c *Connector) send(message any, wait bool) bool {
 			}
 			return true
 		}
+		deferredBlocked := len(c.deferred) > 0
 		c.mu.Unlock()
-		if !wait || len(data) > ensemble.WatchBytes {
+		if !wait || len(data) > ensemble.WatchBytes || deferredBlocked {
 			c.stop("outgoing overflow; resync required")
 			return false
 		}
@@ -307,6 +314,7 @@ func (c *Connector) command(f map[string]json.RawMessage) {
 			w.Close()
 			return
 		}
+		c.snapshotPending = true
 		c.preferences = pw
 		c.pause = p
 		c.watch = w
@@ -403,7 +411,16 @@ func (c *Connector) deliverSnapshot(id string, s ensemble.WatchSnapshot, w ensem
 		return
 	}
 	c.advance(s.Watermark)
+	c.mu.Lock()
+	c.snapshotPending = false
+	c.queue = append(c.queue, c.deferred...)
+	c.deferred = nil
+	c.mu.Unlock()
 	close(c.snapshotDone)
+	select {
+	case c.wake <- struct{}{}:
+	default:
+	}
 	c.workers.Add(1)
 	go c.deliverPreferences()
 	for {

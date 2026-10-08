@@ -179,3 +179,19 @@ No assertion was removed or weakened. The three new backend checks pass again:
 and later binary-bound receipts are kept separately. Live demonstrations,
 independent persistence/concurrency/browser checks and comparative review remain
 open; no Chapter8 acceptance is claimed.
+
+## Preflight self-review correction
+
+Before any paid run, source inspection found that fast pause/control replies
+could enter the outbound queue between initial snapshot records. The chapter
+requires a contiguous snapshot group. Connector now defers nonsnapshot records
+until snapshot_end under the same combined queue bounds; if deferred work prevents
+snapshot progress, it closes for resync rather than retaining an unbounded queue
+or blocking controls. Added an actual-browser raw-socket positive sending subscribe
+and pause back-to-back, requiring preferences_snapshot first and snapshot_end
+before the acknowledgement. The original implementation and preliminary binding
+remain committed. This is an implementation correction, not a teaching ambiguity.
+
+Independent mutation testing exhausted generated Go build-cache space. After both
+coder and grader confirmed no compiler remained, the grader cleared only that
+cache and recovered3.4GiB. No source, support or raw evidence was removed.

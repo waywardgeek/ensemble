@@ -23,6 +23,7 @@ export class SettingsPanel {
     for (const divider of this.root.querySelectorAll('[data-divider]')) this.divider(divider);
   }
   apply(snapshot) {
+    if (this.closed || this.page.closed) return;
     this.applied = snapshot; this.page.speech.preferences(snapshot);
     for (const control of this.root.querySelectorAll('[data-preference]')) {
       if (this.drafts.has(control.dataset.preference)) continue;
@@ -48,6 +49,7 @@ export class SettingsPanel {
     if (label && this.applied) { const p = this.applied.preferences; label.textContent = `Applied revision ${this.applied.revision}: ${p.theme}, ${p.font_size}px, widths ${p.sidebar_width}/${p.actions_width}, autoplay ${p.autoplay ? 'on' : 'off'}, rate ${p.speech_rate}.`; }
   }
   policy(value, active = this.active) {
+    if (this.closed || this.page.closed) return;
     this.executionPolicy = value; this.active = active;
     const input = this.root.querySelector('[data-policy]'); if (input && !this.policyDraft) input.value = value.max_model_requests;
     const label = this.root.querySelector('[data-policy-applied]');
