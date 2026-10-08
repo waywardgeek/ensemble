@@ -30,6 +30,15 @@ contract/prose review is closed at `82dfb48`; Chapter 17 preparation has advisor
 `b59c47e` and awaits consequential decisions. See `CHECKPOINT.md` for actual
 worker identities and restart instructions.
 
+The retained integration repair `101500e` joins 66/68 passing checks, with two
+runtime defects preserved: duplicate argument handling and OpenAI replay string
+bytes. Author clarification `dd1111e`, reviewed at `ec12f7f`, is pinned for the
+same student's grouped repair. Independent remaining-boundary checkpoint
+`538650a` adds six passing groups and six intended deletions. Support preparation
+`9e48bff` is ready for compilation after that repair; paid calls remain unreleased.
+Partial Chapter 17 draft `b9772c3` has scoped hard prose checks, with route and
+complete schema decisions still pending. See the chapter gate records.
+
 The first Chapter 10 runs exposed a restart representation mismatch and a
 separate macOS path-alias fixture defect. Published clarification and repairs now
 pass the 93-row CLI, 9 client, 6 DOM and 38 physical-read groups on the prepared

@@ -10,7 +10,7 @@ accepted. Chapter 16 has contract/prose acceptance only.
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Research and consequential choices | Author, reviewer, coordinator, Bill for the output-cap choice | Preparation `580ce83`, advisory `b59c47e`; working decisions below | Resolve subscription mode before dependent contract/code |
-| Full contract and prose | Author `/root/author`, independent reviewer | Not released as a complete contract | Draft independent diagnostics/cost sections under the choices below; mark route-dependent material pending |
+| Full contract and prose | Author `/root/author`, independent reviewer | Partial draft `b9772c3`; scoped hard prose checks pass, full manuscript review pending | Resolve route-dependent material and complete v7/public schemas before full contract review |
 | Independent checks | Future grader | Not started | Derive distinguishing checks from complete published teaching |
 | Fresh student and owner plan | Future fresh student, reviewer | Not released | Requires accepted Chapter 16 source and complete contract |
 | Local implementation | Future student, grader | Not started | Preserve preceding ownership, replay and helper guarantees |
@@ -84,3 +84,11 @@ and label it an Ensemble success. Bill's requested cache retest remains an open
 chapter obligation. No drafting decision here postpones or waives it. Application
 authorization, credential ownership/renewal and the complete Responses contract
 must be explicit before actual integration or use.
+
+Partial manuscript `b9772c3` teaches the independent diagnostic, marker and cost
+mechanisms, with literal fixtures. It expressly leaves the complete capability,
+initializer and public-command schemas unfinished. The coordinator's scoped lint
+receipt is [prose-ch10-clarification-ch17-partial.json](checkpoint-evidence/prose-ch10-clarification-ch17-partial.json).
+Hard rules pass; soft density and long mechanism stretches remain editorial
+review inputs, not proof that the human-story requirement is met. No full draft
+acceptance or provider experiment follows from that lint result.

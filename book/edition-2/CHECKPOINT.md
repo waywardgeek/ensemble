@@ -1,5 +1,48 @@
 # Working checkpoint
 
+## Current handoff: grouped Chapter 10 repair
+
+The following supersedes the recovery-running descriptions below. Retained
+fixture integration is corrected at `101500e`; joined evidence is 66/68 on
+runtime `8882a18`. Two runtime failures remain: standalone duplicate management
+arguments terminate instead of producing a controlled error, and OpenAI replay
+changes decoded argument-string whitespace. Initial and repaired checker attempts
+are retained. Six more semantic/public/storage groups and six intended deletions
+pass at `538650a`; its original fixture setup failure remains recorded too.
+
+Author clarification `dd1111e`, independently closed at `ec12f7f` and fully read
+by root, explains the session raw-argument boundary without weakening structural
+validation. Only the new chapter and direct feedback are pinned in external
+`ch10-student-inputs/clarification-dd1111e/`. Two observation-only receipts are in
+that student's `results/`; reviewer/checker implementation remains excluded.
+
+Support phase completed at `9e48bff` and its process ended. The SAME student
+conversation `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0` is now resumed as exec `13298`,
+using external `phase-4-retained-repair.txt`, matching events/stderr and eventual
+result. Check that process/result before restarting. It exclusively owns the
+compiler for grouped runtime repair, then support compilation/local integration
+and real-build preflight. No credentials, discovery, authentication or provider
+requests are released. No historical comparison has begun.
+
+Reviewer `/root/reviewer_ch17` prepares independent clarification controls;
+grader `/root/grader_ch10_remaining` prepares remaining reachable lifetime,
+topology and overflow controls. Both are build-deferred. Do not invent atomic
+event/job batches: only groups defined by the printed contract need group
+reservation. Codec-specific reachability proofs explain masked cardinality
+bounds; they do not waive other implementations' obligations or the remaining
+large physical-file/allocation checks. Disk remains tight, so serialize builds
+and preserve per-command receipts. Never remove source, binaries, evidence,
+module downloads, credentials or user files to free space.
+
+Author `/root/author` confirmed MCP transport and real optional-GUI tunnel
+teaching is already explicit. Partial Chapter 17 draft `b9772c3` exists; no full
+contract is released. Bill has a pending asynchronous choice about an explicitly
+selected subscription mode without an output-token cap. Do not assume an answer.
+Root scoped prose lint passes hard checks, with soft warnings retained in
+`checkpoint-evidence/prose-ch10-clarification-ch17-partial.json`. An existing
+lint executable is at external `executables/edition2-lintprose`; root also built
+`lintprose-dd1111e` before learning that path. Neither is a chapter runtime.
+
 ## Recovery update, October 8
 
 This update supersedes the running-worker descriptions below; prior attempts
