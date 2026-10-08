@@ -3,6 +3,7 @@ package llm
 import (
 	"context"
 	"sync"
+	"time"
 	"unicode/utf8"
 
 	"example.com/ensemble/internal/common"
@@ -18,6 +19,7 @@ type operation struct {
 	parent             common.ModelEngine
 	id, requestID      string
 	config             common.Config
+	timeout            time.Duration
 	mu                 sync.Mutex
 	pending            []common.Fragment
 	bytes              int
@@ -26,7 +28,7 @@ type operation struct {
 }
 
 func (e *Engine) NewOperation(id, requestID string, config common.Config) common.ModelOperation {
-	return &operation{parent: e, id: id, requestID: requestID, config: config, changed: make(chan struct{})}
+	return &operation{parent: e, id: id, requestID: requestID, config: config, timeout: e.client.Timeout, changed: make(chan struct{})}
 }
 func (o *operation) Engine() common.ModelEngine { return o.parent }
 func (o *operation) ID() string                 { return o.id }
@@ -133,6 +135,13 @@ func (o *operation) Discard() {
 	o.signal()
 }
 func (o *operation) Exchange(ctx context.Context, body []byte) (common.ParsedResponse, error) {
+	// The operation deadline governs HTTP, parsing and both transfer waits. The
+	// client's transport deadline alone cannot wake a producer parked in Emit.
+	if o.timeout > 0 {
+		var cancel context.CancelFunc
+		ctx, cancel = context.WithTimeout(ctx, o.timeout)
+		defer cancel()
+	}
 	parsed, err := o.parent.ExchangeOperation(ctx, o, body, o.config)
 	// Even an error follows fragments already decoded. Cancellation releases this
 	// wait; the actor has already rejected and discarded that operation.
@@ -141,13 +150,16 @@ func (o *operation) Exchange(ctx context.Context, body []byte) (common.ParsedRes
 		empty := o.bytes == 0
 		changed := o.changed
 		o.mu.Unlock()
+		if ctx.Err() != nil {
+			return common.ParsedResponse{}, requestFailure(o.parent, ctx.Err(), "model operation failed")
+		}
 		if empty {
 			return parsed, err
 		}
 		select {
 		case <-changed:
 		case <-ctx.Done():
-			return common.ParsedResponse{}, ctx.Err()
+			return common.ParsedResponse{}, requestFailure(o.parent, ctx.Err(), "model operation failed")
 		}
 	}
 }

@@ -13,7 +13,25 @@ import (
 	"time"
 )
 
+// The example client owns its public library instance and callback children.
+type clientOwner interface {
+	Ensemble() *ensemble.Ensemble
+	Release() <-chan struct{}
+}
+type client struct {
+	app               *ensemble.Ensemble
+	release           chan struct{}
+	observers, finals []*observer
+}
+
+func (c *client) Ensemble() *ensemble.Ensemble { return c.app }
+func (c *client) Release() <-chan struct{}     { return c.release }
+func (c *client) newObserver(finalsOnly bool) *observer {
+	return &observer{parent: c, terminal: make(chan struct{}), finalsOnly: finalsOnly}
+}
+
 type observer struct {
+	parent     clientOwner
 	mu         sync.Mutex
 	values     []ensemble.Observation
 	terminal   chan struct{}
@@ -32,20 +50,24 @@ func (o *observer) Observe(v ensemble.Observation) {
 	}
 }
 
-type slowObserver struct{ release <-chan struct{} }
+type slowObserver struct {
+	parent clientOwner
+}
 
-func (s slowObserver) Observe(ensemble.Observation) { <-s.release }
+func (c *client) newSlowObserver() *slowObserver     { return &slowObserver{parent: c} }
+func (s *slowObserver) Observe(ensemble.Observation) { <-s.parent.Release() }
 func run() error {
 	directory := os.Getenv("ENSEMBLE_RUN_DIRECTORY")
 	if directory == "" {
 		return fmt.Errorf("ENSEMBLE_RUN_DIRECTORY required")
 	}
-	app := ensemble.New(os.Stderr)
-	defer app.Close()
-	release := make(chan struct{})
-	defer close(release)
-	observers := []*observer{}
-	finals := []*observer{}
+	c := &client{app: ensemble.New(os.Stderr), release: make(chan struct{})}
+	defer c.app.Close()
+	defer close(c.release)
+	return c.run(directory)
+}
+func (c *client) run(directory string) error {
+	app := c.Ensemble()
 	handles := []ensemble.RequestHandle{}
 	slowIDs := []uint64{}
 	for i := 0; i < 2; i++ {
@@ -53,13 +75,20 @@ func run() error {
 		if err != nil {
 			return err
 		}
-		o := &observer{terminal: make(chan struct{})}
-		f := &observer{terminal: make(chan struct{}), finalsOnly: true}
-		observers = append(observers, o)
-		finals = append(finals, f)
-		app.Subscribe(a.ID(), o)
-		app.Subscribe(a.ID(), f)
-		id, _ := app.Subscribe(a.ID(), slowObserver{release})
+		o := c.newObserver(false)
+		f := c.newObserver(true)
+		c.observers = append(c.observers, o)
+		c.finals = append(c.finals, f)
+		if _, err := app.Subscribe(a.ID(), o); err != nil {
+			return err
+		}
+		if _, err := app.Subscribe(a.ID(), f); err != nil {
+			return err
+		}
+		id, err := app.Subscribe(a.ID(), c.newSlowObserver())
+		if err != nil {
+			return err
+		}
 		slowIDs = append(slowIDs, id)
 		h, err := a.Submit(fmt.Sprintf("Start with AGENT-%d. Then explain in about 80 words why a streamed proposal must wait for complete validation before any tool effect. Do not use tools.", i+1))
 		if err != nil {
@@ -71,21 +100,21 @@ func run() error {
 	defer cancel()
 	completions := []ensemble.Completion{}
 	for i, h := range handles {
-		c, err := h.Wait(ctx)
+		completion, err := h.Wait(ctx)
 		if err != nil {
 			return err
 		}
-		if c.Outcome != "success" {
-			return fmt.Errorf("public request %s: %s", c.RequestID, c.Outcome)
+		if completion.Outcome != "success" {
+			return fmt.Errorf("public request %s: %s", completion.RequestID, completion.Outcome)
 		}
-		completions = append(completions, c)
+		completions = append(completions, completion)
 		select {
-		case <-observers[i].terminal:
+		case <-c.observers[i].terminal:
 		case <-ctx.Done():
 			return ctx.Err()
 		}
 		select {
-		case <-finals[i].terminal:
+		case <-c.finals[i].terminal:
 		case <-ctx.Done():
 			return ctx.Err()
 		}
@@ -93,11 +122,11 @@ func run() error {
 	all := [][]ensemble.Observation{}
 	onlyFinals := [][]ensemble.Observation{}
 	statuses := []string{}
-	for i, o := range observers {
+	for i, o := range c.observers {
 		o.mu.Lock()
 		all = append(all, append([]ensemble.Observation(nil), o.values...))
 		o.mu.Unlock()
-		f := finals[i]
+		f := c.finals[i]
 		f.mu.Lock()
 		onlyFinals = append(onlyFinals, append([]ensemble.Observation(nil), f.values...))
 		f.mu.Unlock()

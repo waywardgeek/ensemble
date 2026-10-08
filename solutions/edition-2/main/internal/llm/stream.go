@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"sort"
+	"strings"
 
 	"example.com/ensemble/internal/common"
 )
@@ -13,7 +14,8 @@ type streamBlock struct {
 	id      int
 	kind    string
 	raw     map[string]json.RawMessage
-	args    string
+	values  map[string]*strings.Builder
+	callID  string
 	stopped bool
 }
 type streamParser struct {
@@ -24,9 +26,9 @@ type streamParser struct {
 	model                      string
 	usage                      map[string]json.RawMessage
 	blocks                     map[int]*streamBlock
-	parts                      []json.RawMessage
+	parts                      []*geminiPart
 	ids                        []int
-	text, refusal              string
+	text, refusal              strings.Builder
 	textID, refusalID          int
 	sawText, started, finished bool
 	stop                       string
@@ -147,21 +149,34 @@ func (s *streamParser) messages(ctx context.Context, root map[string]json.RawMes
 		if s.blocks[index] != nil {
 			return s.fail("duplicate block start")
 		}
-		b := &streamBlock{id: s.allocate(), raw: s.p.obj(root["content_block"])}
+		b := &streamBlock{id: s.allocate(), raw: s.p.obj(root["content_block"]), values: map[string]*strings.Builder{}}
 		b.kind = s.p.str(b.raw["type"])
 		s.blocks[index] = b
 		size := len(root["content_block"])
-		if b.kind == "text" {
-			size = len(s.p.str(b.raw["text"]))
+		initial := ""
+		if b.kind == "text" || b.kind == "thinking" {
+			field := b.kind
+			initial = s.p.str(b.raw[field])
+			b.values[field] = &strings.Builder{}
+			b.values[field].WriteString(initial)
+			delete(b.raw, field)
+			if b.kind == "text" {
+				size = len(initial)
+			}
+			if signature, ok := b.raw["signature"]; ok {
+				b.values["signature"] = &strings.Builder{}
+				b.values["signature"].WriteString(s.p.str(signature))
+				delete(b.raw, "signature")
+			}
 		}
 		if err = s.add(size); err != nil {
 			return err
 		}
 		switch b.kind {
 		case "text":
-			return s.emit(ctx, b.id, "text", s.p.str(b.raw["text"]))
+			return s.emit(ctx, b.id, "text", initial)
 		case "thinking":
-			return s.emit(ctx, b.id, "thinking", s.p.str(b.raw["thinking"]))
+			return s.emit(ctx, b.id, "thinking", initial)
 		case "tool_use":
 			return s.emit(ctx, b.id, "tool_name", s.p.str(b.raw["name"]))
 		}
@@ -202,18 +217,20 @@ func (s *streamParser) messages(ctx context.Context, root map[string]json.RawMes
 			return s.fail("unsupported delta for block kind")
 		}
 		text := s.p.str(d[field])
+		if field == "partial_json" {
+			field = "input"
+			if b.values[field] == nil {
+				s.size -= len(b.raw[field])
+				delete(b.raw, field)
+			}
+		}
 		if err = s.add(len(text)); err != nil {
 			return err
 		}
-		if field == "partial_json" {
-			b.args += text
-		} else {
-			old := ""
-			if value, ok := b.raw[field]; ok {
-				old = s.p.str(value)
-			}
-			b.raw[field] = rawValue(old + text)
+		if b.values[field] == nil {
+			b.values[field] = &strings.Builder{}
 		}
+		b.values[field].WriteString(text)
 		if channel != "" {
 			return s.emit(ctx, b.id, channel, text)
 		}
@@ -228,9 +245,7 @@ func (s *streamParser) messages(ctx context.Context, root map[string]json.RawMes
 		}
 		b.stopped = true
 		if b.kind == "tool_use" {
-			if b.args != "" {
-				b.raw["input"] = json.RawMessage(b.args)
-			} else {
+			if b.values["input"] == nil {
 				return s.emit(ctx, b.id, "tool_args", string(b.raw["input"]))
 			}
 		}
@@ -293,7 +308,7 @@ func (s *streamParser) chat(ctx context.Context, root map[string]json.RawMessage
 				s.textID = s.allocate()
 			}
 			s.sawText = true
-			s.text += text
+			s.text.WriteString(text)
 			if err = s.emit(ctx, s.textID, "text", text); err != nil {
 				return err
 			}
@@ -306,7 +321,7 @@ func (s *streamParser) chat(ctx context.Context, root map[string]json.RawMessage
 			if s.refusalID == 0 {
 				s.refusalID = s.allocate()
 			}
-			s.refusal += text
+			s.refusal.WriteString(text)
 		}
 		if value, ok := d["tool_calls"]; ok && string(value) != "null" {
 			for _, raw := range s.p.list(value) {
@@ -317,14 +332,19 @@ func (s *streamParser) chat(ctx context.Context, root map[string]json.RawMessage
 				}
 				b := s.blocks[index]
 				if b == nil {
-					b = &streamBlock{id: s.allocate(), raw: map[string]json.RawMessage{}}
+					b = &streamBlock{id: s.allocate(), raw: map[string]json.RawMessage{}, values: map[string]*strings.Builder{}}
 					s.blocks[index] = b
 				}
 				if v, ok := call["id"]; ok {
 					id := s.p.str(v)
-					if old, ok := b.raw["id"]; ok && s.p.str(old) != id {
-						return s.fail("conflicting tool call identity")
+					if _, ok := b.raw["id"]; ok {
+						if b.callID != id {
+							return s.fail("conflicting tool call identity")
+						}
+					} else if err = s.add(len(id)); err != nil {
+						return err
 					}
+					b.callID = id
 					b.raw["id"] = v
 				}
 				if v, ok := call["type"]; ok && s.p.str(v) != "function" {
@@ -338,11 +358,10 @@ func (s *streamParser) chat(ctx context.Context, root map[string]json.RawMessage
 							if err = s.add(len(text)); err != nil {
 								return err
 							}
-							old := ""
-							if v, ok := b.raw[field]; ok {
-								old = s.p.str(v)
+							if b.values[field] == nil {
+								b.values[field] = &strings.Builder{}
 							}
-							b.raw[field] = rawValue(old + text)
+							b.values[field].WriteString(text)
 							channel := "tool_args"
 							if field == "name" {
 								channel = "tool_name"
@@ -359,41 +378,91 @@ func (s *streamParser) chat(ctx context.Context, root map[string]json.RawMessage
 	return s.p.err
 }
 
-// textRun describes only unsigned text-only blocks; opaque fields end a run.
-func textRun(p *parser, b map[string]json.RawMessage) (string, string, bool) {
-	raw, ok := b["text"]
-	if !ok {
-		return "", "", false
-	}
-	channel := "text"
-	allowed := 1
-	if thought, ok := b["thought"]; ok {
-		allowed++
-		if p.truth(thought) {
-			channel = "thinking"
-		}
-	}
-	if len(b) != allowed {
-		return "", "", false
-	}
-	return channel, p.str(raw), true
+// Gemini records retain their first raw part and classification. Appending a
+// compatible run touches only its builder and counters, never its prior JSON.
+type geminiPart struct {
+	raw                 json.RawMessage
+	fields              map[string]json.RawMessage
+	text                strings.Builder
+	channel             string
+	mergeable, merged   bool
+	cost, encoded, base int
 }
-func appendGemini(p *parser, parts []json.RawMessage, raw json.RawMessage) ([]json.RawMessage, bool) {
+
+func classifyGemini(p *parser, raw json.RawMessage) (*geminiPart, []common.Fragment) {
 	b := p.obj(raw)
-	if !knownGeminiText(p, b) {
-		return append(parts, append(json.RawMessage(nil), raw...)), false
+	part := &geminiPart{raw: raw, fields: b, cost: len(raw)}
+	if value, hasText := b["text"]; hasText {
+		text := p.str(value)
+		thought := false
+		if value, ok := b["thought"]; ok {
+			thought = p.truth(value)
+		}
+		signature, signed := b["thoughtSignature"]
+		if signed {
+			_ = p.str(signature)
+		}
+		for key := range b {
+			if key != "text" && key != "thought" && key != "thoughtSignature" {
+				return part, nil
+			}
+		}
+		part.channel = "text"
+		if thought {
+			part.channel = "thinking"
+		}
+		part.mergeable = !signed
+		if !thought {
+			part.cost = len(text) + len(signature)
+		}
+		if part.mergeable {
+			part.text.WriteString(text)
+			// Only the incoming fragment is encoded for opaque thought accounting.
+			// Canonical structural cost is fixed even when the original had whitespace.
+			part.encoded = len(rawValue(text)) - 2
+			empty := map[string]json.RawMessage{"text": json.RawMessage(`""`)}
+			if value, ok := b["thought"]; ok {
+				empty["thought"] = value
+			}
+			part.base = len(rawValue(empty))
+		}
+		return part, []common.Fragment{{Channel: part.channel, Text: text}}
 	}
-	channel, text, run := textRun(p, b)
-	if run && len(parts) > 0 {
-		last := p.obj(parts[len(parts)-1])
-		oldChannel, old, oldRun := textRun(p, last)
-		if oldRun && oldChannel == channel {
-			last["text"] = rawValue(old + text)
-			parts[len(parts)-1] = rawValue(last)
-			return parts, true
+	if value, ok := b["functionCall"]; ok {
+		call := p.obj(value)
+		return part, []common.Fragment{{Channel: "tool_name", Text: p.str(call["name"])}, {Channel: "tool_args", Text: string(call["args"])}}
+	}
+	return part, nil
+}
+func appendGemini(p *parser, parts []*geminiPart, next *geminiPart) ([]*geminiPart, bool, int) {
+	if next.mergeable && len(parts) > 0 {
+		last := parts[len(parts)-1]
+		if last.mergeable && last.channel == next.channel {
+			before := last.cost
+			last.text.WriteString(next.text.String())
+			last.encoded += next.encoded
+			last.merged = true
+			if last.channel == "text" {
+				last.cost += next.cost
+			} else {
+				last.cost = last.base + last.encoded
+			}
+			return parts, true, last.cost - before
 		}
 	}
-	return append(parts, append(json.RawMessage(nil), raw...)), false
+	return append(parts, next), false, next.cost
+}
+func materializeGemini(p *parser, parts []*geminiPart) []json.RawMessage {
+	out := make([]json.RawMessage, 0, len(parts))
+	for _, part := range parts {
+		raw := part.raw
+		if part.merged {
+			part.fields["text"] = rawValue(part.text.String())
+			raw = rawValue(part.fields)
+		}
+		out = append(out, raw)
+	}
+	return out
 }
 func (s *streamParser) gemini(ctx context.Context, root map[string]json.RawMessage) error {
 	if err := s.identity(root, "modelVersion"); err != nil {
@@ -423,16 +492,10 @@ func (s *streamParser) gemini(ctx context.Context, root map[string]json.RawMessa
 				content := s.p.obj(value)
 				if value, ok := content["parts"]; ok {
 					for _, raw := range s.p.list(value) {
-						previous := 0
-						if len(s.parts) > 0 {
-							previous = geminiSize(&s.p, s.parts[len(s.parts)-1])
-						}
+						next, fragments := classifyGemini(&s.p, raw)
 						var merged bool
-						s.parts, merged = appendGemini(&s.p, s.parts, raw)
-						size := geminiSize(&s.p, s.parts[len(s.parts)-1])
-						if merged {
-							size -= previous
-						}
+						var size int
+						s.parts, merged, size = appendGemini(&s.p, s.parts, next)
 						if err = s.add(size); err != nil {
 							return err
 						}
@@ -440,28 +503,12 @@ func (s *streamParser) gemini(ctx context.Context, root map[string]json.RawMessa
 							s.ids = append(s.ids, s.allocate())
 						}
 						id := s.ids[len(s.ids)-1]
-						b := s.p.obj(raw)
-						if _, hasText := b["text"]; hasText && !knownGeminiText(&s.p, b) {
-							continue
-						}
-						if value, ok := b["text"]; ok && knownGeminiText(&s.p, b) {
-							channel := "text"
-							if v, ok := b["thought"]; ok && s.p.truth(v) {
-								channel = "thinking"
-							}
-							if err = s.emit(ctx, id, channel, s.p.str(value)); err != nil {
+						for _, fragment := range fragments {
+							if err = s.emit(ctx, id, fragment.Channel, fragment.Text); err != nil {
 								return err
 							}
 						}
-						if value, ok := b["functionCall"]; ok {
-							call := s.p.obj(value)
-							if err = s.emit(ctx, id, "tool_name", s.p.str(call["name"])); err != nil {
-								return err
-							}
-							if err = s.emit(ctx, id, "tool_args", string(call["args"])); err != nil {
-								return err
-							}
-						}
+
 					}
 				}
 			}
@@ -489,6 +536,13 @@ func (s *streamParser) envelope() ([]byte, []int, error) {
 		blocks := []any{}
 		for _, index := range indices {
 			b := s.blocks[index]
+			for field, value := range b.values {
+				if field == "input" {
+					b.raw[field] = json.RawMessage(value.String())
+				} else {
+					b.raw[field] = rawValue(value.String())
+				}
+			}
 			blocks = append(blocks, b.raw)
 			ids = append(ids, b.id)
 		}
@@ -498,12 +552,15 @@ func (s *streamParser) envelope() ([]byte, []int, error) {
 	case "openai":
 		m := map[string]any{"content": nil}
 		if s.sawText {
-			m["content"] = s.text
+			m["content"] = s.text.String()
 			ids = append(ids, s.textID)
 		}
 		calls := []any{}
 		for _, index := range indices {
 			b := s.blocks[index]
+			for field, value := range b.values {
+				b.raw[field] = rawValue(value.String())
+			}
 			calls = append(calls, map[string]any{"type": "function", "id": b.raw["id"], "function": map[string]any{"name": b.raw["name"], "arguments": b.raw["arguments"]}})
 			ids = append(ids, b.id)
 		}
@@ -511,13 +568,13 @@ func (s *streamParser) envelope() ([]byte, []int, error) {
 			m["tool_calls"] = calls
 		}
 		if s.refusalID != 0 {
-			m["refusal"] = s.refusal
+			m["refusal"] = s.refusal.String()
 			ids = append(ids, s.refusalID)
 		}
 		root["choices"] = []any{map[string]any{"index": 0, "message": m, "finish_reason": s.stop}}
 		root["usage"] = s.usage
 	case "gemini":
-		root["candidates"] = []any{map[string]any{"index": 0, "content": map[string]any{"parts": s.parts}, "finishReason": s.stop}}
+		root["candidates"] = []any{map[string]any{"index": 0, "content": map[string]any{"parts": materializeGemini(&s.p, s.parts)}, "finishReason": s.stop}}
 		root["usageMetadata"] = s.usage
 		ids = s.ids
 	}
@@ -555,18 +612,4 @@ func knownGeminiText(p *parser, b map[string]json.RawMessage) bool {
 		}
 	}
 	return true
-}
-
-func geminiSize(p *parser, raw json.RawMessage) int {
-	b := p.obj(raw)
-	if knownGeminiText(p, b) {
-		channel, text, run := textRun(p, b)
-		if run && channel == "text" {
-			return len(text)
-		}
-		if thought, ok := b["thought"]; !ok || !p.truth(thought) {
-			return len(p.str(b["text"])) + len(b["thoughtSignature"])
-		}
-	}
-	return len(raw)
 }

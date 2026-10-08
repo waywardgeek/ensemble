@@ -71,3 +71,82 @@ No production runtime change was needed during these live runs. A credential sca
 ## Pending independent gates
 
 Initial runtime/tests/live evidence are ready for independent comparative review. The inherited grader remains 0/100 because its old observation/structural contract differs; its source-bound run is retained in `inherited-grade.txt`, not relabeled a pass. Independent client barriers pass. The broader independent public/concurrency/lifecycle/architecture checks and mutation coverage, historical comparison, review revisions, final author reconciliation and chapter acceptance remain pending. The initial learning record above precedes those findings.
+
+
+## Review repair R1 — recognized Chat Completions refusal replay
+
+Reloaded the entire coding skill, architecture ledger and current Chapter 6 before the repair. Read the expanded author dispositions in `chapter-06-student-feedback.md` and the actual-run reconciliation: these accurately retain the initial timing misses, MAX_TOKENS outcomes, thinking/overflow absence and separate validation gates. I confirm the broader reconciliation resolves the recorded teaching feedback; it does not close independent code review.
+
+The reviewer found a real implementation omission: both parsers retained known refusal data as an opaque part, but matching-provenance Chat Completions rendering rejected it. Four public-path regressions (plain/stream × next-turn/tool-continuation) failed first with `unsupported opaque Chat Completions material`. The renderer now restores only the recognized single-string refusal shape on its original assistant message, alongside its text/calls. Foreign opaque material remains omitted; unsupported shapes, malformed refusal fields and duplicate/incorrect-role refusal material still fail safely. This is renderer behavior within llm, with the existing renderer→Engine→Agent→Ensemble logger path; no ownership, locks or lifecycle change is introduced.
+
+The live initial runs contained no refusal fields, so they remain truthful and source-bound. This synthetic retained-material repair requires deterministic replay/continuation checks; repeating unrelated paid prompts would not exercise it. Consolidated reviewer findings and final validation remain pending.
+
+## R2 structure amendment — requested before data-structure edits
+
+Read the assembly-efficiency teaching added in `0c10608` (§6.3) and its author disposition. The original implementation repeatedly copied accumulated strings and, for Messages/Gemini, re-decoded/re-encoded growing content. The published correction explains a missing performance property rather than changing ownership or weakening the 16 MiB bound.
+
+The Engine-owned model operation remains the lifetime owner; its worker's private parser state remains in llm and reaches the logger through operation→Engine→Agent→Ensemble. Replace mutable concatenated strings with per-part append-oriented builders. Messages blocks retain fixed raw metadata plus builders for text/thinking/signature/arguments; Chat Completions retains text/refusal builders and per-call name/argument builders. Final materialization occurs once before shared response normalization. These private records are parser-owned data, not new services, and remain single-worker-only; no new locks or sharing with Actor.
+
+Gemini assembly will classify/decode each incoming part once into a private part record. Compatible unsigned text runs append into the last record's builder using cached kind/mergeability, without reading or rewriting earlier text. Signed/opaque/call records preserve exact boundaries and original raw payload. Each append returns only its incremental retained-content cost; size enforcement does not scan prior records. Plain normalization uses the same append-oriented run accumulator, then materializes once, so parity does not preserve a second quadratic path. Local part IDs stay attached to logical records and pending fragment transfer remains unchanged.
+
+Existing 1 MiB pending/64 KiB drain synchronization, actor-only acceptance, cancellation waits and final ordering remain intact. A fixed-128-byte-fragment benchmark at 64/128 KiB on all three adapters will retain before/after allocations and time; it has no machine-specific timing threshold. Existing semantic/framing/identity/effect controls run after the repair.
+
+### Repair reload and R4 ownership amendment
+
+After context reload I reread the entire mandatory coding skill, architecture,
+Chapter 6 and its feedback dispositions, including 5df3480. The refusal mapping
+makes the retained-content replay obligation explicit. The deadline explanation
+correctly identifies my missed channel lifetime; the consumer ownership finding
+is an implementation mistake under the existing methodology, not a new rule.
+
+For R4, introduce one public-example application client owner holding the actual
+public Ensemble and constructing its normal, finals-only and stalled observers.
+Each observer stores an interface parent exposing `Ensemble() *ensemble.Ensemble`,
+so callback diagnostics reach the actual logger through that creator. The client
+owns release lifetime and observer collections; observer mutexes continue to
+protect callback snapshots and terminal notification uses the existing once.
+No shared internal interface or implementation import is added: these are private
+example client types using only the public library. Subscribe failures return
+through the normal example error path, with release closed before Ensemble.Close.
+
+### Bundled R1–R4 repair results
+
+The coordinator accepted the R2 owned-buffer plan, R3 operation-deadline lifetime
+and R4 actual public-client-owner plan before affected edits. R1's recognized
+refusal survives plain/stream next turns and tool continuations; unsupported
+opaque objects still refuse and foreign material is omitted. R2 stores growing
+strings in private builders and classifies Gemini input once per arrival, with
+cached run costs and final materialization. Input replacement removes the old
+Messages placeholder's charged bytes before adding the first partial. Accepted
+parts are still created by shared normalization and actor acceptance.
+
+Fixed 128-byte fragment benchmarks (three local samples per size) are retained
+in assembly-before.txt and assembly-after.txt. At 64→128 KiB, allocations changed
+from approximately 57→221 MB to 2.75→5.35 MB for Messages; 20.9→76.1 MB to
+3.12→6.10 MB for Chat; and 207→803 MB to 4.85→9.52 MB for Gemini. The revised
+measurements show approximately linear allocation and time growth, without a
+machine-specific gate. Existing typed/signature/opaque fixtures pass, and new
+exact 16 MiB text-run controls pass with intended one-byte overflow refusal on
+all three adapters.
+
+R3 snapshots the Engine timeout at operation creation and derives the whole
+Exchange deadline, including HTTP and pending capacity/final-drain waits.
+A real HTTP regression observes the full 1 MiB store before requiring timeout,
+separately tests final drain, and preserves an earlier caller deadline. Deleting
+that operation deadline causes the intended capacity-wait failure; restoring it
+passes. Safe timeout reasons remain distinct from caller cancellation.
+
+R4's normal/finals/stalled observers are constructed by an actual example client
+and retain its interface. They can reach the public Ensemble/logger; the stalled
+callback also reaches its creator's release channel through that interface.
+Every Subscribe error propagates. Release precedes Ensemble.Close on all exits.
+A first module check caught a completion variable shadowing the client receiver;
+that failed attempt is retained, then the corrected module passed vet/test/build.
+
+Required local checks: all seven modules passed go vet and go test -count=1;
+main passed go test -race ./...; gofmt -l on changed files prints nothing.
+Independent black-box client checks passed 6/6 and wire checks 61/61 using
+/tmp/ensemble-ch06-revised. The required inherited CH7 grader was rerun and
+remains 0/100 under its older contract; its new receipt is retained separately
+from the initial failure. This is not relabeled chapter validation. Reviewer
+reports no further established findings beyond R1–R4 before this repair freeze.

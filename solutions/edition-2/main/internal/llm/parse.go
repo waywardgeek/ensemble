@@ -164,11 +164,12 @@ func parseResponse(owner common.Engine, config common.Config, body []byte, respo
 			out.StopReason = p.str(raw)
 		}
 		content := p.obj(candidate["content"])
-		var normalized []json.RawMessage
+		var assembled []*geminiPart
 		for _, raw := range p.list(content["parts"]) {
-			normalized, _ = appendGemini(&p, normalized, raw)
+			next, _ := classifyGemini(&p, raw)
+			assembled, _, _ = appendGemini(&p, assembled, next)
 		}
-		for index, raw := range normalized {
+		for index, raw := range materializeGemini(&p, assembled) {
 			b := p.obj(raw)
 			_, hasText := b["text"]
 			if hasText && !knownGeminiText(&p, b) {

@@ -371,3 +371,47 @@ func TestInterleavedCallsKeepPartIdentity(t *testing.T) {
 		}
 	}
 }
+
+// Exact response accounting is independent of wire-frame limits. Fill a text
+// run through several legal frames, then distinguish the last permitted byte.
+func TestStreamExactAssembledTextBound(t *testing.T) {
+	for _, vendor := range []string{"anthropic", "openai", "gemini"} {
+		t.Run(vendor, func(t *testing.T) {
+			op, _ := testOperation()
+			s := streamParser{parent: op, p: parser{parent: op.Engine(), operation: op}, blocks: map[int]*streamBlock{}}
+			ctx := context.Background()
+			send := func(text string) error {
+				var root map[string]json.RawMessage
+				switch vendor {
+				case "anthropic":
+					root = s.p.obj(rawValue(map[string]any{"type": "content_block_delta", "index": 0, "delta": map[string]any{"type": "text_delta", "text": text}}))
+					return s.messages(ctx, root)
+				case "openai":
+					root = s.p.obj(rawValue(map[string]any{"choices": []any{map[string]any{"index": 0, "delta": map[string]any{"content": text}}}}))
+					return s.chat(ctx, root)
+				default:
+					root = s.p.obj(rawValue(map[string]any{"candidates": []any{map[string]any{"content": map[string]any{"parts": []any{map[string]any{"text": text}}}}}}))
+					return s.gemini(ctx, root)
+				}
+			}
+			if vendor == "anthropic" {
+				s.started = true
+				if err := s.messages(ctx, s.p.obj([]byte(`{"type":"content_block_start","index":0,"content_block":{"type":"text","text":""}}`))); err != nil {
+					t.Fatal(err)
+				}
+			}
+			fragment := strings.Repeat("x", 256<<10)
+			for i := 0; i < responseLimit/len(fragment); i++ {
+				if err := send(fragment); err != nil {
+					t.Fatalf("within limit: %v", err)
+				}
+			}
+			if s.size != responseLimit {
+				t.Fatalf("size %d", s.size)
+			}
+			if err := send("x"); err == nil || !strings.Contains(err.Error(), "assembled response exceeds") {
+				t.Fatalf("one-byte overflow: %v", err)
+			}
+		})
+	}
+}

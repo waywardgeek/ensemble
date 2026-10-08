@@ -141,6 +141,7 @@ func Render(owner common.Engine, c common.Context, config common.Config) ([]byte
 			}
 			text := []string{}
 			calls := []any{}
+			var refusal json.RawMessage
 			for _, part := range entry.Parts {
 				switch part.Type {
 				case "text":
@@ -160,16 +161,24 @@ func Render(owner common.Engine, c common.Context, config common.Config) ([]byte
 					r.unsupportedReference(part)
 				case "opaque":
 					if r.match(part.From) {
-						r.fail("unsupported opaque Chat Completions material")
+						retained, ok := r.chatRefusal(part)
+						if !ok || role != "assistant" || refusal != nil {
+							r.fail("unsupported opaque Chat Completions material")
+						} else {
+							refusal = retained
+						}
 					}
 				}
 			}
-			if len(text) == 0 && len(calls) == 0 {
+			if len(text) == 0 && len(calls) == 0 && refusal == nil {
 				continue
 			}
 			m := map[string]any{"role": role, "content": strings.Join(text, "")}
 			if len(calls) > 0 {
 				m["tool_calls"] = calls
+			}
+			if refusal != nil {
+				m["refusal"] = refusal
 			}
 			messages = append(messages, m)
 		}
@@ -279,4 +288,23 @@ func (r *renderer) unsupportedReference(p common.Part) {
 		}
 	}
 	r.fail(fmt.Sprintf("unsupported reference: model %q has no %s %s mapping for %s", r.model, r.target.Surface, kind, media))
+}
+
+// Recognition is deliberately narrow: retaining an opaque object does not make
+// all of its fields valid Chat Completions message properties. Refusal stays on
+// its original assistant message and never becomes visible answer text.
+func (r *renderer) chatRefusal(part common.Part) (json.RawMessage, bool) {
+	var fields map[string]json.RawMessage
+	if json.Unmarshal(part.Data, &fields) != nil || len(fields) != 1 {
+		return nil, false
+	}
+	raw, ok := fields["refusal"]
+	if !ok || string(raw) == "null" {
+		return nil, false
+	}
+	var text string
+	if json.Unmarshal(raw, &text) != nil {
+		return nil, false
+	}
+	return raw, true
 }
