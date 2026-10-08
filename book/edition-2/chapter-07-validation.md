@@ -1,14 +1,14 @@
 # Chapter 7 validation
 
 Fresh new-only student `/root/coder_ch07` is active. Its accepted predecessor is
-`edition-2-ch06-r1` at `1c6b1f065d11bd3a532c94bc53305394e17e7cc2`. The student
-is preparing its ownership plan before affected implementation. Bill's editorial
+`edition-2-ch06-r1` at `1c6b1f065d11bd3a532c94bc53305394e17e7cc2`. The student's
+ownership plan was accepted before affected implementation. Bill's editorial
 approval is separate.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Contract | Author, coordinator | Accepted at `74928f1`; incremental projection lesson `2f105ce`; published initial checker command `7b116b7` | Preserve the new teaching in the fresh student handoff |
-| Structure and implementation | `/root/coder_ch07`, coordinator | Fresh student released from accepted Chapter 6; read/owner plan pending | Review owner/state/lifetime plan before affected code |
+| Structure and implementation | `/root/coder_ch07`, coordinator | Root accepted the retained owner/state/lifetime plan before affected code; initial source/read ledger records new-only inputs | Implement and test public watch, pause, optional GUI and reused CLI |
 | Independent checks | Grader engineer | Initial partial checker and coverage plan at `a5a07ba`; 15 local transport/snapshot/pause cases, with assertion controls | Add public watch/admission/capacity/teardown and real-browser checks; partial checker is not full acceptance |
 | Initial live use | Student, coordinator | Not started; browser driver is available outside the repository | Review complete feature/action plan before paid browser, CLI and public demonstrations on all three APIs |
 | Historical comparison | Independent reviewer, student | Not started | Freeze initial implementation, runs and student teaching review before old-answer comparison |
