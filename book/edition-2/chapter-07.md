@@ -3,30 +3,30 @@
 Get ready for self-wielding.
 
 Text-to-speech is not a convenience feature for Bill. It is how he reads.
-Macular dystrophy took his central vision; he processes text through
-Eloquence at 750 words per minute, faster than most people read with
-their eyes. A terminal scrolling raw JSON is a wall of noise at that
-speed. A browser that can speak the answer, show the tool calls in a
-separate pane, and let him pause while he thinks is the difference
+His workflow with macular dystrophy includes listening to text at
+750 words per minute. A terminal scrolling raw JSON is a wall of noise at
+that speed. A browser that can speak the answer, distinguish tool calls
+from the answer, and let him pause while he thinks is the difference
 between using the agent and fighting it.
 
 This is the ignition chapter, where the agent becomes something worth
 living inside. Not because the screen is pretty, but because a human can
 finally watch the work, hear the answers, and type a correction without
-losing the thread. The grader cannot help here. This is an AI coding
-agent for you, not for the LLM, so you will have to drive.
+losing the thread. The grader can check the controls; it cannot decide
+whether the screen suits its user. This is an AI coding agent for you,
+so you will have to drive.
 
 Chapter 6 gave streaming. The terminal shows tokens as they arrive, and
-that is the safety floor: a human can watch. Nobody customizes a safety
-floor, checks whether their preferences survived a restart, or drags a
-divider to put chat on one side and tool calls on the other, unless the
-tool they are watching is one they intend to use every day. This chapter
-crosses that line.
+that is the safety floor: a human can watch. This chapter gives that human
+a single scroll of readable cards, speech and controls that still work
+while the agent is busy. Chapter 8 adds separate chat and action panes,
+draggable dividers and saved preferences. First the screen has to make a
+correction easier to deliver than to miss.
 
-**Accepted contract:** the coordinator has accepted this chapter for student
-handoff, awaiting the accepted Chapter 6 baseline. No Chapter 7 implementation, passing check, browser demonstration
-or speech result is claimed. Build only after the coordinator releases the
-accepted preceding source.
+**Validation in progress:** the initial student implementation is preserved.
+The [validation record](chapter-07-validation.md) tracks local checks, required
+live demonstrations and the remaining independent review. The spin below is
+still a plan, not a claim of completed browser use.
 
 ## TL;DR
 
@@ -230,8 +230,9 @@ it is not persisted and is never submitted by the browser as a reconnect cursor.
 The watermark includes pause observations as well as model, durable-event and
 other public state observations. A pause update before the cut appears in the
 snapshot aggregate; one after the cut appears in the tail. The tail starts
-strictly after that watermark. A watch joining after `model_begin` uses the
-snapshot's active-operation metadata; it receives no fabricated second begin.
+strictly after that watermark. When the reader reconnects after `model_begin`,
+the page uses the snapshot's active-operation metadata; it receives no
+fabricated second begin.
 It accepts subsequent full-identity deltas/finals/end for that operation even
 if the initial partial list was empty. A mutation of returned
 snapshot buffers cannot change history, another client or the next snapshot.
@@ -429,8 +430,8 @@ payload removal; the valid result child tests recursive bound-signature removal.
 A tool call with args `{"opaque":"keep-as-argument"}` must retain that argument
 unchanged. These fictional signatures test projection, not provider acceptance.
 
-If the socket fails after submission but before `accepted`, show acceptance
-unknown and reconnect to inspect history. Do not resend automatically. This
+If the reader submits a prompt and the socket fails before `accepted`, show
+acceptance unknown and reconnect to inspect history. Do not resend automatically. This
 chapter provides catch-up, not distributed exactly-once request submission.
 A new connection gets a new registration and snapshot generation, resends its
 current typing/speaking causes, and discards frames from earlier generations.
@@ -439,8 +440,8 @@ not cancel an already accepted Agent request.
 
 ## 7.5 A slow tab must not own the actor
 
-This was a real crash in the first edition, and it took longer to find
-than to fix.
+The first edition had a crash at this boundary: closing a tab could close a
+channel that a broadcaster was about to use.
 
 Give each connection a bounded outgoing queue with the same 256-message and
 128 MiB limits as the watch. Snapshot records pass through that queue too;
@@ -675,8 +676,9 @@ proofreading remain required after implementation of this accepted contract.
 
 ---
 
-The terminal was a safety floor. Now the agent has a screen worth
-living inside: cards that track every artifact, speech that keeps
-the human's hands free, pause controls that know which tab owns them,
-and a reconnect that never loses a completed answer. The next chapter
-makes the screen remember what the human prefers.
+The terminal was a safety floor. The browser adds cards that distinguish
+provisional text from accepted answers, speech that keeps the human's hands
+free, and pause controls that know which tab owns them. Reconnect restores
+the retained 100-event window and current partials, with an explicit count
+of omitted older events. The next chapter makes the screen remember what
+the human prefers.

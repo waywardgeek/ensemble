@@ -1,7 +1,8 @@
 # Chapter 7 outline: A browser you can steer from
 
-Status: coordinator-accepted student contract, awaiting the accepted Chapter 6
-baseline. The initial partial checker invocation is published. No Chapter 7 implementation or live evidence.
+Status: accepted contract with initial student source preserved. The
+[validation record](chapter-07-validation.md) owns current local/live/review
+gate status; this outline does not claim completed paid browser demonstrations.
 Maps to first-edition Chapter 8. Development stays in `solutions/edition-2/main`;
 only the coordinator exports a validated `ch07`.
 
@@ -21,6 +22,15 @@ unpause depended. Teach explicit state reconciliation before a new student can
 repeat it. Use the Chapter 22 disconnect crash as a short ownership lesson,
 with commit `352b590` as its historical receipt. Do not reuse unverified Chrome
 universals, send-site counts, timings or an invented Bill/browser session.
+
+Preserve `0f05359`'s personal motivation: `book/gui-design.md` records the
+750-wpm listening workflow and macular dystrophy. No receipt in the consulted
+material establishes Eloquence as the voice used, a comparison with other
+readers' speed, or how long the teardown crash took to diagnose. Omit those
+additions while retaining the concrete need to hear, distinguish and steer
+the work. The first browser is a single ArtifactScroll; separate panes,
+draggable dividers and saved preferences belong to Chapter 8. Reconnect
+promises the declared retained window and omissions, not a complete history.
 
 ## Teaching order
 
@@ -99,5 +109,5 @@ Projection recurses through response/message/result part lists, preserves order
 and empty text, strips bound signatures and replaces raw opaque payloads with
 placeholders. Exact valid payload fixtures cover response opaque data, nested
 result signatures and an argument whose ordinary key is named opaque. No new
-neutral result child kind or runtime architecture is introduced. Coordinator
-contract review is accepted; accepted Chapter 6 remains before student release.
+neutral result child kind or runtime architecture is introduced. These
+clarifications were accepted before the Chapter 7 student handoff.

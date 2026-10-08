@@ -1,6 +1,7 @@
 # Chapter 7 student teaching feedback
 
-Initial implementation is in progress. The student retains its actual read
+The initial implementation is preserved; current gate status is in the
+[validation record](chapter-07-validation.md). The student retains its actual read
 ledger, plan, attempts and interpretation in
 `solutions/edition-2/main/evidence/ch07/student-review.md`. This record captures
 teaching dispositions, not chapter acceptance or historical code comparison.
@@ -49,3 +50,27 @@ The coordinator restored those requirements immediately after the new opener,
 and restored the Chapter 8 autoplay control's required help text. The initial
 student read the preceding complete contract; this preserves that same teaching
 for the next reader without undoing the editorial work.
+
+## Author reconciliation before paid demonstration receipts
+
+The temporary Chapter 7 author read the student's complete retained teaching
+review after source freeze `da162e8` and support repair `ba902b7`. The student
+explicitly confirms that `1bba1bc` resolves the malformed-transport versus
+correctable-command ambiguity. The chapter retains that distinction and its
+wire example. Actor publication before the public pause update returns still
+does not promise a particular race between frames on one socket.
+
+Idle watch retention, invalid partial projection after overflow, explanatory
+oversize close, and prompt-acceptance uncertainty were implementation or fixture
+findings under the existing contract. Their initial failures and corrections
+remain in the student's review. No requirement is relaxed to accommodate them.
+The isolated browser speech recording is a local feasibility result, separately
+labeled from the required real-model browser demonstrations and from any claim
+that Bill heard it.
+
+The editorial corrections preserve the new personal motivation and all restored
+speech requirements. They assign saved preferences and dividers to Chapter 8,
+qualify reconnect to its 100-event window and omit unsupported Eloquence and
+diagnosis-duration specifics. These answer the outstanding prose review, not
+an invented complaint from the student. Actual-use feedback, initial experience
+freeze and post-comparison revisions still require their later dispositions.

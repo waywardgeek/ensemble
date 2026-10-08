@@ -1,8 +1,10 @@
 # Chapter 7 source research and evidence plan
 
 October 7, 2026. Author-only research; do not give this file or its historical
-links to the student. Drafting does not authorize Chapter 7 code before accepted
-Chapter 6. No Chapter 7 build, browser session, audio result or grade is claimed.
+links to the student. The dated research and preparation entries below precede
+the implementation. Current gate status belongs to the
+[validation record](chapter-07-validation.md); the reconciliation entry records
+subsequent evidence without relabeling earlier plans as completed runs.
 
 ## Sources read
 
@@ -139,3 +141,44 @@ commands. This author update does not run the checker or claim a student pass.
 Full §7.9 coverage remains required, including public, concurrency and browser
 checks being developed as the interfaces emerge. Chapter 7 implementation and
 live evidence still await the accepted Chapter 6 baseline and student handoff.
+
+## Temporary author reconciliation after the initial source freeze
+
+The coordinator reassigned the available `/root/coder_ch04` thread to Chapter 7
+prose while the original author could not resume. This author implemented
+Chapter 4 and has that source exposure; it did not author Chapter 7 code and
+is not the independent reviewer of that code. Its edit scope is this chapter,
+outline, evidence and student-feedback record.
+
+Read the complete current `book/voice.md` and chapter-writing procedure,
+architecture, complete Chapter 7, its outline/evidence/review/feedback/validation
+records and the student's `main/evidence/ch07/student-review.md`. Read
+`book/gui-design.md`'s opening and chapter arc to check the personal workflow
+and GUI scope. No Chapter 7 implementation or grader source was read for this
+prose pass.
+
+The initial source is preserved at `da162e8`; evidence support repair `ba902b7`
+retains the same runtime. Local results and speech feasibility are described
+in the coordinator's validation record. Actual paid browser/PTY/public runs
+and historical comparison are still pending at this entry. No new successful
+spin, audio transcription, human listening or final acceptance is inferred.
+
+Revision `0f05359`'s personal motivation and examples remain. The introduction
+now assigns separate panes, draggable dividers and saved preferences to
+Chapter 8, while Chapter 7 supplies a single scroll of cards and transient
+speech/input controls. The closing paragraph promises the last-100-event
+window and an omission count. `book/gui-design.md` supports 750-wpm TTS and
+macular dystrophy, but the consulted evidence does not substantiate the new
+Eloquence attribution, reading-speed comparison or crash-diagnosis duration;
+those claims are narrowed. The documented send/close incident remains intact.
+The explicit speech scope restored at `4a2e95c` is retained unchanged.
+
+Scoped check: `go run ./cmd/lintprose book/edition-2/chapter-07.md` passes every
+hard rule (5,623 prose words). Soft warnings remain for 20 negation forms and a
+2,033-word person gap. The reading pass retained technical refusals that define
+the wire and ownership boundaries; reconnect paragraphs now name the reader's
+action and uncertain prompt acceptance directly. Paragraph endings vary between
+consequences, state rules and the next operation. No anecdote or padding was
+added to satisfy a count. Fenced code and table rows are byte-identical to the
+pre-edit chapter. Runtime and grader files were neither edited nor rerun by
+this author; their independent gates remain in the validation record.
