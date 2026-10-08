@@ -355,3 +355,43 @@ Older Gemini failures, the inconclusive grouping diagnostic, the invented
 with their original identities. None is counted as an accepted current-scope
 Gemini run. Code and live-evidence gates are accepted; final chapter proofreading
 and the coordinator's export/tag remain separate completion steps.
+
+## Final chapter proofreading acceptance
+
+The complete chapter and the reconciled outline, evidence and student-feedback
+records are accepted at author commits `18fdcb8` and `9849ad7`. The reviewer
+reloaded the full coding skill, current voice and chapter-writing procedure,
+read the complete chapter against the accepted receipts, and checked the
+author's recorded responses against the student's preserved initial review
+and appended confirmations. Prior grader-engineer exposure remains disclosed
+at the start of this report; this reviewer authored neither student runtime
+nor chapter prose.
+
+The final proofread resolved two small chapter clarifications: TL;DR item 3
+now includes process-input I/O, and the initial ordinary-control success is
+explicitly attributed to Messages/Chat Completions. Ancillary records now count
+the original masked controls correctly as thirteen negatives plus one positive,
+identify export source `185ba76`, and describe the GUI simply as a stub.
+The README/CHECKPOINT refresh is accepted as documentation-only; its persistence
+failure wording was narrowed to avoid implying that ordinary validation refusals
+permanently fault an Agent. Runtime remains `959c663`; receipts remain frozen
+at `469730f`.
+
+The abridged transcripts preserve the observed commands and answers. The token
+table matches the three core-control logs and explicitly excludes other runs.
+Hint acknowledgement, wire delivery, consumption and model compliance are
+distinct. The new story retains the reader's need to correct work while it
+runs, explains the two-owner hazard, and uses the actual blocked-write discovery
+without inventing dialogue or human participation. Historical failures and
+the inconclusive Gemini diagnostic remain accurately qualified.
+
+Scoped prose lint passes with no hard failures. Its sole soft person-gap warning
+falls inside necessary lifecycle/protocol contracts; the control examples and
+caller consequences preserve the chapter's purpose. The exact four document
+hashes, lint result and local-link checks are recorded in
+[proofread acceptance](checkpoint-evidence/ch05-review-proofread.json).
+Links to the forthcoming frozen `ch05` export were checked against their exact
+files in committed export source `185ba76`, rather than described as already
+exported. No unresolved code, evidence, teaching or manuscript finding remains.
+The coordinator may create the verified export and immutable chapter tag.
+Bill's editorial approval remains separate.
