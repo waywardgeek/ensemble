@@ -404,3 +404,76 @@ No implementation, grader, provider call, new build or successful live outcome
 is claimed. The independent runnable acceptance command remains pending before
 student release; final implementation, comparative review and actual evidence
 remain separate future gates.
+
+## Grouped correction closure
+
+Reviewed author revision `a80138d53fedc70ae4b184700282014f9a2f1e90` against
+the complete first-draft findings at `23a1745` and fact-survival clarification
+at `e13706a`. This pass read the complete manuscript/outline/evidence delta,
+then the affected surrounding scheduling, selection, pressure, helper receipt,
+snapshot, client and demonstration passages. After context reload it read all
+of the current voice guide and chapter-writing procedure again. Focused
+predecessor reads rechecked Chapter 2 provenance/parts and Chapter 8's captured
+effective budget. No new historical implementation exposure occurred; the earlier
+role and historical prose disclosures above still apply.
+
+All five findings close on this revision:
+
+- **R1:** Foreground and active-turn helper attempts use the captured effective
+  allowance. Stored zero explicitly selects 16. The finite operation allowance,
+  distinct idle allowance and normal budget-before-pressure outcome remain intact.
+- **R2:** Snapshot metadata retains usage, provenance, hashes, measures and
+  relations without duplicating retired text in accepted raw output or normalized
+  submit arguments. The two-fold 12→19 example makes the second retirement
+  observable; absent original output returns history_unavailable while accepted
+  usage remains counted. Refused candidate text has the same no-archive boundary.
+- **R3:** Whole-unit protection explicitly includes signed visible text and
+  tests opaque field presence, including null, false and empty values. A foreign
+  renderer's ability to omit signature metadata does not grant compression rights.
+- **R4:** Neutral messages now have exact roles, members, part inclusion and
+  ordering; tools have exact members and bytewise name order. Segment scheduling
+  explicitly counts older note wrappers while generated-band sums exclude memory
+  wrappers. Helper configuration, provenance, normalized/raw usage, fixed tool
+  description and exact request-body relationship are stated without serializing
+  arbitrary foreground Config. Export acknowledgement includes its required code.
+- **R5:** The reader creates the selected input directory/manifest and explicitly
+  refreshes it, then enables context before public handoff. Automatic memory
+  scheduling is enabled separately. The planted calibration fact is distinct
+  from the external port correction and must survive only through generated memory
+  in the actual follow-up request. Protected-note leakage or summary omission
+  prevents a successful retention claim. Already eligible source remains
+  compressible without silently enabling context maintenance.
+
+The grouped changes preserve D1–D8: the finite source graph, Actor/Engine/Memory
+ownership, joined operation lifetime, atomic retirement/install, explicit refresh
+and derived export, free public handoff, strict profile/version routes and honest
+snapshot history boundary. No new consequential contradiction was found in the
+affected passages. The more precise definitions support independent checks;
+they do not establish an implemented behavior.
+
+The full delta leaves the original fourteen JSON fixtures unchanged and adds one
+complete initial manifest, also used earlier in the chapter. Manual review of
+that added literal finds the required version, entries, ID and text shape. The
+existing three helper fragments still contain the same SOURCE descriptor and
+the illustrative arithmetic remains unchanged. Automated parsing of all fifteen
+fixtures remains the author's reported check; this review wrote no parser.
+Working author files match the frozen revision exactly.
+
+The retained prose executable independently passes every hard rule at 7,024
+words. Its soft negation/person-gap warnings remain. The concrete correction
+story, explicit lossiness and bounded fact-retention exercise still carry the
+reader's stake through the technical material. The additions claim no successful
+model summary, actual graduation or implementation result.
+
+Frozen SHA-256 values:
+
+- chapter-15.md: `0b5e520ea7381d4a1244d9b1411eef46bc4290e8106eef9d67a474a8294d1b6f`.
+- chapter-15-outline.md: `e9148afc234f5dbac83010917d5fb7efe01c9b2835d4382883041839197043b0`.
+- chapter-15-evidence.md: `d7fbc4c7f12b0bc87eb0a667358bfd8e8ef63725e7d53dc52fd948e147596456`.
+- chapter-15-decisions.md: `a3736c971457ebf8acb3840125a95d970875c9c73020dccc2d1ab02b2deeaa94`.
+
+Disposition: grouped contract/prose correction accepted; R1–R5 are closed.
+The independent runnable checker must still be published before student release.
+Implementation, deterministic/deletion checks, initial real use, comparison and
+final evidence remain unfulfilled separate gates. No runtime, provider call,
+new build or code/checker edit was performed in this review.
