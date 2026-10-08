@@ -60,7 +60,7 @@ with tempfile.TemporaryDirectory() as temp:
     (fixture/'launch.json').write_text(json.dumps(launch))
     verifier.verify(binding,[fixture],paths,root/'positive')
     results.append({'check':'valid-path-complete-source-executables-launch-and-replay','passed':True})
-    for name,reason in [('source-hash','historical source mismatch'),('source-set','incomplete historical source set'),('binary','executable mismatch'),('launch-source','launch source mismatch'),('launch-binary','launch executable mismatch'),('support','historical support mismatch'),('launch-support','launch support mismatch'),('empty-source','empty source set'),('browser-tools','browser dependency mismatch')]:
+    for name,reason in [('source-hash','historical source mismatch'),('source-set','incomplete historical source set'),('binary','executable mismatch'),('launch-source','launch source mismatch'),('launch-binary','launch executable mismatch'),('support','historical support mismatch'),('launch-support','launch support mismatch'),('empty-source','empty source set'),('browser-tools','browser dependency mismatch'),('browser-tools-set','incomplete browser dependency set'),('launch-browser-tools','launch browser tools mismatch')]:
         candidate=copy.deepcopy(binding);newlaunch=copy.deepcopy(launch);chosen=next(iter(candidate['sources']))
         if name=='source-hash':candidate['sources'][chosen]='0'*64
         if name=='source-set':candidate['sources'].pop(chosen)
@@ -71,10 +71,36 @@ with tempfile.TemporaryDirectory() as temp:
         if name=='launch-support':newlaunch['support']={**newlaunch['support'],'browser-live.mjs':'0'*64}
         if name=='empty-source':candidate['sources']={}
         if name=='browser-tools':candidate['browser_tools'][next(iter(candidate['browser_tools']))]='0'*64
+        if name=='browser-tools-set':candidate['browser_tools'].pop(next(iter(candidate['browser_tools'])))
+        if name=='launch-browser-tools':newlaunch['browser_tools']={**newlaunch['browser_tools'],next(iter(newlaunch['browser_tools'])):'0'*64}
         (fixture/'launch.json').write_text(json.dumps(newlaunch));output=root/name
         try:verifier.verify(candidate,[fixture],paths,output);raise RuntimeError('negative control accepted')
         except AssertionError as error:
             assert reason in str(error),str(error);assert not output.exists();results.append({'check':name,'refusal':str(error),'passed':True})
         (fixture/'launch.json').write_text(json.dumps(launch))
+    # Exercise the actual Node launch adapter, starting from a successful path.
+    browser_run=root/'browser';browser_run.mkdir()
+    browser_launch={**launch,'launched_executable':'gui'}
+    (browser_run/'launch.json').write_text(json.dumps(browser_launch))
+    browser_env=env.copy();browser_env['CH02_LOG']=str(browser_run/'session.log')
+    gui=subprocess.Popen([paths['gui'],'--port','0'],cwd=browser_run,env=browser_env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+    try:
+        url=gui.stdout.readline().strip();assert url.startswith('http://127.0.0.1:')
+        command=[paths['node'],str(HERE/'browser-live.mjs'),str(browser_run),url]
+        valid=subprocess.run(command,input='{"action":"inspect"}\n{"action":"quit"}\n',capture_output=True,text=True,timeout=30)
+        assert valid.returncode==0,(valid.stdout,valid.stderr)
+        assert (browser_run/'browser-original.jsonl').exists()
+        results.append({'check':'actual-browser-launch-valid-path','passed':True})
+        for name,reason in [('browser-launch-source','launch source mismatch'),('browser-launch-dependencies','launch browser tools mismatch')]:
+            bad=root/name;bad.mkdir();badlaunch=copy.deepcopy(browser_launch)
+            if name=='browser-launch-source':badlaunch['source_revision']='wrong'
+            else:badlaunch['browser_tools'].pop(next(iter(badlaunch['browser_tools'])))
+            (bad/'launch.json').write_text(json.dumps(badlaunch))
+            invalid=subprocess.run([paths['node'],str(HERE/'browser-live.mjs'),str(bad),url],input='',capture_output=True,text=True,timeout=30)
+            assert invalid.returncode!=0 and reason in invalid.stderr,invalid.stderr
+            assert not (bad/'browser-original.jsonl').exists()
+            results.append({'check':name,'refusal':reason,'passed':True})
+    finally:
+        gui.terminate();gui.wait(timeout=10)
 (HERE/'local-evidence-controls.json').write_text(json.dumps(results,indent=2)+'\n')
 print(json.dumps(results,indent=2))

@@ -7,7 +7,7 @@ import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import readline from 'node:readline';
 const here=dirname(fileURLToPath(import.meta.url)),run=resolve(here,process.argv[2]),url=process.argv[3];
-const check=spawnSync('python3',['-c',`import json,sys; from pathlib import Path; from evidence import HERE,preflight; b=json.loads((HERE/'initial-binding.json').read_text()); preflight(b,{}); l=json.loads((Path(sys.argv[1])/'launch.json').read_text()); assert l['source_revision']==b['source_revision'],'launch source mismatch'; assert l['executables']=={n:v['sha256'] for n,v in b['executables'].items()},'launch executable mismatch'; assert l['support']==b['support'],'launch support mismatch'`,run],{cwd:here,encoding:'utf8'});
+const check=spawnSync('python3',['-c',`import json,sys; from pathlib import Path; from evidence import HERE,preflight; b=json.loads((HERE/'initial-binding.json').read_text()); preflight(b,{}); l=json.loads((Path(sys.argv[1])/'launch.json').read_text()); assert l['source_revision']==b['source_revision'],'launch source mismatch'; assert l['executables']=={n:v['sha256'] for n,v in b['executables'].items()},'launch executable mismatch'; assert l['support']==b['support'],'launch support mismatch'; assert l['browser_tools']==b['browser_tools'],'launch browser tools mismatch'`,run],{cwd:here,encoding:'utf8'});
 if(check.status!==0)throw new Error(check.stderr||check.stdout);
 const binding=JSON.parse(readFileSync(join(here,'initial-binding.json')));
 const browserServer=await chromium.launchServer({channel:'chrome',headless:false});
