@@ -52,7 +52,8 @@ is accepted for checker preparation at `0c82feb`; see
 [chapter-11-validation.md](chapter-11-validation.md). It requires replaceable
 MCP message transports and the later optional-module WebSocket GUI tunnel,
 following Bill's explicit instruction recorded at `ad2b2e8`. Chapter 12's
-outline `54806a6` and decisions `9b60c33` lead to a full draft now being finished,
+outline `54806a6` and decisions `9b60c33` led to full draft `46fd7d8`, revised
+at `2d4ea47`. Root accepted all seven contract corrections at `8df7046`,
 including explicit browser bootstrap and actual GUI tunneling; see
 [chapter-12-validation.md](chapter-12-validation.md). No
 implementation or live result is claimed for those future chapters.

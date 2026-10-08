@@ -111,6 +111,11 @@ Its external directory is
 work boundaries. Preserve previous messages when appending. Keep excluded
 research and grader internals out of that inbox. Check the existing process and
 event/result status before resuming; do not start a competing worker on main.
+The phase-2 event feed stopped showing nested tool calls after a context reload
+while the worker remained active. If that recurs, check process status, current
+student receipts and timestamps/tool-call metadata in that session's local
+rollout before treating silence as a stopped worker. Do not copy private
+reasoning or credentials into the progress record.
 Later phases resume this explicit session ID, with memory use/generation disabled
 as in the retained launch. The current phase stops for live-plan review before
 credential reads or paid provider demonstrations.
