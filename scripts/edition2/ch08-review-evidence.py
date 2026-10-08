@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 """Independent frozen Chapter 8 live audit. Local replay only; never HTTP."""
+import argparse
 import copy
 import hashlib
 import importlib.util
@@ -15,6 +16,7 @@ REPO = Path(__file__).resolve().parents[2]
 HERE = REPO / 'solutions/edition-2/main/evidence/ch08'
 PREFIX = str(HERE.relative_to(REPO)) + '/'
 FREEZE = '7f517d8'
+TEACHING_APPEND = None
 BINDINGS = ('binding-bd5c05a.json', 'binding-cd9de3e.json', 'binding-a06d4f3.json', 'initial-binding.json')
 
 
@@ -33,14 +35,24 @@ def index(revision):
     return result
 
 
+def bound_raw(revision, name, blob, raw):
+    actual = hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
+    if actual != blob and name == 'student-review.md' and TEACHING_APPEND:
+        # Only an explicitly identified append may advance the teaching record.
+        # Every raw receipt, binding and verifier remains exact at FREEZE.
+        bound_append = git('show', TEACHING_APPEND + ':' + PREFIX + name)
+        original = git('show', revision + ':' + PREFIX + name)
+        assert raw == bound_append and raw.startswith(original), 'unbound or rewritten teaching append'
+        return original
+    assert actual == blob, 'frozen original changed: ' + name
+    return raw
+
+
 def frozen_files(revision, names=None):
     result = {}
     for name, blob in index(revision).items():
         if names is not None and name.split('/')[0] not in names: continue
-        raw = (HERE / name).read_bytes()
-        actual = hashlib.sha1(b'blob ' + str(len(raw)).encode() + b'\0' + raw).hexdigest()
-        assert actual == blob, 'frozen original changed: ' + name
-        result[name] = digest(raw)
+        result[name] = digest(bound_raw(revision, name, blob, (HERE/name).read_bytes()))
     return result
 
 
@@ -159,6 +171,20 @@ def audit():
     initial = frozen_files('5f9684b', {p.name for p in runs})
     bindings = [read(HERE / p) for p in BINDINGS]
     controls = []; phases = []; audio = []; summaries = []; chronological = 0
+    if TEACHING_APPEND:
+        file_index=index(FREEZE); name='student-review.md'; current=(HERE/name).read_bytes()
+        assert bound_raw(FREEZE,name,file_index[name],current)==git('show',FREEZE+':'+PREFIX+name)
+        controls.append({'id':'explicit-append-only-teaching-positive','passed':True})
+        for label, target, data, reason in [
+            ('unbound-teaching-edit',name,current+b'\nunbound change','unbound or rewritten teaching append'),
+            ('replaced-teaching-prefix',name,b'rewritten'+current,'unbound or rewritten teaching append'),
+            ('raw-receipt-still-exact','anthropic-cli/terminal.txt',(HERE/'anthropic-cli/terminal.txt').read_bytes()+b'\nchanged','frozen original changed')]:
+            try:
+                bound_raw(FREEZE,target,file_index[target],data)
+                raise RuntimeError('mutation accepted: '+label)
+            except AssertionError as error:
+                assert reason in str(error)
+                controls.append({'id':label,'passed':True,'refusal':str(error)})
     totals = {v:{'prompts':0,'http':0} for v in ('anthropic','openai','gemini')}
     with tempfile.TemporaryDirectory(prefix='ch08-independent-live-') as temporary:
         tmp = Path(temporary); loaded = {}
@@ -284,6 +310,8 @@ def audit():
     assert originals==frozen_files(FREEZE), 'originals changed during audit'
     return {'accepted':True,'evidence_revision':git('rev-parse',FREEZE).decode().strip(),'script_sha256':sha(Path(__file__)),
             'original_files':len(originals),'initial_retained_files':len(initial),'original_sha256':originals,
+            'separate_teaching_append':({'revision':git('rev-parse',TEACHING_APPEND).decode().strip(),
+                                         'path':'student-review.md','sha256':sha(HERE/'student-review.md')} if TEACHING_APPEND else None),
             'bindings':{p:sha(HERE/p) for p in BINDINGS},'phases':phases,'totals':totals,'chronological_single_agent_runs':chronological,
             'controls':controls,'audio':audio,'runs':summaries,'feature_matrix':feature_audit(),
             'exact_credential_scan':{'files':len(scanned),'matches':0},
@@ -293,4 +321,7 @@ def audit():
 
 
 if __name__=='__main__':
+    parser=argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--teaching-append',help='Exact commit of an append-only student-review.md update; no other evidence may differ')
+    TEACHING_APPEND=parser.parse_args().teaching_append
     print(json.dumps(audit(),indent=2))

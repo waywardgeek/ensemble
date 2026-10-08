@@ -23,9 +23,9 @@ obsolete architecture or change the new request-counting contract.
 
 The [50-group deterministic reconciliation](checkpoint-evidence/ch08-full-gate-reconciled.json)
 remains valid for its stated coverage. Comparative review subsequently found
-a numeric representation boundary not protected by those fixtures. The numeric revision repair is independently accepted below. Author reconciliation
-and final live receipt verification remain open. Neither a green gate nor this
-comparison accepts the final live evidence package.
+a numeric representation boundary not protected by those fixtures. The numeric revision repair is independently accepted below. The later final
+disposition closes author reconciliation and links the distinct live receipt
+audit; neither a green gate nor the original comparison alone accepted that package.
 
 ## Consolidated findings
 
@@ -54,8 +54,9 @@ wire/on-disk schema, preserve unsafe revision lexemes losslessly inside the
 browser, compare consecutive revisions exactly and encode only the top-level
 settings base as its exact numeric token. Conflict snapshots need the same
 handling. Unrelated tool arguments and strings must not be rewritten. A browser
-without the required lossless parsing capability must refuse visibly before
-claiming readiness or emitting a rounded command. No arbitrary new persisted
+without the required lossless parsing capability must refuse visibly when an
+unsafe required counter arrives, before accepting that frame or emitting a rounded
+command. Safe-integer-only frames remain usable. No arbitrary new persisted
 ceiling, string-number acceptance or weakened file validation was authorized.
 
 The first browser-only repair exposed a second conversion at the same boundary.
@@ -78,7 +79,7 @@ alone does not justify repeating paid generation.
 
 ### T1: Teach the actual native speech boundary
 
-**Runtime repair independently accepted; author reconciliation pending.** The
+**Runtime and author reconciliation independently accepted.** The
 student's actual native test exposed a resource shared beyond a document. A
 Page-local queue and application-local native owner did not prevent one tab's
 no-start timeout from cancelling another tab's speech. The initial separate
@@ -105,7 +106,7 @@ hold as a skill requirement.
 
 ### T2: Narrow the historical claim about turning speech off
 
-**Open author correction.** The opener currently claims that dropped false made
+**Author correction accepted.** The initial opener claimed that dropped false made
 speech impossible to turn off in the first-edition reference. The frozen Chapter
 9 client unconditionally converts an absent `tts_enabled` member to false on
 application. Its particular workaround makes that claimed outcome false for
@@ -144,7 +145,7 @@ or paid rerun is needed for these comments.
 | Responsibility | `common.SettingsStore` contains mutex, merge and file I/O; WebSocket Hub receives direct gate/log/settings services and callbacks. | Common declares values and interfaces. Agent owns policy in its spoke; optional GUI Server owns preferences. Constructors and actual parent interfaces reach Ensemble logging. Preserve this separation. |
 | Execution effect | Both historical orchestration paths compare a constant 16; stored `MaxToolRounds` has no consumer despite an affirmative comment. | Actor captures applied policy at activation and checks the captured request budget, including automatic continuations. The independent limit1/17/default16 and queued/active tests exercise actual work. This is a concrete improvement, with deliberately different counting semantics from later historical corrections. |
 | Persistence | State changes before unchecked `os.WriteFile`; mutex spans I/O; malformed loads and write failures are ignored. | Owned candidate, bounded strict load, checked write/sync/close/replacement, publication after successful replacement, busy/conflict errors and joined close. Fault controls distinguish pre-commit failure from committed state. The additional state machine is warranted by these promises. |
-| Wire state | Omitempty erases meaningful values, permissive patches partially accept input, and broadcasts can silently drop. | Sparse presence is separate from complete values; strict domain/envelope validation, full snapshots, bounded subscriptions and contiguous initial handoff. Revision precision is the remaining R1 boundary. |
+| Wire state | Omitempty erases meaningful values, permissive patches partially accept input, and broadcasts can silently drop. | Sparse presence is separate from complete values; strict domain/envelope validation, full snapshots, bounded subscriptions and contiguous initial handoff. The accepted R1 repair additionally protects settings and watch-envelope counter precision. |
 | Browser reuse | One IIFE reaches global DOM, a global mutable TTS object, mouse-only unpersisted widths, and immediate input coercion. | Application/Page/component owners, two reused ArtifactScroll instances, semantic controls, desired persisted widths, keyboard/pointer operation, applied/draft distinction and remount cleanup. Mixed-part routing and safe expansion are protected by actual-Chrome controls. |
 | Speech | Queue entries contain text; playback reads the then-current global rate; native cancellation is global and callbacks are not generation-fenced. | Entries capture local preference revision/rate; shared defaults do not own local work; application FIFO plus browser lease isolates cooperating tabs. This is more machinery, but each piece protects an observed lifetime or resource boundary. |
 | Comments | Settings' comment claims nonexistent execution wiring; the later correction records why that claim was harmful. | Policy's package/Close comments describe actor application and joined persistence. Native comments identify the lease scope. Preserve explanatory invariants and add the precision note rather than narrating each statement. |
@@ -236,3 +237,37 @@ Next: obtain the author's T1/T2 and numeric-boundary teaching responses and the
 student's confirmation, independently verify the final live evidence, then
 proofread the complete reconciled chapter. Final chapter acceptance remains
 pending those specific gates.
+
+
+## Final teaching, live evidence and prose disposition
+
+Author reconciliation at `cf2e070`, corrected at `acd1a01`, resolves T1, T2 and
+the numeric representation lesson. The full current voice and writing procedure,
+complete chapter, outline, source research, student report/feedback and source
+README/CHECKPOINT were read. The historical comparison's concrete story survives: a
+zero-temperature display can lie while the omitted-false speech consumer happens
+to work. The chapter no longer substitutes the stronger unsupported story.
+
+The browser precision promise is scoped to settings/conflict snapshots and known
+watch-envelope counters. Server projection preserves numeric tokens generally;
+this review does not claim lossless browser conversion of every nested event/part
+number. Missing reviver source support refuses an unsafe required counter rather
+than preemptively disabling a browser that sees only safe integers. This precision
+correction matches the accepted repair plan and controls; no assertion was weakened.
+
+The complete manuscript proofread corrected the CLI output-path command, adjacent
+no-change repetition, the unclear layout opener, stale outline status and the
+claim that `round_limit` waits for permission. Its actual CLI/public/browser story
+retains initial failures, paid versus replayed text, limited audio claims and
+Anthropic's later overwrite. Both screenshot pixels were inspected and agree with
+their narrowed alt text. Exact first-turn usage figures match the three PTY logs.
+The primary Web Locks and ECMAScript sources support the stated platform scope.
+
+[Independent live acceptance](chapter-08-live-review.md) at `c84f46b` verifies
+all 47 requests and source/binary/support identities with originals unchanged.
+The [final proofread receipt](checkpoint-evidence/ch08-final-proofread.json) binds
+the final manuscript and supporting bytes, student confirmation, lint result and
+read-only review scope. Implementation, comparative revisions, teaching responses,
+live evidence and independent manuscript review are closed. The coordinator still
+owns the final exact export, validation ledger, immutable tag and any editorial
+approval claim.

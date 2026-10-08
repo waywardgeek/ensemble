@@ -14,7 +14,7 @@ freeze `5f9684b` is preserved. Actual launches retain their `bd5c05a`, `cd9de3e`
 `a06d4f3` and support-only `52c9561` identities. Reviewed final runtime is
 `a06d4f3c848685d81306166279df7c977d71bddd`; no earlier receipt is relabeled as a
 run of that binary. Later coordinator README/CHECKPOINT edits at `40d389b` are
- documentation only and were read separately.
+documentation only and were read separately.
 
 Reproduce the local audit from the repository root:
 
@@ -155,3 +155,26 @@ fresh-base retries supplement the deterministic writer/failure checks.
 The implementation/comparative gate and this live audit are accepted with these
 explicit scopes. Final manuscript/feedback reconciliation and immutable export
 remain separate coordinator gates.
+
+
+## Final teaching append and reproducible recheck
+
+Student confirmation `446d7f2` appends to `student-review.md` after the audited
+freeze. The original `c84f46b` result remains unchanged. The
+[final recheck](checkpoint-evidence/ch08-live-final-recheck.json) resolves the
+original teaching bytes from `7f517d8` and accepts only that explicitly identified,
+committed append whose prefix is byte-for-byte identical. Every other evidence
+file still has to match its frozen Git blob. Reproduce this final state with:
+
+```sh
+python3 scripts/edition2/ch08-review-evidence.py --teaching-append 446d7f2
+```
+
+The recheck repeats all source/launch/request/audio/feature assertions and adds
+a passing append control plus intended refusals for an unbound edit, a rewritten
+prefix and a changed raw terminal. All 30 controls pass; all 1,067 frozen file
+hashes are unchanged, with the separately bound teaching append recorded outside
+that map. No broad exemption for modified metadata or receipts was introduced.
+Final manuscript and student confirmation are accepted in the
+[proofread receipt](checkpoint-evidence/ch08-final-proofread.json); export/tag
+remain coordinator work.
