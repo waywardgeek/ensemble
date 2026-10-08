@@ -1,3 +1,7 @@
+//go:build ignore
+
+// Run this standalone helper explicitly from the optional GUI module. Keeping it
+// out of package discovery preserves the core module's headless build.
 // A local public consumer re-admits retained facts for revised browser checks.
 // It does not resume provider work or describe replay as a new model session.
 package main

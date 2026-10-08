@@ -509,6 +509,13 @@ tag preserve the matching manuscript, main source and export together. A later
 validated export may update that chapter's tracked directory in a new revision;
 the previous commit and tag remain unchanged. Students never edit the export.
 
+Check Go package discovery in every module of the complete delivered tree,
+including retained evidence and support files, before tagging. A runtime-only
+test copy that excludes evidence cannot prove that `go test ./...` works in the
+reader's snapshot. Isolate standalone evidence helpers with an explicit build
+constraint or their own module, and verify their documented explicit invocation
+separately. The Chapter 7 first export exposed this distinction.
+
 Commit the source first, then export it from the repository root with absent
 destination and manifest paths:
 
