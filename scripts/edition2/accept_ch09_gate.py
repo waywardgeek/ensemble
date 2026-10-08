@@ -20,7 +20,7 @@ REPO=HERE.parents[1]
 PREFIX='solutions/edition-2/main/'
 
 
-def evaluate(revision, only=None, progress=None, prepare_adapters=None, prepared_checkers=False):
+def evaluate(revision, only=None, progress=None, prepare_adapters=None, prepared_checkers=()):
     revision=subprocess.check_output(['git','rev-parse',revision+'^{commit}'],cwd=REPO,text=True).strip()
     archive=subprocess.check_output(['git','archive',revision,PREFIX],cwd=REPO)
     rows=[];hashes={}
@@ -48,8 +48,10 @@ def evaluate(revision, only=None, progress=None, prepare_adapters=None, prepared
         cli=temporary/'cli';gui=temporary/'gui'
         def run(name,args,cwd=root,timeout=1800,required=False):
             if only and name not in only and not required:return None
-            if prepared_checkers:
-                args=[bundle/Path(arg).name if Path(arg).parent==HERE else arg for arg in args]
+            # Only fixtures explicitly adapted by a later chapter run from the
+            # bundle. Other direct scripts resolve their contract/repository
+            # from __file__ and must retain their original location.
+            args=[bundle/Path(arg).name if Path(arg).parent==HERE and Path(arg).name in prepared_checkers else arg for arg in args]
             if progress:progress(dict(phase='started', id=name, args=list(map(str,args)), cwd=str(cwd)))
             result=command(args,cwd,timeout=timeout)
             rows.append(dict(id=name,passed=result['exit']==0,command=result))

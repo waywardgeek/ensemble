@@ -86,7 +86,9 @@ def evaluate(revision, receipt, only=None, maintain_cache=False, reserve_mib=768
     save(receipt, observer.state)
     try:
         result = gate.evaluate(revision, only, progress=observer,
-                               prepare_adapters=prepare, prepared_checkers=True)
+                               prepare_adapters=prepare,
+                               prepared_checkers=('ch09-review-record-bounds.py',
+                                                  'ch09-review-boundaries.py'))
         if before != {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in files}:
             raise RuntimeError('Orchestration changed during retained checks')
         observer.state.update(complete_run=True, passed=result['passed'],

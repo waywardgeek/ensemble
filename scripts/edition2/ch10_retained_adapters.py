@@ -40,6 +40,28 @@ def prepare(destination, source=None):
          'func (a *auditLateAgent) AppendFailure() error { return nil }\n'
          'func (a *auditLateAgent) SessionState() *common.SessionState { return nil }\n'
          'func (a *auditLateAgent) ID() string')
+
+    # Chapter 10 prepares session records before the shared persistence branch.
+    # Keep the original standalone positives/assertions, but move the deletion
+    # to the actual append boundary, covering either representation of a write.
+    old_boundary = '\tif err == nil && persist {\n\t\terr = a.log.Append(owned)'
+    new_boundary = '\tif err == nil && persist {\n\t\tif encoded != nil {'
+    edit('ch09-review-boundaries.py', repr(old_boundary), repr(new_boundary), count=2)
+    old_append = '\t\terr = a.log.Append(owned)'
+    old_rollback = old_append + '\n\t\tif err != nil && owned.Type == "tool_returned" { a.skills = nil }'
+    append_end = '\t\t}\n\t\tif err != nil {\n\t\t\ta.faulted = true'
+    rollback_end = ('\t\t}\n\t\tif err != nil && owned.Type == "tool_returned" { a.skills = nil }'
+                    '\n\t\tif err != nil {\n\t\t\ta.faulted = true')
+    edit('ch09-review-boundaries.py', repr(old_append) + ',' + repr(old_rollback),
+         repr(append_end) + ',' + repr(rollback_end))
+
+    # An empty partial-argument delta added a second text guard. Qualify the
+    # original mutation by its emit owner instead of weakening uniqueness or
+    # accidentally mutating argument assembly. The target assertion is intact.
+    emit = 'func (s *streamParser) emit(ctx context.Context, id int, channel, text string) error {\n\t'
+    edit('audit_ch06_mutations.py',
+         repr('if text == "" {') + ', ' + repr('if text == "" || channel == "thinking" {'),
+         repr(emit + 'if text == "" {') + ', ' + repr(emit + 'if text == "" || channel == "thinking" {'))
     for name in (reader, 'ch05_stale_test.go.txt'):
         path = destination / name
         before = hashlib.sha256(path.read_bytes()).hexdigest()

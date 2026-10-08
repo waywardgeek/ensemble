@@ -1,0 +1,561 @@
+{
+  "scope": "Joined retained coverage, not one full clean run or chapter acceptance. No paid provider calls.",
+  "source_revision": "8882a18cf98e9a4b70afccfbe980f6344630aae6",
+  "source_files_count": 4092,
+  "source_map_sha256": "5f6fe7a6b115f5d7dad3d68359666b8fa72d97a5d5fa02e0ed7cd2e1a427c238",
+  "source_maps_identical": true,
+  "passed": false,
+  "complete_full_rerun": false,
+  "full_chapter_acceptance": false,
+  "total": 68,
+  "passing": 66,
+  "remaining_failures": [
+    "accept_ch09",
+    "accept_ch09_management"
+  ],
+  "evidence": {
+    "ch10-retained-full-first.json": {
+      "sha256": "d91e4c73871813c05de20c4786b266e6f7e7fe62f296a30241c0e7c13f9baffa",
+      "bytes": 3393974
+    },
+    "ch10-retained-repaired-nine.json": {
+      "sha256": "8d38bbb9b0820e502ddd81ff4376e13e90a73d3c0d82005f167de250b943fdff",
+      "bytes": 1560794
+    },
+    "ch10-retained-routing-dependencies.json": {
+      "sha256": "e491ca75d77759de096a74af289ada5128c5d23b16b64bfd9222114dd535ab8a",
+      "bytes": 529345
+    },
+    "ch10-retained-routing-dependencies-rest.json": {
+      "sha256": "93f13706eea81c51be5cef12915e6888cb9cbbd23f9a600d9ac4988a1574efad",
+      "bytes": 1392757
+    },
+    "ch10-retained-management-diagnostic.json": {
+      "sha256": "bc769b98f857dcf8dacdbb8862f67473c7b188159a1ea7144ac86d376e9f2423",
+      "bytes": 204145
+    },
+    "ch10-retained-cli-diagnostic.json": {
+      "sha256": "bfb5681e770f14afc53f1dcb0f953898952b3b240b0fffed1a042e7970fd1de5",
+      "bytes": 401102
+    },
+    "ch10-retained-replay-diagnostic.json": {
+      "sha256": "d8f0a13d061332fb67f53c093271b964faa722871a765fcc0e5d69081ec9b3c8",
+      "bytes": 101113
+    },
+    "ch10-retained-diagnostic-binding.json": {
+      "sha256": "481721d681f21fce74164c991a4770f8bf12f82cad7f61d07da79a446657aa60",
+      "bytes": 514825
+    },
+    "ch10-retained-orchestration-tests.txt": {
+      "sha256": "eb2563dbf97f9912102c03497dccf53eb0a8c179a3879797083a4c74390de029",
+      "bytes": 1900
+    }
+  },
+  "checks": [
+    {
+      "id": "build-headless-cli",
+      "passed": true,
+      "receipt": "ch10-retained-routing-dependencies-rest.json"
+    },
+    {
+      "id": "skills-raw-record-read",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "accept_ch09",
+      "passed": false,
+      "receipt": "ch10-retained-repaired-nine.json"
+    },
+    {
+      "id": "accept_ch09_catalog",
+      "passed": true,
+      "receipt": "ch10-retained-repaired-nine.json"
+    },
+    {
+      "id": "accept_ch09_graph",
+      "passed": true,
+      "receipt": "ch10-retained-repaired-nine.json"
+    },
+    {
+      "id": "accept_ch09_management",
+      "passed": false,
+      "receipt": "ch10-retained-repaired-nine.json"
+    },
+    {
+      "id": "accept_ch09_configuration",
+      "passed": true,
+      "receipt": "ch10-retained-repaired-nine.json"
+    },
+    {
+      "id": "accept_ch09_replay",
+      "passed": true,
+      "receipt": "ch10-retained-repaired-nine.json"
+    },
+    {
+      "id": "skills-public",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "skills-record-write-deletions",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "skills-boundary-deletions",
+      "passed": true,
+      "receipt": "ch10-retained-repaired-nine.json"
+    },
+    {
+      "id": "skills-browser",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "build-optional-gui",
+      "passed": true,
+      "receipt": "ch10-retained-routing-dependencies-rest.json"
+    },
+    {
+      "id": "skills-real-gui-local",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "complete-delivered-package-discovery",
+      "passed": true,
+      "receipt": "ch10-retained-repaired-nine.json"
+    },
+    {
+      "id": "module-aware-package-checker-controls",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "historical-package-checker-controls",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "settings-wire",
+      "passed": true,
+      "receipt": "ch10-retained-routing-dependencies.json"
+    },
+    {
+      "id": "strict-files-and-patches",
+      "passed": true,
+      "receipt": "ch10-retained-routing-dependencies.json"
+    },
+    {
+      "id": "command-shapes",
+      "passed": true,
+      "receipt": "ch10-retained-routing-dependencies-rest.json"
+    },
+    {
+      "id": "actual-policy-effects",
+      "passed": true,
+      "receipt": "ch10-retained-routing-dependencies-rest.json"
+    },
+    {
+      "id": "exact-settings-revisions",
+      "passed": true,
+      "receipt": "ch10-retained-routing-dependencies-rest.json"
+    },
+    {
+      "id": "projection-integer-deletion",
+      "passed": true,
+      "receipt": "ch10-retained-routing-dependencies-rest.json"
+    },
+    {
+      "id": "public-policy",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "disk-concurrency",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "policy-disk-deletions",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "settings-browser-deletions",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "snapshot-handoff-deletions",
+      "passed": true,
+      "receipt": "ch10-retained-routing-dependencies-rest.json"
+    },
+    {
+      "id": "settings-browser",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "cross-tab-native-lease-deletions",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-gui-wire",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-public-watch-pause",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-queue-projection",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-watch-deletions",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-browser-deletions",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-projection-scaling",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-connector-deletions",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-ch06-contract",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-ch05-assertions",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-ch06-deletions",
+      "passed": true,
+      "receipt": "ch10-retained-repaired-nine.json"
+    },
+    {
+      "id": "retained-browser",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-cli-early-barriers",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-wire-61",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-cli-overflow-deletions",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "retained-ch07-comparative-repairs",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/browser-consumer/vet",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/browser-consumer/tests",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/consumer/vet",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/consumer/tests",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/jobs-consumer/vet",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/jobs-consumer/tests",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/policy-consumer/vet",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/policy-consumer/tests",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/skills-consumer/vet",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/skills-consumer/tests",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/skills-redaction/vet",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/skills-redaction/tests",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/stream-consumer/vet",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/stream-consumer/tests",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/tools-consumer/vet",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/tools-consumer/tests",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/workflow/vet",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/examples/workflow/tests",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/./vet",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/./tests",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/gui/vet",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "module/gui/tests",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    },
+    {
+      "id": "headless-without-optional-gui",
+      "passed": true,
+      "receipt": "ch10-retained-full-first.json"
+    }
+  ],
+  "reused_initial_passing_rows": 50,
+  "checker_identity_deltas": [
+    {
+      "before": "ch10-retained-full-first.json",
+      "after": "ch10-retained-repaired-nine.json",
+      "map": "original_files",
+      "changed": {
+        "accept_ch09_gate.py": {
+          "before": "a14f01669741c2d62f55d299ea047c00cdf8e39253f31c698b5feb4d16d0cdab",
+          "after": "9575fc332d65a9baa8ec9e9ec170a65f3d8822096a11f4a1f4b64cf509b53474"
+        },
+        "accept_ch10_remaining.py": {
+          "before": null,
+          "after": "f9622cfcd2b1a60af1207d401c2582b579c00f4bf353024a9d6840723f82b42f"
+        },
+        "accept_ch10_retained.py": {
+          "before": "7c91d2e9326681edf9fb0dffa7a3774b43e877bdb24c3b01e46534db237d3c32",
+          "after": "52080dfb4f242696d985d88d1803e0a0ad1b6b618beeeca15fd26020576f7034"
+        },
+        "ch10-remaining-aggregate_test.go": {
+          "before": null,
+          "after": "c7c19fa1448385b22b33c433e260838df12321bd20d2e626d393e39c73bdf762"
+        },
+        "ch10-remaining-stream_test.go": {
+          "before": null,
+          "after": "6b51d177cc49ce3b63d529d9c27cd4aae55a8c9ed23dff9d56ac2340744e4661"
+        },
+        "ch10_retained_adapters.py": {
+          "before": "6e681fe9d994d65584227dbd00afb95ee5f8275a44fdb504ded4e262b4b9dc4c",
+          "after": "d61c35f7e08a53328569dbbdb1d580b7b5ec0be90663153dc642243fd92b8951"
+        },
+        "test_ch10_remaining.py": {
+          "before": null,
+          "after": "bb74c7b052e1d71642e046d5afda28190fac5c5b2c3ed44be3043f4d05883724"
+        },
+        "test_ch10_retained_receipts.py": {
+          "before": "1e5c0a40c0589a4a2879856266cdd5a9bc406a45b57cfeee0efcf79e9c82ebab",
+          "after": "a9c5e1d0e81c65e78e18f3420bf14222c56ffaffb6f3f8acc0a187ab28cb6074"
+        }
+      }
+    },
+    {
+      "before": "ch10-retained-full-first.json",
+      "after": "ch10-retained-repaired-nine.json",
+      "map": "adapted_files",
+      "changed": {
+        "accept_ch09_gate.py": {
+          "before": "861f3194fcbd83e5036f809e1aa6b0585649dca1f73077f5c51160bb4080c566",
+          "after": "d2f73a51da71b6907f19052b876bc689ab587713eb33a6cd58247f35f84b3f58"
+        },
+        "accept_ch10_remaining.py": {
+          "before": null,
+          "after": "f9622cfcd2b1a60af1207d401c2582b579c00f4bf353024a9d6840723f82b42f"
+        },
+        "accept_ch10_retained.py": {
+          "before": "7c91d2e9326681edf9fb0dffa7a3774b43e877bdb24c3b01e46534db237d3c32",
+          "after": "52080dfb4f242696d985d88d1803e0a0ad1b6b618beeeca15fd26020576f7034"
+        },
+        "audit_ch06_mutations.py": {
+          "before": "72c39e82f00b33cacae101d07adae03843bb371348ca57dd07aebd912c7429e2",
+          "after": "41edd3e98bc55446280f4e67cc6a668e7dda14fbae85af2c9c28303422b8ba44"
+        },
+        "ch09-review-boundaries.py": {
+          "before": "4fb06aec470623b018b0ef47129619eff6719c981234e8f6023697a71d492bad",
+          "after": "fe73b8d92225f5adf1e8547edb937fbebc791e8aa4d56d915f7e2f6470aabfbe"
+        },
+        "ch10-remaining-aggregate_test.go": {
+          "before": null,
+          "after": "c7c19fa1448385b22b33c433e260838df12321bd20d2e626d393e39c73bdf762"
+        },
+        "ch10-remaining-stream_test.go": {
+          "before": null,
+          "after": "6b51d177cc49ce3b63d529d9c27cd4aae55a8c9ed23dff9d56ac2340744e4661"
+        },
+        "ch10_retained_adapters.py": {
+          "before": "6e681fe9d994d65584227dbd00afb95ee5f8275a44fdb504ded4e262b4b9dc4c",
+          "after": "d61c35f7e08a53328569dbbdb1d580b7b5ec0be90663153dc642243fd92b8951"
+        },
+        "test_ch10_remaining.py": {
+          "before": null,
+          "after": "bb74c7b052e1d71642e046d5afda28190fac5c5b2c3ed44be3043f4d05883724"
+        },
+        "test_ch10_retained_receipts.py": {
+          "before": "1e5c0a40c0589a4a2879856266cdd5a9bc406a45b57cfeee0efcf79e9c82ebab",
+          "after": "a9c5e1d0e81c65e78e18f3420bf14222c56ffaffb6f3f8acc0a187ab28cb6074"
+        }
+      }
+    },
+    {
+      "before": "ch10-retained-repaired-nine.json",
+      "after": "ch10-retained-routing-dependencies-rest.json",
+      "map": "original_files",
+      "changed": {
+        "accept_ch10_remaining.py": {
+          "before": "f9622cfcd2b1a60af1207d401c2582b579c00f4bf353024a9d6840723f82b42f",
+          "after": "cc5b1ec79902138fc6f61be4b4a6e72d7062df57dd39627a169095f1aefa5d07"
+        },
+        "ch10-remaining-public_test.go": {
+          "before": null,
+          "after": "f4ae083f34d1db9ccc79be2775be4d74ff66cf6ca2f0dd7acc47cc5a96b800d7"
+        }
+      }
+    },
+    {
+      "before": "ch10-retained-repaired-nine.json",
+      "after": "ch10-retained-routing-dependencies-rest.json",
+      "map": "adapted_files",
+      "changed": {
+        "accept_ch10_remaining.py": {
+          "before": "f9622cfcd2b1a60af1207d401c2582b579c00f4bf353024a9d6840723f82b42f",
+          "after": "cc5b1ec79902138fc6f61be4b4a6e72d7062df57dd39627a169095f1aefa5d07"
+        },
+        "ch10-remaining-public_test.go": {
+          "before": null,
+          "after": "f4ae083f34d1db9ccc79be2775be4d74ff66cf6ca2f0dd7acc47cc5a96b800d7"
+        }
+      }
+    }
+  ],
+  "unrelated_inventory_exclusion": {
+    "files": [
+      "accept_ch10_remaining.py",
+      "ch10-remaining-aggregate_test.go",
+      "ch10-remaining-public_test.go",
+      "ch10-remaining-stream_test.go",
+      "test_ch10_remaining.py"
+    ],
+    "reason": "Concurrent remaining-grader files neither invoked nor imported by retained checker closure. Their inventory deltas do not imply retained identity equivalence; all deltas are enumerated."
+  },
+  "interrupted_run": {
+    "receipt": "ch10-retained-routing-dependencies.json",
+    "preserved": true,
+    "error": "Disk reserve remains insufficient after build-cache maintenance.",
+    "reserve_mib": 768,
+    "completed_checker_hashes_from_nested_stdout": {
+      "settings-wire": {
+        "accept_ch08.py": "4892e6e8e64deb2e9a24f98ecd223d12cbfa2929822abe5be8aae3f69238ef11",
+        "accept_ch07.py": "27cf57f089c44363155f551966258df79d5c3dbc390c38a5e7f18aac950595ae"
+      },
+      "strict-files-and-patches": {
+        "accept_ch08_validation.py": "a3e6b76b18bb3d852e61a5f710917222ae5166fa312b44e9e79551ae4c704e7a",
+        "accept_ch08.py": "4892e6e8e64deb2e9a24f98ecd223d12cbfa2929822abe5be8aae3f69238ef11",
+        "accept_ch07.py": "27cf57f089c44363155f551966258df79d5c3dbc390c38a5e7f18aac950595ae"
+      }
+    },
+    "limitation": "Full checker inventory is absent because the gate did not return. Nested stdout independently binds both completed checks and their local imported helper closure; hashes also equal the complete receipts on either side. No claim of a complete inventory for this interrupted run."
+  },
+  "resumed_run": {
+    "receipt": "ch10-retained-routing-dependencies-rest.json",
+    "reserve_mib": 512,
+    "reason": "Coordinator approved existing reduced reserve after controlled cache maintenance and disk inspection."
+  },
+  "routing_dependency_reruns": {
+    "checks": [
+      "settings-wire",
+      "strict-files-and-patches",
+      "command-shapes",
+      "actual-policy-effects",
+      "exact-settings-revisions",
+      "projection-integer-deletion",
+      "snapshot-handoff-deletions"
+    ],
+    "reason": "First six import accept_ch07 directly or via accept_ch08; last imports accept_ch05. Original and prepared helper hashes differ, so old passing rows were not reused after changing execution location."
+  },
+  "unchanged_reuse_rationale": "Retained bundle rows keep identical adapted checker/fixture identities except the two rerun mutation scripts. Other direct scripts use unchanged sibling fixtures/imports; their original and adapted copies are identical. Go/module and delivered helper source identities are identical. Broad routing orchestration changes are tested separately and affected direct imports rerun."
+}
