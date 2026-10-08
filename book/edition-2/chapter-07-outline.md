@@ -2,7 +2,8 @@
 
 Status: accepted contract with initial student source preserved. The
 [validation record](chapter-07-validation.md) owns current local/live/review
-gate status; this outline does not claim completed paid browser demonstrations.
+gate status. Initial actual browser/PTY/public demonstrations are preserved at
+`8cc87f2`; comparative revisions and final acceptance remain separate.
 Maps to first-edition Chapter 8. Development stays in `solutions/edition-2/main`;
 only the coordinator exports a validated `ch07`.
 
@@ -73,11 +74,14 @@ component seams, and the headless module acquires no browser dependencies.
 The historical `CH=8` grader remains a diagnostic at its historical scope;
 its fixture tool, binary layout and wire shapes differ from this contract.
 New independent checks must exercise real browser state as well as transport.
-The published initial command is
-`python3 scripts/edition2/accept_ch07.py GUI_BINARY` (checker commit `a5a07ba`).
-Its 15 local transport/snapshot/pause/origin/malformed-command checks are only
-part of §7.9. The grader is adding public, concurrency and browser checks as
-interfaces emerge; the historical score cannot substitute for that coverage.
+The full immutable gate is now
+`python3 scripts/edition2/accept_ch07_gate.py SOURCE_COMMIT`. Initial source
+passed 32/33 groups; a corrected retained structural check closed the remaining
+immutable-declaration false positive. The original failed receipt is preserved.
+`python3 scripts/edition2/accept_ch07.py GUI_BINARY` now has 23 wire checks;
+its original 15-check scope at `a5a07ba` belongs to the dated evidence entry.
+The historical score cannot substitute for public, concurrency and browser
+coverage, or the distinguishing regression for a subsequently corrected contract.
 
 Local fixtures cover snapshot/live races at partial/final/tool boundaries;
 two Agents reusing local part IDs; slow-client close/resync; sender/teardown;
@@ -91,7 +95,10 @@ reconnect during streaming and after completion, independent Agent public
 embedding, actual speech when available and explicit cancellation. Use local
 fixtures for schedule-sensitive races and synthesis failure. Capture real
 screenshots plus text descriptions; source/binary binding precedes verification.
-The author writes the observed transcript later, retaining failed attempts.
+Section 7.8 now records the initial actual use, including tool-free narration
+before the corrected file operation, delivered but unheeded hint text, and the
+first audio selection of a user card. Runtime `da162e8`, launch binding
+`ba902b7` and initial experience freeze `8cc87f2` remain distinct from repairs.
 
 
 ## Coordinator review clarifications
@@ -111,3 +118,32 @@ placeholders. Exact valid payload fixtures cover response opaque data, nested
 result signatures and an argument whose ordinary key is named opaque. No new
 neutral result child kind or runtime architecture is introduced. These
 clarifications were accepted before the Chapter 7 student handoff.
+
+
+## Initial actual-use reconciliation, October 8
+
+The recorded initial spin completes the intended story: typing holds the next
+supervision admission, terminal interruption settles the turn, and an explicit
+later cleanup kills the still-running job. Two actual screenshots retain that
+distinction and visible pause ownership. Model explanations that conflate a
+report with process exit remain recorded, with the tool facts beside them.
+All three API paths also exercised terminal EOF and the independent-Agent
+public embedding; produced browser audio is distinguished from human listening.
+
+Student feedback identified a real teaching omission: the renderable-event list
+named `job_ended` but omitted inherited `job_killed`. Root accepted the narrow
+correction before affected code. Sections 7.3 and 7.6 now include both normal
+completion and deliberate/shutdown kill, preserving existing interruption
+semantics. Coder confirms the initial live card supports both but the snapshot
+filter follows the old list; its repair requires a reconnect regression. This
+is a later correction, not a successful property retroactively assigned to
+the original source.
+
+
+Subsequent browser review adds two explicit ownership requirements before repair:
+Page/Scroll/Artifact teardown removes owned DOM handlers and cancels reconnect
+callbacks, permitting replacement on the same root. An explicit document-level
+application owns the native FIFO speech service; Pages retain their own queues,
+input and pause causes through the actual parent chain. Selective cancellation
+cannot stop another Page's utterance. Required replacement/two-Page regressions
+and affected live repeats follow; the original demonstrations are not relabeled.

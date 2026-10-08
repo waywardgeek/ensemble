@@ -182,3 +182,118 @@ consequences, state rules and the next operation. No anecdote or padding was
 added to satisfy a count. Fenced code and table rows are byte-identical to the
 pre-edit chapter. Runtime and grader files were neither edited nor rerun by
 this author; their independent gates remain in the validation record.
+
+
+## Initial actual-use author reconciliation, October 8
+
+Initial implementation and student experience are frozen at `8cc87f2`.
+Runtime is `da162e821369784b37cd6a6544610429af5f1cbe`; support/launch binding is
+`ba902b7322a9cb5dd71c8352d45d6975663409c0`. This appended account supersedes
+pending prose as a current description; it does not relabel any older receipt.
+The coordinator's validation record remains the gate authority.
+
+Actual additional reads for this pass: complete current voice and writing
+procedure after compaction; current Chapter 7, outline, feedback and validation;
+review's final editorial findings; Chapter 4's normal/kill lifecycle teaching;
+student `live-results.md`, `live-receipts.json`, initial experience in
+`student-review.md`; all three combined `terminal.txt` transcripts; their GUI
+prompt/hint trace records and sanitized launch metadata; all audio audits;
+selected reconstructed replay receipts. Inspected all three selected actual
+screenshots and their adjacent page text, and read the scratch file bytes.
+No runtime or grader edit was made by this author. Prior Chapter 4 coding
+exposure and absence of Chapter 7 implementation authorship remain disclosed.
+
+The student drove nine actual sessions on October 7 Pacific / October 8 UTC:
+combined browser/terminal, standalone plain terminal and public two-Agent
+embedding on each provider. `live-receipts.json` records 9/10/9 admitted prompts
+and 15/14/15 HTTP requests for Messages/Chat Completions/generateContent;
+44 original request bodies match the separate replay derivatives. The browser
+subsets have 12/11/12 raw request and response files. The models were
+`claude-sonnet-4-6`, `gpt-4.1-mini-2025-04-14` and
+`models/gemini-3.8-flash`. Those are dated observed identities, not undiscovered
+future defaults. Chapter 7's actual spin now uses these receipts.
+
+The following counters are quoted from the combined terminal's EOF output,
+**before** the later browser-only prompt. They are not whole-matrix totals:
+
+| API | Input | Cache write | Cache read | Output |
+|---|---:|---:|---:|---:|
+| Messages | 35,358 | 0 | 0 | 928 |
+| Chat Completions | 2,747 | 0 | 14,592 | 513 |
+| generateContent | 40,055 | 0 | 0 | 3,022 |
+
+All three scratch files contain exactly `BROWSER-CH07\n` (13 bytes), SHA-256
+`914b491dcca0f5bd16dd194247ba237f418cf09e18e37288c9cd6c29db28f824`.
+The author recomputed those hashes. The Chat Completions initial intention-only
+answer and subsequent explicit correction remain in print; the earlier no-tools
+instruction is a possible explanation, not proven causation. All three next
+model requests contain the hint marker; only Messages and generateContent
+printed it. The live page and tool records distinguish the interrupted turn,
+still-running process, and deliberate later kill.
+
+Actual image references, under `main/evidence/ch07/`, are:
+
+| Image | Visible evidence | SHA-256 |
+|---|---|---|
+| `browser-anthropic-r1/browser-26.png` | Connected, refused pending call, interrupted r4, typing cause held | `ccbf6da3434819d17600d81fc5cf2b30fc5bcc2d1fcc8d3b82c2b8ead35a711a` |
+| `browser-openai-r1/browser-25.png` | Connected, refused pending call, interrupted r5, typing cause held | `b125e072bbf8c220bc3165d9cd9e53ec70872d8a3ee44edb043ceda38709132d` |
+| `browser-gemini-r1/browser-25.png` | Running job3/17bytes, supervision call, typing1/speaking1 | `90120dd5c7416aab83483be92467fa2c9311c9fadfe06d24830c4cfc92e08c0b` |
+
+The author recomputed the three image hashes. Section 7.8 embeds the first and
+third with descriptions of their visible viewport. Adjacent text receipts retain
+offscreen cards; neither screenshot is a complete-history claim.
+
+Chrome 154.0.8037.93 on macOS 26.3.1(a) produced actual speech audio. The
+per-run `audio-audit.json` binds each WAV to its Chrome PID and records a silent
+first PCM second at the -91 dB analysis floor. The answer windows at 2–6 seconds
+have means -21.3/-19.7/-20.7 dB. They establish produced audio, without a
+transcription or human-listening claim. The first generateContent selection
+spoke a user card and is retained separately from its deliberate model-answer
+selection. Asynchronous capture startup explains why the requested wall-time
+lead is not claimed as two silent PCM seconds. No Bill use is implied.
+
+Local controls remain separate for exact watch cuts, hostile content, capacity,
+uncertain submission and stale speech callbacks. The TL;DR/outline now publish
+`python3 scripts/edition2/accept_ch07_gate.py SOURCE_COMMIT`, with the original
+32/33 plus corrected retained structural group explained. The wire checker now
+has 23 checks. The initial 15-check account above remains a dated entry, as do
+all failed local receipts. The author has not rerun runtime gates or made paid
+requests in this reconciliation.
+
+## Post-comparison contract repairs published before code
+
+The student's lifecycle note exposed an actual teaching omission, confirmed by
+root and reviewer: live cards handled `job_killed`, but the snapshot filter
+followed the printed list that omitted it. Sections 7.3 and 7.6 now include
+both inherited terminal facts. The coder read the clarification and confirmed
+it resolves the difficulty; a narrow filter repair and reconnect regression
+remain separate from the initial frozen use.
+
+Root also accepted two explicit ownership corrections from browser review.
+Sections 7.6/7.9 require Page, Scroll and Artifact to remove owned DOM handlers
+on idempotent close and cancel pending reconnect callbacks, so replacement on
+the same root cannot trigger old actions. Sections 7.1/7.7/7.9 teach an explicit
+application/document root owning the shared native speech service; child Pages
+retain their own state and reach the service through their parent. FIFO requests
+submit one native utterance. Cancellation removes only the owning Page's work,
+uses native cancel only for its active utterance, and preserves peers and stale
+callback fences. These are coordinator working choices under the architecture,
+not new Bill rulings. The coder must record the affected ownership plan before
+implementation; initial receipts are not evidence that these repairs already
+worked.
+
+
+Author checks for this scoped pass: `go run ./cmd/lintprose
+book/edition-2/chapter-07.md` passes all hard rules at 6,388 prose words.
+The 19 negation forms and 2,059-word person gap received a reading pass;
+the dense stretch defines snapshot/wire boundaries, while the spin now returns
+to actual actions and consequences. The cut pass removed redundant attribution
+and listening disclaimers. Paragraph-ending review found varied mechanisms,
+examples and consequences rather than repeated short conclusions. Existing wire
+and projection code fixtures remain byte-identical; deliberate artifact changes
+are the current checker command, actual spin blocks/table, and two added
+acceptance-table controls. All six local manuscript links resolve. Three file
+hashes, three screenshot hashes and all four audited WAV hashes were recomputed
+read-only. `git diff --check` is clean. No runtime test result is claimed from
+these prose checks; independent proofreading and revised live reconciliation
+remain open. The student confirmed all initial-live feedback dispositions.

@@ -25,8 +25,9 @@ correction easier to deliver than to miss.
 
 **Validation in progress:** the initial student implementation is preserved.
 The [validation record](chapter-07-validation.md) tracks local checks, required
-live demonstrations and the remaining independent review. The spin below is
-still a plan, not a claim of completed browser use.
+live demonstrations and the remaining independent review. The spin below records
+the initial actual runs; their source identity remains separate from subsequent
+repairs and final acceptance.
 
 ## TL;DR
 
@@ -75,18 +76,21 @@ Build the headless CLI from main with `go build ./cmd`. Build the GUI command
 from `main/gui` with `go build ./cmd/ensemble-gui`. `make grade-dir CH=8
 DIR=solutions/edition-2/main` selects the historical GUI grader; its old binary
 and wire assumptions are diagnostic, not acceptance of this new contract.
-Run the initial independent checker from the repository root with the built
-GUI executable's path:
+Run the full independent gate from the repository root against an immutable
+source commit:
 
 ```sh
-python3 scripts/edition2/accept_ch07.py GUI_BINARY
+python3 scripts/edition2/accept_ch07_gate.py SOURCE_COMMIT
 ```
 
-Its 15 initial local checks cover transport, snapshots, pause, origin handling
-and malformed commands. This is partial coverage, not the complete chapter
-gate. The grader's public, concurrency and browser checks are being added as
-the interfaces become available; all of §7.9 remains required. WebSocket library, internal method names and visual styling
-remain student choices.
+The initial source passed 32 of 33 groups; the remaining inherited structural
+heuristic mistook immutable error and embedded-asset declarations for mutable
+session globals. A corrected retained check closed that group without changing
+the runtime. The narrower `python3 scripts/edition2/accept_ch07.py GUI_BINARY`
+now has 23 wire checks; its original 15-check result remains dated evidence.
+The full gate covers public, concurrency and browser behavior as well. All of
+§7.9 remains required, including distinguishing controls for later corrections.
+WebSocket library, internal method names and visual styling remain student choices.
 
 ## 7.1 Another receiver, with controls
 
@@ -117,6 +121,14 @@ the page layout while reusing those components; it does not copy the application
 or reach into core internals. Shared GUI-only vocabulary may have its own common
 package inside its module. It does not belong in core common just because two
 browser components use it.
+
+For multiple Pages in one document, an explicit browser application root owns
+the shared native speech service. Pages are children of that root; each keeps
+its own input, logical speech queue and pause registration and reaches the
+service through its actual parent. The root is an ordinary owned object, not
+a mutable module-global registry. Public constructor and method names remain
+student choices. The parent chain makes ownership of the browser's shared
+speech resource explicit.
 
 The demonstration command creates one Ensemble and one Agent. It serves the
 page and optionally attaches the existing human CLI to that same Agent with
@@ -215,8 +227,10 @@ contains:
   Agent/request/operation/part identity and accumulated text for each channel.
 
 Renderable durable kinds here are `message_received`, `hint_received`,
-`response_ended`, `tool_called`, `tool_returned`, `job_ended`, `turn_started`,
-`turn_ended` and `error_occurred`. The window is a presentation policy, not a
+`response_ended`, `tool_called`, `tool_returned`, `job_ended`, `job_killed`,
+`turn_started`, `turn_ended` and `error_occurred`. Both inherited terminal job
+kinds belong in the window, so reconnect preserves the outcome of a killed
+job as well as one that ended normally. The window is a presentation policy, not a
 change to the log. Count events before projecting them to cards; one response
 may supply several cards. If a tool result's call is outside the window, show
 its call ID and result as an earlier-call card with an explicit missing-context
@@ -500,7 +514,9 @@ Chapter 6's final. Replace or finalize the existing card; do not append the
 answer twice. A tool call's durable call ID links its accepted proposal,
 `tool_called`, result and later job observations. Treat `tool_returned` as the
 report delivered to the conversation. A report saying running is not a completed
-process; `job_ended` supplies the later lifecycle fact.
+process. The later `job_ended` or `job_killed` supplies the terminal lifecycle
+fact: ordinary completion or a deliberate/shutdown kill under Chapter 4's
+existing rules. Interrupting a turn does not itself kill its running jobs.
 
 On snapshot, build finalized cards from the selected durable events and then
 recover the current partials. A known call can have a result outside the window,
@@ -534,6 +550,13 @@ who scrolled up to inspect a result must not be pulled back on every token.
 Provide an explicit return-to-latest action. These behaviors need browser tests;
 a passing Go transport check cannot inspect them.
 
+Page, ArtifactScroll and Artifact each remove the DOM listeners they installed
+when closed. Close is idempotent, and the owning connection/controller cancels
+pending reconnect callbacks. A replacement Page can mount on the same DOM root
+without the old instance clearing its input, submitting commands or moving
+focus. Removing the old cards alone does not release handlers on a retained
+input or button; test the replacement through those actual controls.
+
 ## 7.7 Speech is a queue with cancellation
 
 For Bill, this is the whole chapter. Auto-speech begins disabled, and a
@@ -548,13 +571,27 @@ thinking, plus a concise tool name/path summary. Tool results and replay are
 silent. The speaker action on each card reads its full accessible text on
 demand. Neither path reads signatures or opaque provider payloads.
 
-Own one queue per page controller. Buffer stream text into sentence-sized
+Own one logical queue per page controller. Buffer stream text into sentence-sized
 pieces, flush any remaining text at accepted end, and track the already queued
 text for each full part identity. Finalization must not queue those words again.
 Interrupted partial speech is canceled along with its provisional operation;
 other on-demand speech has its own queue identity. Register speaking=true when
 an utterance is queued, before starting it, and keep that cause true until the
 queue is empty. A brief gap between utterances is still occupied speech work.
+
+The native speech API is shared within a document. An idle Page calling its
+global cancel operation can stop a different Page's utterance, even when their
+logical queues are separate. The browser application root's service accepts
+owned requests in FIFO order and submits one native utterance at a time. Each
+request retains its Page identity. A Page waiting for native output still has
+speaking work and keeps its speaking cause true. The service reaches logging
+through its root; Pages reach it through their parent, without sibling injection.
+
+Cancel or close removes only that Page's pending requests. Invoke native cancel
+only if that Page owns the active utterance, then let other Pages continue.
+Closing or disconnecting an idle Page cannot stop another Page's speech. Both
+service and Page fence stale callbacks so a canceled completion cannot settle
+a replacement utterance, restart old work or clear another Page's pause cause.
 
 Maintain one local predicate from input text and queued/current speech. Send
 both Boolean causes on each transition; do not send unpause merely because
@@ -564,8 +601,9 @@ error, explicit cancel and connection change. Submission explicitly clears
 and reconciles input; assigning an empty value does not fire an input event.
 The historical GUI once waited forever for that nonexistent event.
 
-A cancel action clears the owned queue, advances its generation, invokes
-`speechSynthesis.cancel()` and reconciles the pause causes immediately. Later
+A cancel action clears the owned queue, advances its generation, asks the
+shared service to cancel that Page's requests and reconciles its pause causes
+immediately. Later
 callbacks from canceled utterances cannot advance an old queue or restart
 speech. Normal completion and non-cancellation error settle their utterance
 once and advance the current queue. Browser [cancel behavior](https://developer.mozilla.org/en-US/docs/Web/API/SpeechSynthesis/cancel)
@@ -583,63 +621,138 @@ versioned failure and its own test, not a copied universal claim.
 
 ## 7.8 Taking it for a spin
 
-**Actual browser evidence is pending.** These are the required reader actions
-and student live plan. They are not a transcript of a completed session.
-After setting the inherited environment configuration, build the GUI command
-from its module and launch it in a scratch workspace:
+The student drove the human terminal and Chrome on October 7, 2026 Pacific
+time, using the initial runtime `da162e8` and launch binding `ba902b7`. These
+are student-driven sessions, preserved before historical code comparison.
+The browser was Chrome 154.0.8037.93 on macOS 26.3.1(a).
+
+After setting the inherited model and credential environment, build from
+`solutions/edition-2/main/gui`, then launch in a scratch workspace. Python 3
+must be available for the delayed-job example:
 
 ```sh
 go build -o /tmp/ensemble-gui ./cmd/ensemble-gui
-/tmp/ensemble-gui --port 8088 --terminal
+mkdir -p /tmp/ensemble-browser-spin
+cd /tmp/ensemble-browser-spin
+/tmp/ensemble-gui --port 0 --terminal
 ```
 
-Open the printed URL. Ask for a bounded explanation, observe text while it
-arrives, and open a second tab during that response. Both should converge on
-the accepted answer without duplicates. Close and reconnect one tab, first
-during work and then after completion. Check the omission marker when a seeded
-history exceeds the window; do not infer missing history from an empty screen.
+Open the printed local URL in two tabs. In the terminal, ask for a brief
+greeting, inspect `/history`, then continue the conversation. Scope any
+no-tools instruction to “this answer only.” Both tabs should show the same
+accepted history. Reload one during an answer and again after completion.
+The recorded runs captured active operations on all three API paths; only
+the Messages timing happened to capture nonempty partial text. A controlled
+held-open response supplies the stronger partial/final boundary check.
 
-Ask for a small scratch-file operation, inspect the proposed call, its recorded
-result and the actual file. During a delayed running job, start a correction
-in one tab and watch its pause acknowledgement. A second tab can finish speaking
-or clear its input without releasing the first tab's cause. Submit the correction
-as a hint, observe its acknowledgement and later wire delivery, then inspect
-what the model actually did. If it ignores the correction, preserve that result
-instead of calling delivery a success of model behavior.
+In the browser, ask the Agent to write `browser-note.txt` containing exactly
+`BROWSER-CH07` followed by a newline, then read it with the file tool. The
+Chat Completions run initially produced an intention instead:
 
-While paused, interrupt from the terminal and verify that the request settles.
-Inspect the still-running job before deliberately killing it. Submit another
-short prompt to prove the Agent and both clients remain usable. Close a tab
-that owns a typing pause and verify the surviving client reflects its release.
-Use a controlled server for the stronger exact-boundary checks; timing a paid
-model is not a substitute for a held-open fixture.
+```text
+I will write the file browser-note.txt with the content "BROWSER-CH07\n"
+as requested, then read it back with the file tool.
+```
 
-Enable speech through its user control, try an on-demand card, cancel midway,
-and send a correction while speech is queued. Record browser and platform,
-actual synthesis events, and what audio was verifiably produced. A mock speech
-engine establishes queue logic only. If real synthesis is unavailable, retain
-the blocker and leave that required live gate open. Capture screenshots with
-text descriptions of the actual page, including a tool result and connection
-state; a generated mockup cannot document this exercise.
+That is an abridged answer, not a tool receipt. The next human prompt explicitly
+ended the earlier no-tools restriction and demanded the missing calls. The
+model then proposed `write_file` and `read_file`, and they executed. The earlier
+restriction may explain its first response; the transcript cannot establish
+that cause. All three runs eventually left the same 13-byte file. Inspect the
+file and call/result cards before accepting a model's summary of its own work.
 
-Run those browser paths with discovered models on Messages, Chat Completions
-and generateContent, using the current Gemini scope. Preserve actual human
-CLI streaming/plain parity as well. A public embedding must show two Agents
-with separate watches and pause registrations while reusing the GUI components;
-headless builds work with the optional module absent. These are deliberate
-consumer tests of the library boundary, not access to a private helper.
+Next ask for this bounded command through `run_command`, with
+`ai_callback_delay=1`, followed by `wait_for_job` with a 60-second callback
+delay. Instruct the model to keep waiting until corrected or interrupted:
 
-Before paid use, publish the complete feature/action plan and source-bound
-launches in `evidence/ch07/`. Record difficulties immediately in the student
-review. The author reconciles the actual spin afterward; an independent reviewer
-compares the preserved first attempt with the old standard, supplies rationale
-for revisions, and checks both code and teaching before the final checkpoint.
+```sh
+python3 -u -c 'import time; print("CH07-JOB-RUNNING", flush=True); time.sleep(180); print("CH07-JOB-DONE", flush=True)'
+```
+
+The returned handle was 3 in each fresh demonstration workspace; use the
+handle actually returned in yours. Start typing a correction in one tab and
+observe its acknowledged pause before the next supervision admission. Clear
+or finish speech in the other tab: the first tab's typing must still hold.
+Send a hint asking the next report to begin `CORRECTION-DELIVERED`, then keep
+waiting. Its text reached the next model request on all three APIs. Messages
+and generateContent printed the marker; Chat Completions kept waiting without
+printing it. Delivery and obedience have different receipts.
+
+Type another correction without submitting it, then issue `/interrupt` in
+the terminal. The pending supervision call is refused and the turn settles.
+The Messages run retained this screen:
+
+![Connected browser showing a refused pending tool call, interrupted request r4, and an unfinished correction that keeps one typing pause active.](../../solutions/edition-2/main/evidence/ch07/browser-anthropic-r1/browser-26.png)
+
+Clear that input before the cleanup prompt. Ask the Agent to poll the handle
+with zero callback delay and deliberately kill it. The observed sequence,
+abridged from the Messages run's tool records and terminal, was:
+
+```text
+/interrupt
+Interrupt: request=r4 interrupted=true.
+[Next prompt: poll handle 3, then deliberately kill it.]
+wait_for_job {"handle":3,"ai_callback_delay":0}
+[Report: running, 17 bytes, CH07-JOB-RUNNING]
+kill_job {"handle":3}
+[Final status: killed]
+```
+
+Interruption stopped the turn; cleanup stopped the process. The running report
+and later terminal job fact establish that distinction even when a model's
+explanation loosely calls every result a completed operation. The generateContent
+screen below shows the earlier running report while separate typing and speaking
+causes both hold new tool admissions:
+
+![Connected browser showing job 3 still running with 17 output bytes, a wait_for_job call, and pause counts of one typing client and one speaking client.](../../solutions/edition-2/main/evidence/ch07/browser-gemini-r1/browser-25.png)
+
+After cleanup, close a tab while it owns a typing cause and watch the surviving
+tab's count fall. Send terminal EOF, then submit another browser prompt. Every
+recorded browser still answered `BROWSER-STILL-LIVE`: terminal detachment had
+left the shared Agent and server usable. Use `/quit` or application shutdown
+when the entire session should end.
+
+Enable auto-speech through its button, try a card's speaker action, and cancel
+while the other tab still contains text. In these runs, real synthesis started
+and cancel released speech while preserving typing. Audio captured from each
+exact Chrome process had a silent first PCM second and a later audible signal.
+The first generateContent selection spoke a user card; a second deliberate
+selection captured the model answer. Both attempts remain in the evidence.
+These recordings establish produced audio, without claiming transcription,
+human listening. Wall-clock capture startup was asynchronous;
+a requested two-second lead did not guarantee two seconds of recorded silence.
+
+The full initial matrix also exercised standalone plain human chat and a public
+embedding that reused the components with a custom layout. In that embedding,
+one Agent's typing pause stayed set while a second Agent answered; their
+responses remained distinct. The counts below include those sessions and tool
+continuations, rather than just the pictured browser:
+
+| API and observed model | Admitted prompts | Model HTTP requests |
+|---|---:|---:|
+| Messages, `claude-sonnet-4-6` | 9 | 15 |
+| Chat Completions, `gpt-4.1-mini-2025-04-14` | 10 | 14 |
+| generateContent, `models/gemini-3.8-flash` | 9 | 15 |
+
+All 44 original request bodies matched independent replay. The
+[live results](../../solutions/edition-2/main/evidence/ch07/live-results.md)
+link raw terminals, browser actions, screenshots, files, usage and audio
+receipts; [the evidence ledger](chapter-07-evidence.md) distinguishes these
+initial runs from revisions. Exact snapshot cuts, malicious content, saturation,
+uncertain acceptance and stale speech callbacks use deterministic local checks.
+Paid timing cannot force those failures reliably.
+
+The initial use also exposed an omission in §7.3: killed jobs reached the live
+page, but its printed reconnect list included only `job_ended`. The corrected
+contract includes inherited `job_killed` too. The initial receipts remain bound
+to the original runtime; the affected projection repair and its reconnect
+checks are separate work tracked in the validation record.
 
 ## 7.9 Checks that can distinguish a working screen
 
 | Contract | Required control and distinguishing failure |
 |---|---|
-| Ownership | Headless build without GUI module; external embedding reuses public components; actual parent paths and every executable inspected |
+| Ownership | Headless build without GUI module; external embedding reuses public components; actual parent paths and every executable inspected; same-root remount has no old DOM handlers or reconnect callbacks |
 | Watch boundary | Barrier at snapshot capture and partial/final/tool transition; replay plus tail has no missing or duplicated accepted card |
 | Identity | Two responses and two Agents reuse local part IDs; cards and speech cursors stay separate |
 | Snapshot | Exactly 100 selected events, omitted prefix, earlier-call result, owned-copy mutation, no credential/config leak or HTTP |
@@ -648,7 +761,7 @@ for revisions, and checks both code and teaching before the final checkpoint.
 | Pause | Two clients with independent typing/speaking; clearing one cannot release another; acknowledgement excludes later admission; interrupt and close work while held |
 | Tool lifecycle | Running report remains running, later job completion updates its card; pause does not cancel existing work or consume report cursors |
 | Browser content | Markup in name/args/results, unsafe Markdown links, ANSI controls, long text expansion and keyboard actions remain data and accessible |
-| Speech | Final text not repeated, replay silent, cancel then stale callback cannot restart, error releases only its own cause, real browser synthesis separately observed |
+| Speech | Final text not repeated, replay silent, cancel then stale callback cannot restart, error releases only its own cause; two Pages share FIFO native output without cross-cancellation; real browser synthesis separately observed |
 | Protocol | Correlated refusals, no prompt resend, partial snapshot abandoned, local Origin/Host/message limits, serialized writer and trace-stage accuracy |
 | Retention | Prior CLI/protocol/replay checks and model usage remain correct; no GUI-dependent core behavior |
 
