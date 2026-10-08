@@ -134,3 +134,15 @@ prompt causation and preserved failures. It also recorded the affected
 BrowserApplication/SpeechService lifetime plan for root review before the
 shared-native-speech and disposal repairs. This confirmation resolves the
 teaching exchange; it does not stand in for repair validation.
+
+
+## Application shutdown refinement from revised review
+
+The independent reviewer found a teardown-order issue during the shared-native
+speech repair: disposing Page A could cancel its active utterance and start
+queued Page B while the whole application was closing. Section 7.7 now explicitly
+stops native admission before Page disposal. This clarifies root ownership under
+the accepted shared-service contract. The coder repaired the order; independent
+targeted checks at `9ba7855` are reported by the reviewer, while revised live use
+and final acceptance remain separate. The chapter now prints the correction
+supplement command alongside the full gate. No initial receipt is relabeled.

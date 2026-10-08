@@ -90,6 +90,9 @@ the runtime. The narrower `python3 scripts/edition2/accept_ch07.py GUI_BINARY`
 now has 23 wire checks; its original 15-check result remains dated evidence.
 The full gate covers public, concurrency and browser behavior as well. All of
 §7.9 remains required, including distinguishing controls for later corrections.
+The browser-ownership correction supplement is
+`python3 scripts/edition2/ch07-review-revisions.py SOURCE_COMMIT`; run it alongside
+the full gate to check those later findings against the chosen source.
 WebSocket library, internal method names and visual styling remain student choices.
 
 ## 7.1 Another receiver, with controls
@@ -592,6 +595,8 @@ only if that Page owns the active utterance, then let other Pages continue.
 Closing or disconnecting an idle Page cannot stop another Page's speech. Both
 service and Page fence stale callbacks so a canceled completion cannot settle
 a replacement utterance, restart old work or clear another Page's pause cause.
+On application-root close, stop native speech admission before disposing Pages,
+so canceling one Page cannot start another Page's queued utterance during shutdown.
 
 Maintain one local predicate from input text and queued/current speech. Send
 both Boolean causes on each transition; do not send unpause merely because
@@ -718,7 +723,7 @@ and cancel released speech while preserving typing. Audio captured from each
 exact Chrome process had a silent first PCM second and a later audible signal.
 The first generateContent selection spoke a user card; a second deliberate
 selection captured the model answer. Both attempts remain in the evidence.
-These recordings establish produced audio, without claiming transcription,
+These recordings establish produced audio, without claiming transcription or
 human listening. Wall-clock capture startup was asynchronous;
 a requested two-second lead did not guarantee two seconds of recorded silence.
 

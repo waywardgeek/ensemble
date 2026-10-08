@@ -297,3 +297,17 @@ hashes, three screenshot hashes and all four audited WAV hashes were recomputed
 read-only. `git diff --check` is clean. No runtime test result is claimed from
 these prose checks; independent proofreading and revised live reconciliation
 remain open. The student confirmed all initial-live feedback dispositions.
+
+
+## Narrow revised-review prose follow-up
+
+The independent reviewer reports targeted R1–R4 checks passing at `9ba7855`
+and identifies one corrected shutdown ordering issue: end native speech admission
+before disposing Pages, otherwise canceling one can start a peer's queued work
+during application shutdown. Section 7.7 now states that order. The TL;DR adds
+`python3 scripts/edition2/ch07-review-revisions.py SOURCE_COMMIT` as a supplement
+to the full retained gate. The author did not execute those runtime checks.
+A grammar repair changes “without claiming transcription, human listening” to
+“without claiming transcription or human listening.” Initial source/live identity
+remains `da162e8`/`ba902b7`; final revised evidence and prose reconciliation are
+still pending at this entry.
