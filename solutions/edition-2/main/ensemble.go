@@ -8,6 +8,7 @@ import (
 	"example.com/ensemble/internal/jobs"
 	"example.com/ensemble/internal/llm"
 	"example.com/ensemble/internal/policy"
+	"example.com/ensemble/internal/skills"
 	"example.com/ensemble/internal/tools"
 	"fmt"
 	"io"
@@ -33,6 +34,7 @@ type Event = common.Event
 type TurnEvent = common.TurnEvent
 type HintEvent = common.HintEvent
 type RequestEvent = common.RequestEvent
+type RequestConfig = common.RequestConfig
 type EventError = common.EventError
 type Response = common.Response
 type ToolEvent = common.ToolEvent
@@ -91,7 +93,7 @@ func normalize(owner common.Ensemble, config Config) Config {
 		}
 	}
 	config.BaseURL = strings.TrimRight(config.BaseURL, "/")
-	if config.System == "" {
+	if config.System == "" && config.Skills == nil {
 		config.System = "Answer helpfully and concisely. Retain the conversation's details."
 	}
 	if config.MaxTokens <= 0 {
@@ -102,6 +104,13 @@ func normalize(owner common.Ensemble, config Config) Config {
 func (e *Ensemble) construct(config Config) (*Agent, error) {
 	a := &Agent{parent: e, config: normalize(e, config)}
 	a.engine = llm.New(turnAgent{a})
+	if config.Skills != nil {
+		copied, err := skills.CopyConfiguration(skillAgent{a}, config.Skills)
+		if err != nil {
+			return nil, err
+		}
+		a.config.Skills = copied
+	}
 	owned, err := llm.Clone(a.engine, a.config)
 	if err != nil {
 		return nil, err
@@ -130,6 +139,9 @@ func (e *Ensemble) publishAgent(a *Agent) error {
 	return nil
 }
 func (e *Ensemble) NewAgent(config Config) (*Agent, error) {
+	if config.Skills != nil && config.System != "" {
+		return nil, fmt.Errorf("System conflicts with selected primary skill")
+	}
 	a, err := e.construct(config)
 	if err != nil {
 		return nil, err
@@ -139,6 +151,17 @@ func (e *Ensemble) NewAgent(config Config) (*Agent, error) {
 	}
 	if !a.registry.Match(a.config.Tools) {
 		return nil, fmt.Errorf("live tool declarations must match selected builtins")
+	}
+	var initial common.SkillCandidate
+	if a.config.Skills != nil {
+		a.skills, err = skills.New(skillAgent{a})
+		if err != nil {
+			return nil, err
+		}
+		initial, err = a.skills.Prepare(common.SkillOperation{Action: "initialize", Name: a.config.Skills.Primary})
+		if err != nil {
+			return nil, err
+		}
 	}
 	a.config.Tools = a.registry.Declarations()
 	if a.config.LogPath == "" {
@@ -151,6 +174,13 @@ func (e *Ensemble) NewAgent(config Config) (*Agent, error) {
 	a.log, err = eventlog.New(a, a.config.LogPath)
 	if err != nil {
 		return nil, err
+	}
+	if initial != nil {
+		fact := initial.Transition()
+		if err = a.appendPrepared(Event{Type: "skills_initialized", Skills: &fact}, true, false, nil, initial); err != nil {
+			_ = a.Close()
+			return nil, err
+		}
 	}
 	a.policy, err = policy.New(a, a.config.PolicyPath)
 	if err != nil {
@@ -165,6 +195,8 @@ func (e *Ensemble) NewAgent(config Config) (*Agent, error) {
 	return a, nil
 }
 func (e *Ensemble) Load(path string, config Config) (*Agent, error) {
+	// An offline reader never resolves a live source or scalar environment.
+	config.Skills = nil
 	var err error
 	config.LogPath, err = filepath.Abs(path)
 	if err != nil {
@@ -174,6 +206,7 @@ func (e *Ensemble) Load(path string, config Config) (*Agent, error) {
 	if err != nil {
 		return nil, err
 	}
+	a.skills = skills.Historical(skillAgent{a})
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, fmt.Errorf("cannot open event log")
@@ -297,6 +330,7 @@ func (e *Ensemble) Publish(agentID string, event Event) {
 }
 
 type Agent struct {
+	skills    *skills.Service
 	policy    *policy.Service
 	actor     *llm.Actor
 	parent    common.Ensemble
@@ -329,8 +363,16 @@ func (a *Agent) Workspace() string {
 }
 func (a *Agent) Config() Config {
 	a.mu.Lock()
-	defer a.mu.Unlock()
 	out, _ := llm.Clone(a.engine, a.config)
+	mode := a.context.SkillMode
+	liveSkills := a.config.Skills != nil
+	if mode {
+		out.System = a.context.SkillPrimary
+	}
+	a.mu.Unlock()
+	if mode && liveSkills {
+		out.Tools = a.registry.Declarations()
+	}
 	return out
 }
 func (a *Agent) SetConfig(config Config) error {
@@ -344,8 +386,17 @@ func (a *Agent) SetConfig(config Config) error {
 		return fmt.Errorf("Agent busy")
 	}
 	defer a.operation.Unlock()
-	config = normalize(a.parent, config)
 	current := a.Config()
+	if !reflect.DeepEqual(config.Skills, current.Skills) {
+		return fmt.Errorf("skill configuration is creation-only")
+	}
+	if current.Skills != nil {
+		if config.System != "" && config.System != current.System {
+			return fmt.Errorf("System cannot replace primary skill")
+		}
+		config.System = current.System
+	}
+	config = normalize(a.parent, config)
 	if config.PolicyPath == "" {
 		config.PolicyPath = current.PolicyPath
 	}
@@ -437,7 +488,14 @@ func (a *Agent) History() Conversation {
 	return out
 }
 func (a *Agent) Render(config Config) ([]byte, error) {
-	return llm.Render(a.engine, a.Snapshot(), normalize(a.parent, config))
+	c := a.Snapshot()
+	if c.SkillMode {
+		if config.System != "" && config.System != c.SkillPrimary {
+			return nil, fmt.Errorf("render System conflicts with recorded primary")
+		}
+		config.System = c.SkillPrimary
+	}
+	return llm.Render(a.engine, c, normalize(a.parent, config))
 }
 func (a *Agent) Dump() ([]byte, error) { return eventlog.Dump(a, a.Events()) }
 func (a *Agent) Close() error {
@@ -486,10 +544,10 @@ func (a *Agent) Append(event Event) error {
 	return a.append(event, true, true)
 }
 func (a *Agent) append(event Event, persist, notify bool) error {
-	return a.appendPrepared(event, persist, notify, nil)
+	return a.appendPrepared(event, persist, notify, nil, nil)
 }
 
-func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int) error {
+func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int, prepared ...common.SkillCandidate) error {
 	a.appendMu.Lock()
 	defer a.appendMu.Unlock()
 	a.mu.Lock()
@@ -500,6 +558,10 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int)
 	if persist {
 		event.Seq = a.context.LastSeq + 1
 		event.Time = time.Now().UTC().Format(time.RFC3339Nano)
+	}
+	if err := eventlog.CheckSkillRecord(a, event); err != nil {
+		a.mu.Unlock()
+		return err
 	}
 	owned, err := llm.Clone(a.engine, event)
 	if err == nil && len(missing) != 0 {
@@ -514,6 +576,24 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int)
 	if err == nil {
 		err = llm.Validate(a.engine, a.context, &owned)
 	}
+	var skillCandidate common.SkillCandidate
+	if err == nil && owned.Skills != nil {
+		if a.skills == nil || persist && owned.Type == "skills_initialized" && a.id != "" {
+			err = fmt.Errorf("skill initialization is construction-only")
+		} else if persist {
+			if len(prepared) > 0 {
+				skillCandidate = prepared[0]
+			}
+			if skillCandidate == nil {
+				skillCandidate, err = a.skills.Prepare(common.SkillOperation{Action: owned.Skills.Action, Name: owned.Skills.Name})
+			}
+			if err == nil && (!skillCandidate.Result().Changed || !reflect.DeepEqual(skillCandidate.Transition(), *owned.Skills)) {
+				err = fmt.Errorf("skill fact differs from frozen catalog candidate")
+			}
+		} else {
+			skillCandidate, err = a.skills.PrepareRecorded(*owned.Skills)
+		}
+	}
 	var applied Event
 	if err == nil {
 		applied, err = llm.Clone(a.engine, owned)
@@ -527,6 +607,9 @@ func (a *Agent) appendPrepared(event Event, persist, notify bool, missing []int)
 	if err != nil {
 		a.mu.Unlock()
 		return err
+	}
+	if skillCandidate != nil {
+		a.skills.Apply(skillCandidate, owned.Seq)
 	}
 	a.events = append(a.events, owned)
 	llm.Apply(a.engine, &a.context, applied)
@@ -606,7 +689,7 @@ type turnAgent struct{ *Agent }
 func (a turnAgent) TurnSnapshot() common.Context        { return a.Snapshot() }
 func (a turnAgent) RecordTurn(event common.Event) error { return a.append(event, true, true) }
 func (a turnAgent) RecordResponse(parsed common.ParsedResponse) error {
-	return a.appendPrepared(Event{Type: "response_ended", Response: &parsed.Response}, true, true, parsed.MissingCallIDs)
+	return a.appendPrepared(Event{Type: "response_ended", Response: &parsed.Response}, true, true, parsed.MissingCallIDs, nil)
 }
 func (a turnAgent) Engine() common.ModelEngine   { return a.engine }
 func (a turnAgent) Policy() common.PolicyService { return a.policy }

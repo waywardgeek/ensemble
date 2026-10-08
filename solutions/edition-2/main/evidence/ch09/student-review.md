@@ -413,3 +413,104 @@ that fake-only success or a model's assertion completes the live requirement.
 
 This session stops here for coordinator review. The review file is left
 uncommitted; implementation and the later validation/live gates remain pending.
+
+
+## Implementation phase: release-8f24360
+
+Coordinator accepted the initial ownership/API plan and preserved it at 5ac45e4. Before integration I implemented only common skill declarations and the skills parser/candidate layer. Baseline `go test ./... -count=1` passed in main; `go test ./internal/skills -count=1` passed after this layer. New Go files were formatted. These are local checks, not chapter acceptance. No credentials or providers were accessed.
+
+At the layer boundary I read the authorized coordinator inbox message `release-8f24360`. I read the entire mandatory skill again after compaction, retained architecture, the complete released Chapter 9, Chapter 5's corrected closing passage, and the expressly permitted direct author response. Manifest revision is `8f24360afde19ba848be225c6106a89949deec8c`; all three released file SHA-256 values match the manifest. No links to excluded sources were followed.
+
+The published changes resolve all three initial questions:
+
+1. §9.8 names `LLM_SYSTEM`, read with LookupEnv in the shared command reader. Nonempty explicit system conflicts at skill construction; absent/empty keeps the primary. No-skills normalization retains its prior meaning.
+2. §9.7 explicitly persists the request capture's system field as the empty string in skill mode. The recorded primary supplies rendering/reconstruction; Config() may expose the effective primary and allow its unchanged round trip. No-skills request captures remain unchanged.
+3. §9.7 gives pending hints and skill material stable completed-batch anchors, derived from events. The literal three-provider fixtures settle results→H→S→P, then results→S→P after hint consumption. Unanchored hints keep the prior tail rule, and no-skills placement is unchanged. I will implement these anchors as derived dialogue placement only, never capability authority.
+
+The explicit fixtures make this integration substantially easier to reason about: request capture, public configuration and chronological dialogue are now distinct obligations. The author response resolves the questions without requiring an excluded implementation. I am proceeding with full local integration and contract-derived checks; the pre-provider review gate remains in force.
+
+
+### Boundary response: architecture-1
+
+Read inbox before the actor/integration layer. The coordinator's narrow review found my candidate's concrete `*Service` creator pointer. This was my implementation mistake under the already explicit skill, not a teaching gap. Changed it to `common.Skills`; private copying functions take that owner interface. Application still checks the creating interface identity and prior ledger pointer before applying. No additional runtime root or injected sibling service was added. Recorded-transition positive and tamper-refusal tests pass locally before integration.
+
+### First integrated local gates (incomplete implementation)
+
+Core `go test ./... -count=1` passes after adapting the two predecessor test doubles to the added common interfaces. Initial CLI black boxes against `/tmp/ensemble-ch09-student-cli` SHA-256 `aafb5132aa6cf2a1e4bf4db6e13f285423a6b31ccf51f8a23964d85f826fd866`: base 51/51, graph 27/27, management 138/138. These checks exercised local fake transports only.
+
+Three diagnostic follow-ups for the coordinator/independent checker maintainer (no checker source read or edited):
+
+- Catalog: 64/65. `render-exact-65536` refuses with `unknown skill variable`; its corresponding one-over case also refuses with that same cause. My own exact expanded-body boundary control passes. Please provide the failing fixture's source/token construction or inspect whether padding was concatenated to an unbraced `$TOOLS`/`$SKILLS` token; the contract requires longest lexical token consumption. I have not relaxed it to make the gate pass.
+- Replay: 0/105 because all three `valid-offline-chronology` positive parents fail. Output supplies no CLI diagnostic or fixture excerpt. Base gate's actual CLI-log replay passes all three providers, and my recorded-transition replay passes locally. Please expose the positive fixture's CLI stderr/failed comparison in black-box output so I can distinguish my bug from fixture mismatch without reading checker source.
+- Public: all reported tests pass except `TestCh09PublicAnchoredHintSkillPromptAndReplay`, where all six skill/no-skills variants fail at line 350 with `hint requires nonempty text and an active turn`. Held-HTTP revocation, admitted-job survival, owned copies, creation config, two Agents, frozen directory, pause/no-op publication, concurrent single commit, scalar limits and frozen public append passed. The failure in the unchanged no-skills path suggests a fixture timing or inherited-behavior assumption to inspect; please supply bounded diagnostics. I will independently test the published H/S/P fixture, without changing prior hint admission semantics.
+
+GUI and complete student contract controls are still in progress; these scores are not an acceptance claim.
+
+
+### Boundary response: editing-procedure-1
+
+Read the coordinator reminder before the GUI layer. My earlier candidate-parent correction used unasserted replacements, contrary to the mandatory editing rule. I inspected the resulting candidate/copy helpers directly and ran the affected skill suite and full core suite successfully. Subsequent scripted replacements assert their unique anchors before each write, and targeted apply_patch is preferred. This was an editing-procedure mistake, not a runtime/teaching ambiguity.
+
+### Boundary response: checkers-ddd0704
+
+Read and accepted the new black-box command authorization. Ran browser checker after GUI integration. Its inherited and safe-card/speech controls pass, as does lossless-source absence refusal. Two controls fail: `current-state-beyond-window-and-independent-page` reports fabricated out-of-window body cards, and `uint64-snapshot-material-retired-identity-and-opaque-boundary` reports adjacent unsafe activations sharing identity. Please expose observed card keys/titles/counts and incoming counter lexemes in bounded output; my own browser component control retains distinct `skill/agent-x/9007199254740992` and `skill/agent-x/9007199254740993` keys, and snapshot current state only updates existing cards. The inherited omitted-history notice is itself a card; a fixture counting all cards rather than material cards could conflate those. I will not change unrelated notice semantics or counter identities without diagnosing the actual mismatch.
+
+Student local browser script `evidence/ch09/browser-local.mjs` passes: initial read-only sidebar; actual GUI load/write/unload over six local fake requests and verified file bytes; retained safe HTML-as-text manual; keyboard expansion; retirement/reconnect without duplicate card; separate unsafe uint64 card keys and dependency value; explicit speaker receives full retained text; automatic skill observation stays silent; arbitrary argument activation/revision fields remain ordinary JSON data. This is controlled local testing, not real-provider or audible native-speech evidence. The Chrome/Playwright invocation pattern was read from the permitted preceding student support `evidence/ch08/browser-local.mjs`.
+
+Student public tests also pass the published H/S/P chronology for all three renderers, repeated-render purity, hint consumption, result-only redaction, retirement, exact captured-request reconstruction, catalog-absent replay, explicit competing System refusal, paused model management versus typed controls, and interruption preserving a typed commit. Found and fixed my own UTF-8-copy bug: creation scalar validation must precede generic JSON cloning, which otherwise replaces invalid string bytes. Added a regression. No new teaching ambiguity arose.
+
+### Boundary responses: diagnostics-in-progress, fixture-diagnosis-1/2, live-plan-review-1
+
+Read all messages at the next boundary. The brief Go-edit hold and its lifting were both already in the inbox; no edits were made during an observed hold. I retained the original failed findings above. The independent engineer reports the five failures were fixture defects: unbraced token padding, a second unanswered replay prompt, a hint sent after turn end, and two browser counts including the inherited omitted-history notice. Their reported corrected positives (catalog 65/65, replay 105/105, browser 5/5 and all six targeted H/S/P leaves) are independent reports, not my own reruns. Waiting for committed checker identities before my affected reruns.
+
+The coordinator accepted live-plan coverage and the hard 108 overall/36 per-provider maximum as a ceiling, not a target. Gemini must be freshly discovered as `models/gemini-3.8-flash` with no silent fallback. Paid launch remains held for source-bound local and support review. I am making the redaction/reconstruction distinction and support bindings concrete; credential access remains unperformed.
+
+Concrete existing local coverage for the requested gaps:
+
+- `TestSkillDurableCommitFailureBoundaries`: fail `skills_changed` append versus fail later `tool_returned`; verifies complete prior state preservation versus durable committed state retention. `TestSkillInitialWriteFailureDoesNotApply` tests the unpublished construction append/apply seam.
+- `internal/skills/skills_test.go` owner-state counter seams cover maximum revision no-op/refusal and whole-group activation fit/refusal (not fabricated exhausted logs).
+- `TestSkillPauseHoldsManagementButTypedControlsProceed`: paused model control has no call/job yet; typed load commits; interrupt pairs the pending attempt and preserves that commit.
+- `evidence/ch09/browser-local.mjs`: launches actual GUI executable plus local fake HTTP, uses WebSocket server projection into Chrome, verifies state/cards, actual file effect and reconnect. Synthetic uint64 component checks are separately labeled.
+- `evidence/ch09/deletion-controls.py`: temporary Go overlays preserve delivered source. Passing controls precede admission deletion (specific forbidden file creation), result-redaction/manual deletion (retention comparison fails), and incremental graph publication mutation (complete ledger differs after failed second branch).
+- `TestSkillWatchCurrentStateOutlivesMaterialWindow`: 105 later events leave a 100-event window with no transition bodies but exact current skill state; owned watch values cannot mutate authority. Browser reset with only current state yields the inherited omitted-history notice and no fabricated material card.
+- `TestSkillEscapedDurableRecordReplaysBeyondOrdinaryLineLimit`: a valid 44-manual record with escaped `<` bytes exceeds 16 MiB of wire JSON and replays exactly. During self-review I found the inherited Scanner limit would reject valid Chapter 9 decoded-byte budgets. Skill records now read complete lines while ordinary/header records retain their prior limit. This is an implementation integration fix, not a new teaching rule.
+
+Core and GUI `go vet ./...` and `go test -race ./... -count=1` passed before the later escaped-record test/fix; final affected checks will rerun. Vet initially caught my unkeyed external test literals; those are corrected. Public headless `examples/skills-consumer` builds/vets, and its local default invocation proved two ceilings and literal alpha/beta bindings with zero model requests. `--ask` is the explicit later bounded-model path.
+
+### Boundary responses: checker-release-a294aac and record-bound-review
+
+Read committed checker release a294aac; affected black boxes can now be rerun in full. The original fixture failures and corrected causes remain above.
+
+The coordinator identified a real resource regression in my escaped-record fix: `ReadBytes` allows unbounded allocation before ordinary-line checks, while skill-bearing lines have no raw limit. The valid escaped-material positive remains required. I am holding only this reader/bound decision pending the author's published clarification, since a raw cutoff must account for repeated offers and growing retired summaries, not merely body bytes. I will not guess a limit or revert exact decoded-limit acceptance. This is a newly exposed contract integration question; no historical source was consulted.
+
+The independent reviewer reports passing deletion controls and additional failure/counter/interruption mutants. Those are independent reports. My own final whole-delivery module receipt will be `evidence/ch09/module-checks-initial.json` (with exact per-file input hashes and each module's vet/test command/result). No paid launch has occurred.
+
+
+### Boundary response: release-d8c7738
+
+Read the complete newly pinned Chapter 9, manifest, and direct author feedback at `clarification-d8c7738`; SHA-256 values match `40d2f81bfc93e2c70e433f3689b750fba283f49d04eaa51485551ec282394744` (chapter) and `ab168ba11211758f8f0c9f7e12c66e42f0bcbfbec5a1b575db33fece6c08d73b` (feedback). Revision `d8c7738f206fb5c95cfe9fb53d70f64e04f8884e` resolves the whole-fact size question. The explicit 67,108,864-byte physical record budget includes LF when present, while final EOF remains accepted. Controlled write refusal and bounded import are separate obligations. The author acknowledges that the missing whole-record bound was a teaching omission; my unbounded reader was still a resource regression and is now replaced.
+
+Implemented incremental ReadSlice accumulation with capacity clamped to the raw budget, overflow refusal before copying excess, and inherited ordinary/header limits. Compared the permitted accepted predecessor's exact Scanner implementation to preserve LF versus unterminated-token boundary behavior. The root measures actual sequence/time-bearing serialized facts before append, clone/application or authority mutation. Oversize yields typed skill_too_large and leaves the storage healthy. Eventlog also guards direct writes. No new limit was invented.
+
+Local controls now pass: exact raw 64 MiB and +1 both with LF and at final EOF; fixed-buffer overflow stops reading rather than draining an unlimited source; ordinary/header limits; genuine valid-catalog repeated-offer plus escaped-material oversize through typed load, model load and initial construction. Typed refusal leaves the entire inspection and original log bytes unchanged; model refusal retains paired calls/results and consumes pending tool_limits without truncating the acknowledgement; subsequent small activation gets revision 1/activation 2. Initial oversize writes only the inherited header. Initial versions of these new tests had my fixture errors (comma list separators, wrong-type dependency targets, omitted required ceiling, and inspecting a text pointer rather than text); corrected them from the printed contract, without changing runtime semantics to fit them.
+
+### Own corrected black boxes and whole-delivery checks
+
+`evidence/ch09/black-box-initial.json` retains my complete rerun outputs and exact inputs: base 51/51, catalog 65/65, graph 27/27, replay 105/105, management 138/138, configuration 27/27, public full suite passing, browser 5/5. These runs use corrected checker a294aac and precede the newly published raw-bound repair. The original failed diagnostics remain above. `evidence/ch09/module-checks-initial.json` contains all discovered delivery modules' vet and test commands/results and their exact file hashes. `evidence/ch09/architecture-local.json` contains the dynamic core import/star check. These are local gates, not chapter acceptance or real-provider demonstrations.
+
+### Boundary response: evidence-review-1
+
+Coordinator accepted the concrete public redaction helper path, subject to local behavioral validation. It loads the original log for exact original request reconstruction and builds a separate temporary offline log for a later redacted projection; originals are unchanged. The verifier ordering finding was valid: my second loop checked some launch identities after it could already replay a prior run. I moved every selected run's complete expected request/response/log/catalog/terminal/scratch identity checks and nonempty-set checks ahead of any replay/redaction. Scratch inputs are retained separately from final workspace hashes. The local support controls now include a passing two-run fixture followed by individual missing/changed identities in its last run; an execution seam proves neither replay nor redaction is called on those refusals. These controls will run after the immutable source/support freeze; they are not yet claimed passed.
+
+Additional permitted read ledger for evidence adaptation: complete accepted student `evidence/ch08/evidence.py`, `terminal-run.py`, `verify-receipts.py`, `replay-run.py`, `test-evidence.py`, `browser-local.mjs`, `browser-live.mjs`, and `capture-audio.swift`. No settings, credentials, external worker logs, grader source, historical answer or future teaching was read. The only coordinator messages read were the authorized inbox. Mandatory skill reloaded fully after each compaction. No paid/provider request occurred.
+
+
+### Initial coherent checkpoint, still incomplete as a chapter
+
+Post-clarification formatting is empty, and all 12 discovered modules passed both `go vet ./...` and `go test ./... -count=1`; exact receipt `evidence/ch09/module-checks-bound.json`. The source now implements catalog/graph/grants, actor management, durable material/replay, public configuration/inspection/controls, CLI and optional GUI without runtime authority in Context/Registry snapshots. Actual service paths remain Skills→SkillAgent→Ensemble logger, Registry→ToolAgent→Agent authority, and actor→TurnAgent direct access; no same-actor mailbox reentry is used for those parent calls. CLI/GUI/public examples call the public Ensemble constructor. The dynamic import audit includes the new skills spoke.
+
+This checkpoint preserves my initial implementation before independent historical comparison. The coherent source and support are frozen so immutable-binding controls and the coordinator-authorized combined gate can run. All eight earlier corrected black boxes and current local module gates pass; source-bound full gate and support controls are next. Live feature coverage remains unperformed, with no chapter-accepted claim. No runtime teaching question remains unresolved under d8c7738.
+
+### Boundary response: evidence-review-2
+
+Read at the pre-commit boundary. The final browser-original log, screenshot/text and audio receipts now receive a separate `browser-binding.json` on driver closure; terminal launcher includes that manifest and its exact originals in the final launch identities. Replay verifier checks those identities before any execution. Native speech still requires actual observed/captured audio; a JS speech event alone will not be labeled audible evidence. The review accepts the all-run identity ordering design; immutable-binding positive/negative results remain to be run after this checkpoint.

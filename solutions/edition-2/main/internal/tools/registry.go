@@ -48,6 +48,8 @@ func New(parent common.ToolAgent, selected []string) (*Registry, error) {
 	root := textField("File or directory path; defaults to the Agent workspace (.).", false, false, ".")
 	cap := numberField("Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.", 65536, 1)
 	builtins := map[string]entry{
+		"load_skill":     {"Activate one discoverable skill and its dependencies.", map[string]field{"name": textField("Skill identifier.", true, false, "")}, nil},
+		"unload_skill":   {"Remove one explicit skill root; retain shared dependencies and past manuals.", map[string]field{"name": textField("Skill identifier.", true, false, "")}, nil},
 		"read_file":      {"Read an inclusive one-based line range; report I/O and range errors.", map[string]field{"path": path, "start_line": numberField("First line, default 1.", 1, 1), "end_line": numberField("Last line; default 0 reads through EOF.", 0, 0), "max_bytes": cap}, readFile},
 		"list_directory": {"List one directory level in name order, distinguishing directories.", map[string]field{"path": root, "max_entries": numberField("Maximum entries; default 200. Further entries cause a truncation notice.", 200, 1), "max_bytes": cap}, listDirectory},
 		"search_files":   {"Search regular text files recursively using Go regexp; skip .git, symlinks, and files with NUL in the first 8192 bytes.", map[string]field{"path": root, "pattern": textField("Nonempty Go regular expression.", true, false, ""), "file_pattern": textField("Optional filepath.Match glob matched against basenames; omitted means no filter.", false, false, ""), "context_lines": numberField("Neighbor lines around selected matching lines; default 0. Overlapping or adjacent groups merge.", 0, 0), "max_matches": numberField("Maximum matching lines, default 200. Further matches cause a truncation notice.", 200, 1), "max_bytes": cap}, searchFiles},
@@ -83,6 +85,9 @@ func (r *Registry) Declarations() []common.ToolDefinition {
 		names = append(names, n)
 	}
 	sort.Strings(names)
+	if grants := r.parent.GrantedTools(); grants != nil {
+		names = grants
+	}
 	out := make([]common.ToolDefinition, 0, len(names))
 	for _, name := range names {
 		e := r.entries[name]
@@ -232,6 +237,17 @@ func (r *Registry) failure(format string, args ...any) error {
 
 func (r *Registry) Kind(name string) (bool, bool) {
 	_, available := r.entries[name]
+	if available {
+		if grants := r.parent.GrantedTools(); grants != nil {
+			available = false
+			for _, n := range grants {
+				if n == name {
+					available = true
+					break
+				}
+			}
+		}
+	}
 	supervision := name == "wait_for_job" || name == "send_input" || name == "kill_job" || name == "tool_limits"
 	return available, supervision
 }

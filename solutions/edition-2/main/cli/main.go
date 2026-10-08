@@ -32,7 +32,15 @@ func configuration(owner ensemble.ClientOwner) ensemble.Config {
 	if path == "" {
 		path = filepath.Base(os.Args[0]) + ".log"
 	}
-	return ensemble.Config{DisableStreaming: os.Getenv("EN_DISABLE_STREAMING") == "1", Vendor: vendor, APIKey: value("API_KEY"), Model: value("MODEL"), BaseURL: value("BASE_URL"), ResolvedModel: os.Getenv("LLM_RESOLVED_MODEL"), LogPath: path}
+	config := ensemble.Config{DisableStreaming: os.Getenv("EN_DISABLE_STREAMING") == "1", Vendor: vendor, APIKey: value("API_KEY"), Model: value("MODEL"), BaseURL: value("BASE_URL"), ResolvedModel: os.Getenv("LLM_RESOLVED_MODEL"), LogPath: path}
+	system, _ := os.LookupEnv("LLM_SYSTEM")
+	config.System = system
+	directory, dirSet := os.LookupEnv("LLM_SKILLS_DIR")
+	primary, primarySet := os.LookupEnv("LLM_PRIMARY_SKILL")
+	if dirSet || primarySet {
+		config.Skills = &ensemble.SkillConfig{Directory: directory, Primary: primary}
+	}
+	return config
 }
 func run(input io.Reader, output, diagnostics io.Writer) error {
 	return runArgs(os.Args[1:], input, output, diagnostics)
@@ -92,6 +100,9 @@ func runArgs(args []string, input io.Reader, output, diagnostics io.Writer) erro
 		return err
 	}
 	config.Builtins = []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command", "wait_for_job", "send_input", "kill_job", "tool_limits"}
+	if config.Skills != nil {
+		config.Builtins = append(config.Builtins, "load_skill", "unload_skill")
+	}
 	config.MaxTokens = 4096
 	agent, err := app.NewAgent(config)
 	if err != nil {

@@ -30,7 +30,7 @@ export class Connector {
     // BigInt and break artifact rendering; strings are never rewritten.
     const sources = new WeakMap();
     const message = JSON.parse(raw, function(key, value, context) {
-      if (['revision', 'watermark', 'watch_revision'].includes(key) && typeof value === 'number' && !Number.isSafeInteger(value)) {
+      if (typeof value === 'number' && !Number.isSafeInteger(value)) {
         let fields = sources.get(this); if (!fields) sources.set(this, fields = new Map());
         fields.set(key, context?.source);
       }
@@ -48,6 +48,21 @@ export class Connector {
     };
     counter(message); counter(message, 'watermark'); counter(message, 'watch_revision');
     counter(message.state?.execution_policy); counter(message.observation?.execution_policy);
+    const skillState = state => {
+      if (!state) return;
+      counter(state);
+      for (const item of [...state.active, ...state.retired]) counter(item, 'activation');
+    };
+    const skillEvent = event => {
+      if (!event?.skills) return;
+      skillState(event.skills.state);
+      for (const item of event.skills.activated) {
+        counter(item, 'activation');
+        for (let i = 0; i < item.dependencies.length; i++) counter(item.dependencies, String(i));
+      }
+    };
+    skillState(message.state?.skills); skillState(message.observation?.skills);
+    skillEvent(message.event); skillEvent(message.observation?.event);
     if (message.type === 'error' && ['preferences', 'policy'].includes(message.domain)) counter(message.current);
     return message;
   }

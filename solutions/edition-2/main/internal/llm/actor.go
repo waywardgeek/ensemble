@@ -185,6 +185,9 @@ func (a *Actor) run() {
 	}
 }
 func (a *Actor) receive(m common.ActorMessage) bool {
+	if a.receiveSkills(m) {
+		return false
+	}
 	if a.receivePolicy(m) {
 		return false
 	}
@@ -236,7 +239,7 @@ func (a *Actor) receive(m common.ActorMessage) bool {
 			}
 		}
 	case "append":
-		if a.active != nil {
+		if a.active != nil && m.Event.Skills == nil {
 			err = fmt.Errorf("Agent busy")
 		} else {
 			err = a.parent.RecordTurn(m.Event)
@@ -411,6 +414,10 @@ func (a *Actor) exchange() {
 		return
 	}
 	c := a.parent.TurnSnapshot()
+	r.config.Tools = a.parent.Registry().Declarations()
+	if c.SkillMode {
+		r.config.System = ""
+	}
 	body, err := Render(a.parent.Engine(), c, r.config)
 	if err != nil {
 		a.failTurn("error", err)
@@ -459,9 +466,10 @@ func (a *Actor) dispatch() {
 	manager := a.parent.Jobs()
 	limits, note, limitErr := registry.ResolveLimits(p)
 	available, supervision := registry.Kind(p.Name)
+	management := registry.Management(p.Name)
 	var job common.Job
 	var err error
-	if available && !supervision && limitErr == nil {
+	if available && !supervision && !management && limitErr == nil {
 		job, err = manager.Create()
 		if err != nil {
 			a.persistence(err)
@@ -487,6 +495,24 @@ func (a *Actor) dispatch() {
 			text = limitErr.Error()
 		}
 		result = &common.ToolEvent{CallID: p.CallID, IsError: true, Parts: []common.Part{Text(note + p.Name + " failed: " + text)}}
+	} else if management {
+		revision := uint64(0)
+		if state := a.parent.SkillView().State; state != nil {
+			revision = state.Revision
+		}
+		op, skillErr := registry.SkillOperation(p, revision)
+		var value common.SkillResult
+		if skillErr == nil {
+			value, skillErr = a.parent.ChangeSkill(op)
+		}
+		if skillErr != nil {
+			if _, typed := skillErr.(*common.SkillError); !typed {
+				a.persistence(skillErr)
+				return
+			}
+		}
+		ack := registry.SkillAcknowledgement(p, value, skillErr, note)
+		result = &ack
 	} else if supervision {
 		result, task = registry.BeginSupervision(p, limits, note)
 	} else {

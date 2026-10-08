@@ -1,0 +1,71 @@
+{
+  "at": "2026-10-08T16:15:45.294285+00:00",
+  "scope": "dynamic current core package import graph; manual owner-path review recorded separately",
+  "packages": [
+    {
+      "package": "example.com/ensemble",
+      "first_party_imports": [
+        "example.com/ensemble/internal/common",
+        "example.com/ensemble/internal/eventlog",
+        "example.com/ensemble/internal/jobs",
+        "example.com/ensemble/internal/llm",
+        "example.com/ensemble/internal/policy",
+        "example.com/ensemble/internal/skills",
+        "example.com/ensemble/internal/tools"
+      ]
+    },
+    {
+      "package": "example.com/ensemble/cli",
+      "first_party_imports": [
+        "example.com/ensemble"
+      ]
+    },
+    {
+      "package": "example.com/ensemble/cmd",
+      "first_party_imports": [
+        "example.com/ensemble/cli"
+      ]
+    },
+    {
+      "package": "example.com/ensemble/internal/common",
+      "first_party_imports": []
+    },
+    {
+      "package": "example.com/ensemble/internal/eventlog",
+      "first_party_imports": [
+        "example.com/ensemble/internal/common"
+      ]
+    },
+    {
+      "package": "example.com/ensemble/internal/jobs",
+      "first_party_imports": [
+        "example.com/ensemble/internal/common"
+      ]
+    },
+    {
+      "package": "example.com/ensemble/internal/llm",
+      "first_party_imports": [
+        "example.com/ensemble/internal/common"
+      ]
+    },
+    {
+      "package": "example.com/ensemble/internal/policy",
+      "first_party_imports": [
+        "example.com/ensemble/internal/common"
+      ]
+    },
+    {
+      "package": "example.com/ensemble/internal/skills",
+      "first_party_imports": [
+        "example.com/ensemble/internal/common"
+      ]
+    },
+    {
+      "package": "example.com/ensemble/internal/tools",
+      "first_party_imports": [
+        "example.com/ensemble/internal/common"
+      ]
+    }
+  ],
+  "passed": true
+}

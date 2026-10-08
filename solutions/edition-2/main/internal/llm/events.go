@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"path/filepath"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 )
@@ -121,7 +122,7 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 		return bad("invalid UTC timestamp")
 	}
 	n := 0
-	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Turn != nil, e.Hint != nil} {
+	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Turn != nil, e.Hint != nil, e.Skills != nil} {
 		if present {
 			n++
 		}
@@ -130,6 +131,11 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 		return bad("exactly one event payload is required")
 	}
 	switch e.Type {
+	case "skills_initialized", "skills_changed":
+		if e.Skills == nil || (e.Type == "skills_initialized") != (e.Skills.Action == "initialize") || e.Type == "skills_initialized" && c.LastSeq != 0 {
+			return bad("invalid skill event placement")
+		}
+		// Skills validates the graph through the composition root before this reducer.
 	case "turn_started":
 		if e.Turn != nil && e.Turn.Policy != nil {
 			p := e.Turn.Policy
@@ -193,6 +199,9 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 		}
 	case "request_sent":
 		r := e.Request
+		if c.SkillMode && r != nil && r.Configuration != nil && r.Configuration.System != "" {
+			return bad("skill request capture must omit primary bytes")
+		}
 		if r != nil && r.Delivery != "" && r.Delivery != "stream" && r.Delivery != "plain" {
 			return bad("invalid request delivery")
 		}
@@ -386,6 +395,26 @@ func Apply(owner common.Engine, c *common.Context, e common.Event) {
 		c.Calls = map[string]common.CallState{}
 	}
 	switch e.Type {
+	case "skills_initialized", "skills_changed":
+		c.SkillMode = true
+		for _, a := range e.Skills.Activated {
+			if a.Type == "primary" {
+				c.SkillPrimary = a.Body
+				continue
+			}
+			m := common.Entry{Seq: e.Seq, Actor: "system", Purpose: "skill", SkillName: a.Name, Activation: a.Activation, Parts: []common.Part{}}
+			if a.Body != "" {
+				m.Parts = append(m.Parts, Text(fmt.Sprintf("[skill %s activation %d]\n%s\n[/skill]", a.Name, a.Activation, a.Body)))
+			}
+			if c.SkillBatch != 0 {
+				m.Anchor = c.SkillBatch
+				c.DeferredSkills = append(c.DeferredSkills, m)
+			} else if c.Pending != nil {
+				c.PendingSkills = append(c.PendingSkills, m)
+			} else {
+				c.Entries = append(c.Entries, m)
+			}
+		}
 	case "turn_started":
 		c.ExplicitTurns = true
 		c.TurnID = e.Turn.RequestID
@@ -399,7 +428,7 @@ func Apply(owner common.Engine, c *common.Context, e common.Event) {
 		c.Continuation = false
 		c.Pending = nil
 	case "hint_received":
-		c.Hints = append(c.Hints, common.Entry{Seq: e.Seq, Actor: "human", Purpose: "hint", Parts: []common.Part{Text(e.Hint.Text)}})
+		c.Hints = append(c.Hints, common.Entry{Seq: e.Seq, Actor: "human", Purpose: "hint", Anchor: c.SkillBatch, Parts: []common.Part{Text(e.Hint.Text)}})
 	case "message_received":
 		m := *e.Message
 		m.Seq = e.Seq
@@ -412,6 +441,15 @@ func Apply(owner common.Engine, c *common.Context, e common.Event) {
 			c.Pending = &m
 		}
 	case "request_sent":
+		if c.SkillMode {
+			entries := c.Entries[:0]
+			for _, m := range c.Entries {
+				if m.Purpose != "hint" {
+					entries = append(entries, m)
+				}
+			}
+			c.Entries = entries
+		}
 		c.Hints = nil
 		c.Active = true
 		keep := c.Ephemera[:0]
@@ -434,6 +472,8 @@ func Apply(owner common.Engine, c *common.Context, e common.Event) {
 			c.Entries = append(c.Entries, *c.Pending)
 		}
 		c.Pending = nil
+		c.Entries = append(c.Entries, c.PendingSkills...)
+		c.PendingSkills = nil
 		c.Active = false
 		c.Continuation = false
 		c.Entries = append(c.Entries, common.Entry{Seq: e.Seq, Actor: "agent", Purpose: "dialogue", Parts: e.Response.Parts})
@@ -442,6 +482,14 @@ func Apply(owner common.Engine, c *common.Context, e common.Event) {
 			if p.Type == "tool_call" {
 				c.FinalResponse = false
 				c.Calls[p.CallID] = common.CallState{Part: p}
+			}
+		}
+		if c.SkillMode && !c.FinalResponse {
+			c.SkillBatch = e.Seq
+			for i := range c.Hints {
+				if c.Hints[i].Anchor == 0 {
+					c.Hints[i].Anchor = e.Seq
+				}
 			}
 		}
 	case "tool_called":
@@ -466,7 +514,21 @@ func Apply(owner common.Engine, c *common.Context, e common.Event) {
 		c.Calls[e.Tool.CallID] = call
 		c.Entries = append(c.Entries, common.Entry{Seq: e.Seq, Actor: "tool", Purpose: "dialogue", Parts: []common.Part{{Type: "tool_result", CallID: e.Tool.CallID, Parts: e.Tool.Parts, IsError: e.Tool.IsError}}})
 		c.Continuation = !unresolved(owner, *c)
+		if c.Continuation && c.SkillBatch != 0 {
+			material := append([]common.Entry{}, c.DeferredSkills...)
+			for _, h := range c.Hints {
+				if h.Anchor == c.SkillBatch {
+					material = append(material, h)
+				}
+			}
+			sort.SliceStable(material, func(i, j int) bool { return material[i].Seq < material[j].Seq })
+			c.Entries = append(c.Entries, material...)
+			c.DeferredSkills = nil
+			c.SkillBatch = 0
+		}
 	case "error_occurred":
+		c.Entries = append(c.Entries, c.PendingSkills...)
+		c.PendingSkills = nil
 		c.Pending = nil
 		c.Active = false
 		c.Continuation = false

@@ -473,3 +473,11 @@ func (*testAgent) ModelReady(common.ModelOperation) {}
 
 func (*testRoot) ClaimSettingsPath(path string) (string, error) { return path, nil }
 func (*testRoot) ReleaseSettingsPath(string)                    {}
+
+func (*testRegistry) Management(string) bool { return false }
+func (*testRegistry) SkillOperation(common.Part, uint64) (common.SkillOperation, error) {
+	return common.SkillOperation{}, fmt.Errorf("not a management fixture")
+}
+func (*testRegistry) SkillAcknowledgement(common.Part, common.SkillResult, error, string) common.ToolEvent {
+	panic("not a management fixture")
+}

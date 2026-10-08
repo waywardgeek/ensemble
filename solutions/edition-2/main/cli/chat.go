@@ -242,13 +242,32 @@ func chatCommand(owner ensemble.ClientOwner, agent *ensemble.Agent, out *bufio.W
 		return false, nil
 	}
 	switch command {
-	case "/help", "/usage", "/history", "/quit":
+	case "/help", "/usage", "/history", "/skills", "/quit":
 		if rest != "" {
 			return localError()
 		}
 		switch command {
 		case "/help":
-			fmt.Fprintln(out, "/help — show commands\n/usage — token totals\n/history — event sequences and tool call IDs\n/hint TEXT — guide the next request of the active turn\n/interrupt — interrupt the active turn\n/ephemeral TEXT — one-request directive\n/redact FROM TO REASON — redact tool results in a sequence span\n/quit — finish the session\n//TEXT — submit a literal leading slash\nInput: one UTF-8 line, at most 1 MiB (1048576 bytes), excluding LF or CRLF.")
+			fmt.Fprintln(out, "/help — show commands\n/usage — token totals\n/skills — current skills and tool grants\n/history — event sequences and tool call IDs\n/hint TEXT — guide the next request of the active turn\n/interrupt — interrupt the active turn\n/ephemeral TEXT — one-request directive\n/redact FROM TO REASON — redact tool results in a sequence span\n/quit — finish the session\n//TEXT — submit a literal leading slash\nInput: one UTF-8 line, at most 1 MiB (1048576 bytes), excluding LF or CRLF.")
+		case "/skills":
+			state, err := agent.SkillState()
+			if err != nil {
+				return false, err
+			}
+			if state == nil {
+				fmt.Fprintln(out, "Skills disabled.")
+				break
+			}
+			fmt.Fprintf(out, "Primary: %s\nRevision: %d\nRoots: %s\n", state.Primary, state.Revision, strings.Join(state.Roots, ", "))
+			fmt.Fprintln(out, "Active:")
+			for _, a := range state.Active {
+				fmt.Fprintf(out, "  %s (%s, activation %d)\n", a.Name, a.Type, a.Activation)
+			}
+			fmt.Fprintln(out, "Available:")
+			for _, o := range state.Available {
+				fmt.Fprintf(out, "  %s: %s\n", o.Name, o.Description)
+			}
+			fmt.Fprintf(out, "Tools: %s\n", strings.Join(state.Tools, ", "))
 		case "/usage":
 			return false, showUsage(owner, out, agent.Usage(), false)
 		case "/history":

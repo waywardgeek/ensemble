@@ -88,6 +88,7 @@ type PreparedReport struct {
 // ActorMessage is the mailbox vocabulary. Private worker paths construct worker
 // variants; clients use the Actor operations rather than injecting messages.
 type ActorMessage struct {
+	SkillOperation   SkillOperation
 	Policy           PolicySnapshot
 	BaseRevision     uint64
 	Patch            json.RawMessage
@@ -106,14 +107,16 @@ type ActorMessage struct {
 	Reply            chan ActorReply
 }
 type ActorReply struct {
-	PolicyAck    PolicyAck
-	Snapshot     WatchSnapshot
-	Watch        Watch
-	Registration PauseRegistration
-	Pause        PauseState
-	Ack          ControlAck
-	Handle       RequestHandle
-	Error        error
+	SkillResult     SkillResult
+	SkillInspection SkillInspection
+	PolicyAck       PolicyAck
+	Snapshot        WatchSnapshot
+	Watch           Watch
+	Registration    PauseRegistration
+	Pause           PauseState
+	Ack             ControlAck
+	Handle          RequestHandle
+	Error           error
 }
 
 // StoppedError lets callers distinguish closed admission without parsing text.

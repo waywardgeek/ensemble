@@ -208,3 +208,5 @@ func (testAgent) ModelReady(common.ModelOperation) {}
 
 func (testRoot) ClaimSettingsPath(path string) (string, error) { return path, nil }
 func (testRoot) ReleaseSettingsPath(string)                    {}
+
+func (testAgent) GrantedTools() []string { return nil }

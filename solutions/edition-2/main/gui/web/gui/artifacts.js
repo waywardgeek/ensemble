@@ -65,6 +65,7 @@ export class ArtifactScroll {
     this.cards.clear(); this.calls.clear(); this.jobs.clear(); this.element.replaceChildren(); this.agent = snapshot.agent_id;
     if (snapshot.omitted) this.card('omitted', 'Earlier history omitted', `${snapshot.omitted} earlier renderable events omitted; this view contains the most recent 100 events.`);
     for (const e of snapshot.events) this.event(e, true, snapshot.agent_id);
+    this.skillState(snapshot.state?.skills);
     for (const p of snapshot.partials) this.partial(p, p.channels);
     this.changed();
   }
@@ -96,6 +97,13 @@ export class ArtifactScroll {
     const action = ["tool_called", "tool_returned", "job_ended", "job_killed"].includes(e.type);
     if (this.scope === "chat" && action || this.scope === "actions" && !action && e.type !== "response_ended") return;
     const key = `e/${agent}/${e.seq}`;
+    if (e.skills) {
+      for (const item of e.skills.activated) {
+        const card = this.card(`skill/${agent}/${item.activation}`, 'Skill: ' + item.name, item.body, true);
+        card.skillActivation = String(item.activation);
+      }
+      this.skillState(e.skills.state);
+    }
     if (e.type === 'message_received') this.card(key, e.message.actor === 'human' ? 'You' : 'Message', e.message.parts.map(p => p.text ?? `[${p.type}]`).join('\n'));
     if (e.type === 'hint_received') this.card(key, 'Hint received', e.hint.text);
     if (e.type === 'response_ended' && replay) e.response.parts.forEach((p, i) => this.part(`d/${agent}/${e.seq}/${i}`, p, agent));
@@ -121,10 +129,19 @@ export class ArtifactScroll {
   observation(o) {
     if (this.closed) return;
     if (o.event?.type) this.event(o.event, false, o.agent_id);
+    if (o.skills) this.skillState(o.skills);
     if (o.kind === 'part_delta') { const key = 'p/' + partKey(o), previous = this.cards.get(key)?.channels?.[o.channel] || ''; this.partial(o, {[o.channel]: previous + o.text}); }
     if (o.kind === 'part_final') this.final(o);
     if (o.kind === 'model_end' && !o.accepted) this.incomplete(o);
     this.changed();
+  }
+  skillState(state) {
+    if (!state) return;
+    const active = new Set(state.active.map(item => String(item.activation)));
+    for (const card of this.cards.values()) if (card.skillActivation) {
+      card.status = active.has(card.skillActivation) ? 'Active skill' : 'Retired skill — retained material';
+      card.render();
+    }
   }
   incomplete(operation = null) {
     for (const card of this.cards.values()) if (card.status === 'Provisional' && (!operation || card.identity?.operation_id === operation.operation_id && card.identity?.agent_id === operation.agent_id && card.identity?.request_id === operation.request_id)) { card.status = 'Incomplete — not accepted'; card.render(); }

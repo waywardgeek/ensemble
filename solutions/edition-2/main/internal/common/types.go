@@ -16,6 +16,7 @@ type Message struct {
 type Conversation []Message
 
 type Config struct {
+	Skills           *SkillConfig
 	PolicyPath       string
 	DisableStreaming bool
 	APIKey           string
@@ -85,10 +86,13 @@ type Part struct {
 	Stub    string          `json:"stub,omitempty"`
 }
 type Entry struct {
-	Seq     uint64 `json:"seq,omitempty"`
-	Actor   string `json:"actor"`
-	Purpose string `json:"purpose"`
-	Parts   []Part `json:"parts"`
+	SkillName  string `json:"skill_name,omitempty"`
+	Activation uint64 `json:"activation,omitempty"`
+	Anchor     uint64 `json:"anchor,omitempty"`
+	Seq        uint64 `json:"seq,omitempty"`
+	Actor      string `json:"actor"`
+	Purpose    string `json:"purpose"`
+	Parts      []Part `json:"parts"`
 }
 type TurnEvent struct {
 	Policy    *TurnPolicy `json:"policy,omitempty"`
@@ -142,18 +146,19 @@ type EventError struct {
 	Message string `json:"message"`
 }
 type Event struct {
-	Turn     *TurnEvent    `json:"turn,omitempty"`
-	Hint     *HintEvent    `json:"hint,omitempty"`
-	Job      *JobSnapshot  `json:"job,omitempty"`
-	Seq      uint64        `json:"seq"`
-	Type     string        `json:"type"`
-	Time     string        `json:"time"`
-	Message  *Entry        `json:"message,omitempty"`
-	Request  *RequestEvent `json:"request,omitempty"`
-	Response *Response     `json:"response,omitempty"`
-	Tool     *ToolEvent    `json:"tool,omitempty"`
-	Redact   *Redaction    `json:"redact,omitempty"`
-	Error    *EventError   `json:"error,omitempty"`
+	Skills   *SkillTransition `json:"skills,omitempty"`
+	Turn     *TurnEvent       `json:"turn,omitempty"`
+	Hint     *HintEvent       `json:"hint,omitempty"`
+	Job      *JobSnapshot     `json:"job,omitempty"`
+	Seq      uint64           `json:"seq"`
+	Type     string           `json:"type"`
+	Time     string           `json:"time"`
+	Message  *Entry           `json:"message,omitempty"`
+	Request  *RequestEvent    `json:"request,omitempty"`
+	Response *Response        `json:"response,omitempty"`
+	Tool     *ToolEvent       `json:"tool,omitempty"`
+	Redact   *Redaction       `json:"redact,omitempty"`
+	Error    *EventError      `json:"error,omitempty"`
 }
 type CallState struct {
 	JobHandle  uint64
@@ -162,22 +167,29 @@ type CallState struct {
 	Returned   bool
 }
 type Context struct {
-	Hints         []Entry
-	TurnID        string
-	TurnIDs       map[string]bool
-	ExplicitTurns bool
-	FinalResponse bool
-	Jobs          map[uint64]JobSnapshot
-	Entries       []Entry
-	Instructions  []Entry
-	Ephemera      []Entry
-	Pending       *Entry
-	Active        bool
-	Continuation  bool
-	Calls         map[string]CallState
-	LastSeq       uint64
+	// Dialogue projection only. Runtime grants and material authority belong to Skills.
+	SkillMode      bool
+	SkillPrimary   string
+	SkillBatch     uint64
+	DeferredSkills []Entry
+	PendingSkills  []Entry
+	Hints          []Entry
+	TurnID         string
+	TurnIDs        map[string]bool
+	ExplicitTurns  bool
+	FinalResponse  bool
+	Jobs           map[uint64]JobSnapshot
+	Entries        []Entry
+	Instructions   []Entry
+	Ephemera       []Entry
+	Pending        *Entry
+	Active         bool
+	Continuation   bool
+	Calls          map[string]CallState
+	LastSeq        uint64
 }
 type Observation struct {
+	Skills          *SkillState     `json:"skills,omitempty"`
 	ExecutionPolicy *PolicySnapshot `json:"execution_policy,omitempty"`
 	Paused          bool            `json:"paused"`
 	TypingClients   int             `json:"typing_clients"`
@@ -239,6 +251,10 @@ type EventLog interface {
 
 // ClientOwner is public through an alias; optional clients never import internal packages.
 type ClientOwner interface {
+	SkillState(string) (*SkillState, error)
+	InspectSkills(string) (SkillInspection, error)
+	LoadSkill(string, string) (SkillResult, error)
+	UnloadSkill(string, string) (SkillResult, error)
 	ClaimSettingsPath(string) (string, error)
 	ReleaseSettingsPath(string)
 	ExecutionPolicy(string) (PolicySnapshot, error)
@@ -259,6 +275,8 @@ type ClientOwner interface {
 // TurnAgent exposes the owning Agent's serialized event path to its Engine.
 // The composition root's private adapter prevents clients bypassing admission.
 type TurnAgent interface {
+	SkillView() SkillInspection
+	ChangeSkill(SkillOperation) (SkillResult, error)
 	Agent
 	TurnSnapshot() Context
 	RecordTurn(Event) error
@@ -268,6 +286,9 @@ type TurnAgent interface {
 	Jobs() Jobs
 }
 type Registry interface {
+	Management(string) bool
+	SkillOperation(Part, uint64) (SkillOperation, error)
+	SkillAcknowledgement(Part, SkillResult, error, string) ToolEvent
 	Agent() Agent
 	Declarations() []ToolDefinition
 	Execute(Part) ToolEvent
@@ -307,6 +328,7 @@ type JobAgent interface {
 	Fault(error)
 }
 type ToolAgent interface {
+	GrantedTools() []string
 	Agent
 	Jobs() Jobs
 	RecordTool(Event) error

@@ -38,9 +38,19 @@ export class Page {
     else this.reconcile().catch(e => this.diagnostic(e.message));
   }
   preferences(snapshot) { if (this.closed) return; this.settings.apply(snapshot); const auto=this.root.querySelector('[data-auto-speech]'); if(auto){auto.setAttribute('aria-pressed',String(snapshot.preferences.autoplay));auto.textContent='Autoplay new answers: '+(snapshot.preferences.autoplay?'on':'off');} }
-  snapshot(snapshot) { if (this.closed) return; this.speech.reset(); this.speech.seed(snapshot.partials); this.artifacts.reset(snapshot); this.actions?.reset(snapshot); this.pause(snapshot.state); this.settings.policy(snapshot.state.execution_policy, snapshot.state.active_max_model_requests); this.lifecycle(snapshot.state.lifecycle, snapshot.agent_id); }
+  snapshot(snapshot) { if (this.closed) return; this.speech.reset(); this.speech.seed(snapshot.partials); this.artifacts.reset(snapshot); this.actions?.reset(snapshot); this.pause(snapshot.state); this.skills(snapshot.state.skills); this.settings.policy(snapshot.state.execution_policy, snapshot.state.active_max_model_requests); this.lifecycle(snapshot.state.lifecycle, snapshot.agent_id); }
   lifecycle(state, agent) { const el=this.root.querySelector('[data-agent]'); if(el){if(agent)this.agentID=agent;el.textContent=`${this.agentID || ''} — ${state}`;} }
-  observation(o) { if (this.closed) return; this.artifacts.observation(o); this.actions?.observation(o); this.speech.observe(o); if (o.kind === 'pause_changed') this.pause(o); if(o.kind==='policy_changed')this.settings.policy(o.execution_policy); if(o.kind==='state')this.lifecycle(o.state,o.agent_id); if(o.event?.type==='turn_started')this.settings.policy(this.settings.executionPolicy,o.event.turn.policy?.effective_max_model_requests ?? 16); if(o.event?.type==='turn_ended')this.settings.policy(this.settings.executionPolicy,null); }
+  observation(o) { if (this.closed) return; this.artifacts.observation(o); this.actions?.observation(o); this.speech.observe(o); if(o.skills)this.skills(o.skills); if (o.kind === 'pause_changed') this.pause(o); if(o.kind==='policy_changed')this.settings.policy(o.execution_policy); if(o.kind==='state')this.lifecycle(o.state,o.agent_id); if(o.event?.type==='turn_started')this.settings.policy(this.settings.executionPolicy,o.event.turn.policy?.effective_max_model_requests ?? 16); if(o.event?.type==='turn_ended')this.settings.policy(this.settings.executionPolicy,null); }
+  skills(state) {
+    const element = this.root.querySelector('[data-skills]'); if (!element) return;
+    element.replaceChildren();
+    if (!state) { element.textContent = 'Skills disabled.'; return; }
+    const line = (label, text) => { const p = document.createElement('p'); p.textContent = label + ': ' + text; element.append(p); };
+    line('Primary', state.primary); line('Revision', String(state.revision)); line('Roots', state.roots.join(', ') || '(none)');
+    line('Active', state.active.map(item => `${item.name} (${item.type})`).join(', '));
+    line('Available', state.available.map(item => `${item.name}: ${item.description}`).join('; ') || '(none)');
+    line('Tools', state.tools.join(', '));
+  }
   pause(state) { this.pauseStatus.textContent = `${state.paused ? 'Tool admissions paused' : 'Tool admissions available'} — typing: ${state.typing_clients}, speaking: ${state.speaking_clients}. Already admitted work continues.`; }
   reply(m) {
     if (this.closed) return;

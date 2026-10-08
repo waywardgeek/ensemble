@@ -55,6 +55,12 @@ func Render(owner common.Engine, c common.Context, config common.Config) ([]byte
 		target.Model = config.ResolvedModel
 	}
 	r := renderer{parent: owner, target: target, model: config.Model}
+	if c.SkillMode {
+		if config.System != "" && config.System != c.SkillPrimary {
+			return nil, failure(owner, "render System conflicts with recorded primary")
+		}
+		config.System = c.SkillPrimary
+	}
 	system := []string{config.System}
 	for _, entry := range c.Instructions {
 		for _, part := range entry.Parts {
@@ -67,11 +73,16 @@ func Render(owner common.Engine, c common.Context, config common.Config) ([]byte
 	if c.Pending != nil {
 		entries = append(entries, *c.Pending)
 	}
+	entries = append(entries, c.PendingSkills...)
 	for _, entry := range c.Ephemera {
 		entry.Actor = "human"
 		entries = append(entries, entry)
 	}
-	entries = append(entries, c.Hints...)
+	for _, h := range c.Hints {
+		if h.Anchor == 0 {
+			entries = append(entries, h)
+		}
+	}
 	var body any
 	switch config.Vendor {
 	case "anthropic", "gemini":

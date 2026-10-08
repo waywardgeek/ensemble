@@ -238,7 +238,11 @@ func (a *Actor) receiveWatch(m common.ActorMessage) bool {
 // PublishDurable is called only by the owning Agent's actor-admitted append path.
 // It is synchronous: enqueueing to our own mailbox would lose the snapshot cut.
 func (a *Actor) PublishDurable(e common.Event) {
-	a.publish(common.Observation{AgentID: a.parent.ID(), Kind: e.Type, Seq: e.Seq, Event: e})
+	o := common.Observation{AgentID: a.parent.ID(), Kind: e.Type, Seq: e.Seq, Event: e}
+	if e.Skills != nil {
+		o.Skills = a.parent.SkillView().State
+	}
+	a.publish(o)
 }
 func (a *Actor) publish(o common.Observation) {
 	a.revision++
@@ -286,7 +290,7 @@ func (a *Actor) publish(o common.Observation) {
 
 func RenderableEvent(owner common.Engine, kind string) bool {
 	switch kind {
-	case "message_received", "hint_received", "response_ended", "tool_called", "tool_returned", "job_ended", "job_killed", "turn_started", "turn_ended", "error_occurred":
+	case "skills_initialized", "skills_changed", "message_received", "hint_received", "response_ended", "tool_called", "tool_returned", "job_ended", "job_killed", "turn_started", "turn_ended", "error_occurred":
 		return true
 	}
 	return false

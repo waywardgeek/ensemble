@@ -53,6 +53,9 @@ func run() error {
 	}
 	config.PolicyPath = policyResolved
 	config.Builtins = []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command", "wait_for_job", "send_input", "kill_job", "tool_limits"}
+	if config.Skills != nil {
+		config.Builtins = append(config.Builtins, "load_skill", "unload_skill")
+	}
 	config.MaxTokens = 4096
 	a, err := app.NewAgent(config)
 	if err != nil {

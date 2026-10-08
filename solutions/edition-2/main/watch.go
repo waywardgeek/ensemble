@@ -53,6 +53,9 @@ func (a turnAgent) WatchSource() common.WatchSnapshot {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	s := common.WatchSnapshot{LogSeq: a.context.LastSeq, Events: []Event{}, Partials: []common.WatchPartial{}, State: common.WatchState{Model: a.config.Model, Usage: []common.UsageAccount{}}}
+	if a.skills != nil {
+		s.State.Skills = a.skills.Inspect().State
+	}
 	selected := []Event{}
 	for _, e := range a.events {
 		if llm.RenderableEvent(a.engine, e.Type) {

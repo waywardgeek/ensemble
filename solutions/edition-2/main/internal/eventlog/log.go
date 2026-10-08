@@ -30,7 +30,35 @@ func New(parent common.Agent, path string) (*Log, error) {
 	return log, nil
 }
 func (l *Log) Agent() common.Agent { return l.parent }
+
+// CheckSkillRecord measures the complete fact after sequence/time assignment,
+// before persistence or publication. Refusal does not fault storage.
+func CheckSkillRecord(parent common.Agent, event common.Event) error {
+	if event.Type != "skills_initialized" && event.Type != "skills_changed" {
+		return nil
+	}
+	data, err := json.Marshal(event)
+	if err != nil {
+		parent.Ensemble().Logf("cannot encode skill record")
+		return fmt.Errorf("cannot encode event")
+	}
+	if len(data)+1 > common.SkillRecordLimit {
+		failure := &common.SkillError{Code: "skill_too_large", Detail: "complete skill record exceeds 67108864 bytes"}
+		if event.Skills != nil {
+			failure.Name = event.Skills.Name
+			if event.Type == "skills_changed" && event.Skills.State.Revision > 0 {
+				failure.Revision = event.Skills.State.Revision - 1
+			}
+		}
+		return failure
+	}
+	return nil
+}
+
 func (l *Log) Append(event common.Event) error {
+	if err := CheckSkillRecord(l.parent, event); err != nil {
+		return err
+	}
 	data, err := json.Marshal(event)
 	if err != nil {
 		return fmt.Errorf("cannot encode event")
@@ -51,9 +79,39 @@ func (l *Log) write(data []byte) error {
 }
 func (l *Log) Close() error { l.faulted = true; return l.writer.Close() }
 
+// Keep the retained physical record within its budget. ReadSlice uses a fixed
+// scratch buffer; overflow is detected before copying any excess into record.
+func readRecord(parent common.Agent, input *bufio.Reader) ([]byte, error) {
+	var record []byte
+	for {
+		piece, err := input.ReadSlice('\n')
+		need := len(record) + len(piece)
+		if need > common.SkillRecordLimit {
+			parent.Ensemble().Logf("event log record exceeds raw byte limit")
+			return nil, fmt.Errorf("record exceeds raw byte limit")
+		}
+		if need > cap(record) {
+			capacity := max(need, 2*cap(record))
+			capacity = min(capacity, common.SkillRecordLimit)
+			next := make([]byte, len(record), capacity)
+			copy(next, record)
+			record = next
+		}
+		record = append(record, piece...)
+		if err != bufio.ErrBufferFull {
+			return record, err
+		}
+	}
+}
+
+func ordinaryRecordFits(record []byte) bool {
+	// Scanner's inherited maximum includes LF when present, but needs spare
+	// capacity to discover EOF for an unterminated token.
+	return len(record) < 16*1024*1024 || len(record) == 16*1024*1024 && record[len(record)-1] == '\n'
+}
+
 func Read(parent common.Agent, reader io.Reader) ([]common.Event, []int, error) {
-	scan := bufio.NewScanner(reader)
-	scan.Buffer(make([]byte, 4096), 16*1024*1024)
+	input := bufio.NewReader(reader)
 	events := []common.Event{}
 	lines := []int{}
 	line := 0
@@ -62,13 +120,27 @@ func Read(parent common.Agent, reader io.Reader) ([]common.Event, []int, error) 
 		parent.Ensemble().Logf("invalid event log at line %d: %s", line, reason)
 		return nil, nil, fmt.Errorf("invalid event log at line %d: %s", line, reason)
 	}
-	for scan.Scan() {
+	for {
+		record, readErr := readRecord(parent, input)
+		if readErr != nil && readErr != io.EOF {
+			line++
+			return fail("cannot read complete log record")
+		}
+		if len(record) == 0 && readErr == io.EOF {
+			break
+		}
 		line++
-		b := bytes.TrimSpace(scan.Bytes())
+		b := bytes.TrimSpace(record)
 		if len(b) == 0 {
+			if !ordinaryRecordFits(record) {
+				return fail("cannot read complete log record")
+			}
 			continue
 		}
 		if !header {
+			if !ordinaryRecordFits(record) {
+				return fail("cannot read complete log record")
+			}
 			var h struct {
 				Version int `json:"log_version"`
 			}
@@ -82,8 +154,13 @@ func Read(parent common.Agent, reader io.Reader) ([]common.Event, []int, error) 
 		if json.Unmarshal(b, &keys) != nil {
 			return fail("malformed JSON record")
 		}
+		var kind string
+		_ = json.Unmarshal(keys["type"], &kind)
+		if kind != "skills_initialized" && kind != "skills_changed" && !ordinaryRecordFits(record) {
+			return fail("cannot read complete log record")
+		}
 		count := 0
-		for _, key := range []string{"message", "request", "response", "tool", "redact", "error", "job", "turn", "hint"} {
+		for _, key := range []string{"message", "request", "response", "tool", "redact", "error", "job", "turn", "hint", "skills"} {
 			if raw, ok := keys[key]; ok {
 				count++
 				if bytes.Equal(raw, []byte("null")) {
@@ -100,9 +177,6 @@ func Read(parent common.Agent, reader io.Reader) ([]common.Event, []int, error) 
 		}
 		events = append(events, e)
 		lines = append(lines, line)
-	}
-	if scan.Err() != nil {
-		return fail("cannot read complete log record")
 	}
 	if !header {
 		return fail("missing log header")
