@@ -309,3 +309,29 @@ speech non-restoration, stale-job admission, checkpoint worker/fault concurrency
 full storage bounds and implementation deletion controls remain open. Existing
 public and initial CLI coverage is retained; this milestone does not complete
 the `e693e04` matrix or substitute for a real user-facing spin.
+
+Tracing the initial CLI failures also exposed an independent mutation-fixture
+problem: corruption files used canonical hash encoding for the entire envelope.
+That can rewrite a valid structural integer `10` as `1e1`, producing an earlier
+integer-type refusal that masks the intended mutation. This did not cause the
+untouched initial resume failure. Mutation-file encoding and null-state rebuild
+now preserve original numeric tokens; hash calculation remains canonical. No
+corruption predicate or required row was removed. A targeted control starts
+from an outer-valid oracle containing structural 10, changes only the intended
+unknown outer field and proves every other value/token unchanged. Restoring the
+old canonical serializer fails that precise assertion. The original 11 canonical
+examples and 18 outer-refusal controls still pass; the
+[fixture-repair receipt](checkpoint-evidence/ch10-initial-fixture-repair.json)
+binds the original checker/failed runtime receipt and current controls.
+
+Failed CLI rows now also show bounded command/exit/stdout/stderr in the compact
+terminal summary. The complete existing `runs` evidence remains unchanged in
+purpose and shape. This improves diagnosis without changing pass criteria.
+No whole runtime suite or replacement executable was run for these repairs.
+
+The first regression-control harness replaced the serializer too early, while
+constructing its own positive parent, and hit an integer-parser refusal before
+the intended assertion. That setup failure is retained in the same receipt and
+is not credited. The corrected control freezes and validates its parent first,
+then restores canonical serialization only while producing the corruption file;
+it exposes the exact unwanted `10` to `1e1` change in both untouched coordinates.

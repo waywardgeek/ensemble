@@ -67,6 +67,15 @@ def canonical(value):
     raise ValueError('non-JSON value')
 
 
+def encoded_json(value):
+    """Mutation file bytes are not canonical hash bytes. Preserve number
+    tokens so structural integer 10 cannot accidentally become exponent 1e1."""
+    if isinstance(value,Number):return str(value)
+    if isinstance(value,list):return '['+','.join(encoded_json(x) for x in value)+']'
+    if isinstance(value,dict):return '{'+','.join(json.dumps(k,ensure_ascii=False)+':'+encoded_json(v) for k,v in value.items())+'}'
+    return json.dumps(value,ensure_ascii=False,separators=(',',':'))
+
+
 def digest(raw):return hashlib.sha256(raw).hexdigest()
 
 def uint(value,positive=False):
@@ -167,7 +176,7 @@ class Runner:
 
 def faults(checkpoint,log):
     value=envelope(checkpoint);out={}
-    def outer(name,edit):v=copy.deepcopy(value);edit(v);out[name]=(canonical(v).encode(),log)
+    def outer(name,edit):v=copy.deepcopy(value);edit(v);out[name]=(encoded_json(v).encode(),log)
     outer('unsupported-version',lambda v:v.__setitem__('version',2))
     outer('unsupported-state-version',lambda v:v.__setitem__('state_version',2))
     outer('unknown-outer-field',lambda v:v.__setitem__('unexpected',True))
@@ -201,7 +210,24 @@ def protocol_records(result):
 def run_checks(runner):
     checks=[];runs={}
     def record(name,passed,evidence=None,blocked=None):
-        checks.append(dict(id=name,passed=bool(passed),**({'blocked_by':blocked} if blocked else {})))
+        row=dict(id=name,passed=bool(passed),**({'blocked_by':blocked} if blocked else {}))
+        if not passed and evidence is not None:
+            # Keep bounded process diagnostics visible in the terminal summary;
+            # exact commands/output remain in the unchanged full runs receipt.
+            diagnostics=[]
+            def visit(value):
+                if len(diagnostics)>=3:return
+                if isinstance(value,dict):
+                    if 'argv' in value and 'exit' in value:
+                        diagnostics.append({k:value[k] for k in ('argv','exit')})
+                        diagnostics[-1].update(stdout=value.get('stdout','')[-1500:],stderr=value.get('stderr','')[-1500:])
+                    else:
+                        for item in value.values():visit(item)
+                elif isinstance(value,list):
+                    for item in value:visit(item)
+            visit(evidence)
+            if diagnostics:row['diagnostics']=diagnostics
+        checks.append(row)
         if evidence is not None:runs[name]=evidence
     for vendor in MODELS:
       with tempfile.TemporaryDirectory(prefix='ch10-session-') as directory:
@@ -222,7 +248,7 @@ def run_checks(runner):
         before=hashes(store);inspection=runner.invoke(work,vendor,args=[str(runner.binary),'session','inspect',str(store)])
         inspected=inspection['exit']==0 and not inspection['requests'] and str(session_id) in inspection['stdout'] and hashes(store)==before;record(vendor+'/offline-inspect',inspected,inspection)
         seed=work/'seed';shutil.copytree(store,seed)
-        rebuilt=work/'rebuilt';normal=work/'normal';shutil.copytree(seed,rebuilt);shutil.copytree(seed,normal);v=envelope((rebuilt/'checkpoint.json').read_bytes());v['state']=None;v['state_sha256']=None;(rebuilt/'checkpoint.json').write_text(canonical(v))
+        rebuilt=work/'rebuilt';normal=work/'normal';shutil.copytree(seed,rebuilt);shutil.copytree(seed,normal);v=envelope((rebuilt/'checkpoint.json').read_bytes());v['state']=None;v['state_sha256']=None;(rebuilt/'checkpoint.json').write_text(encoded_json(v))
         a=runner.invoke(work,vendor,normal,'COMPARE_NEXT');b=runner.invoke(work,vendor,rebuilt,'COMPARE_NEXT');record(vendor+'/null-state-rebuild',a['exit']==b['exit']==0 and len(a['requests'])==len(b['requests'])==1 and a['requests'][0]==b['requests'][0],dict(snapshot=a,rebuild=b))
         presence=[]
         for label,value,ok in [('equal',updated['identity']['system'],True),('empty','',False),('different','Different base',False)]:
