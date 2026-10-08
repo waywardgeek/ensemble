@@ -43,9 +43,14 @@ the author published a complete skill-record limit at `d8c7738`, released to the
 student before repair. Initial source `654075b` passes the complete 67-row local
 gate. Import repair `c0e3171` passes targeted independent checks at `3531fa0`,
 all 11 module checks and immutable recording-support controls. Evidence is
-preserved through `10a58f2`; the same student is now resumed for the released
-live matrix with `review-binding.json`, at most 36 HTTP requests per provider
-and 108 overall. No completed Chapter 9 live use or full acceptance is claimed. Managed
+preserved through `10a58f2`; the same student is executing the released live
+matrix. Live-discovered Messages repair `75a7255` passes 14 independent HTTP
+controls at `7da5052` and an actual supplemental empty-argument tool call.
+Original receipts retain `review-binding.json`; repaired launches use
+`stream-binding.json`. A bounded OpenAI public recovery transfers one unused
+F allowance to P, preserving 36 requests per provider and 108 overall.
+Failed relay attempts and the partial Messages public outcome remain recorded.
+No completed Chapter 9 live matrix or full acceptance is claimed. Managed
 spawn hit its thread limit; this new session inherits no conversation and has
 memory injection disabled. `/root/grader_ch05` continues independent checks. See
 [chapter-09-validation.md](chapter-09-validation.md).
@@ -60,10 +65,12 @@ at `2d4ea47`. Root accepted all seven contract corrections at `8df7046`,
 including explicit browser bootstrap and actual GUI tunneling; see
 [chapter-12-validation.md](chapter-12-validation.md). No
 implementation or live result is claimed for those future chapters.
-Chapter 13 outline/evidence `bb6e04c` and working review decisions are recorded
-in [chapter-13-validation.md](chapter-13-validation.md); the author is drafting
-its speech-channel contract. `/root/coder_ch08` is preparing independent Chapter
-11 protocol fixtures and checks, with runtime coverage explicitly pending.
+Chapter 13 full draft `e4ef9a9` and grouped revision `f3a50d3` are under
+independent review; see [chapter-13-validation.md](chapter-13-validation.md).
+Chapter 11 protocol/fixture foundation `c80af0a` is independently accepted at
+`d13346c`, with runtime coverage explicitly pending. The inherited streaming
+fix is also being prepared on isolated accepted Chapter 6 source; earlier tags
+and exports remain unchanged pending review and forward propagation.
 Bill and CodeRhapsody are separately writing a new first-edition sandboxing
 chapter. Preserve that work; review it as a future source when available, without
 assuming its conclusions or changing the chapter map before review.
@@ -222,14 +229,19 @@ old implementation into the new solution.
 
 ## Roles and next actions
 
-- Author: `/root/coder_ch04` reconciles Chapter 8 receipts and teaching feedback,
-  then addresses the two Chapter 10 format clarifications. Its prior Chapter 4
-  student role is disclosed; it did not implement Chapter 8.
-- Grader engineer: `/root/coder_ch08` completed its Chapter 8 student attempt
-  before reassignment to Chapter 9 checks. A separate fresh student context will
-  implement Chapter 9 after its predecessor and initial checker are released.
-- Current reviewer: `/root/grader_ch05` completed Chapter 8 independent checks
-  and historical comparison; final live audit and manuscript proofreading follow.
+- Author: `/root/coder_ch04` reconciles current Chapter 9 teaching feedback
+  while its Chapter 13 revision receives review. Its earlier Chapter 4 student
+  role is disclosed; it did not implement Chapter 9.
+- Proofreader: `/root/coder_ch08` independently reviews Chapter 13. Its prior
+  roles include Chapter 8 student, Chapter 9 initial checks and Chapter 11
+  checker preparation; it did not author Chapter 13.
+- Maintenance coder: `/root/grader_ch05` prepares the narrow Messages fix on
+  isolated accepted Chapter 6 source, with later-source exposure disclosed.
+  Root reviews before any revision export/tag or propagation. This thread is
+  not a cold student and must not independently approve its own maintenance.
+- Current student: separate local CLI session
+  `01a11c0d-47b8-7241-8834-5ddf57ac5009` completes Chapter 9 live evidence under
+  its new-only teaching boundary; historical comparison has not begun.
 - Chapter 4 reviewer: `/root/coder_ch03_chat`, independent of this chapter's
   new coder, completed lifecycle/owner/fault/debugger and comparative review.
   This agent authored the preceding human-client integration; disclose that

@@ -9,7 +9,7 @@ accepted `edition-2-ch08-r1` (`bfdadaf5`), source `446d7f2` and tree
 | Contract | Author, coordinator | Earlier contract/three-question responses accepted and confirmed; complete encoded skill-record boundary `d8c7738` confirmed by the student | Preserve original-raw import measurement separately from newly emitted write size |
 | Independent checks | Initial `/root/coder_ch08`; continuing `/root/grader_ch05` | Complete initial gate passes all 67 rows on `654075b`; reviewer confirms six targeted write/import controls on repair `c0e3171`, including exact-size and intended deletion failures; original fixture failures retained | Reconcile any affected selected rerun and retain each result's original source identity |
 | Student and ownership plan | Fresh CLI student `01a11c0d-47b8-7241-8834-5ddf57ac5009` | Initial new-only read ledger and plan `5ac45e4`; owners/API accepted; author responses `8f24360` confirmed, recorded at `080fbca` | Retain initial experience and append new findings |
-| Initial implementation and live use | Same fresh student | Initial source `654075b` preserved; raw-import repair `c0e3171` passes all 11 modules and independent reproduction; immutable support controls pass in `local-evidence-controls-review.json`; coordinator released bounded real runs using `review-binding.json` | Execute actual CLI/browser/public matrix, preserving original failures and the 36/provider, 108-total HTTP ceilings |
+| Initial implementation and live use | Same fresh student | Initial source `654075b` and import repair `c0e3171` preserved; live-discovered Messages repair `75a7255` passes all 11 modules and 14 independent HTTP controls at `7da5052`; actual repaired empty-argument call succeeds in a supplemental Messages CLI run | Finish and freeze all-provider CLI/browser/public receipts, preserving failures and the 36/provider, 108-total HTTP ceilings |
 | Historical comparison and revisions | Independent code reviewer | Not started | Preserve initial source, live receipts and teaching review first |
 | Manuscript and feedback | Author, student, proofreader | Draft explicitly labels actual spin pending | Reconcile actual receipts and resolve student findings |
 | Export and checkpoint | Coordinator | Not started | Complete all gates before immutable chapter export/tag |
@@ -27,6 +27,47 @@ write-side exact 67,108,864-byte admission, one-byte overflow and atomic refusal
 remain protected. Student regression includes both LF and final EOF framing.
 These are local results. Live run release does not claim a completed live spin
 or waive the later first-edition comparison and manuscript reconciliation.
+
+## Live findings and current recovery scope
+
+The first Messages GUI run exposed a valid complete tool call with start input
+`{}` and a zero-length argument delta. The inherited assembler wrongly discarded
+the start object. Repair `75a7255` ignores zero-length deltas while continuing
+to reject malformed nonempty arguments and incomplete streams. Independent
+review [chapter-09-stream-review.md](chapter-09-stream-review.md) binds the
+original 2,668-byte response, old and repaired executables, and 14 controls,
+including a held-terminal check proving no premature tool effects. Teaching
+clarification `305b1b0` is confirmed by the student. The supplemental live run
+used three requests and actually executed `list_directory {}` successfully.
+Earlier receipts keep their original executable identities.
+
+Messages public-consumer attempt P remains exit 1: beta read its file but used
+its second model round on an unnecessary management call instead of a final
+report. Independent review `7dc9cc1` establishes the required two-Agent Skills
+behavior, all four exact request reconstructions and usage agreement, while
+preserving that incomplete task outcome. See
+[chapter-09-public-attempt-review.md](chapter-09-public-attempt-review.md).
+
+OpenAI P and Gemini N also retain local relay transport failures with missing
+upstream responses. These are not proven provider HTTP rejections. Gemini's
+bounded N continuations fit its original 16-request ceiling and exercise the
+remaining management actions; one intervening response with missing required
+usage data remains a refused attempt. Current teaching is not relaxed to make
+that receipt pass.
+
+The coordinator accepted one concrete OpenAI public recovery: transfer its
+unused sixth F allowance to P, giving N16/F5/G10/P5, with the failed first P
+request still counted. One fresh two-Agent attempt may use at most four more
+requests, after locally checked and separately bound support changes. Other
+providers retain their original scenario limits. The total remains 36 per
+provider and 108 overall. Original support/launch identities must remain
+verifiable. A separately bound keyboard-expansion action needs no new model
+request; click-only evidence cannot stand in for that promised interaction.
+
+Earlier Chapters 6–8 contain the same inherited streaming defect. An isolated
+Chapter 6 maintenance correction is under review, derived from its accepted
+source and the new Chapter 6 contract. No earlier tag or export has been
+replaced, and this later-informed maintenance is not a new cold-student trial.
 
 ## Fresh worker launch
 

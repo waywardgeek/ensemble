@@ -120,9 +120,15 @@ rollout before treating silence as a stopped worker. Do not copy private
 reasoning or credentials into the progress record.
 Later phases resume this explicit session ID, with memory use/generation disabled
 as in the retained launch. Phase 3 may perform the reviewed bounded provider
-demonstrations with `review-binding.json`; the earlier initial binding remains
-historical. Preserve the 36/provider and 108-total HTTP ceilings and all original
-attempts. No historical comparison until initial live work/review is frozen.
+demonstrations with `review-binding.json`; repaired runtime `75a7255` uses
+`stream-binding.json`. Preserve the 36/provider and 108-total HTTP ceilings and
+all original attempts. The inbox authorizes one OpenAI P recovery transferring
+its unused F sixth allowance to P5, with prior failed request counted; distinct
+locally checked support binding precedes launch. No historical comparison until
+initial live work/review is frozen. See the Chapter 9 gate for the independently
+accepted streaming repair and actual Messages supplement. An isolated accepted
+Chapter 6 maintenance worktree carries that repair for review before any new
+earlier-chapter export/tag; do not merge its older main tree over current main.
 
 The initial student attempt uses the new teaching and preceding new solution,
 not old implementation or grader internals. AFTER the first implementation
