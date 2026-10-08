@@ -12,10 +12,9 @@ or nothing at all because the connection broke. Let the reader see the work
 early. Keep the decision to act at the boundary already established by the
 actor: one complete, validated, durably accepted response.
 
-**Draft status:** the reviewed contract has an initial implementation and real
-user runs on all three APIs. The source and retained attempts below precede
-independent comparative review. Broad acceptance checks, revisions and final
-proofreading remain open; see the [Chapter 6 gate record](chapter-06-validation.md).
+**Draft status:** the initial implementation and real user runs remain preserved.
+Comparative review led to the repairs taught below; revised validation and live
+demonstrations are in progress. See the [Chapter 6 gate record](chapter-06-validation.md).
 
 ## TL;DR
 
@@ -64,9 +63,18 @@ author research notes. `ch06/` will be a frozen export after validation.
    use human chat in a PTY with all three real APIs, including tools, interrupt,
    and plain mode. Preserve the initial answer for independent comparison.
 
-Run `make grade-dir CH=7 DIR=solutions/edition-2/main`. Seven is the inherited
-grader number for this material; new independent checks use Chapter 6 names.
-Passing that grader does not replace the acceptance table or actual user runs.
+Commit the implementation, then run the independent deterministic gate from
+the repository root, replacing `SOURCE_COMMIT` with that immutable commit:
+
+```sh
+python3 scripts/edition2/accept_ch06_gate.py SOURCE_COMMIT
+```
+
+It checks an exported copy of the committed source. Actual user runs, receipt
+review and independent code/prose review remain separate gates. The historical
+diagnostic is `make grade-dir CH=7 DIR=solutions/edition-2/main`; seven is the
+first-edition number. Its old observation and structural contract produces
+0/100 on this implementation and does not grade the new exercise correctly.
 Method names and internal channel layout are student choices. The wire forms,
 ownership, ordering, failure boundaries, and observations below are requirements.
 
@@ -822,6 +830,7 @@ for source binding, read scope and the still-open independent review gates.
 | Accepted content | Paired plain/stream fixtures compare all ordered typed parts, exact arguments, signatures, requested/returned identities and normalized usage; exclude delivery and transient IDs deliberately |
 | Framing | Every byte split, UTF-8, CRLF/CR, comments, multiline data, exact frame limit and one-byte overflow, unfinished frame, explicit error and missing API terminal |
 | Accounting | Cumulative updates replace prior values; usage-only final is read; absent required usage fails; accepted response increments exactly once |
+| Storage and assembly | Exact retained-content limit and one-byte overflow include escaped opaque JSON; fixed-fragment size-doubling measurements detect repeated rebuilding of accumulated content |
 | Effects | Pause after complete-looking call arguments, then truncate or interrupt; require no tool effect, accepted response or usage for that operation |
 | Concurrency | A job terminal event consumes a sequence during HTTP; final call ID and observation mapping use the actual later response sequence |
 | Lifecycle | Interrupt, timeout, close and stale facts settle the right handle once; intentional interruption leaves the next turn usable |
@@ -842,10 +851,10 @@ records dispositions in `chapter-06-student-feedback.md`; the student checks
 that material questions were resolved. A passing build still needs this
 teaching review.
 
-The initial implementation and live receipts are retained for review. The
-inherited grader reported 0/100 under its older observation and structural
-contract; that result remains visible rather than being relabeled a pass.
-Initial independent delivery checks cover a narrower scope than this table.
-Broad acceptance and mutation evidence, historical comparison, any resulting
-revisions and final proofreading must close in the linked gate record before
-this chapter receives a validated checkpoint.
+The initial implementation and live receipts remain preserved before comparison.
+The inherited 0/100 result retains its original scope. Independent review
+identified refusal replay, repeated assembly work, timeout coverage and example
+observer ownership defects; the revised source addresses them, including a
+second correction for escaped opaque-byte accounting. The complete deterministic
+gate, affected revised demonstrations and final proofreading must close in the
+linked gate record before this chapter receives a validated checkpoint.
