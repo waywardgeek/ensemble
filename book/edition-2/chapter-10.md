@@ -17,11 +17,10 @@ piece is a safe way to mount those facts as a live conversation. A saved shell
 job cannot become a process again. A retired skill cannot acquire new permission
 because its manual survived. Remembering requires fewer powers than resuming.
 
-The coordinator has accepted this contract for independent checker preparation.
-An initial checker covers part of it; the [validation
-record](chapter-10-validation.md) tracks the remaining gates. Student planning
-has been released from accepted Chapter 9 source. No Chapter 10 implementation,
-successful restart or actual spin is claimed.
+The student has produced an initial implementation and revisions from accepted
+Chapter 9 source. Local checks and repairs remain in progress; the [validation
+record](chapter-10-validation.md) tracks unresolved gates and preserves earlier
+failures. Actual model-backed use and chapter acceptance remain pending.
 
 ## TL;DR
 
@@ -867,8 +866,9 @@ resume and WebSocket reconnect are different operations.
 
 ### Taking it for a spin: demonstration to be filled from receipts
 
-No Chapter 10 implementation or live transcript exists yet. The following is a
-reproduction plan, not output from an actual session. Bind the validated source,
+A Chapter 10 implementation is under local validation; the actual model-backed
+spin has not run. The following is a reproduction plan, not output from an actual
+session. Bind the validated source,
 executable, store format and catalog first, and use provider discovery rather
 than a remembered model ID. Credentials remain in the inherited memory/environment
 path, never in argv, saved configuration or the transcript.
