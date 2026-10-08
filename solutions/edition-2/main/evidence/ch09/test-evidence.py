@@ -67,7 +67,7 @@ with tempfile.TemporaryDirectory(prefix='ch09-evidence-controls-') as temporary:
     assert (workspace/'proof').read_text()=='proof bytes' and len(requests)==3
     (run/'terminal.txt').write_bytes(b'LOCAL PROTOCOL FIXTURE, NOT A LIVE PTY\n'+result.stdout)
     launch={**launch_identity(binding,'cli','N'),'scope':'local protocol fixture','workspace':str(workspace),'exit_code':0,'requests':3,'logs':['session.log'],'catalog_files':{str(p.relative_to(run)):file_digest(p) for p in catalog.rglob('SKILL.md')},'scratch_inputs':{'workspace/'+p:digest(b) for p,b in scenario_inputs('N').items()},'scratch_outputs':{str(p.relative_to(run)):file_digest(p) for p in workspace.rglob('*') if p.is_file()}}
-    originals=[run/'session.log',run/'terminal.txt',*run.glob('requests/*.json'),*run.glob('responses/*.body'),*catalog.rglob('SKILL.md'),*(run/'inputs').rglob('notes.txt'),*workspace.iterdir()]
+    originals=[run/'session.log',run/'terminal.txt',*run.glob('requests/*.json'),*run.glob('responses/*.body'),*catalog.rglob('SKILL.md'),*(run/'inputs').rglob('notes.txt'),*(p for p in workspace.rglob('*') if p.is_file())]
     launch['originals']={str(p.relative_to(run)):file_digest(p) for p in originals};(run/'launch.json').write_text(json.dumps(launch))
     events=[json.loads(line) for line in (run/'session.log').read_text().splitlines()][1:]
     result_seq=next(e['seq'] for e in events if e['type']=='tool_returned' and e['tool']['call_id']=='load')
