@@ -21,9 +21,11 @@ has 2,229 files across eight modules; it isolates a standalone evidence helper
 missed by the runtime-only gate. Actual full-tree checks pass and r1 is preserved.
 Fresh `/root/coder_ch08` is active with
 `fork_turns="none"`, new Chapters 1–8 and that accepted source. Its initial
-ownership plan is accepted. Core policy and GUI preference work has initial
-student-reported local passes; browser controls and independent checks proceed.
-No Chapter 8 paid demonstration or final acceptance is claimed.
+student attempt is frozen through `7f517d8`, with actual all-provider receipts.
+Independent code review `270c3b6` accepts runtime `a06d4f3` with 52 accounted-for
+groups. Final live audit, author reconciliation and proofread remain before the
+Chapter 8 checkpoint. The former student is now preparing Chapter 9 checks;
+Chapter 9 will receive a separate fresh student context.
 Source identities and retained limitations are tracked in
 [chapter-07-validation.md](chapter-07-validation.md).
 Earlier log-destination corrections are independently accepted and checkpointed

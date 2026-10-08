@@ -23,16 +23,19 @@ actual full-tree checks and the independent packaging review pass.
 See [chapter-07-validation.md](chapter-07-validation.md).
 The Chapter 8 settings contract is reviewed at `7200f17`; its initial partial
 wire/persistence checker is published at `b3f3137`, with additional independent
-checks at `f6ccbf5` and `10b17c8`. Fresh `/root/coder_ch08` is implementing from
-only new teaching and accepted Chapter 7 r2 source. Its ownership plan is
-accepted; it reports initial backend/local-check passes and is building browser
-controls. Independent acceptance and paid demonstrations remain pending. See
+checks culminating in independent code acceptance `270c3b6`. Fresh
+`/root/coder_ch08` completed the new-only build and froze final live receipts at
+`7f517d8`. Runtime `a06d4f3` has 52 accounted-for check groups. Final independent
+live audit, author reconciliation and proofread are underway before checkpoint. See
 [chapter-08-validation.md](chapter-08-validation.md). Chapter 9's full draft
 `49ae919` and transition clarification `0bca41c` are accepted for checker
 preparation; its student release still requires accepted Chapter 8 and published
-checks. See [chapter-09-validation.md](chapter-09-validation.md).
-The author is drafting Chapter 10's persistence contract following outline
-review; no implementation or live result is claimed for those future chapters.
+checks. The former Chapter 8 student now prepares independent Chapter 9 checks;
+the future student will use a separate fresh context. See
+[chapter-09-validation.md](chapter-09-validation.md).
+Chapter 10 draft `9181683` has coordinator review and two narrow format
+clarifications pending. The author first closes Chapter 8. No implementation
+or live result is claimed for those future chapters.
 Bill and CodeRhapsody are separately writing a new first-edition sandboxing
 chapter. Preserve that work; review it as a future source when available, without
 assuming its conclusions or changing the chapter map before review.
