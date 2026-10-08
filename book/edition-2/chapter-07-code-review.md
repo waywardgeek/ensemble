@@ -1,9 +1,8 @@
 # Chapter 7 independent code comparison
 
-Status: the initial comparison and targeted revision review are complete.
-All four findings are repaired at `9ba7855`; the retained full gate, revised
-live acceptance and final proofread remain open. This is not final chapter
-acceptance.
+Status: independent comparison, grouped code revisions and deterministic
+acceptance are complete at `9ba7855`. Revised live acceptance and final
+manuscript proofreading remain open. This is not final chapter acceptance.
 
 ## Scope and independence
 
@@ -246,3 +245,25 @@ pass on the frozen initial source after the adapter change. The same seven
 pass with the new application owner. The only compound deletion is explicitly
 recorded: both independently sufficient stale-callback fences are removed to
 recreate the protected failure.
+
+## Deterministic and code-review acceptance
+
+The [full revised gate](checkpoint-evidence/ch07-review-full-gate-revised.json)
+passes all 33 groups on `9ba7855`, including the prior Chapter 5/6 assertions,
+wire cases, deletion controls, CLI overflow recovery, all eight module checks
+and headless core without the optional GUI. Its 101 source hashes equal the
+comparative supplement's set and were checked again against the immutable Git
+blobs. The passing grader does not substitute for the design comparison above.
+
+R1–R4, including root-close admission ordering, are accepted. The coordinator
+and coder received clearance to proceed with the already authorized bounded
+revised live plan. No paid call was made by the reviewer. The original live
+attempt remains independently accepted at its original source identity; revised
+shared-native-speech/remount use and final manuscript reconciliation still
+require their own evidence and review before export or tag.
+
+The complete draft chapter through `992c898` was read against the initial
+receipts and clarified contract. The author corrected one grammar issue and
+added the root-close ordering lesson and executable correction-check command.
+This is a draft proofread milestone, not final acceptance of a later revised
+live account. The final proofread will bind that completed author revision.
