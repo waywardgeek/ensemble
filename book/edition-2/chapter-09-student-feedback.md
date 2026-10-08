@@ -47,3 +47,25 @@ fixtures clarify the distinction between request capture, public configuration
 and chronological dialogue. The student reports proceeding with local integration,
 with the pre-provider review gate intact. This confirmation is teaching feedback,
 not an acceptance claim for the implementation or later demonstrations.
+
+## Encoded transition bound, October 8, 2026
+
+The coordinator reported an integration difficulty: accepting the required
+8 MiB decoded material case can require roughly 48 MiB after JSON escaping,
+but bypassing an ordinary raw-record check for every skill record leaves reads
+unbounded. Repeated offers and retired summaries also prevent the decoded body
+limit from bounding a complete transition. This is a teaching omission; no
+passing implementation or test result is inferred from the report.
+
+Section 9.5 now defines an independent 67,108,864-byte complete skill-record cap,
+including a framing LF when present, with incremental bounded reading and
+pre-append candidate sizing. Oversize is a controlled skill_too_large refusal
+with no transition mutation; an enclosing management attempt retains its normal
+call/result and limit-consumption facts. Ordinary/header limits and final
+EOF framing acceptance stay unchanged. Preserve the escaped-material positive,
+exact decoded boundaries and raw exact/+1 controls. This is a coordinator working
+resource decision, not a claimed bound implied by the original prose.
+
+The author changed only teaching and this response. The student must read the
+published clarification before the affected repair and confirm whether it resolves
+the difficulty; implementation/checker acceptance remains separate.

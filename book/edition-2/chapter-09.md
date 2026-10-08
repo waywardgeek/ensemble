@@ -344,6 +344,32 @@ expands past the limit fails the entire candidate. Freeze each successful
 body's exact bytes and SHA-256 lowercase hex digest in its activation record.
 Loading another skill never retroactively rerenders an earlier manual.
 
+The complete encoded skills_initialized or skills_changed record has a separate
+64 MiB (67,108,864-byte) limit, including its framing LF when present. Count all
+raw bytes: escaping, whitespace, repeated offers, descriptions and retired
+summaries. An accepted final record without LF retains the inherited framing
+rule and counts its actual bytes. Ordinary-record and header limits are unchanged.
+Decoded source/material bounds do not bound this whole fact: a long activation
+history can grow its summaries even when no new body is large.
+
+Read incrementally within the raw bound and detect overflow before allocating
+beyond that budget; an unbounded ReadBytes followed by a size check is insufficient.
+A bounded physical reader may use the larger ceiling before identifying the kind,
+then enforce the smaller inherited ordinary/header limit. Serialize and measure
+the complete candidate before append or any Skills mutation. Oversize returns
+skill_too_large with a safe record-size explanation: no transition event, grant,
+material, revision or activation-counter change. It is a controlled refusal,
+not a terminal storage-write failure. An enclosing management call still keeps
+its ordinary attempted-call/result and limit-consumption facts. Oversize initial
+state refuses construction; oversized imported records give a safe line-numbered
+error before reduction.
+
+Exact decoded limits remain valid when the complete fact fits. In particular,
+retain a positive control for 8 MiB of decoded transition material whose JSON
+escaping makes the record substantially larger. Also test exact 67,108,864-byte
+raw admission and one-byte-over refusal, without weakening decoded one-over
+checks. Check write-side atomic refusal separately from bounded import.
+
 ## 9.6 Commit permission without parking the actor
 
 Both management tools require exactly `{"name":"ID"}`. Reject missing, blank,
