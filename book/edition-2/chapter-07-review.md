@@ -69,3 +69,10 @@ The driver uses the documented [Playwright library lifecycle](https://playwright
 and [Chrome channel launch option](https://playwright.dev/docs/api/class-browsertype#browser-type-launch-option-channel).
 No dependency or frontend framework was added to the student source. Keep the
 browser choice separate from the student's GUI implementation choices.
+
+Chapter 6's comparative review found quadratic copying in the initial stream
+assemblers and repaired it before acceptance. The coordinator carried that
+lesson into §7.3 before a Chapter 7 student exists: the recoverable presentation
+projection also accumulates changes incrementally and materializes a snapshot
+at the watch boundary. Its owner, semantic bounds and wire contract are
+unchanged; reconnect support must not reintroduce that cost on every delta.

@@ -227,6 +227,13 @@ recoverable from the durable window. Rejected partials may stay on an already
 connected screen marked incomplete; reconnect does not promise to recover them.
 The watch never takes over Engine's assembly or accepts a response.
 
+Carry Chapter 6's incremental assembly lesson into this projection. Append new
+channel text to owned storage and maintain its byte count as it changes; do not
+copy or serialize the whole growing answer for each delta. Materialize the
+owned snapshot at the watch boundary. The live tail continues to carry changes,
+so keeping reconnect possible does not make ordinary streaming progressively
+more expensive.
+
 Copy selected immutable values under their owning synchronization; do not hand
 the server an append-only slice and assume that makes concurrent access safe.
 Snapshot configuration is an explicit safe projection: identities, model name,
