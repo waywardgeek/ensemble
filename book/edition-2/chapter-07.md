@@ -148,7 +148,23 @@ or change the turn's outcome. It can hold calls after a response is accepted.
 
 These are transient scheduling causes, not new conversation entries or replay
 instructions. Expose effective pause state and causes in watch state without
-changing Chapter 5's lifecycle enum. Replay does not restore a disconnected
+changing Chapter 5's lifecycle enum. After applying an update or registration
+close, the actor publishes `pause_changed` whenever the aggregate Boolean or
+either cause count changes. Its public payload is `kind`, `agent_id`, `paused`,
+`typing_clients` and `speaking_clients`. Counts are nonnegative integers; a
+registration with both causes true contributes to both counts. A count change
+still publishes when `paused` remains true. An identical repeated update or
+already-closed registration produces no new pause observation.
+
+The actor assigns this observation the next watch revision and publishes it
+before returning the update acknowledgement. The acknowledgement includes that
+applied `revision`; a no-change acknowledgement uses the latest watch revision.
+This defines state order without requiring two different sockets to receive a
+frame at the same instant. Every intact watch, including surviving clients
+when another disconnects, sees the change. Default CLI protocol output remains
+unchanged, and Chapter 6's opt-in CLI observation mode keeps its existing
+filter. The new public observation is required on the GUI watch, not injected
+into those established CLI records. Replay does not restore a disconnected
 tab's pause. The public registration works without any browser, which makes
 this behavior testable by an ordinary external consumer.
 
@@ -175,6 +191,9 @@ contains:
   last sequence at this boundary. An empty window has null first/last values.
 - Current lifecycle state, active request identity when any, queued request
   identities, effective pause and the counts of typing/speaking registrations.
+  `active_operation` is null before `model_begin` or after `model_end`; between
+  them it contains `agent_id`, `request_id`, `operation_id` and `delivery`, even
+  when no fragment has arrived.
 - Every recoverable in-flight part already published by the actor, with full
   Agent/request/operation/part identity and accumulated text for each channel.
 
@@ -191,7 +210,13 @@ The actor captures the snapshot and registers the tail at the same boundary.
 Each later public observation has a strictly increasing Agent-local revision,
 independent of durable sequence. This revision orders live state and partials;
 it is not persisted and is never submitted by the browser as a reconnect cursor.
-The tail starts strictly after the snapshot watermark. A mutation of returned
+The watermark includes pause observations as well as model, durable-event and
+other public state observations. A pause update before the cut appears in the
+snapshot aggregate; one after the cut appears in the tail. The tail starts
+strictly after that watermark. A watch joining after `model_begin` uses the
+snapshot's active-operation metadata; it receives no fabricated second begin.
+It accepts subsequent full-identity deltas/finals/end for that operation even
+if the initial partial list was empty. A mutation of returned
 snapshot buffers cannot change history, another client or the next snapshot.
 
 Agent owns the recoverable presentation projection. It is derived from actor-
@@ -275,7 +300,7 @@ Use these field names. This empty-history example has no active request,
 queued requests, usage or pause causes; null range values differ from sequence 0:
 
 ```json
-{"type":"snapshot_begin","id":"c1","generation":"g1","agent_id":"a1","watermark":0,"first_seq":null,"last_seq":null,"log_seq":0,"omitted":0,"state":{"lifecycle":"idle","active_request_id":null,"queued_request_ids":[],"paused":false,"typing_clients":0,"speaking_clients":0,"model":"fixture-model","usage":[]}}
+{"type":"snapshot_begin","id":"c1","generation":"g1","agent_id":"a1","watermark":0,"first_seq":null,"last_seq":null,"log_seq":0,"omitted":0,"state":{"lifecycle":"idle","active_request_id":null,"active_operation":null,"queued_request_ids":[],"paused":false,"typing_clients":0,"speaking_clients":0,"model":"fixture-model","usage":[]}}
 {"type":"snapshot_end","generation":"g1","watermark":0}
 ```
 
@@ -297,12 +322,24 @@ After end, deliver ordered live `observation` envelopes and correlated replies:
 ```json
 {"type":"accepted","id":"c2","request_id":"r1"}
 {"type":"ack","id":"c3","request_id":"r1","seq":7,"sent":false}
-{"type":"ack","id":"c4","paused":true,"typing_clients":1,"speaking_clients":0}
+{"type":"ack","id":"c4","revision":43,"paused":true,"typing_clients":1,"speaking_clients":0}
 {"type":"ack","id":"c5","accepted":true,"request_id":"r1"}
 {"type":"observation","generation":"g1","revision":42,"observation":{"kind":"model_begin","agent_id":"a1","request_id":"r1","operation_id":"m1","delivery":"stream"}}
 {"type":"completion","request_id":"r1","outcome":"interrupted","text":"","pending_hints":0}
 {"type":"error","id":"c6","code":"invalid_command","message":"unknown command field"}
 ```
+
+For example, a second typing tab increments the count without changing the
+Boolean. Closing the first tab then decrements it; the surviving tab observes
+both applied states through its own generation:
+
+```json
+{"type":"observation","generation":"g1","revision":44,"observation":{"kind":"pause_changed","agent_id":"a1","paused":true,"typing_clients":2,"speaking_clients":0}}
+{"type":"observation","generation":"g1","revision":45,"observation":{"kind":"pause_changed","agent_id":"a1","paused":true,"typing_clients":1,"speaking_clients":0}}
+```
+
+These revisions illustrate consecutive changes in a controlled fixture; other
+observations may occupy intervening revisions in a real session.
 
 The acknowledgement forms inherit Chapter 5's semantics; an idle interrupt
 uses `accepted:false` without inventing a request. A pause acknowledgement
@@ -320,6 +357,45 @@ placeholder classification. The server's projection must preserve ordered
 positions and the distinction between absent visible content and an empty
 text part. No static “assistant answered” string substitutes for the actual
 accepted response.
+
+Apply the display projection recursively to every typed part list: accepted
+response parts, message parts, `tool_returned.tool.parts`, and nested
+`tool_result.parts` in public neutral result values. At every position, replace
+a standalone opaque part with the exact placeholder above; remove bound
+`opaque` and signature metadata from recognized text and calls; recurse through
+result children without changing order, call IDs, error flags, references or
+present empty text. Apply the same rule to live finals and snapshot events.
+This is a typed projection, not a recursive deletion of every JSON key spelled
+`opaque` or `thoughtSignature`: a tool argument object or literal text can
+legitimately contain those names and remains user data.
+
+Use these payload excerpts inside otherwise valid fixtures. An accepted
+response contains these two parts in order:
+
+```json
+[{"type":"text","text":"","from":{"vendor":"gemini","model":"fixture-gemini","surface":"generate_content"},"opaque":"text-signature"},{"type":"opaque","from":{"vendor":"gemini","model":"fixture-gemini","surface":"generate_content"},"data":{"nested":{"thoughtSignature":"hidden-bytes"}}}]
+```
+
+The displayed parts are exactly:
+
+```json
+[{"type":"text","text":"","from":{"vendor":"gemini","model":"fixture-gemini","surface":"generate_content"}},{"type":"opaque","placeholder":true}]
+```
+
+The empty text retains its position; the whole opaque payload is gone. For
+recursion, use this `tool_returned.tool` payload after its valid matching call:
+
+```json
+{"call_id":"read-a","parts":[{"type":"text","text":"","from":{"vendor":"gemini","model":"fixture-gemini","surface":"generate_content"},"opaque":"result-signature"}],"is_error":false}
+```
+
+Its displayed `parts` retains the empty text and safe provenance but removes
+`opaque`; `call_id` and explicit false remain unchanged. Chapter 2 permits only
+text/blob/redacted result children. Do not add an invalid opaque result child
+merely to test recursion. The standalone opaque response part tests nested raw
+payload removal; the valid result child tests recursive bound-signature removal.
+A tool call with args `{"opaque":"keep-as-argument"}` must retain that argument
+unchanged. These fictional signatures test projection, not provider acceptance.
 
 If the socket fails after submission but before `accepted`, show acceptance
 unknown and reconnect to inspect history. Do not resend automatically. This

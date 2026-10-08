@@ -79,3 +79,22 @@ embedding, actual speech when available and explicit cancellation. Use local
 fixtures for schedule-sensitive races and synthesis failure. Capture real
 screenshots plus text descriptions; source/binary binding precedes verification.
 The author writes the observed transcript later, retaining failed attempts.
+
+
+## Coordinator review clarifications
+
+The coordinator accepted shared public CLI reuse for `--terminal` and the last
+100 renderable-event window. Subsequent narrow review requested executable
+pause transitions and recursive browser-safe projection. The draft now defines
+`pause_changed` aggregate/count payloads, actor publication/revision ordering,
+count-only changes, disconnect release and snapshot watermark coverage. Default
+CLI protocol and the existing observe filter are preserved. Snapshot state
+names an active begun operation even before its first fragment; reconnect does
+not fabricate a second begin.
+
+Projection recurses through response/message/result part lists, preserves order
+and empty text, strips bound signatures and replaces raw opaque payloads with
+placeholders. Exact valid payload fixtures cover response opaque data, nested
+result signatures and an argument whose ordinary key is named opaque. No new
+neutral result child kind or runtime architecture is introduced. Final review
+and accepted Chapter 6 remain before student release.

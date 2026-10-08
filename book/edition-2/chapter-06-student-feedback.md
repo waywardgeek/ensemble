@@ -19,4 +19,8 @@ for that opaque object. Known signed text and calls retain their existing
 rules. Plain and streaming normalization must agree. §6.5 publishes a paired
 fixture, matching/foreign replay expectations, and malformed-known-field and
 opaque-only negatives. This is a teaching clarification before the affected
-fix; no implementation or live outcome is claimed. Student confirmation pending.
+fix. The student subsequently confirmed that it resolves the question and
+implemented the paired and negative fixtures before initial runtime freeze
+`aa5f86a`. The coordinator reports local module/race and initial independent
+checks passing. Live evidence and final validation remain separate; this
+confirmation closes the teaching question, not those gates.

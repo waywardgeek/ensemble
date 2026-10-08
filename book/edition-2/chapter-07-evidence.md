@@ -109,3 +109,21 @@ new-checker invocation, and the accepted Chapter 6 predecessor before student
 release. Source research and an outline are not those gates. Scoped prose lint
 has no hard failures; soft density/person-gap warnings receive a reading pass,
 not fabricated anecdotes or padding.
+
+
+## Narrow coordinator review, October 7
+
+Coordinator reviewed the complete draft and accepted shared CLI composition and
+the fixed event window. Two missing contracts were taught before code: public
+pause changes now have exact aggregate/count payloads and actor revisions,
+including changes that keep paused true; browser projection explicitly descends
+into all typed part lists without stripping similarly named tool-argument keys.
+The snapshot watermark includes pause transitions. Active operation metadata
+covers subscribe-after-begin-before-first-fragment without replaying a fabricated
+begin event.
+
+The projection fixture respects Chapter 2's restriction on result children:
+text/blob/redacted only. It tests a bound signature on a valid nested result
+text part and raw nested opaque bytes in a standalone accepted response part,
+instead of grading an invalid opaque result child. These are fictional local
+fixtures, not new model observations. No implementation or live claim added.
