@@ -1,11 +1,38 @@
 # Source checkpoint records
 
-The current implementation is Chapter 5. Its runtime was reviewed at `959c663`
-and live evidence frozen at `469730f`. Current acceptance belongs in the
-[Chapter 5 validation record](../../../book/edition-2/chapter-05-validation.md).
-The coordinator's subsequent changes to this file and README are documentation
-only. The dated Chapter 2 record below is retained as history; its next-action
-instructions describe that earlier checkpoint.
+The current implementation is Chapter 6. Its repaired runtime is frozen at
+`75bd14d5d2424778ebf45cb9025e9dbf314f956a`; revised launch bindings are in
+`8946020` and revised live/student receipts in `8c73f9b`. Changes to this file
+and README are documentation only. Current acceptance, export and immutable tag
+status belong in the
+[Chapter 6 validation record](../../../book/edition-2/chapter-06-validation.md).
+This record does not assert that a final Chapter 6 tag already exists.
+
+Chapter 6 streams all three API adapters by default, exposes plain delivery
+through `EN_DISABLE_STREAMING=1` / `Config.DisableStreaming`, and adds optional
+`protocol --observe` records while preserving reliable request completions.
+The new public `examples/stream-consumer` exercises two Agents with ordinary,
+finals-only and stalled subscribers. The root, optional GUI and five public
+example modules are independently checked; see README for commands. The GUI
+remains a transport stub.
+
+The initial runtime `aa5f86a` and its nine live sessions / 33 requests remain
+preserved with receipts `f73b01e`, `d12a0cb` and `3417575`. Intermediate repair
+`3ccaed6` is retained before the escaped-opaque size correction. The repaired
+runtime's seven affected-path sessions / 20 requests preserve actual tool reads,
+interruption/recovery, plain Gemini delivery and public finals. Gemini public
+MAX_TOKENS responses remain accepted partial answers. Each receipt retains its
+own immutable source and executable identity under `evidence/ch06/`.
+
+## Historical Chapter 5 checkpoint
+
+Chapter 5 runtime was reviewed at `959c663` and live evidence frozen at
+`469730f`. Its accepted Chapter 5 tag is `edition-2-ch05-r1` at `7a6ef03`;
+that checkpoint's main source matches the export from `185ba767`.
+The [Chapter 5 validation record](../../../book/edition-2/chapter-05-validation.md)
+and `evidence/ch05/` retain its acceptance and live history. The dated Chapter 2
+record below is also historical; its next-action instructions apply to that
+earlier checkpoint.
 
 ## Historical Chapter 2 reviewed student checkpoint — 2026-10-07
 
