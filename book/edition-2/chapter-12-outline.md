@@ -110,9 +110,9 @@ Give the browser surface an earlier lifetime instead of changing the grant rule.
    Endpoint identity does not change merely because its initially empty view
    acquired an Agent.
 
-The full draft must give bootstrap a bounded, cancelable wait distinct from the
-MCP preparation timer, and document what the operator sees without a browser.
-Recommendation: 120 seconds from serving the URL, with clean root shutdown on
+Bootstrap has a bounded, cancelable wait distinct from the
+MCP preparation timer, and documents what the operator sees without a browser.
+The accepted wait is 120 seconds from serving the URL, with clean root shutdown on
 expiry; protocol preparation keeps Chapter 11's 30-second bound after attachment.
 No paid request or silent headless fallback occurs while waiting.
 
@@ -184,32 +184,38 @@ request lifecycle under the same monotone-issued identity rule.
 Propose gui_snapshot, tts_queue, gui_click, gui_input and gui_submit as the
 installed aliases. Snapshot and speech queue remain callable through ordinary
 Jobs and may additionally be selected for automatic context by trusted policy.
-The names themselves confer no read-only property; automatic eligibility is
-explicit caller configuration validated against the fixed supported operation.
-Peer annotations cannot opt themselves in.
+The names themselves confer no read-only property. Trusted creation configuration
+selects each fixed alias and argument object eligible for automatic sampling.
+The optional GUI validates its supported observational defaults; general public
+callers are responsible for choosing observational operations. Core validates
+bindings, arguments and grants without hardcoding GUI names or claiming it can
+prove a handler's side effects absent. Peer annotations cannot opt themselves in.
 
 Snapshot reads only the selected view's visible semantic interface: control
 identity/label/type, enabled/disabled, selected, expanded, checked, current
 applied settings, connection/pause state and bounded artifact previews. Include
 state rather than inferring it solely from CSS labels. Exclude unrelated Pages,
 hidden credentials, scripts and raw HTML. Unsubmitted human drafts need an
-explicit policy; recommendation is presence/length only, while a tool-owned
+explicit policy; the proposed default is presence/length only, while a tool-owned
 draft can be read back for verification until a human edits it.
 
 Selectors should be stable control selectors emitted by this view's snapshot
 and resolved in its owned map. They do not grant arbitrary document-wide CSS
 queries, JavaScript execution or navigation. Refuse missing, ambiguous, stale,
 out-of-scope, disabled and unsupported controls. A remount invalidates old target
-identities. The full draft must choose exact argument/error shapes and define
+identities. The coordinator accepts these scoped identities and refusals.
+The full draft must choose exact argument/error shapes and define
 when a control changed between snapshot and action.
 
-Proposed bounded default: at most 256 controls and 20 artifact previews, each
+Accepted bounded default: at most 256 controls and 20 artifact previews, each
 preview at most 1,024 Unicode scalar values, with a 64 KiB encoded snapshot cap.
-Every cap reports exact omitted counts/bytes in structured metadata; truncating
-the final string must not remove its own warning. Add a bounded targeted-read
+Every cap reports truthful omission metadata; use exact counts from existing
+owned indexes, or explicitly unknown where bounded traversal cannot establish
+totals. Truncating the final string must not remove its own warning. Add a bounded targeted-read
 form of gui_snapshot for retained artifact text, so a caller can recover what
-was omitted without granting file access. Define cursor/version behavior before
-checker work; a retrieval must not silently splice two changing artifacts.
+was omitted without granting file access. Require view mount plus artifact
+identity/version, bounded Unicode-scalar offset/length and explicit next/end
+metadata. A changed version refuses rather than splicing changing text.
 
 Tts_queue reads the actual Page queue/service ownership chain, including captured
 rate and queued/waiting/active state. It exposes this view's text only. Another
@@ -227,7 +233,7 @@ cause that would prevent the Agent from issuing its next submit/click. Human
 keystrokes still create their ordinary registration cause, including a space.
 Never clear another Page's typing or speaking cause to make automation proceed.
 
-Proposal: refuse to overwrite a nonempty human-owned draft, including one created
+Refuse to overwrite a nonempty human-owned draft, including one created
 after RPC admission; a human edit transfers the draft to human ownership. Submit
 uses the Page's ordinary prompt/hint choice and acknowledgement path, not a
 synthetic key event assumed to act like a browser gesture. GUI controls that
@@ -258,7 +264,7 @@ ceiling. Lease counts are runtime ownership bookkeeping, not a second permission
 map; source admission checks current Skills through Agent. Acquiring an already
 prepared connection lease is local work and cannot park the Actor on browser I/O.
 
-Recommendation for unload: prevent new automatic sampling immediately, cancel
+For unload, prevent new automatic sampling immediately, cancel
 this Agent's in-flight automatic sample, discard its late response, and release
 its lease after owned work settles. Already admitted model-issued Jobs retain
 Chapter 11's independent lifetime. Other Agents keep their leases/calls and the
@@ -274,15 +280,23 @@ changes and close. Proposed bounds: two seconds per source, five seconds total,
 latencies. Unsupported/disconnected source becomes explicit unavailable data;
 never reuse an old screen as though it were fresh.
 
-The exact durable capture protocol remains a decision before full drafting.
-Recommendation: a typed observation-sample fact carries copied source/result
-bytes and producing view/generation; request_sent names the exact samples it
-used. Project them as one-request external data after complete call/results,
-separately from enduring skill manuals. Repeated rendering is pure; replay uses
-recorded samples with no browser. A canceled attempt must have an explicit
-retirement/discard rule so its pending sample cannot leak into a later attempt.
-Do not quietly overload Chapter 2's one-request ephemera with incompatible
-consumption semantics or use a returned snapshot as system authority.
+The coordinator selected a simpler capture boundary after the initial outline:
+collector results remain transient owned candidates. Actor validates the current
+attempt, policy and skill generation, renders from that exact candidate, and
+embeds its complete ordered samples directly in durable request_sent, atomically
+with inherited hint/ephemera consumption before HTTP. No request event means no
+durable sample and no reuse. A failed HTTP attempt retains its recorded samples.
+There is no separate pending sample-event queue.
+
+Sampling obeys pause/admission gates. Unload, interrupt and close cancel and fence
+the whole affected collection. A concurrent policy/skill change requires fresh
+collection for a later attempt; never combine samples from different generations.
+Project accepted observations once as untrusted request-tail external data after
+complete call/results and inherited ordered hint/manual material. Historical
+reconstruction uses that request's captured samples and its pre-event prefix.
+A bare public render is pure and performs no collection; callers must explicitly
+supply samples to preview such a request. Chapter 2 ephemera retain their original
+consumption rules and observations never become system authority.
 
 ## Session and restart identity impact
 
@@ -291,10 +305,10 @@ It belongs in creation identity, along with stable view scope and logical
 connection selection. Physical socket IDs, tab instances, outstanding controls,
 leases, native speech and DOM objects never become durable executable state.
 
-Propose a strict version-3 identity/snapshot extension only for sessions using
-the new policy. Plain Chapter 10 v1 and MCP-only Chapter 11 v2 retain their exact
+Use a strict version-3 identity/snapshot extension only for sessions using
+nonempty integration policy. Plain Chapter 10 v1 and MCP-only Chapter 11 v2 retain their exact
 formats and cannot acquire this policy during resume. The full draft must define
-all outer/init/anchor version agreement, required policy fields, semantic hashes
+all outer/init/anchor/origin version agreement, required policy fields, semantic hashes
 and recorded sample state before a checker encodes them. Same logical scope,
 policy, skill catalog and definitions at a newly selected physical browser may
 resume after ordinary local validation and fresh compatible discovery.
@@ -333,18 +347,19 @@ read-only versus mutating authority, lease isolation or owner-safe shutdown.
 Publish a new independent command before student release. No grader/runtime
 changes are authorized by this outline.
 
-## Decisions for coordinator review before the full draft
+## Review resolution and full-draft obligations
 
-1. Accept the bootstrap/view/lease proposal in concrete form, including explicit
-   view selection, bounded wait and no silent Agent-first lazy registration.
-2. Settle automatic sample admission, atomic durable capture/consumption/discard,
-   unload race and ordering with inherited hints/skill material. These affect
-   replay and request bytes, not merely API names.
-3. Settle the strict policy identity/version-3 extension and what a compatible
-   replacement browser means for stable view scope.
-4. Settle the bounded snapshot targeted-read contract, stable selector identity
-   and human/programmatic draft ownership. Avoid a generic automation API while
-   making the required controls usable and honestly observable.
+The October 8 coordinator review accepts the concrete boot/lease plan, direct
+request-event capture, strict v3 extension, scoped selectors and human-draft
+protection above. These are coordinator decisions, separate from Bill's required
+transport seam. The initial four questions remain preserved at 54806a6.
+
+The full draft must publish exact envelope/observation/identity bytes, all three
+provider suffixes, source arguments and order, collection race behavior, snapshot
+metadata accounting, and targeted-read errors. Check the 64 KiB snapshot and
+128 KiB combined material limits with mandatory metadata present. Keep stable
+logical view scope separate from transient mount/generation. A public reconstruction
+operation must supply captured observations without consulting a live endpoint.
 
 Bill's new first-edition sandboxing work remains an untouched pending lesson
 source. No new chapter count or scope claim is derived from that unfinished work.

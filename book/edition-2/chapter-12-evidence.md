@@ -163,6 +163,37 @@ All limits and timeouts proposed in the outline are design candidates. No
 performance measurement, provider identity, cost, source-bound screenshot,
 actual model response or completed acceptance result has been fabricated.
 
+## Coordinator resolution after initial freeze
+
+The initial outline/evidence is preserved at 54806a6. The coordinator then
+accepted the concrete 120-second boot, selected-view scope and Agent lease model,
+strict v3 for nonempty policy, mount-bound control identifiers, protected human
+drafts and bounded versioned artifact reads. Omission counts may explicitly be
+unknown when bounded traversal cannot establish exact totals. These are working
+design decisions, not measured results or additional Bill rulings.
+
+The separate sample-fact proposal was declined in favor of direct request_sent
+capture. The collector owns transient candidates; Actor revalidates and stores
+the complete samples in the request event before HTTP, together with existing
+hint/ephemera consumption. A canceled pre-event collection leaves no durable
+sample, while a failed HTTP request retains the data it attempted to send.
+Unload/interrupt/close fence collection; a changed generation requires a fresh
+whole collection. This avoids a second durable pending queue and its retirement
+protocol.
+
+The author checked this against Chapter 2 §§2.1/2.3/2.5, Chapter 5 request/hint
+rules, Chapter 9 §9.7 ordering and Chapter 11 §11.8 offline reconstruction. No
+published rule requires a separate observation event. Pure rendering must accept
+owned sample input explicitly; reconstruction selects the captured request payload
+and its preceding prefix. A bare prefix render cannot fetch or guess observations.
+The full draft must teach that distinction and the exact new payload.
+
+Core cannot establish read-only behavior from a GUI tool name. Trusted typed
+creation policy selects fixed aliases and argument objects; the optional GUI
+validates its own observational defaults. Other embedders choose responsible
+operations. This replaces the initial outline's ambiguous suggestion that core
+could validate a fixed GUI operation without importing GUI knowledge.
+
 ## Preparation checkpoint
 
 The final author pass reread the complete voice/procedure and both preparation
