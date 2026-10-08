@@ -40,4 +40,8 @@ checkpoint-evidence/ch10-record-bounds-oracle.json. They include rejecting an
 unrelated command failure rather than crediting it as a storage refusal.
 Runtime controls are unrun at preparation. `--small-only` offers an initial
 fixture/public-path check, but passing it does not cover any large boundary.
-No student source, first-edition code, credential or live-provider work was used.
+The coordinator read the current CLI/offline reader and the earlier independent
+Chapter 9 bound fixture while preparing these controls. The runner uses public
+commands and printed/inherited behavior, without private field assumptions.
+No student source was edited; no first-edition code, credentials or live-provider
+work was used.
