@@ -1,0 +1,11 @@
+{
+  "kind": "independent reviewer fixture correction",
+  "evidence_commit": "341f15d80a80bfecf7ccceaf7b7840de63c20f7f",
+  "source_revision": "9ba7855b31a5eb134819602b35eb9acb277f6342",
+  "initial_failure": "Coordinator audit incorrectly required Gemini action 13 body-text capture to show cleared speech immediately after clicking cancel.",
+  "observed": "The text capture retains typing 1/speaking 1. The independently recorded browser-received pause_changed applies agent-1 typing 1/speaking 0 at 2026-10-08T11:37:37.756Z before action 14. Text is captured before the screenshot; the later page_receipt timestamp does not date the earlier text read.",
+  "correction": "Require retained typing in the visible capture and the exact applied pause fact between cancel and the next action; do not infer synchronous acknowledgement from a completed button click.",
+  "runtime_change": false,
+  "paid_repeat": false,
+  "originals_changed": false
+}
