@@ -54,9 +54,12 @@ performed for this review. Historical measurements remain historical.
 **User rulings:**
 
 - Continue a fresh, autonomous second-edition rewrite. Leave the existing
-  `agent/` and first-edition implementations untouched. New student code lives
-  in `solutions/edition-2/chNN/`, built from scratch or the preceding new
-  chapter; old solutions are evidence for authors, not student starting code.
+  `agent/` and first-edition implementations untouched. Under the subsequent
+  agreed consolidation, new student development lives in
+  `solutions/edition-2/main/`, built from scratch or the preceding accepted new
+  chapter. The `chNN/` directories are exact frozen exports, not working trees;
+  outer commits and immutable tags preserve each edition/chapter revision.
+  Old solutions are evidence for authors, not student starting code.
 - Add a new final comparison chapter to the prior 0–20 sequence, provisionally
   Chapter 21. Preserve historical editions and their evidence. Bill permits
   justified organizational changes. Neither
