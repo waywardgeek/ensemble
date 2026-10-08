@@ -298,3 +298,25 @@ Scoped recheck: Chapter 9 passes all hard prose rules at 5,506 words;
 15 negation forms and the person-gap warning were reviewed for the new exact
 refusal language. `git diff --check` is clean. The eight literal JSON fixtures
 and their body bytes were unchanged by this transition clarification.
+
+
+## Chapter 8 numeric lesson carried forward before student release
+
+The coordinator requested explicit domains for Chapter 9's new counters after
+Chapter 8's actual browser precision defect. Revision is nonnegative uint64;
+activation identity is positive uint64. Sections 9.6–9.8 now preserve exact
+numeric wire tokens, precheck a changed revision and the whole new activation
+group, and refuse overflow with existing `skill_too_large` plus safe detail.
+A genuine no-op at maximum remains unchanged. These counters previously had no
+smaller published domain; the clarification does not widen a grant or silently
+relax an earlier bound. The CLI build now names its output to avoid collision
+with the existing cmd directory.
+
+The incoming grader, previously Chapter 8 student, confirmed the exact domain,
+error disposition and whole-group checks before assertions. The coordinator
+accepted that plan. Exhaustion fixtures must disclose an owner-state seam or
+constructed state; they cannot pretend a short complete history legitimately
+consumed every consecutive activation. Section 9.10 makes that fixture limit
+explicit. The browser must newly preserve activation/card identity, beyond the
+settings/watch fields actually protected in Chapter 8. No Chapter 9 student
+implementation or runtime success is claimed.

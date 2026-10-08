@@ -65,7 +65,7 @@ exports are references, never worktrees.
    CLI, browser and public two-Agent use on all three APIs. Preserve the first
    attempt and teaching review before independent historical comparison.
 
-Build the CLI from main with `go build ./cmd` and the optional GUI from
+Build the CLI from main with `go build -o /tmp/ensemble-ch09-cli ./cmd` and the optional GUI from
 `main/gui` with `go build ./cmd/ensemble-gui`. The inherited diagnostic is
 `make grade-dir CH=10 DIR=solutions/edition-2/main`; its old binary, wire and
 fixture assumptions do not cover this contract. The independent Chapter 9
@@ -362,9 +362,10 @@ back to the actor while the actor is waiting for that worker. Preparation is
 bounded in-memory work over the frozen catalog. Durable mutation uses the
 existing serialized append path.
 
-Revision begins at 0 after initialization and increases once per changed
-transition. Activation IDs are positive Agent-local integers allocated in
-material order; successful initial activations begin at 1. An unchanged or
+Revision is a nonnegative `uint64`: 0 through 18446744073709551615. It begins
+at 0 after initialization and increases once per changed transition. Activation
+IDs are positive Agent-local `uint64` values allocated in material order;
+successful initial activations begin at 1. An unchanged or
 failed candidate consumes no activation ID. The primary has an activation too.
 Retiring it is forbidden. Each transition records its action, requested name,
 new complete state and newly activated material in one durable fact. The
@@ -372,6 +373,15 @@ successful append is the commit; apply and publish that fact before returning
 success. An append failure leaves the previous committed state and follows the
 existing terminal log-failure behavior. If the later tool-result append fails,
 the already recorded transition is not rolled back or misreported as uncommitted.
+
+Precheck the next revision and the entire new activation group before mutation
+or durable append. Neither counter wraps. If a changed candidate cannot advance
+the revision, or its whole activation group cannot fit, refuse with
+`skill_too_large`; useful safe detail is `skill revision exhausted` or
+`skill activation IDs exhausted`, respectively. Keep roots, material, grants
+and counters unchanged. A true no-op at the maximum remains an unchanged
+acknowledgement because it allocates nothing. Ordinary call/result facts and
+next-attempt limit consumption still follow the rules above.
 
 After an ordinary successful load, the tool's text is exactly this compact
 JSON, apart from an optional preceding consumed-limit note:
@@ -425,7 +435,7 @@ An unload's activated array is empty. Every array is present, including empty
 ones. The transition's durable event sequence identifies when its material
 entered the record.
 
-Each activation has exactly `activation` (positive integer), `name`, `type`,
+Each activation has exactly `activation` (positive uint64), `name`, `type`,
 `body`, `sha256`, sorted `tools`, sorted `dependencies` (activation IDs), and
 `offers` (name/description objects sorted by name). Its dependency IDs point
 to active dependency activations, including earlier nodes of this same new
@@ -616,6 +626,15 @@ active/retired status, and safely expands the retained text. Put these instructi
 cards in the chat pane; ordinary management call/results stay in actions.
 Update retirement labels from current state without duplicating a card.
 
+Skill revision and activation values remain exact JSON numeric tokens across
+public snapshots, server projection and browser parsing. Extend Chapter 8's
+lossless counter handling to these new fields, including active and retired
+entries, material events and card identity keys. Never round two activations
+into the same card. Safe integers may use ordinary exact parsing; an unsafe
+required value needs verified lossless support or visible refusal before the
+frame is accepted. Keep arbitrary manual text and tool argument values outside
+this protocol-counter conversion.
+
 Add read-only `/skills` to human chat. Show the primary, revision, explicit
 roots, active dependencies, discoverable names and effective tool names, or
 `Skills disabled.` It makes no model request. Ordinary prompts ask the model
@@ -695,9 +714,16 @@ finish this exercise.
 | Variables | Candidate lists, unknown/malformed dollar, literal escape, no second expansion, two-Agent scalar isolation and exact expanded-byte limits |
 | Material | Primary fixed; new manual at completed batch boundary on all three adapters; result redaction cannot erase it; retired material remains separately identified |
 | Commit | Append failure preserves previous authority; later result failure cannot claim rollback; public control during held HTTP affects next admission |
+| Counter boundaries | Full uint64 tokens survive snapshots and browser card keys; whole-group exhaustion refuses before mutation; a maximum-revision no-op stays unchanged |
 | Replay | Catalog absent and variables unavailable; no filesystem/model calls, identical recorded material/declarations and no usage mutation; altered/reused activation, hidden or unrelated root change and missing management grant are refused |
 | Public/browser | Owned-copy mutation, current snapshot independent of card window, safe cards, silent replay, same-Agent CLI/browser and independent-Agent embedding |
 | Compatibility | Prior policy capture, settings persistence, jobs, streaming, pause, optional GUI and exact default CLI protocol remain protected |
+
+Counter-exhaustion controls may use an explicitly identified owner-state test
+seam or locally constructed state. They must not present a tiny complete log as
+valid evidence of exhausting consecutive IDs. Keep public parsing/identity
+fixtures separate, and require a passing control plus an intended failure for
+whole-group allocation and lifecycle atomicity.
 
 For the critical deletion test, retain declaration filtering but remove admission
 authorization. Force write_file before loading edit. The test must fail because
