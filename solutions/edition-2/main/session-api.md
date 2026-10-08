@@ -69,3 +69,15 @@ history_unavailable. Safe details never echo content/credentials. Config() repor
 actual events.log and DataDir; unchanged SetConfig round trips remain valid.
 Browser state/command shapes are exactly Chapter 10 §10.9, including job_access
 and delivery-before-command_ack with connection-bound cancellation.
+
+Connection-lifetime checkpoint waiting also has these public operations:
+
+```go
+func (a *Agent) CheckpointContext(context.Context) (CheckpointAck, error)
+func (e *Ensemble) CheckpointContext(context.Context, string) (CheckpointAck, error)
+```
+
+Cancellation stops only the caller's wait after admission; Actor/SessionStore
+finish the accepted save and publish its result. It never rolls back a commit.
+The optional GUI uses the connection context for this wait and its watch-delivery
+barrier, so disconnect or overflow releases both without parking the Actor.

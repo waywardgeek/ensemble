@@ -431,3 +431,54 @@ Actual implementation reads include main's session/ensemble/watch/CLI/GUI source
 common, eventlog, persistence, llm, skills, tools and jobs source and local tests.
 Only the authorized coordinator inbox was checked for external direction. No
 checker implementation, credentials, historical answer or other worker read.
+
+## Raw record framing question — concrete local failure
+
+The initial CLI cascade is reproducible without checker source: change only the
+local fake response's usage object from compact JSON to `{ "input_tokens": 1,
+"output_tokens": 1 }`. TestCLISessionRestartLocal then refuses its own second
+mount at record 7, `checkpoint differs from reduced prefix`. Our byte-preserving
+Clone retains provider RawUsage whitespace; inherited eventlog json.Marshal
+compacts RawMessage when writing. Independent log reduction therefore has other
+raw bytes. The earlier compact local response did not distinguish this case.
+This is separate from the now-fixed schema canonical comparison.
+
+Q4 for coordinator/author before the affected fix: does "exact recorded raw
+bytes" mean bytes after the one durable event serialization (preserve number
+lexemes, align accepted in-memory state with that recorded event), or must new
+session log encoding preserve original provider raw JSON whitespace too? The
+latter includes embedded insignificant LF/CR in raw JSON, which cannot be emitted
+verbatim inside a one-physical-line JSONL event. It would require an explicit
+validated byte-preserving event extension/string wrapper, not merely a semantic
+snapshot wrapper. The former can retain existing event shapes and JSONL framing
+by reducing the exact once-serialized accepted event, while all subsequent
+capture/import/rebuild comparisons remain byte-exact. No canonical number
+normalization would occur at admission. Request a published interpretation rather
+than inventing an event extension. I have not implemented either affected choice.
+Continue unblocked validation/limits/lifecycle/client work in parallel with this
+contract question. Current initial binary and failing receipt remain retained.
+
+Correction to milestone 3 diagnosis: coordinator pointed out the original CLI
+receipt already had runs/exit/stderr; I initially summarized only checks. Read
+my own runs diagnostics now. Public path mismatch is independently confirmed as
+a macOS alias fixture defect; correct canonical paths remain unchanged. Targeted
+corrected-selector checker is running. No excluded checker source opened.
+
+## Additional semantic witness and connection API refinement
+
+Add required Context.RequestSeqs: ordered accepted request_sent coordinates.
+Without this compact set, an old Guidance.consumed_at could name any absent
+sequence after its receipt; the bounded window cannot establish request existence.
+This is another student codec sufficiency correction, not a teaching gap. It
+retains no request body/configuration and does not turn state into an event archive.
+Limits now validate set/consume/dispatch/result ordering using their compact facts.
+Published watermark grammar corrected to the chapter's "at least" bound; Job
+allocator floors survive snapshot installation without inventing old jobs.
+
+CheckpointContext variants supplement the reviewed public API. Context cancellation
+ends only the caller's wait; Actor's accepted operation and store worker retain
+ownership. GUI uses its connection context for both save waiting and watch barrier.
+This implements the coordinator's disconnect safeguard without an unjoined client
+wait. Parent interfaces retain actual Store -> I/O -> file creator chains for
+local checked-write fault controls. All nine nested example modules passed vet
+and tests in nested-module-checks.json (before this API addition).

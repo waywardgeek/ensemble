@@ -36,7 +36,7 @@ tools, depends, loadable-skills and body; sets sort lexically and empty sets are
 []. Bindings hash covers the complete copied scalar map. Paths are excluded.
 
 Watermarks is `{event:uint64,request:uint64,activation:uint64,job:uint64}`.
-event equals as_of; activation/job equal represented durable maxima. request
+event equals as_of; activation/job are at least represented durable maxima. request
 is at least the maximum recorded request_index and may include burned admissions.
 Every subsequent recorded index exceeds that captured cursor; recorded IDs cannot
 be reused. Zero is allowed only for unused cursors, never allocated identities.
@@ -109,7 +109,7 @@ order; anchors can legitimately make projection order differ from sequence order
 
 Context = `{SkillMode,SkillPrimary,SkillBatch,DeferredSkills,PendingSkills,Hints,
 TurnID,TurnIDs,ExplicitTurns,FinalResponse,Jobs,Entries,Instructions,Ephemera,
-Pending,Active,Continuation,Calls,LastSeq,Session,RequestCursor,Turns,Responses,
+Pending,Active,Continuation,Calls,LastSeq,Session,RequestCursor,RequestSeqs,Turns,Responses,
 Redactions,Guidance,LimitFacts}`. These field spellings follow shared Context.
 
 - SkillMode, ExplicitTurns, FinalResponse, Active, Continuation: Booleans.
@@ -122,6 +122,8 @@ Redactions,Guidance,LimitFacts}`. These field spellings follow shared Context.
 - Jobs: object keyed by canonical positive decimal handles, values JobSnapshot.
 - Session: nullable SessionFact; for snapshots must be initializer shape matching
   metadata. An anchor changes LastSeq, not the creation identity.
+- RequestSeqs: sorted unique positive accepted request_sent coordinates, <=LastSeq;
+  every nonzero Guidance.consumed_at references one of these. No request body copy.
 - Turns: object mapping request IDs to TurnFact.
 - Responses: array of ResponseFact in sequence order.
 - Redactions: array of RedactionFact in event order.
