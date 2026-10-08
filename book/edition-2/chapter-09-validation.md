@@ -7,9 +7,9 @@ plan from accepted `edition-2-ch08-r1` (`bfdadaf5`), source `446d7f2` and tree
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Contract | Author, coordinator | Draft `49ae919`, transition clarification `0bca41c`, exact-counter clarification `77cd638` and initial command `f303754` accepted | Preserve numeric semantics and published partial-check scope in handoff |
-| Independent checks | Initial `/root/coder_ch08`; continuing `/root/grader_ch05` | Initial 51-check command `e6c3406`; three canned positives and 15 intended predicate failures; actual Chapter 8 absence baseline 6/51 | Complete remaining public/browser/concurrency/boundary matrix independently |
-| Student and ownership plan | Fresh CLI student `01a11c0d-47b8-7241-8834-5ddf57ac5009` | Reading new-only inputs at `8736c95` and accepted predecessor; plan pending | Review owner/state/public API plan before affected implementation |
-| Initial implementation and live use | Same fresh student | Not started | Implement after plan review, validate, use CLI/browser/public clients on all three providers |
+| Independent checks | Initial `/root/coder_ch08`; continuing `/root/grader_ch05` | Initial 51-check command `e6c3406`; catalog/graph supplements `0953163`; canned controls and disclosed Chapter 8 absence baselines only | Complete remaining public/browser/concurrency/boundary matrix independently; obtain real Chapter 9 positives |
+| Student and ownership plan | Fresh CLI student `01a11c0d-47b8-7241-8834-5ddf57ac5009` | Initial new-only read ledger and plan `5ac45e4`; owners and public API plan accepted, three teaching clarifications pending | Publish clarifications and obtain student confirmation before affected implementation |
+| Initial implementation and live use | Same fresh student | Independent parser/catalog preparation released; no runtime acceptance or live use | Resume complete implementation after clarification, validate, submit bounded live plan |
 | Historical comparison and revisions | Independent code reviewer | Not started | Preserve initial source, live receipts and teaching review first |
 | Manuscript and feedback | Author, student, proofreader | Draft explicitly labels actual spin pending | Reconcile actual receipts and resolve student findings |
 | Export and checkpoint | Coordinator | Not started | Complete all gates before immutable chapter export/tag |

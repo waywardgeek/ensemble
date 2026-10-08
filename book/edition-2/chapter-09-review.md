@@ -84,3 +84,23 @@ for independent checker preparation. It resolves the transition, management
 grant and live-initialization findings above. The author also corrected the
 current outline-review reference to `0498b61`. Student handoff still requires
 the accepted Chapter 8 baseline and published independent checks.
+
+## Fresh student structure review, October 8
+
+The coordinator read the complete fresh student's initial review, preserved at
+`5ac45e4`. Its read ledger binds accepted Chapter 8 and extracted new Chapters
+1–9; it reports no excluded-source reads. The ownership plan is accepted:
+Agent owns copied creation settings, Skills owns the frozen catalog and committed
+ledger, Actor orders commit and publication, and Registry reads that same
+authority. Historical projections and public snapshots remain derived values.
+The proposed public configuration, typed controls and coherent inspection API
+have been relayed to the independent grader; their identifier spelling is the
+student's choice.
+
+The student raised three real teaching questions before implementation:
+environment System spelling, recorded-once primary text versus captured request
+configuration, and hints retained across a deferred manual's batch boundary.
+The author is publishing clarifications. Only independent parser/catalog/common
+value and candidate-preparation work is released while those questions remain;
+affected environment, capture and rendering code must wait for the revised
+contract. No runtime gate, paid demonstration or historical comparison is claimed.
