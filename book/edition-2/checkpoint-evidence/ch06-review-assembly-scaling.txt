@@ -1,0 +1,12 @@
+goos: darwin
+goarch: arm64
+pkg: example.com/ensemble/internal/llm
+cpu: Apple M4
+BenchmarkC6AssemblyScaling/anthropic/65536-10         	       1	  59857667 ns/op	   1.09 MB/s	57408504 B/op	   25994 allocs/op
+BenchmarkC6AssemblyScaling/anthropic/131072-10        	       1	 229776458 ns/op	   0.57 MB/s	221483224 B/op	   51767 allocs/op
+BenchmarkC6AssemblyScaling/openai/65536-10            	       1	   4275917 ns/op	  15.33 MB/s	20731680 B/op	   26331 allocs/op
+BenchmarkC6AssemblyScaling/openai/131072-10           	       1	  10932042 ns/op	  11.99 MB/s	75767848 B/op	   52454 allocs/op
+BenchmarkC6AssemblyScaling/gemini/65536-10            	       1	 395304459 ns/op	   0.17 MB/s	207420176 B/op	   80437 allocs/op
+BenchmarkC6AssemblyScaling/gemini/131072-10           	       1	1573562541 ns/op	   0.08 MB/s	803534824 B/op	  161481 allocs/op
+PASS
+ok  	example.com/ensemble/internal/llm	2.282s

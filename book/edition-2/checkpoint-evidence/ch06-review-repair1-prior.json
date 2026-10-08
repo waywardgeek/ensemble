@@ -1,0 +1,513 @@
+{
+  "scope": "Contract-aligned Edition 2 Chapter 5 checker (inherited score categories).\n\nCopies the source and installs independent probes in the disposable copy only.\nThe public API spelling in ch05_contract_test.go.txt is an explicit adapter;\nidentifiers and historical lineage never earn points. Legacy graders are unchanged.\nReal-provider PTY/workflow receipts and independent semantic ownership review remain\nseparate mandatory acceptance gates, not claims made by this local checker.\n",
+  "full_local_scope": true,
+  "source": "/private/tmp/ensemble-ch06-repair1-independent",
+  "checker_files": {
+    "accept_ch05.py": "f67166e8e863fb0f34b3458d9795eb7bfba2ef36f5624934e3f3985c75254775",
+    "ch05_contract_test.go.txt": "6cac0a702767c0f191b8386d9f343f214448bcf307e9390823d98172ed353ceb",
+    "ch05_ownership_test.go.txt": "825898234a1f9ccba6712837365bd0d4455bb717fa2fa0b8ecff1d8b73aa59ac",
+    "ch05_stale_test.go.txt": "51a22f851085c033e432af1a7e2bf3f5b721bf4bdebc9d300fec994ec78d29cd",
+    "ch05_report_test.go.txt": "6b87d8f591526153ba0aae58d59c9e7ffa3fd00105f7c8d37794f9128a3b95c1",
+    "accept_ch05_clients.py": "d5fec8d175e96352f04cd513ba0c09976fc01601f2bdb4ccfe98364b7cc8be74",
+    "accept_ch05_prior.py": "0203284e55539215786e8d597f41d07c86f23deaa18a3a76bfa56caf3e420f19",
+    "ch05sourcecheck/main.go": "9e4ebce45d6155ef4435089f980729e77d8ff82d03bfa5ba8eda6fb767073c6d",
+    "packagecheck/main.go": "cb39f20567ef2d13cb7b6880bab920b1477988d5e51fbd65ae7216ed525da2c4"
+  },
+  "probe_sha256": "6cac0a702767c0f191b8386d9f343f214448bcf307e9390823d98172ed353ceb",
+  "source_files": {
+    "actor_test.go": "15b72316f072f427a12bf9bc731f584df85fd164286847f76402e71f90375318",
+    "boundaries_test.go": "4a00766c2c9badf13aac4292268e9ebf5ec8227dde54fa71c6d72c6a95930610",
+    "cmd/chat.go": "6dfe8f2bc5f0a19d19c5af77b24eca391dd7b815cb079a8a2b10733ce13e77c6",
+    "cmd/chat_test.go": "d1c8e8c989074d81b91c467e7879000ad9a2d953095176030c01315f0df3d4d6",
+    "cmd/main.go": "b6277ae69d287f4dcc34dcd325b9dd06f0808cd6b572031a15a85eddea5ddbd8",
+    "cmd/progress.go": "c7a133efe374961f06dd085234f4bf998160cf4876262337584c6df5f0ee93b3",
+    "cmd/session.go": "2f573538460a635acfe74e2427f90ace9448aeaa6b7c10c73fa9a2a6479f4adf",
+    "cmd/session_test.go": "3143812c11cd55f179653b1b6084ff6f1b2f1ef17c9a5cb18d5efc37eb768c43",
+    "cmd/terminal.go": "b0230318e64f3a6f190be72326ce93a519367b4f328d29266dc2f1e413d24169",
+    "cmd/terminal_darwin.go": "d08027b3da0e6056fab15fe4cc979c7214470d024aab9156f87b99fe4476d3ea",
+    "cmd/terminal_linux.go": "7130f243fcaf6cbc347725052a45305a1faf4116a7986b1dd1015f5f29b0c8fe",
+    "cmd/terminal_other.go": "f10d70d18f22b0434a49048b42988ca617aad2d76ca77431ba4c00c35ed8a3f9",
+    "collection.go": "e1d8b4524482ca47ce7fc572e530332d8ee39eba2ef094f425bc777686cd5e5a",
+    "ensemble.go": "ec45c31df4001491aa102d7f3e17a3789f92b22cf4f2de7aebc9bfc5ea47be27",
+    "ensemble_test.go": "08d78a5eff56262f69ae2cd90c83bfb7a46e6111fc8a0c6cfb1b67cc0fdf9583",
+    "events_test.go": "80eb9fdd280bc882f4f8c0941342adf448192a988d7f0492b860aa452110767f",
+    "examples/consumer/go.mod": "11d2d0f4a0185183a834d8c2249a80a465919daa05a62960afb9954affc74042",
+    "examples/consumer/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "examples/consumer/main.go": "e19628ef423166058165d2919d81c972ee1ae0452930f35533fddb6e58b601ea",
+    "examples/jobs-consumer/go.mod": "547b09a39f937439a7dad55a6673da21d6886c196c9e06b1c4b9a6719d5645cd",
+    "examples/jobs-consumer/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "examples/jobs-consumer/live.go": "9cadb11a5c691753e13f2bf2d0828c9a15cbf7bf1793d488b9ec58ca79e06a49",
+    "examples/jobs-consumer/main.go": "43d3b792c53e4d66c7d5f444085e42f03a555e7e7900c2142d4ab41c4d5578cc",
+    "examples/stream-consumer/go.mod": "b4e6a756565d09baa3b8ea036ef7e68cd1fd4d2fbd9518b30d26aecae8d41f73",
+    "examples/stream-consumer/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "examples/stream-consumer/main.go": "b495b5e02668e656ca461a6a365cfa2b8611b7b344cd242ba3816ec5a56b1ed0",
+    "examples/tools-consumer/go.mod": "c042caac50933d3f41f7af61173cb85d04d524ea1b03d1b4c7da2f6ad80d0342",
+    "examples/tools-consumer/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "examples/tools-consumer/main.go": "b8e5ccfd2858804abc584e722ed9d88505178acc1f563c104c8b0f1c7969fb25",
+    "examples/workflow/go.mod": "d3314ad655ec5fef030b636dfb0b328122c7af56fdfb04f56561b0e8de4c31fc",
+    "examples/workflow/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "examples/workflow/main.go": "dafa55f53db932cd82cd2a34f24b41e2e808737f0684d19ea33a601b0a050d88",
+    "go.mod": "32af916f47ea7ce4e40b5f8b6329e731b8cb25cf416777f999d48abbb5fb1ca7",
+    "go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "gui/client.go": "c5a7e8a404b99f31b37d9f58ad5bdff769cb463698be5cbe36a79451837f51c2",
+    "gui/client_test.go": "7de4e3fe95500bcb8d08cfdabb66845a546a89882e5c569d52660bbdccffd68b",
+    "gui/go.mod": "9b8b3c1680d86c3cce7d5f3ec2c61a1fb7bcde052d8db981837bc8cfe02861a7",
+    "gui/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "internal/common/actor.go": "5494edae6f683983ab4fd19ddc010d710ea335314aca8e3fa49e3154ac176116",
+    "internal/common/json.go": "7fdab2a7accf8c924899c0d5e11a165b2a5d1e03d39560e470be3b95803627b0",
+    "internal/common/types.go": "dd19921e0b69a6e7a47d7e13b229a96c246276caa337efb53baf41fa090faf77",
+    "internal/eventlog/log.go": "93562c20ae1f5621ba0a33aa5aac2f46fa28435922b6b332304d43c22471354a",
+    "internal/eventlog/log_test.go": "26c09552ca27ad2fc528461b7a17c457b58a0cbf609812b9f29b5c04538d6fb3",
+    "internal/jobs/jobs.go": "a281d8fe4272639232d706c2bfc0e243bb3949744c35b33fa75ce6ae820d26b7",
+    "internal/jobs/jobs_test.go": "c4647fa82685e8f3c8ace0364c2d4f7c7968837a23583639e78eee9d92748425",
+    "internal/jobs/limits.go": "e0c84405eedcdfbbe0234a9cdb72a59f397020124182b71698bbf13afadb2ef4",
+    "internal/jobs/process.go": "26fa9cf731f393469d6ec8e7262f9ba91cf5fbb1728bafda29e1d78c72cc18c1",
+    "internal/jobs/report.go": "be2113261d27dd540eb9dfa751c99d7de6bd55010d61412998b0f130b60e3878",
+    "internal/llm/actor.go": "4d4b9c432f193026f7c4791b54977f6968153238fdaf4a0071dfefd2eef3c715",
+    "internal/llm/assembly_bench_test.go": "371a700d76a1f3add9a41d132c5b309f280bc253a979f4798643bebeef391d5a",
+    "internal/llm/engine.go": "4a3d6ca6a7ddf509a1e4fa31bdfa94b665a4db436c46e9c9e7bc2d2066a954e5",
+    "internal/llm/engine_test.go": "f1b886638f72f5814c9ba07fe88c5c628e8afa0ac1a83314aebfbd4a6cb65e59",
+    "internal/llm/events.go": "cb1385ac0f8ce9f439b903347342452cbb8265109505d7265e3113decf086fa2",
+    "internal/llm/operation.go": "1114613ce64ac9b0de7f6cbffadb06b326d11f3a825a3b8823950ced1d8a2ab1",
+    "internal/llm/operation_test.go": "474709d8b30777fbcccd91685d44e3b6d4d651e84a58ea5736869909f09f345f",
+    "internal/llm/parse.go": "e102b7e8e35b9d468e2fe9e45ecb9b5189f65a46f39c50df496f5969dadd79ed",
+    "internal/llm/refusal_test.go": "06056e5f7f09c6e883d7ff3ce72d482b1ff75b21cc62f817996b8221ea463718",
+    "internal/llm/render.go": "a16794d7e8df463db8111403289ea94507f2fccc4344d8cd12d44bbc4263a89f",
+    "internal/llm/sse.go": "d9d1e6962818571a1343995156f565f91d640c8a926be7a93ff56a97e3c10747",
+    "internal/llm/stream.go": "cecf648481be7af226bfc305c5e2192f01e6625d22e451cd23656b23a866a080",
+    "internal/llm/stream_test.go": "82a60d326bc8510b4be6cb2c5ce136c8572839b789c9213a51b2c7111899fcc5",
+    "internal/tools/command.go": "5694afff95ac331bff418460311cb0ff7d0379afb3d3add463b9fea31d9ae10a",
+    "internal/tools/files.go": "c7db80bd7b1bb0af299535c23dadc5bab6ef24b607606897f506ef192b969d3f",
+    "internal/tools/registry.go": "41ccba00940d0aa789817e85ff2939d26acbfdc1e15ab7db2148ebebace5d4fb",
+    "internal/tools/supervision.go": "6de71e322c0ad19d9ca776934f66fe0e2891e186f152f9b3facb1a4454686205",
+    "internal/tools/text.go": "46dceb3bcf9c0ecdfb608102c38b4f30ec71231bf0ddd695741d0a0af40d9aa7",
+    "internal/tools/tools_test.go": "7b6c50ff1521ab0dfbf9627ad8a492c545f070ae5ff3f28447b0d461996d2fca",
+    "jobs_test.go": "b3bc6cce12315bd8831d07bda7672224ba0b10ec19108cc6ec548417f87d7553",
+    "redaction_test.go": "accbda8a2567629aa5ded026831d85dee4dea449a39d7eb3fbd09c7dca83d732",
+    "refusal_test.go": "94175c1d0f365835d94d40863b71055e6f270758bb9eae76a5031d87598382c9",
+    "streaming_test.go": "e896996307b6dbb672d2ba3b6a53a783cef82a9ce44d30815e87f6c28a99f8fb",
+    "turn_test.go": "6c19e8d3fb6c767ffe66f43547e4dfd723f3dd25ed7a4a0797353a4f320429d2"
+  },
+  "score": 100,
+  "maximum": 100,
+  "passed": true,
+  "checks": [
+    {
+      "id": "parity",
+      "points": 10,
+      "earned": 10,
+      "passed": true,
+      "commands": [
+        {
+          "args": [
+            "go",
+            "test",
+            "-json",
+            "-run",
+            "^TestIndependentParity",
+            "-count=1",
+            "-timeout=60s",
+            "-race",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "{\"Time\":\"2026-10-07T20:39:16.399881-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:39:16.399952-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/cmd\"}\n{\"Time\":\"2026-10-07T20:39:16.39999-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/common\"}\n{\"Time\":\"2026-10-07T20:39:16.400005-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/common\",\"Output\":\"?   \\texample.com/ensemble/internal/common\\t[no test files]\\n\"}\n{\"Time\":\"2026-10-07T20:39:16.400014-07:00\",\"Action\":\"skip\",\"Package\":\"example.com/ensemble/internal/common\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:16.400025-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/eventlog\"}\n{\"Time\":\"2026-10-07T20:39:16.400046-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/jobs\"}\n{\"Time\":\"2026-10-07T20:39:16.400071-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:39:16.400093-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/tools\"}\n{\"Time\":\"2026-10-07T20:39:16.408573-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:16.408639-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:16.409139-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:16.40915-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:16.410491-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:16.41053-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:16.410582-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentParityRoundBound\"}\n{\"Time\":\"2026-10-07T20:39:16.410589-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentParityRoundBound\",\"Output\":\"=== RUN   TestIndependentParityRoundBound\\n\"}\n{\"Time\":\"2026-10-07T20:39:16.410607-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:16.410661-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:16.412886-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:16.412897-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:16.651645-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentParityRoundBound\",\"Output\":\"--- PASS: TestIndependentParityRoundBound (0.24s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:16.651664-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentParityRoundBound\",\"Elapsed\":0.24}\n{\"Time\":\"2026-10-07T20:39:16.651673-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:17.411615-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"ok  \\texample.com/ensemble/internal/eventlog\\t1.012s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:17.411633-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Elapsed\":1.012}\n{\"Time\":\"2026-10-07T20:39:17.412594-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t1.013s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:17.412606-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":1.013}\n{\"Time\":\"2026-10-07T20:39:17.414573-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"ok  \\texample.com/ensemble/internal/jobs\\t1.014s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:17.414586-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Elapsed\":1.015}\n{\"Time\":\"2026-10-07T20:39:17.415698-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"ok  \\texample.com/ensemble/cmd\\t1.016s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:17.415762-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/cmd\",\"Elapsed\":1.016}\n{\"Time\":\"2026-10-07T20:39:17.415991-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"ok  \\texample.com/ensemble/internal/tools\\t1.016s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:17.416007-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/tools\",\"Elapsed\":1.016}\n{\"Time\":\"2026-10-07T20:39:17.658552-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"ok  \\texample.com/ensemble\\t1.259s\\n\"}\n{\"Time\":\"2026-10-07T20:39:17.658568-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Elapsed\":1.259}\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "build",
+            "-o",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/cli",
+            "./cmd"
+          ],
+          "exit": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "python3",
+            "/Users/bill/projects/ensemble/scripts/edition2/accept_ch05_prior.py",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/cli"
+          ],
+          "exit": 0,
+          "stdout": "{\n  \"scope\": \"Independent Chapter 4 CLI/job acceptance from the new published contract.\\n\\nLocal scripted APIs only. No student implementation is imported or inspected.\\nThis is scoped evidence: owner chains, cross-Agent isolation, injected storage\\nfaults, goroutine containment, terminal races, and real model use need separate\\nchecks. Report wording is not fixed; authoritative job facts and artifact bytes\\ncarry the strongest assertions. Tests run serially and clean up fixture children.\\n\",\n  \"binary_sha256\": \"5693903cf14dd55d1fffdb279a692da2fb4685240ed4ec845084274ef726bfbe\",\n  \"checker_sha256\": \"dda16997444d07a26173bc519ea7048fc79f9086aeaf1ded9cb8ddf528c3cd56\",\n  \"passed\": true,\n  \"checks\": [\n    {\n      \"id\": \"anthropic/local-jobs-cursor\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"anthropic/late-output\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"anthropic/interactive-new-output\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"anthropic/pty-cwd\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"anthropic/full-spool\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"anthropic/one-shot-limits\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"anthropic/group-kill\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"anthropic/eof-shutdown\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"anthropic/error-shutdown\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"anthropic/completion-during-http\",\n      \"passed\": true,\n      \"details\": [],\n      \"observed_boundaries\": {\n        \"request_seq\": 7,\n        \"terminal_seq\": 8\n      }\n    },\n    {\n      \"id\": \"anthropic/cursor-after-omission\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"anthropic/occupied-artifacts-restart\",\n      \"passed\": true,\n      \"details\": [],\n      \"created_handles\": [\n        [\n          4\n        ],\n        [\n          5\n        ]\n      ]\n    },\n    {\n      \"id\": \"anthropic/allocation-error-no-execution\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"anthropic/source-cap-artifacts\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"anthropic/human-debugger\",\n      \"passed\": true,\n      \"details\": [],\n      \"observed_tool_results\": {\n        \"debug-start\": \"job 1 status: running; output: cr/io/1; total bytes: 40; use wait_for_job, send_input, or kill_job\\nType 'help' for list of commands.\\n(dlv) \",\n        \"debug-break\": \"send_input accepted 34 of 34 bytes; accepted bytes cannot be rolled back.\\njob 1 status: running; output: cr/io/1; total bytes: 156; use wait_for_job, send_input, or kill_job\\nbreak inspected audit_target.go:6\\nBreakpoint inspected set at 0x102e63298 for main.main() ./audit_target.go:6\\n(dlv) \",\n        \"debug-continue\": \"send_input accepted 9 of 9 bytes; accepted bytes cannot be rolled back.\\njob 1 status: running; output: cr/io/1; total bytes: 411; use wait_for_job, send_input, or kill_job\\ncontinue\\n> [inspected] main.main() ./audit_target.go:6 (hits goroutine(1):1 total:1) (PC: 0x102e63298)\\n     1:\\tpackage main\\n     2:\\timport \\\"fmt\\\"\\n     3:\\tfunc main() {\\n     4:\\t answer := 37\\n     5:\\t answer += 5\\n=>   6:\\t fmt.Println(answer)\\n     7:\\t}\\n(dlv) \",\n        \"debug-print\": \"send_input accepted 13 of 13 bytes; accepted bytes cannot be rolled back.\\njob 1 status: running; output: cr/io/1; total bytes: 433; use wait_for_job, send_input, or kill_job\\nprint answer\\n42\\n(dlv) \",\n        \"debug-finish\": \"send_input accepted 9 of 9 bytes; accepted bytes cannot be rolled back.\\njob 1 status: running; output: cr/io/1; total bytes: 491; use wait_for_job, send_input, or kill_job\\ncontinue\\n42\\r\\nProcess 61987 has exited with status 0\\n(dlv) \",\n        \"debug-exit\": \"send_input accepted 5 of 5 bytes; accepted bytes cannot be rolled back.\\njob 1 status: done; output: cr/io/1; total bytes: 509\\nexit\\nexit_code: 0\\n\"\n      },\n      \"debugger_version\": \"Delve Debugger\\nVersion: 1.27.2\\nBuild: $Id: 360e7b2181d3da54115aaee4f569954bca95cfe3 $\",\n      \"scope\": \"actual PTY CLI + Delve with local scripted API; no paid model\"\n    },\n    {\n      \"id\": \"openai/local-jobs-cursor\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/late-output\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/interactive-new-output\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/pty-cwd\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/full-spool\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/one-shot-limits\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/group-kill\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/eof-shutdown\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/error-shutdown\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/completion-during-http\",\n      \"passed\": true,\n      \"details\": [],\n      \"observed_boundaries\": {\n        \"request_seq\": 7,\n        \"terminal_seq\": 8\n      }\n    },\n    {\n      \"id\": \"openai/cursor-after-omission\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/occupied-artifacts-restart\",\n      \"passed\": true,\n      \"details\": [],\n      \"created_handles\": [\n        [\n          4\n        ],\n        [\n          5\n        ]\n      ]\n    },\n    {\n      \"id\": \"openai/allocation-error-no-execution\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/source-cap-artifacts\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/human-debugger\",\n      \"passed\": true,\n      \"details\": [],\n      \"observed_tool_results\": {\n        \"debug-start\": \"job 1 status: running; output: cr/io/1; total bytes: 40; use wait_for_job, send_input, or kill_job\\nType 'help' for list of commands.\\n(dlv) \",\n        \"debug-break\": \"send_input accepted 34 of 34 bytes; accepted bytes cannot be rolled back.\\njob 1 status: running; output: cr/io/1; total bytes: 156; use wait_for_job, send_input, or kill_job\\nbreak inspected audit_target.go:6\\nBreakpoint inspected set at 0x102b73298 for main.main() ./audit_target.go:6\\n(dlv) \",\n        \"debug-continue\": \"send_input accepted 9 of 9 bytes; accepted bytes cannot be rolled back.\\njob 1 status: running; output: cr/io/1; total bytes: 411; use wait_for_job, send_input, or kill_job\\ncontinue\\n> [inspected] main.main() ./audit_target.go:6 (hits goroutine(1):1 total:1) (PC: 0x102b73298)\\n     1:\\tpackage main\\n     2:\\timport \\\"fmt\\\"\\n     3:\\tfunc main() {\\n     4:\\t answer := 37\\n     5:\\t answer += 5\\n=>   6:\\t fmt.Println(answer)\\n     7:\\t}\\n(dlv) \",\n        \"debug-print\": \"send_input accepted 13 of 13 bytes; accepted bytes cannot be rolled back.\\njob 1 status: running; output: cr/io/1; total bytes: 433; use wait_for_job, send_input, or kill_job\\nprint answer\\n42\\n(dlv) \",\n        \"debug-finish\": \"send_input accepted 9 of 9 bytes; accepted bytes cannot be rolled back.\\njob 1 status: running; output: cr/io/1; total bytes: 491; use wait_for_job, send_input, or kill_job\\ncontinue\\n42\\r\\nProcess 62047 has exited with status 0\\n(dlv) \",\n        \"debug-exit\": \"send_input accepted 5 of 5 bytes; accepted bytes cannot be rolled back.\\njob 1 status: done; output: cr/io/1; total bytes: 509\\nexit\\nexit_code: 0\\n\"\n      },\n      \"debugger_version\": \"Delve Debugger\\nVersion: 1.27.2\\nBuild: $Id: 360e7b2181d3da54115aaee4f569954bca95cfe3 $\",\n      \"scope\": \"actual PTY CLI + Delve with local scripted API; no paid model\"\n    },\n    {\n      \"id\": \"gemini/local-jobs-cursor\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/late-output\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/interactive-new-output\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/pty-cwd\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/full-spool\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/one-shot-limits\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/group-kill\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/eof-shutdown\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/error-shutdown\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/completion-during-http\",\n      \"passed\": true,\n      \"details\": [],\n      \"observed_boundaries\": {\n        \"request_seq\": 7,\n        \"terminal_seq\": 8\n      }\n    },\n    {\n      \"id\": \"gemini/cursor-after-omission\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/occupied-artifacts-restart\",\n      \"passed\": true,\n      \"details\": [],\n      \"created_handles\": [\n        [\n          4\n        ],\n        [\n          5\n        ]\n      ]\n    },\n    {\n      \"id\": \"gemini/allocation-error-no-execution\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/source-cap-artifacts\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/human-debugger\",\n      \"passed\": true,\n      \"details\": [],\n      \"observed_tool_results\": {\n        \"debug-start\": \"job 1 status: running; output: cr/io/1; total bytes: 40; use wait_for_job, send_input, or kill_job\\nType 'help' for list of commands.\\n(dlv) \",\n        \"debug-break\": \"send_input accepted 34 of 34 bytes; accepted bytes cannot be rolled back.\\njob 1 status: running; output: cr/io/1; total bytes: 156; use wait_for_job, send_input, or kill_job\\nbreak inspected audit_target.go:6\\nBreakpoint inspected set at 0x102493298 for main.main() ./audit_target.go:6\\n(dlv) \",\n        \"debug-continue\": \"send_input accepted 9 of 9 bytes; accepted bytes cannot be rolled back.\\njob 1 status: running; output: cr/io/1; total bytes: 411; use wait_for_job, send_input, or kill_job\\ncontinue\\n> [inspected] main.main() ./audit_target.go:6 (hits goroutine(1):1 total:1) (PC: 0x102493298)\\n     1:\\tpackage main\\n     2:\\timport \\\"fmt\\\"\\n     3:\\tfunc main() {\\n     4:\\t answer := 37\\n     5:\\t answer += 5\\n=>   6:\\t fmt.Println(answer)\\n     7:\\t}\\n(dlv) \",\n        \"debug-print\": \"send_input accepted 13 of 13 bytes; accepted bytes cannot be rolled back.\\njob 1 status: running; output: cr/io/1; total bytes: 433; use wait_for_job, send_input, or kill_job\\nprint answer\\n42\\n(dlv) \",\n        \"debug-finish\": \"send_input accepted 9 of 9 bytes; accepted bytes cannot be rolled back.\\njob 1 status: running; output: cr/io/1; total bytes: 491; use wait_for_job, send_input, or kill_job\\ncontinue\\n42\\r\\nProcess 62108 has exited with status 0\\n(dlv) \",\n        \"debug-exit\": \"send_input accepted 5 of 5 bytes; accepted bytes cannot be rolled back.\\njob 1 status: done; output: cr/io/1; total bytes: 509\\nexit\\nexit_code: 0\\n\"\n      },\n      \"debugger_version\": \"Delve Debugger\\nVersion: 1.27.2\\nBuild: $Id: 360e7b2181d3da54115aaee4f569954bca95cfe3 $\",\n      \"scope\": \"actual PTY CLI + Delve with local scripted API; no paid model\"\n    },\n    {\n      \"id\": \"offline/dump-without-artifact\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"offline/render-without-artifact\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"offline/unknown-terminal\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"offline/changed-locator\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"offline/running-exit-code\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"offline/decreasing-bytes\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"offline/reversing-result\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"offline/duplicate-terminal\",\n      \"passed\": true,\n      \"details\": []\n    }\n  ]\n}\n",
+          "stderr": "anthropic/local-jobs-cursor: PASS\nanthropic/late-output: PASS\nanthropic/interactive-new-output: PASS\nanthropic/pty-cwd: PASS\nanthropic/full-spool: PASS\nanthropic/one-shot-limits: PASS\nanthropic/group-kill: PASS\nanthropic/eof-shutdown: PASS\nanthropic/error-shutdown: PASS\nanthropic/completion-during-http: PASS\nanthropic/cursor-after-omission: PASS\nanthropic/occupied-artifacts-restart: PASS\nanthropic/allocation-error-no-execution: PASS\nanthropic/source-cap-artifacts: PASS\nanthropic/human-debugger: PASS\nopenai/local-jobs-cursor: PASS\nopenai/late-output: PASS\nopenai/interactive-new-output: PASS\nopenai/pty-cwd: PASS\nopenai/full-spool: PASS\nopenai/one-shot-limits: PASS\nopenai/group-kill: PASS\nopenai/eof-shutdown: PASS\nopenai/error-shutdown: PASS\nopenai/completion-during-http: PASS\nopenai/cursor-after-omission: PASS\nopenai/occupied-artifacts-restart: PASS\nopenai/allocation-error-no-execution: PASS\nopenai/source-cap-artifacts: PASS\nopenai/human-debugger: PASS\ngemini/local-jobs-cursor: PASS\ngemini/late-output: PASS\ngemini/interactive-new-output: PASS\ngemini/pty-cwd: PASS\ngemini/full-spool: PASS\ngemini/one-shot-limits: PASS\ngemini/group-kill: PASS\ngemini/eof-shutdown: PASS\ngemini/error-shutdown: PASS\ngemini/completion-during-http: PASS\ngemini/cursor-after-omission: PASS\ngemini/occupied-artifacts-restart: PASS\ngemini/allocation-error-no-execution: PASS\ngemini/source-cap-artifacts: PASS\ngemini/human-debugger: PASS\n"
+        }
+      ]
+    },
+    {
+      "id": "responsiveness",
+      "points": 25,
+      "earned": 25,
+      "passed": true,
+      "commands": [
+        {
+          "args": [
+            "go",
+            "test",
+            "-json",
+            "-run",
+            "^TestIndependentResponsiveness",
+            "-count=1",
+            "-timeout=60s",
+            "-race",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "{\"Time\":\"2026-10-07T20:39:24.626283-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:39:24.626354-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/cmd\"}\n{\"Time\":\"2026-10-07T20:39:24.62662-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/common\"}\n{\"Time\":\"2026-10-07T20:39:24.626677-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/common\",\"Output\":\"?   \\texample.com/ensemble/internal/common\\t[no test files]\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.626741-07:00\",\"Action\":\"skip\",\"Package\":\"example.com/ensemble/internal/common\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:24.626748-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/eventlog\"}\n{\"Time\":\"2026-10-07T20:39:24.626788-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/jobs\"}\n{\"Time\":\"2026-10-07T20:39:24.629674-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:39:24.629747-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/tools\"}\n{\"Time\":\"2026-10-07T20:39:24.634826-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Test\":\"TestIndependentResponsivenessPreparedReportOwnership\"}\n{\"Time\":\"2026-10-07T20:39:24.634941-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Test\":\"TestIndependentResponsivenessPreparedReportOwnership\",\"Output\":\"=== RUN   TestIndependentResponsivenessPreparedReportOwnership\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.635899-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Test\":\"TestIndependentResponsivenessPreparedReportOwnership\",\"Output\":\"--- PASS: TestIndependentResponsivenessPreparedReportOwnership (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.635926-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Test\":\"TestIndependentResponsivenessPreparedReportOwnership\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:24.635944-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.636461-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.63649-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.636807-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.63684-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.637202-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.63721-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.637606-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessPersistenceFailure\"}\n{\"Time\":\"2026-10-07T20:39:24.637616-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessPersistenceFailure\",\"Output\":\"=== RUN   TestIndependentResponsivenessPersistenceFailure\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.639124-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestIndependentResponsivenessStaleModelFact\"}\n{\"Time\":\"2026-10-07T20:39:24.639131-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestIndependentResponsivenessStaleModelFact\",\"Output\":\"=== RUN   TestIndependentResponsivenessStaleModelFact\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.641222-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestIndependentResponsivenessStaleModelFact\",\"Output\":\"--- PASS: TestIndependentResponsivenessStaleModelFact (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.641229-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestIndependentResponsivenessStaleModelFact\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:24.64127-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.642499-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessPersistenceFailure\",\"Output\":\"--- PASS: TestIndependentResponsivenessPersistenceFailure (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.64251-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessPersistenceFailure\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:24.642564-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessOverlap\"}\n{\"Time\":\"2026-10-07T20:39:24.642568-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessOverlap\",\"Output\":\"=== RUN   TestIndependentResponsivenessOverlap\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.651662-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessOverlap\",\"Output\":\"--- PASS: TestIndependentResponsivenessOverlap (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.651668-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessOverlap\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:39:24.651687-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint\"}\n{\"Time\":\"2026-10-07T20:39:24.651689-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint\",\"Output\":\"=== RUN   TestIndependentResponsivenessHTTPHint\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.651705-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint/anthropic\"}\n{\"Time\":\"2026-10-07T20:39:24.651707-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint/anthropic\",\"Output\":\"=== RUN   TestIndependentResponsivenessHTTPHint/anthropic\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.658121-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint/anthropic\",\"Output\":\"--- PASS: TestIndependentResponsivenessHTTPHint/anthropic (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.658131-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint/anthropic\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:39:24.658174-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint/openai\"}\n{\"Time\":\"2026-10-07T20:39:24.658176-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint/openai\",\"Output\":\"=== RUN   TestIndependentResponsivenessHTTPHint/openai\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.664347-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint/openai\",\"Output\":\"--- PASS: TestIndependentResponsivenessHTTPHint/openai (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.664356-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint/openai\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:39:24.664369-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint/gemini\"}\n{\"Time\":\"2026-10-07T20:39:24.664371-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint/gemini\",\"Output\":\"=== RUN   TestIndependentResponsivenessHTTPHint/gemini\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.67121-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint/gemini\",\"Output\":\"--- PASS: TestIndependentResponsivenessHTTPHint/gemini (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.671214-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint/gemini\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:39:24.671231-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint\",\"Output\":\"--- PASS: TestIndependentResponsivenessHTTPHint (0.02s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.671239-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessHTTPHint\",\"Elapsed\":0.02}\n{\"Time\":\"2026-10-07T20:39:24.67125-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessInterruptClose\"}\n{\"Time\":\"2026-10-07T20:39:24.671252-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessInterruptClose\",\"Output\":\"=== RUN   TestIndependentResponsivenessInterruptClose\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.676636-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessInterruptClose\",\"Output\":\"--- PASS: TestIndependentResponsivenessInterruptClose (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.67664-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessInterruptClose\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:39:24.676654-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessReportInterrupt\"}\n{\"Time\":\"2026-10-07T20:39:24.676656-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessReportInterrupt\",\"Output\":\"=== RUN   TestIndependentResponsivenessReportInterrupt\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.695871-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessReportInterrupt\",\"Output\":\"--- PASS: TestIndependentResponsivenessReportInterrupt (0.02s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.695881-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessReportInterrupt\",\"Elapsed\":0.02}\n{\"Time\":\"2026-10-07T20:39:24.695916-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessAdmissionAndCancel\"}\n{\"Time\":\"2026-10-07T20:39:24.695918-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessAdmissionAndCancel\",\"Output\":\"=== RUN   TestIndependentResponsivenessAdmissionAndCancel\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.818079-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessAdmissionAndCancel\",\"Output\":\"--- PASS: TestIndependentResponsivenessAdmissionAndCancel (0.12s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:24.818089-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentResponsivenessAdmissionAndCancel\",\"Elapsed\":0.12}\n{\"Time\":\"2026-10-07T20:39:24.818095-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:25.636877-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"ok  \\texample.com/ensemble/internal/jobs\\t1.010s\\n\"}\n{\"Time\":\"2026-10-07T20:39:25.636908-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Elapsed\":1.01}\n{\"Time\":\"2026-10-07T20:39:25.637147-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"ok  \\texample.com/ensemble/internal/eventlog\\t1.010s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:25.637161-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Elapsed\":1.01}\n{\"Time\":\"2026-10-07T20:39:25.638155-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"ok  \\texample.com/ensemble/cmd\\t1.012s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:25.638162-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/cmd\",\"Elapsed\":1.012}\n{\"Time\":\"2026-10-07T20:39:25.63868-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"ok  \\texample.com/ensemble/internal/tools\\t1.009s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:25.638689-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/tools\",\"Elapsed\":1.009}\n{\"Time\":\"2026-10-07T20:39:25.64335-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t1.014s\\n\"}\n{\"Time\":\"2026-10-07T20:39:25.643369-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":1.014}\n{\"Time\":\"2026-10-07T20:39:25.824879-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"ok  \\texample.com/ensemble\\t1.198s\\n\"}\n{\"Time\":\"2026-10-07T20:39:25.824888-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Elapsed\":1.199}\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "build",
+            "-o",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/cli-controls",
+            "./cmd"
+          ],
+          "exit": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "python3",
+            "/Users/bill/projects/ensemble/scripts/edition2/accept_ch05_clients.py",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/cli-controls"
+          ],
+          "exit": 0,
+          "stdout": "{\n  \"passed\": true,\n  \"checks\": [\n    {\n      \"id\": \"anthropic/protocol\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"anthropic/human-pty\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/protocol\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/human-pty\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/protocol\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/human-pty\",\n      \"passed\": true,\n      \"details\": []\n    }\n  ]\n}\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "replay",
+      "points": 15,
+      "earned": 15,
+      "passed": true,
+      "commands": [
+        {
+          "args": [
+            "go",
+            "test",
+            "-json",
+            "-run",
+            "^TestIndependentReplay",
+            "-count=1",
+            "-timeout=60s",
+            "-race",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "{\"Time\":\"2026-10-07T20:39:31.089293-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:39:31.089358-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/cmd\"}\n{\"Time\":\"2026-10-07T20:39:31.089385-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/common\"}\n{\"Time\":\"2026-10-07T20:39:31.089429-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/eventlog\"}\n{\"Time\":\"2026-10-07T20:39:31.089446-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/jobs\"}\n{\"Time\":\"2026-10-07T20:39:31.089401-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/common\",\"Output\":\"?   \\texample.com/ensemble/internal/common\\t[no test files]\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.08945-07:00\",\"Action\":\"skip\",\"Package\":\"example.com/ensemble/internal/common\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:31.094334-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:39:31.094452-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/tools\"}\n{\"Time\":\"2026-10-07T20:39:31.097773-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.097856-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.098687-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.098728-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.101766-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes\"}\n{\"Time\":\"2026-10-07T20:39:31.101794-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes\",\"Output\":\"=== RUN   TestIndependentReplayExactBytes\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.1018-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes/anthropic\"}\n{\"Time\":\"2026-10-07T20:39:31.101801-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes/anthropic\",\"Output\":\"=== RUN   TestIndependentReplayExactBytes/anthropic\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.101818-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.101824-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.102128-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.102143-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.103884-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.103895-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.123448-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes/anthropic\",\"Output\":\"--- PASS: TestIndependentReplayExactBytes/anthropic (0.02s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.123453-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes/anthropic\",\"Elapsed\":0.02}\n{\"Time\":\"2026-10-07T20:39:31.123512-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes/openai\"}\n{\"Time\":\"2026-10-07T20:39:31.123527-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes/openai\",\"Output\":\"=== RUN   TestIndependentReplayExactBytes/openai\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.143298-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes/openai\",\"Output\":\"--- PASS: TestIndependentReplayExactBytes/openai (0.02s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.14331-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes/openai\",\"Elapsed\":0.02}\n{\"Time\":\"2026-10-07T20:39:31.14332-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes/gemini\"}\n{\"Time\":\"2026-10-07T20:39:31.143322-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes/gemini\",\"Output\":\"=== RUN   TestIndependentReplayExactBytes/gemini\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.162489-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes/gemini\",\"Output\":\"--- PASS: TestIndependentReplayExactBytes/gemini (0.02s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.162495-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes/gemini\",\"Elapsed\":0.02}\n{\"Time\":\"2026-10-07T20:39:31.16251-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes\",\"Output\":\"--- PASS: TestIndependentReplayExactBytes (0.06s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.162518-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayExactBytes\",\"Elapsed\":0.06}\n{\"Time\":\"2026-10-07T20:39:31.162539-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns\"}\n{\"Time\":\"2026-10-07T20:39:31.162541-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns\",\"Output\":\"=== RUN   TestIndependentReplayInvalidTurns\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.162827-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns/empty-success\"}\n{\"Time\":\"2026-10-07T20:39:31.16283-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns/empty-success\",\"Output\":\"=== RUN   TestIndependentReplayInvalidTurns/empty-success\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.163222-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns/empty-success\",\"Output\":\"--- PASS: TestIndependentReplayInvalidTurns/empty-success (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.163228-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns/empty-success\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:31.163239-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns/hint-idle\"}\n{\"Time\":\"2026-10-07T20:39:31.163242-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns/hint-idle\",\"Output\":\"=== RUN   TestIndependentReplayInvalidTurns/hint-idle\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.163555-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns/hint-idle\",\"Output\":\"--- PASS: TestIndependentReplayInvalidTurns/hint-idle (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.163566-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns/hint-idle\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:31.163576-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns/overlap\"}\n{\"Time\":\"2026-10-07T20:39:31.163577-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns/overlap\",\"Output\":\"=== RUN   TestIndependentReplayInvalidTurns/overlap\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.164005-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns/overlap\",\"Output\":\"--- PASS: TestIndependentReplayInvalidTurns/overlap (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.164012-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns/overlap\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:31.164386-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns\",\"Output\":\"--- PASS: TestIndependentReplayInvalidTurns (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:31.164391-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentReplayInvalidTurns\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:31.164413-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.100973-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"ok  \\texample.com/ensemble/internal/jobs\\t1.011s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.10104-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Elapsed\":1.012}\n{\"Time\":\"2026-10-07T20:39:32.10513-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"ok  \\texample.com/ensemble/internal/eventlog\\t1.016s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.105207-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Elapsed\":1.016}\n{\"Time\":\"2026-10-07T20:39:32.109882-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"ok  \\texample.com/ensemble/internal/tools\\t1.015s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.109944-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/tools\",\"Elapsed\":1.016}\n{\"Time\":\"2026-10-07T20:39:32.109963-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t1.015s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.110006-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":1.016}\n{\"Time\":\"2026-10-07T20:39:32.110153-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"ok  \\texample.com/ensemble/cmd\\t1.021s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.110244-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/cmd\",\"Elapsed\":1.021}\n{\"Time\":\"2026-10-07T20:39:32.175737-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"ok  \\texample.com/ensemble\\t1.086s\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.175806-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Elapsed\":1.087}\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "observers",
+      "points": 15,
+      "earned": 15,
+      "passed": true,
+      "commands": [
+        {
+          "args": [
+            "go",
+            "test",
+            "-json",
+            "-run",
+            "^TestIndependentObservers",
+            "-count=1",
+            "-timeout=60s",
+            "-race",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "{\"Time\":\"2026-10-07T20:39:32.497099-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:39:32.497184-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/cmd\"}\n{\"Time\":\"2026-10-07T20:39:32.497216-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/common\"}\n{\"Time\":\"2026-10-07T20:39:32.49727-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/eventlog\"}\n{\"Time\":\"2026-10-07T20:39:32.497234-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/common\",\"Output\":\"?   \\texample.com/ensemble/internal/common\\t[no test files]\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.497281-07:00\",\"Action\":\"skip\",\"Package\":\"example.com/ensemble/internal/common\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:32.49729-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/jobs\"}\n{\"Time\":\"2026-10-07T20:39:32.497313-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:39:32.497327-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/tools\"}\n{\"Time\":\"2026-10-07T20:39:32.504138-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.504222-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.505252-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.505275-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.507045-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.507062-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.507751-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.507772-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.507794-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentObserversOwnedAndOverflow\"}\n{\"Time\":\"2026-10-07T20:39:32.507802-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentObserversOwnedAndOverflow\",\"Output\":\"=== RUN   TestIndependentObserversOwnedAndOverflow\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.509306-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.509317-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.650991-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentObserversOwnedAndOverflow\",\"Output\":\"--- PASS: TestIndependentObserversOwnedAndOverflow (0.14s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.65101-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentObserversOwnedAndOverflow\",\"Elapsed\":0.14}\n{\"Time\":\"2026-10-07T20:39:32.651019-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentObserversTypedParts\"}\n{\"Time\":\"2026-10-07T20:39:32.651022-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentObserversTypedParts\",\"Output\":\"=== RUN   TestIndependentObserversTypedParts\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.664769-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentObserversTypedParts\",\"Output\":\"--- PASS: TestIndependentObserversTypedParts (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:32.664787-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentObserversTypedParts\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:39:32.664815-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:33.510293-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"ok  \\texample.com/ensemble/internal/eventlog\\t1.013s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:33.510336-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Elapsed\":1.013}\n{\"Time\":\"2026-10-07T20:39:33.511622-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"ok  \\texample.com/ensemble/internal/jobs\\t1.014s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:33.51165-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Elapsed\":1.014}\n{\"Time\":\"2026-10-07T20:39:33.512896-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"ok  \\texample.com/ensemble/cmd\\t1.016s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:33.512907-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/cmd\",\"Elapsed\":1.016}\n{\"Time\":\"2026-10-07T20:39:33.512952-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"ok  \\texample.com/ensemble/internal/tools\\t1.016s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:33.512962-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/tools\",\"Elapsed\":1.016}\n{\"Time\":\"2026-10-07T20:39:33.513051-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t1.016s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:33.513071-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":1.016}\n{\"Time\":\"2026-10-07T20:39:33.67757-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"ok  \\texample.com/ensemble\\t1.180s\\n\"}\n{\"Time\":\"2026-10-07T20:39:33.677625-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Elapsed\":1.181}\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "completion-collection",
+      "points": 15,
+      "earned": 15,
+      "passed": true,
+      "commands": [
+        {
+          "args": [
+            "go",
+            "test",
+            "-json",
+            "-run",
+            "^TestIndependentCollection",
+            "-count=1",
+            "-timeout=60s",
+            "-race",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "{\"Time\":\"2026-10-07T20:39:34.030331-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:39:34.030388-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/cmd\"}\n{\"Time\":\"2026-10-07T20:39:34.030401-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/common\"}\n{\"Time\":\"2026-10-07T20:39:34.030411-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/common\",\"Output\":\"?   \\texample.com/ensemble/internal/common\\t[no test files]\\n\"}\n{\"Time\":\"2026-10-07T20:39:34.030458-07:00\",\"Action\":\"skip\",\"Package\":\"example.com/ensemble/internal/common\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:34.030438-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/eventlog\"}\n{\"Time\":\"2026-10-07T20:39:34.030485-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/jobs\"}\n{\"Time\":\"2026-10-07T20:39:34.030489-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:39:34.030505-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/tools\"}\n{\"Time\":\"2026-10-07T20:39:34.038764-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:34.038962-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:34.039627-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:34.039656-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:34.041516-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentCollectionReadyAndStaggered\"}\n{\"Time\":\"2026-10-07T20:39:34.041567-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentCollectionReadyAndStaggered\",\"Output\":\"=== RUN   TestIndependentCollectionReadyAndStaggered\\n\"}\n{\"Time\":\"2026-10-07T20:39:34.041999-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:34.042028-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:34.042263-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:34.042291-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:34.043826-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:34.043838-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:34.051794-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentCollectionReadyAndStaggered\",\"Output\":\"--- PASS: TestIndependentCollectionReadyAndStaggered (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:34.051823-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentCollectionReadyAndStaggered\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:39:34.051831-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.044501-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"ok  \\texample.com/ensemble/internal/tools\\t1.014s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.044531-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/tools\",\"Elapsed\":1.014}\n{\"Time\":\"2026-10-07T20:39:35.0445-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"ok  \\texample.com/ensemble/internal/eventlog\\t1.014s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.044745-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Elapsed\":1.014}\n{\"Time\":\"2026-10-07T20:39:35.045686-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"ok  \\texample.com/ensemble/internal/jobs\\t1.015s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.0457-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Elapsed\":1.015}\n{\"Time\":\"2026-10-07T20:39:35.045742-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t1.015s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.04576-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":1.015}\n{\"Time\":\"2026-10-07T20:39:35.04637-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"ok  \\texample.com/ensemble/cmd\\t1.016s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.046378-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/cmd\",\"Elapsed\":1.016}\n{\"Time\":\"2026-10-07T20:39:35.057779-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"ok  \\texample.com/ensemble\\t1.027s\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.057786-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Elapsed\":1.027}\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "loud-refusal",
+      "points": 10,
+      "earned": 10,
+      "passed": true,
+      "commands": [
+        {
+          "args": [
+            "go",
+            "test",
+            "-json",
+            "-run",
+            "^TestIndependentRefusal",
+            "-count=1",
+            "-timeout=60s",
+            "-race",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "{\"Time\":\"2026-10-07T20:39:35.381844-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:39:35.381924-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/cmd\"}\n{\"Time\":\"2026-10-07T20:39:35.381954-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/common\"}\n{\"Time\":\"2026-10-07T20:39:35.381959-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/common\",\"Output\":\"?   \\texample.com/ensemble/internal/common\\t[no test files]\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.381994-07:00\",\"Action\":\"skip\",\"Package\":\"example.com/ensemble/internal/common\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:35.382017-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/eventlog\"}\n{\"Time\":\"2026-10-07T20:39:35.382027-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/jobs\"}\n{\"Time\":\"2026-10-07T20:39:35.382031-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:39:35.382038-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/tools\"}\n{\"Time\":\"2026-10-07T20:39:35.390276-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.390387-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.390893-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.390912-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.392398-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.392441-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.393306-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.393318-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.393638-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentRefusalUnsupported\"}\n{\"Time\":\"2026-10-07T20:39:35.393646-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentRefusalUnsupported\",\"Output\":\"=== RUN   TestIndependentRefusalUnsupported\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.394527-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"testing: warning: no tests to run\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.394534-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.396248-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentRefusalUnsupported\",\"Output\":\"--- PASS: TestIndependentRefusalUnsupported (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:39:35.396253-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestIndependentRefusalUnsupported\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:39:35.396271-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:39:36.395924-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Output\":\"ok  \\texample.com/ensemble/internal/eventlog\\t1.014s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:36.395956-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/eventlog\",\"Elapsed\":1.014}\n{\"Time\":\"2026-10-07T20:39:36.396583-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/tools\",\"Output\":\"ok  \\texample.com/ensemble/internal/tools\\t1.015s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:36.396591-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/tools\",\"Elapsed\":1.015}\n{\"Time\":\"2026-10-07T20:39:36.396799-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/cmd\",\"Output\":\"ok  \\texample.com/ensemble/cmd\\t1.015s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:36.396838-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/cmd\",\"Elapsed\":1.015}\n{\"Time\":\"2026-10-07T20:39:36.397072-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Output\":\"ok  \\texample.com/ensemble/internal/jobs\\t1.015s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:36.397089-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/jobs\",\"Elapsed\":1.015}\n{\"Time\":\"2026-10-07T20:39:36.397999-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"ok  \\texample.com/ensemble\\t1.016s\\n\"}\n{\"Time\":\"2026-10-07T20:39:36.398007-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Elapsed\":1.016}\n{\"Time\":\"2026-10-07T20:39:36.40052-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t1.018s [no tests to run]\\n\"}\n{\"Time\":\"2026-10-07T20:39:36.400524-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":1.018}\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "id": "architecture",
+      "points": 10,
+      "earned": 10,
+      "passed": true,
+      "commands": [
+        {
+          "args": [
+            "go",
+            "run",
+            "/Users/bill/projects/ensemble/scripts/edition2/packagecheck/main.go",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/source/examples/consumer"
+          ],
+          "exit": 0,
+          "stdout": "{\"scope\":\"module imports and common behavior placement; ownership and semantics require review\",\"passed\":true,\"findings\":[]}\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "test",
+            "-run",
+            "^$",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "?   \texample.com/ensemble-consumer\t[no test files]\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "run",
+            "/Users/bill/projects/ensemble/scripts/edition2/packagecheck/main.go",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/source/examples/jobs-consumer"
+          ],
+          "exit": 0,
+          "stdout": "{\"scope\":\"module imports and common behavior placement; ownership and semantics require review\",\"passed\":true,\"findings\":[]}\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "test",
+            "-run",
+            "^$",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "?   \texample.com/ensemble-jobs-consumer\t[no test files]\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "run",
+            "/Users/bill/projects/ensemble/scripts/edition2/packagecheck/main.go",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/source/examples/stream-consumer"
+          ],
+          "exit": 0,
+          "stdout": "{\"scope\":\"module imports and common behavior placement; ownership and semantics require review\",\"passed\":true,\"findings\":[]}\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "test",
+            "-run",
+            "^$",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "?   \texample.com/ensemble/stream-consumer\t[no test files]\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "run",
+            "/Users/bill/projects/ensemble/scripts/edition2/packagecheck/main.go",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/source/examples/tools-consumer"
+          ],
+          "exit": 0,
+          "stdout": "{\"scope\":\"module imports and common behavior placement; ownership and semantics require review\",\"passed\":true,\"findings\":[]}\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "test",
+            "-run",
+            "^$",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "?   \texample.com/ensemble-tools-consumer\t[no test files]\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "run",
+            "/Users/bill/projects/ensemble/scripts/edition2/packagecheck/main.go",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/source/examples/workflow"
+          ],
+          "exit": 0,
+          "stdout": "{\"scope\":\"module imports and common behavior placement; ownership and semantics require review\",\"passed\":true,\"findings\":[]}\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "test",
+            "-run",
+            "^$",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "?   \texample.com/ensemble-workflow\t[no test files]\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "run",
+            "/Users/bill/projects/ensemble/scripts/edition2/packagecheck/main.go",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/source"
+          ],
+          "exit": 0,
+          "stdout": "{\"scope\":\"module imports and common behavior placement; ownership and semantics require review\",\"passed\":true,\"findings\":[]}\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "test",
+            "-run",
+            "^$",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "ok  \texample.com/ensemble\t0.010s [no tests to run]\nok  \texample.com/ensemble/cmd\t0.010s [no tests to run]\n?   \texample.com/ensemble/internal/common\t[no test files]\nok  \texample.com/ensemble/internal/eventlog\t0.008s [no tests to run]\nok  \texample.com/ensemble/internal/jobs\t0.007s [no tests to run]\nok  \texample.com/ensemble/internal/llm\t0.010s [no tests to run]\nok  \texample.com/ensemble/internal/tools\t0.006s [no tests to run]\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "run",
+            "/Users/bill/projects/ensemble/scripts/edition2/packagecheck/main.go",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/source/gui"
+          ],
+          "exit": 0,
+          "stdout": "{\"scope\":\"module imports and common behavior placement; ownership and semantics require review\",\"passed\":true,\"findings\":[]}\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "test",
+            "-run",
+            "^$",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "ok  \texample.com/ensemble-gui\t0.006s [no tests to run]\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "run",
+            "/Users/bill/projects/ensemble/scripts/edition2/ch05sourcecheck/main.go",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/source"
+          ],
+          "exit": 0,
+          "stdout": "[]\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "list",
+            "-deps",
+            "./..."
+          ],
+          "exit": 0,
+          "stdout": "internal/goarch\nunsafe\ninternal/abi\ninternal/unsafeheader\ninternal/cpu\ninternal/bytealg\ninternal/byteorder\ninternal/chacha8rand\ninternal/coverage/rtcov\ninternal/godebugs\ninternal/goexperiment\ninternal/goos\ninternal/profilerecord\ninternal/runtime/atomic\ninternal/runtime/exithook\ninternal/runtime/gc\ninternal/asan\ninternal/msan\ninternal/race\ninternal/runtime/math\ninternal/runtime/sys\ninternal/runtime/maps\ninternal/runtime/strconv\ninternal/stringslite\ninternal/trace/tracev2\nruntime\ninternal/reflectlite\nerrors\nsync/atomic\ninternal/sync\ninternal/synctest\nsync\ninternal/bisect\ninternal/godebug\nmath/bits\ninternal/itoa\ninternal/oserror\nsyscall\ntime\ncontext\nio\niter\nunicode\nunicode/utf8\nbytes\ncmp\nencoding\nslices\nmath\nstrconv\nencoding/base64\nreflect\ninternal/fmtsort\npath\nio/fs\ninternal/filepathlite\ninternal/syscall/unix\ninternal/poll\ninternal/syscall/execenv\ninternal/testlog\nos\nfmt\nstrings\nunicode/utf16\nencoding/json\nsort\nregexp/syntax\nregexp\nexample.com/ensemble/internal/common\nbufio\nexample.com/ensemble/internal/eventlog\npath/filepath\nos/exec\ngithub.com/creack/pty\nexample.com/ensemble/internal/jobs\nmaps\nmime\nvendor/golang.org/x/net/dns/dnsmessage\ninternal/nettrace\nweak\nunique\nnet/netip\ninternal/routebsd\ninternal/singleflight\nnet\ncompress/flate\nencoding/binary\nhash\nhash/crc32\ncompress/gzip\ncontainer/list\ncrypto\ncrypto/internal/fips140deps/godebug\ncrypto/internal/fips140\ncrypto/internal/fips140/alias\ncrypto/internal/fips140deps/byteorder\ncrypto/internal/fips140deps/cpu\ncrypto/internal/impl\ncrypto/internal/fips140/sha256\ncrypto/internal/fips140/subtle\ncrypto/internal/fips140/sha3\ncrypto/internal/fips140/sha512\ncrypto/internal/fips140/hmac\ncrypto/internal/fips140/check\ncrypto/internal/fips140/aes\ncrypto/internal/sysrand\ncrypto/internal/entropy\nmath/rand/v2\ncrypto/internal/randutil\ncrypto/internal/fips140/drbg\ncrypto/internal/fips140/aes/gcm\ncrypto/internal/fips140only\ncrypto/subtle\ncrypto/cipher\ncrypto/internal/boring/sig\ncrypto/internal/boring\nmath/rand\nmath/big\ncrypto/rand\ncrypto/aes\ncrypto/des\ncrypto/internal/fips140/nistec/fiat\ncrypto/internal/fips140/nistec\ncrypto/internal/fips140/ecdh\ncrypto/internal/fips140/edwards25519/field\ncrypto/ecdh\ncrypto/elliptic\ncrypto/internal/boring/bbig\ncrypto/internal/fips140/bigmod\ncrypto/internal/fips140/ecdsa\ncrypto/internal/fips140cache\ncrypto/sha3\ncrypto/internal/fips140hash\ncrypto/sha512\ninternal/saferio\nencoding/asn1\nvendor/golang.org/x/crypto/cryptobyte/asn1\nvendor/golang.org/x/crypto/cryptobyte\ncrypto/ecdsa\ncrypto/internal/fips140/edwards25519\ncrypto/internal/fips140/ed25519\ncrypto/ed25519\ncrypto/internal/fips140/hkdf\ncrypto/hkdf\ncrypto/hmac\ncrypto/internal/fips140/mlkem\ncrypto/internal/fips140/tls12\ncrypto/internal/fips140/tls13\nvendor/golang.org/x/crypto/internal/alias\nvendor/golang.org/x/crypto/chacha20\nvendor/golang.org/x/crypto/internal/poly1305\nvendor/golang.org/x/crypto/chacha20poly1305\ncrypto/internal/hpke\ncrypto/md5\ncrypto/rc4\ncrypto/internal/fips140/rsa\ncrypto/rsa\ncrypto/sha1\ncrypto/sha256\ncrypto/fips140\ncrypto/tls/internal/fips140tls\ncrypto/dsa\ncrypto/x509/internal/macos\nencoding/hex\ncrypto/x509/pkix\nencoding/pem\nnet/url\ncrypto/x509\ncrypto/tls\nvendor/golang.org/x/text/transform\nlog/internal\nlog\nvendor/golang.org/x/text/unicode/bidi\nvendor/golang.org/x/text/secure/bidirule\nvendor/golang.org/x/text/unicode/norm\nvendor/golang.org/x/net/idna\nnet/textproto\nvendor/golang.org/x/net/http/httpguts\nvendor/golang.org/x/net/http/httpproxy\nvendor/golang.org/x/net/http2/hpack\nmime/quotedprintable\nmime/multipart\nnet/http/httptrace\nnet/http/internal\nnet/http/internal/ascii\nnet/http/internal/httpcommon\nnet/http\nexample.com/ensemble/internal/llm\nexample.com/ensemble/internal/tools\nexample.com/ensemble\nexample.com/ensemble/cmd\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "build",
+            "-o",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/workflow",
+            "."
+          ],
+          "exit": 0,
+          "stdout": "",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "python3",
+            "/Users/bill/projects/ensemble/scripts/edition2/accept_ch06_workflow.py",
+            "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch05-independent-0wat3pa0/workflow",
+            "--workflow"
+          ],
+          "exit": 0,
+          "stdout": "{\n  \"passed\": true,\n  \"checks\": [\n    {\n      \"id\": \"anthropic/workflow\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"openai/workflow\",\n      \"passed\": true,\n      \"details\": []\n    },\n    {\n      \"id\": \"gemini/workflow\",\n      \"passed\": true,\n      \"details\": []\n    }\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "args": [
+            "go",
+            "test",
+            "-run",
+            "^TestIndependentArchitecture",
+            "-count=1",
+            "-timeout=30s",
+            "."
+          ],
+          "exit": 0,
+          "stdout": "ok  \texample.com/ensemble\t0.008s\n",
+          "stderr": ""
+        }
+      ]
+    }
+  ],
+  "chapter6_adapter": "Run unchanged Chapter 5 checks at explicit plain delivery in a disposable copy.\n\nChapter 6 changes the default, not the older plain semantics. The only fixture\nadaptation sets DisableStreaming on Config literals; assertions are retained.\n"
+}

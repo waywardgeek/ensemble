@@ -1,0 +1,515 @@
+// White-box entry adapters only. Bounds, framing bytes and cancellation outcomes
+// derive from the contract; these are not copies of the student's test suite.
+package llm
+
+import (
+	"bytes"
+	"context"
+	"encoding/json"
+	"example.com/ensemble/internal/common"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+	"unicode/utf8"
+)
+
+type c6Root struct {
+	common.Ensemble
+	mu   sync.Mutex
+	logs []string
+}
+
+func (r *c6Root) Logf(s string, a ...any) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	r.logs = append(r.logs, fmt.Sprintf(s, a...))
+}
+
+type c6Agent struct {
+	common.Agent
+	root  *c6Root
+	ready chan common.ModelOperation
+}
+
+func (a *c6Agent) Ensemble() common.Ensemble          { return a.root }
+func (a *c6Agent) Config() common.Config              { return common.Config{} }
+func (a *c6Agent) ModelReady(o common.ModelOperation) { a.ready <- o }
+func c6Engine() (*Engine, *c6Agent) {
+	a := &c6Agent{root: &c6Root{}, ready: make(chan common.ModelOperation, 8)}
+	return New(a), a
+}
+
+type c6Split struct {
+	data      []byte
+	at, split int
+}
+
+func (r *c6Split) Read(p []byte) (int, error) {
+	if r.at == len(r.data) {
+		return 0, io.EOF
+	}
+	end := len(r.data)
+	if r.at < r.split {
+		end = r.split
+	}
+	n := copy(p, r.data[r.at:end])
+	r.at += n
+	return n, nil
+}
+func TestC6ExactFraming(t *testing.T) {
+	e, a := c6Engine()
+	defer e.Close()
+	o := e.NewOperation("op", "req", common.Config{})
+	if o.Engine() != e || o.Engine().Agent() != a || o.Engine().Agent().Ensemble() != a.root {
+		t.Fatal("operation diagnostic owner chain broken")
+	}
+	for _, ending := range []string{"\n", "\r\n", "\r"} {
+		for _, bom := range []string{"", "\xef\xbb\xbf"} {
+			wire := []byte(bom + strings.Join([]string{": ignored", "id: 2", "retry: 3", "event: sample", "data: {\"é\":", "data:  1}", "", ""}, ending))
+			for split := 1; split < len(wire); split++ {
+				r := newSSE(o, &c6Split{data: wire, split: split})
+				got, err := r.next()
+				if err != nil || got.name != "sample" || got.data != "{\"é\":\n 1}" {
+					t.Fatalf("split %d ending %q: %#v %v", split, ending, got, err)
+				}
+				if _, err = r.next(); err != io.EOF {
+					t.Fatal("extra event after complete frame", err)
+				}
+			}
+		}
+	}
+	for _, ending := range []string{"\n", "\r\n", "\r"} {
+		overhead := 8 + 2*len(ending)
+		exact := []byte("data: \"" + strings.Repeat("x", (1<<20)-overhead) + "\"" + ending + ending)
+		if len(exact) != 1<<20 {
+			t.Fatal("invalid positive fixture length")
+		}
+		for _, prefix := range []string{"", "\xef\xbb\xbf"} {
+			r := newSSE(o, bytes.NewReader(append([]byte(prefix), append(exact, exact...)...)))
+			for i := 0; i < 2; i++ {
+				if _, err := r.next(); err != nil {
+					t.Fatal("exact physical limit refused", err)
+				}
+			}
+		}
+		over := bytes.Replace(exact, []byte(`data: "`), []byte(`data: "x`), 1)
+		if _, err := newSSE(o, bytes.NewReader(over)).next(); err == nil {
+			t.Fatal("one-byte physical overflow accepted")
+		}
+	}
+	for _, data := range []string{"data: {}\n", "data: {}", "data: \xff\n\n"} {
+		if _, err := newSSE(o, strings.NewReader(data)).next(); err == nil {
+			t.Fatal("invalid/unfinished SSE accepted")
+		}
+	}
+	a.root.mu.Lock()
+	defer a.root.mu.Unlock()
+	if len(a.root.logs) == 0 {
+		t.Fatal("parser failures bypassed owning logger")
+	}
+	for _, s := range a.root.logs {
+		if strings.Contains(s, "data:") {
+			t.Fatal("raw frame leaked to diagnostics")
+		}
+	}
+}
+func c6InternalReceive[T any](t *testing.T, ch <-chan T) T {
+	t.Helper()
+	select {
+	case x := <-ch:
+		return x
+	case <-time.After(3 * time.Second):
+		t.Fatal("bounded operation failed to settle")
+		var z T
+		return z
+	}
+}
+func TestC6CapacityCancellationAndUTF8(t *testing.T) {
+	for _, cancelKind := range []string{"cancel", "discard"} {
+		t.Run(cancelKind, func(t *testing.T) {
+			e, a := c6Engine()
+			defer e.Close()
+			o := e.NewOperation("op", "req", common.Config{})
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			piece := common.Fragment{PartID: 7, Channel: "text", Text: strings.Repeat("é", (1<<20)/2)}
+			if err := o.Emit(ctx, piece); err != nil {
+				t.Fatal(err)
+			}
+			if c6InternalReceive(t, a.ready) != o {
+				t.Fatal("notice points to wrong operation")
+			}
+			blocked := make(chan error, 1)
+			go func() { blocked <- o.Emit(ctx, common.Fragment{PartID: 7, Channel: "text", Text: "MORE"}) }()
+			select {
+			case <-blocked:
+				t.Fatal("pending store exceeded one MiB")
+			case <-time.After(30 * time.Millisecond):
+			}
+			if cancelKind == "cancel" {
+				cancel()
+			} else {
+				o.Discard()
+			}
+			if err := c6InternalReceive(t, blocked); err == nil {
+				t.Fatal("full producer ignored cancellation")
+			}
+			select {
+			case <-a.ready:
+				t.Fatal("multiple outstanding readiness notices")
+			default:
+			}
+		})
+	}
+	e, a := c6Engine()
+	defer e.Close()
+	o := e.NewOperation("op", "req", common.Config{})
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	text := strings.Repeat("🦊", 400000)
+	done := make(chan error, 1)
+	go func() { done <- o.Emit(ctx, common.Fragment{PartID: 9, Channel: "thinking", Text: text}) }()
+	c6InternalReceive(t, a.ready)
+	var reconstructed strings.Builder
+	for reconstructed.Len() < len(text) {
+		parts, more := o.Drain()
+		n := 0
+		for _, p := range parts {
+			if p.PartID != 9 || p.Channel != "thinking" || !utf8.ValidString(p.Text) {
+				t.Fatal("split changed identity/channel/UTF-8")
+			}
+			n += len(p.Text)
+			reconstructed.WriteString(p.Text)
+		}
+		if n > 64<<10 {
+			t.Fatal("actor drain exceeded 64 KiB fairness budget")
+		}
+		if !more && reconstructed.Len() < len(text) {
+			c6InternalReceive(t, a.ready)
+		}
+	}
+	if err := c6InternalReceive(t, done); err != nil {
+		t.Fatal(err)
+	}
+	if reconstructed.String() != text {
+		t.Fatal("bounded transfer lost fragment text")
+	}
+}
+
+type c6Sink struct {
+	common.ModelOperation
+	engine    common.ModelEngine
+	size      int
+	fragments []common.Fragment
+	retain    bool
+}
+
+func (s *c6Sink) Engine() common.ModelEngine { return s.engine }
+func (s *c6Sink) Emit(ctx context.Context, f common.Fragment) error {
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	s.size += len(f.Text)
+	if s.retain {
+		s.fragments = append(s.fragments, f)
+	}
+	return nil
+}
+func c6InternalFrame(v any) []byte {
+	b, _ := json.Marshal(v)
+	return append(append([]byte("data: "), b...), []byte("\n\n")...)
+}
+func c6Large(vendor string, n int) []byte {
+	var out bytes.Buffer
+	write := func(v any) { out.Write(c6InternalFrame(v)) }
+	if vendor == "anthropic" {
+		write(map[string]any{"type": "message_start", "message": map[string]any{"usage": map[string]int{"input_tokens": 10, "output_tokens": 0}}})
+		write(map[string]any{"type": "content_block_start", "index": 0, "content_block": map[string]string{"type": "text", "text": ""}})
+	}
+	for n > 0 {
+		k := 512 << 10
+		if k > n {
+			k = n
+		}
+		s := strings.Repeat("x", k)
+		n -= k
+		switch vendor {
+		case "anthropic":
+			write(map[string]any{"type": "content_block_delta", "index": 0, "delta": map[string]string{"type": "text_delta", "text": s}})
+		case "openai":
+			write(map[string]any{"choices": []any{map[string]any{"index": 0, "delta": map[string]string{"content": s}}}})
+		default:
+			write(map[string]any{"candidates": []any{map[string]any{"index": 0, "content": map[string]any{"parts": []any{map[string]string{"text": s}}}}}, "usageMetadata": map[string]int{"promptTokenCount": 10, "candidatesTokenCount": 2}})
+		}
+	}
+	switch vendor {
+	case "anthropic":
+		write(map[string]any{"type": "content_block_stop", "index": 0})
+		write(map[string]any{"type": "message_delta", "delta": map[string]string{"stop_reason": "end_turn"}, "usage": map[string]int{"output_tokens": 2}})
+		write(map[string]string{"type": "message_stop"})
+	case "openai":
+		write(map[string]any{"choices": []any{map[string]any{"index": 0, "delta": map[string]any{}, "finish_reason": "stop"}}})
+		write(map[string]any{"choices": []any{}, "usage": map[string]int{"prompt_tokens": 10, "completion_tokens": 2}})
+		out.WriteString("data: [DONE]\n\n")
+	default:
+		write(map[string]any{"candidates": []any{map[string]any{"index": 0, "finishReason": "STOP"}}, "usageMetadata": map[string]int{"promptTokenCount": 10, "candidatesTokenCount": 2}})
+	}
+	return out.Bytes()
+}
+func TestC6AssembledBound(t *testing.T) {
+	for _, vendor := range []string{"anthropic", "openai", "gemini"} {
+		t.Run(vendor, func(t *testing.T) {
+			e, _ := c6Engine()
+			defer e.Close()
+			config := common.Config{Vendor: vendor, Model: "fixture-bound", ResolvedModel: "fixture-bound"}
+			for _, extra := range []int{0, 1} {
+				s := &c6Sink{engine: e}
+				p, err := parseStream(context.Background(), s, config, bytes.NewReader(c6Large(vendor, (16<<20)+extra)))
+				if extra == 0 {
+					if err != nil {
+						t.Fatal("exact assembled limit refused", err)
+					}
+					if len(p.Response.Parts) != 1 || p.Response.Parts[0].Text == nil || len(*p.Response.Parts[0].Text) != 16<<20 {
+						t.Fatal("exact accepted assembly changed")
+					}
+				} else if err == nil {
+					t.Fatal("assembled limit overflow accepted")
+				}
+			}
+		})
+	}
+}
+
+// This benchmark records allocation scaling for review, not a timing threshold.
+func BenchmarkC6AssemblyScaling(b *testing.B) {
+	for _, vendor := range []string{"anthropic", "openai", "gemini"} {
+		for _, n := range []int{64 << 10, 128 << 10} {
+			b.Run(fmt.Sprintf("%s/%d", vendor, n), func(b *testing.B) {
+				e, _ := c6Engine()
+				defer e.Close()
+				config := common.Config{Vendor: vendor, Model: "fixture-scale", ResolvedModel: "fixture-scale"}
+				large := c6Large(vendor, 128)
+				frames := bytes.Split(large, []byte("\n\n"))
+				var repeated []byte
+				for _, frame := range frames {
+					if len(frame) == 0 {
+						continue
+					}
+					copies := 1
+					if bytes.Contains(frame, []byte(strings.Repeat("x", 128))) {
+						copies = n / 128
+					}
+					for i := 0; i < copies; i++ {
+						repeated = append(repeated, frame...)
+						repeated = append(repeated, '\n', '\n')
+					}
+				}
+				b.ReportAllocs()
+				b.SetBytes(int64(n))
+				b.ResetTimer()
+				for i := 0; i < b.N; i++ {
+					sink := &c6Sink{engine: e}
+					if _, err := parseStream(context.Background(), sink, config, bytes.NewReader(repeated)); err != nil {
+						b.Fatal(err)
+					}
+				}
+			})
+		}
+	}
+}
+
+type c6Immediate struct{ common.ModelEngine }
+
+func (e *c6Immediate) ExchangeOperation(context.Context, common.ModelOperation, []byte, common.Config) (common.ParsedResponse, error) {
+	return common.ParsedResponse{}, nil
+}
+func TestC6CompletionDrainWait(t *testing.T) {
+	for _, mode := range []string{"drain", "cancel"} {
+		t.Run(mode, func(t *testing.T) {
+			e, a := c6Engine()
+			defer e.Close()
+			parent := &c6Immediate{e}
+			o := &operation{parent: parent, id: "op", requestID: "request", changed: make(chan struct{})}
+			ctx, cancel := context.WithCancel(context.Background())
+			defer cancel()
+			if err := o.Emit(ctx, common.Fragment{PartID: 1, Channel: "text", Text: "PENDING"}); err != nil {
+				t.Fatal(err)
+			}
+			c6InternalReceive(t, a.ready)
+			done := make(chan error, 1)
+			go func() { _, err := o.Exchange(ctx, nil); done <- err }()
+			select {
+			case <-done:
+				t.Fatal("completed response overtook pending fragments")
+			case <-time.After(30 * time.Millisecond):
+			}
+			if mode == "cancel" {
+				cancel()
+				if err := c6InternalReceive(t, done); err == nil {
+					t.Fatal("completion wait ignored cancellation")
+				}
+			} else {
+				pieces, more := o.Drain()
+				if more || len(pieces) != 1 {
+					t.Fatal("positive drain differs")
+				}
+				if err := c6InternalReceive(t, done); err != nil {
+					t.Fatal(err)
+				}
+			}
+		})
+	}
+}
+
+func TestC6HTTPTimeoutIncludesCapacityWait(t *testing.T) {
+	e, a := c6Engine()
+	defer e.Close()
+	e.client.Timeout = time.Second
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+		_, _ = w.Write(c6Large("openai", 2<<20))
+	}))
+	defer server.Close()
+	config := common.Config{Vendor: "openai", Model: "fixture-timeout", BaseURL: server.URL}
+	op := e.NewOperation("op", "request", config)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	done := make(chan error, 1)
+	go func() { _, err := op.Exchange(ctx, []byte("{}")); done <- err }()
+	c6InternalReceive(t, a.ready)
+	full := false
+	for deadline := time.Now().Add(time.Second); time.Now().Before(deadline); {
+		owned := op.(*operation)
+		owned.mu.Lock()
+		full = owned.bytes == 1<<20
+		owned.mu.Unlock()
+		if full {
+			break
+		}
+		time.Sleep(time.Millisecond)
+	}
+	if !full {
+		cancel()
+		op.Discard()
+		c6InternalReceive(t, done)
+		t.Fatal("positive fixture did not fill operation store before timeout")
+	}
+	select {
+	case err := <-done:
+		if err == nil {
+			t.Fatal("timed-out full producer returned success")
+		}
+	case <-time.After(1500 * time.Millisecond):
+		cancel()
+		op.Discard()
+		c6InternalReceive(t, done)
+		t.Fatal("configured HTTP timeout did not release the full operation transfer wait")
+	}
+}
+
+func TestC6RequiredTerminal(t *testing.T) {
+	for _, vendor := range []string{"anthropic", "openai", "gemini"} {
+		t.Run(vendor, func(t *testing.T) {
+			e, _ := c6Engine()
+			defer e.Close()
+			body := c6Large(vendor, 10)
+			parts := bytes.Split(body, []byte("\n\n"))
+			if len(parts) < 3 {
+				t.Fatal("invalid positive terminal fixture")
+			}
+			body = bytes.Join(parts[:len(parts)-2], []byte("\n\n"))
+			body = append(body, '\n', '\n')
+			_, err := parseStream(context.Background(), &c6Sink{engine: e}, common.Config{Vendor: vendor, Model: "fixture-terminal"}, bytes.NewReader(body))
+			if err == nil {
+				t.Fatal("missing API terminal accepted")
+			}
+		})
+	}
+}
+
+func TestC6MessagesLifecycle(t *testing.T) {
+	e, _ := c6Engine()
+	defer e.Close()
+	config := common.Config{Vendor: "anthropic", Model: "fixture-lifecycle"}
+	start := c6InternalFrame(map[string]any{"type": "message_start", "message": map[string]any{"usage": map[string]int{"input_tokens": 10, "output_tokens": 0}}})
+	block := c6InternalFrame(map[string]any{"type": "content_block_start", "index": 0, "content_block": map[string]string{"type": "text", "text": "valid"}})
+	delta := c6InternalFrame(map[string]any{"type": "content_block_delta", "index": 0, "delta": map[string]string{"type": "text_delta", "text": "more"}})
+	stop := c6InternalFrame(map[string]any{"type": "content_block_stop", "index": 0})
+	finish := c6InternalFrame(map[string]any{"type": "message_delta", "delta": map[string]string{"stop_reason": "end_turn"}, "usage": map[string]int{"output_tokens": 2}})
+	finish = append(finish, c6InternalFrame(map[string]string{"type": "message_stop"})...)
+	join := func(pieces ...[]byte) []byte { return bytes.Join(pieces, nil) }
+	valid := join(start, block, delta, stop, finish)
+	unknownEvent := c6InternalFrame(map[string]string{"type": "future-standalone"})
+	if _, err := parseStream(context.Background(), &c6Sink{engine: e}, config, bytes.NewReader(join(unknownEvent, valid))); err != nil {
+		t.Fatal("unknown standalone positive failed", err)
+	}
+	cases := map[string][]byte{"delta-before-start": join(start, delta, block, stop, finish), "duplicate-start": join(start, block, block, stop, finish), "duplicate-stop": join(start, block, stop, stop, finish), "delta-after-stop": join(start, block, stop, delta, finish), "unclosed-block": join(start, block, finish), "unknown-open-delta": join(start, block, c6InternalFrame(map[string]any{"type": "content_block_delta", "index": 0, "delta": map[string]string{"type": "future-delta", "payload": "private-marker"}}), stop, finish), "kind-change": join(start, block, c6InternalFrame(map[string]any{"type": "content_block_delta", "index": 0, "delta": map[string]string{"type": "thinking_delta", "thinking": "private-marker"}}), stop, finish)}
+	for name, body := range cases {
+		t.Run(name, func(t *testing.T) {
+			if _, err := parseStream(context.Background(), &c6Sink{engine: e}, config, bytes.NewReader(body)); err == nil {
+				t.Fatal("invalid Messages block lifecycle accepted")
+			}
+		})
+	}
+}
+
+func TestC6OpaqueAssemblyBound(t *testing.T) {
+	// Opaque storage retains JSON bytes. Its escaping cost differs from a visible
+	// decoded string; the positive pins the exact combined retained-content bound.
+	const visible = "visible"
+	for _, extra := range []int{0, 1} {
+		e, _ := c6Engine()
+		sample := strings.Repeat("\x00\n\t\"\\<>&\u2028\u2029é", 1024)
+		material := map[string]string{"type": "thinking", "thinking": sample, "signature": "fixture"}
+		encoded, _ := json.Marshal(material)
+		material["thinking"] += strings.Repeat("x", (16<<20)-len(visible)-len(encoded)+extra)
+		expected, _ := json.Marshal(material)
+		if len(expected)+len(visible) != (16<<20)+extra {
+			t.Fatal("invalid exact opaque fixture")
+		}
+		var wire bytes.Buffer
+		write := func(v any) {
+			frame := c6InternalFrame(v)
+			if len(frame) > 1<<20 {
+				t.Fatal("opaque fixture exceeds frame limit")
+			}
+			wire.Write(frame)
+		}
+		write(map[string]any{"type": "message_start", "message": map[string]any{"usage": map[string]int{"input_tokens": 10, "output_tokens": 0}}})
+		write(map[string]any{"type": "content_block_start", "index": 0, "content_block": map[string]string{"type": "text", "text": visible}})
+		write(map[string]any{"type": "content_block_stop", "index": 0})
+		write(map[string]any{"type": "content_block_start", "index": 1, "content_block": map[string]string{"type": "thinking", "thinking": "", "signature": "fixture"}})
+		text := material["thinking"]
+		for len(text) > 0 {
+			n := 64 << 10
+			if n > len(text) {
+				n = len(text)
+			}
+			for n < len(text) && !utf8.RuneStart(text[n]) {
+				n--
+			}
+			write(map[string]any{"type": "content_block_delta", "index": 1, "delta": map[string]string{"type": "thinking_delta", "thinking": text[:n]}})
+			text = text[n:]
+		}
+		write(map[string]any{"type": "content_block_stop", "index": 1})
+		write(map[string]any{"type": "message_delta", "delta": map[string]string{"stop_reason": "end_turn"}, "usage": map[string]int{"output_tokens": 2}})
+		write(map[string]string{"type": "message_stop"})
+		parsed, err := parseStream(context.Background(), &c6Sink{engine: e}, common.Config{Vendor: "anthropic", Model: "fixture-bound", ResolvedModel: "fixture-bound"}, bytes.NewReader(wire.Bytes()))
+		e.Close()
+		if extra == 0 {
+			if err != nil {
+				t.Fatal("exact escaped opaque limit refused", err)
+			}
+			if len(parsed.Response.Parts) != 2 || !bytes.Equal(parsed.Response.Parts[1].Data, expected) {
+				t.Fatal("accepted opaque bytes changed")
+			}
+		} else if err == nil {
+			t.Fatalf("opaque payload overflow accepted: retained %d bytes plus visible content", len(parsed.Response.Parts[1].Data))
+		}
+	}
+}

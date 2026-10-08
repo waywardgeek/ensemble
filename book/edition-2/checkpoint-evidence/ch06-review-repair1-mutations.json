@@ -1,0 +1,646 @@
+{
+  "scope": "targeted implementation deletions, no chapter score",
+  "source_files": {
+    "actor_test.go": "15b72316f072f427a12bf9bc731f584df85fd164286847f76402e71f90375318",
+    "boundaries_test.go": "4a00766c2c9badf13aac4292268e9ebf5ec8227dde54fa71c6d72c6a95930610",
+    "cmd/chat.go": "6dfe8f2bc5f0a19d19c5af77b24eca391dd7b815cb079a8a2b10733ce13e77c6",
+    "cmd/chat_test.go": "d1c8e8c989074d81b91c467e7879000ad9a2d953095176030c01315f0df3d4d6",
+    "cmd/main.go": "b6277ae69d287f4dcc34dcd325b9dd06f0808cd6b572031a15a85eddea5ddbd8",
+    "cmd/progress.go": "c7a133efe374961f06dd085234f4bf998160cf4876262337584c6df5f0ee93b3",
+    "cmd/session.go": "2f573538460a635acfe74e2427f90ace9448aeaa6b7c10c73fa9a2a6479f4adf",
+    "cmd/session_test.go": "3143812c11cd55f179653b1b6084ff6f1b2f1ef17c9a5cb18d5efc37eb768c43",
+    "cmd/terminal.go": "b0230318e64f3a6f190be72326ce93a519367b4f328d29266dc2f1e413d24169",
+    "cmd/terminal_darwin.go": "d08027b3da0e6056fab15fe4cc979c7214470d024aab9156f87b99fe4476d3ea",
+    "cmd/terminal_linux.go": "7130f243fcaf6cbc347725052a45305a1faf4116a7986b1dd1015f5f29b0c8fe",
+    "cmd/terminal_other.go": "f10d70d18f22b0434a49048b42988ca617aad2d76ca77431ba4c00c35ed8a3f9",
+    "collection.go": "e1d8b4524482ca47ce7fc572e530332d8ee39eba2ef094f425bc777686cd5e5a",
+    "ensemble.go": "ec45c31df4001491aa102d7f3e17a3789f92b22cf4f2de7aebc9bfc5ea47be27",
+    "ensemble_test.go": "08d78a5eff56262f69ae2cd90c83bfb7a46e6111fc8a0c6cfb1b67cc0fdf9583",
+    "events_test.go": "80eb9fdd280bc882f4f8c0941342adf448192a988d7f0492b860aa452110767f",
+    "examples/consumer/go.mod": "11d2d0f4a0185183a834d8c2249a80a465919daa05a62960afb9954affc74042",
+    "examples/consumer/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "examples/consumer/main.go": "e19628ef423166058165d2919d81c972ee1ae0452930f35533fddb6e58b601ea",
+    "examples/jobs-consumer/go.mod": "547b09a39f937439a7dad55a6673da21d6886c196c9e06b1c4b9a6719d5645cd",
+    "examples/jobs-consumer/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "examples/jobs-consumer/live.go": "9cadb11a5c691753e13f2bf2d0828c9a15cbf7bf1793d488b9ec58ca79e06a49",
+    "examples/jobs-consumer/main.go": "43d3b792c53e4d66c7d5f444085e42f03a555e7e7900c2142d4ab41c4d5578cc",
+    "examples/stream-consumer/go.mod": "b4e6a756565d09baa3b8ea036ef7e68cd1fd4d2fbd9518b30d26aecae8d41f73",
+    "examples/stream-consumer/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "examples/stream-consumer/main.go": "b495b5e02668e656ca461a6a365cfa2b8611b7b344cd242ba3816ec5a56b1ed0",
+    "examples/tools-consumer/go.mod": "c042caac50933d3f41f7af61173cb85d04d524ea1b03d1b4c7da2f6ad80d0342",
+    "examples/tools-consumer/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "examples/tools-consumer/main.go": "b8e5ccfd2858804abc584e722ed9d88505178acc1f563c104c8b0f1c7969fb25",
+    "examples/workflow/go.mod": "d3314ad655ec5fef030b636dfb0b328122c7af56fdfb04f56561b0e8de4c31fc",
+    "examples/workflow/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "examples/workflow/main.go": "dafa55f53db932cd82cd2a34f24b41e2e808737f0684d19ea33a601b0a050d88",
+    "go.mod": "32af916f47ea7ce4e40b5f8b6329e731b8cb25cf416777f999d48abbb5fb1ca7",
+    "go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "gui/client.go": "c5a7e8a404b99f31b37d9f58ad5bdff769cb463698be5cbe36a79451837f51c2",
+    "gui/client_test.go": "7de4e3fe95500bcb8d08cfdabb66845a546a89882e5c569d52660bbdccffd68b",
+    "gui/go.mod": "9b8b3c1680d86c3cce7d5f3ec2c61a1fb7bcde052d8db981837bc8cfe02861a7",
+    "gui/go.sum": "360972b31eca22eaf085883cd3a4ae0ab338365187178add277273e082034cfe",
+    "internal/common/actor.go": "5494edae6f683983ab4fd19ddc010d710ea335314aca8e3fa49e3154ac176116",
+    "internal/common/json.go": "7fdab2a7accf8c924899c0d5e11a165b2a5d1e03d39560e470be3b95803627b0",
+    "internal/common/types.go": "dd19921e0b69a6e7a47d7e13b229a96c246276caa337efb53baf41fa090faf77",
+    "internal/eventlog/log.go": "93562c20ae1f5621ba0a33aa5aac2f46fa28435922b6b332304d43c22471354a",
+    "internal/eventlog/log_test.go": "26c09552ca27ad2fc528461b7a17c457b58a0cbf609812b9f29b5c04538d6fb3",
+    "internal/jobs/jobs.go": "a281d8fe4272639232d706c2bfc0e243bb3949744c35b33fa75ce6ae820d26b7",
+    "internal/jobs/jobs_test.go": "c4647fa82685e8f3c8ace0364c2d4f7c7968837a23583639e78eee9d92748425",
+    "internal/jobs/limits.go": "e0c84405eedcdfbbe0234a9cdb72a59f397020124182b71698bbf13afadb2ef4",
+    "internal/jobs/process.go": "26fa9cf731f393469d6ec8e7262f9ba91cf5fbb1728bafda29e1d78c72cc18c1",
+    "internal/jobs/report.go": "be2113261d27dd540eb9dfa751c99d7de6bd55010d61412998b0f130b60e3878",
+    "internal/llm/actor.go": "4d4b9c432f193026f7c4791b54977f6968153238fdaf4a0071dfefd2eef3c715",
+    "internal/llm/assembly_bench_test.go": "371a700d76a1f3add9a41d132c5b309f280bc253a979f4798643bebeef391d5a",
+    "internal/llm/engine.go": "4a3d6ca6a7ddf509a1e4fa31bdfa94b665a4db436c46e9c9e7bc2d2066a954e5",
+    "internal/llm/engine_test.go": "f1b886638f72f5814c9ba07fe88c5c628e8afa0ac1a83314aebfbd4a6cb65e59",
+    "internal/llm/events.go": "cb1385ac0f8ce9f439b903347342452cbb8265109505d7265e3113decf086fa2",
+    "internal/llm/operation.go": "1114613ce64ac9b0de7f6cbffadb06b326d11f3a825a3b8823950ced1d8a2ab1",
+    "internal/llm/operation_test.go": "474709d8b30777fbcccd91685d44e3b6d4d651e84a58ea5736869909f09f345f",
+    "internal/llm/parse.go": "e102b7e8e35b9d468e2fe9e45ecb9b5189f65a46f39c50df496f5969dadd79ed",
+    "internal/llm/refusal_test.go": "06056e5f7f09c6e883d7ff3ce72d482b1ff75b21cc62f817996b8221ea463718",
+    "internal/llm/render.go": "a16794d7e8df463db8111403289ea94507f2fccc4344d8cd12d44bbc4263a89f",
+    "internal/llm/sse.go": "d9d1e6962818571a1343995156f565f91d640c8a926be7a93ff56a97e3c10747",
+    "internal/llm/stream.go": "cecf648481be7af226bfc305c5e2192f01e6625d22e451cd23656b23a866a080",
+    "internal/llm/stream_test.go": "82a60d326bc8510b4be6cb2c5ce136c8572839b789c9213a51b2c7111899fcc5",
+    "internal/tools/command.go": "5694afff95ac331bff418460311cb0ff7d0379afb3d3add463b9fea31d9ae10a",
+    "internal/tools/files.go": "c7db80bd7b1bb0af299535c23dadc5bab6ef24b607606897f506ef192b969d3f",
+    "internal/tools/registry.go": "41ccba00940d0aa789817e85ff2939d26acbfdc1e15ab7db2148ebebace5d4fb",
+    "internal/tools/supervision.go": "6de71e322c0ad19d9ca776934f66fe0e2891e186f152f9b3facb1a4454686205",
+    "internal/tools/text.go": "46dceb3bcf9c0ecdfb608102c38b4f30ec71231bf0ddd695741d0a0af40d9aa7",
+    "internal/tools/tools_test.go": "7b6c50ff1521ab0dfbf9627ad8a492c545f070ae5ff3f28447b0d461996d2fca",
+    "jobs_test.go": "b3bc6cce12315bd8831d07bda7672224ba0b10ec19108cc6ec548417f87d7553",
+    "redaction_test.go": "accbda8a2567629aa5ded026831d85dee4dea449a39d7eb3fbd09c7dca83d732",
+    "refusal_test.go": "94175c1d0f365835d94d40863b71055e6f270758bb9eae76a5031d87598382c9",
+    "streaming_test.go": "e896996307b6dbb672d2ba3b6a53a783cef82a9ce44d30815e87f6c28a99f8fb",
+    "turn_test.go": "6c19e8d3fb6c767ffe66f43547e4dfd723f3dd25ed7a4a0797353a4f320429d2"
+  },
+  "checker_files": {
+    "audit_ch06_mutations.py": "108e80ec0b43480371db4cfa879b861c09479574def0ebaa7d8ecc9b02d0ca21",
+    "accept_ch06.py": "62c13e3400f11e3e1c38ac61009ac34ddfa675e58b16a66de914b66a72505fd7",
+    "ch06_public_test.go.txt": "15de16dfcd8fa58f29ee0c48613ceaf6db98f5841d40456b68e6fbbf83b18c9a",
+    "ch06_internal_test.go.txt": "460ae8573efa71aac4f51599d65dfc1f0175c6a50ddf323073cf7f66b353670d"
+  },
+  "passed": false,
+  "mutations": [
+    {
+      "id": "drop-refusal-replay",
+      "passed": true,
+      "intended_refusal": "recognized refusal missing from continuation",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6TypedCallsAndOpaque$/openai",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:25.492843-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:25.501984-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\"}\n{\"Time\":\"2026-10-07T20:41:25.502021-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Output\":\"=== RUN   TestC6TypedCallsAndOpaque\\n\"}\n{\"Time\":\"2026-10-07T20:41:25.502034-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/openai\"}\n{\"Time\":\"2026-10-07T20:41:25.502038-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/openai\",\"Output\":\"=== RUN   TestC6TypedCallsAndOpaque/openai\\n\"}\n{\"Time\":\"2026-10-07T20:41:25.508648-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/openai\",\"Output\":\"--- PASS: TestC6TypedCallsAndOpaque/openai (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:25.508658-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/openai\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:41:25.508852-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Output\":\"--- PASS: TestC6TypedCallsAndOpaque (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:25.508856-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:41:25.508857-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:25.509073-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"ok  \\texample.com/ensemble\\t0.013s\\n\"}\n{\"Time\":\"2026-10-07T20:41:25.509092-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.016}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6TypedCallsAndOpaque$/openai",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:25.921302-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:25.927187-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\"}\n{\"Time\":\"2026-10-07T20:41:25.927224-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Output\":\"=== RUN   TestC6TypedCallsAndOpaque\\n\"}\n{\"Time\":\"2026-10-07T20:41:25.927242-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/openai\"}\n{\"Time\":\"2026-10-07T20:41:25.927249-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/openai\",\"Output\":\"=== RUN   TestC6TypedCallsAndOpaque/openai\\n\"}\n{\"Time\":\"2026-10-07T20:41:25.931087-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/openai\",\"Output\":\"    independent_ch06_public_test.go:573: recognized refusal missing from continuation\\n\"}\n{\"Time\":\"2026-10-07T20:41:25.931622-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/openai\",\"Output\":\"--- FAIL: TestC6TypedCallsAndOpaque/openai (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:25.93163-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/openai\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:25.931638-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Output\":\"--- FAIL: TestC6TypedCallsAndOpaque (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:25.931641-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:25.931646-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:25.932007-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\texample.com/ensemble\\t0.011s\\n\"}\n{\"Time\":\"2026-10-07T20:41:25.932025-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.011}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "drop-signed-parts",
+      "passed": false,
+      "intended_refusal": "signed part retention changed",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6TypedCallsAndOpaque$/gemini",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:26.126097-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:26.13173-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\"}\n{\"Time\":\"2026-10-07T20:41:26.131777-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Output\":\"=== RUN   TestC6TypedCallsAndOpaque\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.131786-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/gemini\"}\n{\"Time\":\"2026-10-07T20:41:26.131788-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/gemini\",\"Output\":\"=== RUN   TestC6TypedCallsAndOpaque/gemini\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.138771-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/gemini\",\"Output\":\"--- PASS: TestC6TypedCallsAndOpaque/gemini (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.138785-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/gemini\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:41:26.138793-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Output\":\"--- PASS: TestC6TypedCallsAndOpaque (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.138795-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:41:26.138799-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.139218-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"ok  \\texample.com/ensemble\\t0.013s\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.139229-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.013}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6TypedCallsAndOpaque$/gemini",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:26.541371-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:26.547242-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\"}\n{\"Time\":\"2026-10-07T20:41:26.54728-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Output\":\"=== RUN   TestC6TypedCallsAndOpaque\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.5473-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/gemini\"}\n{\"Time\":\"2026-10-07T20:41:26.547303-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/gemini\",\"Output\":\"=== RUN   TestC6TypedCallsAndOpaque/gemini\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.549255-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/gemini\",\"Output\":\"    independent_ch06_public_test.go:565: typed operation ended before continuation: {StopReason: AgentID:agent-1 RequestID:r1 Outcome:error Text: Parts:[] PendingHints:0 Error:0x140002980a0 Usage:{Input:0 CacheWrite:0 CacheRead:0 Output:0}} error=\\u0026{Code:error Message:malformed model response or usage}\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.549592-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/gemini\",\"Output\":\"--- FAIL: TestC6TypedCallsAndOpaque/gemini (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.549601-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/gemini\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:26.54961-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Output\":\"--- FAIL: TestC6TypedCallsAndOpaque (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.549611-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:26.549618-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.549971-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\texample.com/ensemble\\t0.008s\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.549979-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.009}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "suppress-thinking-display",
+      "passed": true,
+      "intended_refusal": "thinking fragments missing or entered wrong part",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6TypedCallsAndOpaque$/anthropic",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:26.75911-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:26.765099-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\"}\n{\"Time\":\"2026-10-07T20:41:26.765135-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Output\":\"=== RUN   TestC6TypedCallsAndOpaque\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.765146-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/anthropic\"}\n{\"Time\":\"2026-10-07T20:41:26.76515-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/anthropic\",\"Output\":\"=== RUN   TestC6TypedCallsAndOpaque/anthropic\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.771892-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/anthropic\",\"Output\":\"--- PASS: TestC6TypedCallsAndOpaque/anthropic (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.771898-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/anthropic\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:41:26.771913-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Output\":\"--- PASS: TestC6TypedCallsAndOpaque (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.771916-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:41:26.771924-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.772352-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"ok  \\texample.com/ensemble\\t0.013s\\n\"}\n{\"Time\":\"2026-10-07T20:41:26.772368-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.013}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6TypedCallsAndOpaque$/anthropic",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:27.199098-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:27.204915-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\"}\n{\"Time\":\"2026-10-07T20:41:27.204956-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Output\":\"=== RUN   TestC6TypedCallsAndOpaque\\n\"}\n{\"Time\":\"2026-10-07T20:41:27.204974-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/anthropic\"}\n{\"Time\":\"2026-10-07T20:41:27.204978-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/anthropic\",\"Output\":\"=== RUN   TestC6TypedCallsAndOpaque/anthropic\\n\"}\n{\"Time\":\"2026-10-07T20:41:27.20845-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/anthropic\",\"Output\":\"    independent_ch06_public_test.go:696: thinking fragments missing or entered wrong part\\n\"}\n{\"Time\":\"2026-10-07T20:41:27.208911-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/anthropic\",\"Output\":\"--- FAIL: TestC6TypedCallsAndOpaque/anthropic (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:27.208914-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque/anthropic\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:27.20893-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Output\":\"--- FAIL: TestC6TypedCallsAndOpaque (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:27.208932-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6TypedCallsAndOpaque\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:27.208953-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:27.209339-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\texample.com/ensemble\\t0.010s\\n\"}\n{\"Time\":\"2026-10-07T20:41:27.209347-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.01}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "disable-operation-deadline",
+      "passed": true,
+      "intended_refusal": "configured HTTP timeout did not release",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6HTTPTimeoutIncludesCapacityWait$",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:27.572356-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:27.578023-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6HTTPTimeoutIncludesCapacityWait\"}\n{\"Time\":\"2026-10-07T20:41:27.578051-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6HTTPTimeoutIncludesCapacityWait\",\"Output\":\"=== RUN   TestC6HTTPTimeoutIncludesCapacityWait\\n\"}\n{\"Time\":\"2026-10-07T20:41:28.580164-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6HTTPTimeoutIncludesCapacityWait\",\"Output\":\"--- PASS: TestC6HTTPTimeoutIncludesCapacityWait (1.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:28.580298-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6HTTPTimeoutIncludesCapacityWait\",\"Elapsed\":1}\n{\"Time\":\"2026-10-07T20:41:28.580322-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:28.583926-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t1.011s\\n\"}\n{\"Time\":\"2026-10-07T20:41:28.583962-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":1.012}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6HTTPTimeoutIncludesCapacityWait$",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:28.958541-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:28.964179-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6HTTPTimeoutIncludesCapacityWait\"}\n{\"Time\":\"2026-10-07T20:41:28.96422-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6HTTPTimeoutIncludesCapacityWait\",\"Output\":\"=== RUN   TestC6HTTPTimeoutIncludesCapacityWait\\n\"}\n{\"Time\":\"2026-10-07T20:41:30.489574-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6HTTPTimeoutIncludesCapacityWait\",\"Output\":\"    independent_ch06_internal_test.go:411: configured HTTP timeout did not release the full operation transfer wait\\n\"}\n{\"Time\":\"2026-10-07T20:41:30.489778-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6HTTPTimeoutIncludesCapacityWait\",\"Output\":\"--- FAIL: TestC6HTTPTimeoutIncludesCapacityWait (1.53s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:30.489836-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6HTTPTimeoutIncludesCapacityWait\",\"Elapsed\":1.53}\n{\"Time\":\"2026-10-07T20:41:30.489857-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:30.492326-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\texample.com/ensemble/internal/llm\\t1.534s\\n\"}\n{\"Time\":\"2026-10-07T20:41:30.492362-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":1.534}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "sever-operation-parent",
+      "passed": true,
+      "intended_refusal": "operation diagnostic owner chain broken",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6ExactFraming$",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:30.726567-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:30.732207-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\"}\n{\"Time\":\"2026-10-07T20:41:30.732247-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"=== RUN   TestC6ExactFraming\\n\"}\n{\"Time\":\"2026-10-07T20:41:30.801621-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"--- PASS: TestC6ExactFraming (0.07s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:30.801654-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Elapsed\":0.07}\n{\"Time\":\"2026-10-07T20:41:30.801661-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:30.80229-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t0.076s\\n\"}\n{\"Time\":\"2026-10-07T20:41:30.802301-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.076}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6ExactFraming$",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:31.162723-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:31.170047-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\"}\n{\"Time\":\"2026-10-07T20:41:31.170089-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"=== RUN   TestC6ExactFraming\\n\"}\n{\"Time\":\"2026-10-07T20:41:31.170112-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"    independent_ch06_internal_test.go:69: operation diagnostic owner chain broken\\n\"}\n{\"Time\":\"2026-10-07T20:41:31.170212-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"--- FAIL: TestC6ExactFraming (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:31.170215-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:31.170225-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:31.17063-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\texample.com/ensemble/internal/llm\\t0.008s\\n\"}\n{\"Time\":\"2026-10-07T20:41:31.170641-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.008}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "hide-fragments",
+      "passed": true,
+      "intended_refusal": "public observation barrier timed out",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6PublicEarlyIdentity$/openai",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:31.3928-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:31.400306-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\"}\n{\"Time\":\"2026-10-07T20:41:31.400363-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\",\"Output\":\"=== RUN   TestC6PublicEarlyIdentity\\n\"}\n{\"Time\":\"2026-10-07T20:41:31.400387-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\"}\n{\"Time\":\"2026-10-07T20:41:31.400392-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Output\":\"=== RUN   TestC6PublicEarlyIdentity/openai\\n\"}\n{\"Time\":\"2026-10-07T20:41:31.40629-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Output\":\"--- PASS: TestC6PublicEarlyIdentity/openai (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:31.406323-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:41:31.406339-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\",\"Output\":\"--- PASS: TestC6PublicEarlyIdentity (0.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:31.406342-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\",\"Elapsed\":0.01}\n{\"Time\":\"2026-10-07T20:41:31.406345-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:31.406923-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"ok  \\texample.com/ensemble\\t0.014s\\n\"}\n{\"Time\":\"2026-10-07T20:41:31.406954-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.014}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6PublicEarlyIdentity$/openai",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:31.819481-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:31.825646-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\"}\n{\"Time\":\"2026-10-07T20:41:31.825681-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\",\"Output\":\"=== RUN   TestC6PublicEarlyIdentity\\n\"}\n{\"Time\":\"2026-10-07T20:41:31.825695-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\"}\n{\"Time\":\"2026-10-07T20:41:31.825696-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Output\":\"=== RUN   TestC6PublicEarlyIdentity/openai\\n\"}\n{\"Time\":\"2026-10-07T20:41:36.828876-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Output\":\"    independent_ch06_public_test.go:209: public observation barrier timed out\\n\"}\n{\"Time\":\"2026-10-07T20:41:36.830847-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Output\":\"--- FAIL: TestC6PublicEarlyIdentity/openai (5.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:36.830882-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Elapsed\":5.01}\n{\"Time\":\"2026-10-07T20:41:36.830905-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\",\"Output\":\"--- FAIL: TestC6PublicEarlyIdentity (5.01s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:36.830909-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\",\"Elapsed\":5.01}\n{\"Time\":\"2026-10-07T20:41:36.830912-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:36.83243-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\texample.com/ensemble\\t5.013s\\n\"}\n{\"Time\":\"2026-10-07T20:41:36.832449-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Elapsed\":5.013}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "wrong-final-identity",
+      "passed": true,
+      "intended_refusal": "part mapping differs",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6PublicEarlyIdentity$/openai",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:37.080135-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:37.086465-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\"}\n{\"Time\":\"2026-10-07T20:41:37.086512-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\",\"Output\":\"=== RUN   TestC6PublicEarlyIdentity\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.086522-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\"}\n{\"Time\":\"2026-10-07T20:41:37.086525-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Output\":\"=== RUN   TestC6PublicEarlyIdentity/openai\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.09005-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Output\":\"--- PASS: TestC6PublicEarlyIdentity/openai (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.090068-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:37.090077-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\",\"Output\":\"--- PASS: TestC6PublicEarlyIdentity (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.090079-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:37.09008-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.090541-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"ok  \\texample.com/ensemble\\t0.010s\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.090559-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.01}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6PublicEarlyIdentity$/openai",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:37.501925-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:37.507892-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\"}\n{\"Time\":\"2026-10-07T20:41:37.507915-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\",\"Output\":\"=== RUN   TestC6PublicEarlyIdentity\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.507931-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\"}\n{\"Time\":\"2026-10-07T20:41:37.507933-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Output\":\"=== RUN   TestC6PublicEarlyIdentity/openai\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.510011-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Output\":\"    independent_ch06_public_test.go:265: part mapping differs\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.510469-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Output\":\"--- FAIL: TestC6PublicEarlyIdentity/openai (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.510478-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity/openai\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:37.510486-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\",\"Output\":\"--- FAIL: TestC6PublicEarlyIdentity (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.510488-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicEarlyIdentity\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:37.510493-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.510873-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\texample.com/ensemble\\t0.009s\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.510887-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.009}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "frame-overflow",
+      "passed": true,
+      "intended_refusal": "one-byte physical overflow accepted",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6ExactFraming$",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:37.708753-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:37.714906-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\"}\n{\"Time\":\"2026-10-07T20:41:37.714943-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"=== RUN   TestC6ExactFraming\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.785477-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"--- PASS: TestC6ExactFraming (0.07s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.785506-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Elapsed\":0.07}\n{\"Time\":\"2026-10-07T20:41:37.785514-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.786056-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t0.077s\\n\"}\n{\"Time\":\"2026-10-07T20:41:37.786065-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.077}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6ExactFraming$",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:38.131539-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:38.137643-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\"}\n{\"Time\":\"2026-10-07T20:41:38.137688-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"=== RUN   TestC6ExactFraming\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.161589-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"    independent_ch06_internal_test.go:102: one-byte physical overflow accepted\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.161692-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"--- FAIL: TestC6ExactFraming (0.02s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.1617-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Elapsed\":0.02}\n{\"Time\":\"2026-10-07T20:41:38.161719-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.162386-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\texample.com/ensemble/internal/llm\\t0.031s\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.162393-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.031}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "dispatch-unfinished-frame",
+      "passed": true,
+      "intended_refusal": "invalid/unfinished SSE accepted",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6ExactFraming$",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:38.362351-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:38.368066-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\"}\n{\"Time\":\"2026-10-07T20:41:38.368114-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"=== RUN   TestC6ExactFraming\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.435753-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"--- PASS: TestC6ExactFraming (0.07s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.435776-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Elapsed\":0.07}\n{\"Time\":\"2026-10-07T20:41:38.435798-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.43632-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t0.074s\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.436335-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.074}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6ExactFraming$",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:38.776962-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:38.782625-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\"}\n{\"Time\":\"2026-10-07T20:41:38.782654-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"=== RUN   TestC6ExactFraming\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.851657-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"    independent_ch06_internal_test.go:107: invalid/unfinished SSE accepted\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.851767-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Output\":\"--- FAIL: TestC6ExactFraming (0.07s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.851776-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6ExactFraming\",\"Elapsed\":0.07}\n{\"Time\":\"2026-10-07T20:41:38.851785-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.852432-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\texample.com/ensemble/internal/llm\\t0.075s\\n\"}\n{\"Time\":\"2026-10-07T20:41:38.852441-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.075}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "unbounded-pending-growth",
+      "passed": true,
+      "intended_refusal": "pending store exceeded one MiB",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6CapacityCancellationAndUTF8$/cancel",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:39.059919-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:39.065688-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\"}\n{\"Time\":\"2026-10-07T20:41:39.065711-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\",\"Output\":\"=== RUN   TestC6CapacityCancellationAndUTF8\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.065719-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\"}\n{\"Time\":\"2026-10-07T20:41:39.06572-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\",\"Output\":\"=== RUN   TestC6CapacityCancellationAndUTF8/cancel\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.097633-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\",\"Output\":\"--- PASS: TestC6CapacityCancellationAndUTF8/cancel (0.03s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.097653-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\",\"Elapsed\":0.03}\n{\"Time\":\"2026-10-07T20:41:39.100049-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\",\"Output\":\"--- PASS: TestC6CapacityCancellationAndUTF8 (0.03s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.100056-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\",\"Elapsed\":0.03}\n{\"Time\":\"2026-10-07T20:41:39.100079-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.100554-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t0.040s\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.100561-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.041}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6CapacityCancellationAndUTF8$/cancel",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:39.426933-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:39.432551-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\"}\n{\"Time\":\"2026-10-07T20:41:39.43258-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\",\"Output\":\"=== RUN   TestC6CapacityCancellationAndUTF8\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.432591-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\"}\n{\"Time\":\"2026-10-07T20:41:39.432592-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\",\"Output\":\"=== RUN   TestC6CapacityCancellationAndUTF8/cancel\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.433289-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\",\"Output\":\"    independent_ch06_internal_test.go:151: pending store exceeded one MiB\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.433434-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\",\"Output\":\"--- FAIL: TestC6CapacityCancellationAndUTF8/cancel (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.433441-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:39.435858-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\",\"Output\":\"--- FAIL: TestC6CapacityCancellationAndUTF8 (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.435861-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:39.435906-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.436366-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\texample.com/ensemble/internal/llm\\t0.009s\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.436378-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.009}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "unfair-drain",
+      "passed": true,
+      "intended_refusal": "actor drain exceeded 64 KiB fairness budget",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6CapacityCancellationAndUTF8$",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:39.635103-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:39.640768-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\"}\n{\"Time\":\"2026-10-07T20:41:39.640799-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\",\"Output\":\"=== RUN   TestC6CapacityCancellationAndUTF8\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.640804-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\"}\n{\"Time\":\"2026-10-07T20:41:39.640805-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\",\"Output\":\"=== RUN   TestC6CapacityCancellationAndUTF8/cancel\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.672678-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\",\"Output\":\"--- PASS: TestC6CapacityCancellationAndUTF8/cancel (0.03s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.672699-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\",\"Elapsed\":0.03}\n{\"Time\":\"2026-10-07T20:41:39.672707-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/discard\"}\n{\"Time\":\"2026-10-07T20:41:39.672709-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/discard\",\"Output\":\"=== RUN   TestC6CapacityCancellationAndUTF8/discard\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.704469-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/discard\",\"Output\":\"--- PASS: TestC6CapacityCancellationAndUTF8/discard (0.03s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.704486-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/discard\",\"Elapsed\":0.03}\n{\"Time\":\"2026-10-07T20:41:39.70739-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\",\"Output\":\"--- PASS: TestC6CapacityCancellationAndUTF8 (0.07s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.707394-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\",\"Elapsed\":0.07}\n{\"Time\":\"2026-10-07T20:41:39.707418-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.707928-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t0.073s\\n\"}\n{\"Time\":\"2026-10-07T20:41:39.707939-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.073}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6CapacityCancellationAndUTF8$",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:40.043555-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:40.049143-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\"}\n{\"Time\":\"2026-10-07T20:41:40.049177-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\",\"Output\":\"=== RUN   TestC6CapacityCancellationAndUTF8\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.049185-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\"}\n{\"Time\":\"2026-10-07T20:41:40.049186-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\",\"Output\":\"=== RUN   TestC6CapacityCancellationAndUTF8/cancel\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.081013-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\",\"Output\":\"--- PASS: TestC6CapacityCancellationAndUTF8/cancel (0.03s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.081028-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/cancel\",\"Elapsed\":0.03}\n{\"Time\":\"2026-10-07T20:41:40.081039-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/discard\"}\n{\"Time\":\"2026-10-07T20:41:40.081049-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/discard\",\"Output\":\"=== RUN   TestC6CapacityCancellationAndUTF8/discard\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.112857-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/discard\",\"Output\":\"--- PASS: TestC6CapacityCancellationAndUTF8/discard (0.03s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.11286-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8/discard\",\"Elapsed\":0.03}\n{\"Time\":\"2026-10-07T20:41:40.114243-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\",\"Output\":\"    independent_ch06_internal_test.go:190: actor drain exceeded 64 KiB fairness budget\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.11426-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\",\"Output\":\"--- FAIL: TestC6CapacityCancellationAndUTF8 (0.07s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.114264-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CapacityCancellationAndUTF8\",\"Elapsed\":0.07}\n{\"Time\":\"2026-10-07T20:41:40.11429-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.11479-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\texample.com/ensemble/internal/llm\\t0.071s\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.114796-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.071}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "completion-before-drain",
+      "passed": true,
+      "intended_refusal": "completed response overtook pending fragments",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6CompletionDrainWait$",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:40.29864-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:40.304362-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait\"}\n{\"Time\":\"2026-10-07T20:41:40.304409-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait\",\"Output\":\"=== RUN   TestC6CompletionDrainWait\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.30442-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/drain\"}\n{\"Time\":\"2026-10-07T20:41:40.304423-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/drain\",\"Output\":\"=== RUN   TestC6CompletionDrainWait/drain\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.335613-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/drain\",\"Output\":\"--- PASS: TestC6CompletionDrainWait/drain (0.03s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.335642-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/drain\",\"Elapsed\":0.03}\n{\"Time\":\"2026-10-07T20:41:40.33565-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/cancel\"}\n{\"Time\":\"2026-10-07T20:41:40.335654-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/cancel\",\"Output\":\"=== RUN   TestC6CompletionDrainWait/cancel\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.366037-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/cancel\",\"Output\":\"--- PASS: TestC6CompletionDrainWait/cancel (0.03s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.366043-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/cancel\",\"Elapsed\":0.03}\n{\"Time\":\"2026-10-07T20:41:40.366049-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait\",\"Output\":\"--- PASS: TestC6CompletionDrainWait (0.06s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.366055-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait\",\"Elapsed\":0.06}\n{\"Time\":\"2026-10-07T20:41:40.366069-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.366452-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t0.068s\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.366461-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.068}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6CompletionDrainWait$",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:40.704114-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:40.709836-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait\"}\n{\"Time\":\"2026-10-07T20:41:40.709856-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait\",\"Output\":\"=== RUN   TestC6CompletionDrainWait\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.709867-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/drain\"}\n{\"Time\":\"2026-10-07T20:41:40.70987-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/drain\",\"Output\":\"=== RUN   TestC6CompletionDrainWait/drain\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.709935-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/drain\",\"Output\":\"    independent_ch06_internal_test.go:348: completed response overtook pending fragments\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.71008-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/drain\",\"Output\":\"--- FAIL: TestC6CompletionDrainWait/drain (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.710085-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/drain\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:40.710087-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/cancel\"}\n{\"Time\":\"2026-10-07T20:41:40.710088-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/cancel\",\"Output\":\"=== RUN   TestC6CompletionDrainWait/cancel\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.710093-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/cancel\",\"Output\":\"    independent_ch06_internal_test.go:348: completed response overtook pending fragments\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.710095-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/cancel\",\"Output\":\"--- FAIL: TestC6CompletionDrainWait/cancel (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.710096-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait/cancel\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:40.710098-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait\",\"Output\":\"--- FAIL: TestC6CompletionDrainWait (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.7101-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6CompletionDrainWait\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:40.710122-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.710469-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\texample.com/ensemble/internal/llm\\t0.006s\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.710477-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.006}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "ignore-recorded-delivery",
+      "passed": true,
+      "intended_refusal": "reconstruction ignored recorded delivery",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6RecordedDeliveryReplay$/openaifalse",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:40.922069-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:40.928081-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay\"}\n{\"Time\":\"2026-10-07T20:41:40.92811-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay\",\"Output\":\"=== RUN   TestC6RecordedDeliveryReplay\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.928123-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay/openaifalse\"}\n{\"Time\":\"2026-10-07T20:41:40.928125-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay/openaifalse\",\"Output\":\"=== RUN   TestC6RecordedDeliveryReplay/openaifalse\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.930248-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay/openaifalse\",\"Output\":\"--- PASS: TestC6RecordedDeliveryReplay/openaifalse (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.930256-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay/openaifalse\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:40.930285-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay\",\"Output\":\"--- PASS: TestC6RecordedDeliveryReplay (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.93029-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:40.930292-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.930629-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"ok  \\texample.com/ensemble\\t0.008s\\n\"}\n{\"Time\":\"2026-10-07T20:41:40.930634-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.009}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6RecordedDeliveryReplay$/openaifalse",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:41.307888-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:41.313702-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay\"}\n{\"Time\":\"2026-10-07T20:41:41.313749-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay\",\"Output\":\"=== RUN   TestC6RecordedDeliveryReplay\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.313758-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay/openaifalse\"}\n{\"Time\":\"2026-10-07T20:41:41.31376-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay/openaifalse\",\"Output\":\"=== RUN   TestC6RecordedDeliveryReplay/openaifalse\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.315462-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay/openaifalse\",\"Output\":\"    independent_ch06_public_test.go:440: reconstruction ignored recorded delivery: {\\\"max_completion_tokens\\\":512,\\\"messages\\\":[{\\\"content\\\":\\\"Answer helpfully and concisely. Retain the conversation's details.\\\",\\\"role\\\":\\\"system\\\"},{\\\"content\\\":\\\"exercise fixture\\\",\\\"role\\\":\\\"user\\\"}],\\\"model\\\":\\\"fixture-ch06-independent\\\"} != {\\\"max_completion_tokens\\\":512,\\\"messages\\\":[{\\\"content\\\":\\\"Answer helpfully and concisely. Retain the conversation's details.\\\",\\\"role\\\":\\\"system\\\"},{\\\"content\\\":\\\"exercise fixture\\\",\\\"role\\\":\\\"user\\\"}],\\\"model\\\":\\\"fixture-ch06-independent\\\",\\\"stream\\\":true,\\\"stream_options\\\":{\\\"include_usage\\\":true}}\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.315764-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay/openaifalse\",\"Output\":\"--- FAIL: TestC6RecordedDeliveryReplay/openaifalse (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.315769-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay/openaifalse\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:41.315787-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay\",\"Output\":\"--- FAIL: TestC6RecordedDeliveryReplay (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.315792-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6RecordedDeliveryReplay\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:41.315802-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.316133-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\texample.com/ensemble\\t0.008s\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.316152-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.008}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "erase-overflow-reason",
+      "passed": true,
+      "intended_refusal": "blocked observer did not report overflow",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6PublicObserverOverflow$",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:41.53002-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:41.535693-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicObserverOverflow\"}\n{\"Time\":\"2026-10-07T20:41:41.53573-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicObserverOverflow\",\"Output\":\"=== RUN   TestC6PublicObserverOverflow\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.55349-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicObserverOverflow\",\"Output\":\"--- PASS: TestC6PublicObserverOverflow (0.02s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.553504-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicObserverOverflow\",\"Elapsed\":0.02}\n{\"Time\":\"2026-10-07T20:41:41.55351-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.55386-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"ok  \\texample.com/ensemble\\t0.024s\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.553867-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.024}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6PublicObserverOverflow$",
+          "-count=1",
+          "-timeout=30s",
+          "."
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:41.937816-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble\"}\n{\"Time\":\"2026-10-07T20:41:41.943665-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicObserverOverflow\"}\n{\"Time\":\"2026-10-07T20:41:41.943711-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicObserverOverflow\",\"Output\":\"=== RUN   TestC6PublicObserverOverflow\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.959982-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicObserverOverflow\",\"Output\":\"    independent_ch06_public_test.go:388: blocked observer did not report overflow\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.960361-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicObserverOverflow\",\"Output\":\"--- FAIL: TestC6PublicObserverOverflow (0.02s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.960372-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Test\":\"TestC6PublicObserverOverflow\",\"Elapsed\":0.02}\n{\"Time\":\"2026-10-07T20:41:41.960385-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.960803-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble\",\"Output\":\"FAIL\\texample.com/ensemble\\t0.023s\\n\"}\n{\"Time\":\"2026-10-07T20:41:41.960809-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble\",\"Elapsed\":0.023}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "assembled-overflow",
+      "passed": true,
+      "intended_refusal": "assembled limit overflow accepted",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6AssembledBound$/openai",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:42.161513-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:42.167041-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound\"}\n{\"Time\":\"2026-10-07T20:41:42.167087-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound\",\"Output\":\"=== RUN   TestC6AssembledBound\\n\"}\n{\"Time\":\"2026-10-07T20:41:42.167096-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound/openai\"}\n{\"Time\":\"2026-10-07T20:41:42.167097-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound/openai\",\"Output\":\"=== RUN   TestC6AssembledBound/openai\\n\"}\n{\"Time\":\"2026-10-07T20:41:43.132069-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound/openai\",\"Output\":\"--- PASS: TestC6AssembledBound/openai (0.96s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:43.132087-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound/openai\",\"Elapsed\":0.96}\n{\"Time\":\"2026-10-07T20:41:43.132107-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound\",\"Output\":\"--- PASS: TestC6AssembledBound (0.97s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:43.132114-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound\",\"Elapsed\":0.97}\n{\"Time\":\"2026-10-07T20:41:43.132115-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:43.134407-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t0.973s\\n\"}\n{\"Time\":\"2026-10-07T20:41:43.134421-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.973}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6AssembledBound$/openai",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:43.468147-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:43.474107-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound\"}\n{\"Time\":\"2026-10-07T20:41:43.474151-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound\",\"Output\":\"=== RUN   TestC6AssembledBound\\n\"}\n{\"Time\":\"2026-10-07T20:41:43.474162-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound/openai\"}\n{\"Time\":\"2026-10-07T20:41:43.474163-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound/openai\",\"Output\":\"=== RUN   TestC6AssembledBound/openai\\n\"}\n{\"Time\":\"2026-10-07T20:41:44.693205-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound/openai\",\"Output\":\"    independent_ch06_internal_test.go:281: assembled limit overflow accepted\\n\"}\n{\"Time\":\"2026-10-07T20:41:44.693323-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound/openai\",\"Output\":\"--- FAIL: TestC6AssembledBound/openai (1.22s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:44.693373-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound/openai\",\"Elapsed\":1.22}\n{\"Time\":\"2026-10-07T20:41:44.693397-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound\",\"Output\":\"--- FAIL: TestC6AssembledBound (1.22s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:44.693408-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6AssembledBound\",\"Elapsed\":1.22}\n{\"Time\":\"2026-10-07T20:41:44.693411-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:44.695509-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\texample.com/ensemble/internal/llm\\t1.227s\\n\"}\n{\"Time\":\"2026-10-07T20:41:44.695521-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":1.227}\n",
+        "stderr": ""
+      }
+    },
+    {
+      "id": "accept-incomplete-response",
+      "passed": true,
+      "intended_refusal": "missing API terminal accepted",
+      "positive": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6RequiredTerminal$/openai",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 0,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:44.910959-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:44.917374-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal\"}\n{\"Time\":\"2026-10-07T20:41:44.917418-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal\",\"Output\":\"=== RUN   TestC6RequiredTerminal\\n\"}\n{\"Time\":\"2026-10-07T20:41:44.917432-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal/openai\"}\n{\"Time\":\"2026-10-07T20:41:44.917434-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal/openai\",\"Output\":\"=== RUN   TestC6RequiredTerminal/openai\\n\"}\n{\"Time\":\"2026-10-07T20:41:44.917674-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal/openai\",\"Output\":\"--- PASS: TestC6RequiredTerminal/openai (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:44.917677-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal/openai\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:44.917688-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal\",\"Output\":\"--- PASS: TestC6RequiredTerminal (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:44.91769-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:44.917695-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"PASS\\n\"}\n{\"Time\":\"2026-10-07T20:41:44.918056-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"ok  \\texample.com/ensemble/internal/llm\\t0.007s\\n\"}\n{\"Time\":\"2026-10-07T20:41:44.918068-07:00\",\"Action\":\"pass\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.007}\n",
+        "stderr": ""
+      },
+      "negative": {
+        "args": [
+          "go",
+          "test",
+          "-json",
+          "-run",
+          "^TestC6RequiredTerminal$/openai",
+          "-count=1",
+          "-timeout=30s",
+          "./internal/llm"
+        ],
+        "exit": 1,
+        "stdout": "{\"Time\":\"2026-10-07T20:41:45.266142-07:00\",\"Action\":\"start\",\"Package\":\"example.com/ensemble/internal/llm\"}\n{\"Time\":\"2026-10-07T20:41:45.271772-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal\"}\n{\"Time\":\"2026-10-07T20:41:45.271811-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal\",\"Output\":\"=== RUN   TestC6RequiredTerminal\\n\"}\n{\"Time\":\"2026-10-07T20:41:45.27182-07:00\",\"Action\":\"run\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal/openai\"}\n{\"Time\":\"2026-10-07T20:41:45.271821-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal/openai\",\"Output\":\"=== RUN   TestC6RequiredTerminal/openai\\n\"}\n{\"Time\":\"2026-10-07T20:41:45.272047-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal/openai\",\"Output\":\"    independent_ch06_internal_test.go:429: missing API terminal accepted\\n\"}\n{\"Time\":\"2026-10-07T20:41:45.272139-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal/openai\",\"Output\":\"--- FAIL: TestC6RequiredTerminal/openai (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:45.272142-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal/openai\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:45.272149-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal\",\"Output\":\"--- FAIL: TestC6RequiredTerminal (0.00s)\\n\"}\n{\"Time\":\"2026-10-07T20:41:45.27215-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Test\":\"TestC6RequiredTerminal\",\"Elapsed\":0}\n{\"Time\":\"2026-10-07T20:41:45.272155-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\n\"}\n{\"Time\":\"2026-10-07T20:41:45.27248-07:00\",\"Action\":\"output\",\"Package\":\"example.com/ensemble/internal/llm\",\"Output\":\"FAIL\\texample.com/ensemble/internal/llm\\t0.006s\\n\"}\n{\"Time\":\"2026-10-07T20:41:45.272486-07:00\",\"Action\":\"fail\",\"Package\":\"example.com/ensemble/internal/llm\",\"Elapsed\":0.006}\n",
+        "stderr": ""
+      }
+    }
+  ]
+}

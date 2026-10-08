@@ -220,3 +220,19 @@ separate signature deletion initially failed earlier shared validation; it was
 replaced with valid but changed signature content to isolate retention. Neither
 setup/earlier failure is credited as proving the later assertion. These are
 reviewer fixture corrections, not student runtime defects.
+
+### Corrected-source deterministic acceptance
+
+The full command passes on immutable `75bd14d`: 23 command groups, including
+14 independent groups, 6 client barriers, 61 wire cases, retained Chapter 5
+100/100, 16 targeted implementation mutations, the coordinator's 2 CLI recovery
+mutations, allocation observation and all 7 module vet/tests. The
+[bound result](checkpoint-evidence/ch06-review-final-gate.json) records 73
+Go/module files and 3 testdata files. Seven checker-harness tests pass too.
+The independent opaque exact/one-over control passes on that same revision.
+
+This completes this deterministic milestone, not final chapter acceptance.
+The consolidated code review resolves R1–R4 and records the measured improvement;
+revised live evidence and final proofreading remain separate. Mutation counts
+name the particular protected behaviors in each receipt and do not assert that
+every conceivable implementation error has been exhaustively mutated.
