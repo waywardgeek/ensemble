@@ -23,11 +23,10 @@ while the agent is busy. Chapter 8 adds separate chat and action panes,
 draggable dividers and saved preferences. First the screen has to make a
 correction easier to deliver than to miss.
 
-**Validation in progress:** the initial student implementation is preserved.
-The [validation record](chapter-07-validation.md) tracks local checks, required
-live demonstrations and the remaining independent review. The spin below records
-the initial actual runs and a narrow revised demonstration, each with its own
-source identity; final acceptance remains a separate gate.
+**Evidence and validation:** the initial student implementation is preserved.
+The [validation record](chapter-07-validation.md) tracks local checks, live
+demonstrations and independent review. The spin below records the initial runs
+and a narrow revised demonstration, each with its own source identity.
 
 ## TL;DR
 
