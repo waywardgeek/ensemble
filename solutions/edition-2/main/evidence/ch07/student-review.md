@@ -370,3 +370,18 @@ teaching findings. The later explicit killed-event list, component disposal and
 application/native-service ownership paragraphs now resolve the comparative
 ambiguities and match the final implementation. Final export/tag remains the
 coordinator's task, and no additional runtime or paid revision is pending.
+
+Final author-response confirmation: read the permitted new Chapter 7 revised
+§7.7 shutdown wording and §7.8 initial/revised demonstration passages, plus
+chapter-07-student-feedback.md's final dispositions at 00cf641. They accurately
+resolve and match my recorded experience: explicit document speech ownership,
+listener disposal/remount, admission stopped before application child teardown,
+the preserved Messages non-overlap attempt, exact Gemini MAX_TOKENS counters,
+float32 audio measurement, and local replay of the retained killed event.
+The immediate Gemini action 13 text precedes the settled typing 1/speaking 0
+observation; the manuscript correctly uses settled OpenAI 12 for its figure.
+No original receipt is reinterpreted as a stronger result, and no human listening
+or Bill-use claim is introduced. I have no unresolved teaching response.
+Root reports independent revised evidence accepted at ffbad61. Runtime 9ba7855
+and live receipt checkpoint 341f15d remain unchanged; this confirmation is
+student-review documentation only, with no extra implementation, test or paid run.
