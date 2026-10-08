@@ -1,0 +1,65 @@
+{
+  "scope": "Prepared public concurrency fixture; formatting only, not Go compilation/runtime acceptance. Browser/CLI Chapter8 absence controls are separate.",
+  "authority": "8f24360",
+  "checks": [
+    {
+      "command": [
+        "gofmt",
+        "-l",
+        "scripts/edition2/ch09-skills-public_test.go",
+        "scripts/edition2/ch09-skills-ordering_test.go"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/edition2/accept_ch09_browser.cjs"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/edition2/ch09-browser-fixture.js"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts/edition2",
+        "-p",
+        "test_accept_ch09_configuration.py",
+        "-v"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": "test_canned_positive_matrix_and_capture_mutations (test_accept_ch09_configuration.ConfigurationOracle.test_canned_positive_matrix_and_capture_mutations) ... ok\n\n----------------------------------------------------------------------\nRan 1 test in 0.000s\n\nOK\n"
+    }
+  ],
+  "input_sha256": {
+    "scripts/edition2/accept_ch09_public.py": "aa79ea23f0727c0da66387a067647ad7b49c644fd3615087de525a53e010b022",
+    "scripts/edition2/ch09-skills-public_test.go": "54e92bdf204bd62ed0e2cd96d1685ffe5625477e272a3002c801d2ce838bc50b",
+    "scripts/edition2/ch09-skills-ordering_test.go": "f8ff8cd9ffaf72b67a268203b0a5cd0ae5adb35c10c5130416de2efe79806512",
+    "scripts/edition2/accept_ch09_browser.cjs": "ba0c58f56ad9ec60fe5264c177512eb7e5ad5576e51279deed6886c62815fa38",
+    "scripts/edition2/ch09-browser-fixture.js": "04c259ab48b28df9ecfa81eefbd7b46e8b7c31d929a41034b5a228066fa30e27",
+    "scripts/edition2/ch08-browser-fixture.js": "1832e13287a87e6d27ab361e1e5981e22fc0fb31f708987a5fde3d475121c27a",
+    "scripts/edition2/accept_ch09_configuration.py": "4db88438fb619673a232b384366be6159d0c124387686a6cc8ff131c0d7fbd44",
+    "scripts/edition2/test_accept_ch09_configuration.py": "feb8470809dbfc73726ce677fbfc7034b752d2c806a74947539af580ec64500f",
+    "book/edition-2/chapter-09.md": "fb86fa4890cb516d0ce4c51a536d0fcb5f09a5362f937945cc6d700643805209"
+  },
+  "initial_checker_unchanged": true
+}

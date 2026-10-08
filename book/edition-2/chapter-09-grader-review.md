@@ -294,3 +294,70 @@ Python syntax and Go formatting checks pass; no Go build was started while disk
 space is limited and the new API is absent. Public spelling may be adapted after
 the implementation exists, preserving the behavioral assertions. Persistence
 faults, held HTTP/admitted work, unresolved-batch ordering and GUI remain pending.
+
+### Published System and anchored-material clarification
+
+After `8f24360`, the reviewer reread the entire skill, architecture and current
+Chapter 9, including the literal results/H/S/P fixture. The student's original
+three questions are retained in its own review. Its later response is a separate
+student/author gate; the following assertions derive from the published answer.
+
+`accept_ch09_configuration.py CLI_BINARY [--receipt PATH]` adds 27 CLI cases:
+all three providers, skill/no-skills modes, absent/empty/nonempty `LLM_SYSTEM`,
+no provider-specific fallback, and the explicit-equal-primary conflict. Valid
+skill requests retain `configuration.system` as an explicitly present empty
+string; the primary's bytes occur once in durable history. Catalog-free offline
+rendering resolves that primary and rejects an explicit competing System. The
+canned oracle passes all 27 combinations and twelve targeted capture mutations.
+The actual Chapter 8 baseline is 9/27: inherited absent/empty/fallback defaults
+pass; the added override and Skills behavior are absent. See
+`ch09-configuration-predecessor-absent.json`.
+
+The public adapter now also includes `ch09-skills-ordering_test.go` with three
+additional groups (twelve provider/mode leaves). It uses a controlled HTTP
+response and real shell marker/release files, not sleeps intended to win a race.
+A typed unload during held HTTP must revoke the returned write before any file
+effect. An already admitted command must finish after unload without a kill or
+second authorization. Skill-mode rendering anchors a pre-batch hint and a hint
+received during the batch before its manual, then preserves the later ordinary
+prompt and an unanchored late hint at the tail. All three provider requests are
+checked; a no-skills counterpart preserves the inherited placement. A one-request
+policy ends the first turn after paired results. Repeated rendering cannot
+consume hints; the next capture lists their receipt sequence, and later rendering
+removes only the consumed hints. Both live-prefix and catalog-free offline
+reconstruction compare the actual captured request bytes exactly. Unresolved
+prefix rendering must refuse.
+
+Those Go cases remain **prepared, not compiled or runtime-accepted** until the
+student has a coherent public implementation. The runner uses the same tiny
+external module, with no source copy or internal imports. No runtime-specific
+fault or deletion seam was guessed before a positive exists.
+
+### Browser projection preparation
+
+`node scripts/edition2/accept_ch09_browser.cjs SOURCE_DIRECTORY` runs actual
+Chrome against a small frozen copy of the public browser assets. It reuses the
+validated Chapter 8 controlled socket/native fixture, adding the required null
+Skills snapshot field in its served copy without editing the older fixture.
+The source/hash ledger binds that adaptation and every helper. No real model,
+new capture file, audible output or native-platform acceptance is claimed.
+
+Five groups cover an inherited card/explicit-speech positive and four Skills
+properties: safe expandable material cards, replay silence and explicit full
+manual speech; retirement/management routing and reconnect identity; current
+state without old material events and independent Pages; and exact uint64
+revision/active/material/dependency/retired identity, including visible refusal
+when unsafe counters arrive without source-context support. Arbitrary tool
+arguments and manual text stay outside the protocol-counter conversion.
+Large-identity records are explicitly browser projection fixtures, not tiny
+complete logs pretending to exhaust consecutive activation allocation.
+
+The final accepted Chapter 8 asset run has **one inherited positive and four
+expected Skills absence failures**. Earlier four-case and intermediate receipts
+remain as `ch09-browser-predecessor-initial.json` and
+`ch09-browser-predecessor-intermediate.json`; the final source-bound receipt is
+`ch09-browser-predecessor-absent.json`. None certifies Chapter 9 behavior. The
+preparation checks and unchanged initial-checker digest are recorded in
+`ch09-clarification-preparation.json`. Server projection, genuine student browser
+positives, counter allocation exhaustion, persistence faults, runtime deletions
+and the complete retained gate still require validation.

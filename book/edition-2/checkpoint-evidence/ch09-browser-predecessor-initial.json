@@ -1,0 +1,48 @@
+{
+  "passed": false,
+  "scope": "Actual Chrome, controlled public socket/native callbacks. Counter fixtures are projection inputs, not valid complete exhausted logs. No provider or audible claim.",
+  "checks": [
+    {
+      "id": "safe-manual-cards-silent-replay-expansion-and-explicit-speech",
+      "passed": false,
+      "error": "Error: distinct material cards absent\n    at expect (/Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:16:44)\n    at /Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:22:3\n    at async run (/Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:18:405)\n    at async /Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:19:2",
+      "page_errors": []
+    },
+    {
+      "id": "current-state-beyond-window-and-independent-page",
+      "passed": false,
+      "error": "Error: current Skills unavailable when transition is outside window\n    at expect (/Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:16:44)\n    at /Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:31:161\n    at async run (/Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:18:405)\n    at async /Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:29:2",
+      "page_errors": []
+    },
+    {
+      "id": "uint64-snapshot-material-retired-identity-and-opaque-boundary",
+      "passed": false,
+      "error": "page.evaluate: Error: skill revision rounded\n    at expect (eval at evaluate (:370:30), <anonymous>:1:53)\n    at eval (eval at evaluate (:370:30), <anonymous>:2:4)\n    at UtilityScript.evaluate (<anonymous>:372:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at /Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:34:15\n    at run (/Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:18:411)\n    at async /Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:33:2",
+      "page_errors": []
+    },
+    {
+      "id": "unsafe-counter-without-source-context-refuses-before-acceptance",
+      "passed": false,
+      "error": "page.evaluate: Error: unsafe snapshot accepted after rounded counter\n    at eval (eval at evaluate (:370:30), <anonymous>:1:428)\n    at UtilityScript.evaluate (<anonymous>:372:16)\n    at UtilityScript.<anonymous> (<anonymous>:1:44)\n    at /Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:44:15\n    at run (/Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:18:411)\n    at async /Users/bill/projects/ensemble/scripts/edition2/accept_ch09_browser.cjs:43:2",
+      "page_errors": []
+    }
+  ],
+  "source": "/Users/bill/projects/ensemble/solutions/edition-2/ch08",
+  "assets": {
+    "app.js": "3cbdb5db8c025c3b55d50b63036cadf80a75d50bdca2223f85ee082826fef2c4",
+    "application.js": "08026bc76bb7018ef3c1b94ed32792ef193f68506df31c4c20a8ba74b40a17fe",
+    "artifacts.js": "ae04e4d454e08bec70756caa93816a6cb4eb673cfa5de6666eac3218cbf2eb66",
+    "connector.js": "ceb1419710dfba6e6ceb90519ec41d3fc31be4298c5f7d4e09b3dfc79bee3cbf",
+    "index.html": "f6e04dd914a80febdfbbc03634d1b469341b0d7ccb55e9a9edb299c93982bb6c",
+    "page.js": "247c0a9b1d0b8c7e93ec080e19242ef99ae76fa8d8ea33d5f39e491721c2257e",
+    "preferences.js": "08be359ce21aca87c04d7b874f3e8e6633dfb4c169a8ec2af349c1fa9f233ac5",
+    "speech-service.js": "3e8e32698ca04dacbe74a59e2bacb5d8873abb4247aed5083c0c668a6d744db8",
+    "speech.js": "7fb05ba0cbf7b8c8c0e7c998cb29747561c35c52446f5f4dae2191c942f296b3",
+    "style.css": "acce34326e6d532647daf632bf4a1b64df78c1fc51416b28086749d526b7c2cd"
+  },
+  "checkers": {
+    "accept_ch09_browser.cjs": "8731c55423a337eccf0248c652174c12c4cbb99f662e69517f1005e687644dd6",
+    "ch09-browser-fixture.js": "fe43ed5433266d292495d4782eecf798267052d0e60fef9babef91f9bb787df5",
+    "ch08-browser-fixture.js": "1832e13287a87e6d27ab361e1e5981e22fc0fb31f708987a5fde3d475121c27a"
+  }
+}

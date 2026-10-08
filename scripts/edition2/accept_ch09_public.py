@@ -22,17 +22,18 @@ def source_hashes(source):
 
 
 def evaluate(source):
-    fixture=Path(__file__).with_name('ch09-skills-public_test.go');identities=source_hashes(source)
+    fixtures=[Path(__file__).with_name(name) for name in ('ch09-skills-public_test.go','ch09-skills-ordering_test.go')];identities=source_hashes(source)
     with tempfile.TemporaryDirectory(prefix='ch09-public-') as directory:
         work=Path(directory);(work/'go.mod').write_text('module example.com/ch09-independent-consumer\n\ngo 1.25\n\nrequire example.com/ensemble v0.0.0\nreplace example.com/ensemble => '+json.dumps(str(source))+'\n')
-        shutil.copyfile(fixture,work/'skills_test.go');rows=[]
-        for command in (['go','mod','tidy'],['gofmt','-l','skills_test.go'],['go','vet','./...'],['go','test','-race','-count=1','-timeout=45s','-run','^TestCh09Public','-v','./...']):
+        for fixture in fixtures:shutil.copyfile(fixture,work/fixture.name)
+        rows=[]
+        for command in (['go','mod','tidy'],['gofmt','-l']+[p.name for p in fixtures],['go','vet','./...'],['go','test','-race','-count=1','-timeout=90s','-run','^TestCh09Public','-v','./...']):
             run=subprocess.run(command,cwd=work,text=True,capture_output=True,timeout=180)
             passed=run.returncode==0 and (command[0]!='gofmt' or not run.stdout)
             rows.append(dict(command=command,exit=run.returncode,stdout=run.stdout,stderr=run.stderr,passed=passed))
             if not passed:break
     assert identities==source_hashes(source),'source changed during public checks'
-    return dict(passed=len(rows)==4 and all(r['passed'] for r in rows),checks=rows,source_directory=str(source),source_files=identities,checker_files={p.name:digest(p) for p in [Path(__file__),fixture]},scope=__doc__)
+    return dict(passed=len(rows)==4 and all(r['passed'] for r in rows),checks=rows,source_directory=str(source),source_files=identities,checker_files={p.name:digest(p) for p in [Path(__file__)]+fixtures},scope=__doc__)
 
 
 if __name__=='__main__':
