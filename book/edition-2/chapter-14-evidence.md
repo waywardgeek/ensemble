@@ -185,3 +185,56 @@ not claim that every listed file was read in full or that source was tested.
 Scoped diff validation and a manual voice/claim pass completed. The outline
 is deliberately a preparation document with explicit unresolved choices, not
 a finished chapter. No runtime/build/grader or paid work was performed.
+
+## First full contract draft
+
+After the Chapter 9 grouped prose freeze `29a9380` and independent closure
+`7f5a0a4`, the author resumed this draft under advisory `3a6ae52` and the
+coordinator's explicit A1–A6 working choices. The complete current voice,
+procedure, architecture, outline, evidence and advisory were read. Focused
+predecessor rereads covered Chapter 8's exact policy files/updates/watch,
+Chapter 10's selectors, canonical numbers, semantic state, limits and identity,
+Chapter 12's captured observations and v3 extension, Chapter 9's immutable
+activation/transition boundary, and Chapter 2's redaction/protocol rules.
+First-edition Chapter 15's TL;DR and early mechanism sections were reread as
+historical evidence; its old inline-tools, tolerant reducer, silent clamp and
+cache claims were not restored. No implementation source was opened for this
+drafting pass.
+
+The full manuscript prints the v4 creation profile, old-compatible route,
+strict policy-v2 transition, accepted-response eligibility, precise keep target
+and expiry, canonical neutral accounting, immediate stubs and two whole-batch
+bands. It names an intent's first-valid slot, immediate staged receipt, terminal
+disposition and atomic note/removal, including interrupt and disabling behavior.
+It retains logical H/S/P boundaries, separately captured observations and exact
+MCP ownership. Current GUI WebSocket tunneling remains mandatory optional-module
+behavior; no core transport assumption is introduced.
+
+The draft also distinguishes mechanical local validation from remote opaque
+prefix acceptance. A bounded automatic deferral proceeds unchanged; an explicit
+handoff refuses safely. No new provider statement or performance result is made
+from the earlier primary-source research. Full-origin replay and snapshot-only
+represented-history limits are stated separately. Removed summaries contain
+bounded metadata, not an invented archive of absent source bytes.
+
+Ten literal JSON fixtures parse. The independently counted canonical Unicode/
+number control is 24 UTF-8 bytes; default integer floors are 4,000, 50,000 and
+25,000. The retained prose executable passes all hard rules at 5,488 words.
+Soft negation and person-gap warnings were reviewed against the explicit
+compatibility/refusal distinctions and the dense transition contract. The draft
+keeps the original-goal story and concrete configuration task rather than adding
+an invented scene. Scoped diff validation passes. Build and paid commands remain
+planned reader steps; none was run for this prose task.
+
+Consulted current source hashes at this boundary:
+
+- Chapter 14 advisory: `3973728bda1cc1e39260b2b122a11d9673c49feaa0d6c9f9186e4019f8f52a71`.
+- Chapter 9: `2febacc4bed833601a2a0c005e235be5d5f1cc50a31903f198359`.
+- Chapter 10: `9eef50b45bdd40cdb47d9cee6e939e80b96b5b9aeefb51206543875013460b3c`.
+- Chapter 12: `f381782792b83e7f5e39c5313281299878f816b77c422a2da7515faa19deef60`.
+
+The initial outline's alternatives remain dated history; its appended decision
+section links this first full draft. The coordinator and independent reviewer
+must review the exact shapes and lifetime choices before contract acceptance or
+checker assertions. No Chapter 14 student release, runtime or successful spin
+is claimed.

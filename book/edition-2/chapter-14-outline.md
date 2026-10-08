@@ -250,3 +250,33 @@ Record exact source/binary/policy/session identities, request bodies, cut facts,
 usage and outcome, including provider refusals or extra reads. Deterministic
 fixtures cover rare faults and boundaries; they do not replace actual use.
 No tokens-saved, cache-hit, quality or timing promise follows from a byte count.
+
+## Full-draft decisions after advisory review
+
+The preparation above is retained from `9758e89`. Independent advisory `3a6ae52`
+and subsequent coordinator choices now resolve its proposed alternatives in
+chapter-14.md; this is full-draft publication, not contract or runtime acceptance.
+See [the validation record](chapter-14-validation.md) for current gates.
+
+- Explicit fresh v4 capability, opt-in tool registration, old-compatible catalog
+  and installed ceiling, no conversion. V4 represents empty MCP/integration arrays
+  explicitly without changing any v1/v2/v3 shape.
+- One Agent policy domain with strict complete v2. V1 reads synthesize disabled
+  context without writing or advancing revision. Enabled policy on an old profile
+  refuses; context settings are sampled per attempt while request limits remain
+  captured per turn.
+- One canonical neutral measure, checked integer floors, T from 20,000 through
+  16,000,000 with default 400,000. Whole oldest batches move between measured
+  bands; protected or ineligible material can leave honest overshoot.
+- Keep targets the newest represented eligible batch from the producing request;
+  expiry requires another accepted response containing it. Handoff stages the
+  first valid intent, then commits a note/cut atomically or records a terminal
+  refusal/cancellation after pairing. Interrupt and disabling cancel uncommitted
+  intent. Logical H/S/P anchors survive removal.
+- Public/live append validates admitted candidates; offline replay validates exact
+  historical transitions. Automatic incompatibility defers once per relevant
+  projection/policy/provenance, while explicit handoff refuses. No opaque stripping,
+  beta protocol, provider retry or cache/quality promise was introduced.
+- Full-log past requests and snapshot-only represented requests retain distinct
+  reconstruction promises. MCP remains transport-independent and the actual GUI
+  WebSocket tunnel stays optional-module code. The new draft adds no runtime.
