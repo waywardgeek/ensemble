@@ -294,3 +294,101 @@ full delivered-tree/module gate, initial snapshot/control interleaving,
 architecture review, live evidence and post-freeze historical comparison
 remain separate obligations. Historical grader files and assertions were not
 edited for this milestone.
+
+## Initial snapshot controls and retained compatibility
+
+`accept_ch08_handoff.py SOURCE_DIRECTORY` holds the actual snapshot producer
+after its begin record, outside owner locks. Real socket controls and a
+preference write continue during that hold. The recipient then receives
+`snapshot_end` before the deferred control records, and a preference change
+before its acknowledgement. The exact combined queue positive retains 255
+deferred controls plus the final snapshot record. Full or overflowing deferred
+queues invalidate and join the connection rather than deadlocking the producer.
+The [passing control and three deletions](checkpoint-evidence/ch08-handoff-passed.json)
+require exact failing leaf sets for missing deferral, missing combined count
+accounting and missing full-handoff cancellation.
+
+The first handoff audit used a shared default preference path. Its positive
+changed the file and contaminated later mutation cases. Its green summary is
+explicitly [invalidated](checkpoint-evidence/ch08-handoff-preparation-review.json);
+the raw receipt remains intact. Every corrected test uses its own Server path,
+and unrelated controls must remain passing under each mutation.
+
+The complete immutable command is now:
+
+```sh
+python3 scripts/edition2/accept_ch08_gate.py SOURCE_COMMIT
+```
+
+The gate extracts every delivered file, including evidence and embedded assets.
+It runs new settings checks, complete package discovery, all module vet/tests,
+headless operation without the GUI and retained Chapter 5 through 7 behavior.
+Its `--only` option labels a preparation run explicitly. A successful selected
+run does not establish a successful complete run. The complete run is in
+progress at this milestone.
+
+Retained fixtures are adapted in a disposable checker bundle. Original scripts
+remain unchanged. The bundle supplies complete initial settings domains to old
+controlled browser servers, consumes and validates the new preference snapshot
+before the old contiguous Agent group, gives old mock Actors a default policy
+owner and counts deferred controls in the original queue mutation. The DOM
+listener tracker now handles MediaQueryList without calling Node.contains on a
+non-Node; it also requires that listener to be removed. No original assertion
+is removed. The preparation receipts preserve the old-protocol failures,
+macOS path-reporting errors and the optional-module type-import limitation.
+
+The separate module-aware package checker resolves compiled Go export metadata
+through the tested module graph. It executes no student initializer. Its
+[controls](checkpoint-evidence/ch08-module-import-checker-controls.json) retain
+all original fixture expectations and distinguish a valid optional public
+import from forbidden behavior in common. The historical checker remains
+unchanged and its original tests still pass. This repairs the checker's inability
+to resolve GUI common interfaces that legitimately refer to the public core.
+
+Retained browser and comparative-repair checks, including intended deletions,
+[pass against cd9de3e](checkpoint-evidence/ch08-retained-native-repair.json).
+Document-local speech tests use an immediate controlled lease with their
+existing controlled native API. The separate actual-Web-Locks checks below
+protect the additional cross-document boundary.
+
+## Native speech coordination review
+
+The student's first native interruption observation used separate Playwright
+contexts. That setup did not establish the behavior of ordinary same-profile
+tabs. A subsequent shared-context, actual-native control reproduced the issue:
+one tab reported interruption immediately before the other tab reported its
+no-start timeout. Both attempts remain in student evidence. This reviewer read
+the shared-context receipt and driver, and reviewed the proposed ownership
+repair against the existing local-cancellation promise. No first-edition
+Chapter 9 implementation has been read.
+
+The accepted plan keeps BrowserApplication as SpeechService's parent and keeps
+queues and pause causes on Pages. The service owns an abortable lease request,
+the granted lease and its native utterance. Native speak and its timeout begin
+after grant. Canceling a waiter cannot call native cancellation; a holder
+cleans up its own native work before releasing. Unsupported coordination is
+visible and does not retain a speaking cause. Web Locks coordinate cooperating
+contexts in the same storage bucket; the plan does not promise control over
+unrelated origins or profiles. The [Web Locks specification](https://w3c.github.io/web-locks/)
+describes the asynchronous lease lifetime and scope.
+
+The reviewer initially requested manuscript publication before repair, then
+withdrew that unnecessary workflow hold. Existing §8.7 already required the
+behavior, and the recorded plan plus independent architecture check settled
+the implementation choice. Author reconciliation remains required before
+chapter acceptance.
+
+```sh
+node scripts/edition2/accept_ch08_speech_tabs.cjs SOURCE_DIRECTORY
+python3 scripts/edition2/audit_ch08_speech_tabs.py SOURCE_DIRECTORY
+```
+
+The [three positive groups and three intended deletions](checkpoint-evidence/ch08-speech-tabs-deletions.json)
+use actual shared-context Chrome tabs and Chrome's Web Locks, with controlled
+native callbacks. They hold the first owner beyond the old five-second timeout,
+cancel a waiter without native effects, close the holder and admit its successor,
+fence stale callbacks, close a waiting application and expose unavailable
+coordination without a pause leak. Deleting exclusivity, cancel ownership or
+lease release fails the intended group. These checks prove neither audio nor
+isolation across browser profiles. The student's actual-native repair control
+and renewed user-facing demonstrations require their separate evidence review.

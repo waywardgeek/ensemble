@@ -1,0 +1,8 @@
+{
+  "scope": "Review of first independent handoff fixture audit",
+  "first_raw_receipt": "ch08-handoff-fixture-contamination.json",
+  "credit": false,
+  "reason": "The helper used a shared default preference file across positive and mutation runs. A successful positive changed it, so later control failures masked unrelated mutation scope. Corrected fixture gives each Server a unique temporary path and requires exact failing leaf sets.",
+  "corrected_receipt": "ch08-handoff-passed.json",
+  "corrected_passed": true
+}

@@ -1,0 +1,52 @@
+{
+  "passed": true,
+  "scope": "Original historical checker unchanged and tests pass. Separate checker retains all ten legacy fixtures and adds optional public-module import positive plus common-behavior mutation.",
+  "checks": [
+    {
+      "command": [
+        "go",
+        "test",
+        "./scripts/edition2/packagecheck",
+        "-count=1"
+      ],
+      "exit": 0,
+      "stdout": "ok  \tgithub.com/waywardgeek/ensemble/scripts/edition2/packagecheck\t0.018s\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "go",
+        "test",
+        "./scripts/edition2/ch08packagecheck",
+        "-count=1"
+      ],
+      "exit": 0,
+      "stdout": "ok  \tgithub.com/waywardgeek/ensemble/scripts/edition2/ch08packagecheck\t0.070s\n",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "go",
+        "vet",
+        "./scripts/edition2/ch08packagecheck"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "gofmt",
+        "-l",
+        "scripts/edition2/ch08packagecheck"
+      ],
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "source_files": {
+    "scripts/edition2/ch08packagecheck/main.go": "6c766c4a3d28dde927af6241d3667f6958492f1b0f39937832c568b4da0e499b",
+    "scripts/edition2/ch08packagecheck/main_test.go": "071297a1980451fd053ba2d287b6518b9cc3406b6d0c794bf3c38cef29c59e65"
+  }
+}

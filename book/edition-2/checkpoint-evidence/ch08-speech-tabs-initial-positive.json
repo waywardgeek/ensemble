@@ -1,0 +1,64 @@
+{
+  "scope": "Actual same-context Chrome tabs and browser-native Web Locks, controlled native speech. No audio or unrelated-origin/profile claim.",
+  "passed": true,
+  "checks": [
+    {
+      "id": "same-context-held-lease-waiter-cancel-owner-close",
+      "passed": true,
+      "events": [
+        {
+          "tab": 0,
+          "type": "speak",
+          "text": "A held."
+        },
+        {
+          "tab": 0,
+          "type": "cancel"
+        },
+        {
+          "tab": 1,
+          "type": "speak",
+          "text": "B next."
+        },
+        {
+          "tab": 1,
+          "type": "end"
+        }
+      ]
+    },
+    {
+      "id": "waiting-application-close-does-not-start-native-work",
+      "passed": true,
+      "events": [
+        {
+          "tab": 0,
+          "type": "speak",
+          "text": "A holds."
+        },
+        {
+          "tab": 0,
+          "type": "end"
+        }
+      ]
+    },
+    {
+      "id": "coordination-unavailable-releases-local-pause",
+      "passed": true,
+      "events": []
+    }
+  ],
+  "browser": "154.0.8037.93",
+  "asset_sha256": {
+    "app.js": "3cbdb5db8c025c3b55d50b63036cadf80a75d50bdca2223f85ee082826fef2c4",
+    "application.js": "08026bc76bb7018ef3c1b94ed32792ef193f68506df31c4c20a8ba74b40a17fe",
+    "artifacts.js": "ae04e4d454e08bec70756caa93816a6cb4eb673cfa5de6666eac3218cbf2eb66",
+    "connector.js": "9bf0b23ac83648ea4cf779e42431b3a643c1f2e5edbb938156b858ad76c15811",
+    "index.html": "f6e04dd914a80febdfbbc03634d1b469341b0d7ccb55e9a9edb299c93982bb6c",
+    "page.js": "247c0a9b1d0b8c7e93ec080e19242ef99ae76fa8d8ea33d5f39e491721c2257e",
+    "preferences.js": "08be359ce21aca87c04d7b874f3e8e6633dfb4c169a8ec2af349c1fa9f233ac5",
+    "speech-service.js": "3e8e32698ca04dacbe74a59e2bacb5d8873abb4247aed5083c0c668a6d744db8",
+    "speech.js": "7fb05ba0cbf7b8c8c0e7c998cb29747561c35c52446f5f4dae2191c942f296b3",
+    "style.css": "acce34326e6d532647daf632bf4a1b64df78c1fc51416b28086749d526b7c2cd"
+  },
+  "checker_sha256": "3c83bde886b2a96d70004121810df6c6ad164b3b31e59f228c446feea7dc33e6"
+}
