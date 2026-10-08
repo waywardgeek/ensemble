@@ -1,11 +1,10 @@
 # Second edition: Chapter 5 outline
 
-Status: full contract/prose independently reviewed; all reported findings
-resolved. Coordinator architecture review accepted the working choices.
-The predecessor is accepted at `edition-2-ch04-r1`; the initial student
-implementation reports local checks passing and awaits contract grading and
-live work. See [the validation record](chapter-05-validation.md)
-for current gates; Chapter 5 live success and acceptance are not yet claimed.
+Status: contract, architecture and revised runtime independently accepted.
+Actual all-three-API human CLI and public-consumer demonstrations are reconciled
+below. Final manuscript proofreading and the coordinator's frozen export/tag
+are tracked in [the validation record](chapter-05-validation.md); Bill's
+editorial approval remains separate.
 This chapter maps to first-edition Chapter 6.
 
 ## Voice plan and stake
@@ -32,8 +31,9 @@ Omit the unsupported exact weeks spent separating the historical GUI, the
 old prediction that the GUI chapter comes immediately next, and the claim
 that synchronous APIs necessarily serialize independent Agents. The new
 architecture already separates GUI ownership and allows background jobs;
-the missing capability is admission during an HTTP/report wait. No actual
-Chapter 5 run or new story is invented. Normative contracts and fixtures stay
+the missing capability is admission during an HTTP/report wait. The later spin section adds the observed blocked-input defect and its repair,
+plus actual hint delivery, interruption and collaborative editing. These come
+from retained receipts, not an invented scene. Normative contracts and fixtures stay
 unchanged by the editorial pass.
 
 ## Teaching order
@@ -43,7 +43,7 @@ unchanged by the editorial pass.
    Engine retains transport/accounting; Jobs retains work/output ownership.
 3. Mailbox enqueue order, reliable prompt identity, queued admission, and
    explicit hints are different from display observations.
-4. Model I/O and report waits return immutable facts without parking the actor.
+4. Model I/O, report waits and process-input I/O return owned facts without parking the actor.
 5. Define interruption, queued cancellation, accepted calls and late job facts,
    request completion, and close independently; give literal event fixtures.
 6. Teach hint application at a later request, never retroactive model steering.
@@ -75,13 +75,17 @@ inherited grader, while the manuscript and new independent checks use 5.
 Coordinator confirmed this mapping rather than renaming historical graders.
 The later `ch05/` directory is an exact validated export, not a working copy.
 
-Retain inherited checks, then prove actual replay equality, request isolation,
+The inherited 10/100 diagnostic reflects incompatible historical expectations,
+not acceptance of the new contract. The manuscript now publishes
+`scripts/edition2/accept_ch05.py` and `scripts/edition2/audit_ch05_mutations.py`
+as the separate new-contract checks; the old grader remains unchanged.
+Prove actual replay equality, request isolation,
 FIFO admission, cancellation and post-interrupt reuse, close settling callers,
 late job persistence, hint timing and actual later request inclusion, append
 sequence correctness during HTTP, and completion collection without polling.
 Do not treat old labels as evidence for stronger properties than they inspect.
 
-## Remaining contract work
+## Contract review and observed revisions
 
 The manuscript now publishes lifecycle payloads and same-path replay rules,
 immutable request snapshots, hint projection/consumption, queue and observation
@@ -92,4 +96,22 @@ report-cursor acceptance, and interrupted/canceled versus fatal CLI outcomes
 are addressed and accepted. Coordinator architecture review accepted Agent-owned
 Actor, Engine remaining an Agent child, Jobs retaining state and cursors, Actor
 serializing history, and Ensemble-owned reliable completion collections.
-Predecessor validation remains before handoff. Scoped prose lint has no hard failures.
+The initial student and revised runtime have completed this handoff. Comparative
+review found blocking process input and retained observer state after shutdown;
+§§5.4 and 5.6 teach the corrected ownership and lifetime explicitly.
+
+## Demonstration and checkpoint
+
+The actual spin retains eight applicable runs at `8aa40c3` and six affected-path
+runs at `959c663`, including all four Gemini modes on discovered 3.8 Flash and
+Messages/Chat Completions input reruns. The 14 logical runs contain 78 captured
+requests with exact replay. Human PTYs were driven by the coder, not Bill.
+Public workflow and completion-collection runs use the external executable.
+The ordinary live writes do not establish the deterministic full-buffer bound.
+
+Older Gemini refusals, an invented prompt argument, the original blocked-write
+implementation and masked verifier controls remain evidence. The corrected
+independent evidence audit has a passing control and 13 intended identity
+refusals. Reader links target the forthcoming frozen `ch05` export. Source
+`185ba76` includes the `469730f` evidence freeze and documentation cleanup;
+runtime stays `959c663`. Coordinator export/tag follows final proofreading.

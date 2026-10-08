@@ -14,11 +14,11 @@ messages. The actor can acknowledge a correction while an HTTP request or a
 job-report wait is outstanding. Whether the model has received that correction
 is a separate fact, recorded at the next request.
 
-> **Implementation is awaiting contract grading and live demonstration.**
-> The initial student reports six modules' local checks and core race checks
-> passing. This is not chapter acceptance. The [current gate record](chapter-05-validation.md)
-> tracks grading, live use, independent comparison and manuscript reconciliation;
-> Bill's editorial approval remains separate.
+> **Reviewed runtime and live demonstrations are recorded below.** Initial
+> attempts and affected-path reruns keep their own source identities. The
+> [current gate record](chapter-05-validation.md) tracks final independent
+> evidence review, manuscript proofreading and checkpoint; Bill's editorial
+> approval remains separate.
 
 ## 5.1 One Agent, one turn owner
 
@@ -62,7 +62,7 @@ grader implementation and author research notes.
    reusable completion. Concurrent prompts queue in admission order as separate
    turns. Explicit hints are a different operation. Blocking submission wraps
    this same path; it never waits for an unrelated observer's Idle event.
-3. Run model HTTP and job-report waits outside the actor. Workers return owned
+3. Run model HTTP, job-report waits and process-input I/O outside the actor. Workers return owned
    facts and operation identity. Do not hold a conversation lock across I/O,
    waiting or observer callbacks. Preserve serial tool dispatch and result order.
 4. Persist turn start/end and hint receipt using §5.3. Hints affect the next
@@ -606,37 +606,167 @@ Final validation requires the reviewed improvements and real user path.
 
 ## 5.10 Taking it for a spin
 
-The current second-edition Gemini validation scope starts at Gemini 3.0 Flash
-and newer. Use **Gemini 3.8 Flash** for this chapter's hint and control
-demonstrations. Discovery on October 7, 2026 confirmed
-`models/gemini-3.8-flash` supports `generateContent`; the REST request uses
-`POST /v1beta/models/gemini-3.8-flash:generateContent`. Record that exact model
-in every Gemini run, including EOF, workflow and collection. A discovery result
-establishes availability, while the live receipts establish behavior. Older
-model attempts remain historical evidence. This test selection does not impose
-a hardcoded model allowlist on the library.
+Build the CLI from `solutions/edition-2/main/`:
 
-Launch `chat` in an actual terminal/PTY using a fresh log and scratch workspace.
-Select a discovered tool-capable model and safe environment credentials. Ask
-for a slow command with an observable final marker. When its report wait is
-active, type `/hint` with a concrete change for the subsequent answer. Inspect
-the immediate acknowledgement, recorded hint, next request inclusion and actual
-model answer as separate pieces of evidence.
+```sh
+go build -o /tmp/ensemble-ch05 ./cmd
+demo_dir=$(mktemp -d)
+cd "$demo_dir"
+CH02_LOG="$demo_dir/session.log" /tmp/ensemble-ch05 chat
+```
 
-Submit another ordinary prompt while one is active and watch the distinct
-request IDs. Interrupt the active turn and verify that the queued request
-can still finish. Inspect the continuing job through a later turn, then stop
-it explicitly. Exercise `/quit` with managed work alive and orderly EOF with
-queued prompts. Repeat the human-interface feature checklist on Messages,
-Chat Completions and generateContent; an external HTTP cancellation may
-be too timing-sensitive live, so label its deterministic barrier check.
+Set `LLM_VENDOR`, a discovered `LLM_MODEL`, and the corresponding API key in
+its environment before launch. Use a fresh log and scratch workspace; a shell
+command is not confined to that directory. The current Gemini validation scope
+starts at 3.0 Flash, with **Gemini 3.8 Flash** selected for hints. Discovery on
+October 7, 2026 confirmed `models/gemini-3.8-flash` for
+`POST /v1beta/models/gemini-3.8-flash:generateContent`. This dated test choice
+is not a model allowlist in the library.
 
-Run the author/editor/reviewer consumer through the public API with real
-models, inspect the actual draft file and edits, and retain each role's
-attributed log and completion. Use separate logs for the two-Agent completion
-collection exercise. The GUI remains a separate-module stub unless a working
-browser transport is explicitly implemented and demonstrated.
+Start with `/help`, then ask for a command long enough to observe before it
+finishes. Use the actual `ai_callback_delay` parameter: it controls the wait
+for a report, not the command's lifetime. The following is an abridged actual
+Gemini 3.8 session, driven by the coder through a PTY on October 7. Blank
+repeated prompts and unrelated commands are omitted; this is not a session
+Bill personally ran.
 
-[LIVE RECEIPTS PENDING: new Chapter 5 snapshot, actual human-terminal
-controls on all three APIs, public workflow, reliable collection, replay
-comparisons, measured usage, independent checks and comparative review.]
+```text
+You> Use run_command once with command "sleep 30; printf 'HINT-JOB-DONE\n'" and ai_callback_delay 45. After it returns, follow any hint I send and give a concise final answer. Do not call other tools.
+Accepted r1.
+You> /hint In your final answer include exactly HINT-ACCEPTED-FIVE and briefly mention the command output.
+Hint received for r1 at seq 7; sent=false (pending next request).
+Request r1 (success; pending hints=0)
+Assistant:
+HINT-ACCEPTED-FIVE
+
+The command completed successfully with output `HINT-JOB-DONE`.
+```
+
+The coder waited for `tool_called` in the attributed log before sending the
+hint. An earlier attempt sent one after the turn finished and correctly got
+an idle refusal. A slow-looking command is insufficient evidence that the
+Agent is still waiting; inspect the acknowledgement.
+
+In the successful session, the first captured HTTP body has no hint. The
+second contains the exact hint after `functionResponse`, as a separate text
+part in the same user content. The third request omits it. The log retains
+`hint_received` at sequence 7 and records its consumption at `request_sent`
+sequence 10. The model's answer then supplies the fourth fact: it followed
+this particular correction. Receipt, delivery, consumption and compliance
+are observable separately.
+
+Next ask for a long-running command, submit an ordinary second prompt while
+it runs, and use `/interrupt`. The later portion of the same session shows
+which caller gets which result:
+
+```text
+You> Use run_command once with command "sleep 180; printf 'LATE-JOB\n'" and ai_callback_delay 60. Do not call other tools.
+Accepted r5.
+You> Reply exactly QUEUED-FIVE; do not call tools.
+Accepted r6.
+You> /interrupt
+Interrupt: request=r5 interrupted=true.
+Request r5 (interrupted; pending hints=0)
+interrupted: turn interrupted
+Request r6 (success; pending hints=0)
+Assistant:
+QUEUED-FIVE
+```
+
+The excerpt omits two attempted context changes: `/ephemeral` and `/redact`
+were both refused while busy. The ordinary second prompt remained its own
+request. A subsequent turn inspected job 3 as running, then explicitly killed
+it. Interrupting the turn had preserved the work and its handle, exactly as
+promised. Finally, a separate job was left alive; `/quit` produced its durable
+`job_killed` record with reason `shutdown`.
+
+Repeat that sequence on each supported API, then test EOF in a fresh session:
+submit `Reply exactly EOF-FIRST; do not use tools.` and a second prompt for
+`EOF-SECOND`, then send EOF. All three recorded sessions completed both admitted
+requests before final usage and cleanup. EOF stopped new input; it did not
+reinterpret the second prompt as a hint or cancel it.
+
+### A responsive answer can still hide a blocked write
+
+The first implementation passed the new checker and the ordinary Messages
+and Chat Completions control
+paths, but comparative review found that `send_input` still wrote to the PTY
+on the actor itself. A process that stopped reading could fill that buffer
+and prevent the actor from hearing a hint. Moving HTTP and report waits had
+left one more wait in the owner's path. The repair described in §5.4 makes
+input I/O owned and cancelable too. Review also found that closed display
+subscriptions retained client references and could be created after shutdown;
+§5.6 now states their complete lifetime.
+
+The corrected runtime was `959c663`. Its Gemini controls and focused Messages
+and Chat Completions sessions started a line reader, sent `LIVE-SEND-CHECK`
+with a newline, observed `seen:LIVE-SEND-CHECK`, and killed the process.
+The durable input results report 16 of 16 bytes accepted. These small real
+interactions prove the repaired user path; the full-buffer interruption,
+partial-write and closed-subscription cases use independent deterministic
+controls. A successful small write cannot prove cancellation of a blocked one.
+
+The full [terminal record](../../solutions/edition-2/ch05/evidence/ch05/controls-gemini38-r1/terminal.txt)
+and [receipt map](../../solutions/edition-2/ch05/evidence/ch05/verified-gemini38/receipts.json)
+retain exact inputs and source bindings. The core controls measured:
+
+| API and selected model | Source | Input | Cache write | Cache read | Output |
+|---|---|---:|---:|---:|---:|
+| Messages, `claude-haiku-4-5-20251001` | `8aa40c3` | 28280 | 0 | 0 | 613 |
+| Chat Completions, `gpt-4.1-mini` | `8aa40c3` | 5247 | 0 | 7040 | 267 |
+| generateContent, `models/gemini-3.8-flash` | `959c663` | 45025 | 0 | 0 | 1423 |
+
+Returned identities were respectively `claude-haiku-4-5-20251001`,
+`gpt-4.1-mini-2025-04-14` and `gemini-3.8-flash`; the logs retain requested and
+returned names separately. The counters describe accepted responses in these
+particular conversations. They exclude separate EOF, workflow, collection and
+input sessions and are not a comparison of model efficiency.
+
+### Let the three Agents work
+
+From `solutions/edition-2/main/examples/workflow`, set a fresh
+`ENSEMBLE_RUN_DIRECTORY` and the same safe model environment, then run
+`go run . workflow`. Inspect `workspace/draft.txt` inside the run directory
+and each role's log. The author writes a public-library Repair Cafe announcement;
+the editor makes it warmer and adds `repairs are free`; the reviewer reads the
+actual edited file. In the Gemini run, the editor replaced the opening sentence
+and preserved `Saturday`, `10 a.m.` and `bring a broken lamp`. The saved file
+contains the new opening and the free-repairs phrase. The final approval is
+model output, not a substitute for inspecting that artifact.
+
+Use another fresh run directory for `go run . collection`. Its observed output
+was the same on all three APIs:
+
+```text
+Queued agent-1/r2: canceled
+Collection agent-1/r1: COLLECTION-1
+Collection agent-2/r1: COLLECTION-2
+```
+
+Only the two uncanceled requests reached the model. The consumer waits until
+both completions are ready before draining them, then checks exhaustion,
+individual handle reuse and a second independent collection. This deliberate
+barrier establishes the collection rule without betting on scheduler timing.
+The optional GUI remains a separate-module stub.
+
+The earlier Gemini attempts remain useful failures. Some older-model replies
+returned HTTP 200 and STOP but lacked the required output usage, so the strict
+parser refused them. A bounded diagnostic succeeded with both the original
+merged result/hint body and a split variant; it did not establish a grouping
+bug. The four Gemini modes were subsequently demonstrated on the specifically
+selected 3.8 Flash without changing the renderer to fit that hypothesis.
+The retained Messages prompt also used an invented `timeout_ms` name; later
+prompts use the actual schema. Failed attempts are not rewritten as successes.
+
+The final demonstration set retains eight applicable Messages/Chat Completions
+runs at `8aa40c3` and six affected-path runs at `959c663`. Its 14 logical runs
+contain 78 captured requests, each reconstructed from its recorded prefix and
+configuration with identical bytes. Those are captured HTTP bodies compared
+with offline replay, not reconstructed bodies mislabeled as network captures.
+The [review and gate record](chapter-05-validation.md) separates runtime
+acceptance, evidence checks and the final manuscript/checkpoint. The independent
+audit also corrected initial verifier-negative fixtures that stopped at an
+earlier path guard. Thirteen isolated identity mutations then reached their
+intended refusals before replay or derived writes, while the passing control
+reproduced all 78 requests. The original masked fixtures remain in the record.
+That correction required a local evidence audit, not another paid run.

@@ -54,7 +54,7 @@ introducing them here. Distinguish model content capability, known capability,
 and provider availability. No new live media support or model capability
 table is inferred from historical identifiers.
 
-## Next action
+## Contract review before the student run
 
 The draft supplies turn/hint payloads, a literal replay fixture, separate
 queued/active cancellation, late-fact treatment, reliable completion collection,
@@ -68,9 +68,8 @@ All amendments are published and independently accepted. The coordinator's
 architecture review accepted Agent-owned Actor in llm/common, Engine remaining
 an Agent child, Jobs retaining state and report cursors, actor-serialized history,
 and Ensemble-owned reliable completion collections. Report reservation/acceptance
-and separation of progress from completion remain mandatory. Predecessor gates
-remain before student release. Scoped prose lint has no hard failures.
-No new live transcript is written before actual student demonstrations.
+and separation of progress from completion remain mandatory. That review preceded student release and actual demonstrations. The final
+author reconciliation below records the later outcome.
 
 ## Gemini hint clarification and revised live scope
 
@@ -96,6 +95,58 @@ consumption are local semantics, not claims about the provider's turn labels.
 The general function-calling documentation now presents Interactions examples;
 those request shapes must not silently replace the GenerateContent adapter.
 
-All four Gemini modes are assigned to 3.8 Flash under the revised scope. Older
-model receipts remain dated evidence and are not relabeled. Revised prose,
-student confirmation and new live results require their own review.
+All four Gemini modes were assigned to 3.8 Flash under the revised scope. Older
+model receipts remain dated evidence and are not relabeled. Their subsequently
+completed runs and independent verification are recorded below.
+
+
+## Final author reconciliation, October 7, 2026
+
+Read the actual terminals for all 14 logical runs in
+[`verified-gemini38/receipts.json`](../../solutions/edition-2/ch05/evidence/ch05/verified-gemini38/receipts.json),
+the addendum plan, initial/revised bindings and appended student review. Parsed
+all run logs to recompute usage and inspect outcome/model identity. Independently
+checked all 78 captured-request hashes and 14 terminal hashes against the map;
+read the public workflow files and the Gemini hint's three successive wire
+bodies. The author did not independently implement a second renderer.
+
+Eight applicable Messages/Chat Completions runs retain source
+`8aa40c3e840af575724a6b895cf59c060633a9b1`. Six affected-path runs use
+`959c663400b74927578a3609ce58b0a51263e654`: all four Gemini modes at discovered
+`models/gemini-3.8-flash`, and scoped Messages/Chat Completions process-input
+runs. The revised runtime fixes R1 blocking actor input and R2 subscription
+lifetime, accepted independently at `743dca3`. Evidence freeze `469730f`
+retains both source bindings; planned export source `185ba76` adds documentation
+cleanup without changing runtime or receipts. Do not relabel the eight earlier
+runs as executions of the revised binary.
+
+The spin table uses the core-control logs only: Messages 28280/0/0/613,
+Chat Completions 5247/0/7040/267, generateContent 45025/0/0/1423, ordered as
+input/cache-write/cache-read/output. It is not a total across all runs. Selected
+and returned model identities are printed separately. The coder drove these
+human PTYs; no Bill participation is claimed. Public workflow and collection
+are executable consumer demonstrations; GUI is still a stub.
+
+Preserve the older Gemini HTTP-200/STOP responses with missing required output
+usage, the inconclusive merged-versus-split diagnostic, the initial invented
+`timeout_ms` prompt field and late idle-hint refusal. The revised Gemini request
+includes hint sequence 7 in request sequence 10 after the signed call's result;
+the next captured request omits it. The raw wire establishes delivery, while
+the answer separately establishes observed compliance. The full-buffer and
+subscription faults remain deterministic evidence, not invented vendor events.
+
+The independent supplemental audit is
+[`ch05-review-final-receipts.json`](checkpoint-evidence/ch05-review-final-receipts.json),
+with observations in
+[`ch05-review-live-observations.json`](checkpoint-evidence/ch05-review-live-observations.json).
+It reproduces all 78 requests across 14 logical runs and verifies 204 manifest
+hashes, both 59-source bindings and archived executable identities. All 247 raw
+files remain unchanged. Its passing fixture plus 13 isolated identity mutations
+reach the intended refusals before replay or derived writes. The original 13
+student negatives instead stopped at an earlier path guard; their labels did
+not establish the advertised checks, and that masked attempt remains preserved.
+
+The manuscript's frozen `ch05` evidence links anticipate the coordinator's
+verified export. Final proofreading and export/tag status belong in the linked
+gate record, separate from Bill's editorial approval. No new paid call or
+runtime change was made for this author reconciliation.
