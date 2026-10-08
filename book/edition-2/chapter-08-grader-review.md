@@ -416,7 +416,7 @@ earns credit.
 The [affected rerun](checkpoint-evidence/ch08-full-gate-affected-rerun.json)
 rebuilds both binaries from the same source and reruns browser positives, all
 browser deletions, actual-Web-Locks deletions and the complete retained Chapter 7
-comparative-repair group. All pass. The other 46 group results retain their
+comparative-repair group. All pass. The other 44 group results retain their
 original run identity. Only three checker files changed between those runs;
 the reconciled receipt records their before/after hashes. No repeated paid
 call or runtime change was needed for either fixture repair.
