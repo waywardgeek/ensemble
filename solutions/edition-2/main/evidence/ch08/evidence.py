@@ -7,8 +7,8 @@ import sys
 HERE=Path(__file__).resolve().parent
 ROOT=HERE.parents[4]
 PREFIX='solutions/edition-2/main/'
-SUPPORT=['evidence.py','terminal-run.py','verify-receipts.py','browser-live.mjs','capture-audio.swift','test-evidence.py']
-EXECUTABLES={'cli','gui','consumer','headless','interpreter','node','recorder','capture','chrome'}
+SUPPORT=['evidence.py','terminal-run.py','verify-receipts.py','browser-live.mjs','capture-audio.swift','test-evidence.py','replay-server.go','replay-run.py']
+EXECUTABLES={'cli','gui','consumer','headless','interpreter','node','recorder','capture','chrome','replay'}
 def digest(data):return hashlib.sha256(data).hexdigest()
 def historical(revision,path):return subprocess.check_output(['git','show',revision+':'+path],cwd=ROOT)
 def source_set(revision):

@@ -101,14 +101,14 @@ def launch(args):
     env['EN_DISABLE_STREAMING']='1' if args.plain else '0'
     executable={'chat':'cli','browser':'gui','consumer':'consumer','headless':'headless'}[args.mode];command=[paths[executable]]
     if args.mode=='browser':
-        command.extend(['--port','0','--gui-log',str(run/'gui.jsonl')])
+        command.extend(['--port','0','--gui-log',str(run/'gui.jsonl'),'--preferences',str(workspace/'.ensemble/gui-preferences.json'),'--policy',str(workspace/'.ensemble/agent-policy.json')])
         if args.terminal:command.append('--terminal')
     reserve=2 if args.mode=='headless' or args.terminal else 1 if args.mode=='chat' else 0
     if reserve:
         budget=HERE/('prompt-budget-'+args.vendor+'.json')
         with budget.open('a+') as counter:
             fcntl.flock(counter,fcntl.LOCK_EX);counter.seek(0);raw=counter.read();used=json.loads(raw)['prompts'] if raw else 0
-            assert used+reserve<=10,'demonstration prompt budget exhausted'
+            assert used+reserve<=(11 if args.vendor=='anthropic' else 10),'demonstration prompt budget exhausted'
             counter.seek(0);counter.truncate();counter.write(json.dumps({'prompts':used+reserve}));counter.flush()
             fcntl.flock(counter,fcntl.LOCK_UN)
     if args.mode=='chat':command.append('chat')

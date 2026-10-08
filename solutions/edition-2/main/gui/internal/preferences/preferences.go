@@ -148,6 +148,9 @@ func New(parent common.Server, path string) (*Service, error) {
 	good = true
 	return s, nil
 }
+
+// These strict parser helpers keep the service argument even where parsing is
+// currently stateless: future diagnostics must still reach the actual owner.
 func decode(s *Service, raw json.RawMessage, target any) bool {
 	return len(raw) > 0 && !bytes.Equal(bytes.TrimSpace(raw), []byte("null")) && json.Unmarshal(raw, target) == nil
 }

@@ -350,3 +350,29 @@ The cd9de3e verifier exactly reconstructs24 requests from six completed browser/
 embedding launches plus one from Gemini's bounded interruption correction.
 Current counters before the final Anthropic correction: Anthropic10/17, OpenAI9/14,
 Gemini10/15 (prompts/modelHTTP). One discovery request per provider remains separate.
+
+## Historical comparison: lossless browser revisions
+
+Reviewer found that the taught uint64 disk/wire revision contract exceeds JS
+Number's exact integer range. A valid file seeded9007199254740993 loads, but
+JSON.parse previously rounded the browser base to9007199254740992, making both
+settings domains permanently conflict. A9007199254740992 transition reproduces
+the loss after a successful commit too. This is a teaching representation gap
+and an implementation defect, not a reason to silently narrow persisted input.
+Before affected code, reviewer approved preserving numeric uint64 disk/wire,
+retaining unsafe revisions as BigInt internally, exact successors/comparisons,
+and a dedicated unquoted base_revision encoder. Only known protocol-counter
+positions are normalized; user strings and tool argument objects are untouched.
+JSON.parse reviver source-context supplies the original lexeme; a browser without
+that support fails visibly before settings-ready or sending a rounded base.
+The actual ECMAScript specification was consulted (no historical answer code):
+https://tc39.es/ecma262/multipage/structured-data.html#sec-json.parse .
+This repair groups with final evidence adapter work before another launch.
+
+The independent maximum-revision browser check then exposed a second loss on
+server projection: typed observation revision18446744073709551615 was marshaled
+and decoded through float64 before wire encoding, producing18446744073709552000.
+The browser correctly refused that out-of-range token. All three typed projection
+conversions now retain json.Number tokens while preserving opaque sanitization
+and typed-child traversal. This is an implementation correction within the same
+approved representation plan, not a new persisted range restriction.

@@ -129,5 +129,45 @@ with tempfile.TemporaryDirectory() as temp:
             consumer.terminate();consumer.wait(timeout=10);local.shutdown();local.server_close();local_thread.join();prompt_budget.unlink(missing_ok=True)
     finally:
         gui.terminate();gui.wait(timeout=10)
+    replay_run=root/'replay';replay_run.mkdir()
+    (replay_run/'launch.json').write_text(json.dumps({**launch,'launched_executable':'replay','vendor':'fixture-control'}))
+    replay=subprocess.Popen([paths['replay'],'anthropic',str(fixture/'session.log')],cwd=replay_run,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+    try:
+        url=replay.stdout.readline().strip();assert url.startswith('http://127.0.0.1:')
+        actions=[{'action':'wait','text':'fixture','exact':True},{'action':'settings'},{'action':'open'},{'action':'settings','page':1},{'action':'race-preferences','font':19,'width':420},{'action':'inspect','page':1},{'action':'quit'}]
+        controlled=subprocess.run([paths['node'],str(HERE/'browser-live.mjs'),str(replay_run),url],input=''.join(json.dumps(a)+'\n' for a in actions),capture_output=True,text=True,timeout=40)
+        assert controlled.returncode==0,(controlled.stdout,controlled.stderr)
+        rows=[json.loads(line) for line in (replay_run/'browser-original.jsonl').read_text().splitlines()]
+        assert not [row for row in rows if row['kind']=='action_failed'],controlled.stdout
+        sent=[json.loads(row['payload']) for row in rows if row['kind']=='browser_sent']
+        assert sum(row.get('type')=='preferences_update' for row in sent)==2,sent
+        assert not any(row.get('type')=='prompt' for row in sent)
+        results.append({'check':'public-retained-replay-and-two-page-settings-race','passed':True})
+    finally:replay.terminate();replay.wait(timeout=10)
+    stream_release=threading.Event()
+    class LiveStream(http.server.BaseHTTPRequestHandler):
+        def log_message(self,*args):pass
+        def do_POST(self):
+            self.rfile.read(int(self.headers['content-length']))
+            self.send_response(200);self.send_header('content-type','text/event-stream');self.end_headers()
+            events=[{'type':'message_start','message':{'model':'fixture','content':[],'usage':{'input_tokens':1}}},{'type':'content_block_start','index':0,'content_block':{'type':'text','text':''}},{'type':'content_block_delta','index':0,'delta':{'type':'text_delta','text':'Nonempty provisional fixture text.'}}]
+            for event in events:self.wfile.write(('event: '+event['type']+'\ndata: '+json.dumps(event)+'\n\n').encode())
+            self.wfile.flush();stream_release.wait(20)
+    local=http.server.ThreadingHTTPServer(('127.0.0.1',0),LiveStream);local_thread=threading.Thread(target=local.serve_forever);local_thread.start()
+    stream_run=root/'streaming';stream_run.mkdir()
+    (stream_run/'launch.json').write_text(json.dumps({**launch,'launched_executable':'consumer','vendor':'fixture-control'}))
+    stream_env=env.copy();stream_env.update(EN_DISABLE_STREAMING='0',LLM_BASE_URL=f'http://127.0.0.1:{local.server_port}')
+    consumer=subprocess.Popen([paths['consumer']],cwd=stream_run,env=stream_env,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+    try:
+        lines=[consumer.stdout.readline().strip() for _ in range(3)];url=lines[-1];assert url.startswith('http://127.0.0.1:')
+        actions=[{'action':'prompt','panel':1,'text':'local streaming positive'},{'action':'wait-stream','panel':1},{'action':'interrupt','panel':1},{'action':'wait','panel':1,'text':'Outcome: interrupted'},{'action':'quit'}]
+        controlled=subprocess.run([paths['node'],str(HERE/'browser-live.mjs'),str(stream_run),url],input=''.join(json.dumps(a)+'\n' for a in actions),capture_output=True,text=True,timeout=40)
+        assert controlled.returncode==0,(controlled.stdout,controlled.stderr)
+        rows=[json.loads(line) for line in (stream_run/'browser-original.jsonl').read_text().splitlines()]
+        assert not [row for row in rows if row['kind']=='action_failed'],controlled.stdout
+        assert any(row['kind']=='page_receipt' and 'Nonempty provisional fixture text.' in json.dumps(row) and 'Provisional' in json.dumps(row) for row in rows)
+        results.append({'check':'actual-nonempty-provisional-stream-barrier-and-interrupt','passed':True})
+    finally:
+        stream_release.set();consumer.terminate();consumer.wait(timeout=10);local.shutdown();local.server_close();local_thread.join();(HERE/'prompt-budget-fixture-control.json').unlink(missing_ok=True)
 (HERE/'local-evidence-controls.json').write_text(json.dumps(results,indent=2)+'\n')
 print(json.dumps(results,indent=2))

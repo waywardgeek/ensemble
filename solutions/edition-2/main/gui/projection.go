@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"bytes"
 	"encoding/json"
 	"example.com/ensemble"
 )
@@ -13,9 +14,7 @@ func ProjectPart(owner ServerOwner, p ensemble.Part) map[string]any {
 	p.Opaque = nil
 	children := p.Parts
 	p.Parts = nil
-	raw, _ := json.Marshal(p)
-	out := map[string]any{}
-	_ = json.Unmarshal(raw, &out)
+	out := projectObject(owner, p)
 	if p.Type == "tool_result" {
 		out["is_error"] = p.IsError
 	}
@@ -36,9 +35,7 @@ func projectParts(owner ServerOwner, parts []ensemble.Part) []any {
 	return out
 }
 func ProjectEvent(owner ServerOwner, e ensemble.Event) map[string]any {
-	raw, _ := json.Marshal(e)
-	out := map[string]any{}
-	_ = json.Unmarshal(raw, &out)
+	out := projectObject(owner, e)
 	if e.Response != nil {
 		out["response"].(map[string]any)["parts"] = projectParts(owner, e.Response.Parts)
 	}
@@ -54,9 +51,7 @@ func ProjectEvent(owner ServerOwner, e ensemble.Event) map[string]any {
 	return out
 }
 func projectObservation(owner ServerOwner, o ensemble.Observation) map[string]any {
-	raw, _ := json.Marshal(o)
-	out := map[string]any{}
-	_ = json.Unmarshal(raw, &out)
+	out := projectObject(owner, o)
 	if o.Kind == "part_delta" {
 		out["text"] = o.Text
 	}
@@ -68,5 +63,17 @@ func projectObservation(owner ServerOwner, o ensemble.Observation) map[string]an
 	} else {
 		delete(out, "event")
 	}
+	return out
+}
+
+// Preserve numeric wire tokens while projecting typed values. A float64
+// intermediate would round valid uint64 revisions before the browser sees them.
+// The owner remains available for diagnostics throughout this conversion.
+func projectObject(owner ServerOwner, value any) map[string]any {
+	raw, _ := json.Marshal(value)
+	out := map[string]any{}
+	decoder := json.NewDecoder(bytes.NewReader(raw))
+	decoder.UseNumber()
+	_ = decoder.Decode(&out)
 	return out
 }

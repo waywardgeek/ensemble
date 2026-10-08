@@ -36,7 +36,8 @@ try{for await(const line of lines){if(!line.trim())continue;const action=JSON.pa
     if(action.action==='prompt'){
       const path=join(here,'prompt-budget-'+launch.vendor+'.json');let used=0;
       try{used=JSON.parse(readFileSync(path)).prompts}catch(error){if(error.code!=='ENOENT')throw error}
-      if(used>=10)throw new Error('chapter8 demonstration ten-prompt limit');
+      const limit=launch.vendor==='anthropic'?11:10; // One reviewer-approved Anthropic interruption correction.
+      if(used>=limit)throw new Error(`chapter8 demonstration ${limit===10?'ten':limit}-prompt limit`);
       writeFileSync(path,JSON.stringify({prompts:used+1})+'\n');
     }
     await root.locator('[data-input]').fill(action.text);await root.locator(action.action==='prompt'?'[data-prompt]':'[data-hint]').click();break;
@@ -47,6 +48,8 @@ try{for await(const line of lines){if(!line.trim())continue;const action=JSON.pa
    case 'close':await page.close();break;
    case 'settings':await root.getByRole('tab',{name:'Settings',exact:true}).click();break;
    case 'preference':{const control=root.locator(`[data-preference="${action.field}"]`);if(action.field==='theme')await control.selectOption(action.value);else if(action.field==='autoplay')await control.setChecked(action.value);else{await control.fill(String(action.value));await control.press('Tab');}break;}
+   case 'race-preferences':{const other=pages[action.other_page??1].locator('main');const first=root.locator('[data-preference=font_size]'),second=other.locator('[data-preference=actions_width]');await first.fill(String(action.font));await second.fill(String(action.width));await Promise.all([first.dispatchEvent('change'),second.dispatchEvent('change')]);break;}
+   case 'wait-stream':await page.waitForFunction(panel=>{const scope=document.querySelectorAll('main')[panel];return [...scope.querySelectorAll('.artifact')].some(card=>card.querySelector('h2')?.textContent==='Answer'&&card.querySelector('.meta')?.textContent.includes('Provisional')&&card.querySelector('div')?.textContent.trim().length>0)},action.panel??0,{timeout:15000});break;
    case 'policy':await root.locator('[data-policy]').fill(String(action.value));await root.locator('[data-policy-save]').click();break;
    case 'divider':await root.locator(`[data-divider="${action.field}"]`).press(action.key);break;
    case 'drag-divider':{const box=await root.locator(`[data-divider="${action.field}"]`).boundingBox();if(!box)throw new Error('divider is not visible');await page.mouse.move(box.x+box.width/2,box.y+box.height/2);await page.mouse.down();await page.mouse.move(box.x+box.width/2+action.delta,box.y+box.height/2,{steps:8});await page.mouse.up();break;}

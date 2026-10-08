@@ -12,7 +12,7 @@ export class Connector {
     socket.onopen = () => { if (socket === this.socket) this.send('subscribe').catch(e => this.owner.diagnostic(e.message)); };
     socket.onmessage = event => {
       if (socket !== this.socket) return;
-      try { this.receive(JSON.parse(event.data)); } catch (e) { this.owner.diagnostic('Invalid server frame: ' + e.message); socket.close(); }
+      try { this.receive(this.decode(event.data)); } catch (e) { this.settingsReady = false; this.owner.diagnostic('Invalid server frame: ' + e.message); socket.close(); }
     };
     socket.onclose = () => {
       if (socket !== this.socket) return;
@@ -21,6 +21,45 @@ export class Connector {
       if (!this.closed) this.timer = setTimeout(() => this.connect(), 500);
     };
     socket.onerror = () => { if (socket === this.socket) this.owner.diagnostic('Connection failed'); };
+  }
+  // Disk and wire revisions remain uint64 JSON integers. Number is used only
+  // while exact; unsafe revisions stay BigInt through decode, comparison and send.
+  decode(raw) {
+    // Retain lexemes by their containing object, then normalize only protocol
+    // counters. A tool argument named revision must not become an unexpected
+    // BigInt and break artifact rendering; strings are never rewritten.
+    const sources = new WeakMap();
+    const message = JSON.parse(raw, function(key, value, context) {
+      if (['revision', 'watermark', 'watch_revision'].includes(key) && typeof value === 'number' && !Number.isSafeInteger(value)) {
+        let fields = sources.get(this); if (!fields) sources.set(this, fields = new Map());
+        fields.set(key, context?.source);
+      }
+      return value;
+    });
+    const counter = (object, key = 'revision') => {
+      if (!object || object[key] === undefined) return;
+      const value = object[key];
+      if (typeof value !== 'number' || !Number.isInteger(value) || value < 0) throw new Error('Invalid server counter');
+      if (Number.isSafeInteger(value)) return;
+      const source = sources.get(object)?.get(key);
+      if (!source) throw new Error('This browser cannot retain exact server revisions; JSON source support is required');
+      if (!/^(0|[1-9][0-9]{0,19})$/.test(source) || BigInt(source) > 18446744073709551615n) throw new Error('Invalid server counter');
+      object[key] = BigInt(source);
+    };
+    counter(message); counter(message, 'watermark'); counter(message, 'watch_revision');
+    counter(message.state?.execution_policy); counter(message.observation?.execution_policy);
+    if (message.type === 'error' && ['preferences', 'policy'].includes(message.domain)) counter(message.current);
+    return message;
+  }
+  encode(message) {
+    if (!['preferences_update', 'policy_update'].includes(message.type)) return JSON.stringify(message);
+    const base = message.base_revision;
+    if (typeof base === 'number' && !Number.isSafeInteger(base)) throw new Error('Settings base revision must be exact');
+    if (typeof base !== 'bigint') return JSON.stringify(message);
+    if (base < 0n || base > 18446744073709551615n) throw new Error('Invalid settings base revision');
+    // Serialize the other fields normally, then append only this known numeric
+    // field. No replacement can accidentally alter user text or patch contents.
+    return JSON.stringify({...message, base_revision: undefined}).slice(0, -1) + ',"base_revision":' + base.toString() + '}';
   }
   rejectPending() {
     for (const p of this.pending.values()) {
@@ -41,12 +80,12 @@ export class Connector {
     const id = 'c' + (++this.count);
     return new Promise((resolve, reject) => {
       this.pending.set(id, {type, resolve, reject});
-      try { this.socket.send(JSON.stringify({type, id, ...fields})); } catch (error) { this.pending.delete(id); reject(error); }
+      try { this.socket.send(this.encode({type, id, ...fields})); } catch (error) { this.pending.delete(id); reject(error); }
     });
   }
   receive(m) {
     if (m.type === "preferences_snapshot" || m.type === "preferences_changed") {
-      if (m.type === "preferences_changed" && (!this.preferences || m.revision !== this.preferences.revision + 1)) throw new Error("preferences revision gap");
+      if (m.type === "preferences_changed" && (!this.preferences || BigInt(m.revision) !== BigInt(this.preferences.revision) + 1n)) throw new Error("preferences revision gap");
       this.preferences = {revision: m.revision, preferences: m.preferences}; this.owner.preferences?.(this.preferences); return;
     }
     if (m.type === 'snapshot_begin') {
@@ -67,7 +106,7 @@ export class Connector {
     }
     if (m.type === 'observation') {
       if (m.generation !== this.generation) return;
-      if (m.revision !== this.revision + 1) throw new Error('observation gap');
+      if (BigInt(m.revision) !== BigInt(this.revision) + 1n) throw new Error('observation gap');
       this.revision = m.revision; this.owner.observation(m.observation); return;
     }
     const pending = this.pending.get(m.id);
