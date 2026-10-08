@@ -320,3 +320,14 @@ consumed every consecutive activation. Section 9.10 makes that fixture limit
 explicit. The browser must newly preserve activation/card identity, beyond the
 settings/watch fields actually protected in Chapter 8. No Chapter 9 student
 implementation or runtime success is claimed.
+
+
+The initial independent checker was published at `e6c3406` and accepted by the
+coordinator for the initial handoff subset. The TL;DR now prints
+`python3 scripts/edition2/accept_ch09.py CLI_BINARY` and labels its 51-check
+scope. The author read the complete grader coverage record, not the checker
+implementation. That record remains author/reviewer context and is explicitly
+outside the cold student's reading set. Full public/browser/ownership/race and
+boundary checks remain required; the predecessor's 6/51 absent-feature result
+is not a Skills positive. Chapter 8 checkpoint remains the release prerequisite.
+The earlier missing-command chronology remains in the preparation record.

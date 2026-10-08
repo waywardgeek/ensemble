@@ -69,10 +69,14 @@ Build the CLI from main with `go build -o /tmp/ensemble-ch09-cli ./cmd` and the 
 `main/gui` with `go build ./cmd/ensemble-gui`. The inherited diagnostic is
 `make grade-dir CH=10 DIR=solutions/edition-2/main`; its old binary, wire and
 fixture assumptions do not cover this contract. The independent Chapter 9
-acceptance command is still pending publication. Section 9.10 defines required
-checks, and the absence of that command blocks student release. Public Go
-method names remain choices; the bytes, ownership and observable behavior here
-do not.
+initial command is `python3 scripts/edition2/accept_ch09.py CLI_BINARY`, with
+an absolute path to the built CLI. Its 51 checks cover an initial subset;
+§9.10's full required matrix, public/browser checks, retained behavior and
+actual use remain mandatory. Run it as a black box; do not read the checker or
+reviewer internals. The [coverage record](chapter-09-grader-review.md) is for
+author/reviewer context, outside the cold student's source set. An accepted
+Chapter 8 remains a prerequisite to student release. Public Go method names
+remain choices; the bytes, ownership and observable behavior here do not.
 
 ## 9.1 Installed, enabled and remembered
 

@@ -4,8 +4,9 @@ Full draft prepared for contract review, October 8, 2026. New Chapter 9 maps
 to first-edition Chapter 10 under `workflow.md` and `global-review.md`.
 Coordinator review `0498b61` accepts the architecture direction and two policy
 choices below. The full chapter is not yet accepted or ready for a student:
-Chapter 8 and a published independent contract checker remain prerequisites.
-No Chapter 9 implementation, passing checker or live result exists.
+Chapter 8 remains a prerequisite. The initial independent checker is now
+published; see the current manuscript command and its explicit partial scope.
+No Chapter 9 implementation, passing runtime gate or live result exists.
 
 ## Stake and story decision
 
