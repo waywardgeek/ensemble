@@ -358,7 +358,35 @@ testing, and is completely unconfined. Make the safe thing the easy thing.
    belong, but the comment is explicit enough that I want your ruling
    before adding them.
 4. **Refusal versus AND** (2.5). Needs resolving in prose and in code
-   together, including the mixed Boolean/path rule.
+   together. Note it also changes a grader check: `child-cannot-widen`
+   currently asserts an ERROR, and under a pure AND rule there is no
+   error, so it would have to assert the child's effective flags instead.
+
+   **A resolution that keeps both, recommended.** The reason AND is
+   tempting is that a two-state Boolean cannot distinguish "I did not
+   specify" from "I demand this", so erroring on over-request would make
+   ordinary spawns fail on defaults. Make the flags TRI-STATE and the
+   conflict dissolves:
+
+   | Child says | Result |
+   |---|---|
+   | omitted | inherit the parent's value |
+   | requests less | granted; narrowing is always allowed |
+   | requests more than the parent has | loud error |
+
+   This keeps AND's structural guarantee (a child can never end up wider
+   than its parent even if a check is buggy) while preserving the
+   chapter's "a refusal, not a negotiation", because the only refusals
+   are for agents that explicitly demanded more than they had. Paths keep
+   the error either way: two Booleans can be ANDed, two directory trees
+   cannot, and silently substituting the parent's root would hand a child
+   a sandbox it never asked about.
+
+   Precedent worth citing in the prose: CodeRhapsody's own
+   `spawn_sub_agent` works exactly this way. Omit to inherit; "You may
+   only narrow... Attempting either fails loudly with an error rather
+   than quietly downgrading." The two-state Boolean was the root of the
+   problem, not the enforcement rule.
 5. **Chapter 22 note.** Widening `common.Agent` forced `SandboxRoot()`
    onto five implementers including `*Logger` — the exact type ch22 used
    as its exhibit for an interface that "never grew past its name".
@@ -371,6 +399,6 @@ testing, and is completely unconfined. Make the safe thing the easy thing.
 7. **Does 23.7 keep the three-mode table?** It is good writing, but
    nothing implements the modes yet. Build them, or reframe as the
    chapter's exercise.
-8. **Chapter scope.** With the kernel mechanism, the research, and the
-   credential work, this may be more than one chapter's worth. Worth
-   deciding before the rewrite rather than during it.
+8. **Chapter scope — DECIDED: one chapter.** Recorded so the rewrite does
+   not relitigate it. The kernel mechanism, the credential work and the
+   trust hierarchy stay together under a single unified thesis.
