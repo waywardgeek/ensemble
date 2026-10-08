@@ -370,3 +370,56 @@ larger than its decoded material. It protects the rendered-byte contract from an
 unrelated serialized-line cap. These four leaves are not yet run and allocate a
 larger temporary log only when the public suite runs; no such log or Go build
 was created during preparation. The public suite now has twelve top-level groups.
+
+
+### First student integration: fixture corrections, not runtime repairs
+
+The fresh student reported the initial CLI hash
+`aafb5132aa6cf2a1e4bf4db6e13f285423a6b31ccf51f8a23964d85f826fd866`.
+The reviewer reproduced the failures before editing the checks. The original
+catalog 64/65, replay 0/105 and browser 3/5 are retained in the
+`ch09-review-*-initial.json` receipts. They exposed four fixture mistakes:
+
+* Render-size padding extended the final unbraced `$TOOLS` variable name. Both
+  the exact and over-size cases therefore hit unknown-variable validation.
+  Braced tokens now preserve the intended 65,536/65,537 rendered-byte boundary.
+* The offline positive admitted a second human before completing the first.
+  All forged-log cases correctly received no credit without a passing parent.
+  A compact accepted response now completes that turn before the transitions;
+  all 34 distinct skill forgeries remain, with their event indices adjusted.
+* The ordering test submitted its late hint after `round_limit` ended the turn.
+  The inherited API correctly refused an idle hint. It now admits the late hint
+  during the next held HTTP request and checks its later capture, separate from
+  the two earlier anchored hints. All H/S/P order, render purity, unresolved-prefix
+  refusal and exact live/offline replay assertions remain.
+* The browser counted the inherited omitted-history notice as a manual card.
+  It now identifies material cards while retaining that notice. The two actual
+  unsafe-identity cards have keys `skill/a1/9007199254740992` and
+  `skill/a1/9007199254740993`; the skill revision remains
+  `18446744073709551615`.
+
+Corrected checks pass on the same CLI: catalog **65/65**, offline replay
+**105/105**. The current asset copy passes all **five** Chrome groups. The
+public ordering group passes all **six** provider/mode leaves under the race
+checker; fixture formatting and external-consumer vet also pass. Each result
+is bound in `ch09-review-*-corrected.json`. These are mutable-worktree integration
+results with before/after source hashes, not an immutable chapter acceptance.
+No student runtime change was requested to clear these failures. The reviewer
+inspected current student reports and selected current Skills integration/source
+names for forthcoming seams; historical Chapter 10 answers remain unopened.
+
+`accept_ch09_public.py` now accepts `--run GO_TEST_PATTERN` for targeted runs;
+the receipt explicitly marks narrowed runs as partial. The default still runs
+all public groups. The expensive aggregate-size group was not repeated for
+this diagnostic-only repair. Replay failures now print bounded actual CLI
+stderr/stdout, and browser failures retain bounded card titles/text/keys and
+counter values, so the student can diagnose them without reading grader code.
+
+Before independent pre-live clearance, remaining work includes transition-append
+and later-result-append failure controls; whole-group activation/revision
+exhaustion with a genuine owner-state seam and maximum no-op positive; targeted
+runtime deletion controls; pending management pause/interruption; actual GUI
+wire Skills projection; and retained behavior, complete delivered-module checks
+and architectural inspection covering the new Skills spoke. Student tests and
+these corrected positives do not replace that work, the live matrix review,
+or the post-freeze historical quality comparison.

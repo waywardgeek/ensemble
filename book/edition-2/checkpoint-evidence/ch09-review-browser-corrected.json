@@ -1,0 +1,64 @@
+{
+  "passed": true,
+  "scope": "Actual Chrome, controlled public socket/native callbacks. Counter fixtures are projection inputs, not valid complete exhausted logs. No provider or audible claim.",
+  "checks": [
+    {
+      "id": "inherited-card-and-native-service-positive",
+      "passed": true,
+      "result": {
+        "spoken": 1
+      }
+    },
+    {
+      "id": "safe-manual-cards-silent-replay-expansion-and-explicit-speech",
+      "passed": true,
+      "result": {
+        "cards": 3
+      }
+    },
+    {
+      "id": "current-state-beyond-window-and-independent-page",
+      "passed": true,
+      "result": {
+        "a": "AgentsSettings\nAgentsCurrent Agent Independent conversation and policyLifecycle and pause state stay visible above.SkillsPrimary: baseRevision: 3Roots: betaActive: base (primary), beta (loadable)Available: alpha: AlphaTools: load_skill, read_file, unload_skill\nAppearance and speech\nThemeDarkLightSystem\nFont size\nSidebar width\nActions width\nAutoplay new answers\nShared across tabs. New visible answers, exposed thinking and concise tool summaries can speak. Tool results and replay remain silent. Existing speech continues when autoplay turns off.\nSpeech rate\nApplied revision 0: dark, 16px, widths 260/380, autoplay off, rate 1.\nAgent policyNext turn: Default (16) model requests; revision 0; persistent. Active turn: none.Maximum model requests per turn0 selects Default (16). Changes apply when a later turn activates.Apply Agent policy\n",
+        "b": "AgentsSettings\nAgentsCurrent Agent Independent conversation and policyLifecycle and pause state stay visible above.SkillsSkills disabled.\nAppearance and speech\nThemeDarkLightSystem\nFont size\nSidebar width\nActions width\nAutoplay new answers\nShared across tabs. New visible answers, exposed thinking and concise tool summaries can speak. Tool results and replay remain silent. Existing speech continues when autoplay turns off.\nSpeech rate\nApplied revision 0: dark, 16px, widths 260/380, autoplay off, rate 1.\nAgent policyNext turn: Default (16) model requests; revision 0; persistent. Active turn: none.Maximum model requests per turn0 selects Default (16). Changes apply when a later turn activates.Apply Agent policy\n"
+      }
+    },
+    {
+      "id": "uint64-snapshot-material-retired-identity-and-opaque-boundary",
+      "passed": true,
+      "result": {
+        "revision": "18446744073709551615",
+        "keys": [
+          "skill/a1/9007199254740992",
+          "skill/a1/9007199254740993"
+        ]
+      }
+    },
+    {
+      "id": "unsafe-counter-without-source-context-refuses-before-acceptance",
+      "passed": true,
+      "result": {
+        "notice": "Invalid server frame: This browser cannot retain exact server revisions; JSON source support is required"
+      }
+    }
+  ],
+  "source": "/Users/bill/projects/ensemble/solutions/edition-2/main",
+  "assets": {
+    "app.js": "3cbdb5db8c025c3b55d50b63036cadf80a75d50bdca2223f85ee082826fef2c4",
+    "application.js": "08026bc76bb7018ef3c1b94ed32792ef193f68506df31c4c20a8ba74b40a17fe",
+    "artifacts.js": "2d6b0918b7a39414c62befa04983ae70c808e0deb7be2c6075d8cc8722de4240",
+    "connector.js": "b8eae23fae0e49819c7c64454d715b210a40937e9cbe72c7bc1355713467c41a",
+    "index.html": "220f6acdff4e1af21b91f72a46a562f4a1dbb1567fb06cb3a7ace162b87eb837",
+    "page.js": "b468d400c8ad94b74b1b3beb691b99504b48c1145950187441120414c71446fa",
+    "preferences.js": "08be359ce21aca87c04d7b874f3e8e6633dfb4c169a8ec2af349c1fa9f233ac5",
+    "speech-service.js": "3e8e32698ca04dacbe74a59e2bacb5d8873abb4247aed5083c0c668a6d744db8",
+    "speech.js": "7fb05ba0cbf7b8c8c0e7c998cb29747561c35c52446f5f4dae2191c942f296b3",
+    "style.css": "acce34326e6d532647daf632bf4a1b64df78c1fc51416b28086749d526b7c2cd"
+  },
+  "checkers": {
+    "accept_ch09_browser.cjs": "74977e49dc4f13c5c5048731aa5ed5e60ea407c3e2670366f42c71d59399ce96",
+    "ch09-browser-fixture.js": "04c259ab48b28df9ecfa81eefbd7b46e8b7c31d929a41034b5a228066fa30e27",
+    "ch08-browser-fixture.js": "1832e13287a87e6d27ab361e1e5981e22fc0fb31f708987a5fde3d475121c27a"
+  }
+}

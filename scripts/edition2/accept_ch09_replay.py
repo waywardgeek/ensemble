@@ -36,11 +36,14 @@ def fixture():
     second=material(3,'edit','loadable','First frozen manual.\n',['write_file'])
     values=[('skills_initialized',dict(action='initialize',name='base',ceiling=['load_skill','read_file','unload_skill','write_file'],state=state(0),activated=[base])),
             ('message_received',dict(actor='human',purpose='dialogue',parts=[dict(type='text',text='Before editing.')])),
+            ('response_ended',{'from':dict(vendor='openai',model='gpt-4.1-mini-2025-04-14',surface='chat_completions'),
+                               'parts':[dict(type='text',text='Accepted before editing.')],
+                               'usage':dict(input=1,cache_write=0,cache_read=0,output=1)}),
             ('skills_changed',dict(action='load',name='edit',state=state(1,2),activated=[edit])),
             ('skills_changed',dict(action='unload',name='edit',state=state(2,retired=[2]),activated=[])),
             ('skills_changed',dict(action='load',name='edit',state=state(3,3,[2]),activated=[second])),
             ('message_received',dict(actor='human',purpose='dialogue',parts=[dict(type='text',text='After editing.')]))]
-    return [dict(seq=i,time='2026-01-01T00:00:00Z',type=kind,**{'skills' if kind.startswith('skills_') else 'message':value}) for i,(kind,value) in enumerate(values,1)]
+    return [dict(seq=i,time='2026-01-01T00:00:00Z',type=kind,**{'skills' if kind.startswith('skills_') else 'response' if kind=='response_ended' else 'message':value}) for i,(kind,value) in enumerate(values,1)]
 
 
 def forgeries():
@@ -54,34 +57,34 @@ def forgeries():
     changed('initial-dynamic-root',lambda e:e[0]['skills']['state'].__setitem__('roots',['edit']))
     changed('initial-primary-mismatch',lambda e:e[0]['skills']['state'].__setitem__('primary','other'))
     changed('initial-id-not-one',lambda e:(e[0]['skills']['activated'][0].__setitem__('activation',2),e[0]['skills']['state']['active'][0].__setitem__('activation',2)))
-    changed('revision-skip',lambda e:e[2]['skills']['state'].__setitem__('revision',2))
-    changed('hidden-root',set_at(2,'name','hidden'))
-    changed('unrelated-requested-root',set_at(2,'name','side'))
-    changed('changed-ceiling',set_at(2,'ceiling',['load_skill','unload_skill','write_file']))
-    changed('changed-primary',lambda e:e[2]['skills']['state'].__setitem__('primary','edit'))
-    changed('fresh-id-gap',lambda e:(e[2]['skills']['activated'][0].__setitem__('activation',3),e[2]['skills']['state']['active'][1].__setitem__('activation',3)))
-    changed('body-hash-mismatch',lambda e:e[2]['skills']['activated'][0].__setitem__('body','Altered body.'))
-    changed('uppercase-digest',lambda e:e[2]['skills']['activated'][0].__setitem__('sha256',e[2]['skills']['activated'][0]['sha256'].upper()))
-    changed('grant-outside-ceiling',lambda e:(e[2]['skills']['activated'][0].__setitem__('tools',['fictional']),e[2]['skills']['state'].__setitem__('tools',['fictional','load_skill','read_file','unload_skill'])))
-    changed('missing-management-grant',lambda e:e[2]['skills']['state']['tools'].remove('unload_skill'))
+    changed('revision-skip',lambda e:e[3]['skills']['state'].__setitem__('revision',2))
+    changed('hidden-root',set_at(3,'name','hidden'))
+    changed('unrelated-requested-root',set_at(3,'name','side'))
+    changed('changed-ceiling',set_at(3,'ceiling',['load_skill','unload_skill','write_file']))
+    changed('changed-primary',lambda e:e[3]['skills']['state'].__setitem__('primary','edit'))
+    changed('fresh-id-gap',lambda e:(e[3]['skills']['activated'][0].__setitem__('activation',3),e[3]['skills']['state']['active'][1].__setitem__('activation',3)))
+    changed('body-hash-mismatch',lambda e:e[3]['skills']['activated'][0].__setitem__('body','Altered body.'))
+    changed('uppercase-digest',lambda e:e[3]['skills']['activated'][0].__setitem__('sha256',e[3]['skills']['activated'][0]['sha256'].upper()))
+    changed('grant-outside-ceiling',lambda e:(e[3]['skills']['activated'][0].__setitem__('tools',['fictional']),e[3]['skills']['state'].__setitem__('tools',['fictional','load_skill','read_file','unload_skill'])))
+    changed('missing-management-grant',lambda e:e[3]['skills']['state']['tools'].remove('unload_skill'))
     changed('unearned-grant',lambda e:e[0]['skills']['state']['tools'].append('write_file'))
-    changed('missing-active-grant',lambda e:e[2]['skills']['state']['tools'].remove('write_file'))
-    changed('false-discoverable',lambda e:e[2]['skills']['state']['available'].append(dict(name='hidden',description='Hidden')))
-    changed('self-dependency',lambda e:e[2]['skills']['activated'][0].__setitem__('dependencies',[2]))
-    changed('primary-as-dependency',lambda e:e[2]['skills']['activated'][0].__setitem__('dependencies',[1]))
-    changed('extra-active-record',lambda e:e[2]['skills']['state']['active'].append(dict(name='side',type='loadable',activation=99)))
-    changed('altered-retained-material',lambda e:e[2]['skills']['activated'].insert(0,material(1,'base','primary','Altered primary.',['read_file'])))
-    changed('unload-new-material',lambda e:e[3]['skills']['activated'].append(material(3,'side','loadable','Unexpected.')))
-    changed('unload-wrong-root',set_at(3,'name','side'))
-    changed('missing-retirement',lambda e:e[3]['skills']['state'].__setitem__('retired',[]))
-    changed('primary-retirement',lambda e:e[3]['skills']['state']['retired'].append(dict(name='base',activation=1)))
-    changed('reused-retired-id',lambda e:(e[4]['skills']['activated'][0].__setitem__('activation',2),e[4]['skills']['state']['active'][1].__setitem__('activation',2)))
-    changed('forgotten-old-retirement',lambda e:e[4]['skills']['state'].__setitem__('retired',[]))
-    changed('duplicate-retirement',lambda e:e[4]['skills']['state']['retired'].append(dict(name='edit',activation=2)))
-    changed('zero-activation',lambda e:e[2]['skills']['activated'][0].__setitem__('activation',0))
-    changed('uint64-overflow',lambda e:e[2]['skills']['activated'][0].__setitem__('activation',18446744073709551616))
-    changed('unknown-material-field',lambda e:e[2]['skills']['activated'][0].__setitem__('unexpected',True))
-    changed('missing-array',lambda e:e[2]['skills']['activated'][0].pop('offers'))
+    changed('missing-active-grant',lambda e:e[3]['skills']['state']['tools'].remove('write_file'))
+    changed('false-discoverable',lambda e:e[3]['skills']['state']['available'].append(dict(name='hidden',description='Hidden')))
+    changed('self-dependency',lambda e:e[3]['skills']['activated'][0].__setitem__('dependencies',[2]))
+    changed('primary-as-dependency',lambda e:e[3]['skills']['activated'][0].__setitem__('dependencies',[1]))
+    changed('extra-active-record',lambda e:e[3]['skills']['state']['active'].append(dict(name='side',type='loadable',activation=99)))
+    changed('altered-retained-material',lambda e:e[3]['skills']['activated'].insert(0,material(1,'base','primary','Altered primary.',['read_file'])))
+    changed('unload-new-material',lambda e:e[4]['skills']['activated'].append(material(3,'side','loadable','Unexpected.')))
+    changed('unload-wrong-root',set_at(4,'name','side'))
+    changed('missing-retirement',lambda e:e[4]['skills']['state'].__setitem__('retired',[]))
+    changed('primary-retirement',lambda e:e[4]['skills']['state']['retired'].append(dict(name='base',activation=1)))
+    changed('reused-retired-id',lambda e:(e[5]['skills']['activated'][0].__setitem__('activation',2),e[5]['skills']['state']['active'][1].__setitem__('activation',2)))
+    changed('forgotten-old-retirement',lambda e:e[5]['skills']['state'].__setitem__('retired',[]))
+    changed('duplicate-retirement',lambda e:e[5]['skills']['state']['retired'].append(dict(name='edit',activation=2)))
+    changed('zero-activation',lambda e:e[3]['skills']['activated'][0].__setitem__('activation',0))
+    changed('uint64-overflow',lambda e:e[3]['skills']['activated'][0].__setitem__('activation',18446744073709551616))
+    changed('unknown-material-field',lambda e:e[3]['skills']['activated'][0].__setitem__('unexpected',True))
+    changed('missing-array',lambda e:e[3]['skills']['activated'][0].pop('offers'))
     # Envelope sequence remains valid: target the skill reducer, not log ordering.
     for events in out.values():
         for index,event in enumerate(events,1):event['seq']=index
@@ -115,7 +118,7 @@ def main():
     runs={};checks=[]
     for vendor in MODELS:
         positive=capture(binary,vendor,fixture());valid=rendered_ok(positive,vendor) and positive['unchanged']
-        runs[vendor]={'positive':positive,'negative':{}};checks.append(dict(id=vendor+'/valid-offline-chronology',passed=valid))
+        runs[vendor]={'positive':positive,'negative':{}};checks.append(dict(id=vendor+'/valid-offline-chronology',passed=valid,diagnostic=None if valid else dict(exit=positive['exit'],stderr=positive['stderr'][:2000],stdout=positive['stdout'][:2000])))
         for name,events in forgeries().items():
             result=capture(binary,vendor,events);runs[vendor]['negative'][name]=result
             checks.append(dict(id=vendor+'/'+name,passed=valid and result['exit']!=0 and bool(result['stderr'].strip()) and not result['stdout'].strip() and result['unchanged'],positive_parent=valid))

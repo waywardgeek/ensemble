@@ -31,6 +31,10 @@ class ReplayOracle(unittest.TestCase):
 
     def test_fixture_identity_and_distinct_forgery_controls(self):
         original=fixture();variants=forgeries()
+        # A valid parent must finish the first human turn before accepting another.
+        kinds=[event['type'] for event in original]
+        self.assertEqual(kinds[:3],['skills_initialized','message_received','response_ended'])
+        self.assertEqual(kinds[-1],'message_received')
         self.assertEqual(len(variants),34)
         serialized=[json.dumps(value,sort_keys=True) for value in variants.values()]
         self.assertEqual(len(set(serialized)),len(serialized))

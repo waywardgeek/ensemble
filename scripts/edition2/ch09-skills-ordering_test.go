@@ -345,10 +345,6 @@ func TestCh09PublicAnchoredHintSkillPromptAndReplay(t *testing.T) {
 					t.Fatal(err)
 				}
 				complete(t, h, "round_limit")
-				late, err := a.Hint("Late H.")
-				if err != nil {
-					t.Fatal(err)
-				}
 				before, _ := a.Dump()
 				r1, err := a.Render(renderConfig)
 				if err != nil {
@@ -365,18 +361,23 @@ func TestCh09PublicAnchoredHintSkillPromptAndReplay(t *testing.T) {
 				h = submit(t, a, "Continue P.")
 				second := request(t, e)
 				manual := "[skill edit activation 2]\nUse write_file.\n[/skill]"
-				want := []string{"result:c1", "Early H.", "Remember H.", manual, "Continue P.", "Late H."}
+				want := []string{"result:c1", "Early H.", "Remember H.", manual, "Continue P."}
 				if !skills {
-					want = []string{"result:c1", "Continue P.", "Early H.", "Remember H.", "Late H."}
+					want = []string{"result:c1", "Continue P.", "Early H.", "Remember H."}
 				}
 				suffix(t, tokens(t, vendor, second.body), want)
+				// Hints require an active turn: admit the unanchored hint during held HTTP.
+				late, err := a.Hint("Late H.")
+				if err != nil {
+					t.Fatal(err)
+				}
 				answer(t, vendor, second, "", nil)
 				complete(t, h, "success")
 				h = submit(t, a, "Final P.")
 				third := request(t, e)
-				want = []string{"result:c1", manual, "Continue P.", "Final P."}
+				want = []string{"result:c1", manual, "Continue P.", "Final P.", "Late H."}
 				if !skills {
-					want = []string{"result:c1", "Continue P.", "Final P."}
+					want = []string{"result:c1", "Continue P.", "Final P.", "Late H."}
 				}
 				suffix(t, tokens(t, vendor, third.body), want)
 				answer(t, vendor, third, "", nil)
@@ -396,8 +397,11 @@ func TestCh09PublicAnchoredHintSkillPromptAndReplay(t *testing.T) {
 					if !skills && event.Request.Configuration.System == "" {
 						t.Fatal("no-skills capture lost inherited System")
 					}
-					if index == 1 && !reflect.DeepEqual(event.Request.Hints, []uint64{early.Seq, held.Seq, late.Seq}) {
+					if index == 1 && !reflect.DeepEqual(event.Request.Hints, []uint64{early.Seq, held.Seq}) {
 						t.Fatalf("hint capture receipt order: %v", event.Request.Hints)
+					}
+					if index == 2 && !reflect.DeepEqual(event.Request.Hints, []uint64{late.Seq}) {
+						t.Fatalf("unanchored hint capture receipt: %v", event.Request.Hints)
 					}
 					raw, err := a.ReconstructRequest(event.Seq)
 					if err != nil {

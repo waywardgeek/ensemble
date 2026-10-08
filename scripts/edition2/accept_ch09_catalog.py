@@ -54,7 +54,7 @@ def cases():
     add('source-one-over',sized(base,LIMIT+1),False)
     for n in (LIMIT,LIMIT+1):
         repeats,tail=divmod(n,len(TOOLS.encode()))
-        source=primary(b'$TOOLS'*repeats+b'x'*tail)
+        source=primary(b'${TOOLS}'*repeats+b'x'*tail)  # Padding must not extend an unbraced name.
         assert len(source)<=LIMIT
         add('render-'+('exact-65536' if n==LIMIT else 'one-over'),source,n==LIMIT,TOOLS*repeats+'x'*tail if n==LIMIT else None)
     for n in (256,257):
@@ -146,6 +146,9 @@ def self_test():
         assert c['files'] and all(isinstance(v,bytes) for v in c['files'].values())
     exact=next(x for x in inputs if x['id']=='catalog-bytes-exact');over=next(x for x in inputs if x['id']=='catalog-bytes-one-over')
     assert sum(map(len,exact['files'].values()))==TOTAL and sum(map(len,over['files'].values()))==TOTAL+1
+    for identity,n in [('render-exact-65536',LIMIT),('render-one-over',LIMIT+1)]:
+        rendered=next(x for x in inputs if x['id']==identity)['files']['base'].split(b'---\n',2)[2].replace(b'${TOOLS}',TOOLS.encode())
+        assert len(rendered)==n and b'$' not in rendered
     c=next(x for x in inputs if x['id']=='dollar-escape')
     good=[{'type':'skills_initialized','skills':{'activated':[{'name':'base','body':c['body'],'sha256':sha(c['body'].encode())}]}}]
     assert evaluate(c,0,'',good)
