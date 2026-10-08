@@ -147,3 +147,17 @@ application owns the native FIFO speech service; Pages retain their own queues,
 input and pause causes through the actual parent chain. Selective cancellation
 cannot stop another Page's utterance. Required replacement/two-Page regressions
 and affected live repeats follow; the original demonstrations are not relabeled.
+
+
+## Revised browser use, retained separately
+
+Receipt freeze `341f15d` binds six new model requests and six captured audio
+files to revised runtime `9ba7855`. Section 7.8 adds the public two-Agent example's
+same-root remount, idle-peer lifetime and owned queued/active cancellation,
+with a real screenshot showing retained typing alongside the other Agent's
+speaking cause. It preserves the Messages first non-overlapping timing attempt
+and the two generateContent MAX_TOKENS outcomes at the 512-token example cap.
+The initial 44-request matrix remains bound to its original source. Killed-job
+reconnect uses local replay of a retained real event. No new paid job or full
+revised repetition is claimed; root's immutable live audit and independent final
+proofreading remain distinct from this author reconciliation.

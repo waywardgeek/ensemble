@@ -138,11 +138,43 @@ teaching exchange; it does not stand in for repair validation.
 
 ## Application shutdown refinement from revised review
 
-The independent reviewer found a teardown-order issue during the shared-native
-speech repair: disposing Page A could cancel its active utterance and start
+The coordinator found, and independent review reproduced, a teardown-order
+issue during the shared-native speech repair: disposing Page A could cancel its active utterance and start
 queued Page B while the whole application was closing. Section 7.7 now explicitly
 stops native admission before Page disposal. This clarifies root ownership under
 the accepted shared-service contract. The coder repaired the order; independent
 targeted checks at `9ba7855` are reported by the reviewer, while revised live use
 and final acceptance remain separate. The chapter now prints the correction
 supplement command alongside the full gate. No initial receipt is relabeled.
+
+
+## Revised actual-use reconciliation at `341f15d`
+
+The student confirms in its final teaching review that the killed-event list,
+component disposal and application/native-service ownership paragraphs resolve
+the comparative ambiguities and match the revised implementation. The author
+read that confirmation and the committed revised receipts. Initial runtime
+`da162e8` and its 44 requests remain distinct from revised `9ba7855` and its six
+new public two-Agent browser requests. Receipt checkpoint is
+`341f15d80a80bfecf7ccceaf7b7840de63c20f7f`.
+
+| Revised experience | Author disposition |
+|---|---|
+| Two Pages share native speech; idle peer close/remount must preserve the other's utterance. | §7.8 now gives actual public-example steps and the observed all-three-API result, with an actual two-Agent screenshot and viewport-specific alt text. |
+| Queued B cancellation, requeue and active A cancellation preserve A's typing while B starts once. | §7.8 distinguishes the native action sequence from deterministic stale-callback/root-shutdown controls. No cross-Page cancellation promise is inferred from two unrelated model answers. |
+| Messages' first queue exercise happened after A naturally finished. | Preserve it as an unsuccessful overlap attempt. The second speaker-only selection supplies the intended sequence without a new paid request. |
+| Both generateContent answers hit MAX_TOKENS under the example's 512-token cap. | §7.8 retains raw thinking/candidate counts and normalized output, explicitly denies 70-word compliance and records no retry. This is a demonstration budget/provider outcome, not a new ownership defect. |
+| The first local WAV reader rejected IEEE float32 audio. | The evidence ledger records the measurement correction and format. This is an audit-tool limitation; no chapter runtime or speech requirement is relaxed. |
+| The generateContent action 13 text snapshot preceded its asynchronous speaking-cause update. | The evidence ledger distinguishes that immediate 1/1 snapshot from the later raw 1/0 pause observation; the manuscript uses the settled OpenAI 12 screenshot. No runtime repair or paid rerun is inferred. |
+| Killed-job snapshot repair used an existing actual event instead of another paid job. | §7.8 labels it local replay through the revised public snapshot/browser transport, preserving the original live event identity. |
+
+The shutdown discovery attribution is corrected: the coordinator first found
+it, and independent review reproduced it in Chrome. The initial wording credited
+only the reviewer; prior checkpoints retain that wording. Final independent live
+audit and proofreading are coordinator/reviewer gates, not author acceptance.
+
+
+Root's independent revised live audit is now accepted at `ffbad61`, retaining
+the timing-assumption correction, exact request/source bindings and all six WAVs.
+Final proofreading remains with the independent reviewer. The author makes no
+claim of personal listening or Bill use.

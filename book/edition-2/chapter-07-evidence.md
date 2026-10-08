@@ -302,7 +302,7 @@ remain open. The student confirmed all initial-live feedback dispositions.
 ## Narrow revised-review prose follow-up
 
 The independent reviewer reports targeted R1–R4 checks passing at `9ba7855`
-and identifies one corrected shutdown ordering issue: end native speech admission
+and independently reproduced the coordinator's shutdown ordering finding: end native speech admission
 before disposing Pages, otherwise canceling one can start a peer's queued work
 during application shutdown. Section 7.7 now states that order. The TL;DR adds
 `python3 scripts/edition2/ch07-review-revisions.py SOURCE_COMMIT` as a supplement
@@ -311,3 +311,103 @@ A grammar repair changes “without claiming transcription, human listening” t
 “without claiming transcription or human listening.” Initial source/live identity
 remains `da162e8`/`ba902b7`; final revised evidence and prose reconciliation are
 still pending at this entry.
+
+
+## Revised actual-use reconciliation, receipt checkpoint `341f15d`
+
+Revised runtime/support is `9ba7855b31a5eb134819602b35eb9acb277f6342`.
+The student's committed receipts and final teaching review are frozen at
+`341f15d80a80bfecf7ccceaf7b7840de63c20f7f`. The author read the complete revised
+`live-results.md` and `live-receipts.json`, all three per-run derived audits,
+sanitized launch metadata and terminal records, raw browser action/prompt/queue
+records, accepted response records and request budget fields. The author compared
+all three raw trace/launch/audit files with their frozen Git bytes. It visually
+inspected the actual OpenAI `browser-12.png` and checked adjacent rendered text.
+The current voice/procedure remained in context; no runtime or grader was edited.
+
+The revised public consumer ran on October 8 Pacific, in Chrome 154.0.8037.93.
+Each API used two prompts/two HTTP requests and exited 0, within the authorized
+two-prompt/four-HTTP ceiling. The source-bound replay receipts reconstruct all
+six original bodies. These are new public browser sessions, not new standalone
+human CLI sessions or a relabeled rerun of the original 44-request matrix.
+Initial all-feature CLI/browser/public receipts retain their previous identity.
+
+| API/model | Input, first/second | Output, first/second | Stop reasons |
+|---|---|---|---|
+| Messages `claude-sonnet-4-6` |66 /66|96 /103|end_turn /end_turn|
+| Chat Completions `gpt-4.1-mini-2025-04-14` |67 /68|77 /92|stop /stop|
+| generateContent `models/gemini-3.8-flash` |56 /56|508 /508|MAX_TOKENS /MAX_TOKENS|
+
+All revised cache-write/read counters are zero. The generateContent returned
+identity is `gemini-3.8-flash`; requested identity retains `models/`. Both raw
+request generationConfig objects cap output at 512. Raw candidate tokens 18/20
+plus thinking 490/488 give normalized output 508 each. Visible text has 17/19
+whitespace-delimited words, not the requested 70; the accepted empty text parts
+and opaque replay material remain in the raw logs. No retry or successful length
+compliance is claimed. These are distinct real answers for the browser ownership
+exercise despite the example's tight model budget.
+
+All three runs closed/remounted the idle second Page while first-Agent speech
+was active, submitted the second prompt through its replacement, and later did
+the reverse during second-Agent speech. Exact Chrome PIDs are 9992/11054/12483.
+The revised queue evidence is action spans 12–17, 8–13 and 9–14 respectively:
+A starts, B queues, B is canceled before starting, B is requeued, active A is
+canceled, then B starts once. A keeps its unsent correction and typing cause.
+The Messages first attempted span 7–10 followed A's natural completion and is
+explicitly excluded as proof of overlapping queued cancellation. Re-selecting
+retained cards supplied the intended sequence with no new model generation.
+
+Receipt timing matters: generateContent action 13's immediate body-text snapshot
+still says typing 1/speaking 1. The subsequent raw pause_changed for agent-1 at
+11:37:37.756 UTC says typing 1/speaking 0 before action 14. Root identified this
+as asynchronous observation timing. Section 7.8 uses the OpenAI 12 screenshot,
+which actually shows the settled 1/0 state, and makes no contrary claim about
+that Gemini text snapshot. The screenshot SHA-256 is
+`82bb47d06edd9f151e27496726e9d83463a68bd293d1afd20a24b91a398b48a2`.
+Its alt text describes the visible causes and unsent correction; each Scroll's
+viewport crops some cards even in the full-page image.
+
+Six WAV files are 48 kHz stereo IEEE float32, with exact-browser-PID capture.
+The author recomputed their hashes and matched all per-run audit records, plus
+all three raw trace and launch hashes. The recorded first PCM second is digital
+silence; the derived analysis reports a -200 dBFS floor, unlike the earlier
+ffmpeg analysis's -91 dB floor. Speech-window RMS values are -19.93/-21.06,
+-21.08/-21.42 and -20.15/-20.57 dBFS. Different analysis floors are not a measured
+change in the browser's silence. The student's first Python wave inspection
+rejected float32; explicit RIFF fmt/data parsing supplied the reported metrics.
+The chapter claims produced audio, without transcription or human listening.
+
+The public snapshot/killed-job browser regression reuses the actual initial
+job event as a local replay control. The larger/fragmented message repair,
+whole-root shutdown and stale native callbacks remain controlled tests. The
+independent reviewer reports final 33/33 full-gate groups and 12/12 correction
+groups at `17aa661`; these are kept separate from the new live sessions.
+
+The author corrected the earlier discovery attribution in feedback: the
+coordinator first found the root-close ordering defect and independent review
+reproduced it in Chrome. All revised student teaching feedback has a disposition;
+the student already confirms the contract repairs resolve the comparative
+ambiguities. Root's independent immutable live audit is accepted at `ffbad61`; the grader's
+final proofread remains separate. The author read the complete revised section
+of `chapter-07-live-review.md`: ten distinguishing controls, six exact replays,
+145 unchanged committed session files and six independently reanalyzed WAVs.
+Its ffmpeg floor is -91 dB; the student's -200 dBFS floor is a different
+analysis convention. Initial audit `950cead` retains its original scope.
+
+
+Final scoped author checks: `go run ./cmd/lintprose
+book/edition-2/chapter-07.md` passes all hard rules at 6,898 prose words.
+The 19 negation forms and 2,113-word person-gap warning were read in context;
+the revised spin stays with actual typing, hearing/capture and view replacement,
+without inventing a human story for the detector. A paragraph-ending pass retains
+varied instructions, consequences and receipt limits. All nine local manuscript
+links resolve, all previous fenced code fixtures remain unchanged, and
+`git diff --check` is clean. The new screenshot is actual captured UI. These
+checks supplement the separately accepted runtime/live audits; they do not claim
+independent proofreading by the author.
+
+
+Root's final receipt reading narrows the no-settlement claim to the idle-view
+close/remount interval. Section 7.8 states that interval explicitly and retains
+the generateContent utterance that ended normally later in its recording; it
+never promises an entire recording without a settlement callback.

@@ -26,8 +26,8 @@ correction easier to deliver than to miss.
 **Validation in progress:** the initial student implementation is preserved.
 The [validation record](chapter-07-validation.md) tracks local checks, required
 live demonstrations and the remaining independent review. The spin below records
-the initial actual runs; their source identity remains separate from subsequent
-repairs and final acceptance.
+the initial actual runs and a narrow revised demonstration, each with its own
+source identity; final acceptance remains a separate gate.
 
 ## TL;DR
 
@@ -92,7 +92,9 @@ The full gate covers public, concurrency and browser behavior as well. All of
 §7.9 remains required, including distinguishing controls for later corrections.
 The browser-ownership correction supplement is
 `python3 scripts/edition2/ch07-review-revisions.py SOURCE_COMMIT`; run it alongside
-the full gate to check those later findings against the chosen source.
+the full gate to check those later findings against the chosen source. Revised
+source `9ba7855` passes 33/33 full-gate groups and 12/12 correction groups;
+those local results remain separate from its live receipts.
 WebSocket library, internal method names and visual styling remain student choices.
 
 ## 7.1 Another receiver, with controls
@@ -749,9 +751,53 @@ Paid timing cannot force those failures reliably.
 
 The initial use also exposed an omission in §7.3: killed jobs reached the live
 page, but its printed reconnect list included only `job_ended`. The corrected
-contract includes inherited `job_killed` too. The initial receipts remain bound
-to the original runtime; the affected projection repair and its reconnect
-checks are separate work tracked in the validation record.
+contract includes inherited `job_killed` too. The revised snapshot and actual
+browser transport were checked with the retained initial killed-job event.
+That is a local replay control; no new paid job was needed for a projection fix.
+
+The browser ownership repairs did need fresh use. On October 8, the student ran
+the revised public two-Agent example on `9ba7855`, with its receipts frozen at
+`341f15d`. This example places two Page children in one document, sharing one
+application-owned native speech service. Build from
+`main/examples/browser-consumer` with `go build -o /tmp/ensemble-browser-consumer .`,
+launch that executable in a fresh scratch workspace with the inherited model
+environment, and open its printed URL.
+
+Ask the first Agent for a short paragraph about a morning walk and the second
+for one about an evening garden, reading each response before continuing.
+Use each card's Speak control. While A speaks, close the idle B view and reconnect
+it on the same root; its new input should still submit to B. Then try the reverse.
+All three API runs captured produced audio, with no speech settlement callback
+between the idle peer's close and remount. A generateContent utterance finished normally
+later in its recording. Replacing a view had stopped
+being an instruction to silence its neighbor.
+
+For the queue test, type an unsent correction in A. Start A's card, queue B's
+card, cancel B before it starts, then queue B again. Cancel active A: B should
+now start once, while A keeps its typing cause. The Chat Completions run showed
+this state:
+
+![Two Agent views in one document: the first retains an unsent correction with typing 1 and speaking 0; the second has typing 0 and speaking 1 after the first Agent's speech is canceled.](../../solutions/edition-2/main/evidence/ch07/revision-1/consumer-openai-r1/browser-12.png)
+
+The native callback records distinguish queued cancellation from active
+cancellation on all three paths. In the Messages run's first attempt, A had
+already finished naturally; that sequence proves no overlap. The student
+selected the retained cards again and captured the intended sequence without
+another model request. The failed timing assumption stays in the receipts.
+Whole-application shutdown and stale callbacks retain separate deterministic
+controls, including stopping native admission before disposing child Pages.
+
+The revised example used two prompts and two HTTP requests per API, six in
+total, and all six request bodies matched replay. Six WAV files retain actual
+produced audio. The example's 512-token budget was tight for generateContent:
+both responses ended with `MAX_TOKENS`, using 490 and 488 thinking tokens and
+18 and 20 candidate tokens respectively. Each normalized output count was 508.
+The short accepted answers supplied distinct text for the client/speech test;
+they did not satisfy the requested 70-word paragraphs. No retry concealed that
+outcome. The [revised results](../../solutions/edition-2/main/evidence/ch07/revision-1/live-results.md)
+retain those responses, source bindings, audio and remount actions separately
+from the original 44-request demonstration. The [independent live audit](chapter-07-live-review.md)
+checks both sets at their recorded source identities.
 
 ## 7.9 Checks that can distinguish a working screen
 
