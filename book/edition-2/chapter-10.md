@@ -230,8 +230,8 @@ preserved, strings escaped with JSON's short control escapes and lowercase
 
 Canonicalize every JSON number losslessly, including numbers nested in handler
 schemas or arbitrary accepted payloads. Parse the original token as sign,
-decimal digits, fractional digit count and signed decimal exponent. Remove the
-decimal point; its digits form an integer coefficient, and subtract the
+decimal digits, fractional digit count and signed decimal exponent. An absent
+fraction or exponent contributes zero. Remove the decimal point; its digits form an integer coefficient, and subtract the
 fractional digit count from the exponent. Remove leading coefficient zeroes.
 If the coefficient is zero, output `0`, including for negative zero. Otherwise,
 remove trailing coefficient zeroes and add their count to the exponent. Output
