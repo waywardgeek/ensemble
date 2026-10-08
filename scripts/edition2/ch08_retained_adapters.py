@@ -56,6 +56,19 @@ def prepare(destination, source=None):
     edit('ch07-review-browser-lifetime.cjs','this===root||root.contains(this)',
          'this===root||(this instanceof Node&&root.contains(this))||this instanceof MediaQueryList')
 
+    # Observe close frames while a rejected large message is still being sent.
+    # A reset during the sender's remaining bytes is not itself credited: the
+    # receiver must still obtain the original explicit close-reason assertion.
+    edit('ch07-review-message-size.py','import argparse,contextlib,hashlib,json','import argparse,contextlib,hashlib,json,threading')
+    path=destination/'ch07-review-message-size.py';text=path.read_text()
+    start=text.index('                try:\n                    if fragmented:')
+    end=text.index('                for _ in range(10):',start)
+    original=text[start:end]
+    body=original.replace('except (BrokenPipeError,websocket.WebSocketConnectionClosedException):pass','except (OSError,websocket.WebSocketConnectionClosedException):pass')
+    replacement='                def send_rejected_message():\n'+''.join('    '+line+'\n' for line in body.splitlines())+'                sender=threading.Thread(target=send_rejected_message,daemon=True);sender.start()\n'
+    edit('ch07-review-message-size.py',original,replacement)
+    edit('ch07-review-message-size.py',"                        return\n                raise AssertionError", "                        sender.join(timeout=2)\n                        assert not sender.is_alive(), 'rejected-message sender did not settle'\n                        return\n                raise AssertionError")
+
     # Queue accounting now includes deferred initial-handoff control records.
     edit('ch07-review-connector-mutations.py', 'len(c.queue) < ensemble.WatchItems', 'len(c.queue)+len(c.deferred) < ensemble.WatchItems')
     edit('ch07-review-connector-mutations.py', 'len(c.queue) <= ensemble.WatchItems', 'len(c.queue)+len(c.deferred) <= ensemble.WatchItems')

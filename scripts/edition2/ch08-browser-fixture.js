@@ -5,6 +5,7 @@ export async function setup({deferEnd=false}={}) {
  let revision=0,preferences={theme:'dark',font_size:16,sidebar_width:260,actions_width:380,autoplay:false,speech_rate:1},active=null,cancels=0;
  let watchRevision=0,policy={revision:0,persistent:true,max_model_requests:0,effective_max_model_requests:16};
  const tick=()=>new Promise(resolve=>setTimeout(resolve,0));
+ const until=async(predicate,reason)=>{const end=performance.now()+2000;while(performance.now()<end){if(predicate())return;await tick();}throw Error(reason);};
  const snapshot=()=>({revision,preferences:{...preferences}});
  class WS {
   static OPEN=1;
@@ -54,6 +55,6 @@ export async function setup({deferEnd=false}={}) {
  const a=app.createPage(rootA,'ws://controlled'),b=app.createPage(rootB,'ws://controlled');
  sockets.forEach(s=>s.onopen());await tick();await tick();
  const remote=async patch=>{preferences={...preferences,...patch};revision++;for(const s of sockets)if(s.readyState===1&&s.subscribed)s.frame({type:'preferences_changed',...snapshot()});await tick();};
- const end=async()=>{const old=active;active=null;old?.onend?.();await tick();await tick();};
- return {a,b,app,sockets,commands,spoken,speechEvents,tick,remote,end,snapshot,get active(){return active},get cancels(){return cancels}};
+ const end=async()=>{const old=active;if(!old)throw Error('positive native utterance missing before controlled end');active=null;old.onend?.();await until(()=>active||(!a.speech.busy()&&!b.speech.busy()),'next native admission or queue settlement absent');};
+ return {a,b,app,sockets,commands,spoken,speechEvents,tick,until,remote,end,snapshot,get active(){return active},get cancels(){return cancels}};
 }

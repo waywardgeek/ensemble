@@ -392,3 +392,36 @@ coordination without a pause leak. Deleting exclusivity, cancel ownership or
 lease release fails the intended group. These checks prove neither audio nor
 isolation across browser profiles. The student's actual-native repair control
 and renewed user-facing demonstrations require their separate evidence review.
+
+## Complete deterministic result on cd9de3e
+
+The [reconciled gate](checkpoint-evidence/ch08-full-gate-reconciled.json) accounts
+for all 50 required groups on immutable source
+`cd9de3e4ec6be4a560144bf46caf9ddd54302dc2`. The source set contains 2,533 delivered files; every hash
+is identical between the original complete run and the affected rerun. The
+original [48/50 result](checkpoint-evidence/ch08-full-gate-initial-48-of-50.json)
+remains failed and unmodified.
+
+Two fixture corrections were necessary. The browser deletion test assumed a
+native lease would be granted within one zero-delay timer. It now waits for
+actual native admission and the next admission or final queue settlement. All
+earlier assertions remain, and all twelve intended deletions pass. The
+oversized-message fixture originally finished its entire synchronous write
+before reading the server's close frame; a rejected 1 MiB payload could reset
+that writer first. It now reads concurrently with sending, still requires the
+explicit explanatory close frame, and joins the sender. The missing-reason
+deletion still fails exactly the four oversized cases. A reset by itself never
+earns credit.
+
+The [affected rerun](checkpoint-evidence/ch08-full-gate-affected-rerun.json)
+rebuilds both binaries from the same source and reruns browser positives, all
+browser deletions, actual-Web-Locks deletions and the complete retained Chapter 7
+comparative-repair group. All pass. The other 46 group results retain their
+original run identity. Only three checker files changed between those runs;
+the reconciled receipt records their before/after hashes. No repeated paid
+call or runtime change was needed for either fixture repair.
+
+This closes the deterministic gate only. The student's initial implementation,
+user runs and teaching experience are now frozen at `5f9684b`, permitting the
+required historical comparison. Final live receipt verification, comparative
+review and author reconciliation remain separate gates.
