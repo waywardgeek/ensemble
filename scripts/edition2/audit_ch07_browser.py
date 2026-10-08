@@ -42,11 +42,21 @@ def evaluate(source,only=None):
             file,old,new,expected=MUTANTS[name];target=assets/file;text=target.read_text()
             if text.count(old)!=1:rows.append(dict(id=name,passed=False,error='mutation anchor absent or ambiguous'));continue
             target.write_text(text.replace(old,new))
+            # The application-owned native service independently fences the same
+            # callback. Delete both protections to preserve the behavioral mutant;
+            # deleting only one now leaves correct behavior through the other.
+            service=assets/'speech-service.js';service_text=None
+            if name=='stale-speech-settlement' and service.exists():
+                service_text=service.read_text();anchor='if (this.active !== request) return;'
+                if service_text.count(anchor)!=1:raise ValueError('service callback fence anchor absent or ambiguous')
+                service.write_text(service_text.replace(anchor,''))
             try:negative,observed=run(root)
-            finally:target.write_text(text)
+            finally:
+                target.write_text(text)
+                if service_text is not None:service.write_text(service_text)
             failed={r['id'] for r in observed['checks'] if not r['passed']} if observed else set()
             passed=negative['exit']!=0 and observed is not None and failed==expected
-            rows.append(dict(id=name,passed=passed,old=old,new=new,file=file,expected_failures=sorted(expected),actual_failures=sorted(failed),negative=negative))
+            rows.append(dict(id=name,passed=passed,old=old,new=new,file=file,additional_service_fence_deleted=service_text is not None,expected_failures=sorted(expected),actual_failures=sorted(failed),negative=negative))
         return dict(scope=__doc__,source=str(source),source_files=hashes,positive=positive,
                     checker_files={p.name:hashlib.sha256(p.read_bytes()).hexdigest() for p in [Path(__file__),HERE/'accept_ch07_browser.cjs']},
                     passed=all(r['passed'] for r in rows),checks=rows)

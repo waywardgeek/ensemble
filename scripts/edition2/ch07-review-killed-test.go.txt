@@ -1,0 +1,103 @@
+package ensemble_test
+
+import (
+	"bufio"
+	"encoding/json"
+	ens "example.com/ensemble"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"reflect"
+	"sync/atomic"
+	"testing"
+)
+
+// Re-admit frozen real events through the public API: no jobs or model calls
+// execute. The original log remains unchanged and retains its initial identity.
+func TestC7ReviewKilledWindow(t *testing.T) {
+	var calls atomic.Int64
+	server := httptest.NewServer(http.HandlerFunc(func(http.ResponseWriter, *http.Request) { calls.Add(1) }))
+	defer server.Close()
+	app := ens.New(io.Discard)
+	defer app.Close()
+	a, err := app.NewAgent(ens.Config{Vendor: "anthropic", APIKey: "local-fixture", Model: "fixture", BaseURL: server.URL, Workspace: t.TempDir(), LogPath: filepath.Join(t.TempDir(), "events")})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	f, err := os.Open(os.Getenv("C7_REAL_LOG"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	scanner.Buffer(make([]byte, 4096), 16*1024*1024)
+	var killed bool
+	for scanner.Scan() {
+		var e ens.Event
+		if err := json.Unmarshal(scanner.Bytes(), &e); err != nil {
+			t.Fatal(err)
+		}
+		if e.Type == "" {
+			continue
+		}
+		killed = killed || e.Type == "job_killed"
+		if err := a.Append(e); err != nil {
+			t.Fatalf("real event %d %s: %v", e.Seq, e.Type, err)
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		t.Fatal(err)
+	}
+	if !killed {
+		t.Fatal("fixture lacks actual killed event")
+	}
+	for i := 0; i < 60; i++ {
+		if err := a.Append(ens.Event{Type: "message_received", Message: &ens.Entry{Actor: "system", Purpose: "instruction", Parts: []ens.Part{ens.Text(fmt.Sprintf("prefix %d", i))}}}); err != nil {
+			t.Fatal(err)
+		}
+	}
+	snapshot, watch, err := a.Watch()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer watch.Close()
+	raw, err := json.Marshal(snapshot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(os.Getenv("C7_SNAPSHOT"), raw, 0600); err != nil {
+		t.Fatal(err)
+	}
+	var expected []ens.Event
+	for _, e := range a.Events() {
+		switch e.Type {
+		case "message_received", "hint_received", "response_ended", "tool_called", "tool_returned", "job_ended", "job_killed", "turn_started", "turn_ended", "error_occurred":
+			expected = append(expected, e)
+		}
+	}
+	omitted := len(expected) - 100
+	if omitted < 0 {
+		omitted = 0
+	}
+	expected = expected[omitted:]
+	correct := snapshot
+	correct.Omitted = omitted
+	correct.Events = expected
+	first, last := expected[0].Seq, expected[len(expected)-1].Seq
+	correct.FirstSeq = &first
+	correct.LastSeq = &last
+	data, _ := json.Marshal(correct)
+	if err := os.WriteFile(os.Getenv("C7_SNAPSHOT")+".expected", data, 0600); err != nil {
+		t.Fatal(err)
+	}
+	if snapshot.Omitted != omitted || !reflect.DeepEqual(snapshot.Events, expected) {
+		t.Fatalf("killed outcome omitted from counted renderable window: got omitted=%d events=%d; want omitted=%d events=%d", snapshot.Omitted, len(snapshot.Events), omitted, len(expected))
+	}
+	if calls.Load() != 0 {
+		t.Fatal("snapshot/re-admission contacted a model")
+	}
+}

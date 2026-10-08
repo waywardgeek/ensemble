@@ -1,0 +1,47 @@
+{
+  "scope": "Real Chrome Pages and shared document speech ownership; controlled native speech/socket, no audio/provider claim.",
+  "source": "/tmp/ch07-independent-initial",
+  "assets": {
+    "app.js": "ec71ed571b9104dba2b0c89cf99f506352fad4f3a9fb270c10a03519a648fcf9",
+    "artifacts.js": "e29ae7defd91d8aac2dbe7c32f05b8cfdcef69ce45fc1922677e5c846d5ec7d6",
+    "connector.js": "7218396824aaa84230c0a510285bc9b851403806e73b291d8b948c23d18f1db6",
+    "index.html": "a54ec0b106931441e39a630cddc028ed0883070b129753042d224f19a74785da",
+    "page.js": "8ef564644a8e18439df64240bc62d2a387f2898bfc00d61616b6b787606f8c63",
+    "speech.js": "5838364d42133a1bb3eaf2fc1e43ad0828c98a1d7de20b66fbed93e52fb650b2",
+    "style.css": "c3ed398b0feb524a7a122533c1d9bc0019c7954cadf9493855402ea4cf2e5512"
+  },
+  "checker_sha256": "37d8ffd085505bda66428813f63e2a456219bd00477775c43796b2f928d72254",
+  "passed": false,
+  "checks": [
+    {
+      "id": "idle-page-reset",
+      "passed": false,
+      "error": "page.evaluate: Error: idle Page canceled another Page native utterance\n    at expect (eval at evaluate (:370:30), <anonymous>:9:60)\n    at eval (eval at evaluate (:370:30), <anonymous>:14:86)\n    at async <anonymous>:396:30",
+      "page_errors": []
+    },
+    {
+      "id": "queued-page-cancel",
+      "passed": false,
+      "error": "page.evaluate: Error: second Page bypassed shared one-utterance admission\n    at expect (eval at evaluate (:370:30), <anonymous>:9:60)\n    at eval (eval at evaluate (:370:30), <anonymous>:19:47)\n    at async <anonymous>:396:30",
+      "page_errors": []
+    },
+    {
+      "id": "active-page-cancel",
+      "passed": false,
+      "error": "page.evaluate: Error: second Page bypassed shared one-utterance admission\n    at expect (eval at evaluate (:370:30), <anonymous>:9:60)\n    at eval (eval at evaluate (:370:30), <anonymous>:19:47)\n    at async <anonymous>:396:30",
+      "page_errors": []
+    },
+    {
+      "id": "fifo-ready-heads",
+      "passed": false,
+      "error": "page.evaluate: Error: second Page bypassed shared one-utterance admission\n    at expect (eval at evaluate (:370:30), <anonymous>:9:60)\n    at eval (eval at evaluate (:370:30), <anonymous>:19:47)\n    at async <anonymous>:396:30",
+      "page_errors": []
+    },
+    {
+      "id": "closed-owner-and-stale-callbacks",
+      "passed": false,
+      "error": "page.evaluate: Error: second Page bypassed shared one-utterance admission\n    at expect (eval at evaluate (:370:30), <anonymous>:9:60)\n    at eval (eval at evaluate (:370:30), <anonymous>:19:47)\n    at async <anonymous>:396:30",
+      "page_errors": []
+    }
+  ]
+}

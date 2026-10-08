@@ -1,0 +1,94 @@
+{
+  "scope": "Real Chrome Pages and shared document speech ownership; controlled native speech/socket, no audio/provider claim.",
+  "source": "/Users/bill/projects/ensemble/solutions/edition-2/main",
+  "assets": {
+    "app.js": "3cbdb5db8c025c3b55d50b63036cadf80a75d50bdca2223f85ee082826fef2c4",
+    "application.js": "0e1c5532bcf3c13fea957e5c99567dc22ebe1b6f2740e7832acc870d02bc99f1",
+    "artifacts.js": "d52bbf1530fd2fa1b33cc1136d518fb8a526ff6186d34ba0db27f901adb4cf25",
+    "connector.js": "c675b026ca990898520b6928b131a3d1ec50fb33c081b02e22d77d7b8d2a95e4",
+    "index.html": "a54ec0b106931441e39a630cddc028ed0883070b129753042d224f19a74785da",
+    "page.js": "49785f673c1b1092b5009aa1b2a775254604fe9ee1f4eecbe26e67587e73102b",
+    "speech-service.js": "655f8ae466d636d7cbfab7d97641ea233d62c6642884613ae266c128b2f8e3b7",
+    "speech.js": "5807babd474553215be22f5a1e2813ed15d93f5d1e9cae5821a54b9303b42d52",
+    "style.css": "c3ed398b0feb524a7a122533c1d9bc0019c7954cadf9493855402ea4cf2e5512"
+  },
+  "checker_sha256": "c6d184e1bdf5e71ea24989f53b82d6374bae4664e9ed86880705ec6cc5cfa662",
+  "passed": false,
+  "checks": [
+    {
+      "id": "idle-page-reset",
+      "passed": true,
+      "result": {
+        "spoken": [
+          "A1"
+        ],
+        "cancels": 0,
+        "overlap": false,
+        "lastTyping": true
+      }
+    },
+    {
+      "id": "queued-page-cancel",
+      "passed": true,
+      "result": {
+        "spoken": [
+          "A1",
+          "A2"
+        ],
+        "cancels": 0,
+        "overlap": false,
+        "lastTyping": true
+      }
+    },
+    {
+      "id": "active-page-cancel",
+      "passed": true,
+      "result": {
+        "spoken": [
+          "A1",
+          "A2",
+          "B1"
+        ],
+        "cancels": 1,
+        "overlap": false,
+        "lastTyping": true
+      }
+    },
+    {
+      "id": "fifo-ready-heads",
+      "passed": true,
+      "result": {
+        "spoken": [
+          "A1",
+          "A2",
+          "B1",
+          "C1",
+          "A3"
+        ],
+        "cancels": 0,
+        "overlap": false,
+        "lastTyping": true
+      }
+    },
+    {
+      "id": "closed-owner-and-stale-callbacks",
+      "passed": true,
+      "result": {
+        "spoken": [
+          "A1",
+          "A2",
+          "B1"
+        ],
+        "cancels": 1,
+        "overlap": false,
+        "lastTyping": true
+      }
+    },
+    {
+      "id": "whole-application-close",
+      "passed": false,
+      "error": "page.evaluate: Error: whole application shutdown admitted pending native speech\n    at expect (eval at evaluate (:370:30), <anonymous>:9:60)\n    at eval (eval at evaluate (:370:30), <anonymous>:25:217)\n    at async <anonymous>:396:30",
+      "page_errors": []
+    }
+  ]
+}

@@ -1,0 +1,104 @@
+// Local replay application for the independent browser regression. It re-admits
+// frozen durable events; no tool/model execution is requested.
+package main
+
+import (
+	"bufio"
+	"encoding/json"
+	ens "example.com/ensemble"
+	gui "example.com/ensemble-gui"
+	"fmt"
+	"io"
+	"net"
+	"net/http"
+	"os"
+	"path/filepath"
+	"sync"
+)
+
+func main() {
+	if err := run(); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+func run() error {
+	app := ens.New(io.Discard)
+	defer app.Close()
+	a, err := app.NewAgent(ens.Config{Vendor: "anthropic", APIKey: "LOCAL-ONLY", Model: "fixture", BaseURL: "http://127.0.0.1:1", Workspace: os.Args[2], LogPath: filepath.Join(os.Args[2], "replay.log")})
+	if err != nil {
+		return err
+	}
+	f, err := os.Open(os.Args[1])
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	scanner := bufio.NewScanner(f)
+	scanner.Buffer(make([]byte, 4096), 16*1024*1024)
+	var events []ens.Event
+	cut := -1
+	for scanner.Scan() {
+		var e ens.Event
+		if err := json.Unmarshal(scanner.Bytes(), &e); err != nil {
+			return err
+		}
+		if e.Type == "" {
+			continue
+		}
+		if e.Type == "job_killed" && cut < 0 {
+			cut = len(events)
+		}
+		events = append(events, e)
+	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+	if cut < 0 {
+		return fmt.Errorf("no killed fixture")
+	}
+	var target uint64
+	for _, e := range events[:cut] {
+		if e.Type == "tool_returned" && e.Tool != nil && e.Tool.Job != nil && e.Tool.Job.Handle == events[cut].Job.Handle && e.Tool.Job.Status == "running" && target == 0 {
+			target = e.Seq
+		}
+		if err := a.Append(e); err != nil {
+			return fmt.Errorf("append %d: %w", e.Seq, err)
+		}
+	}
+	if target == 0 {
+		return fmt.Errorf("no running report before kill")
+	}
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		return err
+	}
+	defer listener.Close()
+	origin := "http://" + listener.Addr().String()
+	server, err := gui.NewServer(app, a.ID(), origin, nil)
+	if err != nil {
+		return err
+	}
+	defer server.Close()
+	mux := http.NewServeMux()
+	var once sync.Once
+	var advanceErr error
+	mux.HandleFunc("/review-advance", func(w http.ResponseWriter, r *http.Request) {
+		once.Do(func() {
+			for _, e := range events[cut:] {
+				if err := a.Append(e); err != nil {
+					advanceErr = err
+					return
+				}
+			}
+		})
+		if advanceErr != nil {
+			http.Error(w, advanceErr.Error(), 500)
+			return
+		}
+		fmt.Fprint(w, "advanced")
+	})
+	mux.Handle("/", server)
+	json.NewEncoder(os.Stdout).Encode(map[string]any{"url": origin, "target_key": fmt.Sprintf("e/%s/%d", a.ID(), target), "kill_seq": events[cut].Seq})
+	return http.Serve(listener, mux)
+}

@@ -1,0 +1,38 @@
+{
+  "scope": "Incoming WebSocket size controls beyond one byte over the limit; no model calls.",
+  "binary_sha256": "dc16f3b27fef82f46fdb37af7eb1ad7930340188afebd0ce50faf433e030a4b0",
+  "checker_sha256": "27cf57f089c44363155f551966258df79d5c3dbc390c38a5e7f18aac950595ae",
+  "passed": false,
+  "checks": [
+    {
+      "id": "exact-command-size",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "malformed-oversize",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "single-frame-131072-byte-close",
+      "passed": false,
+      "details": [
+        "AssertionError: oversized message close lacks explanatory reason"
+      ]
+    },
+    {
+      "id": "fragmented-131072-byte-close",
+      "passed": false,
+      "details": [
+        "AssertionError: oversized message close lacks explanatory reason"
+      ]
+    },
+    {
+      "id": "no-model-http",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "review_checker_sha256": "9474e88f733a00251db6a63e6d1fd78577fad344906e4fd667f60239f41e975d"
+}

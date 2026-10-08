@@ -1,0 +1,22 @@
+{
+  "scope": "Public Page close/recreate on retained DOM. Controlled socket/speech, no model or real-audio claim.",
+  "source": "/tmp/ch07-retained-immutable-da162e8",
+  "assets": {
+    "app.js": "ec71ed571b9104dba2b0c89cf99f506352fad4f3a9fb270c10a03519a648fcf9",
+    "artifacts.js": "e29ae7defd91d8aac2dbe7c32f05b8cfdcef69ce45fc1922677e5c846d5ec7d6",
+    "connector.js": "7218396824aaa84230c0a510285bc9b851403806e73b291d8b948c23d18f1db6",
+    "index.html": "a54ec0b106931441e39a630cddc028ed0883070b129753042d224f19a74785da",
+    "page.js": "8ef564644a8e18439df64240bc62d2a387f2898bfc00d61616b6b787606f8c63",
+    "speech.js": "5838364d42133a1bb3eaf2fc1e43ad0828c98a1d7de20b66fbed93e52fb650b2",
+    "style.css": "c3ed398b0feb524a7a122533c1d9bc0019c7954cadf9493855402ea4cf2e5512"
+  },
+  "checker_sha256": "9ad41b3fef4058e3101f809241abff7445756f27fda25085b89b70cd2f6f3a29",
+  "passed": false,
+  "result": {
+    "positive": [
+      "POSITIVE"
+    ],
+    "replacement": [],
+    "notice": "Not connected"
+  }
+}
