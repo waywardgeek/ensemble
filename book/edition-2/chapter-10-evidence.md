@@ -465,3 +465,33 @@ the added admission contract; the paragraph resolves a concrete observed failure
 rather than padding. Existing JSON fixture bytes are unchanged and parse; scoped
 diff validation is clean. These checks validate prose/literals only, not a runtime
 repair. Independent narrow clarification review remains required.
+
+## Q5: contradictory watermark wording
+
+October 8, 2026. The author read the student's Q4 acknowledgment and exact Q5 in
+main/evidence/ch10/student-review.md, including the preceding implementation
+note that had followed §10.3's lower-bound phrase. Q4 confirms the c5ad6c0
+accepted-record boundary and preserves the student's local reproduction alongside
+the independent initial-binary diagnosis; no repaired-runtime result is inferred.
+
+The author reread §§10.3/10.4/10.6/10.8, Chapter 9's initial/consecutive activation
+allocation and retained-record rules, and Chapter 4's application allocator and
+exclusive-create collision rules. No preceding contract requires unbacked
+activation/job cursors in a session snapshot. Failed skill candidates consume
+no activation; skipped shared job candidates create no session job fact.
+
+The coordinator chose equality with complete represented durable maxima for
+activation/job in both complete-prefix and snapshot-only cases, retaining the
+request cursor's explicit burned-admission exception. The three chapter passages
+now agree. Semantic origin facts may establish identities absent from the raw
+tail; they are not fabricated history, and tail replay includes them as its seed.
+The job watermark remains session-local history; raising the shared live floor
+never lowers an already higher root allocator. The direct Q5 response identifies
+the original contradiction and declines the proposed snapshot-only relaxation
+without blaming the student for following the conflicting sentence. No runtime,
+grader, earlier chapter or frozen source changes accompany this clarification.
+
+The unchanged JSON fixture parses and is byte-identical to the pre-Q5 chapter.
+Scoped hard lint passes at 7,818 words; existing length/dense-specification soft
+warnings remain. Manual reading of the narrow diff and whitespace checks pass.
+Independent clarification review and student confirmation remain separate gates.

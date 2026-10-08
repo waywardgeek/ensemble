@@ -99,3 +99,38 @@ unchanged. Keep Skills' controlled preflight before session storage admission
 and preserve append-before-apply/observe. A second raw archive or blanket semantic
 comparison of snapshot/prefix data is unnecessary and would weaken the contract.
 No repaired runtime, successful rerun or paid call is claimed by this response.
+
+## Q4 acknowledgment and Q5: exact durable identity maxima
+
+October 8, 2026. The student confirms that the prepared accepted-record boundary
+resolves Q4 before its affected repair, and retains its own whitespace-only
+reproduction alongside the independent diagnosis. This acknowledgment does not
+claim that the runtime repair or its validation is complete.
+
+Q5 identifies contradictory wording: §10.3 previously allowed every non-event
+watermark to be at least its represented maximum, while §10.4 required exact
+activation/job maxima. The coordinator resolves that contradiction in favor of
+exact durable maxima in both full-origin and snapshot-only cases. This is a
+teaching correction, not a new Bill ruling or a fault in the student's question.
+
+Sections 10.3/10.4/10.8 now require activation and job watermarks to equal the
+maximum durable identity in complete validated semantic state, or zero when
+none exists. Retired activations and historical jobs outside the watch window
+count. A snapshot-only origin can represent an earlier identity whose raw event
+is unavailable; the origin's semantic facts establish that maximum. It cannot
+supply an arbitrary higher watermark without such a fact. Reject unsupported
+high or low values with session_corrupt before mutation.
+
+Request remains different: queued admissions may burn ordinals without a turn
+event, so its captured cursor may exceed the recorded request_index maximum.
+The job watermark is this session's historical maximum, not the shared Ensemble
+allocator position. On resume raise that live allocator's floor to at least the
+session maximum, preserve an already higher position, and keep occupied-artifact
+skipping. Other Agents and skipped candidates create no historical job in this
+session. Chapter 9 already makes failed/unchanged activation candidates consume
+no ID and retains retired activation records, so it needs no separate exception.
+
+The student's proposed snapshot-only lower-bound relaxation is therefore not
+adopted. Validate the complete origin's represented maxima, then the available
+tail; do not require absent original raw events or weaken semantic-state checks.
+Please confirm that this resolves the affected above-maximum import question.

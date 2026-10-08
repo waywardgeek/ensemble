@@ -209,11 +209,14 @@ The outer checkpoint object has exactly these required fields:
 | `state` | Complete semantic snapshot object, or null for complete-history reconstruction |
 | `state_sha256` | SHA-256 of canonical state bytes, or null exactly when state is null |
 
-`high_watermarks.event` equals as_of. Every other watermark is at least the
-largest corresponding allocated durable identity represented by state; imported
-snapshots cannot reset one below a recorded use. Exact uint64 bounds appear
-in §10.8. Hashes are lowercase 64-digit hex. A hash detects mismatched bytes; it
-does not authenticate a file that its operator can edit.
+`high_watermarks.event` equals as_of. Activation and job watermarks equal the
+largest corresponding durable identity in the complete semantic state, or zero
+when none exists. Include retired activations and all historical jobs, even
+outside the saved watch window. This equality applies to full-origin and
+snapshot-only imports alike; an unsupported higher value is invalid too.
+Request alone may exceed its recorded maximum for the reason below. Exact
+uint64 bounds appear in §10.8. Hashes are lowercase 64-digit hex. A hash detects
+mismatched bytes; it does not authenticate a file that its operator can edit.
 
 For session turns, add positive request_index to turn_started.turn. It is the
 request allocator ordinal assigned at admission, independent of the public
@@ -452,6 +455,13 @@ must equal their corresponding reduced durable maxima. The job watermark is
 the greatest historical handle represented anywhere in this session, including
 records outside the GUI window. It is not Ensemble's shared allocator cursor:
 other Agents and occupied artifact names can burn numbers absent from this session.
+
+For a snapshot-only origin, derive activation/job maxima from its complete
+validated semantic facts, then include the available tail. An identity may
+precede every available raw event and still be represented in that origin;
+absence from the tail does not make it unsupported, but absence from the complete
+semantic state does. Do not allow a snapshot-only import to invent a higher
+activation/job watermark merely because its raw prefix is unavailable.
 
 An older snapshot with a genuinely newer log is the distinguishing fixture.
 Testing only the application's latest checkpoint produces an empty tail and
@@ -723,8 +733,11 @@ Preserve valid predecessor uint64 identities and counters through public,
 disk and browser projections. Refuse overflow before allocation or durable
 mutation, including a whole group requiring multiple identities; never wrap
 or round. This identity domain does not increase any file, record or collection
-size bound. A snapshot can carry a large validated allocator watermark without
-claiming that a small retained log contains every earlier allocation.
+size bound. A large activation/job watermark requires the corresponding durable
+identity in complete semantic state, even when a small retained raw log lacks
+its original event. Only the request cursor has the burned-admission exception
+in §10.3. An unsupported activation/job watermark, above or below the represented
+maximum, is session_corrupt on import/load; uint64 range alone is insufficient.
 
 The 64 MiB physical event-record limit applies to every session event, including
 ordinary events; it replaces the older ordinary-record limit in session mode.
