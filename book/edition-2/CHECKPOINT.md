@@ -25,7 +25,7 @@ Chapter 6 maintenance checkpoint: `edition-2-ch06-r2` points to isolated
 `3acdd8e`, whose main and exact 1,565-file export match source `5e48b38`.
 The five-line Messages repair and its evidence are independently accepted at
 `f87f160`. This tag preserves the Chapter 6 source stage; current development
-main remains Chapter 9. Original r1/live identities remain intact. Chapter 7/8
+main extends accepted Chapter 9 for Chapter 10. Original r1/live identities remain intact. Chapter 7/8
 forward propagation is checkpointed separately at `edition-2-ch07-r3`
 (`2c436db`) and `edition-2-ch08-r2` (`2b00338`); their revised exports are
 integrated without replacing development main.
@@ -177,9 +177,10 @@ reports no direct old-material reads, but inherited summaries and compacted
 history prevent certification of Chapters 1–2 as strictly blind trials. Preserve
 that limitation; their implementation validation is a separate claim.
 
-## Current state
+## Accepted source and earlier evidence
 
-- **Latest accepted source:** Chapter 8 r1, source `446d7f2`; see its gate record.
+- **Latest accepted source:** Chapter 9 r1, source `ac55f64`, tag `54d7b1d`;
+  see its gate record. Chapter 10 development has no acceptance claim yet.
 - Earlier Chapter 4 checkpoint, runtime d25/final evidence e1c6488.
   Five-module checks, grade100, independent53/53 and public3/3, eleven mutations,
   race/fault/boundary controls, actual all-provider PTYs and public consumers,

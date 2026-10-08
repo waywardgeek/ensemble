@@ -23,7 +23,7 @@ See [chapter-10-validation.md](chapter-10-validation.md).
 
 The scoped Chapter 6 streaming correction is accepted at `edition-2-ch06-r2`
 (`3acdd8e`), with exact 1,565-file export from `5e48b38`. Main and export match
-on that isolated tag; current development remains Chapter 9. Root review
+on that isolated tag; current development extends Chapter 9 for Chapter 10. Root review
 `f87f160` accepts the five-line correction and its source-bound controls.
 Original r1 and all earlier live evidence remain unchanged. Forward propagation
 is also checkpointed as `edition-2-ch07-r3` (`2c436db`, 2,239 files from
@@ -263,20 +263,22 @@ old implementation into the new solution.
 
 ## Roles and next actions
 
-- Author: `/root/coder_ch04` reconciles frozen Chapter 9 spin and teaching
-  feedback; Chapter 14 outline is preserved for later drafting. Its earlier Chapter 4 student
-  role is disclosed; it did not implement Chapter 9.
-- Proofreader: `/root/coder_ch08` accepted Chapter 9 live evidence and awaits
-  final prose; meanwhile it advises on Chapter 14 design. Its prior
+- Author: `/root/coder_ch04` completed Chapter 9 reconciliation, Chapter 10
+  initial feedback and the accepted Chapter 14 contract. Chapter 15 outline
+  `d66e9b1` awaits consequential-choice review before its full draft. Its earlier
+  Chapter 4 student role is disclosed; it did not implement Chapters 9 or 10.
+- Proofreader: `/root/coder_ch08` completed Chapter 9 final prose, Chapter 14
+  contract closure and Chapter 10 Q1–Q3 review; it now advises on Chapter 15. Its prior
   roles include Chapter 8 student, Chapter 9 initial checks and Chapter 11
   checker preparation; it did not author Chapter 13.
-- Code reviewer: `/root/grader_ch05` begins the Chapter 9 comparison against old
-  Chapter 10 after finishing disclosed Chapter 6–8 maintenance. Root independently
-  accepted those corrections; this thread did not implement Chapter 9 runtime.
+- Code reviewer: `/root/grader_ch05` completed Chapter 9 comparison and Chapter
+  10 owner-plan review. Its initial persistence checker is partial; remaining
+  semantic/public fixtures await the student's complete grammar and API. Its
+  disclosed earlier maintenance does not include Chapter 10 runtime authorship.
 - Current student: separate local CLI session
-  `01a11c0d-47b8-7241-8834-5ddf57ac5009` has exited after freezing Chapter 9
-  evidence under its new-only boundary. Resume this same session for reviewed
-  quality corrections; no further paid run is currently released.
+  `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0` is implementing Chapter 10 after its
+  accepted plan and published clarification. Its new-only boundary persists;
+  no credential access or paid calls are released during local implementation.
 - Chapter 4 reviewer: `/root/coder_ch03_chat`, independent of this chapter's
   new coder, completed lifecycle/owner/fault/debugger and comparative review.
   This agent authored the preceding human-client integration; disclose that
@@ -296,8 +298,8 @@ independent offline/human CLI checks. Original-source controls exposed exactly
 the missing refusals while preserving the positive unchanged-path case.
 Validated isolated checkpoints are `edition-2-ch02-r2` (`0a375d3`) and
 `edition-2-ch03-r2` (`799940c`), with 201- and 500-file exact exports. Their
-canonical main trees match the relevant earlier chapter; current main contains
-Chapter 8. Revision manifests and the chapter validation records bind the
+canonical main trees match the relevant earlier chapter; current main extends
+accepted Chapter 9 for Chapter 10. Revision manifests and the chapter validation records bind the
 exports and review. Old snapshots/tags and paid receipts retain their identities;
 no unchanged paid path was rerun. Chapter 4 onward already had the protection.
 
