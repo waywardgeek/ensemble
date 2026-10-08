@@ -237,3 +237,33 @@ successful forgery protection. Preparation and absence receipts are
 `checkpoint-evidence/ch09-replay-predecessor-absent.json`. Real Chapter 9 positives
 and intended implementation deletion controls remain pending. No student runtime,
 initial checker, historical grader or historical solution was changed or read.
+
+### Management arguments and inherited limit consumption
+
+`python3 scripts/edition2/accept_ch09_management.py CLI_BINARY --receipt PATH`
+adds 138 predicates across the three actual wire adapters. Ten malformed name
+objects, including actual duplicate JSON members, precede ordinary load, no-op,
+unavailable load and unload. Each attempt follows a one-byte `tool_limits`
+setter and precedes an ordinary read. The checker requires the exact compact
+acknowledgement/error, preceding consumption note, default-budget following read,
+only the two committed changes and an intact long manual. Paired management
+records have no Job; ordinary read handles/artifacts account for every allocation.
+
+The first preparatory run incorrectly required no artifacts across a batch that
+also contained ordinary reads. Its receipt remains
+`ch09-management-predecessor-initial.json`. Inspection of the actual read Job
+receipts identified that fixture mistake before any Chapter 9 student run.
+The corrected assertion requires precisely the ordinary read locators and
+consecutive read handles, preserving the management no-allocation requirement.
+This is a checker correction, not a waived student defect.
+
+Two unittest methods pass with three canned positives, twelve exact intended
+predicate failures, and duplicate-member preservation at each provider surface.
+The final Chapter 8 absence receipt is **90/138**: inherited next-call notes,
+default following reads, complete transport and unknown-call pairing/allocation
+checks pass. All fourteen skill acknowledgements, transition count and manual
+retention fail for each adapter. The inherited passes do not establish skill
+management. Both controls and final source hashes are in
+`ch09-management-preparation.json` and `ch09-management-predecessor-absent.json`.
+Real Chapter 9 positives, runtime deletions, pause/interrupt races and public
+controls that bypass model-call limit consumption remain separate requirements.
