@@ -20,7 +20,7 @@ REPO=HERE.parents[1]
 PREFIX='solutions/edition-2/main/'
 
 
-def evaluate(revision, only=None):
+def evaluate(revision, only=None, progress=None):
     revision=subprocess.check_output(['git','rev-parse',revision+'^{commit}'],cwd=REPO,text=True).strip()
     archive=subprocess.check_output(['git','archive',revision,PREFIX],cwd=REPO)
     rows=[];hashes={}
@@ -43,12 +43,15 @@ def evaluate(revision, only=None):
                 dest.parent.mkdir(parents=True,exist_ok=True);dest.write_bytes(data)
                 hashes[str(relative)]=hashlib.sha256(data).hexdigest()
         assert hashes, 'empty source set'
+        if progress:progress(dict(phase='source', source_revision=revision, source_files=hashes))
         adapters=prepare(bundle,root)
         cli=temporary/'cli';gui=temporary/'gui'
         def run(name,args,cwd=root,timeout=1800,required=False):
             if only and name not in only and not required:return None
+            if progress:progress(dict(phase='started', id=name, args=list(map(str,args)), cwd=str(cwd)))
             result=command(args,cwd,timeout=timeout)
             rows.append(dict(id=name,passed=result['exit']==0,command=result))
+            if progress:progress(dict(phase='completed', check=rows[-1]))
             return result['exit']==0
         cli_ok=run('build-headless-cli',['go','build','-o',cli,'./cmd'],required=True)
         if cli_ok:
