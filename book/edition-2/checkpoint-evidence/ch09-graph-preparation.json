@@ -1,0 +1,17 @@
+{
+  "label": "canned graph oracle controls; no runtime acceptance",
+  "positive_vendors": [
+    "anthropic",
+    "openai",
+    "gemini"
+  ],
+  "intended_mutations": 15,
+  "tests": 2,
+  "passed": true,
+  "input_sha256": {
+    "scripts/edition2/accept_ch09_graph.py": "17110f0b5b271f6467e688c155916e826facbff31b5cea738e4cdeedc08b8f14",
+    "scripts/edition2/test_accept_ch09_graph.py": "e27f1e924256f0e758dfac628c8833d7ae946c0ac587e61fe447d3b6a1128861",
+    "scripts/edition2/accept_ch09.py": "3b2b5a98954351abe268f3cd6ae082b003003465e4538874aaef95d410ec8c9e",
+    "book/edition-2/chapter-09.md": "bc0d4a6f162e9dde53fb351c85512050ca0c2cf25d7500125e805b6eefea0b33"
+  }
+}

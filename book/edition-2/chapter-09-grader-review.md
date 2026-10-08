@@ -130,3 +130,82 @@ overlapped an edit to this checker; its original receipt remains with a separate
 `ch09-preparation-identity-limit.txt` notice and is not credited as final bound
 evidence. The checker now refuses changes to itself, the chapter or executable
 during a run. No student implementation positive is claimed.
+
+## Grader handoff after the Chapter 8 checkpoint
+
+The coordinator assigned `/root/grader_ch05` to continue at accepted
+`edition-2-ch08-r1` (`bfdadaf54b7f43a5cdc1d7983f003c8a7baa644b`). This reviewer
+engineered earlier independent acceptance and reviewed earlier student work;
+it authored no Chapter 8 or Chapter 9 runtime. The initial engineer's preceding
+Chapter 8 authorship remains disclosed above. The current engineer read the
+entire mandatory skill again, architecture, full Chapter 9, its contract review,
+validation and this handoff before adding checks. The old Chapter 10 standard
+and implementation remain unopened until the new student's initial source,
+actual runs and teaching experience are frozen.
+
+The numeric clarification `77cd638` is now published authority: exact uint64
+revision/activation identities, maximum no-ops, whole-group exhaustion and
+separate owner-state versus public log fixtures. The earlier paragraph saying
+that clarification was pending describes preparation at that time. The initial
+51-check script remains unchanged, with its original positive/negative controls
+and Chapter 8 absence baseline retained.
+
+Two additional focused commands are ready for black-box use:
+
+```sh
+python3 scripts/edition2/accept_ch09_catalog.py CLI_BINARY
+python3 scripts/edition2/accept_ch09_graph.py CLI_BINARY
+```
+
+Both support `--receipt PATH`, record checker/helper/contract/binary hashes and
+refuse an identity change during execution. They use temporary catalogs and
+loopback endpoints only. Catalog boundary cases retain at most one approximately
+8 MiB catalog at a time, rather than copying the complete predecessor source.
+The standalone catalog check makes no model request.
+
+The catalog supplement has 65 checks: exact 65,536-byte source/render controls
+with one-byte overflow, exact 8,388,608 aggregate source bytes with individually
+valid files and a one-byte excess, 256/257 definitions, byte-based descriptions,
+quoted/scalar/block syntax, literal body LF/CRLF/blank/horizontal-rule bytes,
+dollar syntax/escaping, symlink/missing-file discovery and explicit environment
+presence. Unreachable invalid dependency or handler definitions remain acceptable
+until activation, as taught. Custom scalar construction, aggregate rendered
+transition material and frozen-catalog mutation remain separate public cases.
+[Preparation controls](checkpoint-evidence/ch09-catalog-preparation.json) prove
+fixture arithmetic and three canned predicate refusals. The actual preceding
+CLI gives expected [0/65 absence](checkpoint-evidence/ch09-catalog-predecessor-absent.json).
+Neither result is a Chapter 9 implementation positive.
+
+The graph supplement has 27 predicates across all three adapters. Its fixed
+scenario loads edit, review and search; unloads/reloads edit; retires shared
+read only after its last contributor disappears; keeps explicit search after
+its advertiser disappears; and then tries missing/cyclic/uninstalled/variable
+and forbidden targets. It checks concrete roots/activation IDs/retirement,
+real denied-write absence, declaration grants, dependency offers, candidate
+variable text and one retained manual envelope per activation. Requests after
+the failed candidates must retain the previous grants. Full private-state
+failure atomicity, contributor copies and admission interleavings still require
+the public/concurrency layer. Canned protocol controls pass three positives and
+15 exact predicate mutations via:
+
+```sh
+python3 -m unittest discover -s scripts/edition2 -p test_accept_ch09_graph.py -v
+```
+
+The actual preceding CLI gives expected
+[0/27 absence](checkpoint-evidence/ch09-graph-predecessor-absent.json), while
+retaining all generated local requests and actual file effects. Real Chapter 9
+positive runs and implementation deletion controls remain pending. No summed
+check count is a coverage claim for the full contract.
+
+Remaining work follows the seven-item handoff above. Public tests will adapt to
+the student's accepted configuration/state/load/unload/material signatures,
+without prescribing identifiers. Browser tests will extend the existing actual
+Chrome composition checks for safe/current skill state, retained/retired cards,
+automatic silence, explicit playback and the new exact identities. Controlled
+model/job/append barriers will distinguish pre-admission revocation from already
+admitted effects and durable transition from later result failure. An immutable
+full gate will retain Chapter 8 behavior, complete delivered-tree module
+inspection and architecture, with targeted runtime deletions only after genuine
+implementation positives. All real-provider demonstrations remain the student's
+bounded, reviewed live plan; no paid calls were made for this preparation.
