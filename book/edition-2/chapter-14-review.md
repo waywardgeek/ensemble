@@ -346,3 +346,77 @@ Frozen source hashes:
 Disposition: complete independent first-draft read, with R1–R4 sent together for
 author correction and subsequent closure. No implementation, successful live spin
 or final chapter validation is claimed.
+
+## Grouped correction closure
+
+Independently reviewed the complete author correction at
+`b9515241160d41e4c126b441c1c03b1f1fe152f1` against the fully read draft above.
+The full voice and writing procedure remained loaded, with no intervening
+compaction or rule change. The three changed author files match this freeze.
+Focused predecessor rereads additionally checked Chapter 7's ordinary message
+limit, usable-ID/correlation/connection cap, Chapter 8's snapshot/policy/watch
+ordering and Chapter 9's analogous safe-state observations.
+
+R1 is resolved. The effective selection revision explicitly covers represented
+parts/anchors, completion, eligibility, newest-eligible choice and protection
+renewal/expiry. An accepted empty response can invalidate the deferral without
+changing rendered bytes. Mere Jobs facts, request bookkeeping and repeated failed
+HTTP do not. The key stays bounded and derived, with one reconsideration after
+a relevant transition and no new durable event just to advance a runtime key.
+
+R2 is resolved. Browser keep/handoff now have exact command shapes, correlated
+safe errors and committed acknowledgements. Strict field/type/ID/size validation,
+subscription, command reuse and connection bounds remain inherited. Busy actions
+refuse immediately without losing drafts. Changed state is published through
+the owned watch before acknowledgement; a no-op keep has null seq and no redundant
+fact/broadcast. Handoff acknowledges a committed sequence, not a staged model
+intent or successful socket write. Policy updates retain their own revision and
+conflict protocol, and both relevant state observations precede policy_ack.
+The new integer fields remain exact, and reconnect does not repeat an effect.
+
+R3 is resolved. Human CLI `--policy PATH` is explicitly introduced here.
+Omission preserves in-memory defaults without reading the GUI file; a present
+blank value refuses. A supplied path resolves once at creation under the existing
+Agent owner and file lifecycle, outside session identity. GUI defaults are
+unchanged. The old-session invocation deliberately selects a separate disabled
+v2 policy, omits the context profile and requires the original catalog/ceiling.
+It neither overwrites an enabled policy nor converts an old session.
+
+R4 is resolved. The configuration example now follows immediate stubbing,
+results-band stubbing and calls-band removal while showing which decision,
+manual and evidence survive. Its arithmetic is consistent on independent manual
+inspection: T=20,000 gives S=200/R=2,500/C=1,250; 5,400 exceeds 5,000, leaving
+2,300 after batch 11 moves; 5,978 exceeds 2,500, leaving 378 after removing
+7 and 11. Omitting a redundant stub for the removed batch agrees with the exact
+fact rule. The author records how its stipulated sizes were constructed; this
+review does not present those padded values as real tool work. The later
+snapshot paragraph returns to the reader needing original file evidence, and
+the opener now promises stubs preserving existing references rather than
+inventing locators.
+
+A1–A6's accepted direction remains intact. No new competing policy authority,
+automatic format migration, hidden archive, opaque stripping, MCP lifecycle
+change or GUI dependency entered the correction. The complete diff leaves the
+original ten JSON fixture blocks unchanged and adds six visibly valid command,
+acknowledgement and error examples. Their automated parsing remains the author's
+reported check; no new checker was written for this prose closure.
+
+The retained prose executable independently passes all hard rules at 6,324
+words. Its soft negation and person-gap counters still warn; the manual voice
+assessment now finds the concrete repair task and its evidence present through
+the selection and snapshot explanations. That teaching improvement matters more
+than adding an invented incident or mechanically changing the counter.
+
+Final reviewed hashes:
+
+- chapter-14.md: `d50333c5a9af83507b09dd6a177a91088315d5e6e7ea52c8312b7579ef534039`.
+- chapter-14-outline.md: `86ba3e497e36c6d2403ddd5caf69b3763ac4c25bf931e14610652d705a29ce15`.
+- chapter-14-evidence.md: `f0c76ad9cd0d4e9d2ae5c8d0a66d8abc6bc220ccefca6422613510dea29ad6a8`.
+
+Contract and prose review is accepted; R1–R4 are closed with no remaining
+finding in this round. The independent runnable acceptance command and concrete
+reviewed live matrix remain prerequisites for their respective student/paid
+releases. Implementation, deletion controls, actual demonstrations, comparative
+code review, student feedback and final checkpoint remain pending. This closure
+performs no runtime, provider, checker-code or build work and validates none of
+those future outcomes.
