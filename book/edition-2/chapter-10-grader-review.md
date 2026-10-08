@@ -141,3 +141,55 @@ provider use, full delivered-tree validation and post-freeze historical quality
 review remain separate gates. The coordinator will review the student's owner
 plan before affected implementation; the reviewer is ready to assess public
 seams and then publish runnable additions.
+
+## Published API integration preparation
+
+The student published `session-api.md` and `persistence-format.md` at `44056d1`.
+Both were read in full against the accepted Q1–Q3 clarification `af5a762`.
+The new public runner is ready for the coherent implementation milestone:
+
+```sh
+python3 scripts/edition2/accept_ch10_public.py solutions/edition-2/main \
+  --receipt /absolute/path/to/ch10-public.json
+```
+
+`--run` accepts a Go test expression for targeted reruns. The runner creates one
+small external module with a read-only replacement of the student module; it
+does not copy the source tree. It records source/checker hashes before/after,
+formats/vets the external consumer and runs the selected tests with race
+detection. Students receive this invocation through the coordinator, not fixture
+implementation.
+
+Eight groups are prepared: selector/configuration boundaries; owned capture and
+resume; same-root path/SessionID and cross-root OS lock reservations; snapshot-only
+origin and later checkpoint/reopen; plain-System presence; inert owned
+inspection; genuine older-checkpoint/newer-tail versus null rebuild versus
+prefix-free import on all three local API shapes; and immediate busy during a
+held HTTP request followed by a successful settled checkpoint. The roundtrip
+group compares actual next request bytes and usage, reconstructs an actual
+available-tail send, and distinguishes saved pre-origin watch events from the
+actual anchor-only raw history. Its unavailable-prefix test uses an actual
+earlier captured send, not an invented request coordinate.
+
+[Preparation evidence](checkpoint-evidence/ch10-public-preparation.json) binds
+these fixtures and the published grammar/API. Python syntax and empty gofmt
+output are verified. **Go compilation and all runtime groups remain unrun**;
+no implementation positive or deletion coverage is credited. The initial
+93-row checker and predecessor receipts remain unchanged.
+
+One published-codec omission was reported before writing the affected semantic
+fixtures: `CallState` lacked retained dispatch/result coordinates, yet
+`LimitFact` requires consumption before dispatch and set between dispatch and
+successful result. A tool_called record outside the saved 100-event window
+cannot supply that missing witness. The coordinator accepted the issue as a
+student grammar omission against §10.6 and routed it for explicit correction;
+field spelling is not prescribed. Limit-order snapshot mutations wait for the
+documented sufficient witness. Other independent public work continues.
+
+The coordinator also identified escaped unpaired UTF-16 surrogates being
+silently replaced by the standard JSON decoder during canonicalization. The
+reviewer confirmed that the inspected preliminary parser has no separate
+escape check. The existing valid-UTF-8 language does not explicitly settle
+those ASCII escape sequences. A narrow published Unicode-scalar clarification
+will precede rejection fixtures; no hidden acceptance rule is imposed and no
+inherited standalone-decoder change is assumed.
