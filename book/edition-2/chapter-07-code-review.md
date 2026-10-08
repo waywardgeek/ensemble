@@ -1,8 +1,9 @@
 # Chapter 7 independent code comparison
 
-Status: independent comparison, grouped code revisions and deterministic
-acceptance are complete at `9ba7855`. Revised live acceptance and final
-manuscript proofreading remain open. This is not final chapter acceptance.
+Status: independent code comparison, grouped revisions, deterministic checks
+and final manuscript proofreading are accepted. The coordinator accepted the
+initial and revised live evidence separately. Export and immutable checkpoint
+remain the coordinator’s responsibility.
 
 ## Scope and independence
 
@@ -267,3 +268,28 @@ receipts and clarified contract. The author corrected one grammar issue and
 added the root-close ordering lesson and executable correction-check command.
 This is a draft proofread milestone, not final acceptance of a later revised
 live account. The final proofread will bind that completed author revision.
+
+## Final manuscript and evidence reconciliation
+
+Final proofreading accepts the complete author package `00cf641`, neutral
+status wording `d7e097e`, feedback-count correction `2112af1` and student
+response confirmation `4897642`. The [bound proofread receipt](checkpoint-evidence/ch07-review-final-proofread.json)
+records exact hashes, full-reading scope, screenshot inspection, local links,
+raw claim checks and the 6,888-word hard-lint pass. Its soft warnings were read
+in context; no manufactured story or repeated Bill reference was added to
+satisfy a detector.
+
+The revised public two-Agent account agrees with the coordinator's accepted
+live audit at `ffbad61`: six requests and six WAVs at runtime `9ba7855`, separate
+from the nine-session/44-request initial matrix. The text preserves the first
+unsuccessful Messages overlap attempt, Gemini's token-budget limitation, local
+killed-event replay and the precise idle-view close/remount callback interval.
+The three actual screenshots support their alt text and make no complete-card
+viewport claim. Recorded audio is not represented as human listening.
+
+The student explicitly confirms that the author resolved all teaching
+findings. No material code, teaching or final proofread finding remains.
+No implementation, runtime-test or paid-provider rerun was needed for this final
+prose verification. The coordinator can complete the source export from
+`48976424ab75924f98f4ad01f75f8e046ec26872` and the immutable chapter checkpoint;
+that action does not imply Bill's separate editorial approval.
