@@ -8,13 +8,13 @@ separate from technical validation.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
-| Research and outline | Author `/root/coder_ch04` | Original outline/evidence frozen at `54806a6`; historical fake-server/default-browser discrepancy explicitly retained | Publish coordinator decisions and complete the student-facing contract |
-| Contract/design review | Coordinator, author | Bootstrap, scoped views, Agent leases, direct request capture and strict policy identity extension accepted as working directions; frame-size extension explicitly chosen | Review exact wire, ordering, bounds and lifecycle contract before student release |
+| Research and outline | Author `/root/coder_ch04` | Original outline/evidence frozen at `54806a6`; historical fake-server/default-browser discrepancy explicitly retained; full draft `46fd7d8` revised at `2d4ea47` | Reconcile future student findings with the retained research |
+| Contract/design review | Coordinator, author | Revised contract `2d4ea47` accepted for checker preparation; all seven first-round findings resolved in [review](chapter-12-review.md); seven JSON fixtures and envelope bound independently checked | Publish independent checks and obtain accepted Chapter 11 source before student release |
 | Independent checks | Grader engineer | Not started | Prepare real-browser tunnel controls from the published contract; a fake stdio peer cannot establish the required capability |
 | Student implementation and local checks | Fresh student, unassigned | Not started; accepted Chapter 11 source is a prerequisite | Freeze permitted inputs and review the student's ownership plan |
 | Initial live use | Student, coordinator | Not started | Review complete bounded CLI/browser/public/all-provider plan before live calls |
 | Historical comparison and revisions | Independent code reviewer | Not started | Preserve initial implementation, runs and teaching experience first |
-| Manuscript and feedback | Author, student, proofreader | Outline only; no successful demonstration claimed | Reconcile actual evidence and resolve teaching/reviewer findings |
+| Manuscript and feedback | Author, student, proofreader | Full contract draft reviewed and revised; no successful demonstration claimed | Reconcile actual evidence and eventual student findings before final prose acceptance |
 | Export and checkpoint | Coordinator | Not started | Complete all gates before export and immutable chapter tag |
 
 ## Working design decisions

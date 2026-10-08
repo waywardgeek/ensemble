@@ -43,7 +43,24 @@ budget. Pending cancellation fences that work; settled/unseen cancellation is
 ignored without a tombstone. The tunnel preserves each request before its own
 cancellation while allowing independent requests and completions out of order.
 State belongs to channel and generation; old callbacks cannot act on a rebind.
-The author must teach this before an independent checker encodes it.
+Revision `2d4ea47` teaches this distinction before independent checker work.
+
+## Revision review
+
+Root reviewed the complete revision at `2d4ea47` against all seven findings.
+Each is resolved: the build path names the actual command, skill control uses
+the existing public API or model tools, human-draft testing preserves pause,
+server admission has bounded duplicate tracking, omitted bytes have an exact
+text definition, the phantom-panel account retains its evidence limitation,
+and the frame bound covers a complete WebSocket message.
+
+Independent parsing passed for all seven JSON fixtures. The three provider
+examples carry identical canonical observation text. The maximum compact
+envelope for an 8 MiB decoded message measures 11,184,968 bytes, within the
+12 MiB contract bound. These are fixture and contract checks, not runtime
+measurements. The revised contract is accepted for checker preparation;
+student release still requires the accepted Chapter 11 implementation and
+published independent checks.
 
 ## Source checks and limits
 
@@ -63,8 +80,7 @@ attributed where raw run transcripts were not recovered. Unsupported debugger
 timings and blanket claims about unsupervised success are not restored merely
 to make the story livelier.
 
-The author reports seven parsed JSON fixtures and equal canonical observation
-text across the three provider examples. Independent fixture/byte checks and
-revision review remain before contract acceptance. The eventual student must
+The author's fixture checks were independently confirmed during revision
+review. The eventual student must
 receive only accepted new teaching and predecessor source, not this review or
 the author's historical research.
