@@ -247,3 +247,23 @@ inspection both report `session_corrupt: record 7: checkpoint differs from
 reduced prefix`. The checker performs no file mutation between genuine creation
 and those opens. Further narrow diagnosis will identify whether this is already
 covered by the schema repair before claiming a current implementation finding.
+
+A bounded reproduction against the retained initial executable
+(`ccbff99ab39dbea6c7e2f64d27cc6d641d19d2ecd66ea150d51bc4e1cc98c91b`)
+confirmed the prefix mismatch independently. One ordinary local OpenAI response
+creates a valid session; inspecting it unchanged fails at record 7. A separate
+copy with its checkpoint removed rebuilds successfully. Comparing the two
+semantic states finds precisely two differences: context Responses[0].raw_usage
+and the corresponding saved window response.raw_usage. The initial capture
+contains `{"prompt_tokens": 1, "completion_tokens": 1}`; replay from the event
+log contains `{"prompt_tokens":1,"completion_tokens":1}`. No corruption fixture
+has run and no original session file was rewritten. The
+[bounded diagnostic](checkpoint-evidence/ch10-initial-prefix-diagnostic.json)
+records command, exit, stderr, binary/input hashes and both field values.
+
+This legal provider whitespace must not make the application's own save
+unopenable. It is distinct from the schema-number metadata comparison. The
+coordinator received the exact finding; any repair must preserve the published
+purpose-specific raw replay/semantic equality distinction, rather than accepting
+all snapshot/prefix differences. This reproduction uses the preserved initial
+binary, not a claim about the evolving replacement source.
