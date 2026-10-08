@@ -48,8 +48,9 @@ def evaluate(revision, only=None):
         run('complete-delivered-package-discovery',['python3',HERE/'accept_delivered_tree.py',revision],REPO)
         run('module-aware-package-checker-controls',['go','test','./scripts/edition2/ch08packagecheck','-count=1'],REPO)
         run('historical-package-checker-controls',['go','test','./scripts/edition2/packagecheck','-count=1'],REPO)
-        for name,script in [('settings-wire','accept_ch08.py'),('strict-files-and-patches','accept_ch08_validation.py'),('command-shapes','accept_ch08_commands.py'),('actual-policy-effects','accept_ch08_policy_effect.py')]:
+        for name,script in [('settings-wire','accept_ch08.py'),('strict-files-and-patches','accept_ch08_validation.py'),('command-shapes','accept_ch08_commands.py'),('actual-policy-effects','accept_ch08_policy_effect.py'),('exact-settings-revisions','ch08-review-revisions.py')]:
             if gui_ok:run(name,['python3',HERE/script,gui])
+        if gui_ok:run('projection-integer-deletion',['python3',HERE/'audit_ch08_revision_projection.py',root,gui])
         for name,script in [('public-policy','accept_ch08_public.py'),('disk-concurrency','accept_ch08_persistence.py'),('policy-disk-deletions','audit_ch08_policy.py'),('settings-browser-deletions','audit_ch08_browser.py'),('snapshot-handoff-deletions','accept_ch08_handoff.py')]:
             run(name,['python3',HERE/script,root])
         run('settings-browser',['node',HERE/'accept_ch08_browser.cjs',root])

@@ -1,0 +1,414 @@
+{
+  "scope": "Comparative R1 repair acceptance: 12 distinct affected groups on immutable a06d4f3 plus 40 applicable earlier groups with their original cd9de3e source identity. This is a reconciled result, not a claimed fresh complete run or final live/manuscript acceptance.",
+  "passed": true,
+  "source_revision": "a06d4f3c848685d81306166279df7c977d71bddd",
+  "source_file_count": 3077,
+  "both_affected_source_maps_identical": true,
+  "changed_runtime_files": {
+    "gui/internal/preferences/preferences.go": {
+      "before": "a680af7cdcd7c8e8c85fd8616e72a24927d13cb51575390c066beed41592839b",
+      "after": "f06818339920a40d63f37dec1075dc542dc0cb2cffbb3686ba19d0ee00b268d8"
+    },
+    "gui/projection.go": {
+      "before": "a1be665574f1fe2dfebffdd932528d6b9936cc7e7947ba3fc1e102e936d95bfe",
+      "after": "f93a4ecdabc5b61791507e04f8e850bf4606b3a1ebf2e6e30278f82784a2a884"
+    },
+    "gui/web/gui/connector.js": {
+      "before": "9bf0b23ac83648ea4cf779e42431b3a643c1f2e5edbb938156b858ad76c15811",
+      "after": "ceb1419710dfba6e6ceb90519ec41d3fc31be4298c5f7d4e09b3dfc79bee3cbf"
+    },
+    "internal/policy/policy.go": {
+      "before": "3aee5c32f773ee5a7faa7133ef370d8f14b8b872687e57edd5156c32f4838b35",
+      "after": "c41862fcaafef6ceca47a7320f6c4e6ae219246fefc6864c372c835af2a2afaf"
+    }
+  },
+  "added_runtime_files": {
+    "gui/projection_test.go": "169317cad056bf999d98cfa810ee0de82c37bcc90632734766c72c3e0116cb33"
+  },
+  "reviewed_scope": {
+    "comment_only": [
+      "internal/policy/policy.go",
+      "gui/internal/preferences/preferences.go"
+    ],
+    "behavior": [
+      "gui/projection.go",
+      "gui/web/gui/connector.js"
+    ],
+    "new_test": "gui/projection_test.go",
+    "retention_reason": "No other prior runtime/module/asset file changed. Core execution/persistence/actor/jobs/transport machinery is unchanged. Actual GUI wire, public projection and browser compatibility plus new counter/deletion cases were rerun."
+  },
+  "effective_groups": 52,
+  "retained_groups": 40,
+  "affected_groups": 12,
+  "receipts": {
+    "ch08-full-gate-reconciled.json": "eb5b4ec10b7ba5f317a4e0f53079681c1695e8df029c55eb324ab1748b099b7c",
+    "ch08-review-affected-a06d4f3.json": "4e2a64baea5db530ab0be06e8a9d86e0b95d02768aeec98105f4fe3dbf71046f",
+    "ch08-review-projection-a06d4f3.json": "36c0794f77ca2a222313270e84ef8b0495d99b0ea9378dadcb8fd9c7c1abdc39"
+  },
+  "effective_checks": [
+    {
+      "id": "build-headless-cli",
+      "passed": true,
+      "receipt": "ch08-review-projection-a06d4f3.json",
+      "source_revision": "a06d4f3c848685d81306166279df7c977d71bddd",
+      "retained": false
+    },
+    {
+      "id": "build-optional-gui",
+      "passed": true,
+      "receipt": "ch08-review-projection-a06d4f3.json",
+      "source_revision": "a06d4f3c848685d81306166279df7c977d71bddd",
+      "retained": false
+    },
+    {
+      "id": "complete-delivered-package-discovery",
+      "passed": true,
+      "receipt": "ch08-review-affected-a06d4f3.json",
+      "source_revision": "a06d4f3c848685d81306166279df7c977d71bddd",
+      "retained": false
+    },
+    {
+      "id": "module-aware-package-checker-controls",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "historical-package-checker-controls",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "settings-wire",
+      "passed": true,
+      "receipt": "ch08-review-affected-a06d4f3.json",
+      "source_revision": "a06d4f3c848685d81306166279df7c977d71bddd",
+      "retained": false
+    },
+    {
+      "id": "strict-files-and-patches",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "command-shapes",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "actual-policy-effects",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "public-policy",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "disk-concurrency",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "policy-disk-deletions",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "settings-browser-deletions",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "snapshot-handoff-deletions",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "settings-browser",
+      "passed": true,
+      "receipt": "ch08-review-affected-a06d4f3.json",
+      "source_revision": "a06d4f3c848685d81306166279df7c977d71bddd",
+      "retained": false
+    },
+    {
+      "id": "cross-tab-native-lease-deletions",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "retained-gui-wire",
+      "passed": true,
+      "receipt": "ch08-review-affected-a06d4f3.json",
+      "source_revision": "a06d4f3c848685d81306166279df7c977d71bddd",
+      "retained": false
+    },
+    {
+      "id": "retained-public-watch-pause",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "retained-queue-projection",
+      "passed": true,
+      "receipt": "ch08-review-affected-a06d4f3.json",
+      "source_revision": "a06d4f3c848685d81306166279df7c977d71bddd",
+      "retained": false
+    },
+    {
+      "id": "retained-watch-deletions",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "retained-browser-deletions",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "retained-projection-scaling",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "retained-connector-deletions",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "retained-ch06-contract",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "retained-ch05-assertions",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "retained-ch06-deletions",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "retained-browser",
+      "passed": true,
+      "receipt": "ch08-review-affected-a06d4f3.json",
+      "source_revision": "a06d4f3c848685d81306166279df7c977d71bddd",
+      "retained": false
+    },
+    {
+      "id": "retained-cli-early-barriers",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "retained-wire-61",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "retained-cli-overflow-deletions",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "retained-ch07-comparative-repairs",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/browser-consumer/vet",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/browser-consumer/tests",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/consumer/vet",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/consumer/tests",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/jobs-consumer/vet",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/jobs-consumer/tests",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/policy-consumer/vet",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/policy-consumer/tests",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/stream-consumer/vet",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/stream-consumer/tests",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/tools-consumer/vet",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/tools-consumer/tests",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/workflow/vet",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/examples/workflow/tests",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/./vet",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/./tests",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "module/gui/vet",
+      "passed": true,
+      "receipt": "ch08-review-affected-a06d4f3.json",
+      "source_revision": "a06d4f3c848685d81306166279df7c977d71bddd",
+      "retained": false
+    },
+    {
+      "id": "module/gui/tests",
+      "passed": true,
+      "receipt": "ch08-review-affected-a06d4f3.json",
+      "source_revision": "a06d4f3c848685d81306166279df7c977d71bddd",
+      "retained": false
+    },
+    {
+      "id": "headless-without-optional-gui",
+      "passed": true,
+      "receipt": "ch08-full-gate-reconciled.json",
+      "source_revision": "cd9de3e4ec6be4a560144bf46caf9ddd54302dc2",
+      "retained": true
+    },
+    {
+      "id": "exact-settings-revisions",
+      "passed": true,
+      "receipt": "ch08-review-affected-a06d4f3.json",
+      "source_revision": "a06d4f3c848685d81306166279df7c977d71bddd",
+      "retained": false
+    },
+    {
+      "id": "projection-integer-deletion",
+      "passed": true,
+      "receipt": "ch08-review-projection-a06d4f3.json",
+      "source_revision": "a06d4f3c848685d81306166279df7c977d71bddd",
+      "retained": false
+    }
+  ]
+}

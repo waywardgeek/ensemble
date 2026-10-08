@@ -1,0 +1,648 @@
+{
+  "scope": "Actual Chrome production UI and public Connector, exact persisted revisions, reconnect, conflicts, exhaustion, targeted decoder deletion; no model calls",
+  "binary": "/Users/bill/projects/ensemble-edition-2-revisions/ch08-live-bin/gui-final",
+  "binary_sha256": "6e11c05a35f1bec39c51a42bc35ad60f91f19caaa9c4d246773c518d38866a2a",
+  "checker_files": {
+    "ch08-review-revisions.py": "37f0b212e7bd466c6ddf9ee47a12ab55f3014aba8688c4703a77bb99bb773a9f",
+    "ch08-review-revisions.cjs": "426f01d6b87f7925c5e06b3dfacbd4d27781731f8d4919676df205ee1d77e23d"
+  },
+  "passed": true,
+  "checks": [
+    {
+      "id": "revision-7",
+      "passed": true,
+      "result": {
+        "revision": "7",
+        "connector_sha256": "ceb1419710dfba6e6ceb90519ec41d3fc31be4298c5f7d4e09b3dfc79bee3cbf",
+        "result": {
+          "steps": [
+            {
+              "label": "preferences-no-change",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c3\",\"base_revision\":7,\"patch\":{\"theme\":\"dark\"}}",
+              "reply": "{\"id\":\"c3\",\"revision\":7,\"type\":\"preferences_ack\"}",
+              "notice": "Preferences applied",
+              "applied": "Applied revision 7: dark, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-no-change",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c4\",\"base_revision\":7,\"patch\":{\"max_model_requests\":0}}",
+              "reply": "{\"id\":\"c4\",\"revision\":7,\"type\":\"policy_ack\",\"watch_revision\":0}",
+              "notice": "Policy applied for later turns",
+              "applied": "Next turn: Default (16) model requests; revision 7; persistent. Active turn: none."
+            },
+            {
+              "label": "preferences-first",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c5\",\"base_revision\":7,\"patch\":{\"theme\":\"light\"}}",
+              "reply": "{\"id\":\"c5\",\"revision\":8,\"type\":\"preferences_ack\"}",
+              "notice": "Preferences applied",
+              "applied": "Applied revision 8: light, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-first",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c6\",\"base_revision\":7,\"patch\":{\"max_model_requests\":2}}",
+              "reply": "{\"id\":\"c6\",\"revision\":8,\"type\":\"policy_ack\",\"watch_revision\":1}",
+              "notice": "Policy applied for later turns",
+              "applied": "Next turn: 2 model requests; revision 8; persistent. Active turn: none."
+            },
+            {
+              "label": "preferences-second",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c7\",\"base_revision\":8,\"patch\":{\"theme\":\"system\"}}",
+              "reply": "{\"id\":\"c7\",\"revision\":9,\"type\":\"preferences_ack\"}",
+              "notice": "Preferences applied",
+              "applied": "Applied revision 9: system, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-second",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c8\",\"base_revision\":8,\"patch\":{\"max_model_requests\":3}}",
+              "reply": "{\"id\":\"c8\",\"revision\":9,\"type\":\"policy_ack\",\"watch_revision\":2}",
+              "notice": "Policy applied for later turns",
+              "applied": "Next turn: 3 model requests; revision 9; persistent. Active turn: none."
+            }
+          ],
+          "reloaded": {
+            "preferences": "Applied revision 9: system, 16px, widths 260/380, autoplay off, rate 1.",
+            "policy": "Next turn: 3 model requests; revision 9; persistent. Active turn: none."
+          },
+          "retries": [
+            {
+              "domain": "preferences",
+              "before": "9",
+              "conflict": "9",
+              "ack": "9"
+            },
+            {
+              "domain": "policy",
+              "before": "9",
+              "conflict": "9",
+              "ack": "9"
+            }
+          ],
+          "protocol": {
+            "exact_state": "9007199254740993",
+            "exact_observation": "9007199254740995",
+            "encoded": "{\"type\":\"preferences_update\",\"id\":\"c1\",\"patch\":{\"unrecognized\":\"literal \\\"base_revision\\\":9007199254740993 and \\\\ backslash\"},\"base_revision\":9007199254740993}",
+            "unrelated_text": "literal \"base_revision\":9007199254740993 and \\ backslash",
+            "unsupported_refused": true,
+            "diagnostics": [
+              "Invalid server frame: This browser cannot retain exact server revisions; JSON source support is required"
+            ]
+          },
+          "outbound": [
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"pause\",\"id\":\"c2\",\"typing\":false,\"speaking\":false}",
+            "{\"type\":\"preferences_update\",\"id\":\"c3\",\"base_revision\":7,\"patch\":{\"theme\":\"dark\"}}",
+            "{\"type\":\"policy_update\",\"id\":\"c4\",\"base_revision\":7,\"patch\":{\"max_model_requests\":0}}",
+            "{\"type\":\"preferences_update\",\"id\":\"c5\",\"base_revision\":7,\"patch\":{\"theme\":\"light\"}}",
+            "{\"type\":\"policy_update\",\"id\":\"c6\",\"base_revision\":7,\"patch\":{\"max_model_requests\":2}}",
+            "{\"type\":\"preferences_update\",\"id\":\"c7\",\"base_revision\":8,\"patch\":{\"theme\":\"system\"}}",
+            "{\"type\":\"policy_update\",\"id\":\"c8\",\"base_revision\":8,\"patch\":{\"max_model_requests\":3}}",
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"pause\",\"id\":\"c2\",\"typing\":false,\"speaking\":false}",
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"preferences_update\",\"id\":\"c2\",\"patch\":{\"theme\":\"system\"},\"base_revision\":8}",
+            "{\"type\":\"preferences_update\",\"id\":\"c3\",\"base_revision\":9,\"patch\":{\"theme\":\"system\"}}",
+            "{\"type\":\"policy_update\",\"id\":\"c4\",\"patch\":{\"max_model_requests\":3},\"base_revision\":8}",
+            "{\"type\":\"policy_update\",\"id\":\"c5\",\"base_revision\":9,\"patch\":{\"max_model_requests\":3}}"
+          ],
+          "inbound": [
+            "{\"preferences\":{\"theme\":\"dark\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":7,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g1\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":7,\"persistent\":true,\"max_model_requests\":0,\"effective_max_model_requests\":16},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":0}",
+            "{\"generation\":\"agent-1-g1\",\"type\":\"snapshot_end\",\"watermark\":0}",
+            "{\"id\":\"c2\",\"paused\":false,\"revision\":0,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+            "{\"id\":\"c3\",\"revision\":7,\"type\":\"preferences_ack\"}",
+            "{\"id\":\"c4\",\"revision\":7,\"type\":\"policy_ack\",\"watch_revision\":0}",
+            "{\"preferences\":{\"theme\":\"light\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":8,\"type\":\"preferences_changed\"}",
+            "{\"id\":\"c5\",\"revision\":8,\"type\":\"preferences_ack\"}",
+            "{\"generation\":\"agent-1-g1\",\"observation\":{\"accepted\":false,\"agent_id\":\"agent-1\",\"execution_policy\":{\"effective_max_model_requests\":2,\"max_model_requests\":2,\"persistent\":true,\"revision\":8},\"kind\":\"policy_changed\",\"part_index\":0,\"paused\":false,\"seq\":0,\"speaking_clients\":0,\"typing_clients\":0},\"revision\":1,\"type\":\"observation\"}",
+            "{\"id\":\"c6\",\"revision\":8,\"type\":\"policy_ack\",\"watch_revision\":1}",
+            "{\"preferences\":{\"theme\":\"system\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9,\"type\":\"preferences_changed\"}",
+            "{\"id\":\"c7\",\"revision\":9,\"type\":\"preferences_ack\"}",
+            "{\"generation\":\"agent-1-g1\",\"observation\":{\"accepted\":false,\"agent_id\":\"agent-1\",\"execution_policy\":{\"effective_max_model_requests\":3,\"max_model_requests\":3,\"persistent\":true,\"revision\":9},\"kind\":\"policy_changed\",\"part_index\":0,\"paused\":false,\"seq\":0,\"speaking_clients\":0,\"typing_clients\":0},\"revision\":2,\"type\":\"observation\"}",
+            "{\"id\":\"c8\",\"revision\":9,\"type\":\"policy_ack\",\"watch_revision\":2}",
+            "{\"preferences\":{\"theme\":\"system\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g2\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":9,\"persistent\":true,\"max_model_requests\":3,\"effective_max_model_requests\":3},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":2}",
+            "{\"generation\":\"agent-1-g2\",\"type\":\"snapshot_end\",\"watermark\":2}",
+            "{\"id\":\"c2\",\"paused\":false,\"revision\":2,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+            "{\"preferences\":{\"theme\":\"system\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g3\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":9,\"persistent\":true,\"max_model_requests\":3,\"effective_max_model_requests\":3},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":2}",
+            "{\"generation\":\"agent-1-g3\",\"type\":\"snapshot_end\",\"watermark\":2}",
+            "{\"code\":\"revision_conflict\",\"current\":{\"revision\":9,\"preferences\":{\"theme\":\"system\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1}},\"domain\":\"preferences\",\"id\":\"c2\",\"message\":\"preferences revision changed\",\"type\":\"error\"}",
+            "{\"id\":\"c3\",\"revision\":9,\"type\":\"preferences_ack\"}",
+            "{\"code\":\"revision_conflict\",\"current\":{\"revision\":9,\"persistent\":true,\"max_model_requests\":3,\"effective_max_model_requests\":3},\"domain\":\"policy\",\"id\":\"c4\",\"message\":\"policy revision changed\",\"type\":\"error\"}",
+            "{\"id\":\"c5\",\"revision\":9,\"type\":\"policy_ack\",\"watch_revision\":2}"
+          ],
+          "errors": []
+        }
+      }
+    },
+    {
+      "id": "revision-9007199254740991",
+      "passed": true,
+      "result": {
+        "revision": "9007199254740991",
+        "connector_sha256": "ceb1419710dfba6e6ceb90519ec41d3fc31be4298c5f7d4e09b3dfc79bee3cbf",
+        "result": {
+          "steps": [
+            {
+              "label": "preferences-no-change",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c3\",\"base_revision\":9007199254740991,\"patch\":{\"theme\":\"dark\"}}",
+              "reply": "{\"id\":\"c3\",\"revision\":9007199254740991,\"type\":\"preferences_ack\"}",
+              "notice": "Preferences applied",
+              "applied": "Applied revision 9007199254740991: dark, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-no-change",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c4\",\"base_revision\":9007199254740991,\"patch\":{\"max_model_requests\":0}}",
+              "reply": "{\"id\":\"c4\",\"revision\":9007199254740991,\"type\":\"policy_ack\",\"watch_revision\":0}",
+              "notice": "Policy applied for later turns",
+              "applied": "Next turn: Default (16) model requests; revision 9007199254740991; persistent. Active turn: none."
+            },
+            {
+              "label": "preferences-first",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c5\",\"base_revision\":9007199254740991,\"patch\":{\"theme\":\"light\"}}",
+              "reply": "{\"id\":\"c5\",\"revision\":9007199254740992,\"type\":\"preferences_ack\"}",
+              "notice": "Preferences applied",
+              "applied": "Applied revision 9007199254740992: light, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-first",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c6\",\"base_revision\":9007199254740991,\"patch\":{\"max_model_requests\":2}}",
+              "reply": "{\"id\":\"c6\",\"revision\":9007199254740992,\"type\":\"policy_ack\",\"watch_revision\":1}",
+              "notice": "Policy applied for later turns",
+              "applied": "Next turn: 2 model requests; revision 9007199254740992; persistent. Active turn: none."
+            },
+            {
+              "label": "preferences-second",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c7\",\"patch\":{\"theme\":\"system\"},\"base_revision\":9007199254740992}",
+              "reply": "{\"id\":\"c7\",\"revision\":9007199254740993,\"type\":\"preferences_ack\"}",
+              "notice": "Preferences applied",
+              "applied": "Applied revision 9007199254740993: system, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-second",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c8\",\"patch\":{\"max_model_requests\":3},\"base_revision\":9007199254740992}",
+              "reply": "{\"id\":\"c8\",\"revision\":9007199254740993,\"type\":\"policy_ack\",\"watch_revision\":2}",
+              "notice": "Policy applied for later turns",
+              "applied": "Next turn: 3 model requests; revision 9007199254740993; persistent. Active turn: none."
+            }
+          ],
+          "reloaded": {
+            "preferences": "Applied revision 9007199254740993: system, 16px, widths 260/380, autoplay off, rate 1.",
+            "policy": "Next turn: 3 model requests; revision 9007199254740993; persistent. Active turn: none."
+          },
+          "retries": [
+            {
+              "domain": "preferences",
+              "before": "9007199254740993",
+              "conflict": "9007199254740993",
+              "ack": "9007199254740993"
+            },
+            {
+              "domain": "policy",
+              "before": "9007199254740993",
+              "conflict": "9007199254740993",
+              "ack": "9007199254740993"
+            }
+          ],
+          "protocol": {
+            "exact_state": "9007199254740993",
+            "exact_observation": "9007199254740995",
+            "encoded": "{\"type\":\"preferences_update\",\"id\":\"c1\",\"patch\":{\"unrecognized\":\"literal \\\"base_revision\\\":9007199254740993 and \\\\ backslash\"},\"base_revision\":9007199254740993}",
+            "unrelated_text": "literal \"base_revision\":9007199254740993 and \\ backslash",
+            "unsupported_refused": true,
+            "diagnostics": [
+              "Invalid server frame: This browser cannot retain exact server revisions; JSON source support is required"
+            ]
+          },
+          "outbound": [
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"pause\",\"id\":\"c2\",\"typing\":false,\"speaking\":false}",
+            "{\"type\":\"preferences_update\",\"id\":\"c3\",\"base_revision\":9007199254740991,\"patch\":{\"theme\":\"dark\"}}",
+            "{\"type\":\"policy_update\",\"id\":\"c4\",\"base_revision\":9007199254740991,\"patch\":{\"max_model_requests\":0}}",
+            "{\"type\":\"preferences_update\",\"id\":\"c5\",\"base_revision\":9007199254740991,\"patch\":{\"theme\":\"light\"}}",
+            "{\"type\":\"policy_update\",\"id\":\"c6\",\"base_revision\":9007199254740991,\"patch\":{\"max_model_requests\":2}}",
+            "{\"type\":\"preferences_update\",\"id\":\"c7\",\"patch\":{\"theme\":\"system\"},\"base_revision\":9007199254740992}",
+            "{\"type\":\"policy_update\",\"id\":\"c8\",\"patch\":{\"max_model_requests\":3},\"base_revision\":9007199254740992}",
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"pause\",\"id\":\"c2\",\"typing\":false,\"speaking\":false}",
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"preferences_update\",\"id\":\"c2\",\"patch\":{\"theme\":\"system\"},\"base_revision\":9007199254740992}",
+            "{\"type\":\"preferences_update\",\"id\":\"c3\",\"patch\":{\"theme\":\"system\"},\"base_revision\":9007199254740993}",
+            "{\"type\":\"policy_update\",\"id\":\"c4\",\"patch\":{\"max_model_requests\":3},\"base_revision\":9007199254740992}",
+            "{\"type\":\"policy_update\",\"id\":\"c5\",\"patch\":{\"max_model_requests\":3},\"base_revision\":9007199254740993}"
+          ],
+          "inbound": [
+            "{\"preferences\":{\"theme\":\"dark\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9007199254740991,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g1\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":9007199254740991,\"persistent\":true,\"max_model_requests\":0,\"effective_max_model_requests\":16},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":0}",
+            "{\"generation\":\"agent-1-g1\",\"type\":\"snapshot_end\",\"watermark\":0}",
+            "{\"id\":\"c2\",\"paused\":false,\"revision\":0,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+            "{\"id\":\"c3\",\"revision\":9007199254740991,\"type\":\"preferences_ack\"}",
+            "{\"id\":\"c4\",\"revision\":9007199254740991,\"type\":\"policy_ack\",\"watch_revision\":0}",
+            "{\"preferences\":{\"theme\":\"light\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9007199254740992,\"type\":\"preferences_changed\"}",
+            "{\"id\":\"c5\",\"revision\":9007199254740992,\"type\":\"preferences_ack\"}",
+            "{\"generation\":\"agent-1-g1\",\"observation\":{\"accepted\":false,\"agent_id\":\"agent-1\",\"execution_policy\":{\"effective_max_model_requests\":2,\"max_model_requests\":2,\"persistent\":true,\"revision\":9007199254740992},\"kind\":\"policy_changed\",\"part_index\":0,\"paused\":false,\"seq\":0,\"speaking_clients\":0,\"typing_clients\":0},\"revision\":1,\"type\":\"observation\"}",
+            "{\"id\":\"c6\",\"revision\":9007199254740992,\"type\":\"policy_ack\",\"watch_revision\":1}",
+            "{\"preferences\":{\"theme\":\"system\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9007199254740993,\"type\":\"preferences_changed\"}",
+            "{\"id\":\"c7\",\"revision\":9007199254740993,\"type\":\"preferences_ack\"}",
+            "{\"generation\":\"agent-1-g1\",\"observation\":{\"accepted\":false,\"agent_id\":\"agent-1\",\"execution_policy\":{\"effective_max_model_requests\":3,\"max_model_requests\":3,\"persistent\":true,\"revision\":9007199254740993},\"kind\":\"policy_changed\",\"part_index\":0,\"paused\":false,\"seq\":0,\"speaking_clients\":0,\"typing_clients\":0},\"revision\":2,\"type\":\"observation\"}",
+            "{\"id\":\"c8\",\"revision\":9007199254740993,\"type\":\"policy_ack\",\"watch_revision\":2}",
+            "{\"preferences\":{\"theme\":\"system\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9007199254740993,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g2\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":9007199254740993,\"persistent\":true,\"max_model_requests\":3,\"effective_max_model_requests\":3},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":2}",
+            "{\"generation\":\"agent-1-g2\",\"type\":\"snapshot_end\",\"watermark\":2}",
+            "{\"id\":\"c2\",\"paused\":false,\"revision\":2,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+            "{\"preferences\":{\"theme\":\"system\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9007199254740993,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g3\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":9007199254740993,\"persistent\":true,\"max_model_requests\":3,\"effective_max_model_requests\":3},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":2}",
+            "{\"generation\":\"agent-1-g3\",\"type\":\"snapshot_end\",\"watermark\":2}",
+            "{\"code\":\"revision_conflict\",\"current\":{\"revision\":9007199254740993,\"preferences\":{\"theme\":\"system\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1}},\"domain\":\"preferences\",\"id\":\"c2\",\"message\":\"preferences revision changed\",\"type\":\"error\"}",
+            "{\"id\":\"c3\",\"revision\":9007199254740993,\"type\":\"preferences_ack\"}",
+            "{\"code\":\"revision_conflict\",\"current\":{\"revision\":9007199254740993,\"persistent\":true,\"max_model_requests\":3,\"effective_max_model_requests\":3},\"domain\":\"policy\",\"id\":\"c4\",\"message\":\"policy revision changed\",\"type\":\"error\"}",
+            "{\"id\":\"c5\",\"revision\":9007199254740993,\"type\":\"policy_ack\",\"watch_revision\":2}"
+          ],
+          "errors": []
+        }
+      }
+    },
+    {
+      "id": "revision-9007199254740993",
+      "passed": true,
+      "result": {
+        "revision": "9007199254740993",
+        "connector_sha256": "ceb1419710dfba6e6ceb90519ec41d3fc31be4298c5f7d4e09b3dfc79bee3cbf",
+        "result": {
+          "steps": [
+            {
+              "label": "preferences-no-change",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c3\",\"patch\":{\"theme\":\"dark\"},\"base_revision\":9007199254740993}",
+              "reply": "{\"id\":\"c3\",\"revision\":9007199254740993,\"type\":\"preferences_ack\"}",
+              "notice": "Preferences applied",
+              "applied": "Applied revision 9007199254740993: dark, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-no-change",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c4\",\"patch\":{\"max_model_requests\":0},\"base_revision\":9007199254740993}",
+              "reply": "{\"id\":\"c4\",\"revision\":9007199254740993,\"type\":\"policy_ack\",\"watch_revision\":0}",
+              "notice": "Policy applied for later turns",
+              "applied": "Next turn: Default (16) model requests; revision 9007199254740993; persistent. Active turn: none."
+            },
+            {
+              "label": "preferences-first",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c5\",\"patch\":{\"theme\":\"light\"},\"base_revision\":9007199254740993}",
+              "reply": "{\"id\":\"c5\",\"revision\":9007199254740994,\"type\":\"preferences_ack\"}",
+              "notice": "Preferences applied",
+              "applied": "Applied revision 9007199254740994: light, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-first",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c6\",\"patch\":{\"max_model_requests\":2},\"base_revision\":9007199254740993}",
+              "reply": "{\"id\":\"c6\",\"revision\":9007199254740994,\"type\":\"policy_ack\",\"watch_revision\":1}",
+              "notice": "Policy applied for later turns",
+              "applied": "Next turn: 2 model requests; revision 9007199254740994; persistent. Active turn: none."
+            },
+            {
+              "label": "preferences-second",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c7\",\"patch\":{\"theme\":\"system\"},\"base_revision\":9007199254740994}",
+              "reply": "{\"id\":\"c7\",\"revision\":9007199254740995,\"type\":\"preferences_ack\"}",
+              "notice": "Preferences applied",
+              "applied": "Applied revision 9007199254740995: system, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-second",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c8\",\"patch\":{\"max_model_requests\":3},\"base_revision\":9007199254740994}",
+              "reply": "{\"id\":\"c8\",\"revision\":9007199254740995,\"type\":\"policy_ack\",\"watch_revision\":2}",
+              "notice": "Policy applied for later turns",
+              "applied": "Next turn: 3 model requests; revision 9007199254740995; persistent. Active turn: none."
+            }
+          ],
+          "reloaded": {
+            "preferences": "Applied revision 9007199254740995: system, 16px, widths 260/380, autoplay off, rate 1.",
+            "policy": "Next turn: 3 model requests; revision 9007199254740995; persistent. Active turn: none."
+          },
+          "retries": [
+            {
+              "domain": "preferences",
+              "before": "9007199254740995",
+              "conflict": "9007199254740995",
+              "ack": "9007199254740995"
+            },
+            {
+              "domain": "policy",
+              "before": "9007199254740995",
+              "conflict": "9007199254740995",
+              "ack": "9007199254740995"
+            }
+          ],
+          "protocol": {
+            "exact_state": "9007199254740993",
+            "exact_observation": "9007199254740995",
+            "encoded": "{\"type\":\"preferences_update\",\"id\":\"c1\",\"patch\":{\"unrecognized\":\"literal \\\"base_revision\\\":9007199254740993 and \\\\ backslash\"},\"base_revision\":9007199254740993}",
+            "unrelated_text": "literal \"base_revision\":9007199254740993 and \\ backslash",
+            "unsupported_refused": true,
+            "diagnostics": [
+              "Invalid server frame: This browser cannot retain exact server revisions; JSON source support is required"
+            ]
+          },
+          "outbound": [
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"pause\",\"id\":\"c2\",\"typing\":false,\"speaking\":false}",
+            "{\"type\":\"preferences_update\",\"id\":\"c3\",\"patch\":{\"theme\":\"dark\"},\"base_revision\":9007199254740993}",
+            "{\"type\":\"policy_update\",\"id\":\"c4\",\"patch\":{\"max_model_requests\":0},\"base_revision\":9007199254740993}",
+            "{\"type\":\"preferences_update\",\"id\":\"c5\",\"patch\":{\"theme\":\"light\"},\"base_revision\":9007199254740993}",
+            "{\"type\":\"policy_update\",\"id\":\"c6\",\"patch\":{\"max_model_requests\":2},\"base_revision\":9007199254740993}",
+            "{\"type\":\"preferences_update\",\"id\":\"c7\",\"patch\":{\"theme\":\"system\"},\"base_revision\":9007199254740994}",
+            "{\"type\":\"policy_update\",\"id\":\"c8\",\"patch\":{\"max_model_requests\":3},\"base_revision\":9007199254740994}",
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"pause\",\"id\":\"c2\",\"typing\":false,\"speaking\":false}",
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"preferences_update\",\"id\":\"c2\",\"patch\":{\"theme\":\"system\"},\"base_revision\":9007199254740994}",
+            "{\"type\":\"preferences_update\",\"id\":\"c3\",\"patch\":{\"theme\":\"system\"},\"base_revision\":9007199254740995}",
+            "{\"type\":\"policy_update\",\"id\":\"c4\",\"patch\":{\"max_model_requests\":3},\"base_revision\":9007199254740994}",
+            "{\"type\":\"policy_update\",\"id\":\"c5\",\"patch\":{\"max_model_requests\":3},\"base_revision\":9007199254740995}"
+          ],
+          "inbound": [
+            "{\"preferences\":{\"theme\":\"dark\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9007199254740993,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g1\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":9007199254740993,\"persistent\":true,\"max_model_requests\":0,\"effective_max_model_requests\":16},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":0}",
+            "{\"generation\":\"agent-1-g1\",\"type\":\"snapshot_end\",\"watermark\":0}",
+            "{\"id\":\"c2\",\"paused\":false,\"revision\":0,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+            "{\"id\":\"c3\",\"revision\":9007199254740993,\"type\":\"preferences_ack\"}",
+            "{\"id\":\"c4\",\"revision\":9007199254740993,\"type\":\"policy_ack\",\"watch_revision\":0}",
+            "{\"preferences\":{\"theme\":\"light\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9007199254740994,\"type\":\"preferences_changed\"}",
+            "{\"id\":\"c5\",\"revision\":9007199254740994,\"type\":\"preferences_ack\"}",
+            "{\"generation\":\"agent-1-g1\",\"observation\":{\"accepted\":false,\"agent_id\":\"agent-1\",\"execution_policy\":{\"effective_max_model_requests\":2,\"max_model_requests\":2,\"persistent\":true,\"revision\":9007199254740994},\"kind\":\"policy_changed\",\"part_index\":0,\"paused\":false,\"seq\":0,\"speaking_clients\":0,\"typing_clients\":0},\"revision\":1,\"type\":\"observation\"}",
+            "{\"id\":\"c6\",\"revision\":9007199254740994,\"type\":\"policy_ack\",\"watch_revision\":1}",
+            "{\"preferences\":{\"theme\":\"system\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9007199254740995,\"type\":\"preferences_changed\"}",
+            "{\"id\":\"c7\",\"revision\":9007199254740995,\"type\":\"preferences_ack\"}",
+            "{\"generation\":\"agent-1-g1\",\"observation\":{\"accepted\":false,\"agent_id\":\"agent-1\",\"execution_policy\":{\"effective_max_model_requests\":3,\"max_model_requests\":3,\"persistent\":true,\"revision\":9007199254740995},\"kind\":\"policy_changed\",\"part_index\":0,\"paused\":false,\"seq\":0,\"speaking_clients\":0,\"typing_clients\":0},\"revision\":2,\"type\":\"observation\"}",
+            "{\"id\":\"c8\",\"revision\":9007199254740995,\"type\":\"policy_ack\",\"watch_revision\":2}",
+            "{\"preferences\":{\"theme\":\"system\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9007199254740995,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g2\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":9007199254740995,\"persistent\":true,\"max_model_requests\":3,\"effective_max_model_requests\":3},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":2}",
+            "{\"generation\":\"agent-1-g2\",\"type\":\"snapshot_end\",\"watermark\":2}",
+            "{\"id\":\"c2\",\"paused\":false,\"revision\":2,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+            "{\"preferences\":{\"theme\":\"system\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":9007199254740995,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g3\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":9007199254740995,\"persistent\":true,\"max_model_requests\":3,\"effective_max_model_requests\":3},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":2}",
+            "{\"generation\":\"agent-1-g3\",\"type\":\"snapshot_end\",\"watermark\":2}",
+            "{\"code\":\"revision_conflict\",\"current\":{\"revision\":9007199254740995,\"preferences\":{\"theme\":\"system\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1}},\"domain\":\"preferences\",\"id\":\"c2\",\"message\":\"preferences revision changed\",\"type\":\"error\"}",
+            "{\"id\":\"c3\",\"revision\":9007199254740995,\"type\":\"preferences_ack\"}",
+            "{\"code\":\"revision_conflict\",\"current\":{\"revision\":9007199254740995,\"persistent\":true,\"max_model_requests\":3,\"effective_max_model_requests\":3},\"domain\":\"policy\",\"id\":\"c4\",\"message\":\"policy revision changed\",\"type\":\"error\"}",
+            "{\"id\":\"c5\",\"revision\":9007199254740995,\"type\":\"policy_ack\",\"watch_revision\":2}"
+          ],
+          "errors": []
+        }
+      }
+    },
+    {
+      "id": "revision-18446744073709551614",
+      "passed": true,
+      "result": {
+        "revision": "18446744073709551614",
+        "connector_sha256": "ceb1419710dfba6e6ceb90519ec41d3fc31be4298c5f7d4e09b3dfc79bee3cbf",
+        "result": {
+          "steps": [
+            {
+              "label": "preferences-no-change",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c3\",\"patch\":{\"theme\":\"dark\"},\"base_revision\":18446744073709551614}",
+              "reply": "{\"id\":\"c3\",\"revision\":18446744073709551614,\"type\":\"preferences_ack\"}",
+              "notice": "Preferences applied",
+              "applied": "Applied revision 18446744073709551614: dark, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-no-change",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c4\",\"patch\":{\"max_model_requests\":0},\"base_revision\":18446744073709551614}",
+              "reply": "{\"id\":\"c4\",\"revision\":18446744073709551614,\"type\":\"policy_ack\",\"watch_revision\":0}",
+              "notice": "Policy applied for later turns",
+              "applied": "Next turn: Default (16) model requests; revision 18446744073709551614; persistent. Active turn: none."
+            },
+            {
+              "label": "preferences-first",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c5\",\"patch\":{\"theme\":\"light\"},\"base_revision\":18446744073709551614}",
+              "reply": "{\"id\":\"c5\",\"revision\":18446744073709551615,\"type\":\"preferences_ack\"}",
+              "notice": "Preferences applied",
+              "applied": "Applied revision 18446744073709551615: light, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-first",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c6\",\"patch\":{\"max_model_requests\":2},\"base_revision\":18446744073709551614}",
+              "reply": "{\"id\":\"c6\",\"revision\":18446744073709551615,\"type\":\"policy_ack\",\"watch_revision\":1}",
+              "notice": "Policy applied for later turns",
+              "applied": "Next turn: 2 model requests; revision 18446744073709551615; persistent. Active turn: none."
+            },
+            {
+              "label": "preferences-second",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c7\",\"patch\":{\"theme\":\"system\"},\"base_revision\":18446744073709551615}",
+              "reply": "{\"code\":\"settings_persist_failed\",\"id\":\"c7\",\"message\":\"preferences revision exhausted\",\"type\":\"error\"}",
+              "notice": "Preferences not saved: preferences revision exhausted. Applied values remain shown; retry deliberately.",
+              "applied": "Applied revision 18446744073709551615: light, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-second",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c8\",\"patch\":{\"max_model_requests\":3},\"base_revision\":18446744073709551615}",
+              "reply": "{\"code\":\"settings_persist_failed\",\"id\":\"c8\",\"message\":\"policy revision exhausted\",\"type\":\"error\"}",
+              "notice": "Policy not saved: policy revision exhausted. Applied policy remains shown above.",
+              "applied": "Next turn: 2 model requests; revision 18446744073709551615; persistent. Active turn: none."
+            }
+          ],
+          "reloaded": {
+            "preferences": "Applied revision 18446744073709551615: light, 16px, widths 260/380, autoplay off, rate 1.",
+            "policy": "Next turn: 2 model requests; revision 18446744073709551615; persistent. Active turn: none."
+          },
+          "retries": [
+            {
+              "domain": "preferences",
+              "before": "18446744073709551615",
+              "conflict": "18446744073709551615",
+              "ack": "18446744073709551615"
+            },
+            {
+              "domain": "policy",
+              "before": "18446744073709551615",
+              "conflict": "18446744073709551615",
+              "ack": "18446744073709551615"
+            }
+          ],
+          "protocol": {
+            "exact_state": "9007199254740993",
+            "exact_observation": "9007199254740995",
+            "encoded": "{\"type\":\"preferences_update\",\"id\":\"c1\",\"patch\":{\"unrecognized\":\"literal \\\"base_revision\\\":9007199254740993 and \\\\ backslash\"},\"base_revision\":9007199254740993}",
+            "unrelated_text": "literal \"base_revision\":9007199254740993 and \\ backslash",
+            "unsupported_refused": true,
+            "diagnostics": [
+              "Invalid server frame: This browser cannot retain exact server revisions; JSON source support is required"
+            ]
+          },
+          "outbound": [
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"pause\",\"id\":\"c2\",\"typing\":false,\"speaking\":false}",
+            "{\"type\":\"preferences_update\",\"id\":\"c3\",\"patch\":{\"theme\":\"dark\"},\"base_revision\":18446744073709551614}",
+            "{\"type\":\"policy_update\",\"id\":\"c4\",\"patch\":{\"max_model_requests\":0},\"base_revision\":18446744073709551614}",
+            "{\"type\":\"preferences_update\",\"id\":\"c5\",\"patch\":{\"theme\":\"light\"},\"base_revision\":18446744073709551614}",
+            "{\"type\":\"policy_update\",\"id\":\"c6\",\"patch\":{\"max_model_requests\":2},\"base_revision\":18446744073709551614}",
+            "{\"type\":\"preferences_update\",\"id\":\"c7\",\"patch\":{\"theme\":\"system\"},\"base_revision\":18446744073709551615}",
+            "{\"type\":\"policy_update\",\"id\":\"c8\",\"patch\":{\"max_model_requests\":3},\"base_revision\":18446744073709551615}",
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"pause\",\"id\":\"c2\",\"typing\":false,\"speaking\":false}",
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"preferences_update\",\"id\":\"c2\",\"patch\":{\"theme\":\"light\"},\"base_revision\":18446744073709551614}",
+            "{\"type\":\"preferences_update\",\"id\":\"c3\",\"patch\":{\"theme\":\"light\"},\"base_revision\":18446744073709551615}",
+            "{\"type\":\"policy_update\",\"id\":\"c4\",\"patch\":{\"max_model_requests\":2},\"base_revision\":18446744073709551614}",
+            "{\"type\":\"policy_update\",\"id\":\"c5\",\"patch\":{\"max_model_requests\":2},\"base_revision\":18446744073709551615}"
+          ],
+          "inbound": [
+            "{\"preferences\":{\"theme\":\"dark\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":18446744073709551614,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g1\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":18446744073709551614,\"persistent\":true,\"max_model_requests\":0,\"effective_max_model_requests\":16},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":0}",
+            "{\"generation\":\"agent-1-g1\",\"type\":\"snapshot_end\",\"watermark\":0}",
+            "{\"id\":\"c2\",\"paused\":false,\"revision\":0,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+            "{\"id\":\"c3\",\"revision\":18446744073709551614,\"type\":\"preferences_ack\"}",
+            "{\"id\":\"c4\",\"revision\":18446744073709551614,\"type\":\"policy_ack\",\"watch_revision\":0}",
+            "{\"preferences\":{\"theme\":\"light\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":18446744073709551615,\"type\":\"preferences_changed\"}",
+            "{\"id\":\"c5\",\"revision\":18446744073709551615,\"type\":\"preferences_ack\"}",
+            "{\"generation\":\"agent-1-g1\",\"observation\":{\"accepted\":false,\"agent_id\":\"agent-1\",\"execution_policy\":{\"effective_max_model_requests\":2,\"max_model_requests\":2,\"persistent\":true,\"revision\":18446744073709551615},\"kind\":\"policy_changed\",\"part_index\":0,\"paused\":false,\"seq\":0,\"speaking_clients\":0,\"typing_clients\":0},\"revision\":1,\"type\":\"observation\"}",
+            "{\"id\":\"c6\",\"revision\":18446744073709551615,\"type\":\"policy_ack\",\"watch_revision\":1}",
+            "{\"code\":\"settings_persist_failed\",\"id\":\"c7\",\"message\":\"preferences revision exhausted\",\"type\":\"error\"}",
+            "{\"code\":\"settings_persist_failed\",\"id\":\"c8\",\"message\":\"policy revision exhausted\",\"type\":\"error\"}",
+            "{\"preferences\":{\"theme\":\"light\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":18446744073709551615,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g2\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":18446744073709551615,\"persistent\":true,\"max_model_requests\":2,\"effective_max_model_requests\":2},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":1}",
+            "{\"generation\":\"agent-1-g2\",\"type\":\"snapshot_end\",\"watermark\":1}",
+            "{\"id\":\"c2\",\"paused\":false,\"revision\":1,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+            "{\"preferences\":{\"theme\":\"light\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":18446744073709551615,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g3\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":18446744073709551615,\"persistent\":true,\"max_model_requests\":2,\"effective_max_model_requests\":2},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":1}",
+            "{\"generation\":\"agent-1-g3\",\"type\":\"snapshot_end\",\"watermark\":1}",
+            "{\"code\":\"revision_conflict\",\"current\":{\"revision\":18446744073709551615,\"preferences\":{\"theme\":\"light\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1}},\"domain\":\"preferences\",\"id\":\"c2\",\"message\":\"preferences revision changed\",\"type\":\"error\"}",
+            "{\"id\":\"c3\",\"revision\":18446744073709551615,\"type\":\"preferences_ack\"}",
+            "{\"code\":\"revision_conflict\",\"current\":{\"revision\":18446744073709551615,\"persistent\":true,\"max_model_requests\":2,\"effective_max_model_requests\":2},\"domain\":\"policy\",\"id\":\"c4\",\"message\":\"policy revision changed\",\"type\":\"error\"}",
+            "{\"id\":\"c5\",\"revision\":18446744073709551615,\"type\":\"policy_ack\",\"watch_revision\":1}"
+          ],
+          "errors": []
+        }
+      }
+    },
+    {
+      "id": "revision-18446744073709551615",
+      "passed": true,
+      "result": {
+        "revision": "18446744073709551615",
+        "connector_sha256": "ceb1419710dfba6e6ceb90519ec41d3fc31be4298c5f7d4e09b3dfc79bee3cbf",
+        "result": {
+          "steps": [
+            {
+              "label": "preferences-no-change",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c3\",\"patch\":{\"theme\":\"dark\"},\"base_revision\":18446744073709551615}",
+              "reply": "{\"id\":\"c3\",\"revision\":18446744073709551615,\"type\":\"preferences_ack\"}",
+              "notice": "Preferences applied",
+              "applied": "Applied revision 18446744073709551615: dark, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-no-change",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c4\",\"patch\":{\"max_model_requests\":0},\"base_revision\":18446744073709551615}",
+              "reply": "{\"id\":\"c4\",\"revision\":18446744073709551615,\"type\":\"policy_ack\",\"watch_revision\":0}",
+              "notice": "Policy applied for later turns",
+              "applied": "Next turn: Default (16) model requests; revision 18446744073709551615; persistent. Active turn: none."
+            },
+            {
+              "label": "preferences-first",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c5\",\"patch\":{\"theme\":\"light\"},\"base_revision\":18446744073709551615}",
+              "reply": "{\"code\":\"settings_persist_failed\",\"id\":\"c5\",\"message\":\"preferences revision exhausted\",\"type\":\"error\"}",
+              "notice": "Preferences not saved: preferences revision exhausted. Applied values remain shown; retry deliberately.",
+              "applied": "Applied revision 18446744073709551615: dark, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-first",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c6\",\"patch\":{\"max_model_requests\":2},\"base_revision\":18446744073709551615}",
+              "reply": "{\"code\":\"settings_persist_failed\",\"id\":\"c6\",\"message\":\"policy revision exhausted\",\"type\":\"error\"}",
+              "notice": "Policy not saved: policy revision exhausted. Applied policy remains shown above.",
+              "applied": "Next turn: Default (16) model requests; revision 18446744073709551615; persistent. Active turn: none."
+            },
+            {
+              "label": "preferences-second",
+              "command": "{\"type\":\"preferences_update\",\"id\":\"c7\",\"patch\":{\"theme\":\"system\"},\"base_revision\":18446744073709551615}",
+              "reply": "{\"code\":\"settings_persist_failed\",\"id\":\"c7\",\"message\":\"preferences revision exhausted\",\"type\":\"error\"}",
+              "notice": "Preferences not saved: preferences revision exhausted. Applied values remain shown; retry deliberately.",
+              "applied": "Applied revision 18446744073709551615: dark, 16px, widths 260/380, autoplay off, rate 1."
+            },
+            {
+              "label": "policy-second",
+              "command": "{\"type\":\"policy_update\",\"id\":\"c8\",\"patch\":{\"max_model_requests\":3},\"base_revision\":18446744073709551615}",
+              "reply": "{\"code\":\"settings_persist_failed\",\"id\":\"c8\",\"message\":\"policy revision exhausted\",\"type\":\"error\"}",
+              "notice": "Policy not saved: policy revision exhausted. Applied policy remains shown above.",
+              "applied": "Next turn: Default (16) model requests; revision 18446744073709551615; persistent. Active turn: none."
+            }
+          ],
+          "reloaded": {
+            "preferences": "Applied revision 18446744073709551615: dark, 16px, widths 260/380, autoplay off, rate 1.",
+            "policy": "Next turn: Default (16) model requests; revision 18446744073709551615; persistent. Active turn: none."
+          },
+          "retries": [
+            {
+              "domain": "preferences",
+              "before": "18446744073709551615",
+              "conflict": "18446744073709551615",
+              "ack": "18446744073709551615"
+            },
+            {
+              "domain": "policy",
+              "before": "18446744073709551615",
+              "conflict": "18446744073709551615",
+              "ack": "18446744073709551615"
+            }
+          ],
+          "protocol": {
+            "exact_state": "9007199254740993",
+            "exact_observation": "9007199254740995",
+            "encoded": "{\"type\":\"preferences_update\",\"id\":\"c1\",\"patch\":{\"unrecognized\":\"literal \\\"base_revision\\\":9007199254740993 and \\\\ backslash\"},\"base_revision\":9007199254740993}",
+            "unrelated_text": "literal \"base_revision\":9007199254740993 and \\ backslash",
+            "unsupported_refused": true,
+            "diagnostics": [
+              "Invalid server frame: This browser cannot retain exact server revisions; JSON source support is required"
+            ]
+          },
+          "outbound": [
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"pause\",\"id\":\"c2\",\"typing\":false,\"speaking\":false}",
+            "{\"type\":\"preferences_update\",\"id\":\"c3\",\"patch\":{\"theme\":\"dark\"},\"base_revision\":18446744073709551615}",
+            "{\"type\":\"policy_update\",\"id\":\"c4\",\"patch\":{\"max_model_requests\":0},\"base_revision\":18446744073709551615}",
+            "{\"type\":\"preferences_update\",\"id\":\"c5\",\"patch\":{\"theme\":\"light\"},\"base_revision\":18446744073709551615}",
+            "{\"type\":\"policy_update\",\"id\":\"c6\",\"patch\":{\"max_model_requests\":2},\"base_revision\":18446744073709551615}",
+            "{\"type\":\"preferences_update\",\"id\":\"c7\",\"patch\":{\"theme\":\"system\"},\"base_revision\":18446744073709551615}",
+            "{\"type\":\"policy_update\",\"id\":\"c8\",\"patch\":{\"max_model_requests\":3},\"base_revision\":18446744073709551615}",
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"pause\",\"id\":\"c2\",\"typing\":false,\"speaking\":false}",
+            "{\"type\":\"subscribe\",\"id\":\"c1\"}",
+            "{\"type\":\"preferences_update\",\"id\":\"c2\",\"patch\":{\"theme\":\"dark\"},\"base_revision\":18446744073709551614}",
+            "{\"type\":\"preferences_update\",\"id\":\"c3\",\"patch\":{\"theme\":\"dark\"},\"base_revision\":18446744073709551615}",
+            "{\"type\":\"policy_update\",\"id\":\"c4\",\"patch\":{\"max_model_requests\":0},\"base_revision\":18446744073709551614}",
+            "{\"type\":\"policy_update\",\"id\":\"c5\",\"patch\":{\"max_model_requests\":0},\"base_revision\":18446744073709551615}"
+          ],
+          "inbound": [
+            "{\"preferences\":{\"theme\":\"dark\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":18446744073709551615,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g1\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":18446744073709551615,\"persistent\":true,\"max_model_requests\":0,\"effective_max_model_requests\":16},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":0}",
+            "{\"generation\":\"agent-1-g1\",\"type\":\"snapshot_end\",\"watermark\":0}",
+            "{\"id\":\"c2\",\"paused\":false,\"revision\":0,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+            "{\"id\":\"c3\",\"revision\":18446744073709551615,\"type\":\"preferences_ack\"}",
+            "{\"id\":\"c4\",\"revision\":18446744073709551615,\"type\":\"policy_ack\",\"watch_revision\":0}",
+            "{\"code\":\"settings_persist_failed\",\"id\":\"c5\",\"message\":\"preferences revision exhausted\",\"type\":\"error\"}",
+            "{\"code\":\"settings_persist_failed\",\"id\":\"c6\",\"message\":\"policy revision exhausted\",\"type\":\"error\"}",
+            "{\"code\":\"settings_persist_failed\",\"id\":\"c7\",\"message\":\"preferences revision exhausted\",\"type\":\"error\"}",
+            "{\"code\":\"settings_persist_failed\",\"id\":\"c8\",\"message\":\"policy revision exhausted\",\"type\":\"error\"}",
+            "{\"preferences\":{\"theme\":\"dark\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":18446744073709551615,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g2\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":18446744073709551615,\"persistent\":true,\"max_model_requests\":0,\"effective_max_model_requests\":16},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":0}",
+            "{\"generation\":\"agent-1-g2\",\"type\":\"snapshot_end\",\"watermark\":0}",
+            "{\"id\":\"c2\",\"paused\":false,\"revision\":0,\"speaking_clients\":0,\"type\":\"ack\",\"typing_clients\":0}",
+            "{\"preferences\":{\"theme\":\"dark\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1},\"revision\":18446744073709551615,\"type\":\"preferences_snapshot\"}",
+            "{\"agent_id\":\"agent-1\",\"first_seq\":null,\"generation\":\"agent-1-g3\",\"id\":\"c1\",\"last_seq\":null,\"log_seq\":0,\"omitted\":0,\"state\":{\"execution_policy\":{\"revision\":18446744073709551615,\"persistent\":true,\"max_model_requests\":0,\"effective_max_model_requests\":16},\"active_max_model_requests\":null,\"lifecycle\":\"idle\",\"active_request_id\":null,\"active_operation\":null,\"queued_request_ids\":[],\"paused\":false,\"typing_clients\":0,\"speaking_clients\":0,\"model\":\"fixture-ch08-independent\",\"usage\":[]},\"type\":\"snapshot_begin\",\"watermark\":0}",
+            "{\"generation\":\"agent-1-g3\",\"type\":\"snapshot_end\",\"watermark\":0}",
+            "{\"code\":\"revision_conflict\",\"current\":{\"revision\":18446744073709551615,\"preferences\":{\"theme\":\"dark\",\"font_size\":16,\"sidebar_width\":260,\"actions_width\":380,\"autoplay\":false,\"speech_rate\":1}},\"domain\":\"preferences\",\"id\":\"c2\",\"message\":\"preferences revision changed\",\"type\":\"error\"}",
+            "{\"id\":\"c3\",\"revision\":18446744073709551615,\"type\":\"preferences_ack\"}",
+            "{\"code\":\"revision_conflict\",\"current\":{\"revision\":18446744073709551615,\"persistent\":true,\"max_model_requests\":0,\"effective_max_model_requests\":16},\"domain\":\"policy\",\"id\":\"c4\",\"message\":\"policy revision changed\",\"type\":\"error\"}",
+            "{\"id\":\"c5\",\"revision\":18446744073709551615,\"type\":\"policy_ack\",\"watch_revision\":0}"
+          ],
+          "errors": []
+        }
+      }
+    },
+    {
+      "id": "delete-lossless-decode",
+      "passed": true,
+      "intended_refusal": "preferences-no-change: exact base unavailable after decoder deletion",
+      "actual_refusal": "preferences-no-change: exact base unavailable after decoder deletion"
+    }
+  ],
+  "requests": []
+}

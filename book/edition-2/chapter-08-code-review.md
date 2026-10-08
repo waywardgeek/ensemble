@@ -23,15 +23,16 @@ obsolete architecture or change the new request-counting contract.
 
 The [50-group deterministic reconciliation](checkpoint-evidence/ch08-full-gate-reconciled.json)
 remains valid for its stated coverage. Comparative review subsequently found
-a numeric representation boundary not protected by those fixtures. The new
-revision repair and author reconciliation below remain open. Neither a green
-gate nor this comparison accepts the still-finishing live evidence package.
+a numeric representation boundary not protected by those fixtures. The numeric revision repair is independently accepted below. Author reconciliation
+and final live receipt verification remain open. Neither a green gate nor this
+comparison accepts the final live evidence package.
 
 ## Consolidated findings
 
 ### R1: Preserve exact settings revisions in the browser
 
-**Open; repair plan accepted.** `internal/policy/policy.go` and
+**Fixed and independently accepted in `a06d4f3c848685d81306166279df7c977d71bddd`.**
+`internal/policy/policy.go` and
 `gui/internal/preferences/preferences.go` accept persisted nonnegative uint64
 revisions. `gui/web/gui/connector.js` originally parsed every frame with ordinary
 `JSON.parse`; `preferences.js` then copied the rounded number into
@@ -127,7 +128,7 @@ explicitly found no such consumer.
 
 ### C1: Explain the non-obvious boundaries in comments
 
-**Suggested with the R1 repair, without broad refactoring.** Keep a short comment
+**Accepted in the R1 repair, without broad refactoring.** The student added a short comment
 beside the lossless decoder/encoder explaining why only protocol counters are
 normalized and why whole-JSON replacement is unsafe. The existing new native
 service comments already explain lease lifetime and callback fencing accurately.
@@ -177,7 +178,61 @@ client control has its enabled positive and checks both omitted-false behavior
 and the omitted-zero counterexample. These supplement the full gate; they do
 not relabel the gate's original fixture failures or replace final live review.
 
-Next: independently review and test R1's frozen repair, obtain the author's T1/T2
-responses and student confirmation, then proofread the complete reconciled chapter
-against the final live receipts. Final chapter acceptance remains pending those
-specific gates.
+## Repair verification on a06d4f3
+
+The final diff changes browser protocol-counter representation and the GUI's
+numeric projection conversion. Two service-file edits add only the requested
+owner-access comments; one new GUI regression covers numeric tokens and typed
+opaque children. Every other prior runtime/module/asset file is identical to
+cd9de3e. No settings range, file/wire schema, model body, tool configuration,
+execution limit or speech ownership was weakened.
+
+The [actual-browser boundary check](checkpoint-evidence/ch08-review-revisions-passed.json)
+passes five persisted revision scenarios, including transition beyond JavaScript's
+safe range and uint64 exhaustion. It checks live applied state before reconnect,
+consecutive edits, exact base/acknowledgement tokens, reconnect, conflict-current
+and deliberate retry. Public Connector controls protect exact watch successors,
+unrelated tool argument/string handling and a visible refusal when the parser
+cannot retain an unsafe revision. The decoder deletion fails through the
+remaining encoder's specific precision guard before sending a rounded command.
+The original deletion expectation wrongly waited for that command; its failed
+receipt remains, along with a subsequent fixture typo in DOM property access.
+Neither was a runtime failure.
+
+The [immutable affected run](checkpoint-evidence/ch08-review-affected-a06d4f3.json)
+binds all 3,077 delivered files and passes both builds, complete delivered-tree
+package discovery, settings wire, numeric/browser checks, retained GUI wire,
+public projection, retained browser, and GUI vet/tests. A
+[separate immutable deletion run](checkpoint-evidence/ch08-review-projection-a06d4f3.json)
+uses the identical source map: the exact policy-change wire positive passes;
+removing only `UseNumber` produces the intended rounded numeric token. An earlier
+working-directory preparation also passed, but included an untracked generated
+log in its source map; only the subsequent immutable run supplies source-bound
+acceptance.
+
+The [repair reconciliation](checkpoint-evidence/ch08-review-repair-reconciled.json)
+accounts for 52 current groups: 12 distinct affected groups on a06d4f3 and 40
+applicable earlier results with their original cd9de3e identities. It does not
+claim a fresh complete 52-group run. The checker now includes both precision
+controls in its full invocation:
+
+```sh
+python3 scripts/edition2/accept_ch08_gate.py SOURCE_COMMIT
+```
+
+For the narrow repair alone:
+
+```sh
+python3 scripts/edition2/ch08-review-revisions.py GUI_BINARY
+python3 scripts/edition2/audit_ch08_revision_projection.py SOURCE_DIRECTORY GUI_BINARY
+```
+
+The latter standalone command requires a source/binary pair already bound by its
+caller; the immutable gate performs that binding. Prior graders and assertions
+remain unchanged. The full historical comparison and runtime repair review are
+closed, with no remaining implementation finding from this round.
+
+Next: obtain the author's T1/T2 and numeric-boundary teaching responses and the
+student's confirmation, independently verify the final live evidence, then
+proofread the complete reconciled chapter. Final chapter acceptance remains
+pending those specific gates.

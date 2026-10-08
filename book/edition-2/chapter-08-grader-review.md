@@ -425,3 +425,35 @@ This closes the deterministic gate only. The student's initial implementation,
 user runs and teaching experience are now frozen at `5f9684b`, permitting the
 required historical comparison. Final live receipt verification, comparative
 review and author reconciliation remain separate gates.
+
+
+## Comparative precision supplement and final runtime review
+
+Historical comparison after the cold checkpoint found a valid-file boundary:
+uint64 settings revisions could lose precision both in browser parsing and in
+server projection. The consolidated [code review](chapter-08-code-review.md)
+records the original actual-browser failure, the intermediate server-side
+rounding failure, the representation-preserving repair and author-facing gaps.
+No new range restriction or old answer code was supplied to the student.
+
+The current full gate includes two additional groups, for 52 total. The
+[repair reconciliation](checkpoint-evidence/ch08-review-repair-reconciled.json)
+passes 12 distinct affected groups on immutable a06d4f3 and retains 40 applicable
+earlier groups with their original source identity. All 3,077 delivered source
+hashes agree across the two immutable affected runs. The changed runtime scope
+is exact numeric GUI projection and browser protocol counters, plus owner-access
+comments; no other prior runtime/module/asset file changed.
+
+Actual Chrome verifies five revision scenarios, live state before reconnect,
+consecutive edits, exact numeric wire tokens, conflict/current/retry, exhaustion
+and unsupported-parser refusal. Deleting the lossless decoder reaches the
+remaining encoder's intended precision refusal. Separately, deleting only the
+server's numeric-preserving conversion produces the exact wrong policy-change
+token after a valid positive. Both mutations are causal; an absent command or
+an unrelated setup failure does not earn credit.
+
+The two earlier mutation-fixture mistakes and the working-directory preparation
+with an extra generated log remain retained. The original 48/50 gate, initial
+student implementation, user runs and comparative failures were not relabeled.
+Runtime comparative acceptance is closed. Final live audit and author/reader
+reconciliation remain separate and pending.
