@@ -27,17 +27,27 @@ reproduced in student Q4. Published acceptance boundary `c5ad6c0`, reviewed at
 `c773b11`, is pinned new-only in `clarification-c5ad6c0` and released after student
 acknowledgment. Preserve the initial binary/receipts. Checker-only repairs
 `e118f78` (canonical path) and `d2d8481` (mutation numeric tokens/diagnostics)
-are separate from the runtime defect. Additional client runner `2bec837` has
-nine unrun groups. Student grammar/API `b926929` adds RequestSeqs and cancellable
-checkpoint waiting; source remains mutable and the full local matrix pending.
+are separate from the runtime defect. Initial runtime/evidence is frozen at
+`41a5e72`: prepared CLI 93/93, clients 9/9, DOM 6/6 and physical reads 38/38.
+Expanded public checks first exposed a real Agent/Jobs lock inversion; preserve
+public-prepared-corrected.json. The later mutable-source repair passes all16
+groups in public-lock-index-maxima.json and targeted Skills replay on all three
+local APIs. Q5 exact activation/job maxima are published at `3a9e5b7`, reviewed
+at `2a24f7c`, pinned new-only and acknowledged. Student is to freeze grouped
+lock/index/bounded-encoding/maxima changes after local checks, then submit its
+complete live plan; no paid/credential release. Grader prepares deterministic
+fault/lifetime overlays for that freeze; root handles retained-gate integration.
+Independent fixture commits are `833c735` and `fe3ef1b`. Physical read receipts
+and scoped limits are in chapter-10-record-bound-review.md (`3914c08`).
 Do not start a competing worker or resume paid Chapter 9 demonstrations.
 Chapter 14 correction `b951524` has independent closure `674b9a2` and coordinator
 contract acceptance. It has no checker, implementation or actual spin yet.
 Chapter 15 draft `a9fd165` and grouped correction `a80138d` have independent
 closure `738fe0f` and coordinator contract acceptance. No checker, runtime or paid
-work exists. See chapter-15-validation.md and chapter-15-decisions.md. Author is
-researching/outlining new Chapter 16 (old Chapter 17); reviewer is auditing Ch10
-coverage completeness while grader prepares remaining independent checks.
+work exists. See chapter-15-validation.md and chapter-15-decisions.md. Chapter16
+outline/evidence `d4b17a3`, advisory `0320911` and coordinator decisions `81e2065`
+release a full draft. Its gate is chapter-16-validation.md. Reviewer found no
+consequential contradiction in those decisions; no runtime or paid work exists.
 
 Chapter 6 maintenance checkpoint: `edition-2-ch06-r2` points to isolated
 `3acdd8e`, whose main and exact 1,565-file export match source `5e48b38`.

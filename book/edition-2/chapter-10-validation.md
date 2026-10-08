@@ -10,10 +10,10 @@ Bill's editorial approval is separate from technical acceptance.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
-| Contract | Author, coordinator | Q1–Q3 and Unicode clarification accepted; prepared-event clarification `c5ad6c0` has independent closure `c773b11` and a new-only student pin | Obtain student acknowledgment and verify the affected implementation |
-| Independent checks | `/root/grader_ch05` | Initial CLI run 12/93; public run found two failures. Canonical-path fixture `e118f78` and numeric mutation serialization `d2d8481` corrected; client runner `2bec837` prepares nine additional unrun groups | Retest repaired source, complete fault/limits/DOM/bounds coverage and distinguishing controls |
+| Contract | Author, coordinator | Prepared-event clarification `c5ad6c0`/`c773b11` and exact watermark clarification `3a9e5b7`/`2a24f7c` published, pinned and acknowledged | Preserve exact representation and complete-state identity rules |
+| Independent checks | `/root/grader_ch05`, coordinator, `/root/coder_ch08` | Prepared executable passes CLI 93, clients 9, DOM 6 and physical reads 38; corrected public suite passes 16 groups on later mutable source. Initial failures remain retained | Bind repaired source; finish independent fault, allocation, storage and retained-behavior gates |
 | Fresh student and owner plan | Fresh CLI student `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0`, coordinator, independent reviewer | Plan `7cb8429` accepted at `72bf621`; answers `af5a762` proofread at `6766995`, fully acknowledged by student at `44056d1` | Preserve new-only read ledger and route new teaching gaps before affected code |
-| Implementation and local gates | Same student, grader | Phase 2 running; grammar/API through `b926929` adds accepted request witnesses and cancellation of checkpoint waiting. Main/GUI tests and nine nested module checks reported; source remains mutable | Repair accepted-byte boundary, run complete local/independent gates and freeze initial attempt |
+| Implementation and local gates | Same student, grader | Initial runtime `41a5e72` preserves prepared-byte repair and evidence before later Q5/lock/index fixes. Main/GUI race and nine nested module checks recorded; grouped revisions remain mutable | Freeze validated grouped revision for remaining independent controls and live-plan review |
 | Actual use | Future student, reviewer | Not started | Review bounded plan, then real CLI/browser/public all-provider demonstrations |
 | Historical comparison and revisions | Independent reviewer | Not started | Preserve initial source, runs and teaching review first |
 | Manuscript and feedback | Author, student, proofreader | Draft labels actual spin pending | Reconcile actual evidence and resolve student feedback |
@@ -91,7 +91,35 @@ as a black-box command for coherent repaired binaries:
 python3 scripts/edition2/accept_ch10_clients.py CLI_BINARY GUI_BINARY --source-directory solutions/edition-2/main --receipt RECEIPT.json
 ```
 
-Its nine runtime groups remain unrun; oracle-only controls are preparation
-evidence. Independent fault, bounds, limits, DOM and retained-behavior coverage
-is still being completed. None of these partial checks releases paid calls or
-substitutes for the full chapter matrix and later comparative quality review.
+Its nine runtime groups subsequently pass in clients-initial.json. Six browser
+groups pass in browser-initial.json. Physical read controls pass 38 rows against
+the retained prepared CLI; see chapter-10-record-bound-review.md. These include
+actual 64 MiB/one-over LF/EOF records, not allocation or write-bound evidence.
+
+The expanded public suite first stopped at a fixture compile error, retained in
+public-prepared.json. After that fixture-only correction it passed fifteen groups
+but exposed a real lock cycle: Agent append held Agent.mu while waiting for Jobs
+limits state, while a report worker held Jobs.mu and waited for Agent.Workspace.
+The 90-second failure is retained in public-prepared-corrected.json. Independent
+grader and coordinator confirmed the cycle; the fixture's request schedule was
+valid. The initial attempt and binary/source manifest are frozen at `41a5e72`.
+
+The student's grouped repair separates accepted limit synchronization, corrects
+watch ownership lookup, enforces published Q5 maxima and introduces derived
+validation indexes/bounded encoding. Targeted Skills replay passes all three
+local API shapes, and public-lock-index-maxima.json passes all sixteen public
+groups. These are mutable-source receipts, not final immutable acceptance.
+Independent fixture commits `833c735` and `fe3ef1b` preserve the first failures.
+
+Q5 arose from a real prose contradiction about allocator watermarks. Published
+`3a9e5b7`, proofread at `2a24f7c`, requires exact represented activation/session-job
+maxima even for snapshot-only origins; only request admissions may leave an
+unrecorded higher cursor. The student confirms the complete new-only read.
+Current root job allocation still preserves an already higher live floor.
+
+The inherited old Chapter 11 diagnostic returned 0/100 with incompatible old
+CLI/startup assumptions. That result is retained, not reclassified as a pass or
+used to overwrite the new contract. Independent fault barriers, allocation,
+complete storage/semantic and retained-behavior coverage are still being completed.
+No partial local result releases paid calls or substitutes for the full chapter
+matrix and later comparative quality review.

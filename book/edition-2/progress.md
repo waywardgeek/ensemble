@@ -21,13 +21,15 @@ or paid calls are released in this phase. Complete codec/API publication precede
 the remaining independent semantic checks.
 See [chapter-10-validation.md](chapter-10-validation.md).
 
-The first Chapter 10 independent runs exposed a real restart representation
-mismatch and a separate macOS path-alias fixture defect. The latter is corrected;
-the former now has a published prepared-event acceptance rule (`c5ad6c0`, reviewed
-at `c773b11`) pinned for the student before the affected fix. Initial attempts
-remain intact. Grammar/API through `b926929` and targeted local passes are
-implementation progress, not chapter acceptance. Remaining independent coverage,
-the real all-provider spin and historical quality comparison are still ahead.
+The first Chapter 10 runs exposed a restart representation mismatch and a
+separate macOS path-alias fixture defect. Published clarification and repairs now
+pass the93-row CLI,9 client,6 DOM and38 physical-read groups on the prepared
+executable, preserved at initial checkpoint `41a5e72`. Expanded public checks then
+found a real Agent/Jobs lock cycle. The mutable grouped repair passes all16 public
+groups; its immutable freeze is next. Q5 exact durable watermark clarification
+`3a9e5b7` has review `2a24f7c` and student acknowledgment. Initial failures remain
+intact. Remaining independent gates, actual all-provider use and historical
+quality comparison are still ahead; no paid calls are released for Chapter10.
 
 The scoped Chapter 6 streaming correction is accepted at `edition-2-ch06-r2`
 (`3acdd8e`), with exact 1,565-file export from `5e48b38`. Main and export match
@@ -121,8 +123,9 @@ Chapter 15 full draft `a9fd165`, grouped correction `a80138d` and independent
 closure `738fe0f` have coordinator contract acceptance. The revisions correct
 shared request-budget semantics, retired-text handling, signed-text protection,
 exact helper inputs and the distinguishing memory exercise. No implementation
-or live result exists yet. Author research/outline work now proceeds to new
-Chapter 16, while Chapter 10 remains the active student implementation.
+or live result exists yet. Chapter16 outline `d4b17a3`, advisory `0320911` and
+coordinator decisions `81e2065` release full drafting; see its validation record.
+Chapter10 remains the active student implementation.
 
 Chapter 5 code, actual live evidence, teaching and manuscript review are
 accepted at `c1cc0b4`. The exact 1,254-file export comes from `185ba76`, with
