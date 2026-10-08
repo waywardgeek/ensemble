@@ -283,5 +283,7 @@ behavior and read-only human /skills surface are explicit. New
 LLM_SKILLS_DIR/LLM_PRIMARY_SKILL configuration is opt-in, shared by commands and
 conflict-aware. The shipped full primary uses the ten observed predecessor
 builtins plus the management pair; the narrow fixture teaches disclosure/shared
-unload. The actual spin remains a plan. The independent checker command is
-explicitly unavailable, blocking handoff instead of inventing a passing gate.
+unload. The actual spin remains a plan. At the original full-draft checkpoint,
+the independent checker command was unavailable and blocked handoff. It is now
+published as an initial subset; the manuscript gives its command and scope.
+The accepted Chapter 8 checkpoint remains required before student release.
