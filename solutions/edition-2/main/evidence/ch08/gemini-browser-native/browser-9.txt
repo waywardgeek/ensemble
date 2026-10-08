@@ -1,0 +1,67 @@
+ENSEMBLE / LOCAL WORKSPACE
+
+Agent workspace
+
+Connected — agent-1-g1
+
+Tool admissions paused — typing: 1, speaking: 0. Already admitted work continues.
+
+agent-1 — tools_pending
+
+Agents
+Settings
+Appearance and speech
+Theme
+Dark
+Light
+System
+Font size
+Sidebar width
+Actions width
+Autoplay new answers
+
+Shared across tabs. New visible answers, exposed thinking and concise tool summaries can speak. Tool results and replay remain silent. Existing speech continues when autoplay turns off.
+
+Speech rate
+
+Applied revision 0: dark, 16px, widths 260/380, autoplay off, rate 1.
+
+Agent policy
+
+Next turn: 1 model requests; revision 1; persistent. Active turn: 1.
+
+Maximum model requests per turn
+
+0 selects Default (16). Changes apply when a later turn activates.
+
+Apply Agent policy
+Chat
+You
+Use read_file to read notes.txt now, then report its exact marker and port in one sentence.
+
+Speak
+Answer
+
+Accepted
+
+Speak
+Return to latest
+Enable playback on this page
+Cancel speech
+Prompt or correction
+Send prompt
+Send hint
+Interrupt
+
+Accepted r1
+
+Actions
+Proposed tool: read_file
+read_file
+{
+  "path": "notes.txt"
+}
+
+Accepted proposal — not yet started
+
+Speak

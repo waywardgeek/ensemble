@@ -310,3 +310,43 @@ speaking after8seconds, B waiting without starting, and B cancellation causing
 no A interruption. No synthesis was replaced in that control. The final full
 student browser fixture passes all8 groups after explicit initiating-client
 acknowledgment waits; both intermediate fixture failures remain retained.
+
+## Corrected actual browser phase
+
+Frozen cd9de3e passes18 evidence controls and all50 independent deterministic
+groups after reviewer fixture corrections (no runtime change from that gate).
+All three browser/provider runs preserve real settings, task, policy, hint,
+reconnect and native speech/audio receipts. Three8-second native captures have
+zero silent-prefix RMS and speech RMS about0.092, with1.6 rate events. No native
+speech error occurred after the lease repair. Anthropic old revision6/rate1.2
+utterances continued after revision8 disabled autoplay; cancellation of A left
+B's speech and typing intact. OpenAI/Gemini queues had finished before their
+disable action, so that specific overlap remains open for a retained-real-text
+replay/native supplement without more model work.
+
+Anthropic honored the one-request hint on its next model request by writing
+port=9090, but a later request, after the hint was consumed, rewrote the file to
+the original marker-only instruction. Raw bodies show delivery exactly once.
+This is observed provider behavior, not proof that the final correction persisted.
+OpenAI and Gemini retained the requested marker plus port9090 in their scratch
+files. The notes input remained unchanged.
+
+The inherited public embedding example deliberately opts into no tools. I failed
+to account for that in two Anthropic embedding prompts; both providers' requested
+capabilities were correctly absent and Anthropic declined. The two-Page model
+delivery/remount worked, but the hoped-for tool interruption did not occur.
+Reviewer approved exactly one additional Anthropic text-only prompt/HTTP, revising
+its cap to11 prompts while retaining24HTTP. Original cap10 and both refusals
+remain preserved. A fresh source-bound consumer launch avoids rewriting the
+original launch identity. No consumer tool configuration changes are justified.
+OpenAI's nonempty provisional embedded answer was successfully interrupted.
+Gemini's512-token embedded response had already ended when clicked; that too-late
+outcome is retained. Its existing tenth-prompt allowance then held a real read
+proposal behind another tab's typing pause and interrupted the active turn before
+execution, with an error tool report and interrupted completion. Exactly one
+model request was used for that corrective path.
+
+The cd9de3e verifier exactly reconstructs24 requests from six completed browser/
+embedding launches plus one from Gemini's bounded interruption correction.
+Current counters before the final Anthropic correction: Anthropic10/17, OpenAI9/14,
+Gemini10/15 (prompts/modelHTTP). One discovery request per provider remains separate.

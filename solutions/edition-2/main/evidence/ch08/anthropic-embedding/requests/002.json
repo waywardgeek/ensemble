@@ -1,0 +1,1 @@
+{"max_tokens":512,"messages":[{"content":[{"text":"Use run_command once to execute sleep 10; printf EMBED-DONE. Then report its result.","type":"text"}],"role":"user"}],"model":"claude-sonnet-4-6","stream":true,"system":"Answer helpfully and concisely. Retain the conversation's details."}
