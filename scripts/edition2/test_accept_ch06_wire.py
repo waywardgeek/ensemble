@@ -1,8 +1,9 @@
 """Controls for the independent receipt assertions, not a provider/parser model."""
 import copy
+import json
 import unittest
 
-from accept_ch06_wire import check_result
+from accept_ch06_wire import LIMIT, check_result, one_byte_over_data_frame
 
 
 def accepted():
@@ -17,6 +18,18 @@ def accepted():
 
 
 class WireReceiptControls(unittest.TestCase):
+    def test_overflow_changes_only_data_whitespace_and_frame_size(self):
+        data = b'data: {"text":"valid"}\n\n'
+        exact = b":" + b"x" * (LIMIT - len(data) - 2) + b"\n" + data
+        overflow = one_byte_over_data_frame(exact)
+        self.assertEqual(len(exact), LIMIT)
+        self.assertEqual(len(overflow), LIMIT + 1)
+        for frame in (exact, overflow):
+            self.assertTrue(frame.startswith(b":"))
+            lines = [line for line in frame.splitlines() if line.startswith(b"data:")]
+            self.assertEqual(len(lines), 1)
+            self.assertEqual(json.loads(lines[0][5:]), {"text": "valid"})
+
     def test_positive(self):
         self.assertEqual(check_result(accepted())["parts"], [dict(type="text", text="Hello.")])
 

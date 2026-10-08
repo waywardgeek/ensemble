@@ -36,6 +36,12 @@ def events(body):
     return [block + b"\n\n" for block in body.split(b"\n\n") if block]
 
 
+def one_byte_over_data_frame(exact):
+    """Keep a valid data field/JSON value; exceed only the physical byte limit."""
+    assert len(exact) == LIMIT and exact.count(b"data: ") == 1
+    return exact.replace(b"data: ", b"data:  ", 1)
+
+
 def without_usage(vendor, body):
     output = []
     for block in events(body):
@@ -219,7 +225,7 @@ def cases(binary, vendor):
         "unfinished-final-frame": body[:-1],
         "required-usage-absent": without_usage(vendor, body),
         "comment-frame-overflow": b":" + b"x" * (LIMIT - 2) + b"\n\n" + body,
-        "data-frame-overflow": b"x" + exact + rest,
+        "data-frame-overflow": one_byte_over_data_frame(exact) + rest,
         "invalid-utf8-data": body.replace(b"Hel", b"\xff", 1),
         "complete-proposed-call-without-terminal": incomplete_call(vendor),
     }

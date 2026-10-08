@@ -153,3 +153,70 @@ input. That failed receipt remains as `ch06-cli-recovery-fixture-omission.json`.
 The corrected runner includes and hashes committed testdata; whole-module vet
 and tests then pass. An intermediate directory-entry path error stopped the
 runner before tests and was corrected by filtering non-files first.
+
+### Data-frame overflow fixture clarity
+
+The reviewer questioned whether adding a byte before a field could accidentally
+test malformed content instead of the frame bound. Inspection established that
+this check's exact frame began with a padding comment, so the original extra
+`x` changed `:` into the valid ignored field `x:` while retaining the data line.
+It did not remove the model payload. The fixture is now easier to assess: add
+one JSON whitespace byte inside the existing data field. A new fixture control
+proves exact and overflowing frames decode to the same JSON with byte counts
+1,048,576 and 1,048,577. All 61 wire cases pass against the archived initial CLI;
+all seven client/wire checker test methods pass. The source/binary/checker-bound
+receipt is `checkpoint-evidence/ch06-wire-fixture-clarification.json`.
+
+The original receipt remains historical with its original checker hash. This
+change strengthens fixture clarity without removing an assertion or changing
+student/historical runtime code. Separate implementation deletion evidence in
+the reviewer's frame group proves that removing the bound is detected.
+
+## Expanded independent implementation milestone
+
+The independent reviewer completed contract-derived public and internal groups
+against frozen initial source `aa5f86a`, after the initial live/student-review
+freeze permitted comparative source inspection. Eleven of thirteen groups
+passed; recognized Chat refusal replay and whole-operation timeout exposed
+material runtime defects. The consolidated findings and repair history are in
+[the code review](chapter-06-code-review.md). Eleven initial implementation
+mutations had passing positives and their intended behavioral failures. A
+size-doubling benchmark independently demonstrated quadratic initial assembly.
+
+The first repair `3ccaed6` passes those thirteen original groups and the retained
+Chapter 5 assertions (100/100) via a separate delivery/interface adapter. The
+adapter changes only the old fixtures' delivery setting and transport double,
+and encodes workflow fixture responses as SSE for that default-streaming public
+consumer. Assertions remain unchanged. The inherited historical grader and
+its incompatible 0/100 result remain unchanged too.
+
+A new escaped-opaque boundary check then caught a remaining R2 defect: decoded
+thinking length was charged while a larger escaped JSON payload was retained.
+Its exact-limit positive and one-byte-over control include control characters,
+quotes, backslash, HTML and Unicode escaping. The intermediate repair is
+preserved and is not a final accepted source.
+
+The complete deterministic command is:
+
+```sh
+python3 scripts/edition2/accept_ch06_gate.py SOURCE_COMMIT
+```
+
+It creates an immutable disposable source archive, builds the CLI, runs the
+six early-delivery client checks, 61 wire cases, expanded public/internal
+groups, retained prior assertions, implementation mutations, CLI overflow
+controls, an allocation-scaling observation, and all discovered module vet/tests.
+The final receipt must pass; the command's existence is not a claim that the
+chapter is validated. Live evidence, manual ownership/comparative assessment
+and manuscript proofreading remain separate gates. The initial and first-repair
+receipts retain their exact source maps and captured output even as the fixtures
+are strengthened for the final gate.
+
+One genuine checker defect was found by deletion: the reviewer's first draft
+of the isolated data-frame overflow fixture prepended a byte to the field name,
+which could fail for missing content instead of the size limit. Inserting that
+byte into the valid data payload gives the intended frame-bound refusal. A
+separate signature deletion initially failed earlier shared validation; it was
+replaced with valid but changed signature content to isolate retention. Neither
+setup/earlier failure is credited as proving the later assertion. These are
+reviewer fixture corrections, not student runtime defects.
