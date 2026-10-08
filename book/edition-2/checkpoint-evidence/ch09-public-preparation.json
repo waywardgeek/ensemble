@@ -1,0 +1,19 @@
+{
+  "scope": "Prepared API adapter; no runtime compile or acceptance claimed",
+  "go_format": {
+    "command": [
+      "gofmt",
+      "-l",
+      "scripts/edition2/ch09-skills-public_test.go"
+    ],
+    "exit": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "input_sha256": {
+    "scripts/edition2/accept_ch09_public.py": "d5596a85eeefd9757247055e2674268ac9347eddb42db83216938210a2e45979",
+    "scripts/edition2/ch09-skills-public_test.go": "54e92bdf204bd62ed0e2cd96d1685ffe5625477e272a3002c801d2ce838bc50b",
+    "solutions/edition-2/main/evidence/ch09/student-review.md": "310c0e5ba2cc871b72ad5e9c2cbddf0dfa46da26e18f04b4a0dc979d28f76c8e",
+    "book/edition-2/chapter-09.md": "cb84cff6c2c31217c52f728f7a722d684c105257250b1e07571ffac8766cdc80"
+  }
+}

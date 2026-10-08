@@ -267,3 +267,30 @@ management. Both controls and final source hashes are in
 `ch09-management-preparation.json` and `ch09-management-predecessor-absent.json`.
 Real Chapter 9 positives, runtime deletions, pause/interrupt races and public
 controls that bypass model-call limit consumption remain separate requirements.
+
+### Proposed public API adapter
+
+The coordinator reviewed the fresh student's plan in
+`main/evidence/ch09/student-review.md` before implementation. The next fixture
+uses its proposed `Config.Skills`, `SkillState`, `InspectSkills`, `LoadSkill` and
+`UnloadSkill` spellings. `accept_ch09_public.py SOURCE_DIRECTORY` creates a tiny
+external consumer module with a read-only module replacement; it does not copy
+the full delivery or inject an internal test hook. It binds all Go/module input
+hashes before and after the run. Full delivered-tree discovery remains separate.
+
+Eight proposed public test groups cover copied constructor/inspection/config
+values, contributor identities, creation-only refusal atomicity, isolated Agents
+with different ceilings and literal scalar values, disabled mode, catalog removal
+after construction, paused public controls and publication before return, same-root
+concurrent admission, exact custom scalar bounds, and live append authorization
+against frozen material. A matching public transition is the positive control
+for refusing a shape-valid, rehashed instruction forgery; a live no-skills Agent
+must refuse an initializer. These fixtures do not assume any of the student's
+three still-pending teaching clarifications.
+
+This adapter is **prepared, not yet compiled or accepted against a Chapter 9
+runtime**. The student has only a reviewed structure plan at this boundary.
+Python syntax and Go formatting checks pass; no Go build was started while disk
+space is limited and the new API is absent. Public spelling may be adapted after
+the implementation exists, preserving the behavioral assertions. Persistence
+faults, held HTTP/admitted work, unresolved-batch ordering and GUI remain pending.
