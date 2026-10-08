@@ -1,0 +1,36 @@
+{
+  "scope": "initial CLI barriers; complete Chapter 6 gate pending",
+  "passed": true,
+  "checks": [
+    {
+      "id": "anthropic/human-pty",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/observe",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/human-pty",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/observe",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/human-pty",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/observe",
+      "passed": true,
+      "details": []
+    }
+  ]
+}

@@ -1,0 +1,11 @@
+{
+  "vendor": "gemini",
+  "model": "models/gemini-3.8-flash",
+  "directory": "/tmp/ensemble-ed2-ch02-live/gemini-eursj_gg",
+  "ephemeral_in_replayed_requests": [
+    false,
+    true,
+    false
+  ],
+  "offline_only": true
+}

@@ -8,15 +8,13 @@ in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 
 ## Current chapter
 
-Chapter 6 runtime `75bd14d` and revised live evidence `8c73f9b` are accepted:
-all seven module checks, full independent gate and targeted mutation controls
-pass; the independent live audit at `15e9590` verifies seven revised sessions
-and 20 requests. Original nine-session/33-request evidence remains bound to its
-initial source. Final author reconciliation, independent proofreading and
-export/tag remain open. See [chapter-06-validation.md](chapter-06-validation.md).
-Chapter 7’s reviewed browser/pause contract and initial partial checker are
-published at `a5a07ba`; its fresh student starts after the Chapter 6 checkpoint.
-The checker does not yet claim full browser, speech or concurrency acceptance.
+Chapter 6 is accepted at `edition-2-ch06-r1`: reviewed runtime `75bd14d`,
+revised live evidence `8c73f9b`, final independent acceptance `37a37f7` and exact
+1,550-file export from `c3fa758`. All code, live, teaching and prose gates pass;
+see [chapter-06-validation.md](chapter-06-validation.md). A fresh new-only
+Chapter 7 student is the next handoff. Its reviewed browser/pause contract and
+partial checker are published; full browser, speech and concurrency checks
+remain required. See [chapter-07-validation.md](chapter-07-validation.md).
 
 Chapter 5 code, actual live evidence, teaching and manuscript review are
 accepted at `c1cc0b4`. The exact 1,254-file export comes from `185ba76`, with

@@ -1,0 +1,46 @@
+{
+  "id": "chatcmpl-EWUbOflSgPPXVjytXl1IgiSaWHgFw",
+  "object": "chat.completion",
+  "created": 1791412838,
+  "model": "gpt-4.1-mini-2025-04-14",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": null,
+        "tool_calls": [
+          {
+            "id": "call_AhoD02C5Rt6Fr0SlxFvrLXRw",
+            "type": "function",
+            "function": {
+              "name": "edit_file",
+              "arguments": "{\"path\":\"draft.txt\",\"old_text\":\"Join us at the public library this Saturday at 10 a.m. for our Repair Cafe event.\",\"new_text\":\"We warmly welcome you to the public library this Saturday at 10 a.m. for our Repair Cafe event, where repairs are free.\"}"
+            }
+          }
+        ],
+        "refusal": null,
+        "annotations": []
+      },
+      "logprobs": null,
+      "finish_reason": "tool_calls"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 576,
+    "completion_tokens": 69,
+    "total_tokens": 645,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_f6eb16169f"
+}

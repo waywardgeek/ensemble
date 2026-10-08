@@ -9,5 +9,9 @@
   "post_evidence_changes": [
     "solutions/edition-2/main/CHECKPOINT.md",
     "solutions/edition-2/main/README.md"
-  ]
+  ],
+  "credential_scan_files": 1550,
+  "credential_matches": 0,
+  "original_initial_receipt_files_preserved": 111,
+  "original_revised_receipt_files_preserved": 75
 }

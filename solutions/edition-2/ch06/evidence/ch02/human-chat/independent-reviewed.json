@@ -1,0 +1,216 @@
+{
+  "binary_sha256": "6e4399307e20fedf1c982677e39c3dadc70beb94e933cb237323468949bbfce9",
+  "checker_sha256": "28a834f89dc8b7adf8a8bb5440fbe8946f02abd0784eedc87bb84f921f731a15",
+  "checks": [
+    {
+      "id": "anthropic/pty-chat",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/pty-default",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/empty",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/exact-limit-crlf",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/over-limit",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/invalid-utf8",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/operation-refusal",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/provider-failure",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/missing-model",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/unknown-subcommand",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/protocol",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/redirected-default",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/empty-response",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "anthropic/tool-only",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/pty-chat",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/pty-default",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/empty",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/exact-limit-crlf",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/over-limit",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/invalid-utf8",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/operation-refusal",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/provider-failure",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/missing-model",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/unknown-subcommand",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/protocol",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/redirected-default",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/empty-response",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "openai/tool-only",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/pty-chat",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/pty-default",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/empty",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/exact-limit-crlf",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/over-limit",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/invalid-utf8",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/operation-refusal",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/provider-failure",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/missing-model",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/unknown-subcommand",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/protocol",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/redirected-default",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/empty-response",
+      "passed": true,
+      "details": []
+    },
+    {
+      "id": "gemini/tool-only",
+      "passed": true,
+      "details": []
+    }
+  ]
+}

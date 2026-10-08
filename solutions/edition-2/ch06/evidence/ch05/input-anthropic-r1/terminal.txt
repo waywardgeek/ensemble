@@ -1,0 +1,58 @@
+Ensemble — anthropic / claude-haiku-4-5-20251001
+Type /help for commands.
+You> Use run_command to start this command: printf 'READY\n'; while IFS= read -r line; do printf 'seen:%s\n' "$line"; done . Set ai_callback_pattern to READY and ai_callback_delay to 5. Leave the job running and tell me its handle; do not call other tools.
+Accepted r1.
+You> 
+Request r1 (success; pending hints=0)
+Assistant:
+The job handle is **1**. The command is running and waiting for input.
+You> Use send_input on handle 1, input LIVE-SEND-CHECK, append_newline true, ai_callback_pattern seen:LIVE-SEND-CHECK and ai_callback_delay 5. Show me the observed echo and input acceptance result. Leave it running; do not call other tools.
+Accepted r2.
+You> 
+Request r2 (success; pending hints=0)
+Assistant:
+The input was successfully accepted (16 of 16 bytes). The observed output shows:
+- **LIVE-SEND-CHECK** (echo of your input)
+- **seen:LIVE-SEND-CHECK** (the loop's confirmation that it read the line)
+
+The job is still running and waiting for more input.
+You> Use kill_job on handle 1 and report its terminal status. Do not call other tools.
+Accepted r3.
+You> 
+Request r3 (success; pending hints=0)
+Assistant:
+Job 1 terminal status: **killed**. The job has been terminated.
+You> /history
+/usage
+/quit
+History:
+1 turn_started
+2 message_received
+3 request_sent
+4 response_ended
+5 tool_called call_id=toolu_015HazoVeWw7WWBMT5nWDae5
+6 tool_returned call_id=toolu_015HazoVeWw7WWBMT5nWDae5
+7 request_sent
+8 response_ended
+9 turn_ended
+10 turn_started
+11 message_received
+12 request_sent
+13 response_ended
+14 tool_called call_id=toolu_01XkxFwrSQJ36QMkYMVK4tRD
+15 tool_returned call_id=toolu_01XkxFwrSQJ36QMkYMVK4tRD
+16 request_sent
+17 response_ended
+18 turn_ended
+19 turn_started
+20 message_received
+21 request_sent
+22 response_ended
+23 tool_called call_id=toolu_01EHw7h9gPaeUVbLacz4vnRs
+24 job_killed
+25 tool_returned call_id=toolu_01EHw7h9gPaeUVbLacz4vnRs
+26 request_sent
+27 response_ended
+28 turn_ended
+You> Usage: input=17896, cache write=0, cache read=0, output=443
+You> Final usage: input=17896, cache write=0, cache read=0, output=443
