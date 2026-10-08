@@ -156,3 +156,55 @@ performed. Only this review file is reviewer-owned.
 Disposition: promising full contract and voice pass, with R1/R2 awaiting the
 author's grouped revision and independent verification. This is neither student
 release clearance nor chapter validation.
+
+## Independent R1/R2 closure
+
+Reviewed frozen author revision `f3a50d35d274a19ea0c55605cadd5d1b51d233b2` on
+October 8, 2026. Chapter SHA-256:
+`1e1ea9557466cc3bd79b6d31733be8045425e566ef5e6bff8dd1096ed62cf0ac`.
+Reread the complete current voice guide and chapter-writing procedure, the full
+three-file grouped diff, and the affected journal, listener, export, checks and
+demonstration passages in context. The full first-round review above remains
+the basis for unchanged portions; no runtime source was read.
+
+**R1 resolved.** Section 13.4 now separates diagnostic seq/time/utterance
+counters from actual playback ownership. Recording failure latches bounded
+out-of-band `journal_status` and `journal_error`, retains earlier records and
+the last written sequence, and cannot wrap, reset on remount or silently clear.
+Both scoped reader profiles expose that status within the response byte cap,
+including empty reads at the last cursor. Faulted recording explicitly permits
+missing terminal records while requiring actual native cleanup and settlement.
+Native admission, FIFO, lease and cancellation ownership remain operational;
+diagnostic failure cannot authorize reuse of a live ownership identity.
+
+Recorder deliveries lacking a recordable queued/completion fact fail and settle
+promptly, releasing their owned speech work without fabricated completion or
+native fallback. The listener consumer refuses complete evaluation even if
+earlier completion records remain. Export reports `complete:false` with
+`journal_fault`; file-export failure alone does not fault the speech journal.
+The new maximum-counter fixture, recovery rule and §13.9 checks agree with these
+boundaries. Existing gap, scope-filtering, cursor and text-truncation rules remain
+distinct; no contradiction requiring another revision was found.
+
+**R2 resolved.** Section 13.8 now closes the launcher's demonstration under its
+own source/service/launch identity, then starts the standalone example's own
+application, URL and fresh Agents. It explicitly provides no attach-to-another-
+launcher mode and makes no cross-run delivery claim. The adapter name in §13.7
+is consistently `recorder`. The public example's construction contract and
+Chapter 12 attachment behavior remain unchanged.
+
+Independent local checks parsed all three JSON fixtures, verified the new read
+field set and exact maximum uint64 cursor, and confirmed the two earlier JSON
+blocks and seven normalization pairs are byte-identical to the initial draft.
+The `Ready.` digest still matches. Scoped diff whitespace checks pass. These are
+prose/literal checks, not an executed parser or journal. The revised prose passes
+the manual voice/cut review without losing the retained historical story or
+adding unsupported outcomes. No new hard-lint run is claimed: the author's
+initial lint remains bound to `e4ef9a9`, as documented above.
+
+Disposition: **R1 and R2 closed; no remaining material finding in this contract
+review.** The draft is cleared for independent checker preparation and the later
+student handoff once its accepted predecessor and runnable checker exist. This
+does not validate an implementation, native audio, listener performance, live
+demonstration, final post-build manuscript or chapter checkpoint. No model call,
+build/cache growth or non-review-file edit occurred during closure.
