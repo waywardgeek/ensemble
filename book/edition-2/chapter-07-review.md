@@ -76,3 +76,29 @@ lesson into §7.3 before a Chapter 7 student exists: the recoverable presentatio
 projection also accumulates changes incrementally and materializes a snapshot
 at the watch boundary. Its owner, semantic bounds and wire contract are
 unchanged; reconnect support must not reintroduce that cost on every delta.
+
+## Editorial reconciliation pending after the initial source freeze
+
+External prose revision `0f05359` strengthens the personal motivation and
+examples. The coordinator preserved it and restored the speech requirements
+that its replacement paragraphs had removed; see the student-feedback record.
+The original author could not resume while the coder and independent grader
+occupied the available worker slots. Final author/proofreader reconciliation
+must address these specific points before acceptance:
+
+- The opener mentions separate panes, saved preferences and dividers. Those
+  arrive in Chapter 8; Chapter 7 currently supplies a single ArtifactScroll
+  and transient speech/input state. Keep the motivation while making the
+  chapter boundary clear.
+- The closing promise that reconnect “never loses a completed answer” exceeds
+  the explicit last-100-event window. Reconnect recovers that retained window
+  and announces omissions; it does not download complete durable history.
+- `book/gui-design.md` identifies Bill's 750-wpm workflow and macular
+  dystrophy, and first-edition Chapter 1 also records the listening rate.
+  The new specific Eloquence claim and the assertion that the historical
+  crash took longer to find than fix need receipts or narrower wording.
+
+Both current chapters pass hard prose lint after the requirement restoration.
+Chapter 7 has 5,613 prose words with soft warnings for 20 negation forms and a
+2,022-word person gap; Chapter 8 has 4,536, 11 and 2,018 respectively. These are
+reading prompts for the final pass, not evidence of a completed proofread.
