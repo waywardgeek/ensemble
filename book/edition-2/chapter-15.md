@@ -90,7 +90,12 @@ The five bands have these fixed roles and visible-text limits:
 The source before session is represented finished dialogue, with the same
 65,536/32,768 trigger/target. Band sums here count exact decoded text bytes,
 without rendering wrappers. Segments count the text of their selected ordinary
-parts and working notes. These scheduling sums differ deliberately from the
+parts and working notes: sum each selected Chapter 2 text part's exact decoded
+text bytes, including an older working note's complete `[working note]`/LF
+wrapper as printed in Chapter 14. Count no JSON quoting, role, reference, blob
+locator, redacted stub or other field. Generated entries count their exact text
+without a memory wrapper. The same sum governs the quarter-size reduction test.
+These scheduling sums differ deliberately from the
 complete projection measure in §15.6. Equality does not trigger graduation.
 A hidden band has zero visible contribution, but its stored text still counts
 against storage and terminal capacity. Each band has at most 1,024 current
@@ -283,7 +288,12 @@ An entry's immutable part identities define membership; event ranges alone do
 not select interleaved manuals, instructions or hints.
 
 Only closed segments are candidates. A segment with any retained tool pair,
-opaque part or call-bound opaque value is protected whole. The current open
+opaque part, call-bound opaque value or signed visible text is protected whole.
+Signed text includes a Chapter 2 type:text part with paired from/opaque fields.
+Test field presence, including present null, false or empty opaque values; a
+truthiness test cannot remove protection. Protection remains even when ordinary
+rendering to another target could omit that text's foreign signature metadata.
+Compression cannot turn that protected source into unsigned text. The current open
 segment and newest note are always protected. Enduring instructions, skill
 material and one-shot hints never become segment members. Preserve their logical
 anchors when retiring surrounding dialogue; H→S→N→P keeps its surviving order
@@ -349,9 +359,26 @@ all three could not distinguish oldest-first from newest-first.
 For a memory-capable foreground attempt, perform inherited pairing/context
 maintenance first. Then build the owned neutral projection and measure it before
 sampling automatic observations. Define the measure as the Chapter 10 canonical
-UTF-8 length of an object with exactly system, messages and tools: the effective
-base System string, ordered neutral messages containing role and complete typed
-parts, and the exact active definition array. Include visible memory wrappers,
+UTF-8 length of an object with exactly system, messages and tools. System is the
+effective base plus enduring instruction text joined under Chapter 2's exact
+newline rule, including the recorded primary in skill mode. Messages is an
+ordered array of objects with exactly role and parts. Map human dialogue to
+user, agent dialogue to assistant, and tool entries to tool; these are the only
+three role strings. Parts retain Chapter 2's complete typed Part schema, including
+optional-field presence, references, call IDs, signed text and opaque values.
+Emit one message per represented dialogue entry without merging adjacent roles;
+an entry with no remaining parts contributes none. Each dedicated skill manual,
+pending hint, ephemeron and visible memory entry contributes one user message with
+its ordered text parts and inherited exact wrapper where applicable. A working
+note contributes one assistant message with its Chapter 14 text wrapper. Keep
+all inherited chronological/anchor ordering and pending-prompt placement.
+
+Tools is the active declaration array sorted by bytewise name, each object with
+exactly name, description and schema. Name/description are the installed strings;
+schema is its full JSON-object input schema, with no provider-specific envelope
+or renamed input_schema. In skill mode this is the exact grant union plus the
+mandatory management pair. No transport-specific role merging or tool rendering
+occurs before this neutral measurement. Include visible memory wrappers,
 manuals, pending hints and represented opaque data; exclude event/time envelopes,
 usage, retired bodies and observations not yet collected. Preserve raw bytes for
 actual rendering; canonicalization here is measurement only.
@@ -395,22 +422,27 @@ starts this scheduler.
 Every active-turn helper attempt consumes one of the same captured
 max_model_requests used by foreground attempts, and one max_helpers slot.
 Count immediately before transport, durably, including failed or canceled starts.
-A turn limit of zero keeps its inherited unlimited meaning, but the finite
-operation cap still applies. No remaining allowance reports memory_budget,
+Use the turn's captured effective_max_model_requests: raw max_model_requests=0
+selects Chapter 8's named default of 16, not unlimited requests. The finite
+operation cap also applies. No remaining allowance reports memory_budget,
 leaves the handoff committed, and lets normal round_limit end the turn. An idle
 operation instead has its captured separate allowance; display it before admission.
 No fold, failed response or cascade resets either allowance.
 
 ## 15.7 A helper returns data, then the Actor decides
 
-Use the selected Engine adapter/model with captured current output settings,
-clamping its output-token ceiling to at most 8,192. The helper has no Registry,
+Use the selected Engine adapter/model with captured delivery and output-token
+ceiling, clamping the latter to at most 8,192. The helper has no Registry,
 Skills grants, automatic observations, filesystem reads or tool execution loop.
 Its sole function schema is an output format named submit_memory:
 
 ```json
 {"type":"object","properties":{"text":{"type":"string"}},"required":["text"],"additionalProperties":false}
 ```
+
+Its fixed description is `Return the summarized project memory.`. The helper
+uses only the request settings listed below; it does not copy arbitrary
+foreground options or serialize Config wholesale.
 
 Use this exact system text, with no final LF:
 
@@ -470,17 +502,32 @@ context_changed sequence otherwise. Turn is null for idle, otherwise the active
 public request ID. Policy is the complete captured object with revision and
 memory's three settings. Allowance equals captured max_helpers. Ordinal starts
 at 1, increases per operation and never exceeds allowance. Destination is
-session/recent/older; source is the descriptor above. Config is the ordinary
-captured provider/model/output configuration with the literal helper System,
-without credentials; it cannot carry the foreground primary. Request_body is a
+session/recent/older; source is the descriptor above. Config has exactly to,
+resolved_model, max_tokens, system and delivery. To is a provenance triple with
+exactly vendor, model and surface, all nonempty strings. Vendor/surface pairs
+are anthropic/messages, openai/chat_completions and gemini/generate_content.
+Model is the selected routing identifier. Resolved_model is null when no explicit
+comparison identity was supplied, otherwise that nonempty exact model string;
+it never follows an inferred alias. Max_tokens is the captured clamped integer,
+1 through 8,192. System is exactly the literal helper text above. Delivery is
+plain or stream under Chapter 6. These settings reconstruct the fixed helper
+messages and sole tool declaration through the inherited adapter, without a
+foreground primary, credentials, endpoint, timeout field or extra wire option.
+The operation's separate deadlines govern transport. Request_body is a
 validated raw-JSON string preserving the exact rendered HTTP body bytes. Reject
 mismatch with captured inputs, schema or adapter. This separate helper receipt
 never masquerades as a foreground request_sent or consumes foreground hints.
 
 Attempt outcome is accepted or failed. Accepted response contains exactly raw,
-provenance and usage: raw is a validated JSON string preserving the original final
-provider JSON or inherited assembled response, provenance is the inherited
-requested/producing object, and usage is normalized usage. Code is
+provenance, usage and raw_usage. Raw is a validated JSON string preserving the
+original final provider JSON or inherited assembled response. Provenance has
+exactly requested, from and model_reported: requested/from are the triples just
+defined, and model_reported is Boolean. Requested equals config.to; from follows
+Chapter 2's actual returned-model rule, with the requested model and false when
+none was reported. Usage has exactly the four normalized nonnegative integer
+counts input, cache_write, cache_read and output under Chapter 2's validation.
+Raw_usage preserves the actual dedicated provider usage JSON, not a fallback copy
+of the complete response. Code is
 empty. Failed response is null and code is memory_transport, memory_response,
 memory_usage, memory_timeout or memory_canceled. Engine commits valid accepted
 usage once after that event succeeds, even if replacement later refuses. Counters
@@ -594,10 +641,25 @@ removed bodies. The student documents the strict codec before checks.
 
 In particular, do not retain an old helper's complete source descriptor or
 request_body inside semantic state after its source has been retired merely to
-make reconstruction succeed. Keep its request hash, configuration, selected IDs,
-source measures, accepted output/usage and disposition. Full logs retain exact
-attempt receipts; a snapshot may reconstruct only attempts whose required bytes
-remain represented. An explicit public reconstruction operation selects either
+make reconstruction succeed. Keep its request/response hashes, configuration,
+selected IDs/versions, source/output byte measures and digests, requested/producing
+provenance, accepted usage/raw_usage and disposition. Retain candidate output
+through a reference to its represented memory ID/version, without a duplicate
+normalized candidate string or raw response containing submit arguments. When
+that generated memory is later retired, retain only its metadata/digest and the
+retirement relation. A refused candidate likewise has no represented output
+and retains metadata rather than a snapshot copy of its rejected text. Full logs
+keep exact raw receipts; semantic state neither authenticates nor reconstructs
+absent source/output bytes from their hashes.
+
+For example, fold A installs session memory 12 and fold B retires 12 to install
+recent memory 19. After B, a semantic snapshot retains 19's text and both folds'
+usage and provenance. It contains neither 12's text nor A's raw response or
+normalized submit arguments carrying the same text. Reconstructing or inspecting
+A's absent original output returns history_unavailable; total accepted usage is
+unchanged. Test both folds, since dropping only A's input would leave this archive
+path open. A snapshot reconstructs only attempts whose required bytes remain
+represented. An explicit public reconstruction operation selects either
 a foreground request_sent or memory_attempt_started by sequence and applies the
 same history_unavailable boundary. This prevents helper receipts from becoming
 an accidental second archive of removed conversation.
@@ -688,7 +750,7 @@ success uses memory_ack with exactly type,id,action,changed,seq,revision,
 watch_revision; action refresh/visibility, seq null on no-op. Compression admission
 uses memory_started with exactly type,id,operation,allowance,watch_revision;
 it acknowledges no replacement. Export returns memory_export_ack with exactly
-type,id,state,installed,pending,watch_revision on success or partial failure,
+type,id,state,installed,pending,code,watch_revision on success or partial failure,
 with state saved/failed and a required code empty/memory_export. Pre-admission
 refusal still uses error. Wait for the owned terminal operation state before
 showing compression complete. Reconnect neither retries a command nor spends.
@@ -709,22 +771,50 @@ current provider/model identities and bound source, binary, policy, store and
 catalog bytes. A historical fake compressor is useful for mechanical controls;
 it supplies no evidence that a real summary preserved a fact.
 
+Create memory-inputs as an actual directory and write profile.json with this
+complete initial manifest; leave curated.json absent to select an empty curated
+band. Keep this external-file correction marker separate from the compression
+retention fact below:
+
+```json
+{"version":1,"entries":[{"id":"service-port","text":"The service uses port 9090."}]}
+```
+
 Start a fresh memory profile with a new directory and explicit input selection:
 
 ```sh
 /tmp/ensemble-ch15-cli chat --memory-profile --memory-scope project --memory-inputs ./memory-inputs --session-dir .ensemble/memory-demo --policy ./memory-policy.json
 ```
 
-Create the selected input directory deliberately. Through actual human PTY chat,
-ask for a bounded configuration task with a planted port, reason and evidence
-locator. Wait for the answer, perform an idle handoff, and show that handoff made
-no additional HTTP request. Run `/compress`, observe admission and completion,
-inspect exact replacement/source references and usage, then ask a fresh follow-up.
-Evaluate retained facts from that actual next request/answer; do not copy the
-expected answer into the follow-up or leak removed source through another channel.
+In the human PTY, run `/memory refresh` and inspect its applied revision before
+claiming that a request contains the file. Then run `/context on` and wait for
+the applied acknowledgement: capability alone leaves handoff disabled. Memory
+compression of already eligible source can later work while context maintenance
+is off; it does not silently re-enable that policy.
 
-Exercise a real model-tool handoff with scheduling explicitly enabled and a finite
-turn cap. Preserve a committed handoff when no helper allowance remains, and show
+Ask for a bounded configuration task whose ordinary dialogue includes a separate
+planted fact, such as calibration code ORCHID-62, its reason and an evidence
+locator. Keep that code out of the external manifest and any instructions or
+manuals. Wait for the answer, then use an idle handoff note that names the next
+task without repeating the code, for example “Continue the configuration audit;
+use the retained memory for the earlier calibration code.” Show that this public
+handoff made no additional HTTP request. Run `/compress`, observe admission and
+completion, and inspect exact replacement/source references and usage.
+
+Before the first follow-up, inspect its actual request: the planted value must
+appear only in generated memory, absent from the protected newest note, surviving
+dialogue, profile/curated entries, hints and observations. Ask for the earlier
+calibration code without putting ORCHID-62 in the question or permitting a fresh
+answer-bearing read. A correct answer under that condition supports this fact's
+retention; a correct answer while the value remains elsewhere does not. If the
+summary omitted it or another source leaked it, retain that outcome and do not
+claim a successful distinguishing evaluation.
+
+For the separate model-tool demonstration, run `/memory auto on`, observe its
+applied acknowledgement, and select a finite turn cap. Keep `/context on` and
+the actual handoff grant available. Exercise a real model-tool handoff with this
+explicit scheduling selection. Preserve a committed handoff when no helper
+allowance remains, and show
 the distinct budget outcome. Build enough bounded independent work to graduate
 session→recent→older on all three provider paths; record actual sizes, calls and
 quality failures rather than assuming the requested quarter-size text arrives.

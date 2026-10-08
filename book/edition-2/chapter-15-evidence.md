@@ -240,3 +240,44 @@ Draft-pass source bindings (read scopes are stated above):
 - book/edition-2/chapter-15-review.md: `56fb2e54f3b248060b72ee7c5777631984b3c2fbb261b1efaceb6f1fb618cf45`.
 - book/edition-2/chapter-14.md: `d50333c5a9af83507b09dd6a177a91088315d5e6e7ea52c8312b7579ef534039`.
 - book/edition-2/chapter-10.md: `3faa154f60e875497d96594a1afdc219f398856b0a9bd46b39cf72f36ca126df`.
+
+## Grouped R1–R5 author revision
+
+October 8, 2026. Independent complete review `23a1745` plus `e13706a` and root's
+complete read requested these compatible corrections. Full voice/procedure
+remained loaded without another compaction. The author read the full added review
+and rechecked Chapter 8 §8.5, Chapter 2's Part/provenance/declaration/usage grammar,
+Chapter 5's capture boundary and Chapter 6 delivery semantics. No source or grader
+implementation was opened for these corrections.
+
+- R1: §15.6 now charges foreground/helper starts to the captured effective limit;
+  raw max_model_requests=0 means inherited 16. The draft's unlimited claim was an
+  author error, not a policy change. Idle compression retains its distinct cap.
+- R2: §15.8 retains helper metadata/digests, usage and represented-version
+  references, not duplicated retired candidate text or raw responses carrying
+  it. The two-fold session12→recent19 example makes that archive path explicit;
+  absent original output has history_unavailable while usage remains unchanged.
+- R3: §15.5 names signed type:text with paired from/opaque and uses presence even
+  for falsey JSON. Foreign rendering's metadata omission cannot make it eligible.
+- R4: §§15.1/15.6 define exact text-count/wrapper rules and neutral roles, messages,
+  typed parts, definition fields/order. §15.7 prints safe helper configuration,
+  provenance and dedicated raw/normalized usage grammar; the sole schema's
+  description is fixed. §15.9 includes code in the export ack's exact field list.
+- R5: §15.10 creates the initial manifest, explicitly refreshes and enables context
+  before handoff. The compression calibration code is separate from the external
+  port correction, absent from protected/surviving alternate sources and the
+  evaluation question; actual outgoing inspection must establish that condition.
+
+The fourteen original JSON examples remain unchanged; one complete initial
+manifest example is added. All fifteen parse, and the three canonical helper
+source strings remain identical. Retained hard prose lint passes at 7,024 words;
+soft warnings are 16 negation forms against 14 and the person counter. The
+recurring reader task and attributed incident remain; no dialogue, successful
+provider outcome or quality figure was invented. Scoped diff validation passes.
+The manuscript hash at this check is
+`0b5e520ea7381d4a1244d9b1411eef46bc4290e8106eef9d67a474a8294d1b6f`.
+
+The live raw-record-boundary question in Chapter 10 interrupted the final freeze.
+It is a separate coordinator/grader diagnostic, not a Chapter 15 runtime finding;
+its policy discussion is recorded with that chapter. This revision changes only
+author prose/evidence and awaits independent grouped closure.

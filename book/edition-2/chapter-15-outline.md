@@ -249,3 +249,14 @@ writer is introduced. §15.10 preserves the required future CLI/browser/public
 all-provider use, local fault distinctions and memory-quality evaluation. The
 human file-correction incident remains attributed, and the worked arithmetic is
 explicitly illustrative. Current gates belong in chapter-15-validation.md.
+
+## Grouped first-draft review corrections
+
+Independent review `23a1745`/`e13706a` found five bounded clarifications; root
+agrees. The revised chapter keeps D1–D8 while correcting raw zero to the captured
+effective turn default 16; removing retired generated text from snapshot helper
+outputs/raw responses as well as inputs; explicitly protecting signed visible
+text by opaque-field presence; fixing neutral measurement and helper nested wire
+grammar/export acknowledgement fields; and making the prospective spin initialize
+inputs, enable context and isolate a distinct fact-survival marker. Initial
+`a9fd165` remains preserved. No runtime or paid result is inferred from revision.
