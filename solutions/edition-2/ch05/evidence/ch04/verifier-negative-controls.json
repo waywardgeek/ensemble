@@ -1,0 +1,10 @@
+{
+  "wrong_binary": {
+    "exit": 1,
+    "refused_before_evidence_change": true
+  },
+  "wrong_historical_source": {
+    "exit": 1,
+    "refused_before_evidence_change": true
+  }
+}

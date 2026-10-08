@@ -1,13 +1,15 @@
 # Working checkpoint
 
-Date: 2026-10-07. Autonomous work is active. Chapter 4 code, live evidence and
-manuscript are accepted; its exact 780-file export and manifest are checkpointed
-as `edition-2-ch04-r1`. Runtime `d25d3fd`, final evidence `e1c6488`, reviewer
-`05b170a`. See `chapter-04-validation.md`. Checkpoint commit is `55e6411`.
-Fresh `/root/coder_ch05` is now implementing Chapter 5 from that predecessor,
-launched with `fork_turns="none"` and the explicit new-only reading boundary.
-Use [chapter-05-validation.md](chapter-05-validation.md) for its authoritative
-current gate status, owners, evidence and next actions.
+Date: 2026-10-07. Autonomous work is active. Chapter 5 code, live evidence,
+student feedback and manuscript are accepted at `c1cc0b4`. Its exact 1,254-file
+export uses source `185ba76`, reviewed runtime `959c663` and revised evidence
+`469730f`, with checkpoint `edition-2-ch05-r1`. All six exported modules pass
+vet/tests. See [chapter-05-validation.md](chapter-05-validation.md).
+
+The next step is a fresh new-only Chapter 6 student using the already reviewed
+streaming contract and accepted Chapter 5 source. No Chapter 6 code or live
+validation is claimed yet. Chapter 4 remains checkpointed at
+`edition-2-ch04-r1` (`55e6411`); its detailed record is historical below.
 
 Chapter 3 human integration is
 accepted, with dedicated checkpoint `edition-2-ch03-r1`. Reviewed source and
@@ -16,10 +18,10 @@ independent receipts are at `8494fdb0e5d6c096445bfac039458b83dd225332`; exact
 See `progress.md`, `chapter-03-validation.md` and `chapter-03-human-review.md`.
 
 `/root/coder_ch04` completed Chapter 4 from a fresh new-only context, including
-actual model-driven Delve through Ensemble on all three providers. Chapter 5
-contract is ready; Chapter 6 contract is reviewed but still gated on Chapter 5.
+actual model-driven Delve through Ensemble on all three providers. The subsequent
+Chapter 5 checkpoint now supplies Chapter 6's accepted predecessor.
 `/root/coder_ch03_chat` completed independent Chapter 4 and story-restoration
-prose review; status reconciliation remains. Its previous client authorship must be
+prose review; status reconciliation is complete. Its previous client authorship must be
 disclosed. The old
 global-review thread could not resume because of tool thread capacity. Read its
 durable map/reviews and current progress, not assumptions about live threads.
@@ -81,7 +83,8 @@ that limitation; their implementation validation is a separate claim.
 
 ## Current state
 
-- **Latest accepted source:** Chapter 4, runtime d25/final evidence e1c6488.
+- **Latest accepted source:** Chapter 5, runtime959/evidence469; see its gate record.
+- Earlier Chapter 4 checkpoint, runtime d25/final evidence e1c6488.
   Five-module checks, grade100, independent53/53 and public3/3, eleven mutations,
   race/fault/boundary controls, actual all-provider PTYs and public consumers,
   evidence/source-binding controls and final prose all accepted.

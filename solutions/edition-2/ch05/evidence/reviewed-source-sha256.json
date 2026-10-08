@@ -1,0 +1,11 @@
+{
+  "cmd/main.go": "e8854905c2f588951a0951f3c7a8191ef2a2bd9a9c66e3091cabd41a09b72033",
+  "ensemble.go": "d92628ecf7afdfb6fb1a57ccee07a855a04ef7f5f263b543d85fb1c24181f637",
+  "ensemble_test.go": "a3d5f177fb2d47f29dbc3965bf38c63f45f12e3767d0602e8fe7f41262c314d0",
+  "examples/consumer/go.mod": "eac2085fee2de1024f51977f2efbc19061bdad6d5abada5a9863d7e2ed0571e7",
+  "examples/consumer/main.go": "da7e83f34ca2a495db1f653e12c1da375609b5f41070b8dbf85a92ffd62bb668",
+  "go.mod": "37c50c0191057ea818a2582626deb3d47cf7a624baef428c29a0168e910c1090",
+  "internal/common/types.go": "9b7411c4baba0d2aa893617ebae479939567ab9ea084a1ad7b519c9fbd579b36",
+  "internal/llm/engine.go": "b7aae5b534a52c61dc81cef53ea915b570541c9de13c1cbaf24a116b58fa9b4f",
+  "internal/llm/engine_test.go": "f1b886638f72f5814c9ba07fe88c5c628e8afa0ac1a83314aebfbd4a6cb65e59"
+}

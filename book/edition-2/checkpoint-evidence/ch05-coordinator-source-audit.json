@@ -1,0 +1,24 @@
+{
+  "evidence_source": "469730f7217e09620d471f8a71825a92d760113f",
+  "bindings": [
+    {
+      "binding": "solutions/edition-2/main/evidence/ch05/initial-binding.json",
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "source_hashes_verified": 59,
+      "executable_hashes_verified": 4
+    },
+    {
+      "binding": "solutions/edition-2/main/evidence/ch05/revised-binding.json",
+      "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+      "source_hashes_verified": 59,
+      "executable_hashes_verified": 4
+    }
+  ],
+  "revised_receipt_hashes_verified": 204,
+  "scope": "Coordinator read-only byte/hash audit. Does not replace independent raw-content acceptance or negative-control review.",
+  "export_source": "185ba767545af567d3d2d3917e807222ff0b2771",
+  "documentation_only_changes_after_evidence_freeze": [
+    "solutions/edition-2/main/CHECKPOINT.md",
+    "solutions/edition-2/main/README.md"
+  ]
+}

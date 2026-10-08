@@ -1,0 +1,21 @@
+{
+  "at": "2026-10-07T21:12:45.675504+00:00",
+  "negative_controls": [
+    {
+      "fault": "third vendor source_revision",
+      "exit_code": 1,
+      "tree_unchanged": true,
+      "files_compared": 96,
+      "stderr": "Traceback (most recent call last):\n  File \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-verifier-negative-2c23sq2t/solutions/edition-2/main/evidence/ch04/verify-receipts.py\", line 25, in <module>\n    assert launch['binary_sha256']==binding['binary_sha256'] and launch['source_revision']==binding['source_revision'], 'launch binding mismatch; no evidence modified'\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: launch binding mismatch; no evidence modified\n"
+    },
+    {
+      "fault": "third vendor binary_sha256",
+      "exit_code": 1,
+      "tree_unchanged": true,
+      "files_compared": 96,
+      "stderr": "Traceback (most recent call last):\n  File \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-verifier-negative-5slotjbh/solutions/edition-2/main/evidence/ch04/verify-receipts.py\", line 25, in <module>\n    assert launch['binary_sha256']==binding['binary_sha256'] and launch['source_revision']==binding['source_revision'], 'launch binding mismatch; no evidence modified'\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: launch binding mismatch; no evidence modified\n"
+    }
+  ],
+  "positive_exit_code": 0,
+  "positive_stdout": "{\n  \"anthropic\": {\n    \"events\": 168,\n    \"tool_calls\": 36,\n    \"jobs\": 19,\n    \"debugger_handle\": 16,\n    \"usage\": {\n      \"input\": 269672,\n      \"cache_write\": 0,\n      \"cache_read\": 0,\n      \"output\": 5817\n    }\n  },\n  \"openai\": {\n    \"events\": 194,\n    \"tool_calls\": 39,\n    \"jobs\": 20,\n    \"debugger_handle\": 17,\n    \"usage\": {\n      \"input\": 8783,\n      \"cache_write\": 0,\n      \"cache_read\": 136192,\n      \"output\": 1601\n    }\n  },\n  \"gemini\": {\n    \"events\": 178,\n    \"tool_calls\": 35,\n    \"jobs\": 19,\n    \"debugger_handle\": 16,\n    \"usage\": {\n      \"input\": 252517,\n      \"cache_write\": 0,\n      \"cache_read\": 0,\n      \"output\": 6413\n    }\n  }\n}\n"
+}

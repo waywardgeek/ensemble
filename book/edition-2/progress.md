@@ -8,24 +8,18 @@ in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 
 ## Current chapter
 
-Chapter 5's current stages, owners, evidence and next actions are maintained
-in [chapter-05-validation.md](chapter-05-validation.md). Use that record for
-handoffs; the completed-chapter details below preserve historical evidence.
+Chapter 5 code, actual live evidence, teaching and manuscript review are
+accepted at `c1cc0b4`. The exact 1,254-file export comes from `185ba76`, with
+reviewed runtime `959c663` and revised evidence `469730f`. Checkpoint:
+`edition-2-ch05-r1`. See [chapter-05-validation.md](chapter-05-validation.md)
+for the authoritative gate record, source identities and retained limitations.
+All six exported modules pass vet/tests. Chapter 6's reviewed streaming
+contract is next; its student must start in a fresh new-only context.
 
-Chapter 4 is accepted by independent code, live-evidence and manuscript review.
-Runtime: `d25d3fd4e552cd17c75bf814c9899903878cfbd5`; final evidence-only repair:
-`e1c64886564e7d1e8205ee08c17f98f32e001912`; final reviewer: `05b170a`.
-Its 780-file exact export is `solutions/edition-2/ch04/`, with manifest
-`solutions/edition-2/manifests/ch04-r1.json` and checkpoint `edition-2-ch04-r1`.
-All five modules passed vet/tests, main race and formatting passed, inherited
-grade is 100/100, independent CLI checks 53/53 and public cases 3/3, with eleven
-detected mutations and storage/lifecycle/boundary controls. Actual all-three
-provider PTYs drove Delve through Ensemble, retained source/report limits and
-verified EOF cleanup; real public clients exercised Agent ownership. Initial
-failures and subsequent corrections remain preserved. See `chapter-04-validation.md`.
-Checkpoint commit: `55e64115ee5243cac6b4958fd12e6811862ae033`. Fresh
-`/root/coder_ch05` has been launched with `fork_turns="none"` from this accepted
-predecessor and the new-only reading boundary. Bill's editorial approval stays separate.
+Chapter 4 remains accepted at `edition-2-ch04-r1` (`55e6411`); its exact
+780-file export and source/evidence bindings are recorded in
+[chapter-04-validation.md](chapter-04-validation.md). Bill's editorial approval
+remains separate from validated checkpoints. No push or publication is claimed.
 
 Chapter 3's human-client integration is accepted. Initial production/live
 commit: `a347ce31511c4b124e486bb41ef98c07bd17cec5`. Evidence-only verifier repair:
@@ -167,12 +161,10 @@ old implementation into the new solution.
 
 ## Roles and next actions
 
-- Author: Chapter 4 final prose accepted; Chapter 5 actor/collection contract
-  accepted; Chapter 6 full contract reviewed, implementation gated on Chapter 5.
-  Requested story restoration across Chapters 1–6 is drafted; independent
-  complete proofreading passed, with stale status summaries being reconciled.
-- Coder: `/root/coder_ch05` starts Chapter 5 in a fresh new-only context from
-  accepted `edition-2-ch04-r1`; `/root/coder_ch04` completed Chapter 4.
+- Author: Chapter 5 final prose and feedback are accepted. Chapter 6's full
+  streaming contract and story proofreading are reviewed and ready for handoff.
+- Coder: `/root/coder_ch05` completed Chapter 5. The next student needs a fresh
+  new-only context from accepted `edition-2-ch05-r1`.
 - Chapter 4 reviewer: `/root/coder_ch03_chat`, independent of this chapter's
   new coder, completed lifecycle/owner/fault/debugger and comparative review.
   This agent authored the preceding human-client integration; disclose that

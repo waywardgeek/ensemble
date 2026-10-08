@@ -1,56 +1,74 @@
 # Chapter 5 validation
 
-Current gate record, started October 7, 2026. Chapter 5's initial implementation
-is frozen and live validation is underway; it is not accepted. Bill's editorial
-approval remains separate.
+Accepted for checkpoint `edition-2-ch05-r1`. Bill's editorial approval is
+separate. Independent code, live-evidence and manuscript acceptance is recorded
+at `c1cc0b4`; the earlier code/live audit is `9760fb2`.
 
-The fresh student `/root/coder_ch05` started with `fork_turns="none"` from
-accepted checkpoint `edition-2-ch04-r1` (`55e64115ee5243cac6b4958fd12e6811862ae033`).
-The student reads the new teaching and preceding new source; historical
-comparison follows the initial implementation and actual runs.
+The student started in a fresh context from accepted Chapter 4, using the new
+teaching and preceding new source. Historical comparison followed its initial
+implementation and real-provider attempts. The reviewer previously engineered
+the independent grader, but authored neither student runtime nor chapter prose.
+This exposure is disclosed in [the code review](chapter-05-code-review.md).
+
+## Checkpoint identities
+
+- Initial student runtime: `8aa40c3e840af575724a6b895cf59c060633a9b1`.
+- Initial attempts: `5f2576c`; completed original handoff: `525aa10`.
+- Reviewed runtime: `959c663400b74927578a3609ce58b0a51263e654`.
+- Revised evidence freeze: `469730f7217e09620d471f8a71825a92d760113f`.
+- Export source: `185ba767545af567d3d2d3917e807222ff0b2771`; only README and
+  historical checkpoint labeling changed after the evidence freeze.
+- Exact 1,254-file export: `solutions/edition-2/ch05/`; manifest:
+  `solutions/edition-2/manifests/ch05-r1.json`.
+
+## Gate record
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
-| Contract and predecessor | Author/coordinator | Ready: [outline](chapter-05-outline.md), [contract](chapter-05.md), [accepted Chapter 4](chapter-04-validation.md) | Route new teaching gaps before affected implementation |
-| Structure plan | Student/reviewer | Narrow new-contract review passed; [student review](../../solutions/edition-2/main/evidence/ch05/student-review.md) records the three risks and their implementation checks | Inspect actual ownership and lifecycle during comparative review |
-| Implementation and local checks | Student/grader engineer | Frozen initial source `8aa40c3`; six-module vet/tests, main race and new independent checker 100/100 pass. Inherited CH6's incompatible 10/100 remains recorded separately in [grader review](chapter-05-grader-review.md) | Finish independent checker receipt checkpoint; retain original defects and fixture failures |
-| Live coverage plan | Student/coordinator | Feature coverage accepted. Bill now selects Gemini 3.8 Flash; exact `models/gemini-3.8-flash` and GenerateContent support verified in [discovery receipt](../../solutions/edition-2/main/evidence/ch05/gemini38-discovery/receipt.json) | Run all four Gemini modes on 3.8 under an addendum; retain unchanged Anthropic/OpenAI evidence |
-| Initial actual demonstrations | Student/reviewer | Anthropic/OpenAI paths passed. Earlier Gemini workflow/collection/EOF successes and control failures remain historical, outside the revised 3.8 target. Latest frozen handoff `525aa10` retains 61 exact PTY request replays, plus two separate diagnostic calls | Review detailed hint teaching and any compatible code corrections before the bounded 3.8 demonstrations |
-| Initial attempt and teaching review | Student | Source `8aa40c3` and actual attempts `5f2576c` preserved; [student review](../../solutions/edition-2/main/evidence/ch05/student-review.md) records clarification, diagnostic defect, live difficulty and assistance | Append final provider outcome and subsequent review effects without rewriting the initial freeze |
-| Independent comparison and revisions | Code reviewer/student | Assigned to grader engineer after its checker checkpoint; independent of student implementation, with grader exposure disclosed | Compare historical standard separately; group findings, revise and review |
-| Final validation | Student/reviewer | Pending | Run required checks and affected live paths; retain unchanged evidence under its original identity |
-| Manuscript reconciliation | Author/proofreader | Contract reviewed; final observed demonstration and feedback dispositions pending | Reconcile prose with actual receipts and resolve student findings |
-| Export and chapter checkpoint | Coordinator | Pending acceptance | Export exact accepted source, verify manifest, commit/tag, then hand off next chapter |
+| Contract and structure | Author/coordinator/reviewer | Accepted; common ownership interfaces, one actor, report transactions and request completion reviewed | Preserve the corrected rules in later chapters |
+| Implementation and local checks | Student/grader engineer | Six modules pass vet/tests; main race and formatting pass; independent checker 100/100 with eighteen deletion controls and passing controls | Retain exact source/checker bindings |
+| Actual demonstrations | Student/reviewer | Accepted: eight unchanged Anthropic/OpenAI paths plus four Gemini 3.8 modes and two revised input paths | Preserve each run's original source identity |
+| Student teaching review | Student/author | Initial review and subsequent confirmations retained; close timing, Gemini mapping and lifecycle repairs reconciled | Carry lessons into subsequent teaching |
+| Historical comparison | Independent reviewer/student | Accepted R1/R2 repairs and concrete design/comment comparison at the corresponding first-edition scope | Preserve the initial attempt and reasons for revision |
+| Evidence verification | Independent reviewer | Fourteen runs, 78 exact replays, 38 call/result pairs, 204 receipt-manifest hashes and 59 historical sources per binding checked | Retain original masked controls plus corrected independent supplement |
+| Manuscript | Author/proofreader | Four author records accepted at `18fdcb8`/`9849ad7`, bound by final review `c1cc0b4`; no hard prose-lint failure | Bill's editorial approval remains separate |
+| Export and chapter checkpoint | Coordinator | All 1,254 export hashes verified; all six exported modules pass vet/tests; manifest binds the chapter checkpoint | Extend this accepted source in a fresh Chapter 6 student context |
 
-Keep detailed findings in the linked student and review records. Update this
-table when a gate changes; progress and restart summaries link here rather
-than maintaining competing copies of the current stage.
+Detailed evidence: [grader review](chapter-05-grader-review.md),
+[code and manuscript review](chapter-05-code-review.md),
+[student feedback](chapter-05-student-feedback.md),
+[independent receipt audit](checkpoint-evidence/ch05-review-final-receipts.json),
+[coordinator source audit](checkpoint-evidence/ch05-coordinator-source-audit.json)
+and [export checks](checkpoint-evidence/ch05-export-checks.json).
 
-The early plan review used only the new Chapter 5 contract, architecture and
-student plan, without inspecting implementation or the old answer. It is not
-code acceptance or the later historical comparison. Its three risks were
-returned to the student as existing contract obligations.
+## Improvements and retained limits
 
-Current handoff: the student confirmed the author's CLI error/Close clarification
-from manuscript checkpoint `5ae7649` and added a deterministic ordering test.
-`/root/grader_ch05` is finishing checker receipts, then taking comparative
-review. A separate reviewer allocation failed with a thread-limit error, so
-this role reuse is explicit. The original `/root/coder_ch05` continues in its
-existing student context.
+Compared with the first-edition standard, the reviewed solution has one turn
+owner, request-specific reusable completions, ownership interfaces, reliable
+collections independent of display callbacks, transactional report cursors and
+exact request replay. Review corrected process-input writes that could park the
+actor and closed subscriptions that retained client resources or admitted new
+workers after application shutdown. The chapter teaches those rules before the
+revised implementation. Process-input cancellation and subscription lifecycle
+have independent distinguishing probes, not just nominal live demonstrations.
 
-The Gemini grouping diagnostic succeeded for both the exact originally failed
-body and a split variant. That does not establish a grouping defect or justify
-changing the renderer. The final bounded control attempt used unchanged source
-and failed again; raw evidence is in the student's
-`evidence/ch05/controls-gemini-final-attempt/`. Paid retries have stopped and
-the reviewer has these paths for investigation. Initial summary messages
-and commit prose incorrectly counted 62 replayed requests; the machine report
-and manifest record 59, and the student appended the correction.
+Gemini 3.8 Flash passed hint receipt, wire delivery, consumption and observed
+compliance; queued prompts, interruption, later job supervision, input and
+shutdown; orderly EOF; public three-Agent workflow; and completion collections.
+Earlier Gemini failures and the inconclusive grouping diagnostic remain dated
+attempts. No renderer change was made to fit that unproved hypothesis.
 
-Bill subsequently narrowed Gemini validation to 3.0 Flash and newer and selected
-3.8 Flash for hints. The new §5.3 wire example makes the existing result/hint
-mapping explicit; §5.10 names the discovered target. No further older-model
-attempts are planned. The source remains unchanged unless independent review
-identifies a correction. The later `525aa10` receipt freeze adds the last failed
-control attempt, bringing its PTY replay total to 61; that is a later scope,
-not a correction to the earlier 59-request report.
+The student's original thirteen identity negatives stopped at a path guard,
+so they did not establish their advertised identity properties. Independent
+controls start with a passing valid-path replay; thirteen single mutations
+reach their intended refusals before replay or derived writes. All 247 original
+raw receipt hashes remain unchanged. Correcting those fixtures required no
+runtime change or repeated paid generation.
+
+The GUI is a stub. Actual terminal and process evidence is macOS, not a Linux
+live claim. Scoped tests and mutation checks are not exhaustive proofs. Local
+nonkillable functions and arbitrary blocked callbacks cannot be forcibly stopped.
+The historical Chapter 6 grader remains unchanged; its incompatible 10/100
+fixture result is preserved separately from the new contract's acceptance.
+Historical reference/mutation tests and the full root regression passed. No
+first-edition implementation was edited and no push is authorized.

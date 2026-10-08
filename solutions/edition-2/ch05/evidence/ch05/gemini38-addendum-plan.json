@@ -1,0 +1,72 @@
+{
+  "reason": "Gemini3.8 scope replaces four older Gemini modes; R1 adds revised send_input checks. Earlier Anthropic/OpenAI feature receipts retain original source identities.",
+  "verifier_sha256": "46f8d7f98db440d8fd82a906fa9b8c2b71b3c283be950922d4c734305ad3f153",
+  "bindings": {
+    "initial": {
+      "path": "initial-binding.json",
+      "sha256": "9f5f5d1cf1fc8e7c98e90731860a94a6678e47e3c2e691579fe3dfe75ca03cf8"
+    },
+    "revised": {
+      "path": "revised-binding.json",
+      "sha256": "706b5cfd36c99d1ff2da9fd26e112c0966eed6a187f40393f3d28dadae133eaa"
+    }
+  },
+  "runs": {
+    "controls-anthropic": {
+      "directory": "controls-anthropic",
+      "binding": "initial"
+    },
+    "controls-openai": {
+      "directory": "controls-openai",
+      "binding": "initial"
+    },
+    "controls-gemini": {
+      "directory": "controls-gemini38-r1",
+      "binding": "revised"
+    },
+    "eof-anthropic": {
+      "directory": "eof-anthropic",
+      "binding": "initial"
+    },
+    "eof-openai": {
+      "directory": "eof-openai",
+      "binding": "initial"
+    },
+    "eof-gemini": {
+      "directory": "eof-gemini38-r1",
+      "binding": "revised"
+    },
+    "workflow-anthropic": {
+      "directory": "workflow-anthropic",
+      "binding": "initial"
+    },
+    "workflow-openai": {
+      "directory": "workflow-openai",
+      "binding": "initial"
+    },
+    "workflow-gemini": {
+      "directory": "workflow-gemini38-r1",
+      "binding": "revised"
+    },
+    "collection-anthropic": {
+      "directory": "collection-anthropic",
+      "binding": "initial"
+    },
+    "collection-openai": {
+      "directory": "collection-openai",
+      "binding": "initial"
+    },
+    "collection-gemini": {
+      "directory": "collection-gemini38-r1",
+      "binding": "revised"
+    },
+    "input-anthropic": {
+      "directory": "input-anthropic-r1",
+      "binding": "revised"
+    },
+    "input-openai": {
+      "directory": "input-openai-r1",
+      "binding": "revised"
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The input was successfully accepted and processed:\n\n- **Input acceptance:** `send_input accepted 16 of 16 bytes`\n- **Observed echo & output:**\n  ```\n  LIVE-SEND-CHECK\n  seen:LIVE-SEND-CHECK\n  ```\n\nJob `2` remains running.",
+            "thoughtSignature": "Et4CCtsCAWkUfRMte21kop6+7j5rDZ1YJE2t908STBuKWieRjmy8sPebq8viZh5OIuCxE2ms/+3jK/d72daa3pR00EIwnLrO/lrzAUhS3E/VrYagCRaTxMysBSxKLCSBgeX+4r0W5Zvp6GdmXNGGCNDafCUBpdfsgdWT7gKrBYWrwR470c8zXKRDeHdPWUJ2iF78o6bg8QzM8vsKw6FfKg9W8TkSYAnwLHJRQV89f4sbi2x9nGCajdJxMF2aGcBPAPjp+84LFix0IfTbBuDRxJkCRfeKjcj9UK6u3PJGv1Qfdmv1JbMPWM0Uu4gP3VX43dqnmNKMDqayHLoPrXfCWy+7SjW57Sf7CxnClsZDLKXlqSdeqI2nYWx47oETW5a43cA+ctUCvWrSoJga3ibmWzUkRVuB+t1xyomloJlPT+qr6RXCYSRTySYQI60zujn0FbQJD/U3xs3kRnAxyMs+M/c="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 2841,
+    "candidatesTokenCount": 67,
+    "totalTokenCount": 2976,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 2841
+      }
+    ],
+    "thoughtsTokenCount": 68,
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.8-flash",
+  "responseId": "XdXGasvRHsv6-8YP5PeB-Ag"
+}

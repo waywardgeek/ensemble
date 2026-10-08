@@ -1,0 +1,159 @@
+{
+  "scope": "Guided human-client revision of reviewed second-edition Chapter 2; not another cold whole-chapter attempt. No historical implementation or grader internals read.",
+  "timestamp": "2026-10-07T19:07:55.618581+00:00",
+  "sources": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "8cd2c1d4f2cefd05b39787b289428d717010373cb009e3ce62a6502cb4c6474a",
+      "read": "full"
+    },
+    {
+      "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+      "sha256": "56ba606571693a15a3c88e381fa69f026e724909afff8e921640fd0ad4bc6842",
+      "read": "full"
+    },
+    {
+      "path": "book/edition-2/architecture.md",
+      "sha256": "9b006308724bd30c9468715eacc9187e044eb57938cfca7ff74ff913949810b2",
+      "read": "full"
+    },
+    {
+      "path": "book/edition-2/chapter-01.md",
+      "sha256": "093d18740e0cd933c1e8b1b573d321f2097a13b46030a9fa2bb81f52adc110d6",
+      "read": "full"
+    },
+    {
+      "path": "book/edition-2/chapter-02.md",
+      "sha256": "d555c9f813c5f34e5f92d229effcd900f946165c1ff5249c6ed3cfda4dc55e33",
+      "read": "full"
+    },
+    {
+      "path": "solutions/edition-2/ch02/cmd/main.go",
+      "sha256": "dfe7407b1d7e4ac3159394a2d9ac00ca970922118586e1a54f9212e13e3ac48a",
+      "read": "full"
+    },
+    {
+      "path": "solutions/edition-2/ch02/ensemble.go",
+      "sha256": "de31ef4ac8fcf57814d2869a62ac32dab3a95615dd046d37d7e8779fe2935e6e",
+      "read": "full"
+    },
+    {
+      "path": "solutions/edition-2/ch02/internal/common/types.go",
+      "sha256": "6a4f481433762f9827e58199676ea03a38f3d28374feb4c8e80c7a6b34779d1d",
+      "read": "full"
+    },
+    {
+      "path": "solutions/edition-2/ch02/go.mod",
+      "sha256": "37c50c0191057ea818a2582626deb3d47cf7a624baef428c29a0168e910c1090",
+      "read": "full"
+    },
+    {
+      "path": "solutions/edition-2/ch02/ensemble_test.go",
+      "sha256": "9adb6af5eb4cec2dacf90af570c29fc4acbe929d8cef81120edcaf87f4d10740",
+      "read": "lines 1-200"
+    },
+    {
+      "path": "solutions/edition-2/ch02/events_test.go",
+      "sha256": "22c67c609cb74312124479afa69b77be40317cbc44511714ca92a3c50dbe6f14",
+      "read": "lines 1-160"
+    }
+  ],
+  "stdlib_lookup": "Go syscall Darwin arm64 TIOCGETA and Linux amd64 terminal constants; no implementation copied.",
+  "authored_files": [
+    {
+      "path": "cmd/terminal.go",
+      "sha256": "e848fc19774490718d2aef11372c03b25370d3910de821dd3910089a0204c49e"
+    },
+    {
+      "path": "cmd/terminal_linux.go",
+      "sha256": "67c7c612bfd7e63779ef6d172bac87bce5811e6cf5edaf34c0c8aebe3647471a"
+    },
+    {
+      "path": "cmd/chat_test.go",
+      "sha256": "47f894beeadbf01c05b9bff6483e0e4743f309ce6c34412dd28cdffe0a43be68"
+    },
+    {
+      "path": "cmd/chat.go",
+      "sha256": "486a83d1d8eeadb26d3b1906a32cb864af23a449402bcc7b0445cb24995e3f85"
+    },
+    {
+      "path": "cmd/terminal_darwin.go",
+      "sha256": "1743ca5371ef2d4db749539db75e0c182ef089f4b8242a526132378ddcfc751e"
+    },
+    {
+      "path": "cmd/terminal_other.go",
+      "sha256": "99b3e49a89432748a66c736b86801caeb9e18dcc0a28735c82927c988d263b6b"
+    },
+    {
+      "path": "cmd/main.go",
+      "sha256": "fc79c2988d7e704095c8f99742e6b103b7619f8ec3ed4148eb370d3130a32163"
+    },
+    {
+      "path": "evidence/ch02/human-chat/verify-receipts.py",
+      "sha256": "e157f7c720fde128b24e64faf67dd5e9480901dd78ee5ee659b7addd71b44c83"
+    },
+    {
+      "path": "evidence/ch02/human-chat/terminal-run.py",
+      "sha256": "354c2a40120c55992812a8c4855454380eefd90bed46a494f697f216a3b6369f"
+    }
+  ],
+  "credential_access": "Read only provider-key field names once, then only needed keys in Python memory/child environment; settings never printed or copied.",
+  "review_revision_reads": [
+    {
+      "path": "book/edition-2/skills/ensemble-coding/SKILL.md",
+      "read": "full mandatory reload before review changes",
+      "sha256": "56ba606571693a15a3c88e381fa69f026e724909afff8e921640fd0ad4bc6842"
+    },
+    {
+      "path": "solutions/edition-2/ch02/internal/llm/events.go",
+      "read": "full reviewed initial source",
+      "sha256": "8dd70a4fb7872ec8bd5fec8fa3c2a13b2af055b106cb4232c37411ccc6000e32"
+    }
+  ],
+  "reviewed_authored_files": [
+    {
+      "path": "cmd/terminal.go",
+      "sha256": "b0230318e64f3a6f190be72326ce93a519367b4f328d29266dc2f1e413d24169"
+    },
+    {
+      "path": "cmd/terminal_linux.go",
+      "sha256": "7130f243fcaf6cbc347725052a45305a1faf4116a7986b1dd1015f5f29b0c8fe"
+    },
+    {
+      "path": "cmd/chat_test.go",
+      "sha256": "47f894beeadbf01c05b9bff6483e0e4743f309ce6c34412dd28cdffe0a43be68"
+    },
+    {
+      "path": "cmd/chat.go",
+      "sha256": "486a83d1d8eeadb26d3b1906a32cb864af23a449402bcc7b0445cb24995e3f85"
+    },
+    {
+      "path": "cmd/terminal_darwin.go",
+      "sha256": "d08027b3da0e6056fab15fe4cc979c7214470d024aab9156f87b99fe4476d3ea"
+    },
+    {
+      "path": "cmd/terminal_other.go",
+      "sha256": "f10d70d18f22b0434a49048b42988ca617aad2d76ca77431ba4c00c35ed8a3f9"
+    },
+    {
+      "path": "cmd/main.go",
+      "sha256": "fc79c2988d7e704095c8f99742e6b103b7619f8ec3ed4148eb370d3130a32163"
+    },
+    {
+      "path": "internal/llm/events.go",
+      "sha256": "c1a7e291265703a9c0c58feb1c14e9010c4d526cbeb15a44896135250523fa9c"
+    },
+    {
+      "path": "redaction_test.go",
+      "sha256": "4b2b5f0f9dac67d31e956b546576286e67aa04785a4976ffbb5b224d765a379b"
+    },
+    {
+      "path": "evidence/ch02/human-chat/verify-receipts.py",
+      "sha256": "9005be9668077353fcd56db91506301e0f3652cbc91742c62168bd6e7f4ef9ca"
+    },
+    {
+      "path": "evidence/ch02/human-chat/terminal-run.py",
+      "sha256": "354c2a40120c55992812a8c4855454380eefd90bed46a494f697f216a3b6369f"
+    }
+  ]
+}

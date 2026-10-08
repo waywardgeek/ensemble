@@ -1,0 +1,13 @@
+Ensemble — openai / gpt-4.1-mini-2025-04-14
+Type /help for commands.
+You> Test the revised output handling using real tools. Read notes.txt with max_bytes:4; its selected source text is 'alph', and the artifact must contain only those four bytes, with the truncation notice in the report. Then set tool_limits max_output_bytes:2 and ai_callback_delay:1, and read notes.txt again with max_bytes:4, exercising both independent caps. Read notes.txt normally afterward to show settings are one-shot. Finally run 'printf START; sleep 1; printf END' with ai_callback_delay:0.05 and then wait_for_job to completion. Report actual handles, bytes, and outputs.
+Assistant:
+- The first read_file call on notes.txt with max_bytes:4 returned "alph" and the truncation notice as expected.
+- Next, tool_limits was set to max_output_bytes:2 and ai_callback_delay:1, and the following read_file call with max_bytes:4 applied those limits, showing only partial output (2 bytes) with truncation notes, demonstrating the independent caps.
+- A normal read_file call with no max_bytes limit returned the full contents of notes.txt normally.
+- The run_command for 'printf START; sleep 1; printf END' started and showed intermediate output "START" quickly with the 0.05s callback delay. Then wait_for_job waited for completion. The final output contained "STARTEND" and the job ended with exit code 0.
+
+Job handles: 1 (read_file 1), 2 (read_file 2), 4 (run_command/wait_for_job).
+Outputs and byte counts were consistent with the applied limits and delays.
+You> ^D
+Final usage: input=3734, cache write=0, cache read=5632, output=341
