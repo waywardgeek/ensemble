@@ -3,7 +3,8 @@
 Chapter 6 scoped maintenance accepted by the coordinator on October 8, 2026.
 The maintenance coder `/root/grader_ch05` had seen later second-edition work;
 this is explicitly not a new cold-student attempt. The coordinator is independent
-of that maintenance implementation. Chapter 7/8 propagation remains pending.
+of that maintenance implementation. Chapter 7 propagation is accepted below;
+Chapter 8 remains pending.
 
 The isolated Chapter 6 branch starts at accepted source
 `c3fa7583c5e4c3dcf026b3d5a0a93da000dd8307`. Runtime and regression commit
@@ -60,3 +61,29 @@ sources contain the same original parser bytes; propagation must begin from
 those exact earlier sources, retain their own evidence and validate affected
 behavior before a new revision tag. Current Chapter 9 main already contains its
 independently implemented repair. Earlier source trees must never replace it.
+
+## Chapter 7 propagation
+
+Accepted on October 8 from source `55ee774bcaeb7b182c56e41b32ab19eca3c49e6b`,
+evidence `662c09c`, based on accepted r2 source `9ec94ef`. The coordinator
+confirmed all three changed/added runtime and test blobs exactly match the
+reviewed Chapter 6 correction. Only the original parser changes; all 2,128
+previous evidence files and the optional GUI implementation remain unchanged.
+
+The coordinator read the maintenance runner and summary, verified 103 source
+hashes, seven receipt hashes, all 147 recorded checker inputs and the archived
+executable. All 24 affected command groups and four local checks pass. These
+cover the 13 regression cases, 14 argument/effect/terminal controls, six early
+delivery barriers, 61 wire cases, 14 streaming groups, seven watch/pause groups,
+retained prior assertions and CLI overflow deletions, core race, and vet/tests
+across eight modules. Complete delivered-tree discovery includes retained
+evidence helpers. The initial coordinator summary command mistakenly treated
+the local receipt array as an object; a corrected read verified its four rows.
+That inspection mistake changed no source or receipt and was not a failed test.
+
+No additional full Chapter 7 gate or paid browser demonstration is claimed.
+Unchanged browser speech/settings behavior keeps its original accepted evidence.
+The shared parser's actual Chapter 9 repair demonstration and these stage-bound
+local controls establish the narrow changed path; their source identities remain
+separate. This is propagation of an accepted repair, with independent review,
+not a replacement for the original student attempt or historical comparison.
