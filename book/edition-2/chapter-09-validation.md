@@ -10,8 +10,8 @@ accepted `edition-2-ch08-r1` (`bfdadaf5`), source `446d7f2` and tree
 | Independent checks | Initial `/root/coder_ch08`; continuing `/root/grader_ch05` | Complete initial gate passes all 67 rows on `654075b`; reviewer confirms six targeted write/import controls on repair `c0e3171`, including exact-size and intended deletion failures; original fixture failures retained | Reconcile any affected selected rerun and retain each result's original source identity |
 | Student and ownership plan | Fresh CLI student `01a11c0d-47b8-7241-8834-5ddf57ac5009` | Initial new-only read ledger and plan `5ac45e4`; owners/API accepted; author responses `8f24360` confirmed, recorded at `080fbca` | Retain initial experience and append new findings |
 | Initial implementation and live use | Same fresh student, independent reviewer `/root/coder_ch08` | Accepted at `2dc5841`: freeze `786ff23` accounts for 93 generation attempts plus three discovery calls; all 499 original hashes and exact request reconstructions reconcile, with partial outcomes and keyboard/audio limits preserved | Retain source identities; repeat only demonstrations affected by later corrections |
-| Historical comparison and revisions | Independent code reviewer `/root/grader_ch05` | In progress after initial source, runs and teaching review freeze `786ff23`; reviewer did not implement Chapter 9 runtime | Compare with old Chapter 10 standard and return actionable quality findings |
-| Manuscript and feedback | Author, student, proofreader | Student confirms direct author response `5063f35`; author is reconciling actual spin from frozen matrix | Resolve final prose/evidence findings and student confirmation |
+| Historical comparison and revisions | Independent code reviewer `/root/grader_ch05`, same student | Comparison `13b48ef` requests narrow current-grant/state reads and complete per-Agent partial-outcome reporting; local-only student revision phase is running | Review grouped changes, seven selected public/race groups and meaningful local controls; no paid repeat |
+| Manuscript and feedback | Author, student, proofreader | Actual spin reconciled at `01049b7`; complete proofread `a35dc8d` led to narrow fixes at `29a9380` | Close proofread and obtain student confirmation of pinned final chapter/direct response |
 | Export and checkpoint | Coordinator | Not started | Complete all gates before immutable chapter export/tag |
 
 The draft commit also captured concurrently staged Chapter 7 student files.
@@ -90,6 +90,15 @@ Audio establishes bounded native capture beside full-text submission; no model
 hearing, intelligibility or Bill participation is asserted.
 
 ## Fresh worker launch
+
+The same session resumed for a local-only comparative revision phase after
+initial freeze `786ff23`. The external `phase-4.txt` supplies R1/R2 rationale
+without historical code or reviewer research. `clarification-29a9380` pins only
+the new chapter and direct author response, with immutable hashes. The student
+must confirm the final reconciliation and append the effect of revisions to
+its initial teaching review. Earlier paid-phase releases are closed; this phase
+authorizes no provider calls or credential reads. The independent review will
+check the grouped source/evidence freeze before export.
 
 The managed spawn tool returned `agent thread limit reached` twice. Interrupting
 a completed worker did not release a slot. The coordinator started a new local

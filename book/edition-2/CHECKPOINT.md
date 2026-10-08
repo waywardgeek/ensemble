@@ -118,9 +118,14 @@ Its external directory is
 `phase-2-events.jsonl` and `phase-2-result.txt` retain the completed local phase;
 `phase-3-live.txt`, `phase-3-events.jsonl` and `phase-3-result.txt` describe the
 completed live phase in that same session, frozen at `786ff23`. It used 93
-generation requests plus three discovery calls and is ready for independent
-historical comparison. The worker has exited; do not resume paid demonstrations.
-Any later coding phase resumes this same session with explicit review findings.
+generation requests plus three discovery calls. Historical comparison `13b48ef`
+requests narrow grant/state reads and per-Agent partial-outcome reporting.
+The same session is now running `phase-4.txt`, with events/results in the matching
+external phase-4 files. Unified exec session is `82212`. This phase is local-only;
+no provider calls or credential reads are released. Final new teaching and direct
+author feedback are pinned at `clarification-29a9380`; research is excluded.
+Await the grouped source/local-evidence freeze, independent code review and
+student confirmation before chapter export. Do not start a competing worker.
 `coordinator-inbox.md` is the authorized handoff channel the student checks at
 work boundaries. Preserve previous messages when appending. Keep excluded
 research and grader internals out of that inbox. Check the existing process and

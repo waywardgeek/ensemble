@@ -63,8 +63,11 @@ F allowance to P, preserving 36 requests per provider and 108 overall.
 Failed relay attempts and the partial Messages public outcome remain recorded.
 Independent live review `2dc5841` accepts all 93 generation attempts plus three
 discovery calls, with partial task, keyboard-linkage and audio limitations
-explicit. Historical code comparison is underway; full chapter acceptance is
-still pending. Managed
+explicit. Historical comparison `13b48ef` requests narrow current-grant/state
+reads and complete per-Agent partial-outcome reporting. The same student is
+running one local-only revision round; final teaching `29a9380` and direct author
+response are pinned for confirmation. Complete proofread `a35dc8d` awaits closure
+of those narrow prose fixes. Full chapter acceptance is still pending. Managed
 spawn hit its thread limit; this new session inherits no conversation and has
 memory injection disabled. `/root/grader_ch05` continues independent checks. See
 [chapter-09-validation.md](chapter-09-validation.md).
@@ -84,8 +87,10 @@ closure `88de827` and coordinator contract acceptance `4a2f8df`; see
 [chapter-13-validation.md](chapter-13-validation.md).
 Chapter 11 protocol/fixture foundation `c80af0a` is independently accepted at
 `d13346c`, with runtime coverage explicitly pending. Chapter 14 research and
-outline `9758e89` are under advisory design review; no full contract or student
-implementation exists yet. Earlier streaming-correction revisions are listed
+outline `9758e89` have advisory review `3a6ae52`. The author is drafting the full
+contract from coordinator working choices; see
+[chapter-14-validation.md](chapter-14-validation.md). No accepted full contract
+or student implementation exists yet. Earlier streaming-correction revisions are listed
 above; original tags remain unchanged.
 Bill and CodeRhapsody are separately writing a new first-edition sandboxing
 chapter. Preserve that work; review it as a future source when available, without
