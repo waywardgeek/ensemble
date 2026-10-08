@@ -1,0 +1,185 @@
+{
+  "scope": "Audit the preserved Anthropic P4 partial attempt; never certify run success.\n\nRead-only replay after full source/launch/original validation. No provider call,\noriginal modification, or relaxation of the student's success-only verifier.\n",
+  "audit_passed": true,
+  "attempt_success": false,
+  "exit_code": 1,
+  "requests": 4,
+  "http_cap": 4,
+  "source_revision": "c0e3171fdc22834348f976f81fcaa7372bd13ed4",
+  "binding_sha256": "6294a8c733ee74369ddb3d79b01d00c055fc72486b1c1c85a6ab698606091045",
+  "original_files": {
+    "requests/001.json": "f28cc03e2aa51e532ea573c11cb936a2006d2ee56467dfad2a42c67211acc386",
+    "requests/003.json": "fc8c7b46f8bf02c21fb820c470517686d564320a7fe4883376c7bacdc0f5bcb0",
+    "requests/002.json": "42359f5ea5d0e903a8bd4a9da5d582e5a4e963d26b581974c0688e9e538f2ef9",
+    "requests/004.json": "f3e91a70f6404effc6a3aaab6465b4e7756e8fd31abf3f8ae8d7d398b9c02cc0",
+    "responses/004.body": "a350f338ecb5fc864857b0a992d2f20b904c8485db25e827856b350145dbc551",
+    "responses/003.body": "596222cd5b7f2a2ab88adc2e4bb8632e73ab3ff9601781539963473aaa4aa061",
+    "responses/002.body": "8588a24db3406ca5c41f422265d03f02a4db6afa8554ebcbc5998d1939c38e0b",
+    "responses/001.body": "abad5cbee2ba1d9fa976ead9522c24fc191708a6f47d78de1bffd3a9378767f9",
+    "workspace/alpha/events.jsonl": "1983986e21378304c26f679c5fbafdf2b22c6971c2dd255e6b8233c535f06f5d",
+    "workspace/beta/events.jsonl": "87badc2c821f902608e73fc6abf55ba554686089cccac1a19d48c47b3a512446",
+    "catalog/ensemble/SKILL.md": "8640887749b4e9b67ce27bac6e92bc3c00ad8fe4abce29a811169388b1dda868",
+    "catalog/read/SKILL.md": "351168d65e8534b72af72eb06fa0c74d0170bd60d1d322abbe2bb63f8dd16dc4",
+    "catalog/search/SKILL.md": "d2fc103fe8909516bdda0bd96b66d17956e750f339054062dc2cd0dde0019c85",
+    "catalog/edit/SKILL.md": "f2f63fe2656f4cfc6db43d8c4d62807349102ca457edf7a081a75910ce5acb3f",
+    "catalog/review/SKILL.md": "a78a134e025466141a916435f7618bb9c9ff190cd7ff80b80769ab4a8ab02ef4",
+    "catalog/base/SKILL.md": "213663885124e5c97f327a4c8c256409863f28514776ddffd836231baf052dfd",
+    "terminal.txt": "e0d067c2c66239c76ff770ae0eb409c1e3a0e3240a5c1ba68288a983e84e1332",
+    "inputs/notes.txt": "e5411c810adce5603eced2eb395bc54ba43ffde092d4737e08bd04175b7fc19f",
+    "inputs/beta/notes.txt": "525312dfb7ee2de1f833981932e99419b32fcb2a6c4492d75b88d420ba020e42",
+    "inputs/alpha/notes.txt": "b83eeff0888f087eefe878e016d1790eaefef9c2c08aadc6f7f1dd853922f31f",
+    "workspace/notes.txt": "e5411c810adce5603eced2eb395bc54ba43ffde092d4737e08bd04175b7fc19f",
+    "workspace/beta/policy.json": "e6615edf5a8ab1d0488cc8316e2d9daa205ee3afc9e68679a9bcb1a727c500f7",
+    "workspace/beta/notes.txt": "525312dfb7ee2de1f833981932e99419b32fcb2a6c4492d75b88d420ba020e42",
+    "workspace/alpha/policy.json": "e6615edf5a8ab1d0488cc8316e2d9daa205ee3afc9e68679a9bcb1a727c500f7",
+    "workspace/alpha/notes.txt": "b83eeff0888f087eefe878e016d1790eaefef9c2c08aadc6f7f1dd853922f31f",
+    "workspace/alpha/cr/io/1": "b83eeff0888f087eefe878e016d1790eaefef9c2c08aadc6f7f1dd853922f31f",
+    "workspace/beta/cr/io/2": "525312dfb7ee2de1f833981932e99419b32fcb2a6c4492d75b88d420ba020e42",
+    "launch.json": "7a929753d82e3f03d90840b93c6d6f048a21e1d8683f478e8afde1329f0ecedd"
+  },
+  "originals_unchanged": true,
+  "source_files_verified": 133,
+  "executable_identities_verified": 9,
+  "findings": [
+    {
+      "agent": "alpha",
+      "ceiling": [
+        "load_skill",
+        "read_file",
+        "unload_skill",
+        "write_file"
+      ],
+      "final_state": {
+        "revision": 1,
+        "primary": "base",
+        "roots": [
+          "edit"
+        ],
+        "active": [
+          {
+            "name": "base",
+            "type": "primary",
+            "activation": 1
+          },
+          {
+            "name": "edit",
+            "type": "loadable",
+            "activation": 2
+          }
+        ],
+        "available": [
+          {
+            "name": "inspect",
+            "description": "Inspect notes"
+          }
+        ],
+        "tools": [
+          "load_skill",
+          "read_file",
+          "unload_skill",
+          "write_file"
+        ],
+        "retired": []
+      },
+      "calls": [
+        "read_file"
+      ],
+      "turn_outcome": "success",
+      "requests": [
+        {
+          "capture": 1,
+          "request_seq": 5,
+          "usage": {
+            "input": 1191,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 63
+          }
+        },
+        {
+          "capture": 2,
+          "request_seq": 10,
+          "usage": {
+            "input": 1284,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 59
+          }
+        }
+      ],
+      "note_and_artifact_sha256": "b83eeff0888f087eefe878e016d1790eaefef9c2c08aadc6f7f1dd853922f31f"
+    },
+    {
+      "agent": "beta",
+      "ceiling": [
+        "load_skill",
+        "read_file",
+        "unload_skill"
+      ],
+      "final_state": {
+        "revision": 2,
+        "primary": "base",
+        "roots": [],
+        "active": [
+          {
+            "name": "base",
+            "type": "primary",
+            "activation": 1
+          }
+        ],
+        "available": [
+          {
+            "name": "edit",
+            "description": "Edit notes"
+          },
+          {
+            "name": "inspect",
+            "description": "Inspect notes"
+          }
+        ],
+        "tools": [
+          "load_skill",
+          "read_file",
+          "unload_skill"
+        ],
+        "retired": [
+          {
+            "name": "inspect",
+            "activation": 2
+          }
+        ]
+      },
+      "calls": [
+        "load_skill",
+        "read_file",
+        "unload_skill"
+      ],
+      "turn_outcome": "round_limit",
+      "requests": [
+        {
+          "capture": 3,
+          "request_seq": 5,
+          "usage": {
+            "input": 994,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 114
+          }
+        },
+        {
+          "capture": 4,
+          "request_seq": 12,
+          "usage": {
+            "input": 1205,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 65
+          }
+        }
+      ],
+      "note_and_artifact_sha256": "525312dfb7ee2de1f833981932e99419b32fcb2a6c4492d75b88d420ba020e42"
+    }
+  ],
+  "checker_sha256": "08323607bf3e405003a77efbd573779d9d81539a6b090476d74447f4061c1bf6",
+  "limits": "One failed/partial public attempt only. All four requests replay exactly in observed sequential order. Beta final prose answer absent. No authorization to retry or claim overall chapter acceptance."
+}
