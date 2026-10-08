@@ -1,0 +1,13 @@
+{
+  "scope": "Assertion controls and absent-server negative only; no Chapter8 end-to-end positive exists yet.",
+  "unit_command": "python3 -m unittest discover -s scripts/edition2 -p test_accept_ch08.py -v",
+  "unit_exit_code": 0,
+  "unit_methods_passed": 6,
+  "no_student_implementation_read": true,
+  "source_sha256": {
+    "scripts/edition2/accept_ch08.py": "4892e6e8e64deb2e9a24f98ecd223d12cbfa2929822abe5be8aae3f69238ef11",
+    "scripts/edition2/test_accept_ch08.py": "b537bba73b5605aef9ab7b9af119cd2a9d16c3fb9ef20c87e2a90111d63a1c18",
+    "scripts/edition2/accept_ch07.py": "27cf57f089c44363155f551966258df79d5c3dbc390c38a5e7f18aac950595ae",
+    "book/edition-2/chapter-08.md": "40c2d02fe48f1fe1bbdcc09b61dfbd92df8d29a1d79f9942b4ca3b855643d7d4"
+  }
+}

@@ -69,9 +69,11 @@ export, never a second development tree.
 Build the CLI from main with `go build ./cmd` and the GUI command from
 `main/gui` with `go build ./cmd/ensemble-gui`. The historical diagnostic is
 `make grade-dir CH=9 DIR=solutions/edition-2/main`; its old layout and wire
-assumptions do not grade this new contract. The coordinator must publish the
-independent Chapter 8 checker invocation before student grading. Section 8.9
-specifies required coverage; a partial checker does not waive it. Public method
+assumptions do not grade this new contract. The initial partial checker is
+`python3 scripts/edition2/accept_ch08.py GUI_BINARY`. It checks local settings
+wire, persistence and refusal/recovery behavior; browser, speech, concurrency
+faults and actual turn-limit effects remain separate required checks. Section 8.9
+specifies complete coverage; the partial checker does not waive it. Public method
 names, storage implementation and visual styling remain student choices.
 
 ## 8.1 Give each setting an owner and a consumer

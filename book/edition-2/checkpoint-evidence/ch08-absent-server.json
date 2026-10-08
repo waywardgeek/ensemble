@@ -1,0 +1,21 @@
+{
+  "scope": "Partial Chapter 8 settings wire/persistence checks from the published contract.\n\nUsage: python3 scripts/edition2/accept_ch08.py GUI_BINARY\nNo paid backend, browser rendering, speech or turn-limit execution is tested.\nThose and persistence/concurrency fault controls remain separate required gates.\n",
+  "binary_sha256": "0f2121a1cef3975354e319c58f290ab9e1b4f7d22eac0ed4945fae6526b355e9",
+  "checker_sha256": "4892e6e8e64deb2e9a24f98ecd223d12cbfa2929822abe5be8aae3f69238ef11",
+  "transport_helper_sha256": "3f37531379820aae419ceaa479eab2c2a10d4c686cd0a8c10332135499e60f7b",
+  "passed": false,
+  "checks": [
+    {
+      "id": "initial-full-snapshots",
+      "passed": false,
+      "details": [
+        "AssertionError: program exited before listening"
+      ]
+    },
+    {
+      "id": "no-model-http",
+      "passed": true,
+      "details": []
+    }
+  ]
+}
