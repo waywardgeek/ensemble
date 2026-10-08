@@ -14,7 +14,9 @@ pass; original attempts and limitations remain recorded. See
 [chapter-06-validation.md](chapter-06-validation.md). Fresh new-only
 student `/root/coder_ch07` has frozen initial browser/watch/pause source at
 `da162e8`, with initial live evidence at `8cc87f2`. All 33 deterministic groups
-and 44 request reconstructions pass; comparative browser repairs are underway.
+and 44 request reconstructions pass. Comparative repairs are frozen at `9ba7855`
+and pass their independent grouped suite; revised live browser sessions and
+the retained full gate are underway.
 Remaining revised evidence and final acceptance are tracked in
 [chapter-07-validation.md](chapter-07-validation.md).
 Earlier log-destination corrections are independently accepted and checkpointed

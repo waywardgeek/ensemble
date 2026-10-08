@@ -6,7 +6,7 @@ editorial approval remains separate from technical validation.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
-| Contract | Author, coordinator | Outline `db86e0c`; policy review `0498b61`; full draft `49ae919`; full-draft review in `chapter-09-review.md` | Clarify recorded transition admission and initialization |
+| Contract | Author, coordinator | Outline `db86e0c`; policy review `0498b61`; draft `49ae919`; transition clarification `0bca41c` accepted | Prepare independent checks from the accepted contract |
 | Independent checks | Grader engineer | Contract matrix published; no Chapter 9 checker yet | Prepare distinguishing controls after contract clarification |
 | Student and ownership plan | Future fresh student | Not started | Release only accepted Chapter 8 source and new teaching |
 | Initial implementation and live use | Future student | Not started | Implement, validate, use CLI/browser/public clients on all three providers |

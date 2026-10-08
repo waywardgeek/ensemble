@@ -15,12 +15,16 @@ see [chapter-06-validation.md](chapter-06-validation.md). Fresh new-only
 student `/root/coder_ch07` has frozen its initial Chapter 7 implementation at
 `da162e8` and actual nine-session evidence at `8cc87f2`. All 33 deterministic
 groups and independent reconstruction of 44 model requests pass. Comparative
-review now drives grouped browser lifetime, speech and reconnect repairs.
+review repairs are frozen at `9ba7855`; the independent grouped revision suite
+passes, and revised real-provider browser sessions are underway.
 See [chapter-07-validation.md](chapter-07-validation.md).
 The Chapter 8 settings contract is reviewed at `7200f17`; its initial partial
 wire/persistence checker is published at `b3f3137`, with no Chapter 8 student
-implementation or end-to-end positive claimed. Chapter 9 outline/research is
-prepared at `db86e0c`, awaiting coordinator review before a complete draft.
+implementation or end-to-end positive claimed. See
+[chapter-08-validation.md](chapter-08-validation.md). Chapter 9's full draft
+`49ae919` and transition clarification `0bca41c` are accepted for checker
+preparation; its student release still requires accepted Chapter 8 and published
+checks. See [chapter-09-validation.md](chapter-09-validation.md).
 
 Chapter 5 code, actual live evidence, teaching and manuscript review are
 accepted at `c1cc0b4`. The exact 1,254-file export comes from `185ba76`, with
