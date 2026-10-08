@@ -15,6 +15,9 @@ see [chapter-06-validation.md](chapter-06-validation.md). Fresh new-only
 student `/root/coder_ch07` is preparing Chapter 7’s owner plan. Its reviewed browser/pause contract and
 partial checker are published; full browser, speech and concurrency checks
 remain required. See [chapter-07-validation.md](chapter-07-validation.md).
+The Chapter 8 settings contract is reviewed at `7200f17`; its initial partial
+wire/persistence checker is published at `b3f3137`, with no Chapter 8 student
+implementation or end-to-end positive claimed.
 
 Chapter 5 code, actual live evidence, teaching and manuscript review are
 accepted at `c1cc0b4`. The exact 1,254-file export comes from `185ba76`, with

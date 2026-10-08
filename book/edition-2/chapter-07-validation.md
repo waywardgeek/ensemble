@@ -10,7 +10,7 @@ approval is separate.
 | Contract | Author, coordinator | Accepted at `74928f1`; incremental projection lesson `2f105ce`; published initial checker command `7b116b7` | Preserve the new teaching in the fresh student handoff |
 | Structure and implementation | `/root/coder_ch07`, coordinator | Root accepted the retained owner/state/lifetime plan before affected code; initial source/read ledger records new-only inputs | Implement and test public watch, pause, optional GUI and reused CLI |
 | Independent checks | Grader engineer | Initial partial checker and coverage plan at `a5a07ba`; 15 local transport/snapshot/pause cases, with assertion controls | Add public watch/admission/capacity/teardown and real-browser checks; partial checker is not full acceptance |
-| Initial live use | Student, coordinator | Not started; browser driver is available outside the repository | Review complete feature/action plan before paid browser, CLI and public demonstrations on all three APIs |
+| Initial live use | Student, coordinator | Full feature/action matrix accepted with proxy-enforced 32 HTTP requests and 12 prompts per provider; local real-speech capture feasibility under test | Freeze source/binaries and pass adapter controls/known local checks before authorized paid launches |
 | Historical comparison | Independent reviewer, student | Not started | Freeze initial implementation, runs and student teaching review before old-answer comparison |
 | Revisions and final evidence | Student, reviewer | Not started | Group compatible repairs; repeat only affected live paths with exact new bindings |
 | Manuscript and feedback | Author, student, proofreader | Contract prose reviewed; demonstration remains explicitly pending | Reconcile actual receipts and teaching findings, then independently proofread |
@@ -74,3 +74,10 @@ The grader clarified that pause publication precedes the public update return,
 but the contract does not require a same-socket observation frame before its
 acknowledgement. Wire checks require the matching applied revision/counts and
 ordered watch delivery, without inventing a stronger interleaving requirement.
+
+The source-bound live plan is `main/evidence/ch07/live-plan.md`. It covers all
+three providers through browser, actual human PTY, shared-Agent CLI, plain
+delivery and public two-Agent component reuse. Exact timing/failure boundaries
+retain deterministic controls. Native speech start/end callbacks were observed
+locally, and macOS screen/audio capture preflight returned true without a
+permission change; actual captured audio remains a separate pending result.
