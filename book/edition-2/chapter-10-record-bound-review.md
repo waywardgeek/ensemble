@@ -45,3 +45,20 @@ Chapter 9 bound fixture while preparing these controls. The runner uses public
 commands and printed/inherited behavior, without private field assumptions.
 No student source was edited; no first-edition code, credentials or live-provider
 work was used.
+
+## Initial executable results
+
+The coordinator subsequently ran `--small-only`, then the full matrix against
+the student's retained `ensemble-ch10-cli-prepared`. Both exit zero. The full
+run passes all 38 rows, including every exact/one-over variant, and preserves
+input hashes and identical public projections for accepted whitespace variants.
+Source, checker and binary identities remain unchanged across each run.
+Receipts are checkpoint-evidence/ch10-record-bounds-small.json and
+checkpoint-evidence/ch10-record-bounds-initial.json; the full safe result is
+also supplied through the student's external input directory.
+
+The binary is a retained intermediate executable, not a frozen accepted source
+checkpoint. The recorded source map does not prove its build relationship.
+These results close the prepared read-side controls for that executable, leaving
+all scope limitations above intact. No provider request or repeated paid run
+occurred. The temporary large files have been removed by the harness.
