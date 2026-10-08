@@ -53,6 +53,14 @@ rulings attributed to Bill.
   for integral decimals, exponent spellings, large integers and negative zero;
   distinguish a canonical hash representation from stored original payload bytes.
 
-These narrow clarifications belong in the chapter before the independent
-checker is prepared. No runtime change, paid test or historical rewrite is
-requested. Chapter 8 reconciliation remains the author's immediate priority.
+Both clarifications are resolved in `6cf8660`, reviewed by the coordinator.
+The job watermark now denotes this session's historical maximum and only raises
+the root allocator's floor. Canonical numbers use exact decimal coefficient and
+exponent normalization, with examples preserving large adjacent integers;
+original payload bytes remain unchanged. The same revision removes a draft
+JavaScript-safe identity ceiling that conflicted with Chapter 9's uint64 domain.
+Overflow is refused before allocation or mutation, independently of file bounds.
+
+The complete contract is accepted for independent checker preparation. This
+does not release a student: accepted Chapter 9 and a published Chapter 10 checker
+remain prerequisites. No runtime, live result or historical rewrite is claimed.

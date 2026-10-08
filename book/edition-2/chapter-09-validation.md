@@ -6,8 +6,8 @@ editorial approval remains separate from technical validation.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
-| Contract | Author, coordinator | Outline `db86e0c`; policy review `0498b61`; draft `49ae919`; transition clarification `0bca41c` accepted | Prepare independent checks from the accepted contract |
-| Independent checks | `/root/coder_ch08`, now grader engineer | New role assigned after frozen Chapter 8 student attempt; no Chapter 9 checker published yet | Prepare distinguishing controls from accepted new contract, without old answer exposure |
+| Contract | Author, coordinator | Draft `49ae919`, transition clarification `0bca41c`, exact-counter clarification `77cd638` and initial command `f303754` accepted | Preserve numeric semantics and published partial-check scope in handoff |
+| Independent checks | `/root/coder_ch08`, now grader engineer | Initial 51-check command `e6c3406`; three canned positives and 15 intended predicate failures; actual Chapter 8 absence baseline 6/51 | Complete remaining public/browser/concurrency/boundary matrix independently |
 | Student and ownership plan | Future fresh student | Not started | Release only accepted Chapter 8 source and new teaching |
 | Initial implementation and live use | Future student | Not started | Implement, validate, use CLI/browser/public clients on all three providers |
 | Historical comparison and revisions | Independent code reviewer | Not started | Preserve initial source, live receipts and teaching review first |

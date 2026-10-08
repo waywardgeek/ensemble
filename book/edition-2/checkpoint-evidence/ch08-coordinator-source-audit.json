@@ -1,0 +1,26 @@
+{
+  "source_commit": "446d7f27fcef052d6bb780901c786842dc5286c1",
+  "source_tree": "58d3fbf4ec6493839985c6968a13c1e6a7bdad83",
+  "runtime_commit": "a06d4f3c848685d81306166279df7c977d71bddd",
+  "evidence_freeze": "7f517d87741cdafe852c6f7d1b30a228d4061737",
+  "file_count": 3308,
+  "runtime_unchanged": true,
+  "changes_since_runtime": "Evidence/support plus README and CHECKPOINT only; exact code acceptance and raw live bindings retain original identities.",
+  "changes_after_evidence_freeze": [
+    {
+      "path": "solutions/edition-2/main/CHECKPOINT.md",
+      "sha256": "049c0ad39560e77de632d37aa2a596d8506773d59ecafd4a687744de41b6b705"
+    },
+    {
+      "path": "solutions/edition-2/main/README.md",
+      "sha256": "d81fcd48c555c7a1ecd7e07f983250914702e6696c2026cef43ed795c03bb1dc"
+    },
+    {
+      "path": "solutions/edition-2/main/evidence/ch08/student-review.md",
+      "sha256": "c619961233eb1d3993c9a7ca5d1fa8a5e22f73b045e4953d5f4d64d29c61aee9"
+    }
+  ],
+  "late_changes_documentation_only": true,
+  "complete_package_discovery": "ch08-coordinator-delivered-tree.json covers same package/module tree at 7f517d8; later changes are exactly the three Markdown records above.",
+  "passed": true
+}
