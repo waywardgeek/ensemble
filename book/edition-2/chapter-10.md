@@ -235,6 +235,8 @@ insignificant whitespace, object keys sorted by UTF-8 byte order, array order
 preserved, strings escaped with JSON's short control escapes and lowercase
 `\u00xx` for remaining controls, otherwise literal UTF-8. Do not HTML-escape
 `<`, `>` or `&`, escape `/`, or normalize Unicode.
+The designated raw-argument boundary below preserves duplicate argument text
+inside a byte-preserving wrapper; it does not canonicalize duplicate object keys.
 
 For session admission and this canonicalization, decoded JSON strings and object
 keys must contain Unicode scalar values. Reject a lone high or low UTF-16
@@ -322,6 +324,63 @@ rules on import; a string wrapper is not permission to retain malformed data.
 Another byte-preserving representation is equally acceptable. Document which
 fields preserve bytes and which comparisons use semantic values before checks;
 decoded semantic equality alone is insufficient for a replay-bearing raw field.
+
+Keep a tool's bad arguments distinct from corrupt conversation structure. In
+both standalone and session mode, a designated argument payload can be a bounded,
+syntactically valid JSON object containing duplicate members. Its object syntax,
+string/scalar validity and size still follow the applicable mode's rules. The
+tool's typed decoder rejects duplicates under Chapter 9; persistence must retain
+the accepted call so it can receive that controlled error. This exception applies
+only to designated argument data. Duplicate event, payload, call or snapshot
+structural members still refuse, as do malformed provider envelopes, broken
+argument JSON and non-object arguments under their inherited response rules.
+
+Represent such ambiguous argument text in the private semantic codec through a
+designated string/byte wrapper whose containing JSON has unique structural keys.
+Canonical hashing preserves the wrapper's decoded original text, without
+decoding its duplicate members into a map. Validate that wrapped text as argument
+data on import; wrapping cannot bypass syntax, scalar or byte bounds. For a
+call/result-state correspondence check where either argument object has duplicate
+members, canonical semantic equality is undefined: require exact accepted argument
+text, name and call identity. Never select a first or last value, or substitute a
+single-member object that happens to give the same decoded value.
+
+Use this literal argument object for a load_skill fixture, first in standalone
+mode and then in a new session:
+
+```json
+{"name": "edit", "name": "edit"}
+```
+
+Its illustrative private-codec string value is:
+
+```json
+"{\"name\": \"edit\", \"name\": \"edit\"}"
+```
+
+With current Skills revision 3, the paired error acknowledgement is exactly:
+
+```json
+{"error":"invalid_skill_arguments","name":"","revision":3}
+```
+
+Duplicate name members supply no unique valid name, even when both spell edit.
+This uses Chapter 9's existing empty-name rule. A preceding valid tool_limits
+setting is consumed once, with its normal note before this acknowledgement.
+Retain tool_called/tool_returned with the result's error flag set, make no Skills
+transition or Job, and allow the next valid call and continuation. Session
+checkpoint, full-log rebuilding and snapshot-plus-tail preserve the accepted
+argument text and the same outcome.
+Require refusal when a correspondence fixture substitutes `{"name":"edit"}`
+or a differently spelled duplicate object. Separately duplicate an outer seq or
+a call's args member: that corrupt structure must still fail validation.
+
+Check replay string whitespace independently with the valid Chat Completions
+function.arguments value `"{\"name\": \"edit\"}"`. Its decoded string contains a
+space after the colon. Outer event preparation may change JSON layout, but cannot
+compact JSON carried *inside that string* to `"{\"name\":\"edit\"}"`. Preserve the
+accepted string bytes on every later reconstruction, including after checkpoint
+and resume. Argument-value equality does not waive that replay requirement.
 
 The student publishes the state object's required fields/types in the source's
 persistence-format document before independent checks. Its names may follow the

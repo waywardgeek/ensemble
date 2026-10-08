@@ -134,3 +134,47 @@ The student's proposed snapshot-only lower-bound relaxation is therefore not
 adopted. Validate the complete origin's represented maxima, then the available
 tail; do not require absent original raw events or weaken semantic-state checks.
 Please confirm that this resolves the affected above-maximum import question.
+
+## Coordinator/reviewer addendum: controlled argument errors and exact replay
+
+October 8, 2026. The coordinator reports two regressions in retained `8882a18`:
+a duplicate-name skill-management call in standalone CH02_LOG ends in terminal
+session validation instead of a paired error, and four Chat Completions
+continuations reconstruct compacted argument-string whitespace. This author read
+the relevant Chapters 2, 9 and 10 teaching, not those runtime artifacts; the
+observations remain attributed to the coordinator/reviewer. Neither defect is
+reported as repaired here.
+
+The standalone controlled-error rule and exact replay rule were already explicit.
+Chapter 9 §9.6 requires duplicate management arguments to receive
+invalid_skill_arguments, consuming pending limits once without a Skills change.
+Chapter 10 explicitly preserves standalone behavior and decoded string bytes.
+The session extension was ambiguous: strict canonical/snapshot JSON forbids
+duplicate structural keys, while argument data retains its inherited schema.
+The coordinator selected the narrow clarification now printed in §10.3; it is
+not a new Bill ruling or permission to weaken structural validation.
+
+Designated raw argument data remains a bounded syntactically valid object.
+Duplicate members cause the controlled tool-schema error in either mode; broken
+JSON, non-object arguments, invalid scalar escapes under the applicable mode,
+and malformed provider envelopes retain their existing refusal. A semantic codec
+preserves ambiguous accepted text through a designated string/byte wrapper so its
+host structure remains strict and its hash never collapses duplicate keys.
+Correspondence falls back to exact accepted text when canonical comparison is
+undefined. A first/last-key-wins map and a single-member substitute are invalid.
+
+The literal repeated-name fixture uses name empty, because repeated name members
+provide no unique valid name under Chapter 9's existing error shape. Checks must
+cover both modes, once-only limit consumption, paired call/error, unchanged Skills,
+and the next valid continuation. Session checkpoint/rebuild/snapshot-tail must
+preserve this outcome and exact text. Structural duplicates and changed argument
+substitutes remain negative controls. A separate valid spaced argument-string
+fixture checks every later replay; canonical semantic equality cannot excuse
+removing whitespace from inside that decoded string.
+
+Disposition: teaching published before session-mode repair; independent review
+and student confirmation pending. No runtime, grader, provider or authentication
+work occurred. The full voice/procedure remain loaded from this author task;
+scoped whitespace and manual voice/fixture checks pass. No existing prose-lint
+executable was found in the checked temporary paths, and no compiler was invoked;
+automated prose lint remains pending with the coordinator/reviewer.
