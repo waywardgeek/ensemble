@@ -64,3 +64,47 @@ Overflow is refused before allocation or mutation, independently of file bounds.
 The complete contract is accepted for independent checker preparation. This
 does not release a student: accepted Chapter 9 and a published Chapter 10 checker
 remain prerequisites. No runtime, live result or historical rewrite is claimed.
+
+## Independent student ownership-plan review
+
+October 8, 2026, after the Chapter 9 checkpoint. `/root/grader_ch05` read all
+384 lines of the fresh student's plan at
+`7cb84290af3e8bac5359339f8ab5d4e7e941bf74`, recorded in
+`solutions/edition-2/main/evidence/ch10/student-review.md`. This was a design
+review against the new teaching, architecture and coding skill, before runtime
+implementation. No first-edition persistence implementation or future chapter
+requirements informed this check. The reviewer's earlier grading, Chapter 9
+comparison and isolated streaming-maintenance exposure remain disclosed in the
+Chapter 10 grader review; this is not a cold-student evaluation.
+
+The plan is sufficient to release implementation **after the student rereads
+and acknowledges the published Q1–Q3 clarifications**. Those concern session
+record bounds and inherited skill-refusal precedence; actual imported
+anchor/tail history versus the saved display window; and exact replay bytes
+versus purpose-specific canonical equality. This acceptance does not resolve
+those questions through unpublished fixture assumptions. No additional
+architectural blocker was found.
+
+The owner graph preserves Agent authority and the import star. An Agent-created
+stateless codec can serve standalone validation without a SessionStore or
+injected sibling service. Private validation owners, accepted-event job capture,
+off-actor checkpoint work and close ordering fit the contract. The public
+open/inspect/export/import/checkpoint seams support independent checks. Their
+names and the conservative shared export/save worker gate are permissible
+design choices, not newly required spellings.
+
+Retain two implementation safeguards:
+
+- Private validation owners remain under the real application owner but inert
+  and unregistered. Validation must not start processes or an Actor, charge
+  replay as usage, write policy files or mutate shared allocator authority
+  before the candidate has passed validation.
+- GUI delivery-before-acknowledgement waiting belongs to the connection
+  lifetime. Overflow or disconnect releases that wait without parking Actor
+  or the checkpoint worker; losing the connection cannot undo a committed save.
+
+These safeguards explain how to preserve the planned boundaries; they do not
+add public APIs or another owner. The complete nested semantic codec grammar
+must still be published before semantic fixtures are written. This record
+accepts the ownership plan conditionally, not implementation, local tests,
+provider runs, historical comparison or final chapter readiness.
