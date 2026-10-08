@@ -338,7 +338,8 @@ The CLI switch is delivery policy, not a claim about model capabilities. A model
 that supports text streaming may expose no thinking text, and a complete tool
 call may arrive in one event. Keep current discovery and explicit resolved-model
 configuration. A provider's rejection of streaming delivery is a normal safe
-request error. Do not spend a second request automatically by retrying without streaming.
+request error. Do not spend a second request automatically by retrying without
+streaming.
 
 ### Messages
 
@@ -348,9 +349,9 @@ final order by block index, allowing interleaved updates. Accumulate text,
 tool argument JSON strings, exposed thinking text, and signature fragments
 in their respective blocks. Preserve completed thinking and other non-text,
 non-tool blocks as opaque material. Tool-use blocks remain typed calls. Unknown
-standalone event types may be ignored for compatibility;
-an unknown delta affecting an open block is a safe unsupported-content error
-when it cannot be retained correctly.
+standalone event types may be ignored for compatibility; an unknown delta
+affecting an open block is a safe unsupported-content error when it cannot be
+retained correctly.
 
 Nonempty text or thinking supplied at block start belongs to the same part
 and is observed before later deltas. Never drop that initial content. Changes
