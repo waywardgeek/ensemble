@@ -15,6 +15,14 @@ from accept_ch06 import HERE, install
 from accept_ch05 import command
 
 MUTATIONS = [
+    ('reuse-operation-identity', 'internal/llm/actor.go', 'NewOperation(fmt.Sprintf("m%d", op), r.id, r.config)',
+     'NewOperation(fmt.Sprintf("m%d", uint64(1)), r.id, r.config)',
+     '^TestC6PublicEarlyIdentity$/openai', '.', 'operation identity reused within Agent'),
+    ('predict-response-sequence', 'ensemble.go', 'fmt.Sprintf("call-%d-%d", owned.Seq, index)',
+     'fmt.Sprintf("call-%d-%d", owned.Seq-1, index)',
+     '^TestC6JobSequenceInterleave$', '.', 'call ID predicted before actual sequence'),
+    ('double-accepted-usage', 'internal/llm/engine.go', 'total.Output += u.Output', 'total.Output += 2*u.Output',
+     '^TestC6TypedCallsAndOpaque$/openai', '.', 'typed accounting not once per response'),
     ('drop-refusal-replay', 'internal/llm/render.go', 'm["refusal"] = refusal', '_ = refusal',
      '^TestC6TypedCallsAndOpaque$/openai', '.', 'recognized refusal missing from continuation'),
     ('drop-signed-parts', 'internal/llm/parse.go', 'part.Opaque = append(json.RawMessage(nil), signature...)', 'part.Opaque = rawValue("deleted-signature")',

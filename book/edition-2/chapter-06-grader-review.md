@@ -236,3 +236,12 @@ The consolidated code review resolves R1–R4 and records the measured improveme
 revised live evidence and final proofreading remain separate. Mutation counts
 name the particular protected behaviors in each receipt and do not assert that
 every conceivable implementation error has been exhaustively mutated.
+
+A narrow follow-up adds three passing-positive deletion controls on the same
+`75bd14d` source: reused operation identity, a fabricated response sequence
+across the real job interleave, and doubled accepted output usage. Each reaches
+its specific refusal. The supplemental receipt is
+`checkpoint-evidence/ch06-review-final-additional-mutations.json`; the full-gate
+receipt above remains unchanged at its original sixteen-mutation checker
+version. The current audit command includes nineteen targeted mutations. No
+runtime change or broad rerun was needed for this coverage extension.
