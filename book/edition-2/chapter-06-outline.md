@@ -123,12 +123,12 @@ Bill ruling. The draft fixes the remaining choices as follows:
 Independent review should check that these choices are internally complete
 before a student or grader depends on them.
 
-## Checks to derive from the eventual contract
+## Original check plan, superseded by the published independent gate
 
-Keep inherited grader numbering: proposed command
-`make grade-dir CH=7 DIR=solutions/edition-2/main`. New independent checks use
-Chapter 6 names. The coordinator must reconcile inherited fixtures with the
-published contract while retaining legacy coverage.
+The original plan retained `make grade-dir CH=7 DIR=solutions/edition-2/main`
+as the inherited diagnostic. Its incompatible assumptions now remain historical
+evidence; the TL;DR publishes the new Chapter 6 gate. The behavioral checklist
+below supplied requirements for that independent coverage.
 
 - A held-open fixture sends a fragment, then waits for the observer/PTY to
   expose it before releasing completion. Counting fragments after exit cannot
