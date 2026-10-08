@@ -50,3 +50,16 @@ no review completion is inferred from silence. Initial all-seven-module checks
 and race results belong to the student's retained local receipts. Independent
 broader checks, comparison and final receipt/prose review remain open in the
 [gate record](chapter-06-validation.md).
+
+## Comparative feedback: incremental assembly cost
+
+Independent review found repeated rebuilding of growing parts in all three
+initial stream assemblers. The initial contract specified storage ceilings and
+early delivery but did not explicitly teach the cost of repeatedly copying,
+decoding and serializing accumulated content. Section 6.3 now explains that
+failure, requires append-oriented owned accumulation and incremental size
+accounting, and calls for a size-doubling benchmark with fixed-size fragments.
+This is a teaching improvement from comparative review, added before the
+affected repair. It does not rewrite the initial student's experience or relax
+any semantic, identity, cancellation or exact-bound requirement. The coder's
+plan and revised measurements remain pending.

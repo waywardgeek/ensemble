@@ -220,6 +220,21 @@ response and the bounded pending fragments above; it cannot buffer the entire
 HTTP body before delivering the first delta. Keep the configured request
 timeout and cancellation active during every read and capacity wait.
 
+That memory ceiling does not make assembly cheap. Copying the entire answer
+for every small fragment makes each arriving word pay for all the words before
+it. Doubling the answer can quadruple the copying. A terminal intended to show
+progress can spend its time rebuilding text the reader has already seen.
+
+Accumulate each part in owned, append-oriented storage and maintain response
+size counters as content changes. Decode each incoming wire object once;
+materialize the completed parts and run shared normalization at the completion
+boundary. Avoid repeatedly parsing, serializing or scanning the growing answer
+to append a fragment or measure its size. Storage choices remain open, but work
+and allocations for fixed-size fragments should grow approximately with total
+content size. Verify this with a local size-doubling benchmark, without a
+machine-specific timing cutoff. Preserve the same exact bounds, UTF-8 handling,
+part identities, coalescing boundaries, signatures and opaque material.
+
 A streaming request requires an SSE success body. Accept media-type parameters
 on `text/event-stream`; a success response containing ordinary JSON instead is
 a safe delivery error, without a second request. Preserve existing HTTP-error
