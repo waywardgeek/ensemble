@@ -17,7 +17,9 @@ Reviewed runtime `9ba7855` passes 33 full-gate and 12 comparative groups.
 Initial `8cc87f2` and revised `341f15d` evidence retain 44 and six exactly
 reconstructed requests, respectively. Independent live review `ffbad61` and
 final proofread `121b65d` close remaining gates. Exact export source `4897642`
-has 2,229 files across eight modules. A fresh Chapter 8 student handoff is next.
+has 2,229 files across eight modules. Fresh `/root/coder_ch08` is active with
+`fork_turns="none"`, new Chapters 1–8 and that accepted source. Its initial
+ownership plan awaits coordinator review; independent grader work proceeds.
 Source identities and retained limitations are tracked in
 [chapter-07-validation.md](chapter-07-validation.md).
 Earlier log-destination corrections are independently accepted and checkpointed
