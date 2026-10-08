@@ -246,3 +246,48 @@ Source SHA-256 at this audit:
 Disposition: completeness gaps identified for independent checker preparation;
 no new runtime defect or student failure inferred. No test/code edit, build,
 mutable runtime read, paid call or historical implementation comparison occurred.
+
+## Independent Q5 watermark clarification closure
+
+October 8, 2026. `/root/coder_ch08` reviewed the complete author delta and direct
+response at `3a9e5b76053535ab22906959edb14609596f8a93`, the student's actual
+Q4 acknowledgment/Q5 question, and affected §§10.3/10.4/10.6/10.8. Focused reads
+rechecked Chapter 4's shared allocator/collision rules and Chapter 9's activation
+allocation/retention. Full voice/procedure remained loaded without compaction.
+This pass reads student teaching feedback, not mutable implementation code.
+
+Q5 is resolved consistently. Activation and historical-job watermarks equal the
+maxima in complete validated semantic state, including retired activations and
+jobs outside the display window. The same rule applies to a snapshot-only origin:
+an earlier identity can be represented by its semantic facts without its raw
+event, but an unsupported extra cursor cannot be invented. Higher and lower
+unsupported values refuse with session_corrupt. Full-origin reduction and
+origin-seeded tail reduction now share that rule explicitly.
+
+The request cursor retains its distinct lower-bound exception because admitted
+requests may burn ordinals without durable turn facts. The shared live Job
+allocator remains different from a session's historical maximum: resume raises
+its floor without lowering an already higher cursor, and occupied artifact names
+still consume skipped candidates without creating session Jobs. No activation
+exception is needed because failed/no-op Skills transitions allocate nothing and
+retired activation records remain represented.
+
+The direct response acknowledges the original at-least/equality contradiction
+and expressly declines the student's proposed snapshot-only relaxation, without
+misclassifying the question as a student defect. Its Q4 acknowledgment agrees
+with the read student feedback and claims no completed repair. No contradictory
+instruction remains in this narrow scope; student implementation/confirmation
+and exact-high/low controls are separate work.
+
+Working author files match the freeze. The retained linter passes all hard rules;
+this invocation reports 7,819 words (the author evidence reports 7,818), with soft
+length/negation/person-gap warnings. The complete diff changes no existing JSON
+fixture. No runtime execution, provider call, checker change or build occurred.
+
+Reviewed SHA-256 values:
+
+- chapter-10.md: `56f52e6ac8d251f6c775d226c4b6c48fec1311542d15450f3b666617584cbbaa`.
+- chapter-10-evidence.md: `586cf6f7787b17cfc4188816dc72d94f6a8ebfe090217ce7f37badae5ee4bf2d`.
+- chapter-10-student-feedback.md: `eb4e7faf3b711c5e628a4d2e189eb384cfed0923cb3362ab4b8bb9a902f0953e`.
+
+Disposition: Q5 clarification proofreading accepted; no remaining scoped finding.
