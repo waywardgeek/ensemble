@@ -325,3 +325,34 @@ Full-draft disposition: D1–D7 direction supported; close R1 and the small R2
 record correction before contract acceptance. This review makes no implementation,
 checker-coverage or paid-run acceptance claim. The separate pending Chapter 10
 bounds fixtures remain uncommitted and unexecuted under coordinated build scheduling.
+
+## Grouped correction closure: 8adb4b5
+
+October 8, 2026. Read the complete author delta from `f097e24` to
+`8adb4b5038516ed50818778cad23a80da647c70b`, including manuscript, outline and
+evidence, and revisited its affected initialization/record/disposition passages.
+Full voice/procedure remain loaded from the full review without compaction.
+The manuscript matches the correction freeze.
+
+R1 is closed. Section 16.7 gives all six recall types a 64 MiB physical limit
+including an actual LF. It separates v6 session identity from standalone's
+prescribed construction-only empty recall initializer after memory initialization;
+an arbitrary interior name cannot select the class. The bounded recognition/read
+rule preserves original bytes, and write admission measures the exact prepared
+record. Lower decoded limits, controlled recall_limit and terminal storage
+semantics stay distinct. Unrelated/header limits remain inherited. The new
+required-check row covers classification, exact/+1, LF and escaping; these are
+future tests, not runtime results established by this closure.
+
+R2 is closed. Both reconciliation records now correctly say the previous outline
+left the index base unspecified. The evidence explicitly attributes the earlier
+zero-based statement to author reconciliation error. It does not rewrite that
+error into a historical design decision.
+
+Every fenced literal remains byte-identical to the initial full draft; all nine
+JSON fixtures parse. The retained hard linter passes at 6,228 words. No new
+contradiction or voice blocker was found in the scoped change. D1–D7, the printed
+literal fixtures and pending-spin distinction remain intact. The full contract
+and prose review is accepted on this freeze, subject to the separately pending
+checker/student/runtime/live/comparative gates. No code, provider call or Go
+build was needed for this closure.
