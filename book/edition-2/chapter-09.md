@@ -702,6 +702,10 @@ snapshot excludes bodies of never-activated skills, custom bindings, full Config
 absolute source paths and credentials. Returned slices/maps cannot mutate the
 Agent or another caller's snapshot.
 
+Read current grants and safe state from their committed owner without rebuilding
+full historical inspection. State still includes every required retired summary;
+copying material bodies and deriving contributors belongs to deliberate inspection.
+
 After a changed commit, publish the next Agent watch revision:
 
 ```json
@@ -885,8 +889,10 @@ the public features; they do not finish the requested report.
 
 An embedding example must retain each Agent's partial result, usage and terminal
 outcome, finish both independent bounded attempts, then report aggregate failure.
-Comparative review requires that correction to the consumer; it does not change
-the original partial run above or establish a successful revised demonstration.
+The revised consumer at `06c6787` does this in local subprocess controls: a first
+Agent's round-limit failure preserves its partial data and usage, and the second
+still completes before aggregate exit 1. No new paid run was made. That reporting
+repair leaves the original partial run above unchanged.
 
 Chat Completions completed both reads after a separately bounded recovery from
 a relay transport failure. Beta's final answer shortened its marker to beta,

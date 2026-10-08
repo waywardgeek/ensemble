@@ -458,3 +458,33 @@ negation/person-gap warnings retain the previously reviewed reasons. All eleven
 JSON fixtures remain byte-identical to `01049b7` and parse. Scoped diff validation
 passes. Only prose and this evidence entry change; no runtime, original receipt,
 grader, model request or new audio observation is involved.
+
+## Comparative revision factual reconciliation
+
+The author read complete comparison-revisions.md and the post-comparison
+student-review append frozen at `06c6787`, then inspected the retained affected-
+module, targeted-control, selected-public and negative-control receipts. Each
+of those six files was byte-compared with that commit before prose edits.
+The student confirms the full earlier response and reporting lesson; no new
+teaching ambiguity or confirmation request was introduced.
+
+Section 9.8 adds the narrow current-read explanation requested by the student
+and coordinator. Section 9.9 now describes the corrected reporting as local
+subprocess evidence and keeps every original live outcome. The receipts retain
+empty formatting output, passing vet/test for the two affected modules, seven
+selected public groups with race coverage, and four intended overlay failures.
+These were reviewed as receipts, not rerun by the author or described as a new
+complete gate. No paid request, provider success or changed historical binding
+is inferred. Independent code review remains a separate gate.
+
+The retained prose checker passes hard rules at 7,402 chapter words; existing
+soft warnings were reviewed against the unchanged refusal/receipt distinctions.
+All eleven JSON fixtures are byte-identical to `29a9380` and parse. Scoped diff
+validation and manual reading of the changed passages pass. Source references:
+
+- comparison-revisions.md: `edc674256e2f4cbbcc0e980cef5646ba3bb569cb14ea144d35b042ed80ac254b`.
+- student-review.md: `91383b0662f05f6d641b5867bb4d5a03b84dbc75dfd15fac3bfdc904ffa83e8f`.
+- comparison-module-checks.json: `f7030533b7980cc732753321e73ce5153ed4095394361af121b32680a5550889`.
+- comparison-targeted-controls.json: `7a34bd003b5d38e5233657d25120ee56e739966073e9eebb079e0f50f6fc47ed`.
+- comparison-public-revised.json: `3cd17340392ee7153f7138fea313d9f965700b83c94c306cbd837a3b407ef74b`.
+- comparison-negative-controls.json: `40b3288b24f781d9568ecac4bc91b674dba9f1d484d5112c9eab6fb89500a9f2`.

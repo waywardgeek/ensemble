@@ -189,3 +189,32 @@ No unresolved architecture question is reported in this frozen student phase.
 Independent historical comparison may still produce teaching revisions; its
 findings will be appended rather than rewriting this initial experience. Student
 confirmation of this final reconciliation is requested after publication.
+
+## Comparative revision reconciliation
+
+The student's `06c6787` append confirms the complete `01049b7` feedback and pinned
+`29a9380` teaching, including the public reporting lesson. It reports no new
+ownership or format ambiguity. That substantive confirmation resolves the
+request above; this factual acknowledgement does not request another loop.
+
+R1 now reads grants and safe state directly from their committed Skills owner,
+while full inspection deliberately retains material/contributor work. Required
+retired summaries remain part of safe state. The author accepts the student's
+suggested short explanation in §9.8; it changes no owner, wire shape or promised
+performance threshold. Allocation observations stay in the local evidence rather
+than becoming a chapter benchmark.
+
+R2 now retains each identified terminal completion, including partial text,
+parts, usage and error, and finishes the independent peer before aggregate
+failure. Local subprocess controls verify both success/success and first-Agent
+round_limit followed by second-Agent success under the unchanged two-request
+allowance. Section 9.9 labels the repair as locally verified, without suggesting
+that the original Anthropic public run was repeated or completed successfully.
+
+The student retains two test-development mistakes: expecting earlier response
+text in a later successful completion, and an allocation overlay that omitted
+the uninitialized-state guard. These are fixture/control mistakes under existing
+teaching. Corrected controls target their intended failures; neither warrants a
+new runtime contract. Affected-module checks and seven selected public groups
+are local revision evidence, not a second full gate or new provider observation.
+Independent code-review acceptance remains with its reviewer and coordinator.
