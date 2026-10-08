@@ -407,3 +407,27 @@ acceptance. Restoring accepted usage is not charging replay as a new response.
 GUI delivery waits belong to connection lifetime and release on disconnect/loss.
 The early grammar and signatures are persistence-format.md and session-api.md;
 status/evidence are in implementation-status.md. No live access is released.
+
+## Implementation clarification acknowledgment — Unicode and semantic witnesses
+
+Read the full Chapter 10 and direct feedback in clarification-cf73a64, verified
+manifest SHA-256 and exact Git bytes at cf73a646ba665d2070bb51a77bc0b1c5c4912a2b.
+Chapter SHA: 3faa154f60e875497d96594a1afdc219f398856b0a9bd46b39cf72f36ca126df;
+feedback SHA: cfb93f93cf7b53440a92c7304c8cb690a65e69f887d6c758cdfa1370d5b7f264.
+Strict session/canonical JSON keys and strings reject lone escaped surrogates
+before decoder replacement, accept proper pairs, genuine U+FFFD and literal
+escaped-backslash text; raw-wrapper inner JSON obeys this too. Inherited standalone
+scope stays unchanged. This resolves the new clarification, not a runtime pass.
+Reread the entire coding skill after compaction; no excluded source accessed.
+
+Coordinator response: add CalledAt/ReturnedAt to CallState with response/dispatch/
+result ordering checks. Missing dispatch evidence was my codec-design omission,
+not missing teaching. The published grammar now names those required coordinates.
+Change checkpointWorker's concrete Store back-pointer to common.SessionStore,
+retaining its actual creator and logger chain. This corrects my implementation
+of the already accepted owner plan. Both corrections are unblocked.
+
+Actual implementation reads include main's session/ensemble/watch/CLI/GUI source,
+common, eventlog, persistence, llm, skills, tools and jobs source and local tests.
+Only the authorized coordinator inbox was checked for external direction. No
+checker implementation, credentials, historical answer or other worker read.

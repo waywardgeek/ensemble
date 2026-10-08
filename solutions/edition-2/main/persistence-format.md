@@ -128,8 +128,8 @@ Redactions,Guidance,LimitFacts}`. These field spellings follow shared Context.
 - Guidance: array of GuidanceFact in receipt order.
 - LimitFacts: array of LimitFact in event order.
 
-CallState = `{JobHandle,Part,Dispatched,Returned}`: uint64 (0 means no Job),
-Part of tool_call type, Booleans. Its key equals Part.call_id; call part exactly
+CallState = `{JobHandle,Part,Dispatched,Returned,CalledAt,ReturnedAt}`: uint64 (0 means no Job),
+Part of tool_call type, Booleans. CalledAt/ReturnedAt are event coordinates (0 iff absent); dispatch precedes result and both follow the original call response. Its key equals Part.call_id; call part exactly
 matches a response entry; returned requires matching result entry. Historical
 call/result identities survive redaction. No accepted call can disappear.
 
@@ -237,3 +237,9 @@ remain. Standalone/header bounds stay inherited. Skill candidate size refusal
 remains controlled skill_too_large; subsequent storage admission is terminal
 session_limit. Reads over bounds are session_corrupt. Parse incrementally before
 unbounded allocation. Exact limits pass when all other constraints hold.
+
+Unicode clarification cf73a64: all strict session JSON string values and keys,
+including parsed inner raw-JSON strings, must encode Unicode scalar values.
+Reject lone escaped high/low surrogates before decoding; accept adjacent valid
+pairs, genuine U+FFFD and escaped-backslash literal text. Legacy standalone
+JSON behavior is unchanged by this added session rule.
