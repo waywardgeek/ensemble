@@ -29,8 +29,12 @@ groups. Final live audit, author reconciliation and proofread are accepted at
 Chapter 9's initial checker is published at `e6c3406`. Fresh local CLI student
 `01a11c0d-47b8-7241-8834-5ddf57ac5009` has an accepted ownership plan at
 `5ac45e4`; new-only teaching `8736c95` is supplemented by published answers
-`8f24360`, confirmed by the student and recorded at `080fbca`. Catalog/replay
-local checks pass and full integration is underway. Managed spawn hit its thread limit; this
+`8f24360`, confirmed by the student and recorded at `080fbca`. The eight initial
+black-box commands now pass after five fixture defects were corrected at
+`a294aac`; original failures are preserved. Record-bound clarification `d8c7738`
+is released for the coder's bounded-read and atomic-size repair. Live coverage
+and request ceilings are accepted; source-bound local/support checks precede
+paid launch. Managed spawn hit its thread limit; this
 separate session inherits no conversation and disables memories. See
 [chapter-09-validation.md](chapter-09-validation.md) for its handoff and limits.
 Source identities and retained limitations are tracked in
@@ -38,7 +42,7 @@ Source identities and retained limitations are tracked in
 Earlier log-destination corrections are independently accepted and checkpointed
 at `edition-2-ch02-r2` (`0a375d3`) and `edition-2-ch03-r2` (`799940c`). Their
 revised frozen exports and manifests are integrated here; canonical main stays
-on the Chapter 8 working implementation. See `logpath-backport-review.md` and the chapter validation records.
+on the Chapter 9 extension of accepted Chapter 8. See `logpath-backport-review.md` and the chapter validation records.
 Chapter 4 remains checkpointed at
 `edition-2-ch04-r1` (`55e6411`); its detailed record is historical below.
 

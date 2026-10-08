@@ -35,9 +35,13 @@ clarified at `77cd638`/`f303754`. Fresh local CLI student
 `01a11c0d-47b8-7241-8834-5ddf57ac5009` has an accepted owner/state/API plan
 at `5ac45e4` from accepted Chapter 8 and new-only teaching `8736c95`. Published
 answers `8f24360` resolve three initial teaching questions; the student confirms
-resolution, recorded by the author at `080fbca`. Catalog and replay local tests
-pass and integration is underway. A concrete candidate parent was corrected to
-its common interface after a narrow coordinator review. No Chapter 9 live use
+resolution, recorded by the author at `080fbca`. The eight initial black-box
+commands pass after five independent fixture repairs at `a294aac`; original
+failures remain recorded. Boundary/deletion controls are at `f70b49d` and the
+combined immutable gate is at `3050a66`. Root identified unbounded log reads;
+the author published a complete skill-record limit at `d8c7738`, released to the
+student before repair. The live matrix and request ceilings are accepted,
+pending source-bound local and recording-support checks. No Chapter 9 live use
 or full acceptance is claimed. Managed
 spawn hit its thread limit; this new session inherits no conversation and has
 memory injection disabled. `/root/grader_ch05` continues independent checks. See
@@ -47,8 +51,10 @@ checker preparation. Chapter 11 draft `a5fc9ea`, clarified through `39bc526`,
 is accepted for checker preparation at `0c82feb`; see
 [chapter-11-validation.md](chapter-11-validation.md). It requires replaceable
 MCP message transports and the later optional-module WebSocket GUI tunnel,
-following Bill's explicit instruction recorded at `ad2b2e8`. The author now
-prepares the Chapter 12 outline, including an explicit browser bootstrap. No
+following Bill's explicit instruction recorded at `ad2b2e8`. Chapter 12's
+outline `54806a6` and decisions `9b60c33` lead to a full draft now being finished,
+including explicit browser bootstrap and actual GUI tunneling; see
+[chapter-12-validation.md](chapter-12-validation.md). No
 implementation or live result is claimed for those future chapters.
 Bill and CodeRhapsody are separately writing a new first-edition sandboxing
 chapter. Preserve that work; review it as a future source when available, without

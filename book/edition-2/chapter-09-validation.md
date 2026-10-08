@@ -1,15 +1,15 @@
 # Chapter 9 validation
 
-Skills chapter work, October 8, 2026. A fresh student has begun the ownership
-plan from accepted `edition-2-ch08-r1` (`bfdadaf5`), source `446d7f2` and tree
+Skills chapter work, October 8, 2026. A fresh student is implementing from
+accepted `edition-2-ch08-r1` (`bfdadaf5`), source `446d7f2` and tree
 `58d3fbf4`. Bill's editorial approval remains separate from technical validation.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
-| Contract | Author, coordinator | Draft `49ae919`, transition clarification `0bca41c`, exact-counter clarification `77cd638`, initial command `f303754` and student-question responses `8f24360` accepted; student confirms all three resolutions | Incorporate any further material teaching findings |
-| Independent checks | Initial `/root/coder_ch08`; continuing `/root/grader_ch05` | Prepared CLI/catalog/graph/replay/management/configuration/public/browser checks through `26e1121`; initial student CLI passes base 51/51, graph 27/27 and management 138/138 | Diagnose catalog, replay, anchored-hint and browser failures independently; finish matrix, source-bound positives and deletion controls |
+| Contract | Author, coordinator | Earlier contract/three-question responses accepted and confirmed; complete encoded skill-record boundary `d8c7738` reviewed and released | Student confirms and implements the bounded-read/atomic-size rule |
+| Independent checks | Initial `/root/coder_ch08`; continuing `/root/grader_ch05` | Five fixture defects corrected at `a294aac`, originals retained; corrected eight black-box commands pass in student `black-box-initial.json`; failure/counter/precision/interruption and reviewed student deletion controls at `f70b49d` | Add published record-bound controls and run immutable combined gate `3050a66` after source freeze |
 | Student and ownership plan | Fresh CLI student `01a11c0d-47b8-7241-8834-5ddf57ac5009` | Initial new-only read ledger and plan `5ac45e4`; owners/API accepted; author responses `8f24360` confirmed, recorded at `080fbca` | Retain initial experience and append new findings |
-| Initial implementation and live use | Same fresh student | Core tests/race and GUI tests pass during integration; student public/browser controls pass; partial black-box results and observed failures retained in student review; concrete candidate parent corrected | Finish local diagnostics and source freeze, then review complete bounded live plan; no paid runs yet |
+| Initial implementation and live use | Same fresh student | Whole-delivery module and dynamic-import receipts exist before the record-bound repair; real GUI/local-provider scenario independently rerun; live matrix/caps accepted, with no actual paid runs | Finish record-bound repair, affected checks, source freeze and recording-support review before live launch |
 | Historical comparison and revisions | Independent code reviewer | Not started | Preserve initial source, live receipts and teaching review first |
 | Manuscript and feedback | Author, student, proofreader | Draft explicitly labels actual spin pending | Reconcile actual receipts and resolve student findings |
 | Export and checkpoint | Coordinator | Not started | Complete all gates before immutable chapter export/tag |
