@@ -337,9 +337,10 @@ current gates live in [Chapter 16 validation](chapter-16-validation.md).
   allowance and foreground reservation. Current pressure is measured with the
   actual canonical neutral-projection delta; pause expiry/stale/canceled work
   settles without another paid attempt or late attachment.
-- D5 replaces the outline's per-source statistics and zero-based proposal with
-  global BM25, positive scores, one-per-category reserve then ranked filling,
-  pool of 20/final three and strict one-based verdicts. Query is only the human prompt,
+- D5 replaces the outline's per-source statistics with global BM25, positive
+  scores, one-per-category reserve then ranked filling and pool of 20/final three.
+  It settles the previously unspecified index base with strict one-based verdicts.
+  Query is only the human prompt,
   bounded to 8,192 bytes. Request/reply/output bounds are 256 KiB/8 KiB/256 tokens.
 - D6 retains only current offered IDs/descriptions for new skill candidates;
   accepted suggestions remain historical/as-of after offer revocation.
@@ -352,3 +353,10 @@ three-provider literals are new teaching before implementation. No tool, old
 solution, current student source or grader was edited. The historical format
 mismatch and unused-search story remain attributed; the actual spin is a reader
 plan awaiting source-bound evidence rather than a fabricated successful run.
+
+Independent full review `5138e53` identified a missing physical record class for
+standalone recall facts. The grouped clarification gives all six new recall
+events 64 MiB including actual framing LF, after valid profile initialization,
+with bounded original reads and exact prepared writes. Unrelated event/header
+limits remain unchanged. The review also corrected this reconciliation's prior
+claim of a zero-based proposal: frozen outline `d4b17a3` left that base unspecified.

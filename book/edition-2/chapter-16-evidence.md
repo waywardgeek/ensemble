@@ -210,8 +210,8 @@ bound. No runtime implementation was opened for this drafting step.
 The complete draft adopts the selected corpus/profile, anchored recall, budget,
 ranking/verdict and reduced-state choices. It preserves the source's human
 motivation while declining unsupported speed/quality/cache claims. The interim
-outline's per-source statistics, zero-based verdict and unspecified cumulative
-lifetime are explicitly superseded, rather than left as competing instructions.
+outline's per-source statistics are superseded, and its unspecified verdict index
+base and cumulative lifetime are settled explicitly rather than left open.
 A ready external index yields a bounded operation view after current offer and
 deduplication filtering; its statistics must match that view. Root/reviewer
 precision about current pressure versus captured recall mode is printed.
@@ -240,3 +240,33 @@ outline/evidence wording patch initially failed to write while the shared volume
 reported 116 MiB available; the author inspected all three complete files and
 saved only those wording corrections on retry. No shared cleanup or build was
 performed. The freeze includes only this chapter, its outline and this evidence.
+
+## Grouped full-review correction
+
+Independent full review `5138e53` identified R1, a missing standalone physical
+record class, and R2, an inaccurate account of the outline's index proposal.
+The coordinator accepted both findings before this prose correction. The author
+reloaded the entire voice/procedure and architecture, read the complete review,
+and reread the affected Chapter 16 contract and Chapter 15 record-limit passage.
+An initially truncated combined read was completed through smaller reads.
+`git show d4b17a3:book/edition-2/chapter-16-outline.md` confirms D5 specified
+unique in-range indices without choosing a base; the earlier zero-based claim
+was an author reconciliation error, not a superseded design decision.
+
+Section 16.7 now assigns all six new recall event types the 64 MiB physical
+limit, including actual framing LF, in explicitly capable sessions and standalone
+logs. Valid profile initialization is required before this class is available;
+headers and unrelated events retain their inherited bounds. Original reads and
+exact prepared writes are bounded separately, preserving imported bytes, lower
+decoded limits and controlled recall_limit versus terminal storage semantics.
+The required check table names classification, exact/plus-one, LF and escaping
+controls. These are printed requirements, not newly executed runtime checks.
+
+No literal fixture, runtime, grader, historical file or model interaction changes
+in this correction. D1–D7 and the pending actual-spin status remain intact.
+All nine JSON fixtures parse, and every fenced literal is byte-identical to
+`f097e24`. Scoped hard lint passes all three author files; the manuscript reports
+6,228 words. Its inherited density warnings were reviewed without padding the
+record-limit explanation. Scoped whitespace checks pass. Session v6 identity
+and standalone construction-only recall initialization are distinguished in the
+admission wording; no new standalone profile event is introduced.

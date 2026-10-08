@@ -488,6 +488,26 @@ be zero. Every reference names the specified accepted fact in the same Agent.
 | recall_judge_ended | attempt, outcome, response, code |
 | recall_finished | operation, mode, code, selected, omitted |
 
+Each of these six recall event types has a 64 MiB physical record limit in
+explicitly recall-capable session and standalone logs, including the framing LF
+when present. Count every original byte on reads, including whitespace and JSON
+escaping; an accepted final record without LF counts its actual bytes. Bound
+reads before allocation exceeds that budget. Validate the capability-initializer
+chain from §16.1: session identity selects v6; standalone recall_initialized
+establishes recall capability only in its valid construction position after
+memory_initialized. Use a bounded recognition probe, accepting that initializer
+only with its prescribed empty-corpus shape; later recall facts require it.
+An invalid or interior recall-named record cannot opt into the larger class.
+Preserve all inherited limits for unrelated events and headers.
+
+For writes, check the exact bounded prepared one-line record before append,
+using Chapter 10's accepted-byte boundary. Never remarshal an imported record to
+decide its physical size. The smaller corpus, helper and attachment limits remain
+independent. An oversized recall candidate refuses recall_limit before changing
+its state; this controlled refusal is distinct from terminal session admission
+or storage failure. Session-wide count/size limits and their terminal semantics
+remain inherited.
+
 Base equals the preceding event sequence; a changed corpus revision is previous
 plus one. Corpus must equal the complete admitted capture with its deterministic
 chunks and ready index. Check all encoded-record, state/count and revision limits
@@ -733,6 +753,7 @@ partial result/usage even if the other fails, and shows no cross-Agent selection
 | Material | Literal anchors/render bytes, H/S/P and observations, exact/per-plus-one block/cumulative caps, whole-item omissions and complete handoff retirement |
 | Skills | Never-offered definitions absent, current offer checked before attach, historical suggestion retained after revocation, current load still refused |
 | Persistence | Strict v6/old routes, no forged public candidates, complete-set replay, zero-I/O restart, two retired corpus/selection cycles, unchanged usage and history_unavailable |
+| Physical records | Recall-capable session/standalone classification; exact 64 MiB and plus-one, LF/no-LF and escaped-text controls; bounded original reads/prepared writes; unchanged unrelated/header bounds; invalid profile cannot select larger class |
 | Clients/architecture | Public multi-Agent isolation, real optional browser controls, owned close/reconnect, new spoke and every module import/parent/logger path |
 
 Run all affected modules' formatting, vet and tests, the published independent
