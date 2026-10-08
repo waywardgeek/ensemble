@@ -1,16 +1,18 @@
 # Chapter 16 validation
 
-Full manuscript drafting released, October 8, 2026. Outline/research `d4b17a3`,
-independent advisory `0320911` and coordinator decisions `81e2065` establish the
-working direction. The reviewer read those decisions and found no consequential
-contradiction. No Chapter 16 full contract, checker, implementation or actual
-demonstration is accepted. Chapter 15 has only contract/prose acceptance; its
-required implementation predecessor does not exist yet.
+Contract and prose accepted, October 8, 2026. Outline/research `d4b17a3`,
+independent advisory `0320911` and coordinator decisions `81e2065` led to full
+draft `f097e24`. Review `5138e53`, grouped correction `8adb4b5` and independent
+closure `82dfb48` resolve the manuscript findings. The coordinator read the full
+draft, decisions, correction and closure and accepts the contract/prose boundary.
+No checker, implementation or actual demonstration is accepted. Chapter 15 has
+only contract/prose acceptance; its required implementation predecessor does not
+exist yet.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Research and consequential choices | Author, reviewer, coordinator | Outline `d4b17a3`, advisory `0320911`, decisions `81e2065` | Teach exact selected mechanisms and flag contradictory prerequisites |
-| Full contract and prose | Author `/root/coder_ch04`, reviewer `/root/coder_ch08` | Full draft `f097e24` published; independent full review pending | Review exact contract, voice, fixtures and preceding boundaries |
+| Full contract and prose | Author `/root/coder_ch04`, reviewer `/root/coder_ch08`, coordinator | Accepted: draft `f097e24`, correction `8adb4b5`, independent closure `82dfb48` and coordinator full read | Preserve exact fixtures and corrected record-admission rules in checker/student handoffs |
 | Independent checks | Future grader | Not started | Derive distinguishing controls from accepted printed requirements |
 | Fresh student and owner plan | Future fresh student, reviewer | Not released | Requires accepted Chapter 15 source and published checks |
 | Local implementation | Future student, grader | Not started | Preserve preceding contracts, ownership and evidence boundaries |

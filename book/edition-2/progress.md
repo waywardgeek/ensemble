@@ -21,6 +21,15 @@ or paid calls are released in this phase. Complete codec/API publication precede
 the remaining independent semantic checks.
 See [chapter-10-validation.md](chapter-10-validation.md).
 
+Recovery update: `20820c1` records five storage-bound groups and their five
+targeted deletions; `beea2ca` records nine fault/lifetime deletions from a passing
+baseline on repair `8882a18`. The full retained run completed 68 checks, with 59
+passing and nine checker integration failures under investigation. The student is
+preparing live support only; provider calls remain unreleased. Chapter 16's
+contract/prose review is closed at `82dfb48`; Chapter 17 preparation has advisory
+`b59c47e` and awaits consequential decisions. See `CHECKPOINT.md` for actual
+worker identities and restart instructions.
+
 The first Chapter 10 runs exposed a restart representation mismatch and a
 separate macOS path-alias fixture defect. Published clarification and repairs now
 pass the 93-row CLI, 9 client, 6 DOM and 38 physical-read groups on the prepared

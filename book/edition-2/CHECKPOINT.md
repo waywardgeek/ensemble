@@ -1,5 +1,43 @@
 # Working checkpoint
 
+## Recovery update, October 8
+
+This update supersedes the running-worker descriptions below; prior attempts
+remain historical evidence. Chapter 10 repair is frozen at `8882a18`, with
+handback `e307d79`. Stable append-fault and lifecycle checks pass. Storage-bound
+checks and five targeted deletions are recorded at `20820c1`; nine fault/lifetime
+deletions at `beea2ca` fail their intended assertions from a passing baseline.
+These scoped results do not close the remaining large aggregate/file bounds.
+
+The full retained run on that repair survived the server restart as PID 65760
+and has now completed: 68 checks, 59 passing and nine checker integration failures.
+Its atomic receipt is outside the repository at
+`/Users/bill/projects/ensemble-edition-2-revisions/ch10-retained-full-first.json`.
+Preserve the complete initial receipt. The failures concern relocated checker
+paths and obsolete mutation anchors; they are not passing runtime evidence.
+Root coordinates the compiler slot. Reviewer `/root/reviewer_ch17` is preparing
+grouped fixture corrections and affected reruns; grader
+`/root/grader_ch10_remaining` prepares remaining semantic controls without large
+fixtures. Disk remains tight; clear only regenerable build cache while compilers
+are idle, never source, evidence, credentials or user files.
+
+The same new-only CLI student conversation
+`01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0` survived as PID 67484, preparing
+`phase-3-support` under its existing external input directory. Check its result
+file and process before resuming. No Go builds, credentials, discovery or paid
+calls are released in this phase. Revised live-plan review `9db76fc` and the
+append-only inbox specify the remaining support/preflight corrections.
+
+Chapter 16 contract/prose is accepted after correction `8adb4b5`, independent
+closure `82dfb48` and coordinator full read; its implementation remains unstarted.
+Chapter 17 outline/research `580ce83` has independent advisory `b59c47e`.
+Consequential route/cap choices remain unresolved, so no full draft or experiment
+is released. Author `/root/author` is checking Bill's reiterated MCP requirement
+and preparing advisory responses. Chapters 11 and 12 already explicitly require
+replaceable transports and the actual optional-GUI WebSocket tunnel, respectively.
+Current role assignments supersede earlier names below; inspect live status
+after interruptions rather than assuming those workers still run.
+
 ## Latest boundary, October 8
 
 Chapter 10 initial implementation is `41a5e72`; grouped lock/index/encoding/Q5
