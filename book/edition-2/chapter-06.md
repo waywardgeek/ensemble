@@ -250,6 +250,17 @@ content size. Verify this with a local size-doubling benchmark, without a
 machine-specific timing cutoff. Preserve the same exact bounds, UTF-8 handling,
 part identities, coalescing boundaries, signatures and opaque material.
 
+The first second-edition implementation supplied a useful warning. It passed
+the early-delivery checks and worked with real models, yet a local Gemini
+fixture allocated about 804 MB while assembling 128 KiB of text. The parser
+kept rebuilding the answer it had already read. After review, append-oriented
+assembly reduced that fixture to about 11 MB of cumulative allocations;
+doubling its answer size then roughly doubled allocations. These are local
+fixed-fragment measurements, not peak memory or provider latency. The
+[comparison record](chapter-06-code-review.md) retains both implementations and
+the exact benchmark results. A successful terminal demonstration had left
+this design defect quite comfortable.
+
 A streaming request requires an SSE success body. Accept media-type parameters
 on `text/event-stream`; a success response containing ordinary JSON instead is
 a safe delivery error, without a second request. Preserve existing HTTP-error
