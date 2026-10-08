@@ -385,3 +385,33 @@ Whitespace, escaping and all payload bytes count; any otherwise permitted record
 without LF counts its actual bytes. Session parsing keeps its existing refusal
 of a partial final record. No student implementation, grader or old receipt was
 changed, and the current Chapter 9 student was not exposed to this later chapter.
+
+## Initial Chapter 10 student questions
+
+The author read the complete 384-line initial plan at `7cb84290af3e8bac5359339f8ab5d4e7e941bf74`
+and its exact Q1–Q3 before affected implementation. Current voice/procedure and
+architecture remained loaded from the author pass; relevant Chapters 9/10
+record-size, origin and canonical-equality passages were reread. The coordinator
+accepted the student's proposed distinctions, including a bounded first-record
+probe for generic offline readers. No owner/API plan approval is implied by
+these author responses.
+
+The teaching now makes session event-size precedence explicit in §10.8, raw
+history versus imported semantic state explicit in §10.4, and original replay
+bytes versus purpose-specific canonical comparison explicit in §10.3. The new
+direct feedback file answers each question without exposing future chapters,
+historical implementation or reviewer internals. It asks the student to confirm
+resolution of the substantive questions; no runtime or receipt is invented.
+
+The bounded probe cannot turn an invalid/interior initializer into a mode switch.
+Skills retains controlled preflight failure before session storage admission.
+The genuine saved watch window is not fabricated raw history. Dedicated validated
+raw-JSON strings are allowed as a private codec choice, not a required field name.
+The chapter's later checker paragraph also now points to the already-published
+initial command while retaining the complete required matrix.
+
+The plan bytes were matched to `7cb84290`. The retained prose checker passes
+hard rules at 7,289 chapter words; the existing dense-contract person-gap warning
+was reviewed. The original JSON fixture is byte-unchanged and parses. Scoped diff
+validation and manual reading of the amended passages pass. No runtime, grader,
+model call or accepted historical receipt changed.

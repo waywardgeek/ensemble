@@ -264,6 +264,24 @@ manual or opaque payload bytes: use canonical bytes only where this contract
 asks for a canonical hash or equality comparison. The public exporter and
 importer use this same documented codec.
 
+Choose the comparison by its purpose. Original opaque and other raw JSON used
+for replay retain their exact bytes, including original number lexemes. A
+snapshot must not replace those bytes with canonical encoding: `1.0` and `1`
+compare equally for a schema or argument's semantic value, but they are different
+recorded spellings. Historical reconstruction restores the recorded spelling
+and uses the same renderer, rather than serializing a newly normalized substitute.
+Exact manual/text bytes and replay-bearing raw fields compare byte-for-byte
+between snapshot and rebuilt state. Parsed canonical equality applies only to
+the specified semantic/identity comparisons, such as handler definitions and
+argument-value correspondence. It does not relax exact opaque preservation.
+
+A private codec may encode replay-bearing JSON in dedicated strings containing
+the original JSON text. Validate that text under its original JSON/type/bound
+rules on import; a string wrapper is not permission to retain malformed data.
+Another byte-preserving representation is equally acceptable. Document which
+fields preserve bytes and which comparisons use semantic values before checks;
+decoded semantic equality alone is insufficient for a replay-bearing raw field.
+
 The student publishes the state object's required fields/types in the source's
 persistence-format document before independent checks. Its names may follow the
 existing shared data. Strict decoding refuses missing, unknown, duplicate or
@@ -368,6 +386,20 @@ checkpoint still requires that origin in an imported store. Log-only standalone
 loading of session_anchor refuses `session_origin_required`: it cannot rebuild
 the missing conversation. Offline session inspection supplies the recorded
 origin without claiming complete-history equivalence for events that are absent.
+
+Public raw history must describe the files that exist. After snapshot-only
+import, Events and Dump expose the actual session_anchor and available tail,
+never reconstructed pre-origin events. Inspection and human /history explicitly
+label origin_as_of and incomplete raw history. The genuine saved recent watch
+window may include pre-origin display facts; those facts do not become invented
+raw history or new events.log records.
+
+ReconstructRequest for a send at or before origin_as_of refuses the stable code
+`history_unavailable`. For a recorded send in the available tail, seed from the
+validated origin state and reduce only the preceding available tail, then use
+that send's captured inputs. Do not require absent raw events to reconstruct
+an available-tail request, or pretend the origin's current context recreates a
+pre-origin request. Full-origin logs retain complete historical reconstruction.
 
 Compare snapshot and rebuilt paths under identical current render inputs. Require
 byte-identical next requests for Messages, Chat Completions and generateContent,
@@ -655,6 +687,27 @@ or round. This identity domain does not increase any file, record or collection
 size bound. A snapshot can carry a large validated allocator watermark without
 claiming that a small retained log contains every earlier allocation.
 
+The 64 MiB physical event-record limit applies to every session event, including
+ordinary events; it replaces the older ordinary-record limit in session mode.
+Count actual framing LF when present and every raw whitespace/escaping byte.
+Standalone logs retain their inherited ordinary, skill-record and header bounds.
+All headers retain their old bound. Explicit session readers select session mode
+before reading events. Generic offline Load may use one bounded first-record
+probe, at most 64 MiB, to recognize a valid sequence-1 session_initialized;
+otherwise enforce the inherited standalone per-kind limit before accepting that
+record. Invalid or interior session facts cannot switch modes. Read incrementally
+under the selected bound, before unbounded line allocation or JSON decoding;
+checking the length only after ReadBytes returns does not satisfy this rule.
+
+Skills' earlier candidate validation remains first. An oversized skill transition
+still returns controlled skill_too_large before append, without a transition,
+state/counter change or terminal Agent fault; enclosing attempted-call facts
+retain their Chapter 9 meaning. A candidate that passes that preflight then
+faces session storage admission. Separate session log-file/count exhaustion,
+or an otherwise valid non-skill event exceeding its session record bound, returns
+terminal session_limit under the persistence rules. This does not enlarge a
+skill source/render bound or turn a controlled skill refusal into a writer error.
+
 Here MiB and GiB mean powers of 1024. Exact boundaries are accepted when all
 other rules hold. The outer object is nesting level 1; each contained object or
 array adds one. Retain earlier smaller limits: human input, WebSocket messages,
@@ -682,7 +735,8 @@ still name an impossible call, anchor, primary or transition.
 
 Use stable public error codes: session_in_use, session_unsupported,
 session_conflict, session_corrupt, session_incompatible, session_unfinished,
-session_origin_required, session_busy and session_io. A size/collection failure
+session_origin_required, session_busy, session_io and history_unavailable.
+A size/collection failure
 uses session_corrupt when reading existing state and session_limit when admitting
 new storage. Return safe field/record/sequence context, without dumping invalid
 JSON, bodies or credentials. CLI errors may name the operator-selected path;
@@ -804,7 +858,8 @@ The old seven-check persistence grader has a useful core: it compares actual
 requests and creates a nonempty tail rather than trusting a MATCH message from
 the program being graded. Retain those controls and the earlier chapter coverage.
 Its old startup, fake Messages backend and EOF assumptions are insufficient for
-this contract. Publish the independent command before releasing the student.
+this contract. The initial independent command in the TL;DR covers a subset;
+the complete matrix below remains required.
 
 | Property | Required independent control |
 |---|---|
@@ -812,13 +867,13 @@ this contract. Publish the independent command before releasing the student.
 | Ownership | Headless public consumer, optional GUI module, actual SessionStore parent/logger, no second writer or saved Context authority |
 | Identity | Fresh runtime IDs with stable SessionID; duplicate mount/path refusal; changed session/anchor/hash/watermarks reject; no forged public adoption |
 | Snapshot | Public export/import, owned buffers, snapshot without prefix, later checkpoint/reopen retaining origin; missing/duplicate/inconsistent semantic fields refuse |
-| Tail/rebuild | Old checkpoint/newer real tail, complete-history rebuild, imported-origin replay; all three exact next requests, usage, skill state and watch facts agree |
+| Tail/rebuild | Old checkpoint/newer real tail, complete-history rebuild, imported-origin replay; actual anchor/tail-only history and pre-origin history_unavailable; all three exact next requests, raw lexemes, usage, skill state and genuine watch facts agree |
 | Authority | Same-content different-path catalog passes; changed/missing source, primary, binding or ceiling refuses; plain-System presence table; no credential canary on disk |
 | One-shot limits | Set/consume/restart, second and invalid setters, unknown/disabled call, skill control, pause, malformed response, append failure; complete-log reconstruction agrees |
 | No resumed work | Unfinished boundary refuses; zero startup HTTP/tools; historical running/finished handles cannot supervise a new Job; transient queues/pauses/speech absent |
 | Capture/write | Immediate busy refusal; independent job event during slow write belongs to tail; single worker; write/sync/close/replace faults preserve truthful commit state |
 | Lifecycle | Actual EOF/quit/SIGINT/SIGTERM; GUI terminal detachment; join/repeated close; process death releases lock without file deletion or child-held descriptor |
-| Limits/corruption | Exact and one-over boundaries; invalid UTF-8/JSON/version/duplicates/identities/transitions; partial final record; unchanged source bytes and zero side effects |
+| Limits/corruption | Exact and one-over mode-specific record bounds; controlled skill candidate refusal versus terminal session storage refusal; invalid UTF-8/JSON/version/duplicates/identities/transitions; partial final record; unchanged source bytes and zero side effects |
 | Clients | Public multi-Agent isolation, browser checkpoint and historical-job display, bounded reconnect window, independent current policy/preferences |
 
 Run all affected modules' build, vet and tests, including suitable race checks.
