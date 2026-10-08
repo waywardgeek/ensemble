@@ -126,3 +126,29 @@ grader edits, main-source edits, or student mutation audit occurred.
 No unresolved contract ambiguity was needed to encode this subset. Unimplemented
 checker areas above remain gaps, rather than unpublished assumptions or waived
 promises.
+
+## Independent preparation review and peer repair
+
+After `ee89051`, the independent reviewer reproduced the 69 controls and nine
+oracle deletions, then found additional fixture defects: a valid discover
+request with an extra envelope member was accepted; cancellation accepted
+`rpc-03` and null request IDs; and null call arguments raised an uncaught Python
+AttributeError. Its original probes remain in
+`checkpoint-evidence/ch11-review-foundation-initial.json`. These were checker
+fixture findings, not an Ensemble runtime failure or a teaching gap. The earlier
+"no initial failure" statement describes the original preparation run only.
+
+After reloading the full coding skill, the narrow repair requires the exact
+request/notification envelope keys, string method and object params; validates
+the cancellation ID before recording it; and checks call arguments are an object
+before accessing text. No additional schema or runtime promise is claimed.
+
+All original 69 assertions and nine deletion controls remain. Seven new cases
+each exercise a valid parent, the precise direct refusal, and an actual subprocess
+refusal with exit 2, empty stdout and exactly the safe error code on stderr. They
+cover the reported defects plus missing cancellation ID, null cancellation params
+and array call arguments. The revised run is 90/90, with all nine original oracle
+deletions still producing their intended failures. Receipts are
+`checkpoint-evidence/ch11-foundation-peer-repaired.json` and
+`checkpoint-evidence/ch11-foundation-peer-repaired-deletions.json`; original
+receipts retain their original identities. This remains preparation-only coverage.

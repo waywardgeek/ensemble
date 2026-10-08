@@ -198,13 +198,18 @@ class Peer:
     def accept(self, raw):
         message = parse(raw)
         require(message.get("jsonrpc") == "2.0", "jsonrpc")
+        require(set(message) == ({"jsonrpc", "method", "params", "id"} if "id" in message else {"jsonrpc", "method", "params"}), "envelope-fields")
+        require(isinstance(message["method"], str), "fixture-method")
+        params = message["params"]
+        require(isinstance(params, dict), "fixture-params")
         if "id" not in message:
-            require(message == cancellation(message.get("params", {}).get("requestId")), "cancellation-bytes")
-            self.cancelled.append(message["params"]["requestId"])
+            identity = params.get("requestId")
+            ordinal(identity)
+            require(message == cancellation(identity), "cancellation-bytes")
+            self.cancelled.append(identity)
             return None
         identity, method = message["id"], message.get("method")
         ordinal(identity)
-        params = message.get("params")
         require(isinstance(params, dict) and params.get("_meta") == META, "request-metadata")
         self.methods.append(method)
         if method == "server/discover":
@@ -212,8 +217,10 @@ class Peer:
         elif method == "tools/list":
             result = {"resultType": "complete", "tools": [descriptor()]}
         elif method == "tools/call":
-            require(params.get("name") == "notes.append" and isinstance(params.get("arguments", {}).get("text"), str), "fixture-call")
-            text = params["arguments"]["text"]
+            arguments = params.get("arguments")
+            require(isinstance(arguments, dict), "fixture-arguments")
+            require(params.get("name") == "notes.append" and isinstance(arguments.get("text"), str), "fixture-call")
+            text = arguments["text"]
             result = {"resultType": "complete", "content": [{"type": "text", "text": text}], "structuredContent": {"written": len(text)}, "isError": False}
         else:
             raise Refusal("fixture-method")
@@ -344,6 +351,25 @@ def self_test():
     positive("memory-fixture-sequence", lambda: require(memory_peer.methods == ["server/discover", "tools/list", "tools/call"] and memory_peer.cancelled == ["rpc-3"], "control"))
     bad = copy.deepcopy(messages[0]); bad["params"]["_meta"].pop("io.modelcontextprotocol/clientInfo")
     negative("missing-request-metadata", "request-metadata", lambda: Peer().accept(compact(bad)))
+    # Each malformed message starts from a separately demonstrated valid parent.
+    # Exercise both the direct oracle and the actual peer process so an uncaught
+    # Python exception cannot masquerade as the intended protocol refusal.
+    peer_cases = [
+        ("extra-request-field", messages[0], {**messages[0], "extra": True}, "envelope-fields"),
+        ("cancel-leading-zero", messages[-1], cancellation("rpc-03"), "unknown-id"),
+        ("cancel-null-id", messages[-1], cancellation(None), "unknown-id"),
+        ("cancel-missing-id", messages[-1], {**messages[-1], "params": {"reason": "Cancelled by client"}}, "unknown-id"),
+        ("cancel-null-params", messages[-1], {**messages[-1], "params": None}, "fixture-params"),
+        ("call-null-arguments", messages[2], {**messages[2], "params": {**messages[2]["params"], "arguments": None}}, "fixture-arguments"),
+        ("call-array-arguments", messages[2], {**messages[2], "params": {**messages[2]["params"], "arguments": []}}, "fixture-arguments"),
+    ]
+    for name, parent, malformed, reason in peer_cases:
+        expected = Peer().accept(compact(parent))
+        child = subprocess.run([sys.executable, str(Path(__file__).resolve()), "--peer"], input=compact(parent) + b'\n', capture_output=True, timeout=5)
+        positive("peer-parent-" + name, lambda child=child, expected=expected: require(child.returncode == 0 and child.stdout == (expected + b'\n' if expected is not None else b'') and child.stderr == b'', "control"))
+        negative("peer-" + name, reason, lambda malformed=malformed: Peer().accept(compact(malformed)))
+        child = subprocess.run([sys.executable, str(Path(__file__).resolve()), "--peer"], input=compact(malformed) + b'\n', capture_output=True, timeout=5)
+        positive("stdio-peer-" + name, lambda child=child, reason=reason: require(child.returncode == 2 and child.stdout == b'' and child.stderr == reason.encode() + b'\n', "control"))
     child = subprocess.run([sys.executable, str(Path(__file__).resolve()), "--peer"], input=b''.join(compact(m) + b'\n' for m in messages), capture_output=True, timeout=5)
     positive("stdio-peer-positive-and-eof", lambda: require(child.returncode == 0 and child.stdout.splitlines() == memory and child.stderr == b'', "control"))
     for name, raw, reason in [("stdio-peer-partial", compact(messages[0]), "partial-eof"), ("stdio-peer-empty", b'\n', "empty-line")]:
