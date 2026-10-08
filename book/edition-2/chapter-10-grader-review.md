@@ -335,3 +335,67 @@ the intended assertion. That setup failure is retained in the same receipt and
 is not credited. The corrected control freezes and validates its parent first,
 then restores canonical serialization only while producing the corruption file;
 it exposes the exact unwanted `10` to `1e1` change in both untouched coordinates.
+
+### Coherent local runtime milestone, before source freeze
+
+The first combined external public module stopped at vet because this reviewer's
+paused-response fixture compared a value Event to nil. That was a checker
+compile defect; no runtime group ran. The corrected barrier matches
+response_ended with an event sequence beyond the captured pre-submit boundary.
+The original failed receipt and the [adapter repair
+record](checkpoint-evidence/ch10-public-adapter-repair.json) remain separate.
+
+The student then ran the actual combined module: module resolution, formatting
+and vet passed, and 15 top-level race-tested groups passed. These include the
+previous public groups, five new limit/fault groups and the independent Skills
+authority group. Limit controls exercise checkpoint, complete-log rebuild and
+snapshot-only import across unknown/disabled calls, invalid/second setters and
+unavailable supervision; malformed response and pause retain the setting until
+an actual attempt. Eleven repaired-hash snapshot mutations test set/consume
+ordering, copied overrides, dispatch/result coordinates and accepted-send
+witnesses after the original calls leave the 100-event window. These begin
+with a genuine accepted export. Permission faults test failure before temporary
+file creation, prior checkpoint preservation, deliberate retry, final-save error
+retention across repeated close, lock release and retained append-log tail.
+They do not stand in for write/sync/close/replace fault injection.
+
+The final Skills replay group reached a real read_file, then timed out waiting
+for continuation. The preserved 90-second stack establishes a runtime lock cycle:
+Agent append holds Agent.mu and waits for Jobs' pending-limit mutex, while report
+preparation holds that Jobs mutex and reaches Agent.Workspace. The coordinator
+identified the cycle; this reviewer independently confirmed the stack and owner
+paths. The valid fixture schedule is retained; raising its timeout or removing
+the read would conceal the defect. Working source began a separate-lock repair
+afterward, but this milestone does not claim its success. Later provider/replay
+comparisons in that group were not reached. The Skills fixture author retains
+its own source/exposure record at `833c735`.
+
+The separate actual client runner passes all nine groups. The actual Chrome
+runner passes all six groups: session/standalone affordance, applied checkpoint
+anchor and correlated refusal, historical status versus ownership, replacement
+of a dead provisional view with silent retained history, full-uint64 session/job
+projection and exact large acknowledged anchors. Controlled socket/native inputs
+exercise the real browser components; they are not complete exhausted histories,
+GUI-server persistence, audible speech or paid-model evidence. Both runners'
+checker hashes match the reviewed code. Their binaries/assets and each public
+source map are bound in the [initial receipt
+review](checkpoint-evidence/ch10-client-public-initial-review.json). No duplicate
+runtime run was needed for this review. The root's 38 physical-read cases and
+student's initial CLI 93/93 are separate scopes; neither is a full chapter gate.
+
+Public invocation remains `accept_ch10_public.py SOURCE --receipt PATH` and now
+contains 16 top-level groups. The new browser invocation is:
+
+```sh
+node scripts/edition2/accept_ch10_browser.cjs SOURCE > RECEIPT.json
+```
+
+The [limits/DOM preparation receipt](checkpoint-evidence/ch10-limits-dom-preparation.json)
+retains the earlier uncompiled/unrun stage, rather than relabeling it after these
+results. Remaining deterministic work includes off-actor save barriers, canceled
+waiters and close joins; independent job tail during capture; deeper write/append
+faults and behavior deletion controls; storage/collection/allocation and identity
+exhaustion; and final structural/retained coverage. Q5's published exact durable
+activation/job maxima (`3a9e5b7`) govern forthcoming high-watermark fixtures;
+request alone retains the burned-admission exception. Actual live demonstrations,
+initial source freeze, historical comparison and final proofread remain required.

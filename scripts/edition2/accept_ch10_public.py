@@ -28,8 +28,10 @@ def identities(source):
 
 def evaluate(source, pattern):
     before = identities(source)
-    fixtures = [HERE / name for name in ('ch10-session-public_test.go', 'ch10-session-roundtrip_test.go')]
-    checker_paths = [Path(__file__), *fixtures, HERE / 'ch10-semantic-cases.py', HERE / 'accept_ch10.py', HERE / 'accept_ch09.py']
+    fixtures = [HERE / name for name in ('ch10-session-public_test.go', 'ch10-session-roundtrip_test.go',
+                                       'ch10-session-limits_test.go', 'ch10-session-skills_test.go')]
+    checker_paths = [Path(__file__), *fixtures, HERE / 'ch10-semantic-cases.py', HERE / 'ch10-limit-cases.py',
+                     HERE / 'accept_ch10.py', HERE / 'accept_ch09.py']
     checker_before = {p.name: digest(p) for p in checker_paths}
     rows = []
     with tempfile.TemporaryDirectory(prefix='ch10-public-') as directory:
@@ -43,7 +45,8 @@ def evaluate(source, pattern):
             ['go', 'mod', 'tidy'], ['gofmt', '-l'] + [p.name for p in fixtures], ['go', 'vet', './...'],
             ['go', 'test', '-race', '-count=1', '-timeout=90s', '-run', pattern, '-v', './...'],
         ]:
-            env = dict(os.environ, CH10_SEMANTIC_CASES=str(HERE / 'ch10-semantic-cases.py'))
+            env = dict(os.environ, CH10_SEMANTIC_CASES=str(HERE / 'ch10-semantic-cases.py'),
+                       CH10_LIMIT_CASES=str(HERE / 'ch10-limit-cases.py'))
             result = subprocess.run(command, cwd=work, env=env, text=True, capture_output=True, timeout=180)
             passed = result.returncode == 0 and (command[0] != 'gofmt' or not result.stdout)
             rows.append(dict(command=command, exit=result.returncode, stdout=result.stdout,
