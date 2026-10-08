@@ -10,6 +10,8 @@ that numbering. This is an outline for architectural review, not a complete
 student contract. Chapter 11's accepted contract direction is at 0c82feb, with
 final wording at 39bc526; predecessor implementation/checkpoint and a new checker
 remain prerequisites. No Chapter 12 implementation or actual spin is claimed.
+The full contract draft is now [Chapter 12](chapter-12.md); the coordinator's
+[validation record](chapter-12-validation.md) tracks its acceptance gates.
 
 ## Story and teaching order
 
@@ -153,12 +155,15 @@ external embedding example, not only package names.
 
 ## Tunnel and endpoint contract candidates
 
-Use a dedicated GUI envelope identifying logical channel and generation, with
-one complete MCP JSON message as the payload. It coexists with the existing
-command/watch protocol. Both directions validate outer shape, channel ownership,
-size and generation before dispatch. Chapter 11 parses the inner MCP envelope.
-Publish exact outer names/bytes and bounds in the full draft; no newline framing
-or raw JSON-RPC sniffing decides which handler receives a browser frame.
+Use a version-1 mcp_frame envelope identifying logical channel and generation,
+with canonical base64 of one complete MCP message as the payload. The coordinator
+accepted an explicit tunnel-enabled physical frame exception of 12 MiB, preserving
+the 65,536-byte logical bound for every inherited command. Decoded MCP remains
+at most 8 MiB. No chunk/reassembly protocol is added. Both directions validate
+outer shape, channel ownership, size and generation before dispatch; Chapter 11
+parses the inner MCP envelope. The full draft publishes exact attach/detach and
+frame shapes, with 24 MiB per-channel and 48 MiB per-socket encoded MCP queue
+budgets alongside the existing operation permits.
 
 Route to one selected browser endpoint. A second tab must not receive a call
 intended for the first, and multiple replies must not produce repeated effects.

@@ -194,6 +194,65 @@ validates its own observational defaults. Other embedders choose responsible
 operations. This replaces the initial outline's ambiguous suggestion that core
 could validate a fixed GUI operation without importing GUI knowledge.
 
+## Full-draft reconciliation
+
+The full draft follows the coordinator's accepted capture and identity choices.
+The author found one inherited size conflict before implementing anything:
+Chapter 7's ordinary incoming frame bound is 65,536 bytes, Chapter 11's complete
+message bound is 8 MiB, and a complete GUI snapshot may itself occupy 64 KiB.
+The coordinator chose a documented tunnel-only 12 MiB physical frame allowance
+with canonical base64, preserving every ordinary command's old logical limit.
+This deliberately exposes bounded larger physical reads; it does not claim a
+streaming discriminator or add a new fragment-assembly protocol. Chapter 12
+also bounds actual queued encoded bytes, independently of RPC permit counts.
+
+The author checked [RFC 4648 §§3–4](https://www.rfc-editor.org/rfc/rfc4648.html)
+on October 8 for canonical alphabet, padding and nonalphabet handling, and
+reopened the primary DOM/WebSocket references during the final draft pass.
+Literal provider examples use a generic observational text endpoint and are
+explicitly distinguished from the full GUI snapshot shape. Local document
+checks parse the examples and compare the three provider observation strings;
+they are editorial fixture checks, not an Ensemble implementation test.
+
+Standalone observation records retain honest limits: they can be inspected with
+strict sample shape/size validation but lack a session creation identity proving
+policy correspondence. Live append matches Actor's current candidate; v3 replay
+validates its stored policy and active grants without live servers. Existing v1/v2
+sessions retain their request shape. The semantic snapshot keeps represented
+historical samples without a pending executable queue or fabricated old prefixes.
+
+The draft's public status, Page action and bounded artifact-read details are
+author proposals implementing the accepted scope, subject to complete contract
+review. No checker command, student release, screenshot, paid result or completed
+spin is claimed. Bill's required actual WebSocket GUI capability remains visible
+in the opening, ownership design, exercise and acceptance matrix.
+
+## Full-draft editorial checks
+
+The completed contract received a full reading, cut/paragraph-ending pass and
+scoped hard-rule lint. Its person-gap warning is the linter's Bill/first-person
+name heuristic; the manual pass retains the reader's wrong-panel problem,
+human draft, waiting browser and honest request receipt through the mechanism.
+Outline/evidence density warnings were read as preparation-record warnings.
+No invented personal anecdote was added to satisfy that heuristic.
+
+Seven JSON blocks parse. The three literal provider examples contain exactly
+the same canonical observation text computed from the neutral fixture. A local
+document calculation constructs an 8 MiB complete-message base64 envelope with
+the longest allowed channel and uint64 generation: its compact version-1 frame
+is 11,184,968 bytes, below 12 MiB. The default screen/speech samples, with maximum
+64 KiB/32 KiB structured values and maximum generation, have an upper bound of
+98,721 canonical array bytes, including 417 bytes of metadata/wrappers, below
+131,072. A 4,096-scalar targeted read needs at most 24,576 JSON text bytes before
+bounded metadata, within its 64 KiB cap. These are format arithmetic checks,
+not measured latency, memory usage or runtime correctness.
+
+The coordinator accepted the actual-spin nuance that inherited speaking pause
+can prevent a same-Agent call from beginning while its speech is active. The
+plan now requires explicit observer/public-consumer scope where concurrent
+active-queue evidence needs it. It grants no default cross-Agent visibility,
+changes no target pause, and keeps telemetry distinct from heard audio.
+
 ## Preparation checkpoint
 
 The final author pass reread the complete voice/procedure and both preparation
