@@ -1,6 +1,6 @@
 # Chapter 7 validation
 
-Chapter 7 is accepted for checkpoint `edition-2-ch07-r1`. Fresh new-only student
+Chapter 7 is accepted for corrected checkpoint `edition-2-ch07-r2`. Fresh new-only student
 `/root/coder_ch07` completed the exercise. Its accepted predecessor is
 `edition-2-ch06-r1` at `1c6b1f065d11bd3a532c94bc53305394e17e7cc2`. The student's
 ownership plan was accepted before affected implementation. Bill's editorial
@@ -15,7 +15,7 @@ approval is separate.
 | Historical comparison | Independent reviewer, student | Four grouped repairs accepted at `691c2a4` / `17aa661`; no remaining material code finding | Preserve comparison and original attempts in checkpoint |
 | Revisions and final evidence | Student, coordinator | Revised evidence `341f15d`; six exact request replays, six PID-bound WAVs, 145 unchanged session files and ten independent controls pass; see `chapter-07-live-review.md` | Bind accepted original and revised evidence with their separate scopes |
 | Manuscript and feedback | Temporary author `/root/coder_ch04`, student, independent proofreader | Final actual-use reconciliation `00cf641`, neutral opener `d7e097e`, feedback correction `2112af1`, student confirmation `4897642`; independent final proofread `121b65d` accepted | Preserve resolved teaching exchange and evidence limits |
-| Export and checkpoint | Coordinator | Exact 2,229-file export from `48976424ab75924f98f4ad01f75f8e046ec26872`; manifest `solutions/edition-2/manifests/ch07-r1.json` binds all gates | Immutable `edition-2-ch07-r1`; proceed to fresh Chapter 8 student |
+| Export and checkpoint | Coordinator | Corrected exact 2,229-file export from `9ec94ef`; manifest `solutions/edition-2/manifests/ch07-r2.json`; actual delivered-tree checks pass | Immutable `edition-2-ch07-r2`; r1 remains historical |
 
 The student receives a fresh context, new-edition teaching and the accepted
 Chapter 6 source in `solutions/edition-2/main/`. It must read the entire
@@ -43,6 +43,30 @@ runtime freeze. Later student feedback and live evidence retain their own
 commits. No runtime or embedded asset changed after final deterministic/live
 validation. Export verification compares every file byte and mode to its
 committed source, so no additional runtime test is inferred from copying it.
+
+### Packaging correction after the first export
+
+The coordinator and fresh Chapter 8 student independently found that the full
+r1 tree's `go list ./...` / `go vet ./...` includes a standalone evidence helper
+that imports the optional GUI module. The runtime gate had excluded evidence
+from its test copy. Its passing results remain valid for that copy, but did
+not establish ordinary testability of the complete delivered tree. The first
+checkpoint at `ed5667b` was premature on that packaging property.
+
+Correction `9ec94ef` adds a conventional `//go:build ignore` constraint and
+explanatory comment to that one helper. Explicit-file compilation from the GUI
+module still succeeds; no executable body, runtime, live support binding or raw
+receipt changes. All eight actual main modules pass package discovery, and the
+actual core passes vet and full tests. The independent reviewer checked the
+exact four added lines and all 13 recorded outcomes, including the preserved
+r1 failure, before r2 export. See `checkpoint-evidence/ch07-packaging-r2-checks.json`.
+The procedure now requires full delivered-tree package discovery before tagging.
+
+The original `edition-2-ch07-r1` tag is unchanged. Revision r2 replaces the
+tracked export through a new exact-source export, with its own manifest and
+immutable tag. Chapter 8 starts from this corrected baseline. Original paid
+receipts still describe the same runtime; this packaging correction requires
+no repeated model calls.
 
 Accepted live scope comprises the original nine sessions/44 requests and the
 three revised two-Agent sessions/six requests. Initial and revised receipt

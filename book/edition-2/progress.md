@@ -13,11 +13,13 @@ revised live evidence `8c73f9b`, final independent acceptance `37a37f7` and exac
 1,550-file export from `c3fa758`. All code, live, teaching and prose gates pass;
 see [chapter-06-validation.md](chapter-06-validation.md). Fresh new-only
 student `/root/coder_ch07` completed Chapter 7, accepted at
-`edition-2-ch07-r1`. Reviewed runtime `9ba7855` passes the full 33-group gate
+`edition-2-ch07-r2`. Reviewed runtime `9ba7855` passes the full 33-group gate
 and 12-group comparative suite; independent live audits accept the original
 44 requests and six revised requests with their separate source identities.
 Final proofread `121b65d` closes the manuscript/feedback gates. The exact
-2,229-file export comes from `4897642`.
+2,229-file export comes from `9ec94ef`, correcting a standalone evidence helper
+that broke complete-tree package discovery. Original r1 remains unchanged;
+actual full-tree checks and the independent packaging review pass.
 See [chapter-07-validation.md](chapter-07-validation.md).
 The Chapter 8 settings contract is reviewed at `7200f17`; its initial partial
 wire/persistence checker is published at `b3f3137`, with no Chapter 8 student

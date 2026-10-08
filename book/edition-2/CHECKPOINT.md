@@ -12,12 +12,14 @@ revised live evidence `8c73f9b`, independent acceptance `37a37f7` and exact
 1,550-file export from `c3fa758` are bound in its manifest. All required gates
 pass; original attempts and limitations remain recorded. See
 [chapter-06-validation.md](chapter-06-validation.md). Fresh new-only
-student `/root/coder_ch07` completed Chapter 7, accepted at `edition-2-ch07-r1`.
+student `/root/coder_ch07` completed Chapter 7, accepted at `edition-2-ch07-r2`.
 Reviewed runtime `9ba7855` passes 33 full-gate and 12 comparative groups.
 Initial `8cc87f2` and revised `341f15d` evidence retain 44 and six exactly
 reconstructed requests, respectively. Independent live review `ffbad61` and
-final proofread `121b65d` close remaining gates. Exact export source `4897642`
-has 2,229 files across eight modules. Fresh `/root/coder_ch08` is active with
+final proofread `121b65d` close remaining gates. Corrected export source `9ec94ef`
+has 2,229 files across eight modules; it isolates a standalone evidence helper
+missed by the runtime-only gate. Actual full-tree checks pass and r1 is preserved.
+Fresh `/root/coder_ch08` is active with
 `fork_turns="none"`, new Chapters 1–8 and that accepted source. Its initial
 ownership plan awaits coordinator review; independent grader work proceeds.
 Source identities and retained limitations are tracked in
