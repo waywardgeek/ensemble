@@ -184,3 +184,28 @@ Source hashes for this review:
 
 Disposition at this boundary: complete initial prose review, awaiting the
 author's grouped P1–P4 correction. No final chapter acceptance is claimed.
+
+## Grouped prose closure
+
+Independently reviewed the complete author correction at
+`29a938021a4766fe9ff89d1fab48e5364914d1e4` against the fully read `01049b7`
+manuscript. P1–P4 are resolved: the dependency belongs to review, the second
+CLI command supplies its complete skill environment, public consumer modes
+use separate fresh workspaces, and audio duration is explicitly approximate.
+The additional 13-byte wording now unambiguously includes LF. The new embedding
+lesson accurately requires preserving per-Agent partial result/usage/outcome
+and finishing independent attempts before aggregate failure, while expressly
+leaving its comparative implementation correction pending. It makes no revised
+runtime or paid-success claim.
+
+The retained prose checker independently passes all hard rules at 7,346 words;
+the same reviewed soft warnings remain. All eleven JSON fixtures remain
+byte-identical to `01049b7` and parse. Final reviewed chapter SHA-256 is
+`2febacc4bed833601a2a0c005e235be5d5f63d61297d5f1cc50a31903f198359`.
+No runtime/provider work or linter rebuild was needed.
+
+Proofreading is accepted for this frozen initial-run account. Comparative
+implementation revisions, student confirmation of the final author response,
+and chapter checkpoint acceptance remain separate gates. If those revisions
+change teaching or described behavior, review the affected prose under its
+new identity rather than relabeling this closure.
