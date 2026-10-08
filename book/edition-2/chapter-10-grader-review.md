@@ -399,3 +399,55 @@ exhaustion; and final structural/retained coverage. Q5's published exact durable
 activation/job maxima (`3a9e5b7`) govern forthcoming high-watermark fixtures;
 request alone retains the burned-admission exception. Actual live demonstrations,
 initial source freeze, historical comparison and final proofread remain required.
+
+### Revised public positives and frozen checkpoint-fault review
+
+The repaired public Skills replay now passes all three local provider variants;
+the next combined public run passes all 16 top-level groups under the race
+detector. Both original receipts are preserved and reviewed in the
+[fault review ledger](checkpoint-evidence/ch10-fault-review.json). Their own
+source maps describe the mutable-source runs; they are not retroactively
+relabeled as runs of a later immutable commit. The student then froze revised
+source at `122b04a57e7c6ea158901d00bfc0f1a3a8c75329`.
+
+The new narrow source-bound command is:
+
+```sh
+python3 scripts/edition2/accept_ch10_faults.py SOURCE_DIRECTORY \
+  --source-commit SOURCE_COMMIT --receipt RECEIPT.json
+```
+
+It verifies every selected runtime source/asset/document against Git before
+running and checks the same identities afterward. A Go overlay adds review-only
+adapters around the real Store I/O and log descriptor; it changes no student
+file and requires no new public API. The adapters record actual hit counts.
+The first frozen run verifies 157 file identities, passes formatting and vet,
+and passes three of its four race-tested groups. Successful checkpoint writing
+and six targeted create/write/short-write/sync/close/replace failures establish
+old-checkpoint preservation, truthful anchors, temporary cleanup and deliberate
+retry. A blocked real replacement proves caller cancellation does not cancel
+the admitted write, the captured prefix remains owned, and the same Actor and
+another Agent remain responsive. A close observed through the public stopping
+state keeps the OS lock until its writer joins, then makes a final save and
+releases ownership. These are actual runtime outcomes, not generated fixtures.
+
+The fourth group found a required repair. A one-byte write through the real log
+descriptor causes public Agent.Append to fail without changing accepted state
+or history. Close nevertheless returns nil and invokes checkpoint creation and
+atomic replacement once. The first
+[failed run](checkpoint-evidence/ch10-fault-first.json) and the separate
+[expanded diagnostic](checkpoint-evidence/ch10-append-fault-diagnostic.json)
+bind the unchanged frozen source. The latter continues after the close-error
+assertion to expose the wrong replacement action. Its bytes happen to equal
+the prior checkpoint because no later event was accepted; byte equality alone
+would therefore miss the defect. The physical partial log remains present,
+and a new opener correctly refuses session_corrupt without rewriting it.
+
+The public Actor append branch returns parent.RecordTurn's error without
+transferring the durable writer fault to the Actor's terminal fault state.
+Section 10.5 requires that transfer: stop admission, clean up, return the
+persistence failure and skip the final checkpoint. Ordinary malformed-candidate
+refusal must remain nonterminal. The coordinator received this rationale before
+student repair. No timeout or acceptance assertion was relaxed. This milestone
+does not close append-fault acceptance or the remaining storage/collection,
+allocation, independent-job-tail, deletion and retained architecture gates.

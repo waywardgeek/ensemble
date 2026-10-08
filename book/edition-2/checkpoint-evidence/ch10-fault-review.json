@@ -1,0 +1,97 @@
+{
+  "scope": "Independent review of actual repaired public receipts and first frozen real-I/O fault overlay; not whole-chapter acceptance.",
+  "source_commit": "122b04a57e7c6ea158901d00bfc0f1a3a8c75329",
+  "public_receipts": {
+    "solutions/edition-2/main/evidence/ch10/public-skills-lockfix.json": {
+      "sha256": "17f6eae37547fda6fb8d41378ec3ec761f7c9a215a98b48f668922e176f6a2af",
+      "passed": true,
+      "source_file_count": 148,
+      "test_command": [
+        "go",
+        "test",
+        "-race",
+        "-count=1",
+        "-timeout=90s",
+        "-run",
+        "^TestCh10PublicSkillsReplay$",
+        "-v",
+        "./..."
+      ],
+      "top_level_passes": [
+        "--- PASS: TestCh10PublicSkillsReplay (1.34s)"
+      ]
+    },
+    "solutions/edition-2/main/evidence/ch10/public-lock-index-maxima.json": {
+      "sha256": "aec633303d2d2a75cec4bf198c8205170f39fbd80bbfaf5e1fe4eaaf323bffbf",
+      "passed": true,
+      "source_file_count": 149,
+      "test_command": [
+        "go",
+        "test",
+        "-race",
+        "-count=1",
+        "-timeout=90s",
+        "-run",
+        "^TestCh10Public",
+        "-v",
+        "./..."
+      ],
+      "top_level_passes": [
+        "--- PASS: TestCh10PublicLimitsRestartAndLiteralAttempt (0.81s)",
+        "--- PASS: TestCh10PublicLimitsMalformedAndPaused (0.05s)",
+        "--- PASS: TestCh10PublicCheckpointPermissionFailureAndRecovery (0.02s)",
+        "--- PASS: TestCh10PublicLimitOrderingWithoutWindowWitness (0.95s)",
+        "--- PASS: TestCh10PublicCloseSaveFailureKeepsErrorAndReleasesLock (0.02s)",
+        "--- PASS: TestCh10PublicSelectorsAndConfig (0.01s)",
+        "--- PASS: TestCh10PublicOwnedCaptureAndResume (0.04s)",
+        "--- PASS: TestCh10PublicMountReservations (0.03s)",
+        "--- PASS: TestCh10PublicSnapshotOnlyOrigin (0.05s)",
+        "--- PASS: TestCh10PublicPlainSystemPresence (0.04s)",
+        "--- PASS: TestCh10PublicInspectionUnregisteredAndOwned (0.03s)",
+        "--- PASS: TestCh10PublicNonemptyTailRebuildAndImport (0.26s)",
+        "--- PASS: TestCh10PublicCaptureBusyDuringHTTP (0.02s)",
+        "--- PASS: TestCh10PublicSemanticRefusalsFromGenuineExport (0.24s)",
+        "--- PASS: TestCh10PublicSkillsAuthority (0.29s)",
+        "--- PASS: TestCh10PublicSkillsReplay (0.97s)"
+      ]
+    }
+  },
+  "public_source_limit": "These public runs preceded immutable freeze and bind their own source maps. They are not retroactively relabeled as an immutable run.",
+  "fault_receipts": {
+    "ch10-fault-first.json": {
+      "sha256": "6865ae2b73a693b995e1affaa785f712ffd097a7ea2e82893c5f7bb4cc90b714",
+      "passed": false,
+      "source_unchanged": true,
+      "checker_unchanged": true,
+      "source_file_count": 157
+    },
+    "ch10-append-fault-diagnostic.json": {
+      "sha256": "0867f258879d100ea0487b9931aeab08797c50b3c5ed6f9cbf8fd94a24a44b80",
+      "passed": false,
+      "source_unchanged": true,
+      "checker_unchanged": true,
+      "source_file_count": 157
+    }
+  },
+  "current_checker_files": {
+    "accept_ch10_faults.py": "2dffaa52faa0fb40b79177047908c3fc9734a96e7f31075257ea150ea2a52be7",
+    "ch10-session-faults_test.go": "bcad2302e8f1edf73129a113cedbc363263a818fd682ef9ff8ab73328b9ff79f",
+    "ch10-fault-store-seam.go": "b9fb6c55f936a3e3b81a54bd2496bd0ceeb5a1a9f4017aaca4c754c30e4db0d4",
+    "ch10-fault-log-seam.go": "76d9ed11ff160f72c66b682d14983dad8a5c65ce125411792749f9844a84e31d"
+  },
+  "finding": {
+    "code": "CH10-PUBLIC-APPEND-FAULT-CLOSE",
+    "status": "confirmed, repair pending",
+    "contract": "10.5: durable append failure faults Agent, returns persistence failure and skips final checkpoint.",
+    "observed": "A real one-byte partial writer returns short write to public Agent.Append; accepted state/history remain unchanged. Close returns nil and invokes create/replace once. Reopen rejects session_corrupt without rewriting partial source.",
+    "source_reason": "Actor public append branch invokes parent.RecordTurn without transferring durable Agent fault into Actor terminal fault; final checkpoint tests Actor fault. Ordinary candidate refusal must remain distinct from durable write failure."
+  },
+  "scope_limits": [
+    "No paid calls",
+    "No complete storage/allocation/collection bounds",
+    "No implementation-deletion control yet",
+    "Independent process job event during save is still separate pending coverage",
+    "No historical comparison before initial live freeze"
+  ],
+  "receipt_preparation_note": "First metadata assembly command used the last source-receipt variable instead of the new output object and raised KeyError before writing; corrected without rerunning runtime."
+}
