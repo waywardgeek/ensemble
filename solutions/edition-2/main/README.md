@@ -1,9 +1,11 @@
-# Chapter 3 student implementation
+# Chapter 5 student implementation
 
-A standard-library Go library, human and JSON-lines CLI clients, and separate
+A Go library, human and JSON-lines CLI clients, and separate
 optional GUI client stub. This is the canonical second-edition source in the
 outer repository. Earlier student checkpoints and receipts remain preserved;
-Chapter 3 human terminal evidence is in `evidence/ch03/human-chat/`.
+Chapter 5 evidence is in `evidence/ch05/`. The
+[chapter validation record](../../../book/edition-2/chapter-05-validation.md)
+distinguishes implementation, live review and checkpoint acceptance.
 
 Build the CLI with `go build -o ensemble ./cmd`. Select `LLM_VENDOR`, a discovered
 `LLM_MODEL`, and an API key through the process environment. Use a fresh
@@ -14,13 +16,15 @@ the machine protocol. Explicit `ensemble protocol` takes one JSON `user`,
 `ephemeral`, or `redact` directive per line.
 
 Human commands are `/help`, `/usage`, `/history`, `/ephemeral TEXT`,
-`/redact FROM TO REASON`, and `/quit`. History shows `tool_returned` sequences
+`/redact FROM TO REASON`, `/hint TEXT`, `/interrupt`, and `/quit`. History shows `tool_returned` sequences
 and call IDs so a person can select a real redaction target. EOF also exits with
 four usage counts. Prefix a literal leading slash with another slash. Human
 input is UTF-8, at most 1 MiB per line excluding LF or CRLF.
 
-The CLI enables all six synchronous tools: read, list, search, write, edit, and
-run_command. Use a scratch working directory: this workspace is not a sandbox.
+The CLI enables read, list, search, write, edit, `run_command`, `wait_for_job`,
+`send_input`, `kill_job`, and `tool_limits`. Managed commands use a PTY and can
+continue between reports. Use a scratch working directory: this workspace is
+not a sandbox.
 The same public submission operation runs up to sixteen model requests per
 turn, records tool results, and returns the final answer. Ordinary tool errors
 can be corrected by the model; provider or persistence failures end the session.
@@ -45,11 +49,21 @@ Agents and model switching; its second model uses `DEMO_SECOND_MODEL`.
 The optional `gui` module demonstrates the same public client boundary using a
 fake-backed integration test. It has no browser or WebSocket transport yet.
 
-Checks run separately in all four Go modules: `go vet ./...` and
-`go test ./... -count=1`. From the course root, the inherited grader command is
-`make grade-dir CH=3 DIR=solutions/edition-2/main`. See
-`evidence/ch03/human-chat/FEATURES.txt` for the human integration's actual results
-and review status. Earlier machine-interface receipts remain separately labeled.
+Checks run separately in all six Go modules: the root, `gui`, and the four
+directories under `examples`. Run `go vet ./...` and `go test ./... -count=1`
+in each, plus `go test -race ./... -count=1` in the root module. From the course
+repository root, run:
+
+```sh
+PATH="$HOME/go/bin:$PATH" python3 scripts/edition2/accept_ch05.py solutions/edition-2/main
+python3 scripts/edition2/audit_ch05_mutations.py solutions/edition-2/main
+```
+
+The historical Chapter 6 grader retains its original fixtures and is recorded
+separately. Current live evidence combines the original Anthropic/OpenAI paths
+with revised input checks and Gemini 3.8 Flash demonstrations; see
+`evidence/ch05/gemini38-addendum-plan.json` for each run's source identity.
+Earlier evidence stays attributed to its original scope.
 
 ## Chapter 5: responsive turns
 

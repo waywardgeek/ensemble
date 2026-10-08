@@ -1,4 +1,13 @@
-# Chapter 2 reviewed student checkpoint — 2026-10-07
+# Source checkpoint records
+
+The current implementation is Chapter 5. Its runtime was reviewed at `959c663`
+and live evidence frozen at `469730f`. Current acceptance belongs in the
+[Chapter 5 validation record](../../../book/edition-2/chapter-05-validation.md).
+The coordinator's subsequent changes to this file and README are documentation
+only. The dated Chapter 2 record below is retained as history; its next-action
+instructions describe that earlier checkpoint.
+
+## Historical Chapter 2 reviewed student checkpoint — 2026-10-07
 
 Code checkpoint validated: reviewer accepted the comparison revisions; all module
 checks, inherited grader and independent offline acceptance/audit pass. Manuscript
