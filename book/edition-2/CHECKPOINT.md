@@ -18,8 +18,9 @@ this phase. Await the complete codec/public API milestone for independent checks
 Do not start a competing worker or resume paid Chapter 9 demonstrations.
 Chapter 14 correction `b951524` has independent closure `674b9a2` and coordinator
 contract acceptance. It has no checker, implementation or actual spin yet.
-Chapter 15 outline/research `d66e9b1` awaits consequential-choice review before
-a full draft; the independent proofreader is preparing bounded advice.
+Chapter 15 outline/research `d66e9b1`, advisory `0be42f4` and coordinator decisions
+`f648059` release the author's full draft. No checker, runtime or paid work is
+released. See chapter-15-validation.md and chapter-15-decisions.md.
 
 Chapter 6 maintenance checkpoint: `edition-2-ch06-r2` points to isolated
 `3acdd8e`, whose main and exact 1,565-file export match source `5e48b38`.

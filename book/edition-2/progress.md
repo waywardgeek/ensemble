@@ -265,7 +265,7 @@ old implementation into the new solution.
 
 - Author: `/root/coder_ch04` completed Chapter 9 reconciliation, Chapter 10
   initial feedback and the accepted Chapter 14 contract. Chapter 15 outline
-  `d66e9b1` awaits consequential-choice review before its full draft. Its earlier
+  `d66e9b1`, advisory `0be42f4` and decisions `f648059` release its full draft. Its earlier
   Chapter 4 student role is disclosed; it did not implement Chapters 9 or 10.
 - Proofreader: `/root/coder_ch08` completed Chapter 9 final prose, Chapter 14
   contract closure and Chapter 10 Q1–Q3 review; it now advises on Chapter 15. Its prior
