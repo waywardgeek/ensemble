@@ -87,7 +87,7 @@ with tempfile.TemporaryDirectory() as temp:
     try:
         url=gui.stdout.readline().strip();assert url.startswith('http://127.0.0.1:')
         command=[paths['node'],str(HERE/'browser-live.mjs'),str(browser_run),url]
-        actions=[{'action':'settings'},{'action':'drag-divider','field':'sidebar_width','delta':20},{'action':'inspect'},{'action':'quit'}]
+        actions=[{'action':'settings'},{'action':'open'},{'action':'settings','page':1},{'action':'drag-divider','field':'sidebar_width','delta':20},{'action':'wait','page':1,'text':'widths 280/380'},{'action':'inspect'},{'action':'quit'}]
         valid=subprocess.run(command,input=''.join(json.dumps(a)+'\n' for a in actions),capture_output=True,text=True,timeout=30)
         assert valid.returncode==0,(valid.stdout,valid.stderr)
         rows=[json.loads(line) for line in (browser_run/'browser-original.jsonl').read_text().splitlines()]

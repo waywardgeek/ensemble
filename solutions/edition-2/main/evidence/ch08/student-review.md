@@ -288,3 +288,25 @@ Exact request reconstruction matches all21 retained requests across eight
 launches, including the zero-request OpenAI browser session closed during the
 speech hold. Counts before correction: Anthropic6 prompts/9HTTP; OpenAI4/6;
 Gemini4/6. Remaining live work stays within original10/24 caps per provider.
+
+Repair validation caught a rapid-input fixture issue: after B received font
+revision2, the fixture sent A's divider update while A still held revision1.
+Captured raw frames prove an expected revision_conflict; this was not a styling
+regression. The fixture now waits for A's control acknowledgment before starting
+its next independent mutation, preserving all assertions and original failures.
+The GUI build command also initially named nonexistent cmd/gui, corrected to
+cmd/ensemble-gui after vet/tests had passed. A local native replay launcher tried
+to reuse an existing log through the fresh-session CLI and was correctly refused
+with cannot create fresh event log. That setup failure made no model call.
+
+The reviewer withdrew the pre-code manuscript-publication hold as an unnecessary
+workflow interpretation: the existing contract and approved plan were sufficient.
+The Web Locks repair is implemented, keeping BrowserApplication/SpeechService
+ownership and Page queues. Independent eight browser groups pass; the new
+independent shared-context Web Locks control passes waiter cancellation, lease
+release/next grant, stale callback fencing and missing-coordination pause cleanup.
+Actual native component control native-context-1791465187711.json shows A still
+speaking after8seconds, B waiting without starting, and B cancellation causing
+no A interruption. No synthesis was replaced in that control. The final full
+student browser fixture passes all8 groups after explicit initiating-client
+acknowledgment waits; both intermediate fixture failures remain retained.

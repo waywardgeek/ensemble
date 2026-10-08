@@ -7,16 +7,16 @@ export class SpeechQueue {
   }
   busy() { return this.queue.length > 0 || this.current !== null; }
   service() { return this.owner.application().speech(); }
-  activate() { this.playbackReady = this.service().available(); this.owner.diagnostic(this.playbackReady ? "Playback enabled on this page" : "Speech synthesis unavailable"); }
+  activate() { this.playbackReady = this.service().available(); this.owner.diagnostic(this.playbackReady ? "Playback enabled on this page" : "Speech synthesis or native coordination unavailable"); }
   preferences(snapshot) {
     this.revision = snapshot.revision; this.rate = snapshot.preferences.speech_rate; this.enabled = snapshot.preferences.autoplay;
     if (!this.enabled) for (const cursor of this.cursors.values()) cursor.sent = cursor.text.length;
     if (this.enabled && !this.playbackReady) this.owner.diagnostic("Autoplay is shared; enable playback on this page to hear future answers");
   }
-  enable(value) { if (value) this.activate(); this.enabled = value; if (value && !this.service().available()) { this.owner.diagnostic('Speech synthesis unavailable'); this.enabled = false; } }
+  enable(value) { if (value) this.activate(); this.enabled = value; if (value && !this.service().available()) { this.owner.diagnostic('Speech synthesis or native coordination unavailable'); this.enabled = false; } }
   enqueue(key, text, operation = null) {
     if (this.closed || !text.trim()) return;
-    if (!this.service().available()) { this.owner.diagnostic('Speech synthesis unavailable'); return; }
+    if (!this.service().available()) { this.owner.diagnostic('Speech synthesis or native coordination unavailable'); return; }
     this.queue.push({key, text, operation, revision: this.revision, rate: this.rate}); this.owner.reconcile().catch(e => this.owner.diagnostic(e.message)); this.pump();
   }
   async pump() {

@@ -3,8 +3,8 @@ import {SpeechService} from './speech-service.js';
 
 // One explicit owner per document, including embeddings with several Pages.
 export class BrowserApplication {
-  constructor(synthesis = globalThis.speechSynthesis, Utterance = globalThis.SpeechSynthesisUtterance) {
-    this.synthesis = synthesis; this.Utterance = Utterance;
+  constructor(synthesis = globalThis.speechSynthesis, Utterance = globalThis.SpeechSynthesisUtterance, locks = globalThis.navigator?.locks) {
+    this.synthesis = synthesis; this.Utterance = Utterance; this.locks = locks;
     this.pages = new Set(); this.service = new SpeechService(this); this.closed = false;
   }
   createPage(root, url) {

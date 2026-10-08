@@ -13,10 +13,11 @@ const binding=JSON.parse(readFileSync(join(here,'initial-binding.json')));
 const launch=JSON.parse(readFileSync(join(run,'launch.json')));
 const browserServer=await chromium.launchServer({executablePath:binding.executables.chrome.path,headless:false});
 const browser=await chromium.connect(browserServer.wsEndpoint());
+const context=await browser.newContext();
 const browserPID=browserServer.process().pid,pages=[];let sequence=0;
 const record=(kind,value)=>appendFileSync(join(run,'browser-original.jsonl'),JSON.stringify({at:new Date().toISOString(),kind,...value})+'\n');
-record('launch',{source_revision:binding.source_revision,browser:browser.version(),browser_pid:browserPID,executables:Object.fromEntries(Object.entries(binding.executables).map(([k,v])=>[k,v.sha256])),url});
-async function open(){const page=await browser.newPage();const index=pages.length;pages.push(page);
+record('launch',{source_revision:binding.source_revision,browser:browser.version(),browser_pid:browserPID,context_mode:'one shared browser context',executables:Object.fromEntries(Object.entries(binding.executables).map(([k,v])=>[k,v.sha256])),url});
+async function open(){const page=await context.newPage();const index=pages.length;pages.push(page);
  page.on('pageerror',e=>record('pageerror',{page:index,error:e.message}));
  page.on('websocket',socket=>{socket.on('framesent',e=>record('browser_sent',{page:index,payload:e.payload.toString()}));socket.on('framereceived',e=>record('browser_received',{page:index,payload:e.payload.toString()}));});
  await page.exposeFunction('recordSpeech',detail=>record('speech',{page:index,detail}));
@@ -79,4 +80,4 @@ try{for await(const line of lines){if(!line.trim())continue;const action=JSON.pa
   else console.log(JSON.stringify({sequence,ok:true,closed:true}));
  }catch(error){record('action_failed',{sequence,error:error.message});console.log(JSON.stringify({sequence,ok:false,error:error.message}));}
 }}
-finally{await browser.close();await browserServer.close();record('closed',{});}
+finally{lines.close();await context.close();await browser.close();await browserServer.close();record('closed',{});}
