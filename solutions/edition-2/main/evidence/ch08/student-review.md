@@ -376,3 +376,68 @@ The browser correctly refused that out-of-range token. All three typed projectio
 conversions now retain json.Number tokens while preserving opaque sanitization
 and typed-child traversal. This is an implementation correction within the same
 approved representation plan, not a new persisted range restriction.
+
+## Final repaired runs and evidence reconciliation
+
+At a06d4f3 the core and GUI vet/tests, both public consumer module vet/tests,
+lossless local controls and actual-browser eight-group compatibility pass.
+Independent actual-Chrome numeric scenarios pass seed7, safe-to-unsafe transition,
+unsafe9007199254740993, max-1 to max and max exhaustion, including consecutive edits,
+live applied display, reconnect and exact conflict-current retry. The independent
+immutable affected subset is pending reviewer completion; the earlier full50-group
+cd9de3e result retains its original source identity.
+
+The expanded20 local evidence controls passed before the final live launch,
+including native browser adapter startup, complete source/binary/support/dependency
+identity refusals, actual nonempty SSE provisional text then interruption, and
+public replay with concurrent settings controls. Full binding covers106 runtime
+files,10 executables and8 support files. An initial retained-log lookup correctly
+refused before creating a run because Git ignored .log files. The unchanged originals
+were still present and had already passed request reconstruction; explicitly
+committing them at0aad851 corrected the evidence omission. No original was replaced.
+
+The one approved Anthropic correction used a fresh embedded consumer, ordinary
+text-only prompt in its second Page, observed provisional text "The", then accepted
+interruption and an incomplete answer with Outcome: interrupted. The idle first
+Page closed/remounted without affecting the second. Exactly1 real HTTP was sent
+and reconstructed. Final totals are Anthropic11prompts/18HTTP, OpenAI9/14,
+Gemini10/15; discovery1 each remains separate. No paid repeats for numeric repair.
+The two original Anthropic tool refusals and original cap10 exhaustion remain.
+
+OpenAI and Gemini supplemental speech checks replay their retained real-provider
+neutral events through a public consumer whose provider endpoint is disabled.
+They are not fresh model generations. Both actual Chrome runs show applied
+autoplay-off revision4/rate1.6 while two Pages still hold speech from revision2/
+rate1.2. Canceling PageA leaves PageB speech plus typing; canceling PageB leaves
+only its typing; clearing its draft clears that last cause. Native start events
+confirm both original-rate utterances; subsequent manual playback uses1.6.
+Actual native PCM captures have zero RMS during the1.8-second silent prefix and
+speech RMS approximately0.047, with separate timestamps/hashes in audio-analysis-
+a06d4f3.json. Original paid-run queues had finished before off-toggle; only these
+explicitly labelled supplements establish that overlap for those providers.
+
+The replay launcher initially demanded exact top-level event times, but public
+Agent.Append intentionally assigns a new admission time. The two final assertions
+failed and remain recorded. A separate identity-first comparison proves exact
+count/order/seq and every other field, while recording all changed top-level times.
+Both original and re-admitted logs remain. This is neutral-event replay with
+rewritten admission times, not byte-identical original logs. The helper is being
+corrected and locally tested; no runtime repair or provider call is warranted.
+
+Actual two-tab settings controls produced correlated settings_busy errors. A
+deliberate fresh edit applied actions width421 while preserving the competing
+font19 commit. Three fresh production GUI launches with one shared persistent
+workspace then established positive reload (light theme, autoplay true, policy2),
+explicit false/zero update, and second reload retaining autoplayfalse/policy0,
+with exact applied revisions and fresh empty history. All three launches sent0
+model HTTP requests. Persisted files are copied per stage, so later intentional
+workspace changes do not erase the earlier positive evidence.
+
+Independent historical comparison otherwise supports the existing owner structure,
+checked application after replacement, immutable turn capture and component reuse.
+It found no benefit in introducing a common persistence abstraction solely to
+remove modest duplication. Added comments explain numeric precision and why
+strict-parser service parameters intentionally preserve actual-owner diagnostics.
+No historical answer code, reviewer implementation or future teaching was read.
+Root still owns author reconciliation, final ledger/export/tag; these student
+receipts do not claim those coordinator acceptance steps are complete.

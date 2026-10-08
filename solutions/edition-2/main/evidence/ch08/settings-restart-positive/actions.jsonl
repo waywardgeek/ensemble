@@ -1,0 +1,9 @@
+{"action": "settings"}
+{"action": "preference", "field": "theme", "value": "light"}
+{"action": "wait", "text": "light, 16px"}
+{"action": "preference", "field": "autoplay", "value": true}
+{"action": "wait", "text": "autoplay on"}
+{"action": "policy", "value": 2}
+{"action": "wait", "text": "Next turn: 2 model requests"}
+{"action": "inspect"}
+{"action": "quit"}

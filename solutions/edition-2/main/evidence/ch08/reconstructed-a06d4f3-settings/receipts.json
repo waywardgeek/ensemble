@@ -1,0 +1,20 @@
+[
+  {
+    "run": "settings-restart-positive",
+    "requests": 0,
+    "reconstructed": 0,
+    "delivery": "stream"
+  },
+  {
+    "run": "settings-restart-false-zero",
+    "requests": 0,
+    "reconstructed": 0,
+    "delivery": "stream"
+  },
+  {
+    "run": "settings-restart-confirm",
+    "requests": 0,
+    "reconstructed": 0,
+    "delivery": "stream"
+  }
+]
