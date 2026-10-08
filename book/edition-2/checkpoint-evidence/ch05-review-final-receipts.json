@@ -1,0 +1,304 @@
+{
+  "freeze": "469730f7217e09620d471f8a71825a92d760113f",
+  "script_sha256": "4d211f1323117b2cc6da5b00b8b942f9f16c508306d24f333b4956cee7ca4528",
+  "executable_overrides": {
+    "initial": {
+      "cli": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch05-live",
+      "workflow": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch05-workflow"
+    },
+    "revised": {
+      "cli": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch05-revised",
+      "workflow": "/Users/bill/projects/ensemble-edition-2-history/20261007T195158Z/executables/ensemble-ed2-ch05-workflow-revised"
+    }
+  },
+  "manifest_files_verified": 204,
+  "raw_files_preserved": 247,
+  "source_counts": {
+    "initial": 59,
+    "revised": 59
+  },
+  "original_controls_masked_by_path_check": true,
+  "controls": [
+    {
+      "control": "contained copies of all actual bindings and runs",
+      "result": "passed",
+      "runs": 14,
+      "exact_requests": 78
+    },
+    {
+      "control": "empty source set",
+      "refusal": "empty source set; no evidence modified",
+      "replay_calls": 0,
+      "copied_files_unchanged": true,
+      "no_derived_write": true
+    },
+    {
+      "control": "missing source",
+      "refusal": "incomplete historical source set; no evidence modified",
+      "replay_calls": 0,
+      "copied_files_unchanged": true,
+      "no_derived_write": true
+    },
+    {
+      "control": "extra source",
+      "refusal": "incomplete historical source set; no evidence modified",
+      "replay_calls": 0,
+      "copied_files_unchanged": true,
+      "no_derived_write": true
+    },
+    {
+      "control": "bad source hash",
+      "refusal": "historical source mismatch; no evidence modified",
+      "replay_calls": 0,
+      "copied_files_unchanged": true,
+      "no_derived_write": true
+    },
+    {
+      "control": "wrong cli",
+      "refusal": "executable mismatch; no evidence modified",
+      "replay_calls": 0,
+      "copied_files_unchanged": true,
+      "no_derived_write": true
+    },
+    {
+      "control": "wrong workflow",
+      "refusal": "executable mismatch; no evidence modified",
+      "replay_calls": 0,
+      "copied_files_unchanged": true,
+      "no_derived_write": true
+    },
+    {
+      "control": "wrong interpreter",
+      "refusal": "interpreter mismatch; no evidence modified",
+      "replay_calls": 0,
+      "copied_files_unchanged": true,
+      "no_derived_write": true
+    },
+    {
+      "control": "wrong recorder",
+      "refusal": "executable mismatch; no evidence modified",
+      "replay_calls": 0,
+      "copied_files_unchanged": true,
+      "no_derived_write": true
+    },
+    {
+      "control": "last launch cli",
+      "refusal": "launch executable mismatch",
+      "replay_calls": 0,
+      "copied_files_unchanged": true,
+      "no_derived_write": true
+    },
+    {
+      "control": "last launch workflow",
+      "refusal": "launch executable mismatch",
+      "replay_calls": 0,
+      "copied_files_unchanged": true,
+      "no_derived_write": true
+    },
+    {
+      "control": "last launch interpreter",
+      "refusal": "launch executable mismatch",
+      "replay_calls": 0,
+      "copied_files_unchanged": true,
+      "no_derived_write": true
+    },
+    {
+      "control": "last launch recorder",
+      "refusal": "launch executable mismatch",
+      "replay_calls": 0,
+      "copied_files_unchanged": true,
+      "no_derived_write": true
+    },
+    {
+      "control": "last launch command",
+      "refusal": "launch command mismatch",
+      "replay_calls": 0,
+      "copied_files_unchanged": true,
+      "no_derived_write": true
+    }
+  ],
+  "runs": {
+    "controls-anthropic": {
+      "requests": 9,
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "model": "claude-haiku-4-5-20251001",
+      "calls": 6,
+      "results": 6,
+      "usage": {
+        "input": 28280,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 613
+      }
+    },
+    "controls-openai": {
+      "requests": 8,
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "model": "gpt-4.1-mini",
+      "calls": 5,
+      "results": 5,
+      "usage": {
+        "input": 5247,
+        "cache_write": 0,
+        "cache_read": 7040,
+        "output": 267
+      }
+    },
+    "controls-gemini": {
+      "requests": 15,
+      "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+      "model": "models/gemini-3.8-flash",
+      "calls": 8,
+      "results": 8,
+      "usage": {
+        "input": 45025,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 1423
+      }
+    },
+    "eof-anthropic": {
+      "requests": 2,
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "model": "claude-haiku-4-5-20251001",
+      "calls": 0,
+      "results": 0,
+      "usage": {
+        "input": 5108,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 14
+      }
+    },
+    "eof-openai": {
+      "requests": 2,
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "model": "gpt-4.1-mini",
+      "calls": 0,
+      "results": 0,
+      "usage": {
+        "input": 1309,
+        "cache_write": 0,
+        "cache_read": 1152,
+        "output": 7
+      }
+    },
+    "eof-gemini": {
+      "requests": 2,
+      "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+      "model": "models/gemini-3.8-flash",
+      "calls": 0,
+      "results": 0,
+      "usage": {
+        "input": 3609,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 68
+      }
+    },
+    "workflow-anthropic": {
+      "requests": 7,
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "model": "claude-haiku-4-5-20251001",
+      "calls": 4,
+      "results": 4,
+      "usage": {
+        "input": 8593,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 913
+      }
+    },
+    "workflow-openai": {
+      "requests": 7,
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "model": "gpt-4.1-mini",
+      "calls": 4,
+      "results": 4,
+      "usage": {
+        "input": 3185,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 375
+      }
+    },
+    "workflow-gemini": {
+      "requests": 8,
+      "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+      "model": "models/gemini-3.8-flash",
+      "calls": 5,
+      "results": 5,
+      "usage": {
+        "input": 7894,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 2218
+      }
+    },
+    "collection-anthropic": {
+      "requests": 2,
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "model": "claude-haiku-4-5-20251001",
+      "calls": 0,
+      "results": 0,
+      "usage": {
+        "input": 92,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 14
+      }
+    },
+    "collection-openai": {
+      "requests": 2,
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "model": "gpt-4.1-mini",
+      "calls": 0,
+      "results": 0,
+      "usage": {
+        "input": 90,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 8
+      }
+    },
+    "collection-gemini": {
+      "requests": 2,
+      "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+      "model": "models/gemini-3.8-flash",
+      "calls": 0,
+      "results": 0,
+      "usage": {
+        "input": 74,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 232
+      }
+    },
+    "input-anthropic": {
+      "requests": 6,
+      "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+      "model": "claude-haiku-4-5-20251001",
+      "calls": 3,
+      "results": 3,
+      "usage": {
+        "input": 17896,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 443
+      }
+    },
+    "input-openai": {
+      "requests": 6,
+      "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+      "model": "gpt-4.1-mini",
+      "calls": 3,
+      "results": 3,
+      "usage": {
+        "input": 891,
+        "cache_write": 0,
+        "cache_read": 8064,
+        "output": 181
+      }
+    }
+  }
+}

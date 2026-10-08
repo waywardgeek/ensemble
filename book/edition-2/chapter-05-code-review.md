@@ -281,3 +281,77 @@ binding and launch identity before replay or writing derivatives, and retains
 raw receipts separately. The reviewer inspected that adapter and its local
 controls as part of plan review. No additional material code repair is requested
 before those bounded runs. Their actual results still require independent review.
+
+## Final live receipt acceptance
+
+The six new live paths are accepted from evidence freeze
+`469730f7217e09620d471f8a71825a92d760113f`, using reviewed runtime `959c663`.
+The complete accepted set has 14 logical runs and 78 captured requests: eight
+retained Anthropic/OpenAI runs contribute 39 requests at `8aa40c3`, and six
+revised runs contribute 39 at `959c663`. There are 38 paired tool calls/results.
+These totals describe the accepted set, not every historical or failed attempt.
+
+The reviewer read every accepted terminal record, inspected durable results
+and workspace artifacts, and ran the bound offline verifier against contained
+copies of the actual receipts. All 78 reconstructed requests matched the raw
+captured bodies, and the returned result rows matched the frozen verifier
+report exactly. Both bindings contain the complete 59-file historical Go/module
+source set. Source, support, executable and launch identities passed. The
+204 manifest hashes were checked against the evidence freeze and current files.
+The final independent run used all four archived CLI/workflow executables via
+explicit path overrides, checking their original hashes before replay. No model
+request was made by this reviewer. See
+[independent receipt audit](checkpoint-evidence/ch05-review-final-receipts.json)
+and its [reproduction script](../../scripts/edition2/ch05-review-receipts.py).
+
+The current-scope Gemini runs all returned `gemini-3.8-flash`: controls made
+15 requests, EOF two, workflow eight and collection two. The hint was persisted
+at sequence 7, consumed by request sequence 10, absent from request 001, present
+after the function response in request 002 and absent from request 003. The
+original signed function-call part equals the returned part exactly. The
+terminal answer includes `HINT-ACCEPTED-FIVE` and correctly reports the command
+output. These establish receipt, transport, one-request consumption and observed
+compliance separately; they do not promise universal model obedience.
+
+Gemini's later controls interrupt r5, complete queued r6 with `QUEUED-FIVE`,
+inspect the preserved job as running and then explicitly kill it. A different
+job receives the shutdown reason on quit. All three APIs' EOF sessions finish
+both admitted prompts. The revised input paths on all three APIs persist
+16-of-16-byte acceptance and actual `seen:LIVE-SEND-CHECK` process output before
+explicit kill. These are real nominal-input paths; full-buffer partial writes,
+race boundaries, overflow and persistence faults remain deterministic tests.
+See [direct wire and input observations](checkpoint-evidence/ch05-review-live-observations.json).
+
+Each three-Agent workflow has real write/edit/read activity and a final saved
+draft containing the required details. The Gemini editor actually changes the
+opening, and the reviewer reads the changed file. Collection receipts show two
+attributed results, canceled queued r2 with no model request, exhaustion, and
+the same individually reusable completions in an independent collection.
+The optional GUI remains a transport stub and is not presented as live-tested.
+
+### Evidence control defect and independent correction
+
+The frozen student's `live-addendum-identity-results.json` initially labeled
+thirteen identity mutations as passing controls, but every one failed earlier
+with `receipt path escapes evidence directory`. Those refusals do not prove
+the claimed source/binary/final-launch checks. The original record is retained
+unchanged and is not retrospectively relabeled as successful identity coverage.
+
+The independent supplement starts with a passing contained copy of all actual
+bindings and runs. Each negative changes one identity while leaving its path
+valid. Empty, missing, extra and incorrect source bindings; four executable
+identities; and the last run's four executable identities and command each
+reach their specific expected refusal. A subprocess guard proves zero replay
+invocations for every rejection. No derived files are created, no copied input
+changes during validation, and all 247 original raw receipt hashes remain
+unchanged. This is a fixture correction; the verifier and runtime required no
+change and no paid rerun. The amended workflow now states the same distinction.
+
+R1 and R2 remain resolved by the accepted runtime repair; R3 is resolved by
+the explicit Gemini transport teaching and its observed live behavior. The
+masked evidence controls are resolved by the independent supplement above.
+Older Gemini failures, the inconclusive grouping diagnostic, the invented
+`timeout_ms` prompt parameter and the disk-full local attempt remain visible
+with their original identities. None is counted as an accepted current-scope
+Gemini run. Code and live-evidence gates are accepted; final chapter proofreading
+and the coordinator's export/tag remain separate completion steps.

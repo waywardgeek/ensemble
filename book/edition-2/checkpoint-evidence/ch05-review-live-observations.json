@@ -1,0 +1,34 @@
+{
+  "hint_seq": 7,
+  "hint_text": "In your final answer include exactly HINT-ACCEPTED-FIVE and briefly mention the command output.",
+  "consuming_requests": [
+    10
+  ],
+  "signature_call_part_equal": true,
+  "signature_sha256": "eaf9adf6959ff0334ff5a1ec0d42623b66c745ba6b4265f815eceb77376894cb",
+  "provider_models": {
+    "controls-gemini38-r1": [
+      "gemini-3.8-flash"
+    ],
+    "eof-gemini38-r1": [
+      "gemini-3.8-flash"
+    ],
+    "workflow-gemini38-r1": [
+      "gemini-3.8-flash"
+    ],
+    "collection-gemini38-r1": [
+      "gemini-3.8-flash"
+    ]
+  },
+  "gemini_requests": {
+    "controls-gemini38-r1": 15,
+    "eof-gemini38-r1": 2,
+    "workflow-gemini38-r1": 8,
+    "collection-gemini38-r1": 2
+  },
+  "input_results": {
+    "controls-gemini38-r1": "send_input accepted 16 of 16 bytes; accepted bytes cannot be rolled back.\njob 2 status: running; output: cr/io/2; total bytes: 43; use wait_for_job, send_input, or kill_job\nLIVE-SEND-CHECK\nseen:LIVE-SEND-CHECK\n",
+    "input-anthropic-r1": "send_input accepted 16 of 16 bytes; accepted bytes cannot be rolled back.\njob 1 status: running; output: cr/io/1; total bytes: 43; use wait_for_job, send_input, or kill_job\nLIVE-SEND-CHECK\nseen:LIVE-SEND-CHECK\n",
+    "input-openai-r1": "send_input accepted 16 of 16 bytes; accepted bytes cannot be rolled back.\njob 1 status: running; output: cr/io/1; total bytes: 43; use wait_for_job, send_input, or kill_job\nLIVE-SEND-CHECK\nseen:LIVE-SEND-CHECK\n"
+  }
+}
