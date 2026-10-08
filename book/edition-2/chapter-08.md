@@ -442,6 +442,10 @@ now, and both can be right, because speech is local work. The preference
 controls whether that work starts automatically. An explicit card speaker
 action still works while autoplay is off.
 
+The control's help text states the automatic scope: new visible answer text,
+exposed thinking and concise tool summaries; tool results and replay remain
+silent.
+
 At each automatic enqueue decision, use the newest preference snapshot already
 applied by that page's serialized controller. Capture its revision and speech
 rate with the queued utterance. A queued or currently speaking utterance keeps

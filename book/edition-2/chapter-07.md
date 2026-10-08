@@ -541,6 +541,12 @@ while the human's hands stay on the keyboard. When it breaks, half a sentence
 repeats, a finalized answer restarts from the top, or a canceled utterance
 fires its callback and accidentally resumes the queue.
 
+Unavailable or failed browser synthesis is reported without disabling text or
+controls. Auto-speech reads new visible answer text and explicitly exposed
+thinking, plus a concise tool name/path summary. Tool results and replay are
+silent. The speaker action on each card reads its full accessible text on
+demand. Neither path reads signatures or opaque provider payloads.
+
 Own one queue per page controller. Buffer stream text into sentence-sized
 pieces, flush any remaining text at accepted end, and track the already queued
 text for each full part identity. Finalization must not queue those words again.

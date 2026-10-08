@@ -1,0 +1,368 @@
+// Independent Connector probes: real sockets, deliberately held queue consumers.
+// This package-local fixture is injected only into disposable source copies.
+package gui
+
+import (
+	"encoding/json"
+	"io"
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"testing"
+	"time"
+
+	ens "example.com/ensemble"
+	"github.com/gorilla/websocket"
+)
+
+type connectorProbeOwner struct {
+	ServerOwner
+	written chan struct{}
+}
+
+func (o *connectorProbeOwner) Trace(id, direction, stage string, value any) {
+	o.ServerOwner.Trace(id, direction, stage, value)
+	if stage == "written" {
+		o.written <- struct{}{}
+	}
+}
+func probeReceive[T any](t *testing.T, ch <-chan T) T {
+	t.Helper()
+	select {
+	case x := <-ch:
+		return x
+	case <-time.After(8 * time.Second):
+		t.Fatal("connector barrier timed out")
+		var zero T
+		return zero
+	}
+}
+func probeOwner(t *testing.T) (*connectorProbeOwner, *ens.Agent) {
+	t.Helper()
+	e := ens.New(io.Discard)
+	t.Cleanup(func() { _ = e.Close() })
+	root := t.TempDir()
+	a, err := e.NewAgent(ens.Config{Vendor: "openai", Model: "fixture-connector", ResolvedModel: "fixture-connector", APIKey: "LOCAL", BaseURL: "http://127.0.0.1:1", Workspace: root, LogPath: filepath.Join(root, "events.jsonl")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	s, err := NewServer(e, a.ID(), "http://127.0.0.1:8088", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return &connectorProbeOwner{s, make(chan struct{}, 1024)}, a
+}
+func probePair(t *testing.T, owner ServerOwner, run bool, listener net.Listener) (*Connector, *websocket.Conn) {
+	t.Helper()
+	ready := make(chan *Connector, 1)
+	server := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		up := websocket.Upgrader{CheckOrigin: func(*http.Request) bool { return true }}
+		socket, err := up.Upgrade(w, r, nil)
+		if err != nil {
+			return
+		}
+		c := NewConnector(owner, "fixture", socket)
+		ready <- c
+		if run {
+			c.Run()
+		}
+	}))
+	if listener != nil {
+		_ = server.Listener.Close()
+		server.Listener = listener
+	}
+	server.Start()
+	t.Cleanup(server.Close)
+	peer, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(server.URL, "http"), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := probeReceive(t, ready)
+	t.Cleanup(func() {
+		c.Close()
+		_ = peer.Close()
+		if run {
+			probeReceive(t, c.Done())
+		} else {
+			c.workers.Wait()
+		}
+	})
+	return c, peer
+}
+func probeJSON(t *testing.T, peer *websocket.Conn) map[string]any {
+	t.Helper()
+	_ = peer.SetReadDeadline(time.Now().Add(6 * time.Second))
+	var value map[string]any
+	if err := peer.ReadJSON(&value); err != nil {
+		t.Fatal(err)
+	}
+	return value
+}
+func probeSubscribe(t *testing.T, peer *websocket.Conn) {
+	t.Helper()
+	if err := peer.WriteJSON(map[string]any{"type": "subscribe", "id": "s"}); err != nil {
+		t.Fatal(err)
+	}
+	if got := probeJSON(t, peer); got["type"] != "snapshot_begin" {
+		t.Fatalf("snapshot begin: %v", got)
+	}
+	if got := probeJSON(t, peer); got["type"] != "snapshot_end" {
+		t.Fatalf("snapshot end: %v", got)
+	}
+}
+func TestC7ConnectorQueueCountAndPeer(t *testing.T) {
+	owner, a := probeOwner(t)
+	c, _ := probePair(t, owner, false, nil)
+	pause, err := a.RegisterPause()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = pause.Update(true, false); err != nil {
+		t.Fatal(err)
+	}
+	_, watch, err := a.Watch()
+	if err != nil {
+		t.Fatal(err)
+	}
+	c.pause, c.watch = pause, watch
+	for i := 0; i < 256; i++ {
+		if !c.send(map[string]any{"n": i}, false) {
+			t.Fatalf("queue refused valid item %d", i)
+		}
+	}
+	if c.send(map[string]any{"n": 256}, false) {
+		t.Fatal("257th outgoing item accepted")
+	}
+	if c.ctx.Err() == nil {
+		t.Fatal("overflow did not cancel Connector")
+	}
+	probeReceive(t, watch.Done())
+	snap, w, err := a.Watch()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = w.Close()
+	if snap.State.Paused {
+		t.Fatal("overflow retained owning pause")
+	}
+	healthy, peer := probePair(t, owner, true, nil)
+	probeSubscribe(t, peer)
+	if err := peer.WriteJSON(map[string]any{"type": "pause", "id": "p", "typing": true, "speaking": false}); err != nil {
+		t.Fatal(err)
+	}
+	sawAck, sawChange := false, false
+	for !(sawAck && sawChange) {
+		r := probeJSON(t, peer)
+		if r["type"] == "ack" {
+			sawAck = r["paused"] == true
+		}
+		if r["type"] == "observation" {
+			o := r["observation"].(map[string]any)
+			sawChange = o["kind"] == "pause_changed" && o["typing_clients"] == float64(1)
+		}
+	}
+	healthy.Close()
+	probeReceive(t, healthy.Done())
+	snap, w, err = a.Watch()
+	if err != nil {
+		t.Fatal(err)
+	}
+	_ = w.Close()
+	if snap.State.Paused {
+		t.Fatal("Run completion retained pause")
+	}
+}
+func TestC7ConnectorQueueDrain(t *testing.T) {
+	owner, _ := probeOwner(t)
+	c, peer := probePair(t, owner, false, nil)
+	for i := 0; i < 256; i++ {
+		if !c.send(i, false) {
+			t.Fatalf("valid queue item %d", i)
+		}
+	}
+	c.workers.Add(1)
+	go c.writer()
+	for i := 0; i < 256; i++ {
+		var n int
+		_ = peer.SetReadDeadline(time.Now().Add(5 * time.Second))
+		if err := peer.ReadJSON(&n); err != nil {
+			t.Fatal(err)
+		}
+		if n != i {
+			t.Fatalf("writer order got %d want %d", n, i)
+		}
+		probeReceive(t, owner.written)
+	}
+	c.mu.Lock()
+	n, bytes := len(c.queue), c.bytes
+	c.mu.Unlock()
+	if n != 0 || bytes != 0 {
+		t.Fatalf("drained capacity retained %d items/%d bytes", n, bytes)
+	}
+	if !c.send("reused", false) {
+		t.Fatal("draining did not restore capacity")
+	}
+	var got string
+	if err := peer.ReadJSON(&got); err != nil || got != "reused" {
+		t.Fatalf("reused queue: %q %v", got, err)
+	}
+	probeReceive(t, owner.written)
+}
+func TestC7ConnectorQueueBytes(t *testing.T) {
+	t.Run("exact-aggregate-overflow", func(t *testing.T) {
+		owner, _ := probeOwner(t)
+		c, _ := probePair(t, owner, false, nil)
+		// String JSON adds two quotes; count encoded bytes, not source characters.
+		if !c.send(strings.Repeat("x", 128*1024*1024-2), false) {
+			t.Fatal("exact 128 MiB encoded item refused")
+		}
+		if c.bytes != 128*1024*1024 {
+			t.Fatalf("encoded byte accounting %d", c.bytes)
+		}
+		if c.send(json.RawMessage("0"), false) {
+			t.Fatal("aggregate byte limit +1 accepted")
+		}
+		if c.ctx.Err() == nil {
+			t.Fatal("aggregate overflow did not close")
+		}
+	})
+	t.Run("single-oversized", func(t *testing.T) {
+		owner, _ := probeOwner(t)
+		c, _ := probePair(t, owner, false, nil)
+		if c.send(strings.Repeat("x", 128*1024*1024-1), true) {
+			t.Fatal("single encoded item above limit accepted")
+		}
+		if c.ctx.Err() == nil {
+			t.Fatal("oversized snapshot item did not close")
+		}
+	})
+}
+
+type selectedMessage struct {
+	selected chan struct{}
+	release  chan struct{}
+}
+
+func (m selectedMessage) MarshalJSON() ([]byte, error) {
+	close(m.selected)
+	<-m.release
+	return []byte(`"late"`), nil
+}
+func TestC7ConnectorSelectedClose(t *testing.T) {
+	owner, _ := probeOwner(t)
+	c, _ := probePair(t, owner, false, nil)
+	m := selectedMessage{make(chan struct{}), make(chan struct{})}
+	done := make(chan bool, 1)
+	go func() { done <- c.send(m, true) }()
+	probeReceive(t, m.selected)
+	c.Close()
+	close(m.release)
+	if probeReceive(t, done) {
+		t.Fatal("selected sender enqueued after disconnect")
+	}
+	c.mu.Lock()
+	n := len(c.queue)
+	c.mu.Unlock()
+	if n != 0 {
+		t.Fatal("late sender retained payload")
+	}
+}
+
+// The listener blocks only after the HTTP upgrade has completed. It honors the
+// production socket deadline, so the failure cannot be attributed to a test timer.
+type blockedConn struct {
+	net.Conn
+	mu       sync.Mutex
+	armed    bool
+	deadline time.Time
+	entered  chan time.Time
+	closed   chan struct{}
+	once     sync.Once
+}
+
+func (c *blockedConn) SetWriteDeadline(d time.Time) error {
+	c.mu.Lock()
+	c.deadline = d
+	c.mu.Unlock()
+	return c.Conn.SetWriteDeadline(d)
+}
+func (c *blockedConn) Write(p []byte) (int, error) {
+	c.mu.Lock()
+	armed, d := c.armed, c.deadline
+	c.mu.Unlock()
+	if !armed {
+		return c.Conn.Write(p)
+	}
+	select {
+	case c.entered <- d:
+	default:
+	}
+	var deadline <-chan time.Time
+	var timer *time.Timer
+	if !d.IsZero() {
+		timer = time.NewTimer(time.Until(d))
+		defer timer.Stop()
+		deadline = timer.C
+	}
+	select {
+	case <-c.closed:
+		return 0, net.ErrClosed
+	case <-deadline:
+		return 0, os.ErrDeadlineExceeded
+	}
+}
+func (c *blockedConn) Close() error { c.once.Do(func() { close(c.closed) }); return c.Conn.Close() }
+
+type blockedListener struct {
+	net.Listener
+	accepted chan *blockedConn
+}
+
+func (l *blockedListener) Accept() (net.Conn, error) {
+	c, e := l.Listener.Accept()
+	if e != nil {
+		return nil, e
+	}
+	b := &blockedConn{Conn: c, entered: make(chan time.Time, 4), closed: make(chan struct{})}
+	l.accepted <- b
+	return b, nil
+}
+func TestC7ConnectorWriteDeadlineAndJoin(t *testing.T) {
+	owner, _ := probeOwner(t)
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	blocked := &blockedListener{listener, make(chan *blockedConn, 1)}
+	c, _ := probePair(t, owner, true, blocked)
+	conn := probeReceive(t, blocked.accepted)
+	conn.mu.Lock()
+	conn.armed = true
+	conn.mu.Unlock()
+	start := time.Now()
+	if !c.send("held application frame", false) {
+		t.Fatal("positive enqueue failed")
+	}
+	deadline := probeReceive(t, conn.entered)
+	if deadline.IsZero() || deadline.Sub(start) > 5100*time.Millisecond {
+		t.Fatalf("write deadline is not bounded to 5s: %v", deadline.Sub(start))
+	}
+	probeReceive(t, c.Done())
+	if time.Since(start) > 6500*time.Millisecond {
+		t.Fatal("failed writer did not join connection lifetime")
+	}
+}
+func TestC7ConnectorDeadPeerDeadline(t *testing.T) {
+	owner, _ := probeOwner(t)
+	c, _ := probePair(t, owner, true, nil)
+	// The peer deliberately never reads, so Gorilla never dispatches a pong.
+	select {
+	case <-c.Done():
+	case <-time.After(30 * time.Second):
+		t.Fatal("dead peer outlived 30-second connection bound")
+	}
+}

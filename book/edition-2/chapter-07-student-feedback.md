@@ -38,3 +38,14 @@ controls. The oversized fixture now reads the close frame directly rather
 than treating its own automatic close reply's broken pipe as a server failure.
 The initial failed receipt remains intact. Final author/proofreader review
 still follows the completed demonstrations and comparative review.
+
+## Preserve the speech contract through the prose pass
+
+External editorial revision `0f05359` restored personal motivation and stronger
+explanations in Chapters 7 and 8. Its replacement of the Chapter 7 speech
+opener also removed explicit automatic-speech scope, silent replay/results,
+full-card action, unavailable-synthesis behavior and opaque-content exclusion.
+The coordinator restored those requirements immediately after the new opener,
+and restored the Chapter 8 autoplay control's required help text. The initial
+student read the preceding complete contract; this preserves that same teaching
+for the next reader without undoing the editorial work.

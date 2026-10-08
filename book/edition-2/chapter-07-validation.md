@@ -94,5 +94,10 @@ exact 128 MiB encoded capacity from aggregate/single-item excess, and verify
 drain accounting, selected-sender teardown, independent peer usability and
 pause release. A deliberately blocked transport honors the production write
 deadline; the writer closes and joins within its five-second bound. A peer
-that never dispatches pongs closes within the 30-second contract. Targeted
-deletions and immutable source receipts remain the next acceptance step.
+that never dispatches pongs closes within the 30-second contract. All six
+positive groups and seven intended deletion failures pass against `da162e8`;
+98 non-evidence source files match its Git blobs. The receipt is
+`checkpoint-evidence/ch07-connector-mutations.json`; the injected fixture also
+passes vet. A nonunique mutation anchor interrupted the first audit and is
+retained separately as a reviewer setup failure. The complete combined gate
+remains pending.

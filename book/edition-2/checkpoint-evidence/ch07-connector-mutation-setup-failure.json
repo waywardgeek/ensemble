@@ -1,0 +1,7 @@
+{
+  "source_revision": "da162e821369784b37cd6a6544610429af5f1cbe",
+  "exit": 1,
+  "error": "late-send: expected 1 unique anchors, found 2",
+  "classification": "reviewer mutation setup failure, no runtime verdict",
+  "resolution": "Use cancellation guard plus return-false context; preflight all mutation anchors before running controls. Initial baseline six groups passed, but aborted script did not retain intermediate output; repeat complete run."
+}
