@@ -65,7 +65,7 @@ def launch(args, binding):
         if role in ('cli','gui'):
             print('Manual PTY: enter the scheduled prompt once, observe, then local commands; no automatic input.',flush=True)
             print(SCHEDULE['steps'][args.step]['prompt'].replace('-P','-'+vendor),flush=True)
-            command=[binding['binaries']['recorder']['path'],'-q',str(run/'terminal.txt'),*command]
+            command=[binding['binaries']['recorder']['path'],'-q','-F',str(run/'terminal.txt'),*command]
             process=subprocess.Popen(command,cwd=workspace,env=child,start_new_session=True)
         else:
             stream=(run/'consumer-original.txt').open('xb')

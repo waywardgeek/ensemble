@@ -511,6 +511,17 @@ func (o *owner) offline() error {
 			usage = inspect.UsageByModel()
 			skills = inspect.InspectSkills()
 		} else if !bytes.Equal(baseline, rendered) || !reflect.DeepEqual(events, inspect.Events()) || !reflect.DeepEqual(snapshot, inspect.Snapshot()) || !reflect.DeepEqual(usage, inspect.UsageByModel()) || !reflect.DeepEqual(skills, inspect.InspectSkills()) {
+			current := inspect.Snapshot()
+			differences := map[string]any{}
+			left, right := reflect.ValueOf(snapshot), reflect.ValueOf(current)
+			for i := 0; i < left.NumField(); i++ {
+				if !reflect.DeepEqual(left.Field(i).Interface(), right.Field(i).Interface()) {
+					differences[left.Type().Field(i).Name] = map[string]any{"latest": left.Field(i).Interface(), "branch": right.Field(i).Interface(), "latest_go": fmt.Sprintf("%#v", left.Field(i).Interface()), "branch_go": fmt.Sprintf("%#v", right.Field(i).Interface())}
+				}
+			}
+			if e = o.save(branch.name+"-mismatch.json", map[string]any{"render_equal": bytes.Equal(baseline, rendered), "events_equal": reflect.DeepEqual(events, inspect.Events()), "usage_equal": reflect.DeepEqual(usage, inspect.UsageByModel()), "skills_equal": reflect.DeepEqual(skills, inspect.InspectSkills()), "context_differences": differences}); e != nil {
+				return e
+			}
 			return fmt.Errorf("offline branch mismatch")
 		}
 		if e = o.raw(branch.name+"-render.json", rendered); e != nil {
