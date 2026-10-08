@@ -14,7 +14,10 @@ Independent plan review `72bf621` and Q1–Q3 answers `af5a762`, proofread at
 is running in the same CLI conversation (exec session `52654`); its prompt,
 events, stderr and result use external `phase-2` paths. New-only clarification
 pin: `clarification-af5a762`. No credentials or provider calls are authorized in
-this phase. Await the complete codec/public API milestone for independent checks.
+this phase. Milestone `44056d1` publishes complete persistence-format.md and
+session-api.md plus full student acknowledgment. Root read both; the independent
+grader is preparing remaining coverage against those seams, with genuine runtime
+positives still pending. The student continues implementation.
 Do not start a competing worker or resume paid Chapter 9 demonstrations.
 Chapter 14 correction `b951524` has independent closure `674b9a2` and coordinator
 contract acceptance. It has no checker, implementation or actual spin yet.
