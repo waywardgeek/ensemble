@@ -189,3 +189,91 @@ length is claimed. The owner table and proposed contract were read for duplicate
 authorities, blocking Actor waits and transport-specific assumptions. The cut
 pass retained each proposed bound and each real unresolved decision; no runtime
 acceptance result is inferred from these prose checks. `git diff --check` is clean.
+
+## Full contract draft, October 8, 2026
+
+Reloaded the complete current voice and writing procedure after compaction,
+plus architecture. A combined read was truncated; the remaining voice and both
+procedure ranges were reread separately before prose. Rechecked Chapter 10's
+exact outer/initializer/anchor/state/identity and numeric contracts, Chapter 4's
+job statuses/errors, and Chapter 7's safe watch/observation boundary. No old
+implementation body, runtime edit, grader change or paid call was involved.
+
+The coordinator accepted all four outline directions before drafting, and
+accepted the concrete cancellation-delivery and v1/v2 compatibility direction
+during the draft. These are coordinator working choices. Bill's explicit
+transport-independent MCP requirement remains separately attributed to ad2b2e8.
+The initial proposal paragraphs and fingerprints above retain their earlier
+pending status. Root corrected the old12/old13 map labels at 0cb54a4 without
+changing the chapter numbering.
+
+The draft now specifies:
+
+- A public actual-parent constructor and shared service lifetime, with stdio,
+  memory and external public custom-transport proofs. Chapter 12 still owns the
+  required real GUI WebSocket tunnel and automatic-context/lifecycle consumer.
+- An exact current-version discovery/list/call/cancel sequence. Connection owns
+  correlation and constructs cancellation; adapters only deliver the supplied
+  message or abandon their own request stream. Canonical rpc-N IDs are allocated
+  at attempted issue, with no unsent reserved holes; a watermark and pending map
+  distinguish stale replies from unknown IDs without accumulating tombstones.
+- A published bounded schema vocabulary, local-reference resolution and
+  validation work limits, with explicit refusal outside the profile. Current
+  [JSON Schema validation](https://json-schema.org/draft/2020-12/json-schema-validation)
+  and [core](https://json-schema.org/draft/2020-12/json-schema-core) sources were
+  checked for keyword semantics. This is deliberately not full schema compliance.
+- A whole-result text/structured-JSON subset, canonical artifact bytes with LF,
+  truthful isError and safe local failure records. Rechecked official current
+  MCP tools, cancellation and stdio pages for the relevant protocol distinctions.
+- Strict checkpoint/state version 2 and explicitly versioned initializer/anchor
+  payloads for nonempty MCP bindings. Zero-binding stores remain exact version 1.
+  Both phases of live resume and the zero-effect historical path are explicit.
+- CLI/launcher configuration, an Agent-safe mcp watch array, transient actor-
+  published mcp_changed observations, exact generation handling and an ordinary
+  browser display. No credentials, paths or stderr enter that projection.
+
+Root read the on-disk full draft and identified three useful bounded-profile
+precisions before freeze. The final draft names each schema's canonical bytes
+and sums normalized retained descriptor-object bytes without array punctuation;
+ignored metadata still counts against whole-wire/node limits. The 64 operation
+permits now remain owned through staged cancellation delivery even after pending
+correlation is removed, with one writer and a one-second staging-through-delivery
+bound. This prevents canceled calls from creating an unbounded notification queue.
+Remote JSON-RPC error codes use an explicit losslessly checked int32 domain,
+avoiding huge decimal expansion in a supposedly safe diagnostic.
+
+The human stake remains attaching a useful external tool without rebuilding the
+Agent, then preserving control when it stalls or disappears. The planned utility
+has actual scratch-file behavior, and the planned browser/public demonstrations
+have their own required receipts. Offline inspector restart with endpoints
+disabled is distinguished from live compatible resume, which may discover but
+must never repeat a historical tools/call. No planned success is presented as
+an observed outcome.
+
+A short priority interruption resolved the fresh Chapter 9 student's three
+pre-code teaching questions at 8f24360, including a narrow Chapter 10 inherited
+state clarification. That was prose work only and does not supply a Chapter 11
+implementation. The Chapter 11 contract remains subject to coordinator and
+independent checker review; predecessor acceptance and a published new checker
+command are still required before student handoff.
+
+Final author checks for this draft: scoped lint passes every hard rule. The
+chapter is 5,963 counted prose words before any later review edits; the TL;DR is
+within the 700-word target. Ten JSON fixtures and two canonical artifact/error
+fixtures parse. `git diff --check` is clean. The full chapter and paragraph
+closers were read for repeated conclusions and cross-section contradictions.
+The soft person-gap warning was examined against the actual reader/task passages
+in §§11.4, 11.6 and 11.7; no personal incident was invented to satisfy a detector.
+The remaining negation warning reflects explicit compatibility/refusal boundaries.
+Short outline/research lengths are not presented as full chapters.
+
+The voice, procedure and architecture fingerprints still match the earlier
+ledger. The relevant new contracts after the priority clarification are:
+
+```text
+fb86fa4890cb516d0ce4c51a536d0fcb5f09a5362f937945cc6d700643805209 book/edition-2/chapter-09.md
+31272ff9621f932d92f252be06b67dfec04ee8826ac3952ecbc14fdd18696982 book/edition-2/chapter-10.md
+```
+
+No build, race, legacy grader or live acceptance result is inferred from these
+prose/fixture checks. The independent full-contract review remains the next gate.

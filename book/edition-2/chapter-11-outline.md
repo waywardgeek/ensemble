@@ -4,7 +4,8 @@
 Agent, while keeping control of what it may execute and keeping the interface
 usable when the external program stalls or disappears.
 
-Preparation only, October 8, 2026. New Chapter 11 maps to first-edition
+Initial preparation checkpoint, October 8, 2026; full draft now available for
+contract review in [Chapter 11](chapter-11.md). New Chapter 11 maps to first-edition
 Chapter 12, MCP. The current global-review table calls old Chapter 12 “voice”;
 that label is stale against the actual chapter. Follow the workflow's numeric
 map and the actual source, with old Chapter 13's GUI self-observation as the
@@ -12,8 +13,10 @@ next chapter's consumer. Chapter 10's contract is accepted for checker
 preparation, but its implementation/checkpoint is still a prerequisite. No
 Chapter 11 student, grader pass or actual spin is claimed.
 
-This outline includes coordinator-accepted direction and explicitly marked
-proposals requiring review. It is not a student-facing complete contract.
+The initial proposal wording below preserves the preparation record at 8aea492.
+The coordinator subsequently accepted the four directions in the final section;
+the dated resolution below supplies current scope. The manuscript now defines
+the exact contracts for review. No student handoff or completed run is claimed.
 
 ## What the chapter preserves from the old telling
 
@@ -340,3 +343,41 @@ Protocol version and transport independence are already settled above. These
 remaining choices affect ownership or observable behavior, not merely method
 spelling. Bill's new first-edition sandboxing work remains untouched and pending;
 this outline neither claims it was reviewed nor changes the map around it.
+
+
+## Full-draft resolution, October 8, 2026
+
+The coordinator accepted the four preparation directions before this draft.
+These are coordinator working choices; Bill's separate explicit requirement
+remains the transport-independent MCP/WebSocket seam recorded at ad2b2e8.
+
+1. Service/Connection/transport use the actual parents in the owner table. The
+   public constructor receives Connection. Agent close cancels its operations,
+   while root owns shared connection shutdown. A future logical GUI endpoint
+   cannot close its physical socket.
+2. Explicit preparation and alias installation precede Agent construction.
+   Automatic context and skill-triggered lifecycle move beside their required
+   Chapter 12 GUI consumer. No incidental reverse-call authority is introduced.
+3. Frozen logical connection/remote name/alias and validated definitions become
+   creation identity. Version-2 checkpoint/state and explicit version-2 session
+   payloads carry it; zero-binding Chapter 10 stores remain exact version 1.
+   Stored validation precedes new remote preparation, with no historical effects.
+4. Text plus structured JSON is the supported result subset; a mixed unsupported
+   result refuses whole and isError stays a tool failure. The manuscript defines
+   a bounded local-reference schema vocabulary, rather than claiming full JSON
+   Schema compliance.
+
+The coordinator also accepted the cancellation delivery split and v1/v2 direction
+during drafting: Connection supplies encoded cancellation plus opaque request ID;
+adapters deliver on shared channels or abandon a dedicated request stream. The
+manuscript distinguishes issue from remote receipt, avoids reserved unsent holes,
+and uses an issued watermark plus a bounded pending map to discard known stale
+responses without tombstones. Unknown IDs fault the connection.
+
+Exact proposed course bounds, schema profile, canonical result/error bytes,
+CLI configuration and safe watch shape are now in §§11.3–11.9 for independent
+contract review. The initial source fingerprint ledger remains historical. Root
+corrected the global map's old12/old13 labels at 0cb54a4; numbering is unchanged.
+The chapter retains the reader's external-tool task and the later recorded
+parse-success/no-connect lesson. Actual all-provider CLI/browser/public use is
+still planned, with no fabricated output or screenshots.
