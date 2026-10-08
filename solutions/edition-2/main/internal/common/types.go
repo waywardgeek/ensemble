@@ -275,6 +275,7 @@ type ClientOwner interface {
 // TurnAgent exposes the owning Agent's serialized event path to its Engine.
 // The composition root's private adapter prevents clients bypassing admission.
 type TurnAgent interface {
+	SkillStateView() *SkillState
 	SkillView() SkillInspection
 	ChangeSkill(SkillOperation) (SkillResult, error)
 	Agent

@@ -497,7 +497,7 @@ func (a *Actor) dispatch() {
 		result = &common.ToolEvent{CallID: p.CallID, IsError: true, Parts: []common.Part{Text(note + p.Name + " failed: " + text)}}
 	} else if management {
 		revision := uint64(0)
-		if state := a.parent.SkillView().State; state != nil {
+		if state := a.parent.SkillStateView(); state != nil {
 			revision = state.Revision
 		}
 		op, skillErr := registry.SkillOperation(p, revision)

@@ -240,7 +240,7 @@ func (a *Actor) receiveWatch(m common.ActorMessage) bool {
 func (a *Actor) PublishDurable(e common.Event) {
 	o := common.Observation{AgentID: a.parent.ID(), Kind: e.Type, Seq: e.Seq, Event: e}
 	if e.Skills != nil {
-		o.Skills = a.parent.SkillView().State
+		o.Skills = a.parent.SkillStateView()
 	}
 	a.publish(o)
 }

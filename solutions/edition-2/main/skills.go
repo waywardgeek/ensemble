@@ -32,11 +32,15 @@ func (a toolAgent) GrantedTools() []string {
 	if a.skills == nil {
 		return nil
 	}
-	state := a.skills.Inspect().State
-	if state == nil {
+	return a.skills.GrantedTools()
+}
+func (a turnAgent) SkillStateView() *common.SkillState {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	if a.skills == nil {
 		return nil
 	}
-	return state.Tools
+	return a.skills.State()
 }
 func (a turnAgent) SkillView() common.SkillInspection {
 	a.mu.Lock()
@@ -74,8 +78,10 @@ func (a *Agent) InspectSkills() (SkillInspection, error) {
 	return (turnAgent{a}).SkillView(), nil
 }
 func (a *Agent) SkillState() (*SkillState, error) {
-	view, err := a.InspectSkills()
-	return view.State, err
+	if a.actor != nil {
+		return a.actor.SkillState()
+	}
+	return (turnAgent{a}).SkillStateView(), nil
 }
 func (a *Agent) LoadSkill(name string) (SkillResult, error) {
 	return a.changeSkill(common.SkillOperation{Action: "load", Name: name})

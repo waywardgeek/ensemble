@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
 	"fmt"
 	"os"
@@ -74,6 +75,7 @@ func run() error {
 	if _, err = app.LoadSkill(agents[1].ID(), "inspect"); err != nil {
 		return err
 	}
+	var failures []error
 	for _, a := range agents {
 		inspection, err := app.InspectSkills(a.ID())
 		if err != nil {
@@ -86,19 +88,47 @@ func run() error {
 			return err
 		}
 		if *ask {
-			ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
-			result, err := a.Prompt(ctx, "Use read_file exactly once to read notes.txt. Then report the note marker and your project marker exactly as written in your active manual. Do not write any files or call another tool.")
-			cancel()
-			if err != nil {
-				return err
+			completion, attemptErr := demonstrate(a)
+			record := terminalRecord{Agent: a.ID(), Completion: completion}
+			if attemptErr != nil {
+				record.Error = attemptErr.Error()
+				failures = append(failures, fmt.Errorf("%s: %w", a.ID(), attemptErr))
 			}
-			if err = json.NewEncoder(os.Stdout).Encode(struct {
-				Agent  string
-				Result ensemble.ClientResult
-			}{a.ID(), result}); err != nil {
+			if err = json.NewEncoder(os.Stdout).Encode(record); err != nil {
 				return err
 			}
 		}
 	}
-	return nil
+	return errors.Join(failures...)
+}
+
+// Completion is an owned terminal receipt, including partial text/parts and
+// accepted usage when the request ends at its limit or with another failure.
+type terminalRecord struct {
+	Agent      string
+	Completion ensemble.Completion
+	Error      string `json:",omitempty"`
+}
+
+func demonstrate(a *ensemble.Agent) (ensemble.Completion, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cancel()
+	h, err := a.Submit("Use read_file exactly once to read notes.txt. Then report the note marker and your project marker exactly as written in your active manual. Do not write any files or call another tool.")
+	if err != nil {
+		return ensemble.Completion{AgentID: a.ID(), Outcome: "error"}, err
+	}
+	completion, waitErr := h.Wait(ctx)
+	if waitErr != nil {
+		// Waiting's deadline is not a request outcome. Cancel this attempt and
+		// collect its actual terminal receipt before starting the next Agent.
+		cancelErr := h.Cancel()
+		completion, err = h.Wait(context.Background())
+		waitErr = errors.Join(waitErr, cancelErr, err)
+	}
+	if completion.Error != nil {
+		err = fmt.Errorf("%s: %s", completion.Error.Code, completion.Error.Message)
+	} else if completion.Outcome != "success" {
+		err = fmt.Errorf("request %s ended with %s", h.ID(), completion.Outcome)
+	}
+	return completion, errors.Join(waitErr, err)
 }

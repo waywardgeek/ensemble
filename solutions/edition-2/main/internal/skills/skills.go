@@ -396,19 +396,36 @@ func copyTransition(owner common.Skills, t common.SkillTransition) common.SkillT
 	t.Activated = activated
 	return t
 }
+
+// GrantedTools serves declarations and admission without traversing retained
+// material or even the retired summaries required by a complete state view.
+func (s *Service) GrantedTools() []string {
+	if s.committed == nil {
+		return nil
+	}
+	return append([]string{}, s.committed.state.Tools...)
+}
+
+func (s *Service) State() *common.SkillState {
+	if s.committed == nil {
+		return nil
+	}
+	state := copyState(s, s.committed.state)
+	return &state
+}
+
 func (s *Service) Inspect() common.SkillInspection {
 	out := common.SkillInspection{Contributors: []common.SkillContributors{}, Material: []common.SkillMaterial{}}
 	if s.committed == nil {
 		return out
 	}
-	state := copyState(s, s.committed.state)
-	out.State = &state
+	out.State = s.State()
 	for _, record := range s.committed.material {
 		record.Record = copyActivation(s, record.Record)
 		out.Material = append(out.Material, record)
 	}
 	sort.Slice(out.Material, func(i, j int) bool { return out.Material[i].Record.Activation < out.Material[j].Record.Activation })
-	for _, tool := range state.Tools {
+	for _, tool := range out.State.Tools {
 		contributors := common.SkillContributors{Tool: tool, Activations: []uint64{}, Mandatory: tool == "load_skill" || tool == "unload_skill"}
 		for _, record := range out.Material {
 			if record.Retired {

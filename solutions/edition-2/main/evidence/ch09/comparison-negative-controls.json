@@ -1,0 +1,97 @@
+{
+  "scope": "local Go overlays only; actual source and originals unchanged; no paid calls/credentials",
+  "controls": [
+    {
+      "name": "R1 grant adapter full inspection",
+      "source_path": "skills.go",
+      "source_sha256": "cef3127b79b4f384c72119135ae35bb5ca6cbd8dbda740756a6bc4ebb2fb6dac",
+      "replace": "return a.skills.GrantedTools()",
+      "with_text": "state := a.skills.Inspect().State; if state == nil { return nil }; return state.Tools",
+      "command": [
+        "go",
+        "test",
+        "-overlay",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch09-local-overlay-82i8ezp4/overlay.json",
+        "-vet=off",
+        ".",
+        "-run",
+        "^TestCurrentSkillReadsStayNarrowAndOwned$",
+        "-count=1",
+        "-v"
+      ],
+      "exit_code": 1,
+      "stdout": "=== RUN   TestCurrentSkillReadsStayNarrowAndOwned\n    skills_reads_test.go:36: Agent grant reads allocate with history: 18/61\n--- FAIL: TestCurrentSkillReadsStayNarrowAndOwned (0.01s)\nFAIL\nFAIL\texample.com/ensemble\t0.019s\nFAIL\n",
+      "stderr": "",
+      "intended_failure": "Agent grant reads allocate with history"
+    },
+    {
+      "name": "R1 public state full inspection",
+      "source_path": "skills.go",
+      "source_sha256": "cef3127b79b4f384c72119135ae35bb5ca6cbd8dbda740756a6bc4ebb2fb6dac",
+      "replace": "return a.actor.SkillState()",
+      "with_text": "view, err := a.actor.InspectSkills(); return view.State, err",
+      "command": [
+        "go",
+        "test",
+        "-overlay",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch09-local-overlay-3l4xf8ug/overlay.json",
+        "-vet=off",
+        ".",
+        "-run",
+        "^TestCurrentSkillReadsStayNarrowAndOwned$",
+        "-count=1",
+        "-v"
+      ],
+      "exit_code": 1,
+      "stdout": "=== RUN   TestCurrentSkillReadsStayNarrowAndOwned\n    skills_reads_test.go:69: public state rebuilt inspection: state=64 inspect=64\n--- FAIL: TestCurrentSkillReadsStayNarrowAndOwned (0.01s)\nFAIL\nFAIL\texample.com/ensemble\t0.019s\nFAIL\n",
+      "stderr": "",
+      "intended_failure": "public state rebuilt inspection"
+    },
+    {
+      "name": "R2 stop before emitting failure and second Agent",
+      "source_path": "examples/skills-consumer/main.go",
+      "source_sha256": "7bf3af89038fc87030dff7db0c27b1e9449dc54f6f507f1bd9633e9e27d34817",
+      "replace": "if attemptErr != nil {",
+      "with_text": "if attemptErr != nil { return attemptErr;",
+      "command": [
+        "go",
+        "test",
+        "-overlay",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch09-local-overlay-5c02vu4o/overlay.json",
+        "-vet=off",
+        "./...",
+        "-run",
+        "^TestConsumerIndependentTerminalOutcomes/first-round-limit-second-success$",
+        "-count=1",
+        "-v"
+      ],
+      "exit_code": 1,
+      "stdout": "=== RUN   TestConsumerIndependentTerminalOutcomes\n=== RUN   TestConsumerIndependentTerminalOutcomes/first-round-limit-second-success\n    main_test.go:131: wanted both terminal records, got 0: {\"Agent\":\"agent-1\",\"Skills\":{\"State\":{\"revision\":1,\"primary\":\"base\",\"roots\":[\"edit\"],\"active\":[{\"name\":\"base\",\"type\":\"primary\",\"activation\":1},{\"name\":\"edit\",\"type\":\"loadable\",\"activation\":2}],\"available\":[{\"name\":\"inspect\",\"description\":\"Inspect notes\"}],\"tools\":[\"load_skill\",\"read_file\",\"unload_skill\",\"write_file\"],\"retired\":[]},\"Contributors\":[{\"Tool\":\"load_skill\",\"Activations\":[],\"Mandatory\":true},{\"Tool\":\"read_file\",\"Activations\":[1],\"Mandatory\":false},{\"Tool\":\"unload_skill\",\"Activations\":[],\"Mandatory\":true},{\"Tool\":\"write_file\",\"Activations\":[2],\"Mandatory\":false}],\"Material\":[{\"Record\":{\"activation\":1,\"name\":\"base\",\"type\":\"primary\",\"body\":\"Read the requested notes and report actual findings. Project alpha-$TOOLS.\\n- load_skill\\n- read_file\\n- unload_skill\\n- edit: Edit notes\\n- inspect: Inspect notes\\n\",\"sha256\":\"3f95866c46cf66f4cfa35ec9f18c2016a7481543be61bad292a472594d996dde\",\"tools\":[\"read_file\"],\"dependencies\":[],\"offers\":[{\"name\":\"edit\",\"description\":\"Edit notes\"},{\"name\":\"inspect\",\"description\":\"Inspect notes\"}]},\"EventSeq\":1,\"Retired\":false},{\"Record\":{\"activation\":2,\"name\":\"edit\",\"type\":\"loadable\",\"body\":\"Project alpha-$TOOLS. Write only when asked.\\n- load_skill\\n- read_file\\n- unload_skill\\n- write_file\\n\",\"sha256\":\"bada08289012927b5ae55cf98ff78928fb6b8707cf5d2336efc88c3bf740b700\",\"tools\":[\"write_file\"],\"dependencies\":[],\"offers\":[]},\"EventSeq\":2,\"Retired\":false}]}}\n--- FAIL: TestConsumerIndependentTerminalOutcomes (0.03s)\n    --- FAIL: TestConsumerIndependentTerminalOutcomes/first-round-limit-second-success (0.03s)\nFAIL\nFAIL\texample.com/skills-consumer\t0.034s\nFAIL\n",
+      "stderr": "",
+      "intended_failure": "wanted both terminal records"
+    },
+    {
+      "name": "R2 discard partial result and usage",
+      "source_path": "examples/skills-consumer/main.go",
+      "source_sha256": "7bf3af89038fc87030dff7db0c27b1e9449dc54f6f507f1bd9633e9e27d34817",
+      "replace": "record.Error = attemptErr.Error()",
+      "with_text": "record.Error = attemptErr.Error(); record.Completion.Text = \"\"; record.Completion.Parts = nil; record.Completion.Usage = ensemble.Usage{}",
+      "command": [
+        "go",
+        "test",
+        "-overlay",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch09-local-overlay-9tcovrqt/overlay.json",
+        "-vet=off",
+        "./...",
+        "-run",
+        "^TestConsumerIndependentTerminalOutcomes/first-round-limit-second-success$",
+        "-count=1",
+        "-v"
+      ],
+      "exit_code": 1,
+      "stdout": "=== RUN   TestConsumerIndependentTerminalOutcomes\n=== RUN   TestConsumerIndependentTerminalOutcomes/first-round-limit-second-success\n    main_test.go:143: partial/complete usage lost: {Input:0 CacheWrite:0 CacheRead:0 Output:0}\n--- FAIL: TestConsumerIndependentTerminalOutcomes (0.03s)\n    --- FAIL: TestConsumerIndependentTerminalOutcomes/first-round-limit-second-success (0.03s)\nFAIL\nFAIL\texample.com/skills-consumer\t0.042s\nFAIL\n",
+      "stderr": "",
+      "intended_failure": "partial/complete usage lost"
+    }
+  ]
+}

@@ -105,5 +105,7 @@ type Skills interface {
 	Prepare(SkillOperation) (SkillCandidate, error)
 	PrepareRecorded(SkillTransition) (SkillCandidate, error)
 	Apply(SkillCandidate, uint64)
+	GrantedTools() []string
+	State() *SkillState
 	Inspect() SkillInspection
 }

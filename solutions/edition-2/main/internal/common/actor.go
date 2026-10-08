@@ -107,6 +107,7 @@ type ActorMessage struct {
 	Reply            chan ActorReply
 }
 type ActorReply struct {
+	SkillState      *SkillState
 	SkillResult     SkillResult
 	SkillInspection SkillInspection
 	PolicyAck       PolicyAck

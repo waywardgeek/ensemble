@@ -2,6 +2,10 @@ package llm
 
 import "example.com/ensemble/internal/common"
 
+func (a *Actor) SkillState() (*common.SkillState, error) {
+	r, err := a.ask(common.ActorMessage{Kind: "skill_state"})
+	return r.SkillState, err
+}
 func (a *Actor) InspectSkills() (common.SkillInspection, error) {
 	r, err := a.ask(common.ActorMessage{Kind: "inspect_skills"})
 	return r.SkillInspection, err
@@ -13,6 +17,8 @@ func (a *Actor) ChangeSkill(op common.SkillOperation) (common.SkillResult, error
 func (a *Actor) receiveSkills(m common.ActorMessage) bool {
 	reply := common.ActorReply{}
 	switch m.Kind {
+	case "skill_state":
+		reply.SkillState = a.parent.SkillStateView()
 	case "inspect_skills":
 		reply.SkillInspection = a.parent.SkillView()
 	case "change_skill":
