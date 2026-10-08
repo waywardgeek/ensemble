@@ -20,10 +20,11 @@ The reader should be able to give one Agent an editing capability without
 changing its neighbor, its identity or the history of work already done. The
 next sections make that small sentence an enforceable contract.
 
-**Draft for contract review:** the coordinator accepted the outline's direction
-and the configuration choices below. Chapter 8 is not yet validated. No Chapter
-9 implementation, independent checker pass or actual spin is claimed; the
-student handoff requires the accepted predecessor and published contract checks.
+**Accepted contract:** Chapter 8 is checkpointed and the initial Chapter 9
+checker is published. Implementation, actual Chapter 9 use and independent
+review remain to be completed; this chapter does not claim a successful spin.
+See [the Chapter 9 validation record](chapter-09-validation.md) for the current
+handoff and acceptance gates.
 
 ## TL;DR
 
