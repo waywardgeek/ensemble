@@ -2,7 +2,7 @@
 
 Full draft prepared for contract review, October 8, 2026. New Chapter 9 maps
 to first-edition Chapter 10 under `workflow.md` and `global-review.md`.
-Coordinator review `5c517f` accepts the architecture direction and two policy
+Coordinator review `0498b61` accepts the architecture direction and two policy
 choices below. The full chapter is not yet accepted or ready for a student:
 Chapter 8 and a published independent contract checker remain prerequisites.
 No Chapter 9 implementation, passing checker or live result exists.
@@ -181,7 +181,7 @@ and unknown-variable error. Freeze the expanded bytes in each recorded body;
 never recursively expand a substituted value. A public consumer adds a third
 variable without editing a core package and proves two-Agent isolation.
 
-Coordinator disposition at `5c517f` resolves both preparation questions:
+Coordinator disposition at `0498b61` resolves both preparation questions:
 
 1. Skill mode rejects nonempty competing creation-time Config.System. The
    rendered primary supplies the base; no-skills mode keeps earlier defaults.

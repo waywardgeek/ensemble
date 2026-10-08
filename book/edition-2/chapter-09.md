@@ -442,17 +442,50 @@ Retired activations retain their original records rather than receiving new
 copies of their bodies. A change adds the newly retired summaries and can
 never revive an old activation ID.
 
-Validate shapes, IDs, exact body hashes, monotonic revisions and transitions on
-public append/load before mutation. Require one primary matching initialization,
-no duplicate active/retired ID, active dependency references and exact tools
-union within the recorded ceiling. The active set must equal the closure of
-the recorded primary and explicit roots through their dependency IDs; types
-and names must agree throughout that closure. Derive offers from active recorded offers
-minus active roots. Reject a later initializer, replacement primary, invalid
-retirement or malformed present record. These checks use recorded values,
-not the current filesystem or environment. Historical logs without skill facts
-retain their previous validation rules. Public append of a valid skill fact
-uses the same actor commit path; it cannot mutate a second projection privately.
+Validate shapes, IDs, exact body hashes and the transition from the previous
+committed state before public append or replay mutation. A plausible replacement
+snapshot is insufficient. Previously recorded activations are immutable: name,
+type, body, digest, tools, dependencies and offers cannot change. Fresh IDs use
+the next never-used integers in material order, including after an activation
+was retired. The `activated` array contains only genuinely new activations;
+retained active records keep their IDs and exact facts.
+
+Initialization has revision 0, no explicit dynamic roots or retired activations,
+and exactly the selected primary's dependency closure. Each changed record has
+the previous revision plus one and obeys the action it names:
+
+- Load adds exactly the requested root, which must be in the previous state's
+  discoverable set. Other explicit roots and active activations remain. Add only
+  the dependency activations required by that root's closure. An already active
+  root is a no-op and must not produce a transition fact.
+- Unload removes exactly the requested active root, leaves other explicit roots
+  intact and recomputes their closure with the permanent primary. Its activated
+  array is empty. Retire exactly the activations no longer in that closure;
+  previous retired summaries remain. An inactive target is a no-op and must not
+  produce a transition fact.
+
+Require one primary matching initialization, unique active/retired IDs and
+active dependency references with consistent names and types. The active set
+equals the closure of the primary and explicit roots. State tools equal the
+active grant union **plus both mandatory management names**, and every name
+lies within the unchanged ceiling. Derive available offers from the active
+recorded offers minus active roots. Reject a later initializer, replacement
+primary, hidden-root load, unrelated root change, altered retained activation,
+reused ID or invalid retirement before any state or history mutation.
+
+Replay checks these invariants from recorded facts without consulting catalogs
+or the environment. Live public append additionally prepares the named operation
+through the Agent's frozen Skills catalog and creation configuration and requires
+the supplied fact to match that candidate. It cannot inject new bodies, offers
+or grants merely because their snapshot has a valid shape. Both public append
+and typed controls use the same actor commit path and ceiling/visibility checks.
+
+An offline reader can reconstruct a skill log without configuring a live Skills
+service. That creates a historical projection, not new runtime authority.
+Construction alone may initialize a live skill-enabled Agent; public append
+cannot enable skills on a live no-skills Agent or initialize an already exposed
+Agent. It refuses such a fact before changing configuration, log or state.
+Historical logs without skill facts retain their previous validation rules.
 
 Expose a distinct neutral entry purpose `skill`, with actor `system`, activation
 identity and text material. The primary body is the Agent's creation-time
@@ -662,7 +695,7 @@ finish this exercise.
 | Variables | Candidate lists, unknown/malformed dollar, literal escape, no second expansion, two-Agent scalar isolation and exact expanded-byte limits |
 | Material | Primary fixed; new manual at completed batch boundary on all three adapters; result redaction cannot erase it; retired material remains separately identified |
 | Commit | Append failure preserves previous authority; later result failure cannot claim rollback; public control during held HTTP affects next admission |
-| Replay | Catalog absent and variables unavailable; no filesystem/model calls, identical recorded material/declarations and no usage mutation |
+| Replay | Catalog absent and variables unavailable; no filesystem/model calls, identical recorded material/declarations and no usage mutation; altered/reused activation, hidden or unrelated root change and missing management grant are refused |
 | Public/browser | Owned-copy mutation, current snapshot independent of card window, safe cards, silent replay, same-Agent CLI/browser and independent-Agent embedding |
 | Compatibility | Prior policy capture, settings persistence, jobs, streaming, pause, optional GUI and exact default CLI protocol remain protected |
 

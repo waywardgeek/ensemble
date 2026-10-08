@@ -198,7 +198,7 @@ author working changes; they do not claim that every source file was committed.
 ## Coordinator-accepted direction and full draft, October 8
 
 Preparation checkpoint `db86e0c` was reviewed in `chapter-09-review.md` at
-`5c517f`. The coordinator accepted immutable scalar custom bindings and explicit
+`0498b61`. The coordinator accepted immutable scalar custom bindings and explicit
 primary/System conflict rejection, with existing enduring instruction appends
 retained as supplements. Agent owns creation configuration; Skills reaches it
 through its parent. The coordinator also accepted the single durable commit
@@ -271,3 +271,30 @@ existing runtime artifacts. No build, grader or live gate is claimed.
 - Full-draft read `solutions/edition-2/main/internal/tools/registry.go`: SHA-256 `41ccba00940d0aa789817e85ff2939d26acbfdc1e15ab7db2148ebebace5d4fb`.
 
 - Full-draft read `solutions/edition-2/main/internal/llm/render.go`: SHA-256 `a16794d7e8df463db8111403289ea94507f2fccc4344d8cd12d44bbc4263a89f`.
+
+
+## Transition-validation clarification before checker work
+
+The coordinator's full-draft review requests a stricter statement of the existing
+single-authority contract. Section 9.7 now validates each action against the prior
+state: exact requested root addition/removal, previous visibility for load,
+closure recomputation, immutable retained activations, never-reused fresh IDs,
+and the active tool union plus the mandatory management pair within the fixed
+ceiling. No-op operations emit no transition fact. Live public append recomputes
+the candidate through frozen catalog/configuration, preventing a replacement
+snapshot from bypassing the ordinary load rules. Offline replay validates the
+recorded transition without a catalog; it does not enable a live no-skills
+Agent through an appended initializer. Section 9.10 names distinguishing negative
+controls. No feature, runtime or grader change is introduced by this clarification.
+
+Verified the coordinator review commit as
+`0498b6170892d630a8be706bb846a2d87a705a8b` with Git. The earlier draft repeated
+handoff shorthand `5c517f`, which does not resolve in this repository. Current
+outline/reconciliation references are corrected; the initial draft remains
+preserved at `49ae919` with its original citation and no rewritten history.
+
+
+Scoped recheck: Chapter 9 passes all hard prose rules at 5,506 words;
+15 negation forms and the person-gap warning were reviewed for the new exact
+refusal language. `git diff --check` is clean. The eight literal JSON fixtures
+and their body bytes were unchanged by this transition clarification.
