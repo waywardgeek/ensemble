@@ -118,6 +118,20 @@ reliable completion collections; transient display observations do not deliver
 or consume request completion. The coordinator accepted these working choices
 on 2026-10-07; implementation still requires the validated Chapter 4 predecessor.
 
+Chapter 7's comparative review exposed another shared resource: native browser
+speech belongs to the document, even when multiple Agent panels have separate
+logical queues. The coordinator's accepted revision plan gives an explicit
+browser application root ownership of the native speech service and its Page
+children. Pages keep their own input, queues and pause causes; they reach the
+shared service through that parent. The service admits ready utterances in
+FIFO order, owns at most one native utterance, and cancels only the requesting
+Page's work. An idle Page cannot cancel another Page's speech. Page/component
+close removes owned DOM listeners and fences pending callbacks before a
+replacement can reuse the layout. This is optional GUI ownership, with no new
+browser dependency in the agent library. See Chapter 7 and its validation
+record for implementation/review status; this paragraph records the design
+decision, not a completed revision claim.
+
 ## Source reconciliation
 
 `docs/ensemble-topology-decisions.md` already distinguishes the application
