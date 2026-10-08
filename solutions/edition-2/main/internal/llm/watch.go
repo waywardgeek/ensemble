@@ -169,10 +169,13 @@ func (a *Actor) receiveWatch(m common.ActorMessage) bool {
 		s.Generation = fmt.Sprintf("%s-g%d", s.AgentID, a.nextWatch)
 		s.Watermark = a.revision
 		s.State.Lifecycle = a.state
+		s.State.ExecutionPolicy = a.parent.Policy().Snapshot()
 		s.State.QueuedRequestIDs = []string{}
 		if a.active != nil {
 			id := a.active.id
 			s.State.ActiveRequestID = &id
+			limit := a.active.policy.EffectiveMaxModelRequests
+			s.State.ActiveMaxModelRequests = &limit
 		}
 		for _, r := range a.pending {
 			s.State.QueuedRequestIDs = append(s.State.QueuedRequestIDs, r.id)

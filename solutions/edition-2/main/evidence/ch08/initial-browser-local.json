@@ -1,0 +1,16 @@
+{
+  "scope": "Local fake-model browser and controlled speech callbacks, no live or audible claim",
+  "passed": false,
+  "checks": [
+    "shared-theme-font-and-keyboard-width",
+    "pointer-width-and-responsive-desired-width",
+    "invalid-draft-distinct-from-applied-and-recovery"
+  ],
+  "failures": [
+    {
+      "name": "false-zero-and-policy-control",
+      "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('[data-policy-applied]').filter({ hasText: 'Default (16)' }) to be visible\u001b[22m\n\n    at /Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch08/browser-local.mjs:42:166\n    at async check (/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch08/browser-local.mjs:20:35)\n    at async file:///Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch08/browser-local.mjs:38:2"
+    }
+  ],
+  "model_requests": 0
+}

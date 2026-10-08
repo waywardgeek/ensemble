@@ -13,6 +13,8 @@ import (
 	"time"
 
 	"example.com/ensemble"
+	"example.com/ensemble-gui/internal/common"
+	"example.com/ensemble-gui/internal/preferences"
 	"github.com/gorilla/websocket"
 )
 
@@ -20,13 +22,13 @@ import (
 var assets embed.FS
 
 // ServerOwner is a connection's actual parent and its route to application services.
-type ServerOwner interface {
-	Ensemble() ensemble.ClientOwner
-	AgentID() string
-	Origin() string
-	Trace(string, string, string, any)
-}
+type ServerOwner = common.Server
+type Preferences = common.Preferences
+type PreferencesSnapshot = common.PreferencesSnapshot
+type PreferencesService = common.PreferencesService
+type ServerOptions struct{ PreferencesPath string }
 type Server struct {
+	preferences     *preferences.Service
 	parent          ensemble.ClientOwner
 	agentID, origin string
 	mu              sync.Mutex
@@ -37,7 +39,7 @@ type Server struct {
 	trace           io.Writer
 }
 
-func NewServer(parent ensemble.ClientOwner, agentID, origin string, trace io.Writer) (*Server, error) {
+func NewServer(parent ensemble.ClientOwner, agentID, origin string, trace io.Writer, options ...ServerOptions) (*Server, error) {
 	parsed, err := url.Parse(origin)
 	if err != nil || parsed.Scheme != "http" || parsed.Host == "" || parsed.Path != "" || parsed.User != nil {
 		return nil, fmt.Errorf("expected local HTTP origin")
@@ -45,11 +47,24 @@ func NewServer(parent ensemble.ClientOwner, agentID, origin string, trace io.Wri
 	if parsed.Hostname() != "127.0.0.1" || parsed.Port() == "" {
 		return nil, fmt.Errorf("server requires 127.0.0.1 and explicit port")
 	}
-	return &Server{parent: parent, agentID: agentID, origin: origin, trace: trace, connections: map[*Connector]bool{}}, nil
+	if len(options) > 1 {
+		return nil, fmt.Errorf("only one ServerOptions allowed")
+	}
+	path := ".ensemble/gui-preferences.json"
+	if len(options) == 1 && options[0].PreferencesPath != "" {
+		path = options[0].PreferencesPath
+	}
+	s := &Server{parent: parent, agentID: agentID, origin: origin, trace: trace, connections: map[*Connector]bool{}}
+	s.preferences, err = preferences.New(s, path)
+	if err != nil {
+		return nil, err
+	}
+	return s, nil
 }
-func (s *Server) Ensemble() ensemble.ClientOwner { return s.parent }
-func (s *Server) AgentID() string                { return s.agentID }
-func (s *Server) Origin() string                 { return s.origin }
+func (s *Server) Ensemble() ensemble.ClientOwner         { return s.parent }
+func (s *Server) Preferences() common.PreferencesService { return s.preferences }
+func (s *Server) AgentID() string                        { return s.agentID }
+func (s *Server) Origin() string                         { return s.origin }
 func (s *Server) Trace(id, direction, stage string, message any) {
 	s.traceMu.Lock()
 	defer s.traceMu.Unlock()
@@ -110,6 +125,7 @@ func (s *Server) Close() error {
 		all = append(all, c)
 	}
 	s.mu.Unlock()
+	s.preferences.Close()
 	for _, c := range all {
 		c.Close()
 	}

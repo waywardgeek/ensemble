@@ -1,6 +1,7 @@
 import {Connector} from './connector.js';
 import {ArtifactScroll} from './artifacts.js';
 import {SpeechQueue} from './speech.js';
+import {SettingsPanel} from './preferences.js';
 
 // Public page controller: an embedding may provide a different layout using the
 // same labeled elements, or own Connector and ArtifactScroll directly.
@@ -9,18 +10,20 @@ export class Page {
     this.parent = parent; this.listeners = []; this.closed = false;
     this.root = root; this.input = root.querySelector('[data-input]'); this.status = root.querySelector('[data-status]');
     this.notice = root.querySelector('[data-notice]'); this.pauseStatus = root.querySelector('[data-pause]');
-    this.artifacts = new ArtifactScroll(this, root.querySelector('[data-artifacts]'));
-    this.speech = new SpeechQueue(this); this.connector = new Connector(this, url); this.connected = false;
+    const actions = root.querySelector('[data-actions]');
+    this.artifacts = new ArtifactScroll(this, root.querySelector('[data-artifacts]'), actions ? 'chat' : 'all');
+    this.actions = actions ? new ArtifactScroll(this, actions, 'actions') : null;
+    this.speech = new SpeechQueue(this); this.connector = new Connector(this, url); this.connected = false; this.settings = new SettingsPanel(this);
     this.listen(this.input, 'input', () => this.reconcile().catch(e => this.diagnostic(e.message)));
     this.listen(this.input, 'keydown', e => { if (e.key === 'Escape' && this.input.value === '') { e.preventDefault(); this.speech.cancel(); } });
     this.listen(root.querySelector('[data-prompt]'), 'click', () => this.submit('prompt'));
     this.listen(root.querySelector('[data-hint]'), 'click', () => this.submit('hint'));
     this.listen(root.querySelector('[data-interrupt]'), 'click', () => this.connector.send('interrupt').catch(e => this.diagnostic(e.message)));
-    this.listen(root.querySelector('[data-latest]'), 'click', () => this.artifacts.latest());
+    this.listen(root.querySelector('[data-latest]'), 'click', () => { this.artifacts.latest(); this.actions?.latest(); });
     this.listen(root.querySelector('[data-cancel-speech]'), 'click', () => this.speech.cancel());
-    const auto = root.querySelector('[data-auto-speech]'); auto.setAttribute('aria-pressed', 'false');
-    auto.textContent = 'Auto speech: off';
-    this.listen(auto, 'click', () => { this.speech.enable(!this.speech.enabled); auto.setAttribute('aria-pressed', String(this.speech.enabled)); auto.textContent = this.speech.enabled ? 'Auto speech: on' : 'Auto speech: off'; });
+    const auto = root.querySelector('[data-auto-speech]');
+    if (auto) this.listen(auto, 'click', () => { this.speech.activate(); this.settings.change({autoplay: !this.speech.enabled}, auto); });
+    const playback = root.querySelector('[data-enable-playback]'); if (playback) this.listen(playback, 'click', () => this.speech.activate());
     this.connector.connect();
   }
   application() { return this.parent; }
@@ -31,11 +34,13 @@ export class Page {
     if (this.closed) return;
     this.status.textContent = status;
     this.connected = status.startsWith('Connected'); this.lastCauses = null;
-    if (!this.connected) { this.speech.cancel(); this.artifacts.incomplete(); this.pauseStatus.textContent = 'No pause held by this page'; }
+    if (!this.connected) { this.speech.cancel(); this.artifacts.incomplete(); this.actions?.incomplete(); this.pauseStatus.textContent = 'No pause held by this page'; }
     else this.reconcile().catch(e => this.diagnostic(e.message));
   }
-  snapshot(snapshot) { if (this.closed) return; this.speech.reset(); this.speech.seed(snapshot.partials); this.artifacts.reset(snapshot); this.pause(snapshot.state); }
-  observation(o) { if (this.closed) return; this.artifacts.observation(o); this.speech.observe(o); if (o.kind === 'pause_changed') this.pause(o); }
+  preferences(snapshot) { if (this.closed) return; this.settings.apply(snapshot); const auto=this.root.querySelector('[data-auto-speech]'); if(auto){auto.setAttribute('aria-pressed',String(snapshot.preferences.autoplay));auto.textContent='Autoplay new answers: '+(snapshot.preferences.autoplay?'on':'off');} }
+  snapshot(snapshot) { if (this.closed) return; this.speech.reset(); this.speech.seed(snapshot.partials); this.artifacts.reset(snapshot); this.actions?.reset(snapshot); this.pause(snapshot.state); this.settings.policy(snapshot.state.execution_policy, snapshot.state.active_max_model_requests); this.lifecycle(snapshot.state.lifecycle, snapshot.agent_id); }
+  lifecycle(state, agent) { const el=this.root.querySelector('[data-agent]'); if(el){if(agent)this.agentID=agent;el.textContent=`${this.agentID || ''} — ${state}`;} }
+  observation(o) { if (this.closed) return; this.artifacts.observation(o); this.actions?.observation(o); this.speech.observe(o); if (o.kind === 'pause_changed') this.pause(o); if(o.kind==='policy_changed')this.settings.policy(o.execution_policy); if(o.kind==='state')this.lifecycle(o.state,o.agent_id); if(o.event?.type==='turn_started')this.settings.policy(this.settings.executionPolicy,o.event.turn.policy?.effective_max_model_requests ?? 16); if(o.event?.type==='turn_ended')this.settings.policy(this.settings.executionPolicy,null); }
   pause(state) { this.pauseStatus.textContent = `${state.paused ? 'Tool admissions paused' : 'Tool admissions available'} — typing: ${state.typing_clients}, speaking: ${state.speaking_clients}. Already admitted work continues.`; }
   reply(m) {
     if (this.closed) return;
@@ -67,12 +72,12 @@ export class Page {
     } catch (e) { this.diagnostic(e.message); }
     if (!this.closed) this.input.focus();
   }
-  speak(key, text) { if (!this.connected) { this.diagnostic('Connect before speaking'); return; } this.speech.enqueue('manual/' + key, text); }
+  speak(key, text) { if (!this.connected) { this.diagnostic('Connect before speaking'); return; } this.speech.activate(); this.speech.enqueue('manual/' + key, text); }
   close() {
     if (this.closed) return;
     this.closed = true; this.connected = false;
     for (const remove of this.listeners) remove();
     this.listeners = [];
-    this.connector.close(); this.speech.close(); this.artifacts.close(); this.parent.release(this);
+    this.connector.close(); this.speech.close(); this.artifacts.close(); this.actions?.close(); this.settings.close(); this.parent.release(this);
   }
 }

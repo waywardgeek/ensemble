@@ -7,7 +7,7 @@ export class Connector {
   }
   connect() {
     if (this.closed) return;
-    const socket = new WebSocket(this.url); this.socket = socket; this.count = 0;
+    const socket = new WebSocket(this.url); this.socket = socket; this.count = 0; this.preferences = null; this.settingsReady = false;
     this.owner.connection('Connecting');
     socket.onopen = () => { if (socket === this.socket) this.send('subscribe').catch(e => this.owner.diagnostic(e.message)); };
     socket.onmessage = event => {
@@ -16,7 +16,7 @@ export class Connector {
     };
     socket.onclose = () => {
       if (socket !== this.socket) return;
-      this.staging = null; this.generation = null;
+      this.staging = null; this.generation = null; this.settingsReady = false;
       this.rejectPending(); this.owner.connection('Disconnected — this page no longer holds a pause');
       if (!this.closed) this.timer = setTimeout(() => this.connect(), 500);
     };
@@ -45,6 +45,10 @@ export class Connector {
     });
   }
   receive(m) {
+    if (m.type === "preferences_snapshot" || m.type === "preferences_changed") {
+      if (m.type === "preferences_changed" && (!this.preferences || m.revision !== this.preferences.revision + 1)) throw new Error("preferences revision gap");
+      this.preferences = {revision: m.revision, preferences: m.preferences}; this.owner.preferences?.(this.preferences); return;
+    }
     if (m.type === 'snapshot_begin') {
       this.staging = {...m, events: [], partials: []}; return;
     }
@@ -55,7 +59,8 @@ export class Connector {
       if (m.type === 'snapshot_end') {
         if (m.watermark !== this.staging.watermark) throw new Error('snapshot watermark mismatch');
         const s = this.staging; this.staging = null; this.generation = s.generation; this.revision = s.watermark;
-        this.owner.snapshot(s); this.owner.connection('Connected — ' + this.generation);
+        if (!this.preferences || !s.state.execution_policy) throw new Error('settings snapshot missing');
+        this.settingsReady = true; this.owner.snapshot(s); this.owner.connection('Connected — ' + this.generation);
         const pending = this.pending.get(s.id); this.pending.delete(s.id); pending?.resolve(s);
       }
       return;
@@ -66,7 +71,7 @@ export class Connector {
       this.revision = m.revision; this.owner.observation(m.observation); return;
     }
     const pending = this.pending.get(m.id);
-    if (pending) { this.pending.delete(m.id); m.type === 'error' ? pending.reject(new Error(m.message)) : pending.resolve(m); }
+    if (pending) { this.pending.delete(m.id); m.type === 'error' ? pending.reject(Object.assign(new Error(m.message), {code:m.code, domain:m.domain, current:m.current})) : pending.resolve(m); }
     this.owner.reply(m);
   }
 }

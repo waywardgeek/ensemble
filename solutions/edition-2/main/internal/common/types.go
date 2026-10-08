@@ -16,6 +16,7 @@ type Message struct {
 type Conversation []Message
 
 type Config struct {
+	PolicyPath       string
 	DisableStreaming bool
 	APIKey           string
 	Model            string
@@ -90,8 +91,9 @@ type Entry struct {
 	Parts   []Part `json:"parts"`
 }
 type TurnEvent struct {
-	RequestID string `json:"request_id"`
-	Outcome   string `json:"outcome,omitempty"`
+	Policy    *TurnPolicy `json:"policy,omitempty"`
+	RequestID string      `json:"request_id"`
+	Outcome   string      `json:"outcome,omitempty"`
 }
 type HintEvent struct {
 	RequestID string `json:"request_id"`
@@ -176,28 +178,29 @@ type Context struct {
 	LastSeq       uint64
 }
 type Observation struct {
-	Paused          bool   `json:"paused"`
-	TypingClients   int    `json:"typing_clients"`
-	SpeakingClients int    `json:"speaking_clients"`
-	OperationID     string `json:"operation_id,omitempty"`
-	Delivery        string `json:"delivery,omitempty"`
-	PartID          int    `json:"part_id,omitempty"`
-	Channel         string `json:"channel,omitempty"`
-	Text            string `json:"text,omitempty"`
-	ResponseSeq     uint64 `json:"response_seq,omitempty"`
-	PartIndex       int    `json:"part_index"`
-	Accepted        bool   `json:"accepted"`
-	Code            string `json:"code,omitempty"`
-	Message         string `json:"message,omitempty"`
-	RequestID       string `json:"request_id,omitempty"`
-	OldState        string `json:"old_state,omitempty"`
-	State           string `json:"state,omitempty"`
-	Position        int    `json:"position,omitempty"`
-	Part            *Part  `json:"part,omitempty"`
-	AgentID         string `json:"agent_id"`
-	Seq             uint64 `json:"seq"`
-	Kind            string `json:"kind"`
-	Event           Event  `json:"event"`
+	ExecutionPolicy *PolicySnapshot `json:"execution_policy,omitempty"`
+	Paused          bool            `json:"paused"`
+	TypingClients   int             `json:"typing_clients"`
+	SpeakingClients int             `json:"speaking_clients"`
+	OperationID     string          `json:"operation_id,omitempty"`
+	Delivery        string          `json:"delivery,omitempty"`
+	PartID          int             `json:"part_id,omitempty"`
+	Channel         string          `json:"channel,omitempty"`
+	Text            string          `json:"text,omitempty"`
+	ResponseSeq     uint64          `json:"response_seq,omitempty"`
+	PartIndex       int             `json:"part_index"`
+	Accepted        bool            `json:"accepted"`
+	Code            string          `json:"code,omitempty"`
+	Message         string          `json:"message,omitempty"`
+	RequestID       string          `json:"request_id,omitempty"`
+	OldState        string          `json:"old_state,omitempty"`
+	State           string          `json:"state,omitempty"`
+	Position        int             `json:"position,omitempty"`
+	Part            *Part           `json:"part,omitempty"`
+	AgentID         string          `json:"agent_id"`
+	Seq             uint64          `json:"seq"`
+	Kind            string          `json:"kind"`
+	Event           Event           `json:"event"`
 }
 type Observer interface{ Observe(Observation) }
 type ClientRequest struct {
@@ -213,6 +216,8 @@ type ClientResult struct {
 }
 
 type Ensemble interface {
+	ClaimSettingsPath(string) (string, error)
+	ReleaseSettingsPath(string)
 	Logf(string, ...any)
 	Publish(string, Event)
 	AllocateHandle() uint64
@@ -234,6 +239,10 @@ type EventLog interface {
 
 // ClientOwner is public through an alias; optional clients never import internal packages.
 type ClientOwner interface {
+	ClaimSettingsPath(string) (string, error)
+	ReleaseSettingsPath(string)
+	ExecutionPolicy(string) (PolicySnapshot, error)
+	UpdatePolicy(string, uint64, json.RawMessage) (PolicyAck, error)
 	Watch(string) (WatchSnapshot, Watch, error)
 	RegisterPause(string) (PauseRegistration, error)
 	Logf(string, ...any)

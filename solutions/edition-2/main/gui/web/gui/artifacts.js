@@ -44,7 +44,8 @@ export class Artifact {
 }
 // ArtifactScroll accepts projected records; its owner supplies speech/control.
 export class ArtifactScroll {
-  constructor(owner, element) {
+  constructor(owner, element, scope = "all") {
+    this.scope = scope;
     this.owner = owner; this.element = element; this.cards = new Map(); this.calls = new Map(); this.jobs = new Map(); this.follow = true;
     this.onScroll = () => { this.follow = element.scrollHeight - element.scrollTop - element.clientHeight < 80; }; element.addEventListener('scroll', this.onScroll);
   }
@@ -68,18 +69,23 @@ export class ArtifactScroll {
     this.changed();
   }
   partial(p, channels) {
+    const isTool = Object.hasOwn(channels, "tool_name") || Object.hasOwn(channels, "tool_args");
+    if (this.scope === "chat" && isTool || this.scope === "actions" && !isTool) return;
     const key = 'p/' + partKey(p); const card = this.cards.get(key);
     const values = {...card?.channels, ...channels}; const tool = Object.hasOwn(values, 'tool_name') || Object.hasOwn(values, 'tool_args');
     const text = tool ? `${values.tool_name || ''}\n${values.tool_args || ''}` : [values.thinking, values.text].filter(v => v !== undefined).join('\n');
     const updated = this.card(key, tool ? 'Proposed tool' : Object.hasOwn(values, 'thinking') ? 'Thinking / answer' : 'Answer', text, !tool);
     updated.channels = values; updated.status = 'Provisional'; updated.identity = p; updated.render(); return updated;
   }
+  accepts(part) { const tool = ["tool_call", "tool_result"].includes(part.type); return this.scope === "all" || (this.scope === "actions" ? tool : !tool); }
   final(o) {
+    if (!this.accepts(o.part)) return;
     const provisional = 'p/' + partKey(o), key = `d/${o.agent_id}/${o.response_seq}/${o.part_index}`; const card = this.cards.get(provisional);
     if (card) { this.cards.delete(provisional); card.key = key; card.element.dataset.key = key; this.cards.set(key, card); }
     this.part(key, o.part, o.agent_id);
   }
   part(key, part, agent) {
+    if (!this.accepts(part)) return;
     let title = 'Unknown content', text = JSON.stringify(part), markdown = false;
     if (part.type === 'text' || part.type === 'thinking') { title = part.type === 'thinking' ? 'Thinking' : 'Answer'; text = part.text ?? ''; markdown = true; }
     if (part.type === 'opaque') { title = 'Opaque provider content'; text = '[Opaque provider content — unavailable for display]'; }
@@ -87,6 +93,8 @@ export class ArtifactScroll {
     const card = this.card(key, title, text, markdown); card.status = part.type === 'tool_call' ? 'Accepted proposal — not yet started' : 'Accepted'; card.render(); return card;
   }
   event(e, replay = false, agent = this.agent) {
+    const action = ["tool_called", "tool_returned", "job_ended", "job_killed"].includes(e.type);
+    if (this.scope === "chat" && action || this.scope === "actions" && !action && e.type !== "response_ended") return;
     const key = `e/${agent}/${e.seq}`;
     if (e.type === 'message_received') this.card(key, e.message.actor === 'human' ? 'You' : 'Message', e.message.parts.map(p => p.text ?? `[${p.type}]`).join('\n'));
     if (e.type === 'hint_received') this.card(key, 'Hint received', e.hint.text);

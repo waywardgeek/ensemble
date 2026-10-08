@@ -470,3 +470,6 @@ func TestPreparedReportDoesNotConsumeUntilAccepted(t *testing.T) {
 }
 
 func (*testAgent) ModelReady(common.ModelOperation) {}
+
+func (*testRoot) ClaimSettingsPath(path string) (string, error) { return path, nil }
+func (*testRoot) ReleaseSettingsPath(string)                    {}

@@ -2,16 +2,22 @@ import {partKey} from './artifacts.js';
 // The page owns one queue. Every callback is fenced by its queue generation.
 export class SpeechQueue {
   constructor(owner) {
-    this.owner = owner;
+    this.owner = owner; this.revision = 0; this.rate = 1; this.playbackReady = false;
     this.queue = []; this.generation = 0; this.current = null; this.cursors = new Map(); this.enabled = false;
   }
   busy() { return this.queue.length > 0 || this.current !== null; }
   service() { return this.owner.application().speech(); }
-  enable(value) { this.enabled = value; if (value && !this.service().available()) { this.owner.diagnostic('Speech synthesis unavailable'); this.enabled = false; } }
+  activate() { this.playbackReady = this.service().available(); this.owner.diagnostic(this.playbackReady ? "Playback enabled on this page" : "Speech synthesis unavailable"); }
+  preferences(snapshot) {
+    this.revision = snapshot.revision; this.rate = snapshot.preferences.speech_rate; this.enabled = snapshot.preferences.autoplay;
+    if (!this.enabled) for (const cursor of this.cursors.values()) cursor.sent = cursor.text.length;
+    if (this.enabled && !this.playbackReady) this.owner.diagnostic("Autoplay is shared; enable playback on this page to hear future answers");
+  }
+  enable(value) { if (value) this.activate(); this.enabled = value; if (value && !this.service().available()) { this.owner.diagnostic('Speech synthesis unavailable'); this.enabled = false; } }
   enqueue(key, text, operation = null) {
     if (this.closed || !text.trim()) return;
     if (!this.service().available()) { this.owner.diagnostic('Speech synthesis unavailable'); return; }
-    this.queue.push({key, text, operation}); this.owner.reconcile().catch(e => this.owner.diagnostic(e.message)); this.pump();
+    this.queue.push({key, text, operation, revision: this.revision, rate: this.rate}); this.owner.reconcile().catch(e => this.owner.diagnostic(e.message)); this.pump();
   }
   async pump() {
     if (this.current || !this.queue.length) return;
@@ -27,9 +33,9 @@ export class SpeechQueue {
       if (this.queue.length) this.pump(); else this.owner.reconcile().catch(e => this.owner.diagnostic(e.message));
     };
     this.service().submit(this.owner, item.text, {
-      start: () => { if (generation === this.generation) this.owner.speechEvent({type: 'start', key: item.key, text: item.text}); },
+      start: () => { if (generation === this.generation) this.owner.speechEvent({type: 'start', key: item.key, text: item.text, revision: item.revision, rate: item.rate}); },
       end: settle,
-    });
+    }, item.rate);
   }
   cancel(operation = null) {
     const retained = operation ? this.queue.filter(item => item.operation !== operation) : [];
@@ -50,7 +56,7 @@ export class SpeechQueue {
   observe(o) {
     const operation = [o.agent_id, o.request_id, o.operation_id].join('/');
     if (o.kind === 'model_end') { if (!o.accepted) this.cancel(operation); return; }
-    if (!this.enabled || !['part_delta', 'part_final'].includes(o.kind)) return;
+    if (!['part_delta', 'part_final'].includes(o.kind)) return;
     const key = partKey(o);
     let cursor = this.cursors.get(key);
     if (!cursor) { cursor = {text: '', sent: 0, tool: false}; this.cursors.set(key, cursor); }
@@ -59,10 +65,11 @@ export class SpeechQueue {
       if (o.part.type === 'text' || o.part.type === 'thinking') cursor.text = o.part.text ?? '';
       if (o.part.type === 'tool_call' && !cursor.tool) {
         cursor.tool = true; const args = o.part.args || {}; const path = args.path || args.file_path || args.directory || '';
-        this.enqueue(key, `Tool ${o.part.name}${path ? ': ' + path : ''}`, operation); return;
+        if (this.enabled && this.playbackReady) this.enqueue(key, `Tool ${o.part.name}${path ? ': ' + path : ''}`, operation); return;
       }
     }
     if (o.kind !== 'part_delta' && o.kind !== 'part_final') return;
+    if (!this.enabled || !this.playbackReady) { cursor.sent = cursor.text.length; return; }
     const pending = cursor.text.slice(cursor.sent);
     const boundary = o.kind === 'part_final' ? pending.length : Math.max(...Array.from(pending.matchAll(/[.!?](?:\s|$)/g), m => m.index + m[0].length), 0);
     if (boundary > 0) { this.enqueue(key, pending.slice(0, boundary), operation); cursor.sent += boundary; }

@@ -1,0 +1,15 @@
+{
+  "scope": "Local fake-model browser and controlled speech callbacks, no live or audible claim",
+  "passed": true,
+  "checks": [
+    "shared-theme-font-and-keyboard-width",
+    "pointer-width-and-responsive-desired-width",
+    "invalid-draft-distinct-from-applied-and-recovery",
+    "false-zero-and-policy-control",
+    "mixed-response-safe-two-pane-full-retained-content",
+    "system-theme-and-browser-restart-persistence",
+    "controlled-speech-revision-rate-and-page-cancellation"
+  ],
+  "failures": [],
+  "model_requests": 2
+}

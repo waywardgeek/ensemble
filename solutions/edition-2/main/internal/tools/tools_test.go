@@ -205,3 +205,6 @@ func (testRoot) Observe(common.Observation)                       {}
 func (testRoot) Collect([]common.RequestHandle) common.Collection { return nil }
 
 func (testAgent) ModelReady(common.ModelOperation) {}
+
+func (testRoot) ClaimSettingsPath(path string) (string, error) { return path, nil }
+func (testRoot) ReleaseSettingsPath(string)                    {}

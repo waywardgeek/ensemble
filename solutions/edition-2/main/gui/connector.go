@@ -1,8 +1,10 @@
 package gui
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"example.com/ensemble-gui/internal/common"
 	"io"
 	"strings"
 	"sync"
@@ -21,29 +23,33 @@ type outgoing struct {
 // Connector owns one socket's reader, writer, subscription and pause registration.
 // The queue is never closed: a separate canceled context ends every producer.
 type Connector struct {
-	parent      ServerOwner
-	id          string
-	socket      *websocket.Conn
-	ctx         context.Context
-	cancel      context.CancelFunc
-	once        sync.Once
-	done        chan struct{}
-	workers     sync.WaitGroup
-	mu          sync.Mutex
-	queue       []outgoing
-	bytes       int
-	wake, space chan struct{}
-	watch       ensemble.Watch
-	pause       ensemble.PauseRegistration
-	generation  string
-	revision    uint64
-	advanced    chan struct{}
-	ids         map[string]bool
+	preferences         common.PreferencesWatch
+	preferencesRevision uint64
+	preferencesAdvanced chan struct{}
+	snapshotDone        chan struct{}
+	parent              ServerOwner
+	id                  string
+	socket              *websocket.Conn
+	ctx                 context.Context
+	cancel              context.CancelFunc
+	once                sync.Once
+	done                chan struct{}
+	workers             sync.WaitGroup
+	mu                  sync.Mutex
+	queue               []outgoing
+	bytes               int
+	wake, space         chan struct{}
+	watch               ensemble.Watch
+	pause               ensemble.PauseRegistration
+	generation          string
+	revision            uint64
+	advanced            chan struct{}
+	ids                 map[string]bool
 }
 
 func NewConnector(parent ServerOwner, id string, socket *websocket.Conn) *Connector {
 	ctx, cancel := context.WithCancel(context.Background())
-	return &Connector{parent: parent, id: id, socket: socket, ctx: ctx, cancel: cancel, done: make(chan struct{}), wake: make(chan struct{}, 1), space: make(chan struct{}, 1), advanced: make(chan struct{}), ids: map[string]bool{}}
+	return &Connector{preferencesAdvanced: make(chan struct{}), snapshotDone: make(chan struct{}), parent: parent, id: id, socket: socket, ctx: ctx, cancel: cancel, done: make(chan struct{}), wake: make(chan struct{}, 1), space: make(chan struct{}, 1), advanced: make(chan struct{}), ids: map[string]bool{}}
 }
 func (c *Connector) Server() ServerOwner   { return c.parent }
 func (c *Connector) Done() <-chan struct{} { return c.done }
@@ -56,7 +62,11 @@ func (c *Connector) stop(reason string) {
 		_ = c.socket.Close()
 		c.mu.Lock()
 		watch, pause := c.watch, c.pause
+		preferences := c.preferences
 		c.mu.Unlock()
+		if preferences != nil {
+			preferences.Close()
+		}
 		if watch != nil {
 			watch.Close()
 		}
@@ -172,6 +182,15 @@ func (c *Connector) Run() {
 			return
 		}
 		c.parent.Trace(c.id, "client_to_server", "received", json.RawMessage(data))
+		if err := commandObject(c, data); err != nil {
+			var id string
+			if json.Unmarshal(fields["id"], &id) != nil || strings.TrimSpace(id) == "" {
+				c.stop("id must be a nonempty string")
+			} else {
+				c.refuse(id, err.Error())
+			}
+			continue
+		}
 		c.command(fields)
 	}
 }
@@ -203,6 +222,9 @@ func (c *Connector) command(f map[string]json.RawMessage) {
 	case "pause":
 		allowed["typing"] = true
 		allowed["speaking"] = true
+	case "preferences_update", "policy_update":
+		allowed["base_revision"] = true
+		allowed["patch"] = true
 	case "subscribe", "interrupt":
 	default:
 		c.refuse(id, "unknown command")
@@ -231,6 +253,18 @@ func (c *Connector) command(f map[string]json.RawMessage) {
 			return
 		}
 	}
+	var base uint64
+	if kind == "preferences_update" || kind == "policy_update" {
+		if bytes.Equal(bytes.TrimSpace(f["base_revision"]), []byte("null")) || json.Unmarshal(f["base_revision"], &base) != nil {
+			c.refuse(id, "base_revision must be a nonnegative integer")
+			return
+		}
+		var patch map[string]json.RawMessage
+		if json.Unmarshal(f["patch"], &patch) != nil || len(patch) == 0 {
+			c.refuse(id, "patch must be a nonempty object")
+			return
+		}
+	}
 	c.ids[id] = true
 	c.mu.Lock()
 	subscribed := c.watch != nil
@@ -247,14 +281,21 @@ func (c *Connector) command(f map[string]json.RawMessage) {
 			c.refuse(id, "already subscribed")
 			return
 		}
+		ps, pw, err := c.parent.Preferences().Subscribe()
+		if err != nil {
+			c.settingsError(id, err)
+			return
+		}
 		p, err := owner.RegisterPause(agent)
 		if err != nil {
+			pw.Close()
 			c.refuse(id, err.Error())
 			return
 		}
 		s, w, err := owner.Watch(agent)
 		if err != nil {
 			p.Close()
+			pw.Close()
 			c.refuse(id, err.Error())
 			return
 		}
@@ -262,15 +303,20 @@ func (c *Connector) command(f map[string]json.RawMessage) {
 		if c.ctx.Err() != nil {
 			c.mu.Unlock()
 			p.Close()
+			pw.Close()
 			w.Close()
 			return
 		}
+		c.preferences = pw
 		c.pause = p
 		c.watch = w
 		c.generation = s.Generation
 		c.mu.Unlock()
 		c.workers.Add(1)
-		go c.deliverSnapshot(id, s, w)
+		go c.deliverSnapshot(id, s, w, ps)
+	case "preferences_update", "policy_update":
+		c.workers.Add(1)
+		go c.updateSettings(id, kind, base, append(json.RawMessage(nil), f["patch"]...))
 	case "pause":
 		c.mu.Lock()
 		p := c.pause
@@ -319,7 +365,7 @@ func (c *Connector) advance(revision uint64) {
 	c.advanced = make(chan struct{})
 	c.mu.Unlock()
 }
-func (c *Connector) deliverSnapshot(id string, s ensemble.WatchSnapshot, w ensemble.Watch) {
+func (c *Connector) deliverSnapshot(id string, s ensemble.WatchSnapshot, w ensemble.Watch, ps common.PreferencesSnapshot) {
 	defer c.workers.Done()
 	// Loss while a large snapshot is sending invalidates the entire generation.
 	lost := make(chan struct{})
@@ -328,12 +374,18 @@ func (c *Connector) deliverSnapshot(id string, s ensemble.WatchSnapshot, w ensem
 	go func() {
 		defer close(monitorDone)
 		select {
+		case <-c.preferences.Done():
+			c.stop("preferences watch lost; resync required")
 		case <-w.Done():
 			c.stop("watch lost; resync required")
 		case <-lost:
 		case <-c.ctx.Done():
 		}
 	}()
+	if !c.send(map[string]any{"type": "preferences_snapshot", "revision": ps.Revision, "preferences": ps.Preferences}, true) {
+		return
+	}
+	c.advancePreferences(ps.Revision)
 	if !c.send(map[string]any{"type": "snapshot_begin", "id": id, "generation": s.Generation, "agent_id": s.AgentID, "watermark": s.Watermark, "first_seq": s.FirstSeq, "last_seq": s.LastSeq, "log_seq": s.LogSeq, "omitted": s.Omitted, "state": s.State}, true) {
 		return
 	}
@@ -351,6 +403,9 @@ func (c *Connector) deliverSnapshot(id string, s ensemble.WatchSnapshot, w ensem
 		return
 	}
 	c.advance(s.Watermark)
+	close(c.snapshotDone)
+	c.workers.Add(1)
+	go c.deliverPreferences()
 	for {
 		r, err := w.Next(c.ctx)
 		if err != nil {

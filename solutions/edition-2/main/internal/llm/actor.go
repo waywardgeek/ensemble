@@ -46,6 +46,7 @@ type request struct {
 	completion common.Completion
 	config     common.Config
 	rounds     int
+	policy     common.TurnPolicy
 	parts      []common.Part
 	calls      []common.Part
 	index      int
@@ -184,6 +185,9 @@ func (a *Actor) run() {
 	}
 }
 func (a *Actor) receive(m common.ActorMessage) bool {
+	if a.receivePolicy(m) {
+		return false
+	}
 	if a.receiveWatch(m) {
 		return false
 	}
@@ -381,10 +385,12 @@ func (a *Actor) activate() {
 		a.wakeSelf()
 		return
 	}
+	p := a.parent.Policy().Snapshot()
+	r.policy = common.TurnPolicy{Revision: p.Revision, MaxModelRequests: p.MaxModelRequests, EffectiveMaxModelRequests: p.EffectiveMaxModelRequests}
 	r.config = a.parent.Config()
 	r.config.Tools = a.parent.Registry().Declarations()
 	a.transition("input_pending")
-	if a.record(common.Event{Type: "turn_started", Turn: &common.TurnEvent{RequestID: r.id}}) != nil {
+	if a.record(common.Event{Type: "turn_started", Turn: &common.TurnEvent{RequestID: r.id, Policy: &r.policy}}) != nil {
 		return
 	}
 	if a.record(common.Event{Type: "message_received", Message: &common.Entry{Actor: "human", Purpose: "dialogue", Parts: []common.Part{Text(r.text)}}}) != nil {
@@ -400,8 +406,8 @@ func (a *Actor) wakeSelf() {
 }
 func (a *Actor) exchange() {
 	r := a.active
-	if r.rounds == 16 {
-		a.failTurn("round_limit", fmt.Errorf("round_limit: sixteen model requests completed; final tool batch retained"))
+	if r.rounds >= r.policy.EffectiveMaxModelRequests {
+		a.failTurn("round_limit", fmt.Errorf("round_limit: %d model requests completed; final tool batch retained", r.policy.EffectiveMaxModelRequests))
 		return
 	}
 	c := a.parent.TurnSnapshot()

@@ -7,6 +7,7 @@ import (
 	"example.com/ensemble/internal/eventlog"
 	"example.com/ensemble/internal/jobs"
 	"example.com/ensemble/internal/llm"
+	"example.com/ensemble/internal/policy"
 	"example.com/ensemble/internal/tools"
 	"fmt"
 	"io"
@@ -58,6 +59,7 @@ type subscription struct {
 	reason   string
 }
 type Ensemble struct {
+	settingsPaths           map[string]bool
 	logger                  *log.Logger
 	mu                      sync.Mutex
 	agents                  map[string]*Agent
@@ -148,6 +150,11 @@ func (e *Ensemble) NewAgent(config Config) (*Agent, error) {
 	}
 	a.log, err = eventlog.New(a, a.config.LogPath)
 	if err != nil {
+		return nil, err
+	}
+	a.policy, err = policy.New(a, a.config.PolicyPath)
+	if err != nil {
+		_ = a.Close()
 		return nil, err
 	}
 	a.actor = llm.NewActor(turnAgent{a})
@@ -290,6 +297,7 @@ func (e *Ensemble) Publish(agentID string, event Event) {
 }
 
 type Agent struct {
+	policy    *policy.Service
 	actor     *llm.Actor
 	parent    common.Ensemble
 	id        string
@@ -338,6 +346,12 @@ func (a *Agent) SetConfig(config Config) error {
 	defer a.operation.Unlock()
 	config = normalize(a.parent, config)
 	current := a.Config()
+	if config.PolicyPath == "" {
+		config.PolicyPath = current.PolicyPath
+	}
+	if config.PolicyPath != current.PolicyPath {
+		return fmt.Errorf("policy destination is fixed when the Agent is created")
+	}
 	if config.Workspace == "" {
 		config.Workspace = current.Workspace
 	}
@@ -434,6 +448,9 @@ func (a *Agent) Close() error {
 	return a.finishClose()
 }
 func (a *Agent) finishClose() error {
+	if a.policy != nil {
+		a.policy.Close()
+	}
 	a.engine.Close()
 	a.closeMu.Lock()
 	defer a.closeMu.Unlock()
@@ -591,7 +608,8 @@ func (a turnAgent) RecordTurn(event common.Event) error { return a.append(event,
 func (a turnAgent) RecordResponse(parsed common.ParsedResponse) error {
 	return a.appendPrepared(Event{Type: "response_ended", Response: &parsed.Response}, true, true, parsed.MissingCallIDs)
 }
-func (a turnAgent) Engine() common.ModelEngine { return a.engine }
+func (a turnAgent) Engine() common.ModelEngine   { return a.engine }
+func (a turnAgent) Policy() common.PolicyService { return a.policy }
 func (a turnAgent) BeginTurn() error {
 	a.operation.Lock()
 	if err := a.canPrompt(); err != nil {

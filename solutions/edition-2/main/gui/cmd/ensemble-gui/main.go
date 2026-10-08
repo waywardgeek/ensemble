@@ -4,10 +4,12 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"syscall"
 
 	"example.com/ensemble"
@@ -25,6 +27,8 @@ func run() error {
 	port := flag.Int("port", 8088, "local listening port (0 chooses a free port)")
 	terminal := flag.Bool("terminal", false, "attach the human terminal to this Agent")
 	tracePath := flag.String("gui-log", "", "optional conversation trace path")
+	preferencesPath := flag.String("preferences", ".ensemble/gui-preferences.json", "display preferences file")
+	policyPath := flag.String("policy", ".ensemble/agent-policy.json", "Agent execution policy file")
 	flag.Parse()
 	if *port < 0 || *port > 65535 {
 		return fmt.Errorf("invalid port")
@@ -35,6 +39,19 @@ func run() error {
 	app := ensemble.New(os.Stderr)
 	defer app.Close()
 	config := cli.Configuration(app)
+	config.PolicyPath = *policyPath
+	prefResolved, err := filepath.Abs(*preferencesPath)
+	if err != nil {
+		return fmt.Errorf("invalid preferences path")
+	}
+	policyResolved, err := filepath.Abs(*policyPath)
+	if err != nil {
+		return fmt.Errorf("invalid policy path")
+	}
+	if prefResolved == policyResolved {
+		return fmt.Errorf("preferences and policy need separate paths")
+	}
+	config.PolicyPath = policyResolved
 	config.Builtins = []string{"read_file", "list_directory", "search_files", "write_file", "edit_file", "run_command", "wait_for_job", "send_input", "kill_job", "tool_limits"}
 	config.MaxTokens = 4096
 	a, err := app.NewAgent(config)
@@ -55,10 +72,11 @@ func run() error {
 		}
 		defer trace.Close()
 	}
-	server, err := gui.NewServer(app, a.ID(), origin, nil)
+	var traceWriter io.Writer
 	if trace != nil {
-		server, err = gui.NewServer(app, a.ID(), origin, trace)
+		traceWriter = trace
 	}
+	server, err := gui.NewServer(app, a.ID(), origin, traceWriter, gui.ServerOptions{PreferencesPath: prefResolved})
 	if err != nil {
 		return err
 	}

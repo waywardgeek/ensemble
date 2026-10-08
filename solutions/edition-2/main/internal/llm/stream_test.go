@@ -415,3 +415,6 @@ func TestStreamExactAssembledTextBound(t *testing.T) {
 		})
 	}
 }
+
+func (streamRoot) ClaimSettingsPath(path string) (string, error) { return path, nil }
+func (streamRoot) ReleaseSettingsPath(string)                    {}

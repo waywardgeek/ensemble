@@ -131,6 +131,16 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 	}
 	switch e.Type {
 	case "turn_started":
+		if e.Turn != nil && e.Turn.Policy != nil {
+			p := e.Turn.Policy
+			effective := p.MaxModelRequests
+			if effective == 0 {
+				effective = common.DefaultMaxModelRequests
+			}
+			if p.MaxModelRequests < 0 || p.MaxModelRequests > 256 || p.EffectiveMaxModelRequests != effective {
+				return bad("invalid turn policy capture")
+			}
+		}
 		if e.Turn == nil || e.Turn.RequestID == "" || e.Turn.Outcome != "" || c.TurnID != "" || c.Active || c.Pending != nil || unresolved(owner, c) || c.TurnIDs[e.Turn.RequestID] {
 			return bad("invalid turn start")
 		}

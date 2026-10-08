@@ -34,3 +34,6 @@ func (*owner) Observe(common.Observation)                       {}
 func (*owner) Collect([]common.RequestHandle) common.Collection { return nil }
 
 func (owner) ModelReady(common.ModelOperation) {}
+
+func (owner) ClaimSettingsPath(path string) (string, error) { return path, nil }
+func (owner) ReleaseSettingsPath(string)                    {}

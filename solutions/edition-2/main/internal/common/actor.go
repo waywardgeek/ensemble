@@ -1,6 +1,9 @@
 package common
 
-import "context"
+import (
+	"context"
+	"encoding/json"
+)
 
 // RequestConfig is the replayable portion of an immutable request configuration.
 // Credentials and endpoint authorization never enter durable history.
@@ -38,6 +41,7 @@ type ControlAck struct {
 	Interrupted bool   `json:"interrupted"`
 }
 type ActorAgent interface {
+	Policy() PolicyService
 	TurnAgent
 	ID() string
 	Engine() ModelEngine
@@ -54,6 +58,7 @@ type ModelEngine interface {
 	Usage() Usage
 }
 type Actor interface {
+	UpdatePolicy(uint64, json.RawMessage) (PolicyAck, error)
 	Agent() ActorAgent
 	Submit(string) (RequestHandle, error)
 	Hint(string) (ControlAck, error)
@@ -83,6 +88,9 @@ type PreparedReport struct {
 // ActorMessage is the mailbox vocabulary. Private worker paths construct worker
 // variants; clients use the Actor operations rather than injecting messages.
 type ActorMessage struct {
+	Policy           PolicySnapshot
+	BaseRevision     uint64
+	Patch            json.RawMessage
 	Handle           RequestHandle
 	Kind             string
 	RequestID        string
@@ -98,6 +106,7 @@ type ActorMessage struct {
 	Reply            chan ActorReply
 }
 type ActorReply struct {
+	PolicyAck    PolicyAck
 	Snapshot     WatchSnapshot
 	Watch        Watch
 	Registration PauseRegistration

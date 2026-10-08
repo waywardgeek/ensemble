@@ -54,7 +54,7 @@ func run() error {
 		_ = json.NewEncoder(os.Stdout).Encode(map[string]any{"agent": agent.ID(), "pause": pause, "snapshot": snapshot})
 		registration.Close()
 		watch.Close()
-		server, err := gui.NewServer(app, agent.ID(), origin, nil)
+		server, err := gui.NewServer(app, agent.ID(), origin, nil, gui.ServerOptions{PreferencesPath: filepath.Join(".", name+"-preferences.json")})
 		if err != nil {
 			return err
 		}

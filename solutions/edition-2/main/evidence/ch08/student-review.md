@@ -1,0 +1,181 @@
+# Chapter 8 initial student review
+
+## Source and exposure (before implementation)
+
+The initial student read root AGENTS.md, the entire mandatory
+`book/edition-2/skills/ensemble-coding/SKILL.md`, architecture.md, the full
+committed Chapter 8 teaching copy and manifest from
+`/Users/bill/projects/ensemble-edition-2-revisions/ch08-student-inputs/`.
+Relevant preceding teaching reads cover Chapter 1 §§1.1–1.5 and TL;DR;
+Chapter 2 TL;DR and §2.7; Chapter 3 §§3.2–3.4; Chapter 4 §§4.1–4.2;
+Chapter 5 §§5.1–5.3 and §§5.4–5.5; Chapter 6 TL;DR and streaming ownership;
+Chapter 7 §§7.1–7.7 and §7.9. Some large reads were truncated by the tool;
+ownership and wire sections were subsequently read in smaller chunks.
+Only accepted preceding main source has been inspected. No first-edition
+chapter, old implementation, future chapter, grader implementation, reviewer
+script or answer history has been read. Repository status exposed unrelated
+untracked filenames only; those files were not opened.
+
+Accepted predecessor: edition-2-ch07-r1, commit
+ed5667b38362875c578e88609f4a0fce61946c53. Its main tree is
+8fb543cc78eccdd9737bd3a690ee9601193fecba, matching the starting tracked source.
+Manifest names accepted source 48976424ab75924f98f4ad01f75f8e046ec26872.
+Initial black-box checks against the unmodified Chapter 7 GUI binary failed
+at startup because Chapter 8 flags/features are absent. Raw results are retained
+in baseline-wire.txt and baseline-validation.txt; neither made a model call.
+
+## Structure, ownership, concurrency and lifetime plan (contract check pending)
+
+- Ensemble remains application/logger owner. Add a synchronized application-local
+  resolved settings-path claim registry, solely to prevent two live owners from
+  using the same path. Each owning service releases its claim after close joins
+  its writer. No global registry, credentials, or Config in settings state.
+- Agent owns an execution-policy service, constructed by the public root, with
+  shared values/interfaces in core internal/common and private implementation
+  in internal/policy. The service stores an Agent interface back-pointer.
+  Actor reaches it through Agent. Public getter returns an owned value; public
+  update enters the actor mailbox. PolicyPath is creation-only configuration.
+- Policy admission/validation and base revision checks run at the actor boundary.
+  A service-owned candidate writer does file work outside the actor; its result
+  returns as an owned mailbox fact. Applied state remains old until actor accepts
+  success, publishes policy_changed, then resolves the update acknowledgement.
+  One candidate per domain; concurrent writes get busy, stale bases conflict.
+  Close stops admission, joins a started writer and applies its real commit result
+  before shutting down the actor. A replacement cannot be reported rolled back.
+- Each turn captures policy revision, stored value and effective limit at activation;
+  all model-request decisions use this immutable capture. Recorded new turn starts
+  carry the capture; strict event validation permits historical absence only.
+  Watch snapshots expose current policy and nullable active captured limit.
+- Optional GUI Server owns its preferences service and path. GUI common declares
+  values/interfaces; a GUI preferences package implements parsing/persistence and
+  subscriptions through a Server parent interface, reaching application logging.
+  Its short mutex serializes admission, applied state and subscription cuts; disk
+  I/O is an owned worker outside this lock. Close refuses updates and joins it.
+- A preference subscription atomically captures snapshot plus bounded tail. The
+  connection sends that snapshot before the Agent snapshot group, then drains
+  newer changes only after snapshot_end. Update replies wait until the originating
+  connection has queued their changed revision. Settings workers never park the
+  transport reader; connection lifetime cancels delivery, not committed writes.
+- Browser Page owns Connector, two reusable ArtifactScrolls, input, draft controls,
+  speech queue and pause causes. Applied preferences are shared snapshots; queued
+  utterances capture revision/rate. BrowserApplication still owns native speech.
+  Changes style existing DOM and preserve card identities/focus/expansion. Pane
+  routing is per typed part/event. Divider changes persist at completed gestures.
+  Socket-instance fencing protects settings before the Agent generation exists.
+
+No architectural ambiguity found in the published ownership contract. This plan
+asks the coordinator to verify lifecycle and path-claim choices before affected code.
+
+## Initial teaching experience
+
+The save/apply/announce ordering, zero-versus-omission distinction, explicit
+turn activation boundary and separate shared/local speech semantics are useful
+and concrete. No missing requirement has yet blocked implementation. Failures,
+implementation difficulties and clarifications will be appended when observed.
+
+## Baseline build issue and coordinator assistance
+
+Before implementation, root-module `go vet ./... && go test ./... -count=1`
+failed because accepted Chapter 7 `evidence/ch07/revision-1/replay-server.go`
+imports the optional GUI module outside a support module. GUI vet/tests pass.
+The coordinator independently reproduced this and assigned build isolation to
+its Chapter 7 owner; Chapter 8 implementation is held until immutable r2 release.
+The coordinator accepted the ownership plan, including actor-ordered application,
+joined writers, application-local path claims and Page-owned transient state.
+No Chapter 8 source has been changed during this hold.
+
+## Proposed live feature/action matrix (no paid runs yet)
+
+Use the exact frozen source and independently hashed CLI, GUI and consumer
+binaries. Preflight includes complete immutable source/support/dependency maps;
+all verifier identity refusals begin from valid passing paths. Keep raw terminal,
+GUI trace, browser observations, HTTP/usage receipts and audio originals distinct
+from derived reports. Keys stay in child environment/memory. Every run uses a
+fresh log/workspace. No automatic provider retries or substituted Gemini model.
+
+For each Anthropic, OpenAI and Gemini backend:
+
+| Surface / action | Required observed result |
+|---|---|
+| Real GUI, two tabs: inspect initial applied state; change theme/font, keyboard and pointer dividers; shrink/enlarge viewport | Complete shared controls and rendered CSS agree; keyboard moves 10 px, desired widths persist without viewport rewrites; central input remains reachable |
+| Two tabs: concurrent same-base settings, invalid draft, deliberate current-base retry | Busy/conflict is useful and correlated, authoritative values remain clear; retry preserves competing applied fields; no model call |
+| Close/restart same preference/policy files with fresh log | Nondefault positive values and revision return from server; explicit false and zero also survive a second restart; history is fresh |
+| Actual browser synthesis with autoplay on and later rate change | Audible/captured synthesized output, future utterance rate changes; explicit card action works with autoplay off |
+| Two pages speaking, B typing; shared autoplay off then A Cancel | Existing queued speech retains captured rate/revision, future automatic text stays silent; A cancel leaves B work/typing pause intact. Exact callbacks also covered locally |
+| Browser policy=1, ask for exactly one scratch-file read then report | Accepted model tool batch finishes, round_limit before HTTP2; capture and displayed active policy match |
+| Browser policy=0, repeat read/report | Stored zero displayed Default(16), continuation actually occurs; no vendor policy field |
+| Browser bounded scratch-file task with text plus calls; expand retained result and inspect actions/chat | Tool proposals/results/jobs in actions, human/answer/thinking in chat; same safe reusable cards, full expansion and stable focus/scroll |
+| Browser correction while streaming, pause before next admission, interrupt; reconnect during and after work | Hint acknowledgement, truthful pause boundary and interruption; settings/conversation converge; no prompt replay/history speech |
+| Human CLI in actual PTY attached with --terminal: set policy=1 from browser, type read/report task and inspect response | Same Agent enforces policy; round-limit CLI error/cleanup retained. Observe output before follow-up/local command; retain original failure receipt |
+| Public headless two-Agent consumer: separate policy files/limits 1 and 2, submit one read/report task to each, mutate returned snapshot, restart | A stops at1, B continues at2, copied snapshot cannot mutate policy; separate persisted values reload without GUI or HTTP at startup |
+| Public GUI embedding reusing Page/Connector/ArtifactScroll: two Agents and remount | Shared browser speech service, independent transient controls/queues; custom layout works without copying application |
+
+Real-model caps per provider: at most 10 human prompts and 24 model HTTP
+requests total across these paths, plus at most 3 read-only discovery/access
+requests. Individual browser/public turns use limits at most4 except the zero
+restoration demonstration (observed cap enforced by evidence proxy); one bounded
+corrective prompt is permitted if the model declines a required tool, retaining
+that attempt. No live >16 proof: deterministic local control covers limit17.
+Initial selected models will be checked for access: claude-sonnet-4-6,
+gpt-4.1-mini-2025-04-14, models/gemini-3.8-flash. No paid execution before local
+failures are fixed and coordinator checks this matrix/frozen launch identity.
+
+## Released predecessor and first implementation results
+
+Coordinator released edition-2-ch07-r2 at
+5b82971c3e667e08acfb2eca132307b9cdebbc51; source
+9ec94ef551b08de6fbd714bf95efee901db49400, main tree
+944b187319224bc2d17b833ae1c72bfd93643c2e. Teaching copies are unchanged;
+predecessor-r2.json records only the support helper's build-isolation correction.
+The student observed that helper commit's subject while waiting, but read no
+historical answer code or diff. Root accepted the structure/lifetime plan.
+
+First backend implementation passes inherited core and GUI tests and all three
+independent black-box Chapter 8 commands: settings wire, strict validation and
+actual local model policy effects (1, 17, default16, normal completion and active/
+queued capture). Raw outputs are retained as initial-*.txt. The browser was not
+implemented at that binary boundary, so these are not browser/live claims.
+Grader noticed a newly added test fixture method copied a mutex by value; changed
+its receiver to a pointer. This was implementation setup, not a teaching gap.
+Two shell editing attempts initially used a repository-relative Python path while
+already in the module cwd; they failed before writing, and were repeated with
+absolute paths. Earlier failed compile output was observed, not a passing gate.
+
+Additional live action required by coordinator: with applied policy1, type a
+scratch-file read/report prompt, hold a typing pause before the accepted call's
+admission, and apply policy2 while the active turn is held. Observe next-turn2
+and active1 simultaneously. Clear only that tab's draft/pause; the accepted read
+batch finishes at round_limit with exactly one HTTP request. Submit the follow-up
+read/report turn, observe captured2 and its continuation. The zero/default16
+restoration remains a separate action. This uses the existing total caps and
+will be performed through real browser controls for each provider.
+
+## Browser implementation difficulty and initial local closure
+
+The first deterministic browser run passed theme/font/keyboard/pointer sizing,
+viewport behavior and invalid-draft recovery, then failed resetting policy2 to0.
+Observed cause: while an earlier save was still pending, an arriving applied
+snapshot replaced a newly typed zero draft with2 before the next click. Chapter8
+§8.2 explicitly distinguishes editor drafts from applied state, so this was an
+implementation mistake, not missing teaching. SettingsPanel now tracks local
+drafts and updates the applied summary independently; acknowledgment clears only
+the submitted draft. The failed initial-browser-local.json is retained unchanged.
+The later timestamped browser receipt passes all seven groups, including actual
+DOM rendering, malicious tool-result expansion, restart with nondefaults and
+controlled speech revision/rate/cancel behavior. These are fake-model and synthetic
+callback tests, not real-model or audible evidence.
+
+The independent public headless checker passes its race tests and replay checks.
+Core and GUI vet/test pass; GUI race tests pass. The changed public browser-consumer
+module and new headless policy-consumer module each pass vet/test. Formatting lists
+no changed/new Go files. Ownership inspection corrected a GUI subscription's
+concrete service back-pointer to the declared common interface before freezing.
+
+Required historical diagnostic `make grade-dir CH=9 DIR=solutions/edition-2/main`
+returns0/100 because its old CLI/GUI/protocol and structural names do not match
+this second-edition contract; full original output is historical-diagnostic.txt.
+No assertion was removed or weakened. The three new backend checks pass again:
+6 wire groups,90 strict-validation groups,6 actual policy-effect groups. Original
+and later binary-bound receipts are kept separately. Live demonstrations,
+independent persistence/concurrency/browser checks and comparative review remain
+open; no Chapter8 acceptance is claimed.

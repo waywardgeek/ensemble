@@ -41,3 +41,26 @@ are separate causes, and another tab's cause cannot be released by this one.
 Speech starts disabled. Card Speak reads the full retained text. Auto speech
 reads new text/thinking and concise tool summaries; history and results remain
 silent. Cancel invalidates old callbacks and reconciles the owned causes.
+
+Chapter 8 display preferences are owned by each `Server`. `NewServer` accepts an
+optional `ServerOptions{PreferencesPath: path}`; the default is
+`.ensemble/gui-preferences.json`. Give independent Servers separate paths. Their
+parent application refuses path reuse by another live settings owner. The demo
+adds `--preferences PATH` and `--policy PATH`, with policy defaulting to
+`.ensemble/agent-policy.json`. Both are creation-only operator choices.
+
+The Agent's public `ExecutionPolicy()` returns an owned scalar snapshot;
+`UpdatePolicy(baseRevision, json.RawMessage)` serializes updates through its actor.
+`Config.PolicyPath` is optional for headless consumers; omission keeps an in-memory
+policy with the same behavior. A maximum of zero means the named default 16.
+Each turn captures its policy at activation, and the UI shows active and later-turn
+limits separately. Settings updates make no model requests.
+
+The page uses two `ArtifactScroll` instances, with optional `chat`/`actions` scope,
+plus a `SettingsPanel` owned by `Page`. Existing one-scroll embeddings remain
+supported. An embedding can supply settings controls using the semantic data
+attributes in `web/gui/index.html`, or use the Connector's settings commands and
+applied snapshot callbacks directly. Preferences are shared by Server; speech
+queues, playback activation, drafts and pauses remain Page-owned. The explicit
+"Enable playback on this page" action is local. The shared "Autoplay new answers"
+checkbox governs future automatic enqueue and preserves existing queued speech.
