@@ -1,0 +1,132 @@
+{
+  "scope": "Final independent live-evidence acceptance with stated partial outcomes and keyboard/audio limits; not runtime comparative or chapter acceptance",
+  "student_freeze": "786ff239ddf337a5ebb39a12f6552d047f52c1ab",
+  "frozen_files": {
+    "live-results.md": "19c5cfc54155d79a3e22f0fbabe934fec5c04b0c1b592947eae323b61cb79ff7",
+    "live-results.json": "64169343d3e7f123cc75e81124a16196319572918e40f4028da6e16dab7ff1c7",
+    "student-review.md": "baca4ff4fb3afac6bbc6bc5ba89e038050cad5cb835b7cf6517d9ed5a9524b61",
+    "keyboard-linkage.json": "d684696b639d6954c5122fb50aec293ea42a492760ff51f5f1ee92a12ea805d6",
+    "failed-audit-controls.json": "75896d41d577dac6aa46847d28c66ebe2ae0a8f1e3efd79c6c1dda34e6ad77ea",
+    "catalog-denied-replay.json": "15ce3370b608d14198d4d2e4529ff2f0eadf4aa9234a20c3c118c0fa4b2fdfad",
+    "audit-failed-receipts.py": "f38a0b07ce01f98cff3c383191f5a41e23be5c97b60242dc41f0ba59ed557925",
+    "derived-failed-attempts/audit.json": "26b7977a6ba7d9151cbcc7ae000d689c4b9b9cd7d98e527ea44a5b5e4e0a7ba5"
+  },
+  "closed_runs": 16,
+  "original_hashes_verified": 499,
+  "generation_counts": {
+    "anthropic": 32,
+    "gemini": 32,
+    "openai": 29
+  },
+  "generation_total": 93,
+  "retained_derived_requests_independently_compared": 89,
+  "other_requests": "4 Anthropic P independently reconstructed at7dc9cc1; retained prior source-bound audit",
+  "reconstruction": [
+    {
+      "run": "live-anthropic-n",
+      "count": 11,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-anthropic-f",
+      "count": 5,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-anthropic-g",
+      "count": 9,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-openai-n",
+      "count": 11,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-openai-f",
+      "count": 5,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-openai-g",
+      "count": 8,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-gemini-f",
+      "count": 5,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-gemini-p",
+      "count": 4,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-anthropic-n-repair",
+      "count": 3,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-gemini-g",
+      "count": 7,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-gemini-n-management",
+      "count": 4,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-openai-p-recovery",
+      "count": 4,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-openai-p",
+      "count": 1,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-gemini-n",
+      "count": 8,
+      "retained_derived_exact_to_capture": true
+    },
+    {
+      "run": "live-gemini-n-recovery",
+      "count": 4,
+      "retained_derived_exact_to_capture": true
+    }
+  ],
+  "failed_prepare_positive": 3,
+  "failed_last_response_hash_mutation_refusal": "original receipt mismatch",
+  "negative_method": "read-only file_digest return substitution on valid last response; no original edited; prepare refused before any replay/output stage",
+  "keyboard": {
+    "accepted_observation": "actual focused Enter expanded retained retired card in live shared component",
+    "same_bound_source_executables_url_time_and_material": true,
+    "sealed_server_log_corroboration": "connection c5 subscribe/snapshot/pause at17:29:27",
+    "missing": "sampled pre-close launch bytes; exact historical byte comparison remains impossible",
+    "complete_launch_byte_binding_claimed": false
+  },
+  "catalog_denied_replay": "reviewed frozen OS profile, denied-read and three exact request receipts; not independently reexecuted",
+  "new_provider_calls": 0,
+  "new_runtime_builds": 0,
+  "accepted_usage_independent_check": {
+    "responses": 89,
+    "provider_sse_usage_equals_durable_raw_usage": true,
+    "normalized_four_buckets_and_final_matrix_totals_match": true,
+    "retained_responses_without_accepted_response": [
+      {
+        "run": "live-anthropic-g",
+        "response": "002.body",
+        "usage_retained_but_response_not_accepted": true
+      },
+      {
+        "run": "live-gemini-n-recovery",
+        "response": "004.body",
+        "usage_retained_but_response_not_accepted": true
+      }
+    ],
+    "limit": "Missing/refused responses are not evidence of zero provider billing."
+  }
+}

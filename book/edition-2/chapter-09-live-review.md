@@ -1,7 +1,10 @@
 # Chapter 9 independent live-evidence review
 
-Status: preliminary closed-run audit; final student matrix and initial-attempt
-freeze pending. This is not chapter acceptance or historical comparison.
+Status: live-evidence audit accepted against student freeze
+`786ff239ddf337a5ebb39a12f6552d047f52c1ab`, with the explicit partial outcomes,
+keyboard linkage and audio limits below. This is not chapter acceptance or
+historical comparison. The preliminary review at `b0745a6` is preserved; its
+open items are closed in the final disposition at the end of this report.
 
 ## Reviewer boundary
 
@@ -118,7 +121,7 @@ terminal-originated turn. The terminal and actual state/cards show success;
 the wrong selector and timeout remain in the browser original, and no repeat
 prompt is credited.
 
-## Remaining closure work
+## Preliminary closure items, recorded at b0745a6
 
 Receive the frozen final student matrix and failed-attempt replay report;
 reconcile them against these closed originals and each actual source identity.
@@ -127,3 +130,60 @@ Carry forward the Gemini revoked-write and native-audio limits explicitly.
 Historical comparison remains prohibited until root declares the student's
 initial source/live/teaching freeze complete. No complete acceptance is claimed
 by this preliminary review.
+
+## Final disposition against 786ff23
+
+The complete frozen `live-results.md`, machine-readable matrix, final student
+review entries, failed-attempt helper/report/controls and keyboard linkage
+were read and checked against the committed bytes. The matrix accurately
+distinguishes observed features from partial tasks and missing responses.
+Its final counts agree with a fresh check of all 16 sealed launches and 499
+original hashes: 93 generation attempts, plus three discovery requests.
+
+The reviewer independently compared all 89 retained derived request bodies
+from the four successful-run groups and the failed-attempt group to their
+original captures, excluding only the CLI's added final LF. The remaining
+four Anthropic P requests retain independent audit `7dc9cc1`. This closes the
+93-attempt reconstruction accounting without claiming 93 successful responses
+or relabeling any source. These comparisons inspect retained reconstruction
+outputs; they are not 89 newly executed replays.
+
+The failed-attempt helper is identical to its frozen `1939c42` source. Its
+preparation independently accepts the three complete, explicitly failed run
+sets after historical source/executable preflight. A read-only substitution
+of the hash result for the valid last-run response path then produces the
+specific `original receipt mismatch` refusal during preparation, before any
+replay/output phase. No original file was mutated. The two missing response
+bodies remain absent. The catalog-denied replay receipt was reviewed at the
+freeze: it records a denied `/bin/cat` control and exact replay for one actual
+N request per provider under a profile denying all retained/shipped catalog
+roots and network access. That OS control was not rerun in this review.
+
+For all 89 accepted responses, the reviewer independently matches retained
+provider SSE usage to durable raw usage, recomputes the four normalized usage
+buckets, and checks the final matrix totals. The retained but unaccepted
+Anthropic G response 002 and Gemini N recovery response 004 remain outside
+accepted durable usage. The two missing transport responses remain missing.
+None of these missing/refused cases establishes zero provider billing.
+
+The keyboard limitation is adequately and precisely disclosed. The original
+keyboard receipt is unchanged. Its source, immutable binding, Node/Chrome
+identities, URL, within-run timestamp, screenshot and exact manual digest
+agree with the sealed Gemini G evidence. The sealed server log independently
+corroborates connection `c5` subscribing, receiving its snapshot and sending
+pause state at 17:29:27 UTC, immediately before the recorded expansion. The
+reviewer's actual screenshot inspection also agrees with the expanded retired
+card and revision-4 sidebar. These facts support the stated actual Enter
+observation on the shared live component. They cannot recover the missing
+sampled launch bytes or establish a byte-exact comparison/minimal finalization
+diff. No such stronger assertion is accepted, and no paid repeat is warranted
+for this disclosed evidence-support omission.
+
+There is no remaining live-evidence blocker for the stated Chapter 9 feature
+demonstration. The Anthropic partial public task, Gemini missing revoked-write
+answer, mouse-versus-keyboard provider coverage, and native-audio limits remain
+part of the accepted account. The final source-bound receipt is
+`checkpoint-evidence/ch09-live-audit-final-786ff23.json`. This closure involved
+no provider calls, runtime edits, builds or historical implementation reading.
+Author reconciliation, manuscript proofreading, independent comparative
+runtime review and checkpoint acceptance remain separate coordinator gates.
