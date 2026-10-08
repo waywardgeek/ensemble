@@ -250,3 +250,49 @@ individual allocation and timing samples vary. Neither benchmark establishes a
 universal latency target. All R1–R4 code findings are resolved. Required revised
 live demonstrations, their independent receipt audit and final manuscript
 reconciliation remain open at this milestone.
+
+## Final manuscript and evidence acceptance
+
+Final independent proofreading accepts the complete Chapter 6 manuscript and
+its outline, evidence and student-feedback reconciliation at author revision
+`815a84f`. The reviewer read the complete chapter, current voice and writing
+procedure, support records and student teaching review. This continues the
+independent grader/comparative-review role disclosed above; it is not a fresh
+student evaluation or an additional implementation author.
+
+Three narrow proofreading findings are resolved: provider rejection of
+streaming delivery is distinguished from retained refusal content; Messages
+opaque blocks exclude ordinary text and typed tool calls; and the outline's
+original check plan is explicitly historical, with the actual independent gate
+identified. Author changes `e6c1cd3`, `6d0e8c3` and `815a84f` close these findings
+without runtime changes. No material teaching or code finding remains open.
+
+The prose retains the first edition's reader frustration with a silent terminal
+and explains why a correctly buffered writer can still hide every fragment.
+The revised chapter connects that consequence to an actual PTY barrier. Its
+new allocation story is supported by the initial and revised fixed-fragment
+measurements and makes the assembly rule worth understanding. Paragraph endings
+and pace vary despite the necessary contract detail. Scoped prose lint passes
+all hard checks at 6,768 words; the negation and long-person-gap soft warnings
+were considered during the complete reading rather than treated as edit quotas.
+
+The final proofread independently recomputed accepted usage from all 22 retained
+initial/revised logs, verified all 186 original-file hashes against the accepted
+live audits, checked the two abridged Messages excerpts in original order and
+checked all 13 local Markdown link targets in the four author records. The
+original nine sessions/33 requests remain bound to `aa5f86a`; the revised seven
+sessions/20 requests remain bound to `75bd14d` with receipts frozen at `8c73f9b`.
+The revised human terminals and public Gemini partial endings agree with the
+manuscript. Root's independent replay/source-identity audit remains the evidence
+for semantic reconstruction; this proofreading pass did not rerun paid requests
+or broad runtime checks.
+
+The [final proofread receipt](checkpoint-evidence/ch06-review-final-proofread.json)
+binds exact manuscript, support, policy and evidence hashes, including the
+complete deterministic gate and additional mutation controls. It preserves the
+limits: no live thinking or overflow claim, no completed-explanation claim for
+Gemini's token-limited partials, no GUI implementation claim, and no relabeling
+of earlier binaries or failed repairs. The documentation-only README/CHECKPOINT
+revision `c3fa758` is consistent with those identities. Required code, teaching,
+live and final proofreading review is accepted; export/tag is the coordinator's
+next step, and Bill's editorial approval remains separate.
