@@ -5,8 +5,11 @@ corrections to its saved knowledge without treating a lossy summary as either
 the original evidence or a new source of authority.
 
 Preparation, October 8, 2026. New Chapter 15 maps to old Chapter 16 under the
-current workflow/global review. This is an outline for consequential design
-review, not a full student contract. Chapter 14 has independent contract-review
+current workflow/global review. The original design-review outline is frozen at
+`d66e9b1`. Advisory `0be42f4` and coordinator decisions `f648059` release the full
+draft now in chapter-15.md for review, not student implementation. The proposals
+below retain that preparation chronology; the decision reconciliation at the end
+records their disposition. Chapter 14 has independent contract-review
 closure at `674b9a2`, bound to author correction `b951524`; it has no validated
 implementation. No runtime, grader, provider or new performance work occurs here.
 
@@ -92,7 +95,7 @@ replaced by a core GUI dependency or used to grant the compressor default access
 | One live compression operation | Actor-owned operation; captures source, purpose, policy/config generation and cancellation scope |
 | Bounded compressor parser/request worker | Child of that operation, through common parent interfaces and logger access |
 | Provider HTTP and normalized per-model usage | Existing Engine reached through Agent; request-local credentials stay there |
-| Durable memory transition and usage settlement | Actor through the sole Agent/SessionStore append path |
+| Durable memory transition and usage settlement | Actor→Agent durable admission; EventLog owns the sole append descriptor; SessionStore owns lock/checkpoint work |
 | GUI drafts/state/commands | Optional GUI public consumer; no authoritative memory slice or policy copy |
 
 The Memory service must not become another conversation authority. It may own
@@ -214,3 +217,35 @@ checker must use the printed contract/public behavior and meaningful mutations;
 it must not force the student back into two-event deletion, cumulative pressure,
 silent file reload or a combined GUI architecture. No complete Chapter 15 draft
 or student handoff precedes the D1–D8 decision review.
+
+## Decision reconciliation and full-draft boundary
+
+The preceding D1–D8 alternatives are historical proposals. Coordinator decisions
+`f64805961f303ab11729d471c198c612ae651324` settle the direction after advisory
+`0be42f4`; these are working coordinator choices, not additional Bill rulings.
+The chapter now prints:
+
+- D1: profile/curated explicit input plus finite session→recent→older generation;
+  visible scheduling sums, separate hard capacities and durable visibility.
+- D2: complete bounded profile.json/curated.json refresh, logical IDs/versions,
+  no-op/removal/reappearance and no silent resume scan.
+- D3: one memory_changed replacement, followed by explicitly requested bounded
+  exports under the locked session; operator input never becomes an export target.
+- D4: one Actor-owned operation/worker, 120-second operation and 30-second attempt
+  bounds, separate attempt/usage/replacement/terminal facts and unfinished refusal.
+- D5: closed segments created at committed handoff boundaries, represented source
+  only, newest note/current segment and opaque whole units protected; exact role-
+  preserving helper source descriptors and atomic older-dialogue retirement.
+- D6: neutral projection pressure, unchanged Skills union, retained-prompt/no-
+  resend terminal outcome, public idle recovery, honest saturation.
+- D7: explicit fresh v5, memory watermark, policy v3, strict old profile routes,
+  separate current settings and immutable logical selection.
+- D8: free public handoff, explicit paid idle /compress, separately enabled model
+  handoff trigger, shared active-turn allowance plus finite per-operation cap.
+
+The outline's original Agent/SessionStore writer shorthand is corrected above:
+EventLog owns the descriptor; SessionStore owns locking/checkpoint work. No new
+writer is introduced. §15.10 preserves the required future CLI/browser/public
+all-provider use, local fault distinctions and memory-quality evaluation. The
+human file-correction incident remains attributed, and the worked arithmetic is
+explicitly illustrative. Current gates belong in chapter-15-validation.md.

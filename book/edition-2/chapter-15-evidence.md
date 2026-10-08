@@ -166,3 +166,77 @@ The Chapter 10 Q1–Q3 teaching clarification interrupted this preparation and
 was published separately at `af5a762`. Chapter 15 remains outline/evidence only.
 Scoped diff validation and a manual story/claim/ownership pass completed; the
 consequential D1–D8 choices are still proposals awaiting coordinator review.
+
+## First full contract draft after decision review
+
+October 8, 2026. Advisory `0be42f4` and coordinator decision record
+`f64805961f303ab11729d471c198c612ae651324` released the full draft. The original
+`d66e9b1` outline and its unresolved alternatives remain historical preparation;
+this entry does not relabel them as earlier accepted requirements.
+
+After context compaction the author reloaded the entire current book/voice.md,
+book/chapter-writing-procedure.md and architecture.md, and read the complete
+Chapter 15 decisions/advisory. A combined tool output initially truncated;
+voice, procedure, decisions and advisory were subsequently read separately in
+full. The complete current Chapter 14 was reread, with its omitted handoff
+middle reread separately. Focused predecessor reads rechecked Chapter 10's
+snapshot/raw-byte/identity rules and Chapter 5's turn-ended/request-hint fields;
+Chapter 8's captured-budget passage was located, with its contract already read
+in the prior author work. Preparation outline/evidence were reloaded; the omitted
+evidence tail was read separately. This is an actual scoped-read ledger, not a
+claim of fresh complete rereads of every predecessor or historical implementation.
+
+The chapter prints the five-band finite graph, decoded/scheduling/encoded bounds,
+explicit input manifest, visibility versus policy, pressure terminal payload,
+source descriptors, helper attempt/usage/atomic replacement/disposition facts,
+fresh-v5/policy-v3 compatibility, derived export semantics and browser commands.
+The root's EventLog precision is reflected in both chapter and owner table:
+Actor→Agent orders admission, EventLog alone owns the append descriptor,
+SessionStore owns lock/checkpoint work. Public handoff remains free, idle
+compression explicitly paid, model-handoff scheduling separately opt-in, with
+active-turn helper attempts charged to the captured remaining allowance.
+
+Numbers are chosen contract limits, not empirical model capacity or compression
+quality. The 24,000/24,000/24,000 segment example is illustrative arithmetic and
+leaves a newer survivor; no generated success or paid measurement is invented.
+The file-correction story retains its historical attribution and the original
+record's limits. The prospective live plan explicitly labels imported local
+fixtures used near graduation thresholds separately from real helper generation.
+No claim that every upstream fold was paid follows from such a fixture.
+
+A self-review tightened finite generated-band capacities, whole-operation
+completion, refresh/export busy ownership, role-preserving source descriptors,
+pressure's strict terminal extension, allocation exhaustion and hidden archive
+avoidance in helper receipts. Full-log reconstruction preserves exact attempt
+bodies; semantic state cannot retain retired source through a copied request_body.
+Snapshot-only history_unavailable remains explicit. Local cancellation cannot
+undo accepted usage or earlier committed folds. No predecessor implementation,
+checker, snapshot, policy file, provider call or paid run was changed or launched.
+
+The narrow coordinator/grader Unicode clarification interrupted this draft and
+was published separately as `cf73a64`, independently accepted at `17a6356`.
+It remains separate from the student's original Q1–Q3 and from this chapter.
+
+Local author checks: retained prose checker passed all hard rules at 6,168 words;
+14 JSON blocks parse; all three source-message fixtures contain identical text
+and the same canonical descriptor; source-selection/capacity arithmetic passes;
+scoped git diff --check is clean. Soft warnings are 14 negation forms against 12
+and a whole-chapter person counter gap. Manual cut/ending/reader-stake review
+retains the concrete correction incident and recurring configuration task rather
+than adding a person solely to satisfy the counter. These are prose/fixture
+checks, not runtime grading or independent full manuscript acceptance.
+
+The manuscript SHA-256 at this check is
+`dc405b9ec805cf44ebfe39f460bc455d880a2b5a71f0b5bc763ef12a289e87a4`.
+The initial draft is sent for independent complete contract/story review; no
+student handoff or successful-spin claim is made.
+
+Draft-pass source bindings (read scopes are stated above):
+
+- book/voice.md: `17883353cf9653c0df46081c216b5b1623dfa640619e06fe89bff46fc29dfad1`.
+- book/chapter-writing-procedure.md: `1131abf07ea86d246421122b20ee368cce30fb2cd684a6ca3ab279c220ec7d3c`.
+- book/edition-2/architecture.md: `9dada72e65c36fb649659f9076b4ca2bdfc8379fef919a3b575652dca0e49327`.
+- book/edition-2/chapter-15-decisions.md: `a3736c971457ebf8acb3840125a95d970875c9c73020dccc2d1ab02b2deeaa94`.
+- book/edition-2/chapter-15-review.md: `56fb2e54f3b248060b72ee7c5777631984b3c2fbb261b1efaceb6f1fb618cf45`.
+- book/edition-2/chapter-14.md: `d50333c5a9af83507b09dd6a177a91088315d5e6e7ea52c8312b7579ef534039`.
+- book/edition-2/chapter-10.md: `3faa154f60e875497d96594a1afdc219f398856b0a9bd46b39cf72f36ca126df`.
