@@ -1,4 +1,4 @@
-package ws
+package gui
 
 import (
 	"context"
@@ -82,7 +82,7 @@ const guiCallTimeout = 10 * time.Second
 // CallGUI sends one JSON-RPC request to the browser's MCP server and returns
 // the result of the first reply. mcp.js keeps no per-client state, so no
 // initialize handshake is needed first.
-func (h *Hub) CallGUI(ctx context.Context, method string, params any) (json.RawMessage, error) {
+func (h *Server) CallGUI(ctx context.Context, method string, params any) (json.RawMessage, error) {
 	id, _ := json.Marshal(h.selfSeq.Add(1))
 	got := make(chan json.RawMessage, 1)
 	h.selfReplies.expect(id, func(p json.RawMessage) { got <- p })
@@ -136,7 +136,7 @@ func (h *Hub) CallGUI(ctx context.Context, method string, params any) (json.RawM
 // forbid ephemeral content, and it never changes the cached prefix. Because it
 // does no handshake at startup, it does not care whether a browser is open
 // yet; a call with none open says so.
-func (h *Hub) ViewGUITool() common.Tool {
+func (h *Server) ViewGUITool() common.Tool {
 	return common.Tool{
 		Name: "view_gui",
 		Description: "Look at your own GUI as the user currently sees it in the browser. " +
@@ -178,7 +178,7 @@ func (h *Hub) ViewGUITool() common.Tool {
 }
 
 // receiveSelf is the hub receiver for selfSource: browser replies to CallGUI.
-func (h *Hub) receiveSelf(payload json.RawMessage) {
+func (h *Server) receiveSelf(payload json.RawMessage) {
 	var head rpcHead
 	if json.Unmarshal(payload, &head) != nil || head.ID == nil || head.Method != "" {
 		return

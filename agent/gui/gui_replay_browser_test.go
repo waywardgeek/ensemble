@@ -1,4 +1,4 @@
-package ws
+package gui
 
 import (
 	"context"
@@ -39,13 +39,13 @@ func TestGUIReplayAndServerRestart(t *testing.T) {
 		msgEvent(3, common.ActorHuman, "last question"),
 		responseEvent(4, common.TextPart{Text: "last answer"}),
 	}
-	newHub := func(events []common.Event) *Hub {
+	newServer := func(events []common.Event) *Server {
 		log := &common.Log{Events: events, Next: common.Seq(len(events) + 1), Clock: time.Now}
-		return NewHub(nil, nil, "", log, nil, nil)
+		return New(nil, nil, "", log, nil, nil)
 	}
-	var active atomic.Pointer[Hub]
-	active.Store(newHub(events))
-	guiDir, err := filepath.Abs("../../web/gui")
+	var active atomic.Pointer[Server]
+	active.Store(newServer(events))
+	guiDir, err := filepath.Abs("../web/gui")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -90,7 +90,7 @@ func TestGUIReplayAndServerRestart(t *testing.T) {
 	// Replace the hub just as a fresh process restores the log and resets its
 	// ephemeral live-part counter. Leave the browser tab open across disconnect.
 	restored := append(append([]common.Event(nil), events...), responseEvent(5, common.TextPart{Text: "before restart"}))
-	second := newHub(restored)
+	second := newServer(restored)
 	active.Store(second)
 	first.mu.Lock()
 	for c := range first.clients {

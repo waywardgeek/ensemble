@@ -24,11 +24,11 @@ import (
 	"syscall"
 
 	agent "github.com/waywardgeek/ensemble/agent"
+	"github.com/waywardgeek/ensemble/agent/gui"
 	"github.com/waywardgeek/ensemble/agent/internal/common"
 	"github.com/waywardgeek/ensemble/agent/internal/llm"
 	"github.com/waywardgeek/ensemble/agent/internal/mcp"
 	"github.com/waywardgeek/ensemble/agent/internal/settings"
-	"github.com/waywardgeek/ensemble/agent/internal/ws"
 )
 
 const fallbackName = "ch06"
@@ -510,7 +510,7 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 		eng.Cfg.Tools = reg.Declarations()
 	}
 
-	// Pause gate: shared between the actor and the WS hub.
+	// Pause gate: shared between the actor and the WS guiServer.
 	gate := common.NewPauseGate()
 	actor.SetPauseGate(gate)
 
@@ -566,23 +566,23 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 		// nobody writes to: nothing fails to compile and the meter reads
 		// zero. A back-pointer is re-resolved at the moment of asking and
 		// cannot go stale that way.
-		hub := ws.NewHub(gate, func(msg common.Inbound) {
+		guiServer := gui.New(gate, func(msg common.Inbound) {
 			actor.Send(msg)
 		}, "gui.log", eng.Log, settingsStore, eng.Usage())
 		// view_gui: the agent looks at its own GUI when it chooses to. Registered
-		// here because it needs the hub, and before the actor starts, so it is in
+		// here because it needs the guiServer, and before the actor starts, so it is in
 		// the startup declarations like every builtin (the --gui-debug load above
 		// re-derives them at this stage for the same reason).
-		reg.RegisterInitial(hub.ViewGUITool())
+		reg.RegisterInitial(guiServer.ViewGUITool())
 		eng.Cfg.Tools = reg.Declarations()
 		// The engine's config is the authority on which model is serving
 		// turns: it is validated at startup and refuses a model it does not
 		// know. The settings store can be empty, and pricing an empty name
 		// silently reports a paid model as free.
-		hub.Model = func() string { return eng.Cfg.Model }
-		defer hub.Close()
-		hub.SetTTSLog(ttsLogPath)
-		actor.Attach(hub)
+		guiServer.Model = func() string { return eng.Cfg.Model }
+		defer guiServer.Close()
+		guiServer.SetTTSLog(ttsLogPath)
+		actor.Attach(guiServer)
 
 		staticDir := guiDir
 		if staticDir == "" {
@@ -594,7 +594,7 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 			fs.ServeHTTP(w, r)
 		}))
-		mux.HandleFunc("/ws", hub.ServeWS)
+		mux.HandleFunc("/ws", guiServer.ServeWS)
 		srv := &http.Server{Addr: ":" + port, Handler: mux}
 		go srv.ListenAndServe()
 		defer srv.Close()
@@ -608,7 +608,7 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 				os.Exit(2)
 			}
 			defer ln.Close()
-			go hub.ServeMCP(ln)
+			go guiServer.ServeMCP(ln)
 			fmt.Fprintf(os.Stderr, "GUI MCP server on %s (connect with mcp-connect)\n", ln.Addr())
 		}
 	}

@@ -4,7 +4,7 @@
 // receives observations from the actor, serialises them, and fans them out
 // to every connected browser. No package under internal/llm, internal/tools,
 // or internal/jobs imports this one.
-package ws
+package gui
 
 import (
 	"encoding/json"
@@ -24,14 +24,14 @@ func newUpgrader() *websocket.Upgrader {
 	}
 }
 
-// Hub fans observations out to WebSocket clients. It implements
+// Server fans observations out to WebSocket clients. It implements
 // common.Observer; its Observe method MUST NOT BLOCK.
 //
 // Reconnection uses the event log, not an observation buffer. The event log
 // is append-only so readers take no lock (Log.Events elements are stable once
 // written). The only mutable shared state is the in-flight partial map and
 // the client set, which are guarded by mu.
-type Hub struct {
+type Server struct {
 	// Model reports the model currently in force, for pricing. A closure
 	// rather than a string because the operator can switch models mid-session,
 	// and a value captured at construction would price every later turn at the
@@ -55,13 +55,13 @@ type Hub struct {
 	selfSeq      atomic.Int64                     // CallGUI request ids
 }
 
-// NewHub creates a hub. send is called for every prompt/hint/interrupt
+// New creates a hub. send is called for every prompt/hint/interrupt
 // received from a browser; gate controls tool-dispatch pausing; eventLog
 // provides read access to the append-only event log for reconnection;
 // settings provides the GUI-editable settings store (may be nil); usage
 // provides the running session token tally for the status meter (may be nil).
-func NewHub(gate *common.PauseGate, send func(common.Inbound), guiLogPath string, eventLog *common.Log, settings common.SettingsSource, usage common.UsageSource) *Hub {
-	h := &Hub{
+func New(gate *common.PauseGate, send func(common.Inbound), guiLogPath string, eventLog *common.Log, settings common.SettingsSource, usage common.UsageSource) *Server {
+	h := &Server{
 		clients:      make(map[*Client]bool),
 		inflight:     make(map[uint64][]byte),
 		gate:         gate,
@@ -87,7 +87,7 @@ func NewHub(gate *common.PauseGate, send func(common.Inbound), guiLogPath string
 }
 
 // Close closes the gui.log file.
-func (h *Hub) Close() {
+func (h *Server) Close() {
 	if h.guiLog != nil {
 		h.guiLog.Close()
 	}
@@ -98,21 +98,21 @@ func (h *Hub) Close() {
 //
 // Optional rather than a constructor parameter: most runs do not want one, and
 // a nil logger is safe to call.
-func (h *Hub) SetTTSLog(path string) {
+func (h *Server) SetTTSLog(path string) {
 	h.ttsLog = NewTTSLogger(path)
 }
 
 // SetMCPReceiver registers a callback for incoming JSON-RPC messages tagged
 // with the given source. The coding agent uses source "" (default); the
 // virtual user uses source "vu". Called when wiring a WSTransport.
-func (h *Hub) SetMCPReceiver(source string, recv func(json.RawMessage)) {
+func (h *Server) SetMCPReceiver(source string, recv func(json.RawMessage)) {
 	h.mu.Lock()
 	h.mcpReceivers[source] = recv
 	h.mu.Unlock()
 }
 
 // RemoveMCPReceiver unregisters the receiver for the given source tag.
-func (h *Hub) RemoveMCPReceiver(source string) {
+func (h *Server) RemoveMCPReceiver(source string) {
 	h.mu.Lock()
 	delete(h.mcpReceivers, source)
 	h.mu.Unlock()
@@ -122,7 +122,7 @@ func (h *Hub) RemoveMCPReceiver(source string) {
 // clients, wrapped as {"type":"jsonrpc","source":"...","payload":{...}}.
 // The source tag lets mcp.js echo it back so the hub can route the response.
 // It returns how many browsers it reached; zero means nothing will answer.
-func (h *Hub) BroadcastJSONRPC(data json.RawMessage, source string) int {
+func (h *Server) BroadcastJSONRPC(data json.RawMessage, source string) int {
 	envelope := map[string]any{
 		"type":    "jsonrpc",
 		"payload": json.RawMessage(data),
@@ -151,7 +151,7 @@ func (h *Hub) BroadcastJSONRPC(data json.RawMessage, source string) int {
 }
 
 // Observe implements common.Observer. Must not block.
-func (h *Hub) Observe(obs common.Observation) {
+func (h *Server) Observe(obs common.Observation) {
 	// A turn just finished, so the session tally has moved: refresh the
 	// meter. This runs before the marshal below because that path returns
 	// early for observations with no wire representation, and before h.mu
@@ -219,7 +219,7 @@ func (h *Hub) Observe(obs common.Observation) {
 }
 
 // ServeWS upgrades an HTTP request to a WebSocket connection.
-func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
+func (h *Server) ServeWS(w http.ResponseWriter, r *http.Request) {
 	conn, err := newUpgrader().Upgrade(w, r, nil)
 	if err != nil {
 		return
@@ -256,7 +256,7 @@ func (h *Hub) ServeWS(w http.ResponseWriter, r *http.Request) {
 // Leaving c.send open costs nothing - an unreferenced channel is garbage
 // collected whether or not it was ever closed - while writePump now stops on
 // done instead of on the close.
-func (h *Hub) removeClient(c *Client) {
+func (h *Server) removeClient(c *Client) {
 	h.mu.Lock()
 	delete(h.clients, c)
 	// Clean up any MCP agent registrations for this client.
@@ -293,7 +293,7 @@ func sendReplay(c *Client, data []byte) bool {
 	}
 }
 
-func (h *Hub) subscribe(c *Client) {
+func (h *Server) subscribe(c *Client) {
 	h.mu.Lock()
 	logLen := h.logLen
 	h.mu.Unlock()
@@ -411,7 +411,7 @@ replay:
 // settings. A model left in settings.json by an earlier session would
 // otherwise be displayed while the agent runs the startup default, which is
 // exactly the drift effectiveModel exists to stop.
-func (h *Hub) settingsAtLoad() common.Settings {
+func (h *Server) settingsAtLoad() common.Settings {
 	s := h.settings.Get()
 	s.Model = h.effectiveModel()
 	return s
@@ -429,14 +429,14 @@ func (h *Hub) settingsAtLoad() common.Settings {
 // applies the switch asynchronously, so the live model can still be the old
 // one for a moment; overwriting unconditionally would snap the picker back to
 // the previous model right after a change.
-func (h *Hub) settingsForDisplay(s common.Settings) common.Settings {
+func (h *Server) settingsForDisplay(s common.Settings) common.Settings {
 	if s.Model == "" {
 		s.Model = h.effectiveModel()
 	}
 	return s
 }
 
-func (h *Hub) effectiveModel() string {
+func (h *Server) effectiveModel() string {
 	if h.Model != nil {
 		if m := h.Model(); m != "" {
 			return m
@@ -448,7 +448,7 @@ func (h *Hub) effectiveModel() string {
 	return ""
 }
 
-func (h *Hub) usageFrame() []byte {
+func (h *Server) usageFrame() []byte {
 	if h.usage == nil {
 		return nil
 	}
@@ -493,7 +493,7 @@ func (h *Hub) usageFrame() []byte {
 }
 
 // broadcastUsage pushes the session meter to every live client.
-func (h *Hub) broadcastUsage() {
+func (h *Server) broadcastUsage() {
 	data := h.usageFrame()
 	if data == nil {
 		return
@@ -514,7 +514,7 @@ func (h *Hub) broadcastUsage() {
 // fetch sends event-log entries in the requested seq range, followed by
 // any in-flight partials. This is an explicit range request, not part of
 // initial subscription: subscribe already pushes the complete history.
-func (h *Hub) fetch(c *Client, fromSeq, toSeq common.Seq) {
+func (h *Server) fetch(c *Client, fromSeq, toSeq common.Seq) {
 	h.mu.Lock()
 	logLen := h.logLen
 	h.mu.Unlock()
@@ -562,7 +562,7 @@ func (h *Hub) fetch(c *Client, fromSeq, toSeq common.Seq) {
 }
 
 // handleClientMessage dispatches an incoming client message.
-func (h *Hub) handleClientMessage(c *Client, raw []byte) {
+func (h *Server) handleClientMessage(c *Client, raw []byte) {
 	h.guiLog.Log(">", raw)
 
 	var msg struct {
@@ -686,7 +686,7 @@ func (h *Hub) handleClientMessage(c *Client, raw []byte) {
 }
 
 // broadcastSettings sends a settings_changed message to all live clients.
-func (h *Hub) broadcastSettings(s common.Settings) {
+func (h *Server) broadcastSettings(s common.Settings) {
 	s = h.settingsForDisplay(s)
 	data, err := json.Marshal(map[string]any{
 		"type":     "settings_changed",
@@ -715,7 +715,7 @@ func (h *Hub) broadcastSettings(s common.Settings) {
 
 // Client represents a single WebSocket connection.
 type Client struct {
-	hub     *Hub
+	hub     *Server
 	conn    *websocket.Conn
 	send    chan []byte
 	done    chan struct{} // closed once, by ServeWS teardown, to stop writePump

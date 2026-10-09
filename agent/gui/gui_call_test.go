@@ -1,4 +1,4 @@
-package ws
+package gui
 
 import (
 	"context"
@@ -28,7 +28,7 @@ func silentBrowser(t *testing.T, url string) {
 	}()
 }
 
-func pendingCount(h *Hub) int {
+func pendingCount(h *Server) int {
 	h.selfReplies.mu.Lock()
 	defer h.selfReplies.mu.Unlock()
 	return len(h.selfReplies.pending)

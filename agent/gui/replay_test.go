@@ -1,4 +1,4 @@
-package ws
+package gui
 
 import (
 	"encoding/json"
@@ -45,7 +45,7 @@ func drainMessages(c *Client) []string {
 // A restored session hands the hub a log that is already full, but no
 // observation has arrived yet. logLen used to be advanced only by Observe, so
 // it stayed at zero and subscribe replayed nothing: the GUI opened blank on a
-// conversation sitting right there on disk. Deleting the seeding in NewHub
+// conversation sitting right there on disk. Deleting the seeding in New
 // fails this test.
 func TestSubscribeReplaysRestoredLog(t *testing.T) {
 	log := &common.Log{
@@ -57,7 +57,7 @@ func TestSubscribeReplaysRestoredLog(t *testing.T) {
 		Clock: time.Now,
 	}
 
-	h := NewHub(nil, nil, "", log, nil, nil)
+	h := New(nil, nil, "", log, nil, nil)
 	c := &Client{send: make(chan []byte, 256)}
 
 	h.subscribe(c)
@@ -89,7 +89,7 @@ func TestSubscribeDoesNotDropWhenBufferOverflows(t *testing.T) {
 	}
 	log := &common.Log{Events: events, Next: common.Seq(n + 1), Clock: time.Now}
 
-	h := NewHub(nil, nil, "", log, nil, nil)
+	h := New(nil, nil, "", log, nil, nil)
 	c := &Client{send: make(chan []byte, 256)}
 
 	subscribeDone := make(chan struct{})
@@ -209,7 +209,7 @@ func TestResponsesGetDistinctPartIDs(t *testing.T) {
 		Clock: time.Now,
 	}
 
-	h := NewHub(nil, nil, "", log, nil, nil)
+	h := New(nil, nil, "", log, nil, nil)
 	c := &Client{send: make(chan []byte, 256)}
 	h.subscribe(c)
 
@@ -247,7 +247,7 @@ func TestThinkingRendersOnReconnect(t *testing.T) {
 		Clock: time.Now,
 	}
 
-	h := NewHub(nil, nil, "", log, nil, nil)
+	h := New(nil, nil, "", log, nil, nil)
 	c := &Client{send: make(chan []byte, 256)}
 	h.subscribe(c)
 

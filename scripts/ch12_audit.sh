@@ -120,7 +120,7 @@ run_mutant \
 run_mutant \
     "no-ws-jsonrpc" \
     "ws-tunnel" \
-    "agent/internal/ws/handler.go" \
+    "agent/gui/handler.go" \
     'case "jsonrpc":' \
     'case "MUTANT_jsonrpc":'
 

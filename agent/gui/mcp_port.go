@@ -1,4 +1,4 @@
-package ws
+package gui
 
 import (
 	"bufio"
@@ -23,7 +23,7 @@ import (
 //
 // ServeMCP returns when the listener is closed. Bind it to loopback: anyone who
 // can reach this port can click buttons and type into the GUI.
-func (h *Hub) ServeMCP(ln net.Listener) error {
+func (h *Server) ServeMCP(ln net.Listener) error {
 	n := 0
 	for {
 		conn, err := ln.Accept()
@@ -50,7 +50,7 @@ type rpcHead struct {
 	Method string          `json:"method"`
 }
 
-func (h *Hub) serveMCPConn(conn net.Conn, source string) {
+func (h *Server) serveMCPConn(conn net.Conn, source string) {
 	out := make(chan []byte, 64)
 	done := make(chan struct{})
 

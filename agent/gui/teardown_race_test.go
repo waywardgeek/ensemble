@@ -1,4 +1,4 @@
-package ws
+package gui
 
 import (
 	"sync"
@@ -18,7 +18,7 @@ import (
 // snapshotted, then deleted and closed, then sent to:
 //
 //	panic: send on closed channel
-//	ws.(*Hub).Observe -> llm.(*Actor).notify -> llm.(*Actor).setState
+//	ws.(*Server).Observe -> llm.(*Actor).notify -> llm.(*Actor).setState
 //
 // which killed the agent mid-turn whenever a browser tab closed at the wrong
 // moment. It reproduced in roughly one grader run in six.
@@ -49,7 +49,7 @@ func TestObserveDuringTeardownDoesNotPanic(t *testing.T) {
 
 	// Only log needs a value: Observe reads h.log.Events, while guiLog.Log
 	// has a nil-receiver guard.
-	h := &Hub{clients: make(map[*Client]bool), log: &common.Log{}}
+	h := &Server{clients: make(map[*Client]bool), log: &common.Log{}}
 
 	for i := 0; i < rounds; i++ {
 		all := make([]*Client, 0, clientCount)

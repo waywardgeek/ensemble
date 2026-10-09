@@ -1,4 +1,4 @@
-package ws
+package gui
 
 import (
 	"encoding/json"
@@ -23,7 +23,7 @@ func (f *fakeSettings) ApplyRaw(raw json.RawMessage) common.Settings {
 // entirely, and then reports a model the agent is not running. The usage meter
 // had this exact failure: it confirmed a model every request ignored.
 func TestSettingsForDisplayFillsUnsetModel(t *testing.T) {
-	h := &Hub{
+	h := &Server{
 		settings: &fakeSettings{s: common.Settings{Model: ""}},
 		Model:    func() string { return "gpt-6.1-sol" },
 	}
@@ -43,7 +43,7 @@ func TestSettingsForDisplayFillsUnsetModel(t *testing.T) {
 // would broadcast that stale value and snap the picker back to the previous
 // model immediately after the operator changed it.
 func TestSettingsForDisplayKeepsChosenModel(t *testing.T) {
-	h := &Hub{
+	h := &Server{
 		settings: &fakeSettings{s: common.Settings{Model: "claude-opus-5-5"}},
 		Model:    func() string { return "gpt-6.1-sol" }, // switch not applied yet
 	}
@@ -63,7 +63,7 @@ func TestSettingsForDisplayKeepsChosenModel(t *testing.T) {
 // ignored by the engine and must not be shown to a freshly connected client,
 // or the picker reports a model that no request will use.
 func TestSettingsAtLoadShowsModelInForce(t *testing.T) {
-	h := &Hub{
+	h := &Server{
 		settings: &fakeSettings{s: common.Settings{Model: "claude-opus-5-5"}}, // stale
 		Model:    func() string { return "gpt-6.1-sol" },                      // in force
 	}

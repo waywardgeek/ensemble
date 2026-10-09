@@ -1,4 +1,4 @@
-package ws
+package gui
 
 import (
 	"encoding/json"
@@ -27,7 +27,7 @@ func TestReplayCarriesResetInOrder(t *testing.T) {
 		Clock: time.Now,
 	}
 
-	h := NewHub(nil, nil, "", log, nil, nil)
+	h := New(nil, nil, "", log, nil, nil)
 	c := &Client{send: make(chan []byte, 256)}
 
 	h.subscribe(c)

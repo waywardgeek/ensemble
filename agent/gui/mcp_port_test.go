@@ -1,4 +1,4 @@
-package ws
+package gui
 
 import (
 	"bufio"
@@ -62,9 +62,9 @@ func fakeBrowser(t *testing.T, url, name string) *websocket.Conn {
 }
 
 // startMCPPort runs a hub behind a real HTTP server and a real TCP listener.
-func startMCPPort(t *testing.T) (h *Hub, wsURL string, tcpAddr string) {
+func startMCPPort(t *testing.T) (h *Server, wsURL string, tcpAddr string) {
 	t.Helper()
-	h = NewHub(nil, nil, "", &common.Log{}, nil, nil)
+	h = New(nil, nil, "", &common.Log{}, nil, nil)
 	srv := httptest.NewServer(http.HandlerFunc(h.ServeWS))
 	t.Cleanup(srv.Close)
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
@@ -102,7 +102,7 @@ func readLine(t *testing.T, conn net.Conn, r *bufio.Reader) map[string]any {
 
 // waitLive blocks until the hub has n live clients, so a request is not sent
 // before the fake browsers' subscribe messages have been processed.
-func waitLive(t *testing.T, h *Hub, n int) {
+func waitLive(t *testing.T, h *Server, n int) {
 	t.Helper()
 	for i := 0; i < 300; i++ {
 		h.mu.Lock()
