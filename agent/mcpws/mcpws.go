@@ -1,4 +1,4 @@
-package mcp
+package mcpws
 
 import (
 	"encoding/json"
@@ -8,13 +8,13 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-// ClientWSTransport connects to a WebSocket hub as a client and tunnels
+// Transport connects to a WebSocket hub as a client and tunnels
 // JSON-RPC messages with a source tag. The virtual user uses this to reach
 // the browser's MCP server through the hub.
 //
 // Outgoing: wraps each message as {"type":"jsonrpc","source":"vu","payload":{...}}
 // Incoming: filters for matching source tag and delivers the payload.
-type ClientWSTransport struct {
+type Transport struct {
 	conn      *websocket.Conn
 	source    string // e.g. "vu"
 	incoming  chan json.RawMessage
@@ -22,15 +22,15 @@ type ClientWSTransport struct {
 	closeOnce sync.Once
 }
 
-// NewClientWSTransport dials the hub WebSocket and starts a read loop
+// New dials the hub WebSocket and starts a read loop
 // that filters for jsonrpc messages matching the given source tag.
-func NewClientWSTransport(url, source string) (*ClientWSTransport, error) {
+func New(url, source string) (*Transport, error) {
 	conn, _, err := websocket.DefaultDialer.Dial(url, nil)
 	if err != nil {
 		return nil, fmt.Errorf("dial %s: %w", url, err)
 	}
 
-	t := &ClientWSTransport{
+	t := &Transport{
 		conn:     conn,
 		source:   source,
 		incoming: make(chan json.RawMessage, 64),
@@ -42,7 +42,7 @@ func NewClientWSTransport(url, source string) (*ClientWSTransport, error) {
 
 // readLoop reads WebSocket messages, filters for jsonrpc envelopes matching
 // our source tag, and delivers payloads to the incoming channel.
-func (t *ClientWSTransport) readLoop() {
+func (t *Transport) readLoop() {
 	defer t.Close()
 	for {
 		_, data, err := t.conn.ReadMessage()
@@ -72,7 +72,7 @@ func (t *ClientWSTransport) readLoop() {
 }
 
 // Send wraps a JSON-RPC message in a source-tagged envelope and sends it.
-func (t *ClientWSTransport) Send(msg json.RawMessage) error {
+func (t *Transport) Send(msg json.RawMessage) error {
 	select {
 	case <-t.done:
 		return fmt.Errorf("client ws transport closed")
@@ -87,7 +87,7 @@ func (t *ClientWSTransport) Send(msg json.RawMessage) error {
 }
 
 // Recv blocks until a JSON-RPC response arrives from the hub.
-func (t *ClientWSTransport) Recv() (json.RawMessage, error) {
+func (t *Transport) Recv() (json.RawMessage, error) {
 	select {
 	case msg, ok := <-t.incoming:
 		if !ok {
@@ -100,7 +100,7 @@ func (t *ClientWSTransport) Recv() (json.RawMessage, error) {
 }
 
 // Close terminates the WebSocket connection and stops the read loop.
-func (t *ClientWSTransport) Close() error {
+func (t *Transport) Close() error {
 	t.closeOnce.Do(func() {
 		close(t.done)
 		t.conn.Close()

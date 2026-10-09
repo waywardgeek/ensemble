@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	agent "github.com/waywardgeek/ensemble/agent"
+	"github.com/waywardgeek/ensemble/agent/mcpws"
 )
 
 const virtualUserPrompt = `You are a virtual user testing a coding agent through its GUI. You can see the GUI DOM, click buttons, type into text fields, and hear TTS output.
@@ -143,7 +144,7 @@ func main() {
 
 	// Connect to the hub WebSocket with source tag "vu".
 	log.Printf("connecting to %s...", *agentURL)
-	transport, err := agent.NewMCPClientWSTransport(*agentURL, "vu")
+	transport, err := mcpws.New(*agentURL, "vu")
 	if err != nil {
 		log.Fatalf("connect to hub: %v", err)
 	}

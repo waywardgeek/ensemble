@@ -67,13 +67,6 @@ func NewMCPRawTransport(r io.Reader, w io.Writer) MCPTransport {
 	return mcp.NewRawTransport(r, w)
 }
 
-// NewMCPClientWSTransport dials a WebSocket hub and creates a transport
-// that tags all messages with the given source. Used by the virtual user
-// to connect to the browser's MCP server through the hub.
-func NewMCPClientWSTransport(url, source string) (MCPTransport, error) {
-	return mcp.NewClientWSTransport(url, source)
-}
-
 // Chapter 6: observer and mailbox types.
 type Observer = common.Observer
 type Observation = common.Observation
