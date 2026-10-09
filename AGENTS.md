@@ -4,6 +4,13 @@ Bill retired the author-driven second-edition attempt. Its history is preserved
 at `edition-2-attempt-1-stopped`; do not resume its agents or workflow. See
 `docs/edition-2-attempt-1.md` for the decision.
 
+Keep the learning record in `docs/agentic-codebook-workflow.md` current. Record
+substantive discoveries, failed approaches, corrections and unresolved questions
+with evidence; chapter-specific details belong in the student's chapter review.
+Required behavior and architecture are binding, but suggested designs are
+provisional. The coder may choose a simpler working design and explain why;
+consequential requirement changes must go back to Bill.
+
 Before coding or reviewing code, and after compaction, read the entire skill:
 `.agents/skills/ensemble-coding/SKILL.md`. Every coder/reviewer handoff must include
 that exact path. It replaces the deleted second-edition workflow skill.

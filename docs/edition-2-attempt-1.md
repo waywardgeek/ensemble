@@ -2,8 +2,10 @@
 
 Bill ended this attempt after reviewing the expansion of the persistence
 chapter and tracing invented product requirements back through earlier chapters.
-The working tree is being cleared by explicit deletion, not by resetting or
-rewriting Git history. The first edition and its solutions remain unchanged.
+The discarded working trees were cleared by explicit deletion in commit
+`751faf6`, not by resetting or rewriting Git history. All second-edition solutions
+and all second-edition book material except Chapter 1 were deleted. The first
+edition and its solutions remain unchanged.
 
 The annotated tag `edition-2-attempt-1-stopped` preserves the final manuscript,
 completed snapshots, and unfinished Chapter 11 source before deletion. Chapter
@@ -48,6 +50,9 @@ The current coding instructions are in `AGENTS.md` and
 the original `book/chapter-01.md` defines the first exercise. Later first-edition
 architecture-repair chapters do not require deliberately undoing correct design.
 
-To inspect discarded material, use `git show
-edition-2-attempt-1-stopped:PATH`. Existing commits and annotated chapter tags
+The ongoing [workflow and learning record](agentic-codebook-workflow.md) describes
+the agent roles, guard rails and how to preserve subsequent lessons.
+
+To inspect discarded material, use
+`git show edition-2-attempt-1-stopped:PATH`. Existing commits and annotated chapter tags
 remain intact. Do not resume the stopped author or unfinished Chapter 11 coder.
