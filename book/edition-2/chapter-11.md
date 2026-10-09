@@ -19,8 +19,9 @@ a WebSocket. The next chapter uses that seam to give the Agent access to its own
 GUI.
 
 *Contract draft. Accepted Chapter 10 permits a fresh student's ownership/API
-plan. The runtime checker invocation must be published before implementation
-integration or acceptance. No Chapter 11 implementation is claimed yet.*
+plan. The partial runtime invocation below does not replace independent plan
+review or the full acceptance matrix. The coordinator releases implementation;
+none is claimed here yet.*
 
 ## TL;DR
 
@@ -75,10 +76,25 @@ python3 scripts/edition2/accept_ch11.py --self-test --receipt PATH
 ```
 
 Choose PATH for the resulting local receipt. This command tests oracle
-preparation; it does not grade the student's MCP client. A plan-only handoff
-may document owners and public seams on accepted Chapter 10. Publish the actual
-client-runtime checker invocation after those seams are documented, before
-implementation integration or acceptance. All §11.10 requirements still apply.
+preparation; it does not grade the student's MCP client. The published partial
+runtime command is:
+
+```sh
+python3 scripts/edition2/accept_ch11_runtime.py \
+  --cli /absolute/path/to/ensemble-cli \
+  --source /absolute/path/to/source-export \
+  --source-commit FULL_COMMIT \
+  --build-binding /absolute/path/to/build-association.json \
+  --receipt /absolute/path/to/new-receipt.json
+```
+
+Read the complete [runtime command and build-binding contract](chapter-11-runtime-command.md)
+before preparing that build. It requires complete immutable source bindings and
+actual build receipts; the receipt destination must be absent. This local
+CLI/stdio subset needs no credentials or provider calls. Its exit zero is not
+whole-chapter acceptance: public alternative transports, lifecycle, persistence
+and every remaining §11.10 property still require independent checks. The
+coordinator's reviewed ownership/seam handoff precedes implementation integration.
 The inherited
 `make grade-dir CH=12 DIR=solutions/edition-2/main` is a historical diagnostic,
 not the new acceptance gate. Its protocol and module assumptions differ.
@@ -152,6 +168,22 @@ with a common parent interface providing the whole route to logging. Tools
 reaches MCP through Job/Jobs/Agent/Ensemble; MCP never imports the Tools
 implementation. Observers publish ordinary Agent facts. They are not an RPC
 return channel or a hidden second conversation authority.
+
+Discovery runs before an Agent exists, so shared lossless JSON parsing cannot
+depend on constructing an Agent or SessionStore. When MCP and SessionCodec reuse
+bounded value parsing, canonical numbers and Unicode validation, put that generic
+behavior in a neutral responsible spoke behind an Ensemble-owned common interface.
+Each caller reaches the service through its actual parent chain. The common
+root-parent interfaces must expose that access; a root interface containing only
+Logf is insufficient. Do not repair it with a concrete type assertion, a sibling
+import or an injected JSON-service field on each child.
+
+The shared service applies the caller's explicit bounds without deciding MCP
+protocol or session policy. MCP keeps its envelopes, schemas and safe error codes;
+SessionCodec keeps its formats, contextual raw-argument exceptions and session
+errors. Preserve original replay-bearing bytes separately from canonical semantic
+values. Sharing numeric syntax must not compact a stored argument string or make
+a duplicate-member exception legal in an MCP envelope.
 
 The service accepts a public transport-constructor interface. Its construction
 method receives the actual new Connection parent and returns a transport child.
@@ -696,6 +728,16 @@ consumers can obtain the same owned safe information. A browser uses ordinary
 ToolCall/ToolResult/Job cards and a small binding-status view through public
 Agent interfaces; it does not implement MCP or receive diagnostic secrets.
 
+Offline binding status comes only from recorded session identity. An explicit
+standalone CH02_LOG has no such record: its offline safe state contains `mcp:[]`,
+even if the original live Agent used remote tools. Continue rendering its recorded
+calls/results under the existing offline contract. Do not infer a connection or
+definition from a tool name/result, consult today's configuration, or invent a
+new initialization event. The empty array does not prove that the original live
+Agent had no remote bindings. A live configured Agent still reports its actual
+frozen bindings; a version-2 session inspected offline reports its recorded ones
+as unavailable under the rules below.
+
 Extend safe WatchState with required `mcp`, an array sorted by alias, empty when
 there are no remote bindings. Each item has exactly alias, connection, remote_name,
 state, generation, protocol_version and error_code. State uses §11.2's four
@@ -766,9 +808,10 @@ can become true after discovery alone, and its WebSocket check searches source
 strings. Preserve it as historical evidence; those checks cannot establish the
 new transport seam or an external effect. The printed self-test command checks
 the independent oracle and fixtures, without exercising a student's client.
-After the plan documents public seams, publish the client-runtime invocation
-before implementation integration or acceptance, without giving the student
-grader internals. Its coverage must establish every row below.
+The separately published runtime command checks only its documented CLI/stdio
+subset and retains `runtime_acceptance:false`. Document the public seams and
+complete their independent integration checks without giving the student grader
+internals. Final coverage must establish every row below.
 
 | Required property | Distinguishing acceptance evidence |
 |---|---|
@@ -784,6 +827,13 @@ grader internals. Its coverage must establish every row below.
 Test exact uint64 exhaustion through a disclosed valid owner-state seam where
 constructing that many calls is impractical. Keep passing controls for every
 mutation, and require the intended failure rather than an unrelated setup error.
+Owner-local `_test.go` fixtures may construct valid near-limit service-generation
+or Connection-issued state. Include the last valid allocation/issue as a positive,
+then prove the next one refuses before mutation, transport creation or handoff. A fixture
+must satisfy the bounded pending-state and contiguous issued-prefix invariants;
+an arbitrary corrupt cursor is not an exhaustion test. Document the test entry
+points for independent execution, without adding production cursor setters or
+requiring a checker to guess private field names.
 No assertion may depend on an unpublished private identifier spelling. Run race
 checks for shared connection calls, cancel/close/reopen and snapshot readers.
 Preserve inherited tests and the complete delivered-module build boundary.
