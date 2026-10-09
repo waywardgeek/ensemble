@@ -4,14 +4,12 @@ Through-line stake: a developer can get the right answer while paying repeatedly
 for the same context; the chapter resolves that uncertainty with an instrument
 whose request evidence, provider observations and cost estimates remain distinct.
 
-October 8, 2026. A [partial manuscript](chapter-17.md) now develops the independent
-diagnostic, marker, arithmetic and public-display teaching under the coordinator's
-working decisions at `e9d78da`. It is not a complete student contract or an
-implementation release. Bill resolved the output-cap preference at `706682c`;
-the integration proposal below, complete strict v7/interface schemas,
-capability/rate selection and acceptance command still require completion.
-The [validation record](chapter-17-validation.md) owns current gates. Historical
-and current primary sources are recorded in [the evidence ledger](chapter-17-evidence.md).
+October 8, 2026. The [complete contract draft](chapter-17.md) is ready for
+independent review. The coordinator accepted the integration direction and R1–R4
+at `a5423ed` after Bill's cap decision at `706682c`. This is not implementation
+release or runtime acceptance. The [validation record](chapter-17-validation.md)
+owns remaining gates, including the new checker invocation before student release.
+Historical and current primary sources are in [the evidence ledger](chapter-17-evidence.md).
 
 The initial outline at `580ce83`, mapped from first-edition Chapter 18, preserved
 D1–D7 as proposals. Their research and reasoning remain below; the dated drafting
@@ -489,3 +487,52 @@ actual own-app consent and the requested cache investigation. Account availabili
 or an unsupported capability may leave that real gate open; a separate probe
 does not complete Ensemble integration. No authorization or provider run occurred
 while preparing this proposal.
+
+## Complete contract disposition after integration review
+
+October 8, 2026. The coordinator accepted the proposal direction and every R1–R4
+recommendation in `a5423ed`. The full manuscript now publishes the selected rules;
+the earlier proposal remains historical reasoning rather than an unresolved vote.
+No additional decision is attributed to Bill.
+
+- R1: §§17.5/17.8 fix explicit capped API-key Responses and uncapped plan funding,
+  whole-turn model/funding capture, per-purpose delivery/caps and no fallback.
+  Responses initially supports off only; its implicit cache investigation remains
+  mandatory. A source-backed capability table is frozen in v7 identity and exact
+  price inputs are mount data. Unknown prices stay visible.
+- R2: §17.8 assigns asynchronous Engine waits and Connection refresh, bounded
+  isolated waiters, atomic dispatch invalidation and Actor once-only terminal
+  settlement. Valid usage may survive canceled output; tool/memory/recall effects
+  cannot. Restart uses a protected persistent random binding and generation, not
+  the display name. Store lock, sign-out/close and late-work barriers are explicit.
+- R3: §17.8 gives one authoritative raw terminal payload, indexed references,
+  helper reuse of its existing raw receipt, protected bundle retirement and exact
+  full-log/snapshot continuation. It prints ordered reasoning/commentary/call,
+  spaced arguments, result and final-answer fixtures. Foreign namespace has an
+  explicit controlled paired refusal; duplicate argument text retains Chapter 10.
+- R4: §17.8 counts decoded HTTP-entity bytes before SSE parsing, including framing
+  and terminal repetition, with E=532 bytes and exact 8,192/8,193 constructions.
+  Actual successful plan judge/compression remain future validation gates.
+- §17.5 completes v7 wrapper over every old base identity, construction order,
+  session/standalone/anchor rules, capture and codec substitutions, record classes
+  and retirement. Its minimal two-event construction fixture is printed. Old
+  routes remain strict and exact; caching implies no memory/recall enablement.
+- §17.7 specifies nested public status, uint64/rational representation, bounded
+  truncation, protocol/human commands, manifest and safe client lifetime. §17.9
+  gives the finite initial five-route matrix, actual-user surfaces and release gates.
+
+The text-only/local-function Responses scope deliberately does not invent new
+neutral attachment fields: unsupported human blobs refuse, and result references
+use the inherited descriptive mapping. Optional GUI inspection remains the public
+transport-independent MCP path. New credentials never grant model authority.
+
+The full draft preserves the original-author `53ee8e7` opening, false instrument
+incident, returning compact/indented lesson and producing-model meter story. The
+new comparison/connection section starts with the reader's misleading-control
+problem. Its extra specification length is needed to publish the newly selected
+funding route; it is not a claim that documentation review produced a live result.
+
+Next: independent full contract/schema/voice review; resolve material findings,
+publish the actual new acceptance invocation, and release a fresh student only
+after the preceding source and chapter gates permit it. No build or paid work
+was performed by the author.

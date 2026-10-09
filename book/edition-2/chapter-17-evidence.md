@@ -279,3 +279,49 @@ all hard checks passed. The 4,337-word partial chapter retains soft negation and
 long-person-gap warnings; outline/evidence length warnings do not call for prose
 padding. Scoped `git diff --check` passed. These are partial-draft checks, not
 independent full-contract proofreading or runtime validation.
+
+
+## Full contract drafting after R1–R4 acceptance
+
+October 8, 2026. The coordinator authorized completion from `a5423ed` after reading
+its full integration review. The author reloaded all current voice.md,
+chapter-writing-procedure.md and architecture.md, read the complete new review
+append, and re-read the existing partial chapter in bounded ranges. Focused
+predecessor reads covered Chapter 10 identity/initializers and its now-64-MiB
+session record rule, Chapter 14 versioned anchors/protection, Chapter 15 helper
+config/retirement and Chapter 16 identity/initializer/helper limits. This is broad
+author context, never a fresh student evaluation.
+
+Used the already loaded full OpenAI Docs skill, searched current official route
+and stream topics, then actually opened registration, Responses streaming,
+preview limitations and conversation-state pages. Direct bounded-time retrieval
+of the official Responses streaming and sign-in Markdown supplied focused schema
+sections. The identity page's discovery/issuer/JWKS section was likewise read.
+No account data or authenticated request was accessed. Existing primary-source
+citations above remain attributed to their earlier reads; this is not a claim to
+have re-read every earlier page in full.
+
+The full draft publishes the accepted R1–R4 requirements and their deterministic
+fixtures. Routine choices made explicit include a v7 wrapper around exact base
+identities; a frozen capability table in creation identity; one raw terminal
+payload and indexed references; a protected Responses bundle with whole-unit
+handoff retirement; text/function-only new Responses mapping; 256 refresh waiters;
+private store bounds; safe public protocol; and a finite initial five-route matrix.
+These are coordinator-author design choices within the accepted direction, not
+new quotations or rulings from Bill. Original-author story input at `53ee8e7`
+remains intact.
+
+Independently parsed every printed JSON/JSON-lines literal with the standard JSON
+parser. The SSE fixture E is 532 ASCII bytes including its two LF terminators;
+colon + 7,657 x bytes + two LF + E is exactly 8,192 bytes, and one added x gives
+8,193. This verifies the printed byte recipe only, not a parser implementation,
+provider stream or successful real judge. API-key fixture insertion preserves all
+other printed continuation bytes; fictional identities are clearly offline.
+
+The existing external edition2-lintprose executable was used without compilation.
+Hard checks pass; the manuscript's roughly 9,400 prose words, negation density and
+long technical stretch remain soft review inputs. No story was fabricated to
+satisfy a numeric warning. Scoped diff/fixture checks are separate from the pending
+independent full-contract review. The author edited only Chapter 17 manuscript,
+outline, evidence and, under this handoff's explicit assignment, validation.
+No runtime, grader, credential, login, provider, build or push action occurred.

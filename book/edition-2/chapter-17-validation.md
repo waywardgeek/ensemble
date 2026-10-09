@@ -1,18 +1,19 @@
 # Chapter 17 validation
 
-Preparation reviewed, October 8, 2026. Outline/research `580ce83` and independent
-advisory `b59c47e` are complete. The coordinator has read both preparation files
-and the full advisory. The author acknowledges Bill's continuing requirement
+Full contract drafted for independent review, October 8, 2026. Preparation
+`580ce83`/`b59c47e`, the subscription proposal `8f834ce` and integration review
+`a5423ed` are retained. The coordinator accepted the proposal direction and all
+R1–R4 recommendations; the full draft publishes their requirements. The author acknowledges Bill's continuing requirement
 that MCP remain transport-independent and that the actual GUI tunnel live in the
 optional module. No Chapter 17 implementation, full contract or experiment is
 accepted. Chapter 16 has contract/prose acceptance only.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
-| Research and consequential choices | Author, reviewer, coordinator, Bill for the output-cap choice | Preparation `580ce83`, advisory `b59c47e`; Bill approved explicit subscription mode without a per-response output-token cap | Specify complete supported route and per-purpose compatibility before dependent code |
-| Full contract and prose | Author `/root/author`, independent reviewer | Partial draft `b9772c3`; scoped hard prose checks pass, full manuscript review pending | Resolve route-dependent material and complete v7/public schemas before full contract review |
-| Independent checks | Future grader | Not started | Derive distinguishing checks from complete published teaching |
-| Fresh student and owner plan | Future fresh student, reviewer | Not released | Requires accepted Chapter 16 source and complete contract |
+| Research and consequential choices | Author, reviewer, coordinator, Bill for the output-cap choice | Bill cap decision `706682c`; coordinator accepts proposal and R1–R4 at `a5423ed` | Independent review of the complete published integration details |
+| Full contract and prose | Author `/root/author`, independent reviewer | Complete contract draft now published; full independent review pending | Review strict schemas, fixtures, ownership, lifetime, voice and acceptance mapping |
+| Independent checks | Future grader | Not started | Publish new acceptance invocation from §17.9 contract; inherited CH18 is diagnostic only |
+| Fresh student and owner plan | Future fresh student, reviewer | Not released | Requires accepted Chapter 16 source, reviewed complete contract and published new checker invocation |
 | Local implementation | Future student, grader | Not started | Preserve preceding ownership, replay and helper guarantees |
 | Actual use and OAuth caching investigation | Future student, reviewer, coordinator | Not started | Review finite request matrix, own-application authorization and comparable controls |
 | Historical comparison and revisions | Independent reviewer | Not started | Freeze initial implementation, runs and student experience first |
@@ -96,3 +97,29 @@ receipt is [prose-ch10-clarification-ch17-partial.json](checkpoint-evidence/pros
 Hard rules pass; soft density and long mechanism stretches remain editorial
 review inputs, not proof that the human-story requirement is met. No full draft
 acceptance or provider experiment follows from that lint result.
+
+
+## Complete draft submitted after integration acceptance
+
+The coordinator's accepted R1–R4 requirements are now taught in §§17.5–17.8:
+explicit capped API-key Responses control and uncapped selected plan route;
+whole-turn capture; asynchronous isolated lease waiting; shared Connection refresh;
+atomic dispatch invalidation; Actor once-only usage settlement with canceled
+output suppression; persistent protected registration binding; one raw capsule
+with checked references and helper deduplication; strict replay and namespace
+refusals; decoded-entity judge boundaries at 8,192/8,193 bytes.
+
+The v7 wrapper selects any exact old base1–6 identity and retains the corresponding
+capabilities/initializer order without enabling maintenance. The draft supplies
+public status/command schemas, literal initializer and Responses continuation,
+strict capture/codec/record rules and a finite initial 80-start/five-route live
+matrix. Responses marker policy remains off-only until route support is explicitly
+established; this does not waive the real implicit-cache investigation. Actual
+successful plan judge and compression remain required despite local fixture success.
+
+These are author dispositions for independent review, not gate acceptance.
+No student implementation, new grader invocation, authorization, provider call or
+live comparison exists at this boundary. The actual capability/price input files
+for discovered live identities must be source-backed and included in the reviewed
+live plan. No speculative model entitlement or price is installed by the draft.
+The original-author `53ee8e7` story edits are preserved.
