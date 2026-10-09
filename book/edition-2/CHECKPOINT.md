@@ -1,35 +1,50 @@
 # Working checkpoint
 
-## Current boundary: fresh Chapter 11 student plan running
+## Current boundary: Chapter 11 implementation/local phase running
 
 Chapter10 immutable tag `edition-2-ch10-r1` points to
 `d91861207f4c2e4b81bd6c239ae15b8f51a1d146`. At that tag main and ch10 export both
-have tree `5bb92f0d3b30da864c1bebb351ab7065973488ec`; source is265fe34,
-final runtime70d86f7,5,792files/12modules. All gates are accepted as below.
+have tree `5bb92f0d3b30da864c1bebb351ab7065973488ec`; source265fe34,
+final runtime70d86f7,5,792files/12modules. All Chapter10 gates are accepted.
 
-Fresh external CLI student conversation `01a11ec6-f18e-7912-9822-01b975ebd218`
-is running exec9264, phase1 PLAN ONLY. Its actual prompt, events/stderr/result,
-13-file new-only teaching manifest and sole coordinator inbox are under
+Fresh Chapter11 student conversation `01a11ec6-f18e-7912-9822-01b975ebd218`
+completed phase1 exec9264, exit0, plan `55c9e7a`. Root and independent reviewer
+read its complete439lines; owner/API review `4d9c015` accepted the structure with
+three finite teaching decisions and corrected root-parent reachability.
+Author answers `b43fc3f` and actual partial checker `a36aa8a` have independent
+closure `01319f8`, read/accepted by root. No Bill decision remains pending.
+
+The SAME student now runs phase2, exec37075, implementation and local checks.
+Actual release prompt/events/stderr/result and sole coordinator inbox are under
 `/Users/bill/projects/ensemble-edition-2-revisions/ch11-student-inputs/`.
-Actual prompt isphase-1.txt; phase-1-draft.txt is historical and must not launch.
-Check process/result before restarting. This is a new conversation with memories
-disabled, no root/other-agent history, pinned Chapters1–11/skill/architecture and
-accepted Chapter10 source. Student may write only its compact ch11 teaching/
-ownership/API/codec plan now. No runtime code, build, credentials or paid calls.
+Use phase-2.txt; phase-2-draft.txt remains an unreleased historical draft.
+Check process/result before restarting. Memories and inherited root/other-agent
+conversations remain disabled. Original13new-only inputs are supplemented by
+`clarification-b43fc3f/`: complete Chapter11, direct feedback and student-facing
+runtime command/binding contract, with hash manifest. No grader/reviewer research
+was supplied. Student must acknowledge answers and publish amended parent seam
+before affected code, within this released task (no extra plan-only cycle).
 
-`/root/grader_ch10_remaining` now owns Chapter11 independent runtime-checker
-integration, beginning a finite plan/CLI command over the existing literal peer.
-Its foundation90/90 remains oracle-only; real client/custom/lifetime/persistence
-coverage is still required. Public adapter spelling follows the student's plan,
-not private advice. Compiler is available to that grader only if needed; no other
-build is running. `/root/reviewer_ch17` is available for independent plan/checker
-and scope review. `/root/author` is preparing Chapter19 Crossover scope/outline
-and historical evidence, not claiming a second-edition live crossover.
+Settled choices: standalone offline CH02_LOG has mcp:[] without invented binding;
+shared bounded lossless JSON is an Ensemble-owned common-interface service in a
+neutral responsible spoke, reached through actual common parent interfaces;
+MCP/SessionCodec retain own policies/errors/raw replay. Valid owner-local _test.go
+exhaustion fixtures need a near-limit positive and overflow-before-mutation proof,
+not production setters. Public names remain student choices. Full§11.10 remains
+required; the initial real CLI checker is partial, its receipt runtime_acceptance
+stays false. Original/final Chapter10 missing-feature baselines and foundation90+9
+remain separately attributed, not new student failures.
 
-Next: review the student's new-only owner/API plan, publish necessary teaching
-clarifications and actual runtime checker invocation, then release implementation.
-No Bill question is currently outstanding. Do not resume the Chapter10 student
-for Chapter11 or ask Bill to repeat existing credential authorization.
+The coder exclusively owns compiler use. No credential read, real-provider call,
+export/tag or push is released in phase2. Next: public API/codec handback permits
+independent adapter integration, then complete local gates and bounded live plan.
+`/root/grader_ch10_remaining` prepares remaining Ch11 public/custom/lifetime/
+schema/persistence checks without competing Go builds. `/root/reviewer_ch17`
+reviews Chapter19 capstone scope `5c6d636`, with urgent Ch11 questions prioritized.
+Author is at the published clarification handoff. Chapter18 contract5b75636 is
+accepted atb130e88; later implementation remains separate.
+
+All older current-boundary paragraphs below are historical and superseded here.
 
 ## Current boundary: Chapter 10 accepted; fresh Chapter 11 plan next
 
