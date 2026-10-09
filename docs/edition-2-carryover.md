@@ -187,7 +187,13 @@ bypassed the actor show why a seam must work in the real clients. Sources:
 An external GUI module must be able to use the public library without importing
 its `internal/common` package. Expose the values and interfaces its actual
 features need through the public API; moving files alone does not establish
-that boundary. Keep MCP service/routing concerns separate from the GUI's
+that boundary. Verify it with a small external module that actually constructs
+the public inputs, and inspect the transitive imports with `go list -deps`:
+a second dependency path can retain a coupling after the obvious one is removed.
+Pair an absence check with a positive control so a broken detector cannot pass.
+These are checks of the existing boundary, not additional early GUI features.
+Source: [§24.5](../book/chapter-24.md#245-the-proof).
+Keep MCP service/routing concerns separate from the GUI's
 WebSocket framing so a tunnel is one transport, not a headless runtime
 dependency. When agent switching arrives, a newly attached observer needs that
 Agent's history as well as live events. Keep replay cursors associated with the
@@ -545,15 +551,25 @@ text retention from executable tool removal. Treat model narration about
 recoverable stubs as narration, not proof of a durable-address guarantee.
 
 Chapter 23's next-chapter promise and the epilogue's future-sandbox discussion
-are stale sequencing. Bill reports CodeRhapsody is writing Chapter 24, a GUI
-extraction/refactor; it was **not available in the reviewed snapshot**. The
-sub-agent chapter is also forthcoming. Neither has been read or completed, and
-neither changes Bill's already-confirmed module boundary. Read new chapters and
-record revised coverage before applying their lessons. Provider names, prices,
+are stale sequencing. Chapter 24, the GUI extraction/refactor, was absent from
+the initial snapshot and was read in full when it arrived on October 9; see the
+coverage update below. Its same-module GUI package and `AgentHooks` dependency
+bundle do not override Bill's separate-module and parent-interface rules. Its
+deferred Ensemble root is not the restart's sequencing. Do not reproduce those
+designs; if a later grader insists on them, document the conflict for the existing
+review-exception procedure. The sub-agent chapter remains forthcoming. Read new
+chapters and record coverage before applying their lessons. Provider names, prices,
 limits and capability claims throughout this review are historical source
 claims; no provider access or external verification was performed here.
 
 ## Reading coverage and later use
+
+October 9 addition: carryover reviewer read all 565 lines of `book/chapter-24.md`
+at `2ca63636c8ba592ea0ed190fb0a3c4731e2b0848`; SHA-256
+`c6ac58046ed8e5496c44931e20d126d36081325fc06bfc27f4276c73424976b1`.
+The coordinator checked the cited excerpts and accepted the narrow verification
+lesson above. No new feature or implementation work is authorized by this reading.
+Deferred lessons and teaching corrections are in `edition-2-notes/ch24.md`.
 
 Codex read [the topology decisions](ensemble-topology-decisions.md) in full on
 October 9, at file revision `70acadd09115ec0543dd39cec3a3d7196dd15295`.
