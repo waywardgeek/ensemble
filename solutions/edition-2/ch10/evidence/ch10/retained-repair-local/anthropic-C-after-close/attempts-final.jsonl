@@ -1,7 +1,0 @@
-{"number": 1, "vendor": "anthropic", "step": "A1", "row": "A", "kind": "generation", "at": 1791494475.118835}
-{"number": 2, "vendor": "anthropic", "step": "A1", "row": "A", "kind": "generation", "at": 1791494475.126645}
-{"number": 3, "vendor": "anthropic", "step": "A2", "row": "A", "kind": "generation", "at": 1791494504.06033}
-{"number": 4, "vendor": "anthropic", "step": "B", "row": "B", "kind": "generation", "at": 1791494622.9064808}
-{"number": 5, "vendor": "anthropic", "step": "C1", "row": "C", "kind": "generation", "at": 1791494826.003314}
-{"number": 6, "vendor": "anthropic", "step": "C2", "row": "C", "kind": "generation", "at": 1791494826.003446}
-{"number": 7, "vendor": "anthropic", "step": "C3", "row": "C", "kind": "generation", "at": 1791494826.040475}

@@ -1,6 +1,0 @@
-{
-  "command": "go test ./internal/grade ./internal/fakevendor -count=1",
-  "exit": 0,
-  "stdout": "ok  \tgithub.com/waywardgeek/ensemble/internal/grade\t503.930s\nok  \tgithub.com/waywardgeek/ensemble/internal/fakevendor\t0.009s\n",
-  "shared_legacy_grader_changes": false
-}

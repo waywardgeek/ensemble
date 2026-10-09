@@ -1,4 +1,0 @@
-{"number": 9, "vendor": "anthropic", "step": "D1", "row": "D", "kind": "generation", "at": 1791514707.606265, "row_deadline": 1791515307.606265, "phase": "admitted", "source": "provider"}
-{"number": 9, "phase": "finished", "outcome": "completed", "status": 200, "bytes": 6295, "credential_redacted": false, "unfinished_prefix_discarded": false, "elapsed": 2.80007095891051}
-{"number": 10, "vendor": "anthropic", "step": "D1", "row": "D", "kind": "generation", "at": 1791514710.4125922, "row_deadline": 1791515307.606265, "phase": "admitted", "source": "provider"}
-{"number": 10, "phase": "finished", "outcome": "completed", "status": 200, "bytes": 11940, "credential_redacted": false, "unfinished_prefix_discarded": false, "elapsed": 5.007784208049998}

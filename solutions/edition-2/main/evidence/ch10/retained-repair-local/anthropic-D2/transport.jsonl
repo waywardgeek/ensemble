@@ -1,4 +1,0 @@
-{"number": 10, "vendor": "anthropic", "step": "D2", "row": "D", "kind": "generation", "at": 1791494929.6199858, "phase": "admitted", "source": "loopback"}
-{"number": 10, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 547, "credential_redacted": false, "elapsed": 0.0008496250957250595}
-{"number": 11, "vendor": "anthropic", "step": "D2", "row": "D", "kind": "generation", "at": 1791494929.6223402, "phase": "admitted", "source": "loopback"}
-{"number": 11, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 440, "credential_redacted": false, "elapsed": 0.0006355000659823418}

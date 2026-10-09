@@ -1,9 +1,0 @@
-{
-  "revision": "959c663400b74927578a3609ce58b0a51263e654",
-  "probe_receipt": "solutions/edition-2/main/evidence/ch05/review-probes-revised.txt",
-  "source_files_verified": 47,
-  "fixture_hashes_verified": 2,
-  "mismatches": [],
-  "exit": 0,
-  "stdout": "ok  \texample.com/ensemble\t5.179s\n"
-}

@@ -1,1 +1,0 @@
-{"max_tokens":512,"messages":[{"content":[{"text":"Invent a short two-word code name. Reply with only the name.","type":"text"}],"role":"user"}],"model":"claude-sonnet-5-5","system":"Answer helpfully and concisely. Retain the conversation's details."}

@@ -1,1 +1,0 @@
-{"content":[{"type":"tool_use","id":"ch10-local-seed","name":"tool_limits","input":{"ai_callback_pattern":"","max_output_bytes":17}}],"usage":{"input_tokens":1,"output_tokens":1}}

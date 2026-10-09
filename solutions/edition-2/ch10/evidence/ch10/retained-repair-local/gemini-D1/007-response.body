@@ -1,2 +1,0 @@
-data: {"candidates": [{"index": 0, "content": {"role": "model", "parts": [{"functionCall": {"id": "local-fixture-15", "name": "write_file", "args": {"path": "skill-proof.txt", "content": "CH10-D-gemini\n", "overwrite": false, "append": false}}}]}, "finishReason": "STOP"}], "usageMetadata": {"promptTokenCount": 1, "candidatesTokenCount": 1}}
-

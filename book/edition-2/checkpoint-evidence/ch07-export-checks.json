@@ -1,9 +1,0 @@
-{
-  "passed": true,
-  "source_commit": "48976424ab75924f98f4ad01f75f8e046ec26872",
-  "source_tree": "8fb543cc78eccdd9737bd3a690ee9601193fecba",
-  "files": 2229,
-  "exact_paths_bytes_and_modes": true,
-  "destination": "solutions/edition-2/ch07",
-  "runtime_validation": "Identical runtime/tests/assets to immutable9ba7855 accepted33-group gate; no redundant runtime rerun after copying."
-}

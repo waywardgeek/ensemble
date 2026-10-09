@@ -1,6 +1,0 @@
-{"number": 6, "vendor": "openai", "step": "C2", "row": "C", "kind": "generation", "at": 1791514980.436175, "row_deadline": 1791515580.436175, "phase": "admitted", "source": "provider"}
-{"number": 7, "vendor": "openai", "step": "C1", "row": "C", "kind": "generation", "at": 1791514980.4362922, "row_deadline": 1791515580.436175, "phase": "admitted", "source": "provider"}
-{"number": 7, "phase": "finished", "outcome": "completed", "status": 200, "bytes": 4812, "credential_redacted": false, "unfinished_prefix_discarded": false, "elapsed": 0.9403192079626024}
-{"number": 6, "phase": "finished", "outcome": "completed", "status": 200, "bytes": 2509, "credential_redacted": false, "unfinished_prefix_discarded": false, "elapsed": 0.9535992918536067}
-{"number": 8, "vendor": "openai", "step": "C3", "row": "C", "kind": "generation", "at": 1791514981.431239, "row_deadline": 1791515580.436175, "phase": "admitted", "source": "provider"}
-{"number": 8, "phase": "finished", "outcome": "completed", "status": 200, "bytes": 6786, "credential_redacted": false, "unfinished_prefix_discarded": false, "elapsed": 0.6405468340963125}

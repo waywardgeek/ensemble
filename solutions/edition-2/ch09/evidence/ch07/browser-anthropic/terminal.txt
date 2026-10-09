@@ -1,4 +1,0 @@
-http://127.0.0.1:65403
-Ensemble — anthropic / claude-sonnet-4-6
-Type /help for commands.
-You> /quit

@@ -1,1 +1,0 @@
-{"choices":[{"message":{"role":"assistant","tool_calls":[{"id":"ch10-local-seed","type":"function","function":{"name":"tool_limits","arguments":"{\"ai_callback_pattern\":\"\",\"max_output_bytes\":17}"}}]},"finish_reason":"tool_calls"}],"usage":{"prompt_tokens":1,"completion_tokens":1}}

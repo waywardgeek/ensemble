@@ -1,6 +1,0 @@
-{"log_version":1}
-{"seq":1,"type":"message_received","time":"2026-01-01T00:00:00Z","message":{"actor":"human","purpose":"dialogue","parts":[{"type":"text","text":"read config.json"}]}}
-{"seq":2,"type":"response_ended","time":"2026-01-01T00:00:01Z","response":{"from":{"vendor":"anthropic","model":"fixture-messages","surface":"messages"},"parts":[{"type":"text","text":"Reading it."},{"type":"tool_call","call_id":"call-config","from":{"vendor":"anthropic","model":"fixture-messages","surface":"messages"},"name":"read_file","args":{"path":"config.json","limit":40}}],"usage":{"input":100,"cache_write":0,"cache_read":50,"output":20}}}
-{"seq":3,"type":"tool_called","time":"2026-01-01T00:00:02Z","tool":{"call_id":"call-config","name":"read_file","args":{"path":"config.json","limit":40}}}
-{"seq":4,"type":"tool_returned","time":"2026-01-01T00:00:03Z","tool":{"call_id":"call-config","parts":[{"type":"text","text":"port=8080\nhost=localhost"}]}}
-{"seq":5,"type":"message_received","time":"2026-01-01T00:00:04Z","message":{"actor":"human","purpose":"dialogue","parts":[{"type":"text","text":"now check the logs instead"}]}}

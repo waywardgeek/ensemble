@@ -1,6 +1,0 @@
-Initial implementation WIP; not validated and not chapter acceptance.
-Full inherited grader run: initial-grade.txt, 65/100. Sources: initial-source-hashes.json.
-Commands run in root module: gofmt -l [all changed Go files] (empty output), go vet ./..., go test ./... -count=1 (PASS).
-Commands run in gui and examples/consumer modules: go vet ./...; go test ./... -count=1 (PASS).
-Initial local run before adapting two inherited fixtures failed TestToolResultsOpaqueAndOwnership and TestOpenAIParsingAndInstructionRoles: both expected Chapter2's stop-before-dispatch lifecycle. The former now preserves offline/public-event ownership/replay assertions; the latter still parses actual HTTP calls and also accepts a final continuation. New tool tests independently exercise semantic defaults, bounds, guard refusals, exact editing, binary/git/symlink skipping, search windows and shell draining.
-No comparison review performed; no live runs yet.

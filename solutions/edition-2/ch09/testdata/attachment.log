@@ -1,2 +1,0 @@
-{"log_version":1}
-{"seq":1,"type":"message_received","time":"2026-01-01T00:00:00Z","message":{"actor":"human","purpose":"dialogue","parts":[{"type":"text","text":"describe this image"},{"type":"blob","mime":"image/png","ref":{"kind":2,"locator":"https://example.invalid/files/image"}}]}}

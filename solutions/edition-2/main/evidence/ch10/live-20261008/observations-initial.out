@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-observations.py", line 79, in <module>
-    state=event['state']
-          ~~~~~^^^^^^^^^
-KeyError: 'state'

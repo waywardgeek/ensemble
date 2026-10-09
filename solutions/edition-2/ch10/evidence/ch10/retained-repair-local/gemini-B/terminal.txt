@@ -1,9 +1,0 @@
-http://127.0.0.1:55928
-Ensemble — gemini / fixture
-Type /help for commands.
-You> 
-Request r4 / m1 (stream)
-
-[r4 proposed tool part 1] write_file
-[r4 proposed tool part 1] {"path": "policy-proof.txt", "content": "CH10-B-gemini\n", "overwrite": false, "append": false}
-^DFinal usage: input=5, cache write=0, cache read=0, output=5

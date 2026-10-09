@@ -1,1 +1,0 @@
-{"agents":2,"backend":"local deterministic HTTP fixture, not paid live model","background_observations":"ordered and owned","close":"idempotent","foreign_handle":"refused","handles":[1,2],"shared_workspace_artifacts":"distinct"}

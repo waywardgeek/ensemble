@@ -1,4 +1,0 @@
-ensemble: write_file path "created.txt": refusing replacement of existing file (25 bytes); set overwrite:true
-ensemble: edit_file old_text in "anchors.txt": found 2 matches; read the file and choose a unique anchor
-ensemble: edit_file old_text in "anchors.txt": found 0 matches; read the file and choose a unique anchor
-ensemble: read_file path "absent-file.txt": open /private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch03-gemini-lpikx0g5/absent-file.txt: no such file or directory

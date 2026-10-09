@@ -1,4 +1,0 @@
-http://127.0.0.1:63717
-Ensemble — anthropic / claude-sonnet-4-6
-Type /help for commands.
-You> ^DFinal usage: input=11130, cache write=0, cache read=0, output=423

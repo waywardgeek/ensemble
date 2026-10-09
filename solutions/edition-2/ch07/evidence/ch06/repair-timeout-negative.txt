@@ -1,6 +1,0 @@
---- FAIL: TestOperationDeadlineIncludesPendingWaits (2.02s)
-    --- FAIL: TestOperationDeadlineIncludesPendingWaits/capacity (2.02s)
-        operation_test.go:97: operation remained parked after deadline
-FAIL
-FAIL	example.com/ensemble/internal/llm	2.032s
-FAIL

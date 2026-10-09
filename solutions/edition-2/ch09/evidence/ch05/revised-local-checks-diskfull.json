@@ -1,9 +1,0 @@
-{
-  "at": "2026-10-07T23:13:20.784446+00:00",
-  "command": "go test ./... -count=1",
-  "module": "solutions/edition-2/main",
-  "exit": 1,
-  "failure": "/usr/local/go/pkg/tool/darwin_arm64/link: mapping output file failed: no space left on device",
-  "gate": "Six-module command stopped at main test link after main vet passed; later modules and subsequent race command not executed in this batch. Earlier main race and independent review probes passed.",
-  "observed_available_space": "142MiB"
-}

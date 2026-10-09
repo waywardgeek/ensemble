@@ -1,2 +1,0 @@
-{"number": 3, "vendor": "anthropic", "step": "A2", "row": "A", "kind": "generation", "at": 1791494504.06033, "phase": "admitted", "source": "loopback"}
-{"number": 3, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 440, "credential_redacted": false, "elapsed": 0.0026885410770773888}

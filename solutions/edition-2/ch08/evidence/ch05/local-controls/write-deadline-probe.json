@@ -1,7 +1,0 @@
-{
-  "scope": "Local PTY cancellation experiment, no model calls",
-  "command": "go -C solutions/edition-2/main run /tmp/ensemble-ch05-write-probe.go",
-  "source_sha256": "e6b1145789b0aa9608666abdedc5d89c681531e62522018b4358171204d0d583",
-  "observed_stdout": "ready READY\nwrite bytes 1022 error write pollable-pty: i/o timeout\ncancel latency 65.459\u00b5s process alive true\n",
-  "exit": 0
-}

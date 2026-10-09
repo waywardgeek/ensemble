@@ -1,4 +1,0 @@
-{"number": 1, "vendor": "openai", "step": "models", "row": "discovery", "kind": "discovery", "at": 1791514192.816092}
-{"number": 2, "vendor": "openai", "step": "A1", "row": "A", "kind": "generation", "at": 1791514761.656524, "row_deadline": 1791515361.656524}
-{"number": 3, "vendor": "openai", "step": "A1", "row": "A", "kind": "generation", "at": 1791514763.3151832, "row_deadline": 1791515361.656524}
-{"number": 4, "vendor": "openai", "step": "A2", "row": "A", "kind": "generation", "at": 1791514803.4896011, "row_deadline": 1791515361.656524}

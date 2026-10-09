@@ -1,2 +1,0 @@
-{"number": 5, "vendor": "gemini", "step": "B", "row": "B", "kind": "generation", "at": 1791515185.8708632, "row_deadline": 1791515785.8708632, "phase": "admitted", "source": "provider"}
-{"number": 5, "phase": "finished", "outcome": "completed", "status": 200, "bytes": 1431, "credential_redacted": false, "unfinished_prefix_discarded": false, "elapsed": 1.8192683339584619}

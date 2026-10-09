@@ -1,6 +1,0 @@
---- FAIL: TestEscapedOpaqueResponseBound (0.46s)
-    --- FAIL: TestEscapedOpaqueResponseBound/thinking/one-over (0.46s)
-        opaque_bound_test.go:63: wrong overflow result: <nil>
-FAIL
-FAIL	example.com/ensemble/internal/llm	0.471s
-FAIL

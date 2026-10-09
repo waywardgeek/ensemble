@@ -1,9 +1,0 @@
-{
-  "passed": true,
-  "source_commit": "446d7f27fcef052d6bb780901c786842dc5286c1",
-  "source_tree": "58d3fbf4ec6493839985c6968a13c1e6a7bdad83",
-  "files": 3308,
-  "scope": "Exact exported path set, SHA-256 bytes and executable modes verified before promotion; no nested Git metadata or untracked files copied.",
-  "export_path": "solutions/edition-2/ch08",
-  "manifest_path": "solutions/edition-2/manifests/ch08-r1.json"
-}

@@ -1,2 +1,0 @@
-{"number": 11, "vendor": "openai", "step": "B", "row": "B", "kind": "generation", "at": 1791496415.02227, "phase": "admitted", "source": "loopback"}
-{"number": 11, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 538, "credential_redacted": false, "elapsed": 0.0022947080433368683}

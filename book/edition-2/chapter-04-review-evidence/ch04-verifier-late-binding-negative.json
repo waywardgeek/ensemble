@@ -1,8 +1,0 @@
-{
-  "scope": "isolated evidence copy; no actual receipts edited",
-  "copy": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch04-verifier-review-ruo70oy5",
-  "exit": 1,
-  "stdout": "",
-  "stderr": "Traceback (most recent call last):\n  File \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch04-verifier-review-ruo70oy5/solutions/edition-2/main/evidence/ch04/verify-receipts.py\", line 26, in <module>\n    assert launch['binary_sha256']==binding['binary_sha256'] and launch['source_revision']==binding['source_revision']\n           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n",
-  "earlier_provider_derivative_unchanged": false
-}

@@ -1,1 +1,0 @@
-replay-run.py: AssertionError: readmitted facts changed. Exit1 from final comparison, after GUI exited0. Only top-level admission timestamps differ; both original and readmitted files retained.

@@ -1,8 +1,0 @@
-data: {"model": "fixture", "choices": [{"index": 0, "delta": {"role": "assistant", "tool_calls": [{"id": "local-fixture-1", "type": "function", "function": {"name": "write_file", "arguments": "{\"path\": \"marker.txt\", \"content\": \"CH10-A-openai\\n\", \"overwrite\": false, \"append\": false}"}, "index": 0}]}, "finish_reason": null}]}
-
-data: {"model": "fixture", "choices": [{"index": 0, "delta": {}, "finish_reason": "tool_calls"}]}
-
-data: {"choices": [], "usage": {"prompt_tokens": 1, "completion_tokens": 1}}
-
-data: [DONE]
-

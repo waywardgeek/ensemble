@@ -1,6 +1,0 @@
-{
-  "exit": 1,
-  "stdout": "--- FAIL: TestC7GUIProjection (0.00s)\n    --- FAIL: TestC7GUIProjection/tool-result-explicit-false (0.00s)\n        independent_ch07_test.go:76: typed display projection changed meaning: got={\"call_id\":\"read-a\",\"parts\":[{\"from\":{\"model\":\"fixture-gemini\",\"surface\":\"generate_content\",\"vendor\":\"gemini\"},\"text\":\"\",\"type\":\"text\"}]} want={\"call_id\":\"read-a\",\"parts\":[{\"type\":\"text\",\"text\":\"\",\"from\":{\"vendor\":\"gemini\",\"model\":\"fixture-gemini\",\"surface\":\"generate_content\"}}],\"is_error\":false}\nFAIL\nFAIL\texample.com/ensemble-gui\t0.011s\nFAIL\n",
-  "stderr": "",
-  "scope": "Transient working-source projection diagnosis; original command output retained. This early diagnostic did not record an immutable runtime/source map. Subsequent component/mutation receipts bind their copied source and precise controls."
-}

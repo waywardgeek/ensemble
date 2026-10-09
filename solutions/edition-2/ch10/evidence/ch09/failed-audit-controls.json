@@ -1,5 +1,0 @@
-{
-  "positive": "all3 complete explicit failed-attempt sets accepted for diagnostic preparation",
-  "negative": "valid last-run response path hash changed; original receipt mismatch before replay/output phase",
-  "provider_calls": 0
-}

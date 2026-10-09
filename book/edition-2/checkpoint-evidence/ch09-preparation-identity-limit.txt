@@ -1,2 +1,0 @@
-Checker was edited while this process was running; retain as preparation only, not a final checker-bound acceptance receipt. Final rerun follows after source freeze.
-The separate complete preparation receipt is retained with its original JSON bytes; it is not final bound evidence. The corrected checker captures/checks its own and contract hashes before/after execution.

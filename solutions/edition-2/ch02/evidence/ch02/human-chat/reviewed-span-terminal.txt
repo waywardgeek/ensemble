@@ -1,5 +1,0 @@
-Ensemble — anthropic / local-fixture
-Type /help for commands.
-You> /redact 1 1 deliberate missing sequence control
-ensemble: redaction span must name positive ordered sequences already in this log
-redaction span must name positive ordered sequences already in this log

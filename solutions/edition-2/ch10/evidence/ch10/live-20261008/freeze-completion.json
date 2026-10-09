@@ -1,8 +1,0 @@
-{
-  "original_launches_sealed": 30,
-  "source_bound_verifications_passed": 30,
-  "limited_verifier_not_chapter_acceptance": true,
-  "preserved_summary_failure": "observations-initial.out",
-  "preserved_naming_failure": "freeze-label-collision.json",
-  "no_provider_retry": true
-}

@@ -1,4 +1,0 @@
-{"log_version":1}
-{"seq":1,"type":"message_received","time":"2026-01-01T00:00:00Z","message":{"actor":"human","purpose":"dialogue","parts":[{"type":"text","text":"read deploy.sh"}]}}
-{"seq":2,"type":"response_ended","time":"2026-01-01T00:00:01Z","response":{"from":{"vendor":"gemini","model":"fixture-gemini","surface":"generate_content"},"parts":[{"type":"tool_call","call_id":"call-deploy","from":{"vendor":"gemini","model":"fixture-gemini","surface":"generate_content"},"name":"read_file","args":{"path":"deploy.sh"},"opaque":"fixture-signature"}],"usage":{"input":40,"cache_write":0,"cache_read":0,"output":12}}}
-{"seq":3,"type":"tool_returned","time":"2026-01-01T00:00:02Z","tool":{"call_id":"call-deploy","parts":[{"type":"text","text":"exec ./serve"}]}}

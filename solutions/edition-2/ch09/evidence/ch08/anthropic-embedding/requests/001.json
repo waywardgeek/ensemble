@@ -1,1 +1,0 @@
-{"max_tokens":512,"messages":[{"content":[{"text":"Use read_file to read notes.txt, then give its marker and port in one sentence.","type":"text"}],"role":"user"}],"model":"claude-sonnet-4-6","stream":true,"system":"Answer helpfully and concisely. Retain the conversation's details."}

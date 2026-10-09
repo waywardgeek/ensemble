@@ -1,8 +1,0 @@
-{
-  "valid_parent": "browser/identity.json",
-  "single_mutation": "append comment to actual component source",
-  "intended_refusal": "source identity gui/web/gui/artifacts.js",
-  "refused_before_output_directory": true,
-  "original_source_restored": true,
-  "source_sha256": "d3482c0d4f2c43205af99f07a2a14158d2ab405bdc08a0cea1ff333480a0b6d8"
-}

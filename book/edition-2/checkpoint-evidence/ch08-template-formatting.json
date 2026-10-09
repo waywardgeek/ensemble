@@ -1,7 +1,0 @@
-{
-  "scope": "Template whitespace formatting after passing controls; generated gofmt output identical before and after, no behavior change.",
-  "before_sha256": "f537ee9ddd5937c941f0aa8944e39a574443f60bff8f4867128e8442f189bdbd",
-  "after_sha256": "6f642125881b25507f403601f2017b1a13a90b69c51acae62043c9161ce5870e",
-  "generated_policy_bytes_identical": true,
-  "passed": true
-}

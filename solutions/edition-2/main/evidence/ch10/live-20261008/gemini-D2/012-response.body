@@ -1,6 +1,0 @@
-data: {"candidates": [{"content": {"parts": [{"text": "The file `after-resume.txt` has been successfully created containing `CH10"}],"role": "model"},"index": 0}],"usageMetadata": {"promptTokenCount": 976,"candidatesTokenCount": 18,"totalTokenCount": 994,"promptTokensDetails": [{"modality": "TEXT","tokenCount": 976}],"serviceTier": "standard"},"modelVersion": "gemini-3.8-flash","responseId": "3VrIavCXLrSe1MkPjaPgiAQ"}
-
-data: {"candidates": [{"content": {"parts": [{"text": "-D-gemini` followed by a newline."}],"role": "model"},"index": 0}],"usageMetadata": {"promptTokenCount": 976,"candidatesTokenCount": 29,"totalTokenCount": 1005,"promptTokensDetails": [{"modality": "TEXT","tokenCount": 976}],"serviceTier": "standard"},"modelVersion": "gemini-3.8-flash","responseId": "3VrIavCXLrSe1MkPjaPgiAQ"}
-
-data: {"candidates": [{"content": {"parts": [{"text": "","thoughtSignature": "EmkKZwFpFH0TNaMHhNNEY57A6irrcVf6WISOYHpGqiMGJRzingtM94kBNfmfYC+8jySn2F64bLeYV9QodKJ8PCl5AaR3AmPkYFDJN16Mez9O6MF0VzlxU3k8Unw641cN1ZA/IGV4KMu9+PI="}],"role": "model"},"finishReason": "STOP","index": 0}],"usageMetadata": {"promptTokenCount": 1138,"candidatesTokenCount": 29,"totalTokenCount": 1167,"promptTokensDetails": [{"modality": "TEXT","tokenCount": 1138}],"serviceTier": "standard"},"modelVersion": "gemini-3.8-flash","responseId": "3VrIavCXLrSe1MkPjaPgiAQ"}
-

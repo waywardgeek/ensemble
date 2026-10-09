@@ -1,4 +1,0 @@
-ok  	example.com/ensemble	3.238s
-ok  	example.com/ensemble/internal/llm	1.013s [no tests to run]
-ok  	example.com/ensemble/internal/persistence	1.106s
-ok  	example.com/ensemble/internal/tools	1.014s [no tests to run]

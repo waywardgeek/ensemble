@@ -1,6 +1,0 @@
-{"action": "settings"}
-{"action": "wait", "text": "Applied revision 3: light, 16px"}
-{"action": "wait", "text": "autoplay off"}
-{"action": "wait", "text": "Next turn: Default (16) model requests; revision 2; persistent"}
-{"action": "inspect"}
-{"action": "quit"}

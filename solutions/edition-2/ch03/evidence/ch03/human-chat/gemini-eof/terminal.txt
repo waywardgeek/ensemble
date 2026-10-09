@@ -1,4 +1,0 @@
-Ensemble — gemini / models/gemini-3.8-flash
-Type /help for commands.
-You> ^D
-Final usage: input=0, cache write=0, cache read=0, output=0

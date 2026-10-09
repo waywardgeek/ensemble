@@ -1,3 +1,0 @@
-Queued agent-1/r2: canceled
-Collection agent-1/r1: COLLECTION-1
-Collection agent-2/r1: COLLECTION-2

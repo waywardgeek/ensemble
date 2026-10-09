@@ -1,2 +1,0 @@
-{"number": 5, "vendor": "openai", "step": "B", "row": "B", "kind": "generation", "at": 1791514874.688237, "row_deadline": 1791515474.688237, "phase": "admitted", "source": "provider"}
-{"number": 5, "phase": "finished", "outcome": "completed", "status": 200, "bytes": 7145, "credential_redacted": false, "unfinished_prefix_discarded": false, "elapsed": 1.389752082992345}

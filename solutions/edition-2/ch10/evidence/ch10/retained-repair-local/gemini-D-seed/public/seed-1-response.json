@@ -1,1 +1,0 @@
-{"candidates":[{"content":{"role":"model","parts":[{"functionCall":{"id":"ch10-local-seed","name":"tool_limits","args":{"ai_callback_pattern":"","max_output_bytes":17}}}]},"finishReason":"STOP"}],"usageMetadata":{"promptTokenCount":1,"candidatesTokenCount":1}}

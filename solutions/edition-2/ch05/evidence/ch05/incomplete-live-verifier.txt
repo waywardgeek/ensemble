@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch05/verify-receipts.py", line 67, in <module>
-    binding=json.loads((HERE/'initial-binding.json').read_text());rows=verify(binding,{'cli':args.cli.resolve(),'workflow':args.workflow.resolve()});print(json.dumps({name:{'requests':len(row['requests']),'usage':row['usage']} for name,row in rows.items()},indent=2))
-                                                                       ~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch05/verify-receipts.py", line 22, in verify
-    assert launch['exit_code']==0, 'unsuccessful launch remains unvalidated'
-           ^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: unsuccessful launch remains unvalidated
