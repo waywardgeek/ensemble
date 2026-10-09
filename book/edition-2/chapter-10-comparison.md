@@ -1,11 +1,11 @@
 # Chapter 10 historical quality comparison: round 1
 
-**Round 1 ready for coordinator handoff.** Initial live experience is now frozen
-at `44d7627`; the coordinator authorized comparative feedback and accepted the
-Q1–Q3 rationale. No coder repair has started. Q4 below adds the independently
-diagnosed empty-card presentation issue from those original live receipts.
-Findings remain unresolved until the responsible coder/author replies and the
-reviewer checks the revisions. This is not chapter acceptance.
+**Historical quality gate passed after revision review.** Q1, Q2 and Q4 are
+closed on runtime `70d86f7` with immutable evidence `265fe34`; Q3 is resolved by
+the author's narrowed opener and student confirmation. The dispositions below
+preserve the original findings and distinguish initial live `44d7627` evidence
+on runtime `57d4aac` from later local verification. Final delivered-tree/export
+checks and manuscript acceptance remain the coordinator's separate gates.
 
 The original preparation at `1a173a0`, dated 2026-10-08, explicitly left the
 initial real-provider spin pending and withheld feedback from student and author.
@@ -293,10 +293,69 @@ in this diagnosis. The verification steps are a plan, not claimed test results.
 The per-feature live reviewer retains acceptance ownership and received the
 diagnosis; feedback to the student remains the coordinator's grouped handoff.
 
-No new persistence correctness blocker was established in this comparison. Q1
-needs a fix or reasoned quality disposition; Q2 needs the local specification
-correction; Q3 belongs to manuscript reconciliation; Q4 needs the narrow
-presentation repair and local captured-data check. None has been resolved by
-this reviewer. Initial live experience is frozen, so the coordinator can now
-release the grouped rationale, review revisions and affected validation, and
-finish the comparison gate. Deterministic clearance remains scoped to 57d4aac.
+At the original round-1 handoff, no new persistence correctness blocker had been
+established and all four findings required disposition. The initial deterministic
+clearance remains scoped to 57d4aac; the following review supplies the limited
+revision coverage rather than relabeling that earlier complete run.
+
+## Revised-code and evidence closure
+
+Reviewed immutable runtime `70d86f7419c82fcf7cb8a394d54e472feccd2eed` and complete
+[quality handback](../../solutions/edition-2/main/evidence/ch10/quality-handback.md)
+frozen at `265fe34434c84bc695740eb09c632dc632522c02`. The
+[independent binding/reuse receipt](checkpoint-evidence/ch10-quality-review-70d86f7.json)
+hashes all 34 frozen quality evidence files and the handback. This review reused
+the appropriate passing commands after inspecting their outputs and identities;
+it did not rerun builds, providers or large fixtures merely to duplicate evidence.
+
+| Finding | Reviewed resolution |
+|---|---|
+| Q1 | Skills.LastActivation reads committed.lastID, including retired history, under the same Actor/Agent or inert-construction confinement as Snapshot. It returns zero before initialization. No new counter/cache/lock exists. The root uses the scalar for watermarks and initialization; capture still owns one complete snapshot. Tests cover prepared-but-uncommitted, failed and unchanged candidates, retired maxima, zero allocations and snapshot-buffer isolation. |
+| Q2 | The first format definition now requires exact activation/job maxima, zero absent, including retired/out-of-window history. The request cursor's lower-bound exception remains. No wire bytes or format version changed. |
+| Q3 | The opener now explains existing durable records and the missing safe live-resume capability. The original-author default-load incident and returning-reader stake survive. The author response and student's 0e754b9 confirmation close this finding; full prose review remains separately owned. |
+| Q4 | Only optional GUI Artifact presentation/CSS changes. Exactly present empty response text becomes a compact “Empty response text” card with the same identity/order. Hidden/disabled speech and expansion controls also have handler guards. Same-key nonempty updates restore ordinary rendering and controls. Projection, parser, reducers, replay bytes, signatures and speech protocol are unchanged. |
+
+The new common.Skills method has one concrete implementation, Service, and its
+compile-time assertion and affected tests are present. The root still obtains
+Skills through its actual owner. The changed initialization check is equivalent
+for validated state: an initialized primary has a positive committed activation,
+whereas an absent committed ledger has zero. It neither admits an unfinished
+initializer nor burns a candidate's uncommitted identities.
+
+The fresh build association binds 164 selected source files and actual CLI/GUI
+hashes. Independent comparison found every recorded source/binary identity correct.
+That build map includes two retained Go evidence helpers and omits session-api.md;
+the separately verified complete 159-file runtime/API/asset fault map covers that
+unchanged document. Public and client receipts retain their own 155/165-file map
+scopes. All 12 delivered modules were discovered; the coordinator will perform
+the final delivered-tree package checks with export, rather than treating the
+core tests as a test of every nested module.
+
+Reused results: empty formatting output; core and GUI vet/tests; affected core
+race checks and complete GUI race checks; 16 public groups; Chapter 9's 51/51,
+Chapter 10's 93/93, clients 9/9; and the selected append/Close checkpoint-preservation
+fault under race. The first vet attempt failed because the recorder's isolated
+environment lacked a module-cache location. Its output remains alongside the
+passing corrected attempt. No runtime failure was concealed by that repair.
+
+For Q4, the real headed-browser component check binds all 10 served assets,
+46 original capture files, Node/Chrome and browser dependencies before derived
+output. Its 43 controls separately exercise recorded live finals and restart
+events, equal keys/order/content, two resets, provisional identity, nonempty
+replacement, positive manual/automatic speech, no empty speech/expansion, absent
+text, nonempty whitespace, opaque placeholders and empty tool-result lifecycle.
+The reviewer inspected the new full-page screenshot: compact empty-text markers
+remain between the original answers/tool reports at their proper positions.
+This is captured-data component evidence with a local speech-service probe,
+not native hearing or another provider run. The intended asset-identity negative
+starts from that passing fixture, refuses before creating its output directory,
+and restores the exact source. It proves evidence binding, not a runtime behavior
+mutation, and is counted accordingly.
+
+The original live directory, handback and binding are byte-unchanged against
+44d7627. Reuse is justified narrowly: Q1 reduces capture work without changing
+values, Q2 corrects prose, and Q4 supersedes only the blank-card appearance using
+the same captured real inputs. The new binary has not been run with a real
+provider, and the initial receipts remain attributed to their original runtime.
+These refinements require no additional paid call. There are no residual quality
+findings; compiler ownership is released to the coordinator for final packaging.
