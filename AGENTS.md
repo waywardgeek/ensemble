@@ -4,8 +4,8 @@ Bill retired the author-driven second-edition attempt. Its history is preserved
 at `edition-2-attempt-1-stopped`; do not resume its agents or workflow. See
 `docs/edition-2-attempt-1.md` for the decision.
 
-Before coding and after compaction, read the entire skill:
-`.agents/skills/ensemble-coding/SKILL.md`. Every coding handoff must include
+Before coding or reviewing code, and after compaction, read the entire skill:
+`.agents/skills/ensemble-coding/SKILL.md`. Every coder/reviewer handoff must include
 that exact path. It replaces the deleted second-edition workflow skill.
 
 The student follows first-edition `book/chapter-NN.md`, in order from Chapter 1,
@@ -21,8 +21,11 @@ answers, or their Git blobs to solve the exercise. Frozen exports are not workin
 trees. Do not edit the first edition. Never reset history or move existing tags.
 
 After the student's implementation, original grading and live exercise, a code
-reviewer reads the new code and the matching first-edition solution. Review
-correctness, architecture, simplicity and explanatory comments. Return findings
+reviewer reads the new code, matching first-edition solution and the coder's
+review for the future author. Both coder and reviewer use KISS as the yardstick.
+The skill defines the required comparison of active code, comments and tests.
+Reject feature creep, unjustified bloat and complexity added for elegance;
+passing the grader is not sufficient. Return findings
 and rationale to the coder, not answer code. Do not add features or substitute
 reviewer preferences for the original exercise. The coder may improve its answer
 and rerun affected checks before the chapter checkpoint.
