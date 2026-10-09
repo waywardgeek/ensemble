@@ -551,3 +551,37 @@ and limitations; soft length/person-gap warnings are not a reason to hide those
 observations. Detailed audit counts and evidence-tool failures stay in the linked
 handback and direct feedback rather than overwhelming the demonstration. No build,
 runtime test, paid repeat or publication claim accompanies these prose checks.
+
+## Post-run quality prose and student confirmation
+
+Read the complete quality-handback.md and the grouped post-run student review,
+including its affirmative confirmation of the complete `0e754b9` chapter/direct
+feedback. Read the local browser result.json and full DOM text, and inspected
+captured-restart.png. The recorded 43 checks retain all four empty-text positions:
+response5/20 part1 ordinary, response10/15 part1 signed. Their compact indication
+has no speech/expansion control; ordinary answers, tool cards and historical
+ownership labels remain visible. This is captured-data browser evidence, not a
+new model conversation or native-hearing claim.
+
+The correction uses source `70d86f7419c82fcf7cb8a394d54e472feccd2eed`, with evidence
+freeze `265fe34434c84bc695740eb09c632dc632522c02`. Independent acceptance remains
+separate. Initial experience stays bound
+to `44d7627`, runtime `57d4aac` and support `9822b2b`. The manuscript preserves
+those originals, links the separate quality evidence and adopts the student's
+precise compact-versus-spaced argument distinction. Its fifteen real-request
+comparisons preserve actual compact strings; the deliberately spaced-string
+fixture belongs to earlier local regression evidence.
+
+Reuse rationale is explicit rather than assumed: Q1 replaces unnecessary capture
+inspection with a committed scalar read while preserving values; Q2 changes format
+documentation; Q4 changes optional empty-text presentation using the original
+inputs. The revised binary has not made a new real-provider run. The independent
+reviewer must assess the local checks and limited reuse before acceptance. No
+runtime, test, build, grader or provider work was performed by the author.
+
+Author checks compare the cited handback, browser result, DOM and screenshot
+byte-for-byte with `265fe34`. All manuscript local links exist; TL;DR through
+§10.8 and the full §10.10 acceptance section are unchanged by this reconciliation.
+The four author files pass existing-linter hard rules and scoped whitespace
+checks. Existing length/density warnings remain; detailed local-test commands
+stay in the linked handback rather than expanding the demonstration ledger.

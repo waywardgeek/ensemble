@@ -202,9 +202,9 @@ persistence-format conflict.
 
 | Finding | Author response | Remaining confirmation/gate |
 |---|---|---|
-| Comparative Q3: the goldfish opener overstates what Chapter 9 lacks | Narrowed the opener to safe live resume; existing durable logs/offline rendering remain acknowledged. Preserved the next-morning reader stake and original-author default-load incident. This Q3 is a comparative label, separate from the student's earlier canonical-equality Q3. | Independent prose review |
-| Actual clients made history versus live ownership and current policy clear | §10.9 now uses exact restart status, historical-job labels, current policy 1 versus old raw 0/effective 16, and the actual screenshot/DOM. | Student can confirm the account matches initial experience; independent receipt review continues |
-| Gemini extra empty Answer/Accepted cards suggested missing text | Preserved the observation and the full DOM evidence that actual answers remained. The proposed presentation cause is explicitly tentative; no reducer defect or runtime fix is inferred. | Focused presentation review/correction belongs to coordinator and coder; metadata must survive |
+| Comparative Q3: the goldfish opener overstates what Chapter 9 lacks | Narrowed the opener to safe live resume; existing durable logs/offline rendering remain acknowledged. Preserved the next-morning reader stake and original-author default-load incident. This Q3 is a comparative label, separate from the student's earlier canonical-equality Q3. | Student confirms `0e754b9`; independent prose review agrees. Design-review wording corrected at `700434d`, closed at `b130e88`. |
+| Actual clients made history versus live ownership and current policy clear | §10.9 now uses exact restart status, historical-job labels, current policy 1 versus old raw 0/effective 16, and the actual screenshot/DOM. | Student affirmatively confirms the complete walkthrough; source/evidence acceptance stays independent. |
+| Gemini extra empty Answer/Accepted cards suggested missing text | Preserved initial cards/answers and replaced the tentative cause with the established two ordinary/two signed empty text parts. §10.9 separately attributes the `70d86f7` compact presentation and captured-data checks; raw parts/order remain unchanged. | Student confirms diagnosis and repair scope. Final corrected-source/evidence review remains independent. |
 | Invalid activation-like skill names and report/file byte confusion | Retained both controlled management refusals and successful write. The resumed answer's 36-byte explanation is checked against the actual 17-byte file. §10.9 asks readers to inspect effects rather than trust narration. | No provider claim erased; no broader tool authority or relaxed validation requested |
 | Combined GUI shutdown order was awkward | Spin now says terminal EOF first, then server termination; checkpoint-after-detach remains part of the actual observed behavior. First SIGTERM-before-EOF attempt and eventual exit 0 stay in the account. | Clarifies reproduction without changing lifecycle contract |
 | Initial summary script KeyError and exclusive-create evidence-label collision | Kept in linked handback/evidence chronology. These were evidence-tool failures; originals and runtime were unchanged. No fictional application failure or passing first attempt is substituted. | Independent evidence audit |
@@ -212,6 +212,30 @@ persistence-format conflict.
 
 No new student code is requested by these author dispositions. The local/public
 duplicate-argument repair already has its own coordinator/reviewer results; this
-response does not reopen it. Student confirmation of the new prose and final
-independent proofreading remain pending. The source-bound initial evidence and
-any later correction must remain separately attributed.
+response does not reopen it. The student read and affirmatively confirmed the
+complete `0e754b9` chapter and direct feedback. Final proofreading of the quality
+addition and independent corrected-source/evidence review remain separate. The
+source-bound initial evidence and later correction retain separate attribution.
+
+## Grouped post-run quality response
+
+Read the complete quality-handback.md and the student's grouped quality
+acknowledgment/result. Q1's committed activation scalar read preserves the existing
+owner/confinement and full capture snapshot. Q2 clarifies exact represented
+activation/job maxima without removing the separate burned-request exception.
+Neither requires another live generation to substantiate unchanged captured values;
+independent local review must establish that equivalence.
+
+Q4 changes the optional GUI presentation of present exactly-empty response text,
+including both ordinary and signed parts. The chapter now describes the actual
+source `70d86f7`, evidence freeze `265fe34`, separate screenshot/DOM and 43
+captured-data checks without
+claiming native hearing or a new real-provider run. Original `44d7627` receipts on
+runtime `57d4aac` / support `9822b2b` stay untouched. This is a post-run quality
+choice, not a retroactive requirement blamed on the initial student.
+
+The student's final nuance is adopted: actual Chat Completions continuation
+arguments are compact. The fifteen byte-exact real-request comparisons are not
+evidence that a provider emitted the deliberately spaced local fixture. §10.9
+now makes that distinction explicit. The final addition awaits narrow proofreading;
+no new student implementation or paid repeat is requested by this response.

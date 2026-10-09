@@ -357,5 +357,25 @@ Actual commands were driven by the coder. Native speech claims are limited to
 measured restored-work/admission boundaries; no hearing or Bill participation is
 claimed. The accessible screenshot description accompanies the actual retained
 image. Detailed file/hash/replay ledgers are linked instead of filling the reader
-path. Student feedback dispositions are recorded separately; independent live
-review and the presentation question remain open.
+path. Student feedback dispositions are recorded separately.
+
+## Post-run quality reconciliation
+
+The student confirms the complete `0e754b9` walkthrough and direct feedback match
+the frozen initial experience. The design-review attribution is corrected at
+`700434d` and independently closed at `b130e88`; no unsupported actual-use claim
+remains in the default-load story.
+
+The later source `70d86f7` addresses optional GUI presentation of both signed and
+ordinary exactly-empty response text, preserving identity/order and raw history.
+§10.9 links the separate local captured-data screenshot and DOM, with 43 local
+checks and zero provider calls. It retains the initial screenshot and source
+association. The fifteen exact real-request comparisons used actual compact
+Chat Completions argument strings; the spaced-string fixture remains explicitly
+local evidence. No new live run, native hearing or final acceptance is implied.
+
+The quality handback explains limited reuse: the scalar-read change preserves
+captured values, the format correction is prose, and the browser change replaces
+only the empty-card appearance using original inputs. Independent review must
+accept that scope and evidence freeze `265fe34`; the author does not relabel the
+initial run as a run of the revised binary.

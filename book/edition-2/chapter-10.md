@@ -24,10 +24,11 @@ because its manual survived. Remembering requires fewer powers than resuming.
 
 
 The first actual-use record is frozen at `44d7627`, using runtime `57d4aac` and
-reviewed support `9822b2b`. Independent live review and subsequent quality work
-remain open; the [validation record](chapter-10-validation.md) tracks those gates
-and earlier failures. These runs establish the experience described below, not
-chapter acceptance or evidence for a later revised binary.
+reviewed support `9822b2b`. A later local quality revision uses source `70d86f7`,
+with evidence frozen at `265fe34`; its captured-data checks are attributed
+separately below. The
+[validation record](chapter-10-validation.md) tracks independent acceptance and
+earlier failures. These runs do not become live evidence for a later binary.
 
 ## TL;DR
 
@@ -1037,9 +1038,21 @@ different meanings for standalone chat and a terminal attached to a live GUI.
 Gemini's initial resumed page also drew extra empty “Answer / Accepted” cards.
 Its [full DOM text](../../solutions/edition-2/main/evidence/ch10/live-20261008/gemini-B/browser-4.txt)
 shows the actual answers in separate cards; they had not disappeared. Empty parts
-carrying provider metadata are a possible presentation cause. That observation
-awaits focused review. Removing replay metadata merely to tidy a card would be
-the wrong repair.
+at part index 1 of responses 5 and 20 were ordinary text; those at the same index
+of responses 10 and 15 also carried signatures. The optional GUI gave all four
+empty text parts the presentation of an answer. Removing replay metadata merely
+to tidy a card would be the wrong repair.
+
+Revision `70d86f7` keeps those positions and raw parts, but renders present,
+exactly empty response text as a compact “Empty response text” indication without
+speech or expansion controls. Nonempty replacement restores the ordinary card;
+absent text, whitespace and empty tool results retain their distinct meanings.
+The [local captured-data screenshot](../../solutions/edition-2/main/evidence/ch10/quality-20261009/browser/captured-restart.png)
+and [accessible DOM text](../../solutions/edition-2/main/evidence/ch10/quality-20261009/browser/dom.txt)
+show the four compact indications between the original tool and answer cards.
+This is a later headed-browser check of the original captures, with 43 local
+checks and zero provider calls. It is not another live conversation or evidence
+of native hearing. The original screenshot remains the record of the first run.
 
 #### Resume through the library too
 
@@ -1053,8 +1066,10 @@ With endpoints disabled, the same public surface compared a latest checkpoint,
 an older checkpoint with a real newer tail, and complete-log reconstruction using
 null state. Next render, history, usage, Skills and watch facts agreed. Five
 historical sends per API also reconstructed byte-for-byte against their actual
-captured requests, including Chat Completions argument-string whitespace. These
-15 comparisons are offline checks of real receipts, not 15 additional model calls.
+captured requests. The observed Chat Completions argument strings were compact;
+these 15 comparisons preserve their actual bytes. The deliberately spaced-string
+regression in §10.3 is separate local evidence, not a new provider observation.
+The comparisons are offline checks of real receipts, not additional model calls.
 The [observation ledger](../../solutions/edition-2/main/evidence/ch10/live-20261008/observations.json)
 identifies the originals and reconstructed files.
 
@@ -1077,10 +1092,12 @@ retains the mistaken account.
 
 Corruption, writer faults, stale-handle attacks and forced shutdown still need
 the deterministic controls in §10.10. Successful provider traffic cannot establish
-those guarantees. The initial live experience is now recorded; independent
-receipt review, the empty-card presentation question and comparative quality
-revisions remain separate gates. Later source corrections must retain their own
-identity rather than inherit these runs as if they happened afterward.
+those guarantees. The [quality handback](../../solutions/edition-2/main/evidence/ch10/quality-handback.md)
+records the later scalar-read improvement, format-documentation correction and
+empty-card repair. Captured values and initial receipts remain unchanged; the
+local browser evidence supersedes only the empty-card appearance. That limited
+reuse still needs independent acceptance. The revised binary has not made a new
+real-provider run, and it cannot inherit the earlier runs as if it had.
 
 ## 10.10 Check the promises independently
 
