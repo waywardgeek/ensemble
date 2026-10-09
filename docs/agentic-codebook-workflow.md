@@ -48,6 +48,19 @@ lessons without rewriting chapters or designing the next implementation ahead
 of experience. Students read the carryover and skill with the original chapters;
 reviewers check that the carryover has not become a new source of feature creep.
 
+## Learn the process before automating orchestration
+
+Bill uses “dynamic workflow” to mean code that orchestrates sub-agents. The
+coordinator initially confused this with interactively assigning and messaging
+agents; those are different mechanisms.
+
+For now, coordinate interactively while learning which agents are useful, what
+their skills need to say and how their handoffs should work. Record adjustments
+and outcomes here. Do not build an orchestration system during this discovery
+phase. Once the process works reliably, consider encoding its demonstrated
+handoffs and decisions in a small automated workflow. Automation is a possible
+later step, not a current deliverable or proof that the process is sound.
+
 ## How the agents work together
 
 | Role | Responsibility and boundary |
