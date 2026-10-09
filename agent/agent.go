@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,7 +24,6 @@ import (
 	"github.com/waywardgeek/ensemble/agent/internal/settings"
 	"github.com/waywardgeek/ensemble/agent/internal/skills"
 	"github.com/waywardgeek/ensemble/agent/internal/tools"
-	"github.com/waywardgeek/ensemble/agent/internal/ws"
 	"github.com/waywardgeek/ensemble/agent/sandbox"
 )
 
@@ -61,15 +59,6 @@ func NewMCPPipeTransport() (client MCPTransport, server MCPTransport) {
 // NewMCPStdioTransport spawns a subprocess and talks JSON-RPC over stdin/stdout.
 func NewMCPStdioTransport(command string, args []string, env []string) (MCPTransport, error) {
 	return mcp.NewStdioTransport(command, args, env)
-}
-
-// NewMCPWSTransport creates a transport tunneled over the WebSocket hub.
-func NewMCPWSTransport(hub *WSHub) MCPTransport {
-	wst := mcp.NewWSTransport(func(data json.RawMessage) {
-		hub.BroadcastJSONRPC(data, "")
-	})
-	hub.SetMCPReceiver("", wst.Deliver)
-	return wst
 }
 
 // NewMCPRawTransport creates a transport from raw io.Reader/io.Writer.
@@ -909,36 +898,4 @@ func pick(primary, secondary, def string) string {
 		return v
 	}
 	return envOr(secondary, def)
-}
-
-// ----------------------------------------------------------------
-// Chapter 8: WebSocket hub
-// ----------------------------------------------------------------
-
-// WSHub is the WebSocket fan-out hub. It implements Observer.
-type WSHub = ws.Hub
-
-// NewWSHub creates a hub that fans observations out to WebSocket clients.
-// send is called for every prompt/hint/interrupt from a browser; gate
-// controls tool-dispatch pausing; guiLogPath is the path to gui.log;
-// eventLog provides read access to the append-only event log for
-// reconnection; settings provides the GUI-editable settings store (may be nil).
-//
-// The session usage meter is passed as nil here deliberately. This signature
-// is chapter 8's published API, and the meter arrived long afterwards; the
-// server in cmd/ calls ws.NewHub directly to supply one. Growing this
-// function's arity would rewrite a chapter's contract for a later feature.
-func NewWSHub(gate *PauseGate, send func(Inbound), guiLogPath string, eventLog *Log, settings *SettingsStore) *WSHub {
-	return ws.NewHub(gate, send, guiLogPath, eventLog, settings, nil)
-}
-
-// ServeHTTP starts an HTTP server that serves static files from staticDir
-// and upgrades /ws to a WebSocket connection handled by hub.
-func ServeHTTP(addr string, staticDir string, hub *WSHub) *http.Server {
-	mux := http.NewServeMux()
-	mux.Handle("/", http.FileServer(http.Dir(staticDir)))
-	mux.HandleFunc("/ws", hub.ServeWS)
-	srv := &http.Server{Addr: addr, Handler: mux}
-	go srv.ListenAndServe()
-	return srv
 }
