@@ -69,3 +69,26 @@ The next outline must settle browser bootstrap explicitly: a frozen Agent bindin
 cannot depend on covert late discovery merely because a GUI usually creates its
 Agent before opening a browser connection. The author has that question for
 Chapter 12; no unpublished solution is imposed on a student here.
+
+## Narrow handoff-gate clarification review: 5d6255f
+
+October 8 PDT / October 9 UTC 2026. The independent reviewer who reviewed Chapters
+17–18 accepts the two-file clarification at
+`5d6255feca0e8201e3d0f2102df3d13ecb6074aa`. This is a narrow review of the complete
+grouped diff, surrounding TL;DR/§11.10 and validation gate, not a replacement
+whole-chapter review or a new runtime assessment. Prior historical/grader exposure
+remains disclosed. Current voice/procedure/architecture remain loaded.
+
+The printed `--self-test --receipt PATH` invocation matches the frozen foundation
+CLI's parser and reports fixture/oracle controls with runtime_acceptance false.
+It cannot grade the student client. The text says that plainly, permits only an
+ownership/public-API plan after accepted Chapter 10, and requires the actual
+client-runtime invocation before implementation integration or acceptance.
+This resolves the circular dependency on a not-yet-documented public seam without
+waiving public/custom transport, lifecycle, identity or inherited checks.
+
+Byte comparison confirms the entire §11.10 coverage table and following acceptance
+clauses unchanged. The historical grader remains diagnostic. The coordinator still
+owns release; no Chapter 11 implementation or live gate is closed here. Existing
+prose lint passes hard rules. Scoped review whitespace verification passes. No
+checker execution, compiler, provider call or source edit occurred in this review.
