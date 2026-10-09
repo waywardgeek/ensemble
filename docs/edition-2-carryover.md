@@ -102,6 +102,32 @@ the responsible package. These clarify the existing architecture, not new servic
 to build in advance. They were stated explicitly in the deleted Chapter 1,
 §§1.2–1.4 (historical comparison recorded below).
 
+**Name the root and its clients distinctly.** The
+[topology decisions](ensemble-topology-decisions.md#the-three-objects) record
+Bill's distinction: Ensemble owns Agents and their lifetimes; GUIServer owns
+browser connections and WebSocket framing; Gateway authenticates and translates
+at a remote boundary and owns no Agents. Ensemble is a **gateway client**, not
+the gateway itself. The application constructs Ensemble, including in the
+single-Agent headless case; do not leave essential ownership absent in the bare
+configuration used by tests. This clarifies the existing root requirement, not
+an instruction to build a gateway or sub-agent manager in Chapter 1.
+
+**Agent identity must not come from process-wide accidents.** The topology
+document records Bill's rulings that the application supplies the root data
+directory, each Agent receives its own directory, and defining skills are
+per-Agent constructor inputs when skills arrive. Model and request settings
+also belong to the Agent. Keep filesystem and skill identity separate from LLM
+request configuration that is rendered onto the wire. As persistence, memory
+and skills arrive, resolve their files from the owning Agent's directory instead
+of baking in the process working directory or one global skill choice. A shared
+`./save.json` accidentally limits the application to one Agent. Establish one
+consistent path convention at the application boundary; mixing relative and
+already-prefixed paths can duplicate sub-agent directory prefixes. The recorded
+default is a directory tree under the application-selected root; confinement
+remains the sandboxing chapter's responsibility. Introduce only the identity
+fields needed by the current feature, not all future services. Source:
+[per-Agent data and skills](ensemble-topology-decisions.md#per-agent-data-directory-and-per-agent-skills-bill-ch22-session).
+
 **Keep clients outside the core.** Bill requires GUI/WebSocket implementation in
 an optional separate Go module outside `agent/internal`, using public core
 interfaces. From Chapter 2, retain the requested small GUI stub and a usable
@@ -112,6 +138,18 @@ WebSocket tunnel. Chapter 6's GUI-coupled framework and Chapter 20's CLI that
 bypassed the actor show why a seam must work in the real clients. Sources:
 [§6.2](../book/chapter-06.md#62-the-framework-that-imported-its-own-gui),
 [§20.3](../book/chapter-20.md#203-two-paths-one-screen).
+
+An external GUI module must be able to use the public library without importing
+its `internal/common` package. Expose the values and interfaces its actual
+features need through the public API; moving files alone does not establish
+that boundary. Keep MCP service/routing concerns separate from the GUI's
+WebSocket framing so a tunnel is one transport, not a headless runtime
+dependency. When agent switching arrives, a newly attached observer needs that
+Agent's history as well as live events. Keep replay cursors associated with the
+right Agent and check the replay/live handoff for gaps or duplicates. This is
+future feature guidance, not a multi-Agent GUI requirement for the early stub.
+Source: topology decisions,
+[known costs and open questions](ensemble-topology-decisions.md#known-costs-and-open-questions).
 
 **Passing a grader and working for a person are separate results.** Use the
 original grader, then the actual interface with real models as features arrive.
@@ -380,6 +418,13 @@ implementation is external; pause has no per-tab veto. Examples using globals,
 flat `cmd/` wiring, common-package services or callback bags do not reopen these
 decisions. Later repair chapters need not recreate their motivating defects.
 
+The topology document's `NewAgent(cfg, spec)` sketch omits a parent argument;
+Bill's constructor back-pointer rule still governs the student implementation.
+Its suggested `AgentSpec` shape and “defaults plus overrides, probably” wording
+are design sketches, not mandatory fields or a new configuration subsystem.
+Its first-edition Chapter 22 migration scope does not tell the fresh student to
+recreate the old layout before correcting it.
+
 The following remain source discrepancies, not newly imposed requirements:
 
 | Source tension | Recommended reading or decision still needed |
@@ -422,6 +467,13 @@ limits and capability claims throughout this review are historical source
 claims; no provider access or external verification was performed here.
 
 ## Reading coverage and later use
+
+Codex read [the topology decisions](ensemble-topology-decisions.md) in full on
+October 9, at file revision `70acadd09115ec0543dd39cec3a3d7196dd15295`.
+The document records October 6 decisions with Bill alongside recommendations
+and migration notes. Its ownership and identity lessons are incorporated above;
+its line counts, implementation-status statements and type-promotion inventory
+are historical observations, not measurements of the new student implementation.
 
 At Bill's request, Codex read CodeRhapsody's `~/.cr/SOUL.md` and
 `~/.cr/MEMORY.md` in full on October 9 (815 and 3,159 words respectively).
