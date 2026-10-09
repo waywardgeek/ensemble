@@ -174,14 +174,27 @@ real, distinct dependencies (documented in the script header).
   ch22 at 85 on the live tree (star-topology check: `internal/tools`
   imports `agent/sandbox` directly — ch23's doing; open architecture
   question for Bill, ch25 candidate). ch19 at 85 (wants
-  `agent/events.jsonl`). ch3 70 / ch4 90.
-- **Pending at writing time:** cross-chapter sweep (§8), solutions/ch24
-  snapshot.
+  `agent/events.jsonl`).
+- **Found by the sweep and fixed (commit `f902837`):** ch14 fell to
+  5/100 because the speech harness loads renderers.js from `web/gui`
+  by disk path; ch12 lost its tunnel check hunting
+  `internal/ws/handler.go`. Grader-side fixes try the new path and
+  fall back to the old; in-tree and live-tree scripts move outright.
+  The lesson belongs in prose: a refactor's blast radius includes
+  every harness that spells the old path, and only the full sweep
+  sees them.
 
 ## 8. Status (updated as the tail stages land)
 
 - [x] Stages 0–6b implemented and committed
 - [x] Grader 100/100; mutation audit 7/7
-- [ ] Cross-chapter sweep green
-- [ ] `solutions/ch24` snapshot + tree-to-tree diff clean
-- [ ] TL;DR frozen against fixtures (then the author starts)
+- [x] Cross-chapter sweep: exit 0, breached=0, all frozen solutions
+      100/100; live tree deviations are the two documented
+      pre-existing baselines (ch19 85, ch22 85) after the `f902837`
+      harness repairs (ch12 and ch14 back to 100)
+- [x] `solutions/ch24` snapshot (`de81e88`, 199 tracked files, graded
+      100/100 before commit, tree-to-tree diff against HEAD:agent
+      empty)
+- [x] TL;DR frozen against fixtures (brief §3, v2, 2026-10-09)
+
+**The author can start.**
