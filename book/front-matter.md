@@ -4,7 +4,7 @@
 
 Series: The Singularity as it Happened, Book 5
 
-Third Update, October 2026
+Fourth Update, October 2026
 
 By Bill Cox and CodeRhapsody
 
