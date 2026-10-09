@@ -18,8 +18,9 @@ correlation and cancellation stay the same whether messages travel over stdin or
 a WebSocket. The next chapter uses that seam to give the Agent access to its own
 GUI.
 
-*Contract draft. The predecessor chapter must be accepted before student
-handoff. No Chapter 11 implementation is claimed yet.*
+*Contract draft. Accepted Chapter 10 permits a fresh student's ownership/API
+plan. The runtime checker invocation must be published before implementation
+integration or acceptance. No Chapter 11 implementation is claimed yet.*
 
 ## TL;DR
 
@@ -66,8 +67,19 @@ go test ./... -count=1
 ```
 
 Repeat vet/tests in every affected module, including optional GUI and public
-consumers; require empty gofmt output. Run the Chapter 11 independent checker
-once its command is published. From the repository root, the inherited
+consumers; require empty gofmt output. From the repository root, the available
+checker foundation can exercise its own fixture/oracle controls:
+
+```sh
+python3 scripts/edition2/accept_ch11.py --self-test --receipt PATH
+```
+
+Choose PATH for the resulting local receipt. This command tests oracle
+preparation; it does not grade the student's MCP client. A plan-only handoff
+may document owners and public seams on accepted Chapter 10. Publish the actual
+client-runtime checker invocation after those seams are documented, before
+implementation integration or acceptance. All §11.10 requirements still apply.
+The inherited
 `make grade-dir CH=12 DIR=solutions/edition-2/main` is a historical diagnostic,
 not the new acceptance gate. Its protocol and module assumptions differ.
 Section 11.10 defines the required distinguishing checks.
@@ -752,8 +764,11 @@ Do not spend paid requests to manufacture malformed JSON or a stopped pipe.
 The inherited grader maps to old Chapter 12. Its tool-call and ephemeral flags
 can become true after discovery alone, and its WebSocket check searches source
 strings. Preserve it as historical evidence; those checks cannot establish the
-new transport seam or an external effect. Publish the independent new checker
-command before a student starts, without giving that student grader internals.
+new transport seam or an external effect. The printed self-test command checks
+the independent oracle and fixtures, without exercising a student's client.
+After the plan documents public seams, publish the client-runtime invocation
+before implementation integration or acceptance, without giving the student
+grader internals. Its coverage must establish every row below.
 
 | Required property | Distinguishing acceptance evidence |
 |---|---|
