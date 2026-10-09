@@ -1,11 +1,17 @@
-# Chapter 10 historical quality comparison: reviewer draft
+# Chapter 10 historical quality comparison: round 1
 
-**Private review preparation, 2026-10-08. Initial real-provider spin pending;
-comparative feedback withheld from the student and author.** The coordinator
-authorized this source review after accepting deterministic clearance. This is
-not the completed post-live comparison gate or chapter acceptance. Release this
-findings list only after the original implementation, initial actual interface
-experience and student teaching review have been frozen.
+**Round 1 ready for coordinator handoff.** Initial live experience is now frozen
+at `44d7627`; the coordinator authorized comparative feedback and accepted the
+Q1–Q3 rationale. No coder repair has started. Q4 below adds the independently
+diagnosed empty-card presentation issue from those original live receipts.
+Findings remain unresolved until the responsible coder/author replies and the
+reviewer checks the revisions. This is not chapter acceptance.
+
+The original preparation at `1a173a0`, dated 2026-10-08, explicitly left the
+initial real-provider spin pending and withheld feedback from student and author.
+The coordinator authorized that source review after deterministic clearance.
+That earlier exposure boundary and draft remain preserved in Git; this update
+does not relabel the preparation as a post-live review.
 
 The reviewer previously owned independent Chapter 10 deterministic grading and
 has read its checker internals. The reviewer did not implement the student
@@ -154,7 +160,7 @@ resolves observable ambiguity rather than inventing features. The live section
 correctly remains a reproduction plan. Its eventual narrative and the student's
 initial usability report cannot be judged from fake-server receipts.
 
-## Consolidated findings, withheld round 1
+## Consolidated findings, round 1
 
 **Q1. Avoid constructing an entire Skills snapshot to read one watermark.**
 New `session.go:111` calls `a.skills.Snapshot()` inside watermarks and keeps only
@@ -191,10 +197,106 @@ the memorable goldfish image, but make the opening about inability to resume
 the recorded conversation safely. This is a small teaching correction, not a
 request to discard the old story or add a new one.
 
-No new runtime correctness blocker was established in this comparison. Q1 needs
-a fix or reasoned quality disposition; Q2 needs the local specification correction;
-Q3 belongs to manuscript reconciliation. These findings have not been delivered
-to the student or author, and none has been resolved by this reviewer. The
-coordinator must first freeze initial live experience, then release the grouped
-rationale, review any revisions and their affected validation, and finish the
-comparison gate. The deterministic clearance remains scoped to 57d4aac.
+**Q4. Present empty accepted response text honestly without a blank Answer card.**
+This is a real presentation-quality finding from the initial Gemini live use,
+not missing model text or a persistence failure. The original
+[B screenshot](../../solutions/edition-2/main/evidence/ch10/live-20261008/gemini-B/browser-1.png)
+visibly contains an Answer heading, Accepted status and Speak button with no
+answer body. The [restart DOM receipt](../../solutions/edition-2/main/evidence/ch10/live-20261008/gemini-B-restart/browser-1.txt)
+contains four such empty cards alongside the two actual answers, tool work and
+request outcomes. The restart screenshot is scrolled to later cards; the full
+DOM and socket receipts establish the earlier cards rather than inventing what
+is visible in that viewport.
+
+The closed B store and original socket records identify the same four empty
+text parts at zero-based position 1 of responses 5, 10, 15 and 20. Responses 10
+and 15 contain signed empty text; responses 5 and 20 contain ordinary empty text
+after tool calls. The actual answers at position 0 of responses 10 and 15 retain
+147 and 171 characters respectively. It would be inaccurate to label all four
+empty parts as opaque metadata or to conclude that the answer was lost.
+
+Responsible owner: optional GUI `gui/web/gui/artifacts.js`, specifically
+ArtifactScroll.part at line 91 and its Artifact rendering. Both live final
+mapping (line 85) and snapshot response replay (line 99) use that path. It assigns
+Answer to every text part and creates the full card unconditionally. The Go
+`gui/projection.go` implementation correctly preserves present empty text and
+ordered positions while stripping bound opaque metadata. Chapters 6 §6.2 and
+7 §7.4 expressly require those values; removing them upstream would regress the
+contract. Chapter 10 retains their historical coordinates on resume.
+
+Expected correction: for an accepted response part whose type is text and whose
+present text is exactly the empty string, use a compact, explicit empty-text
+presentation, such as “Empty text part”, at the same ordered durable identity.
+It must not look like another blank Answer or offer Speak/expansion controls
+that have no content. Keep the tracked card identity, including provisional-to-
+durable mapping, and use the same treatment after restart. This can be a compact
+Artifact state; it needs no new model, storage or wire abstraction. Do not use a
+general truthiness or whitespace-trimming filter: nonempty strings stay exact.
+If all response text is empty, keep an honest visible empty-content indication
+and the actual request outcome rather than manufacturing an answer.
+
+The correction must retain the original parts and signatures in library/history/
+checkpoint/request reconstruction, retain safe empty parts on the browser wire,
+and leave explicit opaque placeholders visible. It must not hide ordinary empty
+tool-result reports, their error flags or job lifecycle/status. Those reports
+have a distinct event presentation path and are not empty assistant answers.
+Keep empty text distinct from absent content; no fabricated metadata label is
+needed to remove the misleading blank card. This is a quality refinement of the
+Artifact presentation, not a retroactive claim that Chapter 7 already prohibited
+its current card shape.
+
+Finite local verification after repair, using the captured data and no new paid
+request solely for this finding:
+
+1. Feed the original B/restart snapshot events and captured live final into the
+   public ArtifactScroll browser fixture. Assert the four durable response keys
+   keep their positions and explicit empty-text presentation; the two real
+   answers and tool cards remain unchanged. Exercise the captured live-final
+   path separately from snapshot response replay, then reset twice to check
+   identical keys/order and no duplicate cards. Replacing an empty presentation
+   with nonempty text at the same component key must restore ordinary rendering
+   and its usable controls, without leaving the compact-empty state attached.
+2. Keep the existing signed-empty/opaque recursive projection fixture unchanged.
+   Add only the focused presentation controls: an empty result report remains
+   visible with its lifecycle, an opaque placeholder stays labeled, nonempty
+   text is retained, and an empty final does not leave an old provisional Answer
+   card or speech controls behind. Assert no automatic or manual speech dispatch
+   for the empty presentation while nonempty speech still works. Check the DOM
+   and one local screenshot.
+3. Reuse affected GUI/browser component and projection regressions under the
+   repaired source; retain any original failing fixture result. Original live
+   screenshots, DOM, socket records and signatures remain untouched. A local
+   captured-data rendering is new local evidence, never a corrected live receipt.
+
+Source and receipt binding for Q4: runtime
+`57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4`, live support
+`9822b2b63257724001d7af195b377483baad3531`, evidence freeze `44d7627`.
+The files below were matched byte-for-byte to the frozen Git evidence; the browser
+files also match their original sealed manifests. Both responsible source files
+were freshly matched to 57d4aac.
+
+| File, relative to live-20261008 unless stated | SHA-256 |
+|---|---|
+| gemini-B/browser-1.png | `b711f749a0c74bddf3f79c7d0d82cf6fee4ef6f2f1762d5b73f0893b9d8d1857` |
+| gemini-B/browser-original.jsonl | `19d70f5cb19828fc8086a9495919ca76222d95fdd167077928a23330cbcd1037` |
+| gemini-B/closed-store/events.log | `81e2904c65278199d632f1303afb3fe0f156d3f36cfa1b65aea93ebe8fed749e` |
+| gemini-B-restart/browser-1.txt | `783c47b7aa23f6afde3c9d85dc3808fc12e4c7a16c8426c4fbcb9bbdc6fb4df5` |
+| gemini-B-restart/browser-original.jsonl | `716c0397884c6d08f32f722b91df641d3353727515b0f87b72beb1bf55df69c9` |
+| main/gui/projection.go | `f93a4ecdabc5b61791507e04f8e850bf4606b3a1ebf2e6e30278f82784a2a884` |
+| main/gui/web/gui/artifacts.js | `09dec5f6016d053601c61986b9dd001fd07370c51ba4ef8373da546fb329fbba` |
+
+The read-only diagnosis initially guessed `project.go` rather than `projection.go`
+and tried a linewise JSON reader on the pretty-printed originals manifest. Those
+exploratory reads failed before any write; corrected reads above did not alter
+the originals. No build, runtime edit, browser replay or provider call occurred
+in this diagnosis. The verification steps are a plan, not claimed test results.
+The per-feature live reviewer retains acceptance ownership and received the
+diagnosis; feedback to the student remains the coordinator's grouped handoff.
+
+No new persistence correctness blocker was established in this comparison. Q1
+needs a fix or reasoned quality disposition; Q2 needs the local specification
+correction; Q3 belongs to manuscript reconciliation; Q4 needs the narrow
+presentation repair and local captured-data check. None has been resolved by
+this reviewer. Initial live experience is frozen, so the coordinator can now
+release the grouped rationale, review revisions and affected validation, and
+finish the comparison gate. Deterministic clearance remains scoped to 57d4aac.
