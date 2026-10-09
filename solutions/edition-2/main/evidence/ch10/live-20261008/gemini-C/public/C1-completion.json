@@ -1,0 +1,34 @@
+{
+  "Role": "C1",
+  "Completion": {
+    "stop_reason": "STOP",
+    "agent_id": "agent-1",
+    "request_id": "r4",
+    "outcome": "success",
+    "text": "CH10-C-gemini",
+    "parts": [
+      {
+        "type": "text",
+        "text": "CH10-C-gemini"
+      },
+      {
+        "type": "text",
+        "text": "",
+        "from": {
+          "vendor": "gemini",
+          "model": "gemini-3.8-flash",
+          "surface": "generate_content"
+        },
+        "opaque": "EtACCs0CAWkUfRPdQeznZq6ULPMpulonxgWYo/O9liBlqK9uMGrtDrcTJ2nEaMJWIv/RX4pGblRuit0bxWvEdtgKV/S/9TEjgpkfPGVq7G/c9mu9cRqtyRePGHcWVPIyqdPwC90zxZJSM19KhrDPh1W3K9cMUr68j+cUjUfIiz+bM88SW/y6m20geW3Ub0asH0ms6sdIBduUsreCjbZ4zQyqljyIn9re1TzRx1DeLKODBIHogfYayDZbpYUAe7ulcCQ5ZD782XRcm1EB3G9S4pA8pk5mD7MFSTHxs+MQSr4pIBtB4TJc44SS6pKIgUX6yG7QvZP6kjLK0JZKhFWH/Pw7NUPoE2lRi4IjjsA3gIe0FQYheVrBFGvBz+GgS/hCVWYgQWAC3CuZBL/GHJYuS6yz9W1Yg0uH4P2pN5P7f+YOyJhPAlZLR+9g9WioGW71f/+f"
+      }
+    ],
+    "pending_hints": 0,
+    "usage": {
+      "input": 10444,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 481
+    }
+  },
+  "Error": ""
+}

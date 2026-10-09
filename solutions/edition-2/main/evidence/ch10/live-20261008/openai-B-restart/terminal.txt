@@ -1,0 +1,4 @@
+http://127.0.0.1:63895
+Ensemble — openai / gpt-4.1
+Type /help for commands.
+You> ^DFinal usage: input=1668, cache write=0, cache read=3712, output=165

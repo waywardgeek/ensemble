@@ -1,0 +1,132 @@
+{
+  "agent_id": "agent-2",
+  "generation": "agent-2-g1",
+  "watermark": 13,
+  "first_seq": 2,
+  "last_seq": 6,
+  "log_seq": 6,
+  "omitted": 0,
+  "state": {
+    "session": {
+      "id": "ebf31c9792a85b1253fb3e63d32c123f",
+      "resumed": false,
+      "checkpoint_seq": null
+    },
+    "job_access": [],
+    "skills": null,
+    "execution_policy": {
+      "revision": 1,
+      "persistent": false,
+      "max_model_requests": 2,
+      "effective_max_model_requests": 2
+    },
+    "active_max_model_requests": null,
+    "lifecycle": "idle",
+    "active_request_id": null,
+    "active_operation": null,
+    "queued_request_ids": [],
+    "paused": false,
+    "typing_clients": 0,
+    "speaking_clients": 0,
+    "model": "claude-sonnet-4-6",
+    "usage": [
+      {
+        "from": {
+          "vendor": "anthropic",
+          "model": "claude-sonnet-4-6",
+          "surface": "messages"
+        },
+        "usage": {
+          "input": 2546,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 8
+        }
+      }
+    ]
+  },
+  "events": [
+    {
+      "turn": {
+        "request_index": 1,
+        "policy": {
+          "revision": 1,
+          "max_model_requests": 2,
+          "effective_max_model_requests": 2
+        },
+        "request_id": "r1"
+      },
+      "seq": 2,
+      "type": "turn_started",
+      "time": "2026-10-09T02:55:32.252942Z"
+    },
+    {
+      "seq": 3,
+      "type": "message_received",
+      "time": "2026-10-09T02:55:32.253181Z",
+      "message": {
+        "actor": "human",
+        "purpose": "dialogue",
+        "parts": [
+          {
+            "type": "text",
+            "text": "Reply ONLY FRESH-anthropic. Do not call tools."
+          }
+        ]
+      }
+    },
+    {
+      "seq": 5,
+      "type": "response_ended",
+      "time": "2026-10-09T02:55:33.250478Z",
+      "response": {
+        "stop_reason": "end_turn",
+        "from": {
+          "vendor": "anthropic",
+          "model": "claude-sonnet-4-6",
+          "surface": "messages"
+        },
+        "requested": {
+          "vendor": "anthropic",
+          "model": "claude-sonnet-4-6",
+          "surface": "messages"
+        },
+        "model_reported": true,
+        "parts": [
+          {
+            "type": "text",
+            "text": "FRESH-anthropic"
+          }
+        ],
+        "usage": {
+          "input": 2546,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 8
+        },
+        "raw_usage": {
+          "cache_creation": {
+            "ephemeral_5m_input_tokens": 0,
+            "ephemeral_1h_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "inference_geo": "global",
+          "input_tokens": 2546,
+          "output_tokens": 8,
+          "service_tier": "standard"
+        }
+      }
+    },
+    {
+      "turn": {
+        "request_id": "r1",
+        "outcome": "success"
+      },
+      "seq": 6,
+      "type": "turn_ended",
+      "time": "2026-10-09T02:55:33.251359Z"
+    }
+  ],
+  "partials": []
+}

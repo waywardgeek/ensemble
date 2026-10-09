@@ -1,0 +1,24 @@
+{
+  "Role": "C2",
+  "Completion": {
+    "stop_reason": "stop",
+    "agent_id": "agent-2",
+    "request_id": "r1",
+    "outcome": "success",
+    "text": "FRESH-openai",
+    "parts": [
+      {
+        "type": "text",
+        "text": "FRESH-openai"
+      }
+    ],
+    "pending_hints": 0,
+    "usage": {
+      "input": 1222,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 5
+    }
+  },
+  "Error": ""
+}

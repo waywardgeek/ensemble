@@ -1,0 +1,34 @@
+{
+  "Role": "C2",
+  "Completion": {
+    "stop_reason": "STOP",
+    "agent_id": "agent-2",
+    "request_id": "r1",
+    "outcome": "success",
+    "text": "FRESH-gemini",
+    "parts": [
+      {
+        "type": "text",
+        "text": "FRESH-gemini"
+      },
+      {
+        "type": "text",
+        "text": "",
+        "from": {
+          "vendor": "gemini",
+          "model": "gemini-3.8-flash",
+          "surface": "generate_content"
+        },
+        "opaque": "EoMCCoACAWkUfRPAAQgapxdMMsjJmHDnGiQYOGwdZIRjrAu4HEzXNLq+VJGYYVLBL6ZN00FmVaj/eoQqtKzxxosL5J9sP3FI4+9Z1HD6mMydYmIb5CFGLaJ/OBDHiSI+2jlONZiqLq2zpQHTSKCXFeccgBn/DufNRKIM9YGkl49RBV6z6twEwDAYG4QlRgT+pJSB6tTmE9jq1Q4MBhSkEEzkRuFzDmJ7IC/IEiAvvPlAs9Yb2iHGN/CtVZ5OnHiUv1fQfY/Madej0MwAImGuhhkxZ7dnSsvBowzMIGdgq1bFR1DHQfwn2iCgiTh5UBeSnhX9qre84MFfINCc1+Fe5Q++7eQPBA=="
+      }
+    ],
+    "pending_hints": 0,
+    "usage": {
+      "input": 1782,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 42
+    }
+  },
+  "Error": ""
+}

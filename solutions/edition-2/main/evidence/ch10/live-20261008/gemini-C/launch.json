@@ -1,0 +1,36 @@
+{
+  "binding_sha256": "9f877c13fe2fd564779dc6305240928c3dc710071042ffb5181e99b6587b14a5",
+  "source_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "vendor": "gemini",
+  "model": "models/gemini-3.8-flash",
+  "role": "consumer",
+  "command": [
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-build-watch/consumer",
+    "--root",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/gemini",
+    "--output",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/gemini-C/public",
+    "--relay",
+    "http://127.0.0.1:64055",
+    "--step",
+    "C",
+    "--catalog",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/support/catalog"
+  ],
+  "command_sha256": "6d74162ce2ec80cfa48ca560eac5146dd22fa2fc14bf6c736577603bd2eec240",
+  "environment": {
+    "LLM_VENDOR": "gemini",
+    "LLM_MODEL": "models/gemini-3.8-flash",
+    "LLM_RESOLVED_MODEL": "gemini-3.8-flash",
+    "LLM_BASE_URL": "http://127.0.0.1:64055/C",
+    "EN_DISABLE_STREAMING": "0"
+  },
+  "workspace": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/gemini/workspace",
+  "provider_root": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/gemini",
+  "run": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/gemini-C",
+  "mode": "live",
+  "actor": "student coder; not Bill",
+  "support_revision": "9822b2b63257724001d7af195b377483baad3531",
+  "discovery_sha256": "4908b8a9eca6ec062989135652aec507562c4659f169cace7bbbb9e5c0251c0b",
+  "identity_sha256": "4351179c6bbb1dc2c3e6ada7007e5b0c838216c350284f65b46366e37dd63f12"
+}

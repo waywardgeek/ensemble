@@ -776,3 +776,96 @@ checker implementations/receipts or student-executed results. No Go build is nee
 for this prepared layer. Concrete support review/live release remains pending;
 stop at provider-preparation-handback.md with no credential/API access or chapter
 acceptance claim.
+
+
+### Initial live pass: released phase6
+
+Read complete mandatory skill, current architecture, full pinned dd1111e Chapter10 in three unclipped ranges, full final provider-support.md, live-matrix.md and support README/binding documentation. Verified pinned chapter and feedback manifest SHA256 and Git bytes again (feedback text retained from preceding full read). Sole inbox publishes support-review0a78688 and deterministic213b56b clearance and explicit live release; reviewer/checker implementations remain unread. Phase5 unreleased wording is historical and is superseded by this concrete handoff. Complete actual runtime57d4aac/support9822b2b preflight passed before keys/network. No rebuild or compiler use.
+
+Reviewed adapter made exactly one successful discovery request per vendor, all200/no pagination. Selected returned claude-sonnet-4-6, gpt-4.1 and exact models/gemini-3.8-flash with generateContent support. Anthropic/OpenAI preference uses permitted own Chapter9 student-review selected-model evidence, not historical answers. Actual additional reads: own CLI selection/main searches, Engine ValidateConfig/Route and selected prior own Chapter9 review lines571/600/608/618 surfaced by model-name search; attempted nonexistent llm/models.go/config.go and root model* reads returned not-found. No other source was followed. Selected needed key fields were loaded only through reviewed provider.load_key in adapter processes; no settings dump, shell extraction or child key propagation. The exact66/3 ceilings and independent/local seed distinction remain. Actual interface work follows; discovery alone establishes no generation success.
+
+
+### Initial real-use experience frozen before historical comparison
+
+Actual phase6 pass used runtime57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4 and
+reviewed interpreted support9822b2b63257724001d7af195b377483baad3531, with unchanged
+actual binaries and the final mixed-revision binding. The student coder drove
+human chat in real PTYs and actual headed Chromium controls; Bill did not perform
+these interactions. Native speech was instrumented for admission/ownership only;
+I make no hearing claim. All33 generation attempts returned200, with11/vendor
+(A3/B1/C3/D4); exactly3 discovery calls succeeded. No retries, pagination,
+alternative models, capability probes or repeated prompts. All planned model
+turns completed; B intentionally ended round_limit after its one real write call.
+
+Stable session identity, exact marker recall without tool replay, checkpoint ack
+ordering, current policy1 versus historical raw0/effective16, font16→18, true GUI
+server restart, socket reconnect, Page close/reopen and terminal-only EOF were
+observable through the actual clients. Checkpoint still worked after terminal EOF.
+Historical tool cards correctly said no live owner. Measured restored native and
+service speech admissions, queues, work/pause ownership and provisional content
+were zero. C's two actual Agents completed independently; source-bound public
+imports recalled the marker, preserved origin bytes and usage once, and refused
+genuine pre-origin reconstruction. Offline latest/older/null branches agreed on
+render, state/history/usage/Skills/watch and requests with endpoints disabled.
+Fifteen public reconstructions also match actual captured request bodies byte for
+byte (five original sends per API), without argument-string normalization.
+
+D loaded/retired/reloaded through public controls, used write_file from real PTYs,
+then resumed from the unchanged relocated catalog. Retained activations1/2/3,
+material coordinates2/3/5 and exact manuals survived. The explicit empty-pattern,
+17-byte one-shot setting consumed exactly once before the real next call and was
+absent afterward. The two seed exchanges per vendor are synthetic, separately
+retained, and charge zero real requests: input2/output2 per vendor are separately
+identified within cumulative usage, never attributed to the provider. OpenAI's
+actual response provenance is gpt-4.1-2025-04-14 although the selected alias was
+gpt-4.1. Gemini actual signature metadata was present and retained; no signature
+text was treated as user-visible prose or as a credential.
+
+The persistence teaching's distinction between history, live owners and current
+policy proved useful in the clients. I found no new unresolved persistence-owner
+contract conflict. Specific initial experience findings for coordinator/author:
+
+- Gemini's resumed browser shows extra empty “Answer / Accepted” cards. My first
+  screenshot suggested missing answers; preserved full DOM proves the real text
+  is present in separate cards. Public completions retain empty text Parts with
+  opaque provider metadata. That is a plausible presentation cause, not a proven
+  reducer defect. Preserve metadata; review suppressing empty presentation cards
+  in a later scoped correction. No live rerun or runtime edit was improvised.
+- Anthropic D1 proposed invalid names “scratch activation 2” and “scratch
+  activation 3” while also performing the requested write. Both management calls
+  had paired controlled refusals; the turn completed. Its D2 explanation confused
+  tool-report byte length with file size; actual after-resume.txt was verified
+  exactly17 bytes. These are observed model explanations, not fabricated success
+  text or changed receipts. Teaching should encourage file/effect inspection.
+- On the first Anthropic GUI restart shutdown I sent server SIGTERM before EOF to
+  the attached terminal; the supervising recorder waited until terminal EOF. I
+  then sent EOF and observed exit0. Later shutdowns explicitly detached first.
+  This is worth making explicit in the combined-terminal spin instructions.
+- The initial live-observations.py summary failed with KeyError(state), because
+  lifecycle probes deliberately record before/after/closed shapes. The preserved
+  observations-initial.out and commands journal show exit1. The corrected reader
+  examines the restored/closed side and passes; no original or runtime changed.
+  A prior exploratory read also assumed every events.log line had type; the
+  version header caused KeyError before any write. No runtime failure inferred.
+
+Exposure ledger additions: reloaded the ENTIRE mandatory skill after compaction,
+re-read entire permitted architecture, own driver.py/local-fixture.py/schedule,
+consumer C/D/offline functions, verify.py, selected provider loader/redactor and
+own live receipts/DOM/screenshots. Re-read full own live-matrix. Inbox checked at
+meaningful boundaries, with no release changes. No grader/reviewer implementation,
+other conversations, memories, old/future chapters/answers or author research was
+opened. No delegation, compiler use, cleanup of caches or source, or runtime/support
+repair. Summary/audit helpers are new evidence-only files outside the reviewed
+bound support tree. Initial original evidence stays distinct from reconstruction.
+No comparative feedback, chapter acceptance, tag/export or push is claimed.
+
+
+Evidence-freeze tooling also hit an exclusive-create filename collision:
+`gemini-B-restart-seal.out` already described GUI attachment sealing. The later
+originals-sealing batch stopped rather than overwrite it; the preserved
+freeze-label-collision.json records the observed error/cause retrospectively.
+Resumed only unfinished seals with distinct originals-seal labels. No model call,
+runtime/support source or original changed. This is evidence naming friction,
+not a teaching or persistence-runtime failure.
+
+Final freeze:30/30 source-bound original verifications passed; safe file and staged credential audits passed. Final inbox check remained the same explicit live release. All configured-key checks emitted only aggregate results. Initial real-use record is frozen for independent review; runtime/source/support identities unchanged.

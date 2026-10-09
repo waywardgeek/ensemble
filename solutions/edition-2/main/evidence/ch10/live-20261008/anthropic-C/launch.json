@@ -1,0 +1,36 @@
+{
+  "binding_sha256": "9f877c13fe2fd564779dc6305240928c3dc710071042ffb5181e99b6587b14a5",
+  "source_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "vendor": "anthropic",
+  "model": "claude-sonnet-4-6",
+  "role": "consumer",
+  "command": [
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-build-watch/consumer",
+    "--root",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/anthropic",
+    "--output",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/anthropic-C/public",
+    "--relay",
+    "http://127.0.0.1:63749",
+    "--step",
+    "C",
+    "--catalog",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/support/catalog"
+  ],
+  "command_sha256": "4ccad38144e093c8a7e6603ed83e9aeeec6a35739923b9d9f6b48479cf463c84",
+  "environment": {
+    "LLM_VENDOR": "anthropic",
+    "LLM_MODEL": "claude-sonnet-4-6",
+    "LLM_RESOLVED_MODEL": "claude-sonnet-4-6",
+    "LLM_BASE_URL": "http://127.0.0.1:63749/C",
+    "EN_DISABLE_STREAMING": "0"
+  },
+  "workspace": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/anthropic/workspace",
+  "provider_root": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/anthropic",
+  "run": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/anthropic-C",
+  "mode": "live",
+  "actor": "student coder; not Bill",
+  "support_revision": "9822b2b63257724001d7af195b377483baad3531",
+  "discovery_sha256": "d7db3df30cd31c3b15dce908f60fcc084f550b45e2d2c802c53dcdaf48e5d184",
+  "identity_sha256": "3c30d97325ac4bb07431ce06b172c0a15e9505d7a4b415279ad9b424c79b0fac"
+}

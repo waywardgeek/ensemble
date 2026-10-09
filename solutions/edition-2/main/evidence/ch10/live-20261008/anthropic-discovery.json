@@ -1,0 +1,36 @@
+{
+  "vendor": "anthropic",
+  "origin": "https://api.anthropic.com",
+  "path": "/v1/models?limit=1000",
+  "mode": "live",
+  "binding_sha256": "9f877c13fe2fd564779dc6305240928c3dc710071042ffb5181e99b6587b14a5",
+  "attempt": {
+    "number": 1,
+    "vendor": "anthropic",
+    "step": "models",
+    "row": "discovery",
+    "kind": "discovery",
+    "at": 1791514186.469239
+  },
+  "budget_path": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/anthropic/attempts.jsonl",
+  "status": 200,
+  "outcome": "completed",
+  "models": [
+    "claude-haiku-5-5",
+    "claude-sonnet-5-5",
+    "claude-opus-5-5",
+    "claude-fable-5-1",
+    "claude-opus-5",
+    "claude-sonnet-5",
+    "claude-fable-5",
+    "claude-opus-4-8",
+    "claude-opus-4-7",
+    "claude-sonnet-4-6",
+    "claude-opus-4-6",
+    "claude-opus-4-5-20251101",
+    "claude-haiku-4-5-20251001",
+    "claude-sonnet-4-5-20250929"
+  ],
+  "has_more": false,
+  "elapsed": 0.36761229182593524
+}

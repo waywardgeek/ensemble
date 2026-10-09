@@ -1,0 +1,16 @@
+{
+  "source_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "binding_sha256": "9f877c13fe2fd564779dc6305240928c3dc710071042ffb5181e99b6587b14a5",
+  "mode": "live",
+  "chapter_accepted": false,
+  "identity_verified": true,
+  "support_revision": "9822b2b63257724001d7af195b377483baad3531",
+  "budget": {
+    "generation_attempts": 7,
+    "discovery_attempts": 1
+  },
+  "limitations": [
+    "Originals must be reviewed against all A/B/C/D observables. Identity and these limited checks are not full feature acceptance.",
+    "No human hearing, provider success, or chapter acceptance inferred from a local fixture."
+  ]
+}

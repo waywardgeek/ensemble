@@ -1,0 +1,24 @@
+{
+  "completion": {
+    "agent_id": "agent-1",
+    "request_id": "r2",
+    "outcome": "success",
+    "text": "LOCAL FIXTURE limits retained",
+    "parts": [
+      {
+        "type": "text",
+        "text": "LOCAL FIXTURE limits retained"
+      }
+    ],
+    "pending_hints": 0,
+    "usage": {
+      "input": 2682,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 384
+    }
+  },
+  "error": "",
+  "requests": 2,
+  "source": "loopback fixture, not provider output"
+}

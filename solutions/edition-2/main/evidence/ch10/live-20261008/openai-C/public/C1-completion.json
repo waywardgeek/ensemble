@@ -1,0 +1,24 @@
+{
+  "Role": "C1",
+  "Completion": {
+    "stop_reason": "stop",
+    "agent_id": "agent-1",
+    "request_id": "r4",
+    "outcome": "success",
+    "text": "CH10-C-openai  \nCH10-C-openai",
+    "parts": [
+      {
+        "type": "text",
+        "text": "CH10-C-openai  \nCH10-C-openai"
+      }
+    ],
+    "pending_hints": 0,
+    "usage": {
+      "input": 1797,
+      "cache_write": 0,
+      "cache_read": 5120,
+      "output": 177
+    }
+  },
+  "Error": ""
+}

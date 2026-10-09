@@ -1,0 +1,37 @@
+{
+  "binding_sha256": "9f877c13fe2fd564779dc6305240928c3dc710071042ffb5181e99b6587b14a5",
+  "source_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "vendor": "openai",
+  "model": "gpt-4.1",
+  "role": "consumer",
+  "command": [
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-build-watch/consumer",
+    "--root",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/openai",
+    "--output",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/openai-D-seed/public",
+    "--relay",
+    "http://127.0.0.1:63942",
+    "--step",
+    "D-seed",
+    "--catalog",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/support/catalog"
+  ],
+  "command_sha256": "fceaf1ad859454c2422cc0dace19b48fc8e6397542d9ad82508878ae2929bfe4",
+  "environment": {
+    "LLM_VENDOR": "openai",
+    "LLM_MODEL": "gpt-4.1",
+    "LLM_RESOLVED_MODEL": "gpt-4.1",
+    "LLM_BASE_URL": "http://127.0.0.1:63942/D-seed",
+    "EN_DISABLE_STREAMING": "0",
+    "LLM_SKILLS_DIR": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/support/catalog",
+    "LLM_PRIMARY_SKILL": "base"
+  },
+  "workspace": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/openai/workspace",
+  "provider_root": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/openai",
+  "run": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/openai-D-seed",
+  "mode": "local",
+  "actor": "student coder; not Bill",
+  "support_revision": "9822b2b63257724001d7af195b377483baad3531",
+  "identity_sha256": "352b67a1dfb85a60fff01b65f719c864cb00501415c316ae47fd8621e572ce08"
+}

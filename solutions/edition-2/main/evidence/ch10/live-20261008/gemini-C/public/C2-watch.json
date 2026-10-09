@@ -1,0 +1,143 @@
+{
+  "agent_id": "agent-2",
+  "generation": "agent-2-g1",
+  "watermark": 14,
+  "first_seq": 2,
+  "last_seq": 6,
+  "log_seq": 6,
+  "omitted": 0,
+  "state": {
+    "session": {
+      "id": "06f769c988b8f326d04fa306258bdd02",
+      "resumed": false,
+      "checkpoint_seq": null
+    },
+    "job_access": [],
+    "skills": null,
+    "execution_policy": {
+      "revision": 1,
+      "persistent": false,
+      "max_model_requests": 2,
+      "effective_max_model_requests": 2
+    },
+    "active_max_model_requests": null,
+    "lifecycle": "idle",
+    "active_request_id": null,
+    "active_operation": null,
+    "queued_request_ids": [],
+    "paused": false,
+    "typing_clients": 0,
+    "speaking_clients": 0,
+    "model": "models/gemini-3.8-flash",
+    "usage": [
+      {
+        "from": {
+          "vendor": "gemini",
+          "model": "gemini-3.8-flash",
+          "surface": "generate_content"
+        },
+        "usage": {
+          "input": 1782,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 42
+        }
+      }
+    ]
+  },
+  "events": [
+    {
+      "turn": {
+        "request_index": 1,
+        "policy": {
+          "revision": 1,
+          "max_model_requests": 2,
+          "effective_max_model_requests": 2
+        },
+        "request_id": "r1"
+      },
+      "seq": 2,
+      "type": "turn_started",
+      "time": "2026-10-09T03:08:06.212199Z"
+    },
+    {
+      "seq": 3,
+      "type": "message_received",
+      "time": "2026-10-09T03:08:06.212228Z",
+      "message": {
+        "actor": "human",
+        "purpose": "dialogue",
+        "parts": [
+          {
+            "type": "text",
+            "text": "Reply ONLY FRESH-gemini. Do not call tools."
+          }
+        ]
+      }
+    },
+    {
+      "seq": 5,
+      "type": "response_ended",
+      "time": "2026-10-09T03:08:07.732603Z",
+      "response": {
+        "stop_reason": "STOP",
+        "from": {
+          "vendor": "gemini",
+          "model": "gemini-3.8-flash",
+          "surface": "generate_content"
+        },
+        "requested": {
+          "vendor": "gemini",
+          "model": "models/gemini-3.8-flash",
+          "surface": "generate_content"
+        },
+        "model_reported": true,
+        "parts": [
+          {
+            "type": "text",
+            "text": "FRESH-gemini"
+          },
+          {
+            "type": "text",
+            "text": "",
+            "from": {
+              "vendor": "gemini",
+              "model": "gemini-3.8-flash",
+              "surface": "generate_content"
+            },
+            "opaque": "EoMCCoACAWkUfRPAAQgapxdMMsjJmHDnGiQYOGwdZIRjrAu4HEzXNLq+VJGYYVLBL6ZN00FmVaj/eoQqtKzxxosL5J9sP3FI4+9Z1HD6mMydYmIb5CFGLaJ/OBDHiSI+2jlONZiqLq2zpQHTSKCXFeccgBn/DufNRKIM9YGkl49RBV6z6twEwDAYG4QlRgT+pJSB6tTmE9jq1Q4MBhSkEEzkRuFzDmJ7IC/IEiAvvPlAs9Yb2iHGN/CtVZ5OnHiUv1fQfY/Madej0MwAImGuhhkxZ7dnSsvBowzMIGdgq1bFR1DHQfwn2iCgiTh5UBeSnhX9qre84MFfINCc1+Fe5Q++7eQPBA=="
+          }
+        ],
+        "usage": {
+          "input": 1782,
+          "cache_write": 0,
+          "cache_read": 0,
+          "output": 42
+        },
+        "raw_usage": {
+          "candidatesTokenCount": 5,
+          "promptTokenCount": 1782,
+          "promptTokensDetails": [
+            {
+              "modality": "TEXT",
+              "tokenCount": 1782
+            }
+          ],
+          "serviceTier": "standard",
+          "thoughtsTokenCount": 37,
+          "totalTokenCount": 1824
+        }
+      }
+    },
+    {
+      "turn": {
+        "request_id": "r1",
+        "outcome": "success"
+      },
+      "seq": 6,
+      "type": "turn_ended",
+      "time": "2026-10-09T03:08:07.733056Z"
+    }
+  ],
+  "partials": []
+}

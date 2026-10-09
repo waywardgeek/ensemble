@@ -312,3 +312,19 @@ provider-preparation-handback.md for schema, origins, complete budget/feature
 matrix, paths, commands and blockers. Latest coordinator inbox reports deterministic
 clearance and compiler release; no rebuild needed. Ready for concrete support
 review. Credentials/discovery/providers remain unreleased; stop here.
+
+
+## Initial reviewed live schedule completed; freeze in progress
+
+Runtime57d4aac/support9822b2b unchanged. Actual PTY/headed-browser/public A/B/C/D
+runs completed on all three discovered permitted models,33 generation attempts
+plus3 discoveries, no retries. Six local D seed exchanges remain separately
+labeled. Offline replay and15 captured/public byte comparisons pass. No compiler
+use or runtime/support repair. See live-handback.md and live-20261008 originals;
+sealing, safe credential audit and evidence commit finish this phase. Gemini extra
+empty Answer cards and observed Anthropic explanation/invalid-name behavior are
+preserved for coordinator review, not erased by reruns. No chapter acceptance.
+
+All30 original launch seals and30 source-bound verifications now pass. First safe credential file audit passes; final staged audit precedes scoped commit. Owned client/fixture processes exited, roughly11MiB original evidence retained, no large temporary dataset or cache removal. Compiler remains unclaimed.
+
+Final staged credential audit passes:730 retained/owned files plus11,964,504 scoped staged patch bytes, zero network calls and no secret output. Original manifests/receipts preserved. Initial live record is ready for independent review; no pending compiler ownership or paid retries.

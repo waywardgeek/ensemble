@@ -1,0 +1,148 @@
+ENSEMBLE / LOCAL WORKSPACE
+
+Agent workspace
+
+Connected — agent-1-g3
+
+Tool admissions available — typing: 0, speaking: 0. Already admitted work continues.
+
+agent-1 — idle
+
+Session 40f2c64b6e513d9bdfca8e4a83eac0e1 — resumed — checkpoint 16
+
+Checkpoint
+Agents
+Settings
+Appearance and speech
+Theme
+Dark
+Light
+System
+Font size
+Sidebar width
+Actions width
+Autoplay new answers
+
+Shared across tabs. New visible answers, exposed thinking and concise tool summaries can speak. Tool results and replay remain silent. Existing speech continues when autoplay turns off.
+
+Speech rate
+
+Applied revision 1: dark, 18px, widths 260/380, autoplay off, rate 1.
+
+Agent policy
+
+Next turn: 1 model requests; revision 1; persistent. Active turn: none.
+
+Maximum model requests per turn
+
+0 selects Default (16). Changes apply when a later turn activates.
+
+Apply Agent policy
+Chat
+You
+Remember CH10-A-gemini. Use write_file once to create marker.txt with exactly CH10-A-gemini followed by one newline. Then tell me why you made that edit.
+
+Speak
+Answer
+
+Accepted
+
+Speak
+Answer
+
+I created `marker.txt` with `CH10-A-gemini` followed by a newline because you explicitly instructed me to create that file with that exact content.
+
+Accepted
+
+Speak
+Answer
+
+Accepted
+
+Speak
+Request r1
+Outcome: success
+
+Speak
+You
+What exact marker did you save in marker.txt, and why did you write it? Answer from this conversation; do not call any tool or change a file.
+
+Speak
+Answer
+
+The exact marker I saved in `marker.txt` was `CH10-A-gemini`. I wrote it because you specifically instructed me to write that exact text followed by a newline to the file.
+
+Accepted
+
+Speak
+Answer
+
+Accepted
+
+Speak
+Request r2
+Outcome: success
+
+Speak
+You
+Use write_file once to create policy-proof.txt containing CH10-B-gemini and a newline, then explain the result.
+
+Speak
+Answer
+
+Accepted
+
+Speak
+Error
+round_limit: 1 model requests completed; final tool batch retained
+
+Speak
+Request r3
+Outcome: round_limit
+
+Speak
+Return to latest
+Enable playback on this page
+Cancel speech
+Prompt or correction
+Send prompt
+Send hint
+Interrupt
+
+Request r3: round_limit — round_limit: 1 model requests completed; final tool batch retained
+
+Actions
+Tool: write_file
+write_file
+{
+  "content": "CH10-A-gemini\n",
+  "overwrite": true,
+  "path": "marker.txt"
+}
+
+Report delivered — done · historical; no live owner
+
+Speak
+Tool result: call_43145
+wrote "marker.txt": 14 bytes
+
+Report delivered · done · historical; no live owner
+
+Speak
+Tool: write_file
+write_file
+{
+  "content": "CH10-B-gemini\n",
+  "overwrite": true,
+  "path": "policy-proof.txt"
+}
+
+Report delivered — done
+
+Speak
+Tool result: call_24182
+wrote "policy-proof.txt": 14 bytes
+
+Report delivered · done
+
+Speak

@@ -1,0 +1,4 @@
+{"number": 2, "vendor": "gemini", "step": "A1", "row": "A", "kind": "generation", "at": 1791515070.3545861, "row_deadline": 1791515670.3545861, "phase": "admitted", "source": "provider"}
+{"number": 2, "phase": "finished", "outcome": "completed", "status": 200, "bytes": 1521, "credential_redacted": false, "unfinished_prefix_discarded": false, "elapsed": 1.766869582934305}
+{"number": 3, "vendor": "gemini", "step": "A1", "row": "A", "kind": "generation", "at": 1791515072.130731, "row_deadline": 1791515670.3545861, "phase": "admitted", "source": "provider"}
+{"number": 3, "phase": "finished", "outcome": "completed", "status": 200, "bytes": 1717, "credential_redacted": false, "unfinished_prefix_discarded": false, "elapsed": 1.3593883749563247}

@@ -1,0 +1,2 @@
+{"number": 4, "vendor": "anthropic", "step": "A2", "row": "A", "kind": "generation", "at": 1791514322.610306, "row_deadline": 1791514863.842592, "phase": "admitted", "source": "provider"}
+{"number": 4, "phase": "finished", "outcome": "completed", "status": 200, "bytes": 5622, "credential_redacted": false, "unfinished_prefix_discarded": false, "elapsed": 2.59783941693604}
