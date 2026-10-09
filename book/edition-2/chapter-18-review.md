@@ -167,3 +167,97 @@ The existing external prose-lint executable passed every hard check on this revi
 and the two preparation files. Soft short-file/density warnings remain suitable
 for scope records; no padding or linter build was performed. Scoped staged
 whitespace verification passed. Only chapter-18-review.md is owned by this review.
+
+## Complete draft review: d894137
+
+October 8 PDT / October 9 UTC 2026. Reviewed the complete 648-line manuscript
+and submitted outline/evidence/validation at
+`d894137e9d511b4e3460b062e9b05a33fe77443a`, retaining the scope decision above.
+Full voice/procedure and architecture reads were refreshed after compaction.
+Relevant inherited clauses checked are Chapter 7's client/reply/snapshot shapes,
+Chapter 10 §§10.7 and 10.9, Chapter 13's strict v1 speech journal, and accepted
+Chapter 17's v7 composition, capture, capsule/projection, helper and retirement
+rules. Prior historical/grader exposure remains disclosed; no student role,
+implementation, build, authentication or provider call occurred.
+
+S1–S4 are substantively resolved. The version-8 wrapper explicitly permits the
+inner v7 request initializer and substitutes capture v2 at retained execution
+positions without granting another base capability. Turn capture, helper-off
+behavior, combined route/mode validation and no-op/conflict handling are coherent.
+One reasoning item keeps one authoritative capsule ref and one final, with indexed
+safe views. Engine assembly, Actor publication and terminal acceptance retain
+separate owners. Added/delta/done/item/terminal agreement, done-only and terminal-only
+positives, canceled usage, bounds and Page cancellation are specified well enough
+to derive independent checks. The private summary-index speech identity does not
+misrepresent the unchanged journal: item part_id and distinct utterance identities
+keep their existing meanings.
+
+The documented historical duplicate-final incident supports the listening stake;
+the opener marks its wrong-file scene as imagined, and the old empty-probe report
+is attributed with its missing raw evidence. No fabricated success or recovered
+private reasoning is implied. The 30-start plan is finite and includes continuation,
+interruption and failures; the approved uncapped selected plan route remains settled.
+
+Three finite corrections remain before contract closure:
+
+1. **Publish the new GUI status/reply boundary (§§18.5–18.6).** The manuscript
+   makes wire names contractual but delegates the success wrapper to an “ordinary
+   correlated reply.” Chapter 7 has several command-specific shapes; that phrase
+   does not identify the type, nesting or revision relationship for this new
+   command. Print the exact correlated inspect/update/no-op success envelope and
+   identify the inherited error envelope. Name the exact revisioned observation
+   carrying current mode/surface/support after either summary or route changes.
+   State when its applied watch revision must precede an update acknowledgment;
+   no-op/inspection must not invent a durable fact or revision. This is an author/
+   coordinator interface choice, not a new user decision or capability.
+2. **Make tool visibility executable in the live plan (§18.8).** Slots 1–4 use the
+   same human session and slots 7–10 the same mounted GUI, first with a read tool,
+   later with “no visible tools.” Chapter 10 §10.7 fixes a plain session's visible
+   handler set. No new per-turn visibility operation is taught here. A small
+   resolution is to keep that existing read tool visible in these same-session
+   rows, ask for no call, retain the one-response limit and report any unexpected
+   call or round-limit outcome honestly. Truly empty tool sets can belong to
+   fresh public/native Agents already present in the allocation. Alternatively,
+   name an existing lawful visibility setup. Do not invent a runtime feature,
+   silently reopen an incompatible store, or add paid retries to make the table
+   executable. Keep the 12+12+6 ceiling and demonstrated post-interrupt recovery.
+3. **Narrow the privacy check's audience (§18.7).** “Absent from every public ...
+   output” contradicts intentional public checkpoint/request exports in Chapter
+   10 §10.9 and the exact replay requirement. Require the encrypted canaries absent
+   from safe observations, watch/browser projections and speech, while owned
+   raw checkpoint/reconstruction exports retain their exact opaque data. Section
+   18.5 already preserves explicit export ownership; align the matrix with it.
+   This is precision in the check, not permission to expose raw data in a view.
+
+No further design expansion or Bill choice is requested. The new checker command
+and accepted Chapter 17 source are separate student-release prerequisites, not
+invented runtime failures. Close the three items as one small author revision,
+then review that complete grouped diff against this accepted design.
+
+### Literal and primary-source checks
+
+All four author files matched the frozen revision. Independent read-only checks
+parsed all 23 printed JSON/JSONL values and compared the terminal item's summary
+arrays with both indexed finals, the ordinary final, the nonempty added/delta
+assembly, done-only text and sequence numbers 0–9. Public finals contain neither
+canary. The exact initialization and execution fixtures remain consistent with
+the surrounding v8 exception rules. This checks literal coherence, not a running
+parser or chapter acceptance.
+
+Using OpenAI Docs, refreshed official search and opened the
+[reasoning guide](https://developers.openai.com/api/docs/guides/reasoning),
+[indexed streaming reference](https://developers.openai.com/api/reference/resources/responses/streaming-events),
+[plan inference guide](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference)
+and [preview restrictions](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations).
+The guide supports explicit summary opt-in and model-dependent auto selection.
+The event schema supplies item/output/summary indexes and the optional incomplete
+part-done status. Plan documentation retains streamed, nonstored HTTP Responses
+and the max_output_tokens omission. It establishes no particular account's summary
+availability; successful nonempty summary delivery remains a required live result.
+No private reasoning, encrypted content or undocumented remote steering was used.
+
+The existing external linter passes all manuscript hard rules. Its 4,903 prose
+words are within the soft length range; the 4,795-word person-gap warning remains
+an editorial observation, not grounds to invent another story. The chapter keeps
+concrete listening/control consequences throughout. Review lint and scoped staged
+whitespace checks pass; no compiler was acquired.
