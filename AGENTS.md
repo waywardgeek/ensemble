@@ -33,9 +33,11 @@ guidance for details.
 Required behavior and architecture are binding, but suggested designs are
 provisional. The coder may choose a simpler working design and explain why;
 consequential requirement changes must go back to Bill.
-Bill authorizes a specific exception: when the coder documents why an exercise
-requirement is unreasonable and the reviewer independently agrees, the reviewer
-may pass the chapter with a recorded exception and advance the coder without
+The student need not pass every grader test if the grader is flawed: it may
+explain the failed check and supporting evidence in its chapter review instead.
+Bill authorizes a specific exception: when the coder documents a grader defect
+or why an exercise requirement is unreasonable and the reviewer independently
+agrees, the reviewer may pass the chapter with a recorded exception and advance the coder without
 asking again. Record the actual grader/live results and what was waived for the
 future author; do not describe a failing grader as passing. This does not waive
 Bill's explicit architecture rules or authorize extra features.

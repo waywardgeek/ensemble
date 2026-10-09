@@ -248,9 +248,16 @@ a new paid multi-agent demonstration for every chapter.
 
 ### Reviewer acceptance of an unreasonable exercise
 
+**The student does not have to pass every grader test when the grader is flawed.**
+Instead, its chapter review may identify the failed test, explain the defect or
+incorrect expectation, and give evidence for the implementation's intended
+behavior. Do not distort correct code, add out-of-scope features or keep retrying
+solely to satisfy a broken check. Leave the grader unchanged and record the
+proposed correction for its future maintainer.
+
 The reviewer reads the coder's notes, including objections to the exercise.
-If the reviewer independently agrees that a requirement is unreasonable, Bill
-authorizes it to pass the chapter with an exception and move the coder to the
+If the reviewer independently agrees that the grader is flawed or a requirement
+is unreasonable, Bill authorizes it to pass the chapter with an exception and move the coder to the
 next chapter. No further approval is required for that decision. Record the
 requirement, evidence and reasoning, reviewer agreement, accepted departure and
 any implications for later exercises in the chapter notes for the future author.
@@ -261,6 +268,8 @@ to manufacture a pass. Bill's explicit architecture rules still apply.
 This lets the student and reviewer learn that an assignment needs correction
 without spending indefinitely to satisfy it. An objection deserves substantive
 review; neither its mere presence nor the time spent establishes that it is right.
+Fix genuine implementation bugs and satisfy the valid checks; an accepted grader
+defect is not a waiver of unrelated requirements.
 
 ## Turn the completed implementation into the next edition
 

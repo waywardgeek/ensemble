@@ -17,9 +17,11 @@ or grader implementation. Original chapters and graders remain unchanged.
 behavior. Source lessons below explain failures and how to avoid them; they do
 not bring later features forward. Suggested designs remain provisional. The
 student may choose a simpler implementation and explain it. Consequential
-unresolved contradictions go to Bill. Separately, Bill authorizes a reviewer to
-accept a documented unreasonable exercise requirement when it independently
-agrees with the coder: record the exception, its reasons and actual grader/live
+unresolved contradictions go to Bill. **The student need not pass a flawed grader
+test:** it may explain the failed check and supporting evidence in its chapter
+review instead. Bill authorizes a reviewer to accept a documented grader defect
+or unreasonable exercise requirement when it independently agrees with the coder:
+record the exception, its reasons and actual grader/live
 results, then advance. A failed check remains failed; this cannot waive Bill's
 architecture rules. See the [exception procedure](agentic-codebook-workflow.md#reviewer-acceptance-of-an-unreasonable-exercise).
 

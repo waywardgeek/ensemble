@@ -129,10 +129,15 @@ Leave a concise comparison covering:
   current need. Reject feature creep, unjustified bloat and complexity added for
   elegance. Do not justify extra code by promises the workflow itself invented.
 
-Normally the original tests must pass; passing alone is not sufficient.
+The student need not pass a flawed grader test. In its chapter review, identify
+the failed check, explain why its expectation or implementation is wrong, and
+provide evidence for the student's intended behavior. Do not contort correct
+code or add features just to make a broken test pass. Fix genuine implementation
+bugs and satisfy valid checks; passing alone is not sufficient.
 Bill also authorizes the reviewer to read the coder's notes and independently
-accept an exception when an exercise requirement is unreasonable. Record the
-requirement, the coder's reasoning, the reviewer's agreement, actual grader/live
+accept an exception when the grader is flawed or an exercise requirement is
+unreasonable. Record the requirement, the coder's reasoning, the reviewer's
+agreement, actual grader/live
 results, the accepted departure and any effect on later exercises. Mark the
 chapter accepted with an exception and proceed to the next chapter without
 another permission request. Keep the original chapter and grader unchanged;
