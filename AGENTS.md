@@ -64,9 +64,12 @@ changing chapters or graders during the student attempt.
 
 Only after the complete new Ensemble implementation succeeds and its comparative
 code reviews establish the improvements does the author phase begin. The author
-then works chapter by chapter from the original book, all agents' chapter notes,
-the coder's reviews and the reviewed implementation. Incorporate demonstrated
-lessons into the second edition; preserve the first edition as history. Do not
+and coder then work together chapter by chapter from the original book, all
+agents' notes, student reviews and the reviewed implementation. Bill authorizes
+improvements to both chapters and graders in this phase: the author revises the
+book, the coder improves and validates graders, and each feeds findings back to
+the other. Review prose and grader changes, preserve valid coverage, and keep
+original graders and student results as history alongside the first edition. Do not
 draft ahead of the coder or turn editorial work into new feature requirements.
 
 Start from empty in `solutions/edition-2/main/` when coding resumes. The student

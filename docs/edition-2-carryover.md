@@ -40,6 +40,11 @@ from a display name, substitute another model silently, or build future
 orchestration early. Readiness and actually producing Edition 3 are different
 claims. Codex is the primary creator of Edition 2; authorship begins only after
 the complete implementation and comparative reviews establish its improvements.
+At that point the author and coder work together to apply the reviews to both
+chapters and graders. The coder validates grader improvements and technical
+claims with the author; prose and code reviewers check the resulting changes.
+Preserve the original edition, grader coverage and student-run evidence while
+recording corrections and new results explicitly.
 
 ## From the first line: restraint, ownership and evidence
 

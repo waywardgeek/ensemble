@@ -185,7 +185,7 @@ later step, not a current deliverable or proof that the process is sound.
 | Carryover reviewer | Read the current edition before coding, extract sourced lessons and surface contradictions for Bill. Do not write new exercises or implementation plans. |
 | Student coder | Read the carryover, original chapter and mandatory skill, implement from scratch or extend its accepted predecessor, run the original grader and live exercise, and leave a review for the future author. Do not consult old answers. |
 | Code reviewer | After implementation, compare against the matching first-edition solution and read the coder's review. Enforce KISS, architecture and actual scope; return findings and reasons, not old solution code. |
-| Future author | Begin only after the complete implementation succeeds and comparative reviews establish its improvements. Revise chapters from the demonstrated results and student experience. |
+| Future author and coder | After the complete student run and reviews, work together chapter by chapter: the author improves prose and exercises; the coder improves graders and checks the technical claims. Reconcile both against demonstrated results and student experience. |
 | Prose reviewer | During the author phase, assess accuracy, evidence, voice, readability and preservation of the human story; return findings to the author. |
 
 There is no author or grader agent working ahead of the student. Suspected
@@ -311,7 +311,7 @@ does the author begin. Account for forthcoming first-edition chapters and any
 accepted exceptions when deciding what “complete” covers; do not equate reaching
 the currently available last chapter with achieving the full crossover goal.
 
-Give the author the original edition, Bill-reviewed carryover, this workflow,
+Give the author and coder the original edition, Bill-reviewed carryover, this workflow,
 all agents' chapter notes, the coder's reviews, comparative findings, accepted
 exceptions and the actual implementation and live results. The author reads
 both `book/voice.md` and `book/chapter-writing-procedure.md`; the prose reviewer
@@ -330,11 +330,25 @@ organization from the completed experience rather than imposing the discarded
 attempt's chapter count or mapping. Include Bill's requested final comparison
 of the editions, using the collected code, comment, test and live-use evidence.
 
-The prose reviewer checks the new chapters and returns findings to the author.
-Editing the book must not silently add implementation obligations or revive an
-author-first loop. Grader improvement proposals remain recorded for a future
-maintainer and separately authorized work; they do not retroactively change the
-student's results. Preserve the first edition and its historical evidence.
+**This is joint author–coder work, not a manuscript-only pass.** Bill authorizes
+both chapter and grader improvements in this phase. Together, apply the student
+reviews and accepted exceptions chapter by chapter. The author revises teaching
+and exercise instructions; the coder corrects grader defects, improves meaningful
+coverage and checks that the revised instructions describe behavior the code can
+actually deliver. Feed discoveries in either direction until prose, grader and
+implementation agree. Document decisions not to adopt a suggested change too.
+
+The prose reviewer checks the new chapters; the code reviewer checks grader
+changes for correctness, KISS and preserved coverage. Run affected graders against
+the completed student solutions and check legacy compatibility where applicable,
+recording baseline failures and justified expectation changes. Graders must test
+the stated behavior, not require this student's particular implementation. Do not
+weaken valid coverage to make a pass or add speculative requirements. Keep the
+first edition and original graders as historical versions; distinguish results
+under revised graders from the student's original results. Any implementation
+corrections need review and affected checks, not silent edits to frozen snapshots.
+This collaboration follows the completed student run; it does not revive writing
+chapters or changing graders ahead of the student.
 
 When the second-edition manuscript is ready for publication, Codex writes a
 new epilogue in its own first-person voice, as Bill requested. This is an

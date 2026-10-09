@@ -171,8 +171,8 @@ restart the count with another agent. Record rounds in the existing chapter
 notes; preserve failed results as the review evolves. Escalate consequential
 ambiguity earlier when necessary. Keep this a code review, not another evidence framework.
 Commit completed chapters and exact source snapshots with fresh tags, never
-moving old tags. Chapters and graders remain unchanged until Bill authorizes
-their later revision.
+moving old tags. Chapters and graders remain unchanged during the student run;
+Bill authorizes their joint revision in the later phase below.
 
 ## Author phase comes last
 
@@ -180,9 +180,17 @@ Finish the whole new Ensemble implementation and its comparative code reviews
 before starting an author agent. A passing grader alone does not establish that
 the implementation is better; the comparisons above must support that judgment.
 
-Then the author revises the book chapter by chapter using the original chapters,
-all agents' chapter notes, the coder's reviews, reviewer findings and the completed
-code. Build the second edition from demonstrated lessons and actual student experience.
-Preserve the original book. Do not draft future chapters during implementation,
-replace exercises wholesale, or add features to justify new prose. Keep KISS as
-the standard in the author phase too.
+Then the author and coder work together, chapter by chapter, using the original
+chapters, all agents' notes, student reviews, reviewer findings and completed code.
+The author improves the chapters; the coder applies grader corrections and
+meaningful coverage improvements, checking technical claims with the author.
+Reconcile prose and grader expectations through feedback in both directions.
+The prose reviewer reviews chapters; the code reviewer reviews grader changes.
+Run affected checks against student solutions and verify legacy compatibility
+where applicable, documenting baseline failures and corrected expectations.
+Preserve valid coverage and grade behavior rather than this implementation's
+shape. Preserve the original book, graders and actual student-run results as
+history; report revised-grader results separately. Review and test any needed
+implementation corrections without overwriting frozen snapshots. Do not draft
+future chapters during the student run, replace exercises wholesale, or add
+features to justify prose. Keep KISS as the standard in this joint phase too.
