@@ -26,6 +26,10 @@ rather than inventing its requirements now. Extend the recorded reading coverage
 and carryover as new chapters arrive. Codex is the primary creator of Edition 2;
 the intended next student is the resulting Ensemble agent.
 
+The eventual book must also be enjoyable for human students. Capture useful
+explanations, revealing failures and memorable exchanges in chapter notes so
+the later author can teach from real experience and preserve the human story.
+
 The original chapter still defines what to build. Carry forward a lesson when it
 changes how to implement that exercise; do not implement a later chapter's
 features early. Preserve the original graders. If a grader or chapter conflicts

@@ -11,6 +11,12 @@ available chapters as part of that evolving source, recording which revision
 was used. Do not invent the missing chapter's requirements or claim its exercise
 complete before it exists and has been implemented and reviewed.
 
+Human enjoyment and teaching quality are explicit goals alongside correct code.
+In the later author phase, both author and prose reviewer read `book/voice.md`:
+preserve documented stories and personality, explain the reasons behind the
+mechanisms, and judge whether the chapter is engaging and understandable.
+An executable specification or passing prose lint alone is not a finished textbook.
+
 Bill retired the author-driven second-edition attempt. Its history is preserved
 at `edition-2-attempt-1-stopped`; do not resume its agents or workflow. See
 `docs/edition-2-attempt-1.md` for the decision.

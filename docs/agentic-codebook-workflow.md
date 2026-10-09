@@ -20,6 +20,28 @@ used for each exercise; when new or revised chapters arrive, read them and updat
 the carryover and affected chapter notes before applying their lessons. Existing
 checkpoints remain evidence of the versions actually followed.
 
+## A textbook humans enjoy
+
+Bill explicitly wants an enjoyable textbook for human students as well as
+instructions an agent can execute. He relies on Codex and Claude Opus 4.6 for
+the writing. Technical correctness, student success and reading pleasure are
+distinct goals; none can stand in for the others.
+
+During the later author phase, the author and prose reviewer both read
+[voice.md](../book/voice.md), especially its guidance on motivation, explanation
+and preserving the human story. It already calls for personality, candid
+engineering judgment and documented experience. Keep those qualities as the
+book becomes more precise. Explain why a rule matters before demanding compliance,
+give mechanisms concrete examples, and preserve the discoveries and frustrations
+that make the work meaningful. Never invent anecdotes or results for effect.
+
+The prose reviewer considers the reader's experience as well as accuracy:
+motivation, clarity, pacing, useful examples and whether the chapter sustains
+interest. Prose lint cannot make that judgment. Keep detailed workflow records
+outside the teaching narrative unless they help the reader understand something.
+Agents may capture memorable moments in chapter notes now; manuscript writing
+still waits for the implementation and its lessons.
+
 ## Explicit crossover goal
 
 Bill requires the coder's new Ensemble to run **GPT-5 Astra at high reasoning**.
