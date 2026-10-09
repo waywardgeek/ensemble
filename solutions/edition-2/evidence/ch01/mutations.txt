@@ -1,0 +1,238 @@
+Unmodified baseline: original grader 100/100; go test ./... PASS.
+One mutation per fresh temporary copy; all temporary copies deleted.
+
+protocol: stray stdout | FAIL observed
+  replacement: 'func run() error {' -> 'func run() error {\n fmt.Println("debug")'
+[FAIL]      Speaks the stdio JSON-lines contract  (0/15)
+       round 1: stdout line is not JSON: "debug"
+
+protocol: nonzero exit | FAIL observed
+  replacement: 'func main() {' -> 'func main() {\n defer os.Exit(1)'
+[FAIL]      Speaks the stdio JSON-lines contract  (0/15)
+       program did not exit cleanly: exit status 1 (exit code 1)
+
+wire: API key | FAIL observed
+  replacement: 'cfg.APIKey)' -> '"wrong-key")'
+[FAIL]      Requests are well-formed Messages API calls  (0/15)
+       request 1: x-api-key was "wrong-key", but the grader put
+
+wire: API version | SURVIVED
+  replacement: '"2023-06-01"' -> '"wrong-version"'
+
+
+wire: content type | FAIL observed
+  replacement: '"application/json"' -> '"text/plain"'
+[FAIL]      Requests are well-formed Messages API calls  (0/15)
+       request 1: content-type is "text/plain", expected application/json
+
+wire: configured model | FAIL observed
+  replacement: '}{cfg.Model, 1024, systemPrompt, messages})' -> '}{"wrong-model", 1024, systemPrompt, messages})'
+[FAIL]      Requests are well-formed Messages API calls  (0/15)
+       request 1: model is "wrong-model", want "claude-fake-course-1" — the
+
+wire: max tokens | FAIL observed
+  replacement: '}{cfg.Model, 1024, systemPrompt, messages})' -> '}{cfg.Model, 0, systemPrompt, messages})'
+[FAIL]      Requests are well-formed Messages API calls  (0/15)
+       request 1: max_tokens is missing or non-positive (the API will not
+
+wire: system prompt | FAIL observed
+  replacement: '}{cfg.Model, 1024, systemPrompt, messages})' -> '}{cfg.Model, 1024, "", messages})'
+[FAIL]      Requests are well-formed Messages API calls  (0/15)
+       request 1: system field is empty — the agent must send a system
+
+wire: user role | FAIL observed
+  replacement: 'Role: "user"' -> 'Role: "assistant"'
+[FAIL]      Requests are well-formed Messages API calls  (0/15)
+       request 1: conversation must begin with a user message
+[FAIL]      Round 4's request still carries the whole history  (0/25)
+       could not find the request carrying round 4's question ("Now, what
+
+wire: empty message | FAIL observed
+  replacement: 'Content: question' -> 'Content: ""'
+[FAIL]      Requests are well-formed Messages API calls  (0/15)
+       request 1: messages[0] has empty content
+[FAIL]      Round 4's request still carries the whole history  (0/25)
+       could not find the request carrying round 4's question ("Now, what
+
+calls: extra exchange | FAIL observed
+  replacement: 'resp, err := e.client.Do(req)' -> 'warm := req.Clone(ctx)\n warm.Body, _ = req.GetBody()\n if r, er := e.client.Do(warm); er == nil { r.Body.Close() }\n resp, err := e.client.Do(req)'
+[FAIL]      Exactly one API call per round  (0/10)
+       expected 5 requests, one per round; saw 10
+[FAIL]      Answers come from the API response  (0/10)
+       round 1: answered "The capital of France is Paris.", but the server
+[FAIL]      Cumulative usage reported and correct  (0/10)
+       reported input=449 output=60, but the server returned totals of
+
+replies: first block only | FAIL observed
+  replacement: 'range parsed.Content {' -> 'range parsed.Content[:1] {'
+[FAIL]      Answers come from the API response  (0/10)
+       round 1: answered "Welcome aboard. Your project's ", but the server
+[FAIL]      Round 4's request still carries the whole history  (0/25)
+       request 4 does not contain "TANAGER-4417" anywhere. The server planted
+
+memory: drop oldest pair | FAIL observed
+  replacement: 'answer, err := a.engine.Send(ctx, pending)' -> 'if len(pending) > 5 { pending = pending[2:] }\n answer, err := a.engine.Send(ctx, pending)'
+[FAIL]      Round 4's request still carries the whole history  (0/25)
+       request 4 does not contain "TANAGER-4417" anywhere. The server planted
+[FAIL]      Each request extends the previous one (append-only)  (0/15)
+       request 4 diverges from request 3 at messages[0]: was {user: "Hello!
+
+growth: rewrite old user text | FAIL observed
+  replacement: 'answer, err := a.engine.Send(ctx, pending)' -> 'if len(pending) > 3 { pending[0].Content += " changed" }\n answer, err := a.engine.Send(ctx, pending)'
+[FAIL]      Each request extends the previous one (append-only)  (0/15)
+       request 3 diverges from request 2 at messages[0]: was {user: "Hello!
+
+usage: last instead of cumulative | FAIL observed
+  replacement: 'e.usage.Input += *parsed.Usage.Input' -> 'e.usage.Input = *parsed.Usage.Input'
+[FAIL]      Cumulative usage reported and correct  (0/10)
+       reported input=138 output=65, but the server returned totals of
+
+usage: output not counted | FAIL observed
+  replacement: 'e.usage.Output += *parsed.Usage.Output' -> 'e.usage.Output += 0'
+[FAIL]      Cumulative usage reported and correct  (0/10)
+       usage reported as input=476 output=0 — both must be nonzero
+
+Agent config/history isolation | FAIL observed
+  replacement: 'a := agent.New(e, cfg)' -> 'if len(e.agents) > 0 { return e.agents[0], nil }\n a := agent.New(e, cfg)'
+--- FAIL: TestAgentsKeepTheirOwnersAndState (0.00s)
+    ensemble_test.go:62: answer = "first:red/blue", <nil>; want "second:blue"
+FAIL
+FAIL	ensemble/ensemble	0.007s
+FAIL
+
+Agent parent exposed | FAIL observed
+  replacement: 'Ensemble() common.Ensemble { return a.parent }' -> 'Ensemble() common.Ensemble { return nil }'
+--- FAIL: TestAgentsKeepTheirOwnersAndState (0.00s)
+    ensemble_test.go:51: broken parent relationship
+FAIL
+FAIL	ensemble/ensemble	0.006s
+FAIL
+
+Engine parent exposed | FAIL observed
+  replacement: 'Agent() common.Agent { return e.parent }' -> 'Agent() common.Agent { return nil }'
+--- FAIL: TestAgentsKeepTheirOwnersAndState (0.00s)
+panic: Engine must belong to this Agent [recovered, repanicked]
+	/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch01-mutant-db3w6r71/main/ensemble/ensemble_test.go:41 +0x12c
+FAIL	ensemble/ensemble	0.009s
+FAIL
+
+HTTP status rejected | FAIL observed
+  replacement: 'if resp.StatusCode != http.StatusOK {' -> 'if false && resp.StatusCode != http.StatusOK {'
+--- FAIL: TestFailedExchangeDoesNotBecomeHistory (0.00s)
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/HTTP (0.00s)
+        ensemble_test.go:110: failed response accepted
+FAIL
+FAIL	ensemble/ensemble	0.007s
+FAIL
+
+malformed JSON rejected | FAIL observed
+  replacement: 'return "", errors.New("decoding Anthropic response failed")' -> 'return "", nil'
+--- FAIL: TestFailedExchangeDoesNotBecomeHistory (0.00s)
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/JSON (0.00s)
+        ensemble_test.go:110: failed response accepted
+FAIL
+FAIL	ensemble/ensemble	0.007s
+FAIL
+
+missing usage rejected | FAIL observed
+  replacement: 'return "", errors.New("Anthropic response missing usage")' -> 'return "", nil'
+--- FAIL: TestFailedExchangeDoesNotBecomeHistory (0.00s)
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/missing_usage (0.00s)
+        ensemble_test.go:110: failed response accepted
+FAIL
+FAIL	ensemble/ensemble	0.007s
+FAIL
+
+empty reply rejected | FAIL observed
+  replacement: 'return "", errors.New("Anthropic response has no text")' -> 'return "", nil'
+--- FAIL: TestFailedExchangeDoesNotBecomeHistory (0.00s)
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/empty_answer (0.00s)
+        ensemble_test.go:110: failed response accepted
+FAIL
+FAIL	ensemble/ensemble	0.007s
+FAIL
+
+failed turn excluded | FAIL observed
+  replacement: 'answer, err := a.engine.Send(ctx, pending)' -> 'a.history = pending\n answer, err := a.engine.Send(ctx, pending)'
+--- FAIL: TestFailedExchangeDoesNotBecomeHistory (0.00s)
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/HTTP (0.00s)
+        ensemble_test.go:98: failed turn leaked into next request
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/JSON (0.00s)
+        ensemble_test.go:98: failed turn leaked into next request
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/missing_usage (0.00s)
+        ensemble_test.go:98: failed turn leaked into next request
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/empty_answer (0.00s)
+        ensemble_test.go:98: failed turn leaked into next request
+FAIL
+FAIL	ensemble/ensemble	0.008s
+FAIL
+
+root receives failure log | FAIL observed
+  replacement: 'e.parent.Ensemble().Logger().Printf("Anthropic request failed: %v", err)' -> '_ = err'
+--- FAIL: TestFailedExchangeDoesNotBecomeHistory (0.00s)
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/HTTP (0.00s)
+        ensemble_test.go:116: failure did not reach root logger
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/JSON (0.00s)
+        ensemble_test.go:116: failure did not reach root logger
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/missing_usage (0.00s)
+        ensemble_test.go:116: failure did not reach root logger
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/empty_answer (0.00s)
+        ensemble_test.go:116: failure did not reach root logger
+FAIL
+FAIL	ensemble/ensemble	0.008s
+FAIL
+
+diagnostics omit credential | FAIL observed
+  replacement: 'e.parent.Ensemble().Logger().Printf("Anthropic request failed: %v", err)' -> 'e.parent.Ensemble().Logger().Printf("Anthropic request failed: %v %s", err, e.parent.Config().APIKey)'
+--- FAIL: TestFailedExchangeDoesNotBecomeHistory (0.00s)
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/HTTP (0.00s)
+        ensemble_test.go:119: credential echoed in diagnostic
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/JSON (0.00s)
+        ensemble_test.go:119: credential echoed in diagnostic
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/missing_usage (0.00s)
+        ensemble_test.go:119: credential echoed in diagnostic
+    --- FAIL: TestFailedExchangeDoesNotBecomeHistory/empty_answer (0.00s)
+        ensemble_test.go:119: credential echoed in diagnostic
+FAIL
+FAIL	ensemble/ensemble	0.008s
+FAIL
+
+Follow-up after initial survivor: original grader accepts a nonempty wrong version. Added exact-version assertion to existing faithful HTTP fake; correct baseline passes. Original grader unchanged.
+
+API version survivor repaired: fake checks exact version | FAIL observed
+  replacement: '"2023-06-01"' -> '"wrong-version"'
+    ensemble_test.go:21: wrong Anthropic API version
+    ensemble_test.go:21: wrong Anthropic API version
+    ensemble_test.go:21: wrong Anthropic API version
+
+wire: method | FAIL observed
+  replacement: 'http.MethodPost' -> 'http.MethodGet'
+[FAIL]      Requests are well-formed Messages API calls  (0/15)
+       request 1: method is GET, the Messages API requires POST
+
+wire: endpoint | FAIL observed
+  replacement: '"/v1/messages"' -> '"/wrong-endpoint"'
+[FAIL]      Requests are well-formed Messages API calls  (0/15)
+       request 1: path "/wrong-endpoint" does not end in /messages (expected
+
+wire: malformed JSON | FAIL observed
+  replacement: 'bytes.NewReader(body)' -> 'bytes.NewReader(append(body, 93))'
+[FAIL]      Requests are well-formed Messages API calls  (0/15)
+       request 1: request body is not valid JSON: invalid character ']' after
+[FAIL]      Round 4's request still carries the whole history  (0/25)
+       could not find the request carrying round 4's question ("Now, what
+
+wire: unexpected streaming | FAIL observed
+  replacement: 'Model     string' -> 'Stream bool `json:"stream"`\n Model string'
+  accompanying replacement: '}{cfg.Model, 1024, systemPrompt, messages})' -> '}{true, cfg.Model, 1024, systemPrompt, messages})'
+  Evidence clarification, 2026-10-09 initial review: both replacements above were
+  applied in the same temporary internal/engine/engine.go before invoking
+  `go run ./cmd/grade -ch 1 <temporary-copy>/main`. The original launcher command
+  preserved in the tool transcript performed the second replacement conditionally for the streaming case;
+  the earlier summary omitted it. This source was the uncommitted pre-final-comment
+  version: Model had five spaces before string. Later explanatory comments and
+  gofmt changed alignment, so that exact first substring differs in the submitted
+  source. The complete mutation compiled and ran; the observed wire failure below
+  establishes that the true-valued field reached the fake. No rerun is claimed.
+[FAIL]      Requests are well-formed Messages API calls  (0/15)
+       request 1: stream:true — Chapter 1 is non-streaming

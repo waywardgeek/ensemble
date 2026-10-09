@@ -541,6 +541,11 @@ autonomous implementation on October 9. The fresh coder is
 `student_restart_ch01`, started with only the permitted reading list and no
 inherited conversation or old solution. Its working tree is
 `solutions/edition-2/main/`; its review goes in `docs/edition-2-notes/ch01.md`.
-Initial review is pending (zero revision rounds used). This records the start,
-not chapter acceptance. Preserve small resumable checkpoints if a usage limit
-interrupts work; never label unfinished work an accepted chapter.
+Chapter 1 subsequently passed independent review: no exception, zero revision
+rounds. The original grader scored 100/100 for both implementations, three live
+chat turns passed, and the reviewer verified the recorded version-header grader
+gap. Student and reviewer notes are in `docs/edition-2-notes/ch01*.md`; the exact
+source export is `solutions/edition-2/ch01/`, checkpointed at `edition-2-ch01-r1`.
+The next task is Chapter 2 from the accepted working tree, in a fresh student
+context. Preserve small resumable checkpoints if a usage limit interrupts work;
+never label unfinished work an accepted chapter.

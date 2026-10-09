@@ -1,0 +1,21 @@
+2026-10-09, Anthropic direct API, actual PTY chat mode.
+Credential loaded programmatically from ~/.cr/settings.json: directClaudeAPIKey.
+GET /v1/models succeeded. Selected returned claude-haiku-5-5 (created 2026-10-07).
+No key or full settings copied or logged.
+
+$ /tmp/ensemble-ch01-student chat
+talking to claude-haiku-5-5 — Ctrl-D to quit
+you> My imaginary boat is named Copper Finch. Reply with just the boat name.
+claude> Copper Finch
+[2 turns | 85 input tokens | 8 output tokens]
+you> What is my boat called? Answer in one short sentence.
+claude> Your boat is called Copper Finch.
+[4 turns | 197 input tokens | 23 output tokens]
+you> Does this program use raw HTTP or an SDK? Answer briefly.
+claude> Raw HTTP.
+[6 turns | 350 input tokens | 33 output tokens]
+Ctrl-D: process exited 0.
+
+Initial launcher attempt used Python stdin heredoc: chat immediately saw EOF,
+made no model call and exited 0. Corrected launcher to python -c so chat inherited
+PTY stdin. No application change was required; the above three turns then ran.
