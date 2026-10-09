@@ -4,9 +4,12 @@ Through-line stake: a listener needs enough provider-exposed explanation to noti
 a wrong direction while the Agent can still be steered, without hearing the same
 summary twice or mistaking a provisional explanation for an accepted action.
 
-October 8, 2026. **Research and proposed scope only.** The coordinator selected
-this focused direction after reviewing the overlap with Chapter 17. This is not
-a complete student contract, implementation release or live capability claim.
+October 8, 2026. **Complete contract draft prepared for independent review.**
+The coordinator accepted the focused scope at `3c91992` and reviewer advice at
+`d61388e`; the [chapter](chapter-18.md) now resolves S1–S4 as one proposed contract.
+The [gate record](chapter-18-validation.md) retains the separate predecessor,
+checker, implementation and actual-use prerequisites. No student release or live
+capability is claimed.
 The [evidence record](chapter-18-evidence.md) distinguishes historical accounts,
 current documentation and still-required measurements. No current student needs
 to read this author research.
@@ -71,7 +74,7 @@ voice; retain useful stakes and remeasure current claims where they matter.
 | Spoken-output evidence | Ch13 journal/recorder/native paths and listener provenance | Prove once-only speech, interruption and no replay autoplay for this source |
 | Usage and limits | Ch17 purpose accounting, uncapped selected plan versus capped API-key | Preserve the funding/cap distinction; no summary-specific usage counter |
 
-## Proposed teaching order
+## Teaching order developed from the accepted scope
 
 1. Open with the listener noticing a wrong approach before a file changes. Explain
    the duplicate-final historical failure and what its ID mismatch did to speech.
@@ -100,7 +103,7 @@ voice; retain useful stakes and remeasure current claims where they matter.
    GUI's existing speech/steering controls. End with an observed correction or
    interruption followed by a successful next turn, using actual receipts.
 
-## Ownership and compatibility constraints for the eventual contract
+## Ownership and compatibility constraints carried into the contract
 
 Agent owns the selected execution option; Actor applies changes and captures the
 turn. Engine owns the request/parser operation, its IDs, bounds and producing usage.
@@ -111,12 +114,11 @@ their present ownership, pause registration and close/reconnect responsibilities
 Connections has no summary state. No sibling imports, injected callback bags or
 new globals are justified by this adapter feature.
 
-The existing GUI suppresses raw opaque final content. The new contract must specify
-the narrow public summary view and its identity correspondence explicitly; a
-student must not solve visibility by passing opaque payloads to the browser.
-Determine whether one safe final view with indexed summaries suffices, or whether
-additional projection entries are required. Preserve Ch17's one raw authority.
-This is the remaining representation detail to resolve during full drafting.
+The existing GUI suppresses raw opaque final content. The complete draft chooses
+one safe final view with indexed summaries per reasoning item, retaining one
+part_id/ref/final position. Thinking deltas add summary_index; Page's private speech
+source identity adds that index too. This explicit public extension preserves
+Ch17's one raw authority and never passes encrypted bytes to the browser.
 
 Cancellation invalidates provisional summaries under the existing operation,
 cancels their queued speech and leaves unrelated Page work alone. A done summary
@@ -145,7 +147,7 @@ check assumes an old GUI wire format. Publish an independent new acceptance comm
 before handoff. Preserve old coverage; do not force the new student to imitate old
 message spelling or inferred timing to satisfy it.
 
-## Proposed actual-use budget and remaining gate
+## Actual-use budget carried into the draft
 
 Before paid work, allocate at most 12 model starts on each Responses funding route
 across human CLI, public two-Agent and actual GUI/listening exercises. Add at most
@@ -164,7 +166,31 @@ schema. A route producing no summaries within the finite matrix leaves that live
 feature unverified. Report it rather than retrying until an attractive transcript
 appears, silently changing funding, or treating a fake frame as provider evidence.
 
-Root next reviews this direction and finite scope. Full draft must then resolve
-capture/version grammar, summary-to-final public identity and exact unavailable
-replies with primary sources and literal fixtures. No Chapter 18 code, auth or
-provider request is released by this outline.
+The complete draft now allocates all 30 starts in §18.8, with exact user actions,
+expected observations and deadlines. It remains a provisional preflight ceiling,
+not launch authorization or proof that summaries are available to either route.
+
+## S1–S4 disposition in the full draft
+
+| Review request | Published resolution for independent review |
+|---|---|
+| S1 selection and compatibility | §18.2: explicit summary-profile creation gives a v8 wrapper around exact v7 identity/state; separate off/auto revision, execution v2 captures, helpers off, strict old-version rejection and exact auto/off request fixture. Off changes future opt-in, not accepted safe history. §18.6 names local refusals, conditional support and accepted/empty/unavailable outcomes. |
+| S2 indexed public representation | §18.3: one safe opaque placeholder per reasoning item with ordered indexed summaries, including empty and unavailable positions; one final per original ref. §18.5: exact partial/snapshot mapping, one raw capsule, derived safe history and whole-bundle retirement. No neutral summary type or duplicate dialogue archive. |
+| S3 assembly and settlement | §18.4: append-versus-snapshot table, exact prefix agreement, sealed-slot rules, 1,024-slot bound and inherited byte/cancellation limits. Literal multi-item stream plus one-fact negatives. Actor remains publication/acceptance owner; canceled usage retains Chapter17 rules. Existing v1 speech journal is preserved, honestly identifying item plus utterance rather than claiming a summary-index field. |
+| S4 truthful steering and allocation | §18.6 retains next-request hint semantics and explicit interrupt race controls. §18.8 divides each Responses route's 12 starts into CLI4/public2/recorderGUI4/nativeGUI2, plus six inherited starts. Finite deadlines/caps and no hidden listener/helper allowance are printed. |
+
+The representation and 1,024-entry local bound are author working choices inside
+the coordinator-approved scope, submitted for grouped review; they are not new
+Bill rulings. Root already selected request-only off semantics and inherited
+ownership. No unavoidable inherited conflict was found: the v8/public projection
+substitutions are explicit, while raw capsule and base transitions stay unchanged.
+
+The opener uses an explicitly illustrative wrong-file example and the documented
+duplicate-ID repair; it does not invent a present-day live result. The mechanism
+returns to the listener's once-only explanation at the ending. The inherited
+credentials story stays in Chapter17 and its first-edition location. Following
+daily use, final comparison and publication-time epilogue scope remain unchanged.
+
+Next: independent full-contract review, then coordinator resolution and publication
+of the new checker command against an accepted Chapter17 source. No Chapter18 code,
+auth or provider request is released by this draft.

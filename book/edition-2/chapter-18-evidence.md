@@ -1,10 +1,11 @@
 # Chapter 18 preparation evidence
 
-October 8, 2026. Author-only research for new Chapter 18, originally mapped from
-old Chapter 19. The coordinator selected the focused direction “Listen before it
-acts” after substantial credentials/Responses work moved to Chapter 17. Only
-outline/evidence preparation is authorized here. No runtime, grader, credential,
-browser authorization or provider inference work occurred.
+October 8, 2026. Author research and full-contract preparation for new Chapter 18,
+originally mapped from old Chapter 19. Scope frozen at `3c91992` and independently
+reviewed at `d61388e` is accepted by the coordinator. The new manuscript is now
+ready for complete contract review, with [release gates](chapter-18-validation.md)
+still open. No runtime, grader, credential, browser authorization or provider
+inference work occurred. The initial research chronology below is retained.
 
 ## Reads and source boundaries
 
@@ -111,7 +112,7 @@ stories in Chapters 9–17 are untouched. The new ending comparison and the
 publication-time Codex first-person epilogue remain required, with no result
 invented before the edition is complete.
 
-## Verification and next action
+## Initial scope verification (before full draft)
 
 No executable chapter fixture or new grader command is published at this scope.
 The acceptance table and 30-start ceiling are proposed review inputs, not evidence
@@ -124,3 +125,76 @@ passed. Short-file/density warnings remain appropriate for research notes, witho
 padding an outline into a manuscript. Next is coordinator review of the focused scope,
 followed by the full student contract and independent review. No build, auth,
 provider call, code change, push or earlier-edition edit is part of this task.
+
+## Complete draft: source refresh and grouped decisions
+
+Reloaded the entire current voice.md, chapter-writing-procedure.md and
+architecture.md, and read the complete scope review, outline and evidence.
+Focused predecessor reads covered Chapter17's exact v7 identity/semantic codecs,
+capture/profile changes, capsule refs, terminal acceptance and helper limits;
+Chapter6's public observation/fragment/byte bounds; Chapter7's snapshot and safe
+projection wire; and Chapter13's speech source identity and strict journal records.
+Reopened the complete `eb15005` commit message to check the historical incident.
+No withheld Chapter10 comparative finding or student runtime was read.
+
+Reloaded the entire OpenAI Docs skill and refreshed a concise official search,
+then actually opened the reasoning guide, Responses streaming schema and plan
+model/inference page. Focused page reads verified summary opt-in/model dependence,
+the four indexed summary event shapes including part-done incomplete, and plan
+stream/store requirements. The exact URLs above remain the supporting sources.
+This does not establish account entitlement or measured summary availability.
+The pages also mention other capabilities outside this task; none was imported
+as a new remote-steering or effort feature.
+
+The coordinator selected off as request-only behavior and preserved existing
+owners. The author chose the explicit v8 wrapper and one-item indexed public
+projection as the concrete proposal now under review. The public extension is
+printed instead of assuming that Chapter7's exact opaque placeholder could quietly
+gain raw content. It retains one Chapter17 capsule/ref and one final part, with
+summary_index only on the new thinking-delta subtype. Public snapshots and final
+views derive text from that same authority. Helpers remain summary-off and retain
+their caps/received-byte boundaries.
+
+The new transcript in §18.3 is a synthetic literal fixture, not a provider trace.
+Its two reasoning items contain three summary slots, including an empty one;
+another message supplies the ordinary accepted text position. Engine assembly
+uses exact agreement when an observed prefix exists; done-only and terminal-only
+sources are separately specified. The 1,024-entry bound is an explicit local
+design choice, not a provider limit. S1–S4 dispositions are mapped in the outline.
+
+No new speech journal version is introduced. The existing item part_id and distinct
+utterance identities remain true to their original meaning; the chapter explicitly
+states that the journal does not encode summary_index. Private normalization uses
+the complete indexed source. Reviewer should check that the application-level
+recorder controls distinguish subsummary finalization without treating every
+same-part utterance as a duplicate.
+
+## Full-draft verification and remaining work
+
+Parsed all 23 JSON/JSONL values in the manuscript with the standard JSON parser.
+Checked the two-item summary fixture, matching final views, empty-slot preservation,
+auto-request field placement and 12+12+2+2+2 start allocation. The literal stream's
+ten summary events have increasing sequence numbers 0–9; recipe item-done events
+use 10–11 and terminal completion 12. No code/compiler or provider call was needed
+for these author fixture checks.
+
+The existing external linter is
+`/Users/bill/projects/ensemble-edition-2-revisions/executables/edition2-lintprose`.
+It passes the manuscript's hard rules; the soft person-gap warning was read as
+an editorial prompt. The reader's concrete controls, duplicate speech consequence
+and documented historical repair carry the technical stretch; no manufactured
+scene or extra Bill mention was added to satisfy a counter. Scoped whitespace and
+literal verification accompany the author freeze. No existing code/table/artifact
+was rewritten by this new chapter.
+
+The demonstration section remains a plan with exact actions and observables.
+Native callback completion alone cannot establish hearing. Empty summaries,
+provider refusals, late hints and lost interrupt races remain possible outcomes,
+not successful demonstrations prewritten by the author. The 30 starts include
+failures/continuations and have no hidden listener-model allowance. Actual account
+access, selected identities and feature evidence remain required after the
+coordinator releases implementation and launch.
+
+Next: grouped independent contract review, coordinator acceptance, accepted
+Chapter17 baseline and new checker invocation, then a fresh student. No runtime,
+live, comparative or publication checkpoint gate is closed by these prose checks.
