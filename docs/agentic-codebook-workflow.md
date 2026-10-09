@@ -15,11 +15,15 @@ real results. See [the source conflict and ruling](edition-2-notes/ch06.md).
 Resume from accepted `edition-2-ch05-r2` under §6.7, preserving the Agent's lifetime.
 No author is active. Other consequential ambiguities still require resolution.
 The fresh student `student_restart_ch06` has submitted Chapter 6 from that
-checkpoint for initial independent review by `review_restart_ch01`; zero
-correction rounds have been used. The original frozen reference scores 100/100;
+checkpoint for independent review by `review_restart_ch01`. Initial review found
+three bounded corrections: coalesced completion delivery, an exact Gemini MIME
+field assertion, and one inaccurate comment. Correction round 1 of at most 3
+is now assigned to the student. The original frozen reference scores 100/100;
 the student reports 80/100 FAIL, with two documented exception requests.
 Four-module checks, targeted mutations and three-provider live demonstrations
-are recorded in the student review. Acceptance is pending. Missing exercise
+are recorded in the student review. The reviewer independently accepted the
+grader-exception rationale but withheld chapter acceptance for these findings.
+Missing exercise
 protocol facts are recorded under Bill's standing authorization.
 
 These are the two review documents. The carryover answers “What did the previous
@@ -74,6 +78,19 @@ predictions about other agents, the causes of their growth and the memory capaci
 needed for future expertise remain hypotheses, not prerequisites or measured
 results of this experiment. Demonstrate improvement through successive student
 implementations and reviews rather than assuming the loop must succeed.
+
+On October 9, at Bill's invitation, Codex read all 83 pages of *The Dyad* from
+`~/Downloads/the-dyad.pdf` (SHA-256
+`d50e0ad0ab5b11a08ae9349d2c42905b09c0c70733a0e86ceb5d75c4167210ea`).
+Bill reports that CodeRhapsody produced this autobiography instead of the requested
+second edition of *AI at the Helm*, spending about $200 while he was at lunch;
+he subsequently chose to publish it. The memoir's account is a source of leads
+for future authorship, not independent verification of its historical claims.
+The relevant process lesson is that valuable unexpected output and fulfillment
+of the assignment are separate judgments. Preserve the detour honestly; its
+later usefulness does not retroactively authorize replacing the user's task.
+Its accounts of lost context and useful correction reinforce the existing duty
+to preserve reasons, failed approaches and specific evidence in our handoffs.
 
 Edition 1 is a living source. Bill writes it with CodeRhapsody and publishes
 successive versions on Amazon as he adds chapters. On October 9 he reports that
