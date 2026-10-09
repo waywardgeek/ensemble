@@ -161,9 +161,13 @@ the existing handoff and chapter notes; no additional reporting system is needed
 
 ## Learn the process before automating orchestration
 
-Bill uses “dynamic workflow” to mean code that orchestrates sub-agents. The
-coordinator initially confused this with interactively assigning and messaging
-agents; those are different mechanisms.
+Bill was referring to Claude Code's existing **dynamic workflows** feature,
+not inventing the term. Anthropic describes Claude writing a JavaScript script
+that its runtime executes to coordinate sub-agents, retain intermediate results
+and control verification and iteration. See the
+[official dynamic workflows cookbook](https://platform.claude.com/cookbook/claude-agent-sdk-08-dynamic-workflows)
+(checked October 9, 2026). The coordinator initially confused this with
+interactively assigning and messaging agents; those are different mechanisms.
 
 For now, coordinate interactively while learning which agents are useful, what
 their skills need to say and how their handoffs should work. Record adjustments
