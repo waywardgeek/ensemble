@@ -25,11 +25,13 @@ lessons guide the current exercise, not early implementation of later features.
   Standard-library dispatch methods such as Error and JSON methods may remain
   with their types. Common is not a miscellaneous utility/behavior package.
 - Private runtime structs may live in their implementation packages. Each child
-  constructor receives and stores an interface back-pointer to its actual parent.
-  Declare parent interfaces in common; expose the parent's own parent through
-  an interface method. The application root has no parent.
-- Reach configuration, services and logging through that chain. Keep facts with
-  their owners, not copied into siblings or supplied through callback bags.
+  constructor receives and stores an interface back-pointer to every actual
+  parent. A family-tree node with two parents needs both back-pointers; the rule
+  does not require a single-parent tree. Declare parent interfaces in common;
+  expose each object's own parents through interface methods. The application
+  root has no parent. Additional service dependencies are not invented parents.
+- Reach configuration, services and logging through those parent relationships.
+  Keep facts with their owners, not copied into siblings or supplied through callback bags.
   Parsers and helpers likely to need diagnostics receive owner access too.
   No mutable global logger, registry or application state.
 - One Ensemble owns potentially many Agents. Agent owns its configuration;

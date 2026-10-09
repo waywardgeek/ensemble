@@ -80,9 +80,13 @@ chapters. Sources: [§5.1](../book/chapter-05.md#51-the-idea-in-plain-words),
 [Chapter 22's diagnosis](../book/chapter-22.md#the-symptom-a-feature-that-should-have-been-easy).
 
 **Bill's clarification is stronger than some examples.** Every child constructor
-receives and stores an interface to its actual parent, which exposes its own
-parent. A bag of sibling services is not that chain. Reach configuration,
-services and logging through ownership; no mutable application globals or
+receives and stores an interface back-pointer to every actual parent; each
+parent exposes its own parents through interface methods. Bill explicitly
+generalizes this beyond trees: a family-tree node with two parents must retain
+both back-pointers. The data model determines the parent relationships, not a
+single-parent restriction. A bag of sibling services is not a substitute for
+those relationships. Reach configuration, services and logging through ownership;
+no mutable application globals or
 callback bags. The root needs no invented parent. One Ensemble owns potentially
 many Agents and the logger; Agent owns configuration; Engine owns usage. Tool
 visibility is per-Agent, whether registry storage belongs to Agent or Ensemble.
@@ -95,7 +99,7 @@ Make the chain concrete: Engine's parent is Agent; Agent's parent is Ensemble.
 Agent owns its conversation and configuration; Engine owns its HTTP transport
 and usage. `common` is shared vocabulary, not the runtime Ensemble object.
 Stateless parsers and helpers likely to need diagnostics also receive owner
-access. Follow the parent chain rather than adding a second root shortcut or
+access. Follow the actual parent relationships rather than adding a root shortcut or
 downcasting to a concrete parent. When multiple spokes need a service, expose
 its interface through common and the ownership chain, keeping its behavior in
 the responsible package. These clarify the existing architecture, not new services

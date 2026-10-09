@@ -397,6 +397,11 @@ shared chapter notes for the eventual author. At that later author phase,
 preserve the human story and explain why the rules exist, using actual
 experiences rather than invented battle scars.
 
+On October 9, Bill generalized the back-pointer rule: an object with two actual
+parents must retain both back-pointers, as in a family-tree node. The carryover
+and coding skill now describe all actual parent relationships; a single-parent
+chain is Ensemble's current example, not a restriction on the rule.
+
 At the October 9 preparation checkpoint, the previous implementation agents
 remain stopped, all discarded second-edition solutions and manuscript drafts
 have been removed, and the carryover review team has read Chapters 0–23 and
