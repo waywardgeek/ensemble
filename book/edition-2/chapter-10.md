@@ -10,8 +10,8 @@ file it changed, the reason for the change and the tool result that confirmed
 it. The reader can continue the work without re-explaining what happened
 yesterday.
 
-The first edition made loading optional and gated it behind a flag. Bill tried
-it once and said, "Let's load by default without a flag." That settled it.
+The first edition made loading optional and gated it behind a flag. Bill reviewed
+the design and said, "Let's load by default without a flag." That settled it.
 Automatic loading makes the application easier to use and makes one error much
 worse. If an unreadable save causes a fresh start, that new conversation can
 overwrite the history the reader wanted back. Refusing to open preserves a
