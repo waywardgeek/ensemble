@@ -301,3 +301,14 @@ provider-prep-commands.jsonl. No credentials, actual discovery/API traffic, Go
 build/test/vet, cache maintenance or runtime edits. Compiler stays with grader.
 Actual retained-build binding/control results follow the scoped support commit;
 no planned binary is claimed. Full details: support/provider-support.md.
+
+Final provider preparation freeze: support9822b2b63257724001d7af195b377483baad3531,
+actual runtime/build57d4aac unchanged. Initial support065a6a8 passed35 local checks
+and22 actual-build identity refusals. Final deadline refinement passed all13
+affected provider controls; final complete preflight and two focused support/
+launch identity refusals pass. Exact bindings and failures are retained separately.
+No Go command or runtime/client/provider execution in this preparation. See
+provider-preparation-handback.md for schema, origins, complete budget/feature
+matrix, paths, commands and blockers. Latest coordinator inbox reports deterministic
+clearance and compiler release; no rebuild needed. Ready for concrete support
+review. Credentials/discovery/providers remain unreleased; stop here.

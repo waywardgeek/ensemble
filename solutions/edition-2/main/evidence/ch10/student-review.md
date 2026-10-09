@@ -759,3 +759,20 @@ synthetic socket timing control; all13 affected provider controls pass. No real
 TLS endpoint, key or client was used. This is a support refinement, not an observed
 provider/runtime failure. A new exact support revision/binding follows; the22
 controls retain their initial065a6a8 association rather than being relabeled.
+
+Final interpreted support9822b2b63257724001d7af195b377483baad3531 now has a complete
+mixed-revision binding to actual runtime57d4aac, plus two passing focused final
+support-source/launch-support refusal controls before derived writes. No binary
+rebuild, client run or provider call occurred. Actual binary/module/browser file
+bytes were hashed only for identity. Own tiny alternate support fixtures and
+their intended mutation remain preserved, with copied Go/module files retained
+as .fixture after controls to avoid apparent nested development modules.
+
+Final inbox assistance reports deterministic checks passing: scoped unused-Part.Parts
+comparison adapter14/14 inherited groups and19/19 intended deletions, joined70/70
+source-bound result being finalized, original68/70 retained. Compiler released;
+unchanged binaries preferred. These are coordinator reports, not newly read
+checker implementations/receipts or student-executed results. No Go build is needed
+for this prepared layer. Concrete support review/live release remains pending;
+stop at provider-preparation-handback.md with no credential/API access or chapter
+acceptance claim.

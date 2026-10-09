@@ -1,0 +1,23 @@
+{
+  "binding_sha256": "574675485295b59cdf1603b9ca98c68d346cd6772cd68b86657d99c9b27f036f",
+  "source_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "vendor": "openai",
+  "model": "fixture",
+  "role": "cli",
+  "command": [
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-build-watch/cli",
+    "chat"
+  ],
+  "command_sha256": "866a2dd4761011f6b3f6b08caab6ab5d416f2a756824e0438a4372989e77e7e5",
+  "environment": {
+    "LLM_VENDOR": "openai",
+    "LLM_MODEL": "fixture"
+  },
+  "workspace": "solutions/edition-2/main/evidence/ch10/provider-prep-identity/synthetic-launch",
+  "provider_root": "solutions/edition-2/main/evidence/ch10/provider-prep-identity",
+  "run": "solutions/edition-2/main/evidence/ch10/provider-prep-identity/synthetic-launch",
+  "mode": "local",
+  "actor": "student coder; not Bill",
+  "support_revision": "065a6a824ec46a70affd85bd5b95cdc19439495d",
+  "identity_sha256": "e5ca0f17948ece75a20b8d4281714446702edb91ed2388280a6989b660fd02bb"
+}

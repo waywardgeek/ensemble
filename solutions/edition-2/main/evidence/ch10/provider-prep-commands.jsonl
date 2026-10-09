@@ -16,3 +16,7 @@
 {"time": "2026-10-09T02:42:24.924491+00:00", "label": "actual-identity", "phase": "end", "exit": 0, "output": "provider-prep-actual-identity.out"}
 {"time": "2026-10-09T02:42:52.701649+00:00", "label": "remaining-deadline", "phase": "start", "argv": ["python3", "-B", "-m", "unittest", "test_provider.ProviderControls"], "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/support"}
 {"time": "2026-10-09T02:43:06.973118+00:00", "label": "remaining-deadline", "phase": "end", "exit": 0, "output": "provider-prep-remaining-deadline.out"}
+{"time": "2026-10-09T02:43:38.731075+00:00", "label": "bind-final", "phase": "start", "argv": ["python3", "-B", "evidence/ch10/support/bind-support.py", "--repo", "/Users/bill/projects/ensemble", "--parent", "evidence/ch10/retained-repair-build-watch/binding.json", "--revision", "9822b2b63257724001d7af195b377483baad3531", "--output", "evidence/ch10/provider-prep-binding-final.json"], "cwd": "/Users/bill/projects/ensemble/solutions/edition-2/main"}
+{"time": "2026-10-09T02:43:42.732409+00:00", "label": "bind-final", "phase": "end", "exit": 0, "output": "provider-prep-bind-final.out"}
+{"time": "2026-10-09T02:44:12.685544+00:00", "label": "final-binding-controls", "phase": "start", "argv": ["python3", "-B", "solutions/edition-2/main/evidence/ch10/provider-prep-final-binding-check.py"], "cwd": "/Users/bill/projects/ensemble"}
+{"time": "2026-10-09T02:44:20.789458+00:00", "label": "final-binding-controls", "phase": "end", "exit": 0, "output": "provider-prep-final-binding-controls.out"}
