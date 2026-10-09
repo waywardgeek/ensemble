@@ -1,17 +1,18 @@
 # Chapter 17 validation
 
-Full contract C1–C4 correction submitted for independent closure, October 8, 2026. Preparation
-`580ce83`/`b59c47e`, the subscription proposal `8f834ce` and integration review
-`a5423ed` are retained. The coordinator accepted the proposal direction and all
-R1–R4 recommendations; the full draft publishes their requirements. The author acknowledges Bill's continuing requirement
-that MCP remain transport-independent and that the actual GUI tunnel live in the
-optional module. No Chapter 17 implementation, full contract or experiment is
-accepted. Chapter 16 has contract/prose acceptance only.
+Contract/prose accepted for preparation, October 8, 2026. Independent closure
+`b06d780` accepts the C1–C4 correction at `b53c3c8`; the coordinator read and
+accepted that disposition. Earlier preparation `580ce83`/`b59c47e`, proposal
+`8f834ce` and R1–R4 review `a5423ed` remain historical evidence. Bill's uncapped
+selected plan decision and the optional, transport-independent GUI/MCP boundary
+remain intact. No Chapter 17 student implementation or live experiment is released
+or accepted. The new independent checker invocation and accepted Chapter 16 source
+remain separate release prerequisites.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
-| Research and consequential choices | Author, reviewer, coordinator, Bill for the output-cap choice | Bill cap decision `706682c`; coordinator accepts proposal and R1–R4 at `a5423ed` | Independent review of the complete published integration details |
-| Full contract and prose | Author `/root/author`, independent reviewer | Review `9598665` holds acceptance for C1–C4; coordinator decisions now published in the corrected draft | Independently close the grouped correction against its committed freeze |
+| Research and consequential choices | Author, reviewer, coordinator, Bill for the output-cap choice | Bill cap decision `706682c`; coordinator choices and independent C1–C4 closure `b06d780` accepted | Preserve selected scope in checker and later student handoff |
+| Full contract and prose | Author `/root/author`, independent reviewer | Accepted for preparation: corrected draft `b53c3c8`, independent closure `b06d780` | Reconcile actual implementation and live receipts later; no present runtime claim |
 | Independent checks | Future grader | Not started | Publish new acceptance invocation from §17.9 contract; inherited CH18 is diagnostic only |
 | Fresh student and owner plan | Future fresh student, reviewer | Not released | Requires accepted Chapter 16 source, reviewed complete contract and published new checker invocation |
 | Local implementation | Future student, grader | Not started | Preserve preceding ownership, replay and helper guarantees |
@@ -147,3 +148,19 @@ These decisions do not reopen Bill's explicit uncapped plan choice or enable
 student implementation. Reviewer closure and a published new acceptance command
 remain required. The current correction contains no runtime, credential, provider
 or build work; its local fixture/lint checks are recorded in the evidence ledger.
+
+
+## Independent correction closure
+
+Review `b06d78025dc57e720d75a61793cdd95bcf7ca937` closes C1–C4 against `b53c3c8`.
+The coordinator read and accepted the full closure. The reviewer independently
+checked the new schemas/transition rules, predecessor compatibility and official
+input forms; all 23 JSON values, pressure/hash/SSE arithmetic and retained replay
+spans passed its text-only checks. Selected original-author stories remain
+verbatim. Hard prose/whitespace checks pass; length/density warnings remain
+editorial inputs. No further C1–C4 design correction is requested.
+
+This closes the contract-preparation gate only. Missing new acceptance invocation,
+predecessor source acceptance, owner plan, fresh build, actual own-application
+sign-in and five-route live evidence remain their separate gates. No provider
+measurement or student result follows from accepting prose.
