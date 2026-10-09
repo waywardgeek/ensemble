@@ -597,5 +597,12 @@ sessions; reviewer checked artifacts, real tests and selected mutations.
 Exact source export: `solutions/edition-2/ch03/`, tag `edition-2-ch03-r3`;
 older r1/r2 tags remain. Reassess the scoped media exception in Chapter 4 rather
 than treating it as permanent or silently rewriting its failed scores.
+Chapter 4 is assigned in a fresh context to `student_restart_ch04`, from accepted
+Chapter 3. The original reference baseline via `grade-dir` passed 100/100,
+including `dlv`. Missing tool/event shapes supplied by the coordinator are in
+`docs/edition-2-notes/ch04.md`. Independent scope reassessment confirms the media
+exception continues: this chapter records output Refs but explicitly does not
+render them as attachment parts. Its own output, recovery and job requirements
+remain binding. No Chapter 4 result or acceptance has been claimed.
 Preserve small resumable checkpoints if a usage limit interrupts work;
 never label unfinished work an accepted chapter.
