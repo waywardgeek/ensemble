@@ -4,7 +4,7 @@ Through-line stake: a listener needs enough provider-exposed explanation to noti
 a wrong direction while the Agent can still be steered, without hearing the same
 summary twice or mistaking a provisional explanation for an accepted action.
 
-October 8, 2026. **Complete contract draft prepared for independent review.**
+October 8, 2026. **Grouped full-contract corrections prepared for closure review.**
 The coordinator accepted the focused scope at `3c91992` and reviewer advice at
 `d61388e`; the [chapter](chapter-18.md) now resolves S1–S4 as one proposed contract.
 The [gate record](chapter-18-validation.md) retains the separate predecessor,
@@ -135,7 +135,7 @@ state, but must never automatically read historical material aloud.
 | Timeliness | Server withholds terminal/answer until the public consumer receives the first summary fragment; buffering to completion fails |
 | Identity | Two reasoning items with repeated summary_index, two operations reusing item IDs, and two Agents; no merge or duplicate final |
 | Terminal agreement | Nonempty added part, split deltas, done-only text and terminal snapshot; mismatch/incomplete response cannot become accepted output |
-| Safe projection | Public/browser output contains only exposed summary text; an encrypted canary stays absent while exact private replay remains intact |
+| Safe projection | Safe observations, watch/browser projections and speech exclude encrypted canaries; exact replay and deliberate owned raw exports preserve them |
 | Lifecycle | Interrupt during summary, blocked/overflowing observer, close and reconnect; later turn progresses and no summary gains tool authority |
 | Speech | Real application handler reaches recorder/native queue, finalization queues no duplicate words, canceled provisional work stops, replay stays silent |
 | Persistence | Request reconstruction uses captured selection; summary display does not duplicate capsule payload or survive whole-bundle retirement as a hidden archive |
@@ -191,6 +191,17 @@ returns to the listener's once-only explanation at the ending. The inherited
 credentials story stays in Chapter17 and its first-edition location. Following
 daily use, final comparison and publication-time epilogue scope remain unchanged.
 
-Next: independent full-contract review, then coordinator resolution and publication
-of the new checker command against an accepted Chapter17 source. No Chapter18 code,
-auth or provider request is released by this draft.
+## Full-review correction disposition
+
+Independent review `2fc8af0` accepts S1–S4 substantively and requests three finite
+corrections. The coordinator accepts these choices; the amended chapter publishes:
+
+| Finding | Resolution awaiting reviewer confirmation |
+|---|---|
+| Exact GUI protocol and ordering | §§18.5–18.6 define command_ack inspection/applied/unchanged replies, safe errors and summary_status_changed. Settings revision stays distinct from watch revision; applied status is delivered before the corresponding acknowledgment on an intact subscription. Inspect/no-op creates no fact or revision. Profile changes publish coherent summary status too. |
+| Same-session handler identity | §18.8 retains the read tool across CLI/GUI session rows, asks for no call on the one-response tasks and records unexpected call/round-limit outcomes. Only the already-fresh public/native Agents can use empty handlers. No visibility feature or session reopen is introduced; 30 starts remains the ceiling. |
+| Privacy audience | §§18.3/18.7 test safe observations/display/speech for canary absence; owned raw checkpoint/reconstruction exports retain the original opaque material under Chapter17's access/retention contract. |
+
+Next: reviewer closure of this group and publication of the new checker command
+against an accepted Chapter17 source. No Chapter18 code, auth or provider request
+is released by this draft.

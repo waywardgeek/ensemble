@@ -312,9 +312,12 @@ no-completion variant removes only the terminal event. Preserve any provisional
 text already displayed and mark its operation rejected; do not claim it was
 never seen.
 
-This fixture's public text cannot contain SECRET-A or SECRET-B. Its private next
-request must still contain the original item spans with both strings. Changing a
-public view copy must alter neither replay nor another observer's view.
+This fixture's safe observation/display/speech text cannot contain SECRET-A or
+SECRET-B. Its next request and deliberately requested owned raw checkpoint or
+reconstruction exports must still contain the original item spans with both
+strings. Those exports have Chapter 17's separate access/retention meaning;
+they are not browser projections. Changing a public view copy must alter neither
+replay nor another observer's view.
 
 ## 18.4 Append fragments; compare snapshots
 
@@ -417,11 +420,12 @@ so a reconnect can create these cards without reviving old speech ownership.
 
 A v8 watch's safe state adds `summaries` with exactly revision, mode, surface and
 support from §18.6's current status, captured at the same watermark. Older watches
-retain their old state shape. The ordinary durable observations for
-summaries_changed and request_profile_changed let an attached client update that
-status in order; reconnect obtains a fresh coherent copy. They carry no credential
-or inferred model-availability field. A setting changed by another client must be
-visible without waiting for the next model response.
+retain their old state shape. After each applied summaries_changed or
+request_profile_changed fact, Actor publishes the exact summary_status_changed
+observation defined below, through the same ordered watch. Reconnect obtains a
+coherent copy at its watermark. Neither path carries a credential or inferred
+model-availability field. A setting changed by another client must be visible
+without waiting for the next model response.
 
 Render summary entries in item/index order, preserving empty and unavailable
 positions. Label the known text “Reasoning summary”; an unavailable entry has
@@ -474,11 +478,10 @@ and speech remain reader preferences.
 
 Use the existing machine/client command envelopes. The protocol command is
 `{kind:"summaries"}` for inspection or
-`{kind:"summaries",mode:"auto",expected_revision:"0"}` for an update. The GUI
-uses its ordinary correlated envelope with type `summaries` and the same fields.
-Revision is a canonical decimal uint64 string on these public wires. Success
-returns exactly the following status, inside the GUI's ordinary correlated reply
-when applicable:
+`{kind:"summaries",mode:"auto",expected_revision:"0"}` for an update.
+The protocol success is exactly the following object. Its revision is a canonical
+decimal uint64 string; that settings revision is distinct from the existing
+watch revision.
 
 ```json
 {"kind":"summaries","revision":"1","mode":"auto","surface":"responses","support":"model_dependent"}
@@ -490,6 +493,47 @@ account access. Pre-v8 Agents return `summary_capability_required` for this new
 command. Bad fields, extra fields and bad revision tokens use the existing safe
 invalid-command response; failed updates preserve all state and make no HTTP call.
 Preserve every old default protocol reply.
+
+The GUI requires the ordinary subscribed connection and command-ID rules.
+Inspection is exactly `{"type":"summaries","id":"s1"}`; an update is exactly
+`{"type":"summaries","id":"s2","mode":"auto","expected_revision":"0"}`.
+The success envelope has exactly type, id, status, revision and summaries. Type
+is command_ack; status is inspected, applied or unchanged. Revision is the captured
+watch revision in its inherited lossless uint64 encoding. Summaries contains
+exactly the four status fields above except kind. No-op and inspection capture
+that whole value and watermark at one Actor boundary, without a durable fact,
+settings increment or new watch revision. For example:
+
+```jsonl
+{"type":"command_ack","id":"s1","status":"inspected","revision":40,"summaries":{"revision":"0","mode":"off","surface":"responses","support":"model_dependent"}}
+{"type":"observation","generation":"g1","revision":42,"observation":{"kind":"summary_status_changed","agent_id":"a1","summaries":{"revision":"1","mode":"auto","surface":"responses","support":"model_dependent"}}}
+{"type":"command_ack","id":"s2","status":"applied","revision":42,"summaries":{"revision":"1","mode":"auto","surface":"responses","support":"model_dependent"}}
+{"type":"command_ack","id":"s3","status":"unchanged","revision":42,"summaries":{"revision":"1","mode":"auto","surface":"responses","support":"model_dependent"}}
+{"type":"error","id":"s4","code":"config_conflict","message":"summary settings revision changed"}
+```
+
+Here s3 submits auto with expected revision 1; s4 submits a stale revision 0.
+The intervening durable change observation can occupy watch revision 41; the
+example shows the subsequent status publication and acknowledgments. The exact
+new observation has kind, agent_id and summaries. Publish one after every applied
+summary selection or request-profile change, even when a profile's changed
+funding/binding leaves these safe status fields equal. Its settings revision only
+advances for an actual summaries_changed fact. Never borrow the profile's revision
+as the summary revision.
+
+On an intact subscription, publish/deliver that applied watch observation before
+the corresponding update acknowledgment, which names the same watch revision
+in its outer revision field. A request-profile update retains its own reply shape
+but follows this ordering too. Other viewers receive the observation without
+needing a command of their own. Overflow/disconnect retains Chapter 7's resync
+behavior; a lost reply neither rolls back the setting nor authorizes replay of
+the old command ID. A fresh snapshot establishes the replacement generation.
+
+Refusals use Chapter 7's exact `type:"error"` envelope with id, safe code and
+message, as printed above. An unusable command ID retains its transport-close
+rule. Correctable malformed commands or rejected updates keep the connection
+usable and make no HTTP call. Inspect/no-op must not publish a synthetic
+summary_status_changed merely to produce an acknowledgment.
 
 The launcher applies `--summary-profile` at creation/resume, then the ordinary
 Chapter 17 route command selects Responses before `/summaries auto`. Resume loads
@@ -542,7 +586,7 @@ existing base-profile and Chapter 17 request/capsule tests intact.
 | Identity | Two summaries in one item, another item reusing index 0, reused provider IDs in another operation and another Agent; one final per ref and once-only speech. |
 | Assembly | Nonempty added plus split deltas; done-only and terminal-only positives. Change one done character, remove an observed slot, duplicate added, rebind ID, add a post-done delta or mark incomplete: refuse with no accepted effects. |
 | Bounds | Split café across every byte boundary; split JSON escapes and CRLF. Exact 1 MiB SSE framing and next byte; exact 1,024 summaries and one extra; inherited assembled/queue bounds, cancellation while full and responsive controls. |
-| Privacy and persistence | SECRET-A/B absent from every public/browser/speech output and present in exact private replay; copied view mutation isolated. Full-log/checkpoint/tail equality; authorized whole-bundle retirement removes safe views and raw payload together. |
+| Privacy and persistence | SECRET-A/B absent from safe observations, watch/browser projections and speech; present in exact replay and intentionally requested owned raw checkpoint/reconstruction exports. Copied view mutation isolated. Full-log/checkpoint/tail equality; authorized whole-bundle retirement removes safe views and raw payload together. |
 | Lifecycle | Interrupt before acceptance versus after admission; canceled terminal usage once; close, overflow, resubscribe and mount replacement. No late text, duplicated settlement or effect revival. |
 | Speech and availability | Actual application recorder/native admission; final-only versus streamed text once; no historical autoplay. Empty-success, local route refusal and provider error remain distinct. |
 
@@ -607,9 +651,18 @@ Use this exact allocation on each Responses route:
 Slots 1–2 and 7–8 reserve two starts total for each task, including its continuation;
 if the model asks for more, stop at the ceiling and report that task incomplete.
 Other rows reserve one start each except the two independent public Agents.
-Give tool-free rows no visible tools and a one-response limit. Use the inherited
-turn request-count policy for each bounded task. The total allocation is 12 per
-route even if a tool-free response finishes before the human can interrupt it.
+The existing read tool stays visible throughout the same-session CLI rows 1–4
+and GUI rows 7–10: Chapter 10 fixes that session's handler set. For rows 3, 4, 9
+and 10, explicitly ask for no tool call and apply a one-response limit. If a call
+still occurs, retain its actual paired result and round-limit/interruption outcome;
+do not call it a tool-free success or spend a retry to improve the story.
+
+The already-fresh public Agents in rows 5–6 and native application's Agent in
+rows 11–12 can use empty handler sets selected at construction. Use a one-response
+limit there too. No per-turn tool-hiding feature or incompatible reopen is added.
+The total allocation remains 12 per route even if a response finishes before the
+human can interrupt it. The planned next turn still tests whether the interface
+remains usable after the actual outcome.
 
 Configure a 120-second operation deadline, covering lease wait, HTTP reads,
 fragment pressure and final drain, and an external 300-second ceiling per

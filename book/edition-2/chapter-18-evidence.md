@@ -3,8 +3,9 @@
 October 8, 2026. Author research and full-contract preparation for new Chapter 18,
 originally mapped from old Chapter 19. Scope frozen at `3c91992` and independently
 reviewed at `d61388e` is accepted by the coordinator. The new manuscript is now
-ready for complete contract review, with [release gates](chapter-18-validation.md)
-still open. No runtime, grader, credential, browser authorization or provider
+reviewed at `2fc8af0`, with its three corrections published for closure and
+[release gates](chapter-18-validation.md) still open. No runtime, grader,
+credential, browser authorization or provider
 inference work occurred. The initial research chronology below is retained.
 
 ## Reads and source boundaries
@@ -198,3 +199,31 @@ coordinator releases implementation and launch.
 Next: grouped independent contract review, coordinator acceptance, accepted
 Chapter17 baseline and new checker invocation, then a fresh student. No runtime,
 live, comparative or publication checkpoint gate is closed by these prose checks.
+
+## Grouped full-review correction
+
+Read the complete `2fc8af0` review and reloaded full voice.md and the chapter-writing
+procedure. Focused predecessor reads checked Chapter7's error/watch envelopes and
+Chapter17's public revision/status conventions. The coordinator accepted the
+three finite corrections without expanding the chapter's feature scope.
+
+The new GUI literals distinguish settings revision strings from inherited watch
+watermarks. Inspection and no-op preserve both; one applied setting publishes
+summary_status_changed before its correlated acknowledgment. Profile changes also
+publish current safe status without incrementing the summary setting revision.
+The fixed 30-start allocation now keeps read handlers visible within an existing
+session and records unexpected tool outcomes honestly. Canary controls apply to
+safe observation/display/speech audiences, preserving deliberately requested raw
+exports and exact replay.
+
+These are contract clarifications, not observed provider behavior or passing
+implementation tests. The original 23-value fixture check above remains the initial
+draft record; the correction adds five GUI JSONL examples. Reviewer closure,
+accepted predecessor and the new checker command remain required before handoff.
+
+The correction check parsed all 28 JSON/JSONL values and compared the GUI literal
+status/revision fields: inspection at watch 40/settings 0, applied observation
+before acknowledgment at watch 42/settings 1, and unchanged acknowledgment at the
+same revisions. Scoped whitespace and existing-linter hard checks pass. The
+manuscript is 5,317 prose words; its person-gap warning remains an editorial input,
+not a reason to invent a scene. No compiler or runtime was exercised.
