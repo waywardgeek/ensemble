@@ -15,6 +15,13 @@ expand the original exercise. There is no author agent. Use the original grader;
 record suspected grader defects and teaching gaps for future work rather than
 changing chapters or graders during the student attempt.
 
+Only after the complete new Ensemble implementation succeeds and its comparative
+code reviews establish the improvements does the author phase begin. The author
+then works chapter by chapter from the original book, the coder's reviews and
+the reviewed implementation. Incorporate demonstrated lessons into the second
+edition; preserve the first edition as history. Do not draft ahead of the coder
+or turn editorial work into new feature requirements.
+
 Start from empty in `solutions/edition-2/main/` when coding resumes. The student
 must not read or copy `agent/`, first-edition answers, discarded second-edition
 answers, or their Git blobs to solve the exercise. Frozen exports are not working

@@ -115,3 +115,16 @@ those revisions. Keep this a code review, not another evidence framework.
 Commit completed chapters and exact source snapshots with fresh tags, never
 moving old tags. Chapters and graders remain unchanged until Bill authorizes
 their later revision.
+
+## Author phase comes last
+
+Finish the whole new Ensemble implementation and its comparative code reviews
+before starting an author agent. A passing grader alone does not establish that
+the implementation is better; the comparisons above must support that judgment.
+
+Then the author revises the book chapter by chapter using the original chapters,
+the coder's accumulated reviews, reviewer findings and the completed code. Build
+the second edition from demonstrated lessons and actual student experience.
+Preserve the original book. Do not draft future chapters during implementation,
+replace exercises wholesale, or add features to justify new prose. Keep KISS as
+the standard in the author phase too.
