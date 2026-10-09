@@ -26,6 +26,15 @@ grader-exception rationale but withheld chapter acceptance for these findings.
 Missing exercise
 protocol facts are recorded under Bill's standing authorization.
 
+**Current stop point:** before editing for correction round 1, the student
+identified an externally observable ambiguity in §6.6's grouped-completion
+requirement: join an explicitly submitted set and return after both finish, or
+wake when any finishes and drain the completions ready at that instant. §6.8's
+`WaitAny` is a single-observation API and does not define a reliable grouped
+contract or a "same turn window" boundary. The coordinator paused the student
+and is asking Bill to settle the behavior; the reviewer is complete/idle.
+No correction source changes have been made. See the chapter notes.
+
 These are the two review documents. The carryover answers “What did the previous
 edition teach us that the student should know?” This workflow answers “How do
 we produce the next implementation and, afterward, its book?” The coding skill
