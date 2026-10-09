@@ -255,7 +255,11 @@ behavior. Do not distort correct code, add out-of-scope features or keep retryin
 solely to satisfy a broken check. Leave the grader unchanged and record the
 proposed correction for its future maintainer.
 
-The reviewer reads the coder's notes, including objections to the exercise.
+The code reviewer must read the student's chapter review before deciding whether
+the student passed. Assess its explanations for failed tests, ambiguities and
+departures from the exercise alongside the code and actual results; grader status
+alone does not determine acceptance. State which explanations the reviewer accepts
+or rejects and why in the acceptance decision.
 If the reviewer independently agrees that the grader is flawed or a requirement
 is unreasonable, Bill authorizes it to pass the chapter with an exception and move the coder to the
 next chapter. No further approval is required for that decision. Record the

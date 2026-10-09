@@ -106,6 +106,11 @@ the student's difficulties and interpretations when diagnosing unnecessary work;
 do not turn suggestions for future teaching into current requirements. The
 reviewer's access to old solutions does not extend to the coder.
 
+Reading the student's chapter review is mandatory before deciding whether the
+student passed. Evaluate its explanations for failed tests, ambiguities and
+departures alongside the implementation and actual results. State which
+explanations you accept or reject and why; do not decide from grader status alone.
+
 Leave a concise comparison covering:
 
 - **Active code:** compare production lines excluding blank and comment-only
