@@ -1,5 +1,10 @@
 # Ensemble student restart
 
+Bill's explicit crossover goal: the coder's new Ensemble must run GPT-5 Astra
+at high reasoning, and Edition 3 of the book is to be built using that Ensemble
+agent rather than Codex. Keep this destination in view without implementing
+later features early. See the workflow's crossover goal and verification notes.
+
 Bill retired the author-driven second-edition attempt. Its history is preserved
 at `edition-2-attempt-1-stopped`; do not resume its agents or workflow. See
 `docs/edition-2-attempt-1.md` for the decision.

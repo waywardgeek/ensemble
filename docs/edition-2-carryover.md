@@ -6,6 +6,13 @@ unchanged first-edition Chapter 1. No rewritten chapter is needed to carry
 lessons forward, and the preserved second-edition Chapter 1 draft is not part
 of this student's assignment.
 
+**Destination, explicitly requested by Bill:** the new Ensemble must run GPT-5
+Astra at high reasoning. Edition 3 will be built using that Ensemble agent
+rather than Codex. Implement the relevant capabilities in their chapters and
+verify the actual model integration and live coding use at crossover; this is
+not a reason to add future features to early exercises. See the
+[crossover goal](agentic-codebook-workflow.md#explicit-crossover-goal).
+
 **Coverage:** this initial document collects Bill's agreed architecture and
 workflow corrections, with supporting passages from first-edition Chapters 5,
 20 and 22. It is not yet the result of a complete first-edition reading. Before

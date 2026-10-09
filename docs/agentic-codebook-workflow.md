@@ -6,6 +6,26 @@ graders, and demonstrate the features through a usable interface with real
 models. Autonomous completion and an improved implementation are outcomes to
 demonstrate, not claims established by the first attempt.
 
+## Explicit crossover goal
+
+Bill requires the coder's new Ensemble to run **GPT-5 Astra at high reasoning**.
+The third edition of the book is to be built using that new Ensemble agent,
+rather than Codex. The framework must become the working agent for the next
+iteration; completing chapter exercises alone does not establish that crossover.
+
+Preserve Bill's requested model and reasoning setting. When the relevant model
+integration and crossover work arrives, verify the supported provider model
+identifier, access method and reasoning parameter against current documentation
+and live behavior. Do not infer an API identifier from the display name or
+silently substitute another model. Record any availability question for Bill.
+
+Demonstrate the configured model doing real coding work through Ensemble's own
+runtime and human interface, recording what actually worked and what remains.
+Distinguish readiness for Edition 3 from the later fact of producing Edition 3
+with Ensemble. This destination does not expand early chapter exercises or
+authorize a new orchestration framework; develop capabilities when their
+chapters call for them and document gaps in the chapter notes.
+
 This is a living record. Bill has asked us to document everything we learn in
 this process. Record substantive discoveries, failed approaches, corrections,
 unresolved questions and evidence as they arise. Keep chapter-specific details
