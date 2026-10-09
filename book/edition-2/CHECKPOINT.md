@@ -2,6 +2,21 @@
 
 ## Current boundary: final regressions and provider-support preparation
 
+Latest closure: root read and accepted `213b56b` deterministic clearance on
+`57d4aac`: joined 70/70 retained rows and an empty deterministic residual list.
+Original 68/70 remains. The narrow disposable comparison adapter normalizes only
+an unused empty Part.Parts field, with all 14 inherited response groups and all
+19 intended deletions passing. No runtime repair was needed. Compiler is released.
+Grader is preparing a read-only historical quality comparison; its findings stay
+reviewer-only until the initial real-provider experience is frozen.
+
+Provider support is frozen at `065a6a8`, with remaining-TLS-budget correction
+`9822b2b`; phase5 is completing final binding/identity receipts. Reviewer is
+reviewing immutable support now and will reconcile the final handback before live
+release. Chapter17 grouped correction `b53c3c8` awaits that reviewer's closure
+after Chapter10 readiness. These updates supersede running-regression statements
+immediately below, which describe the preceding handoff.
+
 This update supersedes the earlier running/idle descriptions below. Chapter 10
 runtime remains `57d4aac`. Independent lifecycle checks pass at `a944156`, large
 state/checkpoint/origin boundaries at `1befb73`, bounded allocation and admission/
