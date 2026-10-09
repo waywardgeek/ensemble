@@ -6,7 +6,12 @@ at `edition-2-attempt-1-stopped`; do not resume its agents or workflow. See
 
 Keep the learning record in `docs/agentic-codebook-workflow.md` current. Record
 substantive discoveries, failed approaches, corrections and unresolved questions
-with evidence; chapter-specific details belong in the student's chapter review.
+with evidence. Any agent—coder, reviewer or orchestrator—may add chapter notes
+for the future author in `docs/edition-2-notes/chNN.md`, creating a file when
+there is a finding to record. Attribute contributions and link evidence or the
+student review; preserve disagreements and corrections. Notes do not change the
+current exercise or authorize extra features. See the workflow's chapter-note
+guidance for details.
 Required behavior and architecture are binding, but suggested designs are
 provisional. The coder may choose a simpler working design and explain why;
 consequential requirement changes must go back to Bill.
@@ -28,10 +33,10 @@ changing chapters or graders during the student attempt.
 
 Only after the complete new Ensemble implementation succeeds and its comparative
 code reviews establish the improvements does the author phase begin. The author
-then works chapter by chapter from the original book, the coder's reviews and
-the reviewed implementation. Incorporate demonstrated lessons into the second
-edition; preserve the first edition as history. Do not draft ahead of the coder
-or turn editorial work into new feature requirements.
+then works chapter by chapter from the original book, all agents' chapter notes,
+the coder's reviews and the reviewed implementation. Incorporate demonstrated
+lessons into the second edition; preserve the first edition as history. Do not
+draft ahead of the coder or turn editorial work into new feature requirements.
 
 Start from empty in `solutions/edition-2/main/` when coding resumes. The student
 must not read or copy `agent/`, first-edition answers, discarded second-edition

@@ -9,7 +9,8 @@ demonstrate, not claims established by the first attempt.
 This is a living record. Bill has asked us to document everything we learn in
 this process. Record substantive discoveries, failed approaches, corrections,
 unresolved questions and evidence as they arise. Keep chapter-specific details
-in the student's chapter review; bring lessons affecting the whole process here.
+in shared chapter notes and the student's review; bring lessons affecting the
+whole process here.
 Do not wait for a successful chapter to record a failure or a scope problem.
 
 ## Sources of authority
@@ -130,6 +131,32 @@ reported substantial subscription usage; exact cost attribution was not
 measured. The repository evidence establishes scope expansion, not a diagnosis
 of which training data or internal model mechanism caused it.
 
+## Chapter notes belong to every agent
+
+Any agent may contribute a lesson: the coder, code reviewer, orchestrator or
+another participating agent. Add chapter-specific notes to
+`docs/edition-2-notes/chNN.md`, using the original chapter number and creating
+files only when there is something to record. The coder's required review can
+live there or be linked from it; do not duplicate reports merely to fill a format.
+
+A useful entry identifies its contributor and role, the chapter/source revision,
+what was observed, the supporting evidence and the proposed teaching improvement
+or open question. Distinguish an observation from a hypothesis or Bill's decision.
+Agents can add notes as they learn, including during difficulty or failure;
+they need not wait for chapter completion or permission to contribute. Preserve
+other contributors' findings and disagreements, adding corrections with reasons.
+
+Notes collect evidence for later authorship. They do not amend the current
+assignment, add acceptance criteria or make a suggestion binding. Keep old
+solution code and answer-revealing comparisons out of notes supplied to the
+student; the reviewer returns findings and rationale through the existing review
+process. The future author considers all contributors' notes alongside the
+tested implementation and reviews, rather than treating any agent's proposal as
+an instruction to rewrite the chapter.
+
+The purpose is deliberate revision between editions: gather lessons freely while
+the student works against stable exercises, then change the book using evidence.
+
 ## How to add the next lesson
 
 For each substantive discovery, record the chapter/revision, observation,
@@ -140,8 +167,8 @@ Do not claim an experiment ran or a feature worked without the result.
 
 Update the coding skill when Bill accepts a general operational rule; this
 document supplies its motivation and history. Put local teaching feedback in the
-chapter review for the eventual author. At that later author phase, preserve the
-human story and explain why the rules exist, using actual experiences rather
+shared chapter notes for the eventual author. At that later author phase,
+preserve the human story and explain why the rules exist, using actual experiences rather
 than invented battle scars.
 
 At this restart checkpoint, the previous agents are stopped and the discarded

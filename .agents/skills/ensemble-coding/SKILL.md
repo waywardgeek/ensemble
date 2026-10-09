@@ -80,6 +80,14 @@ built, actual grader/live results, ambiguities, defects, assistance and suggeste
 improvements. Distinguish implementation errors from teaching/grader problems.
 Preserve failed attempts without building an evidence subsystem.
 
+Any agent may add lessons for the future author to
+`docs/edition-2-notes/chNN.md`; create a chapter file when there is a finding.
+Attribute the contributor and role, cite the chapter/revision and evidence, and
+distinguish observations, suggestions and unresolved questions. The student
+review may live there or be linked. Preserve others' findings and corrections.
+Notes do not expand the exercise or authorize work. Keep old answer code and
+answer-revealing comparisons out of notes supplied to the student.
+
 ## Required post-chapter code review
 
 The reviewer reads the original chapter, the coder's review for the future
@@ -129,8 +137,8 @@ before starting an author agent. A passing grader alone does not establish that
 the implementation is better; the comparisons above must support that judgment.
 
 Then the author revises the book chapter by chapter using the original chapters,
-the coder's accumulated reviews, reviewer findings and the completed code. Build
-the second edition from demonstrated lessons and actual student experience.
+all agents' chapter notes, the coder's reviews, reviewer findings and the completed
+code. Build the second edition from demonstrated lessons and actual student experience.
 Preserve the original book. Do not draft future chapters during implementation,
 replace exercises wholesale, or add features to justify new prose. Keep KISS as
 the standard in the author phase too.
