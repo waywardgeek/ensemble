@@ -242,6 +242,12 @@ func detectMutableGlobals(dir string) []string {
 		if strings.Contains(lower, "names") || strings.Contains(lower, "name =") {
 			continue
 		}
+		// go:embed has no var-free form: an embedded filesystem must be a
+		// package-level var. The compiler populates it before main and
+		// nothing reassigns it, so it is not mutable state.
+		if strings.Contains(line, "embed.FS") {
+			continue
+		}
 		globals = append(globals, line)
 	}
 	return globals

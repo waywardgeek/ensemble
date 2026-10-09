@@ -45,19 +45,15 @@ func TestGUIReplayAndServerRestart(t *testing.T) {
 	}
 	var active atomic.Pointer[Server]
 	active.Store(newServer(events))
-	guiDir, err := filepath.Abs("../web/gui")
-	if err != nil {
-		t.Fatal(err)
-	}
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) { active.Load().ServeWS(w, r) })
 	// Keep this test offline. The real renderer already has a no-CDN fallback.
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {
-			http.FileServer(http.Dir(guiDir)).ServeHTTP(w, r)
+			StaticHandler("").ServeHTTP(w, r)
 			return
 		}
-		data, err := os.ReadFile(filepath.Join(guiDir, "index.html"))
+		data, err := Assets.ReadFile("web/index.html")
 		if err != nil {
 			http.Error(w, err.Error(), 500)
 			return

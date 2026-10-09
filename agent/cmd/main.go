@@ -588,12 +588,8 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 		guiServer.SetTTSLog(ttsLogPath)
 		actor.Attach(guiServer)
 
-		staticDir := guiDir
-		if staticDir == "" {
-			staticDir = "web/gui"
-		}
 		mux := http.NewServeMux()
-		fs := http.FileServer(http.Dir(staticDir))
+		fs := gui.StaticHandler(guiDir)
 		mux.Handle("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
 			fs.ServeHTTP(w, r)
