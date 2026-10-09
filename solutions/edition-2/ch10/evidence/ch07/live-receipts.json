@@ -1,0 +1,235 @@
+{
+  "source_revision": "ba902b7322a9cb5dd71c8352d45d6975663409c0",
+  "runtime_source_revision": "da162e821369784b37cd6a6544610429af5f1cbe",
+  "actor": "Codex student coder, not Bill",
+  "caps_per_provider": {
+    "prompts": 12,
+    "http_requests": 32
+  },
+  "providers": {
+    "anthropic": {
+      "launches": [
+        {
+          "run": "browser-anthropic-r1",
+          "exit_code": 0,
+          "requests": 12,
+          "model": "claude-sonnet-4-6",
+          "start": "2026-10-08T04:52:42.355956+00:00",
+          "end": "2026-10-08T04:58:27.597592+00:00",
+          "delivery": "stream",
+          "terminal_sha256": "af586d2dd7467902b96dd043daf53feea3a2776fb32f9664b045f38af8ef8d42"
+        },
+        {
+          "run": "plain-anthropic-r1",
+          "exit_code": 0,
+          "requests": 1,
+          "model": "claude-sonnet-4-6",
+          "start": "2026-10-08T04:58:16.416169+00:00",
+          "end": "2026-10-08T04:58:50.401275+00:00",
+          "delivery": "plain",
+          "terminal_sha256": "8cc6c6eb702b98434e25cb0ca684debb4bc87bb5cfc4868bd7c8883667661319"
+        },
+        {
+          "run": "consumer-anthropic-r1",
+          "exit_code": 0,
+          "requests": 2,
+          "model": "claude-sonnet-4-6",
+          "start": "2026-10-08T04:58:39.975348+00:00",
+          "end": "2026-10-08T04:59:39.856227+00:00",
+          "delivery": "stream",
+          "terminal_sha256": "4bccfd607bbbf937fe3c783253f5a243ba37b06faa5689c261db8823a0beef07"
+        }
+      ],
+      "admitted_prompts": 9,
+      "forwarded_http_requests": 15,
+      "reconstruction": "reconstructed-anthropic-r1/receipts.json",
+      "browser_errors": [],
+      "snapshot_cuts": 4,
+      "active_snapshot_cuts": 2,
+      "partial_snapshot_records": 2,
+      "pause_states": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "hint_present_in_raw_request_files": [
+        "008.json",
+        "009.json",
+        "010.json",
+        "011.json",
+        "012.json"
+      ],
+      "scratch_file": {
+        "path": "workspace/browser-note.txt",
+        "bytes": "BROWSER-CH07\n",
+        "sha256": "914b491dcca0f5bd16dd194247ba237f418cf09e18e37288c9cd6c29db28f824"
+      },
+      "audio_audit": "browser-anthropic-r1/audio-audit.json"
+    },
+    "openai": {
+      "launches": [
+        {
+          "run": "browser-openai-r1",
+          "exit_code": 0,
+          "requests": 11,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "start": "2026-10-08T04:58:56.395098+00:00",
+          "end": "2026-10-08T05:03:33.472445+00:00",
+          "delivery": "stream",
+          "terminal_sha256": "6b540759b6ce8c6403be97ab0ecbe1f1de29c7c0e5f4092be126df405753864c"
+        },
+        {
+          "run": "plain-openai-r1",
+          "exit_code": 0,
+          "requests": 1,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "start": "2026-10-08T05:02:35.119240+00:00",
+          "end": "2026-10-08T05:03:14.982873+00:00",
+          "delivery": "plain",
+          "terminal_sha256": "8dd8ba99434eb562323329ba7b1f7ffd39baf561dab03e97171e5fc557f47ef5"
+        },
+        {
+          "run": "consumer-openai-r1",
+          "exit_code": 0,
+          "requests": 2,
+          "model": "gpt-4.1-mini-2025-04-14",
+          "start": "2026-10-08T05:03:04.139968+00:00",
+          "end": "2026-10-08T05:04:08.436988+00:00",
+          "delivery": "stream",
+          "terminal_sha256": "f2e318170937404db59f482acef0b3cef27c527fd0489a115ec49ed0400e3e30"
+        }
+      ],
+      "admitted_prompts": 10,
+      "forwarded_http_requests": 14,
+      "reconstruction": "reconstructed-openai-r1/receipts.json",
+      "browser_errors": [],
+      "snapshot_cuts": 5,
+      "active_snapshot_cuts": 2,
+      "partial_snapshot_records": 0,
+      "pause_states": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "hint_present_in_raw_request_files": [
+        "008.json"
+      ],
+      "scratch_file": {
+        "path": "workspace/browser-note.txt",
+        "bytes": "BROWSER-CH07\n",
+        "sha256": "914b491dcca0f5bd16dd194247ba237f418cf09e18e37288c9cd6c29db28f824"
+      },
+      "audio_audit": "browser-openai-r1/audio-audit.json"
+    },
+    "gemini": {
+      "launches": [
+        {
+          "run": "browser-gemini-r1",
+          "exit_code": 0,
+          "requests": 12,
+          "model": "models/gemini-3.8-flash",
+          "start": "2026-10-08T05:00:58.075536+00:00",
+          "end": "2026-10-08T05:06:59.254955+00:00",
+          "delivery": "stream",
+          "terminal_sha256": "cbf4144068c7f5aea5a4de34964cd89dbf0c8a807d78f902460648f443e8312c"
+        },
+        {
+          "run": "plain-gemini-r1",
+          "exit_code": 0,
+          "requests": 1,
+          "model": "models/gemini-3.8-flash",
+          "start": "2026-10-08T05:04:39.318580+00:00",
+          "end": "2026-10-08T05:06:11.235942+00:00",
+          "delivery": "plain",
+          "terminal_sha256": "c12fc8dcf5f296b5b1a2838cecc3850d2428732e3cf53c01ed2e60b1b1aaf615"
+        },
+        {
+          "run": "consumer-gemini-r1",
+          "exit_code": 0,
+          "requests": 2,
+          "model": "models/gemini-3.8-flash",
+          "start": "2026-10-08T05:06:02.903223+00:00",
+          "end": "2026-10-08T05:06:58.912449+00:00",
+          "delivery": "stream",
+          "terminal_sha256": "7d158ae0c89c0d5b846078c6ddaa0aec54292c5b9dd7a88dc65a2faf6431e8f7"
+        }
+      ],
+      "admitted_prompts": 9,
+      "forwarded_http_requests": 15,
+      "reconstruction": "reconstructed-gemini-r1/receipts.json",
+      "browser_errors": [],
+      "snapshot_cuts": 5,
+      "active_snapshot_cuts": 4,
+      "partial_snapshot_records": 0,
+      "pause_states": [
+        [
+          0,
+          0
+        ],
+        [
+          0,
+          1
+        ],
+        [
+          1,
+          0
+        ],
+        [
+          1,
+          1
+        ],
+        [
+          1,
+          2
+        ]
+      ],
+      "hint_present_in_raw_request_files": [
+        "008.json",
+        "009.json",
+        "010.json",
+        "011.json",
+        "012.json"
+      ],
+      "scratch_file": {
+        "path": "workspace/browser-note.txt",
+        "bytes": "BROWSER-CH07\n",
+        "sha256": "914b491dcca0f5bd16dd194247ba237f418cf09e18e37288c9cd6c29db28f824"
+      },
+      "audio_audit": "browser-gemini-r1/audio-audit.json"
+    }
+  }
+}

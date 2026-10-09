@@ -1,0 +1,11 @@
+ok  	example.com/ensemble	2.707s
+ok  	example.com/ensemble/cli	0.199s
+?   	example.com/ensemble/cmd	[no test files]
+?   	example.com/ensemble/internal/common	[no test files]
+ok  	example.com/ensemble/internal/eventlog	1.491s
+ok  	example.com/ensemble/internal/jobs	0.991s
+ok  	example.com/ensemble/internal/llm	6.094s
+ok  	example.com/ensemble/internal/persistence	0.158s
+?   	example.com/ensemble/internal/policy	[no test files]
+ok  	example.com/ensemble/internal/skills	0.160s
+ok  	example.com/ensemble/internal/tools	0.019s

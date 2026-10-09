@@ -1,0 +1,4 @@
+{"agent":"agent-1","pause":{"revision":1,"paused":true,"typing_clients":1,"speaking_clients":0},"snapshot":{"agent_id":"agent-1","generation":"agent-1-g1","watermark":1,"first_seq":null,"last_seq":null,"log_seq":0,"omitted":0,"state":{"lifecycle":"idle","active_request_id":null,"active_operation":null,"queued_request_ids":[],"paused":true,"typing_clients":1,"speaking_clients":0,"model":"models/gemini-3.8-flash","usage":[]},"events":[],"partials":[]}}
+{"agent":"agent-2","pause":{"revision":1,"paused":true,"typing_clients":1,"speaking_clients":0},"snapshot":{"agent_id":"agent-2","generation":"agent-2-g1","watermark":1,"first_seq":null,"last_seq":null,"log_seq":0,"omitted":0,"state":{"lifecycle":"idle","active_request_id":null,"active_operation":null,"queued_request_ids":[],"paused":true,"typing_clients":1,"speaking_clients":0,"model":"models/gemini-3.8-flash","usage":[]},"events":[],"partials":[]}}
+http://127.0.0.1:55829
+^C

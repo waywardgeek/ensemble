@@ -1,0 +1,1052 @@
+{
+  "plan": {
+    "reason": "Gemini3.8 scope replaces four older Gemini modes; R1 adds revised send_input checks. Earlier Anthropic/OpenAI feature receipts retain original source identities.",
+    "verifier_sha256": "46f8d7f98db440d8fd82a906fa9b8c2b71b3c283be950922d4c734305ad3f153",
+    "bindings": {
+      "initial": {
+        "path": "initial-binding.json",
+        "sha256": "9f5f5d1cf1fc8e7c98e90731860a94a6678e47e3c2e691579fe3dfe75ca03cf8"
+      },
+      "revised": {
+        "path": "revised-binding.json",
+        "sha256": "706b5cfd36c99d1ff2da9fd26e112c0966eed6a187f40393f3d28dadae133eaa"
+      }
+    },
+    "runs": {
+      "controls-anthropic": {
+        "directory": "controls-anthropic",
+        "binding": "initial"
+      },
+      "controls-openai": {
+        "directory": "controls-openai",
+        "binding": "initial"
+      },
+      "controls-gemini": {
+        "directory": "controls-gemini38-r1",
+        "binding": "revised"
+      },
+      "eof-anthropic": {
+        "directory": "eof-anthropic",
+        "binding": "initial"
+      },
+      "eof-openai": {
+        "directory": "eof-openai",
+        "binding": "initial"
+      },
+      "eof-gemini": {
+        "directory": "eof-gemini38-r1",
+        "binding": "revised"
+      },
+      "workflow-anthropic": {
+        "directory": "workflow-anthropic",
+        "binding": "initial"
+      },
+      "workflow-openai": {
+        "directory": "workflow-openai",
+        "binding": "initial"
+      },
+      "workflow-gemini": {
+        "directory": "workflow-gemini38-r1",
+        "binding": "revised"
+      },
+      "collection-anthropic": {
+        "directory": "collection-anthropic",
+        "binding": "initial"
+      },
+      "collection-openai": {
+        "directory": "collection-openai",
+        "binding": "initial"
+      },
+      "collection-gemini": {
+        "directory": "collection-gemini38-r1",
+        "binding": "revised"
+      },
+      "input-anthropic": {
+        "directory": "input-anthropic-r1",
+        "binding": "revised"
+      },
+      "input-openai": {
+        "directory": "input-openai-r1",
+        "binding": "revised"
+      }
+    }
+  },
+  "runs": {
+    "controls-anthropic": {
+      "directory": "controls-anthropic",
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "requested_model": "claude-haiku-4-5-20251001",
+      "requests": [
+        {
+          "log": "session.log",
+          "seq": 4,
+          "sha256": "4123362f210450e46be69d368511ef695812180b13a1e499bc73706f78d5634b",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 8,
+          "sha256": "de96faf2f06dd26f89f2748b5cd13b73c3a79936dc924f15a61eb344467f3183",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 14,
+          "sha256": "3974c57fcec47446bae42d46c98be4ccaaff63af888c353825781026f039c90e",
+          "hints": [
+            11
+          ]
+        },
+        {
+          "log": "session.log",
+          "seq": 19,
+          "sha256": "6b0f0abecb684185552a2f8c7f7aa0cd1537a3387307f4e28ace331b83efff5e",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 26,
+          "sha256": "91d63ffb45f4a76a79bff4379fe905d62101c92653b6e24f3836d2697c84ef7f",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 31,
+          "sha256": "7bf9d7a0fb6b73c09f3f9b36a7536b940bc0a0fef96bbf59d7ee8c88a6870817",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 38,
+          "sha256": "5b48ba87dcd2ab9bce03ced9dc96702ece871e43b15532c47d9d52c84b861dc8",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 43,
+          "sha256": "f240bfbba34a936b3a65cf505996c38ce38ef9809e824c3c0032ae7412e2a37e",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 47,
+          "sha256": "e5b3713040d1fb69b8934966070261a265f630c0f703690c7e9282ddda812aa1",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 28280,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 613
+      },
+      "raw_requests": {
+        "001.json": "4123362f210450e46be69d368511ef695812180b13a1e499bc73706f78d5634b",
+        "002.json": "de96faf2f06dd26f89f2748b5cd13b73c3a79936dc924f15a61eb344467f3183",
+        "003.json": "3974c57fcec47446bae42d46c98be4ccaaff63af888c353825781026f039c90e",
+        "004.json": "6b0f0abecb684185552a2f8c7f7aa0cd1537a3387307f4e28ace331b83efff5e",
+        "005.json": "91d63ffb45f4a76a79bff4379fe905d62101c92653b6e24f3836d2697c84ef7f",
+        "006.json": "7bf9d7a0fb6b73c09f3f9b36a7536b940bc0a0fef96bbf59d7ee8c88a6870817",
+        "007.json": "5b48ba87dcd2ab9bce03ced9dc96702ece871e43b15532c47d9d52c84b861dc8",
+        "008.json": "f240bfbba34a936b3a65cf505996c38ce38ef9809e824c3c0032ae7412e2a37e",
+        "009.json": "e5b3713040d1fb69b8934966070261a265f630c0f703690c7e9282ddda812aa1"
+      },
+      "terminal_sha256": "93ddae086fde30f15da96d2fb732bbf4fffcbb09ed0be6ac10b0b561e097327c",
+      "calls": 6,
+      "results": 6,
+      "jobs": {
+        "1": {
+          "status": "done",
+          "reason": null,
+          "sha256": "db4bc05817ced393f0281be6810a115dd5d1ca12c911e6cc35c115c834b219c4",
+          "bytes": 27
+        },
+        "2": {
+          "status": "killed",
+          "reason": "kill_job",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        "3": {
+          "status": "killed",
+          "reason": "shutdown",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      }
+    },
+    "controls-openai": {
+      "directory": "controls-openai",
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "requested_model": "gpt-4.1-mini",
+      "requests": [
+        {
+          "log": "session.log",
+          "seq": 4,
+          "sha256": "496cc299b9a6538de932dcb7ab0f873c4e3980055ab94c0712fa9cbe43b70679",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 10,
+          "sha256": "7429bb319caa26930d5d172166b474c390e25ece5e5455244b806fbf2eb7e3a0",
+          "hints": [
+            7
+          ]
+        },
+        {
+          "log": "session.log",
+          "seq": 15,
+          "sha256": "e94275332153731969a0140d5a325649df8f58da67502148249602339d4e13b3",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 22,
+          "sha256": "cebeaa4e679acdd787fcf66927c7f7af306d46f5ab465cd016c2958fd7d98ed2",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 27,
+          "sha256": "e6d97f6f8135ebc46bdee5384c73785b3db1d4bfb697a39751dfa3aed29d5404",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 34,
+          "sha256": "81b5541e2894ad6383898ae67add261edd4e44379f0cf057be4136889bfa9f04",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 39,
+          "sha256": "7866d209f20e4c3a98aa9b0294403b1ea6ddebafbec71bd489199edb4157fbd3",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 43,
+          "sha256": "95076d60ef353fceee145abe917fa59c48ee18d35b4bbfde4e783d3a1ede7f54",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 5247,
+        "cache_write": 0,
+        "cache_read": 7040,
+        "output": 267
+      },
+      "raw_requests": {
+        "001.json": "496cc299b9a6538de932dcb7ab0f873c4e3980055ab94c0712fa9cbe43b70679",
+        "002.json": "7429bb319caa26930d5d172166b474c390e25ece5e5455244b806fbf2eb7e3a0",
+        "003.json": "e94275332153731969a0140d5a325649df8f58da67502148249602339d4e13b3",
+        "004.json": "cebeaa4e679acdd787fcf66927c7f7af306d46f5ab465cd016c2958fd7d98ed2",
+        "005.json": "e6d97f6f8135ebc46bdee5384c73785b3db1d4bfb697a39751dfa3aed29d5404",
+        "006.json": "81b5541e2894ad6383898ae67add261edd4e44379f0cf057be4136889bfa9f04",
+        "007.json": "7866d209f20e4c3a98aa9b0294403b1ea6ddebafbec71bd489199edb4157fbd3",
+        "008.json": "95076d60ef353fceee145abe917fa59c48ee18d35b4bbfde4e783d3a1ede7f54"
+      },
+      "terminal_sha256": "4087e33e37b7583d7d0453e298179ccdf1b8d428fdff46b0f0b0af8f13eb3dcf",
+      "calls": 5,
+      "results": 5,
+      "jobs": {
+        "1": {
+          "status": "done",
+          "reason": null,
+          "sha256": "db4bc05817ced393f0281be6810a115dd5d1ca12c911e6cc35c115c834b219c4",
+          "bytes": 27
+        },
+        "2": {
+          "status": "killed",
+          "reason": "kill_job",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        "3": {
+          "status": "killed",
+          "reason": "shutdown",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      }
+    },
+    "controls-gemini": {
+      "directory": "controls-gemini38-r1",
+      "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+      "requested_model": "models/gemini-3.8-flash",
+      "requests": [
+        {
+          "log": "session.log",
+          "seq": 4,
+          "sha256": "79cb979a862d75056709699aaf6b910d3334c525a975cf49a57a97e4f970de6c",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 10,
+          "sha256": "a0b2db3f05311c3c1f6c1842011d518f74c8dc797b1228585f08995fb583a03f",
+          "hints": [
+            7
+          ]
+        },
+        {
+          "log": "session.log",
+          "seq": 15,
+          "sha256": "512c430d592243ff59347c60838bc696d7609b8382c0919475956ca697a59363",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 19,
+          "sha256": "982fd58ba7eca092ef4e815a3a489fb59f0504973d47960b2bde60f9b9c0f0f7",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 24,
+          "sha256": "6aa3ad3c19d3c94ec79779a82bb6a2129dfe0d32829db6554d273edfde6822b3",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 28,
+          "sha256": "d98356a85597e0f5d3db18e5de4509a41fc013bf1e2218d506fdb50a9efab3af",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 33,
+          "sha256": "001bc0de1880d76c8e28213e27584c1d1405ba8261d9170738802df3c191e7dc",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 38,
+          "sha256": "5957ee3341494e8c5414e73daf3cb637133518c5b49dd6c253058d9520e4699a",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 43,
+          "sha256": "7e702b2359685e8d655b58f2cef5de0041609b68b2c86161374b57dcc941dc44",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 50,
+          "sha256": "6506035fe338baceb5335b9b0de207aa2a42676ca24642b44844d25422d6a342",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 55,
+          "sha256": "5d825f2be52337c75d6cd5ae00cf7c14e30d77fd2cb7118ba856982962d712bc",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 59,
+          "sha256": "71ec379e01cc332ec936c15573a043e04147f3f1d1ff2189b18a4a6b3d9ced84",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 64,
+          "sha256": "787c518e8095cb92371d5e8bd9e4bb3dfdb285ba50abaef0395748eebbe0912a",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 69,
+          "sha256": "bee26495df1734a4dc7b8d01d4b66ce86410bf543b5c69fe4c1f7a4f7945fdcd",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 73,
+          "sha256": "a7f6d1b99f51ab64daf438cc20a4dfa427f04b42ea19c0f80232e44927ba1a77",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 45025,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 1423
+      },
+      "raw_requests": {
+        "001.json": "79cb979a862d75056709699aaf6b910d3334c525a975cf49a57a97e4f970de6c",
+        "002.json": "a0b2db3f05311c3c1f6c1842011d518f74c8dc797b1228585f08995fb583a03f",
+        "003.json": "512c430d592243ff59347c60838bc696d7609b8382c0919475956ca697a59363",
+        "004.json": "982fd58ba7eca092ef4e815a3a489fb59f0504973d47960b2bde60f9b9c0f0f7",
+        "005.json": "6aa3ad3c19d3c94ec79779a82bb6a2129dfe0d32829db6554d273edfde6822b3",
+        "006.json": "d98356a85597e0f5d3db18e5de4509a41fc013bf1e2218d506fdb50a9efab3af",
+        "007.json": "001bc0de1880d76c8e28213e27584c1d1405ba8261d9170738802df3c191e7dc",
+        "008.json": "5957ee3341494e8c5414e73daf3cb637133518c5b49dd6c253058d9520e4699a",
+        "009.json": "7e702b2359685e8d655b58f2cef5de0041609b68b2c86161374b57dcc941dc44",
+        "010.json": "6506035fe338baceb5335b9b0de207aa2a42676ca24642b44844d25422d6a342",
+        "011.json": "5d825f2be52337c75d6cd5ae00cf7c14e30d77fd2cb7118ba856982962d712bc",
+        "012.json": "71ec379e01cc332ec936c15573a043e04147f3f1d1ff2189b18a4a6b3d9ced84",
+        "013.json": "787c518e8095cb92371d5e8bd9e4bb3dfdb285ba50abaef0395748eebbe0912a",
+        "014.json": "bee26495df1734a4dc7b8d01d4b66ce86410bf543b5c69fe4c1f7a4f7945fdcd",
+        "015.json": "a7f6d1b99f51ab64daf438cc20a4dfa427f04b42ea19c0f80232e44927ba1a77"
+      },
+      "terminal_sha256": "e7a0d5b0c4828b55ce0dd77bfdd93dab2dfd256b223919391e23b6b96ae29987",
+      "calls": 8,
+      "results": 8,
+      "jobs": {
+        "1": {
+          "status": "done",
+          "reason": null,
+          "sha256": "db4bc05817ced393f0281be6810a115dd5d1ca12c911e6cc35c115c834b219c4",
+          "bytes": 27
+        },
+        "2": {
+          "status": "killed",
+          "reason": "kill_job",
+          "sha256": "d0e5548cb73e971eab57a2a34917e799c5cfb836b88007726f5112b7ae848825",
+          "bytes": 43
+        },
+        "3": {
+          "status": "killed",
+          "reason": "kill_job",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        },
+        "4": {
+          "status": "killed",
+          "reason": "shutdown",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "bytes": 0
+        }
+      }
+    },
+    "eof-anthropic": {
+      "directory": "eof-anthropic",
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "requested_model": "claude-haiku-4-5-20251001",
+      "requests": [
+        {
+          "log": "session.log",
+          "seq": 3,
+          "sha256": "57d69a83cbc0d638e2ddbaa906bdd46864ee0bec54cf5b2032ac812ffc945ebd",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 8,
+          "sha256": "64144640a6fe5eb8e5404d6afbc5465a3c612ef3ba347785fcc34696c88711f0",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 5108,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 14
+      },
+      "raw_requests": {
+        "001.json": "57d69a83cbc0d638e2ddbaa906bdd46864ee0bec54cf5b2032ac812ffc945ebd",
+        "002.json": "64144640a6fe5eb8e5404d6afbc5465a3c612ef3ba347785fcc34696c88711f0"
+      },
+      "terminal_sha256": "97e839ca70d1a3f48d0a4894efb532b8fdd65dd27db5e60df91eafe3402d0c39",
+      "calls": 0,
+      "results": 0,
+      "jobs": {}
+    },
+    "eof-openai": {
+      "directory": "eof-openai",
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "requested_model": "gpt-4.1-mini",
+      "requests": [
+        {
+          "log": "session.log",
+          "seq": 3,
+          "sha256": "d7c1582a6df1e5139b650681cc7e5b661b902bef13dd0cbc502121deb928fb01",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 8,
+          "sha256": "29f8756d3ef54a9cc235397bf746604476e0e4f7245e473ab2798b6e1be467b4",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 1309,
+        "cache_write": 0,
+        "cache_read": 1152,
+        "output": 7
+      },
+      "raw_requests": {
+        "001.json": "d7c1582a6df1e5139b650681cc7e5b661b902bef13dd0cbc502121deb928fb01",
+        "002.json": "29f8756d3ef54a9cc235397bf746604476e0e4f7245e473ab2798b6e1be467b4"
+      },
+      "terminal_sha256": "aa9f045212cddea480a4b45f1816dfd9f49d45d27bbe58165ccd11959112b1d1",
+      "calls": 0,
+      "results": 0,
+      "jobs": {}
+    },
+    "eof-gemini": {
+      "directory": "eof-gemini38-r1",
+      "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+      "requested_model": "models/gemini-3.8-flash",
+      "requests": [
+        {
+          "log": "session.log",
+          "seq": 3,
+          "sha256": "695a9fa0f1d90666a587f958a5426592ea212e7b4a5e94d33a7be38b786694e6",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 8,
+          "sha256": "c288e3358d04590a9b1b591820f9d5bfcb5c8d8427fca1831f17a5d9e4d23d67",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 3609,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 68
+      },
+      "raw_requests": {
+        "001.json": "695a9fa0f1d90666a587f958a5426592ea212e7b4a5e94d33a7be38b786694e6",
+        "002.json": "c288e3358d04590a9b1b591820f9d5bfcb5c8d8427fca1831f17a5d9e4d23d67"
+      },
+      "terminal_sha256": "1bbd780afe1e1279fbcdc568bd1c91733803c7e822659a7594df7ff86b7bb51a",
+      "calls": 0,
+      "results": 0,
+      "jobs": {}
+    },
+    "workflow-anthropic": {
+      "directory": "workflow-anthropic",
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "requested_model": "claude-haiku-4-5-20251001",
+      "requests": [
+        {
+          "log": "author.log",
+          "seq": 3,
+          "sha256": "9c75078e617e5c2d8188bdbe8cbeaf0b217e767c823999a71078efee619af62a",
+          "hints": []
+        },
+        {
+          "log": "author.log",
+          "seq": 8,
+          "sha256": "22ca611bf60e5bf5539af7d96517ac586fc42c0810c9b18b645279a9a8fdee23",
+          "hints": []
+        },
+        {
+          "log": "editor.log",
+          "seq": 3,
+          "sha256": "58af30f5b4785af340b2fb52cae425fc0542891eb18a4ea0d98d86cc94d2bd93",
+          "hints": []
+        },
+        {
+          "log": "editor.log",
+          "seq": 8,
+          "sha256": "17ed09dc552062c5dca75e5bceeb18f4e2761cd30676dec73a7e57e7134914b5",
+          "hints": []
+        },
+        {
+          "log": "editor.log",
+          "seq": 13,
+          "sha256": "dbffd5d80dcf16cf464122b8721e0835b22edcbd8a61b564ce6d51cf8cd7c2ec",
+          "hints": []
+        },
+        {
+          "log": "reviewer.log",
+          "seq": 3,
+          "sha256": "1cf5a1e8c31c3aefe142305f98cf875133a9af433d38a1f8d32cf6d2b6cd9512",
+          "hints": []
+        },
+        {
+          "log": "reviewer.log",
+          "seq": 8,
+          "sha256": "24e8bd306b74d2f2e1542e22cc19700ac7f02b45065a04155dd12dce34cceab3",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 8593,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 913
+      },
+      "raw_requests": {
+        "001.json": "9c75078e617e5c2d8188bdbe8cbeaf0b217e767c823999a71078efee619af62a",
+        "002.json": "22ca611bf60e5bf5539af7d96517ac586fc42c0810c9b18b645279a9a8fdee23",
+        "003.json": "58af30f5b4785af340b2fb52cae425fc0542891eb18a4ea0d98d86cc94d2bd93",
+        "004.json": "17ed09dc552062c5dca75e5bceeb18f4e2761cd30676dec73a7e57e7134914b5",
+        "005.json": "dbffd5d80dcf16cf464122b8721e0835b22edcbd8a61b564ce6d51cf8cd7c2ec",
+        "006.json": "1cf5a1e8c31c3aefe142305f98cf875133a9af433d38a1f8d32cf6d2b6cd9512",
+        "007.json": "24e8bd306b74d2f2e1542e22cc19700ac7f02b45065a04155dd12dce34cceab3"
+      },
+      "terminal_sha256": "d345576c1b21bcfe7ff6007fd9c52576533b6a6f1aed59099785e474b1634bbb",
+      "calls": 4,
+      "results": 4,
+      "jobs": {
+        "1": {
+          "status": "done",
+          "reason": null,
+          "sha256": "5b8730a13c1f3ae5de93306e8bccde1a726acbdb34721297e83cc844b2c5fade",
+          "bytes": 30
+        },
+        "2": {
+          "status": "done",
+          "reason": null,
+          "sha256": "90c3e1a81d6c115dbb0a702a12ad0c10d65020a896fc6e94fe7aa1325bb5d79a",
+          "bytes": 473
+        },
+        "3": {
+          "status": "done",
+          "reason": null,
+          "sha256": "9a5d14adf2e4e5b00a5872a7d011f07400ff13f68ecef71d77b642405f3276c4",
+          "bytes": 42
+        },
+        "4": {
+          "status": "done",
+          "reason": null,
+          "sha256": "3c645581c4f198f84f1ffd49787b73abacdf39cae90b99cb784c1f2a73aad576",
+          "bytes": 479
+        }
+      }
+    },
+    "workflow-openai": {
+      "directory": "workflow-openai",
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "requested_model": "gpt-4.1-mini",
+      "requests": [
+        {
+          "log": "author.log",
+          "seq": 3,
+          "sha256": "3ff1f026e445cad85075fb28a0252dc7eb49bd97f857a9d15266e203ef314a40",
+          "hints": []
+        },
+        {
+          "log": "author.log",
+          "seq": 8,
+          "sha256": "e0d30477bfa205217316b30c7266703430cd8644763010d131411348d438cbf2",
+          "hints": []
+        },
+        {
+          "log": "editor.log",
+          "seq": 3,
+          "sha256": "8ff45a14819b57173238432840577498e1f5c47d135a661130804d1b6dca17a6",
+          "hints": []
+        },
+        {
+          "log": "editor.log",
+          "seq": 8,
+          "sha256": "50f2aad5ee84a1e5f81610b1102a37092dee7194d696143f91699f36664b64bf",
+          "hints": []
+        },
+        {
+          "log": "editor.log",
+          "seq": 13,
+          "sha256": "45236f8f4840ab61614ec593bac0f0aae3da844fdb8e7368b3829045977956c6",
+          "hints": []
+        },
+        {
+          "log": "reviewer.log",
+          "seq": 3,
+          "sha256": "9b87551631c10de198234d8b659aa61d5b8a7d87e64de943966459dddb5e8dea",
+          "hints": []
+        },
+        {
+          "log": "reviewer.log",
+          "seq": 8,
+          "sha256": "454609af502501a66e89b1b8c0635b70606c0cdfa4325727877df1ce0df53872",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 3185,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 375
+      },
+      "raw_requests": {
+        "001.json": "3ff1f026e445cad85075fb28a0252dc7eb49bd97f857a9d15266e203ef314a40",
+        "002.json": "e0d30477bfa205217316b30c7266703430cd8644763010d131411348d438cbf2",
+        "003.json": "8ff45a14819b57173238432840577498e1f5c47d135a661130804d1b6dca17a6",
+        "004.json": "50f2aad5ee84a1e5f81610b1102a37092dee7194d696143f91699f36664b64bf",
+        "005.json": "45236f8f4840ab61614ec593bac0f0aae3da844fdb8e7368b3829045977956c6",
+        "006.json": "9b87551631c10de198234d8b659aa61d5b8a7d87e64de943966459dddb5e8dea",
+        "007.json": "454609af502501a66e89b1b8c0635b70606c0cdfa4325727877df1ce0df53872"
+      },
+      "terminal_sha256": "d9a400192ba8e96a55ae42d7511cf958389db4e95d08c0806a647b99ec16093d",
+      "calls": 4,
+      "results": 4,
+      "jobs": {
+        "1": {
+          "status": "done",
+          "reason": null,
+          "sha256": "83eecbd21f4027a71327f4ef821ebd055f1ca87f337dc48024b8b30289ab1d3d",
+          "bytes": 30
+        },
+        "2": {
+          "status": "done",
+          "reason": null,
+          "sha256": "e8a7afe2366e49a6a9daba89f5e6cbddca8fbe2a635094a444a410d9b7d2d142",
+          "bytes": 317
+        },
+        "3": {
+          "status": "done",
+          "reason": null,
+          "sha256": "9a5d14adf2e4e5b00a5872a7d011f07400ff13f68ecef71d77b642405f3276c4",
+          "bytes": 42
+        },
+        "4": {
+          "status": "done",
+          "reason": null,
+          "sha256": "ce41a29b113caeca5e64d4a60f75de5d653a981f39d49e937945e67cbb330885",
+          "bytes": 355
+        }
+      }
+    },
+    "workflow-gemini": {
+      "directory": "workflow-gemini38-r1",
+      "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+      "requested_model": "models/gemini-3.8-flash",
+      "requests": [
+        {
+          "log": "author.log",
+          "seq": 3,
+          "sha256": "befb80e6b995f6d9183aff69ebf5745d503996f3b992e8b5de09dc779c2f1fce",
+          "hints": []
+        },
+        {
+          "log": "author.log",
+          "seq": 8,
+          "sha256": "ff129faa2eea85993db1191ce4150fe80111f0f7b5917c32b7fe7eacc2705b32",
+          "hints": []
+        },
+        {
+          "log": "editor.log",
+          "seq": 3,
+          "sha256": "4c4e5b675a413a7dfbbf8755f8a26837c27aed3f48e6f57537985bc5fec985fe",
+          "hints": []
+        },
+        {
+          "log": "editor.log",
+          "seq": 8,
+          "sha256": "ef79fe5d84bad7a5638cf8ccae4e9e5dc98b13e3e554bc97d83d2d677d4d687a",
+          "hints": []
+        },
+        {
+          "log": "editor.log",
+          "seq": 13,
+          "sha256": "c7402bb71fe83ef217703ed25631dd0233a3b3eacff141dc028c18041c017678",
+          "hints": []
+        },
+        {
+          "log": "editor.log",
+          "seq": 18,
+          "sha256": "02b681fab8961107558e100a1e39feed2d891e4d47ca59679f116d022571b9a0",
+          "hints": []
+        },
+        {
+          "log": "reviewer.log",
+          "seq": 3,
+          "sha256": "db1ececf7d93865d7e34809fca079dae8810e837a4c7765a363f08c42bace0e9",
+          "hints": []
+        },
+        {
+          "log": "reviewer.log",
+          "seq": 8,
+          "sha256": "8f6015f748d5e93b213a9fcd04f35b36d46f3f63616f5d9d4901a2a91b627074",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 7894,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 2218
+      },
+      "raw_requests": {
+        "001.json": "befb80e6b995f6d9183aff69ebf5745d503996f3b992e8b5de09dc779c2f1fce",
+        "002.json": "ff129faa2eea85993db1191ce4150fe80111f0f7b5917c32b7fe7eacc2705b32",
+        "003.json": "4c4e5b675a413a7dfbbf8755f8a26837c27aed3f48e6f57537985bc5fec985fe",
+        "004.json": "ef79fe5d84bad7a5638cf8ccae4e9e5dc98b13e3e554bc97d83d2d677d4d687a",
+        "005.json": "c7402bb71fe83ef217703ed25631dd0233a3b3eacff141dc028c18041c017678",
+        "006.json": "02b681fab8961107558e100a1e39feed2d891e4d47ca59679f116d022571b9a0",
+        "007.json": "db1ececf7d93865d7e34809fca079dae8810e837a4c7765a363f08c42bace0e9",
+        "008.json": "8f6015f748d5e93b213a9fcd04f35b36d46f3f63616f5d9d4901a2a91b627074"
+      },
+      "terminal_sha256": "ea938ab436adb1b45e65ea8a5748e93123c2ae33d94fc89fbf6ae787767dffae",
+      "calls": 5,
+      "results": 5,
+      "jobs": {
+        "1": {
+          "status": "done",
+          "reason": null,
+          "sha256": "43ceae702aa834448fd2175f457470629a249d3fbfa34cb78276f3bd13ffb178",
+          "bytes": 28
+        },
+        "2": {
+          "status": "done",
+          "reason": null,
+          "sha256": "7e46d5f92f3092dc56fc13f1af9ccb998e631a745aff0642c8cb4829a8c70580",
+          "bytes": 456
+        },
+        "3": {
+          "status": "done",
+          "reason": null,
+          "sha256": "9a5d14adf2e4e5b00a5872a7d011f07400ff13f68ecef71d77b642405f3276c4",
+          "bytes": 42
+        },
+        "4": {
+          "status": "done",
+          "reason": null,
+          "sha256": "7145ed5896c8478d4217314ce9bc4d2d3c1e42635f76192ed9d2b84f5e5e739f",
+          "bytes": 494
+        },
+        "5": {
+          "status": "done",
+          "reason": null,
+          "sha256": "7145ed5896c8478d4217314ce9bc4d2d3c1e42635f76192ed9d2b84f5e5e739f",
+          "bytes": 494
+        }
+      }
+    },
+    "collection-anthropic": {
+      "directory": "collection-anthropic",
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "requested_model": "claude-haiku-4-5-20251001",
+      "requests": [
+        {
+          "log": "collection-1.log",
+          "seq": 3,
+          "sha256": "89dfe0e063b840b0dd36dae0b87a494722c833186c02c0061ef3ea92168dadbe",
+          "hints": []
+        },
+        {
+          "log": "collection-2.log",
+          "seq": 3,
+          "sha256": "62762f82d346539d4a7615b984cdf3f9bcd11caaae81434be916134fe55a94be",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 92,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 14
+      },
+      "raw_requests": {
+        "001.json": "89dfe0e063b840b0dd36dae0b87a494722c833186c02c0061ef3ea92168dadbe",
+        "002.json": "62762f82d346539d4a7615b984cdf3f9bcd11caaae81434be916134fe55a94be"
+      },
+      "terminal_sha256": "7d818ccd5b864056cc55b895814f489badd2d8771c4f225ff74d5f66fb00191a",
+      "calls": 0,
+      "results": 0,
+      "jobs": {}
+    },
+    "collection-openai": {
+      "directory": "collection-openai",
+      "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+      "requested_model": "gpt-4.1-mini",
+      "requests": [
+        {
+          "log": "collection-1.log",
+          "seq": 3,
+          "sha256": "8674628b2930bf581bb81f0a0bc56b6e39383edc1d273bcb5aa479a4ed2e1d50",
+          "hints": []
+        },
+        {
+          "log": "collection-2.log",
+          "seq": 3,
+          "sha256": "1b5914b5649181489d844f49be16a8235f4ffee92ae5aaee983b486421a2495c",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 90,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 8
+      },
+      "raw_requests": {
+        "001.json": "8674628b2930bf581bb81f0a0bc56b6e39383edc1d273bcb5aa479a4ed2e1d50",
+        "002.json": "1b5914b5649181489d844f49be16a8235f4ffee92ae5aaee983b486421a2495c"
+      },
+      "terminal_sha256": "7d818ccd5b864056cc55b895814f489badd2d8771c4f225ff74d5f66fb00191a",
+      "calls": 0,
+      "results": 0,
+      "jobs": {}
+    },
+    "collection-gemini": {
+      "directory": "collection-gemini38-r1",
+      "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+      "requested_model": "models/gemini-3.8-flash",
+      "requests": [
+        {
+          "log": "collection-1.log",
+          "seq": 3,
+          "sha256": "e50b132d7216bc6c29f7215955d77b2b3f8c92d8a09917ed095fe93ad82a46f4",
+          "hints": []
+        },
+        {
+          "log": "collection-2.log",
+          "seq": 3,
+          "sha256": "d73c45138e0685f7c7df0dea347cf7ab8633b9a5f89ab03837ffdfca0e1d118b",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 74,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 232
+      },
+      "raw_requests": {
+        "001.json": "e50b132d7216bc6c29f7215955d77b2b3f8c92d8a09917ed095fe93ad82a46f4",
+        "002.json": "d73c45138e0685f7c7df0dea347cf7ab8633b9a5f89ab03837ffdfca0e1d118b"
+      },
+      "terminal_sha256": "7d818ccd5b864056cc55b895814f489badd2d8771c4f225ff74d5f66fb00191a",
+      "calls": 0,
+      "results": 0,
+      "jobs": {}
+    },
+    "input-anthropic": {
+      "directory": "input-anthropic-r1",
+      "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+      "requested_model": "claude-haiku-4-5-20251001",
+      "requests": [
+        {
+          "log": "session.log",
+          "seq": 3,
+          "sha256": "960e508c6b3856dd0a21fc713cbbbe7932e75af7b6e27ba48d86b0890bb3e04d",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 7,
+          "sha256": "3ffa343e4ad51d55f3d13a333c698d809138ecadad8acba31f9ee60f77ccc2e8",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 12,
+          "sha256": "a2fdb9662569e7cd8d2de794e2f53f5c90aaf805d390fe5e7b526b60cb02b694",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 16,
+          "sha256": "98cbe7c46f310bef4e6811e8f753987a587a2ab5e11abbe988c11142a610bd93",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 21,
+          "sha256": "d1a8e5ab64b512e56dab1df7ea6418673e8bbce19ddb2bd36a63d1ad56ff20d8",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 26,
+          "sha256": "2828e6ece4b1ca911eff5765da128f8773ada4370871d4e9dfcbf92ec34df19e",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 17896,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 443
+      },
+      "raw_requests": {
+        "001.json": "960e508c6b3856dd0a21fc713cbbbe7932e75af7b6e27ba48d86b0890bb3e04d",
+        "002.json": "3ffa343e4ad51d55f3d13a333c698d809138ecadad8acba31f9ee60f77ccc2e8",
+        "003.json": "a2fdb9662569e7cd8d2de794e2f53f5c90aaf805d390fe5e7b526b60cb02b694",
+        "004.json": "98cbe7c46f310bef4e6811e8f753987a587a2ab5e11abbe988c11142a610bd93",
+        "005.json": "d1a8e5ab64b512e56dab1df7ea6418673e8bbce19ddb2bd36a63d1ad56ff20d8",
+        "006.json": "2828e6ece4b1ca911eff5765da128f8773ada4370871d4e9dfcbf92ec34df19e"
+      },
+      "terminal_sha256": "89e828d2c000e907a7916c200cd01dbe7b0c4f97a0e507cfc9e5eca2eb1a5993",
+      "calls": 3,
+      "results": 3,
+      "jobs": {
+        "1": {
+          "status": "killed",
+          "reason": "kill_job",
+          "sha256": "d0e5548cb73e971eab57a2a34917e799c5cfb836b88007726f5112b7ae848825",
+          "bytes": 43
+        }
+      }
+    },
+    "input-openai": {
+      "directory": "input-openai-r1",
+      "source_revision": "959c663400b74927578a3609ce58b0a51263e654",
+      "requested_model": "gpt-4.1-mini",
+      "requests": [
+        {
+          "log": "session.log",
+          "seq": 3,
+          "sha256": "32f82da50ef69999ab32fd3d87dd63eae58d9ea768d0f0b325a71e2d4c9a3ec3",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 7,
+          "sha256": "96bc569e28c695eb0dce4a6c7492f34b88e5bb8d78725ea94ffe117d41827d4f",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 12,
+          "sha256": "f46c696f97e0aa7c16dc512bf7c9cf569b3d50c28f9ea58f8f47bd829a61e811",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 16,
+          "sha256": "76be1519729e8617fd44ab5b0c7891f07822016f47b77beeeca878e1058cc12f",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 21,
+          "sha256": "eef03e20799f406415716e790701301ac710d93f3013fb2a4a6ca122e3208c1f",
+          "hints": []
+        },
+        {
+          "log": "session.log",
+          "seq": 26,
+          "sha256": "8c058cadf56084448b4057aa85ce88aece744feaf0d58fd30dfe378f18123dc4",
+          "hints": []
+        }
+      ],
+      "usage": {
+        "input": 891,
+        "cache_write": 0,
+        "cache_read": 8064,
+        "output": 181
+      },
+      "raw_requests": {
+        "001.json": "32f82da50ef69999ab32fd3d87dd63eae58d9ea768d0f0b325a71e2d4c9a3ec3",
+        "002.json": "96bc569e28c695eb0dce4a6c7492f34b88e5bb8d78725ea94ffe117d41827d4f",
+        "003.json": "f46c696f97e0aa7c16dc512bf7c9cf569b3d50c28f9ea58f8f47bd829a61e811",
+        "004.json": "76be1519729e8617fd44ab5b0c7891f07822016f47b77beeeca878e1058cc12f",
+        "005.json": "eef03e20799f406415716e790701301ac710d93f3013fb2a4a6ca122e3208c1f",
+        "006.json": "8c058cadf56084448b4057aa85ce88aece744feaf0d58fd30dfe378f18123dc4"
+      },
+      "terminal_sha256": "4c9ab606b58c8ea309f4e323be1e47a5e14db783865e77abe5ab95c832efa1c1",
+      "calls": 3,
+      "results": 3,
+      "jobs": {
+        "1": {
+          "status": "killed",
+          "reason": "kill_job",
+          "sha256": "d0e5548cb73e971eab57a2a34917e799c5cfb836b88007726f5112b7ae848825",
+          "bytes": 43
+        }
+      }
+    }
+  }
+}

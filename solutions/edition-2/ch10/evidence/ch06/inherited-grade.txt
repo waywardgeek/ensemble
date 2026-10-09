@@ -1,0 +1,46 @@
+go run ./cmd/grade -ch 7 solutions/edition-2/main
+cannot create fresh event log
+Chapter 7 — Streaming
+============================================================
+
+[FAIL]      content streams as many deltas  (0/20)
+       saw 0 text deltas, want at least 8
+       a response delivered as one chunk reports exactly 1; that is the
+       failure this check exists to catch
+       zero text deltas usually means the request never asked to stream, or
+       the response content type was not checked
+
+[FAIL]      deltas reassemble into their finalized part  (0/20)
+       no text part_final observations were reported
+       a stream needs a final: deltas are for watching, the finalized part is
+       the authority a client re-renders from
+
+[FAIL]      reasoning streams under its own kind  (0/15)
+       saw 0 deltas of kind "thinking", want at least 2
+       the scripted response contains a reasoning block; reporting none means
+       thinking deltas are dropped or labelled as text
+       labelling reasoning as text is worse than dropping it: it lands in the
+       answer
+
+[FAIL]      tool calls stream name and arguments  (0/15)
+       saw 0 deltas of kind "tool_call", want at least 3 (a name and several
+       argument fragments)
+       the scripted response calls a tool; reporting no tool_call deltas
+       means the arguments were never surfaced
+
+[FAIL]      streaming changes delivery, not content  (0/10)
+       neither run produced an assistant line
+
+[FAIL]      chapter 6 behavior is unchanged  (0/20)
+       3 ch6 check(s) now fail: [ch5-parity (ch5 check "logger-accessible"
+       failed: no back-pointer interface reaches the logger from a tool:
+       common.ClientOwner has [Logf], but no struct outside package common
+       stores it as a field and logs through it (a closure field does not
+       count)) observer-fires (no state_changed observations) loud-refusal
+       (no loud refusal for unknown model - expected error mentioning model
+       name)]
+
+------------------------------------------------------------
+score: 0/100 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1

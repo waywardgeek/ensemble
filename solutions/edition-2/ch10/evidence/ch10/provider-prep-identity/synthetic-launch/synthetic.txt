@@ -1,0 +1,1 @@
+Identity-only launch fixture. No process or provider was invoked. Actual Go builds retain their original associations.

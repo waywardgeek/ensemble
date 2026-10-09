@@ -1,0 +1,9 @@
+{
+  "label": "neutral-event replay with rewritten admission times",
+  "event_count": 38,
+  "order_seq_and_all_non_time_fields_exact": true,
+  "rewritten_admission_times": 38,
+  "retained_sha256": "b2b794c475d08c5ee734d7b555e4808f4058f023868eeb96a68a1a908bba521d",
+  "readmitted_sha256": "146f6ea87e80d4af9f1c3902702025076b5337b7f174043927c377d1569d2f92",
+  "new_model_requests": 0
+}

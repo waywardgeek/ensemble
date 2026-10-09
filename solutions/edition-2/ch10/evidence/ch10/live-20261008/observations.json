@@ -1,0 +1,604 @@
+{
+  "source_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "support_revision": "9822b2b63257724001d7af195b377483baad3531",
+  "binding_sha256": "f9741f990f4cbe7c12cbccd8ab840568558487468dda99e01f70c610e2592fb8",
+  "provider_results": {
+    "anthropic": {
+      "selected_model": "claude-sonnet-4-6",
+      "generation_attempts": 11,
+      "discovery_attempts": 1,
+      "rows": {
+        "A": 3,
+        "B": 1,
+        "C": 3,
+        "D": 4
+      },
+      "all_transport_200": true,
+      "session_id": "5503344236dd1eadab40fff112ff06a1",
+      "original_checkpoint": 25,
+      "tail_checkpoint": 30,
+      "public_outcomes": [
+        "success",
+        "success",
+        "success"
+      ],
+      "exact_request_comparisons": [
+        {
+          "seq": 4,
+          "captured": "anthropic-A1/002-request.json",
+          "reconstructed": "anthropic-offline/public/latest-request-4.json",
+          "sha256": "03dae3dfaea1ed9774a9363cd857b7a9ca0118070f9ceb8e44cad4b1c60fc2be"
+        },
+        {
+          "seq": 9,
+          "captured": "anthropic-A1/003-request.json",
+          "reconstructed": "anthropic-offline/public/latest-request-9.json",
+          "sha256": "dbacd810be046fdccccb8e79ca06d4257478d87f9f6d61e959d4edd6da11859e"
+        },
+        {
+          "seq": 14,
+          "captured": "anthropic-A2/004-request.json",
+          "reconstructed": "anthropic-offline/public/latest-request-14.json",
+          "sha256": "840fa4648efd31df49b5e5087215f68869a188a3d5ae7c5b5b08cec8700a9f6c"
+        },
+        {
+          "seq": 19,
+          "captured": "anthropic-B/005-request.json",
+          "reconstructed": "anthropic-offline/public/latest-request-19.json",
+          "sha256": "8afd8c3fc0bc119b70af499bd8cf7fa5024996520d061e9c501ab32bfb84a6dd"
+        },
+        {
+          "seq": 28,
+          "captured": "anthropic-C/007-request.json",
+          "reconstructed": "anthropic-offline/public/latest-request-28.json",
+          "sha256": "af75fc6c18fa2b27e4ebb093957052d7503f14f1e3c9eeb3e33cac7b20a258be"
+        }
+      ],
+      "origin": {
+        "pre_origin_error": "history_unavailable",
+        "pre_origin_request_seq": 4,
+        "sha256": "00a604bc583f8146045efbc2d6712c59b70ccef2f12ba66eda482cd2dd1a632a",
+        "unchanged": true,
+        "usage_restored_once": true
+      },
+      "offline": {
+        "equal_render_context_history_usage_skills_watch_requests": true,
+        "inputs": "identical current Config; endpoints disabled; no new prompt admitted",
+        "provider_calls": 0
+      },
+      "speech_boundaries": [
+        {
+          "run": "anthropic-B",
+          "kind": "resume_speech"
+        },
+        {
+          "run": "anthropic-B",
+          "kind": "reconnect_speech"
+        },
+        {
+          "run": "anthropic-B",
+          "kind": "page_closed_speech"
+        },
+        {
+          "run": "anthropic-B",
+          "kind": "page_reopened_speech"
+        },
+        {
+          "run": "anthropic-B",
+          "kind": "resume_speech"
+        },
+        {
+          "run": "anthropic-B-restart",
+          "kind": "resume_speech"
+        }
+      ],
+      "policies": [
+        {
+          "revision": 0,
+          "max_model_requests": 0,
+          "effective_max_model_requests": 16
+        },
+        {
+          "revision": 0,
+          "max_model_requests": 0,
+          "effective_max_model_requests": 16
+        },
+        {
+          "revision": 1,
+          "max_model_requests": 1,
+          "effective_max_model_requests": 1
+        },
+        {
+          "revision": 1,
+          "max_model_requests": 2,
+          "effective_max_model_requests": 2
+        }
+      ],
+      "current_policy": {
+        "version": 1,
+        "revision": 1,
+        "policy": {
+          "max_model_requests": 1
+        }
+      },
+      "preferences": {
+        "version": 1,
+        "revision": 1,
+        "preferences": {
+          "theme": "dark",
+          "font_size": 18,
+          "sidebar_width": 260,
+          "actions_width": 380,
+          "autoplay": false,
+          "speech_rate": 1
+        }
+      },
+      "skills": {
+        "active": [
+          {
+            "activation": 1,
+            "name": "base",
+            "type": "primary"
+          },
+          {
+            "activation": 3,
+            "name": "scratch",
+            "type": "loadable"
+          }
+        ],
+        "available": [],
+        "primary": "base",
+        "retired": [
+          {
+            "activation": 2,
+            "name": "scratch"
+          }
+        ],
+        "revision": 3,
+        "roots": [
+          "scratch"
+        ],
+        "tools": [
+          "load_skill",
+          "tool_limits",
+          "unload_skill",
+          "write_file"
+        ]
+      },
+      "limits_consumption": {
+        "consumed_seq": 34,
+        "count": 1,
+        "first_call_seq": 35,
+        "observed": true
+      },
+      "synthetic_seed": {
+        "requests": 2,
+        "provider_requests": 0,
+        "input_tokens": 2,
+        "output_tokens": 2
+      },
+      "d_cumulative_usage_including_labeled_seed": [
+        {
+          "from": {
+            "model": "claude-sonnet-4-6",
+            "surface": "messages",
+            "vendor": "anthropic"
+          },
+          "usage": {
+            "cache_read": 0,
+            "cache_write": 0,
+            "input": 6605,
+            "output": 543
+          }
+        }
+      ]
+    },
+    "openai": {
+      "selected_model": "gpt-4.1",
+      "generation_attempts": 11,
+      "discovery_attempts": 1,
+      "rows": {
+        "A": 3,
+        "B": 1,
+        "C": 3,
+        "D": 4
+      },
+      "all_transport_200": true,
+      "session_id": "1a4cde8b4d0250e2a4672f28705392a8",
+      "original_checkpoint": 25,
+      "tail_checkpoint": 30,
+      "public_outcomes": [
+        "success",
+        "success",
+        "success"
+      ],
+      "exact_request_comparisons": [
+        {
+          "seq": 4,
+          "captured": "openai-A1/002-request.json",
+          "reconstructed": "openai-offline/public/latest-request-4.json",
+          "sha256": "452d0d631cbe892e618f3d2c35d0131df22a3019c996ed8039ba40496e315762"
+        },
+        {
+          "seq": 9,
+          "captured": "openai-A1/003-request.json",
+          "reconstructed": "openai-offline/public/latest-request-9.json",
+          "sha256": "38dbbf2c305def8c0d1f70c9352cab8aae4f2c3310db8f0c88449ffc42823339"
+        },
+        {
+          "seq": 14,
+          "captured": "openai-A2/004-request.json",
+          "reconstructed": "openai-offline/public/latest-request-14.json",
+          "sha256": "3d515e5b51a3f01a3ba7effec989fe6f0b18350edd5f15f3514afa917080e149"
+        },
+        {
+          "seq": 19,
+          "captured": "openai-B/005-request.json",
+          "reconstructed": "openai-offline/public/latest-request-19.json",
+          "sha256": "cd03f106ce672f7dbae87a2ce4e230c8e7b11f148b8f0a78baec02357cf5caef"
+        },
+        {
+          "seq": 28,
+          "captured": "openai-C/007-request.json",
+          "reconstructed": "openai-offline/public/latest-request-28.json",
+          "sha256": "77d19e4a55a8f0c8479d9f99e37eb69459f21735a0ab5e0bba913b0fbe2c2a1d"
+        }
+      ],
+      "origin": {
+        "pre_origin_error": "history_unavailable",
+        "pre_origin_request_seq": 4,
+        "sha256": "8c77b822232d69b2a671f7f11b1d5da6b1376d5d8f698f312f8bd5405e292072",
+        "unchanged": true,
+        "usage_restored_once": true
+      },
+      "offline": {
+        "equal_render_context_history_usage_skills_watch_requests": true,
+        "inputs": "identical current Config; endpoints disabled; no new prompt admitted",
+        "provider_calls": 0
+      },
+      "speech_boundaries": [
+        {
+          "run": "openai-B",
+          "kind": "resume_speech"
+        },
+        {
+          "run": "openai-B",
+          "kind": "reconnect_speech"
+        },
+        {
+          "run": "openai-B",
+          "kind": "page_closed_speech"
+        },
+        {
+          "run": "openai-B",
+          "kind": "page_reopened_speech"
+        },
+        {
+          "run": "openai-B",
+          "kind": "resume_speech"
+        },
+        {
+          "run": "openai-B-restart",
+          "kind": "resume_speech"
+        }
+      ],
+      "policies": [
+        {
+          "revision": 0,
+          "max_model_requests": 0,
+          "effective_max_model_requests": 16
+        },
+        {
+          "revision": 0,
+          "max_model_requests": 0,
+          "effective_max_model_requests": 16
+        },
+        {
+          "revision": 1,
+          "max_model_requests": 1,
+          "effective_max_model_requests": 1
+        },
+        {
+          "revision": 1,
+          "max_model_requests": 2,
+          "effective_max_model_requests": 2
+        }
+      ],
+      "current_policy": {
+        "version": 1,
+        "revision": 1,
+        "policy": {
+          "max_model_requests": 1
+        }
+      },
+      "preferences": {
+        "version": 1,
+        "revision": 1,
+        "preferences": {
+          "theme": "dark",
+          "font_size": 18,
+          "sidebar_width": 260,
+          "actions_width": 380,
+          "autoplay": false,
+          "speech_rate": 1
+        }
+      },
+      "skills": {
+        "active": [
+          {
+            "activation": 1,
+            "name": "base",
+            "type": "primary"
+          },
+          {
+            "activation": 3,
+            "name": "scratch",
+            "type": "loadable"
+          }
+        ],
+        "available": [],
+        "primary": "base",
+        "retired": [
+          {
+            "activation": 2,
+            "name": "scratch"
+          }
+        ],
+        "revision": 3,
+        "roots": [
+          "scratch"
+        ],
+        "tools": [
+          "load_skill",
+          "tool_limits",
+          "unload_skill",
+          "write_file"
+        ]
+      },
+      "limits_consumption": {
+        "consumed_seq": 30,
+        "count": 1,
+        "first_call_seq": 31,
+        "observed": true
+      },
+      "synthetic_seed": {
+        "requests": 2,
+        "provider_requests": 0,
+        "input_tokens": 2,
+        "output_tokens": 2
+      },
+      "d_cumulative_usage_including_labeled_seed": [
+        {
+          "from": {
+            "model": "gpt-4.1-2025-04-14",
+            "surface": "chat_completions",
+            "vendor": "openai"
+          },
+          "usage": {
+            "cache_read": 0,
+            "cache_write": 0,
+            "input": 2270,
+            "output": 111
+          }
+        },
+        {
+          "from": {
+            "model": "gpt-4.1",
+            "surface": "chat_completions",
+            "vendor": "openai"
+          },
+          "usage": {
+            "cache_read": 0,
+            "cache_write": 0,
+            "input": 2,
+            "output": 2
+          }
+        }
+      ]
+    },
+    "gemini": {
+      "selected_model": "models/gemini-3.8-flash",
+      "generation_attempts": 11,
+      "discovery_attempts": 1,
+      "rows": {
+        "A": 3,
+        "B": 1,
+        "C": 3,
+        "D": 4
+      },
+      "all_transport_200": true,
+      "session_id": "40f2c64b6e513d9bdfca8e4a83eac0e1",
+      "original_checkpoint": 25,
+      "tail_checkpoint": 30,
+      "public_outcomes": [
+        "success",
+        "success",
+        "success"
+      ],
+      "exact_request_comparisons": [
+        {
+          "seq": 4,
+          "captured": "gemini-A1/002-request.json",
+          "reconstructed": "gemini-offline/public/latest-request-4.json",
+          "sha256": "129689c2d3aab918cdfba490fe4674ed7401108b246be1c867bd1dca6218b742"
+        },
+        {
+          "seq": 9,
+          "captured": "gemini-A1/003-request.json",
+          "reconstructed": "gemini-offline/public/latest-request-9.json",
+          "sha256": "9f062c7b80ce4b27195cc64acbeec724168e463824e430663529ae41ab20d813"
+        },
+        {
+          "seq": 14,
+          "captured": "gemini-A2/004-request.json",
+          "reconstructed": "gemini-offline/public/latest-request-14.json",
+          "sha256": "0968fdc5a9bb870796e9c596acb130e2b5f40734af4e1727453a759dc6b621cf"
+        },
+        {
+          "seq": 19,
+          "captured": "gemini-B/005-request.json",
+          "reconstructed": "gemini-offline/public/latest-request-19.json",
+          "sha256": "d4f68b432df2beaba5839ce4f6b766c374fc6528308ebcf60551524d27fe2b39"
+        },
+        {
+          "seq": 28,
+          "captured": "gemini-C/006-request.json",
+          "reconstructed": "gemini-offline/public/latest-request-28.json",
+          "sha256": "79d81fe45169f95dd92d56d6c04cddd5768890211f7118127d221d8a766fb1b6"
+        }
+      ],
+      "origin": {
+        "pre_origin_error": "history_unavailable",
+        "pre_origin_request_seq": 4,
+        "sha256": "fb3c2439e31e9cc7a286daa66e8bd74692cb8ccc3f245e8ccc879dda37aedc6d",
+        "unchanged": true,
+        "usage_restored_once": true
+      },
+      "offline": {
+        "equal_render_context_history_usage_skills_watch_requests": true,
+        "inputs": "identical current Config; endpoints disabled; no new prompt admitted",
+        "provider_calls": 0
+      },
+      "speech_boundaries": [
+        {
+          "run": "gemini-B",
+          "kind": "resume_speech"
+        },
+        {
+          "run": "gemini-B",
+          "kind": "reconnect_speech"
+        },
+        {
+          "run": "gemini-B",
+          "kind": "page_closed_speech"
+        },
+        {
+          "run": "gemini-B",
+          "kind": "page_reopened_speech"
+        },
+        {
+          "run": "gemini-B",
+          "kind": "resume_speech"
+        },
+        {
+          "run": "gemini-B-restart",
+          "kind": "resume_speech"
+        }
+      ],
+      "policies": [
+        {
+          "revision": 0,
+          "max_model_requests": 0,
+          "effective_max_model_requests": 16
+        },
+        {
+          "revision": 0,
+          "max_model_requests": 0,
+          "effective_max_model_requests": 16
+        },
+        {
+          "revision": 1,
+          "max_model_requests": 1,
+          "effective_max_model_requests": 1
+        },
+        {
+          "revision": 1,
+          "max_model_requests": 2,
+          "effective_max_model_requests": 2
+        }
+      ],
+      "current_policy": {
+        "version": 1,
+        "revision": 1,
+        "policy": {
+          "max_model_requests": 1
+        }
+      },
+      "preferences": {
+        "version": 1,
+        "revision": 1,
+        "preferences": {
+          "theme": "dark",
+          "font_size": 18,
+          "sidebar_width": 260,
+          "actions_width": 380,
+          "autoplay": false,
+          "speech_rate": 1
+        }
+      },
+      "skills": {
+        "active": [
+          {
+            "activation": 1,
+            "name": "base",
+            "type": "primary"
+          },
+          {
+            "activation": 3,
+            "name": "scratch",
+            "type": "loadable"
+          }
+        ],
+        "available": [],
+        "primary": "base",
+        "retired": [
+          {
+            "activation": 2,
+            "name": "scratch"
+          }
+        ],
+        "revision": 3,
+        "roots": [
+          "scratch"
+        ],
+        "tools": [
+          "load_skill",
+          "tool_limits",
+          "unload_skill",
+          "write_file"
+        ]
+      },
+      "limits_consumption": {
+        "consumed_seq": 30,
+        "count": 1,
+        "first_call_seq": 31,
+        "observed": true
+      },
+      "synthetic_seed": {
+        "requests": 2,
+        "provider_requests": 0,
+        "input_tokens": 2,
+        "output_tokens": 2
+      },
+      "d_cumulative_usage_including_labeled_seed": [
+        {
+          "from": {
+            "model": "gemini-3.8-flash",
+            "surface": "generate_content",
+            "vendor": "gemini"
+          },
+          "usage": {
+            "cache_read": 0,
+            "cache_write": 0,
+            "input": 3505,
+            "output": 332
+          }
+        },
+        {
+          "from": {
+            "model": "models/gemini-3.8-flash",
+            "surface": "generate_content",
+            "vendor": "gemini"
+          },
+          "usage": {
+            "cache_read": 0,
+            "cache_write": 0,
+            "input": 2,
+            "output": 2
+          }
+        }
+      ]
+    }
+  },
+  "chapter_accepted": false
+}

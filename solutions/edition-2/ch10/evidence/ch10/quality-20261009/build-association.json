@@ -1,0 +1,21 @@
+{
+  "source_revision": "70d86f7419c82fcf7cb8a394d54e472feccd2eed",
+  "before_after_source_equal": true,
+  "inputs_receipt": "build-inputs.json",
+  "build_commands": [
+    "build-cli",
+    "build-gui"
+  ],
+  "binaries": {
+    "cli": {
+      "path": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/quality-build/cli",
+      "sha256": "60c924755420831a8a3a73bdd080f2c247087a09f05784fd6aba25decd618671",
+      "go_version_m": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/quality-build/cli: go1.25.4\n\tpath\texample.com/ensemble/cmd\n\tmod\texample.com/ensemble\t(devel)\t\n\tdep\tgithub.com/creack/pty\tv1.1.24\th1:bJrF4RRfyJnbTJqzRLHzcGaZK1NeM5kTC9jGgovnR1s=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\tCGO_ENABLED=1\n\tbuild\tCGO_CFLAGS=\n\tbuild\tCGO_CPPFLAGS=\n\tbuild\tCGO_CXXFLAGS=\n\tbuild\tCGO_LDFLAGS=\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=70d86f7419c82fcf7cb8a394d54e472feccd2eed\n\tbuild\tvcs.time=2026-10-09T03:35:19Z\n\tbuild\tvcs.modified=true\n"
+    },
+    "gui": {
+      "path": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/quality-build/gui",
+      "sha256": "19a6e9b1dface2bb6bc0fc4d6d7662ef9050cedf88cc1e2ef8dd1b23aefff8f5",
+      "go_version_m": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/quality-build/gui: go1.25.4\n\tpath\texample.com/ensemble-gui/cmd/ensemble-gui\n\tmod\texample.com/ensemble-gui\t(devel)\t\n\tdep\texample.com/ensemble\tv0.0.0\n\t=>\t..\t(devel)\t\n\t\n\tdep\tgithub.com/creack/pty\tv1.1.24\th1:bJrF4RRfyJnbTJqzRLHzcGaZK1NeM5kTC9jGgovnR1s=\n\tdep\tgithub.com/gorilla/websocket\tv1.5.3\th1:saDtZ6Pbx/0u+bgYQ3q96pZgCzfhKXGPqt7kZ72aNNg=\n\tbuild\t-buildmode=exe\n\tbuild\t-compiler=gc\n\tbuild\tCGO_ENABLED=1\n\tbuild\tCGO_CFLAGS=\n\tbuild\tCGO_CPPFLAGS=\n\tbuild\tCGO_CXXFLAGS=\n\tbuild\tCGO_LDFLAGS=\n\tbuild\tGOARCH=arm64\n\tbuild\tGOOS=darwin\n\tbuild\tGOARM64=v8.0\n\tbuild\tvcs=git\n\tbuild\tvcs.revision=70d86f7419c82fcf7cb8a394d54e472feccd2eed\n\tbuild\tvcs.time=2026-10-09T03:35:19Z\n\tbuild\tvcs.modified=true\n"
+    }
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "kind": "derived audit of retained original local fixture recording",
+  "original_receipt": "speech-audio-isolated.json",
+  "original_note": "The raw receipt audioCapture wording predates capture and remains unchanged; this audit records the later observed capture result.",
+  "capture_result": "Chrome-only system audio captured successfully",
+  "browser_pid": 75583,
+  "capture_start_unix_ms": 1791433931771.1501,
+  "speech_events": [
+    {
+      "type": "start",
+      "key": "manual/d/agent-1/4/0",
+      "text": "Hello.",
+      "at": 1791433933835
+    },
+    {
+      "type": "end",
+      "key": "manual/d/agent-1/4/0",
+      "at": 1791433934997
+    }
+  ],
+  "audio": {
+    "path": "audio-isolated/browser-speech.wav",
+    "sha256": "e43c998728b932dbd82fe4b6c85edd1894fc58aa851a6728b780a3a5fa731272",
+    "sample_rate": 48000,
+    "channels": 2,
+    "captured_frames": 408000
+  },
+  "control": {
+    "interval_seconds": [
+      0,
+      1.8
+    ],
+    "mean_db": -91.0,
+    "max_db": -91.0
+  },
+  "speech_window": {
+    "interval_seconds": [
+      2,
+      4
+    ],
+    "mean_db": -22.7,
+    "max_db": -3.8
+  },
+  "limits": "No transcription or human-listening claim; no paid model request in this fixture."
+}

@@ -1,5 +1,15 @@
 # Chapter 10 validation
 
+Accepted October 8 PDT / October 9 UTC 2026 at `edition-2-ch10-r1`.
+Final runtime is `70d86f7`; exact 5,792-file source export comes from `265fe34`,
+tree `5bb92f0`. All twelve delivered modules pass package discovery in the export.
+Initial deterministic acceptance `213b56b`, actual-use acceptance `23b312c`,
+quality/reuse closure `d53578e` and prose closure `7b9b28a` retain their distinct
+source scopes. Final manuscript is `8aedd35`, the reviewer's preapproved status
+sentence applied to `e87ea74`. Initial attempts and provider receipts are unchanged.
+Bill's editorial approval remains separate from this technical checkpoint.
+The original implementation-release narrative below is retained as history.
+
 Persistence implementation released, October 8, 2026. A fresh CLI student started
 from accepted `edition-2-ch09-r1` at `54d7b1d`, source `ac55f64`, tree `94315d7`.
 Its plan-only phase ended at `7cb8429`. Independent ownership review `72bf621`
@@ -10,14 +20,15 @@ Bill's editorial approval is separate from technical acceptance.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
-| Contract | Author, coordinator, independent reviewer | Earlier clarifications retained; duplicate-argument/session boundary `dd1111e`, reviewed `ec12f7f`, acknowledged and implemented by the same student | Reconcile final teaching feedback after actual use |
-| Independent checks | Coordinator, `/root/reviewer_ch17`, `/root/grader_ch10_remaining`; earlier named reviewers in receipts | Deterministic clearance `213b56b` accepted by coordinator: joined 70/70 retained rows, affected current-source checks and complete required-command map. Original 68/70 retained; narrowly adapted unused-slice comparison passes all 19 existing deletions. No runtime repair | Preserve exact source/receipt identities through live support and any later quality revisions |
-| Fresh student and owner plan | Fresh CLI student `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0`, coordinator, independent reviewer | Plan `7cb8429` accepted at `72bf621`; answers `af5a762` proofread at `6766995`, fully acknowledged by student at `44056d1` | Preserve new-only read ledger and route new teaching gaps before affected code |
-| Implementation and local gates | Same student, grader | Final runtime/support `57d4aac`, handback `a09f989`: all 12 modules vet/test, affected races, CLI 93/93 and public/client/fault groups pass. Original attempts retained | Review final independent integration results; repair only observed failures |
-| Actual use | Same student, reviewer | Initial actual A/B/C/D evidence frozen `44d7627` on runtime `57d4aac`/support `9822b2b`: 33 generation and three discoveries, six separately labeled local seed exchanges, 30 verified launches and safe credential audits. Independent per-feature acceptance `23b312c` | Preserve original identities through quality corrections; no additional paid calls released |
-| Historical comparison and revisions | Independent reviewer | Comparison `96fb4e9` complete; Q1/Q2/Q4 rationale delivered after initial experience froze. Same student phase7 running | Freeze scoped revisions, run affected local checks and obtain independent review |
-| Manuscript and feedback | Author, student, proofreader | Author reconciliation `0e754b9`, proofread `0afe66d`; initial student experience remains `44d7627` | Correct two narrow story/GUI attributions and obtain student confirmation of author response |
-| Export and checkpoint | Coordinator | Not started | Complete all gates before immutable export/tag |
+| Contract | Author, coordinator, independent reviewer | Published clarifications retained; complete final contract unchanged by actual-use reconciliation | Closed |
+| Independent checks | Coordinator and independent grader/reviewers | `213b56b`: joined 70/70 retained rows, original 68/70 preserved; all 19 existing intended deletions pass with narrow unused-slice adapter | Closed; keep original source identities |
+| Fresh student and owner plan | Fresh CLI student `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0`, coordinator, reviewer | Plan `7cb8429`, ownership review `72bf621`, published answers and new-only read ledger retained | Closed |
+| Implementation and local gates | Same student, grader | Final runtime `70d86f7`, evidence `265fe34`: core/GUI vet/tests/race; public16, Chapter9 51/51, Chapter10 93/93, clients9, targeted append/Close faults and 43 captured-browser controls pass | Closed; exact delivered export verified separately |
+| Actual use | Same student, independent reviewer | Initial `44d7627` on runtime `57d4aac`/support `9822b2b`: all-provider A/B/C/D, 33 generation/three discoveries, 30 verified launches; accepted `23b312c` | Closed; later source has scoped local evidence, not a relabeled provider run |
+| Historical comparison and revisions | Independent code reviewer | `d53578e` closes Q1–Q4 on `70d86f7`/`265fe34`, verifies bindings and accepts limited reuse; no residual quality findings | Closed |
+| Manuscript and feedback | Author, student, proofreader | Affirmative student confirmation and final nuance in `265fe34`; author `e87ea74`, proofreader `7b9b28a`, approved status wording `8aedd35` | Closed; Bill's editorial judgment remains separate |
+| Export and checkpoint | Coordinator | Exact 5,792-file export from `265fe34`; all12 delivered-module discovery checks pass; immutable `edition-2-ch10-r1` | Release accepted predecessor to a fresh Chapter11 plan-only student |
+
 
 The grader engineer has earlier grading/review exposure and no Chapter 10 runtime
 authorship. See [chapter-10-grader-review.md](chapter-10-grader-review.md) for
@@ -167,3 +178,17 @@ log restores the terminal fact exactly once. A separate invalid-append control
 proves continued usability. Two initial reviewer fixture defects, System presence
 and the terminal event's name, remain in their first receipts. They do not count
 as runtime failures. Bounds and retained integration are the next serialized stages.
+
+## Final checkpoint scope
+
+The [manifest](../../solutions/edition-2/manifests/ch10-r1.json) binds every
+exported blob/hash; [export checks](checkpoint-evidence/ch10-r1-export-checks.json)
+verify the complete file set and all12 modules. Main runtime source is unchanged
+after the reviewed `70d86f7` revision. Original live captures remain exactly at
+`44d7627`; the revised binary has not made another real-provider run. Independent
+review accepts Q1's value-preserving scalar read, Q2's documentation correction
+and Q4's local captured-data presentation proof without additional paid calls.
+The revised screenshot supersedes only empty-card appearance, not initial history.
+Large generated test payloads were removed; compact receipts and intentionally
+retained local executable identities remain. No legacy implementation or frozen
+prior chapter was rewritten, and no push was performed.

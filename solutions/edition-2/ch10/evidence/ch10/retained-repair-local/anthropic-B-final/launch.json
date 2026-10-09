@@ -1,0 +1,33 @@
+{
+  "binding_sha256": "16d43dff55b538cd120fd873c28173cceb021f9d051516b317b1d4055a08c5c2",
+  "source_revision": "0d28ba76b24c710a44b55f306fe0ffe3f3644ace",
+  "vendor": "anthropic",
+  "model": "fixture",
+  "role": "gui",
+  "command": [
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-build-final/gui",
+    "--session-dir",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/anthropic/A",
+    "--terminal",
+    "--port",
+    "0",
+    "--policy",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/anthropic/current-policy.json",
+    "--preferences",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/anthropic/preferences.json"
+  ],
+  "command_sha256": "fff8f4d8c8845b835f8aaa7dd789b056498d33af58cfecd21c716567627369eb",
+  "environment": {
+    "LLM_VENDOR": "anthropic",
+    "LLM_MODEL": "fixture",
+    "LLM_RESOLVED_MODEL": "fixture",
+    "LLM_BASE_URL": "http://127.0.0.1:55020/B",
+    "EN_DISABLE_STREAMING": "0"
+  },
+  "workspace": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/anthropic/workspace",
+  "provider_root": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/anthropic",
+  "run": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/anthropic-B-final",
+  "mode": "local",
+  "actor": "student coder; not Bill",
+  "identity_sha256": "76097b80abe3a43c8830255492435201684bb756d82ef829d2d25bc2effe341b"
+}

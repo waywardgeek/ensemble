@@ -1,0 +1,7 @@
+{
+  "source": "solutions/edition-2/main/test_ch06.log",
+  "retained_as": "solutions/edition-2/main/evidence/ch10/retained-repair-prior-main-artifact.log",
+  "sha256": "bf8ff78e00aa0bfed622dcada139009ff0eb16e7d0ebcc6bd783b2d74b375cba",
+  "bytes": 16673,
+  "reason": "Previously present ignored main/test_ch06.log is not in the pinned source tree; preserved byte-for-byte outside immutable source set. Original modification time Oct 7 14:52:13 precedes this phase; origin not established. Only hash/metadata read, not transcript contents."
+}

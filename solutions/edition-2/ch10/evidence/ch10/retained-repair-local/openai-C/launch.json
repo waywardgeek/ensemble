@@ -1,0 +1,34 @@
+{
+  "binding_sha256": "9051e1629b16520d6f1cf567c3ef0875a94ccf8d97e89b57cc2f68f861bdb826",
+  "source_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "vendor": "openai",
+  "model": "fixture",
+  "role": "consumer",
+  "command": [
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-build-watch/consumer",
+    "--root",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/openai",
+    "--output",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/openai-C/public",
+    "--relay",
+    "http://127.0.0.1:55814",
+    "--step",
+    "C",
+    "--catalog",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/support/catalog"
+  ],
+  "command_sha256": "ce03721dbfcab623b900fe05f0fa34bc2322a2051ce0a9c83fea18a5155f8218",
+  "environment": {
+    "LLM_VENDOR": "openai",
+    "LLM_MODEL": "fixture",
+    "LLM_RESOLVED_MODEL": "fixture",
+    "LLM_BASE_URL": "http://127.0.0.1:55814/C",
+    "EN_DISABLE_STREAMING": "0"
+  },
+  "workspace": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/openai/workspace",
+  "provider_root": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/openai",
+  "run": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/openai-C",
+  "mode": "local",
+  "actor": "student coder; not Bill",
+  "identity_sha256": "00664b95f248f89e0e4a4777aef188d095e5096d079f4f8964c39fb7b885bcd6"
+}

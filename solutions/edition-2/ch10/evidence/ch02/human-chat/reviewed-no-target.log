@@ -1,0 +1,2 @@
+{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-10-07T19:21:27.017956Z","message":{"actor":"system","purpose":"ephemeral","parts":[{"type":"text","text":"local diagnostic control"}]}}

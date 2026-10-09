@@ -1,0 +1,33 @@
+{
+  "completion": {
+    "stop_reason": "STOP",
+    "agent_id": "agent-1",
+    "request_id": "r3",
+    "outcome": "success",
+    "text": "The file `after-resume.txt` has been successfully created containing `CH10-D-gemini` followed by a newline.",
+    "parts": [
+      {
+        "type": "text",
+        "text": "The file `after-resume.txt` has been successfully created containing `CH10-D-gemini` followed by a newline."
+      },
+      {
+        "type": "text",
+        "text": "",
+        "from": {
+          "vendor": "gemini",
+          "model": "gemini-3.8-flash",
+          "surface": "generate_content"
+        },
+        "opaque": "EmkKZwFpFH0TNaMHhNNEY57A6irrcVf6WISOYHpGqiMGJRzingtM94kBNfmfYC+8jySn2F64bLeYV9QodKJ8PCl5AaR3AmPkYFDJN16Mez9O6MF0VzlxU3k8Unw641cN1ZA/IGV4KMu9+PI="
+      }
+    ],
+    "pending_hints": 0,
+    "usage": {
+      "input": 3507,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 334
+    }
+  },
+  "error": ""
+}

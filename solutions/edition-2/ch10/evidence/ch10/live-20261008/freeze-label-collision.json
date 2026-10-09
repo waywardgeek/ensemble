@@ -1,0 +1,8 @@
+{
+  "kind": "retrospective support-operation observation",
+  "operation": "original sealing batch",
+  "error": "FileExistsError opening gemini-B-restart-seal.out with exclusive create",
+  "cause": "label already used for GUI attachment seal",
+  "original_changed": false,
+  "correction": "distinct originals-seal label; resume only unfinished seals/verification"
+}

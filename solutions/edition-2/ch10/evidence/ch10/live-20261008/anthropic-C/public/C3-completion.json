@@ -1,0 +1,23 @@
+{
+  "completion": {
+    "stop_reason": "end_turn",
+    "agent_id": "agent-3",
+    "request_id": "r5",
+    "outcome": "success",
+    "text": "The marker is **CH10-C-anthropic**.",
+    "parts": [
+      {
+        "type": "text",
+        "text": "The marker is **CH10-C-anthropic**."
+      }
+    ],
+    "pending_hints": 0,
+    "usage": {
+      "input": 17444,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 453
+    }
+  },
+  "error": ""
+}

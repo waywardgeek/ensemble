@@ -1,0 +1,6 @@
+{"number": 4, "vendor": "openai", "step": "C2", "row": "C", "kind": "generation", "at": 1791495940.173089, "phase": "admitted", "source": "loopback"}
+{"number": 5, "vendor": "openai", "step": "C1", "row": "C", "kind": "generation", "at": 1791495940.173194, "phase": "admitted", "source": "loopback"}
+{"number": 4, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 352, "credential_redacted": false, "elapsed": 0.0011007911525666714}
+{"number": 5, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 343, "credential_redacted": false, "elapsed": 0.0010250830091536045}
+{"number": 6, "vendor": "openai", "step": "C3", "row": "C", "kind": "generation", "at": 1791495940.195192, "phase": "admitted", "source": "loopback"}
+{"number": 6, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 352, "credential_redacted": false, "elapsed": 0.0006652919109910727}

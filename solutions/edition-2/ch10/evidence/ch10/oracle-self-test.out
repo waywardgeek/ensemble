@@ -1,0 +1,30 @@
+{
+  "scope": "Outer/canonical checker controls only, no runtime positive",
+  "canonical_examples": 11,
+  "outer_positive": 1,
+  "intended_refusals": [
+    "unsupported-version",
+    "unsupported-state-version",
+    "unknown-outer-field",
+    "missing-required-field",
+    "invalid-session-id",
+    "numeric-session-id",
+    "numeric-system",
+    "numeric-hash",
+    "zero-anchor",
+    "overflow-anchor",
+    "negative-job-watermark",
+    "anchor-event-disagreement",
+    "state-hash-mismatch",
+    "null-state-with-hash",
+    "unknown-identity-field",
+    "duplicate-outer-member",
+    "invalid-checkpoint-utf8",
+    "trailing-json"
+  ],
+  "input_sha256": {
+    "/Users/bill/projects/ensemble/scripts/edition2/accept_ch10.py": "6e03fb722c0b3b42743cd7766280f9e7c748849f1d3a92ea3744b7a40c9d0a2a",
+    "/Users/bill/projects/ensemble/scripts/edition2/accept_ch09.py": "3b2b5a98954351abe268f3cd6ae082b003003465e4538874aaef95d410ec8c9e",
+    "/Users/bill/projects/ensemble/book/edition-2/chapter-10.md": "56f52e6ac8d251f6c775d226c4b6c48fec1311542d15450f3b666617584cbbaa"
+  }
+}

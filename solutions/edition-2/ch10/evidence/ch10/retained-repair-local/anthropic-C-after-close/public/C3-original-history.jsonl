@@ -1,0 +1,2 @@
+{"log_version":1}
+{"session":{"session_id":"d5a5d57f0e8ac7fb4f9672789e0573cb","origin_as_of":30,"origin_sha256":"b22864b8e2ad6711d9019c3bdd2187fdb5850f253df5cd6b6d241444c23e5130","high_watermarks":{"event":30,"request":4,"activation":0,"job":2}},"seq":31,"type":"session_anchor","time":"2026-10-08T21:27:06.038394Z"}

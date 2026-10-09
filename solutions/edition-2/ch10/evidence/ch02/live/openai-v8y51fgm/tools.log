@@ -1,0 +1,4 @@
+{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-10-07T18:05:39.242874Z","message":{"actor":"human","purpose":"dialogue","parts":[{"type":"text","text":"Call inspect exactly once with path \"demo-config\". Do not invent its result. Please call the tool now."}]}}
+{"seq":2,"type":"request_sent","time":"2026-10-07T18:05:39.242964Z","request":{"to":{"vendor":"openai","model":"gpt-6-luna","surface":"chat_completions"},"ephemera":[]}}
+{"seq":3,"type":"error_occurred","time":"2026-10-07T18:05:40.621049Z","error":{"code":"request_failed","message":"model returned HTTP 400"}}

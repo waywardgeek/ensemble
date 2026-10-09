@@ -1,0 +1,35 @@
+{
+  "start": "2026-10-07T22:40:12.654472+00:00",
+  "actor": "Codex student coder, not Bill",
+  "vendor": "gemini",
+  "requested_model": "models/gemini-2.5-flash-lite",
+  "command": [
+    "/private/tmp/ensemble-ed2-ch05-live",
+    "chat"
+  ],
+  "workspace": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch05/controls-gemini/workspace",
+  "source_revision": "8aa40c3e840af575724a6b895cf59c060633a9b1",
+  "executables": {
+    "cli": "080229a8681047440ae2ee4c2f5aed4c04016728abfe1cfb8fbb8966341eea81",
+    "workflow": "79f73126609c6b1f465a5b8aa15a05a4e70b834b7c4bbe8378062c6c93c8d17b",
+    "interpreter": "e81eb555fbfb8c6bd4ea528c60d4b3a8f9a94e53c31b0470f4f1524b4b9548c0",
+    "recorder": "24eb6e2db60591c435afcde853a18caac9626047b1aceecda2a93e84cc0cccad"
+  },
+  "support": {
+    "evidence.py": "6e95058b1e429abd256d1973c017139031a214dbf926a8ae08d8cae45af2f84d",
+    "terminal-run.py": "b2ba41e8bdb34b4caab80641950e52eb63a70b97436a1768c101af02b6567314",
+    "verify-receipts.py": "b8d4f9a3c4f08bf48441be3d611efd56fb52f83613694f875c4249d9ceffad03"
+  },
+  "mode": "chat",
+  "launched_executable": "cli",
+  "executable_paths": {
+    "cli": "/private/tmp/ensemble-ed2-ch05-live",
+    "workflow": "/private/tmp/ensemble-ed2-ch05-workflow",
+    "interpreter": "/opt/homebrew/Cellar/python@3.13/3.13.14_1/Frameworks/Python.framework/Versions/3.13/bin/python3.13",
+    "recorder": "/usr/bin/script"
+  },
+  "transport": "actual execution-tool PTY and macOS script terminal; raw body relay",
+  "exit_code": 1,
+  "end": "2026-10-07T22:41:49.614075+00:00",
+  "requests": 6
+}

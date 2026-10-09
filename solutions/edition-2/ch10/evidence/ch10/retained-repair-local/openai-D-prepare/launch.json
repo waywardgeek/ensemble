@@ -1,0 +1,36 @@
+{
+  "binding_sha256": "9051e1629b16520d6f1cf567c3ef0875a94ccf8d97e89b57cc2f68f861bdb826",
+  "source_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "vendor": "openai",
+  "model": "fixture",
+  "role": "consumer",
+  "command": [
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-build-watch/consumer",
+    "--root",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/openai",
+    "--output",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/openai-D-prepare/public",
+    "--relay",
+    "http://127.0.0.1:55822",
+    "--step",
+    "D-prepare",
+    "--catalog",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/support/catalog"
+  ],
+  "command_sha256": "90e11d8e04787c115192d1c4397811b03eb834cd691cd2fc1afc316c8e60dc45",
+  "environment": {
+    "LLM_VENDOR": "openai",
+    "LLM_MODEL": "fixture",
+    "LLM_RESOLVED_MODEL": "fixture",
+    "LLM_BASE_URL": "http://127.0.0.1:55822/D-prepare",
+    "EN_DISABLE_STREAMING": "0",
+    "LLM_SKILLS_DIR": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/support/catalog",
+    "LLM_PRIMARY_SKILL": "base"
+  },
+  "workspace": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/openai/workspace",
+  "provider_root": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/openai",
+  "run": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/openai-D-prepare",
+  "mode": "local",
+  "actor": "student coder; not Bill",
+  "identity_sha256": "186bbe176fc6eaa2b6c67b3084ea9c0fa245d140fea1a7a1e1ef06c394fb7290"
+}

@@ -1,0 +1,35 @@
+{
+  "binding_sha256": "9051e1629b16520d6f1cf567c3ef0875a94ccf8d97e89b57cc2f68f861bdb826",
+  "source_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "vendor": "gemini",
+  "model": "fixture",
+  "role": "gui",
+  "command": [
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-build-watch/gui",
+    "--session-dir",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/gemini/A",
+    "--terminal",
+    "--port",
+    "0",
+    "--policy",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/gemini/current-policy.json",
+    "--preferences",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/gemini/preferences.json"
+  ],
+  "command_sha256": "7dbd10c4350120cf7502d66de87420491265c9e26afb2e6d5a3396a6fa12dc1b",
+  "environment": {
+    "LLM_VENDOR": "gemini",
+    "LLM_MODEL": "fixture",
+    "LLM_RESOLVED_MODEL": "fixture",
+    "LLM_BASE_URL": "http://127.0.0.1:55927/B",
+    "EN_DISABLE_STREAMING": "0"
+  },
+  "workspace": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/gemini/workspace",
+  "provider_root": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/gemini",
+  "run": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/gemini-B",
+  "mode": "local",
+  "actor": "student coder; not Bill",
+  "gui_url": "http://127.0.0.1:55928",
+  "terminal_at_attach_sha256": "08abe418178f17b4b5e1e4864d1870b23c46ed9c71cc214e472f08f91ded6c06",
+  "identity_sha256": "6f296e56613f44bdc637845e8503a5eec7ab374a0caad73bf0cb40ecea478d5b"
+}

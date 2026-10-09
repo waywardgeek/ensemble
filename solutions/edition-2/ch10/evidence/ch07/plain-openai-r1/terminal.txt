@@ -1,0 +1,15 @@
+Ensemble — openai / gpt-4.1-mini-2025-04-14
+Type /help for commands.
+You> Without tools, say PLAIN-READY and explain in one sentence that the Agent owns history shared by browser and terminal clients.
+Accepted r1.
+You> 
+Request r1 / m1 (plain)
+
+
+Request r1 (success; pending hints=0)
+Assistant:
+PLAIN-READY. The Agent owns a shared history that is synchronized between both browser and terminal clients.
+You> /usage
+Usage: input=1235, cache write=0, cache read=0, output=22
+You> /quit
+Final usage: input=1235, cache write=0, cache read=0, output=22

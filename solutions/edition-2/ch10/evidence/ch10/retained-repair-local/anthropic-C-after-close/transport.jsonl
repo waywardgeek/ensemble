@@ -1,0 +1,6 @@
+{"number": 5, "vendor": "anthropic", "step": "C1", "row": "C", "kind": "generation", "at": 1791494826.003314, "phase": "admitted", "source": "loopback"}
+{"number": 6, "vendor": "anthropic", "step": "C2", "row": "C", "kind": "generation", "at": 1791494826.003446, "phase": "admitted", "source": "loopback"}
+{"number": 6, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 440, "credential_redacted": false, "elapsed": 0.0011601659934967756}
+{"number": 5, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 434, "credential_redacted": false, "elapsed": 0.0013721249997615814}
+{"number": 7, "vendor": "anthropic", "step": "C3", "row": "C", "kind": "generation", "at": 1791494826.040475, "phase": "admitted", "source": "loopback"}
+{"number": 7, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 440, "credential_redacted": false, "elapsed": 0.0005677919834852219}

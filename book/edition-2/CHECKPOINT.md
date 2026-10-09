@@ -1,5 +1,32 @@
 # Working checkpoint
 
+## Current boundary: Chapter 10 accepted; fresh Chapter 11 plan next
+
+Chapter10 is accepted at immutable `edition-2-ch10-r1`. Exact5,792-file export
+from `265fe34434c84bc695740eb09c632dc632522c02`, tree
+`5bb92f0d3b30da864c1bebb351ab7065973488ec`, passes all12 delivered-module package
+checks. Final runtime is70d86f7. Deterministic213b56b, actual-use23b312c,
+quality/reuse d53578e and final prose7b9b28a are accepted. Manuscript8aedd35 applies
+the preapproved final status wording. No residual technical gate remains.
+
+Phase7 exec57092 completed exit0; its handback/evidence is265fe34. Do not resume
+it for Chapter11. Original provider runs44d7627 retain runtime57d4aac/support9822b2b;
+all scoped quality checks are local, and no new-provider claim is made. Compiler
+is free. All author/reviewer workers are at completed handoffs.
+
+Next authorized action: fresh Chapter11 plan-only student using new-only pinned
+Chapters1–11, skill, architecture and accepted Chapter10 source. External
+`ch11-student-inputs/phase-1-draft.txt` is DRAFT ONLY, not launched: pin final
+teaching/tag/source identities and create the actual release prompt first. No
+implementation or paid run is released by that plan. Chapter11 clarification
+5d6255f is accepted atd13738e: oracle self-test is not a runtime grade; an actual
+client-runtime invocation is required after public seam documentation and before
+implementation integration/acceptance. Root read the complete Chapter11 contract.
+Chapter18 contract5b75636 has independent closureb130e88; implementation remains
+future work, not a validated chapter.
+
+Older current-boundary paragraphs below are historical handoffs superseded here.
+
 ## Current boundary: Chapter 10 quality revisions after accepted live runs
 
 Independent live acceptance is `23b312c` on initial evidence `44d7627`:

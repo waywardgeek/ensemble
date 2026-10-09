@@ -1,0 +1,17 @@
+Ensemble — anthropic / claude-sonnet-4-6
+Type /help for commands.
+You> Without tools, say PLAIN-READY and explain in one sentence that the Agent owns history shared by browser and terminal clients.
+Accepted r1.
+You> 
+Request r1 / m1 (plain)
+
+
+Request r1 (success; pending hints=0)
+Assistant:
+PLAIN-READY
+
+The Agent maintains a single, unified conversation history that is shared across all connected clients — whether browser-based or terminal-based — so every client sees the same context and continuity of the session.
+You> /usage
+Usage: input=2558, cache write=0, cache read=0, output=49
+You> /quit
+Final usage: input=2558, cache write=0, cache read=0, output=49

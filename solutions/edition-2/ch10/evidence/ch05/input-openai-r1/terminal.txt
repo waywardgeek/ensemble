@@ -1,0 +1,58 @@
+Ensemble — openai / gpt-4.1-mini
+Type /help for commands.
+You> Use run_command to start this command: printf 'READY\n'; while IFS= read -r line; do printf 'seen:%s\n' "$line"; done . Set ai_callback_pattern to READY and ai_callback_delay to 5. Leave the job running and tell me its handle; do not call other tools.
+Accepted r1.
+You> 
+Request r1 (success; pending hints=0)
+Assistant:
+The command is running, and the job handle is 1.
+You> Use send_input on handle 1, input LIVE-SEND-CHECK, append_newline true, ai_callback_pattern seen:LIVE-SEND-CHECK and ai_callback_delay 5. Show me the observed echo and input acceptance result. Leave it running; do not call other tools.
+Accepted r2.
+You> 
+Request r2 (success; pending hints=0)
+Assistant:
+The observed echo and input acceptance result are:
+LIVE-SEND-CHECK
+seen:LIVE-SEND-CHECK
+
+The job with handle 1 is still running.
+You> Use kill_job on handle 1 and report its terminal status. Do not call other tools.
+Accepted r3.
+You> 
+Request r3 (success; pending hints=0)
+Assistant:
+The job with handle 1 has been killed. Its terminal status is "killed."
+You> /history
+/usage
+/quit
+History:
+1 turn_started
+2 message_received
+3 request_sent
+4 response_ended
+5 tool_called call_id=call_FQcDT7w8Ak04RWEJQU4QW2xU
+6 tool_returned call_id=call_FQcDT7w8Ak04RWEJQU4QW2xU
+7 request_sent
+8 response_ended
+9 turn_ended
+10 turn_started
+11 message_received
+12 request_sent
+13 response_ended
+14 tool_called call_id=call_FMhQgS3NbBs5ivy0M4J6FKWR
+15 tool_returned call_id=call_FMhQgS3NbBs5ivy0M4J6FKWR
+16 request_sent
+17 response_ended
+18 turn_ended
+19 turn_started
+20 message_received
+21 request_sent
+22 response_ended
+23 tool_called call_id=call_wSA30AFrMr5BjjDehpqWPJYX
+24 job_killed
+25 tool_returned call_id=call_wSA30AFrMr5BjjDehpqWPJYX
+26 request_sent
+27 response_ended
+28 turn_ended
+You> Usage: input=891, cache write=0, cache read=8064, output=181
+You> Final usage: input=891, cache write=0, cache read=8064, output=181

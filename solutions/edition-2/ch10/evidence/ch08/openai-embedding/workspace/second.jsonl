@@ -1,0 +1,6 @@
+{"log_version":1}
+{"turn":{"policy":{"revision":0,"max_model_requests":0,"effective_max_model_requests":16},"request_id":"r1"},"seq":1,"type":"turn_started","time":"2026-10-08T13:26:35.545458Z"}
+{"seq":2,"type":"message_received","time":"2026-10-08T13:26:35.545736Z","message":{"actor":"human","purpose":"dialogue","parts":[{"type":"text","text":"Write a very long, detailed story about a programmer investigating a mysterious lighthouse. Aim for several thousand words and begin immediately."}]}}
+{"seq":3,"type":"request_sent","time":"2026-10-08T13:26:35.545837Z","request":{"delivery":"stream","hints":[],"configuration":{"system":"Answer helpfully and concisely. Retain the conversation's details.","max_tokens":512,"tools":[],"resolved_model":"gpt-4.1-mini-2025-04-14"},"to":{"vendor":"openai","model":"gpt-4.1-mini-2025-04-14","surface":"chat_completions"},"ephemera":[]}}
+{"seq":4,"type":"error_occurred","time":"2026-10-08T13:26:36.4794Z","error":{"code":"interrupted","message":"turn interrupted"}}
+{"turn":{"request_id":"r1","outcome":"interrupted"},"seq":5,"type":"turn_ended","time":"2026-10-08T13:26:36.479439Z"}

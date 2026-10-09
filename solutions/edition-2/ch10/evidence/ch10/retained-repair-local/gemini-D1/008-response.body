@@ -1,0 +1,2 @@
+data: {"candidates": [{"index": 0, "content": {"role": "model", "parts": [{"text": "LOCAL FIXTURE only. synthetic continuation"}]}, "finishReason": "STOP"}], "usageMetadata": {"promptTokenCount": 1, "candidatesTokenCount": 1}}
+

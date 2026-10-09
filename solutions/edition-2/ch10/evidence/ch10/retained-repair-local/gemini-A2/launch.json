@@ -1,0 +1,27 @@
+{
+  "binding_sha256": "9051e1629b16520d6f1cf567c3ef0875a94ccf8d97e89b57cc2f68f861bdb826",
+  "source_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "vendor": "gemini",
+  "model": "fixture",
+  "role": "cli",
+  "command": [
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-build-watch/cli",
+    "--session-dir",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/gemini/A",
+    "chat"
+  ],
+  "command_sha256": "df5c5492e347e894b0b7bc3a3768455d43296dc16527c7524d30b7bc0dc1425d",
+  "environment": {
+    "LLM_VENDOR": "gemini",
+    "LLM_MODEL": "fixture",
+    "LLM_RESOLVED_MODEL": "fixture",
+    "LLM_BASE_URL": "http://127.0.0.1:55838/A2",
+    "EN_DISABLE_STREAMING": "0"
+  },
+  "workspace": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/gemini/workspace",
+  "provider_root": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/gemini",
+  "run": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-local/gemini-A2",
+  "mode": "local",
+  "actor": "student coder; not Bill",
+  "identity_sha256": "5d31d855562c41b4af29925a3e36357a642ca9adbf1fb21b5e7592bc7ada92ea"
+}

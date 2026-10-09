@@ -1,0 +1,4 @@
+http://127.0.0.1:53852
+Ensemble — anthropic / fixture
+Type /help for commands.
+You> ^DFinal usage: input=4, cache write=0, cache read=0, output=4

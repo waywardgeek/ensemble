@@ -1,0 +1,26 @@
+{
+  "source_revision": "0d28ba76b24c710a44b55f306fe0ffe3f3644ace",
+  "binding_sha256": "16d43dff55b538cd120fd873c28173cceb021f9d051516b317b1d4055a08c5c2",
+  "mode": "local",
+  "chapter_accepted": false,
+  "identity_verified": true,
+  "browser": {
+    "saved_ack_after_applied": true,
+    "measured_speech_boundaries": [
+      "resume_speech",
+      "reconnect_speech",
+      "page_closed_speech",
+      "page_reopened_speech"
+    ],
+    "policy_ack": false,
+    "preference_ack": false
+  },
+  "budget": {
+    "generation_attempts": 11,
+    "discovery_attempts": 0
+  },
+  "limitations": [
+    "Originals must be reviewed against all A/B/C/D observables. Identity and these limited checks are not full feature acceptance.",
+    "No human hearing, provider success, or chapter acceptance inferred from a local fixture."
+  ]
+}

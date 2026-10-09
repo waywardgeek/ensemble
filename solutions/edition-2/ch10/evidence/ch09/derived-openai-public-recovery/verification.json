@@ -1,0 +1,8 @@
+[
+  {
+    "run": "live-openai-p-recovery",
+    "requests": 4,
+    "reconstructed": 4,
+    "comparison": "exact HTTP body bytes; CLI output LF removed"
+  }
+]

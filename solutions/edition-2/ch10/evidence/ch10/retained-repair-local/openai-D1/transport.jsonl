@@ -1,0 +1,4 @@
+{"number": 7, "vendor": "openai", "step": "D1", "row": "D", "kind": "generation", "at": 1791496029.159394, "phase": "admitted", "source": "loopback"}
+{"number": 7, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 536, "credential_redacted": false, "elapsed": 0.0024901670403778553}
+{"number": 8, "vendor": "openai", "step": "D1", "row": "D", "kind": "generation", "at": 1791496029.1658628, "phase": "admitted", "source": "loopback"}
+{"number": 8, "phase": "finished", "outcome": "OSError", "status": 200, "bytes": 352, "credential_redacted": false, "elapsed": 0.001325999852269888}

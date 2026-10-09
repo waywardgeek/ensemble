@@ -1,0 +1,373 @@
+{
+  "scope": "Partial Chapter 8 strict file/patch validation from the published contract.\n\nNo Chapter 8 student/reference implementation was used to derive these fixtures.\nThis is not the public policy-effect, disk-fault, concurrency or browser gate.\n",
+  "binary_sha256": "e6ae2327697766dfadc00122885bda50363d661ffd1328a63f0592ee8b8a22c3",
+  "checker_files": {
+    "accept_ch08_validation.py": "a3e6b76b18bb3d852e61a5f710917222ae5166fa312b44e9e79551ae4c704e7a",
+    "accept_ch08.py": "4892e6e8e64deb2e9a24f98ecd223d12cbfa2929822abe5be8aae3f69238ef11",
+    "accept_ch07.py": "27cf57f089c44363155f551966258df79d5c3dbc390c38a5e7f18aac950595ae"
+  },
+  "passed": true,
+  "checks": [
+    {
+      "id": "nondefault-complete-files-positive",
+      "passed": true
+    },
+    {
+      "id": "preferences/exact-65536",
+      "passed": true
+    },
+    {
+      "id": "preferences/oversize-65537",
+      "passed": true
+    },
+    {
+      "id": "preferences/empty",
+      "passed": true
+    },
+    {
+      "id": "preferences/null-root",
+      "passed": true
+    },
+    {
+      "id": "preferences/array-root",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-utf8",
+      "passed": true
+    },
+    {
+      "id": "preferences/trailing-object",
+      "passed": true
+    },
+    {
+      "id": "preferences/trailing-text",
+      "passed": true
+    },
+    {
+      "id": "preferences/duplicate-version",
+      "passed": true
+    },
+    {
+      "id": "preferences/duplicate-domain",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-version-2",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-version-True",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-version-None",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-revision--1",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-revision-True",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-revision-'7'",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-revision-0.5",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-revision-None",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-preferences-None",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-preferences-[]",
+      "passed": true
+    },
+    {
+      "id": "preferences/missing-version",
+      "passed": true
+    },
+    {
+      "id": "preferences/missing-revision",
+      "passed": true
+    },
+    {
+      "id": "preferences/missing-preferences",
+      "passed": true
+    },
+    {
+      "id": "preferences/unknown-envelope-field",
+      "passed": true
+    },
+    {
+      "id": "preferences/missing-value-theme",
+      "passed": true
+    },
+    {
+      "id": "preferences/missing-value-font_size",
+      "passed": true
+    },
+    {
+      "id": "preferences/missing-value-sidebar_width",
+      "passed": true
+    },
+    {
+      "id": "preferences/missing-value-actions_width",
+      "passed": true
+    },
+    {
+      "id": "preferences/missing-value-autoplay",
+      "passed": true
+    },
+    {
+      "id": "preferences/missing-value-speech_rate",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-0-theme",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-1-font_size",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-2-font_size",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-3-font_size",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-4-font_size",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-5-font_size",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-6-sidebar_width",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-7-sidebar_width",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-8-actions_width",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-9-actions_width",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-10-autoplay",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-11-autoplay",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-12-speech_rate",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-13-speech_rate",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-14-speech_rate",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-15-speech_rate",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-16-theme",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-17-font_size",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-18-sidebar_width",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-19-actions_width",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-20-autoplay",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-21-speech_rate",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-unknown-field",
+      "passed": true
+    },
+    {
+      "id": "preferences/invalid-members-duplicate-field",
+      "passed": true
+    },
+    {
+      "id": "policy/exact-65536",
+      "passed": true
+    },
+    {
+      "id": "policy/oversize-65537",
+      "passed": true
+    },
+    {
+      "id": "policy/empty",
+      "passed": true
+    },
+    {
+      "id": "policy/null-root",
+      "passed": true
+    },
+    {
+      "id": "policy/array-root",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-utf8",
+      "passed": true
+    },
+    {
+      "id": "policy/trailing-object",
+      "passed": true
+    },
+    {
+      "id": "policy/trailing-text",
+      "passed": true
+    },
+    {
+      "id": "policy/duplicate-version",
+      "passed": true
+    },
+    {
+      "id": "policy/duplicate-domain",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-version-2",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-version-True",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-version-None",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-revision--1",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-revision-True",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-revision-'7'",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-revision-0.5",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-revision-None",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-policy-None",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-policy-[]",
+      "passed": true
+    },
+    {
+      "id": "policy/missing-version",
+      "passed": true
+    },
+    {
+      "id": "policy/missing-revision",
+      "passed": true
+    },
+    {
+      "id": "policy/missing-policy",
+      "passed": true
+    },
+    {
+      "id": "policy/unknown-envelope-field",
+      "passed": true
+    },
+    {
+      "id": "policy/missing-value-max_model_requests",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-members-0-max_model_requests",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-members-1-max_model_requests",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-members-2-max_model_requests",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-members-3-max_model_requests",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-members-4-max_model_requests",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-members-5-max_model_requests",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-members-unknown-field",
+      "passed": true
+    },
+    {
+      "id": "policy/invalid-members-duplicate-field",
+      "passed": true
+    },
+    {
+      "id": "strict-patches-no-mutation-and-recovery",
+      "passed": true
+    },
+    {
+      "id": "no-model-http",
+      "passed": true,
+      "details": []
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+sh-3.2$ cd subdir; pwd
+/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch04/live-gemini/workspace/subdir
+sh-3.2$ 

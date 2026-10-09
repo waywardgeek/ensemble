@@ -8,18 +8,19 @@ in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 
 ## Current chapter
 
-Current October 8 PDT / October 9 UTC handoff: Chapter 10 deterministic
-clearance `213b56b` and real-provider acceptance `23b312c` are complete on the
-initial runtime `57d4aac`. All three vendors completed the scheduled persistence
-paths (33 generation attempts, three discoveries). Original evidence is frozen
-at `44d7627`. The same cold student is making three scoped quality improvements
-in phase7, with local validation and no further paid calls. Author reconciliation
-`0e754b9` has proofreading `0afe66d`; two narrow prose edits and student feedback
-confirmation remain. Independent revised-code review and exact export/tag follow.
-Large generated test files have been cleaned up. Chapter17's contract is accepted
-at `b06d780`; Chapter18 author corrections address the three finite findings in
-`2fc8af0`. Earlier paragraphs retain historical attempts; `CHECKPOINT.md` records
-current worker ownership.
+Chapter10 is accepted at `edition-2-ch10-r1`. Final runtime `70d86f7` and
+source/evidence `265fe34` produce an exact5,792-file export; all12 delivered
+modules pass package discovery. Deterministic clearance `213b56b`, all-provider
+actual-use acceptance `23b312c`, historical quality/reuse closure `d53578e` and
+final prose `7b9b28a` are complete. Final manuscript `8aedd35` preserves the
+initial33 generation/three-discovery record and separately attributes later local
+quality checks. Large generated test payloads were cleaned up. No push occurred.
+
+Next is a fresh Chapter11 plan-only student, using accepted Chapter10 and only new
+teaching. Its oracle/runtime distinction is accepted at `d13738e`; actual runtime
+checker integration follows the student's public interface plan. Chapter17 and
+Chapter18 contracts are reviewed, not implemented. `CHECKPOINT.md` records current
+worker ownership; older progress paragraphs preserve the earlier attempts.
 
 Chapter 9 is accepted at `edition-2-ch09-r1`: exact 4,012-file export from
 `ac55f64`, runtime `06c6787`, code review `19d2fdf`, live review `2dc5841` and

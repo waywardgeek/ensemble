@@ -1,0 +1,3961 @@
+{
+  "scope": "Actual initial Chapter9 student demonstrations; failed outcomes retained; historical comparison pending",
+  "total_generation_requests": 93,
+  "ceilings": {
+    "overall": 108,
+    "per_provider": 36
+  },
+  "budgets": {
+    "openai": {
+      "N": 11,
+      "F": 5,
+      "G": 8,
+      "P": 5
+    },
+    "gemini": {
+      "N": 16,
+      "F": 5,
+      "G": 7,
+      "P": 4
+    },
+    "anthropic": {
+      "N": 14,
+      "F": 5,
+      "G": 9,
+      "P": 4
+    }
+  },
+  "fresh_discovery_requests": {
+    "anthropic": 1,
+    "openai": 1,
+    "gemini": 1
+  },
+  "all_http_including_discovery": 96,
+  "runs": [
+    {
+      "run": "live-anthropic-f",
+      "vendor": "anthropic",
+      "scenario": "F",
+      "exit_code": 0,
+      "requests": 5,
+      "responses_retained": 5,
+      "requested_model": "claude-sonnet-4-6",
+      "resolved_model": "claude-sonnet-4-6",
+      "source_revision": "c0e3171fdc22834348f976f81fcaa7372bd13ed4",
+      "launch_sha256": "fc24c117c031695c94e50e6847f41462f051caa34640dd2d2a9678a8b25c6b10",
+      "logs": [
+        {
+          "path": "session.log",
+          "sha256": "478f989a2deea999444d654ec44b4317b375d070b0b4a428f7e9d2bf40c34fd1",
+          "accepted_responses": 5,
+          "reported_models": [
+            "claude-sonnet-4-6"
+          ],
+          "usage": {
+            "input": 15695,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 471
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 0,
+            "primary": "ensemble",
+            "roots": [],
+            "active": [
+              {
+                "name": "ensemble",
+                "type": "primary",
+                "activation": 1
+              }
+            ],
+            "available": [],
+            "tools": [
+              "edit_file",
+              "kill_job",
+              "list_directory",
+              "load_skill",
+              "read_file",
+              "run_command",
+              "search_files",
+              "send_input",
+              "tool_limits",
+              "unload_skill",
+              "wait_for_job",
+              "write_file"
+            ],
+            "retired": []
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "ensemble",
+              0
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "ensemble",
+              "sha256": "3d80c1687729cf3716baadc4aa0a667227d84d5780fda8c2582528d92407a4a7",
+              "bytes": 345
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 6,
+              "call_id": "toolu_0112h3GMhjfBZ7LEZHSKtuaZ",
+              "name": "tool_limits",
+              "args": {
+                "ai_callback_delay": 0,
+                "max_output_bytes": 1
+              }
+            },
+            {
+              "seq": 10,
+              "call_id": "toolu_012Nag6gQfjb4M1kjqEoAn7f",
+              "name": "unload_skill",
+              "args": {
+                "name": "edit"
+              }
+            },
+            {
+              "seq": 14,
+              "job": {
+                "handle": 1,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 0
+              },
+              "call_id": "toolu_01Er2AWGNS2Qbnmj5iTmShwK",
+              "name": "read_file",
+              "args": {
+                "path": "notes.txt"
+              }
+            },
+            {
+              "seq": 19,
+              "job": {
+                "handle": 2,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 0
+              },
+              "call_id": "toolu_01ES6RHHUt7VTNUBpAReK2FV",
+              "name": "write_file",
+              "args": {
+                "path": "summary.txt",
+                "content": "Notes mark Chapter Nine and set the application port to 8080.\n"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 7,
+              "call_id": "toolu_0112h3GMhjfBZ7LEZHSKtuaZ",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "tool_limits set: supplied overrides apply to the next attempted call only, including invalid calls or another setter."
+                }
+              ]
+            },
+            {
+              "seq": 11,
+              "call_id": "toolu_012Nag6gQfjb4M1kjqEoAn7f",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "tool_limits consumed by unload_skill: ai_callback_delay=0 ai_callback_pattern=\"\" max_output_bytes=1\n{\"status\":\"unchanged\",\"name\":\"edit\",\"revision\":0,\"changed\":false}"
+                }
+              ]
+            },
+            {
+              "seq": 16,
+              "job": {
+                "handle": 1,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 35
+              },
+              "call_id": "toolu_01Er2AWGNS2Qbnmj5iTmShwK",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "CHAPTER-NINE-NOTE-MARKER\nport=8080\n"
+                }
+              ]
+            },
+            {
+              "seq": 21,
+              "job": {
+                "handle": 2,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 31
+              },
+              "call_id": "toolu_01ES6RHHUt7VTNUBpAReK2FV",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "created \"summary.txt\": 62 bytes"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "file_effects": {
+        "summary.txt": {
+          "bytes": 62,
+          "sha256": "ad8aac5520f7a46f324e59c89ed3bbbb566ecbd00fbe9ac92bac894149f8a63d",
+          "text": "Notes mark Chapter Nine and set the application port to 8080.\n"
+        }
+      }
+    },
+    {
+      "run": "live-anthropic-g",
+      "vendor": "anthropic",
+      "scenario": "G",
+      "exit_code": 0,
+      "requests": 9,
+      "responses_retained": 9,
+      "requested_model": "claude-sonnet-4-6",
+      "resolved_model": "claude-sonnet-4-6",
+      "source_revision": "c0e3171fdc22834348f976f81fcaa7372bd13ed4",
+      "launch_sha256": "46bc4628cbb156e0d9917b55b818b0ee45bedaff9576d8238053bb23b5543457",
+      "logs": [
+        {
+          "path": "session.log",
+          "sha256": "eb1596e589f5059d61e7ad51f3ea54c143d544de8d35253a7af25e0801000b19",
+          "accepted_responses": 8,
+          "reported_models": [
+            "claude-sonnet-4-6"
+          ],
+          "usage": {
+            "input": 18564,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 621
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 4,
+            "primary": "base",
+            "roots": [
+              "review",
+              "search"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "read",
+                "type": "dependency",
+                "activation": 2
+              },
+              {
+                "name": "review",
+                "type": "loadable",
+                "activation": 4
+              },
+              {
+                "name": "search",
+                "type": "loadable",
+                "activation": 5
+              }
+            ],
+            "available": [
+              {
+                "name": "edit",
+                "description": "Edit scratch files"
+              }
+            ],
+            "tools": [
+              "list_directory",
+              "load_skill",
+              "read_file",
+              "search_files",
+              "unload_skill"
+            ],
+            "retired": [
+              {
+                "name": "edit",
+                "activation": 3
+              }
+            ]
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              7,
+              "load",
+              "edit",
+              1
+            ],
+            [
+              32,
+              "load",
+              "review",
+              2
+            ],
+            [
+              37,
+              "load",
+              "search",
+              3
+            ],
+            [
+              42,
+              "unload",
+              "edit",
+              4
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "7ba8c18b87e46d7d6ed6706a676fb677948e8ecccc2a196ae741b7daf8cd8721",
+              "bytes": 197
+            },
+            {
+              "activation": 2,
+              "name": "read",
+              "sha256": "714870a372946ff4b994ab2fcc1f1e5934a3ffcaafe6dec4c4d37f7a759f0868",
+              "bytes": 76
+            },
+            {
+              "activation": 3,
+              "name": "edit",
+              "sha256": "1163a91914534452e9e01b6deb7c36182fda8d1a60386d3aef8666ddc2b786fa",
+              "bytes": 2455
+            },
+            {
+              "activation": 4,
+              "name": "review",
+              "sha256": "b7a7e25a67f9c3eb3e45d6cd5120da907daf13a1605155982613bd9eaeefb699",
+              "bytes": 44
+            },
+            {
+              "activation": 5,
+              "name": "search",
+              "sha256": "d437a00396a50c3d17ab69f6e989ee2033f50ca59017b4d3c7700c9490bf85ea",
+              "bytes": 41
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 6,
+              "call_id": "toolu_01Md5o2seeY4CQw4jQJp1P5U",
+              "name": "load_skill",
+              "args": {
+                "name": "edit"
+              }
+            },
+            {
+              "seq": 16,
+              "job": {
+                "handle": 1,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 0
+              },
+              "call_id": "toolu_01R6KkvF2TC5t7EXggNvBLCs",
+              "name": "list_directory",
+              "args": {
+                "path": "."
+              }
+            },
+            {
+              "seq": 21,
+              "job": {
+                "handle": 2,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 0
+              },
+              "call_id": "toolu_01We6okNRoJWMJ5XXVMNaFn2",
+              "name": "write_file",
+              "args": {
+                "path": "gui-note.txt",
+                "content": "CH09-GUI-WRITE\n"
+              }
+            },
+            {
+              "seq": 31,
+              "call_id": "toolu_01BvsPShuZrUmXo1NfJtUnED",
+              "name": "load_skill",
+              "args": {
+                "name": "review"
+              }
+            },
+            {
+              "seq": 36,
+              "call_id": "toolu_01Fy63cGQ5R1Axrin8LwTrG8",
+              "name": "load_skill",
+              "args": {
+                "name": "search"
+              }
+            },
+            {
+              "seq": 41,
+              "call_id": "toolu_01KrYdKuohpde3NKdbDtajh1",
+              "name": "unload_skill",
+              "args": {
+                "name": "edit"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 8,
+              "call_id": "toolu_01Md5o2seeY4CQw4jQJp1P5U",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"edit\",\"revision\":1,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 18,
+              "job": {
+                "handle": 1,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 25
+              },
+              "call_id": "toolu_01R6KkvF2TC5t7EXggNvBLCs",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": ".ensemble/\ncr/\nnotes.txt\n"
+                }
+              ]
+            },
+            {
+              "seq": 23,
+              "job": {
+                "handle": 2,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 32
+              },
+              "call_id": "toolu_01We6okNRoJWMJ5XXVMNaFn2",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "created \"gui-note.txt\": 15 bytes"
+                }
+              ]
+            },
+            {
+              "seq": 33,
+              "call_id": "toolu_01BvsPShuZrUmXo1NfJtUnED",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"review\",\"revision\":2,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 38,
+              "call_id": "toolu_01Fy63cGQ5R1Axrin8LwTrG8",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"search\",\"revision\":3,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 43,
+              "call_id": "toolu_01KrYdKuohpde3NKdbDtajh1",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"unloaded\",\"name\":\"edit\",\"revision\":4,\"changed\":true}"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "file_effects": {
+        "gui-note.txt": {
+          "bytes": 15,
+          "sha256": "998e15494442c5edeb83385e98da42c976b38d8aea42bd5c08f21ed234c68646",
+          "text": "CH09-GUI-WRITE\n"
+        }
+      },
+      "browser": {
+        "manual_starts": 2,
+        "full_manual_characters": 2455,
+        "full_text_delivery_matches": true,
+        "speech_start_keys": [
+          "manual/skill/agent-1/3",
+          "manual/skill/agent-1/3",
+          "agent-1/r3/m8/1",
+          "agent-1/r3/m8/1",
+          "agent-1/r3/m8/2",
+          "agent-1/r3/m9/1",
+          "agent-1/r3/m9/2",
+          "agent-1/r3/m10/1",
+          "agent-1/r3/m10/2",
+          "agent-1/r3/m11/1"
+        ],
+        "manual_silent_after_reconnect": true,
+        "driver_closed": true,
+        "sounds": [
+          {
+            "file": "audio-6.wav",
+            "sha256": "cd9599160edaeee5dd7297fe125778169e479511e7f6b8a16434d5145dbb0144",
+            "seconds": 7.78,
+            "first_1_5_seconds_rms": 0.0,
+            "after_2_5_seconds_rms": 0.0876657660256334
+          },
+          {
+            "file": "audio-12.wav",
+            "sha256": "97dcc34be23549e03e89cbb0314584a437af9b241a7b72b21a3a99e005fd9853",
+            "seconds": 8.46,
+            "first_1_5_seconds_rms": 0.0,
+            "after_2_5_seconds_rms": 0.08876430011177767
+          }
+        ],
+        "listening_claim": false,
+        "model_hearing_claim": false,
+        "action_failures": [
+          {
+            "at": "2026-10-08T16:56:12.419Z",
+            "kind": "action_failed",
+            "sequence": 3,
+            "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('main').getByText('Request r1: success').first() to be visible\u001b[22m\n"
+          }
+        ]
+      }
+    },
+    {
+      "run": "live-anthropic-n",
+      "vendor": "anthropic",
+      "scenario": "N",
+      "exit_code": 0,
+      "requests": 11,
+      "responses_retained": 11,
+      "requested_model": "claude-sonnet-4-6",
+      "resolved_model": "claude-sonnet-4-6",
+      "source_revision": "c0e3171fdc22834348f976f81fcaa7372bd13ed4",
+      "launch_sha256": "f6ceed28b29b038861b1cf8b809abddde6bd323ca34f93e4dbad66962869e3f8",
+      "logs": [
+        {
+          "path": "session.log",
+          "sha256": "fb24db07d4678f119e2e98799e406c2fffa7c986bf3c3e6f5e07d5652819ebc9",
+          "accepted_responses": 11,
+          "reported_models": [
+            "claude-sonnet-4-6"
+          ],
+          "usage": {
+            "input": 23467,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 957
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 4,
+            "primary": "base",
+            "roots": [
+              "review",
+              "search"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "read",
+                "type": "dependency",
+                "activation": 2
+              },
+              {
+                "name": "review",
+                "type": "loadable",
+                "activation": 4
+              },
+              {
+                "name": "search",
+                "type": "loadable",
+                "activation": 5
+              }
+            ],
+            "available": [
+              {
+                "name": "edit",
+                "description": "Edit scratch files"
+              }
+            ],
+            "tools": [
+              "list_directory",
+              "load_skill",
+              "read_file",
+              "search_files",
+              "unload_skill"
+            ],
+            "retired": [
+              {
+                "name": "edit",
+                "activation": 3
+              }
+            ]
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              7,
+              "load",
+              "edit",
+              1
+            ],
+            [
+              22,
+              "load",
+              "review",
+              2
+            ],
+            [
+              27,
+              "load",
+              "search",
+              3
+            ],
+            [
+              32,
+              "unload",
+              "edit",
+              4
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "7ba8c18b87e46d7d6ed6706a676fb677948e8ecccc2a196ae741b7daf8cd8721",
+              "bytes": 197
+            },
+            {
+              "activation": 2,
+              "name": "read",
+              "sha256": "714870a372946ff4b994ab2fcc1f1e5934a3ffcaafe6dec4c4d37f7a759f0868",
+              "bytes": 76
+            },
+            {
+              "activation": 3,
+              "name": "edit",
+              "sha256": "0040b623bf5cc5c4cf30a7b73f9415df4af73fa17eb873e324c4f0c4663b1585",
+              "bytes": 219
+            },
+            {
+              "activation": 4,
+              "name": "review",
+              "sha256": "b7a7e25a67f9c3eb3e45d6cd5120da907daf13a1605155982613bd9eaeefb699",
+              "bytes": 44
+            },
+            {
+              "activation": 5,
+              "name": "search",
+              "sha256": "d437a00396a50c3d17ab69f6e989ee2033f50ca59017b4d3c7700c9490bf85ea",
+              "bytes": 41
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 6,
+              "call_id": "toolu_01TWxuss75RTqTK3ewUcxeBg",
+              "name": "load_skill",
+              "args": {
+                "name": "edit"
+              }
+            },
+            {
+              "seq": 11,
+              "job": {
+                "handle": 1,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 0
+              },
+              "call_id": "toolu_0158jpU82sqVkzcJcjh5Q5p1",
+              "name": "write_file",
+              "args": {
+                "path": "notes-created.txt",
+                "content": "CH09-N-WRITE\n"
+              }
+            },
+            {
+              "seq": 21,
+              "call_id": "toolu_01UZmfAhNMxdiVZVBu4pSRXi",
+              "name": "load_skill",
+              "args": {
+                "name": "review"
+              }
+            },
+            {
+              "seq": 26,
+              "call_id": "toolu_015vxYUNchN4Xr2PSJ3ZrK79",
+              "name": "load_skill",
+              "args": {
+                "name": "search"
+              }
+            },
+            {
+              "seq": 31,
+              "call_id": "toolu_01GjjDJYt6Vzako5Rb7U17LP",
+              "name": "unload_skill",
+              "args": {
+                "name": "edit"
+              }
+            },
+            {
+              "seq": 46,
+              "call_id": "toolu_0161LiyuaFgnVaZ1RBAHEYeC",
+              "name": "load_skill",
+              "args": {
+                "name": "search"
+              }
+            },
+            {
+              "seq": 50,
+              "call_id": "toolu_01QCHQKhJ1XBMDzfitUvnhXt",
+              "name": "load_skill",
+              "args": {
+                "name": "absent"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 8,
+              "call_id": "toolu_01TWxuss75RTqTK3ewUcxeBg",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"edit\",\"revision\":1,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 13,
+              "job": {
+                "handle": 1,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 37
+              },
+              "call_id": "toolu_0158jpU82sqVkzcJcjh5Q5p1",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "created \"notes-created.txt\": 13 bytes"
+                }
+              ]
+            },
+            {
+              "seq": 23,
+              "call_id": "toolu_01UZmfAhNMxdiVZVBu4pSRXi",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"review\",\"revision\":2,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 28,
+              "call_id": "toolu_015vxYUNchN4Xr2PSJ3ZrK79",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"search\",\"revision\":3,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 33,
+              "call_id": "toolu_01GjjDJYt6Vzako5Rb7U17LP",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"unloaded\",\"name\":\"edit\",\"revision\":4,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 47,
+              "call_id": "toolu_0161LiyuaFgnVaZ1RBAHEYeC",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"unchanged\",\"name\":\"search\",\"revision\":4,\"changed\":false}"
+                }
+              ]
+            },
+            {
+              "seq": 51,
+              "call_id": "toolu_01QCHQKhJ1XBMDzfitUvnhXt",
+              "is_error": true,
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"error\":\"skill_unavailable\",\"name\":\"absent\",\"revision\":4}"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "file_effects": {
+        "notes-created.txt": {
+          "bytes": 13,
+          "sha256": "933f303642b0e95db86811be5c35409e2993b738353f62af1e5bcc80a08272a3",
+          "text": "CH09-N-WRITE\n"
+        }
+      }
+    },
+    {
+      "run": "live-anthropic-n-repair",
+      "vendor": "anthropic",
+      "scenario": "N",
+      "exit_code": 0,
+      "requests": 3,
+      "responses_retained": 3,
+      "requested_model": "claude-sonnet-4-6",
+      "resolved_model": "claude-sonnet-4-6",
+      "source_revision": "75a72554bbb13f5e86c8b806cff780b5fcd79c22",
+      "launch_sha256": "453e0f085da447aee634b61e47454e493066fa01297a2b705873dc825fee8253",
+      "logs": [
+        {
+          "path": "session.log",
+          "sha256": "6c2e71ed5cc5430b5c4f7b78ae2c7cfe5a428b24948c41bb25423ad4b73f6972",
+          "accepted_responses": 3,
+          "reported_models": [
+            "claude-sonnet-4-6"
+          ],
+          "usage": {
+            "input": 4141,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 188
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 1,
+            "primary": "base",
+            "roots": [
+              "edit"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "edit",
+                "type": "loadable",
+                "activation": 3
+              },
+              {
+                "name": "read",
+                "type": "dependency",
+                "activation": 2
+              }
+            ],
+            "available": [
+              {
+                "name": "review",
+                "description": "Review scratch files"
+              },
+              {
+                "name": "search",
+                "description": "Search scratch files"
+              }
+            ],
+            "tools": [
+              "list_directory",
+              "load_skill",
+              "read_file",
+              "unload_skill",
+              "write_file"
+            ],
+            "retired": []
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              7,
+              "load",
+              "edit",
+              1
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "7ba8c18b87e46d7d6ed6706a676fb677948e8ecccc2a196ae741b7daf8cd8721",
+              "bytes": 197
+            },
+            {
+              "activation": 2,
+              "name": "read",
+              "sha256": "714870a372946ff4b994ab2fcc1f1e5934a3ffcaafe6dec4c4d37f7a759f0868",
+              "bytes": 76
+            },
+            {
+              "activation": 3,
+              "name": "edit",
+              "sha256": "0040b623bf5cc5c4cf30a7b73f9415df4af73fa17eb873e324c4f0c4663b1585",
+              "bytes": 219
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 6,
+              "call_id": "toolu_01R3ZPdv5AU7Nf8FLE4FMH9q",
+              "name": "load_skill",
+              "args": {
+                "name": "edit"
+              }
+            },
+            {
+              "seq": 11,
+              "job": {
+                "handle": 1,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 0
+              },
+              "call_id": "toolu_01DgBmLhkGCJAmeRDW9g6pAC",
+              "name": "list_directory",
+              "args": {}
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 8,
+              "call_id": "toolu_01R3ZPdv5AU7Nf8FLE4FMH9q",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"edit\",\"revision\":1,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 13,
+              "job": {
+                "handle": 1,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 14
+              },
+              "call_id": "toolu_01DgBmLhkGCJAmeRDW9g6pAC",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "cr/\nnotes.txt\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run": "live-anthropic-p",
+      "vendor": "anthropic",
+      "scenario": "P",
+      "exit_code": 1,
+      "requests": 4,
+      "responses_retained": 4,
+      "requested_model": "claude-sonnet-4-6",
+      "resolved_model": "claude-sonnet-4-6",
+      "source_revision": "c0e3171fdc22834348f976f81fcaa7372bd13ed4",
+      "launch_sha256": "7a929753d82e3f03d90840b93c6d6f048a21e1d8683f478e8afde1329f0ecedd",
+      "logs": [
+        {
+          "path": "workspace/alpha/events.jsonl",
+          "sha256": "1983986e21378304c26f679c5fbafdf2b22c6971c2dd255e6b8233c535f06f5d",
+          "accepted_responses": 2,
+          "reported_models": [
+            "claude-sonnet-4-6"
+          ],
+          "usage": {
+            "input": 2475,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 122
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 1,
+            "primary": "base",
+            "roots": [
+              "edit"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "edit",
+                "type": "loadable",
+                "activation": 2
+              }
+            ],
+            "available": [
+              {
+                "name": "inspect",
+                "description": "Inspect notes"
+              }
+            ],
+            "tools": [
+              "load_skill",
+              "read_file",
+              "unload_skill",
+              "write_file"
+            ],
+            "retired": []
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              2,
+              "load",
+              "edit",
+              1
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "3f95866c46cf66f4cfa35ec9f18c2016a7481543be61bad292a472594d996dde",
+              "bytes": 159
+            },
+            {
+              "activation": 2,
+              "name": "edit",
+              "sha256": "bada08289012927b5ae55cf98ff78928fb6b8707cf5d2336efc88c3bf740b700",
+              "bytes": 98
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 7,
+              "job": {
+                "handle": 1,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 0
+              },
+              "call_id": "toolu_01QhrWtin6WFppuRk5dxy5tj",
+              "name": "read_file",
+              "args": {
+                "path": "notes.txt"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 9,
+              "job": {
+                "handle": 1,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 41
+              },
+              "call_id": "toolu_01QhrWtin6WFppuRk5dxy5tj",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "CHAPTER-NINE-NOTE-MARKER\nport=8080\nalpha\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "path": "workspace/beta/events.jsonl",
+          "sha256": "87badc2c821f902608e73fc6abf55ba554686089cccac1a19d48c47b3a512446",
+          "accepted_responses": 2,
+          "reported_models": [
+            "claude-sonnet-4-6"
+          ],
+          "usage": {
+            "input": 2199,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 179
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 2,
+            "primary": "base",
+            "roots": [],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              }
+            ],
+            "available": [
+              {
+                "name": "edit",
+                "description": "Edit notes"
+              },
+              {
+                "name": "inspect",
+                "description": "Inspect notes"
+              }
+            ],
+            "tools": [
+              "load_skill",
+              "read_file",
+              "unload_skill"
+            ],
+            "retired": [
+              {
+                "name": "inspect",
+                "activation": 2
+              }
+            ]
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              2,
+              "load",
+              "inspect",
+              1
+            ],
+            [
+              15,
+              "unload",
+              "inspect",
+              2
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "ba649cc4e44fa157d484a7563655b5e01aa766a7beeb9f980d6b308415a98518",
+              "bytes": 158
+            },
+            {
+              "activation": 2,
+              "name": "inspect",
+              "sha256": "2f3f31d477fcf00b7369eba5a1cb446639a8373e3c075ad2da551fb0857fe31e",
+              "bytes": 95
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 7,
+              "call_id": "toolu_01YLVJugT6E8XsqnqCwwa41B",
+              "name": "load_skill",
+              "args": {
+                "name": "inspect"
+              }
+            },
+            {
+              "seq": 9,
+              "job": {
+                "handle": 2,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 0
+              },
+              "call_id": "toolu_01DRA7U7WwfVSDV28ihHbwz3",
+              "name": "read_file",
+              "args": {
+                "path": "notes.txt"
+              }
+            },
+            {
+              "seq": 14,
+              "call_id": "toolu_013oAwEmTv8apLZBx2cQoxiW",
+              "name": "unload_skill",
+              "args": {
+                "name": "inspect"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 8,
+              "call_id": "toolu_01YLVJugT6E8XsqnqCwwa41B",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"unchanged\",\"name\":\"inspect\",\"revision\":1,\"changed\":false}"
+                }
+              ]
+            },
+            {
+              "seq": 11,
+              "job": {
+                "handle": 2,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 40
+              },
+              "call_id": "toolu_01DRA7U7WwfVSDV28ihHbwz3",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "CHAPTER-NINE-NOTE-MARKER\nport=8080\nbeta\n"
+                }
+              ]
+            },
+            {
+              "seq": 16,
+              "call_id": "toolu_013oAwEmTv8apLZBx2cQoxiW",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"unloaded\",\"name\":\"inspect\",\"revision\":2,\"changed\":true}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run": "live-gemini-f",
+      "vendor": "gemini",
+      "scenario": "F",
+      "exit_code": 0,
+      "requests": 5,
+      "responses_retained": 5,
+      "requested_model": "models/gemini-3.8-flash",
+      "resolved_model": "gemini-3.8-flash",
+      "source_revision": "75a72554bbb13f5e86c8b806cff780b5fcd79c22",
+      "launch_sha256": "311b9dc5758af7d8f555ebb40509e32cea75217208393f660e6bc3ce6132eb68",
+      "logs": [
+        {
+          "path": "session.log",
+          "sha256": "694527d6da026717d602fbe89251ec53821ad81fb71a0bb1cd7d6554b340a6ab",
+          "accepted_responses": 5,
+          "reported_models": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input": 11659,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 600
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 0,
+            "primary": "ensemble",
+            "roots": [],
+            "active": [
+              {
+                "name": "ensemble",
+                "type": "primary",
+                "activation": 1
+              }
+            ],
+            "available": [],
+            "tools": [
+              "edit_file",
+              "kill_job",
+              "list_directory",
+              "load_skill",
+              "read_file",
+              "run_command",
+              "search_files",
+              "send_input",
+              "tool_limits",
+              "unload_skill",
+              "wait_for_job",
+              "write_file"
+            ],
+            "retired": []
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "ensemble",
+              0
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "ensemble",
+              "sha256": "3d80c1687729cf3716baadc4aa0a667227d84d5780fda8c2582528d92407a4a7",
+              "bytes": 345
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 6,
+              "call_id": "call_314757",
+              "name": "tool_limits",
+              "args": {
+                "ai_callback_delay": 0,
+                "max_output_bytes": 1
+              }
+            },
+            {
+              "seq": 10,
+              "call_id": "call_713551",
+              "name": "unload_skill",
+              "args": {
+                "name": "edit"
+              }
+            },
+            {
+              "seq": 14,
+              "job": {
+                "handle": 1,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_477322",
+              "name": "read_file",
+              "args": {
+                "path": "notes.txt"
+              }
+            },
+            {
+              "seq": 19,
+              "job": {
+                "handle": 2,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_448316",
+              "name": "write_file",
+              "args": {
+                "path": "summary.txt",
+                "overwrite": true,
+                "content": "The notes specify port 8080 under the chapter nine marker.\n"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 7,
+              "call_id": "call_314757",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "tool_limits set: supplied overrides apply to the next attempted call only, including invalid calls or another setter."
+                }
+              ]
+            },
+            {
+              "seq": 11,
+              "call_id": "call_713551",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "tool_limits consumed by unload_skill: ai_callback_delay=0 ai_callback_pattern=\"\" max_output_bytes=1\n{\"status\":\"unchanged\",\"name\":\"edit\",\"revision\":0,\"changed\":false}"
+                }
+              ]
+            },
+            {
+              "seq": 16,
+              "job": {
+                "handle": 1,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 35
+              },
+              "call_id": "call_477322",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "CHAPTER-NINE-NOTE-MARKER\nport=8080\n"
+                }
+              ]
+            },
+            {
+              "seq": 21,
+              "job": {
+                "handle": 2,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 29
+              },
+              "call_id": "call_448316",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "wrote \"summary.txt\": 59 bytes"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "file_effects": {
+        "summary.txt": {
+          "bytes": 59,
+          "sha256": "8f03ae895ebded85dcf16bfb4f092151fa9ad24854ef8b0087028dd4213423b3",
+          "text": "The notes specify port 8080 under the chapter nine marker.\n"
+        }
+      }
+    },
+    {
+      "run": "live-gemini-g",
+      "vendor": "gemini",
+      "scenario": "G",
+      "exit_code": 0,
+      "requests": 7,
+      "responses_retained": 7,
+      "requested_model": "models/gemini-3.8-flash",
+      "resolved_model": "gemini-3.8-flash",
+      "source_revision": "75a72554bbb13f5e86c8b806cff780b5fcd79c22",
+      "launch_sha256": "a37942156956c59369d5700a5134cece7106c5b9bdb8e15135b5b4ca75ee5f54",
+      "logs": [
+        {
+          "path": "session.log",
+          "sha256": "d0447f51c6b76ef9ae654c406e90fe18dfd702e71d26a365cf14f69859057846",
+          "accepted_responses": 7,
+          "reported_models": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input": 10609,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 636
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 4,
+            "primary": "base",
+            "roots": [
+              "review",
+              "search"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "read",
+                "type": "dependency",
+                "activation": 2
+              },
+              {
+                "name": "review",
+                "type": "loadable",
+                "activation": 4
+              },
+              {
+                "name": "search",
+                "type": "loadable",
+                "activation": 5
+              }
+            ],
+            "available": [
+              {
+                "name": "edit",
+                "description": "Edit scratch files"
+              }
+            ],
+            "tools": [
+              "list_directory",
+              "load_skill",
+              "read_file",
+              "search_files",
+              "unload_skill"
+            ],
+            "retired": [
+              {
+                "name": "edit",
+                "activation": 3
+              }
+            ]
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              7,
+              "load",
+              "edit",
+              1
+            ],
+            [
+              22,
+              "load",
+              "review",
+              2
+            ],
+            [
+              27,
+              "load",
+              "search",
+              3
+            ],
+            [
+              32,
+              "unload",
+              "edit",
+              4
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "7ba8c18b87e46d7d6ed6706a676fb677948e8ecccc2a196ae741b7daf8cd8721",
+              "bytes": 197
+            },
+            {
+              "activation": 2,
+              "name": "read",
+              "sha256": "714870a372946ff4b994ab2fcc1f1e5934a3ffcaafe6dec4c4d37f7a759f0868",
+              "bytes": 76
+            },
+            {
+              "activation": 3,
+              "name": "edit",
+              "sha256": "1163a91914534452e9e01b6deb7c36182fda8d1a60386d3aef8666ddc2b786fa",
+              "bytes": 2455
+            },
+            {
+              "activation": 4,
+              "name": "review",
+              "sha256": "b7a7e25a67f9c3eb3e45d6cd5120da907daf13a1605155982613bd9eaeefb699",
+              "bytes": 44
+            },
+            {
+              "activation": 5,
+              "name": "search",
+              "sha256": "d437a00396a50c3d17ab69f6e989ee2033f50ca59017b4d3c7700c9490bf85ea",
+              "bytes": 41
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 6,
+              "call_id": "call_330506",
+              "name": "load_skill",
+              "args": {
+                "name": "edit"
+              }
+            },
+            {
+              "seq": 11,
+              "job": {
+                "handle": 1,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_478647",
+              "name": "write_file",
+              "args": {
+                "path": "gui-note.txt",
+                "content": "CH09-GUI-WRITE\n"
+              }
+            },
+            {
+              "seq": 21,
+              "call_id": "call_328701",
+              "name": "load_skill",
+              "args": {
+                "name": "review"
+              }
+            },
+            {
+              "seq": 26,
+              "call_id": "call_460992",
+              "name": "load_skill",
+              "args": {
+                "name": "search"
+              }
+            },
+            {
+              "seq": 31,
+              "call_id": "call_354067",
+              "name": "unload_skill",
+              "args": {
+                "name": "edit"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 8,
+              "call_id": "call_330506",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"edit\",\"revision\":1,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 13,
+              "job": {
+                "handle": 1,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 32
+              },
+              "call_id": "call_478647",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "created \"gui-note.txt\": 15 bytes"
+                }
+              ]
+            },
+            {
+              "seq": 23,
+              "call_id": "call_328701",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"review\",\"revision\":2,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 28,
+              "call_id": "call_460992",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"search\",\"revision\":3,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 33,
+              "call_id": "call_354067",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"unloaded\",\"name\":\"edit\",\"revision\":4,\"changed\":true}"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "file_effects": {
+        "gui-note.txt": {
+          "bytes": 15,
+          "sha256": "998e15494442c5edeb83385e98da42c976b38d8aea42bd5c08f21ed234c68646",
+          "text": "CH09-GUI-WRITE\n"
+        }
+      },
+      "browser": {
+        "manual_starts": 1,
+        "full_manual_characters": 2455,
+        "full_text_delivery_matches": true,
+        "speech_start_keys": [
+          "manual/skill/agent-1/3",
+          "agent-1/r2/m5/1",
+          "agent-1/r2/m6/1",
+          "agent-1/r2/m7/1",
+          "agent-1/r2/m8/1",
+          "agent-1/r2/m8/1",
+          "agent-1/r2/m8/1",
+          "agent-1/r2/m8/1"
+        ],
+        "manual_silent_after_reconnect": true,
+        "driver_closed": true,
+        "sounds": [
+          {
+            "file": "audio-6.wav",
+            "sha256": "e110a34828bcdc6a7dd36c1d65c3d376ac6ae5832c099daa8e190a1f13fc6b6d",
+            "seconds": 8.42,
+            "first_1_5_seconds_rms": 0.0,
+            "after_2_5_seconds_rms": 0.0894674164278861
+          }
+        ],
+        "listening_claim": false,
+        "model_hearing_claim": false,
+        "action_failures": []
+      }
+    },
+    {
+      "run": "live-gemini-n",
+      "vendor": "gemini",
+      "scenario": "N",
+      "exit_code": 1,
+      "requests": 8,
+      "responses_retained": 7,
+      "requested_model": "models/gemini-3.8-flash",
+      "resolved_model": "gemini-3.8-flash",
+      "source_revision": "75a72554bbb13f5e86c8b806cff780b5fcd79c22",
+      "launch_sha256": "6d57d4a7b3f00d3ee42331828edccdeb168326b5c0a584b773ba1d30af01f3df",
+      "logs": [
+        {
+          "path": "session.log",
+          "sha256": "c1a7c44c454fb46baf76eab96bfcfb3373ac34eb16b9f95880d6bd376aea5567",
+          "accepted_responses": 7,
+          "reported_models": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input": 7960,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 602
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 4,
+            "primary": "base",
+            "roots": [
+              "review",
+              "search"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "read",
+                "type": "dependency",
+                "activation": 2
+              },
+              {
+                "name": "review",
+                "type": "loadable",
+                "activation": 4
+              },
+              {
+                "name": "search",
+                "type": "loadable",
+                "activation": 5
+              }
+            ],
+            "available": [
+              {
+                "name": "edit",
+                "description": "Edit scratch files"
+              }
+            ],
+            "tools": [
+              "list_directory",
+              "load_skill",
+              "read_file",
+              "search_files",
+              "unload_skill"
+            ],
+            "retired": [
+              {
+                "name": "edit",
+                "activation": 3
+              }
+            ]
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              7,
+              "load",
+              "edit",
+              1
+            ],
+            [
+              22,
+              "load",
+              "review",
+              2
+            ],
+            [
+              27,
+              "load",
+              "search",
+              3
+            ],
+            [
+              32,
+              "unload",
+              "edit",
+              4
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "7ba8c18b87e46d7d6ed6706a676fb677948e8ecccc2a196ae741b7daf8cd8721",
+              "bytes": 197
+            },
+            {
+              "activation": 2,
+              "name": "read",
+              "sha256": "714870a372946ff4b994ab2fcc1f1e5934a3ffcaafe6dec4c4d37f7a759f0868",
+              "bytes": 76
+            },
+            {
+              "activation": 3,
+              "name": "edit",
+              "sha256": "0040b623bf5cc5c4cf30a7b73f9415df4af73fa17eb873e324c4f0c4663b1585",
+              "bytes": 219
+            },
+            {
+              "activation": 4,
+              "name": "review",
+              "sha256": "b7a7e25a67f9c3eb3e45d6cd5120da907daf13a1605155982613bd9eaeefb699",
+              "bytes": 44
+            },
+            {
+              "activation": 5,
+              "name": "search",
+              "sha256": "d437a00396a50c3d17ab69f6e989ee2033f50ca59017b4d3c7700c9490bf85ea",
+              "bytes": 41
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 6,
+              "call_id": "call_402315",
+              "name": "load_skill",
+              "args": {
+                "name": "edit"
+              }
+            },
+            {
+              "seq": 11,
+              "job": {
+                "handle": 1,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_579037",
+              "name": "write_file",
+              "args": {
+                "path": "notes-created.txt",
+                "content": "CH09-N-WRITE\n"
+              }
+            },
+            {
+              "seq": 21,
+              "call_id": "call_74003",
+              "name": "load_skill",
+              "args": {
+                "name": "review"
+              }
+            },
+            {
+              "seq": 26,
+              "call_id": "call_278274",
+              "name": "load_skill",
+              "args": {
+                "name": "search"
+              }
+            },
+            {
+              "seq": 31,
+              "call_id": "call_589058",
+              "name": "unload_skill",
+              "args": {
+                "name": "edit"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 8,
+              "call_id": "call_402315",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"edit\",\"revision\":1,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 13,
+              "job": {
+                "handle": 1,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 37
+              },
+              "call_id": "call_579037",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "created \"notes-created.txt\": 13 bytes"
+                }
+              ]
+            },
+            {
+              "seq": 23,
+              "call_id": "call_74003",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"review\",\"revision\":2,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 28,
+              "call_id": "call_278274",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"search\",\"revision\":3,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 33,
+              "call_id": "call_589058",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"unloaded\",\"name\":\"edit\",\"revision\":4,\"changed\":true}"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "file_effects": {
+        "notes-created.txt": {
+          "bytes": 13,
+          "sha256": "933f303642b0e95db86811be5c35409e2993b738353f62af1e5bcc80a08272a3",
+          "text": "CH09-N-WRITE\n"
+        }
+      }
+    },
+    {
+      "run": "live-gemini-n-management",
+      "vendor": "gemini",
+      "scenario": "N",
+      "exit_code": 0,
+      "requests": 4,
+      "responses_retained": 4,
+      "requested_model": "models/gemini-3.8-flash",
+      "resolved_model": "gemini-3.8-flash",
+      "source_revision": "75a72554bbb13f5e86c8b806cff780b5fcd79c22",
+      "launch_sha256": "ad65e2fe30820919f14f8d3754848d11af003fc7948acfdcd1191b8ed7f45951",
+      "logs": [
+        {
+          "path": "session.log",
+          "sha256": "3b64ab7e85566d5c3fb6c7e8e322313cf5432457c8655181f36b28662e1bfc44",
+          "accepted_responses": 4,
+          "reported_models": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input": 3346,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 596
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 1,
+            "primary": "base",
+            "roots": [
+              "review"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "read",
+                "type": "dependency",
+                "activation": 2
+              },
+              {
+                "name": "review",
+                "type": "loadable",
+                "activation": 3
+              }
+            ],
+            "available": [
+              {
+                "name": "edit",
+                "description": "Edit scratch files"
+              }
+            ],
+            "tools": [
+              "list_directory",
+              "load_skill",
+              "read_file",
+              "unload_skill"
+            ],
+            "retired": []
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              7,
+              "load",
+              "review",
+              1
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "7ba8c18b87e46d7d6ed6706a676fb677948e8ecccc2a196ae741b7daf8cd8721",
+              "bytes": 197
+            },
+            {
+              "activation": 2,
+              "name": "read",
+              "sha256": "714870a372946ff4b994ab2fcc1f1e5934a3ffcaafe6dec4c4d37f7a759f0868",
+              "bytes": 76
+            },
+            {
+              "activation": 3,
+              "name": "review",
+              "sha256": "b7a7e25a67f9c3eb3e45d6cd5120da907daf13a1605155982613bd9eaeefb699",
+              "bytes": 44
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 6,
+              "call_id": "call_389088",
+              "name": "load_skill",
+              "args": {
+                "name": "review"
+              }
+            },
+            {
+              "seq": 11,
+              "call_id": "call_403816",
+              "name": "load_skill",
+              "args": {
+                "name": "review"
+              }
+            },
+            {
+              "seq": 15,
+              "call_id": "call_415903",
+              "name": "load_skill",
+              "args": {
+                "name": "absent"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 8,
+              "call_id": "call_389088",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"review\",\"revision\":1,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 12,
+              "call_id": "call_403816",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"unchanged\",\"name\":\"review\",\"revision\":1,\"changed\":false}"
+                }
+              ]
+            },
+            {
+              "seq": 16,
+              "call_id": "call_415903",
+              "is_error": true,
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"error\":\"skill_unavailable\",\"name\":\"absent\",\"revision\":1}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run": "live-gemini-n-recovery",
+      "vendor": "gemini",
+      "scenario": "N",
+      "exit_code": 1,
+      "requests": 4,
+      "responses_retained": 4,
+      "requested_model": "models/gemini-3.8-flash",
+      "resolved_model": "gemini-3.8-flash",
+      "source_revision": "75a72554bbb13f5e86c8b806cff780b5fcd79c22",
+      "launch_sha256": "399046c84d3a2d880ba7deb8e1aaba0694e017fac52dd144f1b1ec7d5c8ed7de",
+      "logs": [
+        {
+          "path": "session.log",
+          "sha256": "87951e7f1ecc58072b9a6780752348384f9f1adb31447ef65ab4c2b45b3e2f91",
+          "accepted_responses": 3,
+          "reported_models": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input": 2736,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 163
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 3,
+            "primary": "base",
+            "roots": [
+              "search"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "search",
+                "type": "loadable",
+                "activation": 4
+              }
+            ],
+            "available": [
+              {
+                "name": "edit",
+                "description": "Edit scratch files"
+              },
+              {
+                "name": "review",
+                "description": "Review scratch files"
+              }
+            ],
+            "tools": [
+              "load_skill",
+              "read_file",
+              "search_files",
+              "unload_skill"
+            ],
+            "retired": [
+              {
+                "name": "read",
+                "activation": 2
+              },
+              {
+                "name": "edit",
+                "activation": 3
+              }
+            ]
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              7,
+              "load",
+              "edit",
+              1
+            ],
+            [
+              12,
+              "load",
+              "search",
+              2
+            ],
+            [
+              17,
+              "unload",
+              "edit",
+              3
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "7ba8c18b87e46d7d6ed6706a676fb677948e8ecccc2a196ae741b7daf8cd8721",
+              "bytes": 197
+            },
+            {
+              "activation": 2,
+              "name": "read",
+              "sha256": "714870a372946ff4b994ab2fcc1f1e5934a3ffcaafe6dec4c4d37f7a759f0868",
+              "bytes": 76
+            },
+            {
+              "activation": 3,
+              "name": "edit",
+              "sha256": "0040b623bf5cc5c4cf30a7b73f9415df4af73fa17eb873e324c4f0c4663b1585",
+              "bytes": 219
+            },
+            {
+              "activation": 4,
+              "name": "search",
+              "sha256": "d437a00396a50c3d17ab69f6e989ee2033f50ca59017b4d3c7700c9490bf85ea",
+              "bytes": 41
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 6,
+              "call_id": "call_308039",
+              "name": "load_skill",
+              "args": {
+                "name": "edit"
+              }
+            },
+            {
+              "seq": 11,
+              "call_id": "call_449147",
+              "name": "load_skill",
+              "args": {
+                "name": "search"
+              }
+            },
+            {
+              "seq": 16,
+              "call_id": "call_428366",
+              "name": "unload_skill",
+              "args": {
+                "name": "edit"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 8,
+              "call_id": "call_308039",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"edit\",\"revision\":1,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 13,
+              "call_id": "call_449147",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"search\",\"revision\":2,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 18,
+              "call_id": "call_428366",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"unloaded\",\"name\":\"edit\",\"revision\":3,\"changed\":true}"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run": "live-gemini-p",
+      "vendor": "gemini",
+      "scenario": "P",
+      "exit_code": 0,
+      "requests": 4,
+      "responses_retained": 4,
+      "requested_model": "models/gemini-3.8-flash",
+      "resolved_model": "gemini-3.8-flash",
+      "source_revision": "75a72554bbb13f5e86c8b806cff780b5fcd79c22",
+      "launch_sha256": "bea7854a70f5243358b9447a5e5ea5bed8c2c6ac45d8381c98e1f90b0a083d5e",
+      "logs": [
+        {
+          "path": "workspace/alpha/events.jsonl",
+          "sha256": "2013ce55eb52cfbf3db984b5539270f228b0d3e369f4b91115a7db85d3a727ef",
+          "accepted_responses": 2,
+          "reported_models": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input": 1529,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 684
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 1,
+            "primary": "base",
+            "roots": [
+              "edit"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "edit",
+                "type": "loadable",
+                "activation": 2
+              }
+            ],
+            "available": [
+              {
+                "name": "inspect",
+                "description": "Inspect notes"
+              }
+            ],
+            "tools": [
+              "load_skill",
+              "read_file",
+              "unload_skill",
+              "write_file"
+            ],
+            "retired": []
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              2,
+              "load",
+              "edit",
+              1
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "3f95866c46cf66f4cfa35ec9f18c2016a7481543be61bad292a472594d996dde",
+              "bytes": 159
+            },
+            {
+              "activation": 2,
+              "name": "edit",
+              "sha256": "bada08289012927b5ae55cf98ff78928fb6b8707cf5d2336efc88c3bf740b700",
+              "bytes": 98
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 7,
+              "job": {
+                "handle": 1,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_374739",
+              "name": "read_file",
+              "args": {
+                "path": "notes.txt"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 9,
+              "job": {
+                "handle": 1,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 41
+              },
+              "call_id": "call_374739",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "CHAPTER-NINE-NOTE-MARKER\nport=8080\nalpha\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "path": "workspace/beta/events.jsonl",
+          "sha256": "21042ff3451c64178dbc4a65ed19bde4c0b1111b1c6fbec7e49972535749b4c4",
+          "accepted_responses": 2,
+          "reported_models": [
+            "gemini-3.8-flash"
+          ],
+          "usage": {
+            "input": 1151,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 948
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 1,
+            "primary": "base",
+            "roots": [
+              "inspect"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "inspect",
+                "type": "loadable",
+                "activation": 2
+              }
+            ],
+            "available": [
+              {
+                "name": "edit",
+                "description": "Edit notes"
+              }
+            ],
+            "tools": [
+              "load_skill",
+              "read_file",
+              "unload_skill"
+            ],
+            "retired": []
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              2,
+              "load",
+              "inspect",
+              1
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "ba649cc4e44fa157d484a7563655b5e01aa766a7beeb9f980d6b308415a98518",
+              "bytes": 158
+            },
+            {
+              "activation": 2,
+              "name": "inspect",
+              "sha256": "2f3f31d477fcf00b7369eba5a1cb446639a8373e3c075ad2da551fb0857fe31e",
+              "bytes": 95
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 7,
+              "job": {
+                "handle": 2,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_448609",
+              "name": "read_file",
+              "args": {
+                "path": "notes.txt"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 9,
+              "job": {
+                "handle": 2,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 40
+              },
+              "call_id": "call_448609",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "CHAPTER-NINE-NOTE-MARKER\nport=8080\nbeta\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "run": "live-openai-f",
+      "vendor": "openai",
+      "scenario": "F",
+      "exit_code": 0,
+      "requests": 5,
+      "responses_retained": 5,
+      "requested_model": "gpt-4.1",
+      "resolved_model": "gpt-4.1",
+      "source_revision": "75a72554bbb13f5e86c8b806cff780b5fcd79c22",
+      "launch_sha256": "e0a3d71836c087c727dd08f1c0489417e036792c9a04934caa3741c29faa21c7",
+      "logs": [
+        {
+          "path": "session.log",
+          "sha256": "3732f80450fc750e7eedb43415fb46cea64c86cb3bfcbded13e037723f7bc858",
+          "accepted_responses": 5,
+          "reported_models": [
+            "gpt-4.1-2025-04-14"
+          ],
+          "usage": {
+            "input": 1938,
+            "cache_write": 0,
+            "cache_read": 5632,
+            "output": 117
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 0,
+            "primary": "ensemble",
+            "roots": [],
+            "active": [
+              {
+                "name": "ensemble",
+                "type": "primary",
+                "activation": 1
+              }
+            ],
+            "available": [],
+            "tools": [
+              "edit_file",
+              "kill_job",
+              "list_directory",
+              "load_skill",
+              "read_file",
+              "run_command",
+              "search_files",
+              "send_input",
+              "tool_limits",
+              "unload_skill",
+              "wait_for_job",
+              "write_file"
+            ],
+            "retired": []
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "ensemble",
+              0
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "ensemble",
+              "sha256": "3d80c1687729cf3716baadc4aa0a667227d84d5780fda8c2582528d92407a4a7",
+              "bytes": 345
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 6,
+              "call_id": "call_3CtyQZRyVOFp5wmmA6104Mas",
+              "name": "tool_limits",
+              "args": {
+                "ai_callback_delay": 0,
+                "max_output_bytes": 1
+              }
+            },
+            {
+              "seq": 10,
+              "call_id": "call_d1NXxfVIcLC1dKMingnCXupx",
+              "name": "unload_skill",
+              "args": {
+                "name": "edit"
+              }
+            },
+            {
+              "seq": 14,
+              "job": {
+                "handle": 1,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_nyfKbgsHETDpdApVRenE7o44",
+              "name": "read_file",
+              "args": {
+                "path": "notes.txt"
+              }
+            },
+            {
+              "seq": 19,
+              "job": {
+                "handle": 2,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_Q0WOxt1fkm64tkSeKpHU4Yyz",
+              "name": "write_file",
+              "args": {
+                "content": "The notes mention a chapter nine marker and port 8080.\n",
+                "path": "summary.txt"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 7,
+              "call_id": "call_3CtyQZRyVOFp5wmmA6104Mas",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "tool_limits set: supplied overrides apply to the next attempted call only, including invalid calls or another setter."
+                }
+              ]
+            },
+            {
+              "seq": 11,
+              "call_id": "call_d1NXxfVIcLC1dKMingnCXupx",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "tool_limits consumed by unload_skill: ai_callback_delay=0 ai_callback_pattern=\"\" max_output_bytes=1\n{\"status\":\"unchanged\",\"name\":\"edit\",\"revision\":0,\"changed\":false}"
+                }
+              ]
+            },
+            {
+              "seq": 16,
+              "job": {
+                "handle": 1,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 35
+              },
+              "call_id": "call_nyfKbgsHETDpdApVRenE7o44",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "CHAPTER-NINE-NOTE-MARKER\nport=8080\n"
+                }
+              ]
+            },
+            {
+              "seq": 21,
+              "job": {
+                "handle": 2,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 31
+              },
+              "call_id": "call_Q0WOxt1fkm64tkSeKpHU4Yyz",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "created \"summary.txt\": 55 bytes"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "file_effects": {
+        "summary.txt": {
+          "bytes": 55,
+          "sha256": "54e4adff9336f435f0b4405e66015d3bd2fb48e445f0006d30bfc79af71bdceb",
+          "text": "The notes mention a chapter nine marker and port 8080.\n"
+        }
+      }
+    },
+    {
+      "run": "live-openai-g",
+      "vendor": "openai",
+      "scenario": "G",
+      "exit_code": 0,
+      "requests": 8,
+      "responses_retained": 8,
+      "requested_model": "gpt-4.1",
+      "resolved_model": "gpt-4.1",
+      "source_revision": "75a72554bbb13f5e86c8b806cff780b5fcd79c22",
+      "launch_sha256": "b4b3f3a4e997f95cafc249ab8506d22f343699ae93ddce21fa125ab848a6904c",
+      "logs": [
+        {
+          "path": "session.log",
+          "sha256": "424d1c14f549d239547e3bcf24128b564e4732687e0b0351654bfe6fde29513f",
+          "accepted_responses": 8,
+          "reported_models": [
+            "gpt-4.1-2025-04-14"
+          ],
+          "usage": {
+            "input": 7124,
+            "cache_write": 0,
+            "cache_read": 2048,
+            "output": 234
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 4,
+            "primary": "base",
+            "roots": [
+              "review",
+              "search"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "read",
+                "type": "dependency",
+                "activation": 2
+              },
+              {
+                "name": "review",
+                "type": "loadable",
+                "activation": 4
+              },
+              {
+                "name": "search",
+                "type": "loadable",
+                "activation": 5
+              }
+            ],
+            "available": [
+              {
+                "name": "edit",
+                "description": "Edit scratch files"
+              }
+            ],
+            "tools": [
+              "list_directory",
+              "load_skill",
+              "read_file",
+              "search_files",
+              "unload_skill"
+            ],
+            "retired": [
+              {
+                "name": "edit",
+                "activation": 3
+              }
+            ]
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              7,
+              "load",
+              "edit",
+              1
+            ],
+            [
+              27,
+              "load",
+              "review",
+              2
+            ],
+            [
+              32,
+              "load",
+              "search",
+              3
+            ],
+            [
+              37,
+              "unload",
+              "edit",
+              4
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "7ba8c18b87e46d7d6ed6706a676fb677948e8ecccc2a196ae741b7daf8cd8721",
+              "bytes": 197
+            },
+            {
+              "activation": 2,
+              "name": "read",
+              "sha256": "714870a372946ff4b994ab2fcc1f1e5934a3ffcaafe6dec4c4d37f7a759f0868",
+              "bytes": 76
+            },
+            {
+              "activation": 3,
+              "name": "edit",
+              "sha256": "1163a91914534452e9e01b6deb7c36182fda8d1a60386d3aef8666ddc2b786fa",
+              "bytes": 2455
+            },
+            {
+              "activation": 4,
+              "name": "review",
+              "sha256": "b7a7e25a67f9c3eb3e45d6cd5120da907daf13a1605155982613bd9eaeefb699",
+              "bytes": 44
+            },
+            {
+              "activation": 5,
+              "name": "search",
+              "sha256": "d437a00396a50c3d17ab69f6e989ee2033f50ca59017b4d3c7700c9490bf85ea",
+              "bytes": 41
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 6,
+              "call_id": "call_Ag3QtnJjKhT3jeIQEOb9V4Bz",
+              "name": "load_skill",
+              "args": {
+                "name": "edit"
+              }
+            },
+            {
+              "seq": 11,
+              "job": {
+                "handle": 1,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_ABGaQitqvAZRfyneJlAZ7Wat",
+              "name": "list_directory",
+              "args": {}
+            },
+            {
+              "seq": 16,
+              "job": {
+                "handle": 2,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_cSWAHRqnXBg36ORHeRqgnFCz",
+              "name": "write_file",
+              "args": {
+                "content": "CH09-GUI-WRITE\n",
+                "path": "gui-note.txt"
+              }
+            },
+            {
+              "seq": 26,
+              "call_id": "call_vuypZlO6xgv3FztXGnGveOys",
+              "name": "load_skill",
+              "args": {
+                "name": "review"
+              }
+            },
+            {
+              "seq": 31,
+              "call_id": "call_m6oVPiHRpXBHGY0r37MAeroa",
+              "name": "load_skill",
+              "args": {
+                "name": "search"
+              }
+            },
+            {
+              "seq": 36,
+              "call_id": "call_HWkPsJdRvv1UPzAYc8ywQq6c",
+              "name": "unload_skill",
+              "args": {
+                "name": "edit"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 8,
+              "call_id": "call_Ag3QtnJjKhT3jeIQEOb9V4Bz",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"edit\",\"revision\":1,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 13,
+              "job": {
+                "handle": 1,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 25
+              },
+              "call_id": "call_ABGaQitqvAZRfyneJlAZ7Wat",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": ".ensemble/\ncr/\nnotes.txt\n"
+                }
+              ]
+            },
+            {
+              "seq": 18,
+              "job": {
+                "handle": 2,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 32
+              },
+              "call_id": "call_cSWAHRqnXBg36ORHeRqgnFCz",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "created \"gui-note.txt\": 15 bytes"
+                }
+              ]
+            },
+            {
+              "seq": 28,
+              "call_id": "call_vuypZlO6xgv3FztXGnGveOys",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"review\",\"revision\":2,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 33,
+              "call_id": "call_m6oVPiHRpXBHGY0r37MAeroa",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"search\",\"revision\":3,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 38,
+              "call_id": "call_HWkPsJdRvv1UPzAYc8ywQq6c",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"unloaded\",\"name\":\"edit\",\"revision\":4,\"changed\":true}"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "file_effects": {
+        "gui-note.txt": {
+          "bytes": 15,
+          "sha256": "998e15494442c5edeb83385e98da42c976b38d8aea42bd5c08f21ed234c68646",
+          "text": "CH09-GUI-WRITE\n"
+        }
+      },
+      "browser": {
+        "manual_starts": 1,
+        "full_manual_characters": 2455,
+        "full_text_delivery_matches": true,
+        "speech_start_keys": [
+          "manual/skill/agent-1/3",
+          "agent-1/r2/m7/1",
+          "agent-1/r2/m8/1",
+          "agent-1/r2/m9/1",
+          "agent-1/r2/m10/1",
+          "agent-1/r2/m10/1",
+          "agent-1/r2/m10/1",
+          "agent-1/r2/m10/1"
+        ],
+        "manual_silent_after_reconnect": true,
+        "driver_closed": true,
+        "sounds": [
+          {
+            "file": "audio-6.wav",
+            "sha256": "2e1be3ff755dbbab13a7c43f4a25c8c6692d8c7a1eaf595d7b878438deacd61e",
+            "seconds": 8.52,
+            "first_1_5_seconds_rms": 0.0,
+            "after_2_5_seconds_rms": 0.09142963762661112
+          }
+        ],
+        "listening_claim": false,
+        "model_hearing_claim": false,
+        "action_failures": [
+          {
+            "at": "2026-10-08T17:23:18.231Z",
+            "kind": "action_failed",
+            "sequence": 10,
+            "error": "locator.waitFor: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for locator('main').getByText('Request r2: success').first() to be visible\u001b[22m\n"
+          }
+        ]
+      }
+    },
+    {
+      "run": "live-openai-n",
+      "vendor": "openai",
+      "scenario": "N",
+      "exit_code": 0,
+      "requests": 11,
+      "responses_retained": 11,
+      "requested_model": "gpt-4.1",
+      "resolved_model": "gpt-4.1",
+      "source_revision": "75a72554bbb13f5e86c8b806cff780b5fcd79c22",
+      "launch_sha256": "c6b277edac0bf5d5f9c777ed098cc7c1e7a4302d426ed0e43727696014316aed",
+      "logs": [
+        {
+          "path": "session.log",
+          "sha256": "22852cea602144e42b4298f691375228d48116c452e7b49cfcfbc0bf18687ff5",
+          "accepted_responses": 11,
+          "reported_models": [
+            "gpt-4.1-2025-04-14"
+          ],
+          "usage": {
+            "input": 7562,
+            "cache_write": 0,
+            "cache_read": 2176,
+            "output": 253
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 4,
+            "primary": "base",
+            "roots": [
+              "review",
+              "search"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "read",
+                "type": "dependency",
+                "activation": 2
+              },
+              {
+                "name": "review",
+                "type": "loadable",
+                "activation": 4
+              },
+              {
+                "name": "search",
+                "type": "loadable",
+                "activation": 5
+              }
+            ],
+            "available": [
+              {
+                "name": "edit",
+                "description": "Edit scratch files"
+              }
+            ],
+            "tools": [
+              "list_directory",
+              "load_skill",
+              "read_file",
+              "search_files",
+              "unload_skill"
+            ],
+            "retired": [
+              {
+                "name": "edit",
+                "activation": 3
+              }
+            ]
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              7,
+              "load",
+              "edit",
+              1
+            ],
+            [
+              27,
+              "load",
+              "review",
+              2
+            ],
+            [
+              32,
+              "load",
+              "search",
+              3
+            ],
+            [
+              37,
+              "unload",
+              "edit",
+              4
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "7ba8c18b87e46d7d6ed6706a676fb677948e8ecccc2a196ae741b7daf8cd8721",
+              "bytes": 197
+            },
+            {
+              "activation": 2,
+              "name": "read",
+              "sha256": "714870a372946ff4b994ab2fcc1f1e5934a3ffcaafe6dec4c4d37f7a759f0868",
+              "bytes": 76
+            },
+            {
+              "activation": 3,
+              "name": "edit",
+              "sha256": "0040b623bf5cc5c4cf30a7b73f9415df4af73fa17eb873e324c4f0c4663b1585",
+              "bytes": 219
+            },
+            {
+              "activation": 4,
+              "name": "review",
+              "sha256": "b7a7e25a67f9c3eb3e45d6cd5120da907daf13a1605155982613bd9eaeefb699",
+              "bytes": 44
+            },
+            {
+              "activation": 5,
+              "name": "search",
+              "sha256": "d437a00396a50c3d17ab69f6e989ee2033f50ca59017b4d3c7700c9490bf85ea",
+              "bytes": 41
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 6,
+              "call_id": "call_bIRniPjY9j6fkKuCxVVA4old",
+              "name": "load_skill",
+              "args": {
+                "name": "edit"
+              }
+            },
+            {
+              "seq": 11,
+              "job": {
+                "handle": 1,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_4h0F8m7p6v3cuoQB5LBFlzbT",
+              "name": "list_directory",
+              "args": {
+                "max_entries": 100
+              }
+            },
+            {
+              "seq": 16,
+              "job": {
+                "handle": 2,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_JqQPz4oAJhcs1XtV5xKozheY",
+              "name": "write_file",
+              "args": {
+                "content": "CH09-N-WRITE\n",
+                "path": "notes-created.txt"
+              }
+            },
+            {
+              "seq": 26,
+              "call_id": "call_8TBxKNdjocJFIYMewlVEyYLL",
+              "name": "load_skill",
+              "args": {
+                "name": "review"
+              }
+            },
+            {
+              "seq": 31,
+              "call_id": "call_Rzmm1fYnEl1WTtbZLdH2N0dL",
+              "name": "load_skill",
+              "args": {
+                "name": "search"
+              }
+            },
+            {
+              "seq": 36,
+              "call_id": "call_kFbYcQpJs3KAThDo8Uh9seXH",
+              "name": "unload_skill",
+              "args": {
+                "name": "edit"
+              }
+            },
+            {
+              "seq": 51,
+              "call_id": "call_TTsAvB0lZ5ltkTOffCP0SxGJ",
+              "name": "load_skill",
+              "args": {
+                "name": "search"
+              }
+            },
+            {
+              "seq": 53,
+              "call_id": "call_8YKfEbxH13BadkaNCs7I4KaF",
+              "name": "load_skill",
+              "args": {
+                "name": "absent"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 8,
+              "call_id": "call_bIRniPjY9j6fkKuCxVVA4old",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"edit\",\"revision\":1,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 13,
+              "job": {
+                "handle": 1,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 14
+              },
+              "call_id": "call_4h0F8m7p6v3cuoQB5LBFlzbT",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "cr/\nnotes.txt\n"
+                }
+              ]
+            },
+            {
+              "seq": 18,
+              "job": {
+                "handle": 2,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 37
+              },
+              "call_id": "call_JqQPz4oAJhcs1XtV5xKozheY",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "created \"notes-created.txt\": 13 bytes"
+                }
+              ]
+            },
+            {
+              "seq": 28,
+              "call_id": "call_8TBxKNdjocJFIYMewlVEyYLL",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"review\",\"revision\":2,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 33,
+              "call_id": "call_Rzmm1fYnEl1WTtbZLdH2N0dL",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"loaded\",\"name\":\"search\",\"revision\":3,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 38,
+              "call_id": "call_kFbYcQpJs3KAThDo8Uh9seXH",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"unloaded\",\"name\":\"edit\",\"revision\":4,\"changed\":true}"
+                }
+              ]
+            },
+            {
+              "seq": 52,
+              "call_id": "call_TTsAvB0lZ5ltkTOffCP0SxGJ",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"status\":\"unchanged\",\"name\":\"search\",\"revision\":4,\"changed\":false}"
+                }
+              ]
+            },
+            {
+              "seq": 54,
+              "call_id": "call_8YKfEbxH13BadkaNCs7I4KaF",
+              "is_error": true,
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "{\"error\":\"skill_unavailable\",\"name\":\"absent\",\"revision\":4}"
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "file_effects": {
+        "notes-created.txt": {
+          "bytes": 13,
+          "sha256": "933f303642b0e95db86811be5c35409e2993b738353f62af1e5bcc80a08272a3",
+          "text": "CH09-N-WRITE\n"
+        }
+      }
+    },
+    {
+      "run": "live-openai-p",
+      "vendor": "openai",
+      "scenario": "P",
+      "exit_code": 1,
+      "requests": 1,
+      "responses_retained": 0,
+      "requested_model": "gpt-4.1",
+      "resolved_model": "gpt-4.1",
+      "source_revision": "75a72554bbb13f5e86c8b806cff780b5fcd79c22",
+      "launch_sha256": "c1179ca012b82f9d5be778cabc5c729b8e9c0e5e0f97ed6f04083ab3960b0e9f",
+      "logs": [
+        {
+          "path": "workspace/alpha/events.jsonl",
+          "sha256": "83150be0185ca633d00ca95c264f83db1a73adcba6f973584c2cbdb7a6ab8753",
+          "accepted_responses": 0,
+          "reported_models": [],
+          "usage": {
+            "input": 0,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 0
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 1,
+            "primary": "base",
+            "roots": [
+              "edit"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "edit",
+                "type": "loadable",
+                "activation": 2
+              }
+            ],
+            "available": [
+              {
+                "name": "inspect",
+                "description": "Inspect notes"
+              }
+            ],
+            "tools": [
+              "load_skill",
+              "read_file",
+              "unload_skill",
+              "write_file"
+            ],
+            "retired": []
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              2,
+              "load",
+              "edit",
+              1
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "3f95866c46cf66f4cfa35ec9f18c2016a7481543be61bad292a472594d996dde",
+              "bytes": 159
+            },
+            {
+              "activation": 2,
+              "name": "edit",
+              "sha256": "bada08289012927b5ae55cf98ff78928fb6b8707cf5d2336efc88c3bf740b700",
+              "bytes": 98
+            }
+          ],
+          "tool_calls": [],
+          "tool_results": []
+        },
+        {
+          "path": "workspace/beta/events.jsonl",
+          "sha256": "3cc44f96d4521f59207b1a69e85968e2c3f34c6f67d09a217d7febccbe9c767a",
+          "accepted_responses": 0,
+          "reported_models": [],
+          "usage": {
+            "input": 0,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 0
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 1,
+            "primary": "base",
+            "roots": [
+              "inspect"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "inspect",
+                "type": "loadable",
+                "activation": 2
+              }
+            ],
+            "available": [
+              {
+                "name": "edit",
+                "description": "Edit notes"
+              }
+            ],
+            "tools": [
+              "load_skill",
+              "read_file",
+              "unload_skill"
+            ],
+            "retired": []
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              2,
+              "load",
+              "inspect",
+              1
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "ba649cc4e44fa157d484a7563655b5e01aa766a7beeb9f980d6b308415a98518",
+              "bytes": 158
+            },
+            {
+              "activation": 2,
+              "name": "inspect",
+              "sha256": "2f3f31d477fcf00b7369eba5a1cb446639a8373e3c075ad2da551fb0857fe31e",
+              "bytes": 95
+            }
+          ],
+          "tool_calls": [],
+          "tool_results": []
+        }
+      ]
+    },
+    {
+      "run": "live-openai-p-recovery",
+      "vendor": "openai",
+      "scenario": "P",
+      "exit_code": 0,
+      "requests": 4,
+      "responses_retained": 4,
+      "requested_model": "gpt-4.1",
+      "resolved_model": "gpt-4.1",
+      "source_revision": "3da764b4f45d14ea1ed2c1cb86e793954dba08e7",
+      "launch_sha256": "46f12bc46dea220d2d34d6bea6789f096e9999f62502edfe4866d0d67864119e",
+      "logs": [
+        {
+          "path": "workspace/alpha/events.jsonl",
+          "sha256": "6c6097ab39bbe03525d539a76b62e17eb550a305f41b0547640ccb5980f1a356",
+          "accepted_responses": 2,
+          "reported_models": [
+            "gpt-4.1-2025-04-14"
+          ],
+          "usage": {
+            "input": 918,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 35
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 1,
+            "primary": "base",
+            "roots": [
+              "edit"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "edit",
+                "type": "loadable",
+                "activation": 2
+              }
+            ],
+            "available": [
+              {
+                "name": "inspect",
+                "description": "Inspect notes"
+              }
+            ],
+            "tools": [
+              "load_skill",
+              "read_file",
+              "unload_skill",
+              "write_file"
+            ],
+            "retired": []
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              2,
+              "load",
+              "edit",
+              1
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "3f95866c46cf66f4cfa35ec9f18c2016a7481543be61bad292a472594d996dde",
+              "bytes": 159
+            },
+            {
+              "activation": 2,
+              "name": "edit",
+              "sha256": "bada08289012927b5ae55cf98ff78928fb6b8707cf5d2336efc88c3bf740b700",
+              "bytes": 98
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 7,
+              "job": {
+                "handle": 1,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_LBu9GtkcPruptOpVkG5YO6Zb",
+              "name": "read_file",
+              "args": {
+                "path": "notes.txt"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 9,
+              "job": {
+                "handle": 1,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/1"
+                },
+                "bytes": 41
+              },
+              "call_id": "call_LBu9GtkcPruptOpVkG5YO6Zb",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "CHAPTER-NINE-NOTE-MARKER\nport=8080\nalpha\n"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "path": "workspace/beta/events.jsonl",
+          "sha256": "dd497ac464b26a0308a5c5825ebc7e650cd8dd3ff38df271d6d43bab4f98578b",
+          "accepted_responses": 2,
+          "reported_models": [
+            "gpt-4.1-2025-04-14"
+          ],
+          "usage": {
+            "input": 688,
+            "cache_write": 0,
+            "cache_read": 0,
+            "output": 33
+          },
+          "raw_usage_normalization_matches": true,
+          "empty_captured_system": true,
+          "material_digests_match": true,
+          "final_skill_state": {
+            "revision": 1,
+            "primary": "base",
+            "roots": [
+              "inspect"
+            ],
+            "active": [
+              {
+                "name": "base",
+                "type": "primary",
+                "activation": 1
+              },
+              {
+                "name": "inspect",
+                "type": "loadable",
+                "activation": 2
+              }
+            ],
+            "available": [
+              {
+                "name": "edit",
+                "description": "Edit notes"
+              }
+            ],
+            "tools": [
+              "load_skill",
+              "read_file",
+              "unload_skill"
+            ],
+            "retired": []
+          },
+          "skill_facts": [
+            [
+              1,
+              "initialize",
+              "base",
+              0
+            ],
+            [
+              2,
+              "load",
+              "inspect",
+              1
+            ]
+          ],
+          "materials": [
+            {
+              "activation": 1,
+              "name": "base",
+              "sha256": "ba649cc4e44fa157d484a7563655b5e01aa766a7beeb9f980d6b308415a98518",
+              "bytes": 158
+            },
+            {
+              "activation": 2,
+              "name": "inspect",
+              "sha256": "2f3f31d477fcf00b7369eba5a1cb446639a8373e3c075ad2da551fb0857fe31e",
+              "bytes": 95
+            }
+          ],
+          "tool_calls": [
+            {
+              "seq": 7,
+              "job": {
+                "handle": 2,
+                "status": "running",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 0
+              },
+              "call_id": "call_voUv0nZhnkUN8HjmW9MzouHG",
+              "name": "read_file",
+              "args": {
+                "path": "notes.txt"
+              }
+            }
+          ],
+          "tool_results": [
+            {
+              "seq": 9,
+              "job": {
+                "handle": 2,
+                "status": "done",
+                "output": {
+                  "kind": 3,
+                  "locator": "cr/io/2"
+                },
+                "bytes": 40
+              },
+              "call_id": "call_voUv0nZhnkUN8HjmW9MzouHG",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "CHAPTER-NINE-NOTE-MARKER\nport=8080\nbeta\n"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "start": "2026-10-07T20:52:34.842297+00:00",
+  "command": [
+    "/tmp/ensemble-ed2-ch04-public",
+    "--live"
+  ],
+  "vendor": "anthropic",
+  "requested_model": "claude-sonnet-5-5",
+  "source_revision": "7061d7c64a1ea9c1523d9d06597cff26ba0ca0e3",
+  "binary_sha256": "e48c3669cda3b99d9c33002634643e221fef7641270b9cd958adfd56435c9912",
+  "kind": "supplemental real-model public library; main human PTY receipts remain separate",
+  "exit_code": 0,
+  "end": "2026-10-07T20:52:41.611583+00:00"
+}

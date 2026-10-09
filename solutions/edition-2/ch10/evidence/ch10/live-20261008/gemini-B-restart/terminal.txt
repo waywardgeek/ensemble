@@ -1,0 +1,4 @@
+http://127.0.0.1:64036
+Ensemble — gemini / models/gemini-3.8-flash
+Type /help for commands.
+You> ^DFinal usage: input=8070, cache write=0, cache read=0, output=423

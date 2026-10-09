@@ -1,0 +1,50 @@
+{
+  "source_revision": "75a72554bbb13f5e86c8b806cff780b5fcd79c22",
+  "executables": {
+    "cli": "230167aaffe730928c69cdde744fa228eb9bd616221ff7f74c09accf6d9ed9e1",
+    "gui": "f4330d0e850058b56e9022c7bb528b820639f0faf91295d7d3758192de6d8885",
+    "consumer": "d2ba5abc1d6ab21196e8ecaeff888fe381a4d6a2b6d528c603c74c0d875e01a7",
+    "redaction": "7eeb2229443538c3a6241980514ca9b7419504f995d3cc0f0ff84af77543ce20",
+    "capture": "841159ddfe3bceeb0ce8a8c569a66138fa8feeae2e2c21f7645555017f59f3c2",
+    "node": "c8eedc7651a438fb7d2ceb36fd70032676c855586a36c950ba5a662f0b7853bd",
+    "chrome": "b4a14b08946ab78756169696fd272d6c3040a22df52da4f83f665225685f4c10",
+    "interpreter": "e81eb555fbfb8c6bd4ea528c60d4b3a8f9a94e53c31b0470f4f1524b4b9548c0",
+    "recorder": "24eb6e2db60591c435afcde853a18caac9626047b1aceecda2a93e84cc0cccad"
+  },
+  "support": {
+    "evidence.py": "82727a50612b77b49d8831444460706cb4887734a0612c4b2b5dd402df5c9739",
+    "terminal-run.py": "14fd7e30ae37c5db951169efab091aa7cca2689228ca14c6c44583ac1bc2dc2d",
+    "verify-receipts.py": "4427278021e41d7d55151f46ad2fcf0faeade18816dbcafc2e02a713c825eff2",
+    "browser-live.mjs": "e58a827352bc30899bbadbf12515c55526a85e9697266eb5de8b84ee2de2ee6d",
+    "capture-audio.swift": "e987dc3d1a32e2a604dfe3fb2185e2ed2b6404cae989bc304223e8e57eb5db57",
+    "test-evidence.py": "8b39ac6caead878176ec665eae0c46029c79244e65dde86c574558dabb0b3c51"
+  },
+  "originals": {
+    "audio-6.wav": "2e1be3ff755dbbab13a7c43f4a25c8c6692d8c7a1eaf595d7b878438deacd61e",
+    "browser-1.png": "9e705a2e15ef104fac13ffdfcfef92f25b23e84bba2d9a1a85c6ebe858df4b06",
+    "browser-1.txt": "5a377c78af496284bae4264f6119a7ab8a654fd9674b8006060d2b76423f5a3a",
+    "browser-11.png": "db0ce5e8658b922fa67b439fa39870624125adb558483254719a774063497482",
+    "browser-11.txt": "cd831e8c08d51c3767809b5b503aa4c47794548e46499d6aa30d5cf2407bb342",
+    "browser-12.png": "7e70356f5f7f6f20632f63c4d82da41b00feb8a75d30f6a5481ad7f0def7a4ed",
+    "browser-12.txt": "6be6e5547af334e17ae9d1a2838b54a8b60e157fe543b5a8e6b966919f3b6da1",
+    "browser-13.png": "157f18fbc38810be1e19f0c6f0aece9a18baf0b1b1705e160cbd964eaf3427af",
+    "browser-13.txt": "6e5499aed5be1b13cbb8be045f9985fb9758c47af6f927482b30c9d5f1a4bddf",
+    "browser-2.png": "d5423f2c0e2f3a476dcfd048b44893df872028a260039cdaaa06dbb9e61ad26d",
+    "browser-2.txt": "b21981960e091e4d90548ac2513e647dc5e38d217b1ae8989276023643d4a039",
+    "browser-3.png": "0624e7b37255efec1fcc4a56f048769581404988bdceeb95ef006f3e1e096e68",
+    "browser-3.txt": "26d619a55c3cd6c1a97198afeff227ed9ef73e0056d3f41950cfd48f56b7c5b5",
+    "browser-4.png": "fea4a9d5cabbf885b97dc519f409a39d9cea9fc05a5503f55ac9b1a4d7a43a75",
+    "browser-4.txt": "0bbe48d52b6b4b99b3c80344dce428a4f2e25106819c51db5859a943dfa7db1e",
+    "browser-5.png": "ccd45f176ac76b750db9f64a3551ac98cc598379792b51fef4e15142cc6e6b2c",
+    "browser-5.txt": "9130eaf9960ffb26c7fa6ccb917981e1828d5f6d1a36e6b2ddc6c10bc7f11ebf",
+    "browser-6.png": "29b8cfd09a65f657822bb6b7cdb42ccbbe85bf624edf393bccb7cf15cef37ea2",
+    "browser-6.txt": "b2760143b6774d8d54aeda7e6d60f10e948daf67317610407df9def13784b45d",
+    "browser-7.png": "b782db9990ced667c5b72d4f050762043bdbbac5edca65c26029b59a651954f4",
+    "browser-7.txt": "9130eaf9960ffb26c7fa6ccb917981e1828d5f6d1a36e6b2ddc6c10bc7f11ebf",
+    "browser-8.png": "a8ceeb44b086f6e715ece1cd4b6610930ef19c7214d97d1c570a342989444c29",
+    "browser-8.txt": "25e275e7e94f759c1f28d036d2608053093381e18dcbf02b26672676cd90a090",
+    "browser-9.png": "9ff693c6b274a3b4b73a08a9280fc1b95fd21eedd4ecd24c3b75d296ad5845d9",
+    "browser-9.txt": "25e275e7e94f759c1f28d036d2608053093381e18dcbf02b26672676cd90a090",
+    "browser-original.jsonl": "13a5f74369102cc408b163320971da97ee7e76dd9efc76bc2ece12b3258d48b5"
+  }
+}

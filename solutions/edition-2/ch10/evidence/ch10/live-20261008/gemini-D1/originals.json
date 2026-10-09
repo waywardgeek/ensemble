@@ -1,0 +1,12 @@
+{
+  "009-request.json": "cd4103be7552b04e49142ec04b9c1e003bf800ebfd5d4030ab8074face9b51ec",
+  "009-response.body": "78c0b136ec76330dbe86224312675d5697acb4175610731149ce877e3bfaaae2",
+  "010-request.json": "da188c16bff896bcf57585b18d7723496df861cfd6542caaa866fc6d61fbc9a5",
+  "010-response.body": "1d63618d64ad7231fa0fee48fbe56c6c943ca1a58a4b1fe8989cf7a8461a2017",
+  "attempts-final.jsonl": "0f7a449e12b0febc7740a8a5f644cde076b52e071fbabec38557a91068a7549b",
+  "exit.json": "358cc425258d4795bd5ef4f778eaba31f615e99a9703ce662ca0eb12ddeb2bd8",
+  "launch.json": "7e7dfb9deb08409ae62497029c5c394a6ef30d8459707a7b6e9045c7b7c1bdfd",
+  "skill-proof.txt": "d396b513beca2f0261fe9450db6483b472dbef2f2ac33830525b0e20d766cc51",
+  "terminal.txt": "a3ed00d7d373319788b3a571ead50dc38843e12cb9a193695fe8f5a51e9207bb",
+  "transport.jsonl": "edf7aafb6dbfd12e41b0617b8dfbf3a19060d4d2e5f219ddfb5fb2c700adc88b"
+}

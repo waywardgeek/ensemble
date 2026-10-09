@@ -1,0 +1,100 @@
+ENSEMBLE / LOCAL WORKSPACE
+
+Follow the work. Steer the next step.
+
+Connected — agent-1-g4
+
+Tool admissions paused — typing: 1, speaking: 2. Already admitted work continues.
+
+You
+Without tools, say READY and explain in one sentence why a browser and terminal can share one conversation.
+
+Speak
+Answer
+
+READY. A browser and terminal can share one conversation because this AI assistant is tool-equipped to both read/write files and run shell commands in the same session, letting it seamlessly switch between web-style content tasks and system-level operations without losing context.
+
+Accepted
+
+Speak
+Request r1
+Outcome: success
+
+Speak
+You
+Thanks. More precisely, the Agent owns the history and both clients use its public interface. Confirm that correction in one short sentence, without tools.
+
+Speak
+Answer
+
+Confirmed — the Agent holds the shared conversation history, and both the browser and terminal are simply clients consuming its public interface.
+
+Accepted
+
+Speak
+Request r2
+Outcome: success
+
+Speak
+You
+In this scratch workspace, write browser-note.txt containing exactly BROWSER-CH07 plus a newline, then read it back with the file tool. Explain in about 100 words how a recorded tool result differs from a running process. Do not run any commands yet.
+
+Speak
+Tool: write_file
+write_file
+{
+  "content": "BROWSER-CH07\n",
+  "path": "browser-note.txt"
+}
+
+Report delivered — done
+
+Speak
+Tool result: toolu_01YDeoAebeMuritVi3UGKrTz
+created "browser-note.txt": 13 bytes
+
+Report delivered · done
+
+Speak
+Tool: read_file
+read_file
+{
+  "path": "browser-note.txt"
+}
+
+Report delivered — done
+
+Speak
+Tool result: toolu_01WSrAmYW5YiJRKYzrqZjfZu
+BROWSER-CH07
+
+
+Report delivered · done
+
+Speak
+Answer
+
+File confirmed: `browser-note.txt` contains exactly `BROWSER-CH07` plus a newline.
+
+---
+
+Recorded tool result vs. running process (~100 words)
+
+A recorded tool result is a completed, static artifact — the file was written, the read returned its bytes, and those results are now frozen in the conversation history as plain text. The Agent and any client can reference them at any time without re-executing anything. A running process, by contrast, is a live, stateful entity with a PTY, a process group, and ongoing output that accumulates over time. It consumes resources, can block or fail mid-stream, and requires polling or waiting. The key difference: a tool result is an immutable snapshot already in the record; a process is a dynamic computation still unfolding outside the history.
+
+Accepted
+
+Speak
+Request r3
+Outcome: success
+
+Speak
+Return to latest
+Auto speech: off
+Cancel speech
+Prompt or correction
+Send prompt
+Send hint
+Interrupt
+
+Speech starts disabled. Typing holds the next tool admission.

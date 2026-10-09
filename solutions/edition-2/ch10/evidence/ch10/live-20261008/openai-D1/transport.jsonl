@@ -1,0 +1,4 @@
+{"number": 9, "vendor": "openai", "step": "D1", "row": "D", "kind": "generation", "at": 1791515015.868748, "row_deadline": 1791515615.868748, "phase": "admitted", "source": "provider"}
+{"number": 9, "phase": "finished", "outcome": "completed", "status": 200, "bytes": 7129, "credential_redacted": false, "unfinished_prefix_discarded": false, "elapsed": 0.5248650000430644}
+{"number": 10, "vendor": "openai", "step": "D1", "row": "D", "kind": "generation", "at": 1791515016.398653, "row_deadline": 1791515615.868748, "phase": "admitted", "source": "provider"}
+{"number": 10, "phase": "finished", "outcome": "completed", "status": 200, "bytes": 12379, "credential_redacted": false, "unfinished_prefix_discarded": false, "elapsed": 0.6967760829720646}

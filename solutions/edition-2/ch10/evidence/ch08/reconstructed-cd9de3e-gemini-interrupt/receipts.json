@@ -1,0 +1,8 @@
+[
+  {
+    "run": "gemini-interrupt-correction",
+    "requests": 1,
+    "reconstructed": 1,
+    "delivery": "stream"
+  }
+]

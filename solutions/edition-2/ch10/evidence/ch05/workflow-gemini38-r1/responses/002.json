@@ -1,0 +1,31 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "`draft.txt` has been created.\n\n### Handoff\n- **File**: `draft.txt`\n- **Summary**: A four-sentence public library announcement inviting the community to a Saturday Repair Cafe at 10 a.m., featuring volunteer fixers, an invitation to \"bring a broken lamp\", and details on free admission and refreshments.",
+            "thoughtSignature": "EmkKZwFpFH0TqGcPXfK47LbD5VX8qUHCfSCm+Y15/LvVFkc/49jEb1eOhdd3xJ/AQDiVk1aJQQyO82H4j/MWLLIkCX88G9npAdHXoSZ4KShp7i/SMD7mSpvskJQTYrxIBtZ0plWSUXcvgvg="
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 952,
+    "candidatesTokenCount": 74,
+    "totalTokenCount": 1026,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 952
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-3.8-flash",
+  "responseId": "Z9XGapiwCLqo_uMP7-iwkA4"
+}

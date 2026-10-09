@@ -1,0 +1,35 @@
+{
+  "binding_sha256": "9f877c13fe2fd564779dc6305240928c3dc710071042ffb5181e99b6587b14a5",
+  "source_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "vendor": "openai",
+  "model": "gpt-4.1",
+  "role": "consumer",
+  "command": [
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-build-watch/consumer",
+    "--root",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/openai-C/public",
+    "--output",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/openai-offline/public",
+    "--relay",
+    "http://127.0.0.1:63930",
+    "--step",
+    "offline",
+    "--catalog",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/support/catalog"
+  ],
+  "command_sha256": "adf14f1ae6c497a02c2d0fa9d2114d188543822ea16ac3f1f3992b3601b293ad",
+  "environment": {
+    "LLM_VENDOR": "openai",
+    "LLM_MODEL": "gpt-4.1",
+    "LLM_RESOLVED_MODEL": "gpt-4.1",
+    "LLM_BASE_URL": "http://127.0.0.1:63930/offline",
+    "EN_DISABLE_STREAMING": "0"
+  },
+  "workspace": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/openai-C/public/workspace",
+  "provider_root": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/openai-C/public",
+  "run": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/openai-offline",
+  "mode": "local",
+  "actor": "student coder; not Bill",
+  "support_revision": "9822b2b63257724001d7af195b377483baad3531",
+  "identity_sha256": "ba5b6eb0b6c1a5874c7a54a8a7ed5b32192f0c175381ff312d9bf866b95fdbb7"
+}

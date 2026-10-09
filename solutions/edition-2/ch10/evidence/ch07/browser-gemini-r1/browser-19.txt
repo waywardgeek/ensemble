@@ -1,0 +1,164 @@
+ENSEMBLE / LOCAL WORKSPACE
+
+Follow the work. Steer the next step.
+
+Connected — agent-1-g1
+
+Tool admissions paused — typing: 1, speaking: 0. Already admitted work continues.
+
+You
+For this one greeting only, use no tools: say READY and explain in one sentence that the Agent owns history shared by browser and terminal clients.
+
+Speak
+Answer
+
+READY. The Agent maintains the shared history accessible by both browser and terminal clients.
+
+Accepted
+
+Speak
+Answer
+
+Accepted
+
+Speak
+Request r1
+Outcome: success
+
+Speak
+You
+For this answer only, no tools: start with SHARED-HISTORY and give four brief sentences explaining how an atomic snapshot plus ordered live changes lets a new browser tab catch up.
+
+Speak
+Answer
+
+SHARED-HISTORY: When a new browser tab connects, it first loads an atomic snapshot representing the session state at a specific point in time. The tab uses this baseline snapshot to render the existing history immediately. Meanwhile, the server streams subsequent live updates tagged with strict sequence ordering. By applying these ordered updates on top of the snapshot, the tab seamlessly catches up to the current live state.
+
+Accepted
+
+Speak
+Answer
+
+Accepted
+
+Speak
+Request r2
+Outcome: success
+
+Speak
+You
+Use tools for this task: in this scratch workspace, write browser-note.txt containing exactly BROWSER-CH07 plus a newline, then read it back with the file tool. Explain in about 100 words how a recorded tool result differs from a running process. Do not run any shell commands yet.
+
+Speak
+Tool: write_file
+write_file
+{
+  "content": "BROWSER-CH07\n",
+  "overwrite": true,
+  "path": "browser-note.txt"
+}
+
+Report delivered — done
+
+Speak
+Answer
+
+Accepted
+
+Speak
+Tool result: call_82491
+wrote "browser-note.txt": 13 bytes
+
+Report delivered · done
+
+Speak
+Tool: read_file
+read_file
+{
+  "path": "browser-note.txt"
+}
+
+Report delivered — done
+
+Speak
+Answer
+
+Accepted
+
+Speak
+Tool result: call_45140
+BROWSER-CH07
+
+
+Report delivered · done
+
+Speak
+Answer
+
+A recorded tool result is an immutable, static snapshot preserved within conversation history. It captures the exact response returned at the moment of completion, requiring no ongoing system resources, accepting no further interaction, and remaining permanent across client reconnects.
+
+In contrast, a running process is an active, stateful OS execution operating asynchronously in the background. It continuously consumes compute resources, generates dynamic output streams, accepts live stdin and signals, and progresses through changing execution states until it halts or is terminated. While a tool result is fixed historical data, a process represents live, mutable execution.
+
+Accepted
+
+Speak
+Answer
+
+Accepted
+
+Speak
+Request r3
+Outcome: success
+
+Speak
+You
+Use tools now. Start this one bounded scratch job using run_command: python3 -u -c 'import time; print("CH07-JOB-RUNNING", flush=True); time.sleep(180); print("CH07-JOB-DONE", flush=True)'. Set ai_callback_delay=1. When it reports running, call wait_for_job for that handle with ai_callback_delay=60. Keep waiting unless I correct or interrupt you; do not kill it yourself.
+
+Speak
+Tool: run_command
+run_command
+{
+  "ai_callback_delay": 1,
+  "command": "python3 -u -c 'import time; print(\"CH07-JOB-RUNNING\", flush=True); time.sleep(180); print(\"CH07-JOB-DONE\", flush=True)'"
+}
+
+Report delivered — running
+
+Speak
+Answer
+
+Accepted
+
+Speak
+Tool result: call_67457
+job 3 status: running; output: cr/io/3; total bytes: 17; use wait_for_job, send_input, or kill_job
+CH07-JOB-RUNNING
+
+
+Report delivered · running
+
+Speak
+Tool: wait_for_job
+wait_for_job
+{
+  "ai_callback_delay": 60,
+  "handle": 3
+}
+
+Started
+
+Speak
+Answer
+
+Accepted
+
+Speak
+Return to latest
+Auto speech: off
+Cancel speech
+Prompt or correction
+Send prompt
+Send hint
+Interrupt
+
+Accepted r4

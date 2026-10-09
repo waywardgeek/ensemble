@@ -1,0 +1,11 @@
+{
+  "command": [
+    "python3",
+    "solutions/edition-2/main/evidence/ch09/test-evidence.py",
+    "--binding",
+    "solutions/edition-2/main/evidence/ch09/review-binding.json"
+  ],
+  "exit": 0,
+  "stdout": "{\n  \"passed\": true,\n  \"scope\": \"local fixtures and identity refusals; zero provider calls or credentials\",\n  \"checks\": [\n    \"relay preserves first fragment and refuses N request 17 before forwarding\",\n    \"complete historical binding, exact captured request bytes, separate result-redaction projection\",\n    \"source-hash: historical source mismatch\",\n    \"source-set: incomplete historical source set\",\n    \"empty-source: empty source set\",\n    \"binary: executable mismatch\",\n    \"support: historical support mismatch\",\n    \"catalog: catalog identity mismatch\",\n    \"browser-set: incomplete browser dependency set\",\n    \"browser-hash: browser dependency mismatch\",\n    \"launch-source: launch source_revision mismatch\",\n    \"launch-binary: launch executables mismatch\",\n    \"launch-support: launch support mismatch\",\n    \"launch-catalog: launch catalog mismatch\",\n    \"capture: original receipt mismatch\",\n    \"last-run capture: incomplete original receipt set before replay/redaction\",\n    \"last-run response: incomplete original receipt set before replay/redaction\",\n    \"last-run log: incomplete original receipt set before replay/redaction\",\n    \"last-run catalog: launch catalog file mismatch before replay/redaction\",\n    \"last-run scratch: scratch input mismatch before replay/redaction\",\n    \"last-run terminal: incomplete original receipt set before replay/redaction\",\n    \"last-run logs-empty: missing log identities before replay/redaction\",\n    \"last-run requests-empty: empty request set before replay/redaction\",\n    \"bound actual GUI and two browser views/reconnect, retained receipt hashes; zero model requests\",\n    \"browser launch executable identity refused before browser receipts\"\n  ]\n}\n",
+  "stderr": ""
+}

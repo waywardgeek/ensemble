@@ -1,0 +1,159 @@
+ENSEMBLE / LOCAL WORKSPACE
+
+Agent workspace
+
+Connected — agent-1-g1
+
+Tool admissions available — typing: 0, speaking: 0. Already admitted work continues.
+
+agent-1 — idle
+
+Agents
+Settings
+Agents
+Current Agent
+Independent conversation and policy
+
+Lifecycle and pause state stay visible above.
+
+Skills
+
+Primary: base
+
+Revision: 1
+
+Roots: edit
+
+Active: base (primary), edit (loadable), read (dependency)
+
+Available: review: Review scratch files; search: Search scratch files
+
+Tools: list_directory, load_skill, read_file, unload_skill, write_file
+
+Chat
+Skill: base
+
+You help with scratch files. Load a discoverable skill before using its capability.
+Tools:
+
+load_skill
+read_file
+unload_skill
+
+Skills:
+
+edit: Edit scratch files
+review: Review scratch files
+
+Active skill
+
+Speak
+You
+Load edit with load_skill, then use write_file to create gui-note.txt containing exactly CH09-GUI-WRITE followed by one newline. Do not use a shell. Report the actual results briefly.
+
+Speak
+Answer
+
+I'll load the edit skill first, then use it to write the file. Let me do both steps in order.
+
+Step 1 – Load the edit skill:
+
+Accepted
+
+Speak
+Skill: read
+
+Use list_directory to inspect available scratch files before changing them.
+
+Active skill
+
+Speak
+Skill: edit
+
+Use write_file for requested scratch edits, and report the actual result.
+Tools:
+
+list_directory
+load_skill
+read_file
+unload_skill
+write_file
+
+Next:
+
+review: Review scratch files
+search: Search scratch files
+
+Literal display example: <example> is text, not a page element.
+Review step 1: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 2: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 3: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 4: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 5: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 6: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 7: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 8: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 9: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 10: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 11: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 12: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 13: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 14: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 15: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 16: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 17: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 18: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 19: inspect the requested scratch file, preserve unrelated content, and report observed results.
+Review step 20: inspect the requested scratch file, preserve unrelated content, and report observed results.
+
+Active skill
+
+Show previewSpeak
+Answer
+
+Step 2 – List directory, then write the file:
+
+Incomplete — not accepted
+
+Speak
+Error
+invalid assembled response
+
+Speak
+Request r1
+Outcome: error
+
+Speak
+Return to latest
+Enable playback on this page
+Cancel speech
+Prompt or correction
+Send prompt
+Send hint
+Interrupt
+
+Playback enabled on this page
+
+Actions
+Tool: load_skill
+load_skill
+{
+  "name": "edit"
+}
+
+Report delivered
+
+Speak
+Tool result: toolu_01Md5o2seeY4CQw4jQJp1P5U
+{"status":"loaded","name":"edit","revision":1,"changed":true}
+
+Report delivered
+
+Speak
+Proposed tool
+list_directory
+
+
+Incomplete — not accepted
+
+Speak

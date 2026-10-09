@@ -1,0 +1,1 @@
+{"max_tokens":1024,"messages":[{"content":[{"text":"Reply with exactly COLLECTION-1 and no tools.","type":"text"}],"role":"user"}],"model":"claude-haiku-4-5-20251001","system":"You are the collection-1 in a bounded writing workflow. Follow the user's exact file and role instructions. Be concise."}

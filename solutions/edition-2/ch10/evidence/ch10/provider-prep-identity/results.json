@@ -1,0 +1,119 @@
+{
+  "runtime_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "support_revision": "065a6a824ec46a70affd85bd5b95cdc19439495d",
+  "actual_build_parent": true,
+  "launch_is_synthetic_not_executed": true,
+  "negative_controls": [
+    {
+      "case": "source",
+      "refusal": "source identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "support-source",
+      "refusal": "source identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "empty-sources",
+      "refusal": "incomplete source map",
+      "no_derived_write": true
+    },
+    {
+      "case": "support-revision",
+      "refusal": "incomplete source map",
+      "no_derived_write": true
+    },
+    {
+      "case": "historical-build",
+      "refusal": "historical build source mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "missing-build",
+      "refusal": "incomplete historical build sources",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-python",
+      "refusal": "python binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-node",
+      "refusal": "node binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-chrome",
+      "refusal": "chrome binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-recorder",
+      "refusal": "recorder binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-cli",
+      "refusal": "cli binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-gui",
+      "refusal": "gui binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "binary-consumer",
+      "refusal": "consumer binary identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "support-map",
+      "refusal": "incomplete support map",
+      "no_derived_write": true
+    },
+    {
+      "case": "module",
+      "refusal": "module dependency identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "catalog",
+      "refusal": "catalog/binding identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "dependency",
+      "refusal": "browser dependency identity mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "build-association",
+      "refusal": "build association mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "launch-runtime",
+      "refusal": "launch source mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "launch-support",
+      "refusal": "launch support revision mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "launch-binary",
+      "refusal": "launch executable path mismatch",
+      "no_derived_write": true
+    },
+    {
+      "case": "actual-support-bytes",
+      "refusal": "support identity mismatch",
+      "no_derived_write": true
+    }
+  ],
+  "restored_parent_passed": true
+}

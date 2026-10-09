@@ -1,0 +1,30 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "The opening sentence of draft.txt was changed from \"Join us this Saturday for our monthly Repair Cafe!\" to \"We're excited to see you this Saturday, 10 a.m., for our monthly Repair Cafe!\". Additionally, the phrase \"repairs are free\" was inserted, and \"Bring your broken household items, from toasters to lamps\" was changed to \"Bring a broken lamp or other household items\"."
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "index": 0
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 806,
+    "candidatesTokenCount": 86,
+    "totalTokenCount": 892,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 806
+      }
+    ],
+    "serviceTier": "standard"
+  },
+  "modelVersion": "gemini-2.5-flash-lite",
+  "responseId": "lcrGatvwKuCD39IPxLHdkQg"
+}

@@ -1,0 +1,1 @@
+{"contents":[{"parts":[{"text":"Start with AGENT-2. Then explain in about 80 words why a streamed proposal must wait for complete validation before any tool effect. Do not use tools."}],"role":"user"}],"generationConfig":{"maxOutputTokens":512},"systemInstruction":{"parts":[{"text":"Answer helpfully and concisely. Retain the conversation's details."}]}}

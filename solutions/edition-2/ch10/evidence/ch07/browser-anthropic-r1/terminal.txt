@@ -1,0 +1,94 @@
+http://127.0.0.1:50372
+Ensemble — anthropic / claude-sonnet-4-6
+Type /help for commands.
+You> /help
+/help — show commands
+/usage — token totals
+/history — event sequences and tool call IDs
+/hint TEXT — guide the next request of the active turn
+/interrupt — interrupt the active turn
+/ephemeral TEXT — one-request directive
+/redact FROM TO REASON — redact tool results in a sequence span
+/quit — finish the session
+//TEXT — submit a literal leading slash
+Input: one UTF-8 line, at most 1 MiB (1048576 bytes), excluding LF or CRLF.
+You> Without tools, say READY and explain in one sentence why a browser and terminal can share one conversation.
+Accepted r1.
+You> 
+Request r1 / m1 (stream)
+
+[r1 Assistant part 1] READY. A browser and terminal can share one conversation because this AI assistant is tool-equipped to both read/write files and run shell commands in the same session, letting it seamlessly switch between web-style content tasks and system-level operations without losing context.
+
+Request r1 (success; pending hints=0)
+You> /history
+History:
+1 turn_started
+2 message_received
+3 request_sent
+4 response_ended
+5 turn_ended
+No tool_returned events to redact in this session.
+You> Thanks. More precisely, the Agent owns the history and both clients use its public interface. Confirm that correction in one short sentence, without tools.
+Accepted r2.
+You> 
+Request r2 / m2 (stream)
+
+[r2 Assistant part 1] Confirmed — the Agent holds the shared conversation history, and both the browser and terminal are simply clients consuming its public interface.
+
+Request r2 (success; pending hints=0)
+You> 
+Request r3 / m3 (stream)
+
+[r3 proposed tool part 1] write_file
+[r3 proposed tool part 1] {"path": "browser-note.txt", "content": "BROWSER-CH07\n"}
+
+Request r3 / m5 (stream)
+
+[r3 proposed tool part 1] read_file
+[r3 proposed tool part 1] {"path": "browser-note.txt"}
+
+Request r3 / m7 (stream)
+
+[r3 Assistant part 1] **File confirmed:** `browser-note.txt` contains exactly `BROWSER-CH07` plus a newline.
+
+---
+
+**Recorded tool result vs. running process (~100 words)**
+
+A recorded tool result is a completed, static artifact — the file was written, the read returned its bytes, and those results are now frozen in the conversation history as plain text. The Agent and any client can reference them at any time without re-executing anything. A running process, by contrast, is a live, stateful entity with a PTY, a process group, and ongoing output that accumulates over time. It consumes resources, can block or fail mid-stream, and requires polling or waiting. The key difference: a tool result is an immutable snapshot already in the record; a process is a dynamic computation still unfolding outside the history.
+
+Request r4 / m8 (stream)
+
+[r4 Assistant part 1] Starting the job now.
+[r4 proposed tool part 2] run_command
+[r4 proposed tool part 2] {"command": "python3 -u -c 'import time; print(\"CH07-JOB-RUNNING\", flush=True); time.sleep(180); print(\"CH07-JOB-DONE\", flush=True)'", "ai_callback_delay": 1}
+
+Request r4 / m10 (stream)
+
+[r4 Assistant part 1] Job 3 is running and has printed `CH07-JOB-RUNNING`. Now waiting with a 60-second delay.
+[r4 proposed tool part 2] wait_for_job
+[r4 proposed tool part 2] {"handle": 3, "ai_callback_delay": 60}
+
+Request r4 / m12 (stream)
+
+[r4 Assistant part 1] CORRECTION-DELIVERED
+[r4 proposed tool part 2] wait_for_job
+[r4 proposed tool part 2] {"handle": 3, "ai_callback_delay": 60}
+/interrupt
+Interrupt: request=r4 interrupted=true.
+You> 
+Request r5 / m14 (stream)
+
+[r5 proposed tool part 1] wait_for_job
+[r5 proposed tool part 1] {"handle": 3, "ai_callback_delay": 0}
+
+Request r5 / m16 (stream)
+
+[r5 Assistant part 1] Job 3 is confirmed **running** with 17 bytes of output (`CH07-JOB-RUNNING`). Now killing it.
+[r5 proposed tool part 2] kill_job
+[r5 proposed tool part 2] {"handle": 3}
+
+Request r5 / m18 (stream)
+
+[r5 Assistant part 1] Job 3 was observed running (17 bytes, `CH07-JOB-RUNNING` only) and is now confirmed **killed** — cleanup complete, no further output was produced.
+^DFinal usage: input=35358, cache write=0, cache read=0, output=928

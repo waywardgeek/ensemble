@@ -1,0 +1,35 @@
+Two independent Agents, one application
+first Agent
+Close viewReconnect view
+
+Connected — agent-1-g2
+
+Tool admissions available — typing: 0, speaking: 0. Already admitted work continues.
+
+Return to latestAutoplay new answers: offCancel speech
+Prompt or correction
+Send promptSend hintInterrupt
+
+second Agent
+Close viewReconnect view
+
+Connected — agent-2-g2
+
+Tool admissions available — typing: 0, speaking: 0. Already admitted work continues.
+
+You
+Write a long, plain-text story about two astronomers restoring an old observatory, with many detailed scenes. Begin the story immediately. Use no tools. Keep writing until the response limit.
+
+Speak
+Answer
+
+The
+
+Provisional
+
+Speak
+Return to latestAutoplay new answers: offCancel speech
+Prompt or correction
+Send promptSend hintInterrupt
+
+Accepted r1

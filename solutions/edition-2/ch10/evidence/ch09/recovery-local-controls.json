@@ -1,0 +1,55 @@
+{
+  "status": "pass",
+  "credential_reads": 0,
+  "real_http_requests": 0,
+  "cases": [
+    {
+      "vendor": "openai",
+      "scenario": "P",
+      "forwarded": 4,
+      "next_refused": true,
+      "final": {
+        "N": 11,
+        "F": 5,
+        "G": 8,
+        "P": 5
+      }
+    },
+    {
+      "vendor": "openai",
+      "scenario": "P",
+      "forwarded": 0,
+      "next_refused": true,
+      "final": {
+        "N": 16,
+        "F": 5,
+        "G": 10,
+        "P": 5
+      }
+    },
+    {
+      "vendor": "openai",
+      "scenario": "F",
+      "forwarded": 0,
+      "next_refused": true,
+      "final": {
+        "N": 0,
+        "F": 5,
+        "G": 0,
+        "P": 0
+      }
+    },
+    {
+      "vendor": "gemini",
+      "scenario": "P",
+      "forwarded": 0,
+      "next_refused": true,
+      "final": {
+        "N": 0,
+        "F": 0,
+        "G": 0,
+        "P": 4
+      }
+    }
+  ]
+}

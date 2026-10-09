@@ -1,0 +1,14 @@
+{
+  "start": "2026-10-07T21:13:53.198601+00:00",
+  "command": [
+    "/tmp/ensemble-ed2-ch04-boundary-public",
+    "--live"
+  ],
+  "vendor": "gemini",
+  "requested_model": "models/gemini-3.8-flash",
+  "source_revision": "d25d3fd4e552cd17c75bf814c9899903878cfbd5",
+  "binary_sha256": "441b74ff065a72bf94d4d018f5b2f7192a32522c49e76787588e014d6b6815a3",
+  "kind": "supplemental real-model public library; main human PTY receipts remain separate",
+  "exit_code": 0,
+  "end": "2026-10-07T21:14:18.480604+00:00"
+}

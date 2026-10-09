@@ -1,0 +1,342 @@
+{
+  "context_differences": {
+    "Entries": {
+      "branch": [
+        {
+          "seq": 3,
+          "actor": "human",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Remember CH10-A-anthropic. Use write_file once to create marker.txt with exactly CH10-A-anthropic followed by one newline. Then tell me why you made that edit."
+            }
+          ]
+        },
+        {
+          "seq": 5,
+          "actor": "agent",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "tool_call",
+              "from": {
+                "vendor": "anthropic",
+                "model": "fixture",
+                "surface": "messages"
+              },
+              "call_id": "local-fixture-1",
+              "name": "write_file",
+              "args": {
+                "path": "marker.txt",
+                "content": "CH10-A-anthropic\n",
+                "overwrite": false,
+                "append": false
+              }
+            }
+          ]
+        },
+        {
+          "seq": 8,
+          "actor": "tool",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "tool_result",
+              "call_id": "local-fixture-1",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "created \"marker.txt\": 17 bytes"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "seq": 10,
+          "actor": "agent",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "LOCAL FIXTURE only. synthetic continuation"
+            }
+          ]
+        },
+        {
+          "seq": 13,
+          "actor": "human",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "What exact marker did you save in marker.txt, and why did you write it? Answer from this conversation; do not call any tool or change a file."
+            }
+          ]
+        },
+        {
+          "seq": 15,
+          "actor": "agent",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "LOCAL FIXTURE only. synthetic continuation"
+            }
+          ]
+        },
+        {
+          "seq": 18,
+          "actor": "human",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Use write_file once to create policy-proof.txt containing CH10-B-anthropic and a newline, then explain the result."
+            }
+          ]
+        },
+        {
+          "seq": 20,
+          "actor": "agent",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "tool_call",
+              "from": {
+                "vendor": "anthropic",
+                "model": "fixture",
+                "surface": "messages"
+              },
+              "call_id": "local-fixture-4",
+              "name": "write_file",
+              "args": {
+                "path": "policy-proof.txt",
+                "content": "CH10-B-anthropic\n",
+                "overwrite": false,
+                "append": false
+              }
+            }
+          ]
+        },
+        {
+          "seq": 23,
+          "actor": "tool",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "tool_result",
+              "call_id": "local-fixture-4",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "created \"policy-proof.txt\": 17 bytes"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "seq": 27,
+          "actor": "human",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Remember CH10-C-anthropic in this conversation and repeat it once. Do not call tools."
+            }
+          ]
+        },
+        {
+          "seq": 29,
+          "actor": "agent",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "LOCAL FIXTURE only. CH10-C-anthropic"
+            }
+          ]
+        }
+      ],
+      "branch_go": "[]common.Entry{common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x3, Actor:\"human\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140003faa30), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x5, Actor:\"agent\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"tool_call\", Text:(*string)(nil), From:(*common.Provenance)(0x140002ec750), Opaque:json.RawMessage(nil), CallID:\"local-fixture-1\", Name:\"write_file\", Args:json.RawMessage{0x7b, 0x22, 0x70, 0x61, 0x74, 0x68, 0x22, 0x3a, 0x22, 0x6d, 0x61, 0x72, 0x6b, 0x65, 0x72, 0x2e, 0x74, 0x78, 0x74, 0x22, 0x2c, 0x22, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x22, 0x3a, 0x22, 0x43, 0x48, 0x31, 0x30, 0x2d, 0x41, 0x2d, 0x61, 0x6e, 0x74, 0x68, 0x72, 0x6f, 0x70, 0x69, 0x63, 0x5c, 0x6e, 0x22, 0x2c, 0x22, 0x6f, 0x76, 0x65, 0x72, 0x77, 0x72, 0x69, 0x74, 0x65, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x61, 0x70, 0x70, 0x65, 0x6e, 0x64, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x7d}, ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x8, Actor:\"tool\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"tool_result\", Text:(*string)(nil), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"local-fixture-1\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140003faa40), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0xa, Actor:\"agent\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140003faa50), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0xd, Actor:\"human\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140003faa80), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0xf, Actor:\"agent\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140003faa90), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x12, Actor:\"human\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140003faaa0), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x14, Actor:\"agent\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"tool_call\", Text:(*string)(nil), From:(*common.Provenance)(0x140002ec7b0), Opaque:json.RawMessage(nil), CallID:\"local-fixture-4\", Name:\"write_file\", Args:json.RawMessage{0x7b, 0x22, 0x70, 0x61, 0x74, 0x68, 0x22, 0x3a, 0x22, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x2d, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x2e, 0x74, 0x78, 0x74, 0x22, 0x2c, 0x22, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x22, 0x3a, 0x22, 0x43, 0x48, 0x31, 0x30, 0x2d, 0x42, 0x2d, 0x61, 0x6e, 0x74, 0x68, 0x72, 0x6f, 0x70, 0x69, 0x63, 0x5c, 0x6e, 0x22, 0x2c, 0x22, 0x6f, 0x76, 0x65, 0x72, 0x77, 0x72, 0x69, 0x74, 0x65, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x61, 0x70, 0x70, 0x65, 0x6e, 0x64, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x7d}, ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x17, Actor:\"tool\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"tool_result\", Text:(*string)(nil), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"local-fixture-4\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140003faac0), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x1b, Actor:\"human\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140003faad0), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part(nil), IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x1d, Actor:\"agent\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140003faae0), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part(nil), IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}}",
+      "latest": [
+        {
+          "seq": 3,
+          "actor": "human",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Remember CH10-A-anthropic. Use write_file once to create marker.txt with exactly CH10-A-anthropic followed by one newline. Then tell me why you made that edit."
+            }
+          ]
+        },
+        {
+          "seq": 5,
+          "actor": "agent",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "tool_call",
+              "from": {
+                "vendor": "anthropic",
+                "model": "fixture",
+                "surface": "messages"
+              },
+              "call_id": "local-fixture-1",
+              "name": "write_file",
+              "args": {
+                "path": "marker.txt",
+                "content": "CH10-A-anthropic\n",
+                "overwrite": false,
+                "append": false
+              }
+            }
+          ]
+        },
+        {
+          "seq": 8,
+          "actor": "tool",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "tool_result",
+              "call_id": "local-fixture-1",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "created \"marker.txt\": 17 bytes"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "seq": 10,
+          "actor": "agent",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "LOCAL FIXTURE only. synthetic continuation"
+            }
+          ]
+        },
+        {
+          "seq": 13,
+          "actor": "human",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "What exact marker did you save in marker.txt, and why did you write it? Answer from this conversation; do not call any tool or change a file."
+            }
+          ]
+        },
+        {
+          "seq": 15,
+          "actor": "agent",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "LOCAL FIXTURE only. synthetic continuation"
+            }
+          ]
+        },
+        {
+          "seq": 18,
+          "actor": "human",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Use write_file once to create policy-proof.txt containing CH10-B-anthropic and a newline, then explain the result."
+            }
+          ]
+        },
+        {
+          "seq": 20,
+          "actor": "agent",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "tool_call",
+              "from": {
+                "vendor": "anthropic",
+                "model": "fixture",
+                "surface": "messages"
+              },
+              "call_id": "local-fixture-4",
+              "name": "write_file",
+              "args": {
+                "path": "policy-proof.txt",
+                "content": "CH10-B-anthropic\n",
+                "overwrite": false,
+                "append": false
+              }
+            }
+          ]
+        },
+        {
+          "seq": 23,
+          "actor": "tool",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "tool_result",
+              "call_id": "local-fixture-4",
+              "parts": [
+                {
+                  "type": "text",
+                  "text": "created \"policy-proof.txt\": 17 bytes"
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "seq": 27,
+          "actor": "human",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Remember CH10-C-anthropic in this conversation and repeat it once. Do not call tools."
+            }
+          ]
+        },
+        {
+          "seq": 29,
+          "actor": "agent",
+          "purpose": "dialogue",
+          "parts": [
+            {
+              "type": "text",
+              "text": "LOCAL FIXTURE only. CH10-C-anthropic"
+            }
+          ]
+        }
+      ],
+      "latest_go": "[]common.Entry{common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x3, Actor:\"human\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x14000202360), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x5, Actor:\"agent\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"tool_call\", Text:(*string)(nil), From:(*common.Provenance)(0x14000335ce0), Opaque:json.RawMessage(nil), CallID:\"local-fixture-1\", Name:\"write_file\", Args:json.RawMessage{0x7b, 0x22, 0x70, 0x61, 0x74, 0x68, 0x22, 0x3a, 0x22, 0x6d, 0x61, 0x72, 0x6b, 0x65, 0x72, 0x2e, 0x74, 0x78, 0x74, 0x22, 0x2c, 0x22, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x22, 0x3a, 0x22, 0x43, 0x48, 0x31, 0x30, 0x2d, 0x41, 0x2d, 0x61, 0x6e, 0x74, 0x68, 0x72, 0x6f, 0x70, 0x69, 0x63, 0x5c, 0x6e, 0x22, 0x2c, 0x22, 0x6f, 0x76, 0x65, 0x72, 0x77, 0x72, 0x69, 0x74, 0x65, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x61, 0x70, 0x70, 0x65, 0x6e, 0x64, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x7d}, ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x8, Actor:\"tool\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"tool_result\", Text:(*string)(nil), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"local-fixture-1\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x14000202370), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0xa, Actor:\"agent\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x14000202380), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0xd, Actor:\"human\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x14000202390), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0xf, Actor:\"agent\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140002023a0), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x12, Actor:\"human\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140002023b0), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x14, Actor:\"agent\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"tool_call\", Text:(*string)(nil), From:(*common.Provenance)(0x14000335d40), Opaque:json.RawMessage(nil), CallID:\"local-fixture-4\", Name:\"write_file\", Args:json.RawMessage{0x7b, 0x22, 0x70, 0x61, 0x74, 0x68, 0x22, 0x3a, 0x22, 0x70, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x2d, 0x70, 0x72, 0x6f, 0x6f, 0x66, 0x2e, 0x74, 0x78, 0x74, 0x22, 0x2c, 0x22, 0x63, 0x6f, 0x6e, 0x74, 0x65, 0x6e, 0x74, 0x22, 0x3a, 0x22, 0x43, 0x48, 0x31, 0x30, 0x2d, 0x42, 0x2d, 0x61, 0x6e, 0x74, 0x68, 0x72, 0x6f, 0x70, 0x69, 0x63, 0x5c, 0x6e, 0x22, 0x2c, 0x22, 0x6f, 0x76, 0x65, 0x72, 0x77, 0x72, 0x69, 0x74, 0x65, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x2c, 0x22, 0x61, 0x70, 0x70, 0x65, 0x6e, 0x64, 0x22, 0x3a, 0x66, 0x61, 0x6c, 0x73, 0x65, 0x7d}, ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x17, Actor:\"tool\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"tool_result\", Text:(*string)(nil), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"local-fixture-4\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140002023c0), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x1b, Actor:\"human\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140002023d0), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}, common.Entry{SkillName:\"\", Activation:0x0, Anchor:0x0, Seq:0x1d, Actor:\"agent\", Purpose:\"dialogue\", Parts:[]common.Part{common.Part{Type:\"text\", Text:(*string)(0x140002023e0), From:(*common.Provenance)(nil), Opaque:json.RawMessage(nil), CallID:\"\", Name:\"\", Args:json.RawMessage(nil), ArgumentsText:(*string)(nil), Parts:[]common.Part{}, IsError:false, Data:json.RawMessage(nil), MIME:\"\", Ref:(*common.Ref)(nil), Stub:\"\"}}}}"
+    },
+    "Hints": {
+      "branch": null,
+      "branch_go": "[]common.Entry(nil)",
+      "latest": [],
+      "latest_go": "[]common.Entry{}"
+    },
+    "PendingSkills": {
+      "branch": null,
+      "branch_go": "[]common.Entry(nil)",
+      "latest": [],
+      "latest_go": "[]common.Entry{}"
+    }
+  },
+  "events_equal": true,
+  "render_equal": true,
+  "skills_equal": true,
+  "usage_equal": true
+}

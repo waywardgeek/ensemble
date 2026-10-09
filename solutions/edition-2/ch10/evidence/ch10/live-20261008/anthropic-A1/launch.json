@@ -1,0 +1,29 @@
+{
+  "binding_sha256": "9f877c13fe2fd564779dc6305240928c3dc710071042ffb5181e99b6587b14a5",
+  "source_revision": "57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4",
+  "vendor": "anthropic",
+  "model": "claude-sonnet-4-6",
+  "role": "cli",
+  "command": [
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/retained-repair-build-watch/cli",
+    "--session-dir",
+    "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/anthropic/A",
+    "chat"
+  ],
+  "command_sha256": "bd98dc3442ee34d3468cfbd5f84093452c53bf87807d5c8c89f99f4355a6ccb8",
+  "environment": {
+    "LLM_VENDOR": "anthropic",
+    "LLM_MODEL": "claude-sonnet-4-6",
+    "LLM_RESOLVED_MODEL": "claude-sonnet-4-6",
+    "LLM_BASE_URL": "http://127.0.0.1:63604/A1",
+    "EN_DISABLE_STREAMING": "0"
+  },
+  "workspace": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/anthropic/workspace",
+  "provider_root": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/anthropic",
+  "run": "/Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/live-20261008/anthropic-A1",
+  "mode": "live",
+  "actor": "student coder; not Bill",
+  "support_revision": "9822b2b63257724001d7af195b377483baad3531",
+  "discovery_sha256": "d7db3df30cd31c3b15dce908f60fcc084f550b45e2d2c802c53dcdaf48e5d184",
+  "identity_sha256": "1e153edbaa1e4df0921f7e4d7370b91897f1ea018283b2669f21d7d85294d995"
+}
