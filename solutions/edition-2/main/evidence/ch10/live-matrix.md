@@ -235,10 +235,22 @@ The binding builder must execute real commands and collect module/build identity
 evidence before creating one. Local synthetic identity controls are explicitly
 fixtures, not evidence of a Go build or actual browser/provider behavior.
 
-Current driver admits literal loopback upstreams only. This makes its prepared
-schedule exercisable against bounded local fixtures without credential access.
-The future provider transport/discovery activation remains a separately reviewed
-support step: no current command opens a real-provider origin, reads a key, or
-performs discovery. The one-request discovery counter is locally tested, but
-there is no discovery result. Pending browser/consumer integration must be checked
-with freshly source-bound builds before any live release.
+The original loopback-only support has now been exercised locally; source-specific
+CLI/browser/public results and failures are preserved in retained-repair-handback.md.
+Runtime/build57d4aac remains the compiled authority. The next preparation adds an
+explicit, separately bound provider adapter and discovery entrypoint; these are
+unreleased operations, not actual provider results. Default fixture mode remains
+literal loopback with no key access. See support/provider-support.md for the exact
+settings fields, fixed origins, single-page discovery, selected-model constraints,
+sanitization and unchanged66-generation/3-discovery ceiling. No source/binary is
+relabeled, and a split support binding retains original compiled-input identities.
+
+The full A/B/C/D feature matrix, prompts, interface requirements, independent
+local controls, D seed provenance and policy/spending distinction above remain
+unchanged. Ready support does not imply usable credentials, discovered models,
+deterministic clearance or permission to execute live. Anthropic/OpenAI identifiers
+must be selected from their actual one-page discovery; Gemini must actually return
+models/gemini-3.8-flash with generateContent support. No page/fallback/probe or model
+substitution is added. Coordinator support review and separate live release are
+required before any settings read or API call. Preparation uses Python/JS local
+controls only while the grader owns the Go compiler.

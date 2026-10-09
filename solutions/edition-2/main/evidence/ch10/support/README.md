@@ -1,10 +1,13 @@
 # Chapter 10 evidence support — preparation checkpoint
 
-This is support source, not a live receipt or an accepted chapter. Runtime remains
-8882a18cf98e9a4b70afccfbe980f6344630aae6. No Go build, browser integration, credential
-read, discovery or provider call has run during this support phase. Go compiler
-ownership remains with the coordinator. Python/JS controls use small loopback or
-synthetic identity fixtures and say so in their output.
+This is support source, not a live receipt or an accepted chapter. Runtime/build
+revision remains57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4. The preceding local phase
+built the public consumer and exercised CLI/browser/public paths; source-specific
+results and limitations are in ../retained-repair-handback.md. This preparation
+adds an explicit provider adapter but executes Python/JS localhost controls only.
+No credential read, discovery or real-provider call is released. The independent
+grader owns Go compilation. See [provider-support.md](provider-support.md) for
+separate source bindings, exact key fields, routes and later-release commands.
 
 ## Components and ownership
 
@@ -17,8 +20,9 @@ synthetic identity fixtures and say so in their output.
   retains request/response bodies and transport outcomes, with header-secret
   redaction explicitly marked if necessary. It never reads a credential file.
 - `driver.py`: a deliberately driven `/usr/bin/script` PTY for CLI/GUI or the public
-  consumer. No prompt auto-send/retry. Its current entrypoint accepts only literal
-  loopback upstreams. Process600-second deadline and relay spending caps differ
+  consumer. No prompt auto-send/retry. It accepts literal
+  loopback upstreams in default local mode. Explicit live mode requires fixed provider
+  selection plus bound discovery. Process600-second deadline and relay spending caps differ
   from the runtime's policy. It excludes ambient provider settings from children.
 - `browser.mjs`: actual browser keyboard/pointer actions, DOM/screenshots and raw
   socket frames with connection identity. A recorded bootstrap suffix exposes the
@@ -36,11 +40,16 @@ synthetic identity fixtures and say so in their output.
   Submit/Ask. D prepares retired/reloaded skills, seeds pending limits through
   two actual loopback fixture exchanges (same selected wire/model, explicit
   provenance), and records subsequent once-only consumption before the first call.
-  Deferred build/integration must verify these drafts before relying on them.
+  Existing binaries and local integration are retained at their actual revisions.
 - `identity.py`: complete immutable own source/support/module/catalog identities,
   actual executable identities/build associations and full browser dependency tree.
-  Working source and support must match the revision; extra/missing source refuses.
+  Working runtime and interpreted support must match their separate revisions;
+  extra/missing source refuses. Historical compiled inputs may not change.
   An explicit repository root is required. Alternative binaries must hash-match.
+- `provider.py`/`discover.py`: fixed API-key routes, one discovery attempt, no
+  automatic model selection or credential propagation to child processes.
+- `bind-support.py`: binds new interpreted support to retained actual builds;
+  any compiled input/module change requires a separately released real build.
 - `build-binding.py`: later serialized real build/vet/test commands, module graph,
   `go version -m` and actual hashes. Each command receipt is flushed immediately.
   It produces no binding unless real commands and final preflight pass. Planned
@@ -66,7 +75,7 @@ From the outer repository root:
 PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s solutions/edition-2/main/evidence/ch10/support -p test_support.py -v
 node solutions/edition-2/main/evidence/ch10/support/test-speech.mjs
 node --check solutions/edition-2/main/evidence/ch10/support/browser.mjs
-gofmt -l solutions/edition-2/main/evidence/ch10/support/consumer/main.go
+python3 -B -m unittest discover -s solutions/edition-2/main/evidence/ch10/support -p test_provider.py -v
 ```
 
 Identity tests start from complete valid synthetic parents, then mutate source,
@@ -123,12 +132,11 @@ provider budget. The proxy counts failed/canceled upstream attempts and denies N
 
 ## Remaining gates
 
-Uncompiled public consumer and unexercised browser/PTY integration are explicit
-pending work. Run actual-binding mutation controls after build, especially all
-three binaries and dependency/launch/support changes from valid parents. Review
-all C/D observations, parser/fixture compatibility and process/terminal lifetime.
-No provider-facing launcher or discovery entrypoint is enabled; current commands
-refuse non-loopback origins before writing launch artifacts. Later activation
-needs coordinator completeness review, bounded discovery, exact returned Gemini
-3.8 Flash availability and a newly bound reviewed support change. This preparation
-neither grants that release nor establishes live usability or chapter acceptance.
+Existing actual builds, local paths and identity controls are retained in the
+prior handback. The new provider adapter and split binding require coordinator
+review and fresh local controls before live release; neither old binaries nor
+planned binaries are relabeled. No Go command runs during this preparation.
+Use bind-support.py for unchanged compiled inputs, as documented in
+provider-support.md. Only a changed compiled input requires the serialized build
+command above. Exact returned Gemini3.8Flash availability remains unverified.
+No external endpoint, credential or actual discovery was accessed in this phase.

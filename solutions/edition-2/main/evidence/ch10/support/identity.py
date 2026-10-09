@@ -62,6 +62,10 @@ def dependency_paths(root):
 def check_sources(binding, repo):
     revision = binding['source_revision']
     expected = source_paths(repo, revision)
+    support_revision = binding.get('support_revision', revision)
+    if support_revision != revision:
+        expected = sorted([p for p in expected if not p.startswith(SUPPORT_PREFIX)] +
+                          [p for p in source_paths(repo, support_revision) if p.startswith(SUPPORT_PREFIX)])
     require(expected and set(binding['sources']) == set(expected), 'incomplete source map')
     actual = set()
     for p in (Path(repo)/PREFIX).rglob('*'):
@@ -72,7 +76,8 @@ def check_sources(binding, repo):
         if p.is_file(): actual.add(relative)
     require(actual == set(expected), 'working source set mismatch')
     for path in expected:
-        require(digest(historical(repo, revision, path)) == binding['sources'][path], 'source identity mismatch')
+        owner_revision = support_revision if path.startswith(SUPPORT_PREFIX) else revision
+        require(digest(historical(repo, owner_revision, path)) == binding['sources'][path], 'source identity mismatch')
         require(file_hash(Path(repo) / path) == binding['sources'][path], 'working source identity mismatch')
     return expected
 
@@ -80,6 +85,19 @@ def check_sources(binding, repo):
 def preflight(binding, repo, binaries=None, support_root=HERE):
     revision=binding['source_revision']
     check_sources(binding, repo)
+    if 'support_revision' in binding:
+        expected_build = source_paths(repo, revision)
+        original = binding.get('build_sources', {})
+        require(original and set(original) == set(expected_build), 'incomplete historical build sources')
+        for path in expected_build:
+            require(digest(historical(repo, revision, path)) == original[path], 'historical build source mismatch')
+        # Interpreter changes may differ; every compiled input/dependency remains
+        # exactly the real build's input. New compiled support needs a real build.
+        def compiled(path):
+            return not path.startswith(SUPPORT_PREFIX) or path.startswith(SUPPORT_PREFIX+'consumer/')
+        before = {p:h for p,h in original.items() if compiled(p)}
+        after = {p:h for p,h in binding['sources'].items() if compiled(p)}
+        require(before == after, 'compiled source requires a new build')
     support = {p: h for p, h in binding['sources'].items() if p.startswith(SUPPORT_PREFIX)}
     require(support and binding['support'] == support, 'incomplete support map')
     for path, sha in support.items():
@@ -110,6 +128,8 @@ def preflight(binding, repo, binaries=None, support_root=HERE):
 def check_launch(binding, launch):
     require(launch['binding_sha256'] == digest(canonical(binding)), 'launch binding mismatch')
     require(launch['source_revision'] == binding['source_revision'], 'launch source mismatch')
+    if 'support_revision' in binding:
+        require(launch.get('support_revision') == binding['support_revision'], 'launch support revision mismatch')
     require(launch['vendor'] in ('anthropic', 'openai', 'gemini'), 'launch vendor mismatch')
     require(launch['mode'] in ('local', 'live'), 'launch mode mismatch')
     require(set(launch['environment']) <= {'LLM_VENDOR', 'LLM_MODEL', 'LLM_RESOLVED_MODEL', 'LLM_BASE_URL', 'LLM_SKILLS_DIR', 'LLM_PRIMARY_SKILL', 'EN_DISABLE_STREAMING'}, 'unsafe launch environment')
@@ -133,7 +153,8 @@ def verify_run(binding, launch, originals, repo, run, destination):
     # This is an identity receipt, NOT a feature-acceptance score.
     with Path(destination).open('x') as f:
         json.dump({'identity_verified': True, 'chapter_accepted': False,
-                   'source_revision': binding['source_revision'], 'originals': originals}, f, indent=2)
+                   'source_revision': binding['source_revision'],
+                   'support_revision': binding.get('support_revision', binding['source_revision']), 'originals': originals}, f, indent=2)
         f.write('\n')
 
 

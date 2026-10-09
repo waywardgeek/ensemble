@@ -682,3 +682,65 @@ student experience before historical comparison. The exact replay/duplicate
 teaching resolved the original contract distinction; the later Context/watch
 issues were implementation defects. No further teaching ambiguity is invented.
 Compiler slot is released. No chapter/live/comparative acceptance is claimed.
+
+### Provider support preparation (local only)
+
+Reread the entire repository coding skill and book/edition-2/architecture.md;
+reread complete pinned dd1111e Chapter10 and direct feedback, using targeted
+follow-up ranges to recover the truncated middle of the full chapter display.
+Verified both manifest SHA256s and exact Git blob identities again. Sole inbox
+and this handoff report the management discrepancy resolved by independently
+adapted138/138 checks and exact-argument replay on57d4aac. This is coordinator
+assistance, not a checker run or source read by this student; original135/138
+receipt remains unchanged. No runtime correction is requested or planned.
+
+Support plan: fixed provider-origin/header/route adapter owns its in-memory key;
+driver owns explicit local/live selection and subprocesses, leaving child keys
+as a dummy loopback token. Existing relay/budget retains durable before-send
+counting. Filter response credentials before client delivery as well as recording,
+including split chunks; never retain raw authorization headers, redirect URLs or
+exception strings. One bounded discovery request produces an identity-bound
+selection receipt, with no pagination or fallback model. Gemini3.8Flash must
+actually appear with generateContent support; availability is unknown.
+
+Separate support revision is necessary: preserve full historical57d4aac build
+source maps and actual build associations; compare current runtime/compiled
+consumer bytes to them while binding interpreted support at its new revision.
+Reject compiled-input or dependency changes until a new real build exists.
+This extends evidence identity only, not runtime ownership or persisted state.
+No architecture conflict blocks this support work. Grader owns compiler; no Go
+commands, cache cleanup, credential reads or external API calls in this phase.
+
+Provider preparation outcome before freeze:35 local Python checks pass, including
+the retained relay/budget/identity controls and new provider/split-binding controls.
+Initial38-check run failed discovery success: the response completed and closed
+its socket, then the reader tried to set that closed socket's timeout on the next
+iteration. Fixed completion handling, added explicit transport outcome assertions;
+the original failure remains. Subsequent38/33/34 runs passed as controls were added
+and duplicate imported unittest-base execution was removed from the command.
+Final35 includes absolute header-drip and bounded DNS-wait controls and the mocked
+driver's actual env/receipt construction. No Go or real client process is run by
+those controls. The DNS worker owns resolution only; if its bounded wait expires,
+it cannot later create a socket/send HTTP. Response credentials are redacted before
+client or evidence output, not merely in the saved body. No acceptance assertion
+was weakened. Python source compilation checks write no bytecode.
+
+Additional actual reads: own complete support identity/relay/driver/tests/build/
+verify/schedule/README and live matrix, selected browser bootstrap and public
+consumer seed/selection code, and permitted Chapter9 support-recovery terminal
+launcher lines1–80 plus targeted credential/discovery/launch searches. That source
+contains credential-loading code but was not executed; the settings file was not
+opened. Reused its explicit field/header mapping and safe exception classification,
+adding bounded fixed-route transport rather than inheriting redirects or secret
+child propagation. Consulted only official Anthropic/OpenAI/Google model-list/key
+documentation for mechanics (links in support/provider-support.md); no API call or
+availability inference resulted. All test keys, settings and selection receipts
+are synthetic and are labeled so. No excluded source/reviewer/grader/other session,
+research, memory or credentials were accessed; no worker was spawned.
+
+Latest inbox assistance: response-to-history assertion diagnosis was subsequently
+narrowed by the coordinator to unused Part.Parts nilness, with meaningful fields
+and public JSON identical; no runtime repair requested. This is attributed
+coordinator information, not a student inspection of checker/reviewer internals.
+Deterministic clearance remains pending independent validation. Continue support
+only and preserve original135/138 and all earlier failures; live stays unreleased.

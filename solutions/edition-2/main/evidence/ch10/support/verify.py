@@ -65,6 +65,7 @@ def run(args):
     expected=read_json(args.run/'originals.json')
     require(expected==originals(args.run),'original receipt identity mismatch')
     findings={'source_revision':b['source_revision'],'binding_sha256':digest(canonical(b)), 'mode':launch['mode'],'chapter_accepted':False,'identity_verified':True}
+    if 'support_revision' in b: findings['support_revision']=b['support_revision']
     if (args.run/'browser-original.jsonl').is_file():findings['browser']=inspect_browser([json.loads(s) for s in (args.run/'browser-original.jsonl').read_text().splitlines()])
     if (args.run/'attempts-final.jsonl').is_file():findings['budget']=check_budget(args.run/'attempts-final.jsonl')
     findings['limitations']=['Originals must be reviewed against all A/B/C/D observables. Identity and these limited checks are not full feature acceptance.','No human hearing, provider success, or chapter acceptance inferred from a local fixture.']

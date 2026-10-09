@@ -281,3 +281,23 @@ review remain coordinator gates. Final inbox read has no new resolution. No furt
 Go work is planned in this stage. Compiler slot was released before receipt work;
 this handback does not reacquire it. No credentials/provider requests, push,
 historical comparison, chapter export/tag or acceptance occurred.
+
+## Provider adapter prepared — no compiler or live use
+
+Support now has explicit fixed API-key origins/headers, one-page discovery,
+identity-bound model selection and a live-mode entrypoint for later release.
+Default fixture mode is unchanged and does not load keys. Responses are filtered
+before child delivery and recording; headers/redirect targets/exception text are
+not forwarded into receipts. Before-send budgets remain22/vendor with6/4/6/6 rows,
+one discovery,4096 output,120s/attempt and600s/row, no retries/fallback/pagination.
+Gemini requires the actual discovered models/gemini-3.8-flash target.
+
+Runtime/build57d4aac is unchanged. The new split binding retains historical
+build_sources and actual Go build associations while binding interpreted support
+at its own immutable revision; changed compiled/consumer/module inputs refuse.
+35 local Python controls and source syntax checks pass. Initial failed response-
+close observation and all subsequent command outputs are retained in
+provider-prep-commands.jsonl. No credentials, actual discovery/API traffic, Go
+build/test/vet, cache maintenance or runtime edits. Compiler stays with grader.
+Actual retained-build binding/control results follow the scoped support commit;
+no planned binary is claimed. Full details: support/provider-support.md.
