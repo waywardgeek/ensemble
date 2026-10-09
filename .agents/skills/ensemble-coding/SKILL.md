@@ -78,6 +78,15 @@ cannot retain independent vetoes.
 
 Run gofmt, go vet and go test in affected modules, and the original chapter
 grader. Use focused regressions for actual bugs, not a new grading framework.
+
+**Use fakes over mocks.** Exercise the real implementation and replace external
+boundaries with small, faithful fakes when deterministic tests need them. For
+example, a fake HTTP server can supply vendor responses while the real client,
+parser and engine run. Assert observable results and relevant boundary behavior,
+not a scripted sequence of internal method calls. Do not mock away the behavior
+being tested or introduce interfaces and mock frameworks solely for tests. Keep
+fakes as small as the exercised contract permits; they do not replace live runs.
+
 Actually exercise the human interface with a real model as the chapter introduces
 features. Bound demonstrations, avoid unattended retries, and retain short
 sanitized observations. Use all three vendors as introduced. Discover available
@@ -146,7 +155,8 @@ Leave a concise comparison covering:
   the program passes, or filler merely because it reaches the target.
 - **Tests:** compare the behaviors and real failure modes protected. Better tests
   are valuable even when longer. Do not reward test volume, implementation-mirror
-  assertions or elaborate test infrastructure for its own sake. Preserve the
+  assertions or elaborate test infrastructure for its own sake. Enforce fakes
+  over mocks and check that the real behavior under test still runs. Preserve the
   original grader's role; grader defects go into a future-maintainer review.
 - **Scope and simplicity:** trace added behavior to the original exercise or an
   explicit Bill instruction. Examine data structures and abstractions for the
