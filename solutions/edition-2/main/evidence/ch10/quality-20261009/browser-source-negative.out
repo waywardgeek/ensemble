@@ -1,0 +1,23 @@
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: source identity solutions/edition-2/main/gui/web/gui/artifacts.js
++ actual - expected
+
++ '0829c2ecb7c746197cd24a3df4b7b98c39ae92028063767381d1a9d3b6e25dc9'
+- 'd3482c0d4f2c43205af99f07a2a14158d2ab405bdc08a0cea1ff333480a0b6d8'
+
+    at file:///Users/bill/projects/ensemble/solutions/edition-2/main/evidence/ch10/quality-browser.mjs:23:101
+    at ModuleJob.run (node:internal/modules/esm/module_job:561:25)
+    at async node:internal/modules/esm/loader:647:26
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: '0829c2ecb7c746197cd24a3df4b7b98c39ae92028063767381d1a9d3b6e25dc9',
+  expected: 'd3482c0d4f2c43205af99f07a2a14158d2ab405bdc08a0cea1ff333480a0b6d8',
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.20.0

@@ -1,0 +1,7 @@
+{
+  "active_go_compilers_linkers": [],
+  "free_space_checked": "11GiB",
+  "compiler_release": "current explicit coordinator handoff",
+  "initial_vet_failure": "isolated command environment omitted HOME; Go could not locate module cache",
+  "correction": "preserve HOME and any explicit Go cache path variables; no cache cleanup"
+}

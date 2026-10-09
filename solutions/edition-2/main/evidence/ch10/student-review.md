@@ -912,3 +912,41 @@ reads for nonexistent agent.go and internal/skills/service.go returned not-found
 actual owner source is ensemble.go and skills.go. All writes stay in main. Compiler
 is released exclusively for this grouped local task; initial44d7627 receipts remain
 immutable. Browser regression will use separately labeled captured-data evidence.
+
+
+Grouped quality result: source70d86f7419c82fcf7cb8a394d54e472feccd2eed is frozen.
+Core/GUI format/vet/tests and affected race checks pass; public checker16 groups,
+Chapter9 51/51, Chapter10 initial93/93, clients9/9 and targeted append/Close faults
+pass on the new source/binaries. No checker implementation read. The local headed
+captured-data browser check passes43 checks. It confirms response5/20 part1 are
+ordinary empties and10/15 part1 signed; all durable positions remain, with compact
+truthful indication. Two resets, identity handoff, replacement, ordinary whitespace/
+absence, opaque and tool-result controls and speech negatives/positives pass.
+I viewed its new screenshot. Initial44d7627 directory/handback/binding diff is empty.
+A valid-parent intended source mismatch refused before creating derived output;
+owned source was restored exactly. That expected negative is not a runtime fault.
+
+The first core vet attempt failed before compilation because the new local command
+recorder omitted HOME. Corrected its environment and preserved initial failure;
+no cache cleanup. The initial broad process-text probe matched its own command;
+precise executable-name inspection then found zero active compiler/linkers before
+Go work. Build associations retain full source maps, discovered12 modules and real
+binary metadata. No need to repeat unaffected modules/full paid matrix. No runtime
+failure was observed in this grouped check.
+
+Walkthrough confirmation remains affirmative. One narrow prose nuance for author:
+the actual OpenAI A1 continuation arguments inspected here are compact JSON text;
+the15 byte-exact live comparisons preserve those actual bytes. Do not imply a new
+deliberately spaced-string provider fixture; that distinguishing regression is
+separate earlier local evidence. Q4 is an authorized post-run presentation quality
+choice, not a retroactive chapter requirement. No new owner/format ambiguity.
+
+Actual assistance/exposure additions: authorized inbox rationale Q1/Q2/Q4, own
+common/Skills/Agent/Artifact tests and state, own served browser modules, own
+captured original Gemini/OpenAI records and derived local outputs, old binding
+metadata and browser dependency bytes for hashes only. No historical solution,
+reviewer/grader implementation, other conversations/memory or author research was
+opened. No credentials/network-provider access. New binary is not claimed live-
+tested; only empty-card appearance is superseded by the local quality evidence.
+No broader initial live observation is invalidated. Review of evidence reuse and
+new source is still independent; compiler work complete, slot released.

@@ -341,3 +341,13 @@ Core/GUI vet and tests pass; formatting output empty. Initial command recorder
 omitted HOME, causing Go module-cache lookup refusal before compilation; preserved
 core-vet.out and corrected environment. Focused race and revision-bound captured
 browser/public/Skills checks follow. No credentials/provider calls or cache cleanup.
+
+
+Grouped quality local completion: source70d86f7419c82fcf7cb8a394d54e472feccd2eed;
+Q1/Q2/Q4 implemented. Core/GUI vet/tests and relevant race pass, public16 groups,
+ch09 51/51, ch10 93/93, clients9/9, targeted append/Close faults pass. Captured
+headed-browser43 checks and intended source-identity refusal pass. Initial44d7627
+live artifacts unchanged. See quality-handback.md for exact commands, build hashes,
+initial HOME omission failure, precise Q4 diagnosis and evidence reuse limits.
+No paid calls/credentials or cache cleanup. Compiler released; independent revision
+review pending, no chapter acceptance/tag/export/push.
