@@ -583,5 +583,11 @@ export is `solutions/edition-2/ch02/`, checkpoint `edition-2-ch02-r3` (the older
 r2 tag is preserved). The original grader remains 92/100 FAIL; carry the accepted
 media exception through inherited parity until blobs are introduced. No author
 or grader revision phase has started.
+Chapter 3 is assigned in a fresh context to `student_restart_ch03`, starting
+from the accepted Chapter 2 tree. Its unchanged reference baseline is 100/100.
+The coordinator supplied missing tool argument keys from the original harness
+under Bill's standing authorization, recorded in `docs/edition-2-notes/ch03.md`.
+The student still does not read grader internals or old answers; no Chapter 3
+result or acceptance has been claimed.
 Preserve small resumable checkpoints if a usage limit interrupts work;
 never label unfinished work an accepted chapter.
