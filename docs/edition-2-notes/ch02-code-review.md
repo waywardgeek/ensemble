@@ -1,10 +1,12 @@
 # Chapter 2 comparative code review
 
-Reviewer: `review_restart_ch01`, October 9, 2026. Initial verdict:
-**needs correction** for one Anthropic rendering defect below. Zero revision
-rounds used; at most three subsequent rounds. The separately documented media
-exception is justified, but does not waive this defect or establish chapter
-acceptance. Mandatory handoff: `.agents/skills/ensemble-coding/SKILL.md`.
+Reviewer: `review_restart_ch01`, October 9, 2026. Current verdict:
+**accepted with the scoped exception below**, after revision round 1 of at most
+3. R1 is resolved; no blocking findings remain. The original grader still reports
+**92/100 FAIL**. Mandatory handoff: `.agents/skills/ensemble-coding/SKILL.md`.
+
+Initial verdict was **needs correction** for R1. The initial findings and counts
+are preserved below; the final reassessment and updated counts follow them.
 
 Read the entire skill, AGENTS.md, current carryover/workflow, all 1,189 lines of
 original Chapter 2, the completed [student review](ch02.md), all new source and
@@ -151,5 +153,44 @@ nine source/target pairs twice without keys; byte identity and every reported
 byte count matched. No claim of live media/tool execution, nonzero cache tests
 or full opaque replay follows from those text runs.
 
-Complete R1, update the student review with the correction and targeted evidence,
-then return for revision round 1. No other blocking finding remains.
+Initial handoff requested R1, updated student notes and targeted evidence for
+revision round 1. No other blocking finding was identified.
+
+## Revision round 1 — accepted with exception
+
+Read the entire mandatory skill again, the student's appended round-1 review,
+the changed renderer/comment, new regression, mutation record and separate
+`grader-r1.txt`. The correction applies a stable results-first partition only
+to completed Anthropic user messages. It retains original block bytes, result
+IDs, outputs and within-group order. It does not mutate the context or log, add
+an input protocol, or move behavior out of its responsible translator. The
+20 added active production lines are a clear, proportionate correction.
+
+`TestAnthropicInterleavedResultsPrecedeText` exercises the real loader, reducer
+and renderer and checks ordering, both result identities/outputs, human text
+and unchanged Context. Independently reran clean formatting, vet and uncached
+core tests successfully. In an isolated scratch copy, removed the final
+partition: the regression compiled and failed specifically with `tool results
+must precede text`, showing the original result/text/result order. The scratch
+copy was removed. R1 and its nearby explanation are now correct; the unrelated
+comment typo was also fixed.
+
+The student's round-1 original grader result remains **92/100 FAIL**, with exactly
+the same `ref-render` and `ref-redaction` media prerequisites failing and every
+other check passing. Its affected core/GUI checks passed. No paid live run or
+whole mutation sweep was repeated for this wire-ordering-only correction; the
+earlier live and nine-way replay evidence remains applicable.
+
+Final independently counted core production: **1,420 active / 249 comment-only /
+1,765 physical**; core tests: **467 / 16 / 500**. GUI remains **8 / 3 / 13**
+production and **29 / 2 / 34** tests. Thus combined production is **1,428 active /
+252 comments / 1,778 physical**, a Chapter 2 delta of **+1,147 / +193 / +1,409**
+against the student's frozen Chapter 1. Combined tests are **496 / 18 / 534**,
+deltas **+373 / +12 / +401**. Counting method is unchanged. Production comments
+remain 15.0% of nonblank lines; the active chapter addition remains 30.6% below
+the first edition's +1,653, with the feature differences already qualified above.
+
+Accept Chapter 2 with the explicit media-scope exception, not a passing original
+grader claim. Preserve the two actual failures in later parity results and
+reassess when Chapter 4 introduces blob capability. One correction round was
+used; no unresolved architecture, scope, bloat or correctness finding remains.

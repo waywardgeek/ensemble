@@ -1,0 +1,10 @@
+{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-10-09T16:34:37.172847Z","message":{"actor":"human","parts":[{"type":"text","text":"Invent a two-word codename for this session. Reply with only that codename."}]}}
+{"seq":2,"type":"request_sent","time":"2026-10-09T16:34:38.260281Z","request":{"to":{"vendor":"gemini","model":"gemini-3.1-flash-lite","surface":"generate_content"}}}
+{"seq":3,"type":"response_ended","time":"2026-10-09T16:34:38.260283Z","response":{"parts":[{"type":"text","text":"SILENT VOYAGER"}],"usage":{"input":45,"cache_write":0,"cache_read":0,"output":5},"from":{"vendor":"gemini","model":"gemini-3.1-flash-lite","surface":"generate_content"}}}
+{"seq":4,"type":"message_received","time":"2026-10-09T16:34:41.442641Z","message":{"actor":"human","parts":[{"type":"text","text":"What is 7 plus 8? Answer briefly."}]}}
+{"seq":5,"type":"request_sent","time":"2026-10-09T16:34:42.086767Z","request":{"to":{"vendor":"gemini","model":"gemini-3.1-flash-lite","surface":"generate_content"}}}
+{"seq":6,"type":"response_ended","time":"2026-10-09T16:34:42.086771Z","response":{"parts":[{"type":"text","text":"15"}],"usage":{"input":63,"cache_write":0,"cache_read":0,"output":2},"from":{"vendor":"gemini","model":"gemini-3.1-flash-lite","surface":"generate_content"}}}
+{"seq":7,"type":"message_received","time":"2026-10-09T16:34:45.023703Z","message":{"actor":"human","parts":[{"type":"text","text":"What codename did you invent earlier? Reply only with it."}]}}
+{"seq":8,"type":"request_sent","time":"2026-10-09T16:34:45.781468Z","request":{"to":{"vendor":"gemini","model":"gemini-3.1-flash-lite","surface":"generate_content"}}}
+{"seq":9,"type":"response_ended","time":"2026-10-09T16:34:45.78147Z","response":{"parts":[{"type":"text","text":"SILENT VOYAGER"}],"usage":{"input":80,"cache_write":0,"cache_read":0,"output":5},"from":{"vendor":"gemini","model":"gemini-3.1-flash-lite","surface":"generate_content"}}}

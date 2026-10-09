@@ -1,0 +1,10 @@
+{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-10-09T16:33:09.595551Z","message":{"actor":"human","parts":[{"type":"text","text":"Invent a two-word codename for this session. Reply with only that codename."}]}}
+{"seq":2,"type":"request_sent","time":"2026-10-09T16:33:10.796537Z","request":{"to":{"vendor":"openai","model":"gpt-5.4-mini","surface":"chat_completions"}}}
+{"seq":3,"type":"response_ended","time":"2026-10-09T16:33:10.796539Z","response":{"parts":[{"type":"text","text":"Blue Falcon"}],"usage":{"input":53,"cache_write":0,"cache_read":0,"output":5},"from":{"vendor":"openai","model":"gpt-5.4-mini-2026-03-17","surface":"chat_completions"}}}
+{"seq":4,"type":"message_received","time":"2026-10-09T16:34:23.693744Z","message":{"actor":"human","parts":[{"type":"text","text":"What is 7 plus 8? Answer briefly."}]}}
+{"seq":5,"type":"request_sent","time":"2026-10-09T16:34:24.600501Z","request":{"to":{"vendor":"openai","model":"gpt-5.4-mini","surface":"chat_completions"}}}
+{"seq":6,"type":"response_ended","time":"2026-10-09T16:34:24.600504Z","response":{"parts":[{"type":"text","text":"15"}],"usage":{"input":76,"cache_write":0,"cache_read":0,"output":4},"from":{"vendor":"openai","model":"gpt-5.4-mini-2026-03-17","surface":"chat_completions"}}}
+{"seq":7,"type":"message_received","time":"2026-10-09T16:34:27.619455Z","message":{"actor":"human","parts":[{"type":"text","text":"What codename did you invent earlier? Reply only with it."}]}}
+{"seq":8,"type":"request_sent","time":"2026-10-09T16:34:28.363135Z","request":{"to":{"vendor":"openai","model":"gpt-5.4-mini","surface":"chat_completions"}}}
+{"seq":9,"type":"response_ended","time":"2026-10-09T16:34:28.363138Z","response":{"parts":[{"type":"text","text":"Blue Falcon"}],"usage":{"input":100,"cache_write":0,"cache_read":0,"output":5},"from":{"vendor":"openai","model":"gpt-5.4-mini-2026-03-17","surface":"chat_completions"}}}

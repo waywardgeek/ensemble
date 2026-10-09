@@ -576,8 +576,12 @@ live CLI recall on all three providers, live ephemera, nine deterministic
 source/target replay pairs and targeted mutation evidence. The reviewer justified
 the Ref media scope exception but found one current-scope Anthropic result/text
 ordering defect. Initial review is in `docs/edition-2-notes/ch02-code-review.md`.
-Revision round 1 is assigned to `student_restart_ch02`; Chapter 2 is not yet
-accepted or snapshotted. Preserve the failed result and carry any ultimately
-accepted media exception through inherited parity until blobs are introduced.
+Revision round 1 corrected the ordering defect; the reviewer independently
+verified the regression and restored-defect mutation. Chapter 2 is now accepted
+with the recorded media exception after one correction round. The exact source
+export is `solutions/edition-2/ch02/`, checkpoint `edition-2-ch02-r3` (the older
+r2 tag is preserved). The original grader remains 92/100 FAIL; carry the accepted
+media exception through inherited parity until blobs are introduced. No author
+or grader revision phase has started.
 Preserve small resumable checkpoints if a usage limit interrupts work;
 never label unfinished work an accepted chapter.

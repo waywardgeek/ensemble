@@ -1,0 +1,10 @@
+{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-10-09T16:32:29.025409Z","message":{"actor":"human","parts":[{"type":"text","text":"Invent a two-word codename for this session. Reply with only that codename."}]}}
+{"seq":2,"type":"request_sent","time":"2026-10-09T16:32:30.062154Z","request":{"to":{"vendor":"anthropic","model":"claude-haiku-5-5","surface":"messages"}}}
+{"seq":3,"type":"response_ended","time":"2026-10-09T16:32:30.062156Z","response":{"parts":[{"type":"text","text":"Quiet Lantern"}],"usage":{"input":81,"cache_write":0,"cache_read":0,"output":10},"from":{"vendor":"anthropic","model":"claude-haiku-5-5","surface":"messages"}}}
+{"seq":4,"type":"message_received","time":"2026-10-09T16:32:37.869992Z","message":{"actor":"human","parts":[{"type":"text","text":"What is 7 plus 8? Answer briefly."}]}}
+{"seq":5,"type":"request_sent","time":"2026-10-09T16:32:38.683424Z","request":{"to":{"vendor":"anthropic","model":"claude-haiku-5-5","surface":"messages"}}}
+{"seq":6,"type":"response_ended","time":"2026-10-09T16:32:38.683429Z","response":{"parts":[{"type":"text","text":"15"}],"usage":{"input":110,"cache_write":0,"cache_read":0,"output":3},"from":{"vendor":"anthropic","model":"claude-haiku-5-5","surface":"messages"}}}
+{"seq":7,"type":"message_received","time":"2026-10-09T16:32:41.385385Z","message":{"actor":"human","parts":[{"type":"text","text":"What codename did you invent earlier? Reply only with it."}]}}
+{"seq":8,"type":"request_sent","time":"2026-10-09T16:32:42.219731Z","request":{"to":{"vendor":"anthropic","model":"claude-haiku-5-5","surface":"messages"}}}
+{"seq":9,"type":"response_ended","time":"2026-10-09T16:32:42.219734Z","response":{"parts":[{"type":"text","text":"Quiet Lantern"}],"usage":{"input":133,"cache_write":0,"cache_read":0,"output":10},"from":{"vendor":"anthropic","model":"claude-haiku-5-5","surface":"messages"}}}

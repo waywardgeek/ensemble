@@ -1,0 +1,52 @@
+Chapter 2 live observations, October 9, 2026
+Built student's own /tmp/ensemble-ch02 binary from solutions/edition-2/main.
+No reference runner or old implementation was used.
+
+Discovery: authenticated GET /v1/models for Anthropic/OpenAI, GET /v1beta/models
+for Gemini. Returned 14/139/50 model entries respectively. Selected IDs below
+were actually returned. Only directClaudeAPIKey/directOpenAIAPIKey/
+directGeminiAPIKey were read programmatically from ~/.cr/settings.json and
+passed to the intended child environment. No key appeared in args or output.
+
+PTY chat, one input at a time, Ctrl-D exits0:
+1. Invent a two-word codename for this session. Reply with only that codename.
+2. What is 7 plus 8? Answer briefly.
+3. What codename did you invent earlier? Reply only with it.
+
+Anthropic claude-haiku-5-5: Quiet Lantern / 15 / Quiet Lantern.
+Cumulative input/output:81/10,191/13,324/23. Cache write/read0 throughout.
+OpenAI initial discovered gpt-5-chat-latest: first turn HTTP404, exit1.
+No body was emitted; no claim to know the cause. No retry within the Agent.
+OpenAI second discovered gpt-5.4-mini: Blue Falcon / 15 / Blue Falcon.
+Cumulative input/output:53/5,129/9,229/14. Cache write/read0 throughout.
+Gemini gemini-3.1-flash-lite: SILENT VOYAGER / 15 / SILENT VOYAGER.
+Cumulative input/output:45/5,108/7,188/12. Cache write/read0 throughout.
+
+The three successful live logs are retained beside this file,9 events each.
+A separate dump process loaded each log. Each dump was rendered twice for each
+vendor with LLM_BASE_URL=http://127.0.0.1:1, LLM_MODEL=offline and no key.
+All exited0 with byte-identical pairs; no service listens at that endpoint.
+Rendered byte counts, including newline:
+source anthropic -> anthropic718,openai598,gemini650
+source openai -> anthropic714,openai594,gemini646
+source gemini -> anthropic720,openai600,gemini652
+
+Live ephemera on claude-haiku-5-5, default JSON protocol, exit0:
+{"ephemeral":"Transient status: the kettle is purple."}
+{"ack":"ephemeral"}
+{"user":"Report the transient status supplied to you. One sentence."}
+{"assistant":"The transient status supplied is that the kettle is purple."}
+{"user":"What is 3 plus 4?"}
+Second answer gave7, then incorrectly claimed its prior purple-kettle answer
+was made up because no transient status had been supplied. This is model
+behavior, not proof of instruction retention: the original first reply remains
+ordinary dialogue. Final usage196 input,242 output,0 cache write/read.
+The retained live-ephemeral.jsonl is authoritative for the actual replies.
+Rendering prefixes shows the exact ephemeral text pending before RequestSent,
+absent immediately afterward; the System arrival stays in the original log.
+The original grader separately observes exactly-once delivery at the HTTP peer.
+
+These runs test text conversation/recall, actual usage, human CLI, and ephemeral
+input. They do not claim live tool execution, media rendering, nonzero cache
+usage, or live opaque signature replay; faithful boundary fakes/log fixtures
+exercise those in-scope translation properties without tool execution.

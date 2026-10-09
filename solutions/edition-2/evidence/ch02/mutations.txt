@@ -1,0 +1,186 @@
+Chapter 2 targeted mutations; baseline core+GUI tests pass, original grader92/100.
+Known baseline failures: ref-render/ref-redaction unredacted media control (scope exception pending).
+Each case modifies one behavior in a fresh temporary source copy. Original grader unchanged.
+Inherited unchanged Chapter1 checks reuse ch01 evidence. No build failure counts as detection.
+
+KILLED: ephemera consumed
+  internal/history/reduce.go: c.Ephemera = nil -> c.Ephemera = c.Ephemera
+  intended: [FAIL]      delivered exactly once
+KILLED: ephemeral arrival logged
+  internal/agent/agent.go: Actor: common.System -> Actor: common.Human
+  intended: ephemera retained as dialogue
+KILLED: Anthropic cache write
+  internal/engine/anthropic.go: CacheWrite: wire.Usage.Write -> CacheWrite: 0
+  intended: [FAIL]      four token categories
+KILLED: Anthropic cache read
+  internal/engine/anthropic.go: CacheRead: wire.Usage.Read -> CacheRead: 0
+  intended: [FAIL]      four token categories
+KILLED: OpenAI disjoint input
+  internal/engine/openai.go: *u.Input - u.Details.Read - u.Details.Write -> *u.Input
+  intended: [FAIL]      four token categories
+KILLED: Gemini disjoint input
+  internal/engine/gemini.go: *u.Input - u.Read -> *u.Input
+  intended: [FAIL]      four token categories
+KILLED: Gemini thinking output
+  internal/engine/gemini.go: u.Output + u.Thoughts -> u.Output
+  intended: [FAIL]      four token categories
+KILLED: Anthropic merged user message
+  internal/engine/anthropic.go: len(messages) > 0 && messages[len(messages)-1].Role == role -> false && len(messages) > 0 && messages[len(messages)-1].Role == role
+  intended: [FAIL]      one log, three vendor
+KILLED: OpenAI tool authorship
+  internal/engine/openai.go: Role: "tool", Content: &value -> Role: "user", Content: &value
+  intended: [FAIL]      one log, three vendor
+INVESTIGATE: Gemini result function name
+  internal/engine/gemini.go: ID: p.CallID, Name: call.Name -> ID: p.CallID, Name: call.Name + "wrong"
+  intended: [FAIL]      one log, three vendor
+  output: original grader still92/100, same two baseline media failures; all other checks passed.
+KILLED: Anthropic call parse
+  internal/engine/anthropic.go: Name: b.Name, Args: args -> Name: b.Name + "wrong", Args: args
+  intended: [FAIL]      three responses, one context
+KILLED: OpenAI call parse
+  internal/engine/openai.go: Name: call.Function.Name, Args: args -> Name: call.Function.Name + "wrong", Args: args
+  intended: [FAIL]      three responses, one context
+KILLED: Gemini call parse
+  internal/engine/gemini.go: Name: call.Name, Args: args -> Name: call.Name + "wrong", Args: args
+  intended: [FAIL]      three responses, one context
+INVESTIGATE: captured exact provenance
+  internal/engine/gemini.go: from.Model = wire.ModelVersion -> from.Model = e.parent.Config().Model
+  intended: [FAIL]      three responses, one context
+  output: original grader still92/100, same two baseline media failures; all other checks passed.
+KILLED: per-call signature render
+  internal/engine/gemini.go: part.ThoughtSignature = p.Opaque -> part.ThoughtSignature = nil
+  intended: [FAIL]      one log, three vendor
+INVESTIGATE: per-call signature capture
+  internal/engine/gemini.go: Opaque: part.ThoughtSignature -> Opaque: nil
+  intended: [FAIL]      three responses, one context
+  output: original grader still92/100, same two baseline media failures; all other checks passed.
+KILLED: model-specific opaque
+  internal/engine/gemini.go: if p.From == e.target() { -> if p.From.Vendor == e.target().Vendor {
+  intended: opaque crossed producer identity
+KILLED: empty OpenAI content
+  internal/engine/openai.go: if message.Content != nil { -> if message.Content != nil && *message.Content != "" {
+  intended: OpenAI response has no content
+KILLED: result content removed
+  internal/history/reduce.go: p.Parts = stubs -> _ = stubs
+  intended: [FAIL]      redacted content
+KILLED: exact Ref survives
+  internal/history/reduce.go: Ref: old.Ref -> Ref: common.Ref{}
+  intended: redaction changed exact Ref
+KILLED: tool category filter
+  internal/history/reduce.go: p.Type == "tool_call" || p.Type == "tool_result" -> p.Type == "tool_call"
+  intended: tool filter removed wrong category
+KILLED: dialogue category filter
+  internal/history/reduce.go: p.Type == "text" || p.Type == "opaque" -> p.Type == "opaque"
+  intended: dialogue filter removed wrong category
+KILLED: summary folds once
+  internal/history/reduce.go: if !summarized { -> if !summarized || summarized {
+  intended: summary did not fold span once
+INVESTIGATE: redaction leaves facts unchanged
+  internal/history/reduce.go: var parts []common.Part -> parts := entry.Parts[:0]
+  intended: redaction mutated append-only facts
+  output: ok  	ensemble/ensemble	0.006s | 
+KILLED: request becomes in flight
+  internal/history/reduce.go: c.Turn = "in_flight" -> c.Turn = "input_pending"
+  intended: turn got input_pending want in_flight
+KILLED: ordinary prompt pending
+  internal/history/reduce.go: c.Turn = "input_pending" -> c.Turn = "idle"
+  intended: turn got idle want input_pending
+KILLED: response with calls pending
+  internal/history/reduce.go: c.Turn = "tools_pending" -> c.Turn = "idle"
+  intended: tool calls did not make tools pending
+KILLED: batch needs last result
+  internal/history/reduce.go: c.Turn == "tools_pending" && toolsComplete(c.Dialogue) -> c.Turn == "tools_pending"
+  intended: first result completed two-call batch
+KILLED: batch last result ready
+  internal/history/reduce.go: c.Turn == "tools_pending" && toolsComplete(c.Dialogue) -> false && c.Turn == "tools_pending" && toolsComplete(c.Dialogue)
+  intended: last result did not complete batch
+KILLED: error ends in flight
+  internal/history/reduce.go: case "error_occurred": -> case "never_error":
+  intended: turn got in_flight want idle
+KILLED: replayed usage
+  internal/history/reduce.go: c.Usage.CacheRead += e.Response.Usage.CacheRead -> c.Usage.CacheRead += 0
+  intended: replayed usage lost
+KILLED: distinct synthesized IDs
+  internal/engine/engine.go: return fmt.Sprintf("call_%d_%d", entry.Seq, index) -> return fmt.Sprintf("call_%d", entry.Seq)
+  intended: missing call IDs were not distinct
+KILLED: version refused
+  internal/history/history.go: !first || *header.Version != 1 -> !first
+  intended: bad log accepted
+KILLED: unknown event refused
+  internal/history/history.go: return fmt.Errorf("unknown event type %q", e.Type) -> return nil
+  intended: bad log accepted
+KILLED: unknown actor refused
+  internal/history/history.go: return fmt.Errorf("unknown actor %q", e.Message.Actor) -> return nil
+  intended: bad log accepted
+KILLED: unknown part refused
+  internal/history/history.go: return fmt.Errorf("unknown part type %q", p.Type) -> return nil
+  intended: bad log accepted
+KILLED: unknown vendor refused
+  internal/common/enums.go: return fmt.Errorf("unknown vendor %q", name) -> *v = Gemini; return nil
+  intended: bad log accepted
+KILLED: unknown surface refused
+  internal/common/enums.go: return fmt.Errorf("unknown surface %q", name) -> *s = Messages; return nil
+  intended: bad log accepted
+KILLED: sequence ordering
+  internal/history/history.go: e.Seq == 0 || (len(next.events) > 0 && e.Seq <= next.events[len(next.events)-1].Seq) -> e.Seq == 0
+  intended: bad log accepted
+KILLED: dump events preserved
+  internal/history/history.go: for _, e := range h.events { -> for _, e := range h.events[:0] {
+  intended: [FAIL]      log round-trips
+
+Follow-up: three original-grader survivors get focused boundary tests; redaction fixture now interleaves text/calls and compares all original dumped facts.
+KILLED: Gemini result function name
+  internal/engine/gemini.go: ID: p.CallID, Name: call.Name -> ID: p.CallID, Name: call.Name + "wrong"
+  intended: result lost its originating function name
+KILLED: captured exact provenance
+  internal/engine/gemini.go: from.Model = wire.ModelVersion -> from.Model = e.parent.Config().Model
+  intended: response producer replaced by routing alias
+KILLED: per-call signature capture
+  internal/engine/gemini.go: Opaque: part.ThoughtSignature -> Opaque: nil
+  intended: call signature lost during capture
+KILLED: redaction leaves facts unchanged
+  internal/history/reduce.go: var parts []common.Part -> parts := entry.Parts[:0]
+  intended: redaction mutated append-only facts
+KILLED: canonical argument precision
+  internal/engine/engine.go: decoder.UseNumber() -> // decoder.UseNumber()
+  intended: argument number changed during capture
+KILLED: failed load is atomic
+  internal/history/history.go: next := history{ -> h.context = common.Context{}
+ next := history{
+  intended: failed load changed retained context
+INVESTIGATE: legacy path refused
+  internal/common/enums.go: if wire.Path != nil { -> if false && wire.Path != nil {
+  intended: [FAIL]      a pre-Ref log
+  output: original grader still92/100, same two baseline media failures; all other checks passed.
+KILLED: Ref zero refused
+  internal/history/history.go: p.Ref.Kind < 1 || p.Ref.Kind > 3 -> p.Ref.Kind < 0 || p.Ref.Kind > 3
+  intended: [FAIL]      the zero value
+
+Legacy path follow-up: original old-only fixture still refused through missing Ref validation (redundant protection, not a grader defect). Added a valid Ref alongside the obsolete path: baseline refuses it by name. Removing the legacy-field check now fails TestLoadRefusesUnknownInterpretedData: bad log accepted. KILLED.
+KILLED: acknowledgment
+  main.go: }{"ephemeral"} -> }{"wrong"}
+  observed: [FAIL]      stdio protocol
+KILLED: synthetic ID determinism
+  internal/engine/engine.go: return fmt.Sprintf("call_%d_%d", entry.Seq, index) -> return fmt.Sprintf("call_%d_%d_%d", entry.Seq, index, time.Now().UnixNano())
+  observed: synthesized IDs are nondeterministic
+KILLED: no-call completion
+  internal/history/reduce.go: c.Turn = "idle" -> c.Turn = "in_flight"
+  observed: turn got in_flight want idle
+KILLED: known nontransitioning pair
+  internal/history/reduce.go: if c.Turn == "in_flight" { -> if true {
+  observed: turn got tools_pending want idle
+KILLED: new History parent
+  internal/history/history.go: return h.parent -> return nil
+  observed: History must belong to this Agent
+KILLED: GUI uses public Agent
+  gui/gui.go: return agent.Ask(ctx, input) -> return "", nil
+  observed: GUI reply
+
+Revision round 1 — reviewer R1, Anthropic interleaved results.
+New regression first failed on the original implementation with tool_result(one), text, tool_result(two).
+Correct implementation: go test ./... and go vet ./... PASS before mutation.
+KILLED: restored blind append ordering by removing the final Anthropic user-block partition in a fresh scratch copy.
+  go test ./ensemble -run ^TestAnthropicInterleavedResultsPrecedeText$ -count=1
+  Compiled and failed: tool results must precede text; emitted order was tool_result(one), text, tool_result(two).
+  Correct regression also preserves both IDs, both outputs, human text, and unchanged source Context.
+Scratch removed; original source never mutated. Prior 55 mutation executions were not repeated.

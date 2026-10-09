@@ -23,3 +23,17 @@ SHA-256 source manifest has digest
 `c2dd9901cc615844e717901de89e3b091046b62b85303393b3bf68b27416c41d`.
 Source and export matched byte for byte before checkpointing. See the student
 and comparative reviews for actual grading, live use and mutation results.
+
+Chapter 2 was accepted with a scoped exception after one correction round.
+Its immutable annotated checkpoint is `edition-2-ch02-r3`; the existing older
+`edition-2-ch02-r2` tag is preserved. Source/export manifest SHA-256:
+`3a042fc7f3308471777f4a74178df2e246df5e7b87ea5fa31f7cc4a21b93ef90`.
+All 17 exported source files matched byte for byte before checkpointing.
+
+The original Chapter 2 grader remains **92/100 FAIL**: its added URI-media
+rendering and unredacted media control exceed the chapter's stated scope.
+The reviewer verified the explicitly required Ref/redaction behavior separately.
+Keep these actual failures visible through later parity checks; reassess the
+exception when original Chapter 4 introduces blobs. Do not add early features
+merely to conceal the inherited score. See `ch02.md` and `ch02-code-review.md`
+in the review directory for the decision, original results and revision history.
