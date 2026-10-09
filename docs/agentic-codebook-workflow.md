@@ -9,6 +9,12 @@ where recorded; no author is active. Remaining source
 contradictions are still questions to resolve when relevant, not blanket approval
 of every proposed interpretation.
 
+**Current stop point:** before assigning Chapter 6, resolve its contradictory
+interrupt-lifetime instructions with Bill. See [the exact source and question](edition-2-notes/ch06.md).
+Chapters 1–5 are checkpointed; implementation/review delegates have completed.
+No Chapter 6 coder or author is active. The later §6.7 behavior is recommended,
+not assumed approved. Resume from accepted `edition-2-ch05-r2` after his answer.
+
 These are the two review documents. The carryover answers “What did the previous
 edition teach us that the student should know?” This workflow answers “How do
 we produce the next implementation and, afterward, its book?” The coding skill
