@@ -543,15 +543,67 @@ Two notes for whoever writes the mutants:
 
 ## 8. Status
 
-Two commits on `main`:
+Commits on `main`:
 
 - `fe98828` — Seatbelt confinement and the public `agent/sandbox` package
 - `1a152d9` — child clamping, safe mode, the web gate, the git redirect,
   the CLI flags, and the `RemoveTool` fix
+- `d48a632` — the ch23 grader: checks, harness, dispatcher case
+- `cd3e093` — the `solutions/ch23` snapshot, the mutant script, the
+  gradesweep entry, and two regression fixes
+- `b1ee402` — removal of the six package-level variables, and a resync of
+  the `solutions/ch23` snapshot
 
 `go test ./...` — 13 packages, zero failures. Build, vet and `gofmt`
-clean. Nothing under `solutions/edition-2/` or `book/edition-2/` was
-touched.
+clean. `make grade23` scores 100/100 on seven checks, `make
+grade23-audit` kills 8 of 8 mutants with none misbehaving, and the full
+cross-chapter sweep reports `breached=0` with every chapter at 100.
+Nothing under `solutions/edition-2/` or `book/edition-2/` was touched.
 
-The grader remains unwritten by design. Section 7 is its specification,
-and it should be built once the prose settles, not before.
+Chapter 19 scores 85/100 against the live `./agent` tree. That is
+pre-existing and unrelated to this chapter: it wants an
+`agent/events.jsonl` the live tree does not carry.
+
+## 9. Prose corrections required by the error-type rename
+
+These are code-driven renames, reported rather than applied, because the
+coder does not edit the manuscript.
+
+Chapter 5 grades a rule the codebase held for twenty-two chapters: no
+mutable package-level variables outside tests. Chapter 23 introduced six
+of them and dropped chapter 5 from 120 to 110. The fix converts the three
+sentinel errors into empty comparable structs, which `errors.Is` still
+matches through `%w` wrapping because it compares comparable values with
+`==`, and which no code can reassign. Three places in the manuscript name
+the old spellings.
+
+**9.1 Line 543, inside the clamp listing.** The wrapped sentinel is now a
+struct literal:
+
+    return s, fmt.Errorf("%w: %s", WidenedPermissionsError{}, strings.Join(widened, ", "))
+
+**9.2 Lines 703 and 708, the paragraph on matching the error.** The
+sentence currently reads that a caller tests with `errors.Is(err,
+agent.ErrWidenedPermissions)`. It should name
+`agent.WidenedPermissionsError{}` instead. The surrounding argument is
+unaffected and still correct: the point is that the error is matchable
+through the wrapping that names which permission was widened, and that
+matching it is a diagnosis rather than the boundary itself.
+
+If the author would rather keep the sentinel spelling in print, the
+alternative is to carve an exception into chapter 5's rule for lines
+beginning `var Err`. That is a real choice and it belongs to the author,
+not the coder: `var Err... = errors.New(...)` is the dominant idiom in
+Go's own standard library, so the chapter would be teaching a defensible
+but non-idiomatic variant. The reason to prefer the struct is that this
+particular chapter is about not letting a convention be the only thing
+holding a boundary, and a sentinel is immutable purely by convention.
+
+**9.3 Not a prose change, but worth knowing.** `sensitiveNames` was
+converted to a function alongside `sensitiveSuffixes` even though chapter
+5's rule skips any line containing `names`, so it was never counted as an
+offender. Leaving one of two adjacent credential lists as a mutable slice
+while converting its twin would have been incoherent, and an exported
+mutable slice that decides what counts as a credential is worth closing
+on its own merits.
+
