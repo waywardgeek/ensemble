@@ -96,6 +96,12 @@ type PauseGate = common.PauseGate
 type Settings = common.Settings
 type SettingsStore = settings.SettingsStore
 
+// SettingsSource and UsageSource are the two interface shapes gui.AgentHooks
+// accepts. Go satisfies them structurally, but an external consumer writing
+// a declaration needs their names reachable outside internal/.
+type SettingsSource = common.SettingsSource
+type UsageSource = common.UsageSource
+
 // Log is the append-only event log. Exported so the WebSocket hub can read
 // it for reconnection without copying.
 type Log = common.Log
