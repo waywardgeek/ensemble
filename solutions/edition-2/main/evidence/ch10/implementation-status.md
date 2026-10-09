@@ -328,3 +328,16 @@ preserved for coordinator review, not erased by reruns. No chapter acceptance.
 All30 original launch seals and30 source-bound verifications now pass. First safe credential file audit passes; final staged audit precedes scoped commit. Owned client/fixture processes exited, roughly11MiB original evidence retained, no large temporary dataset or cache removal. Compiler remains unclaimed.
 
 Final staged credential audit passes:730 retained/owned files plus11,964,504 scoped staged patch bytes, zero network calls and no secret output. Original manifests/receipts preserved. Initial live record is ready for independent review; no pending compiler ownership or paid retries.
+
+
+## Grouped post-run quality Q1/Q2/Q4
+
+Accepted initial live review23b312c is coordinator-provided assistance, not read
+reviewer source. Read/verified complete teaching pin0e754b9 and confirmed actual
+walkthrough in student-review. Q1 adds Skills-owned committed scalar maximum,
+Q2 aligns early format prose to exact equality, Q4 only changes optional Artifact
+presentation of exact present empty response text. Initial live44d7627 untouched.
+Core/GUI vet and tests pass; formatting output empty. Initial command recorder
+omitted HOME, causing Go module-cache lookup refusal before compilation; preserved
+core-vet.out and corrected environment. Focused race and revision-bound captured
+browser/public/Skills checks follow. No credentials/provider calls or cache cleanup.

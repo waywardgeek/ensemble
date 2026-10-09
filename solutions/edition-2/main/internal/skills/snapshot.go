@@ -42,6 +42,17 @@ func (s *Service) Identity() (common.SkillIdentity, error) {
 	bindings, err := hash(variables)
 	return common.SkillIdentity{Primary: s.parent.SkillConfiguration().Primary, CatalogSHA256: catalog, BindingsSHA256: bindings}, err
 }
+
+// LastActivation reads the committed durable maximum, including retired records.
+// Like Snapshot, callers use Actor/Agent confinement (or inert construction).
+// Failed/unchanged candidates never advance it; no inspection copy is needed.
+func (s *Service) LastActivation() uint64 {
+	if s.committed == nil {
+		return 0
+	}
+	return s.committed.lastID
+}
+
 func (s *Service) Snapshot() *common.SkillSnapshot {
 	if s.committed == nil {
 		return nil

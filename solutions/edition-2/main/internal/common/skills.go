@@ -106,6 +106,7 @@ type Skills interface {
 	PrepareRecorded(SkillTransition) (SkillCandidate, error)
 	Apply(SkillCandidate, uint64)
 	GrantedTools() []string
+	LastActivation() uint64
 	State() *SkillState
 	Inspect() SkillInspection
 }

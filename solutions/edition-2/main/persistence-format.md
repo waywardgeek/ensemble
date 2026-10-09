@@ -36,7 +36,8 @@ tools, depends, loadable-skills and body; sets sort lexically and empty sets are
 []. Bindings hash covers the complete copied scalar map. Paths are excluded.
 
 Watermarks is `{event:uint64,request:uint64,activation:uint64,job:uint64}`.
-event equals as_of; activation/job are at least represented durable maxima. request
+event equals as_of; activation/job equal their represented durable maxima, or zero
+when absent. Include retired activations and historical jobs outside the watch window. request
 is at least the maximum recorded request_index and may include burned admissions.
 Every subsequent recorded index exceeds that captured cursor; recorded IDs cannot
 be reused. Zero is allowed only for unused cursors, never allocated identities.

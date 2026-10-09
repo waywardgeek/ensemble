@@ -869,3 +869,46 @@ runtime/support source or original changed. This is evidence naming friction,
 not a teaching or persistence-runtime failure.
 
 Final freeze:30/30 source-bound original verifications passed; safe file and staged credential audits passed. Final inbox check remained the same explicit live release. All configured-key checks emitted only aggregate results. Initial real-use record is frozen for independent review; runtime/source/support identities unchanged.
+
+
+### Grouped post-run quality acknowledgment: Q1/Q2/Q4
+
+Read entire mandatory coding skill and architecture before edits. Verified pin
+0e754b9cad74a3a1b44327e498fa704feea817ed: chapter SHA256
+adcd127664db5a1df99d4c5090d09df292181f5b7aa890ff5511b72f3f90fcc7;
+direct feedback SHA256 2a94ee3a6b03025c5be33acb7139a18dcb7b092eb48eed935fa8e0fde1eef723,
+both against manifest and exact Git bytes. Read the complete chapter1121 lines
+and complete direct response217 lines; repeated580–820 and821–1121 after a combined
+tool response truncated. No linked reviewer/old sources followed. Authorized inbox
+and user supply accepted initial-live review23b312c and historical-comparison
+rationale only; reviewer implementations/reports and historical answers remain unread.
+
+The actual walkthrough matches my initial experience: exact OpenAI identity and
+usage, actual coder PTYs/headed browser, policy versus historical authority,
+checkpoint after terminal detach, immutable-origin/public replay comparisons,
+separate local seeds and the Anthropic incorrect explanation are faithfully
+attributed. Its narrower opener correctly acknowledges prior durable logs/offline
+rendering. The remaining Gemini causal wording is explicitly tentative, but Q4
+now makes it precise: four empty text parts at index1 of response sequences5/10/15/20
+include two signed and two ordinary empties. My initial guess did not establish
+that all empties carried metadata. Preserve all original source/parts/screenshots.
+
+Disposition before affected changes: Q1 add a constant-size committed activation
+maximum read on the real Skills owner, under its existing Actor/Agent capture or
+inert construction confinement. No cache, second state or new lock; failed/unchanged
+candidates cannot advance it and retained retired records establish its maximum.
+One full owned Snapshot remains for capture. Q2 correct the early format sentence
+to exact activation/job maxima, zero absent, preserving the burned-request exception.
+Q4 change only optional Artifact presentation of present exactly-empty response text:
+keep durable identity/order, show compact truthful empty-text indication, omit
+speech/expansion controls, restore ordinary controls on nonempty replacement.
+Absent text, whitespace, tool-result lifecycle and opaque placeholders stay distinct.
+No projection/reducer/raw-history edit or provider call is authorized/needed.
+
+Additional reads: own session capture/install/open, Skills snapshot/ledger/common
+interface and narrow-read tests; own GUI Artifact/style/speech/Connector/projection
+tests; own prior local browser support and phase6 browser recorder. Exploratory
+reads for nonexistent agent.go and internal/skills/service.go returned not-found;
+actual owner source is ensemble.go and skills.go. All writes stay in main. Compiler
+is released exclusively for this grouped local task; initial44d7627 receipts remain
+immutable. Browser regression will use separately labeled captured-data evidence.

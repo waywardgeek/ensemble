@@ -110,3 +110,41 @@ func TestNarrowReadsExcludeRetainedMaterial(t *testing.T) {
 }
 
 var _ common.Skills = (*Service)(nil)
+
+func TestLastActivationIsCommittedDurableMaximum(t *testing.T) {
+	s := service(t, fixture())
+	var owner common.Skills = s
+	if owner.LastActivation() != 0 {
+		t.Fatal("uninitialized activation maximum")
+	}
+	commit(t, s, "initialize", "base")
+	prepared := prepare(t, s, "load", "edit")
+	if owner.LastActivation() != 1 {
+		t.Fatal("uncommitted candidate advanced maximum")
+	}
+	s.Apply(prepared, 2)
+	commit(t, s, "unload", "edit")
+	want := owner.LastActivation()
+	if want != 3 || s.Snapshot().LastID != want {
+		t.Fatal("retired activations lost from durable maximum")
+	}
+	commit(t, s, "unload", "edit") // unchanged candidate burns no identity
+	if _, err := s.Prepare(common.SkillOperation{Action: "load", Name: "hidden"}); err == nil {
+		t.Fatal("negative candidate control did not refuse")
+	}
+	if owner.LastActivation() != want {
+		t.Fatal("failed or unchanged candidate advanced maximum")
+	}
+	// Distinguish the scalar operation from building a full retained inspection.
+	if allocations := testing.AllocsPerRun(10, func() { owner.LastActivation() }); allocations != 0 {
+		t.Fatalf("scalar read allocated an inspection: %g", allocations)
+	}
+	before := s.Snapshot()
+	copy := s.Snapshot()
+	copy.Material[0].Record.Body = "caller mutation"
+	copy.Transitions[0].State.Active[0].Name = "caller mutation"
+	copy.LastID = 0
+	if !reflect.DeepEqual(before, s.Snapshot()) || owner.LastActivation() != want {
+		t.Fatal("owned snapshot mutation reached Skills")
+	}
+}

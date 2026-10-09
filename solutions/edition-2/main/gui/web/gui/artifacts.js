@@ -26,16 +26,19 @@ export class Artifact {
     this.owner = owner; this.key = key; this.title = title; this.text = text; this.markdown = markdown; this.expanded = false;
     this.element = document.createElement('article'); this.element.className = 'artifact'; this.element.dataset.key = key;
     this.heading = document.createElement('h2'); this.content = document.createElement('div'); this.meta = document.createElement('p'); this.meta.className = 'meta';
-    this.expand = document.createElement('button'); this.onExpand = () => { this.expanded = !this.expanded; this.render(); }; this.expand.addEventListener('click', this.onExpand);
-    this.speaker = document.createElement('button'); this.speaker.textContent = 'Speak'; this.speaker.setAttribute('aria-label', 'Speak full card'); this.onSpeak = () => this.owner.speak(this.key, this.text); this.speaker.addEventListener('click', this.onSpeak);
+    this.expand = document.createElement('button'); this.onExpand = () => { if (!this.emptyResponse) { this.expanded = !this.expanded; this.render(); } }; this.expand.addEventListener('click', this.onExpand);
+    this.speaker = document.createElement('button'); this.speaker.textContent = 'Speak'; this.speaker.setAttribute('aria-label', 'Speak full card'); this.onSpeak = () => { if (!this.emptyResponse) this.owner.speak(this.key, this.text); }; this.speaker.addEventListener('click', this.onSpeak);
     this.element.append(this.heading, this.content, this.meta, this.expand, this.speaker); this.render();
   }
   render() {
+    this.element.classList.toggle('empty-response', !!this.emptyResponse);
+    this.content.hidden = this.meta.hidden = this.speaker.hidden = !!this.emptyResponse;
+    this.speaker.disabled = this.expand.disabled = !!this.emptyResponse;
     this.heading.textContent = clean(this.title); const limit = 1200; const short = !this.expanded && this.text.length > limit;
     const shown = clean(short ? this.text.slice(0, limit) : this.text); this.content.replaceChildren();
     if (this.markdown) this.content.append(safeMarkdown(this.owner, shown)); else { const pre = document.createElement('pre'); pre.textContent = shown; this.content.append(pre); }
     this.meta.textContent = [this.status || '', short ? `${this.text.length - limit} characters omitted from preview` : '', this.reference || ''].filter(Boolean).join(' · ');
-    this.expand.hidden = this.text.length <= limit; this.expand.textContent = this.expanded ? 'Show preview' : 'Expand full retained text'; this.expand.setAttribute('aria-expanded', String(this.expanded));
+    this.expand.hidden = this.emptyResponse || this.text.length <= limit; this.expand.textContent = this.expanded ? 'Show preview' : 'Expand full retained text'; this.expand.setAttribute('aria-expanded', String(this.expanded));
   }
   close() {
     if (this.closed) return;
@@ -56,7 +59,7 @@ export class ArtifactScroll {
   card(key, title, text, markdown = false) {
     let card = this.cards.get(key);
     if (!card) { card = new Artifact(this, key, title, text, markdown); this.cards.set(key, card); this.element.append(card.element); }
-    else { card.title = title; card.text = text; card.markdown = markdown; card.render(); }
+    else { card.emptyResponse = false; card.title = title; card.text = text; card.markdown = markdown; card.render(); }
     this.changed(); return card;
   }
   reset(snapshot) {
@@ -94,7 +97,13 @@ export class ArtifactScroll {
     if (part.type === 'text' || part.type === 'thinking') { title = part.type === 'thinking' ? 'Thinking' : 'Answer'; text = part.text ?? ''; markdown = true; }
     if (part.type === 'opaque') { title = 'Opaque provider content'; text = '[Opaque provider content — unavailable for display]'; }
     if (part.type === 'tool_call') { title = 'Proposed tool: ' + part.name; text = `${part.name}\n${JSON.stringify(part.args, null, 2)}`; this.calls.set(`${agent}/${part.call_id}`, key); }
-    const card = this.card(key, title, text, markdown); card.status = part.type === 'tool_call' ? 'Accepted proposal — not yet started' : 'Accepted'; card.render(); return card;
+    const card = this.card(key, title, text, markdown);
+    // Preserve the projected position/key even when there is no response text.
+    // Only exact present emptiness is special: whitespace, absent text, opaque
+    // placeholders and tool-result reports keep their ordinary presentation.
+    card.emptyResponse = part.type === 'text' && Object.hasOwn(part, 'text') && part.text === '';
+    if (card.emptyResponse) { card.title = 'Empty response text'; card.expanded = false; }
+    card.status = part.type === 'tool_call' ? 'Accepted proposal — not yet started' : 'Accepted'; card.render(); return card;
   }
   event(e, replay = false, agent = this.agent) {
     const action = ["tool_called", "tool_returned", "job_ended", "job_killed"].includes(e.type);

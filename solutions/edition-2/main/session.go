@@ -114,9 +114,7 @@ func (a *Agent) watermarks(cursor uint64) common.Watermarks {
 		w.Request = a.context.RequestCursor
 	}
 	if a.skills != nil {
-		if s := a.skills.Snapshot(); s != nil {
-			w.Activation = s.LastID
-		}
+		w.Activation = a.skills.LastActivation()
 	}
 	for h := range a.context.Jobs {
 		if h > w.Job {
@@ -518,7 +516,7 @@ func (e *Ensemble) openSession(imported []byte, options SessionOptions) (_ *Agen
 			}
 		}
 	}
-	if a.identity.Mode == "skills" && a.skills.Snapshot() == nil {
+	if a.identity.Mode == "skills" && a.skills.LastActivation() == 0 {
 		return nil, sessionError("session_unfinished", "skill initialization incomplete")
 	}
 	// The shared allocator changes only after all candidate validation succeeded.
