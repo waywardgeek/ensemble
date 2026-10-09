@@ -2,6 +2,30 @@
 
 ## Current boundary: actual Chapter 10 provider demonstrations
 
+Latest: phase6 exec67648 completed exit0; initial actual evidence and student
+experience are frozen at `44d7627`. Root read the complete live handback. All
+three discovered vendors ran the scheduled A/B/C/D paths, 33 generation and three
+discovery attempts, all generation HTTP200, no retry. Six D-seed exchanges remain
+explicitly local. Thirty sealed launches/verification and safe credential audits
+pass according to the handback. These are pending independent live acceptance,
+not merely a provider-connectivity test or a chapter tag.
+
+Reviewer `/root/reviewer_ch17` now reviews that frozen evidence and classifies
+Gemini's empty Answer cards. Group any needed correction with historical quality
+Q1 (redundant Skills snapshot to read LastID) and Q2 (format wording exact maxima).
+The withheld historical comparison is `1a173a0`; root read it. The student has not
+yet received it. External `phase-7-quality-draft.txt` is DRAFT ONLY, not delivered
+or launched; remove that draft marker and add final review findings before use.
+Author has received Q3 (opener must distinguish safe resume from existing logs)
+and actual receipts for Chapter10 prose/student-feedback reconciliation. No
+additional paid call is released. Main source remains57d4aac/support9822b2b.
+
+Chapter17 contract closure b06d780 is recorded; Chapter18 scope d61388e accepted
+for drafting, with full draft d894137 now awaiting full review. Reviewer has three
+potential finite Ch18 wording/schema corrections under investigation, deferred
+behind Chapter10 live review. Author is prioritizing Chapter10 final prose.
+Statements immediately below describe the completed live launch handoff.
+
 Root read and accepted the complete provider-support review `0a78688` and
 handback `78f4f6b`. Deterministic clearance `213b56b` and concrete support review
 are complete. The SAME cold student resumed as exec `67648`, external
