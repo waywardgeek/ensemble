@@ -57,14 +57,18 @@ claim he approved a chapter merely because its checks passed. Push is Bill's.
 
 ## Roles
 
-- **Author:** owns outlines, exercise contracts, chapter prose, and evidence
-  reconciliation. Reads history to find lessons that belong earlier. Does not
-  implement the student's solution.
+- **Author:** owns outlines, chapter prose — including each chapter's
+  plain-words explanation required in §2 below — and evidence reconciliation.
+  Reads history to find lessons that belong earlier. Does not implement the
+  student's solution, and does not own the TL;DR contract (see Grader
+  engineer).
 - **Student coder:** builds from the new chapter and earlier new baseline,
   reports gaps, tests the result, and actually uses the CLI with real models.
   Does not edit chapter prose or consult first-edition chapters or old answers.
-- **Grader engineer:** derives checks from the taught contract, independently
-  of the student's implementation. The coordinator can fill this role.
+- **Grader engineer:** writes the TL;DR contract and derives its checks
+  together, independently of the student's implementation, and freezes the
+  TL;DR's final wording against the actual grader fixtures. The coordinator
+  can fill this role.
 - **Global reviewer:** reads the complete textbook, records dependencies and
   later lessons, and answers questions about the whole-book consequences.
 - **Code reviewer:** after the student's first implementation and runs,
@@ -167,6 +171,18 @@ Revisit already-drafted second-edition chapters under this rule too.
 Write enough of the chapter before implementation that the student can build
 from the teaching. Chapter 1's plain-English rules precede all code. Each
 chapter explains the idea in plain words before its detailed mechanism.
+
+Contract authorship is split by ownership of consequences. The grader
+engineer writes the TL;DR, because the TL;DR is the page contract and the
+fixture is its ground truth: the role that builds the checks is the only one
+that can guarantee the published words and the graded behavior never drift
+apart, and that drift is the defect class this split exists to remove. The
+author writes the plain-words explanation and the narrative around the
+contract: the why belongs to the author, the what belongs to
+the engineer. The author may propose voice edits to the TL;DR, but any change
+in meaning goes back through the grader engineer and its checks before
+publication. The TL;DR's final wording is frozen against the actual grader
+fixtures, never against a design doc alone.
 
 The second-edition journey is learn the rules, build correctly, then extend.
 Motivate a rule before demanding compliance: briefly describe the failure it
