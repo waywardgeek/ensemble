@@ -278,3 +278,236 @@ This advisory is complete as a preparation review. Full-manuscript proofreading,
 student ownership review, code comparison, deterministic acceptance, live use and
 checkpoint remain separate pending work. Scoped whitespace/manual review applies
 only to this file; compiler-driven checks stay with the coordinator's retained gate.
+
+
+## Integration design review after the approved cap choice
+
+October 8, 2026. Independent review of proposal
+`8f834ceef199648c1302a95fc8aaf947ec1651ae`, the complete current partial
+manuscript/outline/evidence, and validation through `706682c`. Bill's explicit
+selection of a plan mode without a per-response output-token cap is settled.
+The earlier D6 sequencing recommendation above is superseded by this integration
+review; it is not a reason to ask that question again.
+
+Recommend accepting the proposed direction for drafting, with the grouped
+clarifications below required before dependent implementation. No new decision
+from Bill is needed. The coordinator can settle these ownership and interface
+choices. Complete v7/public/authentication fixtures, capability/rate selection,
+acceptance commands and the finite live matrix remain release blockers.
+
+### Read scope and independence
+
+This is the same replacement reviewer identified above. Since that preparation,
+the reviewer has inspected Chapter 10 student runtime, historical checkers and
+new grader internals while repairing retained orchestration and conducting
+independent controls. That exposure is disclosed; this is neither a cold-student
+review nor another complete-textbook read. No Chapter 17 implementation exists
+in the reviewed material.
+
+For this round, read all current voice.md and chapter-writing-procedure.md,
+reloading after compaction, architecture.md, all five Chapter 17 files, the
+complete Chapter 17 diff at `53ee8e7`, and the proposal commit's scope. Focused
+predecessor reads cover Chapter 15 §15.3 and §15.7 and Chapter 16 §16.5 and its
+continuation into §16.6. Earlier prerequisite and historical exposure remains
+attributed to the earlier ledger. Reread the old Chapter 18 opening/TL;DR and
+complete `3746095`/`40afc7a` commit messages to check the preserved incidents.
+
+Used the complete OpenAI Docs skill, official-domain search and opened pages.
+Where HTML retrieval was unwieldy or failed, read the official `.md` endpoints
+with unauthenticated, bounded-time retrieval. Relevant source sections were
+actually read; failed retrievals and search snippets supplied no assertions.
+No credential store, authorization flow, provider inference, code edit or build
+was used in this review.
+
+### Current documentation and its limits
+
+Accessed October 8, 2026. These findings support the wire design, not account
+entitlement or measured caching:
+
+- [Models and inference](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference)
+  requires account-specific model discovery, the public Responses endpoint,
+  streamed nonstored HTTP requests and terminal completion. A text delta or
+  completed item alone cannot establish success. Discovery is account-scoped,
+  not proof of every selected tool/content capability.
+- [Preview limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations)
+  requires supplied history and excludes HTTP previous_response_id and the
+  output cap. Developer messages are permitted; explicit system items are not.
+  Namespace function placement is supported, while hosted MCP and tool_search
+  are excluded. Full history means the current authorized projection, including
+  its deliberate retirement, not restoration of removed material.
+- [Registration/sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in)
+  supports own-app registration, exact loopback callback matching, fresh
+  state/nonce/PKCE, issued-client binding, verified identity and granted-scope
+  checks. [Accounts and sessions](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions)
+  requires isolated registrations, serialized rotating refresh, protected
+  replacement storage and truthful revocation disposition. The proposed
+  Ensemble hierarchy and exclusive mounted-store lock are application choices.
+- [Token reference](https://developers.openai.com/siwc/token-sharing-open-source/token-reference)
+  names earliest_refresh_at without enough semantics to invent a scheduling
+  algorithm. Keep that limitation and publish validated expiry/skew/deadline
+  behavior from documented fields before coding.
+- [Function calling](https://developers.openai.com/api/docs/guides/function-calling)
+  supports explicit strict:false to retain non-strict schemas and call_id-linked
+  outputs. [Responses create](https://developers.openai.com/api/reference/resources/responses/methods/create)
+  defines namespace, phase, argument strings, max_output_tokens and separate
+  cached/write detail inside input usage. Its illustrative completed stream is
+  4,095 UTF-8 bytes across nine events as retrieved; this is a documentation
+  example, not a model run or a promise that a judge fits the local limit.
+- [Reasoning](https://developers.openai.com/api/docs/guides/reasoning) and
+  [conversation state](https://developers.openai.com/api/docs/guides/conversation-state)
+  support replaying the full ordered output, including opaque reasoning and
+  assistant phase. Current stateless responses include encrypted reasoning by
+  default; a speculative extra include setting is unnecessary. The examples
+  use a replay conversion helper, so the chapter must print its own exact
+  output-to-input envelope rules rather than infer them from concatenated text.
+
+### R1. Select the route once and keep the control comparable
+
+Accept the explicit API-key Responses control. Using the same surface, item
+mapping and tool declarations gives the requested plan-cache investigation a
+better control than comparing it only with Chat Completions. Keep legacy API-key
+paths unchanged. Record each residual difference, especially the API-key output
+cap, account availability and any supported settings; do not call the two requests
+identical. Unsupported marker policy must refuse locally. Availability of the
+Responses schema alone does not establish plan-route marker support.
+
+Accept capture of funding, model, surface and safe connection generation for the
+whole admitted turn, including compression and judge work. Idle compression gets
+its own capture. Explicit API-key Responses uses the same streamed helper mapping
+with the applicable remote cap; the existing Chat Completions judge stays plain
+and capped. A missing plan cap needs an explicit absent-cap representation, never
+zero or an old max_tokens value that falsely claims enforcement. No error,
+refresh problem or local bound changes funding, model or transport automatically.
+
+A reopened session must explicitly bind its safe route to the selected local
+registration. Publish how its nonsecret generation/binding survives restart and
+how an unavailable or different registration is refused. A reused display label
+or reset process counter cannot establish the old opaque provenance. Keep actual
+account/client identifiers in protected connection storage, outside session data.
+Cross-connection opaque reuse remains refused under the proposal's conservative
+policy; do not silently strip capsules to make the switch work.
+
+### R2. Complete the owner and cancellation contract
+
+Accept Ensemble → Connections → Connection → credential lease, common parent
+interfaces and the new behavior-owning spoke. Accept one process holding the
+credential-store lease. Explain the practical composition: the CLI and optional
+GUI attached to one Ensemble share its Connection; a second independent process
+using that store receives connection_store_in_use. Closing one Agent cannot
+sign out another Agent or release the application store lock.
+
+Specify these routine coordinator decisions before code:
+
+1. An Engine-owned request operation waits for a lease through the parent chain;
+   refresh and persistence run in Connection-owned work. Neither network access,
+   browser wait, file persistence nor lease waiting parks the Actor. Admission
+   configuration is captured before this asynchronous work, and stale results
+   cannot overwrite later selection. The caller's existing deadline keeps running.
+2. Connection owns the refresh context and single refresh result. Canceling
+   Agent A removes only A's waiter. It cannot cancel a refresh still needed by B.
+   Sign-out/Ensemble close can cancel shared work; a late refresh result cannot
+   repopulate cleared credentials or issue leases for an invalid generation.
+   An uncertain rotation/persistence outcome needs an explicit unavailable state.
+3. Define an atomic dispatch-registration boundary against Connection generation
+   invalidation. If invalidation wins, the operation cannot start transport; if
+   dispatch registration wins, sign-out cancels the registered operation and
+   reports any resulting incomplete attempt. Do not hold a service lock during
+   HTTP, and do not promise that cancellation recalls bytes already handed off.
+4. Publish terminal settlement separately from dispatch. Preserve Chapter 15's
+   distinction between accepted usage and applied helper output: a valid complete
+   response returned before attempt settlement records accepted usage once, while
+   cancellation prevents new tool execution, memory replacement or recall
+   attachment. A callback after settlement cannot accept again. Coordinate the
+   cancellation fence with Actor acceptance so a generation check only at lease
+   acquisition cannot admit stale effects. Already durable accepted facts remain.
+
+Use deterministic barriers for invalidation before dispatch, during refresh,
+after dispatch and around terminal settlement. Include two Agents waiting on one
+refresh, cancel only one, and assert the survivor's usable lease. These are future
+published checks, not private requirements for an already released student.
+
+### R3. Make the capsule the authority for its item
+
+Accept a new v7 capsule rather than overloading text.opaque. Choose one immutable
+raw item payload as authority; neutral parts are checked references/derived views,
+not independently editable response copies. Publish unique item/content positions,
+complete ordered coverage and correspondence for text, empty text, phase,
+annotations, namespace, item ID, call_id and exact argument-string contents.
+Mutating only a projection or only its source must refuse at acceptance and replay.
+If a helper's existing raw terminal receipt already contains the item, reference
+that payload instead of persisting another authoritative raw item beside it.
+
+Preserve the JSON envelope's original raw bytes and the decoded arguments string's
+exact bytes as separate invariants. Duplicate keys inside syntactically valid,
+bounded argument-object text retain Chapter 10's controlled invalid-argument
+behavior. Duplicate event/capsule structure, malformed arguments and non-object
+arguments do not acquire an exception. A namespace is part of call authority:
+foreign/missing namespaces cannot become ordinary local names. Publish their exact
+controlled refusal/result pairing and distinguish them from an unknown function
+inside the allowed namespace. No partial SSE call may dispatch anything.
+
+Print at least one complete literal response and continuation containing ordered
+reasoning, commentary, a namespaced call with spaced arguments, its linked result
+and final answer. Define accepted output types and the disposition of unsupported
+items explicitly; preserving bounded unknown opaque material cannot authorize an
+unknown executor or silently omit it. Print exact replay fields and any documented
+output-to-input conversion while preserving the original accepted payload. Test
+full-log, checkpoint and snapshot-tail reconstruction independently of the renderer.
+
+Retirement must remove capsule payloads and indexes together with their source,
+including diagnostic copies. Explain how Chapter 14 protected opaque units and
+Chapter 15 source selection treat the new item; a neutral text projection does
+not make an encrypted reasoning item removable independently. Helper capsules
+stay out of foreground history. Complete v7 initializer/profile/record-class and
+standalone rules must resolve all of this before a checker or student implements it.
+
+### R4. Keep the local stream bound honest and demonstrate usability
+
+Provisionally retain the proposed judge limit of 8,192 bytes. It is a stricter
+resource envelope for streamed delivery than for the old plain reply, and no
+successful selected-model judge has yet been observed. Define the counter as
+HTTP response-entity bytes after content decoding, before SSE parsing: include
+event/data framing, delimiters, comments, repeated item data and the terminal
+response/usage. Exclude HTTP headers and transfer-chunk framing. Bound decompression,
+parser storage and retained copies too; counting only text or compressed bytes
+would not enforce the stated limit.
+
+Publish valid complete streams of exactly 8,192 and 8,193 bytes, with arbitrary
+transport chunk splits and a short visible verdict. The first must remain eligible
+for normal validation; the second must stop with the named local-limit failure.
+Also test a small delta followed by an oversized completed event, EOF without
+completion, inconsistent indexes/terminal content, invalid usage and cancellation.
+Accepted provider usage followed by an invalid verdict remains different from
+unknown usage after a stream-limit refusal. No plain fallback or automatic retry
+rescues the latter.
+
+The live matrix must demonstrate a successful plan-route judge and compression,
+plus foreground tool continuation, using the actual Ensemble path and finite
+attempt counts. A local refusal is useful evidence but does not complete that
+successful feature gate. If the selected model repeatedly exceeds the envelope,
+record the limitation and let the coordinator revisit the published local bound
+with rationale and checks before implementation changes; Bill's uncapped preference
+does not settle this usability question. Do not enlarge it invisibly during a run.
+
+### Story preservation and review disposition
+
+Keep the original author's `53ee8e7` improvements: the false-marker incident now
+shows the matching compact test assumption and the real indented input; §17.3
+returns to its consequence, and §17.6 makes the producing-model error concrete.
+The new authorization material should grow out of the reader's comparison problem,
+not displace that through-line with an OAuth catalog. The full-history and capsule
+explanation earns its space by showing what a misleading control would lose.
+No change to those story passages or unrelated prose is requested here.
+
+This round approves a direction with required contract clarification, not the full
+chapter, student release, runtime or live investigation. All four groups are
+coordinator/author work within the existing decision. No credential use or provider
+run is requested by this advisory. Full contract review follows the next freeze.
+
+Verification for this append: the existing external `edition2-lintprose` binary
+passed all hard rules on chapter-17-review.md; negation-density and person-gap
+warnings remain appropriate review inputs for this advisory record. Scoped
+`git diff --check` passed. Manual review checked the grouped recommendations
+against the proposal, predecessor helper settlement rules and preserved story
+diff. No Go compilation or wider prose pass ran while another grader owned the
+compiler. Only this review file is changed by this round.
