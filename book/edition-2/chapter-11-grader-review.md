@@ -242,3 +242,21 @@ replacement acceptance matrix or a waiver of any printed row. Race checks,
 delivered-module validation, architectural review, student-behavior deletion
 controls, initial live experience and subsequent historical quality comparison
 remain required. No speculative new feature is demanded.
+
+## Public integration preparation after ownership-plan acceptance
+
+The [next finite integration plan](checkpoint-evidence/ch11-public-integration-preparation.md)
+binds frozen student plan `55c9e7a` and published clarifications `b43fc3f`.
+Seven transport-neutral complete-message scripts and paired schema inputs are
+prepared for reuse through delivered stdio/memory and an independent public
+transport. Four fixture-only test methods pass, including byte-identical direct
+and actual subprocess execution; exact receipts/hashes are in
+`checkpoint-evidence/ch11-message-preparation.json`. The emitted small corpus and
+owned temporary payloads were removed. These controls do not run an Ensemble
+client or validate its schema implementation. The foundation and initial CLI
+subset remain unchanged, and no Go compiler or provider was used.
+
+Actual public declaration/codec binding, valid owner-local exhaustion entry points
+and compiler release remain integration prerequisites. The plan identifies no new
+teaching gap after the three coordinator decisions. All earlier missing runtime
+coverage remains explicit; fixture preparation does not turn a blocked row green.

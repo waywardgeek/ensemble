@@ -1,0 +1,79 @@
+{
+  "runtime_acceptance": false,
+  "scope": "fixture preparation only; no Ensemble client built or run",
+  "plan_revision": "55c9e7a44364123dd28ef7967a0a3663d74de925",
+  "teaching_revision": "b43fc3f",
+  "commands": [
+    {
+      "argv": [
+        "python3",
+        "scripts/edition2/test_ch11_message_scenarios.py"
+      ],
+      "time": "2026-10-09T04:08:37.649196+00:00",
+      "exit": 0,
+      "stdout": "",
+      "stderr": "test_cancel_bytes_and_fault_cleanup (__main__.Controls.test_cancel_bytes_and_fault_cleanup) ... ok\ntest_direct_and_stdio_same_complete_messages (__main__.Controls.test_direct_and_stdio_same_complete_messages) ... ok\ntest_intended_script_refusals_from_valid_parent (__main__.Controls.test_intended_script_refusals_from_valid_parent) ... ok\ntest_vector_json_preserves_precision_and_pairing (__main__.Controls.test_vector_json_preserves_precision_and_pairing) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 0.273s\n\nOK\n"
+    },
+    {
+      "argv": [
+        "python3",
+        "scripts/edition2/ch11_message_scenarios.py",
+        "--emit",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch11-message-export-9265d44a/corpus.json"
+      ],
+      "time": "2026-10-09T04:08:37.687465+00:00",
+      "exit": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "argv": [
+        "python3",
+        "scripts/edition2/test_ch11_runtime.py"
+      ],
+      "time": "2026-10-09T04:08:37.833011+00:00",
+      "exit": 0,
+      "stdout": "",
+      "stderr": "test_actual_peer_effect_and_mixed_response (__main__.Controls.test_actual_peer_effect_and_mixed_response) ... ok\ntest_canned_positive_and_predicate_negatives (__main__.Controls.test_canned_positive_and_predicate_negatives) ... ok\ntest_no_send_requires_controlled_error (__main__.Controls.test_no_send_requires_controlled_error) ... ok\ntest_whole_refusal_and_prelaunch_oracles (__main__.Controls.test_whole_refusal_and_prelaunch_oracles) ... ok\n\n----------------------------------------------------------------------\nRan 4 tests in 0.075s\n\nOK\n"
+    }
+  ],
+  "export": {
+    "sha256": "6349842104c53f3f028c778cc8d08357fd24faa960d4cd47e45c72b154c248ca",
+    "bytes": 21473,
+    "scenario_names": [
+      "ordinary",
+      "out-of-order",
+      "cancel-late-sibling",
+      "remote-error",
+      "future-id",
+      "stale-duplicate",
+      "reverse-request"
+    ],
+    "argument_vector_names": [
+      "local-pointer-sibling",
+      "precision",
+      "scalar-array-count",
+      "composition-enum",
+      "numeric-open-interval",
+      "annotations-do-not-insert"
+    ],
+    "preparation_vector_names": [
+      "unsupported-keyword",
+      "external-reference",
+      "unresolved-local-reference",
+      "containment-reference-cycle",
+      "semantic-enum-duplicate"
+    ],
+    "payload_removed": true
+  },
+  "sha256": {
+    "scripts/edition2/ch11_message_scenarios.py": "5e7beabc27a9e0c705f9b8e725437b8509c64818ee67a851865a39d5eeee84dc",
+    "scripts/edition2/test_ch11_message_scenarios.py": "70aaa5ef6c7ad4ac5a90ce00d0abe7550dbf3852137410a42d8390bffca6de17",
+    "scripts/edition2/accept_ch11_runtime.py": "87aa12778d57dc93ef3c3c7a9f3273848afbe0715f56166d9d285555575b9669",
+    "scripts/edition2/ch11_effect_peer.py": "9d87e7ecec519245ad7a0d575627cf38e6c8a9b5e99099d9d8b94e26e077d3ba",
+    "scripts/edition2/accept_ch11.py": "ca930faa1c02c85310b7ea3905e1437ed754355ee7123bbf50c9407249491c9f",
+    "book/edition-2/chapter-11.md": "c9fd192912baa555ae29053bdcf2cf3a3f367d69dfcd6d4941cc3b2b4cc0531b",
+    "book/edition-2/architecture.md": "9dada72e65c36fb649659f9076b4ca2bdfc8379fef919a3b575652dca0e49327",
+    "book/edition-2/skills/ensemble-coding/SKILL.md": "0180e3eb5d4f6032936729f31b473c70c421bce22001790a9709b05c57893bd1"
+  }
+}
