@@ -152,3 +152,56 @@ independent re-review; reconcile the author's actual spin and feedback before
 chapter acceptance. Do not relabel these live runs as observations of a later
 binary. No new runtime-semantic defect or additional spending requirement was
 found by this review.
+
+## Complete-chapter proofreading: author freeze 0e754b9
+
+Reviewed `0e754b9cad74a3a1b44327e498fa704feea817ed` after the live review above.
+The full preceding Chapter 10 contract was read in three contiguous ranges in
+this review turn. Every changed manuscript passage and the complete new spin
+were then read, together with the entire direct-feedback record and complete
+outline/evidence diffs. Byte comparison proves the TL;DR through §10.9's contract
+and the complete §10.10 acceptance section unchanged. This covers the complete
+new chapter without treating a partial diff as a full contract read.
+
+The opener now correctly distinguishes recorded/offline history from safe live
+resume, resolving comparative Q3. The actual spin retains the human return-to-work
+stake and follows observed CLI, GUI, public-consumer and Skills behavior. It does
+not disguise the model's mistaken explanation, empty cards or shutdown friction.
+The default-load quotation is present in historical Chapter 11 §11.6. The runtime,
+support and initial-evidence associations remain distinct; no corrected binary is
+claimed to have produced the original live experience.
+
+All four author files match the named freeze. Every local chapter link resolves.
+The three printed transcript blocks occur verbatim in the original A1/A2 records.
+The stated cumulative Chat Completions usage, exact file size, returned model
+identities and 33/3 plus six-local-seed distinction agree with the reviewed evidence.
+The actual openai-B/browser-4 image was inspected: checkpoint 16, font 18 and the
+historical no-live-owner labels match its caption and full accessible text. It is
+correctly later than the first CLI checkpoint at 11.
+
+Two narrow prose corrections remain for the author's final reconciliation:
+
+- The empty-card paragraph and direct-feedback disposition still describe a
+  tentative provider-metadata cause. Q4 now establishes optional-GUI handling of
+  empty text parts, both signed and unsigned. Describe that observed presentation
+  cause, preserve the initial screenshot, and add the later correction's exact
+  source/local-validation identity when available. Do not imply a persistence
+  repair or a repeated paid demonstration.
+- The historical source says Bill reviewed the design with a one-line response;
+  it does not establish that he “tried it once.” Attribute the sentence to his
+  design review unless an additional actual-use receipt exists. Keep the quotation
+  and its default-load consequence.
+
+The new direct-feedback table addresses the initial student's real-use findings
+and preserves earlier Q1–Q5 and duplicate-argument confirmations. Confirmation
+that this latest account matches the student's experience remains the student's
+separate response. The author should update current gate wording after this review
+and the quality correction, preserving dated earlier pending statements.
+
+Existing external prose lint passes all hard rules on the chapter and feedback.
+The chapter has 8,980 prose words, 20 counted negations and a 4,401-word person gap;
+these soft warnings reflect its explicit persistence contract. The actual spin
+adds concrete observations rather than padding. The paragraph endings and
+reader-facing save/refusal explanations retain varied consequences. No new
+structural/teaching blocker was found beyond the two narrow corrections above;
+final quality-source validation and student confirmation remain separate gates.
