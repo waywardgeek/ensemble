@@ -33,8 +33,10 @@ All 17 exported source files matched byte for byte before checkpointing.
 The original Chapter 2 grader remains **92/100 FAIL**: its added URI-media
 rendering and unredacted media control exceed the chapter's stated scope.
 The reviewer verified the explicitly required Ref/redaction behavior separately.
-Keep these actual failures visible through later parity checks; reassess the
-exception when original Chapter 4 introduces blobs. Do not add early features
+Keep these actual failures visible through later parity checks. Chapter 4's
+independent scope reassessment confirms that output references are not URI
+attachments: §4.5 explicitly excludes rendering them as parts. The exception
+therefore continues through that chapter. Do not add early features
 merely to conceal the inherited score. See `ch02.md` and `ch02-code-review.md`
 in the review directory for the decision, original results and revision history.
 
@@ -43,6 +45,16 @@ and no correction rounds. Checkpoint: `edition-2-ch03-r3`; older r1/r2 tags are
 preserved. Its 19 source/export files match; manifest SHA-256:
 `b92d8f8c7fdd79e2b39226ed88067f0f9fdd2a8fcae3c702e6138bf49e6ca459`.
 Original grade is **90/100 FAIL**: all nine new checks pass, while `ch2parity`
-reports the same two waived media controls. The inherited exception must be
-reassessed against Chapter 4's actual blob requirements. Student/reviewer notes
+reports the same two waived media controls. The inherited exception was
+subsequently reassessed against Chapter 4 as described above. Student/reviewer notes
 and live three-provider tool exercises are recorded with the checkpoint.
+
+Chapter 4 was accepted with the inherited media exception after two test-only
+correction rounds. Checkpoint: `edition-2-ch04-r2`; the older r1 tag remains.
+All 25 source/export files match; manifest SHA-256:
+`36605e815176cf0ed244c4ba98ef88df97e59f51efb59cf4e8927b2e9858bf3d`.
+Original grade remains **90/100 FAIL**, with all eight new checks passing.
+Live three-provider supervision, actual debugger prompt matching and shutdown
+are recorded alongside the unsuccessful attempts and corrected evidence claims.
+Independent review verified the two lifecycle regression tests, including their
+failure paths, before acceptance. See `ch04.md` and `ch04-code-review.md`.

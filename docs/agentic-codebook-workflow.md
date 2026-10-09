@@ -604,5 +604,40 @@ including `dlv`. Missing tool/event shapes supplied by the coordinator are in
 exception continues: this chapter records output Refs but explicitly does not
 render them as attachment parts. Its own output, recovery and job requirements
 remain binding. No Chapter 4 result or acceptance has been claimed.
+The Chapter 4 student subsequently submitted a 90/100 original grade, with all
+eight new checks passing and only inherited parity failing; independent review
+is pending. Its first 65/100 run exposed a contract interpretation error: default
+cwd was logged where the grader expected an optional override field to be absent.
+The initial coordinator erratum also omitted this representation convention;
+the student corrected the code and both recorded the teaching gap. The student
+then misread the serialized debugger regex as overescaped and incorrectly
+reported that the original calls woke on ten-second delays. The coordinator
+accepted that explanation and allowed a repeat. Independent review checked
+decoded characters and event timestamps: the original regex was valid and its
+calls returned in 0.002–0.270 seconds. The repeat also worked, but was unnecessary
+for that claim. Inspect decoded values and measured intervals before diagnosing
+escaping or spending another live run; even a purported evidence correction
+needs verification. Separately, a process that expired before EOF did not demonstrate shutdown; a
+bounded repeat checked that it was alive before EOF and killed afterward.
+These findings reinforce checking the particular claimed mechanism, not merely
+a successful final answer. Preserve both attempts in the chapter notes; they do
+not justify an extra test framework or unbounded live retries.
+Initial independent Chapter 4 review requests correction round 1 only for two
+lifecycle-test interleavings: a waiter already blocked when killed, and a late
+handler completing after kill. The correct production guards are present, but
+removing them can evade the current tests because the observations happen too
+early or too late. Targeted output-notification coverage does not prove those
+distinct transitions. The student is correcting tests and evidence; no new
+production feature, paid replay or broad mutation sweep is requested.
+Chapter 4 was then accepted with the inherited media exception after two
+correction rounds, checkpoint `edition-2-ch04-r2`. Round 1 established the intended
+interleavings but introduced a race in the test's failure cleanup. The mutation
+output included both the intended assertion and that warning; the student's
+initial clean-failure claim was wrong. Round 2 synchronized result transfer and
+independent review confirmed clean intended failures for both defects. Check the
+whole failure output, including cleanup: a desired assertion does not make an
+additional race harmless. Production remained unchanged across both rounds.
+Original grading remains 90/100 FAIL, all eight new checks passing; live evidence,
+corrections and the exact 25-file export are retained with the checkpoint.
 Preserve small resumable checkpoints if a usage limit interrupts work;
 never label unfinished work an accepted chapter.

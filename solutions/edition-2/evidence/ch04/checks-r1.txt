@@ -1,0 +1,15 @@
+$ gofmt -l ensemble/jobs_test.go (exit 0)
+
+$ go vet ./... (exit 0)
+
+$ go test -race ./... (exit 0)
+?   	ensemble	[no test files]
+ok  	ensemble/ensemble	1.683s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+
+Production/dependency bytes unchanged in R1. Manifest SHA-256: 99ddbb2645623686c94e64964b24fdee32f5ce7e53dae8cd6a2b187b8292ed0c

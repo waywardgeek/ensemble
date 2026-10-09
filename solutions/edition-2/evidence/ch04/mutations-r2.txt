@@ -1,0 +1,123 @@
+R2 production/dependency manifest unchanged: 99ddbb2645623686c94e64964b24fdee32f5ce7e53dae8cd6a2b187b8292ed0c
+
+Unmodified R2 baseline
+$ go test -race ./ensemble -run TestKillWakesWaiterAndKillsGroup|TestBlockedFileToolCanBeSupervised -count=20 -timeout=30s
+ok  	ensemble/ensemble	1.731s
+exit=0
+
+Exact mutant 1: remove only job.Kill j.notify(); all other notifications retained.
+Kill notification omitted
+$ go test -race ./ensemble -run ^TestKillWakesWaiterAndKillsGroup$ -count=20 -timeout=30s
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    --- FAIL: TestKillWakesWaiterAndKillsGroup/already_blocked_waiter (0.00s)
+        jobs_test.go:169: kill did not wake already-blocked waiter
+FAIL
+FAIL	ensemble/ensemble	0.150s
+FAIL
+exit=1
+
+Exact mutant 2: remove only job.complete non-running early return; write/capture guards retained.
+Late completion guard removed
+$ go test -race ./ensemble -run ^TestBlockedFileToolCanBeSupervised$ -count=20 -timeout=30s
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.03s)
+    jobs_test.go:298: late file result changed killed state
+FAIL
+FAIL	ensemble/ensemble	0.564s
+FAIL
+exit=1
+

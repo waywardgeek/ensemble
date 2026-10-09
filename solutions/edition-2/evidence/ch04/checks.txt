@@ -1,0 +1,24 @@
+main: gofmt -l . (exit 0)
+
+main: go vet ./... (exit 0)
+
+main: go test -race ./... (exit 0)
+?   	ensemble	[no test files]
+ok  	ensemble/ensemble	1.685s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+
+gui: go vet ./... (exit 1)
+../internal/jobs/process.go:13:2: missing go.sum entry for module providing package github.com/creack/pty (imported by ensemble/internal/jobs); to add:
+	go get ensemble/internal/jobs@v0.0.0
+
+GUI dependency repaired with go mod tidy in its own module.
+gui: go vet ./... (exit 0)
+
+gui: go test ./... (exit 0)
+ok  	ensemble-gui-stub	0.007s
+

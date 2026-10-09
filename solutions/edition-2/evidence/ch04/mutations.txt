@@ -1,0 +1,228 @@
+Baseline: go test ./ensemble
+ok  	ensemble/ensemble	0.359s
+
+ordinary-file-bypasses-job: KILLED
+internal/agent/agent.go: 'definition == nil || !definition.Supervision' -> '(definition == nil || !definition.Supervision) && call.Name != "read_file"'
+--- FAIL: TestJobFileCapCursorAndRedaction (0.00s)
+    jobs_test.go:50: cap/notice: "[tool_limits consumed by this read_file call: ai_callback_delay 3s, ai_callback_pattern \"\", max_output_bytes 128]\nFIRST\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmi [long diagnostic shortened; original contained the uncapped full file]
+FAIL
+FAIL	ensemble/ensemble	0.010s
+FAIL
+
+called-event-loses-handle: KILLED
+internal/agent/agent.go: 'event.Job = &data' -> 'event.Job = nil; _ = data'
+--- FAIL: TestJobFileCapCursorAndRedaction (0.00s)
+    jobs_test.go:65: ordinary tool has no job
+FAIL
+FAIL	ensemble/ensemble	0.009s
+FAIL
+
+disk-output-truncated: KILLED
+internal/jobs/jobs.go: 'j.file.WriteString(text)' -> 'j.file.WriteString(text[:min(len(text),128)])'
+--- FAIL: TestJobFileCapCursorAndRedaction (0.00s)
+    jobs_test.go:50: cap/notice: "[tool_limits consumed by this read_file call: ai_callback_delay 3s, ai_callback_pattern \"\", max_output_bytes 128]\nFIRST\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmid"
+FAIL
+FAIL	ensemble/ensemble	0.009s
+FAIL
+
+report-cursor-reset: KILLED
+internal/jobs/jobs.go: 'j.cursor = j.data.Bytes' -> 'j.cursor = 0'
+--- FAIL: TestJobFileCapCursorAndRedaction (0.00s)
+    jobs_test.go:53: finished wait repeated output
+FAIL
+FAIL	ensemble/ensemble	0.009s
+FAIL
+
+report-tail-lost: KILLED
+internal/jobs/jobs.go: '+ tail' -> '+ ""; _ = tail'
+--- FAIL: TestJobFileCapCursorAndRedaction (0.00s)
+    jobs_test.go:50: cap/notice: "[tool_limits consumed by this read_file call: ai_callback_delay 3s, ai_callback_pattern \"\", max_output_bytes 128]\njob 1 done; 70011 bytes total at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestJobFileCapCursorAndRedaction2337323077/002/io/1\nFIRST\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmi\n[69883 bytes omitted; 70011 bytes total at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestJobFileCapCursorAndRedaction2337323077/002/io/1]\n"
+FAIL
+FAIL	ensemble/ensemble	0.009s
+FAIL
+
+wrong-total-bytes: SURVIVED
+internal/jobs/jobs.go: 'count-size, j.data.Bytes, j.data.Output.Locator' -> 'count-size, j.data.Bytes+1, j.data.Output.Locator'
+ok  	ensemble/ensemble	0.009s
+
+job-ref-redaction-lost: KILLED
+internal/history/reduce.go: 'old.Ref = p.Ref' -> 'old.Ref = common.Ref{}'
+--- FAIL: TestJobFileCapCursorAndRedaction (0.00s)
+    jobs_test.go:86: redaction lost recovery address
+FAIL
+FAIL	ensemble/ensemble	0.009s
+FAIL
+
+pending-not-consumed: KILLED
+internal/jobs/jobs.go: 'j.pending = nil' -> '// mutation: keep pending'
+--- FAIL: TestLimitsBurnAndExplicitOverride (0.01s)
+    jobs_test.go:194: one-shot setting was reused
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+
+explicit-cap-ignored: KILLED
+internal/jobs/jobs.go: 'base.MaxBytes = *args.Max' -> 'if base.MaxBytes != 1 { base.MaxBytes = *args.Max }'
+--- FAIL: TestLimitsBurnAndExplicitOverride (0.01s)
+    jobs_test.go:191: explicit arguments did not win
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+
+explicit-delay-ignored: KILLED
+internal/jobs/jobs.go: 'base.Delay = time.Duration(*args.Delay * float64(time.Second))' -> 'if base.Delay != 0 { base.Delay = time.Duration(*args.Delay * float64(time.Second)) }'
+--- FAIL: TestLimitsBurnAndExplicitOverride (0.01s)
+    jobs_test.go:191: explicit arguments did not win
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+
+consumption-notice-absent: KILLED
+internal/agent/agent.go: 'if notice != "" {' -> 'if false && notice != "" {'
+--- FAIL: TestLimitsBurnAndExplicitOverride (0.01s)
+    jobs_test.go:188: setter did not consume preceding setting
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+
+old-pattern-matches-again: KILLED
+internal/jobs/jobs.go: 'j.read(j.cursor, j.data.Bytes-j.cursor)' -> 'j.read(0, j.data.Bytes)'
+--- FAIL: TestWakeLeavesJobRunningAndPatternConsumes (0.01s)
+    jobs_test.go:207: old prompt woke again or wake killed work: "job 1 running; 7 bytes total at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestWakeLeavesJobRunningAndPatternConsumes3481140827/001/io/1\nno new output\n\nUse wait_for_job(1), send_input or kill_job to supervise this job." <nil> elapsed 36µs
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+
+new-pattern-never-wakes: KILLED
+internal/jobs/jobs.go: 'ready = pattern.MatchString(unseen)' -> 'ready = false; _ = pattern; _ = unseen'
+--- FAIL: TestWakeLeavesJobRunningAndPatternConsumes (4.09s)
+    jobs_test.go:215: new prompt did not wake: "job 1 running; 20 bytes total at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestWakeLeavesJobRunningAndPatternConsumes1971354108/001/io/1\nhello\nREPLY> \nUse wait_for_job(1), send_input or kill_job to supervise this job." <nil>
+FAIL
+FAIL	ensemble/ensemble	4.100s
+FAIL
+
+wait-notification-ignored: SURVIVED
+internal/jobs/jobs.go: 'case <-changed:' -> 'case <-changed: time.Sleep(limits.Delay)'
+ok  	ensemble/ensemble	4.107s
+
+input-not-line-submitted: KILLED
+internal/jobs/process.go: 'input += "\\n"' -> 'input += ""'
+--- FAIL: TestPTYInteractionUnseenPatternAndCwd (4.08s)
+    jobs_test.go:107: input/echo/pattern/CRLF: "job 1 running; cwd /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestPTYInteractionUnseenPatternAndCwd67094605/001; 12 bytes total at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestPTYInteractionUnseenPatternAndCwd67094605/002/io/1\nhello\nUse wait_for_job(1), send_input or kill_job to supervise this job."
+FAIL
+FAIL	ensemble/ensemble	4.088s
+FAIL
+
+crlf-not-normalized: KILLED
+internal/jobs/process.go: 'strings.ReplaceAll(text, "\\r\\n", "\\n")' -> 'text'
+--- FAIL: TestPTYInteractionUnseenPatternAndCwd (0.18s)
+    jobs_test.go:107: input/echo/pattern/CRLF: "job 1 running; cwd /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestPTYInteractionUnseenPatternAndCwd2820468356/001; 33 bytes total at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestPTYInteractionUnseenPatternAndCwd2820468356/002/io/1\nhello\r\nVALUE=hello\r\nDONE> \nUse wait_for_job(1), send_input or kill_job to supervise this job."
+FAIL
+FAIL	ensemble/ensemble	0.189s
+FAIL
+
+terminal-wrong-size: KILLED
+internal/jobs/process.go: 'Rows: 50, Cols: 200' -> 'Rows: 24, Cols: 80'
+--- FAIL: TestPTYInteractionUnseenPatternAndCwd (0.18s)
+    jobs_test.go:114: cwd isolation/terminal: "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch04-mutants-7ufmpbom/main/ensemble\ndumb24 80\n\nexit_code: 0\n"
+FAIL
+FAIL	ensemble/ensemble	0.189s
+FAIL
+
+terminal-inherits-term: KILLED
+internal/tools/tools.go: '"TERM=dumb"' -> '"TERM=xterm"'
+--- FAIL: TestPTYInteractionUnseenPatternAndCwd (0.18s)
+    jobs_test.go:114: cwd isolation/terminal: "/private/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-ch04-mutants-7ufmpbom/main/ensemble\nxterm50 200\n\nexit_code: 0\n"
+FAIL
+FAIL	ensemble/ensemble	0.189s
+FAIL
+
+cwd-override-ignored: KILLED
+internal/tools/tools.go: 'if args.Cwd != "" {' -> 'if false && args.Cwd != "" {'
+--- FAIL: TestPTYInteractionUnseenPatternAndCwd (0.18s)
+    jobs_test.go:101: prompt/cwd not reported
+FAIL
+FAIL	ensemble/ensemble	0.191s
+FAIL
+
+kill-only-shell: KILLED
+internal/jobs/process.go: 'syscall.Kill(-j.process.command.Process.Pid' -> 'syscall.Kill(j.process.command.Process.Pid'
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    jobs_test.go:162: process-group child survived
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+
+kill-event-not-recorded: INVALID BUILD FAILURE
+internal/jobs/process.go: 'return j.parent.Agent().History().Append(common.Event{Type: "job_killed", Job: &common.JobKilledData{JobData: data, Reason: reason}})' -> '_ = data; return nil'
+# ensemble/internal/jobs
+internal/jobs/process.go:12:2: "ensemble/internal/common" imported and not used
+FAIL	ensemble/ensemble [build failed]
+FAIL
+
+goroutine-containment-claim-removed: KILLED
+internal/jobs/jobs.go: 'note = "; Go cannot stop the tool goroutine"' -> 'note = ""'
+--- FAIL: TestBlockedFileToolCanBeSupervised (0.02s)
+    jobs_test.go:237: blocked file tool escaped supervision
+FAIL
+FAIL	ensemble/ensemble	0.031s
+FAIL
+
+process-completed-at-dispatch: KILLED
+internal/jobs/jobs.go: 'if j.process == nil {\n\t\tj.complete(text, err)\n\t}' -> 'j.complete(text, err)'
+--- FAIL: TestPTYInteractionUnseenPatternAndCwd (0.00s)
+    jobs_test.go:101: prompt/cwd not reported
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+
+Repaired focused tests baseline:
+ok  	ensemble/ensemble	0.597s
+wrong-total-bytes repaired assertion: KILLED
+internal/jobs/jobs.go: 'count-size, j.data.Bytes, j.data.Output.Locator' -> 'count-size, j.data.Bytes+1, j.data.Output.Locator'
+--- FAIL: TestJobFileCapCursorAndRedaction (0.00s)
+    jobs_test.go:51: cap/notice: "[tool_limits consumed by this read_file call: ai_callback_delay 3s, ai_callback_pattern \"\", max_output_bytes 128]\njob 1 done; 70011 bytes total at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestJobFileCapCursorAndRedaction1474038559/002/io/1\nFIRST\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmi\n[69883 bytes omitted; 70012 bytes total at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestJobFileCapCursorAndRedaction1474038559/002/io/1]\nle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nmiddle\nLAST\n"
+FAIL
+FAIL	ensemble/ensemble	0.009s
+FAIL
+
+wait-notification-ignored delayed real reply: KILLED
+internal/jobs/jobs.go: 'case <-changed:' -> 'case <-changed: time.Sleep(limits.Delay)'
+--- FAIL: TestWakeLeavesJobRunningAndPatternConsumes (4.31s)
+    jobs_test.go:219: new prompt did not wake: "job 1 running; 20 bytes total at /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestWakeLeavesJobRunningAndPatternConsumes2837265484/001/io/1\nhello\nREPLY> \nUse wait_for_job(1), send_input or kill_job to supervise this job." <nil>
+FAIL
+FAIL	ensemble/ensemble	4.317s
+FAIL
+
+kill-event-not-recorded compile repair: KILLED
+internal/jobs/process.go: 'return j.parent.Agent().History().Append(common.Event{Type: "job_killed", Job: &common.JobKilledData{JobData: data, Reason: reason}})' -> '_ = data; _ = common.Event{}; return nil'
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    jobs_test.go:181: kill fact absent
+FAIL
+FAIL	ensemble/ensemble	0.012s
+FAIL
+
+default-cap-too-small: KILLED
+internal/jobs/jobs.go: 'MaxBytes: 16 * 1024' -> 'MaxBytes: 32'
+--- FAIL: TestJobFileCapCursorAndRedaction (0.00s)
+    jobs_test.go:60: default cap differs from 16384
+FAIL
+FAIL	ensemble/ensemble	0.009s
+FAIL
+
+shutdown-forgotten: KILLED
+internal/agent/agent.go: 'return a.jobs.Shutdown()' -> 'return nil'
+--- FAIL: TestShutdownRecordsKilledReason (0.02s)
+    jobs_test.go:267: shutdown left job running
+FAIL
+FAIL	ensemble/ensemble	0.030s
+FAIL
+
+killed-reported-done: KILLED
+internal/jobs/process.go: 'j.data.Status = "killed"' -> 'j.data.Status = "done"'
+--- FAIL: TestKillWakesWaiterAndKillsGroup (0.01s)
+    jobs_test.go:152: killed job payload missing
+FAIL
+FAIL	ensemble/ensemble	0.012s
+FAIL
+
