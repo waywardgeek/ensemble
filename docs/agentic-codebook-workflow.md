@@ -152,6 +152,8 @@ meaning changes user-visible behavior, ask Bill before implementing the affected
 part. Neither the coordinator nor a reviewer may silently make that decision.
 Bill has delegated one explicit exception: the reviewer may accept an
 unreasonable exercise requirement as described below and pass the coder onward.
+He also authorizes the coordinator to recover missing exercise information from
+the grader under the procedure below; that supplies facts, not new requirements.
 
 ## Prepare the carryover before starting an edition
 
@@ -222,6 +224,21 @@ grader defects are recorded for a future maintainer; the student does not change
 the grader to pass. Agents may raise questions through the coordinator, who must
 relay consequential questions to Bill rather than answer on his behalf. Autonomy
 does not remove the need for collaboration when the assignment is ambiguous.
+
+**Missing contract information can be recovered autonomously.** On October 9,
+after Chapter 2 omitted its directive and dump protocol, Bill authorized the
+coordinator to inspect the grader for this and similar omissions. First check
+the chapter and available public instructions. Read only the grader material
+needed to establish the missing interface, then give the student a narrow
+erratum with source paths/revision and concrete input/output shapes. Record
+exactly that assistance, the original gap and any remaining uncertainty in
+`docs/edition-2-notes/chNN.md` before resuming affected work. Preserve these notes
+for the later author/coder revision of book and graders. Do not expose old
+solution code, prescribe the implementation or turn extra test expectations into
+features. The student still does not read grader internals. A genuine conflict
+about scope, behavior or architecture follows the stop or review-exception
+procedure; this authorization only removes the need to ask Bill for facts that
+can be recovered from the existing contract.
 
 **Critical questions are stop points.** Bill explained that Codex does not
 support the accessible, close real-time collaboration he has in CodeRhapsody
@@ -549,9 +566,10 @@ source export is `solutions/edition-2/ch01/`, checkpointed at `edition-2-ch01-r1
 Chapter 2 was assigned to `student_restart_ch02` from the accepted working
 tree in a fresh context. It stopped before editing because the chapter omits
 its directive/acknowledgment protocol and the public README is incomplete and
-partly obsolete. The coordinator confirmed the public-document gap; Bill's
-decision is pending in `docs/edition-2-notes/ch02.md`. All implementation work is
-stopped. The unchanged first-edition reference baseline scores 100/100, but the
-student has not implemented, been graded or used a revision round for Chapter 2.
+partly obsolete. Bill authorized the coordinator to recover this and similar
+missing contracts from the grader autonomously. The exact sourced erratum is in
+`docs/edition-2-notes/ch02.md`; Chapter 2 resumes from the accepted Chapter 1 tree.
+The unchanged first-edition reference baseline scores 100/100. At this handoff
+the student has not implemented, been graded or used a revision round for Chapter 2.
 Preserve small resumable checkpoints if a usage limit interrupts work;
 never label unfinished work an accepted chapter.

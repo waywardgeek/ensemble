@@ -13,6 +13,10 @@ Chapter 1, from empty `solutions/edition-2/main/`. Bill has deleted the remainin
 second-edition Chapter 1 draft; no replacement manuscript is needed. The student
 does not consult `agent/`, existing answers, discarded answers, their Git blobs,
 or grader implementation. Original chapters and graders remain unchanged.
+If public instructions omit a needed contract, the coordinator may inspect the
+grader and provide a sourced erratum in the chapter notes under Bill's standing
+authorization. That assistance is part of the learning record, not an independent
+student discovery or permission to infer extra features from tests.
 
 **Authority and timing.** Bill's explicit decisions govern architecture and
 behavior. Source lessons below explain failures and how to avoid them; they do

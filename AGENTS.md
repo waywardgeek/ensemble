@@ -12,6 +12,13 @@ delegates, ask plainly with the relevant context, and wait for Bill's answer.
 Do not ask asynchronously and continue working, or treat silence as agreement.
 Close real-time collaboration in Ensemble is part of the crossover goal.
 
+Bill authorizes the coordinator to resolve missing exercise information by
+inspecting the grader when public instructions are insufficient. Supply only
+the missing input/output contract, not solution code or inferred extra features.
+Record the source revision and exactly what was supplied to the student in
+`docs/edition-2-notes/chNN.md`. The student still does not inspect grader internals
+or old answers. Actual scope, behavior or architecture decisions remain stop points.
+
 Codex is the primary creator of Edition 2. Bill continues writing and publishing
 Edition 1 with CodeRhapsody; its sub-agent chapter is forthcoming. Follow newly
 available chapters as part of that evolving source, recording which revision

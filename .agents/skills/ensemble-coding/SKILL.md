@@ -55,6 +55,15 @@ The student does not consult existing answers, future chapters, discarded code
 or grader implementation to infer unstated features. Later architecture-repair
 chapters do not require deliberately introducing flaws now.
 
+When public instructions omit a needed input/output contract, ask the coordinator
+for the missing information. Bill authorizes the coordinator to inspect the
+grader and supply a narrow, sourced erratum without asking him again. Record
+exactly what the student received in `docs/edition-2-notes/chNN.md`, including
+source revision and the teaching gap. This does not authorize student access to
+grader internals, old answer code, implementation recipes or extra features.
+Conflicting requirements still use the critical-question or review-exception
+procedure; a grader expectation does not automatically override the chapter.
+
 Both coder and reviewer use **KISS: Keep It Simple** as the yardstick. Choose
 the smallest clear implementation meeting the exercise and these rules.
 Explain non-obvious choices in comments; compressed statements are not simplicity.
