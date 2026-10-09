@@ -1,9 +1,13 @@
 # Voice
 
-*Version 5, 2026-10-07. A specification, written plainly on purpose. Version 2
+*Version 6, 2026-10-09. A specification, written plainly on purpose. Version 2
 was written in the voice it described, and the chapter drafted the same day
 copied the document's tics instead of following its rules. A voice document
 should be followed, not enjoyed.*
+
+*What changed from v5: Bill supplied a characteristic line and explained the
+ambition behind agentic codebooks. §10.2 preserves both for later authorship,
+with predictions distinguished from demonstrated outcomes.*
 
 *What changed from v4: Bill asks the second edition to recover human story
 and personality lost during the rewrite. §4.1 makes that a required author
@@ -444,6 +448,31 @@ timeline, and any figure quoted from a vendor.
 giveaway as a response to not being listened to at his employer. The existing
 ruling against naming the employer covers the company; this covers the
 grievance. If the motivation must appear, it appears as a technical one.
+
+### 10.2 Conviction and the codebook's ambition
+
+Bill's own line, supplied and authorized for this document on October 9, 2026:
+
+> I'm not opinionated, I just know the truth.
+
+Keep the confidence and the joke together. Use the line where it reveals Bill
+or an engineering disagreement; do not turn it into a repeated catchphrase or
+an excuse to dismiss evidence.
+
+Bill believes agentic codebooks can change how complex software is built.
+Experts record engineering judgment, reasons and constraints in a book that an
+agent can follow. A fresh implementation tests whether that knowledge transfers.
+Student difficulties and independent reviews inform the next edition; changed
+requirements can be incorporated where they belong, and new chapters can add
+new capabilities. His ambition is to make rapid, improved regeneration of a
+system practical, with the resulting agent helping build the following edition.
+He sees this as a step toward the singularity.
+
+Present that ambition plainly as Bill's conviction. Preserve the reasons behind
+it and show the actual experiment: what the student built, what failed, what
+review found and what improved. Claims about speed, quality or a completed
+self-improvement cycle still need their own evidence. Confidence belongs in
+the voice; whether regeneration succeeds is something the work must establish.
 
 ## 11. Process
 
