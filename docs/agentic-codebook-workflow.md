@@ -53,8 +53,8 @@ distinct goals; none can stand in for the others.
 During the later author phase, the author and prose reviewer both read
 [voice.md](../book/voice.md) and the chapter writing procedure. Follow the voice
 guidance on motivation, explanation and preserving the human story. It already
-calls for personality, candid
-engineering judgment and documented experience. Keep those qualities as the
+calls for personality, candid engineering judgment and documented experience.
+Keep those qualities as the
 book becomes more precise. Explain why a rule matters before demanding compliance,
 give mechanisms concrete examples, and preserve the discoveries and frustrations
 that make the work meaningful. Never invent anecdotes or results for effect.
@@ -65,6 +65,13 @@ interest. Prose lint cannot make that judgment. Keep detailed workflow records
 outside the teaching narrative unless they help the reader understand something.
 Agents may capture memorable moments in chapter notes now; manuscript writing
 still waits for the implementation and its lessons.
+
+The implementation itself teaches. Bill's target is roughly 20% comments,
+about one comment line per four code lines excluding blanks, with explanations
+of why the design works, ownership and non-obvious choices. The coder writes
+these explanations alongside the implementation; the code reviewer assesses
+their usefulness as well as their quantity. Do not postpone them to authorship,
+remove them to reduce code counts, or add filler to hit a percentage.
 
 ## Explicit crossover goal
 
@@ -175,8 +182,10 @@ does not remove the need for collaboration when the assignment is ambiguous.
 
 For each chapter:
 
-1. Give the coder the carryover, original chapter and exact mandatory skill path. Keep old
-   solutions and discarded requirements out of the coder's handoff.
+1. Give the coder the carryover, original chapter and exact mandatory skill path.
+   Start with a fresh context containing permitted materials, not a fork of an
+   orchestrator or reviewer conversation that has seen old answers. Keep old
+   solutions and discarded requirements out of the coder's handoff and follow-ups.
 2. Implement the exercise using the agreed architecture and the simplest clear
    design. Record material difficulties and decisions while they are fresh.
 3. Run the original grader and appropriate checks. Actually use the human
@@ -318,8 +327,8 @@ other contributors' findings and disagreements, adding corrections with reasons.
 Notes collect evidence for later authorship. They do not amend the current
 assignment, add acceptance criteria or make a suggestion binding. A reviewer's
 explicit acceptance of an exercise exception is a separate, recorded decision
-under Bill's authorization above. Keep old
-solution code and answer-revealing comparisons out of notes supplied to the
+under Bill's authorization above. Keep old solution code and answer-revealing
+comparisons out of notes supplied to the
 student; the reviewer returns findings and rationale through the existing review
 process. The future author considers all contributors' notes alongside the
 tested implementation and reviews, rather than treating any agent's proposal as
@@ -339,8 +348,8 @@ Do not claim an experiment ran or a feature worked without the result.
 Update the coding skill when Bill accepts a general operational rule; this
 document supplies its motivation and history. Put local teaching feedback in the
 shared chapter notes for the eventual author. At that later author phase,
-preserve the human story and explain why the rules exist, using actual experiences rather
-than invented battle scars.
+preserve the human story and explain why the rules exist, using actual
+experiences rather than invented battle scars.
 
 At the October 9 preparation checkpoint, the previous implementation agents
 remain stopped, all discarded second-edition solutions and manuscript drafts
@@ -348,3 +357,10 @@ have been removed, and the carryover review team has read Chapters 0–23 and
 the epilogue in full. Chapter 24 and the sub-agent chapter remain forthcoming.
 The two drafts are ready for review with Bill. No new coder has started; the
 new workflow's effectiveness remains to be tested.
+
+Codex's own review on October 9 covered both drafts in full, their consistency
+with Bill's instructions, source support for consequential carryover lessons,
+links and scope. It clarified the coder's fresh-context boundary, small
+save/load scope and the teaching-comment target. The carryover's remaining
+source contradictions are explicitly left for discussion with Bill; neither
+draft is marked approved.

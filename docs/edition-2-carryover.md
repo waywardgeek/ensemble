@@ -44,11 +44,24 @@ meeting the current exercise, not compressed code or removal of useful comments.
 Sources: [Chapter 0, “What this book is”](../book/chapter-00.md#what-this-book-is),
 [Chapter 20, §20.5](../book/chapter-20.md#205-the-agent-looks-in-the-mirror).
 
+**Astra: this code is for teaching. Comments matter.** Bill found the discarded
+attempt far too light on comments. Write for a student who needs to understand
+why the code has this shape without reconstructing the design from other files
+or old conversations. Explain purpose, ownership, lifetime, ordering constraints,
+and non-obvious choices beside the code they govern. For example, explain why a
+job continues after a wait returns; merely labeling the wait call teaches little.
+Aim for **roughly 20% comments** in the implementation, about one comment line
+for four code lines, excluding blanks. This is a teaching target, not a quota
+to satisfy with padding or narration of obvious syntax. The reviewer assesses
+both the balance and whether the explanations actually help the student. Useful
+comments are part of code quality, not bloat. This is Bill's October 9 direction,
+in addition to the first edition's lessons.
+
 **Own the request bytes.** Chapter 1 starts with raw HTTP, without an SDK or
 framework, because payload placement later determines steering and cache
 behavior. That is not permission to implement either feature immediately.
-Preserve all returned content and actual usage required by the current exercise;
-keep protocol output usable and diagnostics separate. Discover available models
+Walk the response blocks as the exercise requires, retain the conversation and
+report actual usage; keep protocol output usable and diagnostics separate. Discover available models
 when testing instead of treating the book's historical names as an inventory.
 Source: [Chapter 1, §§1.1–1.2](../book/chapter-01.md#11-frameworks-and-why-this-book-uses-none).
 
@@ -215,6 +228,13 @@ unknown interpreted event types still fail loudly. Sources:
 [§11.3–11.6](../book/chapter-11.md#113-snapshot-plus-tail),
 [§15.10](../book/chapter-15.md#1510-compaction-is-described-never-performed),
 [§15.12](../book/chapter-15.md#1512-crash-safe-persistence).
+
+Keep Chapter 11's save/load exercise small: its four-field JSON save and restore
+loop are sufficient starting points. Byte-identical replayed **vendor requests**
+do not require a custom canonical JSON format on disk. Do not bring Chapter 15's
+journal forward or add the retired attempt's hash/origin acceptance machinery.
+The [first-attempt history](edition-2-attempt-1.md) explains why that expansion
+is specifically a failure to avoid.
 
 **Chapters 15–17: preserve meaning when discarding bytes.** A loaded manual
 stored only as a tool result disappears when tool results are cleared. Give

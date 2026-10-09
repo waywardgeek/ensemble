@@ -53,6 +53,11 @@ chapters do not require deliberately introducing flaws now.
 Both coder and reviewer use **KISS: Keep It Simple** as the yardstick. Choose
 the smallest clear implementation meeting the exercise and these rules.
 Explain non-obvious choices in comments; compressed statements are not simplicity.
+This is teaching code. Bill asks for roughly 20% comments (about one comment
+line per four code lines, excluding blanks). Explain why, ownership, lifetimes
+and important ordering beside the relevant code so students need not reverse
+engineer the design. Treat the percentage as a teaching target, not a padding
+quota; useful comments are not bloat.
 Do not introduce generic frameworks, extra protocols, invented limits, speculative
 recovery or exhaustive audit machinery merely because they might be useful.
 There is no author agent and no grader agent working ahead of the student.
@@ -107,6 +112,9 @@ Leave a concise comparison covering:
 - **Comments:** compare explanation of intent, ownership and non-obvious choices,
   as well as comment counts. Check accuracy. Preserve useful explanations;
   neither silence nor comments narrating obvious syntax improve maintainability.
+  Assess Bill's roughly 20% comment target and whether a student can understand
+  the reasons behind the code. Do not accept thin explanations merely because
+  the program passes, or filler merely because it reaches the target.
 - **Tests:** compare the behaviors and real failure modes protected. Better tests
   are valuable even when longer. Do not reward test volume, implementation-mirror
   assertions or elaborate test infrastructure for its own sake. Preserve the
