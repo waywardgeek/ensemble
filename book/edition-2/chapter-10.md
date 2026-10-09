@@ -1095,8 +1095,8 @@ the deterministic controls in §10.10. Successful provider traffic cannot establ
 those guarantees. The [quality handback](../../solutions/edition-2/main/evidence/ch10/quality-handback.md)
 records the later scalar-read improvement, format-documentation correction and
 empty-card repair. Captured values and initial receipts remain unchanged; the
-local browser evidence supersedes only the empty-card appearance. That limited
-reuse still needs independent acceptance. The revised binary has not made a new
+local browser evidence supersedes only the empty-card appearance. The validation
+record separately assesses that limited reuse. The revised binary has not made a new
 real-provider run, and it cannot inherit the earlier runs as if it had.
 
 ## 10.10 Check the promises independently
