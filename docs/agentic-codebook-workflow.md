@@ -401,6 +401,10 @@ On October 9, Bill generalized the back-pointer rule: an object with two actual
 parents must retain both back-pointers, as in a family-tree node. The carryover
 and coding skill now describe all actual parent relationships; a single-parent
 chain is Ensemble's current example, not a restriction on the rule.
+Bill further distinguished required parents (non-nil constructor inputs) from
+optional parents that may add the child later. His pin example has a required
+IC package and an optional wire. Adding the child modifies both sides of the
+relationship: the parent records the child and the child updates its back-pointer.
 
 At the October 9 preparation checkpoint, the previous implementation agents
 remain stopped, all discarded second-edition solutions and manuscript drafts

@@ -25,11 +25,14 @@ lessons guide the current exercise, not early implementation of later features.
   Standard-library dispatch methods such as Error and JSON methods may remain
   with their types. Common is not a miscellaneous utility/behavior package.
 - Private runtime structs may live in their implementation packages. Each child
-  constructor receives and stores an interface back-pointer to every actual
-  parent. A family-tree node with two parents needs both back-pointers; the rule
-  does not require a single-parent tree. Declare parent interfaces in common;
-  expose each object's own parents through interface methods. The application
-  root has no parent. Additional service dependencies are not invented parents.
+  constructor receives and stores interface back-pointers to all required parents;
+  required parents cannot be nil. Optional parents may be absent and add the
+  child later. Adding a child updates both sides: the parent records the child
+  and the child sets its back-pointer to that parent. A pin must belong to an IC
+  package but may float without a wire; connecting a wire establishes the second
+  parent relationship. Declare parent interfaces in common and expose parent
+  relationships through interface methods. Multiple parents are allowed; the
+  application root has none. Service dependencies are not invented parents.
 - Reach configuration, services and logging through those parent relationships.
   Keep facts with their owners, not copied into siblings or supplied through callback bags.
   Parsers and helpers likely to need diagnostics receive owner access too.

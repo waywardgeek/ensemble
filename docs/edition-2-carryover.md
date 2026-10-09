@@ -80,14 +80,18 @@ chapters. Sources: [§5.1](../book/chapter-05.md#51-the-idea-in-plain-words),
 [Chapter 22's diagnosis](../book/chapter-22.md#the-symptom-a-feature-that-should-have-been-easy).
 
 **Bill's clarification is stronger than some examples.** Every child constructor
-receives and stores an interface back-pointer to every actual parent; each
-parent exposes its own parents through interface methods. Bill explicitly
-generalizes this beyond trees: a family-tree node with two parents must retain
-both back-pointers. The data model determines the parent relationships, not a
-single-parent restriction. A bag of sibling services is not a substitute for
-those relationships. Reach configuration, services and logging through ownership;
-no mutable application globals or
-callback bags. The root needs no invented parent. One Ensemble owns potentially
+receives and stores interface back-pointers to all required parents, which cannot
+be nil. Optional parents may be absent and add the child later. Adding a child
+modifies both objects: the parent records the child, and the child updates its
+back-pointer to that parent. Each object exposes its parent relationships through
+interface methods. The rule allows multiple parents: a pin must belong to an IC
+package but may float with no wire. Connecting it to a wire establishes a second
+parent relationship, retaining the package relationship. A family-tree node with
+two parents likewise needs both back-pointers. The data model determines which
+relationships exist and which are required, not a single-parent restriction.
+A bag of sibling services is not a substitute for those relationships. Reach
+configuration, services and logging through ownership; no mutable application
+globals or callback bags. The root needs no invented parent. One Ensemble owns potentially
 many Agents and the logger; Agent owns configuration; Engine owns usage. Tool
 visibility is per-Agent, whether registry storage belongs to Agent or Ensemble.
 Introduce these objects only as needed. The executable must actually use the
