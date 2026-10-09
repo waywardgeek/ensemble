@@ -138,6 +138,18 @@ producers. Prefer a faithful boundary fake over mocks that remove the behavior
 under test. Run the required checks and affected regressions; this is not a
 request for blanket test expansion or a new verification framework.
 
+CodeRhapsody's `learnings.json` adds concrete checks: a root-module test command
+does not cover separate Go modules; a pipeline's final command can hide the test
+command's failure; and missing stdout is a reason to inspect stderr before
+guessing. Assert the requested observable, such as the actual endpoint rather
+than just the vendor name. Derive fixtures from observed artifacts so the test
+and implementation do not merely share one wrong assumption. Before calling a
+failure pre-existing, reproduce it on the recorded baseline in an isolated
+worktree when feasible; otherwise label that explanation unverified. If a
+targeted mutation check is warranted, confirm the mutation actually applied and
+removed the intended behavior before interpreting the result. These are ways to
+make existing verification meaningful, not a mandate for more test machinery.
+
 **Make changes small enough to inspect.** Read the assigned chapter and
 carryover before editing. For structural changes, move a coherent piece, use
 compiler feedback and inspect the resulting diff, including comments, strings
@@ -425,6 +437,11 @@ Codex also read `~/.cr/memory/summary-7d.md`, whose recorded update date is
 April 11, 2026. Its decisions, rejected approaches and active-context sections
 informed the workflow's continuity guidance. Its old implementation status and
 product recommendations are not current facts or new student requirements.
+Bill clarified that the summaries he meant are the `short` entries in
+`~/.cr/learnings.json`. Codex read all 65 of those entries on October 9, without
+reading their expanded descriptions. The verification guidance above and the
+workflow's check for misplaced behavior draw on them. Personal details,
+unrelated project instructions and historical product claims were not imported.
 
 Codex also read the deleted second-edition Chapter 1 in full from
 `0f05359c9240e76213fc0d3937306f81094f5295:book/edition-2/chapter-01.md`

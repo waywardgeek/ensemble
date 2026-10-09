@@ -149,7 +149,8 @@ lessons without rewriting chapters or designing the next implementation ahead
 of experience. Students read the carryover and skill with the original chapters;
 reviewers check that the carryover has not become a new source of feature creep.
 
-Bill notes that CodeRhapsody keeps its summaries in context alongside its memory.
+Bill notes that CodeRhapsody keeps the `short` summaries from `learnings.json`
+in context alongside its memory.
 Use that continuity principle in student handoffs: retain the accepted carryover,
 mandatory skill, current assignment and a brief account of relevant decisions,
 rejected approaches and unresolved questions. After compaction, reload the
@@ -229,8 +230,11 @@ commands actually executed. Inspect the staged diff and commit only owned paths;
 a shared Git index can already contain Bill's work before an agent stages its own.
 
 Architecture review checks actual imports, constructor calls and paths to owned
-data, rather than finding identifiers such as `Host` or `Agent`. Useful small
-checks, when those capabilities are present, include calling the public library
+data, rather than finding identifiers such as `Host` or `Agent`. Also inspect
+where function bodies live: a hub can obey the import rules while accumulating
+behavior that belongs in the spokes. CodeRhapsody's short learnings call out this
+failure explicitly; import edges alone cannot establish good organization.
+Useful small checks, when those capabilities are present, include calling the public library
 from an external consumer, giving two Agents distinct conversations and checking
 their histories and usage remain separate, and confirming a request failure
 reaches the application's logger through the owner chain without exposing keys.
