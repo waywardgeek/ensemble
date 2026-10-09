@@ -5,6 +5,13 @@ at high reasoning, and Edition 3 of the book is to be built using that Ensemble
 agent rather than Codex. Keep this destination in view without implementing
 later features early. See the workflow's crossover goal and verification notes.
 
+Bill cannot use Codex for continuous real-time collaboration. Do not rely on him
+monitoring progress or interrupting a mistaken direction. Work autonomously
+within agreed scope. For a critical question, stop the work, pause active
+delegates, ask plainly with the relevant context, and wait for Bill's answer.
+Do not ask asynchronously and continue working, or treat silence as agreement.
+Close real-time collaboration in Ensemble is part of the crossover goal.
+
 Codex is the primary creator of Edition 2. Bill continues writing and publishing
 Edition 1 with CodeRhapsody; its sub-agent chapter is forthcoming. Follow newly
 available chapters as part of that evolving source, recording which revision

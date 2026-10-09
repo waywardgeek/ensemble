@@ -69,6 +69,10 @@ There is no author agent and no grader agent working ahead of the student.
 
 Record teaching gaps and suspected grader defects for future maintainers; do not
 rewrite either during this attempt. Ask Bill about consequential ambiguities.
+Critical questions are stop points: stop work and route the question to the
+coordinator, who pauses active delegates, asks Bill plainly and waits for his
+answer. Do not continue under an assumption or rely on Bill watching progress
+and interrupting; Codex does not support the real-time collaboration he needs.
 An explicit unpause from any tab unpauses the Agent for everyone; other tabs
 cannot retain independent vetoes.
 

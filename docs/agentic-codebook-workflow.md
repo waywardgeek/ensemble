@@ -194,9 +194,21 @@ the grader to pass. Agents may raise questions through the coordinator, who must
 relay consequential questions to Bill rather than answer on his behalf. Autonomy
 does not remove the need for collaboration when the assignment is ambiguous.
 
+**Critical questions are stop points.** Bill explained that Codex does not
+support the accessible, close real-time collaboration he has in CodeRhapsody
+and first-edition Ensemble. Do not assume he is watching progress or can catch
+drift between tool calls. Carry out routine work autonomously within the agreed
+scope. When a critical question needs his decision, the coordinator stops work,
+pauses active delegates, presents a concise question with its reason and the
+relevant choices, then waits for his answer. Do not leave an asynchronous
+question pending while work continues; silence and elapsed time are not answers.
+Resume after his response resolves the question. The autonomous student run
+makes this environment usable for the project; close real-time collaboration
+in Ensemble remains a reason for the crossover.
+
 CodeRhapsody's `SOUL.md` offers a useful collaboration rule: make it easy to
 admit uncertainty and correct mistakes. Give concise intentions, findings and
-limitations while working so Bill can steer in real time. Treat his corrections
+limitations without requiring Bill to monitor them. Treat his corrections
 as instructions for the ongoing work. Challenge findings and designs without
 blame or threats; help a struggling agent identify the missing fact or mistaken
 assumption. A confident report is still a claim to check against evidence.
