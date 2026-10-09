@@ -639,5 +639,13 @@ whole failure output, including cleanup: a desired assertion does not make an
 additional race harmless. Production remained unchanged across both rounds.
 Original grading remains 90/100 FAIL, all eight new checks passing; live evidence,
 corrections and the exact 25-file export are retained with the checkpoint.
+Chapter 5 is assigned in a fresh context to `student_restart_ch05`, starting
+from accepted `76bf591` / `edition-2-ch04-r2`. Its frozen original reference
+passes the actual 120/120 grader, including Chapter 4 at 100/100. Coordinator
+setup facts are in `docs/edition-2-notes/ch05.md`: the harness launches the
+framework CLI, despite the chapter describing a separately graded consumer.
+The external custom-tool exercise remains required and needs its own evidence;
+existing architecture is not a reason to recreate the old refactor or globals.
+No Chapter 5 result or acceptance has been claimed.
 Preserve small resumable checkpoints if a usage limit interrupts work;
 never label unfinished work an accepted chapter.
