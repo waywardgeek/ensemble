@@ -25,6 +25,13 @@ record the exception, its reasons and actual grader/live
 results, then advance. A failed check remains failed; this cannot waive Bill's
 architecture rules. See the [exception procedure](agentic-codebook-workflow.md#reviewer-acceptance-of-an-unreasonable-exercise).
 
+Reviewer feedback may lead the student to revise both code and its chapter
+review. The [bounded review loop](agentic-codebook-workflow.md#bounded-studentreviewer-loop)
+allows three revision rounds after the initial review by default, stopping on
+acceptance or, if still unable to pass, bringing Bill the unresolved evidence
+before further work. The limit is adjustable by Bill; failed grader tests can
+still receive documented reviewer acceptance as described above.
+
 **Destination.** Bill requires the new Ensemble to run **GPT-5 Astra at high
 reasoning**, and Edition 3 to be built using that Ensemble rather than Codex.
 Verify the supported model identifier, access method, reasoning setting and real

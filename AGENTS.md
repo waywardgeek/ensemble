@@ -81,8 +81,12 @@ The skill defines the required comparison of active code, comments and tests.
 Reject feature creep, unjustified bloat and complexity added for elegance;
 passing the grader is not sufficient. Return findings
 and rationale to the coder, not answer code. Do not add features or substitute
-reviewer preferences for the original exercise. The coder may improve its answer
-and rerun affected checks before the chapter checkpoint.
+reviewer preferences for the original exercise. The coder may revise both code
+and its chapter review, rerun affected checks and return to the reviewer.
+Default to three revision rounds after the initial review, unless Bill sets
+another limit. If still unaccepted, stop progression, record that the student
+could not pass within the limit, and bring Bill the evidence to resolve the
+chapter, grader or implementation problem. Do not silently start another loop.
 
 Feature creep and code bloat violate the task. Ask Bill about consequential
 ambiguity; coordinator preferences are not user requirements. In particular,

@@ -159,8 +159,17 @@ whether the chapter is accepted, accepted with an exception, or needs correction
 accept unresolved scope or bloat findings. Ask Bill if a consequential tradeoff
 cannot be resolved from his instructions.
 
-The coder addresses findings and reruns affected checks; the reviewer checks
-those revisions. Keep this a code review, not another evidence framework.
+The student may revise both code and its chapter review in response to feedback,
+rerun affected checks and submit both for reviewer reassessment. Iterate until
+accepted (including an accepted exception) or the fixed limit is reached. The
+default is three revision rounds after the initial review, unless Bill sets a
+different limit. If still unaccepted, declare the student unable to pass this
+chapter within that limit, stop progression and bring Bill the latest code,
+student review, unresolved findings, actual results and what was tried. Bill
+then helps resolve chapter/grader problems or directs another attempt. Do not
+restart the count with another agent. Record rounds in the existing chapter
+notes; preserve failed results as the review evolves. Escalate consequential
+ambiguity earlier when necessary. Keep this a code review, not another evidence framework.
 Commit completed chapters and exact source snapshots with fresh tags, never
 moving old tags. Chapters and graders remain unchanged until Bill authorizes
 their later revision.

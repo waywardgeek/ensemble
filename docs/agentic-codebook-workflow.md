@@ -215,9 +215,38 @@ For each chapter:
 4. Leave the student review. The code reviewer then compares active production
    code, comments, tests, design and scope with the original solution, using the
    counting and review rules in the skill.
-5. Address findings, rerun affected checks and have the revisions reviewed.
+5. Iterate on reviewer feedback as described below, revising both the code and
+   the student's chapter review and rerunning affected checks.
    Checkpoint the accepted source and exact snapshot with a new immutable tag.
    Preserve failed attempts and earlier revisions in history.
+
+### Bounded student–reviewer loop
+
+The student may use the reviewer's feedback to edit both its implementation and
+its chapter review, including correcting an explanation or presenting evidence
+for a disputed finding. The reviewer then reads the revised review, inspects the
+changed code and results, and makes a fresh acceptance decision. Feedback remains
+findings and rationale, not old solution code or extra feature requirements.
+
+Use **at most three revision rounds after the initial review** per chapter as the
+coordinator's default, unless Bill sets another limit. Each round consists of
+reviewer feedback, student revisions and affected checks, then reviewer
+reassessment. Stop as soon as the chapter is accepted, including acceptance with
+a documented exception for a flawed grader or unreasonable exercise. Acceptance
+does not require every grader test to be green.
+
+If the third revision round still does not produce acceptance, declare the
+student **unable to pass this chapter within the agreed limit** and stop that
+chapter and progression to the next. Bring Bill the latest code and student
+review, remaining findings, actual test results and a brief account of what was
+tried. Explain whether the evidence points to the chapter, grader, implementation
+or an unresolved disagreement; the limit alone does not establish the cause.
+Bill then helps resolve the chapter and/or grader problem or directs the next
+attempt. Do not silently reset the round count by replacing an agent, alter the
+grader, or launch further attempts. Ask earlier when a consequential ambiguity
+already requires Bill; the limit is a ceiling, not a requirement to spend it.
+Keep round counts and outcome notes in the existing chapter review/notes, retaining
+prior failed results while allowing the student's current explanation to improve.
 
 Keep one authoritative working source tree at `solutions/edition-2/main/` when
 coding resumes, tracked by this outer repository without a nested Git repository.
