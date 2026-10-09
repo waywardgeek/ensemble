@@ -9,11 +9,11 @@ where recorded; no author is active. Remaining source
 contradictions are still questions to resolve when relevant, not blanket approval
 of every proposed interpretation.
 
-**Current stop point:** before assigning Chapter 6, resolve its contradictory
-interrupt-lifetime instructions with Bill. See [the exact source and question](edition-2-notes/ch06.md).
-Chapters 1–5 are checkpointed; implementation/review delegates have completed.
-No Chapter 6 coder or author is active. The later §6.7 behavior is recommended,
-not assumed approved. Resume from accepted `edition-2-ch05-r2` after his answer.
+**Chapter 6 may proceed:** Bill resolved the interrupt-lifetime question: end the
+current turn so the user can start a new one; other jobs continue and retain their
+real results. See [the source conflict and ruling](edition-2-notes/ch06.md).
+Resume from accepted `edition-2-ch05-r2` under §6.7, preserving the Agent's lifetime.
+No author is active. Other consequential ambiguities still require resolution.
 
 These are the two review documents. The carryover answers “What did the previous
 edition teach us that the student should know?” This workflow answers “How do

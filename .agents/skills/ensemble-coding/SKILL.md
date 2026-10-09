@@ -84,6 +84,9 @@ answer. Do not continue under an assumption or rely on Bill watching progress
 and interrupting; Codex does not support the real-time collaboration he needs.
 An explicit unpause from any tab unpauses the Agent for everyone; other tabs
 cannot retain independent vetoes.
+Bill's interrupt ruling: end the current turn so the user can start a new one;
+keep the Agent alive and other jobs running. Preserve their real results.
+Interrupt is not job kill or shutdown. Apply this when Chapter 6 introduces it.
 
 Run gofmt, go vet and go test in affected modules, and the original chapter
 grader. Use focused regressions for actual bugs, not a new grading framework.
