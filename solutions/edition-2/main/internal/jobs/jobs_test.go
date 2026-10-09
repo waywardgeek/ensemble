@@ -17,6 +17,7 @@ import (
 	"unicode/utf8"
 
 	"example.com/ensemble/internal/common"
+	"example.com/ensemble/internal/jsonvalue"
 )
 
 type testRoot struct {
@@ -554,3 +555,9 @@ func TestReportDoesNotBlockAcceptedLimitProjection(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+func (r *testRoot) JSON() common.JSONService      { return jsonvalue.New(r) }
+func (r *testRoot) MCP() common.MCPService        { return nil }
+func (r *testRoot) MCPRuntime() common.MCPRuntime { return nil }
+
+func(r *testRegistry)Remote(string)bool{return false}

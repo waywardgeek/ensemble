@@ -50,12 +50,14 @@ type SkillIdentity struct {
 	BindingsSHA256 string `json:"bindings_sha256"`
 }
 type SessionIdentity struct {
+ MCPBindings []MCPBinding `json:"mcp_bindings,omitempty"`
 	Mode     string            `json:"mode"`
 	System   *string           `json:"system"`
 	Skills   *SkillIdentity    `json:"skills"`
 	Handlers []HandlerIdentity `json:"handlers"`
 }
 type SessionFact struct {
+ Version int `json:"version,omitempty"`
 	SessionID      string           `json:"session_id"`
 	Identity       *SessionIdentity `json:"identity,omitempty"`
 	OriginAsOf     uint64           `json:"origin_as_of,omitempty"`
@@ -144,6 +146,7 @@ type SnapshotWindow struct {
 	EventCount      uint64        `json:"event_count"`
 }
 type SemanticState struct {
+ MCPBindings []MCPBinding `json:"mcp_bindings,omitempty"`
 	Session SnapshotSession `json:"session"`
 	Context Context         `json:"context"`
 	Usage   []UsageAccount  `json:"usage"`

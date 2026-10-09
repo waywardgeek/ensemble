@@ -58,7 +58,9 @@ func runArgs(args []string, input io.Reader, output, diagnostics io.Writer) (res
 			result = err
 		}
 	}()
-	args, selection, err := sessionArguments(args)
+	args, mcpPath, err := mcpArguments(args)
+ if err!=nil{return err}
+ args, selection, err := sessionArguments(args)
 	if err != nil {
 		return err
 	}
@@ -129,6 +131,7 @@ func runArgs(args []string, input io.Reader, output, diagnostics io.Writer) (res
 		config.Builtins = append(config.Builtins, "load_skill", "unload_skill")
 	}
 	config.MaxTokens = 4096
+ if mcpPath!=""{config.MCPBindings,err=app.LoadMCPConfig(mcpPath);if err!=nil{return err}}
 	agent, err := SelectAgent(app, config, mode == "chat", selection)
 	if err != nil {
 		return err

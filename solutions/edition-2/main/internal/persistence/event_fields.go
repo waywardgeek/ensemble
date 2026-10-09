@@ -32,6 +32,8 @@ func (c *Codec) eventFields(value any) error {
 		return nil
 	}
 	fields, ok := obj[payload].(map[string]any)
+    version:=0
+    if ok&&payload=="session" {if v,present:=fields["version"];present{if v!=json.Number("2"){return c.bad("unsupported session payload version")};version=2;keys=append(keys,"version")}}
 	if !ok || len(fields) != len(keys) {
 		return c.bad("invalid session fact shape")
 	}
@@ -63,6 +65,7 @@ func (c *Codec) eventFields(value any) error {
 		if err := c.unwire(fields["identity"], reflect.ValueOf(&identity).Elem(), false); err != nil {
 			return err
 		}
+		if (version==2)!=(len(identity.MCPBindings)>0){return c.bad("initializer identity format mismatch")}
 		return c.Identity(identity)
 	}
 	hash, ok := fields["origin_sha256"].(string)

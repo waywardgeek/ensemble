@@ -17,6 +17,7 @@ type field struct {
 	Minimum     *int   `json:"minimum,omitempty"`
 }
 type entry struct {
+	remote      *common.MCPBinding
 	description string
 	fields      map[string]field
 	run         func(*Registry, arguments) (string, error)
@@ -47,18 +48,18 @@ func New(parent common.ToolAgent, selected []string) (*Registry, error) {
 	root := textField("File or directory path; defaults to the Agent workspace (.).", false, false, ".")
 	cap := numberField("Maximum retained bytes; defaults to 65536. Omitted content is marked truncated.", 65536, 1)
 	builtins := map[string]entry{
-		"load_skill":     {"Activate one discoverable skill and its dependencies.", map[string]field{"name": textField("Skill identifier.", true, false, "")}, nil},
-		"unload_skill":   {"Remove one explicit skill root; retain shared dependencies and past manuals.", map[string]field{"name": textField("Skill identifier.", true, false, "")}, nil},
-		"read_file":      {"Read an inclusive one-based line range; report I/O and range errors.", map[string]field{"path": path, "start_line": numberField("First line, default 1.", 1, 1), "end_line": numberField("Last line; default 0 reads through EOF.", 0, 0), "max_bytes": cap}, readFile},
-		"list_directory": {"List one directory level in name order, distinguishing directories.", map[string]field{"path": root, "max_entries": numberField("Maximum entries; default 200. Further entries cause a truncation notice.", 200, 1), "max_bytes": cap}, listDirectory},
-		"search_files":   {"Search regular text files recursively using Go regexp; skip .git, symlinks, and files with NUL in the first 8192 bytes.", map[string]field{"path": root, "pattern": textField("Nonempty Go regular expression.", true, false, ""), "file_pattern": textField("Optional filepath.Match glob matched against basenames; omitted means no filter.", false, false, ""), "context_lines": numberField("Neighbor lines around selected matching lines; default 0. Overlapping or adjacent groups merge.", 0, 0), "max_matches": numberField("Maximum matching lines, default 200. Further matches cause a truncation notice.", 200, 1), "max_bytes": cap}, searchFiles},
-		"write_file":     {"Create a file and missing parents. Refuse replacing an existing file without overwrite:true; append mode creates or appends.", map[string]field{"path": path, "content": textField("Exact text to write; empty text is valid.", true, true, ""), "append": boolField("Append or create; default false. When true, overwrite is irrelevant."), "overwrite": boolField("Allow replacement of existing bytes; default false.")}, writeFile},
-		"edit_file":      {"Replace exactly one non-overlapping exact anchor. Refuse zero or multiple matches; read the file and choose a unique anchor.", map[string]field{"path": path, "old_text": textField("Nonempty exact unique anchor.", true, false, ""), "new_text": textField("Replacement; empty text deletes the anchor. Identical text succeeds as a no-op.", true, true, "")}, editFile},
-		"run_command":    {"Start a fresh POSIX shell on a PTY with merged stdout/stderr and input echo. Retain all output and exit_code on disk; wait delay never kills the job.", map[string]field{"command": textField("Nonempty shell command.", true, false, ""), "cwd": textField("Optional working-directory override, absolute or relative to Agent workspace.", false, false, "")}, nil},
-		"wait_for_job":   {"Report unseen job output; wait for completion, new-output pattern, or delay. Finished jobs return immediately.", map[string]field{"handle": {Type: "integer", Required: true, Description: "Positive job handle owned by this Agent."}}, nil},
-		"send_input":     {"Send input to a running PTY job, then wait using only output since this input for pattern matching.", map[string]field{"handle": {Type: "integer", Required: true}, "input": textField("Input bytes; empty is valid.", true, true, ""), "append_newline": {Type: "boolean", Default: true, Description: "Append one LF, default true; false sends exact bytes."}}, nil},
-		"kill_job":       {"Kill a running job's process group. Repeated kill preserves the existing terminal status.", map[string]field{"handle": {Type: "integer", Required: true}}, nil},
-		"tool_limits":    {"Set supplied wait/report overrides for the next attempted tool call only, including invalid calls and setters.", map[string]field{}, nil},
+		"load_skill":     {nil, "Activate one discoverable skill and its dependencies.", map[string]field{"name": textField("Skill identifier.", true, false, "")}, nil},
+		"unload_skill":   {nil, "Remove one explicit skill root; retain shared dependencies and past manuals.", map[string]field{"name": textField("Skill identifier.", true, false, "")}, nil},
+		"read_file":      {nil, "Read an inclusive one-based line range; report I/O and range errors.", map[string]field{"path": path, "start_line": numberField("First line, default 1.", 1, 1), "end_line": numberField("Last line; default 0 reads through EOF.", 0, 0), "max_bytes": cap}, readFile},
+		"list_directory": {nil, "List one directory level in name order, distinguishing directories.", map[string]field{"path": root, "max_entries": numberField("Maximum entries; default 200. Further entries cause a truncation notice.", 200, 1), "max_bytes": cap}, listDirectory},
+		"search_files":   {nil, "Search regular text files recursively using Go regexp; skip .git, symlinks, and files with NUL in the first 8192 bytes.", map[string]field{"path": root, "pattern": textField("Nonempty Go regular expression.", true, false, ""), "file_pattern": textField("Optional filepath.Match glob matched against basenames; omitted means no filter.", false, false, ""), "context_lines": numberField("Neighbor lines around selected matching lines; default 0. Overlapping or adjacent groups merge.", 0, 0), "max_matches": numberField("Maximum matching lines, default 200. Further matches cause a truncation notice.", 200, 1), "max_bytes": cap}, searchFiles},
+		"write_file":     {nil, "Create a file and missing parents. Refuse replacing an existing file without overwrite:true; append mode creates or appends.", map[string]field{"path": path, "content": textField("Exact text to write; empty text is valid.", true, true, ""), "append": boolField("Append or create; default false. When true, overwrite is irrelevant."), "overwrite": boolField("Allow replacement of existing bytes; default false.")}, writeFile},
+		"edit_file":      {nil, "Replace exactly one non-overlapping exact anchor. Refuse zero or multiple matches; read the file and choose a unique anchor.", map[string]field{"path": path, "old_text": textField("Nonempty exact unique anchor.", true, false, ""), "new_text": textField("Replacement; empty text deletes the anchor. Identical text succeeds as a no-op.", true, true, "")}, editFile},
+		"run_command":    {nil, "Start a fresh POSIX shell on a PTY with merged stdout/stderr and input echo. Retain all output and exit_code on disk; wait delay never kills the job.", map[string]field{"command": textField("Nonempty shell command.", true, false, ""), "cwd": textField("Optional working-directory override, absolute or relative to Agent workspace.", false, false, "")}, nil},
+		"wait_for_job":   {nil, "Report unseen job output; wait for completion, new-output pattern, or delay. Finished jobs return immediately.", map[string]field{"handle": {Type: "integer", Required: true, Description: "Positive job handle owned by this Agent."}}, nil},
+		"send_input":     {nil, "Send input to a running PTY job, then wait using only output since this input for pattern matching.", map[string]field{"handle": {Type: "integer", Required: true}, "input": textField("Input bytes; empty is valid.", true, true, ""), "append_newline": {Type: "boolean", Default: true, Description: "Append one LF, default true; false sends exact bytes."}}, nil},
+		"kill_job":       {nil, "Kill a running job's process group. Repeated kill preserves the existing terminal status.", map[string]field{"handle": {Type: "integer", Required: true}}, nil},
+		"tool_limits":    {nil, "Set supplied wait/report overrides for the next attempted tool call only, including invalid calls and setters.", map[string]field{}, nil},
 	}
 	for _, name := range []string{"run_command", "wait_for_job", "send_input", "tool_limits"} {
 		fields := builtins[name].fields
@@ -76,8 +77,23 @@ func New(parent common.ToolAgent, selected []string) (*Registry, error) {
 		}
 		r.entries[name] = item
 	}
+	bindings, err := parent.MCPBindings()
+	if err != nil {
+		return nil, err
+	}
+	for _, b := range bindings {
+		if _, exists := r.entries[b.Alias]; exists {
+			return nil, r.failure("remote alias collides with local handler")
+		}
+		binding := b
+		r.entries[b.Alias] = entry{remote: &binding, description: b.Definition.Description}
+	}
+	if len(r.entries) > 1024 {
+		return nil, r.failure("installed handler limit")
+	}
 	return r, nil
 }
+func (r *Registry) Remote(name string) bool { e, ok := r.entries[name]; return ok && e.remote != nil }
 func (r *Registry) Declarations() []common.ToolDefinition {
 	names := make([]string, 0, len(r.entries))
 	for n := range r.entries {
@@ -101,6 +117,11 @@ func (r *Registry) definitions(names []string) []common.ToolDefinition {
 	out := make([]common.ToolDefinition, 0, len(names))
 	for _, name := range names {
 		e := r.entries[name]
+		if e.remote != nil {
+			d := e.remote.Definition
+			out = append(out, common.ToolDefinition{Name: name, Description: d.Description, Schema: append(json.RawMessage(nil), d.InputSchema...)})
+			continue
+		}
 		required := []string{}
 		for n, f := range e.fields {
 			if f.Required {
@@ -264,6 +285,10 @@ func (r *Registry) Kind(name string) (bool, bool) {
 // ExecuteJob leaves a successfully started process to its lifecycle worker.
 // Local results return to Jobs, which owns their artifact and terminal event.
 func (r *Registry) ExecuteJob(call common.Part, job common.Job) *common.ExecutionResult {
+	if e, ok := r.entries[call.Name]; ok && e.remote != nil {
+		result := job.Jobs().Agent().Ensemble().MCPRuntime().Invoke(job.Context(), job, *e.remote, call.Args)
+		return &result
+	}
 	if call.Name != "run_command" {
 		result := r.execute(call)
 		return &result

@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"example.com/ensemble/internal/common"
+	"example.com/ensemble/internal/jsonvalue"
 	"example.com/ensemble/internal/persistence"
 	"io"
 	"reflect"
@@ -424,3 +425,7 @@ func (streamRoot) ReleaseSettingsPath(string)                    {}
 func (a *streamAgent) Codec() common.SessionCodec { return persistence.NewCodec(a) }
 
 func (streamRoot) ReleaseSession(string) {}
+
+func (r streamRoot) JSON() common.JSONService      { return jsonvalue.New(r) }
+func (r streamRoot) MCP() common.MCPService        { return nil }
+func (r streamRoot) MCPRuntime() common.MCPRuntime { return nil }

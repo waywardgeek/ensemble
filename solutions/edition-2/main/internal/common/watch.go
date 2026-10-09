@@ -32,20 +32,21 @@ type UsageAccount struct {
 	Usage Usage      `json:"usage"`
 }
 type WatchState struct {
-	Session                *SessionState    `json:"session"`
-	JobAccess              []JobAccess      `json:"job_access"`
-	Skills                 *SkillState      `json:"skills"`
-	ExecutionPolicy        PolicySnapshot   `json:"execution_policy"`
-	ActiveMaxModelRequests *int             `json:"active_max_model_requests"`
-	Lifecycle              string           `json:"lifecycle"`
-	ActiveRequestID        *string          `json:"active_request_id"`
-	ActiveOperation        *ActiveOperation `json:"active_operation"`
-	QueuedRequestIDs       []string         `json:"queued_request_ids"`
-	Paused                 bool             `json:"paused"`
-	TypingClients          int              `json:"typing_clients"`
-	SpeakingClients        int              `json:"speaking_clients"`
-	Model                  string           `json:"model"`
-	Usage                  []UsageAccount   `json:"usage"`
+	MCP                    []MCPBindingSnapshot `json:"mcp"`
+	Session                *SessionState        `json:"session"`
+	JobAccess              []JobAccess          `json:"job_access"`
+	Skills                 *SkillState          `json:"skills"`
+	ExecutionPolicy        PolicySnapshot       `json:"execution_policy"`
+	ActiveMaxModelRequests *int                 `json:"active_max_model_requests"`
+	Lifecycle              string               `json:"lifecycle"`
+	ActiveRequestID        *string              `json:"active_request_id"`
+	ActiveOperation        *ActiveOperation     `json:"active_operation"`
+	QueuedRequestIDs       []string             `json:"queued_request_ids"`
+	Paused                 bool                 `json:"paused"`
+	TypingClients          int                  `json:"typing_clients"`
+	SpeakingClients        int                  `json:"speaking_clients"`
+	Model                  string               `json:"model"`
+	Usage                  []UsageAccount       `json:"usage"`
 }
 type WatchSnapshot struct {
 	AgentID    string         `json:"agent_id"`

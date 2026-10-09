@@ -282,3 +282,35 @@ state. Retired/out-of-window facts count. Unsupported higher/lower values refuse
 Only the request cursor can exceed recorded admissions. Ensemble's allocator is
 separate. Context.Index is derived runtime admission data and is NOT a wire field;
 strict decoding rejects an Index member. It is rebuilt once from validated state.
+
+
+## Chapter 11 version 2 extension (published implementation contract)
+
+Version 1 keeps exactly the preceding grammar and has no remote bindings.
+Version 2 keeps all outer checkpoint members, with version=state_version=2.
+Its identity adds required nonempty mcp_bindings. Each alias-sorted unique binding
+is exactly {alias,connection,remote_name,definition}; definition is exactly
+{name,description,inputSchema,outputSchema}. Schemas are semantic JSON values,
+not Raw strings; outputSchema:null denotes absence. Name equals remote_name;
+the alias has exactly one corresponding handler with matching description/input
+schema. Remote description may be empty. All Chapter 11 schema bounds apply.
+
+State v2 is exactly {session,context,usage,skills,limits,window,mcp_bindings}.
+State.mcp_bindings is required and canonically equals identity.mcp_bindings.
+Session metadata shape remains {id,identity,as_of,high_watermarks} with v2 identity.
+The fixed codec SessionFact in Context.Session adds required version:2 to its
+existing five fields. Actual log initializer.session is exactly
+{version:2,session_id,identity}; anchor.session exactly
+{version:2,session_id,origin_as_of,origin_sha256,high_watermarks}. Absent version
+selects the exact old v1 payload; explicit version 1 is invalid. Checkpoint,
+state_version, initializer/anchor and immutable origin must agree. Public append
+cannot create or alter format/identity. No other Context or Raw grammar changes.
+
+No live connection/generation/cursor/transport/process/credential is saved.
+Bindings in captures are owned values from the Agent. All stored aliases, even
+ungranted ones, must match caller selections before new remote preparation;
+selected live definitions must then match before publication. V1 cannot acquire
+bindings on resume. Offline v2 watch shows recorded unavailable bindings with
+null generation; offline standalone watch is mcp:[] with no inferred identity.
+Existing replay bytes, hashes, watermarks, raw wrappers, origins and v1 decoding
+remain under the preceding requirements.

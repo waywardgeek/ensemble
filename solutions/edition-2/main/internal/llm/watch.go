@@ -145,9 +145,28 @@ func (a *Actor) pauseState() common.PauseState {
 	p.Paused = p.TypingClients+p.SpeakingClients > 0
 	return p
 }
+func (a *Actor) MCPChanged() error {
+	_, err := a.ask(common.ActorMessage{Kind: "mcp_changed"})
+	return err
+}
+func (a *Actor) MCPState() ([]common.MCPBindingSnapshot, error) {
+	r, e := a.ask(common.ActorMessage{Kind: "mcp_state"})
+	return r.Snapshot.State.MCP, e
+}
 func (a *Actor) receiveWatch(m common.ActorMessage) bool {
 	reply := common.ActorReply{}
 	switch m.Kind {
+	case "mcp_changed", "mcp_state":
+		state := a.parent.MCPView()
+		before, _ := json.Marshal(a.mcpState)
+		after, _ := json.Marshal(state)
+		if string(before) != string(after) {
+			a.mcpState = state
+			a.publish(common.Observation{Kind: "mcp_changed", AgentID: a.parent.ID(), MCP: state})
+		}
+		reply.Snapshot.State.MCP = state
+		m.Reply <- reply
+		return true
 	case "close_watch":
 		for i, w := range a.watches {
 			if w.id == m.Registration {
@@ -165,6 +184,10 @@ func (a *Actor) receiveWatch(m common.ActorMessage) bool {
 		}
 		a.nextWatch++
 		s := a.parent.WatchSource()
+		state := a.parent.MCPView()
+ before,_:=json.Marshal(a.mcpState);after,_:=json.Marshal(state)
+ if string(before)!=string(after){a.mcpState=state;a.publish(common.Observation{Kind:"mcp_changed",AgentID:a.parent.ID(),MCP:state})}
+ s.State.MCP = a.mcpState
 		s.AgentID = a.parent.ID()
 		s.Generation = fmt.Sprintf("%s-g%d", s.AgentID, a.nextWatch)
 		s.Watermark = a.revision

@@ -3,6 +3,7 @@ package persistence
 import (
 	"bytes"
 	"example.com/ensemble/internal/common"
+	"example.com/ensemble/internal/jsonvalue"
 	"strings"
 	"testing"
 )
@@ -142,3 +143,7 @@ func TestArgumentExceptionIsNarrowAndLossless(t *testing.T) {
 		t.Fatal("snapshot lost original ambiguous text")
 	}
 }
+
+func (r *testRoot) JSON() common.JSONService      { return jsonvalue.New(r) }
+func (r *testRoot) MCP() common.MCPService        { return nil }
+func (r *testRoot) MCPRuntime() common.MCPRuntime { return nil }

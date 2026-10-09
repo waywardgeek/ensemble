@@ -29,7 +29,8 @@ func run() (result error) {
 	tracePath := flag.String("gui-log", "", "optional conversation trace path")
 	preferencesPath := flag.String("preferences", ".ensemble/gui-preferences.json", "display preferences file")
 	policyPath := flag.String("policy", ".ensemble/agent-policy.json", "Agent execution policy file")
-	sessionDir := flag.String("session-dir", "", "open or resume a session directory")
+	mcpPath := flag.String("mcp-config", "", "MCP connection configuration file")
+ sessionDir := flag.String("session-dir", "", "open or resume a session directory")
 	flag.Parse()
 	if *port < 0 || *port > 65535 {
 		return fmt.Errorf("invalid port")
@@ -62,6 +63,7 @@ func run() (result error) {
 		config.Builtins = append(config.Builtins, "load_skill", "unload_skill")
 	}
 	config.MaxTokens = 4096
+ if *mcpPath!=""{config.MCPBindings,err=app.LoadMCPConfig(*mcpPath);if err!=nil{return err}}
 	selection := cli.SessionSelector{Path: *sessionDir}
 	flag.Visit(func(f *flag.Flag) {
 		if f.Name == "session-dir" {

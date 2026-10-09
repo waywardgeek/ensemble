@@ -136,8 +136,9 @@ func (a *Agent) captureSession(cursor uint64) (common.Checkpoint, error) {
 	w := a.watermarks(cursor)
 	state.RequestCursor = w.Request
 	identity := *state.Session.Identity
-	cp := common.Checkpoint{Version: 1, StateVersion: 1, SessionID: a.sessionID, Identity: identity, AsOf: state.LastSeq, HighWatermarks: w}
-	snap := &common.SemanticState{Session: common.SnapshotSession{ID: a.sessionID, Identity: identity, AsOf: cp.AsOf, HighWatermarks: w}, Context: state, Usage: []common.UsageAccount{}, Limits: a.jobs.PendingLimits(), Window: common.SnapshotWindow{Events: []common.WindowEvent{}, RenderableCount: a.renderableCount, EventCount: a.eventCount}}
+	version:=1;if len(identity.MCPBindings)>0{version=2}
+ cp := common.Checkpoint{Version: version, StateVersion: version, SessionID: a.sessionID, Identity: identity, AsOf: state.LastSeq, HighWatermarks: w}
+	snap := &common.SemanticState{MCPBindings:identity.MCPBindings,Session: common.SnapshotSession{ID: a.sessionID, Identity: identity, AsOf: cp.AsOf, HighWatermarks: w}, Context: state, Usage: []common.UsageAccount{}, Limits: a.jobs.PendingLimits(), Window: common.SnapshotWindow{Events: []common.WindowEvent{}, RenderableCount: a.renderableCount, EventCount: a.eventCount}}
 	if a.skills != nil {
 		snap.Skills = a.skills.Snapshot()
 	}
@@ -178,7 +179,7 @@ func (a *Agent) captureSession(cursor uint64) (common.Checkpoint, error) {
 	return cp, nil
 }
 func (a *Agent) installedIdentity() (common.SessionIdentity, error) {
-	identity := common.SessionIdentity{Mode: "plain", Handlers: []common.HandlerIdentity{}}
+	identity := common.SessionIdentity{MCPBindings:a.bindings,Mode: "plain", Handlers: []common.HandlerIdentity{}}
 	base := a.config.System
 	identity.System = &base
 	for _, d := range a.registry.Installed() {
@@ -210,6 +211,7 @@ func (a *Agent) installState(cp common.Checkpoint, live bool) error {
 	}
 	a.sessionID = cp.SessionID
 	a.identity = cp.Identity
+ a.bindings=cp.Identity.MCPBindings
 	if !sameJSON(a.codec, *c.Session.Identity, cp.Identity) {
 		return bad("semantic creation identity mismatch")
 	}
@@ -344,15 +346,17 @@ func sameJSON(codec common.SessionCodec, a, b any) bool {
 	return codec.EqualJSON(x, y)
 }
 func (e *Ensemble) OpenSession(options SessionOptions) (*Agent, error) {
-	return e.openSession(nil, options)
+	return e.OpenSessionContext(context.Background(),options)
 }
 func (e *Ensemble) ImportSession(raw []byte, options SessionOptions) (*Agent, error) {
 	if raw == nil {
 		return nil, sessionError("session_corrupt", "import requires complete checkpoint")
 	}
-	return e.openSession(append([]byte{}, raw...), options)
+	return e.ImportSessionContext(context.Background(),raw, options)
 }
-func (e *Ensemble) openSession(imported []byte, options SessionOptions) (_ *Agent, err error) {
+func(e *Ensemble)OpenSessionContext(ctx context.Context,options SessionOptions)(*Agent,error){return e.openSession(ctx,nil,options)}
+func(e *Ensemble)ImportSessionContext(ctx context.Context,raw []byte,options SessionOptions)(*Agent,error){if raw==nil{return nil,sessionError("session_corrupt","import requires snapshot")};return e.openSession(ctx,append([]byte{},raw...),options)}
+func (e *Ensemble) openSession(ctx context.Context,imported []byte, options SessionOptions) (_ *Agent, err error) {
 	config := options.Config
 	if config.DataDir == "" || config.LogPath != "" || config.System != "" {
 		return nil, sessionError("session_conflict", "session requires DataDir, no LogPath, and System through SessionOptions")
@@ -390,10 +394,10 @@ func (e *Ensemble) openSession(imported []byte, options SessionOptions) (_ *Agen
 	if err = llm.ValidateConfig(a.engine, a.config, true); err != nil {
 		return nil, err
 	}
-	if !a.registry.Match(a.config.Tools) {
+	if len(a.config.MCPBindings)==0 && !a.registry.Match(a.config.Tools) {
 		return nil, sessionError("session_incompatible", "installed handlers differ")
 	}
-	a.config.Tools = a.registry.Declarations()
+	if len(a.config.MCPBindings)==0{a.config.Tools = a.registry.Declarations()}
 	if a.config.Skills != nil {
 		a.skills, err = skills.New(skillAgent{a})
 		if err != nil {
@@ -447,6 +451,7 @@ func (e *Ensemble) openSession(imported []byte, options SessionOptions) (_ *Agen
 			return nil, err
 		}
 		a.reservedID = true
+		if err=a.prepareMCP(ctx,cp.Identity.MCPBindings);err!=nil{return nil,err}
 		a.origin = cp.State
 		if err = a.store.WriteOrigin(imported); err != nil {
 			return nil, err
@@ -455,7 +460,8 @@ func (e *Ensemble) openSession(imported []byte, options SessionOptions) (_ *Agen
 		if err != nil {
 			return nil, err
 		}
-		anchor := common.SessionFact{SessionID: a.sessionID, OriginAsOf: cp.AsOf, OriginSHA256: fmt.Sprintf("%x", sha256.Sum256(imported)), HighWatermarks: &cp.HighWatermarks}
+		payloadVersion:=0;if cp.Version==2{payloadVersion=2}
+ anchor := common.SessionFact{Version:payloadVersion,SessionID: a.sessionID, OriginAsOf: cp.AsOf, OriginSHA256: fmt.Sprintf("%x", sha256.Sum256(imported)), HighWatermarks: &cp.HighWatermarks}
 		if err = a.append(Event{Type: "session_anchor", Session: &anchor}, true, false); err != nil {
 			return nil, err
 		}
@@ -471,6 +477,7 @@ func (e *Ensemble) openSession(imported []byte, options SessionOptions) (_ *Agen
 			return nil, err
 		}
 		a.reservedID = true
+		if err=a.prepareMCP(ctx,a.identity.MCPBindings);err!=nil{return nil,err}
 		a.log, err = eventlog.Resume(a, a.config.LogPath, a.eventCount)
 		if err != nil {
 			return nil, sessionError("session_io", "cannot reopen validated append log")
@@ -481,6 +488,7 @@ func (e *Ensemble) openSession(imported []byte, options SessionOptions) (_ *Agen
 				return nil, sessionError("session_corrupt", "incomplete or ambiguous session store")
 			}
 		}
+		if err=a.prepareMCP(ctx,nil);err!=nil{return nil,err}
 		identity, err := a.installedIdentity()
 		if err != nil {
 			return nil, err
@@ -506,7 +514,8 @@ func (e *Ensemble) openSession(imported []byte, options SessionOptions) (_ *Agen
 		if err != nil {
 			return nil, err
 		}
-		if err = a.append(Event{Type: "session_initialized", Session: &common.SessionFact{SessionID: a.sessionID, Identity: &a.identity}}, true, false); err != nil {
+		payloadVersion:=0;if len(a.identity.MCPBindings)>0{payloadVersion=2}
+		if err = a.append(Event{Type: "session_initialized", Session: &common.SessionFact{Version:payloadVersion,SessionID: a.sessionID, Identity: &a.identity}}, true, false); err != nil {
 			return nil, err
 		}
 		if initial != nil {
@@ -519,6 +528,7 @@ func (e *Ensemble) openSession(imported []byte, options SessionOptions) (_ *Agen
 	if a.identity.Mode == "skills" && a.skills.LastActivation() == 0 {
 		return nil, sessionError("session_unfinished", "skill initialization incomplete")
 	}
+	 a.config.Tools=a.registry.Declarations()
 	// The shared allocator changes only after all candidate validation succeeded.
 	floor := a.watermarks(a.context.RequestCursor).Job
 	e.mu.Lock()
@@ -534,12 +544,14 @@ func (e *Ensemble) openSession(imported []byte, options SessionOptions) (_ *Agen
 	// Startup performs no I/O and all validation is complete. Publish only
 	// after the actor pointer is installed so readers cannot see a partial Agent.
 	a.actor = llm.NewActor(turnAgent{a})
+ if err=e.mcp.Attach(a);err!=nil{_ = a.actor.Close(); return nil,err}
 	e.agents[a.id] = a
 	e.mu.Unlock()
 	good = true
 	return a, nil
 }
 func (a *Agent) compatibility(identity common.SessionIdentity, system *string) error {
+ if err:=a.checkMCPSelections(identity.MCPBindings);err!=nil{return err}
 	if identity.Mode == "plain" {
 		if a.config.Skills != nil || identity.System == nil || system != nil && *system != *identity.System {
 			return sessionError("session_incompatible", "base System or skill mode differs")
@@ -558,6 +570,7 @@ func (a *Agent) compatibility(identity common.SessionIdentity, system *string) e
 	return nil
 }
 func (a *Agent) discardSession() {
+ a.parent.MCPRuntime().Detach(a)
 	if a.log != nil {
 		_ = a.log.Close()
 		a.log = nil
@@ -615,6 +628,7 @@ func (a *Agent) AcceptSessionRecord(event common.Event, line int, r *common.Sess
 			}
 			a.sessionID = event.Session.SessionID
 			a.identity = *event.Session.Identity
+ a.bindings=event.Session.Identity.MCPBindings
 		}
 	} else if event.Type == "session_initialized" || event.Type == "session_anchor" {
 		return bad("interior session construction fact")
@@ -628,7 +642,7 @@ func (a *Agent) AcceptSessionRecord(event common.Event, line int, r *common.Sess
 		if err != nil {
 			return err
 		}
-		if reduced.HighWatermarks.Event != cp.HighWatermarks.Event || reduced.HighWatermarks.Request != cp.HighWatermarks.Request || reduced.HighWatermarks.Activation != cp.HighWatermarks.Activation || reduced.HighWatermarks.Job != cp.HighWatermarks.Job {
+		if reduced.Version!=cp.Version || reduced.HighWatermarks.Event != cp.HighWatermarks.Event || reduced.HighWatermarks.Request != cp.HighWatermarks.Request || reduced.HighWatermarks.Activation != cp.HighWatermarks.Activation || reduced.HighWatermarks.Job != cp.HighWatermarks.Job {
 			return bad("checkpoint watermarks mismatch")
 		}
 		if cp.State != nil {

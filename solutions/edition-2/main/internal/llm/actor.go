@@ -14,6 +14,7 @@ import (
 // Actor owns turn decisions. Its mailbox mutex only guards admission and transfer;
 // it never spans persistence, model I/O, job waits, or display callbacks.
 type Actor struct {
+	mcpState                       []common.MCPBindingSnapshot
 	checkpointBusy                 bool
 	finalCheckpoint                bool
 	revision, nextWatch, nextPause uint64

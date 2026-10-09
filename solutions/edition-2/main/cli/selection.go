@@ -2,6 +2,7 @@ package cli
 
 import (
 	"example.com/ensemble"
+ "context"
 	"fmt"
 	"os"
 	"strings"
@@ -23,7 +24,8 @@ func SelectAgent(app *ensemble.Ensemble, config ensemble.Config, human bool, sel
 		return nil, &ensemble.SessionError{Code: "session_conflict", Detail: "CH02_LOG conflicts with --session-dir"}
 	}
 	if !selection.Present && (!human || explicitLog) {
-		return app.NewAgent(config)
+		if err:=app.PrepareMCPSelections(context.Background(),config.MCPBindings);err!=nil{return nil,err}
+ return app.NewAgent(config)
 	}
 	path := selection.Path
 	if !selection.Present {
@@ -65,4 +67,11 @@ func sessionArguments(args []string) ([]string, SessionSelector, error) {
 		return nil, selector, fmt.Errorf("session_conflict: blank session directory")
 	}
 	return out, selector, nil
+}
+
+func mcpArguments(args []string)([]string,string,error){
+ out:=[]string{};path:="";seen:=false
+ for i:=0;i<len(args);i++{a:=args[i];if a!="--mcp-config"&&!strings.HasPrefix(a,"--mcp-config="){out=append(out,a);continue};if seen{return nil,"",fmt.Errorf("duplicate MCP configuration")};seen=true
+ if a=="--mcp-config"{i++;if i==len(args){return nil,"",fmt.Errorf("missing MCP configuration")};path=args[i]}else{path=strings.TrimPrefix(a,"--mcp-config=")};if strings.TrimSpace(path)==""{return nil,"",fmt.Errorf("blank MCP configuration")}}
+ return out,path,nil
 }

@@ -3,6 +3,7 @@ package tools
 import (
 	"encoding/json"
 	"example.com/ensemble/internal/common"
+	"example.com/ensemble/internal/jsonvalue"
 	"example.com/ensemble/internal/persistence"
 	"fmt"
 	"os"
@@ -216,3 +217,8 @@ func (testAgent) GrantedTools() []string { return nil }
 func (a testAgent) Codec() common.SessionCodec { return persistence.NewCodec(a) }
 
 func (testRoot) ReleaseSession(string) {}
+
+func (r testRoot) JSON() common.JSONService                   { return jsonvalue.New(r) }
+func (r testRoot) MCP() common.MCPService                     { return nil }
+func (r testRoot) MCPRuntime() common.MCPRuntime              { return nil }
+func (a testAgent) MCPBindings() ([]common.MCPBinding, error) { return []common.MCPBinding{}, nil }

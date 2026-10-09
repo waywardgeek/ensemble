@@ -16,6 +16,7 @@ type Message struct {
 type Conversation []Message
 
 type Config struct {
+	MCPBindings      []MCPSelection
 	DataDir          string
 	Skills           *SkillConfig
 	PolicyPath       string
@@ -213,31 +214,32 @@ type Context struct {
 	LastSeq        uint64
 }
 type Observation struct {
-	Session         *SessionState   `json:"session,omitempty"`
-	Skills          *SkillState     `json:"skills,omitempty"`
-	ExecutionPolicy *PolicySnapshot `json:"execution_policy,omitempty"`
-	Paused          bool            `json:"paused"`
-	TypingClients   int             `json:"typing_clients"`
-	SpeakingClients int             `json:"speaking_clients"`
-	OperationID     string          `json:"operation_id,omitempty"`
-	Delivery        string          `json:"delivery,omitempty"`
-	PartID          int             `json:"part_id,omitempty"`
-	Channel         string          `json:"channel,omitempty"`
-	Text            string          `json:"text,omitempty"`
-	ResponseSeq     uint64          `json:"response_seq,omitempty"`
-	PartIndex       int             `json:"part_index"`
-	Accepted        bool            `json:"accepted"`
-	Code            string          `json:"code,omitempty"`
-	Message         string          `json:"message,omitempty"`
-	RequestID       string          `json:"request_id,omitempty"`
-	OldState        string          `json:"old_state,omitempty"`
-	State           string          `json:"state,omitempty"`
-	Position        int             `json:"position,omitempty"`
-	Part            *Part           `json:"part,omitempty"`
-	AgentID         string          `json:"agent_id"`
-	Seq             uint64          `json:"seq"`
-	Kind            string          `json:"kind"`
-	Event           Event           `json:"event"`
+	MCP             []MCPBindingSnapshot `json:"mcp,omitempty"`
+	Session         *SessionState        `json:"session,omitempty"`
+	Skills          *SkillState          `json:"skills,omitempty"`
+	ExecutionPolicy *PolicySnapshot      `json:"execution_policy,omitempty"`
+	Paused          bool                 `json:"paused"`
+	TypingClients   int                  `json:"typing_clients"`
+	SpeakingClients int                  `json:"speaking_clients"`
+	OperationID     string               `json:"operation_id,omitempty"`
+	Delivery        string               `json:"delivery,omitempty"`
+	PartID          int                  `json:"part_id,omitempty"`
+	Channel         string               `json:"channel,omitempty"`
+	Text            string               `json:"text,omitempty"`
+	ResponseSeq     uint64               `json:"response_seq,omitempty"`
+	PartIndex       int                  `json:"part_index"`
+	Accepted        bool                 `json:"accepted"`
+	Code            string               `json:"code,omitempty"`
+	Message         string               `json:"message,omitempty"`
+	RequestID       string               `json:"request_id,omitempty"`
+	OldState        string               `json:"old_state,omitempty"`
+	State           string               `json:"state,omitempty"`
+	Position        int                  `json:"position,omitempty"`
+	Part            *Part                `json:"part,omitempty"`
+	AgentID         string               `json:"agent_id"`
+	Seq             uint64               `json:"seq"`
+	Kind            string               `json:"kind"`
+	Event           Event                `json:"event"`
 }
 type Observer interface{ Observe(Observation) }
 type ClientRequest struct {
@@ -253,6 +255,9 @@ type ClientResult struct {
 }
 
 type Ensemble interface {
+	JSON() JSONService
+	MCP() MCPService
+	MCPRuntime() MCPRuntime
 	ReleaseSession(string)
 	ClaimSettingsPath(string) (string, error)
 	ReleaseSettingsPath(string)
@@ -322,6 +327,7 @@ type TurnAgent interface {
 	Jobs() Jobs
 }
 type Registry interface {
+	Remote(string) bool
 	ResolveConsumed(Part, *LimitValues) (Limits, string, error)
 	LimitCandidate(Part) (LimitValues, error)
 	Management(string) bool
@@ -366,6 +372,7 @@ type JobAgent interface {
 	Fault(error)
 }
 type ToolAgent interface {
+	MCPBindings() ([]MCPBinding, error)
 	GrantedTools() []string
 	Agent
 	Jobs() Jobs
@@ -406,6 +413,7 @@ type Jobs interface {
 	Close() error
 }
 type Job interface {
+	Context() context.Context
 	Jobs() Jobs
 	Snapshot() JobSnapshot
 	StartProcess(command, cwd string) error

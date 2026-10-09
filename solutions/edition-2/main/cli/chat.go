@@ -242,7 +242,7 @@ func chatCommand(owner ensemble.ClientOwner, agent *ensemble.Agent, out *bufio.W
 		return false, nil
 	}
 	switch command {
-	case "/help", "/usage", "/history", "/skills", "/session", "/checkpoint", "/quit":
+	case "/help", "/usage", "/history", "/mcp", "/skills", "/session", "/checkpoint", "/quit":
 		if rest != "" {
 			return localError()
 		}
@@ -270,8 +270,10 @@ func chatCommand(owner ensemble.ClientOwner, agent *ensemble.Agent, out *bufio.W
 			}
 		case "/help":
 			fmt.Fprintln(out, "/session — session identity and saved boundary\n/checkpoint — save the settled session")
-			fmt.Fprintln(out, "/help — show commands\n/usage — token totals\n/skills — current skills and tool grants\n/history — event sequences and tool call IDs\n/hint TEXT — guide the next request of the active turn\n/interrupt — interrupt the active turn\n/ephemeral TEXT — one-request directive\n/redact FROM TO REASON — redact tool results in a sequence span\n/quit — finish the session\n//TEXT — submit a literal leading slash\nInput: one UTF-8 line, at most 1 MiB (1048576 bytes), excluding LF or CRLF.")
-		case "/skills":
+			fmt.Fprintln(out, "/help — show commands\n/usage — token totals\n/mcp — selected remote tools and connection status\n/skills — current skills and tool grants\n/history — event sequences and tool call IDs\n/hint TEXT — guide the next request of the active turn\n/interrupt — interrupt the active turn\n/ephemeral TEXT — one-request directive\n/redact FROM TO REASON — redact tool results in a sequence span\n/quit — finish the session\n//TEXT — submit a literal leading slash\nInput: one UTF-8 line, at most 1 MiB (1048576 bytes), excluding LF or CRLF.")
+		case "/mcp":
+ bindings,err:=agent.MCPState();if err!=nil{return false,err};if len(bindings)==0{fmt.Fprintln(out,"No selected MCP bindings.")};for _,b:=range bindings{generation:="none";if b.Generation!=nil{generation=fmt.Sprint(*b.Generation)};fmt.Fprintf(out,"%s: %s/%s — %s — generation %s — %s\n",b.Alias,b.Connection,b.RemoteName,b.State,generation,b.ErrorCode)}
+ case "/skills":
 			state, err := agent.SkillState()
 			if err != nil {
 				return false, err

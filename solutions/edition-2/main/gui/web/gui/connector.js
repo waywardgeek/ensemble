@@ -48,6 +48,7 @@ export class Connector {
     };
     counter(message); counter(message, 'watermark'); counter(message, 'watch_revision');
     for (const key of ['first_seq','last_seq','log_seq','as_of']) counter(message,key);
+    for (const binding of [...(message.state?.mcp || []), ...(message.observation?.mcp || [])]) { counter(binding, 'generation'); if (binding.generation === 0 || binding.generation === 0n) throw new Error('Invalid MCP generation'); }
     counter(message.state?.session,'checkpoint_seq'); counter(message.observation?.session,'checkpoint_seq');
     for (const job of message.state?.job_access || []) counter(job,'handle');
     const eventCounters = e => {

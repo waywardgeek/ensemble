@@ -85,6 +85,7 @@ func (a turnAgent) WatchSource() common.WatchSnapshot {
 	// state-copy lock before consulting live ownership; Actor still orders
 	// the complete public boundary.
 	a.mu.Unlock()
+ s.State.MCP = a.mcpView(a.actor != nil)
 	for h := range handles {
 		_, err := a.jobs.Lookup(h)
 		s.State.JobAccess = append(s.State.JobAccess, common.JobAccess{Handle: h, Live: err == nil})

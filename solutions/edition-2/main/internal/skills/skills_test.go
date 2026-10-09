@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"example.com/ensemble/internal/common"
+	"example.com/ensemble/internal/jsonvalue"
 )
 
 type testApplication struct {
@@ -546,3 +547,7 @@ func TestNewMaterialAggregateExactAndOneOver(t *testing.T) {
 
 // Test fixture is a composition root for the owner interface.
 func (a *testAgent) Codec() common.SessionCodec { return persistence.NewCodec(a) }
+
+func (r *testApplication) JSON() common.JSONService      { return jsonvalue.New(r) }
+func (r *testApplication) MCP() common.MCPService        { return nil }
+func (r *testApplication) MCPRuntime() common.MCPRuntime { return nil }

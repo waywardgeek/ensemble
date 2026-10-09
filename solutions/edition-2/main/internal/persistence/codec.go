@@ -56,6 +56,8 @@ func (c *Codec) wire(v reflect.Value, semantic bool) (any, error) {
 			if (t == reflect.TypeOf(common.LimitValues{}) || t == reflect.TypeOf(common.Part{}) && name == "arguments_text") && v.Field(i).IsNil() {
 				continue
 			}
+            if c.extensionField(t,name) && v.Field(i).IsZero(){continue}
+            if c.extensionField(t,name) && v.Field(i).Kind()==reflect.Slice && v.Field(i).IsNil(){continue}
 			var value any
 			var err error
 			if c.argumentField(t, name) && !v.Field(i).IsNil() {
@@ -63,7 +65,7 @@ func (c *Codec) wire(v reflect.Value, semantic bool) (any, error) {
 				_, _, err = c.arguments(raw, true)
 				value = string(raw)
 			} else {
-				value, err = c.wire(v.Field(i), t == reflect.TypeOf(common.HandlerIdentity{}) && name == "schema")
+				value, err = c.wire(v.Field(i), c.schemaField(t,name))
 			}
 			if err != nil {
 				return nil, err
@@ -170,11 +172,12 @@ func (c *Codec) unwire(x any, v reflect.Value, semantic bool) error {
 			names[name] = true
 			value, found := obj[name]
 			if !found {
-				if t == reflect.TypeOf(common.LimitValues{}) || t == reflect.TypeOf(common.Part{}) && name == "arguments_text" {
+				if c.extensionField(t,name) || t == reflect.TypeOf(common.LimitValues{}) || t == reflect.TypeOf(common.Part{}) && name == "arguments_text" {
 					continue
 				}
 				return c.bad("missing structural field " + name)
 			}
+            if c.extensionField(t,name) && (value==nil || name=="version" && value!=json.Number("2")){return c.bad("invalid versioned extension")}
 			if t == reflect.TypeOf(common.LimitValues{}) && value == nil {
 				return c.bad("null limit override")
 			}
@@ -187,7 +190,7 @@ func (c *Codec) unwire(x any, v reflect.Value, semantic bool) error {
 					return err
 				}
 				v.Field(i).SetBytes([]byte(raw))
-			} else if err := c.unwire(value, v.Field(i), t == reflect.TypeOf(common.HandlerIdentity{}) && name == "schema"); err != nil {
+			} else if err := c.unwire(value, v.Field(i), c.schemaField(t,name)); err != nil {
 				return err
 			}
 		}
@@ -347,7 +350,7 @@ func (c *Codec) Decode(raw []byte) (common.Checkpoint, error) {
 	if err = c.unwire(obj, reflect.ValueOf(&cp).Elem(), false); err != nil {
 		return cp, err
 	}
-	if cp.Version != 1 || cp.StateVersion != 1 {
+	if (cp.Version != 1 && cp.Version!=2) || cp.StateVersion != cp.Version {
 		return cp, c.bad("unsupported checkpoint version")
 	}
 	if cp.AsOf == 0 || cp.HighWatermarks.Event != cp.AsOf || !c.hexadecimal(cp.SessionID, 32) {
@@ -356,6 +359,7 @@ func (c *Codec) Decode(raw []byte) (common.Checkpoint, error) {
 	if err = c.Identity(cp.Identity); err != nil {
 		return cp, err
 	}
+    if (cp.Version==2)!=(len(cp.Identity.MCPBindings)>0){return cp,c.bad("identity format mismatch")}
 	if state == nil {
 		if cp.StateSHA256 != nil {
 			return cp, c.bad("null state hash mismatch")
@@ -377,6 +381,10 @@ func (c *Codec) Decode(raw []byte) (common.Checkpoint, error) {
 	if err = c.unwire(state, reflect.ValueOf(cp.State).Elem(), false); err != nil {
 		return cp, err
 	}
+    if cp.Version==1 && cp.State.MCPBindings!=nil || cp.Version==2 && len(cp.State.MCPBindings)==0{return cp,c.bad("state format mismatch")}
+    bx,_:=json.Marshal(cp.State.MCPBindings);by,_:=json.Marshal(cp.Identity.MCPBindings)
+    if !c.EqualJSON(bx,by){return cp,c.bad("state binding mismatch")}
+    if cp.State.Context.Session!=nil {v:=cp.State.Context.Session.Version;if cp.Version==1&&v!=0||cp.Version==2&&v!=2{return cp,c.bad("session fact format mismatch")}}
 	s := cp.State.Session
 	x, _ := json.Marshal(s.Identity)
 	y, _ := json.Marshal(cp.Identity)
@@ -411,8 +419,14 @@ func (c *Codec) Identity(id common.SessionIdentity) error {
 	if id.Handlers == nil || len(id.Handlers) > 1024 {
 		return c.bad("handler definition count")
 	}
+    remoteAliases:=map[string]bool{}
+    if id.MCPBindings!=nil {
+      if len(id.MCPBindings)==0{return c.bad("empty MCP identity extension")}
+      if err:=c.parent.Ensemble().MCPRuntime().ValidateBindings(id.MCPBindings);err!=nil{return c.bad("invalid frozen MCP binding")}
+      for _,b:=range id.MCPBindings{remoteAliases[b.Alias]=true;found:=false;for _,h:=range id.Handlers{if h.Name==b.Alias&&h.Description==b.Definition.Description&&c.EqualJSON(h.Schema,b.Definition.InputSchema){found=true}};if !found{return c.bad("remote handler correspondence")}}
+    }
 	for i, h := range id.Handlers {
-		if h.Name == "" || h.Description == "" || i > 0 && id.Handlers[i-1].Name >= h.Name {
+		if h.Name == "" || h.Description == "" && !remoteAliases[h.Name] || i > 0 && id.Handlers[i-1].Name >= h.Name {
 			return c.bad("invalid handler identity")
 		}
 		v, err := c.parse(h.Schema)
@@ -437,3 +451,8 @@ func (c *Codec) Identity(id common.SessionIdentity) error {
 func (c *Codec) argumentField(t reflect.Type, name string) bool {
 	return name == "args" && (t == reflect.TypeOf(common.Part{}) || t == reflect.TypeOf(common.ToolEvent{}))
 }
+
+func(c *Codec)extensionField(t reflect.Type,name string)bool{
+ return (t==reflect.TypeOf(common.SessionIdentity{})||t==reflect.TypeOf(common.SemanticState{}))&&name=="mcp_bindings"||t==reflect.TypeOf(common.SessionFact{})&&name=="version"
+}
+func(c *Codec)schemaField(t reflect.Type,name string)bool{return t==reflect.TypeOf(common.HandlerIdentity{})&&name=="schema"||t==reflect.TypeOf(common.MCPDefinition{})&&(name=="inputSchema"||name=="outputSchema")}

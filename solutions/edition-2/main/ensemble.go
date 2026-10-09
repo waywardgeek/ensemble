@@ -7,7 +7,9 @@ import (
 	"example.com/ensemble/internal/common"
 	"example.com/ensemble/internal/eventlog"
 	"example.com/ensemble/internal/jobs"
+	"example.com/ensemble/internal/jsonvalue"
 	"example.com/ensemble/internal/llm"
+	"example.com/ensemble/internal/mcp"
 	"example.com/ensemble/internal/persistence"
 	"example.com/ensemble/internal/policy"
 	"example.com/ensemble/internal/skills"
@@ -63,6 +65,8 @@ type subscription struct {
 	reason   string
 }
 type Ensemble struct {
+	json                    common.JSONService
+	mcp                     *mcp.Service
 	sessionReservations     map[string]bool
 	settingsPaths           map[string]bool
 	logger                  *log.Logger
@@ -78,8 +82,12 @@ func New(diagnostics io.Writer) *Ensemble {
 	if diagnostics == nil {
 		diagnostics = io.Discard
 	}
-	return &Ensemble{logger: log.New(diagnostics, "ensemble: ", 0), agents: map[string]*Agent{}, observers: map[uint64]*subscription{}}
+	e := &Ensemble{logger: log.New(diagnostics, "ensemble: ", 0), agents: map[string]*Agent{}, observers: map[uint64]*subscription{}}
+	e.json = jsonvalue.New(e)
+	e.mcp = mcp.New(e)
+	return e
 }
+func (e *Ensemble) JSON() common.JSONService        { return e.json }
 func (e *Ensemble) Logf(format string, args ...any) { e.logger.Printf(format, args...) }
 func normalize(owner common.Ensemble, config Config) Config {
 	if config.Vendor == "" {
@@ -132,6 +140,11 @@ func (e *Ensemble) construct(config Config) (*Agent, error) {
 	return a, nil
 }
 func (e *Ensemble) publishAgent(a *Agent) error {
+	if a.actor != nil {
+		if err := e.mcp.Attach(a); err != nil {
+			return err
+		}
+	}
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	if e.closed {
@@ -151,6 +164,9 @@ func (e *Ensemble) NewAgent(config Config) (*Agent, error) {
 	}
 	a, err := e.construct(config)
 	if err != nil {
+		return nil, err
+	}
+	if err = a.freezePreparedMCP(); err != nil {
 		return nil, err
 	}
 	if err = llm.ValidateConfig(a.engine, a.config, true); err != nil {
@@ -204,6 +220,7 @@ func (e *Ensemble) NewAgent(config Config) (*Agent, error) {
 func (e *Ensemble) Load(path string, config Config) (*Agent, error) {
 	// An offline reader never resolves a live source or scalar environment.
 	config.Skills = nil
+	config.MCPBindings = nil
 	var err error
 	config.LogPath, err = filepath.Abs(path)
 	if err != nil {
@@ -340,6 +357,7 @@ func (e *Ensemble) Publish(agentID string, event Event) {
 }
 
 type Agent struct {
+	bindings            []common.MCPBinding
 	store               *persistence.Store
 	sessionID           string
 	identity            common.SessionIdentity
@@ -413,6 +431,9 @@ func (a *Agent) SetConfig(config Config) error {
 	}
 	defer a.operation.Unlock()
 	current := a.Config()
+	if !reflect.DeepEqual(config.MCPBindings, current.MCPBindings) {
+		return fmt.Errorf("MCP bindings are creation-only")
+	}
 	if config.DataDir != current.DataDir {
 		return sessionError("session_conflict", "DataDir is creation-only")
 	}
@@ -544,6 +565,7 @@ func (a *Agent) Close() error {
 	return a.finishClose()
 }
 func (a *Agent) finishClose() error {
+	a.parent.MCPRuntime().Detach(a)
 	if a.policy != nil {
 		a.policy.Close()
 	}
@@ -835,11 +857,15 @@ func (e *Ensemble) Close() error {
 		agents = append(agents, a)
 	}
 	e.mu.Unlock()
-	var first error
+	e.mcp.StopAdmission()
+ var first error
 	for _, a := range agents {
 		if err := a.Close(); first == nil {
 			first = err
 		}
+	}
+	if err := e.mcp.Close(); first == nil {
+		first = err
 	}
 	e.mu.Lock()
 	for _, s := range e.observers {

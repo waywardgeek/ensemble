@@ -41,6 +41,7 @@ type ControlAck struct {
 	Interrupted bool   `json:"interrupted"`
 }
 type ActorAgent interface {
+	MCPView() []MCPBindingSnapshot
 	AppendFailure() error
 	CaptureSession(uint64) (Checkpoint, error)
 	BeginCheckpoint(Checkpoint, bool) (<-chan CheckpointResult, error)

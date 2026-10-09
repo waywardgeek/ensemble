@@ -437,3 +437,52 @@ still needs full deterministic/inherited/module/race checks; a reviewed bounded
 all-three-provider feature matrix; actual PTY, browser and public custom-transport
 multi-Agent runs; initial experience freeze; independent historical findings;
 improvements and author-response confirmation. No paid run is released here.
+
+
+## Implementation release acknowledgment (2026-10-08)
+
+Continued this same student conversation from 55c9e7a. Reloaded the entire
+mandatory coding skill and pinned architecture. Verified the three-file
+clarification-b43fc3f manifest before reading all three files completely.
+Teaching commit: b43fc3f76f2631e70cd5d24aadb06a2927c4fdb3. Manifest SHA-256:
+03748a78f19f5d66adf1dbc2aa10addd71848ccb0d8796d4b765f4888e07a7a4.
+Chapter SHA-256 c9fd192912baa555ae29053bdcf2cf3a3f367d69dfcd6d4941cc3b2b4cc0531b;
+direct feedback c4829a7f9eeed73ad91bc9d812b9f55c33a13a1abcc91815c52eed1ff7195130;
+runtime command 3684a30215114b8b93db09a3e13a4ac75dbbd458bfbb2ccdfe01696333cb9b53.
+Architecture/skill pins remain unchanged. Inbox confirms sole compiler ownership,
+local implementation/checks only. Reviewer sources/reports were not read.
+
+Grouped answers accepted before affected edits: Q1 offline standalone watch is
+exactly mcp:[], without inferred identity. Q2 shared bounded JSON belongs in a
+neutral `internal/jsonvalue` spoke owned by Ensemble, not persistence. Q3 tests
+may seed valid owner-local near-limit state, prove the last successful allocation
+and overflow before mutation/handoff, without production setters. The partial
+runtime command requires an actual observed build and complete source map and
+is not whole-chapter acceptance. No further plan-only cycle is requested.
+
+Correction to the original parent/API proposal: common.Ensemble exposes JSON()
+returning common.JSONService. MCPService.Ensemble() returns that same coherent
+common.Ensemble interface; the public MCPRoot alias names it, rather than the
+original Logf-only interface. Connection.Service().Ensemble().JSON() and
+SessionCodec.Agent().Ensemble().JSON() reach the real shared owner. No injected
+JSON field, sibling import, capability cast or synthetic Agent. Shared syntax
+has explicit bounds, while MCP/session policy and raw argument exceptions stay
+with their responsible spokes. The frozen initial plan above is preserved.
+
+Public seams will be published in mcp-api.md and the exact version-2 appendix
+in persistence-format.md before runtime integration. These documents, plus the
+common declarations, are the coordinator notification surface for independent
+public/custom-transport integration. Implementation remains subject to complete
+local and inherited validation and a separately reviewed bounded live matrix;
+credentials/providers are not released.
+
+First local failure: gofmt on the explicit changed-file list exited 2 with
+`internal/mcpstdio/stdio.go:38:199: expected ':', found '}'`.
+Unformatted failed file SHA-256: 3145534d70a83db66629f0fbb5db4e4ee674f3b488752e2ac16c9da4bb231918. This is a student syntax error
+in the shutdown select, not teaching/checker behavior. Other files formatted
+before the failure; no test/build receipt is claimed for that invocation. Fix
+is adding the missing empty-case colons. Subsequent checks receive source maps.
+
+### Local continuation: common parents (coordinator inbox)
+
+Reloaded the entire repository skill after compaction and reread pinned architecture and the coordinator inbox. Coordinator identified `schema.parent *Service` and `connection.parent *Service`. This was my code fault, not missing teaching: a getter returning an interface does not repair a concrete stored parent. Changed both constructors/stored parents to common interfaces; schema behavior uses the actual service's root JSON owner, and connection lifecycle publication reaches its service through `MCPConnectionOwner.ConnectionChanged`. No sibling injection or concrete cast. Compile-03 passed after v2 codec integration; this is compilation only, not behavioral validation.

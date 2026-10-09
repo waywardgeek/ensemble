@@ -27,6 +27,9 @@ type Service struct {
 	fault     error
 }
 type job struct {
+	ctx        context.Context
+	cancel     context.CancelFunc
+	remote     bool
 	inputGate  chan struct{}
 	parent     common.Jobs
 	snapshot   common.JobSnapshot
@@ -44,6 +47,7 @@ type job struct {
 
 func New(parent common.JobAgent) *Service { return &Service{parent: parent, jobs: map[uint64]*job{}} }
 func (s *Service) Agent() common.JobAgent { return s.parent }
+func (j *job) Context() context.Context   { return j.ctx }
 func (j *job) Jobs() common.Jobs          { return j.parent }
 func (j *job) service() *Service          { return j.parent.(*Service) }
 func (j *job) Snapshot() common.JobSnapshot {
@@ -99,16 +103,29 @@ func (s *Service) Create() (common.Job, error) {
 		break
 	}
 	j := &job{parent: s, snapshot: common.JobSnapshot{Handle: handle, Status: "running", Output: common.Ref{Kind: 3, Locator: locator}}, file: file, changed: make(chan struct{}), reaped: make(chan struct{}), inputGate: make(chan struct{}, 1)}
+	j.ctx, j.cancel = context.WithCancel(context.Background())
 	s.jobs[handle] = j
 	return j, nil
 }
 func (s *Service) Start(owned common.Job, call common.Part) {
 	j := owned.(*job)
+	s.mu.Lock()
+	j.remote = s.parent.Registry().Remote(call.Name)
+	remote := j.remote
+	s.mu.Unlock()
 	go func() {
+		if remote {
+			defer close(j.reaped)
+		}
 		s.mu.Lock()
 		stopped := j.snapshot.Status != "running" || j.killing || s.closed
 		s.mu.Unlock()
 		if stopped {
+			if remote {
+				s.mu.Lock()
+				s.finish(j, "killed", j.killReason)
+				s.mu.Unlock()
+			}
 			return
 		}
 		result := s.parent.Registry().ExecuteJob(call, j)
@@ -118,6 +135,9 @@ func (s *Service) Start(owned common.Job, call common.Part) {
 		s.mu.Lock()
 		defer s.mu.Unlock()
 		if j.snapshot.Status != "running" || j.killing {
+			if remote {
+				s.finish(j, "killed", j.killReason)
+			}
 			return
 		}
 		s.write(j, []byte(result.Text))
@@ -178,6 +198,13 @@ func (s *Service) RequestKill(owned common.Job, reason string) (<-chan struct{},
 	if j.killing {
 		return j.reaped, nil
 	}
+	if j.remote {
+		j.killing = true
+		j.killReason = reason
+		j.cancel()
+		s.changed(j)
+		return j.reaped, nil
+	}
 	if j.pid == 0 {
 		s.finish(j, "killed", reason)
 		return ready(), nil
@@ -216,6 +243,7 @@ func (s *Service) Close() error {
 			first = err
 		}
 	}
+for _,j:=range list { s.mu.Lock();remote:=j.remote;s.mu.Unlock();if remote{<-j.reaped} }
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if first != nil {

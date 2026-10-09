@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"example.com/ensemble/internal/common"
+	"example.com/ensemble/internal/jsonvalue"
 	"example.com/ensemble/internal/persistence"
 	"strings"
 	"testing"
@@ -143,3 +144,7 @@ func TestPreparedSessionLogAndCountAdmission(t *testing.T) {
 type retainedWriter struct{ bytes.Buffer }
 
 func (*retainedWriter) Close() error { return nil }
+
+func (r *owner) JSON() common.JSONService      { return jsonvalue.New(r) }
+func (r *owner) MCP() common.MCPService        { return nil }
+func (r *owner) MCPRuntime() common.MCPRuntime { return nil }

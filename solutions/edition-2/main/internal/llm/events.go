@@ -177,8 +177,9 @@ func Validate(owner common.Engine, c common.Context, e *common.Event) error {
 		if c.LastSeq != 0 || e.Seq != 1 || e.Session == nil || e.Session.Identity == nil || e.Session.OriginAsOf != 0 || e.Session.OriginSHA256 != "" || e.Session.HighWatermarks != nil {
 			return bad("invalid session initializer")
 		}
+ if (e.Session.Version==2)!=(len(e.Session.Identity.MCPBindings)>0)||e.Session.Version!=0&&e.Session.Version!=2{return bad("invalid session format")}
 	case "session_anchor":
-		if c.Session == nil || e.Session == nil || e.Session.Identity != nil || e.Session.SessionID != c.Session.SessionID || e.Session.OriginAsOf != c.LastSeq || e.Session.HighWatermarks == nil || e.Session.HighWatermarks.Event != c.LastSeq {
+		if c.Session == nil || e.Session == nil || e.Session.Identity != nil || e.Session.Version != c.Session.Version || e.Session.SessionID != c.Session.SessionID || e.Session.OriginAsOf != c.LastSeq || e.Session.HighWatermarks == nil || e.Session.HighWatermarks.Event != c.LastSeq {
 			return bad("invalid session anchor")
 		}
 	case "tool_limits_set", "tool_limits_consumed":
