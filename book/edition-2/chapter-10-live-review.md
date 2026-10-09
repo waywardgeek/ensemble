@@ -215,3 +215,51 @@ quotation and the default-load consequence. This closes the participation
 attribution finding. Chapter hard lint still passes. Q4's final prose disposition
 and corrected-source evidence remain pending; the initial live source association
 is unchanged.
+
+## Final manuscript and teaching closure: e87ea74
+
+Accept the final author reconciliation at
+`e87ea7446dd0af160bb01ca80e61e6bdd13e9a19` for manuscript/teaching closure.
+Read the complete four-file grouped diff against the already-reviewed complete
+chapter, the full frozen quality handback and final student confirmation, and the
+43-check result and accessible DOM; visually inspected the new local screenshot.
+Independent code, binary binding and evidence-reuse acceptance remain the grader's
+separate assessment. No runtime test was performed by this prose review.
+
+Q4 now correctly identifies both ordinary empty text at response sequences 5/20,
+part index 1, and signed empty text at 10/15, index 1. The account preserves the
+original blank-card experience and attributes the compact indication to
+`70d86f7419c82fcf7cb8a394d54e472feccd2eed`, with evidence
+`265fe34434c84bc695740eb09c632dc632522c02`. Its screenshot/DOM contain the four
+compact indications alongside actual answers, tools and historical ownership.
+The cited result records 43 local captured-data checks and zero provider calls.
+The manuscript makes no native-hearing or new-binary live claim. Initial evidence
+remains at 44d7627 on runtime 57d4aac and support 9822b2b.
+
+The final student account affirmatively confirms the complete 0e754b9 chapter
+and direct feedback, and supplies the adopted compact-versus-spaced nuance.
+Independent inspection of the five argument-string occurrences in the retained
+Chat Completions reconstruction bodies confirms compact actual text. Exact live
+replay is established by the earlier 15 comparisons; the deliberately spaced
+regression remains separate local evidence. The text now states that distinction
+without changing or weakening §10.3's byte-preservation requirement.
+
+All four author files matched e87ea74, and the four newly cited quality artifacts
+matched 265fe34 byte-for-byte. Every local chapter link resolves. The complete
+TL;DR through the end of §10.9's contract and all of §10.10 remain byte-identical
+to the preceding reviewed text. Existing external prose lint passes all hard
+rules; length/density warnings remain explicit editorial limitations, not missing
+runtime evidence. Scoped review whitespace checks pass.
+
+Before publication, the coordinator may replace the final spin sentence
+“That limited reuse still needs independent acceptance.” with
+“The validation record separately assesses that limited reuse.” This exact
+narrow replacement is approved here: it keeps acceptance in its authoritative
+gate record without leaving a dated pending claim in the chapter. The author
+has been notified; it changes no evidence or release decision.
+
+Both prose findings and the latest student teaching response are resolved.
+There is no remaining manuscript/teaching blocker from this review. The
+coordinator still requires independent corrected-source/evidence acceptance and
+its complete export/checkpoint gates. No build, credential access, provider call,
+student edit or historical-source edit occurred during this closure.
