@@ -12,7 +12,8 @@ was used. Do not invent the missing chapter's requirements or claim its exercise
 complete before it exists and has been implemented and reviewed.
 
 Human enjoyment and teaching quality are explicit goals alongside correct code.
-In the later author phase, both author and prose reviewer read `book/voice.md`:
+In the later author phase, both author and prose reviewer read `book/voice.md`
+and `book/chapter-writing-procedure.md`, retained for editing after the coder is done:
 preserve documented stories and personality, explain the reasons behind the
 mechanisms, and judge whether the chapter is engaging and understandable.
 An executable specification or passing prose lint alone is not a finished textbook.
@@ -43,13 +44,18 @@ Before coding or reviewing code, and after compaction, read the entire skill:
 `.agents/skills/ensemble-coding/SKILL.md`. Every coder/reviewer handoff must include
 that exact path. It replaces the deleted second-edition workflow skill.
 
-Before the student run, the coordinator reads the entire current edition and
-completes `docs/edition-2-carryover.md` with sourced lessons and recorded reading
-coverage. This is preparation, not chapter authorship or new feature design.
+Before the student run, a reviewer reads the entire available current edition
+and completes `docs/edition-2-carryover.md`; the coordinator checks the sourced
+lessons and recorded reading coverage. This is preparation, not chapter
+authorship or new feature design.
+Bill will review that carryover and `docs/agentic-codebook-workflow.md` with Codex
+before coding starts. Keep the coder stopped until that review is complete and
+Bill says to proceed. The workflow is the edition-level procedure; the old
+`book/chapter-writing-procedure.md` does not reinstate the retired workflow.
 The student reads that carryover alongside the mandatory skill and follows
 first-edition `book/chapter-NN.md`, in order from the unchanged Chapter 1.
-Bill's architecture rules apply from the beginning. The retained second-edition
-Chapter 1 draft is historical material, not required student reading.
+Bill's architecture rules apply from the beginning. Bill has deleted the
+second-edition Chapter 1 draft too; use the original chapter and carryover.
 There is no author agent. Use the original grader;
 record suspected grader defects and teaching gaps for future work rather than
 changing chapters or graders during the student attempt.

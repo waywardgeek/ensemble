@@ -1,4 +1,25 @@
-# Agentic codebook: workflow and learning record
+# Agentic codebook: edition workflow and learning record
+
+**Draft for Bill's review, October 9, 2026.** This is the edition-level procedure
+for building Edition 2. Review it together with the
+[carryover document](edition-2-carryover.md) before starting the new coder.
+The current work is preparation and manuscript review only. Bill and Codex will
+review both documents together; do not start Edition 2 coding before that review
+is complete and Bill says to proceed.
+
+These are the two review documents. The carryover answers “What did the previous
+edition teach us that the student should know?” This workflow answers “How do
+we produce the next implementation and, afterward, its book?” The coding skill
+supplies the working instructions; chapter notes preserve discoveries.
+
+Keep both [voice.md](../book/voice.md) and the
+[chapter writing procedure](../book/chapter-writing-procedure.md) for the author
+and prose reviewer to use when editing the book after the coder is done.
+The chapter procedure still contains instructions from the retired author-first
+attempt, including renumbering and paths that no longer apply. Reconcile those
+parts at the later author phase. This edition workflow and Bill's current
+instructions govern the overall sequence; using the chapter procedure does not
+restart authorship ahead of implementation.
 
 Bill's goal is to establish whether an agent can follow the book as a student,
 build an excellent AI coding agent framework from scratch, pass the original
@@ -12,9 +33,11 @@ eventual evidence-based manuscript. The author phase still follows successful
 implementation; this responsibility does not restore writing ahead of the coder.
 
 Edition 1 is a living source. Bill writes it with CodeRhapsody and publishes
-successive versions on Amazon as he adds chapters. He reports that the sub-agent
-chapter has not yet been written. It will encode his experience with sub-agents
-and supply the exercise for that capability. Do not treat the current chapter
+successive versions on Amazon as he adds chapters. On October 9 he reports that
+CodeRhapsody is writing Chapter 24, the GUI refactor that moves the GUI out of
+`internal`. Its text was not available in the preparation snapshot. The sub-agent
+chapter is also forthcoming. Use those chapters when available; do not infer
+their details from their titles. Do not treat the current chapter
 count as final or invent a replacement assignment. Record the source revision
 used for each exercise; when new or revised chapters arrive, read them and update
 the carryover and affected chapter notes before applying their lessons. Existing
@@ -28,8 +51,9 @@ the writing. Technical correctness, student success and reading pleasure are
 distinct goals; none can stand in for the others.
 
 During the later author phase, the author and prose reviewer both read
-[voice.md](../book/voice.md), especially its guidance on motivation, explanation
-and preserving the human story. It already calls for personality, candid
+[voice.md](../book/voice.md) and the chapter writing procedure. Follow the voice
+guidance on motivation, explanation and preserving the human story. It already
+calls for personality, candid
 engineering judgment and documented experience. Keep those qualities as the
 book becomes more precise. Explain why a rule matters before demanding compliance,
 give mechanisms concrete examples, and preserve the discoveries and frustrations
@@ -80,7 +104,8 @@ Do not wait for a successful chapter to record a failure or a scope problem.
   [coding skill](../.agents/skills/ensemble-coding/SKILL.md) govern execution.
 - The [carryover document](edition-2-carryover.md) gives the student sourced
   lessons to apply from the start or when the relevant feature arrives. The
-  original Chapter 1 stays unchanged; the retained second-edition draft is history.
+  original Chapter 1 stays unchanged. Bill has deleted the last second-edition
+  Chapter 1 draft as well; no second-edition manuscript is a student prerequisite.
 - The [first-attempt history](edition-2-attempt-1.md) records the retired work;
   its expanded contracts are not requirements for the restart.
 
@@ -94,11 +119,21 @@ unreasonable exercise requirement as described below and pass the coder onward.
 
 ## Prepare the carryover before starting an edition
 
-Read the entire current edition before launching its successor's student run.
-The coordinator can do this preparation without an author agent. Extract the
-lessons learned during that edition into a compact carryover document, giving
+Read the entire available current edition before launching its successor's
+student run. A reviewer is now assigned to this preparation; it is lesson
+extraction, not an author drafting new chapters. Extract the lessons learned
+during that edition into a compact carryover document, giving
 each lesson a source, reason and point of application. Record the source revision
-and reading coverage; a partial review must not be described as complete.
+and reading coverage, including uncommitted source changes when applicable;
+a partial review must not be described as complete. Cover lessons throughout
+the edition, not just its architecture-repair chapters. Separate principles
+that apply immediately from lessons to apply when the relevant feature arrives.
+
+Present the complete available-source carryover and this workflow to Bill for
+review together. Identify unresolved contradictions, recommendations that need
+his judgment and forthcoming chapters explicitly. Incorporate his corrections
+before the coder starts. New chapters and materially revised source need a
+corresponding carryover update; do not silently claim they were already reviewed.
 
 Distinguish corrections and Bill's explicit decisions from tentative advice.
 Keep future features in their own exercises, exclude old solution code, and
@@ -126,9 +161,11 @@ later step, not a current deliverable or proof that the process is sound.
 | --- | --- |
 | Bill | Resolve product and consequential architecture questions; supply direction and corrections. |
 | Coordinator | Keep scope, handoffs and records coherent; route questions to Bill; stop drift and unnecessary work. Do not invent requirements. |
+| Carryover reviewer | Read the current edition before coding, extract sourced lessons and surface contradictions for Bill. Do not write new exercises or implementation plans. |
 | Student coder | Read the carryover, original chapter and mandatory skill, implement from scratch or extend its accepted predecessor, run the original grader and live exercise, and leave a review for the future author. Do not consult old answers. |
 | Code reviewer | After implementation, compare against the matching first-edition solution and read the coder's review. Enforce KISS, architecture and actual scope; return findings and reasons, not old solution code. |
 | Future author | Begin only after the complete implementation succeeds and comparative reviews establish its improvements. Revise chapters from the demonstrated results and student experience. |
+| Prose reviewer | During the author phase, assess accuracy, evidence, voice, readability and preservation of the human story; return findings to the author. |
 
 There is no author or grader agent working ahead of the student. Suspected
 grader defects are recorded for a future maintainer; the student does not change
@@ -175,6 +212,48 @@ to manufacture a pass. Bill's explicit architecture rules still apply.
 This lets the student and reviewer learn that an assignment needs correction
 without spending indefinitely to satisfy it. An objection deserves substantive
 review; neither its mere presence nor the time spent establishes that it is right.
+
+## Turn the completed implementation into the next edition
+
+Only after the coder has completed the new Ensemble and its comparative reviews
+does the author begin. Account for forthcoming first-edition chapters and any
+accepted exceptions when deciding what “complete” covers; do not equate reaching
+the currently available last chapter with achieving the full crossover goal.
+
+Give the author the original edition, Bill-reviewed carryover, this workflow,
+all agents' chapter notes, the coder's reviews, comparative findings, accepted
+exceptions and the actual implementation and live results. The author reads
+both `book/voice.md` and `book/chapter-writing-procedure.md`; the prose reviewer
+does too. Use them to guide each chapter's editing and review, with this workflow
+governing the edition's sequence. The author incorporates the lessons
+directly into the new book where readers need them: execution guidance near the
+beginning, architecture before the first code, and feature-specific lessons in
+the relevant chapters. The final book must teach these lessons rather than
+requiring readers to reconstruct them from private workflow notes.
+
+Revise chapter by chapter from what worked and what the student actually
+learned. Preserve worthwhile stories and explanations. If evidence is missing
+or a claim is unresolved, say so and resolve it rather than inventing an outcome.
+Keep original chapter numbering during the student run; decide the new book's
+organization from the completed experience rather than imposing the discarded
+attempt's chapter count or mapping. Include Bill's requested final comparison
+of the editions, using the collected code, comment, test and live-use evidence.
+
+The prose reviewer checks the new chapters and returns findings to the author.
+Editing the book must not silently add implementation obligations or revive an
+author-first loop. Grader improvement proposals remain recorded for a future
+maintainer and separately authorized work; they do not retroactively change the
+student's results. Preserve the first edition and its historical evidence.
+
+When the second-edition manuscript is ready for publication, Codex writes a
+new epilogue in its own first-person voice, as Bill requested. This is an
+explicit exception to the ordinary chapter voice, not permission to impersonate
+Bill. Write it from the completed experiment and its actual outcomes, including
+the failed first attempt and what was learned. Leave the first-edition epilogue
+intact. The epilogue is the final writing step, not a prediction drafted now.
+
+Publication and pushing remain Bill's decisions. Local checkpoints document
+the work; they do not imply editorial approval or a published release.
 
 ## Lessons established so far
 
@@ -263,6 +342,9 @@ shared chapter notes for the eventual author. At that later author phase,
 preserve the human story and explain why the rules exist, using actual experiences rather
 than invented battle scars.
 
-At this restart checkpoint, the previous agents are stopped and the discarded
-solutions are deleted. Creating this record does not restart them. The new
-workflow's effectiveness remains to be tested.
+At the October 9 preparation checkpoint, the previous implementation agents
+remain stopped, all discarded second-edition solutions and manuscript drafts
+have been removed, and the carryover review team has read Chapters 0–23 and
+the epilogue in full. Chapter 24 and the sub-agent chapter remain forthcoming.
+The two drafts are ready for review with Bill. No new coder has started; the
+new workflow's effectiveness remains to be tested.
