@@ -1,5 +1,11 @@
 # Chapter 10 large-state boundary controls
 
+Subsequent update: Bill freed disk space; the separately released
+[physical 1 GiB log control](chapter-10-physical-log-review.md) now passes.
+[Bounded admission and origin fault controls](chapter-10-admission-origin-review.md)
+also passed afterward. The capacity observations and pending statements below
+describe the preserved earlier stage.
+
 The canonical-state, physical checkpoint and physical origin groups passed on
 immutable `57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4`. All three exact boundaries
 were accepted and their one-byte overruns refused. Two targeted constant

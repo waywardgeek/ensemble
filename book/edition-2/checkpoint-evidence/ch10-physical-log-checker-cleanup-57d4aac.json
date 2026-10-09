@@ -1,0 +1,93 @@
+{
+  "checker_files": {
+    "accept_ch10_physical_log.py": "2f78841242ca3335b78dad7700ad3b99b5a9aa795521f23c9b2e94ed2247dee5",
+    "test_ch10_physical_log.py": "e9fbd474142b431caef19258ef0687e8f2925ccaf2aa10ae5f32cab0a798038a",
+    "test_ch10_remaining.py": "bb74c7b052e1d71642e046d5afda28190fac5c5b2c3ed44be3043f4d05883724",
+    "accept_ch10_lifecycle.py": "ce989233014de0b19602492c92a8fd292c93be6aaa436987700222f0bb2669a8"
+  },
+  "command": [
+    "python3",
+    "-m",
+    "unittest",
+    "discover",
+    "-s",
+    "scripts/edition2",
+    "-p",
+    "test_ch10_physical_log.py",
+    "-v"
+  ],
+  "started_utc": "2026-10-09T02:20:07.937041+00:00",
+  "complete": true,
+  "exit": 0,
+  "stdout": "",
+  "stderr": "test_failed_positive_stops_before_mutations (test_ch10_physical_log.Receipts.test_failed_positive_stops_before_mutations) ... ok\ntest_identity_refusal_does_not_rewrite_receipt (test_ch10_physical_log.Receipts.test_identity_refusal_does_not_rewrite_receipt) ... ok\ntest_interruption_retains_started_and_completed_commands (test_ch10_physical_log.Receipts.test_interruption_retains_started_and_completed_commands) ... ok\n\n----------------------------------------------------------------------\nRan 3 tests in 0.006s\n\nOK\n",
+  "passed": true,
+  "finished_utc": "2026-10-09T02:20:08.009941+00:00",
+  "cleanup_audit": {
+    "directory_prefixes": [
+      "ch10-large-state-",
+      "ch10-large-mutations-",
+      "ch10-remaining-",
+      "ch10-lifecycle-edges-",
+      "ch10-admission-origin-",
+      "ch10-admission-final-",
+      "ch10-admission-race-",
+      "ch10-physical-log-"
+    ],
+    "large_threshold_bytes": 67108864,
+    "directories": [
+      {
+        "directory": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-large-mutations-stwlop3i",
+        "file_count": 8,
+        "total_bytes": 24076116,
+        "large_files": []
+      },
+      {
+        "directory": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-large-state-d5csuq05",
+        "file_count": 4,
+        "total_bytes": 12035544,
+        "large_files": []
+      },
+      {
+        "directory": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-large-state-enw1zqn7",
+        "file_count": 4,
+        "total_bytes": 12034992,
+        "large_files": []
+      },
+      {
+        "directory": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-physical-log-aesfwy_h",
+        "file_count": 3,
+        "total_bytes": 9440,
+        "large_files": []
+      },
+      {
+        "directory": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-physical-log-t1ywj6bc",
+        "file_count": 3,
+        "total_bytes": 9440,
+        "large_files": []
+      },
+      {
+        "directory": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-physical-log-tju8m4g8",
+        "file_count": 7,
+        "total_bytes": 23993644,
+        "large_files": []
+      },
+      {
+        "directory": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-physical-log-x39knsb6",
+        "file_count": 3,
+        "total_bytes": 9440,
+        "large_files": []
+      },
+      {
+        "directory": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-physical-log-y013_0oy",
+        "file_count": 3,
+        "total_bytes": 9440,
+        "large_files": []
+      }
+    ],
+    "residual_large_files": 0,
+    "deleted_files": [],
+    "disk_free_bytes": 8345034752,
+    "explanation": "Both physical runs removed their owned temporary 1 GiB payloads through Go test cleanup. Runner also removed its owned payload root. Audit is read-only; no source, retained binary or unrelated file deleted."
+  }
+}
