@@ -1,5 +1,44 @@
 # Working checkpoint
 
+## Current boundary: Chapter 10 quality revisions after accepted live runs
+
+Independent live acceptance is `23b312c` on initial evidence `44d7627`:
+33 real generation attempts and three discoveries across all three vendors,
+all scheduled CLI/GUI/public/Skills persistence paths accepted. The initial
+runtime `57d4aac` and support `9822b2b` retain their original identities.
+Deterministic clearance is `213b56b`, joined 70/70 with original failures retained.
+
+The SAME cold student is now running phase7, exec `57092`, conversation
+`01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0`. Actual release is external
+`phase-7-quality.txt` with matching events/stderr/result files. The similarly
+named draft remains historical; do not launch it. Check the running process and
+handback before restarting. The student exclusively owns compiler use.
+
+Historical comparison `96fb4e9` rationale was delivered only after the initial
+experience froze: Q1 removes redundant Skills snapshot work, Q2 corrects exact
+watermark wording, and Q4 fixes optional-GUI empty text presentation while keeping
+all raw/replay bytes and indexed identities. Gemini's original four empty text
+parts include signed and unsigned values. Local captured-data browser checks,
+including speech/replacement/reset behavior, are required; no paid rerun is
+released. Independent revision review follows the frozen student handback.
+
+Author reconciliation `0e754b9` and direct feedback are pinned new-only in
+`clarification-0e754b9/`; student confirmation is requested. Proofreading
+`0afe66d` accepts the prose except two narrow edits: attribute Bill's default-load
+remark to design review, and replace the tentative metadata explanation with the
+established GUI diagnosis and separately identified correction evidence.
+No Chapter10 export or tag exists yet.
+
+Chapter17 contract closure remains `b06d780`. Full Chapter18 draft `d894137`
+received review `2fc8af0`; root read and released its three grouped author fixes:
+exact GUI status/reply and revision ordering, lawful same-session tool visibility
+in the unchanged 30-start live budget, and privacy assertions scoped to safe
+views while owned raw exports retain opaque data. No Bill decision, runtime work
+or provider run is required for these prose corrections.
+
+Earlier boundaries below preserve the preceding handoffs and are superseded by
+this current status.
+
 ## Current boundary: actual Chapter 10 provider demonstrations
 
 Latest: phase6 exec67648 completed exit0; initial actual evidence and student

@@ -8,15 +8,18 @@ in `chNN/`; commits and immutable annotated tags bind each validated chapter.
 
 ## Current chapter
 
-Current October 8 handoff: Chapter 10 runtime `57d4aac` has passed the remaining
-lifecycle, large-state, allocation/admission and origin-write checks. Physical
-1 GiB log validation passed at `9e2e94e` after Bill freed disk space; generated
-large files were cleaned up. The grader is consolidating final-source regression
-evidence. The same cold student is preparing real-provider support locally in
-phase 5; actual provider demonstrations, historical comparison and final chapter
-export/tag remain pending. Chapter 17 full contract `c109557` is under independent
-review. Earlier progress paragraphs below retain the preceding attempts; see
-`CHECKPOINT.md` for current worker ownership.
+Current October 8 PDT / October 9 UTC handoff: Chapter 10 deterministic
+clearance `213b56b` and real-provider acceptance `23b312c` are complete on the
+initial runtime `57d4aac`. All three vendors completed the scheduled persistence
+paths (33 generation attempts, three discoveries). Original evidence is frozen
+at `44d7627`. The same cold student is making three scoped quality improvements
+in phase7, with local validation and no further paid calls. Author reconciliation
+`0e754b9` has proofreading `0afe66d`; two narrow prose edits and student feedback
+confirmation remain. Independent revised-code review and exact export/tag follow.
+Large generated test files have been cleaned up. Chapter17's contract is accepted
+at `b06d780`; Chapter18 author corrections address the three finite findings in
+`2fc8af0`. Earlier paragraphs retain historical attempts; `CHECKPOINT.md` records
+current worker ownership.
 
 Chapter 9 is accepted at `edition-2-ch09-r1`: exact 4,012-file export from
 `ac55f64`, runtime `06c6787`, code review `19d2fdf`, live review `2dc5841` and
