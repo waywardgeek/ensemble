@@ -234,6 +234,12 @@ Resume after his response resolves the question. The autonomous student run
 makes this environment usable for the project; close real-time collaboration
 in Ensemble remains a reason for the crossover.
 
+Bill makes a perceived need for a mock an explicit stop point. Mocks have rare
+uses, but he expects none in this project. Use grader-provided fakes where
+suitable or small additional fakes; before introducing any mock, explain why
+fakes are insufficient and obtain Bill's explicit approval. A reviewer's grader
+or exercise exception does not grant that approval.
+
 CodeRhapsody's `SOUL.md` offers a useful collaboration rule: make it easy to
 admit uncertainty and correct mistakes. Give concise intentions, findings and
 limitations without requiring Bill to monitor them. Treat his corrections

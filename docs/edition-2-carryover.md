@@ -213,7 +213,11 @@ truncated result is not complete evidence. For example, `gofmt -l` can return
 success while listing files needing formatting. Diagnose the actual invocation
 and observed wire/artifact before assuming a cache problem or enumerating
 producers. Prefer a faithful boundary fake over mocks that remove the behavior
-under test. Run the required checks and affected regressions; this is not a
+under test. **No mocks without Bill's explicit approval.** Use the grader's
+provided fakes where suitable or small additional fakes. A perceived need for a
+mock is a critical question: stop, explain why fakes cannot meet the test need
+and wait for Bill's decision. Reviewer exceptions cannot authorize mocks.
+Run the required checks and affected regressions; this is not a
 request for blanket test expansion or a new verification framework.
 
 CodeRhapsody's `learnings.json` adds concrete checks: a root-module test command

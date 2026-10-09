@@ -53,6 +53,11 @@ Before coding or reviewing code, and after compaction, read the entire skill:
 `.agents/skills/ensemble-coding/SKILL.md`. Every coder/reviewer handoff must include
 that exact path. It replaces the deleted second-edition workflow skill.
 
+No mocks without Bill's explicit approval. Use grader-provided fakes where
+suitable or small additional fakes. If a coder believes a mock is necessary,
+stop and explain why fakes are insufficient, then wait for Bill's decision.
+The reviewer's exercise/grader exception authority does not waive this rule.
+
 Before the student run, a reviewer reads the entire available current edition
 and completes `docs/edition-2-carryover.md`; the coordinator checks the sourced
 lessons and recorded reading coverage. This is preparation, not chapter

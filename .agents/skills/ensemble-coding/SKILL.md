@@ -79,7 +79,16 @@ cannot retain independent vetoes.
 Run gofmt, go vet and go test in affected modules, and the original chapter
 grader. Use focused regressions for actual bugs, not a new grading framework.
 
-**Use fakes over mocks.** Exercise the real implementation and replace external
+**No mocks without Bill's explicit approval.** Mocks can be useful in rare
+situations, but Bill expects none in this code. Use the grader-provided fakes
+where available and suitable, or small additional fakes when needed. If the
+coder believes a mock is necessary, stop and explain the test need, why those
+fakes cannot meet it and the proposed mock's scope. Route this critical question
+to Bill and wait for approval before introducing the mock. Reviewer acceptance
+of an exercise or grader exception cannot authorize one. This applies to
+handwritten mocks as well as mocking libraries.
+
+Exercise the real implementation and replace external
 boundaries with small, faithful fakes when deterministic tests need them. For
 example, a fake HTTP server can supply vendor responses while the real client,
 parser and engine run. Assert observable results and relevant boundary behavior,
@@ -156,7 +165,8 @@ Leave a concise comparison covering:
 - **Tests:** compare the behaviors and real failure modes protected. Better tests
   are valuable even when longer. Do not reward test volume, implementation-mirror
   assertions or elaborate test infrastructure for its own sake. Enforce fakes
-  over mocks and check that the real behavior under test still runs. Preserve the
+  over mocks, require Bill's explicit approval for any mock, and check that the
+  real behavior under test still runs. Preserve the
   original grader's role; grader defects go into a future-maintainer review.
 - **Scope and simplicity:** trace added behavior to the original exercise or an
   explicit Bill instruction. Examine data structures and abstractions for the
