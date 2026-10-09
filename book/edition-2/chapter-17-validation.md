@@ -9,7 +9,7 @@ accepted. Chapter 16 has contract/prose acceptance only.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
-| Research and consequential choices | Author, reviewer, coordinator, Bill for the output-cap choice | Preparation `580ce83`, advisory `b59c47e`; working decisions below | Resolve subscription mode before dependent contract/code |
+| Research and consequential choices | Author, reviewer, coordinator, Bill for the output-cap choice | Preparation `580ce83`, advisory `b59c47e`; Bill approved explicit subscription mode without a per-response output-token cap | Specify complete supported route and per-purpose compatibility before dependent code |
 | Full contract and prose | Author `/root/author`, independent reviewer | Partial draft `b9772c3`; scoped hard prose checks pass, full manuscript review pending | Resolve route-dependent material and complete v7/public schemas before full contract review |
 | Independent checks | Future grader | Not started | Derive distinguishing checks from complete published teaching |
 | Fresh student and owner plan | Future fresh student, reviewer | Not released | Requires accepted Chapter 16 source and complete contract |
@@ -62,7 +62,7 @@ They accept the advisory's D1–D5 and D7 direction and the author's response.
    existing granted GUI inspection can observe the display. Bound wire values and
    specify reconnect/mount lifetime before implementation.
 
-## Subscription route: decision pending
+## Subscription route: Bill's decision
 
 The coordinator independently searched and opened the official OpenAI pages on
 October 8, 2026. The [preview limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations)
@@ -71,14 +71,18 @@ The [inference guide](https://developers.openai.com/siwc/token-sharing-open-sour
 requires account-specific model discovery and the public Responses endpoint.
 These are current documentation findings, not account-access or cache measurements.
 
-Bill has been asked asynchronously whether to offer an explicitly selected
-subscription mode without that output cap or retain mandatory caps and leave
-subscription support pending. No answer is assumed. Existing capped API-key
-behavior remains the baseline while that choice is open. In particular, Chapters
-15 and 16's helper caps cannot silently disappear when a route changes, and
-Chapter 16's plain judge request cannot silently become a streamed request.
+Bill agreed to an explicitly selected ChatGPT subscription mode without the
+per-response output-token cap and instructed the team to continue. Retain finite
+request-count limits, timeouts and usage reporting, and state explicitly that
+these do not guarantee a token or charge ceiling. Existing capped API-key
+behavior stays intact. The author must teach and capture each intentional
+per-purpose difference for the selected plan route, including streamed helper
+delivery and absence of the remote output cap. Local result-size, validation,
+deadline and request-count limits remain applicable; they cannot be described
+as equivalent remote generation limits. No silent credential/funding fallback
+is authorized by this design choice.
 
-The author may develop independent diagnostics and cost teaching meanwhile.
+The author may now complete the route design and its compatibility contract.
 Do not release dependent implementation, authenticate, or run a separate probe
 and label it an Ensemble success. Bill's requested cache retest remains an open
 chapter obligation. No drafting decision here postpones or waives it. Application

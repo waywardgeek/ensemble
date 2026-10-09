@@ -1,5 +1,37 @@
 # Working checkpoint
 
+## Current boundary: independent validation after coder handback
+
+Student phase4 is complete, with runtime/support `57d4aac` and evidence `a09f989`.
+The same student conversation is idle; exec13298 is finished. The complete
+handback is `solutions/edition-2/main/evidence/ch10/retained-repair-handback.md`.
+All12 modules passed vet/tests, affected race checks passed, Chapter9 main is
+51/51, Chapter10 CLI is93/93, and public/client/fault checks pass. Actual local
+PTY/browser/public-consumer support and15 identity controls are complete, with
+each run's original revision retained. These are localhost fixtures, not actual
+provider demonstrations. Local support still refuses external origins; its
+provider-facing adapter and final release remain pending.
+
+Reviewer `b2c8770` reconciles the three management strict-ack failures: the old
+fixture expected a nonempty name, while clarified Chapter10 requires empty for
+duplicate names. The original check remains unchanged; a Chapter10-only
+disposable adaptation passes138/138. Independent duplicate-argument, exact-replay
+and recovery controls pass on frozen57d4aac, including12 snapshot cases and
+required positive parents. Original135/138 and all earlier failures remain.
+
+Grader `/root/grader_ch10_remaining` now owns the compiler for five lifecycle
+groups/four mutations; others remain build-deferred. Initial positives pass;
+one mutation first failed in setup and is being narrowed without accepting false
+detection credit. Broader current-source retained/storage/large-file gates,
+actual use, historical comparison and chapter acceptance remain open.
+
+Bill approved explicitly selected ChatGPT subscription mode without a per-response
+output-token cap. See chapter-17-validation.md; this is no longer a pending user
+question. Author `/root/author` is completing the supported-route design before
+full contract review. Preserve concurrent commit53ee8e7's chapter9–17 story/opener
+improvements and Bill's first-edition sandbox work. Do not overwrite them with an
+older manuscript copy. Earlier handoff descriptions below remain historical.
+
 ## Current handoff: grouped Chapter 10 repair
 
 The following supersedes the recovery-running descriptions below. Retained
