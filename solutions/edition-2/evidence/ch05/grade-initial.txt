@@ -1,0 +1,7 @@
+make grade-dir CH=5 DIR=solutions/edition-2/main
+Initial: 110/120 FAIL, exit2.
+Binary builds10/10; star topology25/25; binary executes tool call25/25;
+logger reachable0/10 (no interface declares a variadic logging method);
+no mutable globals10/10; passes ch4 checks40/40 (nested actual90/100).
+No calculator registered in core. "Tool was called" does not prove an external
+custom handler ran. Separate external module test supplies that evidence.

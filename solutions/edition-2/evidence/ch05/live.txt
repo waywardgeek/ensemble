@@ -1,0 +1,25 @@
+Initial Anthropic call succeeded (exit0, shout logged, final HELLO FRAMEWORK, usage932/73); evidence parser failed on metadata record and temporary log was removed before preservation. This run repeats Anthropic solely to recover inspectable event/artifact evidence.
+anthropic discovered claude-haiku-5-5 at 2026-10-09T18:04:19.284045+00:00
+anthropic exit=0
+you> Call shout with text hello framework, then report its exact result.
+assistant> The `shout` tool returned: HELLO FRAMEWORK
+2026/10/09 11:04:20 shout called
+usage: {Input:932 CacheWrite:0 CacheRead:0 Output:73}
+
+anthropic event call/result IDs paired; stored job output exactly HELLO FRAMEWORK; 8 JSONL records (one metadata header and seven events)
+openai discovered gpt-5.4-mini at 2026-10-09T18:04:22.100516+00:00
+openai exit=0
+you> Call shout with text hello framework, then report its exact result.
+assistant> HELLO FRAMEWORK
+2026/10/09 11:04:23 shout called
+usage: {Input:363 CacheWrite:0 CacheRead:0 Output:25}
+
+openai event call/result IDs paired; stored job output exactly HELLO FRAMEWORK; 8 JSONL records (one metadata header and seven events)
+gemini discovered gemini-3.8-flash at 2026-10-09T18:04:25.093938+00:00
+gemini exit=0
+you> Call shout with text hello framework, then report its exact result.
+assistant> HELLO FRAMEWORK
+2026/10/09 11:04:27 shout called
+usage: {Input:222 CacheWrite:0 CacheRead:0 Output:65}
+
+gemini event call/result IDs paired; stored job output exactly HELLO FRAMEWORK; 8 JSONL records (one metadata header and seven events)

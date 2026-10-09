@@ -3,8 +3,9 @@
 **Student run authorized by Bill, October 9, 2026.** This is the edition-level
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these
-instructions, Bill explicitly said "Please proceed autonomously." The fresh
-Chapter 1 student run has started; no author is active. Remaining source
+instructions, Bill explicitly said "Please proceed autonomously." Student
+Chapters 1–5 are now accepted and checkpointed, with explicit grader exceptions
+where recorded; no author is active. Remaining source
 contradictions are still questions to resolve when relevant, not blanket approval
 of every proposed interpretation.
 
@@ -647,5 +648,23 @@ framework CLI, despite the chapter describing a separately graded consumer.
 The external custom-tool exercise remains required and needs its own evidence;
 existing architecture is not a reason to recreate the old refactor or globals.
 No Chapter 5 result or acceptance has been claimed.
+The Chapter 5 student then submitted its external consumer and review: actual
+original grade 110/120 FAIL, three-provider custom-tool use, three-module checks
+and targeted mutation evidence. Independent review is pending, including a
+requested logger-shape exception: the real multi-hop parent path reaches the
+logger, while the structural checker rejects its form. The grader also accepts
+an unknown-tool error as tool-call evidence and awards parity points despite the
+visible nested 90/100 score; neither establishes the claimed stronger behavior.
+Use actual custom results and retain nested failures, not just aggregate points.
+One otherwise successful paid run had to be repeated because the launcher read
+a session header as an event and deleted scratch before saving the artifact.
+Keep sanitized raw evidence before parsing/validation, and clean scratch after
+the capture is verified. This is an evidence-capture failure, not a model failure.
+Chapter 5 was subsequently accepted at initial independent review, with zero
+correction rounds, checkpoint `edition-2-ch05-r2`. The reviewer reproduced the
+logger false rejection and verified real logging and registration with source,
+external tests, selected mutations and live artifacts. Actual original grading
+remains 110/120 FAIL, with nested Chapter 4 at 90/100. The exact 32-file source
+export includes the separately built consumer. No chapter or grader was changed.
 Preserve small resumable checkpoints if a usage limit interrupts work;
 never label unfinished work an accepted chapter.

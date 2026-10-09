@@ -1,0 +1,252 @@
+BASELINE TestRegistrationIsAgentOwned
+?   	ensemble	[no test files]
+ok  	ensemble/ensemble	1.024s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+
+BASELINE TestExternalToolLoop
+ok  	ensemble-ch05	1.026s
+
+register-no-op
+internal/agent/agent.go
+FROM 'a.tools = append(a.tools, common.ToolDefinition{ToolDeclaration: declaration, Run: handler})'
+TO '_ = handler'
+Applied exactly once; exit=1
+--- FAIL: TestExternalToolLoop (0.00s)
+    main_test.go:40: custom declaration missing or changed: []
+    main_test.go:40: custom declaration missing or changed: []
+    main_test.go:46: custom result did not reach provider: {Type:tool_result ID:external-1 Content:[{Text:unknown tool "shout"}]}
+    main_test.go:67: answer = "unknown tool \"shout\"", <nil>
+FAIL
+FAIL	ensemble-ch05	0.012s
+FAIL
+
+schema-not-owned
+internal/agent/agent.go
+FROM 'declaration.Schema = append(json.RawMessage(nil), declaration.Schema...)'
+TO '// borrowed schema'
+Applied exactly once; exit=1
+?   	ensemble	[no test files]
+--- FAIL: TestRegistrationIsAgentOwned (0.00s)
+    registration_test.go:34: registration did not own declaration: {Name:custom Description:external Schema:[33 34 116 121 112 101 34 58 34 111 98 106 101 99 116 34 125]}
+FAIL
+FAIL	ensemble/ensemble	0.009s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+FAIL
+
+duplicate-name-accepted
+internal/agent/agent.go
+FROM 'if tool.Name == declaration.Name {'
+TO 'if false && tool.Name == declaration.Name {'
+Applied exactly once; exit=1
+?   	ensemble	[no test files]
+--- FAIL: TestRegistrationIsAgentOwned (0.00s)
+    registration_test.go:38: duplicate registration accepted
+FAIL
+FAIL	ensemble/ensemble	0.009s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+FAIL
+
+empty-name-accepted
+internal/agent/agent.go
+FROM 'strings.TrimSpace(declaration.Name) == "" || '
+TO ''
+Applied exactly once; exit=1
+?   	ensemble	[no test files]
+--- FAIL: TestRegistrationIsAgentOwned (0.00s)
+    registration_test.go:46: invalid declaration accepted
+FAIL
+FAIL	ensemble/ensemble	0.009s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+FAIL
+
+invalid-schema-accepted
+internal/agent/agent.go
+FROM ' || !json.Valid(declaration.Schema)'
+TO ''
+Applied exactly once; exit=1
+?   	ensemble	[no test files]
+--- FAIL: TestRegistrationIsAgentOwned (0.00s)
+    registration_test.go:46: invalid declaration accepted
+FAIL
+FAIL	ensemble/ensemble	0.009s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+FAIL
+
+nil-handler-accepted
+internal/agent/agent.go
+FROM 'handler == nil || '
+TO ''
+Applied exactly once; exit=1
+?   	ensemble	[no test files]
+--- FAIL: TestRegistrationIsAgentOwned (0.00s)
+    registration_test.go:50: nil handler accepted
+FAIL
+FAIL	ensemble/ensemble	0.009s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+FAIL
+
+declaration-description-lost
+internal/agent/agent.go
+FROM 'declaration.Schema = append('
+TO 'declaration.Description = ""\n declaration.Schema = append('
+Applied exactly once; exit=1
+--- FAIL: TestExternalToolLoop (0.00s)
+    main_test.go:40: custom declaration missing or changed: [{Name:shout Description: Schema:[123 34 116 121 112 101 34 58 34 111 98 106 101 99 116 34 44 34 112 114 111 112 101 114 116 105 101 115 34 58 123 34 116 101 120 116 34 58 123 34 116 121 112 101 34 58 34 115 116 114 105 110 103 34 125 125 44 34 114 101 113 117 105 114 101 100 34 58 91 34 116 101 120 116 34 93 125]}]
+    main_test.go:40: custom declaration missing or changed: [{Name:shout Description: Schema:[123 34 116 121 112 101 34 58 34 111 98 106 101 99 116 34 44 34 112 114 111 112 101 114 116 105 101 115 34 58 123 34 116 101 120 116 34 58 123 34 116 121 112 101 34 58 34 115 116 114 105 110 103 34 125 125 44 34 114 101 113 117 105 114 101 100 34 58 91 34 116 101 120 116 34 93 125]}]
+FAIL
+FAIL	ensemble-ch05	0.012s
+FAIL
+
+declaration-schema-lost
+internal/agent/agent.go
+FROM 'declaration.Schema = append(json.RawMessage(nil), declaration.Schema...)'
+TO 'declaration.Schema = json.RawMessage(`{}`)'
+Applied exactly once; exit=1
+--- FAIL: TestExternalToolLoop (0.00s)
+    main_test.go:40: custom declaration missing or changed: [{Name:shout Description:Return text converted to uppercase Schema:[123 125]}]
+    main_test.go:40: custom declaration missing or changed: [{Name:shout Description:Return text converted to uppercase Schema:[123 125]}]
+FAIL
+FAIL	ensemble-ch05	0.012s
+FAIL
+
+custom-result-lost
+ch05/main.go
+FROM 'return strings.ToUpper(*input.Text), nil'
+TO 'return "lost", nil'
+Applied exactly once; exit=1
+--- FAIL: TestExternalToolLoop (0.00s)
+    main_test.go:46: custom result did not reach provider: {Type:tool_result ID:external-1 Content:[{Text:lost}]}
+    main_test.go:67: answer = "lost", <nil>
+FAIL
+FAIL	ensemble-ch05	0.012s
+FAIL
+
+logger-disconnected
+ensemble/ensemble.go
+FROM 'e.logger.Printf(format, args...)'
+TO '_ = format'
+Applied exactly once; exit=1
+--- FAIL: TestExternalToolLoop (0.00s)
+    main_test.go:70: tool did not reach root logger: ""
+FAIL
+FAIL	ensemble-ch05	0.012s
+FAIL
+
+logger-timestamp-omitted
+ensemble/ensemble.go
+FROM 'log.LstdFlags'
+TO '0'
+Applied exactly once; exit=1
+--- FAIL: TestExternalToolLoop (0.00s)
+    main_test.go:70: tool did not reach root logger: "shout called\n"
+FAIL
+FAIL	ensemble-ch05	0.012s
+FAIL
+
+BASELINE TestRegistrationIsAgentOwned
+?   	ensemble	[no test files]
+ok  	ensemble/ensemble	1.022s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+
+BASELINE TestExternalToolLoop
+ok  	ensemble-ch05	1.025s
+
+handler-arguments-lost
+internal/agent/agent.go
+FROM 'return definition.Run(context, call.Args)'
+TO 'return definition.Run(context, json.RawMessage(`{"text":"wrong"}`))'
+Applied exactly once; exit=1
+--- FAIL: TestExternalToolLoop (0.00s)
+    main_test.go:46: custom result did not reach provider: {Type:tool_result ID:external-1 Content:[{Text:WRONG}]}
+    main_test.go:67: answer = "WRONG", <nil>
+FAIL
+FAIL	ensemble-ch05	0.013s
+FAIL
+
+
+registry-global
+Setup initially expected nine references; assertion found eight before any mutation/test. Corrected to eight.
+Mutated internal/agent/agent.go: replace all eight a.tools references by sharedTools, add package variable var sharedTools []common.ToolDefinition. Existing field remains unused. All replacements verified.
+?   	ensemble	[no test files]
+--- FAIL: TestRegistrationIsAgentOwned (0.00s)
+    registration_test.go:29: registration leaked or lost builtins
+FAIL
+FAIL	ensemble/ensemble	0.009s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+FAIL
+
+rejected-registration-mutates
+internal/agent/agent.go
+FROM 'return fmt.Errorf("tool %q is already registered", declaration.Name)'
+TO 'a.tools = append(a.tools, common.ToolDefinition{ToolDeclaration: declaration, Run: handler})\n return fmt.Errorf("tool %q is already registered", declaration.Name)'
+Applied exactly once.
+?   	ensemble	[no test files]
+--- FAIL: TestRegistrationIsAgentOwned (0.00s)
+    registration_test.go:53: rejected registration changed visibility
+FAIL
+FAIL	ensemble/ensemble	0.009s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+FAIL
+
+registration-drops-builtins
+internal/agent/agent.go
+FROM 'a.tools = append(a.tools, common.ToolDefinition{ToolDeclaration: declaration, Run: handler})'
+TO 'a.tools = []common.ToolDefinition{{ToolDeclaration: declaration, Run: handler}}'
+Applied exactly once.
+?   	ensemble	[no test files]
+--- FAIL: TestRegistrationIsAgentOwned (0.00s)
+    registration_test.go:29: registration leaked or lost builtins
+FAIL
+FAIL	ensemble/ensemble	0.009s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+FAIL

@@ -1,0 +1,23 @@
+. go vet ./... exit=0
+
+. go test -race -count=1 ./... exit=0
+?   	ensemble	[no test files]
+ok  	ensemble/ensemble	1.643s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+
+gui go vet ./... exit=0
+
+gui go test -race -count=1 ./... exit=0
+ok  	ensemble-gui-stub	1.013s
+
+ch05 go vet ./... exit=0
+
+ch05 go test -race -count=1 ./... exit=0
+ok  	ensemble-ch05	1.024s
+
+gofmt -l .: no files

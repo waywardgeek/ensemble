@@ -58,3 +58,14 @@ Live three-provider supervision, actual debugger prompt matching and shutdown
 are recorded alongside the unsuccessful attempts and corrected evidence claims.
 Independent review verified the two lifecycle regression tests, including their
 failure paths, before acceptance. See `ch04.md` and `ch04-code-review.md`.
+
+Chapter 5 was accepted at initial review with documented grader exceptions and
+zero correction rounds. Checkpoint: `edition-2-ch05-r2`; the older r1 remains.
+All 32 source/export files match; manifest SHA-256:
+`5d64b57085a9358bd309193591664b5c36d08cbf2ef467cd9c4e288754f9520a`.
+Original grade is **110/120 FAIL**: its logger-shape check rejects the demonstrated
+multi-hop ownership chain. Nested Chapter 4 remains 90/100 despite the enclosing
+parity check's passing label. The separately built consumer proves real custom
+registration, execution and root logging on all three providers; the grader's
+generic tool-return check does not establish that capability. See `ch05.md` and
+`ch05-code-review.md` for the precise exceptions and comparative results.

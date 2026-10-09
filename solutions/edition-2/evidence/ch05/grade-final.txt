@@ -1,0 +1,27 @@
+go run ./cmd/grade -ch 5 solutions/edition-2/main
+Chapter 5 — The Big Refactor
+============================================================
+
+[PASS]      Binary builds  (10/10)
+
+[PASS]      Star topology: impl packages import only the hub  (25/25)
+       hub=ensemble/internal/common, all impl packages import only the hub
+
+[PASS]      Binary executes a tool call  (25/25)
+       tool returned: (tool was called)
+
+[FAIL]      Logger reachable through parent interface chain  (0/10)
+       no back-pointer interface reaches the logger from a tool:
+       common.Ensemble has [Logf], but no struct outside package common
+       stores it as a field and logs through it (a closure field does not
+       count)
+
+[PASS]      No mutable package-level variables  (10/10)
+
+[PASS]      Passes ch4 behavioral checks  (40/40)
+       ch4 checks: 90/100 (90%)
+
+------------------------------------------------------------
+score: 110/120 — FAIL
+exit status 1
+make: *** [grade-dir] Error 1

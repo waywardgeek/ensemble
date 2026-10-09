@@ -91,7 +91,9 @@ the other. Review prose and grader changes, preserve valid coverage, and keep
 original graders and student results as history alongside the first edition. Do not
 draft ahead of the coder or turn editorial work into new feature requirements.
 
-Start from empty in `solutions/edition-2/main/` when coding resumes. The student
+The restart began from empty in `solutions/edition-2/main/`. Each subsequent
+chapter extends its accepted predecessor in that authoritative working tree;
+do not restart it or edit frozen exports. The student
 must not read or copy `agent/`, first-edition answers, discarded second-edition
 answers, or their Git blobs to solve the exercise. Frozen exports are not working
 trees. Do not edit the first edition. Never reset history or move existing tags.
