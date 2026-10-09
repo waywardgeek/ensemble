@@ -15,10 +15,14 @@ Before coding or reviewing code, and after compaction, read the entire skill:
 `.agents/skills/ensemble-coding/SKILL.md`. Every coder/reviewer handoff must include
 that exact path. It replaces the deleted second-edition workflow skill.
 
-The student follows first-edition `book/chapter-NN.md`, in order from Chapter 1,
-with Bill's architecture rules applied from the beginning. The retained
-`book/edition-2/chapter-01.md` supplies architecture teaching, not authority to
-expand the original exercise. There is no author agent. Use the original grader;
+Before the student run, the coordinator reads the entire current edition and
+completes `docs/edition-2-carryover.md` with sourced lessons and recorded reading
+coverage. This is preparation, not chapter authorship or new feature design.
+The student reads that carryover alongside the mandatory skill and follows
+first-edition `book/chapter-NN.md`, in order from the unchanged Chapter 1.
+Bill's architecture rules apply from the beginning. The retained second-edition
+Chapter 1 draft is historical material, not required student reading.
+There is no author agent. Use the original grader;
 record suspected grader defects and teaching gaps for future work rather than
 changing chapters or graders during the student attempt.
 

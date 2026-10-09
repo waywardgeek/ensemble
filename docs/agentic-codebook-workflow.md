@@ -18,8 +18,9 @@ Do not wait for a successful chapter to record a failure or a scope problem.
 - The original first-edition chapter defines the current student exercise.
 - [AGENTS.md](../AGENTS.md) and the mandatory
   [coding skill](../.agents/skills/ensemble-coding/SKILL.md) govern execution.
-- The retained [second-edition Chapter 1](../book/edition-2/chapter-01.md)
-  teaches the architecture improvements. It does not authorize extra features.
+- The [carryover document](edition-2-carryover.md) gives the student sourced
+  lessons to apply from the start or when the relevant feature arrives. The
+  original Chapter 1 stays unchanged; the retained second-edition draft is history.
 - The [first-attempt history](edition-2-attempt-1.md) records the retired work;
   its expanded contracts are not requirements for the restart.
 
@@ -29,13 +30,28 @@ working approach and explain why. When actual requirements conflict or their
 meaning changes user-visible behavior, ask Bill before implementing the affected
 part. Neither the coordinator nor a reviewer may silently make that decision.
 
+## Prepare the carryover before starting an edition
+
+Read the entire current edition before launching its successor's student run.
+The coordinator can do this preparation without an author agent. Extract the
+lessons learned during that edition into a compact carryover document, giving
+each lesson a source, reason and point of application. Record the source revision
+and reading coverage; a partial review must not be described as complete.
+
+Distinguish corrections and Bill's explicit decisions from tentative advice.
+Keep future features in their own exercises, exclude old solution code, and
+resolve consequential contradictions with Bill. This preparation teaches known
+lessons without rewriting chapters or designing the next implementation ahead
+of experience. Students read the carryover and skill with the original chapters;
+reviewers check that the carryover has not become a new source of feature creep.
+
 ## How the agents work together
 
 | Role | Responsibility and boundary |
 | --- | --- |
 | Bill | Resolve product and consequential architecture questions; supply direction and corrections. |
 | Coordinator | Keep scope, handoffs and records coherent; route questions to Bill; stop drift and unnecessary work. Do not invent requirements. |
-| Student coder | Read the original chapter and mandatory skill, implement from scratch or extend its accepted predecessor, run the original grader and live exercise, and leave a review for the future author. Do not consult old answers. |
+| Student coder | Read the carryover, original chapter and mandatory skill, implement from scratch or extend its accepted predecessor, run the original grader and live exercise, and leave a review for the future author. Do not consult old answers. |
 | Code reviewer | After implementation, compare against the matching first-edition solution and read the coder's review. Enforce KISS, architecture and actual scope; return findings and reasons, not old solution code. |
 | Future author | Begin only after the complete implementation succeeds and comparative reviews establish its improvements. Revise chapters from the demonstrated results and student experience. |
 
@@ -47,7 +63,7 @@ does not remove the need for collaboration when the assignment is ambiguous.
 
 For each chapter:
 
-1. Give the coder the original chapter and exact mandatory skill path. Keep old
+1. Give the coder the carryover, original chapter and exact mandatory skill path. Keep old
    solutions and discarded requirements out of the coder's handoff.
 2. Implement the exercise using the agreed architecture and the simplest clear
    design. Record material difficulties and decisions while they are fresh.
@@ -104,6 +120,10 @@ reason; investigate persistent failures instead of spending indefinitely.
 8. **History is part of the result.** Bill requested explicit deletion, not a Git
    reset, so the unsuccessful attempt remains inspectable. Preserve the first
    edition as a historical artifact and distinguish checkpoints from endorsement.
+9. **Carry lessons separately from the exercises.** Bill clarified that an
+   upfront carryover document removes the need to revise Chapter 1 before the
+   student starts. Read the prior edition for its lessons; give the student the
+   distilled guidance while preserving the original exercise and its grader.
 
 The first-attempt history links these observations to preserved material. Bill
 reported substantial subscription usage; exact cost attribution was not

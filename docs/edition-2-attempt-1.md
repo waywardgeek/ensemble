@@ -45,9 +45,10 @@ for future authors and grader maintainers. It does not rewrite the assignment,
 repair graders, copy old solutions, or implement speculative features.
 
 The current coding instructions are in `AGENTS.md` and
-`.agents/skills/ensemble-coding/SKILL.md`. The retained
-`book/edition-2/chapter-01.md` preserves the earlier architecture teaching;
-the original `book/chapter-01.md` defines the first exercise. Later first-edition
+`.agents/skills/ensemble-coding/SKILL.md`. Bill subsequently chose a separate
+[carryover document](edition-2-carryover.md) for upfront lessons, so the retained
+`book/edition-2/chapter-01.md` is historical material rather than student reading.
+The original `book/chapter-01.md` defines the first exercise. Later first-edition
 architecture-repair chapters do not require deliberately undoing correct design.
 
 The ongoing [workflow and learning record](agentic-codebook-workflow.md) describes

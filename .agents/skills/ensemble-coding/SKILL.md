@@ -9,6 +9,12 @@ Read this entire skill before coding or code review and after compaction. The or
 defines feature scope; Bill's instructions define architecture. Do not import
 requirements from the discarded edition.
 
+Also read `docs/edition-2-carryover.md` before starting and after compaction.
+It replaces the revised Chapter 1 as the student's upfront lessons document;
+follow the unchanged first-edition chapters. The coordinator completes its
+full-edition reading and records coverage before the student run. Carryover
+lessons guide the current exercise, not early implementation of later features.
+
 ## Architecture from the first line
 
 - Shared core data and interfaces belong in `internal/common`. Implementation
