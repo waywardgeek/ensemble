@@ -106,6 +106,25 @@ type UsageSource = common.UsageSource
 // it for reconnection without copying.
 type Log = common.Log
 
+// The event vocabulary, exported so an application embedding the GUI can
+// build an event log of its own for the scroll to replay. Chapter 24's
+// reuse check surfaced this: a consumer with fake hooks can serve the GUI,
+// but a GUI with nothing in its log renders an empty scroll. Feeding it
+// content means constructing events, and you cannot construct what you
+// cannot name.
+type Event = common.Event
+type EventType = common.EventType
+type MessageData = common.MessageData
+type PartList = common.PartList
+type Seq = common.Seq
+
+// Note: common.Actor (who said it) is NOT aliased because the name is
+// taken by the llm.Actor runtime below. The ActorHuman/ActorAgent
+// constants carry the type, which is all a log-building consumer needs.
+const MessageReceived = common.MessageReceived
+const ActorHuman = common.ActorHuman
+const ActorAgent = common.ActorAgent
+
 // ToolCallPart and OpaquePart are re-exported because PartFinal now reports
 // EVERY part, not just text. A consumer switching on a final needs the types
 // to switch on, and before streaming there was nothing but text to see. The

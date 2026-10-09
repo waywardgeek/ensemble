@@ -21,10 +21,28 @@ import (
 )
 
 func TestGUIReusableOutsideEnsemble(t *testing.T) {
+	// A sentinel event planted in a consumer-built log. The vocabulary
+	// (Event, MessageData, TextPart) is root-aliased precisely so an
+	// application outside the module can do this.
+	const sentinel = "replay sentinel 24"
+	log := &agent.Log{
+		Events: []agent.Event{{
+			Seq:  1,
+			Type: agent.MessageReceived,
+			Time: time.Unix(0, 0).UTC(),
+			Message: &agent.MessageData{
+				Actor: agent.ActorAgent,
+				Parts: agent.PartList{agent.TextPart{Text: sentinel}},
+			},
+		}},
+		Next:  2,
+		Clock: time.Now,
+	}
+
 	inbound := make(chan agent.Inbound, 1)
 	srv := gui.New(gui.AgentHooks{
 		Send:     func(m agent.Inbound) { inbound <- m },
-		EventLog: &agent.Log{Clock: time.Now},
+		EventLog: log,
 	}, "")
 
 	mux := http.NewServeMux()
@@ -62,6 +80,27 @@ func TestGUIReusableOutsideEnsemble(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer conn.Close()
+
+	// The consumer's own event reaches a browser through the standard
+	// subscribe-and-replay path: the GUI renders content the ensemble
+	// binary never produced.
+	if err := conn.WriteJSON(map[string]string{"type": "subscribe"}); err != nil {
+		t.Fatal(err)
+	}
+	conn.SetReadDeadline(time.Now().Add(5 * time.Second))
+	for {
+		var frame struct {
+			Type string `json:"type"`
+			Text string `json:"text"`
+		}
+		if err := conn.ReadJSON(&frame); err != nil {
+			t.Fatalf("replay: connection ended before the sentinel arrived: %v", err)
+		}
+		if frame.Type == "message" && strings.Contains(frame.Text, sentinel) {
+			break
+		}
+	}
+
 	if err := conn.WriteJSON(map[string]string{"type": "prompt", "text": "hello from outside"}); err != nil {
 		t.Fatal(err)
 	}
