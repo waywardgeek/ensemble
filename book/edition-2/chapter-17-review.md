@@ -511,3 +511,178 @@ warnings remain appropriate review inputs for this advisory record. Scoped
 against the proposal, predecessor helper settlement rules and preserved story
 diff. No Go compilation or wider prose pass ran while another grader owned the
 compiler. Only this review file is changed by this round.
+
+## Full contract review of c109557
+
+October 8, 2026. The complete manuscript, outline, evidence and validation files
+matched `c109557` during this review. **Contract acceptance is held for the four
+finite correction groups below.** These are teaching/schema findings, not observed
+runtime defects. The selected scope and Bill's cap choice remain settled. The
+coordinator can resolve the remaining authority and representation choices without
+another user question.
+
+Read the entire current voice.md, chapter-writing-procedure.md, architecture.md,
+all four submitted Chapter 17 files and the R1–R4 append. Focused predecessor reads
+covered Chapter 5 turn identities, Chapter 6 operation identities, Chapter 10
+creation identity/compatibility, Chapter 14 handoff/transition/snapshot rules,
+Chapter 15 segment selection/pressure/helper retirement and Chapter 16 identity,
+initialization and policy composition. Prior grader/student-source exposure remains
+as disclosed above. This was an independent prose/contract review, with no code,
+credential, authorization, provider inference or build work.
+
+### Resolved direction and verified fixtures
+
+The new text addresses the core R1/R2 choices: explicit Responses controls,
+whole-turn captures, restart-safe random registration binding, off-Actor lease
+waiting, shared refresh with isolated waiters, dispatch invalidation and a separate
+Actor terminal settlement boundary. The usage-only foreground fact correctly
+distinguishes suppressed effects from known accepted usage. The new initializer
+wraps base versions 1–6 without automatically installing memory or recall. The
+remaining codec findings concern its concrete transitions, not that selected
+composition model.
+
+R4's counter is now testable: decoded HTTP-entity bytes include SSE framing and
+terminal repetition. Independently counting the printed fixture gives E=532,
+S=8,192 and the one-x mutation=8,193 bytes. The printed JSON/JSON-lines literals
+parse. The completed-item continuation preserves order, phase and spaced argument
+text. Those are offline fixture checks, not acceptance of an implementation or
+proof that a real model fits the limit. The requirement for successful real
+foreground, compression and judge use remains correctly open.
+
+Used the freshly read OpenAI Docs skill, official search and actual page retrieval.
+The current [plan limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations)
+continue to support streamed, nonstored full-history Responses with the selected
+plan cap omitted. Focused reads of [registration](https://developers.openai.com/siwc/token-sharing-open-source/sign-in),
+[account/session management](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions),
+[reasoning](https://developers.openai.com/api/docs/guides/reasoning) and the
+[streaming reference](https://developers.openai.com/api/reference/resources/responses/streaming-events)
+support the cited registration separation, rotating renewal, opaque reasoning and
+indexed event fields. None establishes this application's entitlement or cache
+results. Earlier caching/price research remains attributed to its earlier reads;
+no new live capability or price claim was verified here.
+
+### C1. Define one durable whole-bundle retirement transition
+
+Affected teaching: Chapter 17 §17.8, lines 1037–1045, and its sign-out recovery at
+lines 810–813. The whole-output-bundle protection is correct. Its retirement is
+not yet an executable contract. Chapter 14 §14.6 removes completed tool batches
+at handoff while preserving surrounding text/opaque parts. Its strict
+context_changed grammar (§14.7) targets batches and call IDs. Chapter 15 §15.4
+protects every segment containing opaque material or retained pairs and forbids
+compression from turning that source into unsigned text. Saying Chapter 15 may
+retire the complete Responses unit at a valid handoff leaves these rules in
+conflict, especially for a reasoning-plus-final-text response with no call.
+
+Publish the exact v7 extension or explicitly selected existing transition that
+retires a bundle. Specify its stable identity, complete eligible set, outstanding
+call/result refusal, placement of surviving user/manual/hint material and its
+working note. State whether it is a zero-model handoff cut or a compressor source;
+do not leave a student to choose between them. Retain whole-bundle protection
+from selective cuts. Define neutral pressure measurement for raw bundle material
+and keep opaque payloads out of an unsigned compressor source. A display-only text
+view cannot erase the bundle's protection or size.
+
+Required observables: reasoning + commentary + two calls/results retires wholly
+at the authorized boundary; reasoning + final text with no call has a specified
+outcome; unresolved calls refuse; automatic/selective cuts preserve the complete
+bundle. Full-log and snapshot-tail replay must derive identical retirement and
+surviving anchored material. A new binding cannot gain access by partial stripping.
+This is the coordinator's ownership/authority resolution, not a request for a
+new provider feature.
+
+### C2. Complete the retained-versus-retired snapshot representation
+
+Affected teaching: §17.5, lines 433–454, and §17.8, lines 999–1009. Capsules has
+one exact record shape requiring raw and refs; base facts point to it. Retirement
+then removes the raw output/refs without specifying the replacement record,
+reference disposition or required retained metadata. A reducer cannot implement
+both strict shapes without privately inventing a tombstone or dangling-reference
+exception. Usage-only suppressed foreground facts also need an explicit inline
+snapshot representation because they never have a response capsule.
+
+There is a separate inherited helper conflict. Chapter 15's snapshot rules at
+lines 675–693 retain generated text through its represented memory entry and
+forbid a duplicate raw response containing submit arguments. After an unusable
+candidate, no represented output exists at all. Chapter 17's helper raw capsule
+would otherwise retain exactly that extra text. Referencing one helper raw payload
+from two indexes avoids two raw copies, but does not remove the duplicate of the
+installed memory text or the archive of a rejected candidate.
+
+Publish the exact retained/retired variants and every reference conversion,
+including inline raw_usage, hashes, sizes and disposition. Preserve Chapter 15's
+compact helper snapshot rule unless the coordinator deliberately publishes and
+justifies a v7 replacement. Prefer its existing metadata/represented-output
+reference and honest history_unavailable to retaining a helper's raw submit text.
+Full logs still retain their original raw receipt. The v7 base substitutions must
+also say how a usage-only cancellation fact clears/settles the base response slot
+without creating dialogue or pending calls; do not delegate this new transition
+to the student's implementation-owned old codec.
+
+Required observables: fold A installs memory, fold B retires it, and the resulting
+snapshot contains neither A's generated text nor its raw arguments/capsule; usage
+remains exact. An unusable helper leaves no candidate body in a snapshot. A retired
+foreground capsule leaves no dangling base/ref entry. Latest checkpoint, full-log
+and snapshot-tail restoration agree for applied and suppressed usage, while exact
+reconstruction of legitimately absent bytes reports history_unavailable.
+
+### C3. Reconcile the public status grammar with its advertised information
+
+Affected teaching: §17.7's Attempt and pricing rows, lines 695/705, and the
+current-route display at line 731. Chapter 5 uses opaque request IDs such as r1;
+Chapter 6 permits arbitrary nonempty operation IDs. Attempt requires U for both
+turn and operation without specifying a distinct numeric mapping. Preserve the
+existing identity grammar, or explicitly name a durable-sequence field and its
+mapping; do not require implementations to reinterpret their existing IDs as
+numbers. Add a fixture using nonnumeric request and operation IDs.
+
+The exact Status object contains attempts but no current profile. Before the
+first request, and after a profile change before another request, those rows
+cannot supply the advertised current route/funding. Similarly §17.6 requires the
+price-table date to remain visible, but pricing contains only its ID. Add the
+necessary copied current-profile and table-date values, or explicitly specify
+how one coherent public snapshot supplies them alongside Status. Keep current
+selection separate from historical Attempt values. Verify the empty mount,
+post-route-change/pre-send state and two price tables with distinct dates.
+
+These are small schema corrections within the selected public interface, not
+new client features or a reason to change the old ID contract.
+
+### C4. Print a supported portable-assistant envelope
+
+Affected teaching: §17.8, lines 958–960. The draft assigns output_text blocks to
+a portable historical assistant but gives only the ordinary type/role/content
+envelope. The current [Responses create input schema](https://developers.openai.com/api/reference/resources/responses/methods/create)
+distinguishes EasyInputMessage, which permits assistant with a string or input_text
+content, from ResponseOutputMessage, whose output_text form also requires its
+output-message fields, including id/status. The chapter's actual capsule example
+has those fields; a portable historical assistant or working note has no provider
+item ID to recover.
+
+Print an exact documented input form for that portable case, preferably the
+assistant EasyInputMessage with input_text, without inventing a provider output
+identity. Keep real capsule spans unchanged. Also spell the optional direct caller
+as the object {"type":"direct"}; the provider reference does not define a bare
+"direct" string there. A literal portable working-note request and the existing
+raw-capsule continuation should be independent positive controls. This identifies
+a contract/schema mismatch; no live API rejection is claimed.
+
+### Release prerequisite and prose disposition
+
+The missing new independent acceptance invocation is an explicit release
+prerequisite, separate from C1–C4. The inherited CH=18 command is accurately
+labeled insufficient. Publish and verify the actual new checker command before
+a fresh student starts; do not call its absence a failed runtime check. Accepted
+Chapter 16 source, the student's owner plan and the finite action-level live
+matrix remain their normal subsequent gates.
+
+The original-author opening and returning false-instrument/meter incidents from
+`53ee8e7` survive. The funding section starts with the reader's comparison problem,
+and the final paragraph returns to a trustworthy measurement without promising a
+cache hit. Keep those passages. The longer schema material has a purpose; no
+fabricated anecdote or cut-to-length rewrite is requested.
+
+Existing external prose lint passes all hard rules on the complete manuscript.
+Its soft warnings are 9,463 prose words, negation density and a long technical
+stretch. Literal parsing/counting and manual source/contract review are separate
+from lint. This review requests one grouped author correction and then closure
+against that freeze; it does not expand the selected feature scope.
