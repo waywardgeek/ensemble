@@ -14,9 +14,13 @@ current turn so the user can start a new one; other jobs continue and retain the
 real results. See [the source conflict and ruling](edition-2-notes/ch06.md).
 Resume from accepted `edition-2-ch05-r2` under §6.7, preserving the Agent's lifetime.
 No author is active. Other consequential ambiguities still require resolution.
-The fresh student `student_restart_ch06` is now assigned from that checkpoint;
-the original frozen reference scores 100/100. Missing exercise protocol facts
-are recorded in the chapter notes under Bill's standing authorization.
+The fresh student `student_restart_ch06` has submitted Chapter 6 from that
+checkpoint for initial independent review by `review_restart_ch01`; zero
+correction rounds have been used. The original frozen reference scores 100/100;
+the student reports 80/100 FAIL, with two documented exception requests.
+Four-module checks, targeted mutations and three-provider live demonstrations
+are recorded in the student review. Acceptance is pending. Missing exercise
+protocol facts are recorded under Bill's standing authorization.
 
 These are the two review documents. The carryover answers “What did the previous
 edition teach us that the student should know?” This workflow answers “How do
