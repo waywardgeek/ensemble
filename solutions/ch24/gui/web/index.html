@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ensemble</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/lib/marked.umd.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/ansi_up@5/ansi_up.js"></script>
+</head>
+<body>
+  <div id="app">
+    <!-- Status bar -->
+    <div id="status-bar">
+      <button id="hamburger" title="Toggle sidebar" aria-controls="sidebar" aria-expanded="true">☰</button>
+      <span id="agent-state">idle</span>
+      <select id="top-model" class="top-control" aria-label="Model"></select>
+      <span class="spacer"></span>
+      <span id="usage-meter" role="status" aria-live="off">
+        <span class="u-item" id="u-cost" title="Session cost so far">$0.00</span>
+        <span class="u-item" id="u-in" title="Total input tokens this session, all categories">in 0</span>
+        <span class="u-item" id="u-cr" title="Input tokens served from the prompt cache">cache 0</span>
+        <span class="u-item u-hit" id="u-hit" title="Share of input tokens served from cache">0.0%</span>
+      </span>
+      <button id="interrupt-btn" title="Interrupt: abort the current turn and return to the start of turn. Always available, including when the displayed state is wrong.">⏹</button>
+      <label class="icon-btn" id="top-tts-label" title="Speak replies aloud">
+        <input type="checkbox" id="top-tts" aria-label="Speak replies aloud">
+        <span class="tts-on" aria-hidden="true">🔊</span>
+        <span class="tts-off" aria-hidden="true">🔇</span>
+      </label>
+      <button id="reset-btn" title="Clear the conversation. Memory, skills and checkpoints are kept.">⟳</button>
+      <button id="settings-btn" title="Settings">⚙</button>
+    </div>
+
+    <!-- Main three-pane layout -->
+    <div id="panes">
+      <!-- Left sidebar -->
+      <div id="sidebar" class="pane">
+        <div id="sidebar-tabs" role="tablist">
+          <button class="tab active" data-tab="chats" role="tab" aria-selected="true">Chats</button>
+          <button class="tab" data-tab="artifacts" role="tab" aria-selected="false">Artifacts</button>
+        </div>
+        <div id="sidebar-content">
+          <div class="tab-panel active" data-panel="chats">
+            <div class="sidebar-item active">Main conversation</div>
+          </div>
+          <div class="tab-panel" data-panel="artifacts">
+            <div class="sidebar-empty">No artifacts yet</div>
+          </div>
+        </div>
+        <div id="creed" title="A reminder, not a slogan">Don't be evil.</div>
+      </div>
+
+      <!-- Left drag bar -->
+      <div class="drag-bar" id="drag-left"></div>
+
+      <!-- Center: chat scroll -->
+      <div id="center" class="pane">
+        <div id="chat-scroll" class="scroll-container"></div>
+        <div id="input-bar">
+          <textarea id="prompt-input" rows="1" placeholder="Type a message..." autocomplete="off"></textarea>
+        </div>
+      </div>
+
+      <!-- Right drag bar -->
+      <div class="drag-bar" id="drag-right"></div>
+
+      <!-- Right: actions + agent tree -->
+      <div id="right-pane" class="pane">
+        <div id="actions-scroll" class="scroll-container"></div>
+        <div id="agent-tree">
+          <div class="agent-node">
+            <span class="agent-dot idle">●</span>
+            <span class="agent-label">main</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Settings overlay -->
+    <div id="settings-overlay" class="hidden">
+      <div id="settings-panel">
+        <div class="settings-header">
+          <h2>Settings</h2>
+          <button id="settings-close">✕</button>
+        </div>
+        <div class="settings-tabs">
+          <button class="settings-tab active" data-tab="ai">AI</button>
+          <button class="settings-tab" data-tab="appearance">Appearance</button>
+          <button class="settings-tab" data-tab="accessibility">Accessibility</button>
+          <button class="settings-tab" data-tab="memory">Memory</button>
+        </div>
+        <div class="settings-body">
+          <!-- AI Tab -->
+          <div class="settings-tab-panel active" data-panel="ai">
+            <label>Model
+              <select id="set-model">
+                <!-- Populated from server model list -->
+              </select>
+            </label>
+            <label>Thinking
+              <select id="set-thinking-level">
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high" selected>High</option>
+                <option value="max">Max</option>
+              </select>
+            </label>
+            <label>Max tool rounds (0 = 200) <input type="number" id="set-max-tool-rounds" min="0" max="10000"></label>
+            <label>
+              <span>Context target <span class="range-val" id="rv-context-target">500000</span></span>
+              <input type="range" id="set-context-target" min="0" max="1000000" step="10000">
+            </label>
+          </div>
+
+          <!-- Appearance Tab -->
+          <div class="settings-tab-panel" data-panel="appearance">
+            <label>Theme
+              <select id="set-theme">
+                <option value="dark">Dark</option>
+                <option value="light">Light</option>
+                <option value="system">System</option>
+              </select>
+            </label>
+            <label>
+              <span>Font size <span class="range-val" id="rv-font-size">14</span>px</span>
+              <input type="range" id="set-font-size" min="8" max="72" step="1">
+            </label>
+            <label>
+              <span>Max events shown</span>
+              <input type="number" id="set-max-events" min="10" max="100000" step="10">
+            </label>
+          </div>
+
+          <!-- Accessibility Tab -->
+          <div class="settings-tab-panel" data-panel="accessibility">
+            <label>TTS enabled
+              <input type="checkbox" id="set-tts-enabled">
+            </label>
+            <label>
+              <span>TTS speed <span class="range-val" id="rv-tts-speed">1.0</span>×</span>
+              <input type="range" id="set-tts-speed" min="0.1" max="10" step="0.1">
+            </label>
+          </div>
+
+          <!-- Memory Tab -->
+          <div class="settings-tab-panel" data-panel="memory">
+            <label>Log retention (events, 0 = all) <input type="number" id="set-log-retention" min="0" max="100000"></label>
+            <fieldset class="band-fieldset">
+              <legend>Memory Bands</legend>
+              <div class="band-row band-header">
+                <span class="band-name">Band</span>
+                <span class="band-toggle">On</span>
+                <span class="band-budget">Budget (bytes)</span>
+              </div>
+              <div class="band-row" data-band="soul">
+                <span class="band-name">SOUL.md</span>
+                <input type="checkbox" class="band-enabled" checked>
+                <input type="number" class="band-budget-input" min="0" step="1024">
+              </div>
+              <div class="band-row" data-band="memory">
+                <span class="band-name">MEMORY.md</span>
+                <input type="checkbox" class="band-enabled" checked>
+                <input type="number" class="band-budget-input" min="0" step="1024">
+              </div>
+              <div class="band-row" data-band="64x">
+                <span class="band-name">64× compressed</span>
+                <input type="checkbox" class="band-enabled" checked>
+                <input type="number" class="band-budget-input" min="0" step="1024">
+              </div>
+              <div class="band-row" data-band="8x">
+                <span class="band-name">8× compressed</span>
+                <input type="checkbox" class="band-enabled" checked>
+                <input type="number" class="band-budget-input" min="0" step="1024">
+              </div>
+              <div class="band-row" data-band="session">
+                <span class="band-name">Session</span>
+                <input type="checkbox" class="band-enabled" checked>
+                <input type="number" class="band-budget-input" min="0" step="1024">
+              </div>
+              <div class="band-row" data-band="conversation">
+                <span class="band-name">Conversation</span>
+                <input type="checkbox" class="band-enabled" checked>
+                <input type="number" class="band-budget-input" min="0" step="1024">
+              </div>
+            </fieldset>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="renderers.js"></script>
+  <script src="tts.js"></script>
+  <script src="artifact-scroll.js"></script>
+  <script src="mcp.js"></script>
+  <script src="gui.js"></script>
+</body>
+</html>
