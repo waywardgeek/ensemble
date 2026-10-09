@@ -29,7 +29,7 @@ import (
 	"strings"
 )
 
-// ErrUnsupportedPlatform is returned when confinement is requested on a
+// UnsupportedPlatformError is returned when confinement is requested on a
 // platform with no implementation here.
 //
 // This FAILS CLOSED. Running the command unconfined because the host
@@ -37,7 +37,14 @@ import (
 // asked for a boundary, got none, and received no error saying so. A
 // Linux implementation belongs behind Landlock and seccomp; until it
 // exists, the honest answer is a refusal.
-var ErrUnsupportedPlatform = fmt.Errorf("sandbox: command confinement is not implemented on %s", runtime.GOOS)
+//
+// The GOOS is read in Error rather than baked into a package-level value,
+// so the type stays an empty comparable struct that errors.Is can match.
+type UnsupportedPlatformError struct{}
+
+func (UnsupportedPlatformError) Error() string {
+	return fmt.Sprintf("sandbox: command confinement is not implemented on %s", runtime.GOOS)
+}
 
 // Command returns an exec.Cmd that runs name with args confined to the
 // sandbox.
@@ -63,7 +70,7 @@ func (s *Sandbox) Command(name string, args ...string) (*exec.Cmd, error) {
 		return cmd, nil
 	}
 	if runtime.GOOS != "darwin" {
-		return nil, ErrUnsupportedPlatform
+		return nil, UnsupportedPlatformError{}
 	}
 	if _, err := exec.LookPath(seatbeltBinary); err != nil {
 		return nil, fmt.Errorf("sandbox: %s not found, refusing to run unconfined: %w", seatbeltBinary, err)
@@ -233,20 +240,28 @@ func regexpQuoteDir(dir string) string {
 // sensitiveSuffixes name environment variables that tend to carry
 // credentials. Suffix matching rather than an exact list, because the next
 // vendor's key will be called something this file has never heard of.
-var sensitiveSuffixes = []string{
-	"_KEY", "_SECRET", "_TOKEN", "_PASSWORD", "_PASSWD", "_CREDENTIALS",
+//
+// A function rather than a package-level slice: a slice var is mutable from
+// anywhere in the process, and a caller who appends to it, or truncates it,
+// silently changes what counts as a credential everywhere.
+func sensitiveSuffixes() []string {
+	return []string{
+		"_KEY", "_SECRET", "_TOKEN", "_PASSWORD", "_PASSWD", "_CREDENTIALS",
+	}
 }
 
 // sensitiveNames are exact matches the suffix rule would miss.
-var sensitiveNames = []string{
-	"LLM_API_KEY",
-	"OPENAI_API_KEY",
-	"ANTHROPIC_API_KEY",
-	"GOOGLE_API_KEY",
-	// A forwarded SSH agent socket is a live credential: whatever can
-	// reach the socket can authenticate as the user without ever seeing a
-	// private key. Stripping the address is the whole mitigation.
-	"SSH_AUTH_SOCK",
+func sensitiveNames() []string {
+	return []string{
+		"LLM_API_KEY",
+		"OPENAI_API_KEY",
+		"ANTHROPIC_API_KEY",
+		"GOOGLE_API_KEY",
+		// A forwarded SSH agent socket is a live credential: whatever can
+		// reach the socket can authenticate as the user without ever seeing a
+		// private key. Stripping the address is the whole mitigation.
+		"SSH_AUTH_SOCK",
+	}
 }
 
 // SanitizedEnv builds the environment for a command running inside the
@@ -342,12 +357,12 @@ func WriteGitConfig(root string) error {
 // credential.
 func isSensitiveEnv(name string) bool {
 	upper := strings.ToUpper(name)
-	for _, n := range sensitiveNames {
+	for _, n := range sensitiveNames() {
 		if upper == n {
 			return true
 		}
 	}
-	for _, s := range sensitiveSuffixes {
+	for _, s := range sensitiveSuffixes() {
 		if strings.HasSuffix(upper, s) {
 			return true
 		}

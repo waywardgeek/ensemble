@@ -9,7 +9,6 @@ package agent
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -209,13 +208,6 @@ type Agent struct {
 	mcpClients []*mcp.Client    // active MCP connections for cleanup
 }
 
-// *sandbox.Sandbox must satisfy common.Sandbox. The public implementation
-// and the hub interface deliberately never import each other, so this
-// assertion is the only thing keeping them in step. Without it the two
-// drift apart and the failure shows up as an inscrutable type error at a
-// distant call site.
-var _ common.Sandbox = (*sandbox.Sandbox)(nil)
-
 // Sandbox returns the agent's confined filesystem.
 //
 // Every internal package reaches files through this rather than the os
@@ -316,15 +308,19 @@ func (s AgentSpec) Child(dataDir string) AgentSpec {
 // agent runs in safe mode: the one that runs arbitrary programs, and the
 // three that address the jobs it starts.
 //
-// This is a variable rather than a literal inside NewAgent so that a test
+// This is a function rather than a literal inside NewAgent so that a test
 // can state the list it expects and compare, which is what keeps a tool
 // added in some later chapter from quietly joining the registry without
-// anyone deciding whether safe mode should withhold it.
-var SafeModeWithheldTools = []string{
-	"run_command",
-	"wait_for_job",
-	"send_input",
-	"kill_job",
+// anyone deciding whether safe mode should withhold it. Returning a fresh
+// slice also means a caller that appends to the result cannot change what
+// safe mode withholds for everyone else.
+func SafeModeWithheldTools() []string {
+	return []string{
+		"run_command",
+		"wait_for_job",
+		"send_input",
+		"kill_job",
+	}
 }
 
 // WebSearchSkill names the skill that carries web access. Chapter 21
@@ -332,10 +328,19 @@ var SafeModeWithheldTools = []string{
 // tools, so this is the thing EnableWebSearch withholds.
 const WebSearchSkill = "web-search"
 
-// ErrWidenedPermissions reports that a child specification asked for access
-// its parent did not have. The permissions in the returned spec have already
-// been narrowed; this error says the asking happened.
-var ErrWidenedPermissions = errors.New("sub-agent requested wider permissions than its parent")
+// WidenedPermissionsError reports that a child specification asked for
+// access its parent did not have. The permissions in the returned spec have
+// already been narrowed; this error says the asking happened.
+//
+// An empty comparable struct rather than a sentinel declared with var,
+// because errors.Is matches comparable values with ==, so this still
+// matches through the fmt.Errorf("%w: ...") wrapping that names which
+// permission was widened, while being impossible to reassign.
+type WidenedPermissionsError struct{}
+
+func (WidenedPermissionsError) Error() string {
+	return "sub-agent requested wider permissions than its parent"
+}
 
 // Clamp narrows a child specification to its parent's permissions and reports
 // whether it had to.
@@ -379,7 +384,7 @@ func (s AgentSpec) Clamp(parent AgentSpec) (AgentSpec, error) {
 	}
 
 	if len(widened) > 0 {
-		return s, fmt.Errorf("%w: %s", ErrWidenedPermissions, strings.Join(widened, ", "))
+		return s, fmt.Errorf("%w: %s", WidenedPermissionsError{}, strings.Join(widened, ", "))
 	}
 	return s, nil
 }
@@ -428,7 +433,7 @@ func NewAgent(cfg Config, spec AgentSpec) (*Agent, error) {
 	// address jobs it started -- and leaving any of them behind would be
 	// an interface onto a process the agent is no longer allowed to make.
 	if spec.SafeMode {
-		for _, name := range SafeModeWithheldTools {
+		for _, name := range SafeModeWithheldTools() {
 			a.reg.RemoveTool(name)
 		}
 	}

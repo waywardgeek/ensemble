@@ -61,7 +61,7 @@ type Agent interface {
 	SandboxRoot() string
 }
 
-// ErrNoSandbox is returned by every operation on a nil Sandbox or one with
+// NoSandboxError is returned by every operation on a nil Sandbox or one with
 // a nil parent.
 //
 // This is the fail-closed rule, and it covers WIRING mistakes: a Sandbox
@@ -69,7 +69,16 @@ type Agent interface {
 // because then forgetting to wire it produces an unconfined agent that
 // looks correct in every test. A parent that deliberately reports "" is a
 // different thing, and is honored as the explicit opt-out.
-var ErrNoSandbox = errors.New("sandbox: no parent agent (use New or Unconfined)")
+//
+// It is an empty struct rather than a sentinel declared with var because a
+// var can be reassigned by any code in the process. Empty structs are
+// comparable, so errors.Is(err, NoSandboxError{}) matches exactly as a
+// sentinel would, including through fmt.Errorf("%w", ...) wrapping.
+type NoSandboxError struct{}
+
+func (NoSandboxError) Error() string {
+	return "sandbox: no parent agent (use New or Unconfined)"
+}
 
 // Sandbox confines operations to the directory tree its parent names.
 //
@@ -84,7 +93,7 @@ type Sandbox struct {
 // New returns a Sandbox that asks parent where the boundary is.
 //
 // It cannot fail. A nil parent is not rejected here but at use time,
-// where every operation returns ErrNoSandbox: failing closed at the
+// where every operation returns NoSandboxError: failing closed at the
 // operation is strictly safer than failing at construction, because a
 // construction error can be ignored by a caller that has nothing useful
 // to do with it, and an ignored error on a security boundary produces an
@@ -134,7 +143,7 @@ func Unconfined() *Sandbox {
 // path inside it. Canonicalize both sides or compare neither.
 func (s *Sandbox) root() (string, bool, error) {
 	if s == nil || s.agent == nil {
-		return "", false, ErrNoSandbox
+		return "", false, NoSandboxError{}
 	}
 	raw := s.agent.SandboxRoot()
 	if strings.TrimSpace(raw) == "" {
@@ -192,7 +201,16 @@ func (s *Sandbox) Resolve(path string) (string, error) {
 		return "", err
 	}
 	if !confined {
-		return path, nil
+		// Unconfined is chapters 1 through 22, unchanged, and those chapters
+		// resolved a relative path against the working directory before using
+		// it. Returning the caller's string untouched looked harmless and was
+		// not: run_command records the directory it ran in on the job, and a
+		// relative string there names a different place depending on who reads
+		// it later.
+		if path == "" {
+			return "", nil
+		}
+		return filepath.Abs(path)
 	}
 	if path == "" {
 		return "", errors.New("sandbox: path is required")

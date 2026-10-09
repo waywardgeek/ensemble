@@ -21,7 +21,7 @@ func TestSafeModeWithholdsExecTools(t *testing.T) {
 	}
 	defer a.Shutdown()
 
-	for _, name := range SafeModeWithheldTools {
+	for _, name := range SafeModeWithheldTools() {
 		if _, err := a.Registry().Lookup(name); err == nil {
 			t.Errorf("safe mode left %q in the registry", name)
 		}
@@ -36,7 +36,7 @@ func TestWithoutSafeModeExecToolsArePresent(t *testing.T) {
 	}
 	defer a.Shutdown()
 
-	for _, name := range SafeModeWithheldTools {
+	for _, name := range SafeModeWithheldTools() {
 		if _, err := a.Registry().Lookup(name); err != nil {
 			t.Errorf("%q is missing outside safe mode: %v", name, err)
 		}

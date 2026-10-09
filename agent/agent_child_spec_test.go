@@ -152,8 +152,8 @@ func TestClampReportsEachWidening(t *testing.T) {
 			if err == nil {
 				t.Fatalf("widening %s was not reported", tc.name)
 			}
-			if !errors.Is(err, ErrWidenedPermissions) {
-				t.Errorf("error does not wrap ErrWidenedPermissions: %v", err)
+			if !errors.Is(err, WidenedPermissionsError{}) {
+				t.Errorf("error does not wrap WidenedPermissionsError: %v", err)
 			}
 			if !strings.Contains(err.Error(), tc.want) {
 				t.Errorf("error does not name %q: %v", tc.want, err)
