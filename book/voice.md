@@ -440,6 +440,12 @@ receipt before it reaches a page.
 - Asked a frontier model to read all of CodeRhapsody and design its successor.
   The result reproduced every flaw he had started with in StackAgent.
 - Berkeley 1986. Software or hardware engineer since.
+- Bill reports that the first edition was published alongside functional
+  Ensemble in three weeks of nights and weekends: approximately 80 hours of
+  his time and $3,000 in Anthropic API usage. Supplied October 9, 2026.
+  Preserve the approximations and the distinction between his time and API
+  spend; these are his reported figures, not an independently audited total
+  or a comparison with another development process.
 
 `[VERIFY]` before print: the exact months in the Cursor-to-CodeRhapsody
 timeline, and any figure quoted from a vendor.
