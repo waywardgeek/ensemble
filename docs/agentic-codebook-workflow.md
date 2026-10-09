@@ -6,12 +6,29 @@ graders, and demonstrate the features through a usable interface with real
 models. Autonomous completion and an improved implementation are outcomes to
 demonstrate, not claims established by the first attempt.
 
+Bill has designated Codex as the primary creator of Edition 2, responsible for
+coordinating the student implementation, reviews, accumulated lessons and the
+eventual evidence-based manuscript. The author phase still follows successful
+implementation; this responsibility does not restore writing ahead of the coder.
+
+Edition 1 is a living source. Bill writes it with CodeRhapsody and publishes
+successive versions on Amazon as he adds chapters. He reports that the sub-agent
+chapter has not yet been written. It will encode his experience with sub-agents
+and supply the exercise for that capability. Do not treat the current chapter
+count as final or invent a replacement assignment. Record the source revision
+used for each exercise; when new or revised chapters arrive, read them and update
+the carryover and affected chapter notes before applying their lessons. Existing
+checkpoints remain evidence of the versions actually followed.
+
 ## Explicit crossover goal
 
 Bill requires the coder's new Ensemble to run **GPT-5 Astra at high reasoning**.
 The third edition of the book is to be built using that new Ensemble agent,
 rather than Codex. The framework must become the working agent for the next
 iteration; completing chapter exercises alone does not establish that crossover.
+Bill expects the forthcoming sub-agent work to help Ensemble become a capable
+coder for Edition 3. That is an intended outcome to verify through use, not a
+claim that Ensemble already matches Codex's capabilities.
 
 Preserve Bill's requested model and reasoning setting. When the relevant model
 integration and crossover work arrives, verify the supported provider model

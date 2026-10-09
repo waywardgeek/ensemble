@@ -20,6 +20,12 @@ the new student run starts, the coordinator must read the whole current edition,
 complete this carryover and record the reviewed revision and coverage here.
 The passages cited below were inspected at repository revision `01b4d7f`.
 
+Edition 1 continues to grow as Bill writes with CodeRhapsody. Its sub-agent
+chapter is forthcoming; learn that exercise from Bill's chapter when available,
+rather than inventing its requirements now. Extend the recorded reading coverage
+and carryover as new chapters arrive. Codex is the primary creator of Edition 2;
+the intended next student is the resulting Ensemble agent.
+
 The original chapter still defines what to build. Carry forward a lesson when it
 changes how to implement that exercise; do not implement a later chapter's
 features early. Preserve the original graders. If a grader or chapter conflicts

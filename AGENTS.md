@@ -5,6 +5,12 @@ at high reasoning, and Edition 3 of the book is to be built using that Ensemble
 agent rather than Codex. Keep this destination in view without implementing
 later features early. See the workflow's crossover goal and verification notes.
 
+Codex is the primary creator of Edition 2. Bill continues writing and publishing
+Edition 1 with CodeRhapsody; its sub-agent chapter is forthcoming. Follow newly
+available chapters as part of that evolving source, recording which revision
+was used. Do not invent the missing chapter's requirements or claim its exercise
+complete before it exists and has been implemented and reviewed.
+
 Bill retired the author-driven second-edition attempt. Its history is preserved
 at `edition-2-attempt-1-stopped`; do not resume its agents or workflow. See
 `docs/edition-2-attempt-1.md` for the decision.
