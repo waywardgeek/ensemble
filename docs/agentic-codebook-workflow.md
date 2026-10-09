@@ -30,6 +30,8 @@ aspirational directions are provisional: the coder may reject them for a simpler
 working approach and explain why. When actual requirements conflict or their
 meaning changes user-visible behavior, ask Bill before implementing the affected
 part. Neither the coordinator nor a reviewer may silently make that decision.
+Bill has delegated one explicit exception: the reviewer may accept an
+unreasonable exercise requirement as described below and pass the coder onward.
 
 ## Prepare the carryover before starting an edition
 
@@ -85,6 +87,22 @@ and sanitized test observations rather than building a new evidence system.
 Bound live runs and retries, clean up large generated test data, and never put
 credentials in the records. Do not repeat unchanged successful checks without a
 reason; investigate persistent failures instead of spending indefinitely.
+
+### Reviewer acceptance of an unreasonable exercise
+
+The reviewer reads the coder's notes, including objections to the exercise.
+If the reviewer independently agrees that a requirement is unreasonable, Bill
+authorizes it to pass the chapter with an exception and move the coder to the
+next chapter. No further approval is required for that decision. Record the
+requirement, evidence and reasoning, reviewer agreement, accepted departure and
+any implications for later exercises in the chapter notes for the future author.
+Keep actual grader and live results alongside the acceptance decision: a failed
+or unrun check remains failed or unrun. Do not edit the original grader or chapter
+to manufacture a pass. Bill's explicit architecture rules still apply.
+
+This lets the student and reviewer learn that an assignment needs correction
+without spending indefinitely to satisfy it. An objection deserves substantive
+review; neither its mere presence nor the time spent establishes that it is right.
 
 ## Lessons established so far
 
@@ -147,7 +165,9 @@ they need not wait for chapter completion or permission to contribute. Preserve
 other contributors' findings and disagreements, adding corrections with reasons.
 
 Notes collect evidence for later authorship. They do not amend the current
-assignment, add acceptance criteria or make a suggestion binding. Keep old
+assignment, add acceptance criteria or make a suggestion binding. A reviewer's
+explicit acceptance of an exercise exception is a separate, recorded decision
+under Bill's authorization above. Keep old
 solution code and answer-revealing comparisons out of notes supplied to the
 student; the reviewer returns findings and rationale through the existing review
 process. The future author considers all contributors' notes alongside the

@@ -16,8 +16,12 @@ The passages cited below were inspected at repository revision `01b4d7f`.
 The original chapter still defines what to build. Carry forward a lesson when it
 changes how to implement that exercise; do not implement a later chapter's
 features early. Preserve the original graders. If a grader or chapter conflicts
-with these agreed rules, record the conflict and ask Bill about the affected
-work. Do not secretly weaken a check or reproduce a known architectural flaw.
+with these agreed rules, record the conflict. Bill authorizes the reviewer to
+accept an unreasonable exercise requirement when it independently agrees with
+the coder's notes, record the exception and advance to the next chapter. Preserve
+actual grader/live results separately from that decision. Ask Bill about
+unresolved consequential conflicts; do not secretly weaken a check or reproduce
+a known architectural flaw. The workflow describes this exception path.
 
 ## Apply from the first exercise
 

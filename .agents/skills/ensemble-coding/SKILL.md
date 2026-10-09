@@ -116,11 +116,23 @@ Leave a concise comparison covering:
   current need. Reject feature creep, unjustified bloat and complexity added for
   elegance. Do not justify extra code by promises the workflow itself invented.
 
-Passing tests is necessary, not sufficient. Explain material growth and ask
+Normally the original tests must pass; passing alone is not sufficient.
+Bill also authorizes the reviewer to read the coder's notes and independently
+accept an exception when an exercise requirement is unreasonable. Record the
+requirement, the coder's reasoning, the reviewer's agreement, actual grader/live
+results, the accepted departure and any effect on later exercises. Mark the
+chapter accepted with an exception and proceed to the next chapter without
+another permission request. Keep the original chapter and grader unchanged;
+acceptance does not turn a failing or unrun check into a passing result. Leave
+the teaching/grader correction for future maintainers. Difficulty alone is not
+evidence that an exercise is unreasonable; assess the substance of the objection.
+This authority does not waive Bill's explicit architecture rules or add features.
+
+Explain material growth and ask
 whether a simpler design satisfies the same actual requirements. Do not impose
 an arbitrary line quota or remove required behavior to win a size comparison.
 Return concrete findings and rationale without exposing old answer code. State
-whether the chapter is accepted or needs simplification/correction; do not
+whether the chapter is accepted, accepted with an exception, or needs correction; do not
 accept unresolved scope or bloat findings. Ask Bill if a consequential tradeoff
 cannot be resolved from his instructions.
 
