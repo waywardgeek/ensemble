@@ -43,12 +43,18 @@ import (
 // that appeared to confine perfectly was in fact denying every operation,
 // including the legitimate ones, and it looked like a complete success.
 const (
-	ch23Inside   = "CH23-INSIDE-OK"      // content of a file inside the root
-	ch23Secret   = "CH23-OUTSIDE-SECRET" // content of a file outside the root
-	ch23CmdOK    = "CH23-CMD-OK"         // a command that should succeed
-	ch23EnvClean = "CH23-ENV-CLEAN"      // printed when the credential is absent
-	ch23Cred     = "sk-ch23-7f3a-LEAKED" // the credential the binary is given
-	ch23NetOK    = "CH23-NET-REACHED"    // printed when the network is reachable
+	ch23Inside = "CH23-INSIDE-OK" // content of a file inside the root
+	// Two secrets, not one. The file tools and the kernel profile are separate
+	// boundaries, and a single shared sentinel cannot say which of them leaked:
+	// the grader would have to fail both checks on one observation, so a mutant
+	// that disabled only the file tools would appear to kill the kernel check
+	// as well. Separate sentinels make each check name the mechanism it guards.
+	ch23FileSecret = "CH23-FILE-SECRET" // reachable only by a file tool
+	ch23CmdSecret  = "CH23-CMD-SECRET"  // reachable only by a command
+	ch23CmdOK      = "CH23-CMD-OK"      // a command that should succeed
+	ch23EnvClean   = "CH23-ENV-CLEAN"   // printed when the credential is absent
+	ch23Cred       = "sk-ch23-7f3a-LEAKED"
+	ch23NetOK      = "CH23-NET-REACHED" // printed when the network is reachable
 )
 
 // Ch23Run builds the student's agent and interrogates it.
@@ -71,10 +77,11 @@ func Ch23Run(dir string) Ch23Result {
 // ch23Fixture is the world the sandboxed agent runs in: a root it may touch and
 // a secret it may not.
 type ch23Fixture struct {
-	base    string
-	root    string
-	outside string // absolute path to the secret file, outside the root
-	dataDir string
+	base       string
+	root       string
+	fileSecret string // absolute path, reachable only by a file tool
+	cmdSecret  string // absolute path, reachable only by a command
+	dataDir    string
 }
 
 func ch23NewFixture() (ch23Fixture, error) {
@@ -83,12 +90,13 @@ func ch23NewFixture() (ch23Fixture, error) {
 		return ch23Fixture{}, err
 	}
 	f := ch23Fixture{
-		base:    base,
-		root:    filepath.Join(base, "work"),
-		outside: filepath.Join(base, "vault", "secret.txt"),
-		dataDir: filepath.Join(base, "data"),
+		base:       base,
+		root:       filepath.Join(base, "work"),
+		fileSecret: filepath.Join(base, "vault", "file.txt"),
+		cmdSecret:  filepath.Join(base, "vault", "cmd.txt"),
+		dataDir:    filepath.Join(base, "data"),
 	}
-	for _, d := range []string{f.root, filepath.Dir(f.outside), f.dataDir} {
+	for _, d := range []string{f.root, filepath.Join(base, "vault"), f.dataDir} {
 		if err := os.MkdirAll(d, 0o755); err != nil {
 			return f, err
 		}
@@ -96,7 +104,10 @@ func ch23NewFixture() (ch23Fixture, error) {
 	if err := os.WriteFile(filepath.Join(f.root, "notes.txt"), []byte(ch23Inside+"\n"), 0o644); err != nil {
 		return f, err
 	}
-	if err := os.WriteFile(f.outside, []byte(ch23Secret+"\n"), 0o600); err != nil {
+	if err := os.WriteFile(f.fileSecret, []byte(ch23FileSecret+"\n"), 0o600); err != nil {
+		return f, err
+	}
+	if err := os.WriteFile(f.cmdSecret, []byte(ch23CmdSecret+"\n"), 0o600); err != nil {
 		return f, err
 	}
 	return f, nil
@@ -152,10 +163,10 @@ func ch23DriveSandbox(bin string, r *Ch23Result) {
 	probes := []struct{ name, tool, args string }{
 		{"read inside", "read_file", ch23Args(map[string]string{"path": "notes.txt"})},
 		{"command inside", "run_command", ch23Args(map[string]string{"command": "echo " + ch23CmdOK})},
-		{"read relative escape", "read_file", ch23Args(map[string]string{"path": "../vault/secret.txt"})},
-		{"read absolute escape", "read_file", ch23Args(map[string]string{"path": f.outside})},
-		{"command escape", "run_command", ch23Args(map[string]string{"command": "cat " + f.outside})},
-		{"grandchild escape", "run_command", ch23Args(map[string]string{"command": `sh -c "cat ` + f.outside + `"`})},
+		{"read relative escape", "read_file", ch23Args(map[string]string{"path": "../vault/file.txt"})},
+		{"read absolute escape", "read_file", ch23Args(map[string]string{"path": f.fileSecret})},
+		{"command escape", "run_command", ch23Args(map[string]string{"command": "cat " + f.cmdSecret})},
+		{"grandchild escape", "run_command", ch23Args(map[string]string{"command": `sh -c "cat ` + f.cmdSecret + `"`})},
 		{"network", "run_command", ch23Args(map[string]string{"command": "curl -s -o /dev/null -m 5 " + netURL + " && echo " + ch23NetOK})},
 		{"credential", "run_command", ch23Args(map[string]string{"command": "printenv OPENAI_API_KEY || echo " + ch23EnvClean})},
 	}
@@ -198,10 +209,12 @@ func ch23DriveSandbox(bin string, r *Ch23Result) {
 		r.fail("kernel-confinement", "run_command could not run a command inside the sandbox root: a sandbox that refuses legitimate work is not a sandbox")
 	}
 
-	// The escapes. One sentinel, three ways of reaching for it.
-	if ch23Observed(results, ch23Secret) {
-		r.fail("path-confinement", "the contents of a file outside the sandbox root reached the conversation; something read %s", f.outside)
-		r.fail("kernel-confinement", "the contents of a file outside the sandbox root reached the conversation; something read %s", f.outside)
+	// The escapes. Each sentinel names the boundary that should have stopped it.
+	if ch23Observed(results, ch23FileSecret) {
+		r.fail("path-confinement", "a file tool read %s, which is outside the sandbox root", f.fileSecret)
+	}
+	if ch23Observed(results, ch23CmdSecret) {
+		r.fail("kernel-confinement", "a command or a descendant of a command read %s, which is outside the sandbox root", f.cmdSecret)
 	}
 
 	if ch23Observed(results, ch23NetOK) {
@@ -217,7 +230,7 @@ func ch23DriveSandbox(bin string, r *Ch23Result) {
 	// The refusal must name what the model asked for, not where the host keeps
 	// it. Scoped to the refusal itself: a system prompt that tells the model its
 	// root is a reasonable design and must not fail this check.
-	if msg, ok := ch23RefusalFor(srv.Requests(), "../vault/secret.txt"); !ok {
+	if msg, ok := ch23RefusalFor(srv.Requests(), "../vault/file.txt"); !ok {
 		r.fail("no-host-path-leak", "no refusal was recorded for the relative escape, so the message could not be inspected")
 	} else if strings.Contains(msg, f.root) || strings.Contains(msg, f.base) {
 		r.fail("no-host-path-leak", "the refusal revealed the host path: %q", msg)
