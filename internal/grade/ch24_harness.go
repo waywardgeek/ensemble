@@ -485,6 +485,19 @@ func ch24WireCheck(r *Ch24Result, abs string) {
 	}
 	if len(out.replies) != 3 {
 		r.fail("wire-compat", "scripted session produced %d replies, want 3", len(out.replies))
+		return
+	}
+	// The model switch travels over the GUI websocket as an
+	// update_settings frame, and the recorded vendor requests are the
+	// ground truth that it took effect. The switch lands at a turn
+	// boundary rather than instantly, so the assertion is endpoint
+	// shaped: the session starts on the dear model and ends on the
+	// cheap one. Three replies with no switch is a wire that LOOKS
+	// compatible while dropping frames on the floor.
+	if len(out.models) < 2 || out.models[0] != ch22ModelDear ||
+		out.models[len(out.models)-1] != ch22ModelCheap {
+		r.fail("wire-compat",
+			"the GUI-socket model switch never reached the vendor: request models %v", out.models)
 	}
 }
 
