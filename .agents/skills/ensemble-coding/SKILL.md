@@ -96,6 +96,35 @@ not a scripted sequence of internal method calls. Do not mock away the behavior
 being tested or introduce interfaces and mock frameworks solely for tests. Keep
 fakes as small as the exercised contract permits; they do not replace live runs.
 
+**Test the tests with targeted mutations.** For every distinct behavioral claim
+relied on in the chapter's tests, deliberately introduce a small, plausible defect
+in that behavior and verify that the intended check catches it. One mutation can
+cover equivalent assertions; reuse evidence for unchanged inherited behavior.
+Focus on the current chapter, not a repeated whole-book mutation sweep.
+
+- Start with the unmodified result. Change one behavior at a time in an isolated
+  scratch copy of the student's source. Confirm the mutation applied and the
+  relevant code path actually ran. Keep the original grader unchanged; the
+  student's restriction on reading its implementation still applies.
+- A killed mutant must fail the intended behavioral check for the intended
+  reason. Compilation errors, unrelated failures or broken test setup do not
+  demonstrate that claim. A timeout counts only when it demonstrates the actual
+  timing/liveness property under test, with a working baseline.
+- Investigate survivors: the mutation may be ineffective or equivalent, the
+  harness may be wrong, or the test may miss the defect. Repair the actual gap
+  and rerun the focused check. Never relabel a survivor as killed. If a claim
+  cannot be meaningfully mutation-checked, explain the limitation and alternative
+  evidence in the student review for reviewer assessment.
+- Restore the correct implementation, rerun affected checks and remove scratch
+  mutants. Record claim, mutation and observed failure concisely in the existing
+  review/evidence; do not build a generic mutation framework or retain large
+  duplicate trees. This applies to later grader revisions as well.
+
+Mutation checks establish sensitivity to defects, not the truth of a shared
+assumption. Ground expected behavior and fixtures in the chapter, observed
+artifacts and independent evidence; do not let code and test certify the same
+invented protocol. Keep the existing live-run requirement.
+
 Actually exercise the human interface with a real model as the chapter introduces
 features. Bound demonstrations, avoid unattended retries, and retain short
 sanitized observations. Use all three vendors as introduced. Discover available
@@ -166,7 +195,9 @@ Leave a concise comparison covering:
   are valuable even when longer. Do not reward test volume, implementation-mirror
   assertions or elaborate test infrastructure for its own sake. Enforce fakes
   over mocks, require Bill's explicit approval for any mock, and check that the
-  real behavior under test still runs. Preserve the
+  real behavior under test still runs. Review mutation evidence for the claimed
+  behaviors, including survivors and limitations; passing tests alone do not
+  establish that the tests can detect defects. Preserve the
   original grader's role; grader defects go into a future-maintainer review.
 - **Scope and simplicity:** trace added behavior to the original exercise or an
   explicit Bill instruction. Examine data structures and abstractions for the

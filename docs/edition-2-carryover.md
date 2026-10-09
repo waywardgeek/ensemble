@@ -227,10 +227,17 @@ guessing. Assert the requested observable, such as the actual endpoint rather
 than just the vendor name. Derive fixtures from observed artifacts so the test
 and implementation do not merely share one wrong assumption. Before calling a
 failure pre-existing, reproduce it on the recorded baseline in an isolated
-worktree when feasible; otherwise label that explanation unverified. If a
-targeted mutation check is warranted, confirm the mutation actually applied and
-removed the intended behavior before interpreting the result. These are ways to
-make existing verification meaningful, not a mandate for more test machinery.
+worktree when feasible; otherwise label that explanation unverified.
+
+**Test the tests.** Demonstrate that each distinct behavioral claim in the
+chapter's tests detects a targeted defect in that behavior. Confirm the mutation
+applied and the intended check fails for the intended reason; a compile error or
+unrelated failure does not count. Investigate survivors and record limitations
+honestly for the reviewer. Reuse evidence for unchanged behavior and keep the
+checks focused, using the [skill's mutation procedure](../.agents/skills/ensemble-coding/SKILL.md).
+Mutations test sensitivity; they do not prove that an expected value or protocol
+assumption is correct. Those still need independent support. This strengthens
+existing verification without requiring a new testing framework.
 
 **Make changes small enough to inspect.** Read the assigned chapter and
 carryover before editing. For structural changes, move a coherent piece, use

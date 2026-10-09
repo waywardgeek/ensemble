@@ -258,6 +258,10 @@ For each chapter:
 3. Run the original grader and appropriate checks. Actually use the human
    interface with a real model to exercise the chapter's features. Record failures
    honestly; fake-server success cannot stand in for a live demonstration.
+   Follow the skill's targeted mutation procedure to check that each distinct
+   claimed behavior is actually protected by its test. Keep the original grader
+   unchanged, reuse valid evidence for inherited behavior, and record survivors
+   or limitations for review rather than claiming unproven sensitivity.
 4. Leave the student review. The code reviewer then compares active production
    code, comments, tests, design and scope with the original solution, using the
    counting and review rules in the skill.
