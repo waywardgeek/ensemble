@@ -1,6 +1,39 @@
 # Working checkpoint
 
-## Current boundary: independent validation after coder handback
+## Current boundary: final regressions and provider-support preparation
+
+This update supersedes the earlier running/idle descriptions below. Chapter 10
+runtime remains `57d4aac`. Independent lifecycle checks pass at `a944156`, large
+state/checkpoint/origin boundaries at `1befb73`, bounded allocation and admission/
+origin faults at `cefb823`, and the actual physical 1 GiB log boundary at
+`9e2e94e`. Bill freed disk space. Both large log payloads were removed; the
+grader's scratch audit found no remaining files over 64 MiB. Preserve compact
+receipts and reproduction fixtures, not large generated payloads.
+
+`/root/grader_ch10_remaining` owns the compiler for one finite final integration
+pass: retained coverage on final source, affected older-source checks and binding
+the existing 38-row record matrix to the final executable. Reuse current-source
+passing evidence; no new assertion matrix or repeated large-state runs is needed.
+Its aggregate clearance decision is pending.
+
+The SAME cold student conversation `01a11cc3-9e40-7d62-a7b5-9b2ec4c928c0`
+resumed as exec `37377`, with external `phase-5-live-preparation.txt` and matching
+events/stderr/result paths under `ch10-student-inputs/`. Check that process/result
+before restarting. Its task is provider adapter, synthetic credential-redaction
+checks and concrete live readiness, with Python/JS local tests only while the
+grader owns builds. No credential reads, discovery or provider calls are released
+in this preparation phase. The student has been told that the management fixture
+discrepancy is resolved; no runtime change is requested for it. Bill's actual-live
+authorization persists. Concrete reviewed support and deterministic clearance
+precede the bounded real demonstrations, then historical comparison, final prose
+and immutable export/tag. Do not ask Bill to repeat that authorization.
+
+Chapter 17 full draft `c109557` is with `/root/reviewer_ch17` for complete contract
+review. Coordinator accepted proposal direction and R1–R4 in `a5423ed`, including
+the already-approved uncapped plan route. Author is idle after handback. No
+Chapter 17 implementation/authentication/provider work is released.
+
+## Prior boundary: independent validation after coder handback
 
 Student phase4 is complete, with runtime/support `57d4aac` and evidence `a09f989`.
 The same student conversation is idle; exec13298 is finished. The complete
