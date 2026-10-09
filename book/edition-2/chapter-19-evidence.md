@@ -1,11 +1,11 @@
 # Chapter 19 preparation evidence
 
-October 8, 2026. Scope research only for new Chapter 19, mapped from old Chapter 20,
+Initial research dated October 8, 2026, for new Chapter 19, mapped from old Chapter 20,
 “The Crossover.” The coordinator accepts the direction of a bounded real-work
 capstone without an invented new runtime mechanism. The
-[outline](chapter-19-outline.md) proposes the finite workflow for independent
-scope review. No new Chapter 19 implementation, model run, adoption or comparison
-result exists.
+[outline](chapter-19-outline.md) records the finite workflow; scope review
+`d01cc76` is accepted and the complete manuscript now awaits contract review.
+No new Chapter 19 implementation, model run, adoption or comparison result exists.
 
 ## Reads and boundaries
 
@@ -98,7 +98,7 @@ adoption judgment, not that comparison's answer. Its records can later support
 the comparison without contaminating a held-out evaluation. Publication-time
 Codex first-person epilogue remains deferred until the edition is ready.
 
-## Proposed evidence and finite stopping rule
+## Original scope evidence and finite stopping rule
 
 The outline proposes a predeclared real issue, clean accepted-source checkout,
 actual Ensemble edits/tests, real GUI-MCP action, settled restart, public two-Agent
@@ -121,7 +121,7 @@ and implementation under the existing procedure; preserve initial source/evidenc
 and revalidate affected paths. This is how the chapter tests continuity without
 recreating a late architectural-repair chapter.
 
-## Current verification boundary
+## Scope-freeze verification boundary
 
 Research checks are read-only source/history inspection and arithmetic of the
 proposed allocation: 8+4+8+4+4×4 = 40. No tool builds, tests, graders or providers
@@ -130,3 +130,46 @@ files. Its short-document and negation-density warnings are appropriate review
 inputs for research notes, without padding them into chapters. Scoped whitespace
 review applies only to these files. Independent scope review precedes any full draft,
 student handoff, source editing or paid demonstration.
+
+## Full-draft preparation after accepted scope review
+
+Read the complete `d01cc76` review and incorporated its three finite obligations:
+combined optional GUI/terminal launch with immutable creation scope; complete
+instruction delivery within Chapter 9's bounds; and realistic three-plus-one
+parity starts without increasing 40. Reloaded complete voice, procedure and
+architecture for drafting. Focused follow-up reads covered Chapter 9's dependency
+catalog, interpolation and source/total limits; Chapter 4's report/source bounds;
+and Chapter 12's registered GUI controls and action acceptance.
+
+Measured the current mandatory skill at 19,879 bytes. The ordinary Job report's
+16,384-byte default cannot establish full delivery. The coordinator approved using
+existing dependency manuals before first paid admission. The exact published
+recipe takes at most 30,000 source bytes per complete UTF-8 chunk; escaping every
+dollar can at most double that to 60,000, leaving room for the short valid header
+under 65,536. Preflight must still check each actual generated source, rendered
+body and inherited catalog total. No generated catalog or live coverage is claimed
+from this arithmetic. The first actual request must contain the complete rendered
+teaching; that proves delivery only.
+
+The draft gives a frozen task-brief template and maximum six named files in two
+modules. The useful issue itself is intentionally not invented: actual selection,
+baseline, prompts, expected effects and distinguishing checks are prelaunch gates.
+Concrete integration fixtures are the GUI light-to-dark action, independently
+marked public Agent reads and the parity `alpha\nbeta\n` to
+`alpha\nchecked\n` edit with an exact Python byte check. The command is published
+for future execution and was not run as evidence of Ensemble behavior.
+
+Allocation remains 8+4+8+4+4×4 = 40 model starts. Discovery is at most one selected
+model-list call per route, five total; inherited preflight refresh is separately
+bounded per existing selected Connection. No access, model availability, successful
+tool effect, native hearing or adoption result is inferred. The
+[validation record](chapter-19-validation.md) separates full contract review,
+executable predecessor, concrete task, checker and live gates.
+
+The existing external prose linter passes all hard rules on the four full-draft
+author files. The manuscript is below the soft length range; its person-gap
+warning was read against the concrete reader's task, files, controls and restart
+consequences throughout. No invented anecdote or padding was added. Preparation
+notes retain their expected short-document warnings. Scoped whitespace and
+relative-link checks accompany the author freeze; no compiler or runtime checks
+are attributed to this prose-only work.

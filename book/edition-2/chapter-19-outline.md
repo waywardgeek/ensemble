@@ -4,11 +4,13 @@ Through-line stake: a reader must decide whether to trust the agent they built
 with the next real piece of work, after watching it edit, test, explain and resume
 that work through the interfaces they intend to use.
 
-Scope proposal, October 8, 2026. The coordinator accepts a bounded real-work
-capstone rather than an artificial new runtime feature. This outline and its
-[research evidence](chapter-19-evidence.md) await independent scope review.
-They do not release implementation, authorize provider calls or report a successful
-crossover. Chapter 19 retains its working mapping from first-edition Chapter 20.
+The coordinator accepted scope review `d01cc76`: a bounded real-work capstone
+rather than an artificial new runtime feature. The complete
+[manuscript](chapter-19.md) now awaits independent contract review; the
+[validation record](chapter-19-validation.md) tracks the remaining gates.
+This outline and its [research evidence](chapter-19-evidence.md) do not release
+implementation, authorize provider calls or report a successful crossover.
+Chapter 19 retains its working mapping from first-edition Chapter 20.
 
 ## What the reader actually builds
 
@@ -89,7 +91,7 @@ summary schemas or a historical model-name gate requiring narration before tools
 Retain the actual limits of visible output. Native hearing requires its own named
 observer or captured-audio evidence; a queue or callback is not that evidence.
 
-## Proposed teaching order
+## Teaching order
 
 1. Return to the two-agent decision. Define success as useful reviewed work with
    a trustworthy record, not a green launch or a score from an earlier chapter.
@@ -108,7 +110,7 @@ observer or captured-audio evidence; a queue or callback is not that evidence.
 7. Make the adoption decision. Explain what the next real task can safely rely
    on, what still needs supervision and which limitation blocks adoption.
 
-## Exact workflow to develop into the contract
+## Workflow carried into the contract
 
 The coordinator selects one real issue in the permitted second-edition source
 before seeing the model's answer. Freeze a short task brief with affected paths,
@@ -125,9 +127,12 @@ does not receive grader internals, other-client token stores or hidden answer co
 Keep the current running executable bound to its original source; editing its
 source does not hot-replace that executable.
 
-The first prompt gives the task brief and the exact mandatory skill path. Have
-Ensemble read that whole skill and relevant new teaching before code edits, with
-the actually delivered text/ranges recorded. A truncated read is incomplete.
+Before the first prompt, use Chapter 9's dependency manuals to supply the complete
+skill and frozen permitted teaching. The skill's measured 19,879 bytes exceeds
+the ordinary 16,384-byte report. The manuscript specifies byte-preserving ordered
+chunks, literal-dollar escaping, inherited source/total bounds and actual
+first-request coverage; neither a path nor a truncated read establishes delivery.
+The first prompt then gives the task brief and requires those manuals before edits.
 Ask it to inspect the failure, make the bounded change, run the named meaningful
 checks and explain what changed. Read each reply and tool result before a
 follow-up. Corrections are allowed inside the stated budget and remain visible.
@@ -141,12 +146,12 @@ a repair chapter. Review may request a bounded revision, but a new runtime build
 gets a new source/binary identity and affected local/live gates. Keep the initial
 failed attempt. Do not overwrite it with the polished answer.
 
-## Provisional finite demonstration allocation
+## Finite demonstration allocation
 
-Propose a maximum of **40 actual model starts**: 24 on one preselected principal
+The contract sets a maximum of **40 actual model starts**: 24 on one preselected principal
 route and four on each of the remaining four routes. The five routes are the
 three inherited API-key adapters and the two explicit Responses funding modes.
-This is a scope-review proposal, not launch authorization or an assumption that
+This is a reviewed scope limit, not launch authorization or an assumption that
 the selected account has plan access. Use existing authorized access and current
 discovery; unavailable routes stay incomplete without credential/funding fallback.
 
@@ -156,24 +161,26 @@ discovery; unavailable routes stay incomplete without credential/funding fallbac
 | Principal resumed CLI: 4 | Checkpoint/close at a settled boundary, restart the same compatible store, ask about the recorded rationale and perform one permitted next step. Verify no old effect was repeated. |
 | Principal GUI: 8 | Use the actual mounted Page and GUI-MCP tools to inspect the selected view, perform one supported bounded UI action and inspect applied state; reconnect and verify the same accepted work without duplicate cards or historical autoplay. |
 | Principal public embedding: 4 | Two Agents receive at most two starts each. Perform independent bounded read/check tasks, close one and retain the other's usable completion/state. Record real public ownership and accounting. |
-| Each other route: 4 | Fresh compatible scratch session: up to two starts for a small prescribed read/edit/check task, then a settled restart and up to two starts for evidence-based follow-up. These parity tasks are controls, not four repeated discoveries of the principal issue. |
+| Each other route: 4 | Fresh compatible scratch session: three starts for the prescribed read/edit/check task, then a settled restart and one for evidence-based follow-up. A different split requires preflight review and both phases. These parity tasks are controls, not four repeated discoveries of the principal issue. |
 
-The exact user prompts, local fixtures and acceptable effect set must be published
-after scope review and before any implementation/launch. Four starts cannot
+The manuscript supplies the parity file bytes, exact Python check and GUI theme
+action. Task-specific prompts, allowed paths and distinguishing checks still need
+the frozen preflight brief before any implementation/launch. Four starts cannot
 guarantee a model will finish; an incomplete result remains incomplete. Every
 foreground continuation, failure, canceled admission and unexpected helper counts
 at durable admission. Keep automatic maintenance off for this bounded experiment;
 its accepted predecessor evidence remains separately bound. No extra model acts
 as an invisible listener, judge or reviewer during the live allocation.
 
-Proposed limits: 120 seconds per model operation; 20 minutes for each eight-start
+Limits: 120 seconds per model operation; 20 minutes for each eight-start
 task; 10 minutes for each four-start task. API-key runs capture a positive output
 cap of 4,096; the explicitly selected plan route remains uncapped remotely under
 Chapter 17. Deadlines/start counts are not remote token or charge ceilings. Report
 usage by actual producing route/model/purpose, with subscription figures not
 silently priced as an API invoice. No cache-read target or historical floor is
-a pass condition. Any required access/discovery calls need their own finite
-preflight allocation; do not hide them in a model-start count.
+a pass condition. Preflight permits one model-list request per route, five total,
+and one inherited refresh exchange per distinct selected existing Connection;
+record these separately, with no new login or automatic discovery retry.
 
 Stop the affected task on exhausted allowance/deadline, unresolved architectural
 ambiguity, scope escape, corruption, credential exposure or inability to preserve
@@ -208,10 +215,15 @@ capability stays separate, and no web tool is silently used to complete this one
 The required final edition comparison and publication-time first-person Codex
 epilogue retain their own scope and evidence requirements.
 
-## Scope review requested
+## Scope-review dispositions and next gate
 
-The coordinator has accepted the no-new-runtime-feature capstone direction.
-Review the proposed 40-start allocation, route/interface coverage and bounded
-real issue selection before a full manuscript. Exact prompts, task-specific
-counterexample, new checker invocation and executable predecessor are still
-required. No new ownership design or Bill ruling is requested here.
+| Finding in `d01cc76` | Full-draft response |
+|---|---|
+| A later browser stage cannot widen a CLI-only persisted session. | §19.3 uses the single optional GUI launcher with `--terminal`, GUI-debug aliases and logical main view fixed from construction; restart attaches a fresh physical mount. |
+| A default report cannot deliver the complete skill. | §19.2 uses the coordinator-approved existing dependency-manual setup, complete byte/hash/chunk/render manifest and first-request coverage. No extra generation, hidden context channel or source-limit change. |
+| Four parity starts need a realistic initial/resumed allocation. | §19.6 allows three plus one, keeps all tools visible across restart and records unexpected continuation/round-limit outcomes without a fifth start. Total remains 40. |
+
+The full draft fixes a light-to-dark GUI action and exact scratch-file parity
+task while requiring the actual useful-code issue to be chosen and frozen before
+launch. It adds no runtime owner or private control API. Independent full-contract
+review, a published checker command and the accepted predecessor remain required.
