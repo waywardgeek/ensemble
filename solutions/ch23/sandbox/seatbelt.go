@@ -52,15 +52,7 @@ func (s *Sandbox) Command(name string, args ...string) (*exec.Cmd, error) {
 		return nil, err
 	}
 	if !confined {
-		// Unconfined is chapters 1 through 22, unchanged. The environment has
-		// to be the real one rather than nil: callers append to cmd.Env, and
-		// appending to nil produces a child whose whole environment is the one
-		// variable that was appended. That silently removed PATH, and a command
-		// that can no longer find go or git fails in a way that reads as a
-		// broken toolchain rather than as a sandbox that was never asked for.
-		cmd := exec.Command(name, args...)
-		cmd.Env = os.Environ()
-		return cmd, nil
+		return exec.Command(name, args...), nil
 	}
 	if runtime.GOOS != "darwin" {
 		return nil, ErrUnsupportedPlatform

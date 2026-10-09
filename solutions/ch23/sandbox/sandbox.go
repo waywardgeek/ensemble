@@ -192,16 +192,7 @@ func (s *Sandbox) Resolve(path string) (string, error) {
 		return "", err
 	}
 	if !confined {
-		// Unconfined is chapters 1 through 22, unchanged, and those chapters
-		// resolved a relative path against the working directory before using
-		// it. Returning the caller's string untouched looked harmless and was
-		// not: run_command records the directory it ran in on the job, and a
-		// relative string there names a different place depending on who reads
-		// it later.
-		if path == "" {
-			return "", nil
-		}
-		return filepath.Abs(path)
+		return path, nil
 	}
 	if path == "" {
 		return "", errors.New("sandbox: path is required")

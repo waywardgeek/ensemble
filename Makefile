@@ -82,6 +82,9 @@ grade21:
 grade22:
 	go run ./cmd/grade -ch 22 ./agent
 
+grade23:
+	go run ./cmd/grade -ch 23 ./agent
+
 grade19-audit:
 	./scripts/ch19-mutants.sh
 
@@ -94,6 +97,9 @@ grade21-audit:
 # refuses a dirty tree there.
 grade22-audit:
 	./scripts/ch22-mutants.sh
+
+grade23-audit:
+	./scripts/ch23-mutants.sh
 
 grade-dir:
 	go run ./cmd/grade -ch $(CH) $(DIR)
