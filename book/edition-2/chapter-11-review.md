@@ -92,3 +92,79 @@ clauses unchanged. The historical grader remains diagnostic. The coordinator sti
 owns release; no Chapter 11 implementation or live gate is closed here. Existing
 prose lint passes hard rules. Scoped review whitespace verification passes. No
 checker execution, compiler, provider call or source edit occurred in this review.
+
+## Partial runtime preparation and teaching closure: a36aa8a / b43fc3f
+
+October 8 PDT / October 9 UTC 2026. The independent reviewer accepts the
+published partial CLI runtime preparation at `a36aa8a` and the two-file author
+clarification at `b43fc3f76f2631e70cd5d24aadb06a2927c4fdb3`. The separate ownership
+plan disposition remains [4d9c015](chapter-11-plan-review.md). This review closes
+the finite preparation/teaching handoff, without declaring a Chapter 11 runtime
+positive or complete acceptance. Prior historical and grader exposure remains
+disclosed; the reviewer is not the student.
+
+The read ledger includes the complete reloaded coding skill, voice, writing
+procedure and architecture; current Chapter 11 contract and complete grouped
+author diff; all ten preparation files at a36aa8a; the imported Chapter 9 model
+fixture and relevant retained Chapter 11 oracle helpers; and the exact original,
+final, identity-control and retained-foundation receipts. No student implementation
+or mutable draft supplied an expected answer. Protocol requirements here are
+checked against the published contract; no new external provider claim is made.
+
+The checker starts with a real CLI/stdio successful-call parent before attempting
+its three refusal cases. That parent requires literal discovery/list/call traffic,
+one actual notebook append, exact canonical Job artifact, alias declaration,
+recorded model continuation, selected environment/path behavior and real metadata
+whose exclusion can be observed. It does not award exclusion for an absent peer.
+Invalid arguments must retain a controlled error with zero remote call; the mixed
+result must preserve the already performed external effect while rejecting all
+accepted-result bytes. Missing configuration must fail before process/model
+launch. The remaining coverage table expressly retains full schema, authority,
+lifecycle, persistence, alternative/public transport and inherited obligations.
+Neither an exit code nor the partial receipt replaces those gates.
+
+Independent local verification reproduced these results:
+
+- `PYTHONDONTWRITEBYTECODE=1 python3 scripts/edition2/test_ch11_runtime.py`:
+  all four methods pass, including real fixture-peer notebook writes. Canned
+  captures test predicates only; none is a student runtime positive.
+- The final baseline's complete 164-entry map, immutable source revision
+  `70d86f7419c82fcf7cb8a394d54e472feccd2eed`, retained executable and build association
+  pass the actual binding function unchanged. Independently copied valid receipts
+  then produce the precise binary-hash, valid-path source-hash and missing-entry
+  refusals. The copies are removed; no CLI is launched by this binding check.
+- The original baseline remains 1 pass / 5 fail / 3 blocked under its original
+  checker hash. The corrected baseline is 0 pass / 6 fail / 3 blocked: accepted
+  Chapter 10 rejects the new option before any peer or HTTP request. This is an
+  expected missing feature, not a Chapter 10 regression. All final checker hashes
+  agree with a36aa8a; the earlier vacuous predicate is not relabeled as corrected.
+- The retained foundation and deletion receipts match their unchanged script
+  hashes and contain all 90 passing oracle rows and nine intended deletion
+  failures. These stored results were inspected, not represented as newly run
+  foundation or student mutation tests.
+
+The complete source/binary binding runs before launch and again before publication;
+checker/import identities are also bracketed. The three identity refusals start
+from a successful identity path, independently of the Chapter 10 runtime's
+expected failure. The public provenance text correctly requires observed build
+receipts: an association alone cannot prove compilation. Future runtime integration
+still needs an actual passing Chapter 11 parent, public adapters, complete checks
+and source-bound mutation results. There is no requirement to finish future runtime
+acceptance before the coordinator releases implementation.
+
+The author's clarification resolves Q1/Q2/Q3 and the root-parent reachability
+issue exactly within the reviewed scope. Standalone offline logs report mcp:[]
+without inventing identity; live and version-2 offline status retain their distinct
+meanings. Shared bounded syntax belongs behind a reachable Ensemble-owned common
+interface in a responsible neutral spoke; MCP and SessionCodec keep policy and
+raw replay preservation. Valid owner-local exhaustion fixtures require the last
+successful allocation plus overflow refusal before mutation or handoff, without
+production setters. The student's acknowledgment and concrete amended parent
+path can occur in the released task before affected implementation.
+
+Byte comparison confirms the original printed JSON fixtures and §11.10 coverage
+table unchanged. The printed runtime invocation exactly matches the published
+command. Direct feedback preserves the original plan questions and pending student
+confirmation. Existing external prose lint and scoped whitespace checks pass.
+No runtime/source edits, builds, credentials or provider calls occurred. No further
+preparation blocker was found; full public/runtime coverage remains pending.
