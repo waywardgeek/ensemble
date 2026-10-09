@@ -1,8 +1,10 @@
 # Chapter 11 independent checker preparation
 
-Status: runnable foundation, **no Ensemble runtime acceptance**. Chapter 10 and
-Chapter 11 implementation are pending. This report does not release either
-chapter or substitute fixture runs for its live demonstrations.
+Status: runnable foundation and partial CLI runtime command, **no Chapter 11
+runtime acceptance**. Chapter 10 is accepted at `edition-2-ch10-r1`;
+Chapter 11 implementation is pending. The original foundation report below
+retains its earlier preparation context. Neither fixture runs nor the new
+command substitute for the chapter's complete acceptance and live demonstrations.
 
 ## Role and exposure
 
@@ -152,3 +154,91 @@ deletions still producing their intended failures. Receipts are
 `checkpoint-evidence/ch11-foundation-peer-repaired.json` and
 `checkpoint-evidence/ch11-foundation-peer-repaired-deletions.json`; original
 receipts retain their original identities. This remains preparation-only coverage.
+
+## CLI runtime integration before implementation
+
+A different independent grader engineer continued this work after Chapter 10
+acceptance. This engineer read the entire coding skill, architecture and current
+Chapter 11 contract and the retained foundation. Its prior authorized Chapter 10
+historical review included first-edition persistence code; no old Chapter 12
+runtime or future Chapter 11 student implementation supplied this checker.
+Foundation `c80af0a` and its independent review `d13346c` remain unchanged.
+
+The new [student-facing command and build receipt contract](chapter-11-runtime-command.md)
+is suitable for the author/coordinator handoff. The runtime command accepts an
+explicit CLI, source directory, immutable revision, existing Chapter 10-style
+build association and new receipt destination. It checks the complete required
+source map and all supplied entries against both Git and the chosen source tree,
+plus executable identity, before any launch/receipt write and after execution.
+It does not build or inspect private MCP interfaces.
+
+`scripts/edition2/ch11_effect_peer.py` wraps the retained literal protocol peer
+with a real bounded notebook append and a separate request/response receipt.
+The original peer still does no file effect. Discovery alone cannot satisfy the
+new successful-call assertions. The CLI must produce the intended notebook
+bytes once, ordinary Job artifact containing exact canonical result bytes,
+selected alias declaration and recorded Anthropic continuation. The peer also
+supplies ignored metadata to verify its exclusion. The valid configuration uses
+a relative executable/cwd, a selected allowlisted canary and an unused connection
+whose command does not exist. No real credential is read or inherited.
+
+After that real runtime parent passes, three cases check invalid arguments
+with zero `tools/call`, whole mixed text/image refusal with a safe failure
+artifact, and missing referenced configuration before any process/model start.
+The real effect can occur before the mixed-result refusal; the test does not
+pretend refusal can undo an external edit. Inputs, commands, stdout/stderr,
+model requests, peer records, notebook and artifacts are retained in compact
+receipts. Each workspace is removed. Owned peer cleanup checks explicit process
+identity; forced cleanup is recorded and cannot count as normal joined close.
+
+### Executed preparation and predecessor baseline
+
+- `checkpoint-evidence/ch11-runtime-preparation-commands.json` preserves exact
+  commands, exit/output and final checker hashes. Four Python test methods pass,
+  including actual subprocess notebook writes and mixed replies. Canned complete
+  captures and targeted predicate deletions exercise the checker assertions;
+  these are **not** runtime positive parents or student behavior mutations.
+- `checkpoint-evidence/ch11-runtime-ch10-baseline.json` retains the initial
+  accepted-Chapter-10 attempt: one vacuous metadata-absence assertion passed
+  while five positives failed. Inspection corrected that predicate to require
+  actual peer metadata and a returned result before awarding exclusion.
+- `checkpoint-evidence/ch11-runtime-ch10-baseline-final.json` binds runtime
+  `70d86f7419c82fcf7cb8a394d54e472feccd2eed`, the accepted `ch10` source export,
+  the complete 164-entry original build-input map and CLI SHA256
+  `60c924755420831a8a3a73bdd080f2c247087a09f05784fd6aba25decd618671`.
+  The Chapter 10 CLI exits 1 with its usage message before launching the peer or
+  making any HTTP request: **0 pass / 6 fail / 3 blocked**. This establishes the
+  missing-feature baseline, not a regression in accepted Chapter 10.
+- From that successful binding path, three precise changes independently test
+  wrong binary hash, wrong source hash at a valid path, and a missing required
+  source-map entry. Each reaches its intended identity refusal before writing
+  the output receipt. No runtime mutation credit is claimed.
+- `checkpoint-evidence/ch11-runtime-foundation-retained.json` retains **90/90**;
+  `checkpoint-evidence/ch11-runtime-foundation-deletions-retained.json` retains
+  all nine intended oracle deletions. Foundation script bytes are unchanged.
+
+No Go build, provider call, runtime/source edit or large payload was needed.
+Only owned small temporary peer/workspace/binding-control directories were
+removed. The original accepted binaries, source, failed attempts and evidence
+remain. No passing Chapter 11 runtime parent exists yet; independent integration
+review and eventual source-bound positive/deletion runs remain gates.
+
+### Full §11.10 remaining map
+
+| Required property | Initial runtime subset | Still required |
+|---|---|---|
+| Transport independence | Real CLI stdio invocation prepared | Actual stdio/memory same-suite proof, external public adapter, ownership/copies and intended pipe-assumption mutation |
+| Protocol and bounds | Literal discovery/list/call and metadata | Pagination, exact/+1 limits, malformed/unknown/stale IDs, reverse-execution refusal and allocation bounds |
+| Authority | Selected alias and local invalid-argument no-send | Distinct two-Agent grants, forced hidden calls, Skills unload/admitted lifetime, durable/artifact-failure no-send |
+| Schema/results | Exact artifact/continuation and mixed-content whole refusal | Complete schema profile, local refs, precision, budgets, isError, result/message limits |
+| Lifecycle | Bounded invocation and owned cleanup observations | Out-of-order/racing replies, permits/cancel memory, stalled delivery, EOF, generations, shared isolation, joined close, owner-state uint64 seams |
+| Persistence | None | v1/v2 identity and pre-prepare validation, snapshot/tail equivalence, offline no-effects and no restored remote workers |
+| Existing behavior | One local Anthropic continuation and ordinary Job artifact | All three renderers, report limits, policy/hints/interrupt/Skills, optional module boundary and retained gates |
+| Public usability | Published machine CLI command/config subset | Human CLI, GUI safe watch/cards, public headless/custom adapter, immutable snapshots and reviewed real-model feature matrix |
+
+The remaining checks require the student's documented public seams and semantic
+codec where appropriate. This table is a finite integration boundary, not a
+replacement acceptance matrix or a waiver of any printed row. Race checks,
+delivered-module validation, architectural review, student-behavior deletion
+controls, initial live experience and subsequent historical quality comparison
+remain required. No speculative new feature is demanded.
