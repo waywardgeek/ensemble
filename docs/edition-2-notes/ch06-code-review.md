@@ -1,5 +1,11 @@
 # Chapter 6 comparative code review
 
+**Bill's subsequent ruling:** initial finding 1 (grouped completion) is withdrawn
+as a misleading chapter requirement. It must not cause implementation work or
+block acceptance. Findings 2 and 3 remain for correction round 1. Detailed
+prose/grader correction directions are in `ch06.md`; the initial review below
+is preserved as history, not the current instruction for finding 1.
+
 Reviewer: `review_restart_ch01`, October 9, 2026. **Needs correction at initial
 review; zero correction rounds used (maximum three).** Actual original grading
 is **80/100 FAIL**, independently reproduced. The two failed grader checks have

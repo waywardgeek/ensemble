@@ -26,14 +26,18 @@ grader-exception rationale but withheld chapter acceptance for these findings.
 Missing exercise
 protocol facts are recorded under Bill's standing authorization.
 
-**Current stop point:** before editing for correction round 1, the student
+**Resolved stop point:** before editing for correction round 1, the student
 identified an externally observable ambiguity in §6.6's grouped-completion
 requirement: join an explicitly submitted set and return after both finish, or
 wake when any finishes and drain the completions ready at that instant. §6.8's
 `WaitAny` is a single-observation API and does not define a reliable grouped
 contract or a "same turn window" boundary. The coordinator paused the student
-and is asking Bill to settle the behavior; the reviewer is complete/idle.
-No correction source changes have been made. See the chapter notes.
+and asked Bill to settle the behavior. Bill confirmed the requirement was misleading:
+no grouped-completion feature or sub-agent spawning belongs in this correction.
+The initial finding is withdrawn; round 1 resumes for the Gemini media-test
+assertion and inaccurate comment only. Specific deferred prose/grader fixes are
+recorded in the chapter notes. Preserve this review correction as a lesson:
+cross-check a questionable prose demand before turning it into new code.
 
 These are the two review documents. The carryover answers “What did the previous
 edition teach us that the student should know?” This workflow answers “How do
