@@ -39,7 +39,7 @@ function parseArgs(argv) {
 }
 
 const args = parseArgs(process.argv.slice(2));
-const guiDir = path.join(__dirname, '..', 'web', 'gui');
+const guiDir = path.join(__dirname, '..', 'gui', 'web');
 
 // ------------------------------------------------------------------ the DOM
 //

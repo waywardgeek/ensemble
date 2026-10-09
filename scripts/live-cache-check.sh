@@ -204,7 +204,7 @@ run_vendor() {
 		CH02_LOG="$evlog" \
 		EN_SKILLS_DIR="$ROOT/agent/skills" \
 		EN_PRIMARY_SKILL=ensemble \
-			"$BIN" --port 0 --gui-dir "$ROOT/agent/web/gui" <"$fifo" >"$work/out.log" 2>&1
+			"$BIN" --port 0 --gui-dir "$ROOT/agent/gui/web" <"$fifo" >"$work/out.log" 2>&1
 	) &
 	local apid=$!
 

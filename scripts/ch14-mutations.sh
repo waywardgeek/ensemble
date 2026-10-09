@@ -19,9 +19,9 @@ set -u
 
 REPO="$(pwd)"
 OUT="${REPO}/ch14-mutation-results.txt"
-TTS=agent/web/gui/tts.js
-ART=agent/web/gui/artifact-scroll.js
-GUI=agent/web/gui/gui.js
+TTS=agent/gui/web/tts.js
+ART=agent/gui/web/artifact-scroll.js
+GUI=agent/gui/web/gui.js
 
 restore() { git checkout -- "$TTS" "$ART" "$GUI" 2>/dev/null; }
 trap restore EXIT INT TERM

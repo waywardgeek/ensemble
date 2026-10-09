@@ -316,9 +316,14 @@ func ch12ProtocolTests(bin string, r *Ch12Result) {
 // This is a source-level check: we verify the handler.go has the jsonrpc case.
 func ch12WSTunnelTest(path string, r *Ch12Result) {
 	// Check that handler.go contains the "jsonrpc" message type routing.
-	handlerPath := findFile(path, "handler.go", "internal/ws/handler.go")
+	// Chapter 24 moved the GUI from internal/ws to the public gui package;
+	// frozen pre-24 solutions keep the old layout, so try both.
+	handlerPath := findFile(path, "handler.go", "gui/handler.go")
 	if handlerPath == "" {
-		r.WSTunnelErr = "could not find internal/ws/handler.go"
+		handlerPath = findFile(path, "handler.go", "internal/ws/handler.go")
+	}
+	if handlerPath == "" {
+		r.WSTunnelErr = "could not find gui/handler.go or internal/ws/handler.go"
 		return
 	}
 
