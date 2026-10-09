@@ -41,7 +41,7 @@ func TestGUIReplayAndServerRestart(t *testing.T) {
 	}
 	newServer := func(events []common.Event) *Server {
 		log := &common.Log{Events: events, Next: common.Seq(len(events) + 1), Clock: time.Now}
-		return New(nil, nil, "", log, nil, nil)
+		return New(AgentHooks{EventLog: log}, "")
 	}
 	var active atomic.Pointer[Server]
 	active.Store(newServer(events))

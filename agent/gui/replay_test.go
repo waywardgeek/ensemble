@@ -57,7 +57,7 @@ func TestSubscribeReplaysRestoredLog(t *testing.T) {
 		Clock: time.Now,
 	}
 
-	h := New(nil, nil, "", log, nil, nil)
+	h := New(AgentHooks{EventLog: log}, "")
 	c := &Client{send: make(chan []byte, 256)}
 
 	h.subscribe(c)
@@ -89,7 +89,7 @@ func TestSubscribeDoesNotDropWhenBufferOverflows(t *testing.T) {
 	}
 	log := &common.Log{Events: events, Next: common.Seq(n + 1), Clock: time.Now}
 
-	h := New(nil, nil, "", log, nil, nil)
+	h := New(AgentHooks{EventLog: log}, "")
 	c := &Client{send: make(chan []byte, 256)}
 
 	subscribeDone := make(chan struct{})
@@ -209,7 +209,7 @@ func TestResponsesGetDistinctPartIDs(t *testing.T) {
 		Clock: time.Now,
 	}
 
-	h := New(nil, nil, "", log, nil, nil)
+	h := New(AgentHooks{EventLog: log}, "")
 	c := &Client{send: make(chan []byte, 256)}
 	h.subscribe(c)
 
@@ -247,7 +247,7 @@ func TestThinkingRendersOnReconnect(t *testing.T) {
 		Clock: time.Now,
 	}
 
-	h := New(nil, nil, "", log, nil, nil)
+	h := New(AgentHooks{EventLog: log}, "")
 	c := &Client{send: make(chan []byte, 256)}
 	h.subscribe(c)
 

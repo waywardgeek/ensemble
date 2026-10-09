@@ -25,7 +25,7 @@ func (f *fakeSettings) ApplyRaw(raw json.RawMessage) common.Settings {
 func TestSettingsForDisplayFillsUnsetModel(t *testing.T) {
 	h := &Server{
 		settings: &fakeSettings{s: common.Settings{Model: ""}},
-		Model:    func() string { return "gpt-6.1-sol" },
+		model:    func() string { return "gpt-6.1-sol" },
 	}
 
 	got := h.settingsForDisplay(h.settings.Get())
@@ -45,7 +45,7 @@ func TestSettingsForDisplayFillsUnsetModel(t *testing.T) {
 func TestSettingsForDisplayKeepsChosenModel(t *testing.T) {
 	h := &Server{
 		settings: &fakeSettings{s: common.Settings{Model: "claude-opus-5-5"}},
-		Model:    func() string { return "gpt-6.1-sol" }, // switch not applied yet
+		model:    func() string { return "gpt-6.1-sol" }, // switch not applied yet
 	}
 
 	got := h.settingsForDisplay(h.settings.Get())
@@ -65,7 +65,7 @@ func TestSettingsForDisplayKeepsChosenModel(t *testing.T) {
 func TestSettingsAtLoadShowsModelInForce(t *testing.T) {
 	h := &Server{
 		settings: &fakeSettings{s: common.Settings{Model: "claude-opus-5-5"}}, // stale
-		Model:    func() string { return "gpt-6.1-sol" },                      // in force
+		model:    func() string { return "gpt-6.1-sol" },                      // in force
 	}
 
 	got := h.settingsAtLoad()

@@ -64,7 +64,7 @@ func fakeBrowser(t *testing.T, url, name string) *websocket.Conn {
 // startMCPPort runs a hub behind a real HTTP server and a real TCP listener.
 func startMCPPort(t *testing.T) (h *Server, wsURL string, tcpAddr string) {
 	t.Helper()
-	h = New(nil, nil, "", &common.Log{}, nil, nil)
+	h = New(AgentHooks{EventLog: &common.Log{}}, "")
 	srv := httptest.NewServer(http.HandlerFunc(h.ServeWS))
 	t.Cleanup(srv.Close)
 	ln, err := net.Listen("tcp", "127.0.0.1:0")

@@ -566,20 +566,24 @@ func runActorLoop(cfg common.Config, logPath string, port string, guiDir string,
 		// nobody writes to: nothing fails to compile and the meter reads
 		// zero. A back-pointer is re-resolved at the moment of asking and
 		// cannot go stale that way.
-		guiServer := gui.New(gate, func(msg common.Inbound) {
-			actor.Send(msg)
-		}, "gui.log", eng.Log, settingsStore, eng.Usage())
+		guiServer := gui.New(gui.AgentHooks{
+			Gate:     gate,
+			Send:     func(msg common.Inbound) { actor.Send(msg) },
+			EventLog: eng.Log,
+			Settings: settingsStore,
+			Usage:    eng.Usage(),
+			// The engine's config is the authority on which model is serving
+			// turns: it is validated at startup and refuses a model it does not
+			// know. The settings store can be empty, and pricing an empty name
+			// silently reports a paid model as free.
+			Model: func() string { return eng.Cfg.Model },
+		}, "gui.log")
 		// view_gui: the agent looks at its own GUI when it chooses to. Registered
 		// here because it needs the guiServer, and before the actor starts, so it is in
 		// the startup declarations like every builtin (the --gui-debug load above
 		// re-derives them at this stage for the same reason).
 		reg.RegisterInitial(guiServer.ViewGUITool())
 		eng.Cfg.Tools = reg.Declarations()
-		// The engine's config is the authority on which model is serving
-		// turns: it is validated at startup and refuses a model it does not
-		// know. The settings store can be empty, and pricing an empty name
-		// silently reports a paid model as free.
-		guiServer.Model = func() string { return eng.Cfg.Model }
 		defer guiServer.Close()
 		guiServer.SetTTSLog(ttsLogPath)
 		actor.Attach(guiServer)

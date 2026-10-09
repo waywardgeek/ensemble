@@ -32,18 +32,13 @@ func newUpgrader() *websocket.Upgrader {
 // written). The only mutable shared state is the in-flight partial map and
 // the client set, which are guarded by mu.
 type Server struct {
-	// Model reports the model currently in force, for pricing. A closure
-	// rather than a string because the operator can switch models mid-session,
-	// and a value captured at construction would price every later turn at the
-	// old rate while looking entirely correct.
-	Model func() string
-
 	mu           sync.Mutex
 	clients      map[*Client]bool
 	inflight     map[uint64][]byte // part_id → accumulated partial JSON
 	logLen       int               // last-observed len(log.Events), updated under mu
 	gate         *common.PauseGate
 	send         func(common.Inbound) // forwards prompt/hint/interrupt to the actor
+	model        func() string        // reports the model currently in force (see AgentHooks.Model)
 	guiLog       *GuiLogger
 	ttsLog       *TTSLogger                       // speech channel record; nil-safe when unset
 	log          *common.Log                      // event log — read-only access for reconnection
@@ -55,21 +50,43 @@ type Server struct {
 	selfSeq      atomic.Int64                     // CallGUI request ids
 }
 
-// New creates a hub. send is called for every prompt/hint/interrupt
-// received from a browser; gate controls tool-dispatch pausing; eventLog
-// provides read access to the append-only event log for reconnection;
-// settings provides the GUI-editable settings store (may be nil); usage
-// provides the running session token tally for the status meter (may be nil).
-func New(gate *common.PauseGate, send func(common.Inbound), guiLogPath string, eventLog *common.Log, settings common.SettingsSource, usage common.UsageSource) *Server {
+// AgentHooks bundles everything the GUI server needs from the agent side,
+// supplied once at construction. One AgentHooks value is one agent. Every
+// field is optional except as noted; a nil field disables the feature it
+// feeds rather than crashing.
+type AgentHooks struct {
+	// Gate controls tool-dispatch pausing.
+	Gate *common.PauseGate
+	// Send is called for every prompt/hint/interrupt received from a browser.
+	Send func(common.Inbound)
+	// EventLog provides read access to the append-only event log for
+	// reconnection replay.
+	EventLog *common.Log
+	// Settings provides the GUI-editable settings store.
+	Settings common.SettingsSource
+	// Usage provides the running session token tally for the status meter.
+	Usage common.UsageSource
+	// Model reports the model currently in force, for pricing. A closure
+	// rather than a string because the operator can switch models mid-session,
+	// and a value captured at construction would price every later turn at the
+	// old rate while looking entirely correct.
+	Model func() string
+}
+
+// New creates a GUI server bound to one agent's hooks. guiLogPath is the
+// path of the GUI's presentation log (a GUI-side concern, so it travels
+// outside AgentHooks).
+func New(hooks AgentHooks, guiLogPath string) *Server {
 	h := &Server{
 		clients:      make(map[*Client]bool),
 		inflight:     make(map[uint64][]byte),
-		gate:         gate,
-		send:         send,
+		gate:         hooks.Gate,
+		send:         hooks.Send,
+		model:        hooks.Model,
 		guiLog:       NewGuiLogger(guiLogPath),
-		log:          eventLog,
-		settings:     settings,
-		usage:        usage,
+		log:          hooks.EventLog,
+		settings:     hooks.Settings,
+		usage:        hooks.Usage,
 		mcpReceivers: make(map[string]func(json.RawMessage)),
 		mcpAgents:    make(map[string]*Client),
 		selfReplies:  newReplyRouter(),
@@ -80,8 +97,8 @@ func New(gate *common.PauseGate, send func(common.Inbound), guiLogPath string, e
 	// log is already full but no observation has arrived yet — it stayed at zero
 	// and subscribe replayed nothing at all. Seed it from the log we are handed
 	// so a connecting client sees the existing conversation immediately.
-	if eventLog != nil {
-		h.logLen = len(eventLog.Events)
+	if hooks.EventLog != nil {
+		h.logLen = len(hooks.EventLog.Events)
 	}
 	return h
 }
@@ -437,8 +454,8 @@ func (h *Server) settingsForDisplay(s common.Settings) common.Settings {
 }
 
 func (h *Server) effectiveModel() string {
-	if h.Model != nil {
-		if m := h.Model(); m != "" {
+	if h.model != nil {
+		if m := h.model(); m != "" {
 			return m
 		}
 	}

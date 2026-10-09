@@ -27,7 +27,7 @@ func TestReplayCarriesResetInOrder(t *testing.T) {
 		Clock: time.Now,
 	}
 
-	h := New(nil, nil, "", log, nil, nil)
+	h := New(AgentHooks{EventLog: log}, "")
 	c := &Client{send: make(chan []byte, 256)}
 
 	h.subscribe(c)
