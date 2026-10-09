@@ -38,7 +38,7 @@ Title candidates, author's choice: "Freeing the GUI", "The Optional GUI",
 "Setting the GUI Free". Avoid "Extracting the GUI" — extraction is the
 mechanism, optionality is the lesson.
 
-## 3. Draft TL;DR (coder-owned, v1 — freezes against fixtures)
+## 3. TL;DR (coder-owned, v2, FROZEN against fixtures 2026-10-09)
 
 ---
 
@@ -58,11 +58,12 @@ headless consumer names neither the GUI package nor gorilla.
 2. Move `internal/ws` to a public `gui` package. `ws.Hub` becomes
    `gui.Server`. The wire protocol does not change; a chapter 22
    behavioral session passes unmodified.
-3. Collapse the server's seven agent-session dependencies (pause
-   gate, inbound send, event log, settings source, usage source, GUI
-   log path, model getter) into one construction-time `AgentHooks`
-   value defined in `gui`. The post-construction `Model` field
-   assignment dies with the Hub name.
+3. Collapse the server's agent-session dependencies (pause gate,
+   inbound send, event log, settings source, usage source, model
+   getter) into one construction-time `AgentHooks` value defined in
+   `gui`; the GUI's own log path stays a separate constructor
+   argument. The post-construction `Model` field assignment dies with
+   the Hub name.
 4. Embed the GUI assets with `go:embed`. The binary serves the GUI
    from any working directory. A flag overrides with a disk path for
    live development. Export the embedded FS so a consumer can mount
@@ -70,7 +71,14 @@ headless consumer names neither the GUI package nor gorilla.
 5. Move the MCP client-WS dial transport from `internal/mcp` to a
    public `mcpws` package. After this, importing the framework root
    links no websocket code at all.
-6. Chapters 1-23 behavior is preserved: full sweep green. The ch5
+6. The public surface is enough to actually reuse: root-alias the
+   event vocabulary (`Event`, `MessageData`, `PartList`, `TextPart`,
+   and the actor constants) so a consumer can build a log for the
+   scroll to replay, because you cannot construct what you cannot
+   name. Keep the agent-eyes MCP relay (`ServeMCP` on a bare
+   listener) in `gui`: an agent that can see this GUI is as much the
+   point as a human who can.
+7. Chapters 1-23 behavior is preserved: full sweep green. The ch5
    package-var rule gains exactly one carve-out, `embed.FS`
    variables, because `go:embed` has no var-free form.
 
@@ -83,16 +91,18 @@ Build and grade: `make grade24`.
 
 | # | Behavior | Check | Points |
 |---|---|---|---|
-| 1 | Framework links no GUI, no gorilla | `go list -deps` on a minimal root-only consumer | 20 |
-| 2 | GUI publicly reusable | toy non-ensemble app + fake hooks; event-log sentinel reaches a ws client via replay | 15 |
-| 3 | Wire unchanged | ch22-style scripted session against the real binary | 15 |
+| 1 | Framework links no GUI, no gorilla | `go list -deps` on a root-only consumer compiled OUTSIDE the module | 20 |
+| 2 | GUI publicly reusable | external consumer + fake hooks: planted event replays to a ws client, a prompt reaches the Send hook, and the MCP relay answers JSON-RPC with the request's own id | 15 |
+| 3 | Wire unchanged | ch22-style scripted session against the real binary; recorded vendor requests prove the GUI-socket model switch landed | 15 |
 | 4 | Assets embedded | binary started from an unrelated cwd serves the GUI | 15 |
-| 5 | Components without shell | consumer mounts the Artifact scroll from the exported FS, no `index.html` | 10 |
+| 5 | Components without shell | consumer mounts the Artifact scroll from the exported FS; `index.html` 404s | 10 |
 | 6 | MCP without gorilla | headless MCP consumer links no gorilla; virtual-user still dials through `mcpws` | 15 |
 | 7 | Root stays clean | structural: root exports no websocket-typed symbols, imports neither `gui` nor gorilla | 10 |
 
-Points are provisional until the fixtures freeze. Every absence check
-ships with a positive control that proves the detector fires.
+Frozen against the fixtures: `make grade24` 100/100 on the reference
+tree, `make grade24-audit` 7/7 mutants killed with exact check sets.
+Every absence check ships with a positive control that proves the
+detector fires.
 
 ---
 
