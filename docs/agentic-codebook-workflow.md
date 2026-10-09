@@ -111,6 +111,22 @@ of why the design works, ownership and non-obvious choices. The coder writes
 these explanations alongside the implementation; the code reviewer assesses
 their usefulness as well as their quantity. Do not postpone them to authorship,
 remove them to reduce code counts, or add filler to hit a percentage.
+Every exported Go symbol requires a useful documentation comment, including
+internal-package symbols, exported fields and interface methods. The reviewer
+checks coverage and meaning alongside the teaching-comment target.
+
+Bill reported that the first-edition coder (Opus 5) judged the new student's code
+tighter and better, with exported-symbol comments the only significant
+constructive criticism. This is attributed feedback, not a substitute for our
+independent comparative review. Bill's resulting documentation rule is recorded
+in the coding skill and carryover and applies to the current student tree;
+accepted frozen chapter exports remain historical records.
+Bill also reports that the first-edition coder finds the student reviews excellent
+material for improving the book. Preserve their concrete difficulties, corrections
+and evidence for the later author–coder phase. This is encouraging external
+feedback; the completed implementation and revised manuscript still need their
+own review. Bill authorizes continued autonomous work through the remaining usage
+allocation, keeping resumable notes and the existing chapter acceptance gates.
 
 ## Explicit crossover goal
 

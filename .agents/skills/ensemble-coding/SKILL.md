@@ -72,6 +72,12 @@ line per four code lines, excluding blanks). Explain why, ownership, lifetimes
 and important ordering beside the relevant code so students need not reverse
 engineer the design. Treat the percentage as a teaching target, not a padding
 quota; useful comments are not bloat.
+Every exported Go symbol must have a useful documentation comment, including
+those in internal packages: types and aliases, functions and methods, constants,
+variables, struct fields and interface methods. Explain its purpose and relevant
+contract; include ownership or lifetime constraints where they matter. Merely
+restating its name is not documentation. This is required independently of the
+roughly 20% teaching target.
 Do not introduce generic frameworks, extra protocols, invented limits, speculative
 recovery or exhaustive audit machinery merely because they might be useful.
 There is no author agent and no grader agent working ahead of the student.
@@ -205,6 +211,8 @@ Leave a concise comparison covering:
   deleted comments are not improvements, and line count alone is not quality.
 - **Comments:** compare explanation of intent, ownership and non-obvious choices,
   as well as comment counts. Check accuracy. Preserve useful explanations;
+  check that every exported symbol has a useful documentation comment, including
+  exported members and symbols in internal packages.
   neither silence nor comments narrating obvious syntax improve maintainability.
   Assess Bill's roughly 20% comment target and whether a student can understand
   the reasons behind the code. Do not accept thin explanations merely because

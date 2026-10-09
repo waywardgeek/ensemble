@@ -94,6 +94,13 @@ both the balance and whether the explanations actually help the student. Useful
 comments are part of code quality, not bloat. This is Bill's October 9 direction,
 in addition to the first edition's lessons.
 
+Every exported Go symbol must have a useful documentation comment, including
+symbols in internal packages, exported fields and interface methods. Explain
+purpose and the relevant contract, including ownership or lifetime where needed;
+do not merely repeat the name. Bill added this explicit requirement after
+reporting that the first-edition coder's main constructive criticism was missing
+exported-symbol documentation. It applies regardless of the overall comment ratio.
+
 **Own the request bytes.** Chapter 1 starts with raw HTTP, without an SDK or
 framework, because payload placement later determines steering and cache
 behavior. That is not permission to implement either feature immediately.
