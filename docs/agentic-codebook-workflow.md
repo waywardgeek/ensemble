@@ -546,9 +546,12 @@ rounds. The original grader scored 100/100 for both implementations, three live
 chat turns passed, and the reviewer verified the recorded version-header grader
 gap. Student and reviewer notes are in `docs/edition-2-notes/ch01*.md`; the exact
 source export is `solutions/edition-2/ch01/`, checkpointed at `edition-2-ch01-r1`.
-Chapter 2 is now assigned to `student_restart_ch02` from the accepted working
-tree in a fresh context, with its review to be written in
-`docs/edition-2-notes/ch02.md`. Its unchanged first-edition reference baseline
-also scores 100/100. Chapter 2 has not been accepted or snapshotted; initial
-review is pending. Preserve small resumable checkpoints if a usage limit interrupts work;
+Chapter 2 was assigned to `student_restart_ch02` from the accepted working
+tree in a fresh context. It stopped before editing because the chapter omits
+its directive/acknowledgment protocol and the public README is incomplete and
+partly obsolete. The coordinator confirmed the public-document gap; Bill's
+decision is pending in `docs/edition-2-notes/ch02.md`. All implementation work is
+stopped. The unchanged first-edition reference baseline scores 100/100, but the
+student has not implemented, been graded or used a revision round for Chapter 2.
+Preserve small resumable checkpoints if a usage limit interrupts work;
 never label unfinished work an accepted chapter.
