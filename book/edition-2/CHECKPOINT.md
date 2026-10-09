@@ -1,6 +1,27 @@
 # Working checkpoint
 
-## Current boundary: final regressions and provider-support preparation
+## Current boundary: actual Chapter 10 provider demonstrations
+
+Root read and accepted the complete provider-support review `0a78688` and
+handback `78f4f6b`. Deterministic clearance `213b56b` and concrete support review
+are complete. The SAME cold student resumed as exec `67648`, external
+`phase-6-live.txt` with matching events/stderr/result files. Check that process
+and result before restarting; phase5 exec37377 completed with exit0.
+
+Actual credential loading and the reviewed real-provider A/B/C/D matrix are now
+released under Bill's existing authorization. Runtime/build is `57d4aac`, support
+is `9822b2b`, final binding is provider-prep-binding-final.json. Budget stays
+66 generation/3 discovery maximum, no automatic retries, no Gemini substitution.
+Unavailable providers and failed observations remain explicit; continue only
+independent valid work. No successful live result is yet claimed. Keys remain in
+the parent adapter's memory, never argv/evidence/git. Final initial experience
+must freeze before any historical-comparison feedback reaches the student.
+
+Grader is preparing reviewer-only historical quality findings. Reviewer is
+closing Chapter17 correction `b53c3c8` while actual use runs. No competing builds
+are needed. The preceding updates below preserve completed handoff history.
+
+## Prior boundary: final regressions and provider-support preparation
 
 Latest closure: root read and accepted `213b56b` deterministic clearance on
 `57d4aac`: joined 70/70 retained rows and an empty deterministic residual list.
