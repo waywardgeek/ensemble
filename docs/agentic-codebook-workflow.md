@@ -32,6 +32,34 @@ coordinating the student implementation, reviews, accumulated lessons and the
 eventual evidence-based manuscript. The author phase still follows successful
 implementation; this responsibility does not restore writing ahead of the coder.
 
+## Act as a student; demonstrate what was learned
+
+Broad knowledge and the ability to execute autonomously do not establish expertise
+in this project's methodology. The coder is the student, not an authority entitled
+to replace the expert's lessons with familiar patterns. The coordinator and
+reviewer have the same obligation: understand the reason for a rule, apply it,
+test the result and expose uncertainty. If experience contradicts an instruction,
+record the evidence and use the review/exception process; neither confident
+invention nor blind compliance is the goal. The first attempt's scope expansion
+is direct evidence that our own design judgment needs these constraints.
+
+Bill's [self-improvement essay](../book/the-improvement-loop.md) proposes codebooks
+as a way to preserve expert knowledge and feed demonstrated improvements into
+later tools and eventually training. The practical lesson here is to retain why
+a decision was made, what failed and what corrected it. A saved note or larger
+context does not by itself demonstrate learning: later attempts must retrieve
+and apply the lesson, and the reviews must check whether the mistake recurred.
+Use the existing carryover, skill and chapter notes for this continuity. After
+the student run, author and coder incorporate tested corrections into both book
+and graders. Do not add a memory architecture or training system to this run.
+
+On October 9, Codex read the requested `singularity-self-improvement-loop.md`
+in the CodeRhapsody website repository and the local essay linked above. Bill's
+predictions about other agents, the causes of their growth and the memory capacity
+needed for future expertise remain hypotheses, not prerequisites or measured
+results of this experiment. Demonstrate improvement through successive student
+implementations and reviews rather than assuming the loop must succeed.
+
 Edition 1 is a living source. Bill writes it with CodeRhapsody and publishes
 successive versions on Amazon as he adds chapters. On October 9 he reports that
 CodeRhapsody is writing Chapter 24, the GUI refactor that moves the GUI out of

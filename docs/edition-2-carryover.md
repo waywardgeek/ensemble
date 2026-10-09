@@ -48,6 +48,15 @@ recording corrections and new results explicitly.
 
 ## From the first line: restraint, ownership and evidence
 
+**Work as the student.** Autonomous execution is not proof of expertise in this
+methodology. Learn the reasons in the book and carryover before substituting a
+familiar design. When evidence challenges an instruction, use the documented
+review and exception process. Preserve corrections with their reasons and apply
+them in later chapters; writing a note is not enough if the same mistake returns.
+This is the operational lesson drawn from Bill's
+[self-improvement essay](../book/the-improvement-loop.md), not a new requirement
+to implement training or expanded memory during this student run.
+
 **Live-test credentials.** Bill has authorized the provider API keys in
 `~/.cr/settings.json`. Parse that file locally in the launcher/application and
 pass only the needed key in memory or the intended test child's environment;
