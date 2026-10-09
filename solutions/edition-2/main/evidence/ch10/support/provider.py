@@ -43,6 +43,11 @@ def connection(kind, host, port, timeout):
             sock.settimeout(left)
             if source_address: sock.bind(source_address)
             sock.connect(endpoint)
+            # TLS handshake inherits the remaining total budget, not a fresh
+            # timeout after a slow TCP connect. HTTP send has the same bound.
+            left = limit-(time.monotonic()-start)
+            if left <= 0: raise TimeoutError('bounded connection timeout')
+            sock.settimeout(left)
             return sock
         except OSError:
             sock.close(); raise

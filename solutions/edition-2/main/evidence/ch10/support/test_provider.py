@@ -161,6 +161,18 @@ class ProviderControls(unittest.TestCase):
             gate.set();time.sleep(.06)
         self.assertEqual(self.seen,[]);self.assertEqual(len((self.root/'budget').read_text().splitlines()),1)
 
+    def test_tls_receives_remaining_connect_budget(self):
+        from provider import connection
+        timeouts=[]
+        class Socket:
+            def settimeout(self,seconds): timeouts.append(seconds)
+            def connect(self,endpoint): time.sleep(.02)
+            def close(self): pass
+        with patch('provider.socket.getaddrinfo',return_value=[(socket.AF_INET,socket.SOCK_STREAM,0,'',('127.0.0.1',443))]),patch('provider.socket.socket',return_value=Socket()):
+            conn=connection(http.client.HTTPSConnection,'fixture.invalid',443,.1)
+            conn._create_connection(('fixture.invalid',443),.1)
+        self.assertEqual(len(timeouts),2);self.assertLess(timeouts[1],timeouts[0]-.015)
+
     def test_bound_discovery_model_and_budget_controls(self):
         budget=Budget(self.root/'budget','openai');item=budget.reserve('models','discovery')
         # Synthetic selection control, never reported as real discovery.

@@ -744,3 +744,18 @@ and public JSON identical; no runtime repair requested. This is attributed
 coordinator information, not a student inspection of checker/reviewer internals.
 Deterministic clearance remains pending independent validation. Continue support
 only and preserve original135/138 and all earlier failures; live stays unreleased.
+
+Split binding created successfully for interpreted support065a6a824ec46a70affd85bd5b95cdc19439495d
+against unchanged actual runtime/build57d4aac. All22 intended identity refusals
+passed from that real build parent before derived writes, with a separately
+labeled synthetic launch (no actual client execution or relabeling an old launch).
+It covers historical/current/support source maps, missing maps, all seven binary
+roles, build/module/browser/catalog identities, both launch revisions, executable
+path and actual alternate support bytes. Original fixtures/bindings are retained.
+
+Final own transport review tightened TCP→TLS deadline handoff: after a slow TCP
+connect, the next handshake/send receives only remaining total time. Added a
+synthetic socket timing control; all13 affected provider controls pass. No real
+TLS endpoint, key or client was used. This is a support refinement, not an observed
+provider/runtime failure. A new exact support revision/binding follows; the22
+controls retain their initial065a6a8 association rather than being relabeled.
