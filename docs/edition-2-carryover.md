@@ -217,6 +217,11 @@ under test. **No mocks without Bill's explicit approval.** Use the grader's
 provided fakes where suitable or small additional fakes. A perceived need for a
 mock is a critical question: stop, explain why fakes cannot meet the test need
 and wait for Bill's decision. Reviewer exceptions cannot authorize mocks.
+Bill's cross-chapter rationale matters: a Chapter 12 coder may not know what the
+Chapter 4 coder learned. Mocking that earlier implementation can erase precisely
+the behavior and integration constraints the later chapter needs to exercise.
+Use the real earlier code through its interfaces, with fakes at external
+boundaries; chapters divide the teaching, not the system's correctness.
 Run the required checks and affected regressions; this is not a
 request for blanket test expansion or a new verification framework.
 

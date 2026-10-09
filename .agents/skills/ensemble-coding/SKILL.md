@@ -96,6 +96,12 @@ not a scripted sequence of internal method calls. Do not mock away the behavior
 being tested or introduce interfaces and mock frameworks solely for tests. Keep
 fakes as small as the exercised contract permits; they do not replace live runs.
 
+A chapter boundary is not a test-double boundary. Later chapters exercise the
+real earlier implementation through its interfaces. For example, Chapter 12's
+coder may not know Chapter 4's implementation history; mocking its job machinery
+would substitute today's assumptions for the behavior actually built. Fake the
+external peer when needed, keeping the earlier machinery in the exercised path.
+
 **Test the tests with targeted mutations.** For every distinct behavioral claim
 relied on in the chapter's tests, deliberately introduce a small, plausible defect
 in that behavior and verify that the intended check catches it. One mutation can
