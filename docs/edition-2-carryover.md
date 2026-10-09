@@ -465,6 +465,32 @@ permission to invent the missing sub-agent exercise. Sources:
 [§23.3–23.7](../book/chapter-23.md#233-two-boundaries-not-one),
 [§23.9–23.10](../book/chapter-23.md#239-what-does-not-work).
 
+## Coverage of the two architecture-repair chapters
+
+Bill intends to absorb **Chapter 5, The Big Refactor**, and **Chapter 22,
+Architectural Decay**, into the appropriate earlier teaching in the new edition.
+Chapter 20 is **The Crossover**, not the second repair chapter. The student still
+follows the original numbering and exercises; this future editorial consolidation
+does not delete first-edition history or skip required capabilities.
+
+| Original lesson or capability | Carry forward and eventual placement |
+| --- | --- |
+| Ch5: star imports, shared interfaces, behavior in the right package, owner access and no mutable globals | Apply from the first code; covered in the ownership guidance above and mandatory skill. |
+| Ch5: an independently built application imports the framework, registers a custom tool and receives its result through the real tool loop | Preserve the external-consumer exercise when public tool registration is taught. An import that merely compiles is insufficient. Existing tool/job behavior must still work. See [§5.6](../book/chapter-05.md#56-the-exercise-graded). |
+| Ch22: the running binary actually uses the library's composition root; constructor and logging checks test relationships, not names | Apply throughout; the workflow's architecture review and mutation checks guard the real wiring. Do not recreate a flat root merely to refactor it later. |
+| Ch22: a tool dispatch context reaches Engine through a common interface and follows its parent accessors | Establish this when tool dispatch arrives. Expose the owning Engine, not copied usage/model values or a special status callback that creates a second route. See [Ch22 TL;DR](../book/chapter-22.md#tldr). |
+| Ch22: per-model usage and cost, without repricing old work after a model switch | Apply when accounting/model switching arrives; covered in the cost guidance above. |
+| Ch22: `agent_status` reports current model, last response usage, session totals, cache hit rate and cost through the ownership chain | Preserve this feature and its live model-switch exercise. The later author–coder phase assigns its place alongside tool/usage teaching; it is not a Chapter 1 feature. |
+| Ch22: disconnect can race with observer sends; superficially defensive code and timing-heavy tests can both hide the defect | Apply when GUI connection lifetimes arrive, as described below. |
+
+Chapter 22's [disconnect failure](../book/chapter-22.md#the-crash-the-decay-concealed)
+teaches that a `select` with `default` does not make sending to a closed channel
+safe. Coordinate teardown with all senders; the demonstrated solution used a
+separate completion signal instead of closing a data channel still reachable
+by senders. Race regression tests must expose the relevant interleaving and fail
+when the defect is restored, not merely repeat a timing lottery. Preserve this
+lesson without requiring the first edition's exact client counts or test layout.
+
 ## Contradictions and recommendations for Bill's review
 
 Already settled by Bill: actual-parent ownership supersedes sibling dependency
