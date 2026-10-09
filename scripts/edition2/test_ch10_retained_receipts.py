@@ -29,7 +29,7 @@ def archive():
 
 class PriorGateControls(unittest.TestCase):
     def test_only_named_direct_checkers_use_prepared_bundle(self):
-        selected = ('ch09-review-record-bounds.py', 'ch09-review-boundaries.py')
+        selected = ('ch09-review-record-bounds.py', 'ch09-review-boundaries.py', 'accept_ch09_management.py')
         calls = []
 
         def command(args, cwd, timeout):
@@ -60,9 +60,10 @@ class PriorGateControls(unittest.TestCase):
                 else:
                     self.assertEqual(changed, path)
         for check in ('accept_ch09', 'accept_ch09_catalog', 'accept_ch09_graph',
-                      'accept_ch09_management', 'accept_ch09_configuration',
+                      'accept_ch09_configuration',
                       'accept_ch09_replay'):
             self.assertEqual(Path(adapted[check][1]), gate.HERE / (check + '.py'))
+        self.assertEqual(Path(adapted['accept_ch09_management'][1]).parent.name, 'checkers')
         self.assertEqual(Path(adapted['complete-delivered-package-discovery'][1]),
                          gate.HERE / 'accept_delivered_tree.py')
         # Existing retained scripts still intentionally execute from the bundle.
@@ -160,7 +161,7 @@ class DurableControls(unittest.TestCase):
     def test_successful_subset_is_not_full_retained_acceptance(self):
         def finished(*args, **kwargs):
             self.assertEqual(kwargs['prepared_checkers'],
-                             ('ch09-review-record-bounds.py', 'ch09-review-boundaries.py'))
+                             ('ch09-review-record-bounds.py', 'ch09-review-boundaries.py', 'accept_ch09_management.py'))
             self.stages(*args, **kwargs)
             kwargs['progress'](dict(phase='completed', check=dict(id='two', passed=True)))
             return dict(passed=True, complete_run=False)
@@ -213,6 +214,34 @@ class DurableControls(unittest.TestCase):
 
 
 class AdapterControls(unittest.TestCase):
+    def test_duplicate_name_adaptation_preserves_every_other_expectation_and_assertion(self):
+        path = gate.HERE / 'accept_ch09_management.py'
+        original = path.read_bytes()
+        with tempfile.TemporaryDirectory() as directory:
+            bundle = Path(directory) / 'bundle'
+            adapters.prepare(bundle)
+            adapted = (bundle / path.name).read_bytes()
+            self.assertEqual(path.read_bytes(), original)
+            before, after = ast.parse(original), ast.parse(adapted)
+            def invalid(tree):
+                return ast.literal_eval(next(node.value for node in tree.body
+                    if isinstance(node, ast.Assign) and node.targets[0].id == 'INVALID'))
+            expected = invalid(before)
+            old = next(row for row in expected if row[0] == 'duplicate')
+            self.assertEqual(old[2], 'edit')
+            self.assertEqual(invalid(after), [row[:2] + ('',) if row[0] == 'duplicate' else row for row in expected])
+            def evaluate(tree):
+                return ast.dump(next(node for node in tree.body
+                    if isinstance(node, ast.FunctionDef) and node.name == 'evaluate'))
+            self.assertEqual(evaluate(before), evaluate(after))
+            # Execute imports only; original helper ROOT and file identity must
+            # survive even though the adapted direct script is in the bundle.
+            import importlib.util
+            spec = importlib.util.spec_from_file_location('adapted_management_control', bundle / path.name)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            self.assertEqual(module.ROOT, gate.REPO)
+
     def test_mutations_keep_assertions_and_target_only_the_owned_boundary(self):
         originals = {name: (gate.HERE / name).read_bytes() for name in
                      ('ch09-review-boundaries.py', 'audit_ch06_mutations.py')}

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extend old fixture owners for Chapter 10 without changing their assertions.
+"""Adapt retained fixture owners and the published Chapter 10 duplicate-name rule.
 
 Only the disposable bundle changes. Its reader fixture becomes an external
 composition test so it can construct the real new codec through its actual
@@ -22,6 +22,18 @@ def prepare(destination, source=None):
         path.write_text(text.replace(old, new))
         result['changes'].append(dict(file=name, old=old, new=new, count=count))
         result['adapted_files'][name] = hashlib.sha256(path.read_bytes()).hexdigest()
+
+    # dd1111e §10.3 explicitly gives repeated name members no unique name.
+    # Keep the prior checker immutable and change only this expected field in
+    # its Chapter 10 copy. Its evaluate() assertions and all other cases stay.
+    edit('accept_ch09_management.py',
+         "('duplicate','{\"name\":\"edit\",\"name\":\"edit\"}','edit')",
+         "('duplicate','{\"name\":\"edit\",\"name\":\"edit\"}','')")
+    # The adapted direct script must import the original helpers: accept_ch09
+    # derives ROOT from __file__. Its prepared copy would point outside the repo.
+    edit('accept_ch09_management.py', 'from accept_ch09 import ',
+         'import sys\nsys.path.insert(0, ' + repr(str(Path(__file__).resolve().parent)) +
+         ')\nfrom accept_ch09 import ')
 
     reader = 'ch09-raw-record_test.go.txt'
     edit(reader, 'package eventlog\n', 'package eventlog_test\n')

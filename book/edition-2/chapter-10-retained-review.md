@@ -254,3 +254,94 @@ The coordinator may pin this contract for the grouped student repair. The studen
 must still confirm the clarification and implement/revalidate affected behavior
 on a new source identity. The retained 66/68 result and all failed receipts remain
 unchanged; this closure grants no runtime acceptance, live-run approval or chapter tag.
+
+## Runtime repair follow-up at 57d4aac
+
+October 8, 2026. Read the student's complete retained-repair handback and the
+updated published persistence grammar. Reloaded the full coding skill,
+architecture and current Chapter 10 contract before changes. Runtime/support is
+`57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4`; the later evidence handback is
+`a09f989`. Reviewer exposure remains as disclosed above. No student, historical
+or original preceding-checker source changed. Bill's unrelated first-edition
+sandbox work remains untouched.
+
+The [original management result](checkpoint-evidence/ch10-management-original-57d4aac.json)
+is preserved byte-for-byte: 135/138, failing only duplicate/strict-ack on each of
+three adapters. Inspection confirms that its original INVALID tuple expects
+`name:"edit"`; the actual result is the error-flagged, paired
+`{"error":"invalid_skill_arguments","name":"","revision":0}` with the consumed
+limit note. Chapter 10's reviewed dd1111e fixture explicitly requires an empty
+name for repeated name members. This discrepancy is a retained expectation,
+not an uncorrected runtime error or permission to accept either spelling.
+
+Only the Chapter 10 disposable management copy changes that expected name to
+empty. All other expected cases and the complete evaluate-function AST remain
+identical. The original checker stays unchanged for preceding-chapter use.
+The Ch10 runner explicitly selects this third adapted direct script. Its imports
+resolve to the original repository helpers so temporary __file__ does not repeat
+the earlier ROOT failure. A regression verifies original-file preservation,
+one-tuple-only expectation change, unchanged assertion AST and original ROOT.
+The updated 12-test orchestration suite passes.
+
+The [adapted management run](checkpoint-evidence/ch10-management-clarified-57d4aac.json)
+passes **138/138** on the student's already-built, independently hash-checked CLI.
+[Its binding](checkpoint-evidence/ch10-management-clarified-binding.json) verifies
+the student's successful source/build association, executable digest, complete
+frozen source map and original/adapted checker identities. This was not a new CLI
+build. The executable SHA-256 is
+`d43e5b309facf02416a14a1ab390dc44a48eac1749eddc565f5f0196619e62e5`.
+
+New narrow controls live in `accept_ch10_arguments.py`,
+`ch10-arguments-public_test.go`, `ch10-arguments-cases.py` and
+`test_ch10_arguments.py`. The external public consumer reuses the existing
+construction/localhost helpers; its expected argument strings and error results
+come from published fixtures, not the renderer under test. The
+[complete focused receipt](checkpoint-evidence/ch10-arguments-first-57d4aac.json)
+records passing formatting, external-module dependency preparation, vet and all
+three selected argument test groups:
+
+- Standalone and session calls reach actual local HTTP and tool execution. Real
+  public Skills transitions establish revision 3. Duplicate arguments produce the
+  exact empty-name error, matched call/result and no Job/Skills mutation. Pending
+  limits consume once; the next real read receives defaults and the valid spaced
+  load is unchanged. Captured sends equal every corresponding reconstruction.
+- Latest checkpoint, full-log rebuild, an older checkpoint with genuinely newer
+  events, and snapshot-only import produce the same next request. Each mode then
+  executes a real read and settled continuation, closes and reopens. Consumed
+  limits do not reappear. Original decoded argument strings survive throughout;
+  accepted Skills and usage match before new work. An unfinished imported tail
+  is not used as a substitute for the successful settled case.
+- Twelve snapshot cases require two actual inspect/import positives before any
+  refusal credit. A consistently changed duplicate Raw spelling passes with its
+  independently repaired hash; the identical state with its stale hash refuses.
+  One-sided single-member/alternate-spelling substitutions refuse exact call
+  correspondence. Syntax, object type, scalar and depth controls change all
+  corresponding argument witnesses consistently, so an unrelated one-copy
+  mismatch cannot supply the refusal. Duplicate outer, call-args and event-sequence
+  structural members still refuse. Negatives require session_corrupt, no startup
+  HTTP and no durable imported leaves; original parent files remain unchanged.
+
+The mutation adapter follows the newly documented distinction: prepared Part.args
+can have compact object layout while optional Part.arguments_text preserves the
+original decoded Chat Completions string. It mutates the accepted Raw witnesses
+and, for grammar negatives, the associated text consistently. Nine Python
+preparation tests pass, including independent hash/correspondence controls,
+missing/changed tracked evidence rejection, extra build-input rejection, and
+binding failure before receipt overwrite or compiler launch.
+
+Before execution the runner checks every one of the **4,170 tracked files** in an
+isolated complete 57d4aac main export, including evidence, against immutable Git
+contents; it also rejects extra Go/C/assembly/module build inputs. All source and
+checker identities remain unchanged afterward. Source extraction used about
+175 MiB; free space was 1,388 MiB before extraction, 1,189 MiB after and 1,158 MiB
+after the consumer run. After receipt copies were verified, only this task's
+completed disposable source/checker extraction was removed; 1,296 MiB was free
+at that observation. Authoritative source, binaries and all receipts remain.
+No cache cleanup was needed. No credential or external provider operation
+occurred. Scoped whitespace checks pass.
+
+This is a passing narrow follow-up, not a rerun of all retained gates on the new
+source, a source-deletion audit of every new assertion, a paid demonstration or
+Chapter 10 acceptance. The original 8882a18 joined 66/68 result keeps its original
+identity. Broader revalidation and release remain with the coordinator. Compiler
+activity is finished and the slot has been released to the remaining-check grader.
