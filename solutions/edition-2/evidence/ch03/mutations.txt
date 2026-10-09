@@ -1,0 +1,184 @@
+Chapter 3 focused mutants: each is a fresh scratch source copy; exact replacement confirmed once.
+Baseline: supplemental go test ./... PASS; original grader90/100 FAIL only inherited ch2parity.
+Unchanged Chapter2 rendering/usage/reducer assertions reuse prior evidence.
+
+final-only answer: KILLED
+Mutation internal/agent/agent.go: 'answer.Reset()' -> '// no reset'
+    tools_test.go:87: tool turn: "workingdone" <nil>
+
+sequential dispatch: KILLED
+Mutation internal/agent/agent.go: 'for _, call := range calls {' -> 'calls[0], calls[len(calls)-1] = calls[len(calls)-1], calls[0]\n\t\tfor _, call := range calls {'
+    tools_test.go:55: result correlation/order: {"type":"tool_result","tool_use_id":"h","content":[{"type":"text","text":"missing required argument content"}],"is_error":true}
+    tools_test.go:55: result correlation/order: {"type":"tool_result","tool_use_id":"a","content":[{"type":"text","text":"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestFileContractsThroughLoop462518296/001/sub/notes.txt exists (5 bytes); read it first, then use overwrite:true to replace it"}],"is_error":true}
+    tools_test.go:98: read range/cap: "open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestFileContractsThroughLoop462518296/001/sub/notes.txt: no such file or directory"
+
+read size cap: KILLED
+Mutation internal/tools/tools.go: 'if len(result) > args.Max {' -> 'if false {'
+    tools_test.go:98: read range/cap: "needle\nthree\n"
+
+search matching line delimiter: KILLED
+Mutation internal/tools/tools.go: 'separator = ":"' -> 'separator = "-"'
+    tools_test.go:102: search omitted matching line
+
+search context windows: KILLED
+Mutation internal/tools/tools.go: 'i-args.Context' -> 'i'
+    tools_test.go:114: grep windows:
+
+search merged adjacent windows: KILLED
+Mutation internal/tools/tools.go: 'start <= ends[len(ends)-1]' -> 'start < ends[len(ends)-1]'
+    tools_test.go:114: grep windows:
+
+search group separator: KILLED
+Mutation internal/tools/tools.go: 'out.WriteString("--\\n")' -> 'out.WriteString("")'
+    tools_test.go:114: grep windows:
+
+append keeps contents: KILLED
+Mutation internal/tools/tools.go: 'os.O_WRONLY | os.O_CREATE | os.O_APPEND' -> 'os.O_WRONLY | os.O_CREATE | os.O_TRUNC'
+    tools_test.go:117: append did not preserve/add bytes
+
+ambiguous edit refuses: KILLED
+Mutation internal/tools/tools.go: 'if count != 1 {' -> 'if count == 0 {'
+    tools_test.go:121: failure 5: {Type:tool_result Text: MIME: Ref:{Kind:0 Locator:} From:{Vendor:unknown Model: Surface:unknown} Data:[] CallID:f Name: Args:[] Opaque:[] Parts:[{Type:text Text:replaced one exact match in /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestFileContractsThroughLoop405535521/001/sub/notes.txt MIME: Ref:{Kind:0 Locator:} From:{Vendor:unknown Model: Surface:unknown} Data:[] CallID: Name: Args:[] Opaque:[] Parts:[] IsError:false Stub:}] IsError:false Stub:}
+
+zero-match edit refuses: KILLED
+Mutation internal/tools/tools.go: 'if count != 1 {' -> 'if count > 1 {'
+    tools_test.go:121: failure 6: {Type:tool_result Text: MIME: Ref:{Kind:0 Locator:} From:{Vendor:unknown Model: Surface:unknown} Data:[] CallID:g Name: Args:[] Opaque:[] Parts:[{Type:text Text:replaced one exact match in /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestFileContractsThroughLoop1677210356/001/sub/notes.txt MIME: Ref:{Kind:0 Locator:} From:{Vendor:unknown Model: Surface:unknown} Data:[] CallID: Name: Args:[] Opaque:[] Parts:[] IsError:false Stub:}] IsError:false Stub:}
+
+required content: KILLED
+Mutation internal/tools/tools.go: 'decode(raw, &args, "path", "content")' -> 'decode(raw, &args, "path")'
+    tools_test.go:121: failure 7: {Type:tool_result Text: MIME: Ref:{Kind:0 Locator:} From:{Vendor:unknown Model: Surface:unknown} Data:[] CallID:h Name: Args:[] Opaque:[] Parts:[{Type:text Text:/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestFileContractsThroughLoop2615936264/001/sub/notes.txt exists (61 bytes); read it first, then use overwrite:true to replace it MIME: Ref:{Kind:0 Locator:} From:{Vendor:unknown Model: Surface:unknown} Data:[] CallID: Name: Args:[] Opaque:[] Parts:[] IsError:false Stub:}] IsError:true Stub:}
+
+command credential isolation: KILLED
+Mutation internal/tools/tools.go: 'case "LLM_API_KEY", "ANTHROPIC_API_KEY", "OPENAI_API_KEY", "GEMINI_API_KEY":' -> 'case "UNRELATED_UNUSED_KEY":'
+    tools_test.go:138: command result/credential isolation: "stdout:\ndummy-secretdummy-secretdummy-secretdummy-secretordinarystderr:\nproblemexit code: 7" error=false
+
+command ordinary environment: KILLED
+Mutation internal/tools/tools.go: 'command.Env = append(command.Env, variable)' -> 'if name != "ENSEMBLE_TOOL_TEST" { command.Env = append(command.Env, variable) }'
+    tools_test.go:138: command result/credential isolation: "stdout:\nstderr:\nproblemexit code: 7" error=false
+
+stdout: KILLED
+Mutation internal/tools/tools.go: 'stdout.String(), stderr.String(), code' -> '"", stderr.String(), code'
+    tools_test.go:138: command result/credential isolation: "stdout:\nstderr:\nproblemexit code: 7" error=false
+
+stderr: KILLED
+Mutation internal/tools/tools.go: 'stdout.String(), stderr.String(), code' -> 'stdout.String(), "", code'
+    tools_test.go:138: command result/credential isolation: "stdout:\nordinarystderr:\nexit code: 7" error=false
+
+exit code: KILLED
+Mutation internal/tools/tools.go: 'code = exit.ExitCode()' -> 'code = 0'
+    tools_test.go:138: command result/credential isolation: "stdout:\nordinarystderr:\nproblemexit code: 0" error=false
+
+nonzero is result not tool error: KILLED
+Mutation internal/tools/tools.go: 'code = exit.ExitCode()' -> 'return "", err'
+    tools_test.go:138: command result/credential isolation: "exit status 7" error=true
+
+round bound: KILLED
+Mutation internal/agent/agent.go: 'round < 16' -> 'round < 15'
+    tools_test.go:180: round bound: requests=15 error=tool loop reached 16 rounds
+
+distinct captured missing IDs: KILLED
+Mutation internal/history/history.go: 'p.CallID = fmt.Sprintf("call_%d_%d", e.Seq, i)' -> 'p.CallID = "same"'
+    tools_test.go:213: missing/distinct result IDs: [same same]
+
+empty Anthropic tools omitted: KILLED
+Mutation internal/engine/anthropic.go: 'json:"tools,omitempty"' -> 'json:"tools"'
+    tools_test.go:158: anthropic registry enabled=false tools present=true
+
+empty OpenAI tools omitted: KILLED
+Mutation internal/engine/openai.go: 'json:"tools,omitempty"' -> 'json:"tools"'
+    tools_test.go:158: openai registry enabled=false tools present=true
+
+empty Gemini tools omitted: KILLED
+Mutation internal/engine/gemini.go: 'json:"tools,omitempty"' -> 'json:"tools"'
+    tools_test.go:158: gemini registry enabled=false tools present=true
+
+loop continuation: KILLED
+Mutation internal/agent/agent.go: 'len(calls) == 0' -> 'len(calls) >= 0'
+[FAIL]      Chapter 2's log, reducer and three renderers still work  (0/10)
+[FAIL]      parse tool_use, dispatch, return tool_result by id, loop until the model stops  (0/20)
+[FAIL]      text + two tool calls: all parts recorded, both dispatched, results matched by id  (0/10)
+[FAIL]      read_file (with range), list_directory, search_files  (0/10)
+[FAIL]      write_file, edit_file change the bytes on disk  (0/5)
+[FAIL]      write_file refuses to overwrite unless told to; new files need no permission  (0/5)
+[FAIL]      shell executes, stdout/stderr/exit code returned  (0/15)
+[FAIL]      failed and malformed calls return an error to the model, and the loop continues  (0/15)
+[FAIL]      edit_file's failure contract: a choice was made, logged, and recoverable  (0/5)
+
+tool error flag: KILLED
+Mutation internal/agent/agent.go: 'IsError: toolErr != nil' -> 'IsError: false'
+[FAIL]      Chapter 2's log, reducer and three renderers still work  (0/10)
+[FAIL]      write_file refuses to overwrite unless told to; new files need no permission  (0/5)
+[FAIL]      failed and malformed calls return an error to the model, and the loop continues  (0/15)
+[FAIL]      edit_file's failure contract: a choice was made, logged, and recoverable  (0/5)
+
+dispatch result ID: KILLED
+Mutation internal/agent/agent.go: 'CallID: call.CallID, Parts:' -> 'CallID: "wrong", Parts:'
+[FAIL]      Chapter 2's log, reducer and three renderers still work  (0/10)
+[FAIL]      parse tool_use, dispatch, return tool_result by id, loop until the model stops  (0/20)
+[FAIL]      text + two tool calls: all parts recorded, both dispatched, results matched by id  (0/10)
+[FAIL]      read_file (with range), list_directory, search_files  (0/10)
+[FAIL]      write_file, edit_file change the bytes on disk  (0/5)
+[FAIL]      write_file refuses to overwrite unless told to; new files need no permission  (0/5)
+[FAIL]      shell executes, stdout/stderr/exit code returned  (0/15)
+[FAIL]      failed and malformed calls return an error to the model, and the loop continues  (0/15)
+[FAIL]      edit_file's failure contract: a choice was made, logged, and recoverable  (0/5)
+
+read range: KILLED
+Mutation internal/tools/tools.go: 'lines[args.Start-1:end]' -> 'lines[:end]'
+[FAIL]      Chapter 2's log, reducer and three renderers still work  (0/10)
+[FAIL]      parse tool_use, dispatch, return tool_result by id, loop until the model stops  (0/20)
+[FAIL]      text + two tool calls: all parts recorded, both dispatched, results matched by id  (0/10)
+[FAIL]      read_file (with range), list_directory, search_files  (6/10)
+
+write guard: KILLED
+Mutation internal/tools/tools.go: 'os.O_WRONLY | os.O_CREATE | os.O_EXCL' -> 'os.O_WRONLY | os.O_CREATE | os.O_TRUNC'
+[FAIL]      Chapter 2's log, reducer and three renderers still work  (0/10)
+[FAIL]      write_file refuses to overwrite unless told to; new files need no permission  (0/5)
+
+write bytes: KILLED
+Mutation internal/tools/tools.go: 'file.WriteString(args.Content)' -> 'file.WriteString("wrong")'
+[FAIL]      Chapter 2's log, reducer and three renderers still work  (0/10)
+[FAIL]      write_file, edit_file change the bytes on disk  (0/5)
+[FAIL]      write_file refuses to overwrite unless told to; new files need no permission  (0/5)
+
+edit bytes: KILLED
+Mutation internal/tools/tools.go: 'strings.Replace(string(data), args.Old, args.New, 1)' -> 'strings.Replace(string(data), args.Old, args.Old, 1)'
+[FAIL]      Chapter 2's log, reducer and three renderers still work  (0/10)
+[FAIL]      write_file, edit_file change the bytes on disk  (0/5)
+
+list directories: KILLED
+Mutation internal/tools/tools.go: 'out.WriteString(entry.Name())' -> 'out.WriteString("wrong")'
+[FAIL]      Chapter 2's log, reducer and three renderers still work  (0/10)
+[FAIL]      read_file (with range), list_directory, search_files  (6/10)
+
+Anthropic declarations: KILLED
+Mutation internal/engine/anthropic.go: 'json:"tools,omitempty"' -> 'json:"unused_tools,omitempty"'
+[FAIL]      Chapter 2's log, reducer and three renderers still work  (0/10)
+[FAIL]      every request declares the tools — name, description, schema — in the vendor's shape  (0/5)
+
+OpenAI declarations: KILLED
+Mutation internal/engine/openai.go: 'json:"tools,omitempty"' -> 'json:"unused_tools,omitempty"'
+[FAIL]      Chapter 2's log, reducer and three renderers still work  (0/10)
+[FAIL]      every request declares the tools — name, description, schema — in the vendor's shape  (0/5)
+
+Gemini declarations: KILLED
+Mutation internal/engine/gemini.go: 'json:"tools,omitempty"' -> 'json:"unused_tools,omitempty"'
+[FAIL]      Chapter 2's log, reducer and three renderers still work  (0/10)
+[FAIL]      every request declares the tools — name, description, schema — in the vendor's shape  (0/5)
+
+overlapping edit anchor: KILLED
+Mutation internal/tools/tools.go: replace overlap-count loop with strings.Count(string(data), args.Old)
+--- FAIL: TestFileContractsThroughLoop (0.00s)
+    tools_test.go:123: failure 9: {Type:tool_result Text: MIME: Ref:{Kind:0 Locator:} From:{Vendor:unknown Model: Surface:unknown} Data:[] CallID:j Name: Args:[] Opaque:[] Parts:[{Type:text Text:replaced one exact match in /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestFileContractsThroughLoop2813459367/001/overlap.txt MIME: Ref:{Kind:0 Locator:} From:{Vendor:unknown Model: Surface:unknown} Data:[] CallID: Name: Args:[] Opaque:[] Parts:[] IsError:false Stub:}] IsError:false Stub:}
+FAIL
+FAIL	ensemble/ensemble	0.008s
+FAIL
+
+empty-registry unknown-call error: KILLED
+Mutation internal/agent/agent.go: restore len(a.tools)==0 early return
+--- FAIL: TestGeminiCaptureAndResultName (0.00s)
+    replay_test.go:282: empty registry silently skipped the unknown tool
+FAIL
+FAIL	ensemble/ensemble	0.007s
+FAIL
+

@@ -589,5 +589,13 @@ The coordinator supplied missing tool argument keys from the original harness
 under Bill's standing authorization, recorded in `docs/edition-2-notes/ch03.md`.
 The student still does not read grader internals or old answers; no Chapter 3
 result or acceptance has been claimed.
+Chapter 3 subsequently passed independent initial review with the inherited
+media exception and zero correction rounds. Actual original grade: 90/100 FAIL,
+all nine new checks passing, only the inherited media parity check failing.
+The student drove all six tools live, including three-provider repair/recall/error
+sessions; reviewer checked artifacts, real tests and selected mutations.
+Exact source export: `solutions/edition-2/ch03/`, tag `edition-2-ch03-r3`;
+older r1/r2 tags remain. Reassess the scoped media exception in Chapter 4 rather
+than treating it as permanent or silently rewriting its failed scores.
 Preserve small resumable checkpoints if a usage limit interrupts work;
 never label unfinished work an accepted chapter.

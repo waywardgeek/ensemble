@@ -37,3 +37,12 @@ Keep these actual failures visible through later parity checks; reassess the
 exception when original Chapter 4 introduces blobs. Do not add early features
 merely to conceal the inherited score. See `ch02.md` and `ch02-code-review.md`
 in the review directory for the decision, original results and revision history.
+
+Chapter 3 was accepted on initial review, with the inherited media exception
+and no correction rounds. Checkpoint: `edition-2-ch03-r3`; older r1/r2 tags are
+preserved. Its 19 source/export files match; manifest SHA-256:
+`b92d8f8c7fdd79e2b39226ed88067f0f9fdd2a8fcae3c702e6138bf49e6ca459`.
+Original grade is **90/100 FAIL**: all nine new checks pass, while `ch2parity`
+reports the same two waived media controls. The inherited exception must be
+reassessed against Chapter 4's actual blob requirements. Student/reviewer notes
+and live three-provider tool exercises are recorded with the checkpoint.

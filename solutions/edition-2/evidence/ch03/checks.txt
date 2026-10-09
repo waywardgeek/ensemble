@@ -1,0 +1,20 @@
+core vet exit=0
+
+core test exit=0
+?   	ensemble	[no test files]
+ok  	ensemble/ensemble	(cached)
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/tools	[no test files]
+
+GUI vet exit=0
+
+GUI test exit=0
+ok  	ensemble-gui-stub	0.007s
+
+format exit=0
+
+diff whitespace exit=0
+

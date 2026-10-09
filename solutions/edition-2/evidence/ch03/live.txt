@@ -1,0 +1,113 @@
+Own binary built from solutions/edition-2/main; all sessions were live PTY chat in separate disposable Go projects.
+Models discovered from provider model APIs October 9, 2026: claude-haiku-5-5, gpt-5.4-mini, gemini-3.8-flash.
+Provider keys parsed in launcher memory from directClaudeAPIKey/directOpenAIAPIKey/directGeminiAPIKey; only selected key in intended child environment. No settings/key copy or output.
+Tool command subprocesses filter the four supported provider API-key environment variable names.
+All sessions exited 0 on Ctrl-D.
+
+anthropic inspected diff:
+--- before/greet.go
+
++++ after/greet.go
+
+@@ -1,3 +1,3 @@
+
+ package greet
+
+ 
+
+-func Greeting() string { return "helo" }
+
++func Greeting() string { return "hello" }
+
+assistant "Got it. I'll remember the codename Copper Finch for this conversation."
+call list_directory {"path": "."}
+result error=False [{"type": "text", "text": "go.mod\ngreet.go\ngreet_test.go\nsession.jsonl\n"}]
+call run_command {"command": "go test ./..."}
+result error=False [{"type": "text", "text": "stdout:\n--- FAIL: TestGreeting (0.00s)\n    greet_test.go:3: greeting typo\nFAIL\nFAIL\tscratch-greeting\t0.004s\nFAIL\nstderr:\nexit code: 1"}]
+call read_file {"path": "greet.go"}
+result error=False [{"type": "text", "text": "package greet\n\nfunc Greeting() string { return \"helo\" }\n"}]
+call edit_file {"new_text": "return \"hello\"", "old_text": "return \"helo\"", "path": "greet.go"}
+result error=False [{"type": "text", "text": "replaced one exact match in greet.go"}]
+call run_command {"command": "go test ./..."}
+result error=False [{"type": "text", "text": "stdout:\nok  \tscratch-greeting\t0.004s\nstderr:\nexit code: 0"}]
+assistant "**Failed before:** `go test ./...` failed `TestGreeting` (`greet_test.go:3: greeting typo`) because `Greeting()` returned `\"helo\"`.\n\n**Changed:** In `greet.go`, I changed `return \"helo\"` to `return \"hello\"`. Nothing else was touched.\n\n**After:** `go test ./...` passes (`ok scratch-greeting`).\n\nI used 5 tool calls."
+assistant "I can't read `missing.txt` because you said no more tool calls, so I don't know the actual error. I also haven't created it. The codename is **Copper Finch**."
+call read_file {"path": "missing.txt"}
+result error=True [{"type": "text", "text": "open missing.txt: no such file or directory"}]
+assistant "The read failed with `open missing.txt: no such file or directory`, so the file doesn't exist. I left it absent and didn't create it."
+Total usage {"input": 16271, "output": 863, "cache_read": 0, "cache_write": 0}
+
+openai inspected diff:
+--- before/greet.go
+
++++ after/greet.go
+
+@@ -1,3 +1,3 @@
+
+ package greet
+
+ 
+
+-func Greeting() string { return "helo" }
+
++func Greeting() string { return "hello" }
+
+assistant "Understood \u2014 I\u2019ll remember \u201cAmber Heron\u201d for this conversation only."
+call list_directory {"path": "."}
+result error=False [{"type": "text", "text": "go.mod\ngreet.go\ngreet_test.go\nsession.jsonl\n"}]
+call run_command {"command": "go test ./..."}
+result error=False [{"type": "text", "text": "stdout:\n--- FAIL: TestGreeting (0.00s)\n    greet_test.go:3: greeting typo\nFAIL\nFAIL\tscratch-greeting\t0.004s\nFAIL\nstderr:\nexit code: 1"}]
+call read_file {"end_line": 200, "path": "greet.go", "start_line": 1}
+result error=False [{"type": "text", "text": "package greet\n\nfunc Greeting() string { return \"helo\" }\n"}]
+call edit_file {"new_text": "func Greeting() string { return \"hello\" }", "old_text": "func Greeting() string { return \"helo\" }", "path": "greet.go"}
+result error=False [{"type": "text", "text": "replaced one exact match in greet.go"}]
+call run_command {"command": "go test ./..."}
+result error=False [{"type": "text", "text": "stdout:\nok  \tscratch-greeting\t0.004s\nstderr:\nexit code: 0"}]
+assistant "Listed files: `go.mod`, `greet.go`, `greet_test.go`, `session.jsonl`.\n\n`go test ./...` failed with:\n- `--- FAIL: TestGreeting`\n- `greet_test.go:3: greeting typo`\n\nI read `greet.go` and changed only the typo:\n- from `return \"helo\"`\n- to `return \"hello\"`\n\nAfter that, `go test ./...` passed."
+assistant "I can\u2019t make that tool call because `missing.txt` doesn\u2019t exist, and you asked me to leave it absent.\n\nResult: the file remains absent.\n\nCodename: Amber Heron"
+call read_file {"end_line": 20, "path": "README.md", "start_line": 1}
+result error=True [{"type": "text", "text": "open README.md: no such file or directory"}]
+assistant "Tool result: `open README.md: no such file or directory`"
+Total usage {"input": 7375, "output": 343, "cache_read": 0, "cache_write": 0}
+
+gemini inspected diff:
+--- before/greet.go
+
++++ after/greet.go
+
+@@ -1,3 +1,3 @@
+
+ package greet
+
+ 
+
+-func Greeting() string { return "helo" }
+
++func Greeting() string { return "hello" }
+
+assistant "Understood. I will remember the codename Indigo Wren for this conversation."
+call list_directory {"path": "."}
+result error=False [{"type": "text", "text": "go.mod\ngreet.go\ngreet_test.go\nsession.jsonl\n"}]
+call run_command {"command": "go test ./..."}
+result error=False [{"type": "text", "text": "stdout:\n--- FAIL: TestGreeting (0.00s)\n    greet_test.go:3: greeting typo\nFAIL\nFAIL\tscratch-greeting\t0.004s\nFAIL\nstderr:\nexit code: 1"}]
+call read_file {"path": "greet.go"}
+result error=False [{"type": "text", "text": "package greet\n\nfunc Greeting() string { return \"helo\" }\n"}]
+call edit_file {"new_text": "func Greeting() string { return \"hello\" }", "old_text": "func Greeting() string { return \"helo\" }", "path": "greet.go"}
+result error=False [{"type": "text", "text": "replaced one exact match in greet.go"}]
+call run_command {"command": "go test ./..."}
+result error=False [{"type": "text", "text": "stdout:\nok  \tscratch-greeting\t0.004s\nstderr:\nexit code: 0"}]
+assistant "**Failure:**\n`go test ./...` failed in `TestGreeting` because `Greeting()` returned `\"helo\"` instead of `\"hello\"`.\n\n**Change:**\nEdited `greet.go` to fix the typo, changing `\"helo\"` to `\"hello\"`. The tests now pass."
+call read_file {"path": "README.md"}
+result error=True [{"type": "text", "text": "open README.md: no such file or directory"}]
+assistant "**Tool Result:**\n`open README.md: no such file or directory` (error)\n\n**Codename:**\nIndigo Wren"
+Total usage {"input": 8467, "output": 563, "cache_read": 0, "cache_write": 0}
+
+Observed prompt corrections: Anthropic interpreted "No more tool calls" as prohibiting the preceding one-call request; OpenAI initially declined the nonexistent-file request. Clear error-path requests each produced a real read_file failure. These initial responses are retained in the logs, not described as tool success.
+
+Additional bounded Anthropic session exercised search_files context_lines=1, write_file new summary.txt, and read_file verification; exact summary bytes Found Greeting\n and unchanged Go source inspected. Exit0; total5975 input/476 output, no cache tokens.
+{"args": {"context_lines": 1, "path": "greet.go", "pattern": "Greeting"}, "call_id": "toolu_0153pbVpEkvvFG32X9mUjusR", "name": "search_files"}
+{"call_id": "toolu_0153pbVpEkvvFG32X9mUjusR", "parts": [{"text": "greet.go-2-\ngreet.go:3:func Greeting() string { return \"helo\" }\n", "type": "text"}]}
+{"args": {"content": "Found Greeting\n", "path": "summary.txt"}, "call_id": "toolu_01VFmkAzhdbeZhXqQeGRfiZV", "name": "write_file"}
+{"call_id": "toolu_01VFmkAzhdbeZhXqQeGRfiZV", "parts": [{"text": "wrote 15 bytes to summary.txt", "type": "text"}]}
+{"args": {"path": "summary.txt"}, "call_id": "toolu_01QzGCN2nMCquMWCV7BxvJP5", "name": "read_file"}
+{"call_id": "toolu_01QzGCN2nMCquMWCV7BxvJP5", "parts": [{"text": "Found Greeting\n", "type": "text"}]}
