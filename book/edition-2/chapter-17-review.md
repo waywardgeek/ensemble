@@ -686,3 +686,81 @@ Its soft warnings are 9,463 prose words, negation density and a long technical
 stretch. Literal parsing/counting and manual source/contract review are separate
 from lint. This review requests one grouped author correction and then closure
 against that freeze; it does not expand the selected feature scope.
+
+## C1–C4 closure: b53c3c8
+
+October 8, 2026. **The grouped correction closes C1–C4; the Chapter 17 contract
+is accepted for the next preparation stage.** This is contract/prose acceptance,
+not student release, runtime acceptance or a successful subscription experiment.
+The four submitted author files matched
+`b53c3c8d26d20889e8f6f8e06aacdf1a5d47683e` during verification.
+
+This closure continues the complete `c109557` review above. Read every changed
+line in all four files, the corrected surrounding §17.5/17.7/17.8 contracts and
+fixtures, and the inherited Chapter 14 handoff/event/snapshot and Chapter 15
+selection/helper-snapshot clauses. Reloaded the complete current voice, procedure
+and architecture. Prior reviewer/grader/source exposure remains unchanged; no
+student role, implementation, credentials, provider inference or build was used.
+
+- **C1 closed.** The exact remove_responses extension applies only to v7 bases
+  4–6. An authorized captured-policy handoff removes every settled represented
+  capsule and its paired results atomically, including a no-call bundle. It is
+  explicitly a zero-model cut. Automatic/selective cuts and compression preserve
+  complete bundles; bases 1–3 receive no new authority. The contract retains
+  anchors, specifies note placement, and rejects partial/foreign/unsettled targets.
+  This resolves the Chapter 14 §14.6/14.7 conflict without making signed output an
+  unsigned compressor source. The relevant protected-segment clause is Chapter
+  15 §15.5; the earlier finding's §15.4 label was imprecise. Pressure now measures
+  the original output-array span once, plus ordinary paired results, independently
+  of its derived display views and terminal usage envelope.
+- **C2 closed.** Retained and retired foreground records have strict different
+  member sets, stable admission/response references, size/hash metadata and an
+  exact retirement relation. Retired references provide settlement metadata and
+  cannot recreate conversation parts or bodies. Helpers retain Chapter 15's
+  compact accounting and represented-memory reference; neither installed nor
+  rejected submit text becomes a second snapshot archive. The two-fold fixture
+  checks this after retirement. Suppressed foreground usage is inline, has no
+  capsule and settles its exact canceled base slot once, with inherited dialogue,
+  hint and pairing behavior. Duplicate closure facts refuse. Full-log, checkpoint
+  and tail equivalence remain required independently of literal parsing.
+- **C3 closed.** Opaque request and operation IDs retain their inherited grammar.
+  Current profile shares the status capture boundary while old attempts retain
+  their producing selection. Pricing carries its table date. Empty-mount,
+  post-change/pre-send, nonnumeric-ID and two-date controls distinguish these facts.
+- **C4 closed.** The portable working note uses an assistant input_text envelope
+  without a made-up provider item identity. Actual output items still replay their
+  original spans. Optional direct caller is the exact object {"type":"direct"}.
+  A fresh OpenAI Docs search and retrieval of the official
+  [Responses create schema](https://developers.openai.com/api/reference/resources/responses/methods/create)
+  confirms these forms. The web reader refused Markdown content type, so the same
+  official Markdown was fetched directly with a bounded unauthenticated read.
+  No live API rejection or entitlement is inferred from this schema check.
+
+Independent text-only checks parsed all 23 printed JSON/JSON-lines values. The
+pressure control is 127 canonical UTF-8 bytes and its one-byte mutation is 128.
+The printed resp-1 is 760 bytes with SHA-256
+`80846537828a37f4f1ad91005e9245cc918253c0c475188454aec7630f9380c5`, matching its
+retired record. Raw output-item spans occur unchanged and in order in the next
+request, including the spaced argument string. The API-key cap insertion leaves
+the other bytes intact. The unchanged SSE fixture remains E=532, S=8,192 and
+one-extra-x=8,193 bytes. Its valid-limit outcome still requires complete terminal
+usage and verdict; a local-limit refusal cannot complete the required real judge
+demonstration. The handoff event is correctly labeled a transition requiring its
+stated valid prefix, not a standalone executable receipt.
+
+The three selected original-author story paragraphs checked against `53ee8e7`
+remain verbatim. The correction's length comes from previously missing schemas
+and distinguishing fixtures; no invented scene or quota-driven story is needed.
+Existing external prose lint passes all hard rules on the four files. Manuscript
+soft warnings remain: 11,054 prose words, negation density and a 4,570-word technical
+stretch. These do not create another contract-correction round.
+
+The actual new independent checker invocation and accepted Chapter 16 source remain
+explicit release prerequisites. The inherited CH=18 command is diagnostic only;
+missing new checker evidence is not an observed runtime failure. Preserve Bill's
+approved uncapped plan choice and the existing finite live matrix requirement.
+No further coordinator design decision or question to Bill is needed for C1–C4.
+
+Scoped whitespace verification and the existing prose-lint binary's hard checks
+also passed on this append. Soft negation/person-gap warnings remain in the
+accumulated review. Only chapter-17-review.md is committed by this closure.
