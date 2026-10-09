@@ -214,6 +214,23 @@ class DurableControls(unittest.TestCase):
 
 
 class AdapterControls(unittest.TestCase):
+    def test_final_part_adapter_changes_only_unused_collection_comparison(self):
+        original = (gate.HERE / 'ch06_public_test.go.txt').read_bytes()
+        with tempfile.TemporaryDirectory() as directory:
+            bundle = Path(directory) / 'bundle'
+            adapters.prepare(bundle)
+            text = (bundle / 'ch06_public_test.go.txt').read_text()
+            text = text.replace(adapters.FINAL_PART_HELPER, '')
+            text = text.replace('ch10EqualFinalPart(event.Response.Parts[facts[2].PartIndex], *facts[2].Part)',
+                                'reflect.DeepEqual(event.Response.Parts[facts[2].PartIndex], *facts[2].Part)')
+            text = text.replace('ch10EqualFinalPart(*x.Part, response.Parts[i])',
+                                'reflect.DeepEqual(*x.Part, response.Parts[i])')
+            self.assertEqual(text.encode(), original)
+            self.assertEqual((gate.HERE / 'ch06_public_test.go.txt').read_bytes(), original)
+            self.assertIn('a.Type != "tool_result" && len(a.Parts) == 0', adapters.FINAL_PART_HELPER)
+            self.assertIn('b.Type != "tool_result" && len(b.Parts) == 0', adapters.FINAL_PART_HELPER)
+            self.assertIn('return reflect.DeepEqual(a, b)', adapters.FINAL_PART_HELPER)
+
     def test_duplicate_name_adaptation_preserves_every_other_expectation_and_assertion(self):
         path = gate.HERE / 'accept_ch09_management.py'
         original = path.read_bytes()

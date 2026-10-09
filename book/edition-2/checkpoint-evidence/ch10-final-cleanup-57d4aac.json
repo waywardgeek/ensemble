@@ -1,0 +1,75 @@
+{
+  "observed_utc": "2026-10-09T02:41:35.363297+00:00",
+  "audit_scope": "Read-only audit of finite-pass and this reviewer prior-stage scratch prefixes; no broad deletion",
+  "prefixes": [
+    "ch09-full-gate-",
+    "ch10-storage-",
+    "ch10-remaining-",
+    "ch10-fault-review-",
+    "ch10-physical-",
+    "ch10-final-stream-",
+    "ch11-grade-",
+    "ch10-large-state-",
+    "ch10-large-mutations-",
+    "ch10-physical-log-",
+    "ch10-admission-origin-",
+    "ch10-admission-final-",
+    "ch10-admission-race-",
+    "ch10-lifecycle-edges-"
+  ],
+  "threshold_bytes": 67108864,
+  "directories": [
+    {
+      "path": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-large-mutations-stwlop3i",
+      "file_count": 8,
+      "bytes": 24076116,
+      "large_files": []
+    },
+    {
+      "path": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-large-state-d5csuq05",
+      "file_count": 4,
+      "bytes": 12035544,
+      "large_files": []
+    },
+    {
+      "path": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-large-state-enw1zqn7",
+      "file_count": 4,
+      "bytes": 12034992,
+      "large_files": []
+    },
+    {
+      "path": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-physical-log-aesfwy_h",
+      "file_count": 3,
+      "bytes": 9440,
+      "large_files": []
+    },
+    {
+      "path": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-physical-log-t1ywj6bc",
+      "file_count": 3,
+      "bytes": 9440,
+      "large_files": []
+    },
+    {
+      "path": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-physical-log-tju8m4g8",
+      "file_count": 7,
+      "bytes": 23993644,
+      "large_files": []
+    },
+    {
+      "path": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-physical-log-x39knsb6",
+      "file_count": 3,
+      "bytes": 9440,
+      "large_files": []
+    },
+    {
+      "path": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ch10-physical-log-y013_0oy",
+      "file_count": 3,
+      "bytes": 9440,
+      "large_files": []
+    }
+  ],
+  "residual_large_files": 0,
+  "disk_free_bytes": 11910070272,
+  "deleted_files": [],
+  "retained": "Prior small source adapters and ~12 MB binaries retained; temporary 64 MiB record payloads, diagnostic stores and full-gate extraction cleaned by owning runners"
+}

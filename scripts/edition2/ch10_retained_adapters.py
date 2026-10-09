@@ -12,6 +12,20 @@ import subprocess
 from ch09_retained_adapters import prepare as previous
 
 
+FINAL_PART_HELPER = """// Compare exact typed facts while ignoring only an unused empty collection.
+func ch10EqualFinalPart(a, b ens.Part) bool {
+\tif a.Type != "tool_result" && len(a.Parts) == 0 {
+\t\ta.Parts = nil
+\t}
+\tif b.Type != "tool_result" && len(b.Parts) == 0 {
+\t\tb.Parts = nil
+\t}
+\treturn reflect.DeepEqual(a, b)
+}
+
+"""
+
+
 def prepare(destination, source=None):
     result = previous(destination, source)
 
@@ -34,6 +48,18 @@ def prepare(destination, source=None):
     edit('accept_ch09_management.py', 'from accept_ch09 import ',
          'import sys\nsys.path.insert(0, ' + repr(str(Path(__file__).resolve().parent)) +
          ')\nfrom accept_ch09 import ')
+
+    # Ch6 compares owned neutral Parts, not nilness of an omitted unused
+    # collection. Ch10's snapshot clone makes that empty collection explicit.
+    # Normalize only copied empty Parts on variants where it is unused; every
+    # other field (including exact raw bytes) retains DeepEqual comparison.
+    edit('ch06_public_test.go.txt',
+         'reflect.DeepEqual(event.Response.Parts[facts[2].PartIndex], *facts[2].Part)',
+         'ch10EqualFinalPart(event.Response.Parts[facts[2].PartIndex], *facts[2].Part)')
+    edit('ch06_public_test.go.txt',
+         'reflect.DeepEqual(*x.Part, response.Parts[i])',
+         'ch10EqualFinalPart(*x.Part, response.Parts[i])')
+    edit('ch06_public_test.go.txt', 'const c6Model =', FINAL_PART_HELPER + 'const c6Model =')
 
     reader = 'ch09-raw-record_test.go.txt'
     edit(reader, 'package eventlog\n', 'package eventlog_test\n')
@@ -74,7 +100,7 @@ def prepare(destination, source=None):
     edit('audit_ch06_mutations.py',
          repr('if text == "" {') + ', ' + repr('if text == "" || channel == "thinking" {'),
          repr(emit + 'if text == "" {') + ', ' + repr(emit + 'if text == "" || channel == "thinking" {'))
-    for name in (reader, 'ch05_stale_test.go.txt'):
+    for name in (reader, 'ch05_stale_test.go.txt', 'ch06_public_test.go.txt'):
         path = destination / name
         before = hashlib.sha256(path.read_bytes()).hexdigest()
         subprocess.run(['gofmt', '-w', path], check=True)
