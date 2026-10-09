@@ -1,9 +1,9 @@
 # Chapter 10: Return to the conversation
 
-Every agent built so far is a goldfish. It reasons, calls tools, drives its own
-GUI and loads skills on demand, and the moment the process exits it forgets
-everything: the project, the afternoon of work, every decision made along the
-way. The next start meets a stranger.
+The Agent already leaves a record of its afternoon. Its events can reconstruct
+the dialogue and render an earlier request. But the next process still cannot
+safely pick up that conversation and continue working. A transcript on disk is
+useful; the reader returning the next morning wants a working Agent too.
 
 The useful test of persistence comes the next morning. The Agent remembers the
 file it changed, the reason for the change and the tool result that confirmed
@@ -23,10 +23,11 @@ job cannot become a process again. A retired skill cannot acquire new permission
 because its manual survived. Remembering requires fewer powers than resuming.
 
 
-The student has produced an initial implementation and revisions from accepted
-Chapter 9 source. Local checks and repairs remain in progress; the [validation
-record](chapter-10-validation.md) tracks unresolved gates and preserves earlier
-failures. Actual model-backed use and chapter acceptance remain pending.
+The first actual-use record is frozen at `44d7627`, using runtime `57d4aac` and
+reviewed support `9822b2b`. Independent live review and subsequent quality work
+remain open; the [validation record](chapter-10-validation.md) tracks those gates
+and earlier failures. These runs establish the experience described below, not
+chapter acceptance or evidence for a later revised binary.
 
 ## TL;DR
 
@@ -936,46 +937,150 @@ not claim to display the complete history, restore old provisional fragments,
 resend prompts, restart speech or reuse old input registrations. Actual store
 resume and WebSocket reconnect are different operations.
 
-### Taking it for a spin: demonstration to be filled from receipts
+### Taking it for a spin
 
-A Chapter 10 implementation is under local validation; the actual model-backed
-spin has not run. The following is a reproduction plan, not output from an actual
-session. Bind the validated source,
-executable, store format and catalog first, and use provider discovery rather
-than a remembered model ID. Credentials remain in the inherited memory/environment
-path, never in argv, saved configuration or the transcript.
+The coder drove real human-chat PTYs and headed Chromium on October 8, 2026 PDT,
+October 9 UTC. These were the coder's interactions, not a session performed by
+Bill. The frozen [initial handback](../../solutions/edition-2/main/evidence/ch10/live-handback.md)
+binds runtime `57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4` and interpreted support
+`9822b2b63257724001d7af195b377483baad3531`. It retains the actual binaries, launches,
+original requests and responses, and subsequent offline reconstruction separately.
 
-In a fresh scratch workspace, build the binaries to explicit absolute paths.
-Run human chat with `--session-dir` pointing inside that workspace. Ask the Agent
-to remember a unique ordinary marker and make one checked scratch-file edit.
-Observe its answer and the file. Use /session and /checkpoint, then /quit. Start
-a second actual process with the same selection and ask about the recorded work
-without repeating the edit. Retain both PTY transcripts, event/checkpoint hashes,
-request bodies, actual file bytes and usage. The second process must know the
-conversation without reexecuting its tools.
+One discovery request per API selected these models. Each then used 11 generation
+attempts, for 33 generations and three discoveries. There were no retries or
+replacement prompts. The generation ceiling was 66; using half of it is a count,
+not a claim that another task would cost the same.
 
-Repeat on Messages, Chat Completions and generateContent. In skill mode, load a
-narrow capability, leave a pending next-call setting through a controlled public
-fixture where necessary, close and resume with the same semantic catalog at a
-new path. Observe retained manual/grants and the literal next attempted call's
-consumption. Preserve a model's refusal or unexpected extra call as an observed
-outcome; use deterministic call fixtures to establish exact failure semantics.
+| API | Selected model | Returned model |
+|---|---|---|
+| Messages | claude-sonnet-4-6 | claude-sonnet-4-6 |
+| Chat Completions | gpt-4.1 | gpt-4.1-2025-04-14 |
+| generateContent | models/gemini-3.8-flash | gemini-3.8-flash |
 
-Use the optional GUI on the same store after the CLI exits. Capture the actual
-interface with accessible descriptions of the resumed session, prior cards,
-checkpoint acknowledgement and current settings. Change today's policy and verify
-that an ensuing real turn follows it rather than an old turn.policy value.
-Show independent public Agents in separate directories, one resumed and one fresh,
-without private imports. A busy checkpoint and a second writer must refuse while
-the original Agent remains usable.
+To repeat the first exercise, build the CLI at the explicit path in the TL;DR,
+choose a fresh scratch workspace, and configure the existing provider/model and
+credential environment through the earlier chapters' safe path. Discover an
+available model rather than assuming these dated selections still apply. From
+that workspace run:
 
-Malformed files, write/sync/replace faults, killed processes, missing origins and
-stale-handle attacks require deterministic controls alongside the live use. Take
-copies for destructive corruption tests; retain the untouched original hashes.
-A clean real-model snapshot-only export/import must also resume through the public
-consumer, with no invented pre-origin history. The final prose will report which
-features were actually exercised, exact source identities, failures, limitations
-and bounded usage. It will not present this plan as a completed spin.
+```sh
+/tmp/ensemble-ch10-cli --session-dir .ensemble/session chat
+```
+
+Ask it to remember an ordinary unique marker and write it to `marker.txt` once,
+with a final newline. Inspect the actual file, then use `/session`, `/checkpoint`
+and `/history`. Quit and launch the same command in a second process. Ask what
+was saved and why, explicitly requesting no tool call or file change.
+
+The Chat Completions run used `CH10-A-openai`. These are abridged exact excerpts
+from its [first process](../../solutions/edition-2/main/evidence/ch10/live-20261008/openai-A1/terminal.txt)
+and [resumed process](../../solutions/edition-2/main/evidence/ch10/live-20261008/openai-A2/terminal.txt):
+
+```text
+You> /session
+Session 1a4cde8b4d0250e2a4672f28705392a8; resumed=false; durable sequence=11; checkpoint=none
+You> /checkpoint
+Checkpoint saved at 11.
+```
+
+After restarting:
+
+```text
+You> What exact marker did you save in marker.txt, and why did you write it? Answer from this conversation; do not call any tool or change a file.
+```
+
+The answer began, “I saved the exact marker \"CH10-A-openai\" followed by one newline
+in marker.txt.” The subsequent status retained the same SessionID:
+
+```text
+You> /session
+Session 1a4cde8b4d0250e2a4672f28705392a8; resumed=true; durable sequence=16; checkpoint=11
+```
+
+The resumed request contained the conversation. It made no new tool call, and
+the marker file remained unchanged. All three APIs completed that exercise.
+After the Chat Completions recall, cumulative Engine usage was input 1,476,
+cache write 0, cache read 2,432 and output 140. Those totals include its first
+process; loading the checkpoint did not charge the earlier responses again.
+
+#### Remembered cards, current settings
+
+After the CLI exited, the coder opened the same store with the optional GUI's
+`--session-dir` and `--terminal` options. The browser showed the resumed identity,
+prior answer cards and tool results labeled “historical; no live owner.” The
+Checkpoint control published its applied session change before acknowledging
+the saved anchor. It did not turn an old write into a new live Job.
+
+![Actual resumed GUI: session identity and checkpoint 16 above retained conversation cards; settings show 18-pixel text and historical tool cards explicitly lack a live owner.](../../solutions/edition-2/main/evidence/ch10/live-20261008/openai-B/browser-4.png)
+
+The [complete accessible screen text](../../solutions/edition-2/main/evidence/ch10/live-20261008/openai-B/browser-4.txt)
+includes the retained answers that extend beyond the screenshot's scroll position.
+The coder changed font size from 16 to 18 and today's turn limit to one, then
+asked for a real scratch-file write. The tool finished and its result was recorded;
+the turn ended `round_limit` before another model request. Earlier turns still
+recorded raw policy 0 with effective limit 16. Current policy and preferences
+survived an actual server restart without rewriting that earlier history.
+
+Socket reconnect, Page close/reopen and closing a second tab preserved the
+conversation without restoring old provisional text or speech work. Instrumented
+native/service admissions, queued/current work and pause ownership remained zero
+at the measured restore boundaries. These are lifecycle measurements, not a
+claim that someone listened to native audio.
+
+For combined GUI/terminal use, detach the terminal with EOF before stopping the
+server. The browser remains usable after that EOF; the coder successfully saved
+another checkpoint. In the first Messages shutdown the server received SIGTERM
+before terminal EOF, and the supervising recorder kept waiting. Sending EOF
+then completed exit 0. Later shutdowns used the clearer order. Closing stdin has
+different meanings for standalone chat and a terminal attached to a live GUI.
+
+Gemini's initial resumed page also drew extra empty “Answer / Accepted” cards.
+Its [full DOM text](../../solutions/edition-2/main/evidence/ch10/live-20261008/gemini-B/browser-4.txt)
+shows the actual answers in separate cards; they had not disappeared. Empty parts
+carrying provider metadata are a possible presentation cause. That observation
+awaits focused review. Removing replay metadata merely to tidy a card would be
+the wrong repair.
+
+#### Resume through the library too
+
+A separate compiled public consumer opened a resumed Agent alongside a fresh
+Agent, obtained independent real completions, then exported and imported a
+snapshot-only store. Its new live turn recalled the saved marker. Origin bytes
+remained unchanged, usage was restored once, and a genuine pre-origin request
+returned `history_unavailable`. The library did not invent a missing raw log.
+
+With endpoints disabled, the same public surface compared a latest checkpoint,
+an older checkpoint with a real newer tail, and complete-log reconstruction using
+null state. Next render, history, usage, Skills and watch facts agreed. Five
+historical sends per API also reconstructed byte-for-byte against their actual
+captured requests, including Chat Completions argument-string whitespace. These
+15 comparisons are offline checks of real receipts, not 15 additional model calls.
+The [observation ledger](../../solutions/edition-2/main/evidence/ch10/live-20261008/observations.json)
+identifies the originals and reconstructed files.
+
+Skill-mode runs loaded, retired and reloaded a narrow scratch capability, then
+resumed with an unchanged catalog at another path. Activation and material
+coordinates survived with exact manuals. A controlled local preparation left an
+explicit empty-pattern and 17-byte next-call report limit pending. After restart,
+the next real tool attempt consumed it once before dispatch. The six synthetic
+preparation exchanges, two per API, are labeled separately; their nominal usage
+is excluded from the handback's real-provider totals.
+
+The Messages model also proposed `scratch activation 2` and `scratch activation 3`
+as skill names. Both received paired controlled refusals, while the requested
+write succeeded and the conversation continued. On the later public resumed
+turn, its explanation called a 36-byte tool report “36 bytes total on disk.”
+The actual `after-resume.txt` contained exactly 17 bytes. The report describes a
+write; it is not the written file. Check the effect before accepting the model's
+explanation of it. The [original completion](../../solutions/edition-2/main/evidence/ch10/live-20261008/anthropic-D2/public/D2-completion.json)
+retains the mistaken account.
+
+Corruption, writer faults, stale-handle attacks and forced shutdown still need
+the deterministic controls in §10.10. Successful provider traffic cannot establish
+those guarantees. The initial live experience is now recorded; independent
+receipt review, the empty-card presentation question and comparative quality
+revisions remain separate gates. Later source corrections must retain their own
+identity rather than inherit these runs as if they happened afterward.
 
 ## 10.10 Check the promises independently
 

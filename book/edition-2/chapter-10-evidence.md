@@ -1,11 +1,12 @@
 # Chapter 10 preparation evidence
 
-Author research, October 8, 2026. New Chapter 10 maps to first-edition Chapter
-11 under the current procedure, workflow and global-review map. This record
-supports [the outline](chapter-10-outline.md), not a completed implementation,
-student handoff or actual-use claim. Chapter 9's contract is accepted for
-independent checker preparation at `0bca41c`; its implementation is not yet an
-accepted predecessor. Exact Chapter 10 contract choices remain under review.
+Author evidence, October 8 PDT / October 9 UTC, 2026. New Chapter 10 maps to
+first-edition Chapter 11. The initial actual-use freeze is `44d7627`; its runtime
+is `57d4aac` and its reviewed support is `9822b2b`. The final section records the
+author's live-prose reconciliation, with independent review and later corrections
+still open in the [gate record](chapter-10-validation.md). The preparation and
+clarification chronology below is historical, including its then-pending source
+and implementation statements; none is silently relabeled as later acceptance.
 
 ## Role and source boundary
 
@@ -495,3 +496,58 @@ The unchanged JSON fixture parses and is byte-identical to the pre-Q5 chapter.
 Scoped hard lint passes at 7,818 words; existing length/dense-specification soft
 warnings remain. Manual reading of the narrow diff and whitespace checks pass.
 Independent clarification review and student confirmation remain separate gates.
+
+## Initial actual-use prose reconciliation after 44d7627
+
+The coordinator released the first-edition quality teaching finding after freezing
+initial actual use at `44d762789ea65a1e11fd7982ec9b748d4a8112c1`. This author reloaded
+full voice.md and procedure in separate complete reads after an initial batched
+display truncated. Read the complete current Chapter 10 in three contiguous
+ranges, complete live-handback.md and initial-real-use student-review section;
+also read the grouped clarification acknowledgment and revised-local confirmation.
+No runtime, withheld pre-freeze comparison source, credentials or provider was
+accessed during this prose task.
+
+The live source is `57d4aac3d26edcb78dc8d9fd27d7d0e1cce0ebf4`, with interpreted
+support `9822b2b63257724001d7af195b377483baad3531`. Read selection.json and the full
+observations.json summary, all three APIs' A1/A2 original terminal records,
+their B/B-restart terminal records, Messages D1 and D2's original public
+completion/consumption records, and representative C1/C2/C3 completions and
+immutable-origin/offline results. The printed Chat Completions excerpt and
+cumulative 1476/0/2432/140 usage come directly from A2 terminal.txt. The passage
+does not claim those are chapter-wide totals.
+
+Inspected the actual openai-B/browser-4.png and its complete accessible text,
+plus gemini-B/browser-4.txt containing both empty cards and the retained answers.
+The image remains original and is linked from the chapter with a text description.
+Its current session checkpoint 16 differs intentionally from A1's explicit save 11;
+the screenshot belongs to the later GUI mount. Browser callbacks/admission probes
+are not evidence of human hearing. The coder performed the actual interactions;
+Bill did not.
+
+The 33 generation attempts and 3 discovery requests are the frozen initial schedule,
+11 generations per API with no retries or repeat prompts. The six local limit-setting
+seed exchanges remain synthetic. The fifteen exact historical-request comparisons
+are offline derivatives of real sends and do not increase that model count.
+Runtime quality repairs after this source will require their own attribution;
+the chapter explicitly leaves independent review and the empty-card presentation
+question open.
+
+The old opener's loss-of-all-memory statement conflicted with the earlier durable
+log/offline contract. Comparative Q3 narrows that claim to missing safe live resume
+while preserving the original-author morning/default-load story. This is distinct
+from student Q3 on canonical argument equality. No contract byte, earlier fixture,
+historical source, comparison report, validation ledger or checkpoint is changed.
+
+The author independently compared all 15 original/derived request pairs byte for
+byte and checked their recorded hashes, read the actual 17-byte file, checked all
+manuscript local links and verified that every preceding fenced contract block
+is unchanged. These are scoped read-only evidence checks, not a full independent
+live audit or runtime test.
+
+Scoped prose lint and whitespace checks accompany this author revision. The chapter
+is longer because its previous planned spin is replaced with actual reproduction
+and limitations; soft length/person-gap warnings are not a reason to hide those
+observations. Detailed audit counts and evidence-tool failures stay in the linked
+handback and direct feedback rather than overwhelming the demonstration. No build,
+runtime test, paid repeat or publication claim accompanies these prose checks.

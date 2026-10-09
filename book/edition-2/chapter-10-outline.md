@@ -1,10 +1,15 @@
 # Chapter 10 outline: Remembering without restarting the work
 
-Preparation for coordinator review, October 8, 2026. New Chapter 10 maps to
-first-edition Chapter 11 under workflow/global-review. Chapter 9's contract is
-accepted for checker preparation, but its implementation is not yet validated.
-This outline is not a student handoff or full chapter. No persistence code,
-grader result or live demonstration is claimed.
+Current reconciliation, October 8 PDT / October 9 UTC, 2026. New Chapter 10 maps
+to first-edition Chapter 11. The initial actual-use experience is frozen at
+`44d7627`, with runtime `57d4aac` and support `9822b2b`. The [chapter](chapter-10.md)
+now describes those observations; independent review and later quality revisions
+remain open in the [gate record](chapter-10-validation.md).
+
+The original preparation sections below retain their proposed decisions and
+then-pending predecessor chronology. They are historical research; the complete
+published contract and current gate record govern the student, not those old
+open questions.
 
 ## Stake and story preservation
 
@@ -331,3 +336,26 @@ Publish an independent acceptance command after the full new contract; retain
 legacy positives and add mutation-sensitive tests without trusting a student's
 own MATCH message. Accepted Chapter 9, contract review and independent checks
 remain required before the next fresh student handoff.
+
+## Initial actual-use and story reconciliation
+
+After freeze `44d7627`, the coordinator released comparative teaching finding Q3.
+The current opener now names the missing safe live mount instead of saying that
+the preceding Agent forgets everything. Its durable logs and offline rendering
+already exist. The returning-next-morning stake and original-author default-load
+exchange remain; this is a continuity correction, not removal of the human story.
+
+Section 10.9 now follows the actual two-process marker exercise, with exact
+Chat Completions status excerpts and source-bound evidence links. It then moves
+through the real headed GUI, current policy/preferences, public two-Agent and
+snapshot-only import paths, and retained Skills/one-shot settings. The manuscript
+keeps the invalid skill-name proposals, mistaken report-size explanation and
+Gemini empty-card observation. All 33 generations and 3 discoveries belong to the
+initial actual-use source, not to a later quality correction.
+
+Actual commands were driven by the coder. Native speech claims are limited to
+measured restored-work/admission boundaries; no hearing or Bill participation is
+claimed. The accessible screenshot description accompanies the actual retained
+image. Detailed file/hash/replay ledgers are linked instead of filling the reader
+path. Student feedback dispositions are recorded separately; independent live
+review and the presentation question remain open.

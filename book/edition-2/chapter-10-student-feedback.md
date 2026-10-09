@@ -1,5 +1,10 @@
 # Chapter 10 student feedback and author response
 
+Current status: the final section responds to the initial real-use experience
+frozen at `44d7627`. Earlier dated clarification responses remain in order;
+their pending implementation statements describe those earlier boundaries.
+See the [validation record](chapter-10-validation.md) for current chapter gates.
+
 October 8, 2026. This responds to the initial plan's Q1–Q3, before affected
 implementation. The student read the Chapter 10 contract pinned at the accepted
 Chapter 9 release and preserved its questions in main/evidence/ch10/student-review.md.
@@ -178,3 +183,35 @@ work occurred. The full voice/procedure remain loaded from this author task;
 scoped whitespace and manual voice/fixture checks pass. No existing prose-lint
 executable was found in the checked temporary paths, and no compiler was invoked;
 automated prose lint remains pending with the coordinator/reviewer.
+
+## Initial actual-use response after freeze 44d7627
+
+October 8 PDT / October 9 UTC, 2026. The author read the complete live-handback.md,
+the initial real-use student-review section and current complete Chapter 10,
+alongside the actual excerpts and selected original artifacts used in the prose.
+The coordinator released this comparison/teaching phase only after freezing the
+initial experience. Runtime `57d4aac` and support `9822b2b` retain their own identities;
+this prose work neither changes them nor validates later runtime corrections.
+
+The student's revised-local section confirms Q1–Q5 and escaped-Unicode teaching
+resolved its questions. Its grouped dd1111e acknowledgment explicitly confirms
+the duplicate-argument boundary and exact string replay distinction. Preserve
+those confirmations alongside the original questions, including the withdrawn
+arbitrary-watermark proposal. Initial real use reports no new ownership or
+persistence-format conflict.
+
+| Finding | Author response | Remaining confirmation/gate |
+|---|---|---|
+| Comparative Q3: the goldfish opener overstates what Chapter 9 lacks | Narrowed the opener to safe live resume; existing durable logs/offline rendering remain acknowledged. Preserved the next-morning reader stake and original-author default-load incident. This Q3 is a comparative label, separate from the student's earlier canonical-equality Q3. | Independent prose review |
+| Actual clients made history versus live ownership and current policy clear | §10.9 now uses exact restart status, historical-job labels, current policy 1 versus old raw 0/effective 16, and the actual screenshot/DOM. | Student can confirm the account matches initial experience; independent receipt review continues |
+| Gemini extra empty Answer/Accepted cards suggested missing text | Preserved the observation and the full DOM evidence that actual answers remained. The proposed presentation cause is explicitly tentative; no reducer defect or runtime fix is inferred. | Focused presentation review/correction belongs to coordinator and coder; metadata must survive |
+| Invalid activation-like skill names and report/file byte confusion | Retained both controlled management refusals and successful write. The resumed answer's 36-byte explanation is checked against the actual 17-byte file. §10.9 asks readers to inspect effects rather than trust narration. | No provider claim erased; no broader tool authority or relaxed validation requested |
+| Combined GUI shutdown order was awkward | Spin now says terminal EOF first, then server termination; checkpoint-after-detach remains part of the actual observed behavior. First SIGTERM-before-EOF attempt and eventual exit 0 stay in the account. | Clarifies reproduction without changing lifecycle contract |
+| Initial summary script KeyError and exclusive-create evidence-label collision | Kept in linked handback/evidence chronology. These were evidence-tool failures; originals and runtime were unchanged. No fictional application failure or passing first attempt is substituted. | Independent evidence audit |
+| Synthetic limits seeding could be mistaken for paid usage | Spin labels six local exchanges, two per API, separately and excludes their nominal counters from real-provider totals. Public resumed real call consumption remains distinct. | Independent usage/receipt verification |
+
+No new student code is requested by these author dispositions. The local/public
+duplicate-argument repair already has its own coordinator/reviewer results; this
+response does not reopen it. Student confirmation of the new prose and final
+independent proofreading remain pending. The source-bound initial evidence and
+any later correction must remain separately attributed.
