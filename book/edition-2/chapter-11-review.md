@@ -168,3 +168,51 @@ command. Direct feedback preserves the original plan questions and pending stude
 confirmation. Existing external prose lint and scoped whitespace checks pass.
 No runtime/source edits, builds, credentials or provider calls occurred. No further
 preparation blocker was found; full public/runtime coverage remains pending.
+
+## Transport/schema fixture preparation review: e6a9d45
+
+The same independent reviewer accepts the fixture-only preparation at `e6a9d45`.
+Read its five changed files completely, reloaded the full coding skill, and used
+the full published Chapter 11 contract/architecture already loaded in this review
+session. Checked imported foundation parsing/canonicalization/framing helpers;
+no mutable student source or private runtime API supplied an expectation.
+
+The seven scripts agree with the taught protocol: reverse reply order still
+addresses the original calls; cancellation waits for observed issue and preserves
+the healthy sibling; a late settled response is stale; a future response or reverse
+request faults the connection; a valid remote error permits another call. Their
+ordinary replies satisfy the discovered output schema and exercise the permitted
+omission of isError, whose accepted value is false. Fault teardown's optional
+cancellation avoids imposing an unpublished mandatory or forbidden notice.
+
+Manual schema review agrees with all six paired argument groups and five
+preparation pairs. The escaped local pointer resolves to the intended definition,
+its minimum sibling applies, and equivalent integer spellings remain distinct
+from their adjacent values above binary64's exact range. Unicode length counts
+scalars; composition branches and semantic enum equality have the printed
+outcomes. An annotation cannot satisfy a missing required property. Unsupported
+keywords, external/unresolved references and containment/reference cycles refuse
+preparation. These small examples do not establish full keyword or limit coverage.
+
+Independent local verification ran
+`PYTHONDONTWRITEBYTECODE=1 python3 scripts/edition2/test_ch11_message_scenarios.py`:
+all four methods pass, including direct-versus-subprocess agreement for all seven
+scripts. Regenerating --emit into an absent temporary file reproduces the exact
+21,473-byte corpus with SHA256
+`6349842104c53f3f028c778cc8d08357fd24faa960d4cd47e45c72b154c248ca`.
+All eight recorded source/contract/skill identities match both e6a9d45 and the
+checked files. The disposable corpus was removed; originals remain unchanged.
+
+The preparation clearly distinguishes peer transcripts from client behavior.
+Actual stdio/memory/custom adapters must still receive the same scripts through
+published public seams and produce independently inspected Jobs, artifacts, safe
+state, no reverse effect and joined cleanup. Genuine public-created stores precede
+persistence mutations; genuine valid owner state precedes exhaustion checks.
+The remaining matrix retains exact bounds, grants, Skills, cancellation permits,
+late generations, race controls, owned copies, renderers and inherited checks.
+No fixture-only pass is promoted to runtime acceptance, and no new feature or
+student identifier spelling is imposed. No fixture correction was needed.
+
+Existing external prose lint and scoped whitespace checks pass this closure.
+No compiler, credential, provider or Ensemble runtime was used. Public/runtime
+integration awaits stable declarations/codec and the coordinator's compiler slot.
