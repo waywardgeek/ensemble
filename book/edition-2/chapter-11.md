@@ -1,9 +1,10 @@
 # Chapter 11: Tools across a boundary
 
-A reader should be able to add a tool without rebuilding the Agent. A project
-catalog, a test service or a small utility already has an owner and a working
-interface. Rewriting it as an Agent package buys another copy to maintain.
-MCP lets the Agent call that program through a published tool description.
+Every tool the Agent has used so far was compiled into the binary. Adding a new
+one means writing Go, rebuilding and restarting. But a project catalog, a test
+service or a small utility already has an owner and a working interface.
+Rewriting it as an Agent package buys another copy to maintain. MCP lets the
+Agent call that program through a published tool description instead.
 
 The inconvenient part arrives after discovery. Two Agents may share the same
 program. One cancels a request while the other waits for an answer. The program
@@ -11,14 +12,14 @@ may finish an edit and lose its connection before returning the receipt. A usefu
 integration has to explain those outcomes without freezing the conversation or
 pretending the edit never happened.
 
-This chapter follows one external tool from discovery to an ordinary Job and
-back to a readable result. Its transport can change without changing permission,
-correlation or cancellation. The next chapter uses that seam to carry MCP over
-the GUI's WebSocket, giving the Agent access to its own interface.
+The chapter traces one external tool from discovery to an ordinary Job and back
+to a readable result. Along the way, the transport becomes a seam: permission,
+correlation and cancellation stay the same whether messages travel over stdin or
+a WebSocket. The next chapter uses that seam to give the Agent access to its own
+GUI.
 
-*Contract draft for review. The predecessor must be accepted and an independent
-Chapter 11 checker command published before student handoff. The actual spin
-below is a plan; no Chapter 11 implementation or live result is claimed.*
+*Contract draft. The predecessor chapter must be accepted before student
+handoff. No Chapter 11 implementation is claimed yet.*
 
 ## TL;DR
 
@@ -104,9 +105,10 @@ name a preinstalled alias, using Chapter 9's ordinary closure and ceiling rules;
 unload revokes future admission while an already admitted Job keeps its lifetime.
 Do not add `mcp_servers` frontmatter in this chapter.
 
-The first edition later found a configuration that parsed on a primary skill
-but never connected: startup depended on a later load callback. Here preparation
-is explicit and finishes before construction succeeds. A configured tool either
+The first edition found a subtle trap here: a configuration that parsed cleanly
+on a primary skill but never actually connected, because startup depended on a
+load callback that ran later. This edition avoids it by making preparation
+explicit. It finishes before construction succeeds. A configured tool either
 has a validated connection or gives the caller a useful failure. Automatic
 context collection and skill-triggered connection lifetime belong with the
 actual GUI consumer in Chapter 12.

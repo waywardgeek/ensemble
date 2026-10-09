@@ -4,22 +4,26 @@ A model can read the code that opens a settings panel and still report the wrong
 panel. The source describes what should happen. The person at the keyboard needs
 to know what happened in the running page.
 
-The first edition encountered that distinction twice. Programmatic input left
-the Agent paused as though a person were still composing. A panel-observation
-failure later exposed missing semantic state, discussed in §12.4. An integration
-review found a more basic problem: the shipped debug skill had never connected
-the browser, although the grader's fake stdio server could answer its calls.
-The [historical evidence](chapter-12-evidence.md#historical-findings-and-limits)
+The first edition ran into that distinction hard. Programmatic input left the
+Agent paused as though a person were still composing, and nobody noticed until
+a human sat watching the frozen prompt. A panel-observation failure later exposed
+missing semantic state (§12.4). Then an integration review turned up something
+worse: the shipped debug skill had never actually connected the browser. The
+grader's fake stdio server answered its calls, so the tests passed, but the
+real GUI had never been observed. The
+[historical evidence](chapter-12-evidence.md#historical-findings-and-limits)
 distinguishes the source repairs from unrecovered model transcripts.
 
-This chapter carries MCP through the actual GUI connection. The Agent can inspect
-one selected view, operate its supported controls, and check the result. A missing
-browser produces an unavailable observation. It cannot produce an imaginary
-screen that happens to agree with the code.
+This chapter carries MCP through the actual GUI connection. The wiring is
+mostly mechanical and occupies the first half. The second half reports what
+happened when the capability pointed at a GUI nobody had audited and the human
+supervising it agreed to stay quiet. The Agent can inspect one selected view,
+operate its supported controls, and check the result. A missing browser produces
+an unavailable observation. It cannot produce an imaginary screen that happens
+to agree with the code.
 
-*Contract draft under review. The [validation record](chapter-12-validation.md)
-tracks prerequisite and acceptance gates. The demonstration is a plan; no
-Chapter 12 runtime or live outcome is claimed.*
+*The [validation record](chapter-12-validation.md) tracks prerequisite and
+acceptance gates.*
 
 ## TL;DR
 

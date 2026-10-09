@@ -1,20 +1,24 @@
 # Chapter 9: Capabilities with an owner
 
-An Agent can remember how to edit a file after its editing tools have been
-removed. That is fine. An Agent that can still edit after those tools were
-supposedly removed has a different problem.
+Every chapter so far has added capability by adding code. That stops scaling.
+Eight tools fit in a system prompt. Forty do not, and the system prompt grows
+with every feature. Teams stuff instructions, context, tool descriptions and
+user preferences into a monolith that breaks cache on every edit. Skills fix
+this before the problem arrives.
 
-A skill bundles instructions, tool grants and dependencies. Loading one changes
-what the Agent can do next. The useful separation is between the manual the
-model has read and the authority the program currently grants it. A convincing
-answer about having unloaded a capability changes neither of those facts.
+A skill bundles instructions, tool grants and dependencies into a single
+markdown file. Loading one changes what the Agent can do next. The useful
+separation is between the manual the model has read and the authority the
+program currently grants it. An Agent can remember how to edit a file after
+its editing tools have been removed, and that is fine. An Agent that can still
+edit after those tools were supposedly removed has a different problem.
 
-The first edition called the primary skill a constitution and dynamic skills
-manuals. Keep that distinction. It also supplied the warning that makes the
-storage decision concrete: a loaded manual originally lived inside a tool
-result. Later, clearing tool results could discard the instructions while
-leaving their tools enabled. Chapter 15 repaired that lifetime mismatch. Here,
-a manual gets its own recorded identity from its first load.
+The primary skill defines the Agent's identity: its body becomes the system
+prompt, rendered once at creation. Dynamic skills are manuals loaded on demand.
+A loaded manual originally lived inside a tool result. Clearing tool results
+could discard the instructions while leaving their tools enabled. Chapter 15
+repairs that lifetime mismatch. Here, a manual gets its own recorded identity
+from its first load.
 
 The reader should be able to give one Agent an editing capability without
 changing its neighbor, its identity or the history of work already done. The

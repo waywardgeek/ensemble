@@ -1,22 +1,42 @@
 # Chapter 14: Keep the evidence, shorten the request
 
+This may be the most important chapter in the book.
+
+If you've ever started a new chat because your agent seemed confused,
+well, that's yesterday's context engineering. I did it myself, several
+times, on the day I designed this chapter. What follows here is
+tomorrow's.
+
+The design had been in my head for a couple of months. On a Tuesday
+morning I typed it out for about twenty minutes while CodeRhapsody
+turned it into a design record and checked it against the code. Then I
+took a shower. The first commit landed at 7:42, before breakfast, and
+frankly it felt good to get it out.
+
+---
+
 A long-running Agent needs the goal longer than it needs the third copy of a
 file. Removing both is an efficient way to lose the work.
 
-The first-edition account describes Bill restarting chats after they became
-confused. An earlier compress_context tool offered another exit: let the model
-summarize and discard the beginning. His account says it removed eighty percent
-of the conversation, including the original goal, with a poor summary in its
-place. That is a documented historical report, not a measurement of today's
-Gemini API. Its useful question survives: which material can disappear without
-taking the task with it?
+Every long session with a coding agent degrades the same way. The answers get
+vaguer. The agent re-reads a file it read an hour ago, then forgets a decision
+made before lunch. A fresh chat fixes it because the human decides what to carry
+over. Bill did that, several times.
 
-This chapter gives tool traffic a shorter lifetime than dialogue. The Agent
+He also tried Gemini's compress_context tool, which offered a different exit:
+let the model summarize and discard the beginning. It removed eighty percent of
+the conversation, including the original goal, with a poor summary in its place.
+That is a documented historical report, not a measurement of today's Gemini API.
+The useful question from both failures is the same: which material can disappear
+without taking the task with it?
+
+This chapter moves that decision inside the Agent and makes it continuous instead
+of catastrophic. Tool traffic gets a shorter lifetime than dialogue. The Agent
 keeps the user's instructions, its recorded decisions and loaded manuals. It
 replaces old results with stubs that preserve existing references, later removes
-complete call/result pairs, and can leave an explicit working note. Every change
-is recorded. A reader can
-inspect what was removed instead of trusting a summary to be an adequate receipt.
+complete call/result pairs, and can leave an explicit working note. Every cut is
+recorded as an event, so a reader can inspect what was removed instead of
+trusting a summary to be an adequate receipt.
 
 This is the first full contract draft. Implementation, independent checks and
 actual use remain pending in the [validation record](chapter-14-validation.md).

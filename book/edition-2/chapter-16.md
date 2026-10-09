@@ -1,18 +1,38 @@
 # Chapter 16: Recall before asking again
 
-An Agent can have the right note and still repeat the wrong investigation. The
-first-edition account describes Bill's frustration with a search-capable Agent:
-it rarely chose to search, re-derived settled decisions and proposed designs
-already rejected. A filing cabinet helps only after someone opens it. This
-chapter opens the relevant drawer when a new question arrives, without giving
-its contents authority to change the Agent's instructions or tools.
+In the spring of 2026, I had a coding agent with a full memory cascade and a
+`search_knowledge` tool. It was episodically brilliant: when it searched, it
+found the right thing. But it almost never searched. Every session started cold.
+It would re-derive decisions we had already made, re-investigate bugs we had
+already fixed, and propose architectures we had already rejected. The knowledge
+was there. The recall was not.
 
-The historical account reports a large improvement, but no comparative transcript
-supports a new performance claim here. The useful engineering question is smaller:
-which earlier text reached this request, why was it selected, and what did that
-selection cost? The mechanism should answer those questions even when the model
-ignores the note. [Validation status](chapter-16-validation.md) distinguishes this
-contract from implementation and actual use; the spin below remains a plan.
+The fix was embarrassingly simple. Before every user message reaches the model,
+run a keyword search over the memory files, filter the results through a cheap
+model, and attach the survivors to the conversation. The agent never asks for
+the memories. They arrive the way a relevant fact arrives when a colleague
+mentions a project name: unbidden, fast, and usually right.
+
+The improvement was immediate and impossible to overstate. The agent went from
+a goldfish that kept meticulous diaries to a collaborator with a past.
+
+---
+
+Chapter 15 built a memory system. An Agent can save, compress, and graduate
+memories through a cascade of bands. But nothing in that chapter makes the Agent
+*remember.* The memories sit on disk, organized and budgeted, and the Agent has
+no idea they exist unless it decides to search. That is not memory. That is a
+filing cabinet. This chapter opens the relevant drawer when a new question
+arrives, without giving its contents authority to change the Agent's instructions
+or tools.
+
+No comparative transcript proves the improvement described above, and the chapter
+does not try. The useful engineering question is smaller: which earlier text
+reached this request, why was it selected, and what did that selection cost? The
+mechanism should answer those questions even when the model ignores the note.
+[Validation status](chapter-16-validation.md) distinguishes this contract from
+implementation and actual use; the spin below remains a plan.
+
 
 ## TL;DR
 

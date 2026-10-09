@@ -5,24 +5,25 @@ every turn. The developer sees the edit. The repeated input charge is harder to
 see, especially when a memory compressor or recall judge quietly contributes
 another request before the answer appears.
 
-In September 2026, Bill identified caching as a barrier to using Ensemble every
-day. The first instrument built to explain it developed a problem of its own.
-It searched for compact JSON, while the input it actually compared was indented.
-The test fixtures were compact too. They passed; the instrument reported missing
-markers that were present in the request. A convincing number can be an excellent
-disguise for a broken measurement.
+In September 2026, Bill flagged caching as the barrier to running Ensemble every
+day. So the project built its first instrument to show where the cache helped
+and where it did not. That instrument promptly developed a problem of its own.
+It searched for compact JSON, but the renderer's actual output was indented. The
+test fixtures were compact too, so every one passed. Meanwhile the instrument
+reported missing markers that were sitting right there in the request, invisible
+only because the comparison disagreed about whitespace. A convincing number
+makes an excellent disguise for a broken measurement.
 
-This chapter starts with that instrument. It separates the bytes the application
-sent, the cache usage the provider reported and the price estimated from accepted
-usage. Each has a different source of truth. The developer needs all three to
-decide whether a change helped.
+This chapter starts with that instrument. It separates three quantities that
+look like they should agree and never quite do: the bytes the application sent,
+the cache usage the provider reported and the price estimated from accepted
+usage. Each has a different source of truth, and a developer who trusts only one
+of them will eventually be surprised by whichever two were ignored.
 
-*Partial draft, October 8, 2026. The coordinator has selected the independent
-diagnostic, marker, accounting and display design below. The subscription route
-and its output-cap choice remain pending in the [validation record](chapter-17-validation.md).
-This is not a complete student contract or an implementation release. No Chapter
-17 build, live measurement, cache hit or saving is claimed. The historical incidents
-are attributed in the [evidence ledger](chapter-17-evidence.md).*
+*Partial draft, October 8, 2026. The subscription route and output-cap choice
+remain pending in the [validation record](chapter-17-validation.md). No live
+measurement or saving is claimed. Historical incidents are attributed in the
+[evidence ledger](chapter-17-evidence.md).*
 
 ## Partial exercise summary
 
@@ -164,10 +165,11 @@ completion boundary, so a directory containing only one body is visibly incomple
 
 ## 17.3 Measure three different things
 
-The first edition's compact-pattern failure is a useful test specification.
-The instrument must analyze the renderer's output as it exists, including
-indentation. Repeating its own simplifying assumption in a handwritten fixture
-does not establish that property.
+The compact-pattern failure from the opening of this chapter left a useful
+lesson: the instrument must analyze the renderer's output as it exists,
+whitespace and all. A handwritten fixture that repeats the instrument's own
+simplifying assumption proves only that the assumption is consistent with
+itself.
 
 **Raw prefix** is the number of equal leading bytes in the two actual UTF-8
 bodies. Report zero-based byte offsets and original body hashes. If one body ends
@@ -419,11 +421,11 @@ perform HTTP, recover exported bodies or call a reconstructed pair observed.
 
 ## 17.6 Read the meter's label before its number
 
-The first edition's meter once showed a paid model with zero cost. The model
-selection had come from the environment; the meter consulted an empty settings
-field. The producing identity was available, but the display asked the wrong
-owner. Changing the label to unknown would have been more honest than zero;
-using the actual producing identity was the useful repair.
+An earlier version of the meter once showed a paid model with zero cost. The
+model selection had come from the environment; the meter consulted an empty
+settings field. The producing identity was available the whole time, but the
+display asked the wrong owner. Labeling the cost "unknown" would have been more
+honest than "zero"; using the actual producing identity was the useful repair.
 
 Keep normalized, disjoint input/write/read/output counters on Engine. The current
 configuration cannot reprice yesterday's responses. Each accepted fact retains

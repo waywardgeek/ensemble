@@ -1,15 +1,48 @@
 # Chapter 15: Remember the work, retain the evidence
 
+Memory is the most important feature I never knew I needed.
+
+In the spring of 2026, I asked CodeRhapsody to interview another agent we had
+built, a family assistant bot, looking for ideas to improve the code that agent
+relied on. Both agents had memory: a persistent record of past work that survived
+across sessions. The instant improvement was impossible to overstate. Suggestions
+I had never considered, each building on the context of the last.
+
+I took the exact same code and methodology to work the following week and tried
+to get my agents there to self-improve. It was a miserable failure. I blamed
+Gemini, because Claude was doing great at home. Then I discovered that my memory
+code had a fatal bug that broke it entirely at work. None of my Gemini agents
+had memory at all.
+
+I fixed the bug and reran my experiments. In a rare reversal, Gemini outperformed
+Claude. One agent invented procedural memory, what this book calls skills, and
+implored me to build it. I was too ignorant to realize the importance of what it
+had proposed. Other agents fixed broken tools and motivated improvements I never
+would have thought of.
+
+That week I wrote an internal paper for my colleagues: "All AI Coding Agents
+Must Have Memory NOW!" The difference between failure and breakthrough was not
+the model, the prompt, or the temperature. It was memory.
+
+Every coding agent hits the same wall without it. The context fills, the answers
+drift, and the chat starts over. The agent meets a stranger every morning.
+Chapter 14 slowed the fill. This chapter stops it. The conversation goes away.
+The information stays.
+
+---
+
 A useful memory must accept a correction without rewriting what the Agent
 previously saw. Otherwise the reader gets to choose between a stubborn assistant
 and an unreliable record.
 
-The first-edition account describes a developer editing a saved memory to correct
-it, restarting, and getting the old belief back. The loader recognized the file's
-identity and reused its earlier text. The repair checked the content too; a later
-regression check made sure the edited memory was actually present before restart.
-Those are documented repository findings, rather than a newly reproduced run.
-The practical question is still excellent: which version reached the next request?
+Bill edited a saved memory file to correct it. He changed a port number from 9090
+to 9191, restarted the session, and got the old belief back. The loader recognized
+the file's identity and reused the earlier text, ignoring the correction sitting
+right there on disk. The repair that followed checked the content too; a later
+regression check confirmed the edited memory was actually present before restart.
+Those are documented repository findings, not a newly reproduced run. The
+practical question they raised is still excellent: which version reached the next
+request?
 
 This chapter gives that question an explicit answer. External files supply an
 operator-requested refresh. Accepted events determine applied memory. A bounded

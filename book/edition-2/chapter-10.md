@@ -1,21 +1,27 @@
 # Chapter 10: Return to the conversation
 
+Every agent built so far is a goldfish. It reasons, calls tools, drives its own
+GUI and loads skills on demand, and the moment the process exits it forgets
+everything: the project, the afternoon of work, every decision made along the
+way. The next start meets a stranger.
+
 The useful test of persistence comes the next morning. The Agent remembers the
 file it changed, the reason for the change and the tool result that confirmed
-it. The reader can continue the work without asking it to perform the edit
-again just to recover the explanation.
+it. The reader can continue the work without re-explaining what happened
+yesterday.
 
-The first edition made loading an option. Bill's response, recorded in old
-Chapter 11, was short: “Let's load by default without a flag.” Automatic loading
-makes the application easier to use and makes one error much worse. If an
-unreadable save causes a fresh start, that new conversation can overwrite the
-history the reader wanted back. Refusing to open it preserves a chance to repair
-it. Starting over silently removes that chance.
+The first edition made loading optional and gated it behind a flag. Bill tried
+it once and said, "Let's load by default without a flag." That settled it.
+Automatic loading makes the application easier to use and makes one error much
+worse. If an unreadable save causes a fresh start, that new conversation can
+overwrite the history the reader wanted back. Refusing to open preserves a
+chance to repair it. Starting over silently removes that chance.
 
 This edition already has recorded events and offline rendering. The missing
 piece is a safe way to mount those facts as a live conversation. A saved shell
 job cannot become a process again. A retired skill cannot acquire new permission
 because its manual survived. Remembering requires fewer powers than resuming.
+
 
 The student has produced an initial implementation and revisions from accepted
 Chapter 9 source. Local checks and repairs remain in progress; the [validation
@@ -72,9 +78,16 @@ shared ownership, outer bytes, semantic requirements and errors do not.
 
 ## 10.1 A session has an owner
 
+Ten chapters of events and reducers built up to a claim that never got tested:
+the context is a pure function of the events. Saving creates a second copy, and
+once a snapshot sits on disk next to the log that produced it, the claim becomes
+falsifiable. Persistence is the feature a reader sees. Verification is the
+reason it belongs here.
+
 A file path used to identify an output log. It now also selects work to resume.
 Those are different construction requests, and guessing between them would
 make existing embedding applications load a conversation they never requested.
+
 
 Keep the preceding fresh constructor: it creates its explicit log exclusively,
 refuses an existing destination and returns a new Agent. Keep offline Load and

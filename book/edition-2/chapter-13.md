@@ -1,15 +1,41 @@
 # Chapter 13: Test the speech channel
 
+This chapter is for me. I have 20/180 vision from macular dystrophy, close
+enough to legally blind that most of my screen is a guess. I work by
+listening. The agent narrates its thinking, announces its tools, explains its
+reasoning aloud, and that spoken channel is the interface I actually use.
+
+Accessibility is an afterthought everywhere, never in the critical path of
+shipping a product. Nobody discovers a broken speech pipeline until somebody
+who depends on it sits down and hears silence. Since I am in control of this
+book, this agent gets decent accessibility from the start.
+
 A correct answer can conceal a broken interface. An observer that reads the
 conversation can identify a failed command even when the person listening to
 the application hears nothing. The answer passed. The channel was never tested.
 
-The first-edition account describes just such an experiment. A restricted
-listener correctly reported a command's failure because the assistant narrated
-it; tool results were deliberately silent. The distinction matters to Bill, who
-depends on spoken reasoning while steering the Agent. A visual card and a
-spoken explanation are different ways to receive information, and either can
-fail while the other works.
+The first test given to a restricted listener was designed to fail. Tool
+results never reach the speech channel; only dispatch announcements do. The
+task was to run a command against a path that does not exist and report the
+exit code. The prediction, written down before the run, was that the listener
+would come back empty.
+
+It came back with the correct exit code.
+
+Six utterances entered the channel. The first was the dispatch announcement.
+The rest were the model's own prose, describing what happened. No tool result
+appeared in the transcript. The listener learned the exit code because the
+model chose to mention it, not because the system delivered it. From inside the
+channel, narration sounds the same as delivered data. Accessibility that rests
+on a model's prose habits is discoverability by luck.
+
+The transcript also held two utterances that were nothing but a single
+backtick: markdown fence markers, read aloud as punctuation. A visual card and
+a spoken explanation are different channels, and each can break while the other
+works. Bill listens to this agent for hours a day and steers it by ear. He
+cannot audit the speech channel by looking at the screen. If the pipeline
+swallows a sentence or reads punctuation aloud, he is the one who hears it,
+and he is the last person anyone builds a regression test for.
 
 This chapter records what the speech service accepts, tests the text that
 reaches its output adapter, and gives a separate listener access only to that
@@ -76,8 +102,8 @@ required checks. The historical score alone is insufficient.
 ## 13.1 Follow the text to its destination
 
 The original direct-module tests could call a speech helper and observe good
-output while the running application never called it. A later historical repair
-connected a failed turn's existing error field to an existing error helper.
+output while the running application never called it. A later repair connected
+a failed turn's existing error field to an existing error helper.
 Both ends had been built. A listener still received silence.
 
 Another repair removed a tool result emitted a second time as assistant text.
@@ -108,10 +134,13 @@ record.
 
 ## 13.2 Normalize incrementally without losing the fence
 
-The historical fenced-code failure first looked like a stream-boundary bug.
-Then the same input failed in a single chunk. Newline splitting had separated
-the fence markers from the body before the filter examined them. Testing more
-stream splits could not repair the wrong order of operations.
+The fenced-code failure looked like a streaming problem at first. Deltas
+arrive on arbitrary boundaries, a fenced code block split across two chunks
+gets filtered as two halves, and neither half contains a complete fence, so the
+markers survive. That explanation was clean, mechanical, and wrong. The same
+input failed in a single chunk. Newline splitting had separated the fence
+markers from the body before the filter examined them. Testing more stream
+splits could not repair the wrong order of operations.
 
 Use the following deliberately small grammar for automatic speech. It is not a
 complete Markdown parser or a language-specific pronunciation engine. Apply it
