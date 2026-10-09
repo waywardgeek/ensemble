@@ -7,7 +7,9 @@
 package gui_test
 
 import (
+	"bufio"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -69,6 +71,36 @@ func TestGUIReusableOutsideEnsemble(t *testing.T) {
 	// Single components mount from the exported FS without the shell.
 	if _, err := gui.Assets.ReadFile("web/renderers.js"); err != nil {
 		t.Fatalf("renderers.js not in exported assets: %v", err)
+	}
+
+	// The agent-eyes relay is part of the public surface too: an embedding
+	// application can let an agent see and drive this GUI by exposing the
+	// same MCP port the ensemble binary offers. This leg runs BEFORE any
+	// websocket client connects: with no browser attached the relay
+	// answers a well-formed JSON-RPC error immediately, whereas a connected
+	// client that ignores MCP frames would leave the request waiting on a
+	// browser reply that never comes.
+	mln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mln.Close()
+	go srv.ServeMCP(mln)
+	mcp, err := net.Dial("tcp", mln.Addr().String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer mcp.Close()
+	_ = mcp.SetDeadline(time.Now().Add(5 * time.Second))
+	if _, err := mcp.Write([]byte(`{"jsonrpc":"2.0","id":7,"method":"tools/list"}` + "\n")); err != nil {
+		t.Fatal(err)
+	}
+	reply, err := bufio.NewReader(mcp).ReadString('\n')
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(reply, `"jsonrpc"`) || !strings.Contains(reply, `"id":7`) {
+		t.Fatalf("MCP relay reply malformed: %q", reply)
 	}
 
 	// A browser prompt reaches the agent through the one hook the consumer
