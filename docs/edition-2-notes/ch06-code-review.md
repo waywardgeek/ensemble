@@ -200,3 +200,44 @@ three bounded findings after correction, running affected checks and targeted
 mutations without another paid matrix or broad mutation sweep. Review scratch
 copies and grader-generated sidecar logs were removed; production, original
 graders, frozen exports and tags were not changed by the reviewer.
+
+## Coordinator follow-up: original check 5 and reference behavior
+
+At Bill's explicit request, the coordinator traced the original solution and
+check 5 (`wake-once`) at repository revision `6309f7a`. Bill questioned whether
+sub-agent spawning belongs in Chapter 6. The student remains paused; no answer
+code or implementation recipe was supplied to it.
+
+The original application creates the author, editor and reviewer directly in
+`solutions/ch06/ch06/main.go:39`, then starts their actor loops. Its
+`runPipeline` at line 218 performs three blocking calls in sequence: author,
+editor, reviewer. The application owns these peer Agents; no model calls a
+sub-agent spawning tool. Its `pipelineDone` WaitGroup waits for application
+pipeline goroutines at EOF, not a parent Agent's two child completions.
+
+The reference `Framework.WaitAny` at
+`solutions/ch06/agent/internal/llm/actor.go:513` returns one matching observation
+from the merged channel. It neither gathers two completions nor waits for an
+explicit set, and the exercise does not call it. The nearby comment mentioning
+"wake-once semantics" overstates the mechanism.
+
+The fifth check, `internal/grade/ch06_checks.go:157`, only requires observations
+from at least two Agent IDs and `turn_ended` records from at least two Agent IDs.
+It measures no simultaneity, wakeup count, grouped delivery or spawning. Its
+mutation test (`ch06_grader_test.go:243`) collapses role registration to one ID;
+that tests distinct Agents, not completion coalescing. This confirms the earlier
+grader limitation and establishes that the old answer also lacks the behavior
+described in §6.6.
+
+Source file revisions: exercise `14961aed8c08da70ba02e2048f73d9d6ff36fd81`;
+actor `515e2d883ef0994db652a031eb13e6974ba7b829`;
+checks `cd10cd1ea12fa132ed3ef16ddf78591e291f6c1f`.
+
+The coordinator's recommendation is to treat the coalescing paragraph and check
+description as a source inconsistency, retaining this chapter's actual sequential
+multi-Agent application and deferring agent-spawning semantics. We should have
+presented this full reference cross-check before asking Bill to choose a new
+completion API. The initial finding is preserved above as review history; it
+must not be treated as an approved instruction to expand the exercise while
+Bill's scope decision is pending. The two unrelated test/comment corrections
+remain valid. No original chapter, grader or reference code was modified.
