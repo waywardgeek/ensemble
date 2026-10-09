@@ -61,8 +61,10 @@ in addition to the first edition's lessons.
 framework, because payload placement later determines steering and cache
 behavior. That is not permission to implement either feature immediately.
 Walk the response blocks as the exercise requires, retain the conversation and
-report actual usage; keep protocol output usable and diagnostics separate. Discover available models
-when testing instead of treating the book's historical names as an inventory.
+report actual usage; keep protocol output usable and diagnostics separate.
+Discover available models during setup/testing instead of treating the book's
+historical names as an inventory. Discovery is not an extra API call to add
+automatically to the exercise's conversation loop.
 Source: [Chapter 1, §§1.1–1.2](../book/chapter-01.md#11-frameworks-and-why-this-book-uses-none).
 
 **Give facts owners and make those owners reachable.** The logger ambush in
@@ -89,6 +91,17 @@ public library's composition root: a correct constructor with zero callers
 protects nothing. Source: [Chapter 22, “The measurements that found it”](../book/chapter-22.md#the-measurements-that-found-it);
 binding clarification: [coding skill](../.agents/skills/ensemble-coding/SKILL.md#architecture-from-the-first-line).
 
+Make the chain concrete: Engine's parent is Agent; Agent's parent is Ensemble.
+Agent owns its conversation and configuration; Engine owns its HTTP transport
+and usage. `common` is shared vocabulary, not the runtime Ensemble object.
+Stateless parsers and helpers likely to need diagnostics also receive owner
+access. Follow the parent chain rather than adding a second root shortcut or
+downcasting to a concrete parent. When multiple spokes need a service, expose
+its interface through common and the ownership chain, keeping its behavior in
+the responsible package. These clarify the existing architecture, not new services
+to build in advance. They were stated explicitly in the deleted Chapter 1,
+§§1.2–1.4 (historical comparison recorded below).
+
 **Keep clients outside the core.** Bill requires GUI/WebSocket implementation in
 an optional separate Go module outside `agent/internal`, using public core
 interfaces. From Chapter 2, retain the requested small GUI stub and a usable
@@ -114,6 +127,25 @@ This is a testing discipline, not a new audit framework or permission to edit
 graders. Comparative review must examine active code, comments, meaningful tests
 and scope; more code or more tests alone proves no improvement.
 
+**Verify what actually ran.** CodeRhapsody's memory records false confidence
+from excluded tests, an unavailable command and a harness building the wrong
+program. Check the actual command output, selected packages/build tags and
+executable being exercised. A successful build is not a test run; an empty or
+truncated result is not complete evidence. For example, `gofmt -l` can return
+success while listing files needing formatting. Diagnose the actual invocation
+and observed wire/artifact before assuming a cache problem or enumerating
+producers. Prefer a faithful boundary fake over mocks that remove the behavior
+under test. Run the required checks and affected regressions; this is not a
+request for blanket test expansion or a new verification framework.
+
+**Make changes small enough to inspect.** Read the assigned chapter and
+carryover before editing. For structural changes, move a coherent piece, use
+compiler feedback and inspect the resulting diff, including comments, strings
+and prompts that broad text replacements can corrupt. Explain the reason for a
+choice and make uncertainties visible. CodeRhapsody's craft guidance supports
+simple, well-explained code; it does not authorize rewrites, history resets or
+new design requirements beyond Bill's current instructions.
+
 ## Apply when the relevant feature arrives
 
 **Chapter 2: keep history, context and requests distinct.** The ordered,
@@ -128,6 +160,16 @@ boundaries enable later replay without adding later policy now. Sources:
 [§2.3](../book/chapter-02.md#23-history-context-request),
 [§2.4](../book/chapter-02.md#24-the-log),
 [§2.6](../book/chapter-02.md#26-the-seam).
+
+Ephemeral delivery is different from erasing the record. Chapter 2 records an
+ephemeral arrival in the event log for replay, delivers it in one request and
+then clears the pending material; it does not become retained dialogue. As
+context assembly grows, keep volatile material at the request tail, after the
+stable prefix, instead of rewriting old instructions or accumulating stale copies.
+The deleted Chapter 1's shorthand “never in history” must not be mistaken for
+“never recorded in the event log.” Sources: Chapter 2's
+[grading clarification](../book/chapter-02.md#the-checks) and Chapter 15,
+[§15.5](../book/chapter-15.md#155-the-layout).
 
 **Chapters 3–4: make tools recoverable, and waiting distinct from execution.**
 Dedicated file/search/edit tools constrain output and avoid shell quoting
@@ -144,6 +186,10 @@ actually stopped. Avoid sticky hidden shell state. Sources:
 [§4.7](../book/chapter-04.md#47-the-terminal),
 [Chapter 13's debugger failure](../book/chapter-13.md#a-debugger-that-would-not-start).
 Do not add process/job machinery in Chapter 3 to solve Chapter 4 early.
+When implementing waiting, check that every state transition that can satisfy
+a waiter also arranges its notification. CodeRhapsody records this as a
+job-system lesson; a larger timing margin does not repair a missing
+notification.
 
 **Chapter 6: progress is not an acknowledgement.** One actor coordinates
 conversation changes; worker results return through its ordered input path.
@@ -335,6 +381,16 @@ The following remain source discrepancies, not newly imposed requirements:
 | Chapter 19 requires explicit plan-route caching; §20.4 reports that route rejected it. Chapter 19 also names quota-exhaustion errors differently in its TL;DR and billing section. | Verify the current supported route and error behavior when reached. Document conflicts with original grading; do not claim historical wire details are current, or trade billing safety for a pass. |
 | Chapter 12 requires MCP cancellation but its bridge example supplies `context.Background()`. | Preserve cancellation through the actual job lifetime; the sample cannot override the stated requirement. |
 
+**A useful recommendation from deleted Chapter 1, §§1.7–1.8, for Bill's review:**
+keep a failed HTTP exchange from masquerading as a completed conversation pair.
+For the initial text conversation, staging the new pair until a valid reply
+arrives avoids poisoning the next request after a failure. Missing usage is not
+measured zero usage. Use bounded waits and secret-free diagnostics that preserve
+useful timeout/cancellation distinctions for library callers. These are proposed
+implementation lessons, not restoration of that draft's exact CLI exit rules or
+additional pass/fail matrix. Later event logs may properly record failed requests;
+recording a failure and claiming successful completion are different things.
+
 Several editorial inconsistencies also deserve later correction, without blocking
 unrelated exercises: Chapter 5's check totals are unreconciled; Chapter 9's patch
 example omits its stated validation; Chapter 13 contradicts itself about zero
@@ -354,6 +410,29 @@ limits and capability claims throughout this review are historical source
 claims; no provider access or external verification was performed here.
 
 ## Reading coverage and later use
+
+At Bill's request, Codex read CodeRhapsody's `~/.cr/SOUL.md` and
+`~/.cr/MEMORY.md` in full on October 9 (815 and 3,159 words respectively).
+They were found directly under `~/.cr/`, not its `memory/` subdirectory.
+The verification, small-edit and wakeup guidance above draws on these notes;
+collaboration and author-facing lessons are in the workflow. These are
+CodeRhapsody-authored recollections, not independently verified incident reports
+or additional statements from Bill. Only the distilled guidance belongs in the
+student handoff. The raw notes include old roles, architecture, personal context
+and tool-specific rules that must not silently replace the current assignment.
+
+Codex also read `~/.cr/memory/summary-7d.md`, whose recorded update date is
+April 11, 2026. Its decisions, rejected approaches and active-context sections
+informed the workflow's continuity guidance. Its old implementation status and
+product recommendations are not current facts or new student requirements.
+
+Codex also read the deleted second-edition Chapter 1 in full from
+`0f05359c9240e76213fc0d3937306f81094f5295:book/edition-2/chapter-01.md`
+on October 9. This was a historical gap check, separate from the first-edition
+reading below. Its useful ownership clarifications, ephemera motivation and
+failure-handling recommendation are recorded above; practical review examples
+and source-tree guidance are in the workflow. Its old skill path, permission to
+copy a reference answer and expanded acceptance matrix are not reinstated.
 
 All 25 available manuscript files were read in full, including code examples:
 

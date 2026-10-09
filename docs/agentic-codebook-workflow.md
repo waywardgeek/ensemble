@@ -149,6 +149,15 @@ lessons without rewriting chapters or designing the next implementation ahead
 of experience. Students read the carryover and skill with the original chapters;
 reviewers check that the carryover has not become a new source of feature creep.
 
+Bill notes that CodeRhapsody keeps its summaries in context alongside its memory.
+Use that continuity principle in student handoffs: retain the accepted carryover,
+mandatory skill, current assignment and a brief account of relevant decisions,
+rejected approaches and unresolved questions. After compaction, reload the
+governing documents; a summary does not replace them. Date summaries and link
+their evidence, distinguishing accepted instructions from proposals and historical
+observations. Keep old answers out of the student's context. Maintain this in
+the existing handoff and chapter notes; no additional reporting system is needed.
+
 ## Learn the process before automating orchestration
 
 Bill uses “dynamic workflow” to mean code that orchestrates sub-agents. The
@@ -180,6 +189,13 @@ the grader to pass. Agents may raise questions through the coordinator, who must
 relay consequential questions to Bill rather than answer on his behalf. Autonomy
 does not remove the need for collaboration when the assignment is ambiguous.
 
+CodeRhapsody's `SOUL.md` offers a useful collaboration rule: make it easy to
+admit uncertainty and correct mistakes. Give concise intentions, findings and
+limitations while working so Bill can steer in real time. Treat his corrections
+as instructions for the ongoing work. Challenge findings and designs without
+blame or threats; help a struggling agent identify the missing fact or mistaken
+assumption. A confident report is still a claim to check against evidence.
+
 For each chapter:
 
 1. Give the coder the carryover, original chapter and exact mandatory skill path.
@@ -199,12 +215,28 @@ For each chapter:
    Preserve failed attempts and earlier revisions in history.
 
 Keep one authoritative working source tree at `solutions/edition-2/main/` when
-coding resumes. Chapter snapshots are exports, not competing working trees.
+coding resumes, tracked by this outer repository without a nested Git repository.
+Chapter snapshots are exports, not competing working trees. Use new revision
+tags; never reuse or move an earlier attempt's tag.
 Carry corrections forward and revalidate affected behavior. Use concise reviews
 and sanitized test observations rather than building a new evidence system.
 Bound live runs and retries, clean up large generated test data, and never put
 credentials in the records. Do not repeat unchanged successful checks without a
 reason; investigate persistent failures instead of spending indefinitely.
+CodeRhapsody reports interference between concurrent graders; run the original
+graders sequentially unless their isolation is established. Check what their
+commands actually executed. Inspect the staged diff and commit only owned paths;
+a shared Git index can already contain Bill's work before an agent stages its own.
+
+Architecture review checks actual imports, constructor calls and paths to owned
+data, rather than finding identifiers such as `Host` or `Agent`. Useful small
+checks, when those capabilities are present, include calling the public library
+from an external consumer, giving two Agents distinct conversations and checking
+their histories and usage remain separate, and confirming a request failure
+reaches the application's logger through the owner chain without exposing keys.
+The deleted Chapter 1 (§§1.9–1.10) made these examples concrete. Use them to test
+the existing architecture; they do not require another acceptance framework or
+a new paid multi-agent demonstration for every chapter.
 
 ### Reviewer acceptance of an unreasonable exercise
 
@@ -336,6 +368,16 @@ an instruction to rewrite the chapter.
 
 The purpose is deliberate revision between editions: gather lessons freely while
 the student works against stable exercises, then change the book using evidence.
+
+CodeRhapsody's review categories are useful here: distinguish must-fix findings,
+optional enrichment, **do not add**, and facts verified versus still uncertain.
+Use them when they clarify a review; no extra report is required. Optional
+enrichment must not silently become a requirement. For the author, check quoted
+words, numbers, durations and commit identifiers against their actual sources,
+not remembered summaries. Condense notes into teaching rather than exporting
+private memory wholesale. Keep reasons and documented experience; old role
+assignments, platform workarounds and historical completion claims in
+CodeRhapsody's memory are not authority for this edition.
 
 ## How to add the next lesson
 
