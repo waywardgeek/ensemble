@@ -1,4 +1,4 @@
-.PHONY: test grade grade2 grade3 grade-dir fake fake-serve vet fmt lint-prose book
+.PHONY: test grade grade2 grade3 grade-dir fake fake-serve vet fmt lint-prose book ebook
 
 # Count the prose moves budgeted in book/voice.md §5. Hard ceilings fail;
 # soft ones warn. Add -v via LINTFLAGS=-v to list every counted instance.
@@ -118,3 +118,9 @@ fake-serve:
 book:
 	scripts/assemble-book.sh > book/the-art-of-building-ai-coding-agents.md
 	@wc -w < book/the-art-of-building-ai-coding-agents.md | xargs -I{} echo "book/the-art-of-building-ai-coding-agents.md: {} words"
+
+# Build the KDP ebook. Deliberately NOT the same recipe as the print
+# interior: the ebook drops the manuscript's own contents section and lets
+# Kindle build navigation from the EPUB nav document. See the script header.
+ebook: book
+	scripts/build-ebook.sh
