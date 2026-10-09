@@ -2,13 +2,13 @@
 
 October 8, 2026. Author-prepared gate record at the coordinator's explicit request.
 The focused scope and S1–S4 design are accepted in independent review `2fc8af0`.
-The grouped three-point correction is published for closure review. No
-implementation or live release is implied.
+The grouped correction `5b75636` has independent closure `b130e88`, accepted by
+the coordinator. No implementation or live release is implied.
 
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Scope | Coordinator / reviewer | Accepted outline/evidence `3c91992`, scope advice `d61388e` | Preserve distinct summary/listening integration without repeating Chapter17 credentials |
-| Complete contract/design | Author / independent reviewer | Review `2fc8af0` accepts S1–S4 substantively; exact GUI replies/ordering, lawful live handler sets and scoped privacy assertions now amended | Confirm the grouped three-point correction before contract closure |
+| Complete contract/design | Author / independent reviewer | Complete contract `5b75636` accepted at `b130e88`, including exact GUI boundaries, lawful live handler sets and scoped privacy checks | Closed for student preparation; implementation/live gates remain separate |
 | Predecessor and checker | Coordinator / grader | Not released; accepted Chapter17 source and new Chapter18 command required | Publish both before fresh student handoff; old CH19 remains diagnostic only |
 | Implementation/local checks | Fresh student / grader | Not started for this chapter | New-only ownership plan, implementation and contract-derived independent controls after release |
 | Initial live use | Student / coordinator | Not started; §18.8 is a provisional 30-start plan | Preflight model support/access, feature matrix and evidence bindings before any launch |

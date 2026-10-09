@@ -16,8 +16,8 @@ final prose `7b9b28a` are complete. Final manuscript `8aedd35` preserves the
 initial33 generation/three-discovery record and separately attributes later local
 quality checks. Large generated test payloads were cleaned up. No push occurred.
 
-Next is a fresh Chapter11 plan-only student, using accepted Chapter10 and only new
-teaching. Its oracle/runtime distinction is accepted at `d13738e`; actual runtime
+Fresh Chapter11 plan-only student `01a11ec6-f18e-7912-9822-01b975ebd218` is
+running from accepted Chapter10 with13 pinned new-only teaching files. Its oracle/runtime distinction is accepted at `d13738e`; actual runtime
 checker integration follows the student's public interface plan. Chapter17 and
 Chapter18 contracts are reviewed, not implemented. `CHECKPOINT.md` records current
 worker ownership; older progress paragraphs preserve the earlier attempts.

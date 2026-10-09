@@ -1,5 +1,36 @@
 # Working checkpoint
 
+## Current boundary: fresh Chapter 11 student plan running
+
+Chapter10 immutable tag `edition-2-ch10-r1` points to
+`d91861207f4c2e4b81bd6c239ae15b8f51a1d146`. At that tag main and ch10 export both
+have tree `5bb92f0d3b30da864c1bebb351ab7065973488ec`; source is265fe34,
+final runtime70d86f7,5,792files/12modules. All gates are accepted as below.
+
+Fresh external CLI student conversation `01a11ec6-f18e-7912-9822-01b975ebd218`
+is running exec9264, phase1 PLAN ONLY. Its actual prompt, events/stderr/result,
+13-file new-only teaching manifest and sole coordinator inbox are under
+`/Users/bill/projects/ensemble-edition-2-revisions/ch11-student-inputs/`.
+Actual prompt isphase-1.txt; phase-1-draft.txt is historical and must not launch.
+Check process/result before restarting. This is a new conversation with memories
+disabled, no root/other-agent history, pinned Chapters1–11/skill/architecture and
+accepted Chapter10 source. Student may write only its compact ch11 teaching/
+ownership/API/codec plan now. No runtime code, build, credentials or paid calls.
+
+`/root/grader_ch10_remaining` now owns Chapter11 independent runtime-checker
+integration, beginning a finite plan/CLI command over the existing literal peer.
+Its foundation90/90 remains oracle-only; real client/custom/lifetime/persistence
+coverage is still required. Public adapter spelling follows the student's plan,
+not private advice. Compiler is available to that grader only if needed; no other
+build is running. `/root/reviewer_ch17` is available for independent plan/checker
+and scope review. `/root/author` is preparing Chapter19 Crossover scope/outline
+and historical evidence, not claiming a second-edition live crossover.
+
+Next: review the student's new-only owner/API plan, publish necessary teaching
+clarifications and actual runtime checker invocation, then release implementation.
+No Bill question is currently outstanding. Do not resume the Chapter10 student
+for Chapter11 or ask Bill to repeat existing credential authorization.
+
 ## Current boundary: Chapter 10 accepted; fresh Chapter 11 plan next
 
 Chapter10 is accepted at immutable `edition-2-ch10-r1`. Exact5,792-file export
