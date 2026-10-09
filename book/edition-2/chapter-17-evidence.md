@@ -325,3 +325,61 @@ satisfy a numeric warning. Scoped diff/fixture checks are separate from the pend
 independent full-contract review. The author edited only Chapter 17 manuscript,
 outline, evidence and, under this handoff's explicit assignment, validation.
 No runtime, grader, credential, login, provider, build or push action occurred.
+
+
+## Grouped full-review correction C1–C4
+
+October 8, 2026. Read the full `9598665` review and coordinator dispositions,
+reloaded full voice/procedure/architecture, and focused on inherited Chapter 14
+handoff authority/strict events, Chapter 15 pressure/compact helper snapshots,
+Chapter 5 cancellation/IDs and Chapter 6 operation identity. The coordinator
+explicitly limited the new retirement capability to wrapped bases that already
+authorize handoff. No statement here is a new Bill ruling.
+
+C1 is resolved in §17.8 by required remove_responses identities on v7/base-4–6
+context_changed, complete settled-set validation, inherited captured-policy
+admission and a zero-model cut. Automatic/selective cuts and unsigned compressor
+sources preserve the entire bundle. Anchored survivors, no-call bundles, unresolved
+calls and full-log/checkpoint-tail equivalence have explicit controls. The neutral
+pressure object counts the original output-array span once, including protected
+opaque bytes, and excludes duplicated derived views/terminal usage.
+
+C2 is resolved in §17.5 by exact foreground retained/retired record variants,
+checked base references, inline retired/suppressed usage and once-only canceled
+slot settlement. Helpers keep compact metadata and represented-memory references;
+their full raw receipt remains in full logs only. The fold-A/fold-B example retains
+both usage facts without resurrecting retired generated text. §17.8 prints a
+retired-record hash/size control and explicit suppressed-slot cases.
+
+C3 preserves opaque request/operation strings and supplies current profile and
+table date in the same copied status. C4 prints a portable working-note request
+using assistant input_text and the exact direct-caller object. These are schema
+corrections, not claims of observed provider rejection.
+
+For C4, reloaded the full OpenAI Docs skill, searched the official Responses
+input/caller topic, attempted the official create-reference page, then retrieved
+its official Markdown after the web reader rejected the oversized HTML. Read the
+EasyInputMessage content/role and Direct caller sections. Their exact supported
+forms back the corrected literals. No account access or inference occurred.
+The earlier capability/window-source attributions remain dated to their earlier
+reads; this focused schema lookup does not silently revise those policy choices.
+
+Local text-only validation parsed all 23 printed JSON/JSON-lines values. The
+canonical neutral pressure literal is 127 UTF-8 bytes; extending its one ASCII
+value gives 128. The printed resp-1 payload is 760 UTF-8 bytes with SHA-256
+80846537828a37f4f1ad91005e9245cc918253c0c475188454aec7630f9380c5,
+matching the new retired record. The original SSE E remains 532 bytes and its
+8,192/8,193 recipes remain unchanged. API-key insertion still preserves every
+other continuation byte. These are literal/arithmetic checks, not implementation
+tests or an executable full-log reducer audit. The transition fixture explicitly
+requires its described valid prefix; the student/grader must construct and test
+that prefix, snapshot and tail before any runtime acceptance.
+
+Existing external prose lint passed every hard rule on all four files without
+compiling; scoped diff checks passed. The manuscript remains about 11,100 prose
+words with soft negation-density and long-technical-stretch warnings. These are
+review inputs; no scene or repetition was added to satisfy a numerical budget.
+The four owned author files are submitted for independent closure; the new checker
+invocation and accepted predecessor source remain separate release gates. Original-
+author story paragraphs survive unchanged. No code, build, credential, login,
+provider or push work occurred.

@@ -4,8 +4,8 @@ Through-line stake: a developer can get the right answer while paying repeatedly
 for the same context; the chapter resolves that uncertainty with an instrument
 whose request evidence, provider observations and cost estimates remain distinct.
 
-October 8, 2026. The [complete contract draft](chapter-17.md) is ready for
-independent review. The coordinator accepted the integration direction and R1–R4
+October 8, 2026. The [complete contract draft](chapter-17.md) now resolves the
+C1–C4 findings from review `9598665` and awaits independent closure. The coordinator accepted the integration direction and R1–R4
 at `a5423ed` after Bill's cap decision at `706682c`. This is not implementation
 release or runtime acceptance. The [validation record](chapter-17-validation.md)
 owns remaining gates, including the new checker invocation before student release.
@@ -536,3 +536,34 @@ Next: independent full contract/schema/voice review; resolve material findings,
 publish the actual new acceptance invocation, and release a fresh student only
 after the preceding source and chapter gates permit it. No build or paid work
 was performed by the author.
+
+
+## Grouped C1–C4 correction after full review
+
+October 8, 2026. The coordinator selected these details after reading the complete
+`9598665` review and inherited Chapters 14/15. They are working design decisions,
+not new Bill quotations. The original-author story passages are unchanged.
+
+- C1: §17.8 adds the exact remove_responses list to v7/base-4–6 context_changed.
+  A captured-policy, Actor-authorized handoff cuts every settled bundle without a
+  model, including reasoning plus final text without calls. Automatic/selective
+  cuts and compression retain whole bundles. Bases 1–3 gain no handoff permission;
+  a different connection requires compatible history or a fresh session. The
+  fixture specifies two calls/results, a no-call bundle, anchored survivors,
+  full-log/checkpoint-tail equality and negative target/pairing controls. Neutral
+  pressure counts the raw output-array span once, with a 127/128-byte control.
+- C2: §17.5 gives strict retained/retired foreground capsule variants and checked
+  base references. Retirement removes conversation/part indexes and converts usage
+  to inline. Helpers keep Chapter 15 compact metadata and represented-memory
+  references, never raw submit capsules in semantic snapshots. Suppressed usage
+  closes the exact canceled response slot once without inventing a response.
+  §17.8 supplies a hashed retired-record fixture and fold-A/fold-B controls.
+- C3: §17.7 preserves opaque turn/operation strings, adds a coherent current profile
+  and price-table date, and tests empty/post-change status independently from old
+  attempts. Numeric counters retain their lossless decimal-string grammar.
+- C4: §17.8 prints the documented assistant input_text working-note request and
+  exact direct-caller object; real output-item spans retain their original shape.
+
+The four-file correction is submitted for independent closure. The new checker
+command and accepted Chapter 16 source remain separate release prerequisites.
+No implementation, authorization, provider experiment or live result is claimed.

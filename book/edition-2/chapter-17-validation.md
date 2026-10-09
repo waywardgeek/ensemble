@@ -1,6 +1,6 @@
 # Chapter 17 validation
 
-Full contract drafted for independent review, October 8, 2026. Preparation
+Full contract C1–C4 correction submitted for independent closure, October 8, 2026. Preparation
 `580ce83`/`b59c47e`, the subscription proposal `8f834ce` and integration review
 `a5423ed` are retained. The coordinator accepted the proposal direction and all
 R1–R4 recommendations; the full draft publishes their requirements. The author acknowledges Bill's continuing requirement
@@ -11,7 +11,7 @@ accepted. Chapter 16 has contract/prose acceptance only.
 | Gate | Owner | Status and evidence | Next action |
 |---|---|---|---|
 | Research and consequential choices | Author, reviewer, coordinator, Bill for the output-cap choice | Bill cap decision `706682c`; coordinator accepts proposal and R1–R4 at `a5423ed` | Independent review of the complete published integration details |
-| Full contract and prose | Author `/root/author`, independent reviewer | Complete contract draft now published; full independent review pending | Review strict schemas, fixtures, ownership, lifetime, voice and acceptance mapping |
+| Full contract and prose | Author `/root/author`, independent reviewer | Review `9598665` holds acceptance for C1–C4; coordinator decisions now published in the corrected draft | Independently close the grouped correction against its committed freeze |
 | Independent checks | Future grader | Not started | Publish new acceptance invocation from §17.9 contract; inherited CH18 is diagnostic only |
 | Fresh student and owner plan | Future fresh student, reviewer | Not released | Requires accepted Chapter 16 source, reviewed complete contract and published new checker invocation |
 | Local implementation | Future student, grader | Not started | Preserve preceding ownership, replay and helper guarantees |
@@ -123,3 +123,27 @@ live comparison exists at this boundary. The actual capability/price input files
 for discovered live identities must be source-backed and included in the reviewed
 live plan. No speculative model entitlement or price is installed by the draft.
 The original-author `53ee8e7` story edits are preserved.
+
+
+## C1–C4 coordinator decisions and author response
+
+The coordinator read `9598665` and the inherited handoff/compact-snapshot contracts,
+then authorized one grouped correction. C1 selects a zero-model whole-bundle cut
+only where the wrapped base already authorizes handoff. V7 bases 1–3 do not acquire
+context capability; account changes cannot trigger implicit stripping. V7/base-4–6
+context_changed gains a complete admission/response target set, with unresolved
+calls refused and automatic/selective cuts preserving bundles. Neutral pressure
+includes protected raw output once; derived display views add no second charge.
+
+C2 preserves the compact helper snapshot rule and defines strict foreground
+retained/retired variants, reference conversion and inline canceled usage. A
+suppressed result settles exactly the pending response slot under the inherited
+cancellation semantics, with no synthetic dialogue or tool effects. C3 adds
+current profile/table date and preserves opaque request/operation IDs. C4 uses
+the documented portable assistant input_text envelope and direct-caller object.
+The manuscript and outline publish the literal fixtures and distinguishing checks.
+
+These decisions do not reopen Bill's explicit uncapped plan choice or enable
+student implementation. Reviewer closure and a published new acceptance command
+remain required. The current correction contains no runtime, credential, provider
+or build work; its local fixture/lint checks are recorded in the evidence ledger.

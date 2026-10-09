@@ -65,6 +65,8 @@ Extend `solutions/edition-2/main/`; preserve old rendering and resume routes.
    Preserve ordered reasoning, phase, exact argument strings and result pairing.
    Foreign namespaces get controlled refusals. No partial call executes. Complete
    terminal response and valid usage are required; EOF/deltas are insufficient.
+   Automatic cuts/compression preserve bundles. Only an authorized base-4–6
+   handoff can retire them whole; snapshots keep compact helper accounting.
 10. Exercise real human CLI, public two-Agent and browser paths, all three inherited
     adapters and both Responses funding modes. Demonstrate actual plan compression,
     judge and tool continuation within the published bounds. Retain initial failures,
@@ -435,22 +437,60 @@ config_revision, usage_receipts and capsules. Profile is the request profile
 below; config_revision equals its last Actor-applied revision. Usage_receipts is
 an admission-ordered array of {admission,purpose,execution,provenance,usage,
 raw_usage,disposition}. Admission is the foreground/helper start sequence; purpose
-is foreground/compression/judge. Disposition is applied or suppressed. Raw_usage
-is either {source:"capsule",admission} or {source:"inline",raw}, the latter holding
-only the exact usage-object string. Capsules is an admission-ordered array of
-{admission,purpose,raw,refs,sha256}, retaining only represented §17.8 payloads.
-Sha256 hashes the raw payload bytes; admission references are unique and same-Agent.
-Snapshot base response/helper facts replace their raw payload with {capsule:admission}
-and derive raw_usage through that capsule, rather than persisting duplicates.
-When a capsule retires, keep its validated usage object inline, remove its raw
-output/refs, and mark missing body reconstruction unavailable. These index references
-do not permit an independently mutable semantic copy of the accepted output.
-Capsule payloads are keyed once by admission; base references point into that
-collection rather than nesting another raw copy. All new arrays retain Chapter
-10’s item bounds and the whole-state budget. The student documents the strict
-base codec as previously required; these new
-members and their transitions are fixed here. Validate base and extensions as one
-candidate before installing any owner state.
+is foreground/compression/judge. Disposition is applied or suppressed; the base
+helper metadata additionally retains its original detailed outcome. Raw_usage is
+exactly {source:"capsule",admission} for a retained foreground Responses capsule,
+or {source:"inline",raw} otherwise. Inline raw is only the exact validated
+usage-object JSON string, including for helpers and canceled foreground output.
+
+Capsules contains only accepted foreground Responses records, ordered by admission.
+Every record has state, admission, response, bytes and sha256. Response is its
+response_ended sequence; bytes is the raw terminal payload's UTF-8 byte count and
+sha256 hashes those bytes. State selects one strict variant:
+
+| State | Additional required members | Meaning |
+|---|---|---|
+| retained | raw, refs | Exact payload string and complete checked §17.8 index list |
+| retired | retired_by | The context_changed sequence that removed the complete bundle; no raw or refs member |
+
+Admission/response are unique positive same-Agent sequences, with admission less
+than response. Retired_by is greater than response and no greater than the snapshot
+as_of. Snapshot base response facts replace the payload with exactly {capsule:{admission,response}}. This reference
+must resolve to one matching variant. A retained variant supplies derived parts;
+a retired variant supplies settlement/provenance metadata only, with no represented
+conversation entry, call/result index or part reference surviving the cut. Its
+accounting receipt retains execution, producing identity and usage. Retirement
+converts raw_usage to inline before deleting raw and refs. Reject dangling, duplicate,
+mismatched or state-inappropriate references; a retired record cannot serve a
+request reconstruction. Hashes do not recreate missing bytes.
+
+Helpers never enter capsules. Their full log retains the one original raw response
+and its checked refs. Their semantic snapshot follows Chapter 15: exact config,
+selected identities/versions, request/response hashes and sizes, source/output
+measures, provenance, accepted usage and disposition, with output referenced only
+through its represented memory ID/version. It contains no helper request_body,
+raw response, submit arguments or second candidate text. Retiring that memory
+removes the output reference and keeps its retirement metadata. Rejected or
+suppressed candidates have no represented-output reference. Full-log replay can
+use its receipts; a snapshot reports history_unavailable for absent source/output.
+This also applies to judge receipts: retain accounting and the validated compact
+verdict metadata, without keeping its raw response as a hidden body archive.
+
+Suppressed foreground usage has no capsule or base response placeholder. Its
+model_usage_recorded fact settles the exact outstanding admission as a canceled
+response slot, applying the same pending-human discard as error_occurred while
+preserving previously accepted dialogue and unconsumed hints. Already consumed
+hints stay consumed. No second error_occurred may close that slot; turn_ended and
+any pairing of previously accepted calls still follow Chapter 5. The fact neither
+counts as an accepted model response toward the turn limit nor creates parts,
+calls or effects. Snapshot base state records that settled slot and completion
+state, with the inline suppressed receipt in requests. A duplicate or a fact
+naming another/closed slot refuses before mutation.
+
+All new arrays retain Chapter 10's item bounds and the whole-state budget. The
+student documents the strict base codec as previously required; these substitutions
+and transitions are fixed here. Validate base and extensions as one candidate
+before installing any owner state.
 
 Use the ordinary log header. Session_initialized.session has exactly version:7,
 session_id and the complete v7 identity. Then emit the base
@@ -682,17 +722,24 @@ and the existing protocol replies. No automatically installed Registry tool or
 new Skills grant is needed. The model can inspect the display through the
 already granted GUI MCP tools when that integration is selected.
 
-The wire status has exactly version, agent, mount, revision, attempts, usage,
-pricing and omitted. Version is 1; all fields below are required. Define U as a
-canonical decimal uint64 string: 0 or a nonzero digit followed by digits, within
+The wire status has exactly version, agent, mount, revision, profile, attempts,
+usage, pricing and omitted. Version is 1; all fields below are required. Define U
+as a canonical decimal uint64 string: 0 or a nonzero digit followed by digits, within
 range. Define Hash as 64 lowercase hex characters. Private numeric structs may
 use integers; browser JSON must retain these strings without Number conversion.
-Agent uses its existing safe public identity. Mount/revision are U.
+Agent uses its existing safe public identity. Mount/revision are U. Turn is the
+unchanged opaque Chapter 5 request ID, and operation the unchanged nonempty
+Chapter 6 operation ID; neither is parsed as a number. Preserve their validated
+UTF-8 strings and inherited bounds. Profile is a coherent copy of the current
+§17.5 profile, with its revision/generation encoded as U (generation may be null).
+It is captured under the same status revision as the attempt rows. Protocol
+request_profile/route values use this same wire-profile form; durable profiles
+keep their §17.5 integer encoding.
 
 | Object | Exact fields and values |
 |---|---|
 | attempts row | purpose (foreground/compression/judge), latest (Attempt or null), pair (Pair or null), code (safe reason or null) |
-| Attempt | admission (U), turn (U or null for idle), operation (U), route (the §17.5 enum), requested_model (nonempty string), resolved_model (string or null), funding (api_key/chatgpt_plan), generation (U or null), state (admitted/sent/accepted/failed/canceled), bytes (U or null before handoff), sha256 (Hash or null before handoff) |
+| Attempt | admission (U), turn (opaque request-ID string or null for idle), operation (opaque operation-ID string), route (the §17.5 enum), requested_model (nonempty string), resolved_model (string or null), funding (api_key/chatgpt_plan), generation (U or null), state (admitted/sent/accepted/failed/canceled), bytes (U or null before handoff), sha256 (Hash or null before handoff) |
 | Pair | before (Attempt), after (Attempt), raw (Raw), structural (Diff), directive (Diff), markers (Markers) |
 | Raw | prefix (U), before (byte or end), after (byte or end); byte is {kind:"byte",value:integer 0..255}, end is {kind:"end_of_body",value:null} |
 | Diff | status (equal/appended/edited/unavailable), added (U), paths (array of JSON-pointer strings), sections (array of Section), code (null or safe reason) |
@@ -702,7 +749,7 @@ Agent uses its existing safe public identity. Mount/revision are U.
 | Scope | total (Counters), purposes (three {purpose,counters} rows in fixed purpose order), cache_read_share (Rational or null), share_code (null, no_input or counter_overflow) |
 | Counters | input, write, read, output (each U, or all null on overflow), code (null or counter_overflow) |
 | Receipt | admission (U), purpose, producing (vendor/model/surface triple), funding, counters (Counters) |
-| pricing | table (ID or null), currency:"USD", known_subtotal (Rational), displayed_subtotal (six-decimal string), complete (boolean), unpriced (array of {producing,funding,reason}), incomplete_attempts (U) |
+| pricing | table (ID or null), table_date (YYYY-MM-DD or null with absent table), currency:"USD", known_subtotal (Rational), displayed_subtotal (six-decimal string), complete (boolean), unpriced (array of {producing,funding,reason}), incomplete_attempts (U) |
 | Rational | numerator (canonical nonnegative decimal string), denominator (canonical positive decimal string), reduced fraction within §17.6 bounds |
 | omitted | paths, skipped, unpriced (each U) |
 
@@ -768,6 +815,14 @@ failed attempt separately. B shows 0.001312. Closing and resuming A resets only
 A's current-mount amount to zero. Stale A callbacks cannot overwrite B or the
 replacement A. This test catches a shared counter that a one-window demo misses.
 
+For the ID fixture, an attempt with turn "r1" and operation "op-alpha" must round-trip
+unchanged. Before the first request, all three latest/pair fields are null while
+profile still reports inherited/api_key. Change profile to responses/chatgpt_plan
+at revision 1 before sending: status must show that selection even with no attempt.
+After a prior API-key attempt, the same change leaves that attempt's funding intact.
+Mount table "rates-a" dated "2026-01-01", then restore with "rates-b" dated
+"2026-02-01": pricing.table and table_date change together; producing usage does not.
+
 ## 17.8 Change the funding route without changing the experiment
 
 Comparing a subscription request with a differently rendered API-key request can
@@ -809,8 +864,11 @@ is reused. Reject generation exhaustion. Restart loads this protected mapping;
 it never reconstructs identity from a label, email or a process-local counter.
 A restored session explicitly selects its matching binding/generation before live
 plan use. A sign-out generation change is deliberate: start a new session or use
-the existing explicit retirement controls to remove incompatible bound material;
-never automatically strip it or impersonate the retired generation. Missing, signed-out or different bindings refuse connection_mismatch.
+the explicitly authorized whole-bundle handoff below to remove incompatible
+bound material. V7 bases 1–3 have no such capability: keep a compatible registration
+or start a new session. V7 does not grant them context maintenance. Never
+automatically strip output or impersonate the retired generation. Missing,
+signed-out or different bindings refuse connection_mismatch.
 Pure offline reconstruction needs no credential store.
 
 The protected file format is implementation-owned, documented and bounded to
@@ -956,9 +1014,18 @@ conversation, temperature or unsupported plan parameter is emitted.
 [Preview limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations).
 
 Ordinary messages use type:message, role and content arrays of input_text blocks.
-A portable historic assistant uses output_text blocks with annotations:[]; new
-Responses assistant items follow the capsule rule below. This chapter's new
-Responses adapter supports text dialogue and local functions. A human blob has
+A portable historic assistant, including a working note, uses the documented
+assistant input_text envelope; it has no invented provider id/status. Real
+Responses assistant items follow the capsule rule below. This complete plan request
+is a separate positive control for a portable working note:
+
+```json
+{"model":"fixture-responses","store":false,"stream":true,"input":[{"type":"message","role":"developer","content":[{"type":"input_text","text":"BASE"}]},{"type":"message","role":"assistant","content":[{"type":"input_text","text":"[working note]\nPort is 9090.\n[/working note]"}]},{"type":"message","role":"user","content":[{"type":"input_text","text":"Continue"}]}]}
+```
+
+[Responses input schema](https://developers.openai.com/api/reference/resources/responses/methods/create).
+
+This chapter's new Responses adapter supports text dialogue and local functions. A human blob has
 no newly taught attachment mapping and refuses unsupported_reference before
 HTTP; retaining it in history does not authorize fetching a local path or URL.
 Do not invent a data-URL field on Chapter 2's reference-only neutral part.
@@ -1000,10 +1067,13 @@ For Responses only, v7 response_ended.response gains responses with exactly raw
 and refs. Raw is the exact terminal response-object JSON string, excluding the
 outer SSE event. Refs is the ordered index list described below; response.parts
 is empty. Ordinary transient/public parts are derived owned views. Existing
-provenance, usage and raw_usage must agree with raw; do not persist a second
-raw_usage copy in the v7 semantic snapshot, only a checked reference into raw.
-A helper already has response.raw, so its new responses member has refs only.
-It references that same payload; no second raw response or item archive exists.
+provenance, usage and raw_usage must agree with raw. While retained, the foreground
+snapshot stores only a checked raw_usage reference into that payload; retirement
+converts it to the inline usage object under §17.5.
+In a full log, a helper already has response.raw, so its new responses member
+has refs only. It references that same payload. Semantic snapshots instead use
+§17.5's compact helper metadata and represented-memory reference, with no raw
+helper capsule. No second raw response or item archive exists.
 The v7 base semantic codec allows these explicit response substitutions and applies
 all old transition rules to the derived views, not to an independently writable
 shadow conversation.
@@ -1036,13 +1106,114 @@ alone is not permission to guess a new input shape.
 
 Bound the capsule to the accepted response's existing aggregate budget; offsets
 are validated against its owned bytes before any dereference. The whole output
-bundle and its paired results are a protected unit. Chapter 14 selective removal
-skips it with responses_bundle; Chapter 15 may retire the complete unit at a valid
-handoff, removing raw payload, refs and diagnostic copies together. No text view
-permits detaching encrypted reasoning or a call. Retired metadata retains usage,
-identities, sizes/hashes and disposition, never copied removed output. Full logs
-keep their original receipts; snapshot-only reconstruction reports history_unavailable
-when those original spans are absent. Rehydration makes no provider call.
+bundle and its paired results are a protected unit, even when it contains only
+reasoning and final text with no call. Chapter 14 automatic/selective removal skips
+it with responses_bundle. Chapter 15 compression protects every segment containing
+one; a derived text view is never an unsigned compressor source.
+
+### Retire the complete bundle at an authorized handoff
+
+An account change cannot quietly turn signed history into ordinary text. In v7
+bases 4–6, an explicit Chapter 14 handoff can make a **zero-model cut** of the
+complete settled bundle. The cut itself invokes no helper and takes no bundle
+as compressor input. Existing separately enabled memory scheduling still requires
+its own eligible sources and captured authority. Bases 1–3 and all old versions
+keep their existing capabilities and strict schemas.
+
+Only v7 bases 4–6 extend context_changed.context with the required member
+remove_responses. It is an array of exactly {admission,response}, positive durable
+sequences identifying a currently retained foreground capsule and its accepted
+response. Sort by response sequence, with no duplicates. Auto requires []. Handoff
+requires the complete set of represented capsules, including no-call responses
+and the handoff-producing response if it used Responses. Every call in each must
+have its accepted result; any unresolved call or outstanding response slot refuses
+the handoff with context_busy. A partial, foreign, already retired or mismatched
+target list refuses before persistence. Remove_batches still names every completed
+batch required by Chapter 14, including batches belonging to these capsules; the
+two lists describe one atomic cut, never two removals of a result.
+
+The Actor builds and validates this typed candidate using the admitted intent's
+captured enabled policy, or the idle public request's applied policy. JSON naming
+a target confers no authority. The existing intent cancellation, revision/base,
+note-size and persistence rules remain. A successful cut changes each capsule to
+its retired variant, removes all its derived parts and paired results, and settles
+the intent once. Other user, manual, hint and portable assistant entries keep their
+anchors and relative order. Insert the single working note at the inherited
+post-batch/public boundary, before the pending human prompt; consumed hints retain
+their normal next-request behavior. Retire affected diagnostic pairs and pending
+exports at the same accepted transition; they cannot preserve another copy.
+
+For a valid v7/base-4 prefix through sequence 49, let admission 6/response 7 contain
+reasoning, commentary and two calls whose completed batch is 7. Let admission
+20/response 21 contain reasoning plus final text and no call. These are the only
+represented capsules; intent 42 is an authorized portable handoff in completed
+batch 31. Its exact event at sequence 50 is:
+
+```json
+{"seq":50,"type":"context_changed","time":"2026-01-01T00:00:50Z","context":{"action":"handoff","intent":42,"base":49,"policy":{"revision":2,"enabled":true,"target_bytes":400000},"stub_calls":[],"remove_batches":[7,31],"remove_responses":[{"admission":6,"response":7},{"admission":20,"response":21}],"note":"Port is 9090."}}
+```
+
+This is a transition fixture with the stated prefix, not a standalone log.
+Construct both bundles from the terminal examples below. Append this second call
+to resp-1's output array and pair call-1/call-2 with text results note/other in
+that order; the first response's reasoning/commentary stays intact:
+
+```json
+{"id":"f-2","type":"function_call","status":"completed","namespace":"ensemble","call_id":"call-2","name":"read_file","arguments":"{\"path\": \"other.txt\"}"}
+```
+
+Prepend this reasoning item to resp-2's output array:
+
+```json
+{"id":"r-2","type":"reasoning","summary":[],"encrypted_content":"NEXT"}
+```
+
+The stable targets are event identities, never provider IDs. If their positions
+are A→bundle7/results→bundle21→U→H→S→batch31/results→P,
+where A is older human text, U the later handoff turn's human input, H an unconsumed
+hint, S a skill manual and P a pending human prompt, the handoff leaves
+A→U→H→S→N→P. After the request consumes H, it leaves A→U→S→N→P. Neither bundle's
+commentary/final text survives beside N.
+
+Run the same transition from the full log, a checkpoint at 49, and that checkpoint
+plus the exact tail event. Reduced state, next request and usage must agree.
+Omitting target 21, substituting admission 19, retaining a part ref to 7, or omitting
+one of batch 7's results must refuse without changing state. An automatic candidate
+with either target refuses; an automatic cut elsewhere leaves both raw bundles
+byte-identical. Repeat on base 1: the handoff capability is absent. No account
+switch relaxes these rules.
+
+For Chapter 15 pressure, each represented Responses response contributes one
+assistant message whose parts array contains exactly one measurement-only object
+{type:"responses_bundle",raw_output:STRING}. STRING is the exact original JSON
+output-array span, including its brackets. Use Chapter 10's canonical encoding
+for the outer measurement object; never decode/re-encode that string's contents.
+This counts reasoning/encrypted/unknown data and all output items once, including
+string-escaping cost, without also counting derived text/call views. Paired results
+remain their ordinary tool entries, once each. Provider usage and the terminal
+response envelope are excluded. This object is neither a neutral Part accepted
+from callers nor a compressor source. All other pressure fields stay unchanged.
+
+The smallest arithmetic control below is 127 UTF-8 bytes in Chapter 10 canonical
+form. It measures a raw output array containing one opaque item, not an acceptable
+standalone foreground response. Adding one ASCII byte inside x raises it to 128;
+adding a duplicate text projection must fail equality rather than inflate pressure:
+
+```json
+{"messages":[{"parts":[{"raw_output":"[{\"x\":\"q\"}]","type":"responses_bundle"}],"role":"assistant"}],"system":"","tools":[]}
+```
+
+Full logs keep original receipts after a cut. Snapshot-only reconstruction returns
+history_unavailable for the removed bodies; rehydration makes no provider call.
+The retired record retains size/hash, identity, usage and retirement relation,
+without raw output or indexed part positions. For helpers, separately test fold A
+installing memory 12 and fold B retiring it to install 19. The snapshot retains
+19's text and both usage receipts, but no A raw response, submit argument text or
+memory-12 text or represented-output reference; its ID may remain in retirement
+metadata. An unusable helper likewise retains only compact metadata.
+Test full-log, latest-checkpoint and snapshot-tail equality for both helper folds
+and for a suppressed foreground terminal result, including rejection of a second
+slot settlement. Hash checks must not make absent bodies available again.
 
 The following complete offline terminal response is a fixture. Its JSON is one
 line, without LF; fictionally named identities must never be sent as live models:
@@ -1082,6 +1253,32 @@ argument text does not satisfy exact reconstruction. Repeat with duplicate argum
 members, structural duplicate capsule fields, missing result and wrong call_id.
 Use restart with a same-named different registration as a negative control.
 
+For a separate codec fixture, accept exactly resp-1 above at admission 6/response 7,
+pair its one call, and retire it through an authorized handoff at sequence 50.
+Before retirement its retained record has raw equal to the printed terminal
+string and refs equal to the printed list. Afterward the exact capsule row is:
+
+```json
+{"state":"retired","admission":6,"response":7,"bytes":760,"sha256":"80846537828a37f4f1ad91005e9245cc918253c0c475188454aec7630f9380c5","retired_by":50}
+```
+
+The base metadata reference remains exactly {capsule:{admission:6,response:7}};
+its represented parts and call/result indexes are gone. The matching receipt's
+raw_usage becomes {source:"inline",raw:STRING}, where STRING is the exact usage
+object span from resp-1. Removing retired_by, keeping raw/refs, retaining a part
+index, or changing either sequence refuses snapshot validation. Full-log replay
+can still read the original receipt; this snapshot alone cannot.
+
+For suppressed usage, start foreground admission 60 with no previously accepted
+response in that turn. Accept its complete valid terminal usage immediately before
+cancellation settlement. Exactly one model_usage_recorded closes slot 60, the
+pending human is discarded, and turn_ended completes canceled. The snapshot has
+one suppressed inline usage receipt, no capsule for 60 and no pending response
+slot. With an earlier accepted response in the same turn, repeat and verify that
+its dialogue remains. Inject a second model_usage_recorded, response_ended or
+error_occurred for slot 60: each must refuse. Compare both cases through full-log,
+checkpoint and tail restoration, then prove a fresh human turn can run.
+
 ### Streaming helpers still need an honest limit
 
 Responses uses Chapter 6's SSE framing, finite queues, operation identity and
@@ -1097,8 +1294,9 @@ value. Do not emit that snapshot again as duplicate visible text.
 Require response.completed with response.status completed, error and
 incomplete_details null, nonempty producing model and valid final usage. Incomplete,
 failed, error, EOF without completion or conflicting terminal output fails safely.
-Known call async must be absent/false, and caller absent/null or direct; a
-program caller or asynchronous execution request refuses unsupported_response_item.
+Known call async must be absent/false. Caller must be absent, null, or exactly
+{"type":"direct"}; a bare "direct" string is invalid. A program caller or an
+asynchronous execution request refuses unsupported_response_item.
 No partial call executes; no usage is invented. A completed response with an
 unusable submit_memory or judge verdict still records accepted usage once.
 Input 150, writes 20, reads 30 normalizes to input 100/write 20/read 30; output
@@ -1204,8 +1402,8 @@ cache worked; the model is another consumer of the instrument.
 | Policy causality | H/S/P, opaque, duplicate candidates and all purpose renderers; a marker after a transient prefix fails |
 | Accounting | Mixed producing identities, accepted unusable helper and failed stream; current-model repricing/double counting fail |
 | Arithmetic | Exact rationals, zero denominator, uint64 browser round trip, overflow and partial price completeness |
-| Public clients | Human inspection, two-Agent public consumer and real browser reconnect; stale mount/shared totals fail |
-| Persistence | All six base profiles, strict v7 initializer/codec, old-route equality, retirement, exact capsule/helper replay and no-call reconstruction |
+| Public clients | Human inspection, two-Agent consumer, opaque IDs, current profile/table date and browser reconnect; stale mount/shared totals fail |
+| Persistence | Six base profiles, strict v7 codec and old-route equality; whole-bundle authorized handoff, retired/helper snapshot omission, suppressed-slot settlement and honest unavailable reconstruction |
 | Credentials and cancellation | Protected restart binding; wrong-name reuse, lock contention, isolated refresh waiters, invalidation/dispatch/settlement barriers and no fallback |
 | Responses | Literal ordered item/phase/argument/result fixtures; foreign namespace refusal, unknown item retention, final usage and stopped effects |
 | Helper bounds | Exact 8,192/8,193 decoded entity bytes, terminal duplication, missing completion, invalid verdict versus invalid response, and successful actual plan helpers |
