@@ -261,3 +261,39 @@ words are within the soft length range; the 4,795-word person-gap warning remain
 an editorial observation, not grounds to invent another story. The chapter keeps
 concrete listening/control consequences throughout. Review lint and scoped staged
 whitespace checks pass; no compiler was acquired.
+
+## Grouped closure: 5b75636
+
+Independent review accepts the complete proposed Chapter 18 contract at
+`5b756364f55eb89f3e4d6c2e2edbb615899c8bc6`. Read the entire four-file grouped
+author diff and relevant surrounding control, projection and live-plan clauses.
+No implementation or live acceptance is implied.
+
+All three findings close. The GUI now prints exact inspected/applied/unchanged
+command acknowledgments, its inherited safe error envelope, and the new
+summary_status_changed observation. Settings revision and watch revision remain
+distinct. Inspection/no-op captures a coherent watermark without making a fact;
+an applied summary/profile change publishes its safe status before its update
+acknowledgment on an intact subscription. Other viewers and reconnect recover the
+same state; lost replies do not authorize an old command replay.
+
+The CLI/GUI live rows keep their read handler throughout each existing session.
+No-call prompts use one-response bounds and preserve unexpected calls or lost
+interrupt races honestly. Already-fresh public/native Agents can select empty
+handlers at construction. The 12+12+6 allocation is unchanged, with no retry or
+new visibility feature. Canary checks now cover safe observation/watch/display/
+speech surfaces while deliberate owned raw exports retain exact replay material.
+
+Independent checks parsed all 28 JSON/JSONL values and verified exact GUI keys,
+status values, distinct settings/watch revisions, observation-before-ack order,
+no-op equality and the stale-revision error. All four author files matched the
+freeze. The existing linter passes manuscript hard rules at 5,317 prose words;
+the 5,209-word person-gap warning remains an editorial limitation, with no invented
+anecdote added. Earlier accepted fixture/ownership/story findings remain intact.
+Scoped review lint and whitespace verification pass. No build, credentials,
+provider call or student source edit occurred.
+
+The accepted Chapter 17 source, new independent Chapter 18 checker invocation,
+fresh student implementation, deterministic controls and actual bounded feature
+demonstrations remain separate release gates. This closes prose/contract review
+only and introduces no further design request.

@@ -205,3 +205,13 @@ adds concrete observations rather than padding. The paragraph endings and
 reader-facing save/refusal explanations retain varied consequences. No new
 structural/teaching blocker was found beyond the two narrow corrections above;
 final quality-source validation and student confirmation remain separate gates.
+
+### Attribution correction closure: 700434d
+
+Read the complete narrow diff at
+`700434de294a855d3f4db0a64ca8b9704e474d88`. The opener now says Bill reviewed
+the design, agreeing with the historical source while retaining his exact
+quotation and the default-load consequence. This closes the participation
+attribution finding. Chapter hard lint still passes. Q4's final prose disposition
+and corrected-source evidence remain pending; the initial live source association
+is unchanged.
