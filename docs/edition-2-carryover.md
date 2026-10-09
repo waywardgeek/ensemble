@@ -1,9 +1,10 @@
 # Edition 2 carryover: lessons for the fresh student
 
-**Draft for Bill's review, October 9, 2026.** Review this document together with
-[the workflow and learning record](agentic-codebook-workflow.md) before any new
-coder starts. This is preparation from the available first edition, not an
-approved assignment, a new chapter, or an implementation design.
+**Student run authorized by Bill, October 9, 2026.** Bill reviewed this carryover
+with [the workflow and learning record](agentic-codebook-workflow.md), refined the
+rules and explicitly authorized autonomous work. Use it with the original chapter;
+it is not a replacement assignment, new chapter or implementation design.
+Unresolved source contradictions remain identified below for resolution when relevant.
 
 Read this alongside the mandatory
 [`.agents/skills/ensemble-coding/SKILL.md`](../.agents/skills/ensemble-coding/SKILL.md)

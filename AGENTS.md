@@ -62,9 +62,9 @@ Before the student run, a reviewer reads the entire available current edition
 and completes `docs/edition-2-carryover.md`; the coordinator checks the sourced
 lessons and recorded reading coverage. This is preparation, not chapter
 authorship or new feature design.
-Bill will review that carryover and `docs/agentic-codebook-workflow.md` with Codex
-before coding starts. Keep the coder stopped until that review is complete and
-Bill says to proceed. The workflow is the edition-level procedure; the old
+Bill reviewed the carryover and `docs/agentic-codebook-workflow.md` with Codex
+and explicitly authorized the fresh student run on October 9: "Please proceed
+autonomously." The preparation gate is satisfied. The workflow is the edition-level procedure; the old
 `book/chapter-writing-procedure.md` does not reinstate the retired workflow.
 The student reads that carryover alongside the mandatory skill and follows
 first-edition `book/chapter-NN.md`, in order from the unchanged Chapter 1.

@@ -1,11 +1,12 @@
 # Agentic codebook: edition workflow and learning record
 
-**Draft for Bill's review, October 9, 2026.** This is the edition-level procedure
-for building Edition 2. Review it together with the
-[carryover document](edition-2-carryover.md) before starting the new coder.
-The current work is preparation and manuscript review only. Bill and Codex will
-review both documents together; do not start Edition 2 coding before that review
-is complete and Bill says to proceed.
+**Student run authorized by Bill, October 9, 2026.** This is the edition-level
+procedure for building Edition 2, used with the
+[carryover document](edition-2-carryover.md). After reviewing and refining these
+instructions, Bill explicitly said "Please proceed autonomously." The fresh
+Chapter 1 student run has started; no author is active. Remaining source
+contradictions are still questions to resolve when relevant, not blanket approval
+of every proposed interpretation.
 
 These are the two review documents. The carryover answers “What did the previous
 edition teach us that the student should know?” This workflow answers “How do
@@ -22,8 +23,8 @@ instructions govern the overall sequence; using the chapter procedure does not
 restart authorship ahead of implementation.
 
 Bill's goal is to establish whether an agent can follow the book as a student,
-build an excellent AI coding agent framework from scratch, pass the original
-graders, and demonstrate the features through a usable interface with real
+build an excellent AI coding agent framework from scratch, satisfy the original
+graders or document reviewer-accepted exceptions, and demonstrate the features through a usable interface with real
 models. Autonomous completion and an improved implementation are outcomes to
 demonstrate, not claims established by the first attempt.
 
@@ -534,3 +535,12 @@ links and scope. It clarified the coder's fresh-context boundary, small
 save/load scope and the teaching-comment target. The carryover's remaining
 source contradictions are explicitly left for discussion with Bill; neither
 draft is marked approved.
+
+After that preparation review and subsequent corrections, Bill authorized
+autonomous implementation on October 9. The fresh coder is
+`student_restart_ch01`, started with only the permitted reading list and no
+inherited conversation or old solution. Its working tree is
+`solutions/edition-2/main/`; its review goes in `docs/edition-2-notes/ch01.md`.
+Initial review is pending (zero revision rounds used). This records the start,
+not chapter acceptance. Preserve small resumable checkpoints if a usage limit
+interrupts work; never label unfinished work an accepted chapter.
