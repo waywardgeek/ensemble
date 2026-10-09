@@ -1,41 +1,32 @@
-# Ensemble coding instructions
+# Ensemble student restart
 
-Before writing or editing code for Ensemble, its chapter solutions, tests, or
-graders, read the entire repository skill:
+Bill retired the author-driven second-edition attempt. Its history is preserved
+at `edition-2-attempt-1-stopped`; do not resume its agents or workflow. See
+`docs/edition-2-attempt-1.md` for the decision.
 
-`book/edition-2/skills/ensemble-coding/SKILL.md`
+Before coding and after compaction, read the entire skill:
+`.agents/skills/ensemble-coding/SKILL.md`. Every coding handoff must include
+that exact path. It replaces the deleted second-edition workflow skill.
 
-Loading this skill is mandatory for every coding task and after context
-compaction. Keep it in context while coding. Every delegated coding handoff
-must include that path and require the recipient to read it before editing;
-do not rely on automatic skill discovery or a remembered summary.
+The student follows first-edition `book/chapter-NN.md`, in order from Chapter 1,
+with Bill's architecture rules applied from the beginning. The retained
+`book/edition-2/chapter-01.md` supplies architecture teaching, not authority to
+expand the original exercise. There is no author agent. Use the original grader;
+record suspected grader defects and teaching gaps for future work rather than
+changing chapters or graders during the student attempt.
 
-The methodology applies from Chapter 1: star imports, core data and interfaces
-in `internal/common`, behavior in the responsible package using free functions
-when necessary, and interface back-pointers providing access to owned data and
-logging. Chapter 1 must teach these rules before its first code example.
+Start from empty in `solutions/edition-2/main/` when coding resumes. The student
+must not read or copy `agent/`, first-edition answers, discarded second-edition
+answers, or their Git blobs to solve the exercise. Frozen exports are not working
+trees. Do not edit the first edition. Never reset history or move existing tags.
 
-For the second edition, read `book/edition-2/architecture.md` and the relevant
-chapter contract as well. Resolve architectural ambiguity before affected
-implementation. Historical solutions are evidence, not authority to reproduce
-the flaws the second edition is correcting. Do not rewrite unrelated legacy
-code merely because it differs from the new rules.
+After the student's implementation, original grading and live exercise, a code
+reviewer reads the new code and the matching first-edition solution. Review
+correctness, architecture, simplicity and explanatory comments. Return findings
+and rationale to the coder, not answer code. Do not add features or substitute
+reviewer preferences for the original exercise. The coder may improve its answer
+and rerun affected checks before the chapter checkpoint.
 
-Bill explicitly requires a fresh student rewrite in `solutions/edition-2/`.
-Do not edit existing `agent/` implementation or first-edition solutions.
-The authoritative source is `solutions/edition-2/main/`, tracked by this outer
-repository. Frozen `chNN/` directories are exact source exports, not independent
-working repositories. Extend the accepted preceding second-edition source;
-never copy the first-edition implementation. After each validated chapter,
-commit its source, manuscript, snapshot, and evidence together and create an
-immutable annotated `edition-2-chNN-rN` tag. Preserve initial attempts and use
-new revision tags for corrections; carry earlier fixes forward and revalidate.
-The original student repositories and staged Chapter 3 merge are preserved;
-see `solutions/edition-2/history/migration.json` and its README.
-Grader enhancements are allowed, but may not weaken coverage and must retain
-passing legacy tests. Record baseline failures before changes if encountered.
-
-Every chapter's "Taking it for a spin" requires actual user-facing runs with
-a real model, initially through the CLI, exercising all chapter features.
-Fake-server grading alone does not fulfill that requirement. Follow the
-skill's live-evidence and credential handling instructions.
+Feature creep and code bloat violate the task. Ask Bill about consequential
+ambiguity; coordinator preferences are not user requirements. In particular,
+pause is Agent-wide: an explicit unpause in any tab unpauses it for everyone.
