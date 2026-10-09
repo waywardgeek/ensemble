@@ -1,0 +1,106 @@
+#!/usr/bin/env python3
+"""Targeted byte-limit mutations, gated by an unchanged complete large-state positive receipt."""
+import argparse
+from datetime import datetime, timezone
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import tempfile
+
+from accept_ch10_lifecycle import bind, digest, save_receipt
+from accept_ch10_large_state import CASES, FIXTURES, HERE, MIN_FREE
+
+MUTATIONS = (
+    ('canonical-one-extra', 'const StateLimit = 256 << 20', 'const StateLimit = (256 << 20) + 1',
+     '^TestCh10LargeCanonicalState$', 'canonical state one-over limit accepted'),
+    ('physical-one-extra', 'const FileLimit = 512 << 20', 'const FileLimit = (512 << 20) + 1',
+     '^TestCh10LargePhysicalStateFiles$', 'physical state file one-over limit accepted'),
+)
+
+
+def validate_positive(positive, source, commit):
+    if not positive.get('complete') or not positive.get('passed') or positive['source_commit'] != commit:
+        raise ValueError('complete genuine positive required')
+    if positive['source_files'] != source:
+        raise ValueError('positive source identity changed')
+    for name, sha in positive['checker_files'].items():
+        if digest(HERE / name) != sha:
+            raise ValueError('positive checker identity changed: ' + name)
+    commands = [r['command'] for r in positive['checks'] if r.get('passed')]
+    for pattern in CASES.values():
+        if not any('-test.run=' + pattern in c for c in commands):
+            raise ValueError('missing large positive case: ' + pattern)
+
+
+def evaluate(args):
+    source = args.source_directory.resolve(strict=True)
+    commit, source_files = bind(source, args.source_commit)
+    positive = json.loads(args.positive_receipt.read_text())
+    validate_positive(positive, source_files, commit)
+    work = Path(tempfile.mkdtemp(prefix='ch10-large-mutations-'))
+    identities = {p.name:digest(p) for p in [Path(__file__).resolve(), HERE/'accept_ch10_lifecycle.py',
+                  HERE/'accept_ch10_large_state.py', *(HERE/p for p in FIXTURES)]}
+    result = dict(source_commit=commit, source_files=source_files, checker_files=identities,
+                  positive_receipt=str(args.positive_receipt), positive_receipt_sha256=digest(args.positive_receipt),
+                  work_directory=str(work), checks=[], complete=False, passed=False, full_chapter_acceptance=False)
+    def save():
+        save_receipt(args.receipt,result)
+    def run(command, expected=None):
+        row = dict(command=command,started_utc=datetime.now(timezone.utc).isoformat(),
+                   disk_free_before=shutil.disk_usage(work).free,complete=False)
+        result['checks'].append(row)
+        if expected and row['disk_free_before'] < MIN_FREE:
+            row.update(resource_refusal=True,required_free_bytes=MIN_FREE,passed=False)
+            save(); return False
+        env=dict(os.environ,GOMEMLIMIT='1GiB',GOGC='25',TMPDIR=str(work))
+        row['environment_overrides']={k:env[k] for k in ('GOMEMLIMIT','GOGC','TMPDIR')}
+        save()
+        try:
+            p=subprocess.run(command,cwd=source,env=env,text=True,capture_output=True,timeout=600)
+            row.update(exit=p.returncode,stdout=p.stdout,stderr=p.stderr,complete=True)
+            row['passed']=(p.returncode != 0 and expected in p.stdout and '--- FAIL: TestCh10Large' in p.stdout
+                           and 'panic: test timed out' not in p.stdout) if expected else p.returncode==0
+        except subprocess.TimeoutExpired as exc:
+            def text(x):
+                return x.decode(errors='replace') if isinstance(x,bytes) else x
+            row.update(timeout=True,passed=False,stdout=text(exc.stdout),stderr=text(exc.stderr))
+        finally:
+            row.update(finished_utc=datetime.now(timezone.utc).isoformat(),disk_free_after=shutil.disk_usage(work).free)
+            save()
+        return row['passed']
+    save()
+    good=True
+    original=source/'internal/persistence/json.go'
+    for name,old,new,pattern,expected in MUTATIONS:
+        text=original.read_text()
+        if text.count(old)!=1:
+            raise ValueError('nonunique mutation anchor')
+        changed=work/(name+'.go');changed.write_text(text.replace(old,new,1))
+        replacements={str(original):str(changed)}
+        for fixture in FIXTURES:
+            local=work/fixture;local.write_bytes((HERE/fixture).read_bytes())
+            destination=source/fixture.replace('-','_')
+            if destination.exists(): raise ValueError('fixture overlay collision')
+            replacements[str(destination)]=str(local)
+        overlay=work/(name+'.json');overlay.write_text(json.dumps({'Replace':replacements}))
+        binary=work/(name+'.test')
+        result.setdefault('mutations',[]).append(dict(name=name,original_sha256=digest(original),changed_sha256=digest(changed),old=old,new=new))
+        if not run(['go','test','-c','-overlay',str(overlay),'-o',str(binary),'.']):
+            good=False;break
+        result['mutations'][-1]['binary_sha256']=digest(binary);save()
+        if not run(['/usr/bin/time','-l',str(binary),'-test.v','-test.timeout=8m','-test.run='+pattern],expected):
+            good=False;break
+    if bind(source,commit)[1]!=source_files or identities!={name:digest(HERE/name) for name in identities}:
+        raise ValueError('source/checker identity changed')
+    result.update(complete=True,passed=good);save()
+    return good
+
+if __name__=='__main__':
+    p=argparse.ArgumentParser(description=__doc__)
+    p.add_argument('source_directory',type=Path)
+    p.add_argument('--source-commit',required=True)
+    p.add_argument('--positive-receipt',type=Path,required=True)
+    p.add_argument('--receipt',type=Path,required=True)
+    raise SystemExit(0 if evaluate(p.parse_args()) else 1)
