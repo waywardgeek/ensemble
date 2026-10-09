@@ -571,5 +571,13 @@ missing contracts from the grader autonomously. The exact sourced erratum is in
 `docs/edition-2-notes/ch02.md`; Chapter 2 resumes from the accepted Chapter 1 tree.
 The unchanged first-edition reference baseline scores 100/100. At this handoff
 the student has not implemented, been graded or used a revision round for Chapter 2.
+The student subsequently submitted Chapter 2: actual original grader 92/100 FAIL,
+live CLI recall on all three providers, live ephemera, nine deterministic
+source/target replay pairs and targeted mutation evidence. The reviewer justified
+the Ref media scope exception but found one current-scope Anthropic result/text
+ordering defect. Initial review is in `docs/edition-2-notes/ch02-code-review.md`.
+Revision round 1 is assigned to `student_restart_ch02`; Chapter 2 is not yet
+accepted or snapshotted. Preserve the failed result and carry any ultimately
+accepted media exception through inherited parity until blobs are introduced.
 Preserve small resumable checkpoints if a usage limit interrupts work;
 never label unfinished work an accepted chapter.
