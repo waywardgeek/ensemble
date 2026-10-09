@@ -269,6 +269,11 @@ and sanitized test observations rather than building a new evidence system.
 Bound live runs and retries, clean up large generated test data, and never put
 credentials in the records. Do not repeat unchanged successful checks without a
 reason; investigate persistent failures instead of spending indefinitely.
+Bill authorizes live-test keys in `~/.cr/settings.json`. Every live-testing handoff
+includes the [coding skill's credential procedure](../.agents/skills/ensemble-coding/SKILL.md):
+parse locally, pass only needed credentials without printing them, and prevent
+settings or request logging from exposing them. Do not copy this private file
+into student source or evidence.
 CodeRhapsody reports interference between concurrent graders; run the original
 graders sequentially unless their isolation is established. Check what their
 commands actually executed. Inspect the staged diff and commit only owned paths;

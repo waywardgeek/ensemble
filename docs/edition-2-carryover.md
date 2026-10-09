@@ -48,6 +48,15 @@ recording corrections and new results explicitly.
 
 ## From the first line: restraint, ownership and evidence
 
+**Live-test credentials.** Bill has authorized the provider API keys in
+`~/.cr/settings.json`. Parse that file locally in the launcher/application and
+pass only the needed key in memory or the intended test child's environment;
+never print the file, extract values into tool output or interpolate them into
+shell commands. Keep settings, auth headers and keys out of logs, prompts and
+committed evidence. The [coding skill](../.agents/skills/ensemble-coding/SKILL.md)
+contains the access procedure, including safe schema discovery and logging checks.
+This path is Bill's local test setup, not a required Ensemble user configuration.
+
 **Keep reasons, not just mechanisms.** Chapter 0's failed reconstruction and the
 [epilogue](../book/epilogue.md) explain why code alone did not transfer Bill's
 judgment: a plausible alternative can recreate a failure whose reason was lost.

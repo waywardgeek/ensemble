@@ -85,9 +85,24 @@ models rather than trusting remembered names. Human chat must be usable; grader
 protocol input alone is not a human-interface demonstration.
 
 Bill authorized keys in `~/.cr/settings.json` for live tests. Read needed values
-programmatically without printing them. Keep secrets in memory or child
-environments, never command arguments, source, logs or committed files. Report
-live access failures accurately; fake-server success does not prove live use.
+programmatically without printing them:
+
+- Parse the JSON inside the test launcher or application process. If the schema
+  is unfamiliar, inspect the settings loader or emit field names/types only,
+  never values. Do not use `cat`, a raw `jq` extraction or a file-reading tool
+  that returns the credentials to the conversation.
+- Select only the needed provider's key. Keep it in memory or set the intended
+  test child's environment programmatically. Do not interpolate it into shell
+  commands or command-line arguments, and do not enable shell tracing (`set -x`).
+- Do not dump settings, environments, authorization headers or credential-bearing
+  URLs. Check request/error logging before a live run; redact before output is
+  emitted or saved, not after it reaches the tool transcript. Print only safe
+  status such as provider name, credential present/missing and test outcome.
+- Do not copy the settings file or keys into the repository, fixtures, prompts,
+  snapshots or evidence. Keep credentials out of unrelated tool subprocesses.
+  Document field names and loading steps, never real values.
+
+Report live access failures accurately; fake-server success does not prove live use.
 
 Leave one concise student review per chapter: source/chapter version, what was
 built, actual grader/live results, ambiguities, defects, assistance and suggested
