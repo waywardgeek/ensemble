@@ -7,8 +7,9 @@ whose request evidence, provider observations and cost estimates remain distinct
 October 8, 2026. A [partial manuscript](chapter-17.md) now develops the independent
 diagnostic, marker, arithmetic and public-display teaching under the coordinator's
 working decisions at `e9d78da`. It is not a complete student contract or an
-implementation release. Route/output-cap choice D6, complete strict v7/interface
-schemas, capability/rate selection and the acceptance command remain unfinished.
+implementation release. Bill resolved the output-cap preference at `706682c`;
+the integration proposal below, complete strict v7/interface schemas,
+capability/rate selection and acceptance command still require completion.
 The [validation record](chapter-17-validation.md) owns current gates. Historical
 and current primary sources are recorded in [the evidence ledger](chapter-17-evidence.md).
 
@@ -204,7 +205,7 @@ Do not imply that reported cache tokens reveal how a subscription was billed.
 Choose the initial price-source/table scope during review; no speculative rates
 or API-versus-plan dollar comparison is settled here.
 
-### D6. Supported subscription experiment and surface scope
+### D6. Original subscription proposal, superseded below
 
 The current official route research is material to Bill's requested OAuth cache
 retest. It points to a Responses flow with application-specific authorization,
@@ -269,9 +270,11 @@ Actual spin, comparative review, student feedback and final prose remain pending
 
 ## Partial drafting disposition, October 8
 
-The coordinator accepted D1–D5/D7 direction at `e9d78da`; D6 remains a real
-question for Bill. The partial manuscript follows those choices without assuming
-an answer, releasing a student or claiming predecessor runtime acceptance.
+At the `b9772c3` partial-draft boundary, the coordinator had accepted D1–D5/D7
+direction at `e9d78da` and D6 still awaited Bill. That historical draft assumed
+no answer and released no student. The decision and integration proposal below
+supersede that unresolved preference; predecessor runtime acceptance remains
+a separate gate.
 
 - D1: §17.2 specifies the selected 48 MiB retained-body cap plus separate
   auxiliary work, export, metadata and wire bounds. Busy/oversize observations
@@ -304,7 +307,185 @@ reusing unverified invoice amounts, claimed savings or original live percentages
 The illustrative manual/hint/read/handoff exercise is still a plan; it contains
 no manufactured exchange. Original historical chapters and code are unchanged.
 
-Next: coordinator/reviewer inspect this partial teaching, resolve D6, then complete
-the strict persistence/public grammar and actual capability/rate/live matrix before
-any Chapter 17 student handoff. Full draft proofreading and lint remain separate
-from scoped partial-draft checks recorded in evidence.
+The next step at that boundary was coordinator review and resolution of D6.
+The current next step is integration review below, followed by the complete
+persistence/public grammar and capability/rate/live matrix before student handoff.
+Full draft proofreading remains separate from scoped partial-draft lint.
+
+## Subscription integration proposal after Bill's decision
+
+October 8, 2026. Bill approved the explicitly selected uncapped subscription
+mode; `706682c` records that decision. The following integration choices are
+**proposals for coordinator review**, not further rulings attributed to him and
+not a released student contract. Preserve the original author's story/personality
+edits at `53ee8e7`; the mechanism below extends that manuscript.
+
+### Selection and ownership
+
+Add the Responses surface with explicit funding selection, `api_key` or
+`chatgpt_plan`. Existing API-key Messages, Chat Completions and Generate Content
+remain the defaults for their respective providers, with unchanged caps and
+delivery. Propose an explicitly selected API-key Responses path too, to permit
+the closest same-surface control. It remains capped. A comparison must disclose
+that residual difference rather than claiming identical requests. No route
+silently switches credentials, model, surface or funding when a request fails.
+
+Ensemble owns a Connections service in a new implementation spoke. Connections
+owns named Connection records; each Connection owns authorization, refresh work
+and short-lived credential leases. Common declares the value/parent interfaces.
+Agent owns the selected safe connection name and route configuration. Engine
+operations reach Connections through Engine → Agent → Ensemble, retaining their
+actual parent rather than an injected token supplier. The service never owns
+conversation state, usage or the diagnostic pair. GUI continues to be optional.
+
+Capture funding, surface, local connection generation and selected model for the
+turn, including its helpers. A configuration change applies to the next admitted
+turn; a separately admitted idle compression operation captures its own selection.
+Credential rotation is a lease revision, not a different account generation.
+Signing out or replacing the verified identity changes generation and invalidates
+new admission against the old one. Capture no access token, account identifier,
+client registration ID or credential path in an event, request body or snapshot.
+
+The public construction/configuration seam and human CLI expose login, connection
+listing, explicit selection, model discovery and sign-out. An active safe label
+and `ChatGPT plan; no per-response output cap` must be visible before paid work.
+Labels are local user-chosen names, never an email inferred from a token. Reopening
+a session requires an explicit local binding for its safe route name; it does not
+restore credentials from the snapshot or opportunistically select another account.
+
+### Own-application authorization and leases
+
+Follow the current [registration guide](https://developers.openai.com/siwc/token-sharing-open-source/sign-in):
+own application identity and host registration, loopback listener established
+before browser launch, fresh state/nonce and S256 PKCE, returned client identity
+validation, code exchange and verified ID-token claims. Check granted plan scope
+before enabling plan inference. Never import another application's registration
+or tokens. The chapter will print the exact endpoint/parameter fixtures and
+callback refusal cases, without putting secrets in command arguments.
+
+Propose a user-selected private credential directory outside the repository,
+with owner-only directory/files and atomic replacement. Reject symlink traversal
+and unsafe permissions. Keep separate records by verified registration/identity.
+One Ensemble holds an exclusive process lease on a mounted credential store;
+other processes get `connection_store_in_use`, while its own Agents may share a
+Connection. This deliberately modest rule makes refresh-token rotation serial
+across processes without building a credential broker. The selected store path
+is creation-only application configuration, never Agent configuration.
+
+Before request admission, a cancellable lease acquisition refreshes near expiry
+through the Connection's one refresh worker. Atomic persistence of replacements
+precedes issuing new leases. Failed or uncertain renewal refuses new admission;
+it does not resend a model request or fall back to an API key. Lease waiting counts
+against the caller's existing deadline. Use finite auth-network timeouts and bound
+the browser authorization wait. The final contract must print those local limits
+and state how returned expiry metadata is validated; undocumented interpretation
+of `earliest_refresh_at` is not assumed from its name.
+
+Agent close cancels/releases its own operations, not another Agent's credential
+access. Ensemble close stops admission, joins refresh/lease work and releases the
+store lock without revoking the registration. Explicit sign-out first prevents new
+leases and cancels users of that Connection, then attempts documented revocation
+and clears local tokens. Report unconfirmed remote revocation accurately. These
+lifetimes follow the [accounts/session guidance](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions)
+but the owner hierarchy and exclusive store lease are application design choices.
+
+### Requests, history and effects
+
+Use account-specific model discovery and the public `/v1/responses` route with
+`store:false`, `stream:true` and the complete input array. Select a discovered
+slug; discovery does not prove every content/tool capability. The plan route
+omits `max_output_tokens`, server-side conversation/previous-response state and
+other unsupported controls. Its documented constraints are in
+[models and inference](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference)
+and [preview limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations).
+
+Map the primary instruction to a developer input message. Preserve the inherited
+ordered projection of human input, hints, manuals, recall and tool results; none
+becomes developer authority. Declare the currently visible ordinary functions in
+one `ensemble` namespace, retaining each local name and schema with explicit
+non-strict schema mode. No hosted MCP, hosted shell or alternative tool executor
+is introduced. A function call must name that namespace and the existing visible
+function. Results use its exact call_id. Unknown names still receive the taught
+controlled tool error; a foreign namespace cannot be stripped into authority.
+Compressor functions use a separate `memory` namespace containing only submit_memory.
+
+Preserve exact function.arguments string bytes, including whitespace and controlled
+invalid/duplicate argument text under Chapter 10. Introduce a **new** v7 replay-item
+capsule, not a second meaning for text.opaque. Each accepted Responses output item
+is stored once with its raw item JSON, producing provenance and ordered references
+to its neutral display/call projections. A message preserves phase, all content
+positions, annotations and empty text; a call preserves namespace, item ID,
+call_id and arguments; encrypted reasoning remains opaque. Validate that those
+projections exactly correspond before durable acceptance. Public/browser copies
+contain only the existing safe projection. Retirement removes capsules with their
+source; helper capsules never enter the foreground conversation.
+
+Reconstruction sends retained item envelopes in order, then the corresponding
+function results. It does not rebuild an assistant item from concatenated text or
+substitute a newly generated call ID. A bound item requires compatible exact
+producing model/surface provenance. Funding mode is captured for accounting and
+diagnostic separation; cross-connection opaque reuse is conservatively refused
+unless explicitly established and taught. Ordinary cross-provider projection
+keeps the earlier rules, and unknown opaque material cannot silently disappear.
+The final chapter must print the capsule grammar, correspondence fixtures and
+retirement/snapshot rules before any implementation.
+
+Typed SSE events use the existing Engine-owned operation and Actor acceptance
+boundary. Index fragments by operation/output item/content index; no tool executes
+from a partial call. Preserve complete reasoning and assistant phase in the final
+accepted item sequence. A completed item or TCP EOF is insufficient: require a
+consistent terminal response.completed with valid usage. Failed/incomplete terminal
+events, cancellation or missing completion settle without invented successful
+usage or tool effects. A valid accepted helper can still fail its result grammar.
+Keep inherited frame/aggregate/queue bounds and responsive cancellation, including
+the terminal response's bytes; no complete-response exception permits unbounded
+allocation. Distinguish accepted provider response from completed user task.
+
+### Per-purpose differences and accounting
+
+| Purpose | Existing API-key path | Selected ChatGPT plan path |
+|---|---|---|
+| Foreground | Existing captured output cap and delivery | Responses stream; remote output cap absent |
+| Compression | Captured adapter/delivery; output cap clamped to 8,192 | Responses stream; remote output cap absent; same one-call submit_memory validation and no tool execution |
+| Recall judge | Plain delivery; exactly 256 requested output tokens | Responses stream; remote output cap absent; same no-tool strict verdict validation |
+
+Compression retains its 2 MiB request, 8 MiB received aggregate, 120-second
+operation, per-attempt deadline and finite helper/request counts. Judge retains
+its 262,144-byte request, 8,192-byte received limit and 15-second operation.
+For its plan route the received limit counts the entire actual SSE stream,
+including repeated terminal material and usage frames, not merely visible text.
+Exceeding it is a local refusal with unknown usage under inherited fallback rules.
+No larger limit or plain-delivery fallback is inferred to obtain a successful
+verdict. Timeouts and cancellation cannot promise the remote service stopped
+generating at an equivalent token or charge boundary.
+
+Propose the explicit API-key Responses control uses the same item/tool projection,
+store:false and streaming, with the existing applicable cap sent as max_output_tokens.
+It does not change the legacy plain Chat Completions judge. Capture each choice
+before rendering in the new capability; never encode absent plan caps as zero or
+pretend a recorded legacy max_tokens was enforced. v1–v6 remain exact. The strict
+v7 grammar must describe capability composition without automatically enabling
+memory or recall, and include each purpose's route/funding/delivery/cap mode.
+
+Normalize Responses accepted input into ordinary input, cache writes and cache
+reads from its inclusive input total; validate the subtraction. Output includes
+reported reasoning tokens, so do not add them again. Preserve terminal raw usage.
+API-key prices remain dated estimates of accepted usage. Plan usage shows counts
+and incomplete attempts; any API-rate equivalent is separately labeled and never
+displayed as a subscription charge or zero cost. The selected route's errors stop
+inference without automatic paid retry or credential fallback. Credentials stay
+private; safe status/code/request-ID diagnostics must not echo arbitrary error
+bodies into logs.
+
+### Before student release
+
+Coordinator review is needed for the added API-key Responses control, owner/store
+lease choices, per-turn funding capture and replay capsule. Then publish exact
+authorization/admission fixtures; tool/item/SSE/usage fixtures; all strict v7 and
+public-command schemas; byte/deadline/lifetime checks; old-route equality controls;
+and a finite live matrix. The matrix must include foreground tool continuation,
+compression, judge, expiry/renewal local controls, two-Agent connection isolation,
+actual own-app consent and the requested cache investigation. Account availability
+or an unsupported capability may leave that real gate open; a separate probe
+does not complete Ensemble integration. No authorization or provider run occurred
+while preparing this proposal.

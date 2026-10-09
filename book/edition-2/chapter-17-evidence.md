@@ -222,3 +222,60 @@ Chapter 10's strict/admitted-byte/standalone/limit rules and sent grouped judgme
 about the retained standalone duplicate-skill-argument and argument-string replay
 regressions. No Chapter 9/10 teaching was changed in this phase. Those runtime
 failures and fixes belong to their own gate, not Chapter 17 evidence.
+
+## Subscription integration research after the decision
+
+October 8, 2026. Bill accepted explicitly selected subscription use without a
+per-response output-token cap; the coordinator records the decision at `706682c`.
+The author reloaded the full voice/procedure, architecture, current partial
+chapter, validation decisions and preparation advisory. Focused predecessor reads
+covered Chapter 15's compression config, grammar and bounds and Chapter 16's
+plain judge, fixed cap, response-byte bound and accepted-usage distinction.
+
+Inspected `53ee8e7` and the current manuscript before editing. Its warmer story
+pass is intentional editorial input from the original first-edition author, as
+Bill confirmed. This proposal preserves that input rather than restoring the
+earlier partial manuscript or claiming authorship of those enhancements.
+
+Read the complete OpenAI Docs skill. Official-domain search was followed by
+opened primary HTML pages and focused body reads. The Responses create reference
+exceeded the browser tool's response-size limit; its official Markdown endpoint
+was then read directly through an unauthenticated, bounded-time HTTP retrieval.
+The web tool also refused Markdown content type for two smaller pages; their
+HTML bodies and, where necessary, directly retrieved official Markdown supplied
+the actual text. No search snippet alone establishes the proposed wire contract.
+
+| Primary source, accessed October 8 | Verified contribution and limit |
+|---|---|
+| [Registration/sign-in](https://developers.openai.com/siwc/token-sharing-open-source/sign-in) | Own public-client registration, loopback callback, state/nonce/PKCE, issued client ID, code exchange, identity validation and granted plan scope. Documentation is not proof of this application's entitlement. |
+| [Accounts and sessions](https://developers.openai.com/siwc/token-sharing-open-source/profiles-and-sessions) | Distinct registration/identity records, replacement refresh tokens, serialized refresh and revocation. Does not dictate the proposed Ensemble owner hierarchy or exclusive mounted-store lease. |
+| [Token reference](https://developers.openai.com/siwc/token-sharing-open-source/token-reference) | Token response fields and expiry/rotation. The retrieved Markdown names earliest_refresh_at without defining enough semantics for a new scheduling rule; the outline explicitly avoids inferring one. |
+| [Models and inference](https://developers.openai.com/siwc/token-sharing-open-source/models-and-inference) | Selected-account model discovery, public Responses route, store:false, stream:true and terminal completion. No discovered live model list or inference was obtained. |
+| [Preview limitations](https://developers.openai.com/siwc/token-sharing-open-source/preview-limitations) | Full supplied history, developer/instructions route, namespace function placement and excluded request controls including output cap. These restrictions motivate explicit per-purpose changes. |
+| [Errors/recovery](https://developers.openai.com/siwc/token-sharing-open-source/errors-and-recovery) | Missing grants and routing/usage restrictions require visible dispositions; no silent billing fallback. The outline's no automatic paid retry is a conservative application policy. |
+| [Tools guide](https://developers.openai.com/api/docs/guides/tools) | Actual namespace declaration envelope and nested function schemas. The proposed local namespaces do not authorize hosted tools or tool search. |
+| [Function calling](https://developers.openai.com/api/docs/guides/function-calling) | Function call identity, arguments string and call_id-linked output; accepted output is carried into continuation. Earlier first/last-key argument handling is not imported from SDK examples. |
+| [Responses create reference](https://developers.openai.com/api/reference/resources/responses/methods/create) | Function namespace, input/output item fields, assistant phase, inclusive input/cached/write usage and reasoning output detail; exact item/capsule fixtures still need publication. |
+| [Reasoning](https://developers.openai.com/api/docs/guides/reasoning) | Stateless encrypted reasoning continuation and preservation of returned items. No hidden reasoning text is inferred or exposed. |
+| [Streaming Responses](https://developers.openai.com/api/docs/guides/streaming-responses) | Typed item/content/text/argument events and terminal response outcomes. Existing actor acceptance and local bounds must apply to the new adapter. |
+
+The prior guide/reference disagreement about cache lookup windows remains
+attributed in §17.4. This research does not reconcile it by choosing the larger
+number, establish plan-route marker availability, or infer a cache hit from the
+published schema. No live price table was selected.
+
+The integration proposal in the outline separates Bill's cap preference from
+coordinator choices still under review: adding a capped API-key Responses control,
+Connections ownership, a mounted credential-store lease, per-turn funding capture
+and an explicit replay-item capsule. Chapter §17.8 now reflects the resolved
+preference while staying partial. No full contract/student release follows.
+
+No code, build, credential access, browser login, inference or provider probe was
+performed. No chapter outside the three owned Chapter 17 author files was changed.
+Scope remains manuscript/outline/evidence; the coordinator owns the gate record.
+
+Ran the existing `edition2-lintprose` executable against the three owned files:
+all hard checks passed. The 4,337-word partial chapter retains soft negation and
+long-person-gap warnings; outline/evidence length warnings do not call for prose
+padding. Scoped `git diff --check` passed. These are partial-draft checks, not
+independent full-contract proofreading or runtime validation.

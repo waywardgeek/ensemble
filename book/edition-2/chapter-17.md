@@ -20,10 +20,11 @@ the cache usage the provider reported and the price estimated from accepted
 usage. Each has a different source of truth, and a developer who trusts only one
 of them will eventually be surprised by whichever two were ignored.
 
-*Partial draft, October 8, 2026. The subscription route and output-cap choice
-remain pending in the [validation record](chapter-17-validation.md). No live
-measurement or saving is claimed. Historical incidents are attributed in the
-[evidence ledger](chapter-17-evidence.md).*
+*Partial draft, October 8, 2026. Bill approved an explicitly selected subscription
+mode without a per-response output-token cap. Its integration contract is being
+reviewed in the [validation record](chapter-17-validation.md); this draft does not
+release implementation. No live measurement or saving is claimed. Historical
+incidents are attributed in the [evidence ledger](chapter-17-evidence.md).*
 
 ## Partial exercise summary
 
@@ -541,11 +542,19 @@ replacement A. This test catches a shared counter that a one-window demo misses.
 
 ## 17.8 The subscription route is a real design decision
 
-Bill's requested OAuth cache retest remains an open obligation. The coordinator
-has asked whether to offer an explicit plan mode without the inherited output
-cap or retain mandatory caps and leave that route pending. This draft assumes
-neither answer. API-key behavior and the existing helper ceilings remain intact,
-including the recall judge's plain delivery and fixed output limit.
+Bill approved an explicitly selected ChatGPT subscription mode without a
+per-response output-token cap. Its finite request counts, deadlines and usage
+reporting do not guarantee a remote token or charge ceiling. The existing
+API-key behavior remains capped, including the recall judge's plain delivery
+and fixed output limit. The selected plan route needs its own captured delivery
+and cap policy for foreground work, compression and judging.
+
+The supported integration proposal is recorded in the
+[outline](chapter-17-outline.md#subscription-integration-proposal-after-bills-decision).
+It is awaiting coordinator review before the complete wire and persistence
+contract replaces this partial section. The OAuth cache retest remains an open
+obligation; documentation alone cannot establish this application's access or
+measured cache behavior.
 
 The eventual section must specify the chosen surface, full-history request
 mapping, tool calls/results, opaque provenance, terminal acceptance and usage,
@@ -589,7 +598,7 @@ cache worked; the model is another consumer of the instrument.
 | Public clients | Human inspection, two-Agent public consumer and real browser reconnect; stale mount/shared totals fail |
 | Persistence | Exact old routes, fully specified new v7 route, retired-body absence and no-call reconstruction |
 
-The remaining route decision, complete strict schemas, live price/capability
+The remaining integration review, complete strict schemas, live price/capability
 selection, grader command, actual runs and independent review belong in the
 linked validation record. This partial draft establishes the independent teaching
 without claiming that those gates have been completed.
