@@ -24,20 +24,16 @@ purpose: no chapter count is fixed until a chapter is built.
 - 15. The World's Best Context Engineering, Before Breakfast
 - 16. Forgetting on Purpose
 - 17. Auto-Recall (BM25 + SLM relevance judge; design: auto-recall-design.md)
-
 - 18. Caching
 - 19. Leaving Anthropic for OpenAI
 - 20. The Crossover
 - 21. Web search/scrap
+- 22: Architectural Decay
+- 23: The Sandbox
 - Epilogue: What We Can Carry Forward (epilogue.md, by Astra running in Ensemble)
 
 ## Candidates (edition 2)
 
-- **Sandboxing** (decided: one chapter). Owed by the ch15 design, Part V:
-  identity-band write protection, the identity-write refusal check, the
-  compressor sandbox profile. Also the capability rule that sub-agents need
-  (a child may narrow, never widen), secrets that never enter context, and
-  the ch3 writeguard grown into a policy.
 - **Artifacts, deep dive.** Ch8 introduced the artifact; this goes further:
   renderers, addressable bytes, the content-addressed store that ch15 Q3
   needs, and sandboxed untrusted renderers.
@@ -54,6 +50,7 @@ purpose: no chapter count is fixed until a chapter is built.
 - **Self-wielding capstone.** The agent writes and grades a new chapter
   itself.
 - Ollama local support, asked for by multiple commenters on LinkedIn.
+- Message board for agents to collaborate.
 
 ## AI Native chapters already covered here
 
