@@ -1,0 +1,155 @@
+<style>
+    @page {
+      size: 6in 9in;
+      margin: 0.75in 0.5in 0.75in 0.5in;
+      @bottom-center {
+        content: counter(page);
+        font-family: Georgia, serif;
+        font-size: 9pt;
+        color: #666;
+      }
+    }
+    @page :first {
+      @bottom-center { content: none; }
+    }
+    body {
+      font-family: Georgia, serif;
+      font-size: 11pt;
+      line-height: 1.4;
+    }
+    h1 {
+      font-size: 16pt;
+      text-align: center;
+      margin-top: 3em;
+      margin-bottom: 1.5em;
+      page-break-before: always;
+      string-set: chapter-title content();
+    }
+    h2 {
+      font-size: 14pt;
+      margin-top: 2em;
+      page-break-after: avoid;
+    }
+    h3 {
+      font-size: 12pt;
+      margin-top: 1.5em;
+      page-break-after: avoid;
+    }
+    p {
+      margin: 0;
+      text-indent: 1.5em;
+    }
+    p:first-of-type, h1 + p, h2 + p, h3 + p, hr + p {
+      text-indent: 0;
+    }
+    table {
+      border-collapse: collapse;
+      margin: 1em auto;
+      font-size: 10pt;
+    }
+    th, td {
+      border: 1px solid #666;
+      padding: 4px 8px;
+    }
+    th {
+      background: #eee;
+    }
+    code {
+      font-family: Menlo, Monaco, Consolas, 'Lucida Console', monospace;
+      font-size: 9pt;
+      background: #f4f4f4;
+      padding: 1px 3px;
+    }
+    pre {
+      font-size: 9pt;
+      background: #f4f4f4;
+      padding: 8px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+    pre code {
+      background: none;
+      padding: 0;
+    }
+    blockquote {
+      margin: 1em 2em;
+      font-style: italic;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 0.5em;
+      margin-bottom: 0.5em;
+    }
+    li {
+      margin-bottom: 0.2em;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #999;
+      margin: 2em 0;
+    }
+    a {
+      color: #1a1a1a;
+      text-decoration: none;
+    }
+    .front-matter {
+      page-break-after: always;
+      padding-top: 4em;
+    }
+    .front-matter p {
+      text-indent: 0;
+      margin-bottom: 1em;
+    }
+    .fm-title {
+      font-size: 22pt;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 0.3em !important;
+    }
+    .fm-subtitle {
+      font-size: 14pt;
+      text-align: center;
+      font-style: italic;
+      margin-bottom: 2em !important;
+    }
+    .dedication {
+      page-break-after: always;
+      padding-top: 10em;
+      text-align: center;
+      font-style: italic;
+    }
+    .dedication p {
+      text-indent: 0;
+    }
+
+    /* TOC styling */
+    #TOC {
+      page-break-after: always;
+    }
+    #TOC ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    #TOC li {
+      margin-bottom: 0.3em;
+      text-indent: 0;
+    }
+    #TOC a {
+      text-decoration: none;
+      color: #1a1a1a;
+    }
+    #TOC a::after {
+      content: leader('.') target-counter(attr(href url), page);
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* Orphan/widow control */
+    p, h2, h3 {
+      orphans: 3;
+      widows: 3;
+    }
+</style>
