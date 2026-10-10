@@ -21,7 +21,10 @@ initial interpretation remain in the chapter notes and comparative review.
 Next is original Chapter 7, streaming, extending the accepted source in `main/`.
 Its coordinator preparation records missing launch/protocol facts and a reproduced
 original frozen baseline of **90/100 FAIL**, with the delivery-not-content check
-failing because both runs streamed. No Chapter 7 student result is claimed.
+failing because both runs streamed. Fresh student `student_restart_ch07` is
+assigned from accepted commit `8dc6dd8`; no Chapter 7 student result is claimed.
+Its handoff includes the original chapter, carryover, exact mandatory skill path
+and sourced protocol clarifications.
 No author is active. Consequential ambiguities still require resolution.
 
 These are the two review documents. The carryover answers “What did the previous
