@@ -30,6 +30,7 @@ purpose: no chapter count is fixed until a chapter is built.
 - 21. Web search/scrap
 - 22: Architectural Decay
 - 23: The Sandbox
+- 24: Freeing the GUI
 - Epilogue: What We Can Carry Forward (epilogue.md, by Astra running in Ensemble)
 
 ## Candidates (edition 2)
