@@ -290,3 +290,42 @@ history; report revised-grader results separately. Review and test any needed
 implementation corrections without overwriting frozen snapshots. Do not draft
 future chapters during the student run, replace exercises wholesale, or add
 features to justify prose. Keep KISS as the standard in this joint phase too.
+
+## Surviving an interrupted session
+
+Vendor APIs freeze, agents get restarted, and sessions die mid-stage. This has
+already happened during ensemble work. The cost of an interruption is decided
+entirely by choices made before it, so treat every stage as if the next request
+will never return.
+
+Commit each completed stage the moment it is green, with an explicit pathspec.
+The reason is that a commit is the only form of work that survives a freeze
+intact: a stage held as uncommitted edits plus an explanation in the
+conversation loses the explanation and keeps the edits, which is the worst of
+both. Pair the commit with a checkpoint at the same boundary, written from
+artifacts rather than memory, because reasoning regenerates and measurements
+rot. Pick the boundary when nothing is in flight; a checkpoint taken mid-edit
+records a plan whose other half no longer exists.
+
+Keep durable state in files, not in tool results. A plan, a stage list, a
+decision table or an open-questions list belongs in the design doc or the brief
+the moment it exists, because tool results are redacted from context on the next
+turn and vaporize completely on a restart, while a file survives both. This is
+why the ch24 stage plan lived in `docs/ch24-design.md` rather than in a reply.
+
+Do not park in a long blocking call during flaky vendor weather. A long
+watchdog or a blocking join converts a recoverable hiccup into a dead session
+that cannot be interrupted from outside, so prefer short waits in a loop where
+each iteration is a chance to notice and checkpoint.
+
+When resuming after any interruption, re-establish state from the repository
+before touching anything. Run `git log`, `git status` and look at the actual
+deliverable on disk. The reason is specific and was observed directly: after a
+freeze the conversation context describes the world as it was at the freeze and
+reads exactly as authoritative as it did before, while the tree may have moved
+many commits ahead, including commits from other agents working the same repo.
+A resumed context once reported a stage as pending whose work was already
+committed, finished and snapshotted. Acting on that would have redone completed
+work on top of newer commits. Memory files have the same failure mode and the
+same fix: believe the tree, not the narrative. If the two disagree, the tree is
+right and the narrative is stale, every time.
