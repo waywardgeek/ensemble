@@ -1,0 +1,5 @@
+{"log_version":1}
+{"seq":1,"type":"message_received","time":"2026-10-09T22:46:26.623523Z","message":{"actor":"human","parts":[{"type":"blob","mime":"image/png","ref":{"kind":1,"locator":"red.png"}}]}}
+{"seq":2,"type":"message_received","time":"2026-10-09T22:46:26.623548Z","message":{"actor":"human","parts":[{"type":"text","text":"What single color fills this image? Answer with that color only."}]}}
+{"seq":3,"type":"request_sent","time":"2026-10-09T22:46:26.623626Z","request":{"to":{"vendor":"openai","model":"gpt-5.4-mini","surface":"chat_completions"}}}
+{"seq":4,"type":"response_ended","time":"2026-10-09T22:46:28.803038Z","response":{"parts":[{"type":"text","text":"red"}],"usage":{"input":63,"cache_write":0,"cache_read":0,"output":4},"from":{"vendor":"openai","model":"gpt-5.4-mini-2026-03-17","surface":"chat_completions"}}}

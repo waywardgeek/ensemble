@@ -1,8 +1,14 @@
 # Chapter 6 comparative code review
 
+**Final verdict: accepted with documented exceptions after correction round 1
+(one of three rounds used).** Actual original grading remains **80/100 FAIL**.
+The two remaining corrections are resolved; the grouped-completion finding was
+withdrawn by Bill's scope ruling. The initial review and subsequent correction
+history are retained below.
+
 **Bill's subsequent ruling:** initial finding 1 (grouped completion) is withdrawn
 as a misleading chapter requirement. It must not cause implementation work or
-block acceptance. Findings 2 and 3 remain for correction round 1. Detailed
+block acceptance. Findings 2 and 3 were resolved in correction round 1. Detailed
 prose/grader correction directions are in `ch06.md`; the initial review below
 is preserved as history, not the current instruction for finding 1.
 
@@ -247,3 +253,54 @@ completion API. The initial finding is preserved above as review history; it
 must not be treated as an approved instruction to expand the exercise while
 Bill's scope decision is pending. The two unrelated test/comment corrections
 remain valid. No original chapter, grader or reference code was modified.
+
+## Correction round 1 reassessment
+
+Read the entire mandatory `.agents/skills/ensemble-coding/SKILL.md`, updated
+carryover and the latest student review before this decision. Bill's ruling
+controls scope: this chapter needs the sequential application with distinct peer
+Agents and reliable request completion, not grouped waiting or Agent-created
+sub-agents. My original finding gave the inconsistent coalescing prose too much
+weight. The reference/check cross-check should have accompanied that concern
+before requesting implementation; the precise future-author corrections in
+[the chapter notes](ch06.md) now preserve the resolved lesson. No grouped-wait
+implementation is needed for acceptance.
+
+The revised media test decodes the real rendered Gemini `contents[].parts[]`
+attachment, checks its exact `inlineData.mimeType`, and decodes its exact `data`
+field back to the local fixture bytes. It keeps the existing positive media and
+refusal cases. This is a small boundary assertion over the actual renderer, not
+a mock or new validation framework. The corrected `anthropicBlock.Input` comment
+accurately describes preserved tool-use JSON arguments for dispatch and replay.
+
+I independently ran the focused media race test: PASS. In a temporary copy,
+the original `mimeType` → `wrongMimeType` survivor now fails all four Gemini
+cases at the intended MIME assertion, exit 1, with no race, panic, compilation
+failure or unrelated cleanup problem. Inspected the complete
+[round 1 mutation output](../../solutions/edition-2/evidence/ch06/revision-1-mutations.txt):
+the separate `data` → `wrongData` mutation likewise fails the intended decoded-byte
+assertion. The original survivor remains a recorded coverage failure; the repair
+does not rewrite that result. Temporary copies were removed.
+
+The student's [round 1 checks](../../solutions/edition-2/evidence/ch06/revision-1-checks.txt)
+show empty formatting output, successful core vet and the full uncached core race
+suite. No executable production behavior changed, so the initial independent
+four-module checks, actual original grader result and retained three-provider
+live evidence remain applicable. No paid calls, full grader repeat or broad
+mutation sweep was needed for this reassessment.
+
+Under the initial counting method, the correction adds **24 active test lines,
+6 comment lines and 30 physical lines**. Final core tests are **1,601 active /
+145 comments / 1,801 physical**, a Chapter 5 delta of **+550 / +109 / +679**.
+Final combined tests are **1,834 / 172 / 2,069**, with chapter growth
+**+684 / +132 / +838**. All production/example counts remain unchanged, including
+combined production **3,554 / 877 / 4,703**. The initial table above remains the
+initial-submission comparison.
+
+Accept with the already justified logger-shape and text-only unknown-model
+grader exceptions, preserving the real **80/100 FAIL** and inherited URI/handle
+attachment deferral. Bill's withdrawal of the misleading grouped-wake requirement
+is an explicit scope ruling, not an unimplemented feature to carry forward as
+debt. The architecture, simpler single actor path, relevant tests, live behavior
+and teaching explanations support acceptance under the corrected chapter scope.
+No findings remain open; the coordinator may checkpoint and advance.

@@ -69,3 +69,16 @@ parity check's passing label. The separately built consumer proves real custom
 registration, execution and root logging on all three providers; the grader's
 generic tool-return check does not establish that capability. See `ch05.md` and
 `ch05-code-review.md` for the precise exceptions and comparative results.
+
+Chapter 6 was accepted after one correction round with scoped grader exceptions.
+Checkpoint: `edition-2-ch06-r3`; older r1/r2 tags remain. All 45 source/export
+files match; manifest SHA-256:
+`91e7bcbc3073911560b9f6d85ca35a0c93b47a0b634a5c40d23a8237959864b8`.
+Original grade is **80/100 FAIL**: inherited logger-shape parity and a text-only
+unknown-model probe are independently accepted exceptions. Local-path media is
+implemented; URI/handle attachments remain deferred by the chapter. Bill withdrew
+the misleading grouped-wake requirement before any implementation was added.
+Live interruption with continuing jobs, the three-role application and local
+image input are recorded alongside targeted mutations and four-module checks.
+The media test's original survivor and successful correction are preserved.
+See `ch06.md` and `ch06-code-review.md` for the final decision and prose fixes.

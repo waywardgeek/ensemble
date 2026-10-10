@@ -4,40 +4,25 @@
 procedure for building Edition 2, used with the
 [carryover document](edition-2-carryover.md). After reviewing and refining these
 instructions, Bill explicitly said "Please proceed autonomously." Student
-Chapters 1–5 are now accepted and checkpointed, with explicit grader exceptions
+Chapters 1–6 are now accepted and checkpointed, with explicit grader exceptions
 where recorded; no author is active. Remaining source
 contradictions are still questions to resolve when relevant, not blanket approval
 of every proposed interpretation.
 
-**Chapter 6 may proceed:** Bill resolved the interrupt-lifetime question: end the
-current turn so the user can start a new one; other jobs continue and retain their
-real results. See [the source conflict and ruling](edition-2-notes/ch06.md).
-Resume from accepted `edition-2-ch05-r2` under §6.7, preserving the Agent's lifetime.
-No author is active. Other consequential ambiguities still require resolution.
-The fresh student `student_restart_ch06` has submitted Chapter 6 from that
-checkpoint for independent review by `review_restart_ch01`. Initial review found
-three bounded corrections: coalesced completion delivery, an exact Gemini MIME
-field assertion, and one inaccurate comment. Correction round 1 of at most 3
-is now assigned to the student. The original frozen reference scores 100/100;
-the student reports 80/100 FAIL, with two documented exception requests.
+**Chapter 6 accepted after one correction round.** Checkpoint
+`edition-2-ch06-r3` preserves an exact 45-file source export. Original grading
+remains **80/100 FAIL** with independently accepted logger-shape and text-only
+unknown-model exceptions; URI/handle attachments remain expressly deferred.
 Four-module checks, targeted mutations and three-provider live demonstrations
-are recorded in the student review. The reviewer independently accepted the
-grader-exception rationale but withheld chapter acceptance for these findings.
-Missing exercise
-protocol facts are recorded under Bill's standing authorization.
+support acceptance. Bill withdrew the misleading grouped-wake requirement before
+any such code was added; explicit future prose/grader fixes and our mistaken
+initial interpretation remain in the chapter notes and comparative review.
 
-**Resolved stop point:** before editing for correction round 1, the student
-identified an externally observable ambiguity in §6.6's grouped-completion
-requirement: join an explicitly submitted set and return after both finish, or
-wake when any finishes and drain the completions ready at that instant. §6.8's
-`WaitAny` is a single-observation API and does not define a reliable grouped
-contract or a "same turn window" boundary. The coordinator paused the student
-and asked Bill to settle the behavior. Bill confirmed the requirement was misleading:
-no grouped-completion feature or sub-agent spawning belongs in this correction.
-The initial finding is withdrawn; round 1 resumes for the Gemini media-test
-assertion and inaccurate comment only. Specific deferred prose/grader fixes are
-recorded in the chapter notes. Preserve this review correction as a lesson:
-cross-check a questionable prose demand before turning it into new code.
+Next is original Chapter 7, streaming, extending the accepted source in `main/`.
+Its coordinator preparation records missing launch/protocol facts and a reproduced
+original frozen baseline of **90/100 FAIL**, with the delivery-not-content check
+failing because both runs streamed. No Chapter 7 student result is claimed.
+No author is active. Consequential ambiguities still require resolution.
 
 These are the two review documents. The carryover answers “What did the previous
 edition teach us that the student should know?” This workflow answers “How do

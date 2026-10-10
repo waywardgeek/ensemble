@@ -1,0 +1,4 @@
+answer=red error=<nil> usage={Input:63 CacheWrite:0 CacheRead:0 Output:4}
+unsupported=model "gpt-5.4-mini" does not support audio media
+
+STDERR

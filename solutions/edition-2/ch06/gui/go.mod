@@ -1,0 +1,9 @@
+module ensemble-gui-stub
+
+go 1.25
+
+require ensemble v0.0.0
+
+require github.com/creack/pty v1.1.24 // indirect
+
+replace ensemble => ..

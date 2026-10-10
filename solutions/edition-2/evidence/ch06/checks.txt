@@ -1,0 +1,47 @@
+.: gofmt -l .
+exit=0
+
+.: go vet ./...
+exit=0
+
+.: go test -race -count=1 -timeout=120s ./...
+exit=0
+?   	ensemble	[no test files]
+ok  	ensemble/ensemble	28.351s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+
+gui: gofmt -l .
+exit=0
+
+gui: go vet ./...
+exit=0
+
+gui: go test -race -count=1 -timeout=120s ./...
+exit=0
+ok  	ensemble-gui-stub	1.021s
+
+ch05: gofmt -l .
+exit=0
+
+ch05: go vet ./...
+exit=0
+
+ch05: go test -race -count=1 -timeout=120s ./...
+exit=0
+ok  	ensemble-ch05	1.024s
+
+ch06: gofmt -l .
+exit=0
+
+ch06: go vet ./...
+exit=0
+
+ch06: go test -race -count=1 -timeout=120s ./...
+exit=0
+ok  	ensemble-ch06	1.275s
+

@@ -1,0 +1,79 @@
+Unmodified baseline
+go test -race -count=1 -timeout=60s ./ensemble -run TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused -v
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5image/png
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5application/pdf
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniimage/png
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniapplication/pdf
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashimage/png
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashaudio/wav
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashvideo/mp4
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashapplication/pdf
+--- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5image/png (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5application/pdf (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniimage/png (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniapplication/pdf (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashimage/png (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashaudio/wav (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashvideo/mp4 (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashapplication/pdf (0.00s)
+PASS
+ok  	ensemble/ensemble	1.020s
+EXIT 0
+
+Mutation internal/engine/gemini.go: "mimeType": p.MIME -> "wrongMimeType": p.MIME
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5image/png
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5application/pdf
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniimage/png
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniapplication/pdf
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashimage/png
+    media_test.go:72: Gemini inlineData.mimeType = "", want "image/png"
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashaudio/wav
+    media_test.go:72: Gemini inlineData.mimeType = "", want "audio/wav"
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashvideo/mp4
+    media_test.go:72: Gemini inlineData.mimeType = "", want "video/mp4"
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashapplication/pdf
+    media_test.go:72: Gemini inlineData.mimeType = "", want "application/pdf"
+--- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5image/png (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5application/pdf (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniimage/png (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniapplication/pdf (0.00s)
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashimage/png (0.00s)
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashaudio/wav (0.00s)
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashvideo/mp4 (0.00s)
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashapplication/pdf (0.00s)
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+EXIT 1
+
+Mutation internal/engine/gemini.go: "data": data -> "wrongData": data
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5image/png
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5application/pdf
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniimage/png
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniapplication/pdf
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashimage/png
+    media_test.go:76: Gemini inlineData.data did not decode to the local bytes: "", <nil>
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashaudio/wav
+    media_test.go:76: Gemini inlineData.data did not decode to the local bytes: "", <nil>
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashvideo/mp4
+    media_test.go:76: Gemini inlineData.data did not decode to the local bytes: "", <nil>
+=== RUN   TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashapplication/pdf
+    media_test.go:76: Gemini inlineData.data did not decode to the local bytes: "", <nil>
+--- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5image/png (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5application/pdf (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniimage/png (0.00s)
+    --- PASS: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniapplication/pdf (0.00s)
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashimage/png (0.00s)
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashaudio/wav (0.00s)
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashvideo/mp4 (0.00s)
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashapplication/pdf (0.00s)
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+EXIT 1

@@ -1,0 +1,30 @@
+{
+  "provider": "anthropic",
+  "model": "claude-haiku-5-5",
+  "stdout": [
+    [
+      1.124,
+      "hint:Hint: remember the marker COMET."
+    ],
+    [
+      1.175,
+      "[interrupted; other jobs continue]"
+    ],
+    [
+      2.084,
+      "assistant> COMET"
+    ]
+  ],
+  "stderr": [
+    [
+      0.005,
+      "Type a message, /interrupt to end this turn, Ctrl-D to quit. Messages while busy are hints."
+    ]
+  ],
+  "exit": 0,
+  "launched": true,
+  "hint_ack": true,
+  "new_turn_answered": true,
+  "answer_before_job_finish": true,
+  "real_output_retained": true
+}

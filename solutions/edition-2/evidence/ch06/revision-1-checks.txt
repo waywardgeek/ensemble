@@ -1,0 +1,14 @@
+Core module: gofmt -l .
+EXIT 0
+Core module: go vet ./...
+EXIT 0
+Core module: go test -race -count=1 -timeout=120s ./...
+?   	ensemble	[no test files]
+ok  	ensemble/ensemble	28.070s
+?   	ensemble/internal/agent	[no test files]
+?   	ensemble/internal/common	[no test files]
+?   	ensemble/internal/engine	[no test files]
+?   	ensemble/internal/history	[no test files]
+?   	ensemble/internal/jobs	[no test files]
+?   	ensemble/internal/tools	[no test files]
+EXIT 0

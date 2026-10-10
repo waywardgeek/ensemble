@@ -1,0 +1,355 @@
+Targeted Chapter 6 mutations. Baseline core and workflow race tests passed before these experiments.
+
+hint acknowledgment
+mutation: internal/agent/actor.go 'Chunk: "hint:" +' -> 'Chunk: "muted:" +'
+--- FAIL: TestInterruptKeepsAgentAndJobAlive (1.01s)
+    actor_test.go:106: hint was deaf: context deadline exceeded
+FAIL
+FAIL	ensemble/ensemble	1.019s
+FAIL
+assessment: intended clean failure
+
+hint classification/replay
+mutation: internal/history/reduce.go ' || (e.Message.Actor == common.Human && (c.Turn == "in_flight" || c.Turn == "tools_pending"))' -> ''
+--- FAIL: TestHintDuringHTTPReplaysAtNextRequest (0.00s)
+    actor_test.go:235: hint delivery crossed request boundary
+FAIL
+FAIL	ensemble/ensemble	0.012s
+FAIL
+assessment: intended clean failure
+
+private replies
+mutation: internal/agent/actor.go 'common.Result{Text: text, Err: err}' -> 'common.Result{Text: "another request", Err: err}'
+--- FAIL: TestRequestsCompletePrivatelyWhenProgressOverflows (0.00s)
+    actor_test.go:195: request 0 received another completion: {Text:another request Err:<nil>}
+FAIL
+FAIL	ensemble/ensemble	0.012s
+FAIL
+assessment: intended clean failure
+
+callback independent of handler
+mutation: internal/agent/dispatch.go 'text, err = owner.job.Wait(limits)' -> 'limits.Delay = 3600 * 1000000000\n text, err = owner.job.Wait(limits)'
+--- FAIL: TestCallbackReportsWhileHandlerBlocked (3.01s)
+    actor_test.go:172: request did not complete
+FAIL
+FAIL	ensemble/ensemble	3.019s
+FAIL
+assessment: intended clean failure
+
+late Go result preserved
+mutation: internal/agent/dispatch.go 'owner.job.Finish(text, err)' -> 'if t.request.ctx.Err()!=nil { owner.job.Kill("interrupted") }\n owner.job.Finish(text, err)'
+--- FAIL: TestInterruptKeepsAgentAndJobAlive (0.04s)
+    actor_test.go:141: late result lost: killed "" <nil>
+FAIL
+FAIL	ensemble/ensemble	0.047s
+FAIL
+assessment: intended clean failure
+
+managed job survives interrupt
+mutation: internal/agent/actor.go 'r.finish("", reason)' -> 'go r.owner.jobs.Shutdown()\n r.finish("", reason)'
+--- FAIL: TestInterruptDoesNotKillManagedProcess (0.03s)
+    actor_test.go:350: interrupt stopped another managed job
+FAIL
+FAIL	ensemble/ensemble	0.043s
+FAIL
+assessment: intended clean failure
+
+shutdown joins workers
+mutation: internal/agent/actor.go 'if r.stopping && r.workers == 0 {' -> 'if r.stopping {'
+--- FAIL: TestInterruptKeepsAgentAndJobAlive (0.01s)
+    actor_test.go:126: shutdown failed to join blocked Go handler
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL
+assessment: intended clean failure
+
+positive round limit
+mutation: internal/agent/actor.go 'm.turn.batches >= m.turn.limit' -> 'm.turn.batches > m.turn.limit'
+--- FAIL: TestRoundLimitPairsEveryRejectedCallAndAllowsNextTurn (0.01s)
+    actor_test.go:288: limit: 3 requests 3 executions <nil>
+FAIL
+FAIL	ensemble/ensemble	0.021s
+FAIL
+assessment: intended clean failure
+
+default round limit
+mutation: internal/agent/actor.go 'limit = common.DefaultMaxToolRounds' -> 'limit = 1'
+--- FAIL: TestLoopRoundBound (0.01s)
+    tools_test.go:187: round bound: requests=2 error=tool round limit reached
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL
+assessment: intended clean failure
+
+rejected batch results
+mutation: internal/agent/actor.go 'not executed: tool round limit reached' -> 'silently skipped'
+--- FAIL: TestRoundLimitPairsEveryRejectedCallAndAllowsNextTurn (0.01s)
+    actor_test.go:292: rejected batch not saved before completion: {"log_version":1}
+        {"seq":1,"type":"message_received","time":"2026-10-09T22:49:07.936111Z","message":{"actor":"human","parts":[{"type":"text","text":"limit"}]}}
+        {"seq":2,"type":"request_sent","time":"2026-10-09T22:49:07.936437Z","request":{"to":{"vendor":"anthropic","model":"fake","surface":"messages"}}}
+        {"seq":3,"type":"response_ended","time":"2026-10-09T22:49:07.937626Z","response":{"parts":[{"type":"tool_call","from":{"vendor":"anthropic","model":"fake","surface":"messages"},"call_id":"a","name":"count","args":{}}],"usage":{"input":1,"cache_write":0,"cache_read":0,"output":1},"from":{"vendor":"anthropic","model":"fake","surface":"messages"}}}
+        {"seq":4,"type":"tool_called","time":"2026-10-09T22:49:07.937979Z","tool":{"job":{"handle":1,"status":"running","output":{"kind":3,"locator":"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestRoundLimitPairsEveryRejectedCallAndAllowsNextTurn336409141/002/io/1"},"bytes":0},"name":"count","args":{},"call_id":"a"}}
+        {"seq":5,"type":"job_finished","time":"2026-10-09T22:49:07.938232Z","tool":{"job":{"handle":1,"status":"done","output":{"kind":3,"locator":"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestRoundLimitPairsEveryRejectedCallAndAllowsNextTurn336409141/002/io/1"},"bytes":8},"call_id":""}}
+        {"seq":6,"type":"tool_returned","time":"2026-10-09T22:49:07.938424Z","tool":{"job":{"handle":1,"status":"done","output":{"kind":3,"locator":"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestRoundLimitPairsEveryRejectedCallAndAllowsNextTurn336409141/002/io/1"},"bytes":8},"call_id":"a","parts":[{"type":"text","text":"executed"}]}}
+        {"seq":7,"type":"request_sent","time":"2026-10-09T22:49:07.938923Z","request":{"to":{"vendor":"anthropic","model":"fake","surface":"messages"}}}
+        {"seq":8,"type":"response_ended","time":"2026-10-09T22:49:07.939624Z","response":{"parts":[{"type":"tool_call","from":{"vendor":"anthropic","model":"fake","surface":"messages"},"call_id":"b","name":"count","args":{}},{"type":"tool_call","from":{"vendor":"anthropic","model":"fake","surface":"messages"},"call_id":"c","name":"count","args":{}}],"usage":{"input":1,"cache_write":0,"cache_read":0,"output":1},"from":{"vendor":"anthropic","model":"fake","surface":"messages"}}}
+        {"seq":9,"type":"tool_returned","time":"2026-10-09T22:49:07.940076Z","tool":{"call_id":"b","parts":[{"type":"text","text":"silently skipped"}],"is_error":true}}
+        {"seq":10,"type":"tool_returned","time":"2026-10-09T22:49:07.940585Z","tool":{"call_id":"c","parts":[{"type":"text","text":"silently skipped"}],"is_error":true}}
+        {"seq":11,"type":"turn_ended","time":"2026-10-09T22:49:07.941138Z","error":{"message":"tool round limit reached"}}
+         <nil>
+FAIL
+FAIL	ensemble/ensemble	0.016s
+FAIL
+assessment: intended clean failure
+
+save error reaches caller
+mutation: internal/agent/actor.go 'err = errors.Join(err, r.save())' -> '_ = r.save()'
+--- FAIL: TestSaveFailureIsRequestFailure (0.00s)
+    actor_test.go:308: unsaved response acknowledged as successful
+FAIL
+FAIL	ensemble/ensemble	0.012s
+FAIL
+assessment: intended clean failure
+
+local bytes on wire
+mutation: internal/engine/media.go 'return base64.StdEncoding.EncodeToString(bytes), nil' -> '_ = bytes\n return base64.StdEncoding.EncodeToString(nil), nil'
+--- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused (0.00s)
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5image/png (0.00s)
+        media_test.go:42: media bytes missing: {"model":"claude-haiku-5-5","max_tokens":1024,"system":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.","messages":[{"role":"user","content":[{"type":"text","text":"before"},{"source":{"data":"","media_type":"image/png","type":"base64"},"type":"image"},{"type":"text","text":"after"}]}]} <nil>
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5application/pdf (0.00s)
+        media_test.go:42: media bytes missing: {"model":"claude-haiku-5-5","max_tokens":1024,"system":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly.","messages":[{"role":"user","content":[{"type":"text","text":"before"},{"source":{"data":"","media_type":"application/pdf","type":"base64"},"type":"document"},{"type":"text","text":"after"}]}]} <nil>
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniimage/png (0.00s)
+        media_test.go:42: media bytes missing: {"model":"gpt-5.4-mini","max_completion_tokens":1024,"messages":[{"role":"system","content":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."},{"role":"user","content":[{"text":"before","type":"text"},{"image_url":{"url":"data:image/png;base64,"},"type":"image_url"},{"text":"after","type":"text"}]}]} <nil>
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniapplication/pdf (0.00s)
+        media_test.go:42: media bytes missing: {"model":"gpt-5.4-mini","max_completion_tokens":1024,"messages":[{"role":"system","content":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."},{"role":"user","content":[{"text":"before","type":"text"},{"file":{"file_data":"data:application/pdf;base64,","filename":"sample.bin"},"type":"file"},{"text":"after","type":"text"}]}]} <nil>
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashimage/png (0.00s)
+        media_test.go:42: media bytes missing: {"systemInstruction":{"parts":[{"text":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."}]},"contents":[{"role":"user","parts":[{"text":"before"},{"inlineData":{"data":"","mimeType":"image/png"}},{"text":"after"}]}],"generationConfig":{"maxOutputTokens":1024}} <nil>
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashaudio/wav (0.00s)
+        media_test.go:42: media bytes missing: {"systemInstruction":{"parts":[{"text":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."}]},"contents":[{"role":"user","parts":[{"text":"before"},{"inlineData":{"data":"","mimeType":"audio/wav"}},{"text":"after"}]}],"generationConfig":{"maxOutputTokens":1024}} <nil>
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashvideo/mp4 (0.00s)
+        media_test.go:42: media bytes missing: {"systemInstruction":{"parts":[{"text":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."}]},"contents":[{"role":"user","parts":[{"text":"before"},{"inlineData":{"data":"","mimeType":"video/mp4"}},{"text":"after"}]}],"generationConfig":{"maxOutputTokens":1024}} <nil>
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashapplication/pdf (0.00s)
+        media_test.go:42: media bytes missing: {"systemInstruction":{"parts":[{"text":"You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."}]},"contents":[{"role":"user","parts":[{"text":"before"},{"inlineData":{"data":"","mimeType":"application/pdf"}},{"text":"after"}]}],"generationConfig":{"maxOutputTokens":1024}} <nil>
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+assessment: intended clean failure
+
+unknown capability rejected
+mutation: internal/engine/media.go 'features, known := LookupModel(model)' -> 'features, known := LookupModel(model)\n if !known { features.Media=common.MediaImage;known=true }'
+--- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused (0.00s)
+    media_test.go:57: refusal must name model and media: <nil>
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+assessment: intended clean failure
+
+declared media refusal
+mutation: internal/engine/media.go 'features.Media&kind == 0' -> 'false && features.Media&kind == 0'
+--- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused (0.00s)
+    media_test.go:57: refusal must name model and media: <nil>
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+assessment: intended clean failure
+
+unsupported Ref refused
+mutation: internal/engine/media.go 'if p.Ref.Kind != common.RefPath {' -> 'if false && p.Ref.Kind != common.RefPath {'
+--- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused (0.00s)
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5image/png (0.00s)
+        media_test.go:49: unsupported Ref did not fail loudly
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/claude-haiku-5-5application/pdf (0.00s)
+        media_test.go:49: unsupported Ref did not fail loudly
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniimage/png (0.00s)
+        media_test.go:49: unsupported Ref did not fail loudly
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gpt-5.4-miniapplication/pdf (0.00s)
+        media_test.go:49: unsupported Ref did not fail loudly
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashimage/png (0.00s)
+        media_test.go:49: unsupported Ref did not fail loudly
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashaudio/wav (0.00s)
+        media_test.go:49: unsupported Ref did not fail loudly
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashvideo/mp4 (0.00s)
+        media_test.go:49: unsupported Ref did not fail loudly
+    --- FAIL: TestLocalMediaIsEncodedAndUnsupportedMediaIsRefused/gemini-3.8-flashapplication/pdf (0.00s)
+        media_test.go:49: unsupported Ref did not fail loudly
+FAIL
+FAIL	ensemble/ensemble	0.011s
+FAIL
+assessment: intended clean failure
+
+author stores real draft
+mutation: ch06/main.go 'draft.write(*in.Text)' -> 'draft.write("")'
+--- FAIL: TestWorkflowUsesRoleToolsAndEditedDraft (0.29s)
+    main_test.go:119: handoff/result missing "\"Text\":\"2\"": author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"write_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"write_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]},{"Content":[{"Type":"tool_use","Text":"","Name":"word_count","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"0"}]}]}]
+        editor:[{"Content":[{"Type":"text","Text":"author complete","Name":"","Content":null}]}]
+        editor:[{"Content":[{"Type":"text","Text":"author complete","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"read_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":""}]}]}]
+        editor:[{"Content":[{"Type":"text","Text":"author complete","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"read_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":""}]}]},{"Content":[{"Type":"tool_use","Text":"","Name":"edit_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]}]
+        reviewer:[{"Content":[{"Type":"text","Text":"editor complete","Name":"","Content":null}]}]
+        reviewer:[{"Content":[{"Type":"text","Text":"editor complete","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"review","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"accept: clear"}]}]}]
+FAIL
+FAIL	ensemble-ch06	0.294s
+FAIL
+assessment: intended clean failure
+
+editor reads actual draft
+mutation: ch06/main.go 'return draft.read(), nil' -> 'return "wrong draft", nil'
+--- FAIL: TestWorkflowUsesRoleToolsAndEditedDraft (0.29s)
+    main_test.go:119: handoff/result missing "\"Content\":[{\"Text\":\"Ocean draft\"}]": author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"write_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"write_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]},{"Content":[{"Type":"tool_use","Text":"","Name":"word_count","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"2"}]}]}]
+        editor:[{"Content":[{"Type":"text","Text":"Ocean draft","Name":"","Content":null}]}]
+        editor:[{"Content":[{"Type":"text","Text":"Ocean draft","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"read_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"wrong draft"}]}]}]
+        editor:[{"Content":[{"Type":"text","Text":"Ocean draft","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"read_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"wrong draft"}]}]},{"Content":[{"Type":"tool_use","Text":"","Name":"edit_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]}]
+        reviewer:[{"Content":[{"Type":"text","Text":"Ocean draft improved","Name":"","Content":null}]}]
+        reviewer:[{"Content":[{"Type":"text","Text":"Ocean draft improved","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"review","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"accept: clear"}]}]}]
+FAIL
+FAIL	ensemble-ch06	0.297s
+FAIL
+assessment: intended clean failure
+
+review tool result
+mutation: ch06/main.go 'return in.Decision + ": " + in.Notes, nil' -> 'return "not reviewed", nil'
+--- FAIL: TestWorkflowUsesRoleToolsAndEditedDraft (0.29s)
+    main_test.go:119: handoff/result missing "accept: clear": author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"write_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"write_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]},{"Content":[{"Type":"tool_use","Text":"","Name":"word_count","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"2"}]}]}]
+        editor:[{"Content":[{"Type":"text","Text":"Ocean draft","Name":"","Content":null}]}]
+        editor:[{"Content":[{"Type":"text","Text":"Ocean draft","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"read_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"Ocean draft"}]}]}]
+        editor:[{"Content":[{"Type":"text","Text":"Ocean draft","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"read_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"Ocean draft"}]}]},{"Content":[{"Type":"tool_use","Text":"","Name":"edit_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]}]
+        reviewer:[{"Content":[{"Type":"text","Text":"Ocean draft improved","Name":"","Content":null}]}]
+        reviewer:[{"Content":[{"Type":"text","Text":"Ocean draft improved","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"review","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"not reviewed"}]}]}]
+FAIL
+FAIL	ensemble-ch06	0.304s
+FAIL
+assessment: intended clean failure
+Supplementary focused Chapter 6 mutations; added observer and shutdown baselines passed.
+
+completion independent of progress saturation
+mutation: internal/agent/actor.go 'if t.request.reply != nil {' -> 'if t.request.reply != nil && len(r.owner.progress)<cap(r.owner.progress) {'
+--- FAIL: TestRequestsCompletePrivatelyWhenProgressOverflows (3.43s)
+    actor_test.go:204: request did not complete
+FAIL
+FAIL	ensemble/ensemble	3.438s
+FAIL
+assessment: intended clean failure
+
+replay retains hint facts
+mutation: internal/history/history.go 'for _, e := range h.events {' -> 'for _, e := range h.events {\n if e.Type=="hint_received"{continue}'
+--- FAIL: TestHintDuringHTTPReplaysAtNextRequest (0.01s)
+    actor_test.go:263: request 1 replay differs: <nil>
+FAIL
+FAIL	ensemble/ensemble	0.014s
+FAIL
+assessment: intended clean failure
+
+save exists before completion
+mutation: internal/agent/actor.go 'err = errors.Join(err, r.save())' -> 'err = errors.Join(err, nil)'
+--- FAIL: TestRoundLimitPairsEveryRejectedCallAndAllowsNextTurn (0.01s)
+    actor_test.go:307: rejected batch not saved before completion:  open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestRoundLimitPairsEveryRejectedCallAndAllowsNextTurn3463816603/001/events.jsonl: no such file or directory
+FAIL
+FAIL	ensemble/ensemble	0.018s
+FAIL
+assessment: intended clean failure
+
+routed Agent identity
+mutation: ensemble/ensemble.go 'AgentObservation{a, o}' -> 'AgentObservation{nil, o}'
+--- FAIL: TestObserverRoutesIdentityAndFinalParts (0.01s)
+    actor_test.go:417: observation lost actual Agent identity
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL
+assessment: intended clean failure
+
+final part identity
+mutation: internal/agent/actor.go 'common.PartFinal{Seq: entry.Seq, PartID: r.partID, Part: part}' -> 'common.PartFinal{Seq: 0, PartID: 0, Part: part}'
+--- FAIL: TestObserverRoutesIdentityAndFinalParts (0.01s)
+    actor_test.go:422: final part has no stored identity
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL
+assessment: intended clean failure
+
+state observation
+mutation: internal/agent/actor.go 'common.StateChanged{From: before, To: after.Turn}' -> 'common.StateChanged{From: before, To: "missing"}'
+--- FAIL: TestObserverRoutesIdentityAndFinalParts (0.01s)
+    actor_test.go:438: missing state transition input_pending
+FAIL
+FAIL	ensemble/ensemble	0.015s
+FAIL
+assessment: intended clean failure
+
+editor handoff uses stored edit
+mutation: ch06/main.go 'text = stored' -> '_ = stored\n text = result.Text'
+--- FAIL: TestWorkflowUsesRoleToolsAndEditedDraft (0.69s)
+    main_test.go:133: handoff/result missing "reviewer:[{\"Content\":[{\"Type\":\"text\",\"Text\":\"Ocean draft improved\"": author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"write_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"write_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]},{"Content":[{"Type":"tool_use","Text":"","Name":"word_count","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"2"}]}]}]
+        editor:[{"Content":[{"Type":"text","Text":"author complete","Name":"","Content":null}]}]
+        editor:[{"Content":[{"Type":"text","Text":"author complete","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"read_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"Ocean draft"}]}]}]
+        editor:[{"Content":[{"Type":"text","Text":"author complete","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"read_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"Ocean draft"}]}]},{"Content":[{"Type":"tool_use","Text":"","Name":"edit_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]}]
+        reviewer:[{"Content":[{"Type":"text","Text":"editor complete","Name":"","Content":null}]}]
+        reviewer:[{"Content":[{"Type":"text","Text":"editor complete","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"review","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"accept: clear"}]}]}]
+FAIL
+FAIL	ensemble-ch06	0.695s
+FAIL
+assessment: intended clean failure
+
+word count reads manuscript
+mutation: ch06/main.go 'fmt.Sprint(len(strings.Fields(draft.read())))' -> 'fmt.Sprint(99)'
+# ensemble-ch06 [ensemble-ch06.test]
+./main.go:14:2: "strings" imported and not used
+FAIL	ensemble-ch06 [build failed]
+FAIL
+assessment: INVESTIGATE
+
+distinct role prompts and tools
+mutation: ch06/main.go 'roleConfig.SystemPrompt = instructions[name]' -> 'roleConfig.SystemPrompt = instructions["author"]'
+--- FAIL: TestWorkflowUsesRoleToolsAndEditedDraft (0.32s)
+    main_test.go:71: author tools [read_draft edit_draft]
+    main_test.go:71: author tools [review]
+    main_test.go:133: handoff/result missing "\"Content\":[{\"Text\":\"Ocean draft\"}]": author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"write_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"write_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]},{"Content":[{"Type":"tool_use","Text":"","Name":"word_count","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"2"}]}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean draft","Name":"","Content":null}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean draft","Name":"","Content":null}]}]
+FAIL
+FAIL	ensemble-ch06	0.328s
+FAIL
+assessment: intended clean failure
+
+shutdown releases queued completions
+mutation: internal/agent/actor.go 'q.reply <- common.Result{Err: common.ErrStopped}' -> '_ = q'
+--- FAIL: TestShutdownResolvesQueuedRequests (3.01s)
+    actor_test.go:478: request did not complete
+FAIL
+FAIL	ensemble/ensemble	3.018s
+FAIL
+assessment: intended clean failure
+
+caller cancellation returns promptly
+mutation: internal/agent/actor.go 'case <-ctx.Done():\n\t\treturn "", ctx.Err()' -> ''
+--- FAIL: TestShutdownResolvesQueuedRequests (1.01s)
+    actor_test.go:471: caller cancellation did not return
+FAIL
+FAIL	ensemble/ensemble	1.015s
+FAIL
+assessment: intended clean failure
+Supplementary focused Chapter 6 mutations; added observer and shutdown baselines passed.
+
+word count reads manuscript corrected mutant
+mutation: ch06/main.go 'fmt.Sprint(len(strings.Fields(draft.read())))' -> 'fmt.Sprint(len(strings.Fields("")))'
+--- FAIL: TestWorkflowUsesRoleToolsAndEditedDraft (0.68s)
+    main_test.go:133: handoff/result missing "\"Text\":\"2\"": author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"write_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]}]
+        author:[{"Content":[{"Type":"text","Text":"Ocean","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"write_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]},{"Content":[{"Type":"tool_use","Text":"","Name":"word_count","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"0"}]}]}]
+        editor:[{"Content":[{"Type":"text","Text":"Ocean draft","Name":"","Content":null}]}]
+        editor:[{"Content":[{"Type":"text","Text":"Ocean draft","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"read_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"Ocean draft"}]}]}]
+        editor:[{"Content":[{"Type":"text","Text":"Ocean draft","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"read_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"Ocean draft"}]}]},{"Content":[{"Type":"tool_use","Text":"","Name":"edit_draft","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"draft stored"}]}]}]
+        reviewer:[{"Content":[{"Type":"text","Text":"Ocean draft improved","Name":"","Content":null}]}]
+        reviewer:[{"Content":[{"Type":"text","Text":"Ocean draft improved","Name":"","Content":null}]},{"Content":[{"Type":"tool_use","Text":"","Name":"review","Content":null}]},{"Content":[{"Type":"tool_result","Text":"","Name":"","Content":[{"Text":"accept: clear"}]}]}]
+FAIL
+FAIL	ensemble-ch06	0.684s
+FAIL
+assessment: intended clean failure
