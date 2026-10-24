@@ -1,19 +1,18 @@
 package common
 
-// This intentionally bounded Draft 2020-12 subset is the public submission
-// contract, not a general schema engine. Admission rejects unknown vocabulary;
-// validation never fetches references and never rounds JSON numbers to float64.
+// The submission owner limits vocabulary and resources; jsonschema supplies
+// schema checking and validation. Numbers stay exact and no resources are fetched.
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"math/big"
-	"regexp"
-	"sort"
 	"strconv"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/santhosh-tekuri/jsonschema/v6"
 )
 
 var DefaultSubmitSchema = json.RawMessage(`{"type":"object","properties":{"result":{"type":"string"}},"required":["result"]}`)
@@ -88,338 +87,134 @@ func CanonicalSubmitSchema(raw json.RawMessage) (json.RawMessage, error) {
 	if len(raw) == 0 {
 		return nil, nil
 	}
-	v, canonical, _, err := boundedJSON(raw, 65536, 2048, 64)
+	canonical, _, err := compileSubmissionSchema(raw)
+	return canonical, err
+}
+
+func CheckSubmitSchema(raw json.RawMessage) error {
+	_, err := CanonicalSubmitSchema(raw)
+	return err
+}
+
+func compileSubmissionSchema(raw json.RawMessage) (json.RawMessage, *jsonschema.Schema, error) {
+	value, canonical, _, err := boundedJSON(raw, 65536, 2048, 64)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	root, ok := v.(map[string]any)
+	root, ok := value.(map[string]any)
 	if !ok || root["type"] != "object" {
-		return nil, fmt.Errorf("submission schema root must explicitly have type object")
+		return nil, nil, fmt.Errorf("submission schema root must explicitly have type object")
 	}
-	if err := checkSchema(v, "$"); err != nil {
-		return nil, err
+	compiler := jsonschema.NewCompiler()
+	compiler.DefaultDraft(jsonschema.Draft2020)
+	compiler.UseRegexpEngine(nil)                    // The accepted pattern dialect is Go's regexp.
+	compiler.UseLoader(jsonschema.SchemeURLLoader{}) // No file, network, or custom resources.
+
+	// Draft 2020-12 permits empty/duplicate enums. Our public subset does not;
+	// let the same library enforce its stricter admission, including exact equality.
+	const enumURL = "urn:ensemble:submission-enum"
+	if err := compiler.AddResource(enumURL, map[string]any{
+		"type": "array", "minItems": json.Number("1"), "uniqueItems": true,
+	}); err != nil {
+		return nil, nil, err
 	}
-	return canonical, nil
+	enumMembers, err := compiler.Compile(enumURL)
+	if err != nil {
+		return nil, nil, err
+	}
+	if err := admitSubmissionVocabulary(value, "$", enumMembers); err != nil {
+		return nil, nil, err
+	}
+	const schemaURL = "urn:ensemble:submission"
+	if err := compiler.AddResource(schemaURL, value); err != nil {
+		return nil, nil, err
+	}
+	compiled, err := compiler.Compile(schemaURL)
+	if err != nil {
+		return nil, nil, err
+	}
+	return canonical, compiled, nil
 }
-func CheckSubmitSchema(raw json.RawMessage) error { _, err := CanonicalSubmitSchema(raw); return err }
-func rational(v any) (*big.Rat, bool) {
-	n, ok := v.(json.Number)
+
+// Only schema locations are traversed: property names and annotation/enum/const
+// values may contain arbitrary JSON. The library checks keyword value shapes.
+func admitSubmissionVocabulary(value any, path string, enumMembers *jsonschema.Schema) error {
+	schema, ok := value.(map[string]any)
 	if !ok {
-		return nil, false
+		return nil // Nested booleans are valid; other shapes fail library compilation.
 	}
-	r, ok := new(big.Rat).SetString(string(n))
-	return r, ok
-}
-func integerBound(v any) bool { r, ok := rational(v); return ok && r.IsInt() && r.Sign() >= 0 }
-func typeName(t string) bool {
-	switch t {
-	case "object", "array", "string", "number", "integer", "boolean", "null":
-		return true
-	}
-	return false
-}
-func checkSchema(v any, path string) error {
-	if _, ok := v.(bool); ok {
-		return nil
-	}
-	s, ok := v.(map[string]any)
-	if !ok {
-		return fmt.Errorf("%s: schema must be object or boolean", path)
-	}
-	bad := func(k string) error { return fmt.Errorf("%s: invalid %s", path, k) }
-	for k, v := range s {
-		switch k {
+	for keyword, value := range schema {
+		switch keyword {
 		case "$schema":
-			if v != "https://json-schema.org/draft/2020-12/schema" {
-				return bad(k)
-			}
-		case "title", "description":
-			if _, ok := v.(string); !ok {
-				return bad(k)
-			}
-		case "default":
-		case "examples":
-			if _, ok := v.([]any); !ok {
-				return bad(k)
-			}
-		case "type":
-			if name, ok := v.(string); ok {
-				if !typeName(name) {
-					return bad(k)
-				}
-			} else {
-				names, ok := v.([]any)
-				if !ok || len(names) == 0 {
-					return bad(k)
-				}
-				seen := map[string]bool{}
-				for _, n := range names {
-					name, ok := n.(string)
-					if !ok || !typeName(name) || seen[name] {
-						return bad(k)
-					}
-					seen[name] = true
-				}
+			if value != "https://json-schema.org/draft/2020-12/schema" {
+				return fmt.Errorf("%s: unsupported schema dialect", path)
 			}
 		case "properties":
-			props, ok := v.(map[string]any)
-			if !ok {
-				return bad(k)
-			}
-			for name, child := range props {
-				if err := checkSchema(child, path+".properties."+name); err != nil {
-					return err
+			if properties, ok := value.(map[string]any); ok {
+				for name, child := range properties {
+					if err := admitSubmissionVocabulary(child, path+".properties."+name, enumMembers); err != nil {
+						return err
+					}
 				}
 			}
-		case "required":
-			names, ok := v.([]any)
-			if !ok {
-				return bad(k)
-			}
-			seen := map[string]bool{}
-			for _, n := range names {
-				name, ok := n.(string)
-				if !ok || seen[name] {
-					return bad(k)
-				}
-				seen[name] = true
-			}
-		case "additionalProperties", "items":
-			if err := checkSchema(v, path+"."+k); err != nil {
+		case "items", "additionalProperties":
+			if err := admitSubmissionVocabulary(value, path+"."+keyword, enumMembers); err != nil {
 				return err
 			}
-		case "minLength", "maxLength", "minItems", "maxItems", "minProperties", "maxProperties":
-			if !integerBound(v) {
-				return bad(k)
-			}
-		case "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum":
-			if _, ok := rational(v); !ok {
-				return bad(k)
-			}
-		case "multipleOf":
-			if n, ok := rational(v); !ok || n.Sign() <= 0 {
-				return bad(k)
-			}
-		case "uniqueItems":
-			if _, ok := v.(bool); !ok {
-				return bad(k)
-			}
-		case "pattern":
-			p, ok := v.(string)
-			if !ok {
-				return bad(k)
-			}
-			if _, err := regexp.Compile(p); err != nil {
-				return bad(k)
-			}
 		case "enum":
-			values, ok := v.([]any)
-			if !ok || len(values) == 0 {
-				return bad(k)
+			if err := enumMembers.Validate(value); err != nil {
+				return fmt.Errorf("%s.enum: %w", path, err)
 			}
-			seen := map[string]bool{}
-			for _, v := range values {
-				key := valueKey(v)
-				if seen[key] {
-					return bad(k)
+		case "minLength", "maxLength", "minItems", "maxItems", "minProperties", "maxProperties":
+			// v6.0.3 stores these as machine ints. No admitted payload can have
+			// more than 1 MiB characters, items, or properties. Saturating larger
+			// nonnegative integers above that ceiling is equivalent for bounded
+			// inputs and avoids integer overflow. This map is a private decode;
+			// canonical schema bytes (and durable schemas) remain unchanged.
+			if n, ok := value.(json.Number); ok {
+				bound, valid := new(big.Rat).SetString(string(n))
+				ceiling := new(big.Rat).SetInt64(1048577)
+				if valid && bound.IsInt() && bound.Cmp(ceiling) > 0 {
+					schema[keyword] = json.Number("1048577")
 				}
-				seen[key] = true
 			}
-		case "const":
+		case "type", "title", "description", "default", "examples", "required", "const",
+			"uniqueItems", "pattern", "minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf":
 		default:
-			return fmt.Errorf("%s: unsupported schema keyword %q", path, k)
+			return fmt.Errorf("%s: unsupported schema keyword %q", path, keyword)
 		}
 	}
 	return nil
 }
 
-// valueKey represents JSON equality, including exact number equality (1 == 1.0).
-// Type tags prevent strings/objects from colliding with numeric representations.
-func valueKey(v any) string {
-	switch x := v.(type) {
-	case json.Number:
-		r, _ := rational(x)
-		return "n" + r.RatString()
-	case map[string]any:
-		keys := make([]string, 0, len(x))
-		for k := range x {
-			keys = append(keys, k)
-		}
-		sort.Strings(keys)
-		var b strings.Builder
-		b.WriteByte('o')
-		for _, k := range keys {
-			b.WriteString(strconv.Quote(k))
-			b.WriteString(strconv.Quote(valueKey(x[k])))
-		}
-		return b.String()
-	case []any:
-		var b strings.Builder
-		b.WriteByte('a')
-		for _, v := range x {
-			b.WriteString(strconv.Quote(valueKey(v)))
-		}
-		return b.String()
-	default:
-		b, _ := json.Marshal(v)
-		return "v" + string(b)
+// Keep the existing concise path/keyword feedback while retaining the library's
+// complete error (including unambiguous JSON-pointer locations) as the cause.
+func submissionValidationError(err error) error {
+	failure, ok := err.(*jsonschema.ValidationError)
+	if !ok {
+		return err
 	}
-}
-func matchesType(t string, v any) bool {
-	switch t {
-	case "object":
-		_, ok := v.(map[string]any)
-		return ok
-	case "array":
-		_, ok := v.([]any)
-		return ok
-	case "string":
-		_, ok := v.(string)
-		return ok
-	case "boolean":
-		_, ok := v.(bool)
-		return ok
-	case "null":
-		return v == nil
-	case "number":
-		_, ok := rational(v)
-		return ok
-	case "integer":
-		r, ok := rational(v)
-		return ok && r.IsInt()
+	for len(failure.Causes) != 0 {
+		failure = failure.Causes[0]
 	}
-	return false
-}
-func validateSchema(schema, value any, path string) error {
-	if b, ok := schema.(bool); ok {
-		if b {
-			return nil
-		}
-		return fmt.Errorf("%s: false schema", path)
+	path := "$"
+	if len(failure.InstanceLocation) != 0 {
+		path += "." + strings.Join(failure.InstanceLocation, ".")
 	}
-	s := schema.(map[string]any)
-	fail := func(k string) error { return fmt.Errorf("%s: violates %s", path, k) }
-	if typ, ok := s["type"]; ok {
-		match := false
-		if name, ok := typ.(string); ok {
-			match = matchesType(name, value)
-		} else {
-			for _, name := range typ.([]any) {
-				match = match || matchesType(name.(string), value)
-			}
-		}
-		if !match {
-			return fail("type")
-		}
+	keyword := strings.Join(failure.ErrorKind.KeywordPath(), "/")
+	if keyword == "" {
+		keyword = "schema"
 	}
-	if c, ok := s["const"]; ok && valueKey(c) != valueKey(value) {
-		return fail("const")
-	}
-	if values, ok := s["enum"].([]any); ok {
-		match := false
-		for _, v := range values {
-			match = match || valueKey(v) == valueKey(value)
-		}
-		if !match {
-			return fail("enum")
-		}
-	}
-	bounds := func(n int, min, max string) error {
-		r := new(big.Rat).SetInt64(int64(n))
-		if v, ok := s[min]; ok {
-			bound, _ := rational(v)
-			if r.Cmp(bound) < 0 {
-				return fail(min)
-			}
-		}
-		if v, ok := s[max]; ok {
-			bound, _ := rational(v)
-			if r.Cmp(bound) > 0 {
-				return fail(max)
-			}
-		}
-		return nil
-	}
-	switch x := value.(type) {
-	case map[string]any:
-		if err := bounds(len(x), "minProperties", "maxProperties"); err != nil {
-			return err
-		}
-		if required, ok := s["required"].([]any); ok {
-			for _, name := range required {
-				if _, ok := x[name.(string)]; !ok {
-					return fmt.Errorf("%s.%s is required", path, name)
-				}
-			}
-		}
-		props, _ := s["properties"].(map[string]any)
-		for name, v := range x {
-			child, known := props[name]
-			if !known {
-				child, known = s["additionalProperties"]
-			}
-			if known {
-				if err := validateSchema(child, v, path+"."+name); err != nil {
-					return err
-				}
-			}
-		}
-	case []any:
-		if err := bounds(len(x), "minItems", "maxItems"); err != nil {
-			return err
-		}
-		if unique, _ := s["uniqueItems"].(bool); unique {
-			seen := map[string]bool{}
-			for _, v := range x {
-				k := valueKey(v)
-				if seen[k] {
-					return fail("uniqueItems")
-				}
-				seen[k] = true
-			}
-		}
-		if child, ok := s["items"]; ok {
-			for i, v := range x {
-				if err := validateSchema(child, v, fmt.Sprintf("%s[%d]", path, i)); err != nil {
-					return err
-				}
-			}
-		}
-	case string:
-		if err := bounds(utf8.RuneCountInString(x), "minLength", "maxLength"); err != nil {
-			return err
-		}
-		if p, ok := s["pattern"].(string); ok {
-			if !regexp.MustCompile(p).MatchString(x) {
-				return fail("pattern")
-			}
-		}
-	case json.Number:
-		n, _ := rational(x)
-		for _, k := range []string{"minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf"} {
-			if v, ok := s[k]; ok {
-				bound, _ := rational(v)
-				cmp := n.Cmp(bound)
-				if (k == "minimum" && cmp < 0) || (k == "maximum" && cmp > 0) || (k == "exclusiveMinimum" && cmp <= 0) || (k == "exclusiveMaximum" && cmp >= 0) || (k == "multipleOf" && !new(big.Rat).Quo(n, bound).IsInt()) {
-					return fail(k)
-				}
-			}
-		}
-	}
-	return nil
+	return fmt.Errorf("%s: violates %s: %w", path, keyword, err)
 }
 
 // PrepareSubmission validates and returns independently owned canonical payload.
 func PrepareSubmission(schema, payload json.RawMessage) (json.RawMessage, error) {
-	canonical, err := CanonicalSubmitSchema(schema)
-	if err != nil {
-		return nil, err
-	}
-	isDefault := len(canonical) == 0
+	isDefault := len(schema) == 0
 	if isDefault {
-		canonical = DefaultSubmitSchema
+		schema = DefaultSubmitSchema
 	}
-	s, canonical, _, err := boundedJSON(canonical, 65536, 2048, 64)
+	canonical, compiled, err := compileSubmissionSchema(schema)
 	if err != nil {
 		return nil, err
 	}
@@ -430,14 +225,15 @@ func PrepareSubmission(schema, payload json.RawMessage) (json.RawMessage, error)
 	if int64(len(raw))*int64(len(canonical)) > 67108864 {
 		return nil, fmt.Errorf("submission validation exceeds canonical byte-product budget")
 	}
-	if err := validateSchema(s, value, "$"); err != nil {
-		return nil, err
+	if err := compiled.Validate(value); err != nil {
+		return nil, submissionValidationError(err)
 	}
 	if isDefault {
 		raw, err = json.Marshal(map[string]any{"result": value.(map[string]any)["result"]})
 	}
 	return raw, err
 }
+
 func ValidateSubmission(schema, payload json.RawMessage) error {
 	_, err := PrepareSubmission(schema, payload)
 	return err

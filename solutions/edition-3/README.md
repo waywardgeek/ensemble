@@ -103,3 +103,7 @@ person-gap warning remains. The outside-GUI recipe compiled offline against this
 snapshot (compile-only). All Chapter20 workers are joined and closed. This
 snapshot and its scoped source, adapter and prose changes form Chapter20's local
 closure commit; nothing is installed or published. Chapter21 entry is next.
+
+### Chapter 20 — narrow library correction after closure
+
+Bill-directed R7 replaces handwritten schema semantics with `github.com/santhosh-tekuri/jsonschema/v6` v6.0.3 while retaining public limits, exact-number/canonical-byte behavior and durable format. Same student/reviewer, independent PASS, focused schema/submission/recovery race checks, affected module compilation and changed-package vet. Eight affected files refreshed; snapshot now 283 files. Previous full grades and qualified browser/live evidence are carried, not claimed as fresh R7 exercises. No additional manuscript cycle or operational campaign.
