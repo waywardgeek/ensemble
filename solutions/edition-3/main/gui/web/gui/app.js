@@ -1,10 +1,11 @@
+import {ArtifactScroll} from './artifact-scroll.js';
 'use strict';
 const $ = id => document.getElementById(id);
 let socket, clientID = '', selected = '', retry = 500, session = '';
 const skillsByAgent=new Map();
 const mcpAgents=new Set(), mcpReady=new Set(), speechRecent=[];
 const nodeIDs=new WeakMap();let nextNodeID=0;
-const agents = new Map(), cards = new Map(), order = [];
+const agents = new Map();
 let audio = [], speakingNow = null;
 const typing = new Set(), delayed = new Map(), requests = new Map(), voiceAgents = new Set();
 let inputOccupied=false,pageTurnRevision=0,pageTurnsEnded=0,inputRevision=0;
@@ -99,50 +100,8 @@ $('font-size').oninput=()=>{$('font-size-value').textContent=$('font-size').valu
 $('tts-speed').oninput=()=>{$('tts-speed-value').textContent=`${$('tts-speed').value}×`;};
 const element = (tag, cls, text) => { const e = document.createElement(tag); if(cls) e.className=cls; if(text !== undefined) e.textContent=String(text); return e; };
 function send(type, data={}) { if(socket?.readyState !== WebSocket.OPEN) { $('errors').textContent='Disconnected; wait for session replay before sending.'; return false; } socket.send(JSON.stringify({type,agent_id:selected,...data})); return true; }
-function nearBottom(pane=$('conversation')){return pane.scrollHeight-pane.clientHeight-pane.scrollTop<100;}
-function follow(wasNear){if(wasNear)requestAnimationFrame(()=>{$('conversation').scrollTop=$('conversation').scrollHeight;});else $('follow').hidden=false;}
-$('follow').onclick=()=>{$('conversation').scrollTo({top:$('conversation').scrollHeight,behavior:'smooth'});$('follow').hidden=true;};
-$('conversation').addEventListener('scroll',()=>{$('follow').hidden=nearBottom();},{passive:true});
-function fullDetails(title,child,open){const details=element('details');details.open=!!open;details.append(element('summary','',title),child);return details;}
-function toolContent(c){
- const body=element('div');
- if(c.name==='edit_file'&&c.args&&typeof c.args.old_text==='string'&&typeof c.args.new_text==='string'){
-  body.append(element('div','muted',c.args.path||''));
-  const diff=element('pre','diff');for(const line of c.args.old_text.split('\n'))diff.append(element('div','deletion','− '+line));for(const line of c.args.new_text.split('\n'))diff.append(element('div','insertion','+ '+line));body.append(diff);
- }
- body.append(element('pre','code',c.partial?c.text:JSON.stringify(c.args??{},null,2)));return body;
-}
-function jobInfo(job){const box=element('div','job-state');let text=`Job ${job.handle} · ${job.status} · ${job.bytes} bytes`;if(job.exit_code!==undefined)text+=` · exit ${job.exit_code}`;if(job.reason)text+=` · ${job.reason}`;box.append(element('div','',text));if(job.output?.locator)box.append(element('div','muted',job.output.locator));return box;}
-function renderCard(record) {
- const {frame, node} = record, c=frame.part, wasOpen=node.querySelector('details')?.open;
- node.dataset.agentId=frame.agent_id;node.dataset.partId=String(frame.part_id);node.id=`part-${frame.agent_id}-${frame.part_id}`;
- node.replaceChildren();node.className=`card ${c.type} ${c.role==='human'?'human':''} ${c.partial?'partial':''} ${c.is_error?'error':''}`;
- const heading=element('div','card-title');
- const names={text:c.role==='human'?'You':c.role==='system'?'System':'Assistant',thinking:'Thinking',reasoning_summary:'Reasoning summary',continuation:'Private continuation',tool_call:`Tool request · ${c.name||'pending'}`,tool_result:`Tool result · ${c.name||c.call_id||''}`,image:'Image',audio:'Audio',video:'Video',file:'File'};
- heading.append(element('span','',names[c.type]||c.type));
- if(c.partial) heading.append(element('span','','Streaming…'));
- if(c.type==='tool_call'&&frame.type!=='job_update') heading.append(element('span',c.dispatched?'badge':'',c.dispatched?'Dispatched':'Requested · not dispatched'));
- if(c.is_error) heading.append(element('span','','Error'));
- if(c.from) heading.append(element('span','muted',`${c.from.vendor} / ${c.from.model}`));
- if(!c.partial && c.text && ['text','thinking','reasoning_summary','tool_call','tool_result'].includes(c.type) && !c.text.startsWith('[opaque')) {
-  const speak=element('button','','Speak');speak.title='Speak the complete readable part';speak.onclick=()=>send('speak',{agent_id:frame.agent_id,part_id:frame.part_id});heading.append(speak);
- }
- node.append(heading);
- if(c.type==='tool_call') {if(c.partial)node.append(toolContent(c));else {node.append(element('div','preview',`${c.name} · ${JSON.stringify(c.args??{}).slice(0,160)}`));node.append(fullDetails('Full request / edit diff',toolContent(c),wasOpen));}if(c.call_id)node.append(element('div','muted',`Provider call: ${c.call_id}`));}
- else if(['thinking','reasoning_summary'].includes(c.type)&&!c.partial){node.append(element('div','preview',(c.text||'').slice(0,180)));node.append(fullDetails(c.type==='reasoning_summary'?'Full reasoning summary':'Full thinking',element('div','body',c.text||''),wasOpen));}
- else if(c.type==='tool_result') {
-  const text=c.text||'',preview=element('div','body preview',text.length>400?text.slice(0,400)+'…':text);node.append(preview);
-  const details=element('details');details.open=!!wasOpen;details.append(element('summary','',`Full result · ${text.length.toLocaleString()} characters`),element('pre','body',text));node.append(details);
- } else if(['image','audio','video','file'].includes(c.type)) {
-  node.append(element('div','media',c.text||`${c.type} attachment · ${c.mime||'unknown type'}`));
-  if(c.locator) {let safe=false;try { const u=new URL(c.locator);safe=['http:','https:'].includes(u.protocol); }catch{}
-   if(safe) {const a=element('a','',c.locator);a.href=c.locator;a.target='_blank';a.rel='noopener noreferrer';node.append(a);}else node.append(element('div','muted',c.locator)); }
- } else node.append(element('div','body',c.text||''));
- if(c.job)node.append(jobInfo(c.job));
- node.hidden=frame.agent_id!==selected;
- const destination=$(['tool_call','tool_result'].includes(c.type)?'tool-cards':'conversation');
- if(node.parentElement!==destination){destination.querySelector('.empty-state')?.remove();destination.append(node);}
-}
+const artifactScroll=new ArtifactScroll($('conversation'),{toolContainer:$('tool-cards'),followButton:$('follow'),onSpeak:(agent_id,part_id)=>send('speak',{agent_id,part_id})});
+
 function skillView(){
  const box=$('skills');if(!box)return;box.replaceChildren();const state=skillsByAgent.get(selected);if(!state){box.textContent='No skills configured.';return;}
  const loadable=new Set((state.loadable_skills||[]).map(s=>s.name));
@@ -165,28 +124,18 @@ function observeTurn(frame){
  if(frame.type==='turn_ended')turn.terminal=true;
 }
 function apply(frame) {
+ if(frame.type==='human_question') { const q=frame.question;const answer=window.prompt(q.Text);if(answer!==null)send('answer_human',{agent_id:q.Sender,request_id:q.RequestID,text:answer});return; }
  if(frame.type==='usage'){const a=agents.get(frame.agent_id);if(a){a.usage=frame;a.meter=frame.meter;}if(frame.agent_id===selected)renderMeter();return;}
  observeTurn(frame);
- if(['part_final','part_delta','tool_dispatched','tool_finished'].includes(frame.type)) {
-  const key=`${frame.agent_id}/${frame.part_id}`;let record=cards.get(key);
-  if(frame.type==='part_delta') {
-   if(record&&!record.frame.part.partial)return;
-   frame={...frame,part:{type:frame.kind,name:frame.name,role:'agent',partial:true,text:(record?.frame.part.text||'')+(frame.chunk||'')}};
-  }
-  const dispatched=record?.frame.part.dispatched||frame.part?.dispatched;
-  if(!record){record={frame,node:element('article','card')};cards.set(key,record);order.push(key);}
-  record.frame=frame;record.frame.part.dispatched=!!dispatched;renderCard(record);
- } else if(frame.type==='job_update') {
-  const key=`${frame.agent_id}/${frame.part_id}`;let record=cards.get(key);if(!record){record={frame,node:element('article','card')};cards.set(key,record);}else record.frame.part.job=frame.part.job;renderCard(record);
- } else if(frame.type==='part_removed'){const key=`${frame.agent_id}/${frame.part_id}`,r=cards.get(key);if(r?.frame.part.partial){r.node.remove();cards.delete(key);}
- } else if(frame.type==='state'||frame.type==='state_changed') {
+ artifactScroll.receive(frame);
+ if(frame.type==='state'||frame.type==='state_changed') {
   if(!frame.replay)pageTurnRevision++;
   const a=agents.get(frame.agent_id), next=frame.type==='state'?frame.data:frame.state, previous=a?.state;if(a) a.state=next;
   if(frame.agent_id===selected) controls();
   // A state acknowledgement may follow newer input. Only explicit Continue
   // authority (below), not an automatic continuation epoch, clears typing.
   if(!frame.replay&&next.epoch!==previous?.epoch)cancelAudio(frame.agent_id,false);
- } else if(frame.type==='turn_ended') {if(!frame.replay)pageTurnsEnded++;for(const [key,r] of cards) {if(r.frame.agent_id===frame.agent_id&&r.frame.part.partial){r.node.remove();cards.delete(key);}}}
+ } else if(frame.type==='turn_ended') {if(!frame.replay)pageTurnsEnded++;}
  else if(frame.type==='continued'&&!frame.replay){
   if(frame.data.client!==clientID&&frame.data.epoch===agents.get(frame.agent_id)?.state.epoch)explicitContinue(frame.agent_id);
  }else if(frame.type==='skill_state'){skillsByAgent.set(frame.agent_id,frame);skillView();
@@ -253,14 +202,14 @@ function controls(){skillView();renderMeter();const a=agents.get(selected);rende
 function replay(data){
  mcpAgents.clear();mcpReady.clear();
  const previousAgents=new Map(agents);if(session!==data.session)observedTurns.clear();
- cancelAudio(undefined,false);admittedSpeech.clear();clientID=data.client;session=data.session;cards.clear();order.length=0;$('conversation').replaceChildren();$('tool-cards').replaceChildren();agents.clear();skillsByAgent.clear();
+ cancelAudio(undefined,false);admittedSpeech.clear();clientID=data.client;session=data.session;artifactScroll.reset();agents.clear();skillsByAgent.clear();
  for(const a of data.agents){if(!a.state.paused||a.state.continue_epoch!==previousAgents.get(a.id)?.state.continue_epoch)typing.delete(a.id);agents.set(a.id,a);}
- if(!agents.has(selected))selected=data.agents[0]?.id||'';
+ if(!agents.has(selected))selected=data.agents[0]?.id||'';artifactScroll.selectAgent(selected);
  for(const frame of data.events) apply(frame);for(const frame of data.partials) apply(frame);controls();
 }
 function connect(){socket=new WebSocket(`${location.protocol==='https:'?'wss':'ws'}://${location.host}/ws`);
  socket.onopen=()=>{$('connection').textContent='Connected · synchronizing';retry=500;};
- socket.onmessage=event=>{let frame;try{frame=JSON.parse(event.data);}catch{return;}if(handleMCPFrame(frame))return;const near=nearBottom(),toolNear=nearBottom($('tool-cards'));if(frame.type==='replay'){replay(frame.data);$('connection').textContent='Connected';}else apply(frame);follow(near);if(toolNear)requestAnimationFrame(()=>{$('tool-cards').scrollTop=$('tool-cards').scrollHeight;});};
+ socket.onmessage=event=>{let frame;try{frame=JSON.parse(event.data);}catch{return;}if(handleMCPFrame(frame))return;if(frame.type==='replay'){replay(frame.data);$('connection').textContent='Connected';}else apply(frame);};
  socket.onclose=()=>{contextTargetPending=null;$('connection').textContent='Disconnected · reconnecting';settingsReady=false;preferenceControls();cancelAudio(undefined,false);setTimeout(connect,retry);retry=Math.min(retry*2,8000);};
  socket.onerror=()=>socket.close();
 }
@@ -311,7 +260,7 @@ function speakNext(){
   try{speechSynthesis.speak(utterance);}catch(error){if(valid()){activeUtterance=null;speechRecord(task,'error',{error:String(error)});complete('failed');}}
  };next();
 }
-$('agent-root').onclick=()=>{selected=$('agent-root').dataset.agentId;for(const r of cards.values())r.node.hidden=r.frame.agent_id!==selected;controls();};
+$('agent-root').onclick=()=>{selected=$('agent-root').dataset.agentId;artifactScroll.selectAgent(selected);controls();};
 function showSidebar(open){$('sidebar').hidden=!open;$('sidebar-resizer').hidden=!open;$('menu-toggle').setAttribute('aria-expanded',String(open));}
 showSidebar(!window.matchMedia?.('(max-width: 1050px)')?.matches);
 $('menu-toggle').onclick=()=>showSidebar($('sidebar').hidden);

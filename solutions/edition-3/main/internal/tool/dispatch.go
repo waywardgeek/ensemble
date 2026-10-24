@@ -25,18 +25,19 @@ func (r *registry) Dispatch(ctx context.Context, name string, input json.RawMess
 }
 
 type operation struct {
-	automatic  bool
-	registry   *registry
-	call       common.Part
-	args       arguments
-	limits     common.ToolLimits
-	custom     bool
-	job        common.Job
-	control    bool
-	err        error
-	released   atomic.Bool
-	dispatched atomic.Bool
-	eventSeq   common.Seq
+	fleetCompletion bool
+	automatic       bool
+	registry        *registry
+	call            common.Part
+	args            arguments
+	limits          common.ToolLimits
+	custom          bool
+	job             common.Job
+	control         bool
+	err             error
+	released        atomic.Bool
+	dispatched      atomic.Bool
+	eventSeq        common.Seq
 }
 
 func (o *operation) SetEventSeq(seq common.Seq) { o.eventSeq = seq }
@@ -99,7 +100,7 @@ func (o *operation) Await(ctx context.Context) common.ToolData {
 	err := o.err
 	if err == nil && o.control {
 		var report *common.JobReport
-		text, report, err = o.registry.control(ctx, o.call.Name, o.args, o.limits)
+		text, report, err = o.registry.control(ctx, o.call.Name, o.args, o.limits, o.fleetCompletion)
 		if report != nil {
 			// Controls report an existing target; they never own a job.
 			text = formatReport(*report)
@@ -124,6 +125,9 @@ func (o *operation) Await(ctx context.Context) common.ToolData {
 	if err != nil {
 		text = err.Error()
 		d.IsError = true
+	}
+	if o.fleetCompletion && err == nil && !d.IsError {
+		d.FleetCompletion = true
 	}
 	if o.custom {
 		pattern := "none"
@@ -184,6 +188,16 @@ func (r *registry) prepare(ctx context.Context, call common.Part, refusal string
 	}
 	// Rejection is a tool result, never execution or job allocation.
 	if o.err != nil {
+		return o
+	}
+	if selected.Source == fleetSource && selected.Name == "submit" {
+		o.fleetCompletion = true
+		o.control = true
+		if turn == 0 {
+			o.err = errors.New("submit requires an active conversation turn")
+		} else {
+			o.err = common.ValidateSubmission(r.parent.Config().SubmitSchema, call.Args)
+		}
 		return o
 	}
 	if call.Name == "wait_for_job" || call.Name == "send_input" || call.Name == "kill_job" || call.Name == "tool_limits" {
@@ -288,7 +302,19 @@ func parseLimits(a arguments, l common.ToolLimits) (common.ToolLimits, error) {
 	}
 	return l, nil
 }
-func (r *registry) control(ctx context.Context, name string, a arguments, limits common.ToolLimits) (string, *common.JobReport, error) {
+func (r *registry) control(ctx context.Context, name string, a arguments, limits common.ToolLimits, fleetCompletion bool) (string, *common.JobReport, error) {
+	if fleetCompletion {
+		fleet, ok := r.parent.Parent().(common.Fleet)
+		if !ok {
+			return "", nil, errors.New("fleet is unavailable")
+		}
+		raw, err := json.Marshal(a)
+		if err == nil {
+			err = fleet.AcceptSubmission(r.parent.ID(), raw)
+		}
+		return "Submission accepted; this conversation is terminal.", nil, err
+	}
+
 	if name == "tool_limits" {
 		if err := a.only("ai_callback_delay", "ai_callback_pattern", "max_output_bytes"); err != nil {
 			return "", nil, err

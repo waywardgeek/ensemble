@@ -115,7 +115,7 @@ func TestCh7R2PublicWireFields(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer s.Close()
-	host := httptest.NewServer(s.Handler())
+	host := httptest.NewServer(s.Handler(s.Assets))
 	defer host.Close()
 	ws, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(host.URL, "http")+"/ws", nil)
 	if err != nil {
@@ -232,7 +232,7 @@ func TestCh7R2AbsoluteAssetsOutsideCWD(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer s.Close()
-	host := httptest.NewServer(s.Handler())
+	host := httptest.NewServer(s.Handler(s.Assets))
 	defer host.Close()
 	for _, path := range []string{"/", "/app.js", "/style.css"} {
 		res, err := http.Get(host.URL + path)
@@ -289,7 +289,7 @@ func TestCh7R2TerminalInterrupt(t *testing.T) {
 	case <-time.After(3 * time.Second):
 		t.Fatal("terminal /interrupt not handled")
 	}
-	host := httptest.NewServer(s.Handler())
+	host := httptest.NewServer(s.Handler(s.Assets))
 	defer host.Close()
 	res, err := http.Get(host.URL + "/")
 	if err != nil {

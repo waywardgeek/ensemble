@@ -29,6 +29,7 @@ type registry struct {
 // Each registered entry joins the declaration and the function it advertises.
 // The registry owns these closures; common exposes no handler implementation.
 type entry struct {
+	source     string // catalogue owner, independent of enabled grants
 	definition common.ToolDefinition
 	execute    func(context.Context, arguments) (string, error)
 	handler    common.ToolHandler
@@ -49,7 +50,15 @@ func (r *registry) Definitions() []common.ToolDefinition { return r.Snapshot().D
 func (r *registry) Snapshot() common.CapabilitySnapshot  { return r.parent.Skills().Snapshot() }
 func (r *registry) Catalog() []common.ToolSpec {
 	out := []common.ToolSpec{}
-	for _, e := range append(append(append(r.builtins(), r.skillTools()...), r.contextTools()...), r.statusTool()) {
+	entries := append(append(append(r.builtins(), r.skillTools()...), r.contextTools()...), r.statusTool())
+	// Explicit application-only composition keeps core names reserved, but
+	// does not install the optional fleet family (notably its submit action).
+	cfg := r.parent.Config()
+	applicationOnly := cfg.Tools != nil && len(cfg.Tools) == 0 && cfg.Skills == nil && len(cfg.StartupSkills) == 0
+	if !applicationOnly {
+		entries = append(entries, r.fleetTools()...)
+	}
+	for _, e := range entries {
 		e := e
 		handler := e.handler
 		if handler == nil {
@@ -69,7 +78,11 @@ func (r *registry) Catalog() []common.ToolSpec {
 				return err
 			}
 		}
-		out = append(out, common.ToolSpec{ToolDefinition: e.definition, Source: "builtin", Handler: handler})
+		source := e.source
+		if source == "" {
+			source = "builtin"
+		}
+		out = append(out, common.ToolSpec{ToolDefinition: e.definition, Source: source, Handler: handler})
 	}
 	return out
 }

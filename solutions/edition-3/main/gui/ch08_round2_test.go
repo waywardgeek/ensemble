@@ -20,7 +20,7 @@ func TestChapter8R2SpeechAndContinueProtocol(t *testing.T) {
 	}
 	t.Cleanup(s.Close)
 	s.DefaultAgent = a.ID()
-	host := httptest.NewServer(s.Handler())
+	host := httptest.NewServer(s.Handler(s.Assets))
 	t.Cleanup(host.Close)
 	first, second := r4Dial(t, host.URL), r4Dial(t, host.URL)
 	clients := []*websocket.Conn{first, second}

@@ -1,7 +1,6 @@
 package gui
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"ensemble"
@@ -42,7 +41,7 @@ func TestCh13SubmitPromptSurvivesOwnRelease(t *testing.T) {
 	}
 	defer server.Close()
 	server.DefaultAgent = a.ID()
-	web := httptest.NewServer(server.Handler())
+	web := httptest.NewServer(server.Handler(server.Assets))
 	defer web.Close()
 	ws, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(web.URL, "http")+"/ws", nil)
 	if err != nil {
@@ -53,7 +52,7 @@ func TestCh13SubmitPromptSurvivesOwnRelease(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 12*time.Second)
 	defer cancel()
 	node := exec.CommandContext(ctx, "node", "ch13_submit_bridge.cjs")
-	var stderr bytes.Buffer
+	var stderr safeBuffer
 	node.Stderr = &stderr
 	in, err := node.StdinPipe()
 	if err != nil {

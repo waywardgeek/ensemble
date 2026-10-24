@@ -37,7 +37,7 @@ func TestCh10R3WireTraceRecords(t *testing.T) {
 		t.Fatal(err)
 	}
 	s.Trace = trace
-	web := httptest.NewServer(s.Handler())
+	web := httptest.NewServer(s.Handler(s.Assets))
 	defer web.Close()
 	ws, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(web.URL, "http")+"/ws", nil)
 	if err != nil {
@@ -189,7 +189,7 @@ func TestCh10R3StreamingFinalAfterCoalescedWake(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer s.Close()
-	web := httptest.NewServer(s.Handler())
+	web := httptest.NewServer(s.Handler(s.Assets))
 	defer web.Close()
 	ws, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(web.URL, "http")+"/ws", nil)
 	if err != nil {

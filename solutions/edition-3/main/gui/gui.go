@@ -9,7 +9,7 @@ import (
 	"sync"
 )
 
-func New(a ensemble.Agent) http.Handler {
+func NewChat(a ensemble.Agent) http.Handler {
 	var mu sync.Mutex // One browser session serializes this synchronous Agent.
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/" {

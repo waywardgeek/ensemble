@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -45,6 +46,8 @@ func (b *mailbox) drain() []any {
 type request struct {
 	live        bool
 	turnID      uint64
+	accepted    bool
+	submission  json.RawMessage
 	message     *common.MessageData
 	hintMessage bool
 	ctx         context.Context
@@ -52,6 +55,8 @@ type request struct {
 	reply       chan common.Result
 	done        chan struct{}
 }
+type completeRequest struct{ request *request }
+
 type cancelRequest struct {
 	request *request
 	err     error
@@ -85,6 +90,75 @@ type invoke struct {
 type invoked struct {
 	data  common.ToolData
 	reply chan error
+}
+
+// Complete enters the same terminal validation/save owner as the submit tool.
+func (a *agent) Complete(ctx context.Context, text string) <-chan common.Result {
+	r := &request{ctx: ctx, text: text, reply: make(chan common.Result, 1), done: make(chan struct{})}
+	if err := a.box.post(completeRequest{r}, true); err != nil {
+		a.reply(r, "", err)
+	}
+	return r.reply
+}
+func (a *agent) completeResult(r *request) {
+	if a.stopping {
+		a.reply(r, "", common.ErrStopped)
+		return
+	}
+	if err := r.ctx.Err(); err != nil {
+		a.reply(r, "", err)
+		return
+	}
+	raw, _ := json.Marshal(map[string]string{"result": r.text})
+	payload, err := common.PrepareSubmission(a.Config().SubmitSchema, raw)
+	if err != nil {
+		a.reply(r, "", err)
+		return
+	}
+	fleet, ok := a.parent.(common.Fleet)
+	if !ok {
+		a.reply(r, "", fmt.Errorf("terminal completion requires a fleet owner"))
+		return
+	}
+	if err = fleet.AcceptSubmission(a.ID(), raw); err != nil {
+		a.reply(r, "", err)
+		return
+	}
+	a.closeTerminalAdmission()
+	t := a.active
+	if t == nil {
+		a.nextTurn++
+		r.turnID = a.nextTurn
+		ctx, cancel := context.WithCancel(r.ctx)
+		t = &turn{id: r.turnID, request: r, ctx: ctx, cancel: cancel}
+		a.active = t
+	} else {
+		r.turnID = t.id
+		r.submission = payload
+		t.followers = append(t.followers, r)
+		if t.httpCancel != nil {
+			t.httpCancel()
+		}
+		if t.observeCancel != nil {
+			t.observeCancel()
+		}
+		if t.operation != nil {
+			d := t.operation.Called()
+			d.IsError = true
+			d.Parts = common.PartList{common.Text("interrupted by terminal completion")}
+			err = errors.Join(err, a.returned(t.id, d))
+			t.operation = nil
+			t.index++
+		}
+		a.skipTail("skipped after terminal completion")
+	}
+	t.request.accepted = true
+	t.request.submission = payload
+	d := common.ToolData{Name: "submit", CallID: fmt.Sprintf("complete-%d", t.id), Args: raw, Parts: common.PartList{common.Text(string(payload))}}
+	_, recordErr := a.record(common.Event{Type: common.ToolCalled, TurnID: t.id, Tool: &d})
+	d.FleetCompletion = true
+	err = errors.Join(err, recordErr, a.returned(t.id, d))
+	a.finish(string(payload), err)
 }
 
 func (a *agent) InvokeTool(ctx context.Context, call common.Part, refusal string) error {
@@ -125,6 +199,7 @@ type turn struct {
 	refusal                             string
 	skip                                bool
 	hinted                              bool
+	wakes                               int
 	rounds, limit                       int
 	partIDs                             map[uint64]uint64
 	speechRequested                     bool
@@ -282,6 +357,8 @@ func (a *agent) run() {
 						a.hint(common.MessageData{Actor: common.Human, Parts: common.PartList{common.Text(m.Text)}})
 					}
 				}
+			case completeRequest:
+				a.completeResult(m.request)
 			case common.Ephemeral:
 				_, err := a.record(common.Event{Type: common.MessageReceived, Message: &common.MessageData{Actor: common.System, Parts: common.PartList{common.Text(m.Text)}}})
 				if err != nil {
@@ -412,18 +489,40 @@ func (a *agent) run() {
 					a.reply(r, "", common.ErrStopped)
 				}
 				a.pending = nil
+				terminal := a.terminal != nil
 				go func() {
 					var mcpErr error
+					if terminal {
+						if fleet, ok := a.parent.(common.Fleet); ok {
+							mcpErr = fleet.ShutdownChildren(a.ID())
+						}
+					}
 					if a.mcp != nil {
-						mcpErr = a.mcp.Close()
+						mcpErr = errors.Join(mcpErr, a.mcp.Close())
 					}
 					err := errors.Join(mcpErr, a.jobs.Shutdown())
 					a.workers.Wait()
 					_ = a.box.post(stopped{err}, false)
 				}()
 			case stopped:
-				a.shutdownErr = errors.Join(m.err, a.save(), a.Save(), a.Sandbox().Close())
+				a.shutdownErr = errors.Join(m.err, a.save(), a.Save())
+				if end := a.terminal; end != nil {
+					a.shutdownErr = errors.Join(a.shutdownErr, end.err)
+					if a.shutdownErr == nil && end.turn.request.accepted && !end.recovered {
+						a.shutdownErr = common.SaveSubmission(a.Sandbox(), a.Config(), end.turn.request.submission)
+					}
+				}
+				a.shutdownErr = errors.Join(a.shutdownErr, a.Sandbox().Close())
 				close(a.done)
+				if end := a.terminal; end != nil {
+					if fleet, ok := a.parent.(common.Fleet); ok {
+						fleet.CompleteSubmission(a.ID(), end.turn.request.submission, a.shutdownErr)
+					}
+					a.reply(end.turn.request, end.text, a.shutdownErr)
+					for _, follower := range end.turn.followers {
+						a.reply(follower, end.text, a.shutdownErr)
+					}
+				}
 				return
 			}
 			a.startNext()
@@ -805,11 +904,24 @@ func (a *agent) report(r report) {
 	}
 	t.observeCancel = nil
 	t.operation = nil
+	accepted := r.call.FleetCompletion && !r.call.IsError
+	if accepted {
+		// Admission closes inside this actor before a queued Submit/Invoke can
+		// run. The fleet observer only publishes the already-stopped outcome.
+		t.request.accepted = true
+		t.request.submission, _ = common.PrepareSubmission(a.Config().SubmitSchema, r.call.Args)
+		a.closeTerminalAdmission()
+	}
 	if err := a.returned(t.id, r.call); err != nil {
 		a.finish("", err)
 		return
 	}
 	t.index++
+	if accepted {
+		a.skipTail("skipped after accepted terminal submit")
+		a.finish(string(t.request.submission), nil)
+		return
+	}
 	if t.skip {
 		a.skipTail("interrupted, not executed: live input interrupted this pending batch")
 	}
@@ -858,10 +970,46 @@ func (a *agent) interrupt(err error) {
 	a.transition(common.Interrupted)
 	a.finish("", err)
 }
+
+// closeTerminalAdmission runs on the actor before any terminal result escapes.
+func (a *agent) closeTerminalAdmission() {
+	a.stopping = true
+	a.box.mu.Lock()
+	if !a.box.closed {
+		a.box.closed = true
+		a.box.queue = append(a.box.queue, stop{})
+		select {
+		case a.box.wake <- struct{}{}:
+		default:
+		}
+	}
+	a.box.mu.Unlock()
+}
+
+type terminalCompletion struct {
+	turn      *turn
+	text      string
+	err       error
+	recovered bool
+}
+
 func (a *agent) finish(text string, err error) {
 	t := a.active
 	if t == nil {
 		return
+	}
+	if err == nil && !t.request.accepted && a.Config().ParentID != "" {
+		if t.wakes < 3 {
+			t.wakes++
+			_, wakeErr := a.record(common.Event{Type: common.HintReceived, TurnID: t.id, Message: &common.MessageData{Actor: common.Human, Parts: common.PartList{common.Text("This delegated task is not complete. Call submit with a result conforming to its advertised schema. Corrective wake " + strconv.Itoa(t.wakes) + " of 3.")}}})
+			if wakeErr == nil {
+				a.send()
+				return
+			}
+			err = wakeErr
+		} else {
+			err = errors.New("delegated task exhausted three corrective wakes without submit")
+		}
 	}
 	t.cancel()
 	if err != nil {
@@ -873,6 +1021,11 @@ func (a *agent) finish(text string, err error) {
 	a.active = nil
 	a.gate = nil
 	a.publish(common.TurnEndedObservation{TurnID: t.id, Text: text})
+	if t.request.accepted || (a.Config().ParentID != "" && err != nil) {
+		a.closeTerminalAdmission()
+		a.terminal = &terminalCompletion{turn: t, text: text, err: err}
+		return
+	}
 	a.transition(common.Idle)
 	a.reply(t.request, text, err)
 	for _, r := range t.followers {
@@ -881,7 +1034,7 @@ func (a *agent) finish(text string, err error) {
 }
 func (a *agent) reply(r *request, text string, err error) {
 	if r.reply != nil {
-		r.reply <- common.Result{TurnID: r.turnID, Text: text, Err: err}
+		r.reply <- common.Result{TurnID: r.turnID, Text: text, Submission: append(json.RawMessage(nil), r.submission...), Err: err}
 		close(r.reply)
 		close(r.done)
 	}
@@ -1065,4 +1218,13 @@ func (a *agent) displayID(t *turn, parserID uint64) uint64 {
 	a.partID++
 	t.partIDs[parserID] = a.partID
 	return a.partID
+}
+
+// RestoreSubmission is construction-only; a restored terminal actor never opens
+// public admission and never sends a provider request.
+func (a *agent) RestoreSubmission(payload json.RawMessage) {
+	a.stopping = true
+	a.terminal = &terminalCompletion{turn: &turn{request: &request{accepted: true, submission: append(json.RawMessage(nil), payload...)}}, recovered: true}
+	a.box.closed = true
+	_ = a.box.post(stop{}, false)
 }

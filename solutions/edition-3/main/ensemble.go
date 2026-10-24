@@ -2,12 +2,14 @@
 package ensemble
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -59,21 +61,27 @@ type Cost = common.Cost
 // Ensemble owns its Agents and logger; it has no invented parent of its own.
 // Construction wires children before the single conversation actor starts.
 type Ensemble struct {
-	auth         common.Auth
-	mu           sync.Mutex
-	closed       bool
-	nextHandle   int
-	nextAgent    uint64
-	watchers     map[uint64]chan AgentObservation
-	nextWatcher  uint64
-	identified   map[uint64]*identifiedSubscriber
-	traceQueue   chan traceWrite
-	shutdownDone chan struct{}
-	shutdownErr  error
-	jobs         map[int]common.Job
-	trace        io.Writer
-	logger       *log.Logger
-	agents       []common.Agent
+	auth              common.Auth
+	mu                sync.Mutex
+	admissionMu       sync.Mutex
+	factory           AgentFactory
+	admissions        map[string]*spawnAdmission
+	humanSink         HumanQuestionSink
+	humanAddress      string
+	nextHumanQuestion uint64
+	closed            bool
+	nextHandle        int
+	nextAgent         uint64
+	watchers          map[uint64]chan AgentObservation
+	nextWatcher       uint64
+	identified        map[uint64]*identifiedSubscriber
+	traceQueue        chan traceWrite
+	shutdownDone      chan struct{}
+	shutdownErr       error
+	jobs              map[int]common.Job
+	trace             io.Writer
+	logger            *log.Logger
+	agents            []*agentEntry
 }
 
 // New creates an independent application. A nil logger discards diagnostics.
@@ -95,13 +103,54 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 	if e == nil {
 		return nil, errors.New("Agent requires an Ensemble parent")
 	}
+	e.admissionMu.Lock()
+	defer e.admissionMu.Unlock()
 	e.mu.Lock()
 	if e.closed {
 		e.mu.Unlock()
 		return nil, errors.New("Ensemble is shut down")
 	}
-	e.nextAgent++
-	id := e.nextAgent
+	id := config.ID
+	if id == "" {
+		for {
+			e.nextAgent++
+			id = fmt.Sprintf("agent-%d", e.nextAgent)
+			if e.entryLocked(id) == nil && e.admissions[id] == nil && id != e.humanAddressLocked() {
+				break
+			}
+		}
+	}
+	if !validAgentID(id) || id == e.humanAddressLocked() || e.entryLocked(id) != nil {
+		e.mu.Unlock()
+		return nil, errors.New("invalid or duplicate Agent ID")
+	}
+	if config.ParentID != "" {
+		parent := e.entryLocked(config.ParentID)
+		if parent == nil || parent.stopping || parent.terminal || parent.state == "submitting" {
+			e.mu.Unlock()
+			return nil, errors.New("parent is unavailable")
+		}
+		var alarm error
+		config, alarm = config.Clamp(parent.agent.Config())
+		if alarm != nil {
+			e.logger.Print(alarm)
+		}
+	}
+	canonicalSchema, schemaErr := common.CanonicalSubmitSchema(config.SubmitSchema)
+	if schemaErr != nil {
+		e.mu.Unlock()
+		return nil, fmt.Errorf("submit schema: %w", schemaErr)
+	}
+	config.SubmitSchema = canonicalSchema
+	if admission := e.admissions[id]; admission != nil {
+		if admission.agent != nil || config.ParentID != admission.parent || !bytes.Equal(config.SubmitSchema, admission.schema) {
+			e.mu.Unlock()
+			return nil, errors.New("construction differs from reserved child admission")
+		}
+	}
+
+	config.ID = id
+	config.SubmitSchema = append(json.RawMessage(nil), config.SubmitSchema...)
 	e.mu.Unlock()
 	if config.StreamCapability == StreamUnknown {
 		model := config.ResolvedModel
@@ -125,7 +174,7 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 		if err != nil {
 			return nil, err
 		}
-		config.SavePath = filepath.Join(dataDir, fmt.Sprintf("agent-%d", id), "save.json")
+		config.SavePath = filepath.Join(dataDir, id, "save.json")
 	}
 	if config.Vendor == common.OpenAI && config.AuthMode == "" {
 		mode, err := e.Auth().Mode(context.Background())
@@ -134,6 +183,45 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 		}
 		config.AuthMode = mode
 	}
+	// Resolve only state paths here, before Agent/history/MCP initialization can
+	// touch them. Explicit save paths retain caller-cwd semantics.
+	base := config.BaseDir
+	if base == "" {
+		base = config.SandboxRoot
+	}
+	if base == "" {
+		base, _ = os.Getwd()
+	}
+	if config.DataDir == "" && config.SandboxRoot != "" {
+		config.DataDir = filepath.Join(config.SandboxRoot, ".ensemble")
+	}
+	if config.DataDir != "" && !filepath.IsAbs(config.DataDir) {
+		config.DataDir = filepath.Join(base, config.DataDir)
+	}
+	if config.LogPath != "" && !filepath.IsAbs(config.LogPath) {
+		config.LogPath = filepath.Join(base, config.LogPath)
+	}
+	paths, pathErr := statePaths(config)
+	if pathErr != nil {
+		return nil, pathErr
+	}
+	e.mu.Lock()
+	for _, entry := range e.agents {
+		others, pathErr := statePaths(entry.agent.Config())
+		if pathErr != nil {
+			e.mu.Unlock()
+			return nil, pathErr
+		}
+		for _, path := range paths {
+			for _, other := range others {
+				if path == other {
+					e.mu.Unlock()
+					return nil, errors.New("Agents must use distinct canonical state/recovery paths")
+				}
+			}
+		}
+	}
+	e.mu.Unlock()
 	a, err := agent.New(e, config)
 	if err != nil {
 		return nil, err
@@ -148,12 +236,19 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 	if err != nil {
 		return nil, err
 	}
-	a.SetID(fmt.Sprintf("agent-%d", id))
+	a.SetID(id)
 	a.SetEngine(transport)
 	transport.SetCache(engine.NewCache(transport))
 	a.SetHistory(history.New(a))
 	if err := a.Load(); err != nil {
 		return nil, err
+	}
+	recovered, err := common.ReadSubmission(a.Sandbox(), a.Config())
+	if err != nil {
+		return nil, err
+	}
+	if recovered == nil && a.Log().Context().FleetCompletion {
+		return nil, errors.New("accepted submit history has no durable submission row")
 	}
 	a.SetJobs(jobs.New(a))
 	registry, err := tool.New(a)
@@ -174,14 +269,16 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 		}
 	}()
 	projected := a.Log().Context()
-	if len(projected.ActiveSkills) != 0 || projected.BaseThrough != 0 {
+	if recovered != nil {
+		// Terminal recovery exposes registries without reconnecting capabilities.
+	} else if len(projected.ActiveSkills) != 0 || projected.BaseThrough != 0 {
 		if err := skillRegistry.RestoreContext(projected); err != nil {
 			return nil, err
 		}
 	} else if err := skillRegistry.LoadInitial(); err != nil {
 		return nil, err
 	}
-	if !a.Log().Context().ToolsInitialized {
+	if recovered == nil && !a.Log().Context().ToolsInitialized {
 		delta := common.ToolsData{}
 		for _, d := range skillRegistry.Snapshot().Definitions {
 			delta.Added = append(delta.Added, common.ToolDeclaration{Name: d.Name, Description: d.Description, Schema: d.Parameters})
@@ -195,22 +292,54 @@ func (e *Ensemble) NewAgent(config Config) (Agent, error) {
 	if e.closed {
 		return nil, errors.New("Ensemble is shut down")
 	}
-	candidate, err := filepath.Abs(a.Config().SavePath)
+	candidates, err := statePaths(a.Config())
 	if err != nil {
 		return nil, err
 	}
 	for _, existing := range e.agents {
-		other, err := filepath.Abs(existing.Config().SavePath)
+		paths, err := statePaths(existing.agent.Config())
 		if err != nil {
 			return nil, err
 		}
-		if candidate == other || candidate == other+".bak" || candidate+".bak" == other {
-			return nil, errors.New("Agents must use distinct recovery paths")
+		for _, candidate := range candidates {
+			for _, other := range paths {
+				if candidate == other {
+					return nil, errors.New("Agents must use distinct canonical state/recovery paths")
+				}
+			}
 		}
+	}
+
+	if config.ParentID != "" {
+		parent := e.entryLocked(config.ParentID)
+		if parent == nil || parent.stopping || parent.terminal || parent.state == "submitting" {
+			return nil, errors.New("parent stopped during construction")
+		}
+		candidate, err := common.CanonicalPath(a.Config().DataDir)
+		if err != nil {
+			return nil, err
+		}
+		for _, entry := range e.agents {
+			other, err := common.CanonicalPath(entry.agent.Config().DataDir)
+			if err != nil {
+				return nil, err
+			}
+			if candidate == other {
+				return nil, errors.New("delegated Agents require distinct state directories")
+			}
+		}
+	}
+	state := "idle"
+	if len(recovered) > 0 {
+		state = "recovering"
+		a.RestoreSubmission(recovered)
 	}
 	a.Start()
 	installed = true
-	e.agents = append(e.agents, a)
+	e.agents = append(e.agents, &agentEntry{id: id, parent: config.ParentID, agent: a, state: state, done: make(chan struct{}), changed: make(chan struct{})})
+	if admission := e.admissions[id]; admission != nil {
+		admission.agent = a
+	}
 	constructed = true
 	return a, nil
 }
@@ -288,14 +417,14 @@ func (e *Ensemble) Shutdown() error {
 		return e.shutdownErr
 	}
 	e.closed = true
-	agents := append([]common.Agent(nil), e.agents...)
+	agents := append([]*agentEntry(nil), e.agents...)
 	e.mu.Unlock()
 	// Stop every child before waiting for any potentially uncooperative work.
 	errs := make([]error, len(agents))
 	var joins sync.WaitGroup
 	for i, a := range agents {
 		joins.Add(1)
-		go func() { defer joins.Done(); errs[i] = a.Shutdown() }()
+		go func() { defer joins.Done(); errs[i] = e.ShutdownAgent(a.id) }()
 	}
 	joins.Wait()
 	e.shutdownErr = errors.Join(errs...)
@@ -404,14 +533,20 @@ func LookupModel(model string) (ModelFeatures, bool) { return common.LookupModel
 func (e *Ensemble) Agents() []Agent {
 	e.mu.Lock()
 	defer e.mu.Unlock()
-	return append([]Agent(nil), e.agents...)
+	result := make([]Agent, 0, len(e.agents))
+	for _, entry := range e.agents {
+		if !entry.retired {
+			result = append(result, entry.agent)
+		}
+	}
+	return result
 }
 func (e *Ensemble) Agent(id string) (Agent, bool) {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	for _, a := range e.agents {
-		if a.ID() == id {
-			return a, true
+		if a.id == id {
+			return a.agent, true
 		}
 	}
 	return nil, false
@@ -523,7 +658,7 @@ func (e *Ensemble) Trace(r TraceRecord) {
 	writer := e.trace
 	keys := common.CredentialValues()
 	for _, a := range e.agents {
-		keys = append(keys, common.CredentialValues(a.Config())...)
+		keys = append(keys, common.CredentialValues(a.agent.Config())...)
 	}
 	e.mu.Unlock()
 	if writer == nil {

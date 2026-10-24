@@ -10,9 +10,10 @@ import (
 func TestCh10R1DefaultAgentPaths(t *testing.T) {
 	root := New(nil)
 	defer root.Shutdown()
-	dir := t.TempDir()
 	var paths []string
 	for i := 0; i < 2; i++ {
+		// Unnamed Agents still derive saves, but each owns independent state.
+		dir := t.TempDir()
 		a, err := root.NewAgent(Config{Model: "fixture", DataDir: dir, Tools: []string{}})
 		if err != nil {
 			t.Fatal(err)

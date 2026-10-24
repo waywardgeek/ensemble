@@ -64,9 +64,10 @@ func (Question) inbound()    {}
 func (Interrupt) inbound()   {}
 
 type Result struct {
-	TurnID uint64
-	Text   string
-	Err    error
+	TurnID     uint64
+	Text       string
+	Submission json.RawMessage
+	Err        error
 }
 type Observation interface{ observation() }
 

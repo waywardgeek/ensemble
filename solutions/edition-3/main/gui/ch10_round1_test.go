@@ -138,12 +138,20 @@ func ch10PrefixTail(t *testing.T, mode string) {
 			t.Fatalf("%s canonical event %d changed during load", mode, i)
 		}
 	}
+	inputPolicy := loaded.Config()
+	if inputPolicy.DiagnosticMaxRecords == nil {
+		t.Fatal("loaded Agent has no normalized diagnostic retention limit")
+	}
+	inputDiagnosticLimit := *inputPolicy.DiagnosticMaxRecords
 	server, err := NewServerWithSettings(root, "web/gui", filepath.Join(dir, "settings.json"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	defer server.Close()
-	web := httptest.NewServer(server.Handler())
+	if got := loaded.Config(); got.LogMode != wantMode || got.DiagnosticMaxRecords == nil || *got.DiagnosticMaxRecords != inputDiagnosticLimit {
+		t.Fatalf("GUI construction changed input persistence policy: mode=%s, want mode=%s and diagnostic_max_records=%d", got.LogMode, wantMode, inputDiagnosticLimit)
+	}
+	web := httptest.NewServer(server.Handler(server.Assets))
 	defer web.Close()
 
 	connect := func(url string) (*websocket.Conn, []Wire) {
@@ -167,6 +175,9 @@ func ch10PrefixTail(t *testing.T, mode string) {
 	}
 	ws, initial := connect(web.URL)
 	defer ws.Close()
+	if got := loaded.Config(); got.LogMode != wantMode || got.DiagnosticMaxRecords == nil || *got.DiagnosticMaxRecords != inputDiagnosticLimit {
+		t.Fatalf("GUI attachment changed input persistence policy: mode=%s, want mode=%s and diagnostic_max_records=%d", got.LogMode, wantMode, inputDiagnosticLimit)
+	}
 	var firstID uint64
 	for _, f := range initial {
 		if f.Part != nil && f.Part.Kind == "tool_call" && f.Part.CallID == "native-call" {
@@ -186,6 +197,13 @@ func ch10PrefixTail(t *testing.T, mode string) {
 				t.Fatal("context-only initial replay already contains its result")
 			}
 		}
+	}
+	// The loaded INPUT may be dialogue-only. This test deliberately chooses
+	// full-fidelity OUTPUT before live facts and Ask can trigger autosaves.
+	if err = loaded.SetPersistencePolicy(ensemble.LogFull, *loaded.Config().DiagnosticMaxRecords); err != nil {
+		t.Fatal(err)
+	}
+	if mode == "context_only" {
 		for _, e := range tail {
 			e.Seq = 0
 			if err = loaded.Log().Append(e); err != nil {
@@ -301,7 +319,7 @@ func ch10PrefixTail(t *testing.T, mode string) {
 		t.Fatal(err)
 	}
 	defer restored.Close()
-	httpRestored := httptest.NewServer(restored.Handler())
+	httpRestored := httptest.NewServer(restored.Handler(restored.Assets))
 	defer httpRestored.Close()
 	restoredWS, replayed := connect(httpRestored.URL)
 	_ = restoredWS.Close()

@@ -53,7 +53,7 @@ func TestChapter14TargetDraftRealSettingsWS(t *testing.T) {
 	}
 	defer server.Close()
 	server.DefaultAgent = a.ID()
-	host := httptest.NewServer(server.Handler())
+	host := httptest.NewServer(server.Handler(server.Assets))
 	defer host.Close()
 	client, other := r4Dial(t, host.URL), r4Dial(t, host.URL)
 	read := func(ws *websocket.Conn, kind string) Wire {

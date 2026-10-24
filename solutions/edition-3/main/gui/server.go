@@ -2,14 +2,17 @@ package gui
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -25,6 +28,13 @@ type Server struct {
 	DefaultAgent string
 	Trace        io.Writer
 	traceMu      sync.Mutex
+	closeOnce    sync.Once
+	relayMu      sync.Mutex
+	relayClosed  bool
+	relayNext    uint64
+	listeners    map[net.Listener]bool
+	relays       map[string]*relaySession
+	relayWG      sync.WaitGroup
 }
 
 func NewServer(root *ensemble.Ensemble, assets string) (*Server, error) {
@@ -56,7 +66,7 @@ func NewServerFromConfig(root *ensemble.Ensemble, config ensemble.Config, assets
 	// authentication/model/runtime configuration. Keep the same parsed snapshot.
 	config.DataDir, config.SavePath = file.DataDir, file.SavePath
 	config.SafeMode, config.EnableWebSearch = settings.SafeMode, settings.EnableWebSearch
-	owner, err := root.NewAgent(config)
+	owner, err := root.CreateAgent(context.Background(), config)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -83,6 +93,9 @@ func settingsStoreFor(owner ensemble.Agent, path string) (settingsStore, error) 
 	return settingsStore{path: absolute, agent: owner}, nil
 }
 func serverAssets(assets string) (string, error) {
+	if assets == "" {
+		return "", nil // the default is the embedded filesystem, not the cwd
+	}
 	absolute, err := filepath.Abs(assets)
 	if err != nil {
 		return "", err
@@ -141,13 +154,23 @@ func (s *Server) wireTrace(direction string, raw []byte) {
 	}
 }
 
-func (s *Server) Close() { s.Hub.Close() }
-func (s *Server) Handler() http.Handler {
+func (s *Server) Close() {
+	s.closeOnce.Do(func() { s.closeRelays(); s.Hub.Close() })
+}
+
+// Handler mounts the existing chat/WebSocket shell. Empty directory uses the
+// embedded read-only assets; a nonempty directory is an explicit disk override.
+func (s *Server) Handler(directory string) http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/ws", s.socket)
-	mux.Handle("/", http.FileServer(http.Dir(s.Assets)))
+	var files http.FileSystem = http.FS(Assets())
+	if directory != "" {
+		files = http.Dir(directory)
+	}
+	mux.Handle("/", http.FileServer(files))
 	return mux
 }
+
 func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 	up := websocket.Upgrader{CheckOrigin: func(r *http.Request) bool {
 		origin := r.Header.Get("Origin")
@@ -241,6 +264,7 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 }
 
 type command struct {
+	RequestID string            `json:"request_id,omitempty"`
 	Payload   json.RawMessage   `json:"payload,omitempty"`
 	Name      string            `json:"name,omitempty"`
 	Type      string            `json:"type"`
@@ -256,6 +280,21 @@ type command struct {
 }
 
 func (s *Server) command(c *client, m command) error {
+	if m.Type == "jsonrpc" {
+		if handled, err := s.relayResponse(c, m); handled {
+			return err
+		}
+	}
+	target := m.AgentID
+	if target == "" {
+		target = s.DefaultAgent
+	}
+	if !s.Hub.allows(target) {
+		return errors.New("Agent is outside this GUI view")
+	}
+	if m.Type == "answer_human" {
+		return s.Root.RespondToHumanQuestion(target, m.RequestID, m.Text)
+	}
 	if m.Type == "update_settings" {
 		if err := s.Hub.updateSettings(m.Settings); err != nil {
 			s.Hub.sendSettingsError(c, err)
@@ -366,4 +405,30 @@ func (s *Server) command(c *client, m command) error {
 	default:
 		return errors.New("unknown command")
 	}
+}
+
+// New embeds a view of an existing application-owned Agent. It opens no
+// listener, does not change the Agent's policy, and does not own its shutdown.
+func New(root *ensemble.Ensemble, agent ensemble.Agent, log io.Writer) (*Server, error) {
+	if root == nil || nilValue(agent) || nilValue(log) {
+		return nil, errors.New("GUI requires a root, Agent, and log writer")
+	}
+	owned, ok := root.Agent(agent.ID())
+	if !ok || owned != agent {
+		return nil, errors.New("Agent does not belong to supplied Ensemble")
+	}
+	settings := settingsForLaunch(agent.Config())
+	store := settingsStore{path: filepath.Join(agent.Config().DataDir, "settings.json"), agent: agent}
+	return &Server{Root: root, Hub: newScopedHub(root, settings, store, agent.ID()), DefaultAgent: agent.ID(), Trace: log}, nil
+}
+func nilValue(v any) bool {
+	if v == nil {
+		return true
+	}
+	value := reflect.ValueOf(v)
+	switch value.Kind() {
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+		return value.IsNil()
+	}
+	return false
 }

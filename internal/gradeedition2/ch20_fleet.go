@@ -21,7 +21,12 @@ const fleetDone = "FLEET_COMPLETED_22"
 
 // Route only external model replies. Every spawned child, tool job, question,
 // saved conversation and idle correction belongs to the submitted executable.
-func fleetRun(bin, work string, route func([]byte) *fakevendor.Reply, steer func(*mcpCommand) error) (reqs []fakevendor.Recorded, err error) {
+type fleetDriver struct {
+	bin     string
+	current bool
+}
+
+func (driver fleetDriver) run(work string, route func([]byte) *fakevendor.Reply, steer func(*mcpCommand) error) (reqs []fakevendor.Recorded, err error) {
 	skills := filepath.Join(work, "skills")
 	err = recallWrite(skills, map[string]string{"base/SKILL.md": "---\nname: base\ndescription: Terminal fleet exercise\ntype: primary\ntools: spawn_sub_agent join_agents agents_status shutdown_agent send_message_to_parent respond_to_parent_message submit run_command wait_for_job tool_limits write_file read_file\n---\nMain and named-peer Agents finish in chat. Delegated Agents finish with submit. Questions are not submissions.\n"})
 	if err != nil {
@@ -43,10 +48,20 @@ func fleetRun(bin, work string, route func([]byte) *fakevendor.Reply, steer func
 		if len(list(request["tools"])) == 0 {
 			return &fakevendor.Reply{Text: "[]"}
 		}
-		return route(body)
+		reply := route(body)
+		if driver.current {
+			return chapter20ToolLimits(body, reply)
+		}
+		return reply
 	}})
 	defer provider.Close()
-	p, e := startMCPCommand(bin, work, []string{"chat"}, []string{"LLM_MODEL=claude-sonnet-5", "LLM_BASE_URL=" + provider.URL(), "EN_SKILLS_DIR=" + skills, "EN_SKILL_DIR=" + skills, "EN_PRIMARY_SKILL=base", "EN_RECALL_DISABLED=1"})
+	var p *mcpCommand
+	var e error
+	if driver.current {
+		p, e = startMCPCommandEnv(driver.bin, work, []string{"chat"}, chapter20Env(work, skills, provider.URL()))
+	} else {
+		p, e = startMCPCommand(driver.bin, work, []string{"chat"}, []string{"LLM_MODEL=claude-sonnet-5", "LLM_BASE_URL=" + provider.URL(), "EN_SKILLS_DIR=" + skills, "EN_SKILL_DIR=" + skills, "EN_PRIMARY_SKILL=base", "EN_RECALL_DISABLED=1"})
+	}
 	if e != nil {
 		return nil, e
 	}
@@ -85,6 +100,37 @@ func fleetRun(bin, work string, route func([]byte) *fakevendor.Reply, steer func
 	return provider.Requests(), err
 }
 
+// The current public API uses the existing one-shot tool_limits owner rather
+// than callback fields on workflow tools. Keep the operation and its ID intact.
+func chapter20ToolLimits(body []byte, reply *fakevendor.Reply) *fakevendor.Reply {
+	if reply == nil || (reply.ToolName != "join_agents" && reply.ToolName != "send_message_to_parent") || len(reply.Tools) != 0 {
+		return reply
+	}
+	var args map[string]json.RawMessage
+	if json.Unmarshal([]byte(reply.ToolArgs), &args) != nil {
+		return reply
+	}
+	delay, ok := args["ai_callback_delay"]
+	if !ok {
+		return reply
+	}
+	delete(args, "ai_callback_delay")
+	operation, _ := json.Marshal(args)
+	limits, _ := json.Marshal(map[string]json.RawMessage{"ai_callback_delay": delay})
+	adapted := *reply
+	// A live question can interrupt an undispatched batch tail. Configure the
+	// one-shot limit in its own response before requesting the real operation.
+	if _, failed, err := anthropicToolText(body, reply.ToolID+"-limits"); err == nil {
+		if failed {
+			return &fakevendor.Reply{Text: "Controller tool_limits failed. " + fleetDone}
+		}
+		adapted.ToolArgs = string(operation)
+		return &adapted
+	}
+	adapted.ToolID, adapted.ToolName, adapted.ToolArgs = reply.ToolID+"-limits", "tool_limits", string(limits)
+	return &adapted
+}
+
 func fleetCall(id, name string, args any) *fakevendor.Reply {
 	b, _ := json.Marshal(args)
 	r := skillCall(id, name, string(b))
@@ -100,7 +146,7 @@ func fleetFinish() *fakevendor.Reply {
 
 // A root's plain reply must reach actual turn completion without corrective
 // wakes. Keep the socket open for a second turn: EOF must not hide a bad loop.
-func fleetRootChat(bin string, c *grade.Check) {
+func fleetRootChatWith(bin string, c *grade.Check, current bool) {
 	fleetTemp([]*grade.Check{c}, func(work string) {
 		if err := recallWrite(filepath.Join(work, "skills"), map[string]string{"base/SKILL.md": "---\nname: base\ndescription: Main chat control\ntype: primary\ntools: submit spawn_sub_agent\n---\nMain Agents finish in chat; delegated Agents submit.\n"}); err != nil {
 			fail(c, "root chat setup: %v", err)
@@ -110,7 +156,7 @@ func fleetRootChat(bin string, c *grade.Check) {
 			return &fakevendor.Reply{Text: "A normal main-chat answer.", Usage: fakevendor.Canonical{Input: 100, Output: 10}}
 		}})
 		defer provider.Close()
-		p, peer, err := managementStart(bin, work, provider.URL())
+		p, peer, err := chapter20GUIStart(bin, work, provider.URL(), current)
 		if err != nil {
 			fail(c, "root chat launch: %v", err)
 			return
@@ -183,9 +229,9 @@ func fleetFailed(checks []grade.Check, err error) bool {
 	return true
 }
 
-func fleetChecks(bin string, checks []grade.Check) {
+func fleetChecksWith(driver fleetDriver, checks []grade.Check) {
 	fleetTemp([]*grade.Check{&checks[0], &checks[1], &checks[2], &checks[3]}, func(work string) {
-		reqs, err := fleetRun(bin, work, func(body []byte) *fakevendor.Reply {
+		reqs, err := driver.run(work, func(body []byte) *fakevendor.Reply {
 			b := string(body)
 			if !strings.Contains(b, fleetRoot) {
 				payload := "CHILD_A_22"
@@ -255,22 +301,73 @@ func fleetChecks(bin string, checks []grade.Check) {
 			fail(&checks[1], "distinct valid parent/child saved conversations absent: %v", owners)
 		}
 	})
-	fleetMessaging(bin, &checks[4])
-	fleetWake(bin, &checks[5])
-	fleetIdle(bin, &checks[6], &checks[2])
-	fleetStructured(bin, checks)
+	fleetMessagingWith(driver, &checks[4])
+	fleetWake(driver, &checks[5])
+	fleetIdleWith(driver, &checks[6], &checks[2])
+	fleetStructuredWith(driver, checks)
 }
 
-func fleetMessaging(bin string, c *grade.Check) {
+func fleetAddressedReply(text string, current bool) (string, error) {
+	var message map[string]any
+	if err := json.Unmarshal([]byte(text), &message); err != nil {
+		if current {
+			return "", err
+		}
+		return text, nil
+	}
+	delete(message, "message_id")
+	delete(message, "id")
+	if current {
+		for _, key := range []string{"request_id", "RequestID", "MessageID", "ID", "TurnID", "turn_id"} {
+			delete(message, key)
+		}
+		senderValue, lower := message["sender"]
+		upperValue, upper := message["Sender"]
+		sender, lowerString := senderValue.(string)
+		upperSender, upperString := upperValue.(string)
+		if (lower && !lowerString) || (upper && !upperString) {
+			return "", fmt.Errorf("reply sender must be a string")
+		}
+		if lower && upper && sender != upperSender {
+			return "", fmt.Errorf("reply has conflicting sender fields")
+		}
+		if !lower {
+			sender = upperSender
+		}
+		if sender != "middle" {
+			return "", fmt.Errorf("reply lost actual middle sender: %v", message)
+		}
+	}
+	encoded, err := json.Marshal(message)
+	return string(encoded), err
+}
+
+func fleetMessagingWith(driver fleetDriver, c *grade.Check) {
 	fleetTemp([]*grade.Check{c}, func(work string) {
-		reqs, err := fleetRun(bin, work, func(body []byte) *fakevendor.Reply {
+		rootJoin := "join-mid"
+		rootJoins := 1
+		questionJoin := "question-join"
+		questionJoins := 1
+		reqs, err := driver.run(work, func(body []byte) *fakevendor.Reply {
 			b := string(body)
 			if strings.Contains(b, fleetRoot) {
 				if !fleetHas(body, "spawn-mid") {
 					return fleetCall("spawn-mid", "spawn_sub_agent", map[string]any{"agent_id": "middle", "task": "MIDDLE_TASK_22"})
 				}
-				if !fleetHas(body, "join-mid") {
-					return fleetCall("join-mid", "join_agents", map[string]any{"agent_ids": []string{"middle"}, "ai_callback_delay": 5})
+				if !fleetHas(body, rootJoin) {
+					return fleetCall(rootJoin, "join_agents", map[string]any{"agent_ids": []string{"middle"}, "ai_callback_delay": 5})
+				}
+				if driver.current {
+					text, _, _ := anthropicToolText(body, rootJoin)
+					if !currentFleetSubmitted(text, "middle") {
+						if rootJoins >= 32 {
+							fail(c, "current controller exhausted 32 root fan-in observations without terminal middle: %s", text)
+							return fleetFinish()
+						}
+						rootJoins++
+						rootJoin = fmt.Sprintf("join-mid-%d", rootJoins)
+						return fleetCall(rootJoin, "join_agents", map[string]any{"agent_ids": []string{"middle"}, "ai_callback_delay": 5})
+					}
 				}
 				return fleetFinish()
 			}
@@ -278,8 +375,20 @@ func fleetMessaging(bin string, c *grade.Check) {
 				if !fleetHas(body, "spawn-leaf") {
 					return fleetCall("spawn-leaf", "spawn_sub_agent", map[string]any{"agent_id": "leaf", "task": "LEAF_TASK_22"})
 				}
-				if !fleetHas(body, "question-join") {
-					return fleetCall("question-join", "join_agents", map[string]any{"agent_ids": []string{"leaf"}, "ai_callback_delay": 5})
+				if !fleetHas(body, questionJoin) {
+					return fleetCall(questionJoin, "join_agents", map[string]any{"agent_ids": []string{"leaf"}, "ai_callback_delay": 5})
+				}
+				if driver.current {
+					text, failed, err := anthropicToolText(body, questionJoin)
+					if err == nil && fleetUndispatchedJoin(text, failed) {
+						if questionJoins >= 4 {
+							fail(c, "four question-join observations were interrupted before dispatch")
+							return fleetFinish()
+						}
+						questionJoins++
+						questionJoin = fmt.Sprintf("question-join-%d", questionJoins)
+						return fleetCall(questionJoin, "join_agents", map[string]any{"agent_ids": []string{"leaf"}, "ai_callback_delay": 5})
+					}
 				}
 				if !fleetHas(body, "answer") {
 					return fleetCall("answer", "respond_to_parent_message", map[string]any{"agent_id": "leaf", "response": "ANSWER_22"})
@@ -298,17 +407,19 @@ func fleetMessaging(bin string, c *grade.Check) {
 			fail(c, "three-generation session: %v", err)
 			return
 		}
-		for id, parts := range map[string][]string{"question-join": {"QUESTION_22", "leaf"}, "ask": {"ANSWER_22", "middle"}, "leaf-join": {"LEAF_DONE_22"}, "join-mid": {"MIDDLE_DONE_22"}} {
+		for id, parts := range map[string][]string{questionJoin: {"QUESTION_22", "leaf"}, "ask": {"ANSWER_22", "middle"}, "leaf-join": {"LEAF_DONE_22"}, rootJoin: {"MIDDLE_DONE_22"}} {
 			text := fleetResult(c, reqs, id, false)
+			if driver.current {
+				text = currentFleetJSON(text)
+			}
 			// A correlation ID can contain the parent's name even when the reply
 			// loses its sender. Keep content/attribution, excluding those IDs.
 			if id == "ask" {
-				var message map[string]any
-				if json.Unmarshal([]byte(text), &message) == nil {
-					delete(message, "message_id")
-					delete(message, "id")
-					encoded, _ := json.Marshal(message)
-					text = string(encoded)
+				var parseErr error
+				text, parseErr = fleetAddressedReply(text, driver.current)
+				if parseErr != nil {
+					fail(c, "invalid addressed reply: %v", parseErr)
+					continue
 				}
 			}
 			for _, part := range parts {
@@ -324,7 +435,7 @@ func fleetMessaging(bin string, c *grade.Check) {
 
 var fleetHandle = regexp.MustCompile(`(?i)\b(?:handle|job)[" :=]+([0-9]+)`)
 
-func fleetWake(bin string, c *grade.Check) {
+func fleetWake(driver fleetDriver, c *grade.Check) {
 	fleetTemp([]*grade.Check{c}, func(work string) {
 		start, release := filepath.Join(work, "started"), filepath.Join(work, "release")
 		command := fmt.Sprintf("printf started > %q; while [ ! -f %q ]; do sleep 0.02; done; printf 'WAKE_RESULT_%%s' $((700+22))", start, release)
@@ -332,7 +443,7 @@ func fleetWake(bin string, c *grade.Check) {
 		woke := false
 		handle := ""
 		var defect string
-		reqs, err := fleetRun(bin, work, func(body []byte) *fakevendor.Reply {
+		reqs, err := driver.run(work, func(body []byte) *fakevendor.Reply {
 			if !fleetHas(body, "limits") {
 				return fleetCall("limits", "tool_limits", map[string]any{"ai_callback_delay": 60})
 			}
@@ -389,11 +500,11 @@ func fleetWake(bin string, c *grade.Check) {
 	})
 }
 
-func fleetIdle(bin string, c, visibility *grade.Check) {
+func fleetIdleWith(driver fleetDriver, c, visibility *grade.Check) {
 	fleetTemp([]*grade.Check{c}, func(work string) {
 		release := filepath.Join(work, "idle-release")
 		count := 0
-		reqs, err := fleetRun(bin, work, func(body []byte) *fakevendor.Reply {
+		reqs, err := driver.run(work, func(body []byte) *fakevendor.Reply {
 			if !strings.Contains(string(body), fleetRoot) {
 				if !fleetHas(body, "child-hold") {
 					return fleetCall("child-hold", "run_command", map[string]any{"command": fmt.Sprintf("while [ ! -f %q ]; do sleep 0.02; done", release), "ai_callback_delay": 60})
@@ -455,4 +566,23 @@ func fleetExactText(v any, want string) bool {
 		}
 	}
 	return false
+}
+
+// Later historical graders retain their original launch policy.
+func fleetMessaging(bin string, c *grade.Check) { fleetMessagingWith(fleetDriver{bin: bin}, c) }
+func fleetIdle(bin string, c, shutdown *grade.Check) {
+	fleetIdleWith(fleetDriver{bin: bin}, c, shutdown)
+}
+func fleetRootChat(bin string, c *grade.Check) { fleetRootChatWith(bin, c, false) }
+
+func fleetChecks(bin string, checks []grade.Check) { fleetChecksWith(fleetDriver{bin: bin}, checks) }
+
+// Re-observe only a paired, explicitly undispatched observation. This is not a
+// successful join or permission to retry a failed side-effecting operation.
+func fleetUndispatchedJoin(text string, failed bool) bool {
+	if !failed {
+		return false
+	}
+	text = currentFleetJSON(text)
+	return text == "interrupted, not executed: live input arrived before dispatch" || text == "interrupted, not executed: live input interrupted this pending batch"
 }

@@ -70,7 +70,7 @@ func TestChapter3GeminiParameterProjection(t *testing.T) {
 	if err := json.Unmarshal(wire, &request); err != nil {
 		t.Fatal(err)
 	}
-	if len(request.Tools) != 1 || len(request.Tools[0].Functions) != 14 || len(before) != 14 {
+	if len(request.Tools) != 1 || len(request.Tools[0].Functions) != 21 || len(before) != 21 {
 		t.Fatalf("wrong Gemini declaration shape: %s", wire)
 	}
 	for i, d := range before {
@@ -82,7 +82,18 @@ func TestChapter3GeminiParameterProjection(t *testing.T) {
 		if err := json.Unmarshal(d.Parameters, &want); err != nil {
 			t.Fatal(err)
 		}
-		if string(want["additionalProperties"]) != "false" {
+		if d.Name == "submit" {
+			// Default submit accepts a result string and ignores extra fields.
+			// Assert that public schema independently, rather than imposing the
+			// strict argument policy of the other twenty tools on this payload.
+			var expected map[string]json.RawMessage
+			if err := json.Unmarshal([]byte(`{"type":"object","properties":{"result":{"type":"string"}},"required":["result"]}`), &expected); err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(want, expected) {
+				t.Fatalf("default submit schema changed: %s", d.Parameters)
+			}
+		} else if string(want["additionalProperties"]) != "false" {
 			t.Fatalf("common schema lost strictness: %s", d.Name)
 		}
 		delete(want, "additionalProperties")

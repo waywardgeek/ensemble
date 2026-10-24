@@ -6,6 +6,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -29,7 +30,7 @@ func main() {
 	guiDebug := flag.Bool("gui-debug", false, "load gui-debug at startup")
 	skillsDir := flag.String("skills-dir", "", "skill directory (default: ./skills when ensemble is present)")
 	port := flag.Int("port", 8088, "loopback HTTP port")
-	assets := flag.String("gui-dir", "web/gui", "GUI asset directory (absolute paths work outside cwd)")
+	assets := flag.String("gui-dir", "", "GUI asset directory (absolute paths work outside cwd)")
 	safe := flag.Bool("safe-mode", false, "disable command and job tools")
 	web := flag.Bool("no-web-search", false, "disable web-search skill")
 	sandboxRoot := flag.String("sandbox", "", "confine Agent files and commands to this directory")
@@ -104,12 +105,18 @@ func main() {
 			}
 		}
 	}()
+	if err := installAgentFactory(root); err != nil {
+		log.Fatal(err)
+	}
 	var agent ensemble.Agent
 	var app *gui.Server
 	if protocolMode {
-		agent, err = root.NewAgent(config)
+		agent, err = root.CreateAgent(context.Background(), config)
 	} else {
 		app, agent, err = gui.NewServerFromConfig(root, config, *assets, *settings)
+		if err == nil {
+			root.SetHumanQuestionSink(app.Hub.PresentHumanQuestion)
+		}
 	}
 	if err != nil {
 		log.Fatal(err)
@@ -164,8 +171,14 @@ func main() {
 		}
 		defer listener.Close()
 	}
+	server := &http.Server{Addr: addr, Handler: app.Handler(app.Assets), ReadHeaderTimeout: 5 * time.Second}
+	httpListener, err := net.Listen("tcp", addr)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	defer httpListener.Close()
 	terminalDone := app.Terminal(ctx, os.Stdin, os.Stdout)
-	server := &http.Server{Addr: addr, Handler: app.Handler(), ReadHeaderTimeout: 5 * time.Second}
 	drained := make(chan bool, 1)
 	go func() {
 		completed := false
@@ -180,8 +193,8 @@ func main() {
 		defer cancel()
 		_ = server.Shutdown(shutdown)
 	}()
-	log.Printf("Ensemble GUI http://%s · assets %s · terminal EOF saves and exits", addr, app.Assets)
-	if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+	log.Printf("Ensemble GUI http://%s · assets %s · terminal EOF saves and exits", httpListener.Addr().String(), app.Assets)
+	if err := server.Serve(httpListener); err != nil && err != http.ErrServerClosed {
 		log.Print(err)
 	} else {
 		normalExit = <-drained

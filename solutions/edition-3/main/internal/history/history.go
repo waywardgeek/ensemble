@@ -523,6 +523,9 @@ func Apply(c *common.Context, e common.Event) {
 			}
 		}
 	case common.ToolReturned:
+		if e.Tool.FleetCompletion {
+			c.FleetCompletion = true
+		}
 		if e.Tool.Name == "keep_tool_results" && !e.Tool.IsError {
 			c.KeepAt = c.SentThrough
 			for _, entry := range c.Dialogue {

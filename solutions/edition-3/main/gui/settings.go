@@ -177,11 +177,11 @@ func (s settingsStore) save(value Settings) error {
 }
 
 // Read budget policy back from its owner, not a second GUI runtime budget.
-// All Agents in this workbench receive the same saved next-turn policy.
+// A GUI view never owns policy for unrelated roots or delegated Agents.
 func (h *Hub) currentSettings() Settings {
 	value := h.settings
-	if agents := h.en.Agents(); len(agents) > 0 {
-		cfg := agents[0].Config()
+	if owner := h.settingsAgent(); owner != nil {
+		cfg := owner.Config()
 		value.SafeMode, value.EnableWebSearch = cfg.SafeMode, cfg.EnableWebSearch
 		value.ContextTarget = cfg.ContextTarget
 		value.MaxToolRounds = cfg.MaxToolRounds
@@ -199,13 +199,23 @@ func (h *Hub) updateSettings(raw json.RawMessage) error {
 		h.mu.Unlock()
 		return err
 	}
+	owner := h.settingsAgent()
+	if owner != nil && owner.Config().ParentID != "" {
+		if parent, ok := h.en.Agent(owner.Config().ParentID); ok {
+			inherited := parent.Config()
+			next.SafeMode = next.SafeMode || inherited.SafeMode
+			next.EnableWebSearch = next.EnableWebSearch && inherited.EnableWebSearch
+		}
+	}
 	if err = h.store.save(next); err != nil {
 		h.mu.Unlock()
 		return fmt.Errorf("could not save settings: %w", err)
 	}
 	h.settings = next
-	h.settingsApplied = true
-	agents := h.en.Agents()
+	var agents []ensemble.Agent
+	if owner != nil {
+		agents = []ensemble.Agent{owner}
+	}
 	h.mu.Unlock()
 	// Capability notifications re-enter Hub.mu. Keep policy setters outside that
 	// lock while settingsMu preserves save/apply/publication ordering.
@@ -219,5 +229,16 @@ func (h *Hub) updateSettings(raw json.RawMessage) error {
 	defer h.mu.Unlock()
 	settings := h.currentSettings()
 	h.broadcast(Wire{Type: "settings_changed", Settings: &settings})
+	return nil
+}
+
+func (h *Hub) settingsAgent() ensemble.Agent {
+	if h.store.agent != nil {
+		return h.store.agent
+	}
+	agents := h.en.Agents()
+	if len(agents) > 0 {
+		return agents[0]
+	}
 	return nil
 }

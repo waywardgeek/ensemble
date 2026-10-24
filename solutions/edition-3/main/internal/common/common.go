@@ -3,6 +3,7 @@ package common
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"log"
 	"net/http"
@@ -11,6 +12,10 @@ import (
 
 // Config belongs to one Agent. Model names must come from provider discovery.
 type Config struct {
+	// ID and ParentID identify fleet ownership. Prompt is task dialogue, never SYSTEM.
+	ID, ParentID, Prompt string
+	SubmitSchema         json.RawMessage
+
 	// BaseDir resolves relative tool paths; DataDir retains job output.
 	// Empty BaseDir uses the launch directory; empty DataDir creates an Agent-local directory.
 	BaseDir         string
@@ -31,7 +36,11 @@ type Config struct {
 	ReasoningSummary string
 	// Model is required; there is deliberately no remembered model default.
 	Model string
-	// Tools selects enabled built-ins: nil enables all ten; non-nil empty disables all.
+	// Tools selects startup capabilities: nil enables the default catalogue;
+	// a non-nil slice selects names. Empty Tools without any skill selection
+	// is application-only: it disables all tools and omits the optional fleet
+	// catalogue, so applications may register their own submit operation.
+	// Installed core, compiled and MCP names still cannot be shadowed.
 	Tools      []string
 	MCPServers []MCPServer
 	Skills     *SkillSpec // nil preserves inherited non-skill behavior
@@ -127,6 +136,8 @@ type Agent interface {
 	Recovery() Recovery
 	Post(Inbound) error
 	Submit(context.Context, string) <-chan Result
+	// Complete validates a terminal string result; it does not submit a chat prompt.
+	Complete(context.Context, string) <-chan Result
 	// SubmitLive starts a turn if idle, or adds a hint to the current turn.
 	// Joined callers receive the same reliable result and TurnID at completion.
 	SubmitLive(context.Context, string) <-chan Result

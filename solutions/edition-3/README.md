@@ -78,3 +78,28 @@ verified directly by root; there was no second formal text-review PASS. Records:
 `docs/edition-3-notes/ch19-restart-{student,code-review,author,text-review}.md` and
 the execution guide. All Chapter 19 workers are closed. Chapter 20 entry is next
 and has not begun.
+
+### Chapter 20 source and operations accepted; prose closure pending
+
+`ch20/` is the verified 282-file source/support snapshot from frozen `main` after
+six production rounds and final test-only completion. Code workers are closed.
+Current Chapter20 grade is200/200 and inherited Chapter1 is100/100, both parsed
+passed/exit0; R5 broad gates carry forward with the R6 HTML-only delta covered by
+its actual served-asset regression and rebuilt isolated browser exercise.
+
+Outside-consumer/browser/component/model/relay operations used two synthetic
+requests; paid arithmetic work used19 successful requests and genuine three-child
+question/reply/submission/fan-in, independently checked code and normalEOF. The
+paid first join was skipped before a humanhint; exact active-join wake and
+same-handle survival are proven separately by the final controlled actual-Agent
+loopback test, not retrospectively attributed to the live trace. All setup and
+controller failures remain in the student/reviewer/execution records. No runtime
+installation, device/visual-quality or universal-race claim follows.
+
+Minimal prose is accepted after ONE formal REQUIRED_REVISION, one bounded author
+response and direct root verification of the two exact corrections. No second
+formal PASS is claimed. All hard prose lint checks pass; one documented soft
+person-gap warning remains. The outside-GUI recipe compiled offline against this
+snapshot (compile-only). All Chapter20 workers are joined and closed. This
+snapshot and its scoped source, adapter and prose changes form Chapter20's local
+closure commit; nothing is installed or published. Chapter21 entry is next.

@@ -47,6 +47,17 @@ func runChat(ctx context.Context, a ensemble.Agent, in io.Reader, out, diagnosti
 	lines := make(chan chatLine)
 	done := make(chan struct{})
 	defer close(done)
+	humanQuestions := make(chan ensemble.Question, 16)
+	root, _ := a.Parent().(*ensemble.Ensemble)
+	if root != nil {
+		root.SetHumanQuestionSink(func(q ensemble.Question) {
+			select {
+			case humanQuestions <- q:
+			case <-done:
+			}
+		})
+		defer root.SetHumanQuestionSink(nil)
+	}
 	go chatInput(in, lines, done)
 	interrupts := make(chan os.Signal, 1)
 	signal.Notify(interrupts, os.Interrupt)
@@ -140,6 +151,8 @@ func runChat(ctx context.Context, a ensemble.Agent, in io.Reader, out, diagnosti
 			reply = pending[0]
 		}
 		select {
+		case question := <-humanQuestions:
+			fmt.Fprintf(out, "Human question from %s [%s]: %s\nReply: /reply %s RESPONSE\n", question.Sender, question.RequestID, question.Text, question.RequestID)
 		case line, ok := <-lines:
 			if !ok {
 				lines = nil
@@ -152,8 +165,19 @@ func runChat(ctx context.Context, a ensemble.Agent, in io.Reader, out, diagnosti
 			if strings.TrimSpace(text) == "" {
 				continue
 			}
-			if text == "/help" {
-				fmt.Fprintln(out, "/status /model [name] /save /interrupt /help. Launch flags (before chat): --safe-mode --no-web-search --sandbox PATH.")
+			if (text == "/reply" || strings.HasPrefix(text, "/reply ")) && root != nil {
+				if err := replyToHuman(root, strings.TrimSpace(strings.TrimPrefix(text, "/reply"))); err != nil {
+					fmt.Fprintln(out, err)
+				}
+			} else if strings.HasPrefix(text, "/answer ") && root != nil {
+				parts := strings.SplitN(strings.TrimPrefix(text, "/answer "), " ", 3)
+				if len(parts) != 3 {
+					fmt.Fprintln(out, "usage: /answer AGENT REQUEST RESPONSE")
+				} else if err := root.RespondToHumanQuestion(parts[0], parts[1], parts[2]); err != nil {
+					fmt.Fprintln(out, err)
+				}
+			} else if text == "/help" {
+				fmt.Fprintln(out, "/status /model [name] /save /interrupt /reply [MESSAGE_ID] TEXT /help. Launch flags (before chat): --safe-mode --no-web-search --sandbox PATH.")
 			} else if text == "/status" {
 				cfg := a.Config()
 				fmt.Fprintf(out, "safe=%t web-search=%t sandbox-root=%q\n", cfg.SafeMode, cfg.EnableWebSearch, cfg.SandboxRoot)
@@ -244,4 +268,29 @@ func hintText(parts ensemble.PartList) string {
 		}
 	}
 	return b.String()
+}
+
+// Parsing never falls through to ordinary chat: stale/ambiguous answers are errors.
+func replyToHuman(root *ensemble.Ensemble, text string) error {
+	if text == "" {
+		return fmt.Errorf("usage: /reply [MESSAGE_ID] TEXT")
+	}
+	first, rest, hasRest := strings.Cut(text, " ")
+	marker := strings.LastIndex(first, "-question-")
+	isID := marker > 0 && marker+len("-question-") < len(first)
+	if isID {
+		for _, c := range first[marker+len("-question-"):] {
+			if c < '0' || c > '9' {
+				isID = false
+				break
+			}
+		}
+	}
+	if isID {
+		if !hasRest || strings.TrimSpace(rest) == "" {
+			return fmt.Errorf("usage: /reply MESSAGE_ID TEXT")
+		}
+		return root.ReplyToHuman(first, strings.TrimSpace(rest))
+	}
+	return root.ReplyToHuman("", text)
 }

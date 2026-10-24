@@ -33,7 +33,7 @@ func TestCh16ResponsesPublicWire(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer server.Close()
-	host := httptest.NewServer(server.Handler())
+	host := httptest.NewServer(server.Handler(server.Assets))
 	defer host.Close()
 	if _, err = a.Ask(context.Background(), "Answer locally"); err != nil {
 		t.Fatal(err)

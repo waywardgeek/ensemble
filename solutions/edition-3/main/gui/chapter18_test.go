@@ -33,7 +33,7 @@ func TestChapter18WSModelProjection(t *testing.T) {
 	}
 	defer server.Close()
 	server.DefaultAgent = a.ID()
-	host := httptest.NewServer(server.Handler())
+	host := httptest.NewServer(server.Handler(server.Assets))
 	defer host.Close()
 	ws := r4Dial(t, host.URL)
 	var frames []json.RawMessage

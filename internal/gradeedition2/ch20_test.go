@@ -6,10 +6,10 @@ import (
 	"testing"
 )
 
-// TestFleetRootChat22 checks two completed real GUI turns with fleet enabled,
+// TestChapter20RootChat checks two completed real GUI turns with fleet enabled,
 // so a root missing-submit loop cannot be concealed by early process EOF.
-func TestFleetRootChat22(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch20/gui")
+func TestChapter20RootChat(t *testing.T) {
+	bin, cleanup, err := grade.Build("../../solutions/edition-3/ch20/gui/cmd")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -17,16 +17,16 @@ func TestFleetRootChat22(t *testing.T) {
 	c := grade.Ch25Checks(grade.Ch25Result{})[6]
 	c.Passed = true
 	c.Details = nil
-	fleetRootChat(bin, &c)
+	fleetRootChatWith(bin, &c, true)
 	if !c.Passed {
 		t.Fatal(c.Details)
 	}
 }
 
-// TestFleetStructured22 runs the scored schema, validation, JSON fan-in and
+// TestChapter20Structured runs the scored schema, validation, JSON fan-in and
 // durable-row predicates through a real submitted CLI and its actual children.
-func TestFleetStructured22(t *testing.T) {
-	bin, cleanup, err := grade.Build("../../solutions/ch20")
+func TestChapter20Structured(t *testing.T) {
+	bin, cleanup, err := grade.Build("../../solutions/edition-3/ch20/cmd/ch02")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -36,7 +36,7 @@ func TestFleetStructured22(t *testing.T) {
 		checks[i].Passed = true
 		checks[i].Details = nil
 	}
-	fleetStructured(bin, checks)
+	fleetStructuredWith(fleetDriver{bin: bin, current: true}, checks)
 	for _, i := range []int{0, 1, 3} {
 		if !checks[i].Passed {
 			t.Errorf("%s: %v", checks[i].ID, checks[i].Details)

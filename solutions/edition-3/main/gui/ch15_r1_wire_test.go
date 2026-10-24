@@ -38,7 +38,7 @@ func TestChapter15R1RealUsageWireAndConsumer(t *testing.T) {
 	}
 	defer server.Close()
 	server.DefaultAgent = a.ID()
-	host := httptest.NewServer(server.Handler())
+	host := httptest.NewServer(server.Handler(server.Assets))
 	defer host.Close()
 	type observation struct {
 		Type    string `json:"type"`

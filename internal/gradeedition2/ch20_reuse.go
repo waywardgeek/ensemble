@@ -38,12 +38,15 @@ func reuseGo(dir string, args ...string) (string, error) {
 	return string(out), nil
 }
 
-func reuseChecks(core, gui string, legacy bool, checks []grade.Check) {
+func reuseChecksWith(core, gui, guiBin string, legacy, current bool, checks []grade.Check) {
 	core, _ = filepath.Abs(core)
 	gui, _ = filepath.Abs(gui)
 	module := grade.DiscoverBase(core)
 	guiModule := grade.DiscoverBase(gui)
 	library := module + "/ensemble"
+	if current {
+		library = module
+	}
 	guiPackage := guiModule
 	if legacy {
 		library = module
@@ -69,6 +72,11 @@ func reuseChecks(core, gui string, legacy bool, checks []grade.Check) {
 	plant := `if err:=a.History().Append(api.Event{Type:"message_received",Message:&api.MessageData{Actor:api.Human,Parts:[]api.Part{{Type:"text",Text:"PUBLIC_EVENT_22"}}}});err!=nil{panic(err)}`
 	bind := `hub,err:=gui.New(root,a,io.Discard);if err!=nil{panic(err)};closeGUI:=func(){hub.Close()};assets:=gui.Assets();serveWS:=hub.Handler("").ServeHTTP;fullHandler:=hub.Handler`
 	head := `root:=api.New(io.Discard);a,err:=root.NewAgent(api.Config{Vendor:api.Anthropic,Model:"claude-sonnet-5",DataDir:"headless-data"});if err!=nil{panic(err)};defer a.Shutdown();err=a.MCP().Connect(context.Background(),"outside",api.NewMCPTransport(c,c,c));if err!=nil{panic(err)}`
+	if current {
+		setup = strings.ReplaceAll(strings.ReplaceAll(setup, "api.New(io.Discard)", "api.New(nil)"), "claude-sonnet-5", "claude-sonnet-4-6")
+		plant = `if err:=a.RecordFact(api.Event{Type:api.MessageReceived,Message:&api.MessageData{Actor:"human",Parts:api.PartList{{Type:"text",Text:"PUBLIC_EVENT_22"}}}});err!=nil{panic(err)}`
+		head = strings.ReplaceAll(strings.ReplaceAll(head, "api.New(io.Discard)", "api.New(nil)"), "claude-sonnet-5", "claude-sonnet-4-6")
+	}
 	if legacy {
 		setup = `a,err:=api.NewAgent(api.Config{Vendor:api.VendorAnthropic,Model:"claude-sonnet-5",BaseURL:os.Getenv("LLM_BASE_URL"),APIKey:"fixture"},api.AgentSpec{DataDir:"data"});if err!=nil{panic(err)};defer a.Shutdown()`
 		plant = `if err:=a.Engine().Record(api.Event{Type:api.MessageReceived,Message:&api.MessageData{Actor:api.ActorHuman,Parts:api.PartList{api.TextPart{Text:"PUBLIC_EVENT_22"}}}});err!=nil{panic(err)}`
@@ -89,17 +97,21 @@ func main(){if err:=os.MkdirAll("headless-data",0700);err!=nil{panic(err)};c,err
 		reuseFail(checks, err, 0, 1, 4, 5, 6)
 	} else {
 		reuseDeps(work, core, gui, library, guiPackage, legacy, checks)
-		reuseHeadless(filepath.Join(work, "bin", "headless"), work, &checks[5])
-		reuseApp(filepath.Join(work, "bin", "guiapp"), work, checks)
+		reuseHeadless(filepath.Join(work, "bin", "headless"), work, &checks[5], current)
+		reuseApp(filepath.Join(work, "bin", "guiapp"), work, checks, current)
 	}
-	guiBin, cleanup, err := grade.Build(gui)
-	if err != nil {
-		reuseFail(checks, err, 2, 3)
+	cleanup := func() {}
+	var guiBuildErr error
+	if !current {
+		guiBin, cleanup, guiBuildErr = grade.Build(gui)
+	}
+	if guiBuildErr != nil {
+		reuseFail(checks, guiBuildErr, 2, 3)
 		return
 	}
 	defer cleanup()
-	reuseWire(guiBin, core, &checks[2])
-	reuseDeploy(guiBin, &checks[3])
+	reuseWire(guiBin, core, &checks[2], current)
+	reuseDeploy(guiBin, &checks[3], current)
 }
 
 func reuseDeps(work, core, gui, library, guiPackage string, legacy bool, checks []grade.Check) {
@@ -144,7 +156,7 @@ func reuseDeps(work, core, gui, library, guiPackage string, legacy bool, checks 
 	checks[6].Details = append(checks[6].Details, "Dependency/public construction only; actual owner relationships and binary factory wiring require separate source review.")
 }
 
-func reuseHeadless(bin, work string, c *grade.Check) {
+func reuseHeadless(bin, work string, c *grade.Check, current bool) {
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		fail(c, "%v", err)
@@ -184,7 +196,11 @@ func reuseHeadless(bin, work string, c *grade.Check) {
 	defer cancel()
 	cmd := exec.CommandContext(ctx, bin)
 	cmd.Dir = work
-	cmd.Env = append(os.Environ(), "MCP_ADDR="+listener.Addr().String())
+	env := os.Environ()
+	if current {
+		env = chapter20Env(work, "", "http://127.0.0.1:1/unused")
+	}
+	cmd.Env = append(env, "MCP_ADDR="+listener.Addr().String())
 	out, err := cmd.CombinedOutput()
 	listener.Close()
 	methods := <-observed
@@ -207,12 +223,38 @@ func reuseHTTP(c *grade.Check, url, marker string, status int) {
 	}
 }
 
-func reuseApp(bin, work string, checks []grade.Check) {
+// Replay wraps already projected frames; the marker must be visible dialogue,
+// never request arguments or an unrelated field of the envelope.
+func reuseReplayText(m map[string]any, marker string, current bool) bool {
+	if !current {
+		return strings.Contains(guiPart(m).text, marker)
+	}
+	frames := []any{m}
+	if m["type"] == "replay" {
+		frames = list(object(m["data"])["events"])
+	}
+	for _, raw := range frames {
+		frame := object(raw)
+		part := guiPart(frame)
+		if frame["type"] == "part_final" && part.kind == "text" && strings.Contains(part.text, marker) {
+			return true
+		}
+	}
+	return false
+}
+
+func reuseApp(bin, work string, checks []grade.Check, current bool) {
 	provider := fakevendor.New([]fakevendor.Reply{{Text: "PUBLIC_REPLY_22"}})
 	defer provider.Close()
 	disk := filepath.Join(work, "disk")
 	_ = recallWrite(disk, map[string]string{"index.html": "EXPLICIT_DISK_22"})
-	p, err := startMCPCommand(bin, work, nil, []string{"LLM_BASE_URL=" + provider.URL(), "DISK_ASSETS=" + disk})
+	var p *mcpCommand
+	var err error
+	if current {
+		p, err = startMCPCommandEnv(bin, work, nil, append(chapter20Env(work, "", provider.URL()), "DISK_ASSETS="+disk))
+	} else {
+		p, err = startMCPCommand(bin, work, nil, []string{"LLM_BASE_URL=" + provider.URL(), "DISK_ASSETS=" + disk})
+	}
 	if err != nil {
 		reuseFail(checks, err, 1, 4)
 		return
@@ -261,8 +303,8 @@ func reuseApp(bin, work string, checks []grade.Check) {
 			fail(&checks[1], "replay: %v", err)
 			return
 		}
-		replay = strings.Contains(guiPart(m).text, "PUBLIC_EVENT_22")
-		reuseBrowser(ws, m)
+		replay = reuseReplayText(m, "PUBLIC_EVENT_22", current)
+		reuseBrowser(ws, m, current)
 	}
 	ws.WriteJSON(map[string]string{"type": "prompt", "text": "PUBLIC_PROMPT_22"})
 	reply := false
@@ -272,7 +314,7 @@ func reuseApp(bin, work string, checks []grade.Check) {
 			fail(&checks[1], "real prompt: %v", err)
 			return
 		}
-		reuseBrowser(ws, m)
+		reuseBrowser(ws, m, current)
 		reply = reply || (m["type"] == "part_final" && strings.Contains(guiPart(m).text, "PUBLIC_REPLY_22"))
 		if m["type"] == "turn_ended" {
 			if problem, _ := m["error"].(string); problem != "" {
@@ -288,6 +330,19 @@ func reuseApp(bin, work string, checks []grade.Check) {
 	if len(reqs) != 1 || !strings.Contains(string(reqs[0].Body), "PUBLIC_PROMPT_22") || !strings.Contains(string(reqs[0].Body), "PUBLIC_EVENT_22") {
 		fail(&checks[1], "public inputs did not reach actual provider request")
 	}
+	// Browser selection is connection-owned. Preserve the no-browser refusal,
+	// then use a new session accepted after the browser is actually connected.
+	if current {
+		_ = tcp.Close()
+		tcp, err = net.DialTimeout("tcp", address["mcp"], time.Second)
+		if err != nil {
+			fail(&checks[1], "browser-bound relay: %v", err)
+			return
+		}
+		defer tcp.Close()
+		tcp.SetDeadline(time.Now().Add(5 * time.Second))
+		decoder = json.NewDecoder(tcp)
+	}
 	fmt.Fprintln(tcp, `{"jsonrpc":"2.0","id":"outside-22","method":"tools/list","params":{"marker":"RELAY_RESULT_22"}}`)
 	for {
 		var m map[string]any
@@ -297,10 +352,10 @@ func reuseApp(bin, work string, checks []grade.Check) {
 		}
 		payload := object(m["payload"])
 		if object(payload["params"])["marker"] == "RELAY_RESULT_22" {
-			ws.WriteJSON(map[string]any{"type": "jsonrpc", "source": m["source"], "payload": mcpReply(payload["id"], map[string]any{"marker": "RELAY_RESULT_22"})})
+			ws.WriteJSON(reuseBrowserReply(m, mcpReply(payload["id"], map[string]any{"marker": "RELAY_RESULT_22"}), current))
 			break
 		}
-		reuseBrowser(ws, m)
+		reuseBrowser(ws, m, current)
 	}
 	rpc = nil
 	err = decoder.Decode(&rpc)
@@ -322,7 +377,15 @@ func reuseApp(bin, work string, checks []grade.Check) {
 
 // A browser peer answers only MCP handshake traffic. Core execution is still
 // the actual Agent; no callback or fabricated GUI event replaces it.
-func reuseBrowser(ws *websocket.Conn, m map[string]any) {
+func reuseBrowserReply(frame map[string]any, payload any, current bool) map[string]any {
+	key := "source"
+	if current {
+		key = "agent_id"
+	}
+	return map[string]any{"type": "jsonrpc", key: frame[key], "payload": payload}
+}
+
+func reuseBrowser(ws *websocket.Conn, m map[string]any, current bool) {
 	rpc := object(m["payload"])
 	if rpc["id"] == nil {
 		return
@@ -335,10 +398,10 @@ func reuseBrowser(ws *websocket.Conn, m map[string]any) {
 	if method == "tools/list" {
 		result = map[string]any{"tools": []any{}}
 	}
-	_ = ws.WriteJSON(map[string]any{"type": "jsonrpc", "source": m["source"], "payload": mcpReply(rpc["id"], result)})
+	_ = ws.WriteJSON(reuseBrowserReply(m, mcpReply(rpc["id"], result), current))
 }
 
-func reuseDeploy(bin string, c *grade.Check) {
+func reuseDeploy(bin string, c *grade.Check, current bool) {
 	work, err := os.MkdirTemp("", "deployed-gui-")
 	if err != nil {
 		fail(c, "%v", err)
@@ -352,7 +415,12 @@ func reuseDeploy(bin string, c *grade.Check) {
 	}
 	port := fmt.Sprint(listener.Addr().(*net.TCPAddr).Port)
 	listener.Close()
-	p, err := startMCPCommand(bin, work, []string{"--port", port}, []string{"LLM_MODEL=claude-sonnet-5"})
+	var p *mcpCommand
+	if current {
+		p, err = startMCPCommandEnv(bin, work, []string{"--port", port}, chapter20Env(work, "", "http://127.0.0.1:1/unused"))
+	} else {
+		p, err = startMCPCommand(bin, work, []string{"--port", port}, []string{"LLM_MODEL=claude-sonnet-5"})
+	}
 	if err != nil {
 		fail(c, "%v", err)
 		return
@@ -370,7 +438,7 @@ func reuseDeploy(bin string, c *grade.Check) {
 		select {
 		case exit := <-p.done:
 			p.done <- exit
-			fail(c, "deployed child exited before readiness: %v", exit)
+			fail(c, "deployed child exited before readiness: %v; stderr: %s", exit, p.stderr.String())
 			return
 		default:
 		}
@@ -396,4 +464,8 @@ func reuseDeploy(bin string, c *grade.Check) {
 	case <-time.After(5 * time.Second):
 		fail(c, "deployed GUI did not exit after EOF")
 	}
+}
+
+func reuseChecks(core, gui string, legacy bool, checks []grade.Check) {
+	reuseChecksWith(core, gui, "", legacy, false, checks)
 }

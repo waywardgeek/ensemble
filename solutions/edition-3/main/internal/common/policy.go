@@ -8,9 +8,11 @@ import (
 )
 
 // Child preserves the public Config owner. Call Clamp after applying child
-// overrides; actor/job identity and spawning are intentionally not introduced.
+// overrides. Task identity and submission contracts do not inherit.
 func (c Config) Child(dataDir string) Config {
 	child := c
+	child.ID, child.ParentID, child.Prompt = "", "", ""
+	child.SubmitSchema = nil
 	child.DataDir, child.LogPath, child.SavePath = dataDir, "", ""
 	child.Tools = append([]string(nil), c.Tools...)
 	if c.Tools != nil && child.Tools == nil {

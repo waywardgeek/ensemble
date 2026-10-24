@@ -408,7 +408,7 @@ func TestCh7R1TerminalStreamAndEOF(t *testing.T) {
 	if n := strings.Count(out.String(), "EARLY-UNIQUE"); n != 1 {
 		t.Fatalf("stream/final printed %d times: %s", n, out.String())
 	}
-	web := httptest.NewServer(s.Handler())
+	web := httptest.NewServer(s.Handler(s.Assets))
 	defer web.Close()
 	resp, err := http.Get(web.URL + "/")
 	if err != nil {
@@ -460,7 +460,7 @@ func TestCh7R1WebSocketControls(t *testing.T) {
 	}
 	defer s.Close()
 	s.DefaultAgent = a.ID()
-	web := httptest.NewServer(s.Handler())
+	web := httptest.NewServer(s.Handler(s.Assets))
 	defer web.Close()
 	ws, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(web.URL, "http")+"/ws", nil)
 	if err != nil {

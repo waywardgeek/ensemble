@@ -113,6 +113,9 @@ func (s *Server) openMCP(c *client, a ensemble.Agent) (*browserTransport, error)
 	return t, nil
 }
 func (s *Server) mcp(c *client, cmd command) error {
+	if !s.Hub.allows(cmd.AgentID) {
+		return errors.New("Agent is outside this GUI view")
+	}
 	a, ok := s.Root.Agent(cmd.AgentID)
 	if !ok {
 		return errors.New("unknown agent")

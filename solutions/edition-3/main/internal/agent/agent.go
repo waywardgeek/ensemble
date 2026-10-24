@@ -4,6 +4,7 @@ package agent
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -58,6 +59,7 @@ type agent struct {
 	viewState          common.ViewSnapshot
 	viewParts          map[uint64]common.PartDelta
 	state              common.TurnState
+	terminal           *terminalCompletion
 	stopping           bool
 	speaking           bool
 	gate               func()
@@ -266,6 +268,7 @@ func (a *agent) Config() common.Config {
 	a.configMu.RLock()
 	defer a.configMu.RUnlock()
 	c := a.config
+	c.SubmitSchema = append(json.RawMessage(nil), c.SubmitSchema...)
 	if c.DiagnosticMaxRecords != nil {
 		n := *c.DiagnosticMaxRecords
 		c.DiagnosticMaxRecords = &n

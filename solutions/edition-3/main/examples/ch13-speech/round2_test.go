@@ -13,6 +13,8 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -123,7 +125,31 @@ func TestListenerPeerEOFDuringAsk(t *testing.T) {
 			http.Error(w, "only the pending Ask transport is allowed", http.StatusBadRequest)
 			return
 		}
-		io.Copy(io.Discard, r.Body)
+		var body struct {
+			Tools []struct {
+				Function struct {
+					Name       string                     `json:"name"`
+					Parameters map[string]json.RawMessage `json:"parameters"`
+				} `json:"function"`
+			} `json:"tools"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+			t.Error(err)
+			return
+		}
+		names := []string{}
+		for _, tool := range body.Tools {
+			names = append(names, tool.Function.Name)
+			if tool.Function.Name == "submit" {
+				if string(tool.Function.Parameters["properties"]) != "{}" || string(tool.Function.Parameters["additionalProperties"]) != "false" || len(tool.Function.Parameters["required"]) != 0 {
+					t.Errorf("listener submit schema was replaced: %+v", tool.Function.Parameters)
+				}
+			}
+		}
+		sort.Strings(names)
+		if !reflect.DeepEqual(names, []string{"hear", "sleep", "submit", "type", "wait"}) {
+			t.Errorf("listener declarations = %v", names)
+		}
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(200)
 		w.(http.Flusher).Flush()

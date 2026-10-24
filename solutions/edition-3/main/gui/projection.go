@@ -10,6 +10,7 @@ import (
 
 // Wire is a display projection, never a serialization of replay-only Part data.
 type Wire struct {
+	Question       *ensemble.Question     `json:"question,omitempty"`
 	Usage          *UsageFrame            `json:"-"`
 	Meter          *ensemble.EngineStatus `json:"meter,omitempty"`
 	BrowserMCP     bool                   `json:"browser_mcp,omitempty"`

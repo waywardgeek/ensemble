@@ -123,7 +123,13 @@ func TestChapter4Round2StagedCRLFAndUnseenPattern(t *testing.T) {
 }
 
 func TestChapter4Round2AgentWireAndKilledObservation(t *testing.T) {
-	app, a, _ := c4Agent(t)
+	dir := t.TempDir()
+	app := ensemble.New(nil)
+	t.Cleanup(func() {
+		if err := app.Shutdown(); err != nil {
+			t.Error(err)
+		}
+	})
 	var requests atomic.Int32
 	type wireResult struct {
 		text   string
@@ -213,11 +219,11 @@ func TestChapter4Round2AgentWireAndKilledObservation(t *testing.T) {
 		json.NewEncoder(w).Encode(map[string]any{"content": content, "stop_reason": "end_turn", "usage": map[string]int{"input_tokens": 1, "output_tokens": 1}})
 	}))
 	defer server.Close()
-	cfg := a.Config()
-	cfg.SavePath = "" // A second live Agent needs its own derived recovery path.
-	cfg.BaseURL = server.URL
-	cfg.APIKey = "loopback-only"
-	a, err := app.NewAgent(cfg)
+	// One unnamed Agent, with caller-owned state and a derived SavePath.
+	a, err := app.NewAgent(ensemble.Config{
+		Model: "local-only", BaseDir: dir, DataDir: filepath.Join(dir, "cr"),
+		BaseURL: server.URL, APIKey: "loopback-only",
+	})
 	if err != nil {
 		t.Fatal(err)
 	}

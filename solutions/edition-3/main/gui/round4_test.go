@@ -66,7 +66,7 @@ func TestCh7R4PongPauseOrderingAndCleanup(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(s.Close)
-	host := httptest.NewServer(s.Handler())
+	host := httptest.NewServer(s.Handler(s.Assets))
 	t.Cleanup(host.Close)
 	ws := r4Dial(t, host.URL)
 	pongs, ended, readerDone := make(chan string, 4), make(chan struct{}, 1), make(chan struct{})
@@ -166,7 +166,7 @@ func TestCh7R4PongOverloadStopsClient(t *testing.T) {
 	t.Cleanup(s.Close)
 	gate := &r4GatedTrace{entered: make(chan struct{}), release: make(chan struct{})}
 	s.Trace = gate
-	host := httptest.NewServer(s.Handler())
+	host := httptest.NewServer(s.Handler(s.Assets))
 	t.Cleanup(host.Close)
 	t.Cleanup(gate.unblock)
 	ws := r4Dial(t, host.URL)
@@ -261,7 +261,7 @@ func TestCh7R4EmptyStartLiveAndReplay(t *testing.T) {
 				t.Fatal(err)
 			}
 			t.Cleanup(s.Close)
-			host := httptest.NewServer(s.Handler())
+			host := httptest.NewServer(s.Handler(s.Assets))
 			t.Cleanup(host.Close)
 			live := r4Dial(t, host.URL)
 			read := func(ws *websocket.Conn) map[string]any {

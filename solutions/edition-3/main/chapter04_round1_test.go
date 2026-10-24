@@ -498,10 +498,6 @@ func TestChapter4Round1SetupFailureCorrelation(t *testing.T) {
 			// This test deliberately breaks job storage, not recovery storage.
 			dir := t.TempDir()
 			app := ensemble.New(nil)
-			a, err := app.NewAgent(ensemble.Config{Model: "local-only", BaseDir: dir, DataDir: "cr", SavePath: filepath.Join(t.TempDir(), "save.json")})
-			if err != nil {
-				t.Fatal(err)
-			}
 			t.Cleanup(func() {
 				if err := app.Shutdown(); err != nil {
 					t.Error(err)
@@ -558,25 +554,28 @@ func TestChapter4Round1SetupFailureCorrelation(t *testing.T) {
 				io.WriteString(w, `{"content":[{"type":"text","text":"all results correlated"}],"usage":{"input_tokens":3,"output_tokens":4},"stop_reason":"end_turn"}`)
 			}))
 			defer server.Close()
-			config := a.Config()
-			config.SavePath = filepath.Join(t.TempDir(), "save.json")
-			config.BaseURL = server.URL
-			config.APIKey = "local-regression-only"
-			a, err = app.NewAgent(config)
+			// Construct once, after the loopback endpoint exists; do not clone
+			// an already managed identity or its terminal/recovery state.
+			a, err := app.NewAgent(ensemble.Config{
+				Model: "local-only", BaseDir: dir, DataDir: filepath.Join(dir, "cr"),
+				SavePath: filepath.Join(t.TempDir(), "save.json"),
+				BaseURL:  server.URL, APIKey: "local-regression-only",
+			})
 			if err != nil {
 				t.Fatal(err)
 			}
 			c4Register(t, a, "custom", func(context.Context, ensemble.ToolCall, json.RawMessage) error { effects.Add(1); return nil })
-			// Cache owns cr diagnostics; obstruct the tool-output boundary only
-			// after all constructor activity, without removing those diagnostics.
+			// Obstruct the actual tool-output boundary after construction,
+			// without damaging diagnostics or the independent recovery file.
+			ioDir := filepath.Join(a.Config().DataDir, "io")
 			switch mode {
 			case "mkdir":
-				if err := os.WriteFile(filepath.Join(dir, "cr", "io"), []byte("not a directory"), 0600); err != nil {
+				if err := os.WriteFile(ioDir, []byte("not a directory"), 0600); err != nil {
 					t.Fatal(err)
 				}
 			case "open":
 				for _, n := range []string{"1", "2"} {
-					if err := os.MkdirAll(filepath.Join(dir, "cr", "io", n), 0700); err != nil {
+					if err := os.MkdirAll(filepath.Join(ioDir, n), 0700); err != nil {
 						t.Fatal(err)
 					}
 				}

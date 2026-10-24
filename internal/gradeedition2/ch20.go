@@ -9,6 +9,16 @@ import (
 // required review of ownership, composition and recursive factory construction.
 // legacy selects that export's existing public construction API, never fake hooks.
 func Chapter20(bin, core, gui string, legacy bool) (grade.Report, error) {
+	return chapter20(bin, core, gui, "", legacy, false)
+}
+
+// Chapter20Targets grades the importing core, separate GUI module and explicit
+// application artifacts without requiring a library directory to be executable.
+func Chapter20Targets(cli, core, guiModule, guiBin string) (grade.Report, error) {
+	return chapter20(cli, core, guiModule, guiBin, false, true)
+}
+
+func chapter20(bin, core, gui, guiBin string, legacy, current bool) (grade.Report, error) {
 	checks := append(grade.Ch24Checks(grade.Ch24Result{}), grade.Ch25Checks(grade.Ch25Result{})...)
 	for i := range checks {
 		checks[i].Passed = true
@@ -20,22 +30,37 @@ func Chapter20(bin, core, gui string, legacy bool) (grade.Report, error) {
 	checks[8].Title = "Parent and two children retain distinct valid saved conversations"
 	checks[11].Title = "Three generations yield a child question and return an addressed parent reply"
 	checks[6].Title = "Public root has a resolved GUI-free dependency graph and constructible API"
-	reuseChecks(core, gui, legacy, checks[:7])
-	fleetChecks(bin, checks[7:])
-	guiBin, cleanup, err := grade.Build(gui)
+	reuseChecksWith(core, gui, guiBin, legacy, current, checks[:7])
+	fleetChecksWith(fleetDriver{bin: bin, current: current}, checks[7:])
+	var cleanup = func() {}
+	var err error
+	if !current {
+		guiBin, cleanup, err = grade.Build(gui)
+	}
 	if err != nil {
 		fail(&checks[13], "root chat control: %v", err)
 	} else {
 		defer cleanup()
-		fleetRootChat(guiBin, &checks[13])
+		fleetRootChatWith(guiBin, &checks[13], current)
 	}
-	return grade.NewTitledReport("Edition 2, Chapter 20 — The Ensemble", checks, ""), nil
+	title := "Edition 2, Chapter 20 — The Ensemble"
+	if current {
+		title = "Edition 3, Chapter 20 — The Ensemble"
+	}
+	return grade.NewTitledReport(title, checks, ""), nil
 }
 
 // A full real model-switch session already has a verified public driver. Reuse
 // its observations without awarding its status/accounting points a second time.
-func reuseWire(guiBin, core string, c *grade.Check) {
-	out := statusLaunch(guiBin, core)
+func reuseWire(guiBin, core string, c *grade.Check, current bool) {
+	models := statusModels
+	var out statusRun
+	if current {
+		models = []string{"claude-sonnet-4-6", "claude-opus-4-6", "claude-sonnet-4-6"}
+		out = statusLaunchModels(guiBin, core, models, true)
+	} else {
+		out = statusLaunch(guiBin, core)
+	}
 	if out.fatal != "" {
 		fail(c, "actual GUI session: %s", out.fatal)
 		return
@@ -45,11 +70,11 @@ func reuseWire(guiBin, core string, c *grade.Check) {
 		return
 	}
 	for i, r := range out.reqs {
-		if r.JSON()["model"] != statusModels[i/2] {
-			fail(c, "request %d model=%v want=%s", i, r.JSON()["model"], statusModels[i/2])
+		if r.JSON()["model"] != models[i/2] {
+			fail(c, "request %d model=%v want=%s", i, r.JSON()["model"], models[i/2])
 		}
 	}
-	c.Details = append(c.Details, "Actual stdin turns and WebSocket settings select Sonnet-5, Opus 4.6 and Sonnet-5 on subsequent provider requests.")
+	c.Details = append(c.Details, "Actual stdin turns and WebSocket selection reach the three selected models on subsequent provider requests.")
 }
 
 func reuseFail(checks []grade.Check, err error, indices ...int) {

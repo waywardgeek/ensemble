@@ -76,15 +76,21 @@ is processed at EOF. The default JSON mode does not print chat prompts.
 
 ## Retained tool contracts
 
-The same Agent now owns an independent six-tool registry. Root composition wires
+The same Agent owns an independent tool registry. Root composition wires
 Agent, Engine, History, and Tools through `internal/common` interfaces; each
 implementation keeps its state locally. Engine owns HTTP, Render, Parse, and all
 provider tool envelopes. Tools do not retain conversation, and the GUI continues
 to call the same Agent rather than providing a second implementation.
 
-`Config.Tools == nil` enables the default six tools. A non-nil empty slice really
-disables every tool and omits `tools` from provider requests. A nonempty slice
-selects names. CLI/GUI environment equivalents are `LLM_TOOLS=default`,
+`Config.Tools == nil` enables the default catalogue, including fleet controls.
+A nonempty slice selects names. A non-nil empty slice with no skill selection
+is an application-only composition: it disables every tool, omits `tools` from
+provider requests, and leaves the optional fleet catalogue uninstalled. This
+allows an application such as the speech listener to register its own `submit`
+operation and schema through the ordinary registry. Such a call is not fleet
+completion. Installed core, compiled, and MCP names remain collision-protected;
+this is not permission to override a disabled tool. Default and skill-selected
+composition retain the fleet catalogue. CLI/GUI environment equivalents are `LLM_TOOLS=default`,
 `LLM_TOOLS=none`, or a comma-separated list of built-in names. Registry declarations
 and configuration are returned as copies, not mutable backing storage. Each
 registry entry joins its declaration with its handler; declarations and dispatch

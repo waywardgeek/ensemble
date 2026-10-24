@@ -21,7 +21,7 @@ func main() {
 // Returning the status lets temporary build cleanup finish before os.Exit.
 func run(args []string) int {
 	flags := flag.NewFlagSet("grade-edition3", flag.ContinueOnError)
-	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18 or 19)")
+	chapter := flags.Int("ch", 1, "Edition 3 chapter to grade (1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19 or 20)")
 	asJSON := flags.Bool("json", false, "emit the report as JSON")
 	core := flags.String("core", "", "Chapter 4/5/6/7/8/9/10/11/12/13 core source module directory")
 	consumer := flags.String("consumer", "", "Chapter 4/5/6/7/8/9/10/11/12/13 external consumer module directory")
@@ -125,6 +125,22 @@ func run(args []string) int {
 			secondRates = &second
 		}
 	}
+	if *chapter == 20 {
+		if info, err := os.Stat(filepath.Join(*core, "go.mod")); err != nil || info.IsDir() {
+			fmt.Fprintln(os.Stderr, "Chapter 20 requires -core to name a Go module directory")
+			return 2
+		}
+		if *core == "" || *gui == "" {
+			fmt.Fprintln(os.Stderr, "Chapter 20 requires -core CORE_DIR and -gui GUI_TARGET plus a positional CLI_TARGET")
+			return 2
+		}
+		for name := range set {
+			if name != "ch" && name != "json" && name != "core" && name != "gui" {
+				fmt.Fprintln(os.Stderr, "Chapter 20 does not accept -"+name)
+				return 2
+			}
+		}
+	}
 	if *chapter == 19 {
 		for name := range set {
 			if name != "ch" && name != "core" && name != "json" {
@@ -139,8 +155,8 @@ func run(args []string) int {
 		}
 	}
 	// No historical target defaults and no implicit source inference from a binary.
-	if (*chapter != 1 && *chapter != 4 && *chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 14 && *chapter != 15 && *chapter != 16 && *chapter != 18 && *chapter != 19) || flags.NArg() != 1 || flags.Arg(0) == "" || (*chapter == 1 && (chapter4Flags || chapter5Flags)) || (*chapter == 4 && chapter5Flags) || (*chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && chapter6Flags) || (*chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 18 && chapter7Flags) {
-		fmt.Fprintln(os.Stderr, "usage: grade-edition3 -ch 19 -core DIR [-json] CLI_TARGET; or -ch 18 -core DIR -gui GUI_TARGET -status-prices I,W,R,O [-status-second-prices I,W,R,O] [-json] CLI_TARGET; or -ch 15 -cache-prices I,W,R,O [-cache-current PATH] [-cache-prior PATH] [-json] GUI_TARGET; or -ch 14|16 [-json] GUI_TARGET; or -ch 1 [-json] CLI_TARGET; or -ch 4|5|6|7|8|9|10|11|12|13 -core DIR -consumer DIR [-consumer-case FILE] [-workflow DIR [-media-models FILE]] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [-json] target")
+	if (*chapter != 1 && *chapter != 4 && *chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 14 && *chapter != 15 && *chapter != 16 && *chapter != 18 && *chapter != 19 && *chapter != 20) || flags.NArg() != 1 || flags.Arg(0) == "" || (*chapter == 1 && (chapter4Flags || chapter5Flags)) || (*chapter == 4 && chapter5Flags) || (*chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && chapter6Flags) || (*chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 18 && *chapter != 20 && chapter7Flags) {
+		fmt.Fprintln(os.Stderr, "usage: grade-edition3 -ch 20 -core DIR -gui GUI_TARGET [-json] CLI_TARGET; or -ch 19 -core DIR [-json] CLI_TARGET; or -ch 18 -core DIR -gui GUI_TARGET -status-prices I,W,R,O [-status-second-prices I,W,R,O] [-json] CLI_TARGET; or -ch 15 -cache-prices I,W,R,O [-cache-current PATH] [-cache-prior PATH] [-json] GUI_TARGET; or -ch 14|16 [-json] GUI_TARGET; or -ch 1 [-json] CLI_TARGET; or -ch 4|5|6|7|8|9|10|11|12|13 -core DIR -consumer DIR [-consumer-case FILE] [-workflow DIR [-media-models FILE]] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [-json] target")
 		return 2
 	}
 	var example gradeedition2.ConsumerCase
@@ -220,6 +236,14 @@ func run(args []string) int {
 		report, err = gradeedition2.Chapter15(bin, *cacheCurrent, *cachePrior, prices)
 	} else if *chapter == 16 {
 		report, err = gradeedition2.Chapter16(bin)
+	} else if *chapter == 20 {
+		var guiBin string
+		var cleanupGUI func()
+		guiBin, cleanupGUI, err = grade.Build(*gui)
+		if err == nil {
+			defer cleanupGUI()
+			report, err = gradeedition2.Chapter20Targets(bin, *core, filepath.Join(*core, "gui"), guiBin)
+		}
 	} else if *chapter == 19 {
 		report, err = gradeedition2.Chapter19CLI(bin, *core)
 	} else if *chapter == 18 {

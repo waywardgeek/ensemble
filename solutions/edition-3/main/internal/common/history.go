@@ -196,6 +196,9 @@ type Entry struct {
 	Parts   PartList     `json:"parts"`
 }
 type Context struct {
+	// Accepted terminal ownership survives dialogue-only snapshots and log
+	// retention. Projected from ToolReturned.FleetCompletion, never its name.
+	FleetCompletion     bool              `json:"fleet_completion,omitempty"`
 	Turn                TurnState         `json:"turn"`
 	Pending             []string          `json:"pending,omitempty"`
 	Usage               Usage             `json:"usage"`
@@ -262,16 +265,19 @@ type ResponseData struct {
 	UsageMissing []string `json:"usage_missing,omitempty"`
 }
 type ToolData struct {
-	Automatic  bool            `json:"automatic,omitempty"`
-	DisplayID  uint64          `json:"display_id,omitempty"`
-	CallPartID uint64          `json:"call_part_id,omitempty"`
-	Dispatched bool            `json:"dispatched,omitempty"`
-	Job        *JobData        `json:"job,omitempty"`
-	CallID     string          `json:"call_id"`
-	Name       string          `json:"name,omitempty"`
-	Args       json.RawMessage `json:"args,omitempty"`
-	Parts      PartList        `json:"parts,omitempty"`
-	IsError    bool            `json:"is_error,omitempty"`
+	// FleetCompletion records accepted terminal ownership, not a tool name.
+	// Only a successful fleet operation or Agent.Complete sets this fact.
+	FleetCompletion bool            `json:"fleet_completion,omitempty"`
+	Automatic       bool            `json:"automatic,omitempty"`
+	DisplayID       uint64          `json:"display_id,omitempty"`
+	CallPartID      uint64          `json:"call_part_id,omitempty"`
+	Dispatched      bool            `json:"dispatched,omitempty"`
+	Job             *JobData        `json:"job,omitempty"`
+	CallID          string          `json:"call_id"`
+	Name            string          `json:"name,omitempty"`
+	Args            json.RawMessage `json:"args,omitempty"`
+	Parts           PartList        `json:"parts,omitempty"`
+	IsError         bool            `json:"is_error,omitempty"`
 }
 type Redaction string
 

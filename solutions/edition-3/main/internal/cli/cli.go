@@ -122,7 +122,10 @@ func Run(ctx context.Context, args []string, in io.Reader, out, diagnostics io.W
 		}
 		result = errors.Join(result, shutdownErr)
 	}()
-	a, err := app.NewAgent(config)
+	if err := installAgentFactory(app); err != nil {
+		return err
+	}
+	a, err := app.CreateAgent(ctx, config)
 	if err != nil {
 		return err
 	}

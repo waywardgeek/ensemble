@@ -52,19 +52,19 @@ type client struct {
 func (c *client) stop() { c.once.Do(func() { close(c.done) }) }
 
 type Hub struct {
-	settingsMu      sync.Mutex // Serialize policy changes without holding mu across callbacks.
-	mu              sync.Mutex
-	en              *ensemble.Ensemble
-	agents          map[string]*agentView
-	clients         map[*client]bool
-	nextClient      uint64
-	session         string
-	unsubscribe     func()
-	closed          bool
-	speech          *speaker
-	settings        Settings
-	settingsApplied bool
-	store           settingsStore
+	selected    string     // empty is the explicitly global legacy/workbench mode.
+	settingsMu  sync.Mutex // Serialize policy changes without holding mu across callbacks.
+	mu          sync.Mutex
+	en          *ensemble.Ensemble
+	agents      map[string]*agentView
+	clients     map[*client]bool
+	nextClient  uint64
+	session     string
+	unsubscribe func()
+	closed      bool
+	speech      *speaker
+	settings    Settings
+	store       settingsStore
 }
 
 func NewHub(en *ensemble.Ensemble) *Hub {
@@ -72,12 +72,18 @@ func NewHub(en *ensemble.Ensemble) *Hub {
 }
 
 func newHub(en *ensemble.Ensemble, settings Settings, store settingsStore) *Hub {
-	h := &Hub{en: en, agents: map[string]*agentView{}, clients: map[*client]bool{}, session: fmt.Sprint(time.Now().UnixNano())}
+	return newScopedHub(en, settings, store, "")
+}
+func (h *Hub) allows(id string) bool { return h.selected == "" || h.selected == id }
+func newScopedHub(en *ensemble.Ensemble, settings Settings, store settingsStore, selected string) *Hub {
+	h := &Hub{selected: selected, en: en, agents: map[string]*agentView{}, clients: map[*client]bool{}, session: fmt.Sprint(time.Now().UnixNano())}
 	h.settings = settings
 	h.store = store
-	h.settingsApplied = store.path != ""
 	h.speech = newSpeaker(h)
 	for _, a := range en.Agents() {
+		if !h.allows(a.ID()) {
+			continue
+		}
 		v := h.view(a)
 		s := a.View()
 		v.cursor = s.Through
@@ -112,13 +118,7 @@ func (h *Hub) trace(kind, agent, detail string) {
 func (h *Hub) view(a ensemble.Agent) *agentView {
 	v := h.agents[a.ID()]
 	if v == nil {
-		if h.settingsApplied {
-			a.SetSecurityPolicy(h.settings.SafeMode, h.settings.EnableWebSearch)
-			_ = a.SetContextTarget(h.settings.ContextTarget)
-			_ = a.SetMaxToolRounds(h.settings.MaxToolRounds)
-			_ = a.SetPersistencePolicy(h.settings.LogMode, h.settings.DiagnosticMaxRecords)
-			_ = a.Post(ensemble.SetSpeaking{Enabled: true})
-		}
+
 		cfg := a.Config()
 		v = &agentView{agent: a, state: controlState{Paused: cfg.PauseOnStart, Speaking: cfg.Speaking, Turn: ensemble.Idle}, partial: map[uint64]Card{}, spoken: map[uint64]*speechText{}}
 		all := contextEvents(a)
@@ -245,6 +245,9 @@ func (h *Hub) sync(v *agentView, s ensemble.ViewSnapshot) {
 	}
 }
 func (h *Hub) observe(p ensemble.AgentObservation) {
+	if !h.allows(p.Agent.ID()) {
+		return
+	}
 	h.mu.Lock()
 	defer h.mu.Unlock()
 	if !h.closed {
@@ -309,6 +312,12 @@ func abbreviate(s string, n int) string {
 	return s
 }
 func (h *Hub) broadcast(w Wire) {
+	if w.AgentID != "" && !h.allows(w.AgentID) {
+		return
+	}
+	if w.Question != nil && !h.allows(w.Question.Sender) {
+		return
+	}
 	raw, err := json.Marshal(w)
 	if err != nil {
 		h.trace("encode_error", w.AgentID, err.Error())
@@ -352,6 +361,9 @@ func (h *Hub) connect() *client {
 	defer h.mu.Unlock()
 	snapshots := map[string]ensemble.ViewSnapshot{}
 	for _, a := range h.en.Agents() {
+		if !h.allows(a.ID()) {
+			continue
+		}
 		snapshots[a.ID()] = a.View()
 	}
 	return h.connectAt(snapshots)
@@ -359,6 +371,15 @@ func (h *Hub) connect() *client {
 
 // connectAt consumes the already captured checkpoint under the hub lock.
 func (h *Hub) connectAt(snapshots map[string]ensemble.ViewSnapshot) *client {
+	visible := map[string]ensemble.ViewSnapshot{}
+	for id, s := range snapshots {
+		if h.allows(id) {
+			if _, ok := h.en.Agent(id); ok {
+				visible[id] = s
+			}
+		}
+	}
+	snapshots = visible
 	h.nextClient++
 	c := &client{id: fmt.Sprint(h.nextClient), queue: make(chan []byte, clientQueue), done: make(chan struct{})}
 	if h.closed {
@@ -468,5 +489,15 @@ func (h *Hub) refreshStatus(a ensemble.Agent) {
 	defer h.mu.Unlock()
 	if !h.closed {
 		h.broadcast(usageWire(a.ID(), a.Engine().Status()))
+	}
+}
+
+// PresentHumanQuestion is presentation only. Applications explicitly install it
+// with Ensemble.SetHumanQuestionSink; replies remain correlated by Ensemble.
+func (h *Hub) PresentHumanQuestion(question ensemble.Question) {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	if !h.closed {
+		h.broadcast(Wire{Type: "human_question", Question: &question})
 	}
 }

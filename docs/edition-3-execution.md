@@ -4,7 +4,7 @@ Bill's instructions of October 16, 2026, as amended by his later simplicity and 
 
 ## Current run
 
-**Current boundary (2026-10-22): Chapters 1–19 accepted; Chapter 20 entry is next and unopened.** Chapter 19 reached code acceptance after ten production correction rounds. Its 255-file source/support snapshot in `solutions/edition-3/ch19` matches accepted main bytes and modes. Final native Chapter 19 and same-binary Chapter 1 lifetime gates passed 100/100, true, exit zero, including both real 62-second phases; earlier failures and carried evidence retain their qualifications. Required API-key CLI behavior was accepted from actual paired results and effects despite two preserved controller failures. The minimal author pass received one formal REQUIRED_REVISION, followed by one bounded author response that root directly verified; there was no second formal PASS. All Chapter 19 workers were read, joined and closed. Closure is an explicit normal-hook local commit, never a push. Bill lifted Chapter 19's correction-round stopping cap and authorized live tests for the rest of the book without routine permission requests; bounded plans and separate account-consent, installation, restart, device and publication boundaries still apply.
+**Current boundary: Chapters 1–19 closed; Chapter 20 entry is accepted; the fresh student is running toward an early compiling HOLD.** Chapter 19 closed at `0bac5a47018e533e3d97d6e2820d67d3cc01036d`, with its normal hook, 255-file snapshot and preserved qualified validation/live evidence. Its contexts are closed and work must not be replayed. Root has read the complete current Chapter 20 contract, prerequisites, accepted core/GUI ownership and grading route. Main still matches all 255 predecessor files/modes. Chapter 20 has zero production correction rounds. The same retained reviewer submitted ENTRY PASS after the root-only adapter and public-recipe alignment, root read the final note and joined the turn, and `e3-restart-ch20-student` was launched from unchanged accepted main to an early compiling HOLD. No Chapter 20 product pass is claimed. Bill's standing permission covers bounded live tests for the rest of the book, not account consent, installation/restart, devices or publication. Chapter 19's correction-limit exception does not silently transfer.
 
 ### Earlier boundary records (superseded by the current boundary above)
 
@@ -449,3 +449,181 @@ Both final codeworkers submitted/JOINed3167, actualfinalsavedsections read3168. 
 The fresh author's three short additions clarify rooted operations versus the path-check sketch/chroot, narrow system-selection metadata, and the dated finite CLI experience. Baseline/final prose lint passed hard checks with existing soft warnings. The sole independent formal review returned REQUIRED_REVISION for two inherited nonexistent auth/transport API names and one stale section reference. Root verified the actual auth service, provider-specific Engine headers and safe transport-error path, then authorized exactly one bounded author response. Its three-hunk correction was read directly against source, the working chapter matched `/private/tmp/ch19-author.X0Ldgq/r1-final/chapter-19.md`, and the new lint passed hard checks. This is root-verified correction, not a second formal PASS. Both editorial finals were read and joined, and both contexts closed.
 
 The historical integration test now targets accepted `ch19/cmd/ch01` through `Chapter19CLI`; its package was compiled with zero tests selected, not regraded. Final checks reverified all 255 accepted main/snapshot bytes and modes and the held final prose. The explicit allowed list `/private/tmp/ch19-closure.paths` contains 527 paths; only 344 are changed/staged, all chapter-owned. The 1,784 scratch entries, credentials/settings, binaries, private live payloads, runtime handoff amendment, Chapter 14, earlier originals/snapshots and unrelated papers are excluded. `/private/tmp/ch19-closure.unrelated.json` records 166 currently unrelated paths for preservation; the earlier count of 162 was a historical observation. A `git diff` invocation used unsupported pathspec-file options and failed before staging; the corrected explicit-argument check passed. No test credit is assigned to that setup error. Closure uses the configured credential hook and a local commit only. Chapter 20's contract, prerequisites and grading route remain next/unread; no Chapter 20 worker or chapter-specific operation has been released.
+
+## Chapter 20 entry alignment in progress
+
+Root retains the accepted library/nested-CLI/GUI architecture. The current route uses an explicit CLI, core directory and GUI executable; the original fourteen checks/200 points remain. Current fixture branches use isolated supported loopback configuration, the actual root public API, the shipped model-selection control and checked inert WebSocket assets. Historical helper signatures/callers remain separate. The public recipe uses existing `Config`; illustrative `AgentSpec` names do not require a second configuration system. Root setup compile failures came from wrongly shaped compatibility wrappers; they were corrected, not credited as behavioral failures. Focused environment and sentinel-route tests passed; the public core consumer and affected packages compiled only. Baseline/final prose lint hard checks passed. Independent entry review is pending; no grader, native, browser or provider run has occurred for Chapter 20. Entry receipts are in the directory named by `/private/tmp/ch20-entry-current`.
+
+### Chapter 20 accepted entry and initial student dispatch
+
+Retained `e3-restart-ch20-reviewer` submitted and joined ENTRY PASS; root read the complete saved note. Two supported entry findings were corrected: the headless recipe's old import/logger shape, and leaked consumer-build error suppressing independent current GUI probes. The latter now has separate error ownership and a passing launch-control regression. Earlier reviewer claims about nonexistent helpers, interface-valued Parts, incompatible MCP calls, environment names and request counts were withdrawn after actual source inspection; the saved note preserves the correction. Root also withdrew its own guessed TextPart/API/helper names and preserved setup compile failures separately.
+
+Entry receipts `/private/tmp/ch20-entry.m1m1EM`: `focused.log/exit` passes environment/routing controls; `route-v2.log/exit` passes independent-probe control; `compile-v5.log/exit` and `core-api.log/exit` prove compilation only; baseline and `lint-final-v2.log/exit` hard lint passed with unchanged warning category. `predecessor.json` verifies all255 source/support files and modes match accepted Chapter19. No grader/product/native/live success is claimed by entry controls.
+
+Fresh `e3-restart-ch20-student` is running, with access only to public governing material, its source and accepted Chapter19. Its authority is early compiling HOLD, focused local/loopback tests and affected-module compilation. Root retains full validation/grade/live release; no student children, native testing, installation, restart or commit. Standard ten production correction rounds apply, zero used. Same independent reviewer remains retained. Next: collect stable student final/note/receipts, personally inspect actual ownership/source and compare original simplicity without giving reference code to the student, then return held source to that reviewer.
+
+During initial implementation, root answered student question `main-60`: the public GUI relay is `ServeMCP(net.Listener)`, not a new stdio service; the existing headless core MCP seam remains. Root also corrected the overview's stale Chapter21 narrow-only reference to accepted Chapter19, without changing policy. A whitespace-sensitive anchor failed before changing text and its shell continued into lint; that `lint-final-v3` only checked unchanged text and gives no correction credit. The fail-fast corrected edit and `lint-final-v4.log/exit0` verify the actual one-number change. No production round or additional behavioral gate.
+
+### Initial Chapter20 student dispatch interruption
+
+Metadata-only inspection at2026-10-23T02:41Z found39 tool calls/returns, followed by `response_ended` seq175 at02:21:26 containing an intended `run_command` and no ensuing dispatch. The snapshot was older than the journal, so snapshot rotation did not explain the gap. Root inspected event types/times/tool names only, not opaque memory/request bodies. The running/thinking label had not established progress. Root interrupted only that stalled turn and resumed the SAME student, preserving prior work/checks and the early-HOLD authority. A fresh resumed response after cursor177 arrived at tool3518; source/compile outcome remained pending. Cause is unknown; this is an infrastructure/dispatch interruption, not a product verdict. No runtime restart, new worker, test rerun or production round was authorized by it.
+
+The same student resumed with a fresh response, but `response_ended` seq180 at02:43:24 again requested `run_command` with no following dispatch as of02:49Z. Thus the initial resumed text did not establish executed recovery. Root used a read-only GUI snapshot; visible tree contained root and the two owned Chapter20 workers, student labeled running/thinking. Under Bill's instruction to continue, root clicked the visible `#resume` “Unpause everyone” control once (tool3524), without settings/restart/installation. Follow-up snapshot and journal metadata showed no dispatch; a further30-second progress wait also returned none. This does not establish the cause or a product failure. Root stopped further interrupt/retry/UI manipulation and reported the execution blocker. Same student retained with its edits, no stable compiling HOLD yet; reviewer retained after joined entry PASS and note-only ownership correction. Pending owned observations are join3495 and progress3520 (cursor180); do not duplicate them or treat old finals as fresh work.
+
+### Correction: root prematurely declared a dispatch blocker
+
+Bill reported that the student was actually running and identified this as the second such mistaken stop. Root withdrew the blocker claim. The inspected metadata gap did not justify concluding that current execution had stopped; root's interruption/resume and unpause intervention were not established as necessary repairs. The underlying reason for the observation discrepancy is unknown. Do not preserve the preceding diagnosis as a confirmed runtime failure. No runtime investigation is now being undertaken. Same student and work remain active; root resumed existing join3495 without another interruption, replacement worker, or replay of completed checks. Bill's observation is attributed to Bill, not relabeled as an independently verified tool result.
+- Post-restart recovery after the separately authorized Chapter 27 runtime installation: the root-owned live child list was empty, but both Chapter 20 saved worker directories survived. The same `e3-restart-ch20-student` identity was restored to its original initial-implementation/early-compiling-HOLD assignment; retained reviewer identity remains `e3-restart-ch20-reviewer`. Its saved final entry PASS and note-only correction were read, not rerun. Partial student source was preserved. No stable student HOLD or implementation acceptance has yet been established, no production correction round was consumed, and no entry or Chapter 19 validation was replayed. The autonomous book goal is configured with eight-minute idle reminders; reminder state is not chapter acceptance.
+- Chapter 20 initial compiling HOLD is now saved, collected and joined: student note `ch20-restart-student.md`, focused/compile receipts `/private/tmp/e3-ch20-student.2X1OuS/`. Core and GUI compile-only checks passed; the focused GUI renderer-extraction failure is retained, not acceptance. Root and the same restored independent reviewer inspected frozen source and agree the existing Ensemble/Agent/Server-Hub ownership should be completed rather than replaced. Review identified factory/admission rollback and late collision effects, submit/queued-work terminal ordering, inherited resolved-model identity, selected-GUI fleet-wide policy side effects, and default embedded-startup routing; the student's declared schema/durability/wake/question/renderer omissions remain separate. Two stale root API restrictions were withdrawn against current public text: Server-returning `gui.New(..., io.Writer)`/Server relay and explicit root submit availability with delegated-only submit obligation. The saved early-HOLD reviewer result was read and joined; no broader campaign ran. Root released consolidated production correction **round 1/10** to the same student via the current public brief in `docs/edition-3-student.md`. The reviewer stays retained; acceptance, broad validation and required operations remain pending.
+
+- Chapter 20 R1/10 stable HOLD collected and joined; same reviewer’s consolidated HOLD saved, read and joined. Focused core/GUI and compilation receipts pass (`r1-core-focused-06`, `r1-gui-focused-05`, `r1-core-compile`, `r1-gui-compile` under the existing student receipt directory); earlier setup/product failures remain recorded. No broad tests or operations ran. Factory provenance question was resolved by narrowing cleanup to positively owned intended construction, not arbitrary callback rollback; no global registry snapshot or variadic-context constructor was required. Actual source review retains six correction groups: delegated failure terminal admission, shutdown managed membership, public task/addressed-reply/CLI/completion interfaces, selected GUI observation/control isolation, real reusable artifact component, and exact public schema admission limits including byte product. Named join validation, parent navigation, null-keyword speculation and failed-child resolved admission are not blockers; corrected misreads are preserved in review notes. Consolidated production correction **round 2/10** released to the same student via the public brief; same reviewer retained. Code acceptance, broader validation, live exercise, snapshot and prose remain pending.
+
+- Chapter 20 R2/10 stable HOLD and retained review collected/read/joined. Core actual-Agent checks passed within `r2-core-focused-04`, whose overall exit1 remains preserved for the CLI parser failure subsequently corrected by `r2-cli-focused-01`; unchanged successful R1/schema checks carry from `r2-core-focused-03` with its failed duplicate-ID fixture qualified. GUI/component focused and final compile-only receipts passed. Source review finds the non-renderer groups addressed without new framework. Sole remaining source blocker is documented two-file Artifact component mounting: real component/registry exist, but imports require unmounted helper modules and `renderers.js` is absent. Root directly verified the recipe/dependency graph. Reviewer withdrew a human-question leak after checking common broadcast's sender filter; no production fix warranted. Narrow correction **R3/10** released to same student for real two-module closure and affected local checks only; reviewer retained. No broad/race/vet/grader/live operation or acceptance yet.
+
+- R3 renderer closure source PASS collected/read/joined (not final acceptance). Fresh CLI/GUI built in `/private/tmp/ch20-r3-validation.0IWZvx`; core full race phase exited1 in inherited fixtures; remaining gate stopped/unrun. Root+retained reviewer diagnosed actual failures: default tool catalogue now21 vs old14; Ch4 fixture clones retained managed identity/state; Ch10 shared explicit DataDir now collides at required submit.md despite distinct default save paths. No races/panics observed in saved phase, not all-green. Root initially misstated directory-wide reservation and corrected it: statePaths owns actual submit.md/save/bak/log. No production defect established; test-only alignment released, no R4 counted. Preserve all assertions, fix fixture construction and independent expected catalogue, then focused race reruns and held diff review. Broader validation/exercises remain unfinished.
+
+- After reviewed six-test alignment, existing CLI/GUI checksums verified and root `core-race-v2` passed. Next GUI full race phase exited1; subsequent vet/modules/grader still unrun. Saved `gui-race.log` has legitimate new ES-module syntax rejected by old classic-script fixture, three race reports from one test-owned exec stderr bytes.Buffer read, and context-only seed recovery expecting full-output records after GUI no longer silently changes LogMode. Root initially summarized import failures alone, then read full failure/race index and corrected that incomplete diagnosis. Retained reviewer independently confirmed all three fixture premises. Separate test-only release: actual-source known-graph loader; reuse synchronized safeBuffer; explicitly choose full persistence BEFORE live tail/Ask while asserting GUI did not mutate initial dialogue-only mode. Preserve all replay IDs/provenance/jobs and speech checks. No R4 or production fix established; production held R3. Both failed gates retained, later phases/exercises unperformed.
+
+
+Chapter20 GUI fixture continuation: shared actual-source loader now evaluates, but
+standalone JS stopped at `cleared typing must not latch subsequent queue` (receipt
+`/private/tmp/e3-ch20-student.2X1OuS/after-r3-gui-shared-js-01.txt`, exit1). Student
+stopped without production changes; focused Go checks remain unrun. Root and retained
+reviewer traced longstanding fixture drift: state acknowledgement is not explicit
+Continue, and new trusted typing must retain its pause. Current speech code matches
+accepted Chapter19. Public brief authorizes a small protocol-correct test sequence,
+not production changes or an unchanged-assertions claim. Failed evidence preserved;
+source remains held R3, core-race-v2 PASS carried, full GUI gate still failed/pending.
+
+
+Chapter20 second shared-fixture stop preserved (`after-r3-gui-shared-js-02.txt`):
+explicit-Continue/new-typing corrections passed; long-content comparison joined
+separate trimmed utterances without word separators. Root/reviewer source and
+saved-value inspection found all content intact and exactly three boundary spaces
+missing from the test reconstruction, not production speech loss. Narrow public
+brief retains exact original-content equality with space-joined utterances for this
+single-space fixture only. No broader gate/Go pass claim yet; production still R3.
+
+
+Chapter20 resumed local gate `/private/tmp/ch20-r3-validation.0IWZvx/resume-gui-gates`:
+verified original artifact checksums; gui-race-v2 PASS, core-vet/gui-vet PASS,
+ch06/ch07/ch04-consumer PASS (qualify no-test outputs as compilation only).
+Speech example phase FAIL: listener cannot register application submit because new
+fleet catalogue reserves that name. Grader build and graders remain unrun. Root and
+retained reviewer confirmed real integration defect, including name-only dispatch,
+terminalization and recovery assumptions; no fixture weakening authorized. Public
+R4 brief releases same student to correct existing application/fleet ownership with
+focused regressions. Core/fullGUI prior passes remain valid R3 evidence, not proof of
+future R4. Production correction count becomes4/10 upon this release.
+
+
+Chapter20 R4 source review PASS collected/joined; full fresh local gate at
+/private/tmp/ch20-r4-validation.OaAEIt passed core/GUI race, vet, separate modules
+(including real restricted listener EOF), and fresh grader build. No browser/live
+acceptance follows. Root initial grader invocation used unsupported -chapter and
+exited2 with no report (grade20.stderr); root withdrew the recalled -timeout flag.
+Correct current route is -ch20 (separate argument), -core, -gui, -json, positionalCLI.
+grade20-v2 produced95/200 passed:false exit1; grade1 remains UNRUN because sequential
+gate stopped. Callback and replay fixture defects diagnosed independently; no
+all-green claim. Root current-only patch prepends real tool_limits for workflow
+join/send-parent only (valid wait/run untouched), preserves exact operation IDs,
+limits/assertions/legacy route; replay checks actual text frames in data.events,
+not arbitrary nested metadata. Final focused grader-fixture-race-02 PASS; -01 was
+an earlier broader draft and isn't final-byte evidence. Retained reviewer reviewing
+patch before rebuild/rerun. Independent real production startup defect: copied held
+GUI in owned empty cwd exits1 GUI asset missing index.html; pointer deploy-probe-current
+and startup.stderr/exit preserve evidence. Root failed to catch uncorrected
+NewServerWithSettings disk validation on empty assets in earlier source review.
+No R5 release yet; consolidate after corrected fixture run.
+
+Operational planning correction: current chapter20 exercises933-1169 require
+add/multiply/subtract in three children, not recalled factorial/prime/LCM. Parent
+answers actual child's negative-integer question; no separate invented human
+decision is required. Hint asks negative-integer coverage during join. Required
+outside consumer, actual browser/tool relay, selected request-model switch,
+two-file component, child submit artifacts/assertions and normal EOF remain unrun.
+Stale illustrative public tool/API examples to reconcile in later author phase,
+not a compatibility framework. Live part frames are flat; only replay wraps
+historical frames in data.events. Root's earlier blanket nested-envelope suspicion
+was withdrawn. No operational/live attempt has been launched for20.
+
+
+Corrected Chapter20 grade-v3 scored125/200 false/exit1, same pinned R4 binaries.
+Full current TLDR105–113 reread retracts root/reviewer provisional custom-row-key
+flexibility: version:1/submit_schema/payload explicitly mandatory. R5 release
+consolidates this writer+reader defect with omitted status payloads and real
+empty-cwd embedded startup failure. Root fixture work remains separate: valid
+JoinResult envelope+consumed-limits notice, real terminal root fan-in after early
+question yield, fresh browser-bound relay session after correlated no-browser
+refusal and current agent_id routing. No product fix for valid early-yield or
+connection binding. Same reviewer final consolidated diagnosis read/joined.
+Root corrected copied check wrapper's staleR3 HOME/TMP/CH16 paths; grader explicit
+CLI/GUI alwaysR4. TestCh16R1HeadlessCommands final -02 passed usingR4. -01 regex
+selectedzero tests, no credit. Existing other source suites remain valid; no blind
+full rerun. Grade1 remains unrun. R5 is5/10; no acceptance, live exercise or snapshot.
+
+
+Root current-route v4 fixture repair completed while student R5 implements:
+workflow standardnotice parser + real JoinResult/outcome projection; bounded32
+unique-ID fan-in after early questions; initial correlated no-browser refusal
+followed by fresh browser-bound TCP and current agent_id routing. All typed
+payload/default/status/durable row and final sender/content assertions retained;
+legacy paths unchanged. Reviewer caught malformed current addressed reply bypass;
+root fixed exact parse/sender requirement and request-ID spoof exclusion, added
+negative controls. Final focused grader-fixture-v4-race-02 PASS exit0; retained
+reviewer final PASS saved/read/joined. Earlier -01 prior source only. Partial root
+edit stopped on anchor and shell mistakenly continued formatting; no behavioral
+credit, completed failfast before final tests. This is rootfixture work, not R6.
+Final fixtures NOT yet built into a grader; grade20-v3 remains125/200 failed old
+adapter result. Need student R5 HOLD/source review, fresh production artifacts,
+relevant gates/newgrader then current14checks and realChapter1lifetimes. No live
+operations started, no source acceptance/snapshot/author/commit. Student sameR5
+running, reviewer retained. Last disk16254180KiB free; no cleanup needed.
+
+### Chapter 20 R5 held source and fresh local validation
+
+Collected/joined the same student's R5 HOLD; root read the production owners and focused receipts, then the retained reviewer independently passed the bounded source review. Actual launcher embedded-default/explicit-override/EOF behavior, defensive status Outcome projection, and authoritative version/schema/payload rows now follow the current contract. No production round beyond R5 is assigned by this boundary.
+
+Fresh `/private/tmp/ch20-r5-validation.vTRrtJ` derives HOME/TMP and inherited command artifact paths from its own wrapper directory (verified before launch). Fresh CLI/GUI builds, full root/GUI race suites, both vet checks, four separate module checks, and grader build passed; no-test modules establish compilation only. Production binaries are pinned in artifacts.sha256. All provider traffic here is synthetic/local.
+
+The first R5 full grade was 170/200, false/exit1; Chapter 1 did not run. The two failures were root fixture assumptions: custom row's owner recovery path was assumed adjacent save.json instead of configured DataDir/AgentID/save.json; actual public Question JSON used Sender/RequestID/TurnID rather than lower-case tags. Corrected current-only adapters retain exact row owner/version/schema/payload and saved-dialogue binding, require exact actual sender, strip correlation fields before content comparison, reject malformed/conflicting/non-string aliases, and leave legacy routes unchanged. Reviewer caught and root fixed a possible interface-comparison panic and missing TurnID stripping. Final focused fixture race-04 passed and the retained reviewer read/saved PASS; no student production changes. Earlier status-wrapper accommodation was also reviewed; its first test compile failed due to root's omitted reflect import, preserved with no behavioral credit.
+
+A rebuilt grader-v6 is now executing against unchanged R5 production; grade20-v2 is a new report, not an overwritten failure. Genuine Chapter1 lifetime checks follow only if grade20 returns parsed passed:true and exit0. Required browser/external-consumer and live fleet operations remain UNRUN; no snapshot, prose acceptance, or commit yet.
+
+R5 final grades: `/private/tmp/ch20-r5-validation.vTRrtJ/grade20-v4.json` **200/200 passed:true exit0** with grader-v8; same pinned CLI's `grade1.json` **100/100 passed:true exit0**, real 62-second header and body lifetime phases, exact 511 input/65 output. Two prior 185/200 failures preserved: same-batch then predispatch join interruption were legitimate runtime behavior. Final current-only controller uses at most four fresh uniquely identified question-join observations only after exact paired undispatched errors; it never credits a skipped join and preserves real question/answer/submission assertions. Retained reviewer inspected; focused package run explicitly included actual pinned-CLI three-generation scenario. No student production changes for these fixture repairs. All source/local/grade gates now clear, operations still pending; no chapter acceptance/snapshot/prose/commit.
+
+Released public bounded isolated synthetic outside-consumer/browser/component exercise to same student, no production changes. Separate live fleet plan remains to be prepared; no provider traffic authorized by this student release.
+
+### Chapter 20 — R5 gates green; operational failures diagnosed
+
+- R5 frozen local builds/root+GUI race/vet/separate modules passed in `/private/tmp/ch20-r5-validation.vTRrtJ`. Final current grader `grade20-v8` passed14checks200/200/exit0; matching CLI Chapter1 passed100/100/exit0 with both genuine62second phases. Earlier v5-7 failures were root controller observations skipped legitimately on pending question; bounded4 uniquelyidentified observations only after exact paired not-executed errors fixed currentroute, targeted actualCLI three-generation PASS and retainedreviewer PASS beforefullrun. No lost payload/correlation/question/terminal assertions. Historicalroutes unchanged.
+- Student synthetic reuse `/private/tmp/ch20-r5-reuse.eSQXBY` STOPPED on actualChrome `Cannot use import statement outside a module`: shipped `index.html` uses classic `app.js` while app now imports ArtifactScroll. Root directly verified. Outsideconsumer/headless builds and independentdiskoverride succeeded; no successful Conversation replay, relay ormodel-switch/componentsbrowser proof. Zero syntheticmodelrequests, normalownedconsumerEOF, browserclosed. Production remainedR5 unchanged. This real integration defect needs narrowR6; previous script harness was not browserproof.
+- Root boundedlive `/private/tmp/ch20-live.MILYP8` FAILED32POST budget,1GET/1keyread, nochildren/hint/normalEOF/arithmetic. Root customprimary omitted toolgrants. Request DID contain full deferredcatalogue (root initiallymisstated absenttools thenwithdrew); tasktools unavailable while skillmanagement immediatelyavailable. Model attempted speculative skillloads; all32HTTP200responses retained. Usage buckets input34+cachecreation4368+cacheread94027, output1981 (rawbuckets notinvoice). CleanupSIGTERM notnormalEOF. No automaticretry orproductfinding.
+- Root corrected-grant preparation `/private/tmp/ch20-live-grants.bBUDYB` remains UNACTIVATED forpaidwork. Keyfree actualCLI wirepreflight showed enabledtools and syntheticreply, but controller completionregex missed `you> [2 turns ...]`; rootstoppedonlyverifiedownedpreviewCLI66718, collectedfailure2979. No keys/upstream. Must preservefailure, correctparser andshortpreviewdeadline, freshpreviewdir, reviewcurrentcontroller and requireactualwirepreflightnormalEOF before anyseparatelyreleasedliveattempt. HoldallpaidfollowupuntilR6fix. Existing preparationPASS predatesgrant/parserchanges anddoesNOTapprovefollowup.
+- Codeacceptance/snapshot/prose/commit20 stillpending; student+reviewerretained. Existing10productionroundlimit.
+
+Retainedreviewer saved+joined actualbrowser diagnosis: minimal moduleentry + publicservedHTML regression, no newarchitecture. R6publicbriefreleased; studentreturnsHOLD before browsercontinuation. Root corrected keyfreepreflight nowPASS one syntheticrequest/enabledtasktools/normalEOF in fresh preview-work-02, no keys/upstream; failedprefixreceipt/scriptpreserved. New controllerstillawaitsreview beforepaidactivation.
+
+R6 minimalmoduleentry sourcePASS root+retainedreviewer joined. Before/after servedHTML+modulebytes/MIME race, untransformedESMsyntax+affectedcompile passed; no additionalarchitecturechanges. Release freshboundedactualbrowsercontinuation16synthetic/15min withrebuiltGUIbearingconsumer; carryunchangedcore/CLI/grades. Root corrected-grantscontroller b053a0... actualwirecheck enabledtasktools/1synthetic/normalEOF/zero keys upstream + retainedreviewerPASS, activationholdliftedafterR6. Freshoneattempt32POST/1GET/1024 Sonnet4.6 in `/private/tmp/ch20-live-grants.bBUDYB`, samepinnedCLI, noautoretry, no sourcechanges. Previous32POSTfailure not erased.
+
+### Chapter 20 — code and required operations accepted at R6, prose next
+
+Root accepts frozen R6 after retained independent final review, actual owner inspection, and the final test-only active-join/human-hint check. All code/student/reviewer submissions collected and joined; code contexts are closing. Six production correction rounds, no R7. Fixtures and operational controllers were separate root/student test-only repairs, not production rounds. No further campaign is warranted.
+
+Final grade receipts are `/private/tmp/ch20-r5-validation.vTRrtJ/grade20-v4.json` (200/200, passed true, exit0) and `grade1.json` (100/100, passed true, exit0; real62second phases), using root grader binary v8. R5 full root/GUI race, vet, separate modules passed; no-test modules are compile-only. R6 changed only the HTML module entry point plus its focused regression; actual rebuilt browser evidence covers that delta. Do not call the older R5 GUI binary R6 or claim all broad gates reran.
+
+Actual outside-module browser evidence `/private/tmp/ch20-r6-reuse.cBgKMg` establishes embedded/override assets, real modules/replay/composer, sameID independent TCP relay correlation, caller-disconnect isolation, next-wire model switch, and the independent two-file component's scrolling and safe inert rendering. Two synthetic requests,583.66seconds, normalEOF/ownedcleanup. No screenshot visual judgment, human hearing, realprovider GUI or reasoning-UI-change claim. Preserve the classic-script product failure and the two zero-request controller setup failures.
+
+The bounded live arithmetic follow-up used19successfulPOSTs and completed exactly3children, actual correlated question/reply, terminal fan-in, child submissions and normalEOF. Root inspected generated code before independent18-case Python PASS. Preserve the previous32POST failure caused by root's missing primary tool grants and the key-free usage-prefix parser failure. Paid hint ingress/delivery is established, but the first proposed join was skipped before hint; do not claim that trace proved an active join wake.
+
+The precise missing mechanism is separately established by `TestCh20HumanHintDuringDispatchedJoin`: canonical actual release sequence10/handle1/running beforehumanhint11, nonerror running observation12, parentnextrequest+turnresume whilechildheld, genuinechildsubmit then SAMEjob/handle complete with exacttypedpayload. One local race runPASS0.31s,2parent/1child requests; 20sdeadline excludes60sobservationtimeout. Test-only, no production changes or universal interleaving claim. Receipts `/private/tmp/e3-ch20-student.2X1OuS/hint-join-{race-01,compile-01,final-inspection}.txt`; full test/student/reviewer notes preserved.
+
+Next: source-only ch20 snapshot, minimal fresh author reconciliation, ONE formal text review with at most ONE bounded response, direct root verification, scoped normal-hook local commit. No installation/restart/publication follows from this book acceptance. Runtime/companion/papers and all unrelated work remain protected.
+
+### Chapter 20 — prose verified; scoped local closure
+
+The accepted 282-file source/support snapshot is `solutions/edition-3/ch20`; its selected bytes and executable modes match accepted main. Code and required operations remain accepted at R6 with the qualifications above. The small integration retarget to the accepted snapshot compiled only; it is not a fresh behavioral campaign.
+
+Fresh author completed the minimal API/ownership/experience reconciliation. ONE formal independent text review returned REQUIRED_REVISION for two local descriptions: obsolete GUI module stub-name explanation and an incorrectly described third relay caller. The author made its ONE bounded response. Root directly verified both exact corrections and the preserved cancellation limitation; prose is accepted. This is required revision, corrected, not a second formal PASS. Final lint passed all hard checks, retaining only the documented soft person-gap warning. The unchanged printed outside-GUI Go recipe separately compiled offline against accepted ch20 (`/private/tmp/ch20-prose-compile.5LRqlf`); no launch or runtime result is implied.
+
+Both editorial results and saved notes were read and joined; all Chapter20 worker contexts are closed. Source/operation failures and evidence limits remain in the notes; no new paid attempt, broad gate rerun, installation, restart or publication occurred. Closure uses only explicit Chapter20 paths through the normal local commit hook. Runtime amendments, companion work, papers, settings and scratch are excluded. Next is Chapter21's current contract/prerequisite/grading-route assessment, not another Chapter20 campaign.

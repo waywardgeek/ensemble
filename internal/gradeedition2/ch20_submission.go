@@ -7,7 +7,9 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"regexp"
 	"strings"
+	"time"
 
 	"github.com/waywardgeek/ensemble/internal/fakevendor"
 	"github.com/waywardgeek/ensemble/internal/grade"
@@ -27,9 +29,71 @@ func fleetJSON(raw string) any {
 	return value
 }
 
+// Only workflow calls adapted above receive this exact standard notice.
+var fleetLimitNotice = regexp.MustCompile(`^\[tool_limits consumed by this (join_agents|send_message_to_parent) call: ai_callback_delay ([^,\r\n]+), ai_callback_pattern none, max_output_bytes [0-9]+\]\n`)
+
+func currentFleetJSON(text string) string {
+	match := fleetLimitNotice.FindStringSubmatch(text)
+	if len(match) == 0 {
+		return text
+	}
+	if _, err := time.ParseDuration(match[2]); err != nil {
+		return text
+	}
+	return text[len(match[0]):]
+}
+
+func fleetStatuses(text string, join, current bool) ([]map[string]any, error) {
+	var statuses []map[string]any
+	if current {
+		text = currentFleetJSON(text)
+	}
+	if current && join {
+		var result struct {
+			Outcomes []map[string]any `json:"outcomes"`
+		}
+		err := json.Unmarshal([]byte(text), &result)
+		return result.Outcomes, err
+	}
+	err := json.Unmarshal([]byte(text), &statuses)
+	if err != nil || !current {
+		return statuses, err
+	}
+	for _, status := range statuses {
+		wrapped, exists := status["outcome"]
+		if !exists || wrapped == nil {
+			continue
+		}
+		outcome, ok := wrapped.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("status outcome is not an object")
+		}
+		for _, key := range []string{"agent_id", "parent_id", "state"} {
+			if outcome[key] != status[key] {
+				return nil, fmt.Errorf("status outcome disagrees on %s", key)
+			}
+		}
+		status["submission"] = outcome["submission"]
+	}
+	return statuses, nil
+}
+
+func currentFleetSubmitted(text, id string) bool {
+	statuses, err := fleetStatuses(text, true, true)
+	if err != nil {
+		return false
+	}
+	for _, status := range statuses {
+		if status["agent_id"] == id && status["state"] == "submitted" && status["submission"] != nil {
+			return true
+		}
+	}
+	return false
+}
+
 // fleetStructured adds wire and durable observations to the existing spawn,
 // isolation and fan-in rows. Ordinary text siblings remain a positive control.
-func fleetStructured(bin string, checks []grade.Check) {
+func fleetStructuredWith(driver fleetDriver, checks []grade.Check) {
 	fleetTemp([]*grade.Check{&checks[0], &checks[1], &checks[3]}, func(work string) {
 		const childTask = "STRUCTURED_TASK_22"
 		const leafTask = "SCHEMA_GRANDCHILD_22"
@@ -39,7 +103,7 @@ func fleetStructured(bin string, checks []grade.Check) {
 			{"nested-field", "submit", map[string]any{"summary": "nested", "findings": []any{map[string]any{"path": "main.go"}}, "follow_up": nil}},
 			{"extra-field", "submit", map[string]any{"summary": "extra", "findings": []any{}, "follow_up": nil, "unexpected": true}},
 		}
-		reqs, err := fleetRun(bin, work, func(body []byte) *fakevendor.Reply {
+		reqs, err := driver.run(work, func(body []byte) *fakevendor.Reply {
 			// Inspect conversation text rather than quoted spawn arguments. Each real
 			// child has only its own task; the parent also contains both call inputs.
 			text := memoryConversation(body)
@@ -134,18 +198,25 @@ func fleetStructured(bin string, checks []grade.Check) {
 			// Compare the nested value directly: finding its serialized marker inside
 			// a quoted JSON string would falsely accept double encoding.
 			text := fleetResult(&checks[3], reqs, id, false)
-			var statuses []map[string]any
-			if err := json.Unmarshal([]byte(text), &statuses); err != nil {
-				fail(&checks[3], "%s result is not a JSON status array: %v", id, err)
+			statuses, err := fleetStatuses(text, id == "join-review", driver.current)
+			if err != nil {
+				fail(&checks[3], "%s result is not a valid status/join value: %v", id, err)
 				continue
 			}
 			found := map[string]bool{}
 			for _, status := range statuses {
 				switch status["agent_id"] {
 				case "reviewer":
-					found["reviewer"] = status["state"] == "submitted" && reflect.DeepEqual(status["payload"], fleetJSON(fleetReviewPayload))
+					payload := status["payload"]
+					if driver.current {
+						payload = status["submission"]
+					}
+					found["reviewer"] = status["state"] == "submitted" && reflect.DeepEqual(payload, fleetJSON(fleetReviewPayload))
 				case "ordinary":
 					found["ordinary"] = status["state"] == "submitted" && status["result"] == "DEFAULT_SIBLING_22"
+					if driver.current {
+						found["ordinary"] = status["state"] == "submitted" && reflect.DeepEqual(status["submission"], map[string]any{"result": "DEFAULT_SIBLING_22"})
+					}
 				default:
 					fail(&checks[0], "refused launch appeared in owned status: %v", status["agent_id"])
 				}
@@ -173,7 +244,11 @@ func fleetStructured(bin string, checks []grade.Check) {
 				if reflect.DeepEqual(row["payload"], fleetJSON(fleetReviewPayload)) && reflect.DeepEqual(row["submit_schema"], fleetJSON(fleetReviewSchema)) && row["version"] == float64(1) {
 					// Bind the row to its actual owner's saved conversation. Merely
 					// finding these bytes anywhere under the root is not isolation.
-					data, err := os.ReadFile(filepath.Join(filepath.Dir(path), "save.json"))
+					savePath, err := fleetSubmissionSavePath(path, row, driver.current)
+					if err != nil {
+						return err
+					}
+					data, err := os.ReadFile(savePath)
 					if err != nil {
 						return err
 					}
@@ -193,4 +268,21 @@ func fleetStructured(bin string, checks []grade.Check) {
 			fail(&checks[1], "durable custom schema/payload row absent: %v", err)
 		}
 	})
+}
+
+func fleetStructured(bin string, checks []grade.Check) {
+	fleetStructuredWith(fleetDriver{bin: bin}, checks)
+}
+
+// The current command derives each recovery path from DataDir plus Agent ID;
+// submit.md belongs to that same DataDir, not the nested recovery directory.
+func fleetSubmissionSavePath(path string, row map[string]any, current bool) (string, error) {
+	dir := filepath.Dir(path)
+	if current {
+		if row["agent_id"] != "reviewer" {
+			return "", fmt.Errorf("custom row has wrong owner: %v", row["agent_id"])
+		}
+		dir = filepath.Join(dir, "reviewer")
+	}
+	return filepath.Join(dir, "save.json"), nil
 }

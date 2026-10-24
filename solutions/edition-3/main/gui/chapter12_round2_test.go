@@ -47,7 +47,7 @@ func TestChapter12GenericBrowserTunnel(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer server.Close()
-	httpServer := httptest.NewServer(server.Handler())
+	httpServer := httptest.NewServer(server.Handler(server.Assets))
 	defer httpServer.Close()
 	conn, _, err := websocket.DefaultDialer.Dial("ws"+strings.TrimPrefix(httpServer.URL, "http")+"/ws", nil)
 	if err != nil {
