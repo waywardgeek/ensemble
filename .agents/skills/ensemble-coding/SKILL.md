@@ -408,3 +408,7 @@ committed, finished and snapshotted. Acting on that would have redone completed
 work on top of newer commits. Memory files have the same failure mode and the
 same fix: believe the tree, not the narrative. If the two disagree, the tree is
 right and the narrative is stale, every time.
+
+## KISS and YAGNI
+
+Apply **KISS (Keep It Simple)** and **YAGNI (You Aren’t Gonna Need It)** to code, tests and tooling. Implement the current authorized behavior with existing owners and helpers; do not add speculative capabilities, abstraction layers, recovery schemes or compatibility machinery for hypothetical needs. Required correctness and safeguards remain required, and useful explanations of non-obvious decisions should remain. A passing grader does not justify avoidable complexity; challenge a fixture or review demand that adds behavior without a real requirement.
