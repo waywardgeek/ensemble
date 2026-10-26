@@ -547,6 +547,31 @@ grader uses the appropriate GUI and core entry points. The
 [grader review](../docs/edition-2-notes/enhancement-08-code.md) records its
 new results and their limits.
 
+### Optional: opening the current GUI on the LAN
+
+**TL;DR:** The current application defaults to loopback. Choose `--host`
+explicitly when another machine needs to open the GUI.
+
+The default `--host 127.0.0.1` keeps the listener on this machine. Binding to
+`0.0.0.0` instead listens on all IPv4 interfaces, including the LAN:
+
+From `agent/gui/`, launch:
+
+```sh
+go run ./cmd --config /absolute/path/to/session/settings.json --host 0.0.0.0 --port 8088
+```
+
+`--host` is an allowed launch override with `--config`. Build listener addresses
+with `net.JoinHostPort` so IPv6 hosts such as `::1` are bracketed correctly.
+Startup prints local URLs and concrete LAN URLs for wildcard binds; open a
+reachable printed URL rather than treating the wildcard as a destination.
+
+**The GUI has no authentication.** Anyone who can reach the listening address
+can drive the Agent and its tools. The WebSocket keeps its same-origin browser
+policy, which does not authenticate the person opening the page. LAN binding is
+an optional current-application convenience outside this chapter's historical
+graded exercise.
+
 ## What is not graded and why
 
 The layout, the drag bars, the theming, the agent tree, the sidebar

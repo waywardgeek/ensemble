@@ -11,6 +11,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"net"
 	"net/http"
 	"os"
 	"os/signal"
@@ -64,6 +65,7 @@ func run() (runErr error) {
 		defaultPort = application.Snapshot().GUIPort
 	}
 	port := flag.Int("port", defaultPort, "localhost HTTP port")
+	host := flag.String("host", "127.0.0.1", "listen address; 0.0.0.0 serves the LAN")
 	directory := flag.String("gui-dir", "", "override embedded GUI assets with a disk directory")
 	vendor := flag.String("vendor", "", "anthropic, openai or gemini")
 	flag.StringVar(&cfg.Model, "model", cfg.Model, "discovered provider model")
@@ -82,6 +84,9 @@ func run() (runErr error) {
 	}
 	flag.StringVar(&cfg.SavePath, "save", cfg.SavePath, "save loaded at startup and written at exit")
 	flag.Parse()
+	if strings.TrimSpace(*host) == "" {
+		return fmt.Errorf("--host must not be empty; use 0.0.0.0 to listen on all IPv4 interfaces")
+	}
 	if *apiKeyOverride != "" && application == nil {
 		cfg.APIKey = *apiKeyOverride
 	}
@@ -90,7 +95,7 @@ func run() (runErr error) {
 		flag.Visit(func(f *flag.Flag) {
 			switch f.Name {
 			case "config":
-			case "port", "gui-dir", "gui-debug":
+			case "port", "host", "gui-dir", "gui-debug":
 				fmt.Fprintf(os.Stderr, "GUI launch override: --%s=%s\n", f.Name, f.Value.String())
 			default:
 				incompatible = f.Name
@@ -185,7 +190,7 @@ func run() (runErr error) {
 		return err
 	}
 	defer hub.Close()
-	server := &http.Server{Addr: "127.0.0.1:" + strconv.Itoa(*port), Handler: hub.Handler(*directory)}
+	server := &http.Server{Addr: net.JoinHostPort(*host, strconv.Itoa(*port)), Handler: hub.Handler(*directory)}
 	// Report listener failure through its own completion channel: a bind error
 	// must not leave a seemingly live application waiting only for a signal.
 	failures := make(chan error, 1)
@@ -221,7 +226,13 @@ func run() (runErr error) {
 		}
 		inputDone <- input.Err()
 	}()
-	fmt.Fprintf(os.Stderr, "Open http://localhost:%d; terminal messages while busy are hints. /interrupt ends the turn.\n", *port)
+	for _, url := range listenURLs(*host, *port) {
+		fmt.Fprintf(os.Stderr, "Open %s; ", url)
+	}
+	fmt.Fprintf(os.Stderr, "terminal messages while busy are hints. /interrupt ends the turn.\n")
+	if ip := net.ParseIP(*host); ip == nil || !ip.IsLoopback() {
+		fmt.Fprintf(os.Stderr, "Serving %s without authentication: anyone who can reach that address can drive this Agent and its tools.\n", *host)
+	}
 	select {
 	case err := <-failures:
 		return err
@@ -279,4 +290,38 @@ func (t *terminal) display(done <-chan struct{}) {
 func (t *terminal) Deliver(message ensemble.FleetMessage) error {
 	fmt.Fprintf(os.Stderr, "[from %s, message %s] %s\n", message.From, message.ID, message.Content)
 	return nil
+}
+
+// listenURLs uses concrete interface addresses for wildcard listeners, never a
+// wildcard URL. Match the listener's IP family and bracket IPv6 URL hosts.
+func listenURLs(host string, port int) []string {
+	addressURL := func(address string) string {
+		return "http://" + net.JoinHostPort(address, strconv.Itoa(port))
+	}
+	ip := net.ParseIP(host)
+	if ip == nil || !ip.IsUnspecified() {
+		return []string{addressURL(host)}
+	}
+	loopback := "127.0.0.1"
+	if ip.To4() == nil {
+		loopback = "::1"
+	}
+	urls := []string{addressURL(loopback)}
+	if addresses, err := net.InterfaceAddrs(); err == nil {
+		for _, address := range addresses {
+			network, ok := address.(*net.IPNet)
+			if !ok || !advertisableIP(network.IP, ip) {
+				continue
+			}
+			urls = append(urls, addressURL(network.IP.String()))
+		}
+	}
+	return urls
+}
+
+// Link-local IPv6 needs an interface zone, which InterfaceAddrs does not retain.
+func advertisableIP(address, listener net.IP) bool {
+	return address.To16() != nil && !address.IsLoopback() && !address.IsUnspecified() &&
+		(address.To4() == nil) == (listener.To4() == nil) &&
+		(address.To4() != nil || !address.IsLinkLocalUnicast())
 }

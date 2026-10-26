@@ -35,8 +35,8 @@ store setup remain file-only. Protect credential files with owner-only permissio
 Application file edits made outside the GUI require a restart before further GUI
 saves; the running process intentionally holds a validated configuration snapshot.
 
-Only `--port`, `--gui-dir` and `--gui-debug` may override a file-configured launch;
-they are reported explicitly. Provider/agent flags alongside `--config` are
+Only `--host`, `--port`, `--gui-dir` and `--gui-debug` may override a file-configured
+launch; they are reported explicitly. Provider/agent flags alongside `--config` are
 rejected instead of silently creating a competing configuration. Without `--config`,
 the original environment/flag startup remains available for existing callers and
 graders. The public three-argument `gui.New` integration remains unchanged;
@@ -52,11 +52,24 @@ go run ./cmd --vendor anthropic --model claude-sonnet-4-6 --port 8088
 
 Choose an available model and supply its credential through the inherited
 `LLM_API_KEY` environment variable. Public flags include `--model`, `--vendor`,
-`--base-url`, `--workspace`, `--event-log`, `--gui-dir`, and `--no-stream`.
+`--base-url`, `--workspace`, `--event-log`, `--host`, `--gui-dir`, and `--no-stream`.
 Provider environment defaults retain earlier CLI setup and the original grader's
 launch contract; explicit flags win. Avoid putting secrets in shell history.
 
-Open `http://localhost:8088`. Chat displays human messages, thinking and replies;
+The listener defaults to `127.0.0.1`. To allow IPv4 LAN access, bind explicitly:
+
+```sh
+go run ./cmd --config /absolute/path/to/session/settings.json --host 0.0.0.0 --port 8088
+```
+
+Use `--host ::1` for IPv6 loopback. Startup prints local URLs and concrete LAN
+URLs for wildcard binds; open a reachable printed URL. **The GUI has no
+authentication:** anyone who can reach the listening address can drive the Agent
+and its tools. The WebSocket retains its same-origin browser policy; that policy
+does not authenticate the person opening the page.
+
+Open a printed URL (by default `http://127.0.0.1:8088/`). Chat displays human
+messages, thinking and replies;
 Actions displays tool arguments and results. Drag either divider to resize a pane
 (or focus it and use the arrow keys). The sidebar has Agents and Settings tabs. Enter submits, Shift-Enter adds a line. While busy,
 input becomes a hint. The terminal accepts the same human messages plus
