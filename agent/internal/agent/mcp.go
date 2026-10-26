@@ -96,6 +96,10 @@ func (r *runtime) invoke(q invocation) {
 		return
 	}
 	call.seq = r.owner.history.LastSeq()
+	endWait := func() {}
+	if timing, ok := q.ctx.Value(common.WaitTimingKey{}).(common.WaitObserver); q.automatic && ok {
+		endWait = timing.ToolStarted()
+	}
 	// These are real jobs, with the same one-shot limits and completion ownership
 	// as model dispatch. Interrupting a turn still cannot kill another caller's job.
 	completed := make(chan common.Result, 1)
@@ -136,6 +140,7 @@ func (r *runtime) invoke(q invocation) {
 			snapshot := call.job.Data()
 			result.Job = &snapshot
 		}
+		endWait()
 		if recordErr := r.owner.Record(common.Event{Type: "job_report", Tool: result}); recordErr != nil && err == nil {
 			err = recordErr
 		}
@@ -147,6 +152,7 @@ func (r *runtime) invoke(q invocation) {
 // Gather outside the actor: reverse requests and job facts must remain live
 // while an ephemeral peer is answering. Only this turn's completion is attached.
 func (r *runtime) ephemera() {
+	defer r.phase("ephemeral_preparation")()
 	t := r.active
 	var names []string
 	for _, tool := range r.owner.definitions() {
@@ -160,6 +166,7 @@ func (r *runtime) ephemera() {
 		return
 	}
 	r.workers++
+	endEphemera := t.timing.PhaseStarted("ephemeral_collection")
 	go func() {
 		var parts []string
 		for _, name := range names {
@@ -172,6 +179,7 @@ func (r *runtime) ephemera() {
 				parts = append(parts, fmt.Sprintf("## %s (auto-updated)\n\n%s", name, text))
 			}
 		}
+		endEphemera()
 		r.owner.box.Post(ephemeralReady{t, strings.Join(parts, "\n\n")})
 	}()
 }

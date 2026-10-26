@@ -172,19 +172,34 @@ func (s *agentView) capture() {
 func eventWire(e ensemble.Event) []map[string]any {
 	var out []map[string]any
 	switch e.Type {
+	case "turn_ended":
+		if e.Seq > 0 && e.Seq <= 1<<53-1 && e.Turn != nil && validTurnTiming(e.Turn.Timing) {
+			timing := e.Turn.Timing
+			out = append(out, map[string]any{
+				"type": "turn_timing", "turn_seq": e.Seq, "started": timing.Started,
+				"total_ms": timing.TotalMS, "model_ms": timing.ModelMS,
+				"tool_ms": timing.ToolMS, "other_ms": timing.OtherMS,
+				"calls": timing.Calls, "requests": timing.Requests,
+				"interrupted": timing.Interrupted, "error": e.Turn.Error,
+			})
+			if timing.OtherPhasesMS != nil {
+				out[len(out)-1]["other_phases_ms"] = timing.OtherPhasesMS
+			}
+		}
 	case "message_received", "hint_received":
 		// System ephemera are instructions to the model, not human chat cards.
 		// Hints are visible because classification must not hide the user input.
 		if e.Message.Actor == ensemble.Human {
 			for i, p := range e.Message.Parts {
-				out = append(out, map[string]any{"type": "user_message", "part_id": fmt.Sprintf("user-%d-%d", e.Seq, i), "part": p})
+				out = append(out, map[string]any{"type": "user_message", "part_id": fmt.Sprintf("user-%d-%d", e.Seq, i), "part": p, "at": e.Time})
 			}
 		}
 	case "response_ended":
 		// Artifact IDs were captured by the actor before storage. Replay and live
 		// finals therefore address exactly the cards created by streamed deltas.
 		for _, p := range e.Response.Parts {
-			out = append(out, map[string]any{"type": "part_final", "part_id": p.ArtifactID, "part": p})
+			// Replay keeps the server's capture time, not the browser's arrival time.
+			out = append(out, map[string]any{"type": "part_final", "part_id": p.ArtifactID, "part": p, "at": e.Time})
 		}
 	case "tool_called":
 		out = append(out, map[string]any{"type": "tool_dispatched", "call_id": e.Tool.CallID, "name": e.Tool.Name, "input": e.Tool.Args})
@@ -198,6 +213,32 @@ func eventWire(e ensemble.Event) []map[string]any {
 		out = append(out, map[string]any{"type": "tool_finished", "call_id": e.Tool.CallID, "result": text.String(), "is_error": e.Tool.IsError})
 	}
 	return out
+}
+
+func validTurnTiming(timing *ensemble.TurnTiming) bool {
+	if timing == nil || timing.Started.IsZero() {
+		return false
+	}
+	for _, value := range []int64{timing.TotalMS, timing.ModelMS, timing.ToolMS, timing.OtherMS, int64(timing.Calls), int64(timing.Requests)} {
+		if value < 0 || value > 1<<53-1 {
+			return false
+		}
+	}
+	if timing.OtherPhasesMS != nil {
+		remaining := timing.OtherMS
+		for name, milliseconds := range timing.OtherPhasesMS {
+			if name == "" || milliseconds < 0 || milliseconds > remaining {
+				return false
+			}
+			remaining -= milliseconds
+		}
+		if remaining != 0 {
+			return false
+		}
+	}
+	return timing.ModelMS <= timing.TotalMS && timing.ToolMS <= timing.TotalMS-timing.ModelMS &&
+		timing.OtherMS == timing.TotalMS-timing.ModelMS-timing.ToolMS &&
+		(timing.Requests > 0 || timing.ModelMS == 0) && (timing.Calls > 0 || timing.ToolMS == 0)
 }
 
 // Only callers holding mu may enumerate receivers. Subscription and teardown

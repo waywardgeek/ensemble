@@ -133,7 +133,7 @@ func (r *runtime) settleCompaction() error {
 	if a == nil || a.completion == nil {
 		return nil
 	}
-	c := r.owner.history.Context()
+	c := r.contextSnapshot()
 	if c.Compression == nil && c.CompactionOutcome != nil && c.CompactionOutcome.TaskID == a.id {
 		if _, err := r.owner.memory.Recover(); err != nil {
 			return err
@@ -228,14 +228,14 @@ func (r *runtime) settleCompaction() error {
 }
 
 func (r *runtime) atContextLimit() bool {
-	u := r.owner.history.Context().LastUsage
+	u := r.contextSnapshot().LastUsage
 	window := r.owner.engine.Features().ContextWindow
 	return window > 0 && (u.Input+u.CacheRead+u.CacheWrite)*100 >= window*95
 }
 
 func (r *runtime) changeMemory(m memorySettings) {
 	// A committed-but-unfinalized corpus cannot be repopulated by re-enable.
-	if pending := r.owner.history.Context().Compression; pending != nil && pending.Committed != nil && r.compaction != nil {
+	if pending := r.contextSnapshot().Compression; pending != nil && pending.Committed != nil && r.compaction != nil {
 		if err := r.settleCompaction(); err != nil {
 			m.reply <- err
 			return

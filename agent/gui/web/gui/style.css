@@ -172,3 +172,26 @@ a {
 #agent-tree button { text-align:left; margin: 3px 0; }
 #create-agent { display:grid; gap:6px; margin-top:1rem; }
 #create-agent input { width:100%; box-sizing:border-box; }
+
+.artifact header .artifact__timing {
+  /* Timestamp and duration join the speaker at the right edge of the header. */
+  margin-left: auto;
+  font: 0.72rem ui-monospace, monospace;
+  opacity: 0.6;
+  white-space: nowrap;
+}
+
+.turn-timing {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1rem;
+  margin: 0.5rem 0 1rem;
+  padding: 0.35rem 0.75rem;
+  border-top: 1px solid var(--border, #666);
+  font: 0.75rem ui-monospace, monospace;
+  color: var(--fg, inherit);
+}
+.turn-timing__outcome { font-weight: 600; }
+.turn-timing__phases { flex-basis: 100%; }
+.turn-timing__phases summary { cursor: pointer; }
+.turn-timing__phases pre { margin: 0.4rem 0; white-space: pre-wrap; }

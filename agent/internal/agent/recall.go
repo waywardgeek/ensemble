@@ -21,6 +21,7 @@ func (a *agent) AttachRecaller(recaller common.Recaller) {
 	a.recaller = recaller
 }
 func (r *runtime) recall() {
+	defer r.phase("recall_preparation")()
 	if r.owner.recaller == nil {
 		r.send()
 		return
@@ -28,10 +29,12 @@ func (r *runtime) recall() {
 	t := r.active
 	// Snapshot before handing off; History keeps ownership of future hints and
 	// settings events while this worker performs filesystem and model I/O.
-	snapshot := r.owner.history.Context()
+	snapshot := r.contextSnapshot()
+	endRecall := t.timing.PhaseStarted("recall")
 	r.workers++
 	go func() {
 		data, err := r.owner.recaller.Recall(t.request.ctx, t.request.text, snapshot)
+		endRecall()
 		r.owner.box.Post(recalled{t, data, err})
 	}()
 }

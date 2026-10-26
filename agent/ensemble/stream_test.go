@@ -316,6 +316,9 @@ func TestStreamingDeliveryAndContent(t *testing.T) {
 						// Display identity follows arrival order, not provider content semantics.
 						for j := range events[i].Response.Parts {
 							events[i].Response.Parts[j].ArtifactID = 0
+							// Arrival measurements differ by delivery mode, not content.
+							events[i].Response.Parts[j].Started = 0
+							events[i].Response.Parts[j].Elapsed = 0
 						}
 
 					}

@@ -99,11 +99,14 @@ func (e *engine) openAIBlob(p common.Part) (map[string]any, error) {
 	return map[string]any{"type": "file", "file": map[string]string{"filename": filepath.Base(p.Ref.Locator), "file_data": "data:" + p.MIME + ";base64," + data}}, nil
 }
 
-// StreamingFor intersects caller policy with known delivery capabilities. A miss
-// changes latency, not content: an unfamiliar text model still gets a request.
+// StreamingFor applies explicit delivery policy or known model capabilities.
+// Unfamiliar models stay buffered unless the caller opts in; opt-out always wins.
 func StreamingFor(cfg common.Config) common.Stream {
 	if cfg.DisableStreaming {
 		return 0
+	}
+	if cfg.Streaming != 0 {
+		return cfg.Streaming
 	}
 	features, _ := LookupModel(cfg.Model)
 	return features.Stream

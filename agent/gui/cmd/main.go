@@ -77,11 +77,19 @@ func run() (runErr error) {
 	}
 	flag.StringVar(&cfg.LogPath, "event-log", cfg.LogPath, "event history destination")
 	flag.BoolVar(&cfg.DisableStreaming, "no-stream", cfg.DisableStreaming, "disable incremental delivery")
+	streamChannels := flag.String("stream", "", "enable incremental delivery: all")
 	if cfg.SavePath == "" {
 		cfg.SavePath = "save.json"
 	}
 	flag.StringVar(&cfg.SavePath, "save", cfg.SavePath, "save loaded at startup and written at exit")
 	flag.Parse()
+	if strings.TrimSpace(*streamChannels) != "" {
+		streams, err := ensemble.ParseStream(*streamChannels)
+		if err != nil {
+			return err
+		}
+		cfg.Streaming = streams
+	}
 	if *apiKeyOverride != "" && application == nil {
 		cfg.APIKey = *apiKeyOverride
 	}

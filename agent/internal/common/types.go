@@ -52,6 +52,9 @@ type Config struct {
 	Recall RecallSettings
 	// DisableStreaming selects length-one delivery even for known streaming models.
 	DisableStreaming bool
+	// Streaming opts in to incremental delivery; nonzero enables the transport,
+	// without filtering provider output. Zero uses the registry; DisableStreaming wins.
+	Streaming Stream
 }
 
 // These categories are disjoint after parsing. Cache counts are not extra
@@ -154,6 +157,12 @@ type Part struct {
 	Added []ToolDeclaration `json:"added,omitempty"`
 	// Removed identifies declarations withdrawn at this position in the dialogue.
 	Removed []string `json:"removed,omitempty"`
+	// Started is the first observed fragment's Unix timestamp in milliseconds,
+	// recorded only when the part has a measurable production span.
+	Started int64 `json:"started,omitempty"`
+	// Elapsed is the first-to-last observed fragment span in milliseconds, not
+	// model compute time. Single-burst parts have zero: no measured span.
+	Elapsed int64 `json:"elapsed,omitempty"`
 }
 
 // The arrival site reports the speaker and parts. Only the reducer decides
@@ -248,6 +257,8 @@ type Event struct {
 	Redact *RedactData `json:"redact,omitempty"`
 	// Error records a failed exchange or an explicit turn ending.
 	Error *ErrorData `json:"error,omitempty"`
+	// Turn retains final text, failure and measured timing at logical completion.
+	Turn *TurnEnded `json:"turn,omitempty"`
 	// Job records an explicit job kill and its reason.
 	Job *JobKilledData `json:"job,omitempty"`
 	// Skill retains instructions independently of the loading tool result.

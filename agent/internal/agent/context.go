@@ -18,13 +18,14 @@ func (r *runtime) contextTarget() int {
 // Policy records decisions; only History mutates the projection. Comparing the
 // visible registry at this boundary also covers application-owned MCP connects.
 func (r *runtime) prepareContext() error {
+	defer r.phase("context_preparation")()
 	if err := r.syncMemory(); err != nil {
 		return err
 	}
 	if err := r.forceCheckpoint(); err != nil {
 		return err
 	}
-	c := r.owner.history.Context()
+	c := r.contextSnapshot()
 	if c.StartupTools != nil {
 		visible := r.owner.Declarations()
 		delta := common.ToolsChangedData{}
@@ -128,7 +129,7 @@ func batches(c *common.Context) []toolBatch {
 }
 
 func (r *runtime) ladder(level string, budget int) error {
-	c := r.owner.history.Context()
+	c := r.contextSnapshot()
 	var eligible []toolBatch
 	total := 0
 	for _, batch := range batches(c) {

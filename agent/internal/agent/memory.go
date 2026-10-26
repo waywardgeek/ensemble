@@ -13,7 +13,8 @@ type memorySettings struct {
 // Running startup and re-enable reread disk so human corrections replace logged
 // bytes with the same identity. Offline history replay itself never scans files.
 func (r *runtime) syncMemory() error {
-	pending := r.owner.history.Context().Compression
+	defer r.phase("memory_sync")()
+	pending := r.contextSnapshot().Compression
 	if r.compaction == nil && (!r.memoryReady || pending != nil && pending.Committed != nil) {
 		// Startup must settle the durable pair before scans or recall can see
 		// partly promoted/archived corpus files. Do not abandon a live attempt
@@ -38,7 +39,7 @@ func (r *runtime) syncMemory() error {
 		disabled := r.owner.memory.Settings(b).Disabled
 		wasDisabled := r.memoryDisabled[b]
 		if !r.memoryReady {
-			wasDisabled = r.owner.history.Context().DisabledBands[b]
+			wasDisabled = r.contextSnapshot().DisabledBands[b]
 		}
 		if !r.memoryReady || wasDisabled != disabled {
 			if disabled {
@@ -59,7 +60,7 @@ func (r *runtime) syncMemory() error {
 		}
 		r.memoryDisabled[b] = disabled
 	}
-	if !r.memoryReady && r.owner.history.Context().Compression != nil {
+	if !r.memoryReady && r.contextSnapshot().Compression != nil {
 		r.owner.Ensemble().Logf("memory: abandoned compressor; source retained until a later checkpoint")
 	}
 	r.memoryReady = true
@@ -72,7 +73,7 @@ func (r *runtime) forceCheckpoint() error {
 	if r.owner.spec.Compaction {
 		return nil
 	}
-	c := r.owner.history.Context()
+	c := r.contextSnapshot()
 	u := c.LastUsage
 	window := r.owner.engine.Features().ContextWindow
 	input := u.Input + u.CacheRead + u.CacheWrite

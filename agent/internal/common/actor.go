@@ -195,6 +195,8 @@ type TurnEnded struct {
 	Text string `json:"text"`
 	// Error is a safe diagnostic when the turn failed or was interrupted.
 	Error string `json:"error,omitempty"`
+	// Timing is absent for legacy endings; measured zero values remain meaningful.
+	Timing *TurnTiming `json:"timing,omitempty"`
 }
 
 func (ToolDispatched) observation() {}

@@ -210,6 +210,85 @@ abstraction that Chapter 7 promised holds up under reuse. If it had
 not, you would know it here, because the right pane would need its own
 rendering logic.
 
+### Optional: timestamps, observed duration and turn timing
+
+**TL;DR:** The current application shows recorded event times on human and
+finalized response-part cards, with a duration only when a part has a measured
+streaming span. A separate turn row shows total, model, tool and other time.
+Reopening a conversation should not make old work look new.
+
+The GUI carries `Event.Time` as `at` on `user_message` and `part_final` messages.
+This is the server-recorded human-message or response-event time; parts from
+one response can share it. The card shows local clock time and exposes the full
+ISO timestamp in its tooltip. Missing or invalid timestamps stay absent rather
+than becoming the time the browser happened to receive the replay. The separate
+tool-dispatch and tool-result messages do not gain timestamps through this path.
+
+For streamed parts, the actor records the first and last nonempty fragments it
+observes. Their positive difference becomes `elapsed`, in milliseconds, saved
+with the part before history is appended. This measures observed streamed
+delivery at the actor, not model-internal generation time, prompt-to-answer
+latency or network delivery to the browser. A single-burst or unstreamed part
+has no measured span to display. Neither the next part's arrival nor the end
+of the whole response supplies a guessed endpoint.
+
+The turn row answers a broader question: where did the waiting time go? Total
+runs from server admission, before mailbox and turn queueing, to logical
+completion before final saving and notification. Model covers actual HTTP
+attempts through parsing or failure, including retries and recall judgment.
+Tools covers blocking waits from dispatch to the worker's report, before mailbox
+delivery. A background invocation counts once; a later explicit wait counts
+again. The job's continued execution adds no time to either wait. Automatic
+ephemeral tools count; unrelated external invocations do not.
+
+Model takes priority during overlap. Other contains the remaining time,
+including queueing, pauses, local preparation and a parent's context-limit wait
+for background compaction. The compaction child's lifetime is not charged to
+the parent. Recorded milliseconds satisfy `total = model + tools + other`.
+The actor saves the breakdown with final text and error in `turn_ended`; one GUI
+projection uses that event's sequence to identify the row live and after replay,
+restart or Agent selection. Counts let measured zero waits display as `0ms`;
+categories with no attempts are hidden. Legacy turns without timing have no row.
+Per-card spans remain separate; session totals and time-to-first-token are outside
+this feature.
+
+Expand **Other breakdown** on a completed turn to see where its remaining time
+went. Phase measurement is always on. Context copying, event recording,
+request preparation and rendering, memory synchronization, recall, tool
+dispatch/results, credentials, provider preparation, pauses and context-limit
+compaction waits have named scopes. These measure elapsed wall time, including
+time blocked inside a scope; they do not measure CPU consumption.
+
+Each interval belongs to exactly one category. Model waits take priority, then
+tool waits, then the most recently entered phase that is still active. For
+example, a context copy inside request preparation receives its own time;
+preparation resumes accumulating time when that inner scope ends. Overlapping
+scopes follow the same rule, so their totals cannot count the same interval
+twice. Uninstrumented gaps and the remainder from millisecond rounding go to
+`unattributed`. The phase values sum to Other, without assigning unknown time to
+a suspected operation.
+
+The actor stores these values in `turn_ended.turn.timing.other_phases_ms`. Live
+display, replay and process restart use that saved breakdown. Older rows without
+phase measurements retain their original totals; reopening them cannot recover
+the missing detail. The logical completion boundary still excludes final saving
+and notification.
+
+Models absent from the registry default to buffered delivery. For a local server
+that supports streaming, opt in with `EN_STREAMING=all` in an environment-based
+launch or GUI `--stream all` in environment/flag mode; `--no-stream` still wins.
+Library callers can set `Config.Streaming` to `ensemble.StreamAll`; zero uses the
+registry default. The opt-in affects new responses; it cannot reconstruct missing
+durations in saved history, and a positive span still requires multiple nonempty
+fragments observed at different times.
+
+Replay and reload retain those recorded values; they do not time the replay.
+The timing metadata stays out of provider requests. An optional browser check
+can compare a finalized card before and after reload, then confirm that a
+buffered reply shows its timestamp without an invented duration. This is a
+current-application convenience, not an addition to the historical exercise
+or its grader.
+
 ## Settings over the wire
 
 The server needs four things: a place to put settings, a way to

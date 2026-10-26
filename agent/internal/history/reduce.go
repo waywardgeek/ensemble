@@ -116,8 +116,14 @@ func apply(c *common.Context, e common.Event) {
 		} else {
 			redact(c, e.Redact)
 		}
-	case "error_occurred", "turn_ended":
+	case "error_occurred":
 		c.Turn = "idle"
+	case "turn_ended":
+		if e.Turn != nil && e.Turn.Timing != nil && e.Turn.Timing.Interrupted {
+			c.Turn = "interrupted"
+		} else {
+			c.Turn = "idle"
+		}
 	case "turn_interrupted":
 		c.Turn = "interrupted"
 	}

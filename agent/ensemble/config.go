@@ -19,6 +19,13 @@ func ConfigFromEnv() (Config, error) {
 		vendor = "anthropic"
 	}
 	cfg := Config{Workspace: os.Getenv("ENSEMBLE_WORKSPACE"), DisableStreaming: os.Getenv("EN_DISABLE_STREAMING") == "1"}
+	if value := os.Getenv("EN_STREAMING"); value != "" {
+		streams, err := ParseStream(value)
+		if err != nil {
+			return cfg, err
+		}
+		cfg.Streaming = streams
+	}
 	switch vendor {
 	case "anthropic":
 		cfg.Vendor = Anthropic
@@ -60,6 +67,19 @@ func ConfigFromEnv() (Config, error) {
 	cfg.Recall.Disabled = os.Getenv("EN_RECALL_DISABLED") == "1"
 	cfg.Recall.DisableJudge = os.Getenv("EN_RECALL_DISABLE_JUDGE") == "1"
 	return cfg, nil
+}
+
+// ParseStream accepts "all" to enable incremental delivery or empty input to
+// use the model default. Delivery does not filter the provider's output channels.
+func ParseStream(value string) (Stream, error) {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "":
+		return 0, nil
+	case "all":
+		return StreamAll, nil
+	default:
+		return 0, errors.New("invalid streaming selection: use all or leave empty for the model default")
+	}
 }
 
 // AgentSpecFromEnv translates CLI settings into explicit per-Agent identity.

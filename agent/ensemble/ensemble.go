@@ -535,7 +535,7 @@ const (
 	DeltaToolCall = common.DeltaToolCall
 )
 
-// StreamingFor returns effective model capabilities after the caller's opt-out.
+// StreamingFor applies explicit delivery policy or the registry default.
 func StreamingFor(cfg Config) Stream { return engine.StreamingFor(cfg) }
 
 // AgentObserver receives identified progress through the composition root.
@@ -556,6 +556,9 @@ type ToolFinished = common.ToolFinished
 
 // TurnEnded reports turn completion as display progress.
 type TurnEnded = common.TurnEnded
+
+// TurnTiming is the persisted wall-clock breakdown of one completed turn.
+type TurnTiming = common.TurnTiming
 
 // AgentSpec supplies identity and confinement separately from provider request settings.
 type AgentSpec common.AgentSpec

@@ -163,7 +163,7 @@ func validate(e common.Event) error {
 	// A tagged union without this check could accept contradictory payloads.
 	// Require one matching payload, except for successful turn completion.
 	count := 0
-	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Job != nil, e.Skill != nil, e.Handoff != nil, e.Tools != nil, e.Populated != nil, e.Depopulated != nil, e.Compactor != nil, e.CompactionOutcome != nil, e.Recall != nil} {
+	for _, present := range []bool{e.Message != nil, e.Request != nil, e.Response != nil, e.Tool != nil, e.Redact != nil, e.Error != nil, e.Turn != nil, e.Job != nil, e.Skill != nil, e.Handoff != nil, e.Tools != nil, e.Populated != nil, e.Depopulated != nil, e.Compactor != nil, e.CompactionOutcome != nil, e.Recall != nil} {
 		if present {
 			count++
 		}
@@ -268,7 +268,34 @@ func validate(e common.Event) error {
 			return errors.New("unknown redaction level")
 		}
 		parts = e.Redact.Replacement
-	case "error_occurred", "turn_ended", "turn_interrupted":
+	case "turn_ended":
+		if e.Turn == nil {
+			if e.Error == nil {
+				return errors.New("turn payload missing")
+			}
+			break
+		}
+		if timing := e.Turn.Timing; timing != nil {
+			if timing.Started.IsZero() || timing.TotalMS < 0 || timing.ModelMS < 0 || timing.ToolMS < 0 || timing.OtherMS < 0 || timing.Calls < 0 || timing.Requests < 0 {
+				return errors.New("invalid turn timing")
+			}
+			if timing.ModelMS > timing.TotalMS || timing.ToolMS > timing.TotalMS-timing.ModelMS || timing.OtherMS != timing.TotalMS-timing.ModelMS-timing.ToolMS {
+				return errors.New("turn timing does not reconcile")
+			}
+			if timing.OtherPhasesMS != nil {
+				remaining := timing.OtherMS
+				for name, milliseconds := range timing.OtherPhasesMS {
+					if name == "" || milliseconds < 0 || milliseconds > remaining {
+						return errors.New("invalid turn timing phase")
+					}
+					remaining -= milliseconds
+				}
+				if remaining != 0 {
+					return errors.New("turn timing phases do not reconcile")
+				}
+			}
+		}
+	case "error_occurred", "turn_interrupted":
 		if e.Error == nil {
 			return errors.New("error payload missing")
 		}
