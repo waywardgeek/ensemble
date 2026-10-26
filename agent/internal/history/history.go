@@ -48,6 +48,36 @@ func (h *history) Context() *common.Context {
 	return &snapshot
 }
 
+// State reads only control metadata. State checks must not serialize a large
+// conversation just to inspect a turn, token count or memory toggle.
+func (h *history) State() common.ContextState {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	return common.ContextState{
+		Turn: h.context.Turn, SentThrough: h.context.SentThrough,
+		LastUsage: h.context.LastUsage, DisabledBands: h.context.DisabledBands,
+		HasCompression:       h.context.Compression != nil,
+		CompressionCommitted: h.context.Compression != nil && h.context.Compression.Committed != nil,
+		HasEphemera:          len(h.context.Ephemera) > 0,
+	}
+}
+
+// DialogueEntry preserves snapshot ownership while copying only the entry a
+// publisher needs. JSON copy semantics remain unchanged, including opaque parts.
+func (h *history) DialogueEntry(seq uint64) *common.Entry {
+	h.mu.Lock()
+	defer h.mu.Unlock()
+	for _, entry := range h.context.Dialogue {
+		if entry.Seq == seq {
+			data, _ := json.Marshal(entry)
+			var snapshot common.Entry
+			json.Unmarshal(data, &snapshot)
+			return &snapshot
+		}
+	}
+	return nil
+}
+
 // Append is the single live entry point. Sequence assignment belongs here so
 // parsers and human clients cannot disagree about ordering.
 func (h *history) Append(e common.Event) error {

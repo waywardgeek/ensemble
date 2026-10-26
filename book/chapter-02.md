@@ -753,6 +753,37 @@ different if the same conversation had happened against another vendor? If
 yes, it is provenance and it belongs. If it is just that vendor's word for
 something you already model, it has leaked.
 
+### Reading context without copying everything
+
+An independent snapshot protects History from its readers, but a caller checking
+the turn state does not need every tool result copied along with it. As the
+conversation grows, that small question can require serializing the entire
+context. The current application gives History two narrower reads while keeping
+ownership intact.
+
+`History.State()` returns fixed-size value metadata: turn state, the last sequence
+presented to the provider, prior-request usage, memory toggles, compression state
+and whether ephemera is pending. It contains no mutable slices, maps or pointers
+into History. `History.DialogueEntry(seq)` returns an independent copy of one
+retained entry, or nil when it is absent. A publisher needing a finalized tool
+result or response can read that entry without copying the rest of the
+conversation. Its parts, including opaque material, retain the existing JSON
+copy semantics.
+
+The same restraint applies when preparing a request. `prepareContext` takes an
+independent snapshot after memory synchronization and checkpoint decisions,
+passes it through the redaction policies, then returns it for presentation
+tracking and rendering. A recorded tool-set change or redaction refreshes the
+snapshot before the next policy or renderer uses it. Reuse lasts only while
+those readers need the same projection; it does not turn a snapshot into shared
+mutable History.
+
+Full `History.Context()` snapshots and entry copies still use the existing JSON
+copying path. The change removes unnecessary whole-context reads and repeated
+copies during preparation, while leaving the remaining copying and ownership
+rules intact. These are current-application refinements of this chapter's
+boundary; the later memory and tool policies keep their own chapters.
+
 ## 2.6 The seam
 
 > The context is the truth. A renderer turns truth into one vendor's request.

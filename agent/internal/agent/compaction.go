@@ -228,14 +228,14 @@ func (r *runtime) settleCompaction() error {
 }
 
 func (r *runtime) atContextLimit() bool {
-	u := r.owner.history.Context().LastUsage
+	u := r.owner.history.State().LastUsage
 	window := r.owner.engine.Features().ContextWindow
 	return window > 0 && (u.Input+u.CacheRead+u.CacheWrite)*100 >= window*95
 }
 
 func (r *runtime) changeMemory(m memorySettings) {
 	// A committed-but-unfinalized corpus cannot be repopulated by re-enable.
-	if pending := r.owner.history.Context().Compression; pending != nil && pending.Committed != nil && r.compaction != nil {
+	if r.owner.history.State().CompressionCommitted && r.compaction != nil {
 		if err := r.settleCompaction(); err != nil {
 			m.reply <- err
 			return

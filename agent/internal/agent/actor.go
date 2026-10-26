@@ -268,14 +268,14 @@ func (a *agent) notify(observation common.Observation) {
 // identity actually stored, including IDs assigned to calls by History.
 func (r *runtime) append(event common.Event) error {
 	h := r.owner.history
-	before := h.Context().Turn
+	before := h.State().Turn
 	if err := h.Append(event); err != nil {
 		return err
 	}
 	if r.active != nil && r.active.request.watch.OnEvent != nil {
 		r.active.request.watch.OnEvent(event)
 	}
-	after := h.Context()
+	after := h.State()
 	if before != after.Turn {
 		r.owner.notify(common.StateChanged{From: before, To: after.Turn})
 	}
@@ -283,17 +283,12 @@ func (r *runtime) append(event common.Event) error {
 		r.owner.notify(common.PartDelta{Kind: common.DeltaText, Hint: true, Chunk: "hint:" + event.Message.Parts[0].Text})
 	}
 	// Finalized dialogue has its stored Seq; transient deltas never enter history.
-	if len(after.Dialogue) > 0 && event.Type == "tool_returned" {
-		var entry common.Entry
-		for _, candidate := range after.Dialogue {
-			if candidate.Seq == h.LastSeq() {
-				entry = candidate
-				break
+	if event.Type == "tool_returned" {
+		if entry := h.DialogueEntry(h.LastSeq()); entry != nil {
+			for _, part := range entry.Parts {
+				r.partID++
+				r.owner.notify(common.PartFinal{Seq: entry.Seq, PartID: r.partID, Part: part})
 			}
-		}
-		for _, part := range entry.Parts {
-			r.partID++
-			r.owner.notify(common.PartFinal{Seq: entry.Seq, PartID: r.partID, Part: part})
 		}
 	}
 	return nil
@@ -414,18 +409,18 @@ func (r *runtime) sendRequest() {
 	t := r.active
 	t.ids = make(map[uint64]uint64)
 	t.sawStreamCall, t.visibleBeforeStreamCall = false, false
-	if err := r.prepareContext(); err != nil {
+	before, err := r.prepareContext()
+	if err != nil {
 		r.finish("", err)
 		return
 	}
-	before := r.owner.history.Context()
 	t.presented = nil
 	for _, entry := range before.Dialogue {
 		if entry.Seq > before.SentThrough {
 			t.presented = append(t.presented, entry)
 		}
 	}
-	body, err := r.owner.engine.Render(r.owner.history.Context())
+	body, err := r.owner.engine.Render(before)
 	if err != nil {
 		r.append(common.Event{Type: "error_occurred", Error: &common.ErrorData{Message: err.Error()}})
 		r.finish("", err)
@@ -481,8 +476,11 @@ func (r *runtime) receive(m response) {
 		if event.Response != nil {
 			// History may assign missing call identities. Publish the stored parts,
 			// retaining the parser's mapping instead of guessing IDs from positions.
-			c := r.owner.history.Context()
-			entry := c.Dialogue[len(c.Dialogue)-1]
+			entry := r.owner.history.DialogueEntry(r.owner.history.LastSeq())
+			if entry == nil {
+				r.finish("", errors.New("response entry missing from history"))
+				return
+			}
 			for i, p := range entry.Parts {
 				r.owner.notify(common.PartFinal{Seq: entry.Seq, PartID: p.ArtifactID, Part: p})
 				if cb := m.turn.request.watch.OnPartFinal; cb != nil {
@@ -505,7 +503,7 @@ func (r *runtime) receive(m response) {
 			return
 		}
 	}
-	if m.err == nil && !r.owner.spec.Compaction && len(m.turn.calls) == 0 && len(r.owner.history.Context().Ephemera) > 0 {
+	if m.err == nil && !r.owner.spec.Compaction && len(m.turn.calls) == 0 && r.owner.history.State().HasEphemera {
 		r.send()
 		return
 	}

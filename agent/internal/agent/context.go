@@ -17,12 +17,12 @@ func (r *runtime) contextTarget() int {
 
 // Policy records decisions; only History mutates the projection. Comparing the
 // visible registry at this boundary also covers application-owned MCP connects.
-func (r *runtime) prepareContext() error {
+func (r *runtime) prepareContext() (*common.Context, error) {
 	if err := r.syncMemory(); err != nil {
-		return err
+		return nil, err
 	}
 	if err := r.forceCheckpoint(); err != nil {
-		return err
+		return nil, err
 	}
 	c := r.owner.history.Context()
 	if c.StartupTools != nil {
@@ -45,14 +45,18 @@ func (r *runtime) prepareContext() error {
 		}
 		if len(delta.Added)+len(delta.Removed) > 0 {
 			if err := r.append(common.Event{Type: "tools_changed", Tools: &delta}); err != nil {
-				return err
+				return nil, err
 			}
+			c = r.owner.history.Context()
 		}
 	}
-	if err := r.ladder("redact_result", r.contextTarget()/8); err != nil {
-		return err
+	// The actor owns this preparation boundary. Reuse its independent snapshot
+	// until a policy appends a fact, then refresh before the next policy/render.
+	c, err := r.ladder(c, "redact_result", r.contextTarget()/8)
+	if err != nil {
+		return nil, err
 	}
-	return r.ladder("redact_tool", r.contextTarget()/16)
+	return r.ladder(c, "redact_tool", r.contextTarget()/16)
 }
 
 // The model decides about the results it just saw, not the new calls beside
@@ -127,8 +131,7 @@ func batches(c *common.Context) []toolBatch {
 	return out
 }
 
-func (r *runtime) ladder(level string, budget int) error {
-	c := r.owner.history.Context()
+func (r *runtime) ladder(c *common.Context, level string, budget int) (*common.Context, error) {
 	var eligible []toolBatch
 	total := 0
 	for _, batch := range batches(c) {
@@ -142,7 +145,7 @@ func (r *runtime) ladder(level string, budget int) error {
 		total += batch.bytes
 	}
 	if total <= 2*budget {
-		return nil
+		return c, nil
 	}
 	// Cut an old prefix in one step, not one event per entry. The recorded Seq
 	// makes later replay independent of whatever target the user chooses then.
@@ -154,5 +157,8 @@ func (r *runtime) ladder(level string, budget int) error {
 		total -= batch.bytes
 		to = batch.last
 	}
-	return r.append(common.Event{Type: "redacted", Redact: &common.RedactData{From: 0, To: to, Level: level, Reason: "tool-byte ladder"}})
+	if err := r.append(common.Event{Type: "redacted", Redact: &common.RedactData{From: 0, To: to, Level: level, Reason: "tool-byte ladder"}}); err != nil {
+		return nil, err
+	}
+	return r.owner.history.Context(), nil
 }

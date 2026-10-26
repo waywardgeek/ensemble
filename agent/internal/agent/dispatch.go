@@ -49,7 +49,7 @@ func (r *runtime) dispatch() {
 		if t.checkpoint {
 			t.checkpoint = false
 			r.owner.forceHandoff.Store(false)
-			r.forcingChecked = r.owner.history.Context().SentThrough
+			r.forcingChecked = r.owner.history.State().SentThrough
 			r.checkpoint(true)
 			return
 		}

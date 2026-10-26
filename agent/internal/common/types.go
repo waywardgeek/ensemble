@@ -317,6 +317,25 @@ type Context struct {
 	LastUsage Usage `json:"last_usage"`
 }
 
+// ContextState is a fixed-size projection read without conversation payloads.
+// All fields are values; readers cannot mutate History through this result.
+type ContextState struct {
+	// Turn is the reducer's current turn state.
+	Turn string
+	// SentThrough is the last fact already presented to the provider.
+	SentThrough uint64
+	// LastUsage contains the prior conversation request's token counts.
+	LastUsage Usage
+	// DisabledBands preserves the recorded memory toggles.
+	DisabledBands [6]bool
+	// HasCompression reports an unfinished compression receipt.
+	HasCompression bool
+	// CompressionCommitted reports a receipt awaiting disk recovery.
+	CompressionCommitted bool
+	// HasEphemera reports pending one-request instructions.
+	HasEphemera bool
+}
+
 // These are actual ownership links, not a bag of sibling service callbacks.
 type Ensemble interface {
 	// CreateChild invokes the application factory with the actual parent.
@@ -566,6 +585,10 @@ type History interface {
 	Append(Event) error
 	// Context returns an independent projection snapshot for readers and renderers.
 	Context() *Context
+	// State returns value-only metadata without copying conversation payloads.
+	State() ContextState
+	// DialogueEntry returns an independent retained entry, or nil if absent.
+	DialogueEntry(uint64) *Entry
 	// Load validates an entire log before replacing history, preserving its recorded
 	// order.
 	Load(io.Reader) error

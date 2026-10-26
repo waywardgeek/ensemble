@@ -557,6 +557,9 @@ type ToolFinished = common.ToolFinished
 // TurnEnded reports turn completion as display progress.
 type TurnEnded = common.TurnEnded
 
+// ContextState is History's value-only control metadata, without dialogue bytes.
+type ContextState = common.ContextState
+
 // AgentSpec supplies identity and confinement separately from provider request settings.
 type AgentSpec common.AgentSpec
 
