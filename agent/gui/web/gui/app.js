@@ -157,16 +157,29 @@ function renderAgents(nodes, parent) {
     select.dataset.agentKey = agent.key;
     select.setAttribute("aria-pressed", String(agent.key === selectedAgent));
     const phase = agent.activity?.phase || "idle";
-    select.textContent = `${agent.id}${agent.persistent ? " · saved" : ""} — ${agent.state} · ${phase}`;
+    const name = agent.display_name || agent.id;
+    select.textContent = `${name}${agent.persistent ? " · saved" : ""} — ${agent.state} · ${phase}`;
     select.title = agent.activity?.detail || "Select conversation";
     select.disabled = pendingSelection !== null;
     select.onclick = () => selectAgent(agent.key);
     node.append(select);
+    if (agent.key) {
+      if (agent.key === selectedAgent) document.querySelector("#conversation-title").textContent = name;
+      const rename = document.createElement("button");
+      rename.type = "button";
+      rename.textContent = "Rename";
+      rename.setAttribute("aria-label", `Rename ${name}`);
+      rename.onclick = () => {
+        const displayName = window.prompt("Agent display name", name);
+        if (displayName !== null) send({ type: "update_settings", key: agent.key, settings: { display_name: displayName } });
+      };
+      node.append(rename);
+    }
     if (agent.deletable) {
       const remove = document.createElement("button");
       remove.type = "button";
       remove.textContent = "Delete";
-      remove.setAttribute("aria-label", `Delete ${agent.id}`);
+      remove.setAttribute("aria-label", `Delete ${name}`);
       remove.onclick = () => send({ type: "delete_agent", name: agent.id });
       node.append(remove);
     }

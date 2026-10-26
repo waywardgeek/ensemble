@@ -50,6 +50,8 @@ type ApplicationConfig struct {
 // The disk boundary deliberately lists preferences, excluding session model and
 // application status. New display-only Settings fields cannot leak into files.
 type applicationGUISettings struct {
+	// DisplayName persists the main Agent's GUI label alongside its preferences.
+	DisplayName   string                  `json:"display_name,omitempty"`
 	Memory        ensemble.MemorySettings `json:"memory"`
 	Theme         string                  `json:"theme"`
 	TTSEnabled    bool                    `json:"tts_enabled"`
@@ -61,10 +63,10 @@ type applicationGUISettings struct {
 }
 
 func diskGUI(s Settings) applicationGUISettings {
-	return applicationGUISettings{s.Memory, s.Theme, s.TTSEnabled, s.TTSSpeed, s.FontSize, s.MaxToolRounds, s.ContextTarget, s.LogRetention}
+	return applicationGUISettings{s.DisplayName, s.Memory, s.Theme, s.TTSEnabled, s.TTSSpeed, s.FontSize, s.MaxToolRounds, s.ContextTarget, s.LogRetention}
 }
 func (s applicationGUISettings) settings() Settings {
-	return Settings{Memory: s.Memory, Theme: s.Theme, TTSEnabled: s.TTSEnabled, TTSSpeed: s.TTSSpeed, FontSize: s.FontSize, MaxToolRounds: s.MaxToolRounds, ContextTarget: s.ContextTarget, LogRetention: s.LogRetention}
+	return Settings{DisplayName: s.DisplayName, Memory: s.Memory, Theme: s.Theme, TTSEnabled: s.TTSEnabled, TTSSpeed: s.TTSSpeed, FontSize: s.FontSize, MaxToolRounds: s.MaxToolRounds, ContextTarget: s.ContextTarget, LogRetention: s.LogRetention}
 }
 
 type applicationConfigJSON ApplicationConfig

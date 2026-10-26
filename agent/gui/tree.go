@@ -59,6 +59,38 @@ func (v *agentView) broadcast(message map[string]any) {
 	}
 }
 
+type agentTree struct {
+	// AgentNode preserves the core's identity and activity snapshot; GUI labels
+	// decorate that snapshot without changing the Agent's routing or ownership.
+	ensemble.AgentNode
+	// DisplayName is a GUI preference; the embedded ID and Key retain routing identity.
+	DisplayName string `json:"display_name,omitempty"`
+	// Children carries the same GUI labels recursively for task Agents.
+	Children []agentTree `json:"children"`
+}
+
+// treeSnapshot reads cached labels without loading or applying Agent settings.
+func (s *Server) treeSnapshot() agentTree {
+	var decorate func(ensemble.AgentNode) agentTree
+	decorate = func(node ensemble.AgentNode) agentTree {
+		tree := agentTree{AgentNode: node, Children: []agentTree{}}
+		if node.Key != "" {
+			if agent, err := s.root.FindAgent(node.Key, s.agent); err == nil {
+				s.mu.Lock()
+				if view := s.views[agent]; view != nil {
+					tree.DisplayName = view.settings.DisplayName
+				}
+				s.mu.Unlock()
+			}
+		}
+		for _, child := range node.Children {
+			tree.Children = append(tree.Children, decorate(child))
+		}
+		return tree
+	}
+	return decorate(s.root.TreeSnapshot(s.agent))
+}
+
 // Tree reads can traverse several managers. Coalesce refresh requests outside
 // the synchronous actor observer so registry or child locks never reverse into
 // an Agent that is waiting for that observer to return.
@@ -86,7 +118,7 @@ func (s *Server) treeUpdates() {
 					conn.Close()
 				}
 			}
-			tree := s.root.TreeSnapshot(s.agent)
+			tree := s.treeSnapshot()
 			s.mu.Lock()
 			if !s.closed {
 				s.broadcast(map[string]any{"type": "agent_tree", "root": tree})
@@ -133,7 +165,7 @@ func (s *Server) selectConversation(conn *websocket.Conn, queue chan [][]byte, s
 			}
 			v.loaded = true
 		}
-		tree := s.root.TreeSnapshot(s.agent)
+		tree := s.treeSnapshot()
 		s.mu.Lock()
 		if selected.ParentAgent() != nil && !s.root.ContainsAgent(selected) {
 			delete(s.views, selected)

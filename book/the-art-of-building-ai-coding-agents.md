@@ -17072,6 +17072,40 @@ reason `submit` rejects: tearing down an agent while its children are running
 leaves orphaned work that no one is waiting for. The operator sees the
 rejection as an error in the GUI and knows to shut down the children first.
 
+### Optional: a display name without a new identity
+
+**TL;DR:** The current GUI's **Rename** button changes an Agent's visible label,
+including main's, while keeping its routing and saved conversation intact.
+
+An operator may want a more useful name after creating an Agent. Renaming its
+registry identity would also change what messages address and where history
+lives. A display name needs neither change. Every actual Agent node, including
+main and task children, offers Rename; the synthetic Ensemble grouping does
+not. The browser prompts for a label and sends it through Chapter 8's existing
+settings path. For example, this labels main without switching conversations:
+
+```json
+{"type":"update_settings","key":"main","settings":{"display_name":"Coordinator"}}
+```
+
+The server trims surrounding whitespace and rejects a blank name. Cancelling
+the prompt changes nothing. The optional `key` targets the Agent; without it,
+the patch applies to the selected conversation. Save `display_name` with that
+Agent's existing GUI preferences, including the main Agent's `gui` section in
+file-configured launches. No second name registry is needed.
+
+Tree labels and the selected conversation title update across tabs and survive
+reload. Main and named peers retain their labels after application restart;
+a saved label does not make a task child persistent. Without a display name,
+show the original ID. Render labels with `textContent`, so a name containing
+markup remains text. Selection keys, message addresses, registry IDs, deletion
+targets and history paths all keep their original values.
+
+For an optional browser check, keep main and a peer selected in separate tabs,
+rename each, and confirm that renaming leaves both selections unchanged.
+Then reload and restart, reselect each Agent, and verify its label and retained
+words. This addition does not change the historical exercise or its grader.
+
 ## 21.6 The composition root, condensed
 
 The first edition condensed a large command into `NewEnsemble` and `Start`

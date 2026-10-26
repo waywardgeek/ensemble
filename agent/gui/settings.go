@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 // Settings is a full snapshot of the GUI preferences and the Agent's saved turn budget. No field
@@ -22,6 +23,8 @@ type ApplicationSettingsView struct {
 
 type Settings struct {
 	Application *ApplicationSettingsView `json:"application,omitempty"`
+	// DisplayName labels the GUI without changing the Agent's routing or storage identity.
+	DisplayName string `json:"display_name,omitempty"`
 	// Model is the effective session selection; launch configuration wins on restart.
 	Model string `json:"model"`
 	// Memory controls the Agent corpus; full snapshots preserve nested false and zero values.
@@ -52,6 +55,15 @@ func settingsPatch(current Settings, raw json.RawMessage) (Settings, error) {
 	}
 	if err := json.Unmarshal(raw, &current); err != nil {
 		return current, fmt.Errorf("invalid settings: %w", err)
+	}
+	var fields map[string]json.RawMessage
+	json.Unmarshal(raw, &fields)
+	if value, present := fields["display_name"]; present {
+		var name string
+		if err := json.Unmarshal(value, &name); err != nil || strings.TrimSpace(name) == "" {
+			return current, fmt.Errorf("display name must not be blank")
+		}
+		current.DisplayName = strings.TrimSpace(name)
 	}
 	switch current.Theme {
 	case "dark", "light", "system":
@@ -87,7 +99,10 @@ func (s *agentView) snapshotSettings() Settings {
 	return snapshot
 }
 func (s *agentView) loadSettings() error {
+	s.parent.mu.Lock()
 	s.settings = Settings{Theme: "dark", TTSEnabled: true, TTSSpeed: 1, FontSize: 16}
+	current := s.snapshotSettings()
+	s.parent.mu.Unlock()
 	var data []byte
 	var err error
 	if store := s.applicationStore(); store != nil {
@@ -101,11 +116,13 @@ func (s *agentView) loadSettings() error {
 	if err != nil {
 		return err
 	}
-	next, err := settingsPatch(s.snapshotSettings(), data)
+	next, err := settingsPatch(current, data)
 	if err != nil {
 		return err
 	}
+	s.parent.mu.Lock()
 	s.settings = next
+	s.parent.mu.Unlock()
 	if err := s.agent.SetMaxToolRounds(next.MaxToolRounds); err != nil {
 		return err
 	}
@@ -123,6 +140,26 @@ func (s *agentView) applicationStore() *ApplicationConfigStore {
 
 func (s *agentView) settingsPath() string {
 	return filepath.Join(s.agent.Config().DataDir, "settings.json")
+}
+
+func (s *agentView) loadDisplayName() error {
+	data, err := os.ReadFile(s.settingsPath())
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	var saved struct {
+		// DisplayName loads only GUI metadata so listing an unselected Agent does
+		// not apply its saved execution settings or wait for actor acknowledgment.
+		DisplayName string `json:"display_name"`
+	}
+	if err := json.Unmarshal(data, &saved); err != nil {
+		return err
+	}
+	s.settings.DisplayName = strings.TrimSpace(saved.DisplayName)
+	return nil
 }
 
 // Called under settingsMu, together with broadcast and subscription. Never hold

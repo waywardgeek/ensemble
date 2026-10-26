@@ -82,6 +82,13 @@ func newServer(root *ensemble.Ensemble, agent ensemble.Agent, log io.Writer, app
 		return nil, fmt.Errorf("load settings: %w", err)
 	}
 	view.loaded = true
+	for _, node := range root.TreeSnapshot(agent).Children {
+		if peer, err := root.FindAgent(node.Key, agent); err == nil && peer != agent {
+			if err := s.view(peer).loadDisplayName(); err != nil {
+				root.Logf("GUI display name for %s: %v", node.Key, err)
+			}
+		}
+	}
 	root.AddObserver(s)
 	go s.treeUpdates()
 	return s, nil
@@ -377,7 +384,24 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 			// to publish progress while this call waits for its acknowledgment.
 			s.settingsMu.Lock()
 			v := s.selection(conn)
-			settings, err := v.updateSettings(input.Settings)
+			var settings Settings
+			var err error
+			if input.Key != "" {
+				var target ensemble.Agent
+				target, err = s.root.FindAgent(input.Key, s.agent)
+				if err == nil {
+					s.mu.Lock()
+					v = s.view(target)
+					s.mu.Unlock()
+					if !v.loaded {
+						err = v.loadSettings()
+						v.loaded = err == nil
+					}
+				}
+			}
+			if err == nil {
+				settings, err = v.updateSettings(input.Settings)
+			}
 			s.mu.Lock()
 			if err != nil {
 				data, _ := json.Marshal(map[string]any{"type": "settings_error", "error": err.Error(), "request_id": input.RequestID})
@@ -388,6 +412,10 @@ func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
 				}
 			} else {
 				v.broadcast(map[string]any{"type": "settings_changed", "settings": settings, "request_id": input.RequestID})
+				select {
+				case s.treeWake <- struct{}{}:
+				default:
+				}
 			}
 			s.mu.Unlock()
 			s.settingsMu.Unlock()

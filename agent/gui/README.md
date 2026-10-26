@@ -106,6 +106,12 @@ writer per connection. Slow live receivers may drop progress; reconnect restores
 authoritative content. Replay itself is one queued batch and is not truncated by
 the progress buffer. Close joins socket writers before the application closes logs.
 
+Every Agent in the tree, including main, has a **Rename** button. This changes its
+GUI display name in the tree and conversation title across tabs. Routing keys,
+addresses, saved history and directory names stay unchanged. Names use the existing
+`update_settings` preference path (`display_name`); an optional `key` targets an
+Agent without changing the tab's conversation. Blank names are rejected.
+
 With the `gui-debug` skill loaded, the Agent can call `gui_snapshot` and
 `tts_queue` to inspect the connected browser and pending speech on demand.
 Neither observation is collected or attached automatically before model requests.
