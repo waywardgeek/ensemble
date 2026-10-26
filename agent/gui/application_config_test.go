@@ -14,7 +14,7 @@ import (
 func applicationFixture(t *testing.T) (string, *ApplicationConfigStore) {
 	t.Helper()
 	path := filepath.Join(t.TempDir(), "config.json")
-	data := `{"version":1,"provider":{"vendor":"openai","model":"test-model","billing_mode":"api","credential_file":"key.txt"}}`
+	data := `{"version":1,"provider":{"vendor":"openai","model":"test-model","billing_mode":"api","credential_file":"key.txt","wake_on_lan_mac":"02:00:00:00:00:01"}}`
 	if err := os.WriteFile(path, []byte(data), 0600); err != nil {
 		t.Fatal(err)
 	}
@@ -112,6 +112,7 @@ func TestApplicationConfigInvalidAndNormalizedSettings(t *testing.T) {
 		"url no host":        func(c *ApplicationConfig) { c.Provider.BaseURL = "https://" },
 		"effort":             func(c *ApplicationConfig) { c.Provider.ReasoningEffort = "invalid" },
 		"summary":            func(c *ApplicationConfig) { c.Provider.ReasoningSummary = "invalid" },
+		"wake-on-LAN MAC":    func(c *ApplicationConfig) { c.Provider.WakeOnLANMAC = "02:00:00:00:00" },
 		"negative memory":    func(c *ApplicationConfig) { c.GUI.Memory.Soul.Budget = -1 },
 		"memory watermarks": func(c *ApplicationConfig) {
 			c.GUI.Memory.Soul.LowWatermark = 300
@@ -148,7 +149,7 @@ func TestApplicationConfigInvalidAndNormalizedSettings(t *testing.T) {
 }
 
 func TestApplicationConfigRuntimeCredentialsAndHostileEnvironment(t *testing.T) {
-	for _, name := range []string{"LLM_VENDOR", "LLM_MODEL", "LLM_API_KEY", "LLM_BASE_URL", "OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BILLING_MODE", "EN_CODEX_AUTH_FILE", "CODEX_HOME", "HOME", "ENSEMBLE_WORKSPACE", "EN_SKILLS_DIR", "EN_PRIMARY_SKILL", "EN_DATA_DIR", "EN_DISABLE_STREAMING", "EN_RECALL_DISABLED", "EN_RECALL_JUDGE_MODEL", "OPENAI_REASONING_EFFORT", "OPENAI_REASONING_SUMMARY"} {
+	for _, name := range []string{"LLM_VENDOR", "LLM_MODEL", "LLM_API_KEY", "LLM_BASE_URL", "LLM_WOL_MAC", "OPENAI_API_KEY", "OPENAI_MODEL", "OPENAI_BILLING_MODE", "EN_CODEX_AUTH_FILE", "CODEX_HOME", "HOME", "ENSEMBLE_WORKSPACE", "EN_SKILLS_DIR", "EN_PRIMARY_SKILL", "EN_DATA_DIR", "EN_DISABLE_STREAMING", "EN_RECALL_DISABLED", "EN_RECALL_JUDGE_MODEL", "OPENAI_REASONING_EFFORT", "OPENAI_REASONING_SUMMARY"} {
 		t.Setenv(name, "hostile-environment")
 	}
 	path, store := applicationFixture(t)
@@ -172,7 +173,7 @@ func TestApplicationConfigRuntimeCredentialsAndHostileEnvironment(t *testing.T) 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if cfg.Vendor != ensemble.OpenAI || cfg.Model != "test-model" || cfg.APIKey != "private-api-key" || cfg.BillingMode != ensemble.CredentialAPIKey || cfg.BaseURL != "" || cfg.CodexAuthFile != "" || cfg.DisableStreaming || cfg.ReasoningEffort != "" || cfg.ReasoningSummary != "" || cfg.Recall.Disabled || cfg.Recall.JudgeModel != "" {
+	if cfg.Vendor != ensemble.OpenAI || cfg.Model != "test-model" || cfg.APIKey != "private-api-key" || cfg.BillingMode != ensemble.CredentialAPIKey || cfg.BaseURL != "" || cfg.WakeOnLANMAC != "02:00:00:00:00:01" || cfg.CodexAuthFile != "" || cfg.DisableStreaming || cfg.ReasoningEffort != "" || cfg.ReasoningSummary != "" || cfg.Recall.Disabled || cfg.Recall.JudgeModel != "" {
 		t.Fatalf("runtime differs from file: %+v", cfg)
 	}
 	if !cfg.BuiltinTools || cfg.MaxToolRounds != 12 || cfg.ContextTarget != 23000 || cfg.LogRetention != 30 || !cfg.Memory.Soul.Disabled || cfg.Workspace != c.Workspace || cfg.DataDir != c.DataDir || cfg.SavePath != c.SavePath || cfg.LogPath != c.EventLog || spec.SkillsDir != c.SkillsDir || spec.PrimarySkill != "coder" || !spec.EnableWebSearch {

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"os"
 	"path/filepath"
 	"strings"
@@ -214,6 +215,12 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 			cfg.BaseURL = "https://generativelanguage.googleapis.com"
 		default:
 			return nil, errors.New("unknown vendor")
+		}
+	}
+	if cfg.WakeOnLANMAC != "" {
+		mac, err := net.ParseMAC(cfg.WakeOnLANMAC)
+		if err != nil || len(mac) != 6 {
+			return nil, errors.New("invalid Wake-on-LAN MAC")
 		}
 	}
 	// Offline render/dump require no key. Live transport rejects missing keys

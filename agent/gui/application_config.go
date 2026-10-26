@@ -6,6 +6,7 @@ import (
 	"ensemble/ensemble"
 	"fmt"
 	"io"
+	"net"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -23,6 +24,8 @@ type ProviderSettings struct {
 	CredentialFile   string `json:"credential_file"`
 	ReasoningEffort  string `json:"reasoning_effort"`
 	ReasoningSummary string `json:"reasoning_summary"`
+	// WakeOnLANMAC optionally wakes an unreachable local provider before inference.
+	WakeOnLANMAC string `json:"wake_on_lan_mac"`
 }
 
 // ApplicationConfig is the versioned, secret-free launch configuration.
@@ -230,6 +233,12 @@ func normalizeApplicationConfig(c ApplicationConfig, base string) (ApplicationCo
 	default:
 		return c, fmt.Errorf("invalid provider.reasoning_summary")
 	}
+	if p.WakeOnLANMAC != "" {
+		mac, err := net.ParseMAC(p.WakeOnLANMAC)
+		if err != nil || len(mac) != 6 {
+			return c, fmt.Errorf("invalid provider.wake_on_lan_mac")
+		}
+	}
 	if err := validateApplicationURL("provider.base_url", p.BaseURL); err != nil {
 		return c, err
 	}
@@ -285,7 +294,7 @@ func (c ApplicationConfig) RuntimeConfig() (ensemble.Config, ensemble.AgentSpec,
 		return ensemble.Config{}, ensemble.AgentSpec{}, err
 	}
 	vendor := map[string]ensemble.Vendor{"openai": ensemble.OpenAI, "anthropic": ensemble.Anthropic, "gemini": ensemble.Gemini}[c.Provider.Vendor]
-	cfg := ensemble.Config{Vendor: vendor, Model: c.Provider.Model, BaseURL: c.Provider.BaseURL, BillingMode: ensemble.CredentialKind(c.Provider.BillingMode), ReasoningEffort: c.Provider.ReasoningEffort, ReasoningSummary: c.Provider.ReasoningSummary, Workspace: c.Workspace, DataDir: c.DataDir, SavePath: c.SavePath, LogPath: c.EventLog, BuiltinTools: true, MaxToolRounds: c.GUI.MaxToolRounds, ContextTarget: c.GUI.ContextTarget, LogRetention: c.GUI.LogRetention, Memory: c.GUI.Memory, DisableStreaming: c.DisableStreaming, Recall: c.Recall}
+	cfg := ensemble.Config{Vendor: vendor, Model: c.Provider.Model, BaseURL: c.Provider.BaseURL, BillingMode: ensemble.CredentialKind(c.Provider.BillingMode), ReasoningEffort: c.Provider.ReasoningEffort, ReasoningSummary: c.Provider.ReasoningSummary, WakeOnLANMAC: c.Provider.WakeOnLANMAC, Workspace: c.Workspace, DataDir: c.DataDir, SavePath: c.SavePath, LogPath: c.EventLog, BuiltinTools: true, MaxToolRounds: c.GUI.MaxToolRounds, ContextTarget: c.GUI.ContextTarget, LogRetention: c.GUI.LogRetention, Memory: c.GUI.Memory, DisableStreaming: c.DisableStreaming, Recall: c.Recall}
 	if c.Provider.BillingMode == "codex" {
 		cfg.CodexAuthFile = c.Provider.CredentialFile
 	}

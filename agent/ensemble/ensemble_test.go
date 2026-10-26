@@ -157,3 +157,36 @@ func TestFailedExchangeIsLoggedWithoutAResponse(t *testing.T) {
 		})
 	}
 }
+
+func TestNewAgentValidatesWakeOnLANMAC(t *testing.T) {
+	app := ensemble.New(io.Discard)
+	for _, mac := range []string{"not-a-mac", "02:00:00:00:00", "02:00:00:00:00:01:00:01"} {
+		if _, err := app.NewAgent(ensemble.Config{Model: "fixture", WakeOnLANMAC: mac}); err == nil {
+			t.Fatalf("accepted Wake-on-LAN MAC %q", mac)
+		}
+	}
+	a, err := app.NewAgent(ensemble.Config{Model: "fixture", WakeOnLANMAC: "02:00:00:00:00:01", DataDir: t.TempDir()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Shutdown() })
+}
+
+func TestReachableProviderSkipsWakeOnLAN(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = io.WriteString(w, `{"content":[{"type":"text","text":"ready"}],"usage":{"input_tokens":1,"output_tokens":1}}`)
+	}))
+	defer server.Close()
+	var logs bytes.Buffer
+	a, err := ensemble.New(&logs).NewAgent(ensemble.Config{Model: "fixture", BaseURL: server.URL, WakeOnLANMAC: "02:00:00:00:00:01", DataDir: t.TempDir()})
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Shutdown()
+	if answer, err := a.Ask(context.Background(), "hello"); err != nil || answer != "ready" {
+		t.Fatalf("answer = %q, %v", answer, err)
+	}
+	if strings.Contains(logs.String(), "sent Wake-on-LAN packet") {
+		t.Fatal("reachable provider sent a Wake-on-LAN packet")
+	}
+}

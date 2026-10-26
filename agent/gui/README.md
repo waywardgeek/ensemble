@@ -26,6 +26,11 @@ application-only status and session model fields never appear in the file.
 Children inherit the running parent's provider configuration, but retain their own
 per-Agent GUI preferences; they do not rewrite the main application file.
 
+For a local Wake-on-LAN provider, set `provider.wake_on_lan_mac` to its six-octet
+MAC address. The Advanced application settings expose the same field. Ensemble
+broadcasts only after both TCP and ICMP checks fail, then waits up to 90 seconds
+for the provider port to accept connections.
+
 Credentials are external: `provider.credential_file` names a plain text API key
 file for `api` billing, or the existing Codex `auth.json` for `codex` billing.
 `chatgpt` uses the separate `auth_directory` credential store and requires an empty
@@ -54,7 +59,8 @@ Choose an available model and supply its credential through the inherited
 `LLM_API_KEY` environment variable. Public flags include `--model`, `--vendor`,
 `--base-url`, `--workspace`, `--event-log`, `--gui-dir`, and `--no-stream`.
 Provider environment defaults retain earlier CLI setup and the original grader's
-launch contract; explicit flags win. Avoid putting secrets in shell history.
+launch contract; explicit flags win. `--wol-mac` configures an optional local
+Wake-on-LAN target. Avoid putting secrets in shell history.
 
 Open `http://localhost:8088`. Chat displays human messages, thinking and replies;
 Actions displays tool arguments and results. Drag either divider to resize a pane

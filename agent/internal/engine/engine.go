@@ -142,6 +142,9 @@ func (e *engine) send(ctx context.Context, body []byte, cb common.StreamCallback
 			events = append(events, common.Event{Type: "error_occurred", Error: &common.ErrorData{Message: err.Error()}})
 		}
 	}()
+	if err := e.wakeUnavailableProvider(ctx, cfg); err != nil {
+		return nil, err
+	}
 	secrets := []string{cfg.APIKey}
 	features, _ := LookupModel(cfg.Model)
 	isCodex := cfg.Credentials != nil && cfg.Credentials.Kind() == common.CredentialCodex

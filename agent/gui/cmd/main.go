@@ -68,6 +68,7 @@ func run() (runErr error) {
 	vendor := flag.String("vendor", "", "anthropic, openai or gemini")
 	flag.StringVar(&cfg.Model, "model", cfg.Model, "discovered provider model")
 	flag.StringVar(&cfg.BaseURL, "base-url", cfg.BaseURL, "provider API base URL")
+	flag.StringVar(&cfg.WakeOnLANMAC, "wol-mac", cfg.WakeOnLANMAC, "Wake-on-LAN MAC for an unreachable local provider")
 	flag.StringVar(&cfg.Workspace, "workspace", cfg.Workspace, "tool working directory")
 	// Never expose a loaded credential as a flag default: Go prints defaults
 	// in both help and flag-error output.

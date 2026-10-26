@@ -23,7 +23,7 @@ test("application settings are explicit-save, restart-only drafts; legacy prefer
     const page = await browser.newPage();
     const errors = [], commands = [];
     page.on("pageerror", error => errors.push(error.message));
-    const provider = { vendor: "openai", model: "saved-model", billing_mode: "api", base_url: "", credential_file: "/home/test/auth.json", reasoning_effort: "", reasoning_summary: "" };
+    const provider = { vendor: "openai", model: "saved-model", billing_mode: "api", base_url: "", credential_file: "/home/test/auth.json", wake_on_lan_mac: "02:00:00:00:00:01", reasoning_effort: "", reasoning_summary: "" };
     const settings = { model: "active-model", theme: "dark", font_size: 16, tts_enabled: false, tts_speed: 1, context_target: 0, log_retention: 0,
       application: { path: '/config/<img src=x onerror="alert(1)">.json', provider,
         active_provider: { ...provider, vendor: "anthropic", model: "active-model" }, restart_required: true } };
@@ -52,6 +52,7 @@ test("application settings are explicit-save, restart-only drafts; legacy prefer
     assert.equal(await page.locator("#model").isVisible(), false);
     assert.equal(await page.locator("#model").isDisabled(), true);
     assert.equal(await page.locator("#provider-model").inputValue(), "saved-model");
+    assert.equal(await page.locator("#provider-wake-on-lan-mac").inputValue(), "02:00:00:00:00:01");
     assert.equal(await page.locator("#provider-reasoning-effort").inputValue(), "");
     assert.equal(await page.locator("#provider-reasoning-summary").inputValue(), "");
     assert.equal(await page.locator("#application-active").textContent(), "Active now: anthropic · active-model · api");
@@ -69,6 +70,7 @@ test("application settings are explicit-save, restart-only drafts; legacy prefer
     await page.locator("#application-advanced summary").click();
     await page.locator("#provider-base-url").fill("https://example.test/v1");
     await page.locator("#provider-credential-file").fill('credentials/"auth".json');
+    await page.locator("#provider-wake-on-lan-mac").fill("aa:bb:cc:dd:ee:ff");
     assert.equal(updates().length, 0, "provider edits do not autosave");
     // A regular preference saves immediately and its broadcast cannot clobber the draft.
     await page.locator("#theme").selectOption("light");
@@ -81,7 +83,7 @@ test("application settings are explicit-save, restart-only drafts; legacy prefer
 
     await page.locator("#save-application-settings").click();
     await waitForUpdates(2);
-    const submitted = { vendor: "gemini", model: 'next-model " <script>', billing_mode: "chatgpt", base_url: "https://example.test/v1", credential_file: 'credentials/"auth".json', reasoning_effort: "xhigh", reasoning_summary: "detailed" };
+    const submitted = { vendor: "gemini", model: 'next-model " <script>', billing_mode: "chatgpt", base_url: "https://example.test/v1", credential_file: 'credentials/"auth".json', wake_on_lan_mac: "aa:bb:cc:dd:ee:ff", reasoning_effort: "xhigh", reasoning_summary: "detailed" };
     const firstRequest = updates()[1].request_id;
     assert.match(firstRequest, /^[0-9a-f-]{36}$/);
     assert.deepEqual(updates()[1], { type: "update_settings", request_id: firstRequest, settings: { provider: submitted } });

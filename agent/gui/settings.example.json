@@ -6,6 +6,7 @@
     "billing_mode": "api",
     "credential_file": "credentials/openai.key",
     "base_url": "",
+    "wake_on_lan_mac": "",
     "reasoning_effort": "high",
     "reasoning_summary": "detailed"
   },

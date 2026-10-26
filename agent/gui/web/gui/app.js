@@ -191,7 +191,7 @@ const applicationPanel = document.querySelector("#application-settings");
 const applicationStatus = document.querySelector("#application-status");
 const saveApplication = document.querySelector("#save-application-settings");
 const providerControls = Object.fromEntries([
-  "vendor", "model", "billing_mode", "base_url", "credential_file", "reasoning_effort", "reasoning_summary",
+  "vendor", "model", "billing_mode", "base_url", "credential_file", "wake_on_lan_mac", "reasoning_effort", "reasoning_summary",
 ].map(field => [field, document.getElementById(`provider-${field.replaceAll("_", "-")}`)]));
 let applicationDirty = false, applicationRequest = null;
 const providerDraft = () => Object.fromEntries(

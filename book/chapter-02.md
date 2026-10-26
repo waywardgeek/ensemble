@@ -949,6 +949,34 @@ that is the entire contract, one line of discipline away from not holding.
 **The context never learns a vendor's vocabulary.** If `assistant`, `toolu_`,
 or `functionCall` appears in your context types, the seam has already leaked.
 
+### Optional: waking a local provider
+
+**TL;DR:** The current application can wake a local inference machine before
+sending a request. Leave Wake-on-LAN disabled for ordinary hosted providers.
+
+A local model server can be asleep when the next prompt arrives. That belongs
+to Engine's transport boundary: waking the machine changes neither the
+conversation nor the vendor request format. With a MAC address configured,
+Engine first checks the provider's TCP port, then tries ICMP if TCP fails.
+Only when both checks fail does it broadcast a magic packet over UDP port 9.
+It then waits up to 90 seconds for the TCP port before sending the request;
+failure to become reachable is an error. An open port permits the HTTP attempt,
+but does not establish that the model is ready. An HTTP error alone does not
+trigger a wake.
+
+For the current CLI, set `LLM_BASE_URL` to the local provider's HTTP(S) endpoint
+and `LLM_WOL_MAC` to its six-octet MAC address. Leave the latter empty to disable
+the feature. The optional GUI's environment/flag launch also accepts `--wol-mac`.
+In file-configured GUI launches, use `provider.base_url` and
+`provider.wake_on_lan_mac`; the Advanced application settings expose these
+fields, with saved provider changes taking effect after restart.
+
+Use this only with a Wake-on-LAN-capable machine and a working local IPv4
+broadcast route. Failed probes can also mean a network problem, so sending a
+packet is not proof that a machine was asleep or has awakened. This is an
+optional current-application convenience, outside this chapter's graded seam
+exercise. Offline rendering and replay remain network-free.
+
 ## 2.7 The bet
 
 §2.0 made a prediction: the second renderer costs real work and the third

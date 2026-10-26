@@ -20,6 +20,9 @@ type Config struct {
 	// ReasoningEffort and ReasoningSummary configure supported Responses models.
 	// Empty summary requests auto; empty effort leaves the provider default.
 	ReasoningEffort, ReasoningSummary string
+	// WakeOnLANMAC is an optional local-server MAC address used before a request
+	// when its configured provider endpoint is unreachable by TCP and ICMP.
+	WakeOnLANMAC string
 	// Credentials supplies transport-only authentication; it is never serialized.
 	Credentials CredentialProvider `json:"-"`
 	// BillingMode selects api, chatgpt or codex; blank follows saved login choice.

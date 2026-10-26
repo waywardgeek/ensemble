@@ -8,7 +8,10 @@ Build the CLI in this module:
     go build -o ensemble-cli .
 
 Set `LLM_VENDOR` (`anthropic`, `openai`, or `gemini`), `LLM_MODEL`, and
-`LLM_API_KEY`, then run `ensemble-cli chat` from your chosen workspace. Model
+`LLM_API_KEY`, then run `ensemble-cli chat` from your chosen workspace. Set
+`LLM_WOL_MAC` only for a local provider, using its six-octet MAC address.
+Ensemble checks the configured endpoint with TCP and ICMP before broadcasting a
+magic packet, then waits up to 90 seconds for its TCP port. Model
 names are explicit; select one supported by this application and available to
 your provider account. For Anthropic, use supported older models such as
 Sonnet-5; 5.5 models are excluded from current use. Messages

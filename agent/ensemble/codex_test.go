@@ -199,6 +199,7 @@ func TestCodexConfiguration(t *testing.T) {
 	t.Setenv("LLM_BASE_URL", "")
 	t.Setenv("OPENAI_BASE_URL", "")
 	t.Setenv("OPENAI_BILLING_MODE", "codex")
+	t.Setenv("LLM_WOL_MAC", "02:00:00:00:00:01")
 	t.Setenv("EN_CODEX_AUTH_FILE", "")
 	t.Setenv("CODEX_HOME", t.TempDir())
 	cfg, err := ensemble.ConfigFromEnv()
@@ -207,6 +208,9 @@ func TestCodexConfiguration(t *testing.T) {
 	}
 	if cfg.CodexAuthFile != filepath.Join(os.Getenv("CODEX_HOME"), "auth.json") {
 		t.Fatal("Codex home ignored")
+	}
+	if cfg.WakeOnLANMAC != "02:00:00:00:00:01" {
+		t.Fatal("Wake-on-LAN MAC ignored")
 	}
 	t.Setenv("EN_CODEX_AUTH_FILE", filepath.Join(t.TempDir(), "selected.json"))
 	cfg, err = ensemble.ConfigFromEnv()
