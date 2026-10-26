@@ -56,7 +56,7 @@ func settingsPatch(current Settings, raw json.RawMessage) (Settings, error) {
 	switch current.Theme {
 	case "dark", "light", "system":
 	default:
-		current.Theme = "dark"
+		current.Theme = "system"
 	}
 	current.TTSSpeed = max(0.5, min(5, current.TTSSpeed))
 	current.FontSize = max(12, min(24, current.FontSize))
@@ -87,7 +87,7 @@ func (s *agentView) snapshotSettings() Settings {
 	return snapshot
 }
 func (s *agentView) loadSettings() error {
-	s.settings = Settings{Theme: "dark", TTSEnabled: true, TTSSpeed: 1, FontSize: 16}
+	s.settings = Settings{Theme: "system", TTSEnabled: true, TTSSpeed: 1, FontSize: 16}
 	var data []byte
 	var err error
 	if store := s.applicationStore(); store != nil {

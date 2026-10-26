@@ -24,7 +24,7 @@
   "sandbox_root": "",
   "recall": {"disabled": false},
   "gui": {
-    "theme": "dark",
+    "theme": "system",
     "tts_enabled": true,
     "tts_speed": 1,
     "font_size": 16,

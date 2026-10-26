@@ -82,7 +82,7 @@ func (c ApplicationConfig) MarshalJSON() ([]byte, error) {
 // Vendor and model must be supplied explicitly. Zero memory sizes select the
 // library's common memory defaults, as they do in existing GUI preferences.
 func DefaultApplicationConfig() ApplicationConfig {
-	return ApplicationConfig{Version: 1, GUIPort: 8088, EnableWebSearch: true, Provider: ProviderSettings{BillingMode: "api"}, Workspace: ".", DataDir: "cr", SavePath: "save.json", EventLog: "event.log", AuthDirectory: "auth", GUI: Settings{Theme: "dark", TTSEnabled: true, TTSSpeed: 1, FontSize: 16}}
+	return ApplicationConfig{Version: 1, GUIPort: 8088, EnableWebSearch: true, Provider: ProviderSettings{BillingMode: "api"}, Workspace: ".", DataDir: "cr", SavePath: "save.json", EventLog: "event.log", AuthDirectory: "auth", GUI: Settings{Theme: "system", TTSEnabled: true, TTSSpeed: 1, FontSize: 16}}
 }
 
 // ApplicationConfigStore owns a validated snapshot and serializes atomic saves.

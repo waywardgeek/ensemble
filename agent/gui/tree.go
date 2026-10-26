@@ -23,7 +23,7 @@ func (s *Server) view(a ensemble.Agent) *agentView {
 	if v := s.views[a]; v != nil {
 		return v
 	}
-	v := &agentView{parent: s, agent: a, partials: make(map[uint64]map[string]any), settings: Settings{Theme: "dark", TTSEnabled: true, TTSSpeed: 1, FontSize: 16}}
+	v := &agentView{parent: s, agent: a, partials: make(map[uint64]map[string]any), settings: Settings{Theme: "system", TTSEnabled: true, TTSSpeed: 1, FontSize: 16}}
 	s.views[a] = v
 	return v
 }

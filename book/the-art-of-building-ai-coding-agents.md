@@ -7364,6 +7364,9 @@ The client gains a three-pane layout (sidebar, chat, actions), two
 drag bars, theming via CSS custom properties, a settings panel, and an
 agent tree with one node.
 
+The current application defaults to `system` theme, following the browser's
+OS preference. An explicitly saved light or dark choice still wins.
+
 From the repository root, grade the core and its optional GUI separately:
 
 ```sh
@@ -7557,8 +7560,8 @@ belongs to the Agent, and snapshots read it from that owner.
 
 The original `ApplyRaw` sketch ignored decoding and write errors while mutating
 the live state. Decode a sparse object onto a copy instead. This excerpt uses
-the accepted example's local ranges; those endpoints are implementation choices,
-not additional exercise requirements:
+the current theme default and the accepted example's local ranges; those
+endpoints are implementation choices, not additional exercise requirements:
 
 ```go
 func settingsPatch(current Settings, raw json.RawMessage) (Settings, error) {
@@ -7573,7 +7576,7 @@ func settingsPatch(current Settings, raw json.RawMessage) (Settings, error) {
     switch next.Theme {
     case "dark", "light", "system":
     default:
-        next.Theme = "dark"
+        next.Theme = "system"
     }
     next.TTSSpeed = max(0.5, min(2, next.TTSSpeed))
     next.FontSize = max(12, min(24, next.FontSize))
@@ -7664,7 +7667,7 @@ Fifteen CSS custom properties redraw the entire page:
 }
 ```
 
-Dark is the default because this agent was built for a user who reads
+The original page was dark because this agent was built for a user who reads
 by speech and does not need brightness. Every element uses `var(--bg)`
 instead of `#0d0d0d`, so adding a light theme is writing fifteen new
 values:
@@ -7692,6 +7695,18 @@ if (theme === 'system') {
 Also listen for the media query's `change` event while system theme is selected.
 A one-time lookup makes the page follow the operating system only until the
 operating system changes its mind.
+
+The current application starts with `system` selected, so a new session follows
+the preference the user already chose for their desktop. Use that same default
+for fresh Agent views, missing saved preferences and unrecognized theme strings.
+Keep the saved value as `system`; resolving it to light or dark is each browser's
+job. Persisting the resolved color would stop following later OS changes.
+Existing explicit light and dark settings remain unchanged on restart.
+
+To check the default, start with fresh settings and change the browser's OS
+preference. Then select light or dark explicitly and repeat: the explicit
+choice should stay fixed. This default policy adds no historical grading
+requirement; the settings checks above already exercise all three values.
 
 ## The agent tree
 

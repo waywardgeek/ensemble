@@ -79,7 +79,8 @@ history, from which the GUI rebuilds its view.
 Every incoming and outgoing WebSocket message is timestamped in `gui.log`.
 The other logs are `event.log`, `api.log`, and `debug.log`.
 
-Settings contains theme (dark/light/system), Read aloud, approximate speech speed
+Settings contains theme (dark/light/system, defaulting to the system preference),
+Read aloud, approximate speech speed
 (0.5–5, calibrated for Eloquence), and font size (12–24 pixels). Changes apply across
 tabs and persist in the application's `gui` section in file mode, or in
 `cr/settings.json` for legacy launches. System theme follows changes in the browser's OS preference.

@@ -38,7 +38,7 @@ func TestApplicationConfigDefaultsAndRelativePaths(t *testing.T) {
 		}
 	}
 	defaults := DefaultApplicationConfig()
-	if c.GUI != defaults.GUI || c.GUI.Theme != "dark" || !c.GUI.TTSEnabled || c.GUI.TTSSpeed != 1 || c.GUI.FontSize != 16 {
+	if c.GUI != defaults.GUI || c.GUI.Theme != "system" || !c.GUI.TTSEnabled || c.GUI.TTSSpeed != 1 || c.GUI.FontSize != 16 {
 		t.Fatalf("defaults = %+v", c.GUI)
 	}
 	c.SkillsDir = "skills"
@@ -142,7 +142,7 @@ func TestApplicationConfigInvalidAndNormalizedSettings(t *testing.T) {
 		t.Fatal(err)
 	}
 	gui := store.Snapshot().GUI
-	if gui.Theme != "dark" || gui.TTSSpeed != 5 || gui.FontSize != 12 || gui.MaxToolRounds != 0 || gui.ContextTarget != 20000 || gui.LogRetention != 0 {
+	if gui.Theme != "system" || gui.TTSSpeed != 5 || gui.FontSize != 12 || gui.MaxToolRounds != 0 || gui.ContextTarget != 20000 || gui.LogRetention != 0 {
 		t.Fatalf("settings not normalized: %+v", gui)
 	}
 }

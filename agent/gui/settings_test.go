@@ -38,7 +38,7 @@ func TestSettingsWireAndDisk(t *testing.T) {
 	for _, peer := range []*websocket.Conn{first, second} {
 		messages := until(t, peer, kind("current_settings"))
 		s := messages[len(messages)-1]["settings"].(map[string]any)
-		if s["theme"] != "dark" || s["tts_enabled"] != true || s["tts_speed"] != float64(1) || s["font_size"] != float64(16) || s["max_tool_rounds"] != float64(0) {
+		if s["theme"] != "system" || s["tts_enabled"] != true || s["tts_speed"] != float64(1) || s["font_size"] != float64(16) || s["max_tool_rounds"] != float64(0) {
 			t.Fatal("defaults", s)
 		}
 	}
@@ -87,7 +87,7 @@ func TestSettingsWireAndDisk(t *testing.T) {
 	}
 	patch(map[string]any{"theme": "invalid", "tts_speed": -5, "font_size": 99, "max_tool_rounds": -5})
 	s = read(first, "settings_changed")["settings"].(map[string]any)
-	if s["theme"] != "dark" || s["tts_speed"] != 0.5 || s["font_size"] != float64(24) || s["max_tool_rounds"] != float64(0) {
+	if s["theme"] != "system" || s["tts_speed"] != 0.5 || s["font_size"] != float64(24) || s["max_tool_rounds"] != float64(0) {
 		t.Fatal("entry not clamped", s)
 	}
 	patch(map[string]any{"context_target": 0, "log_retention": 0})
@@ -111,7 +111,7 @@ func TestSettingsWireAndDisk(t *testing.T) {
 	read(first, "settings_error")
 	fresh := dial(t, server.URL)
 	s = read(fresh, "current_settings")["settings"].(map[string]any)
-	if s["theme"] != "dark" || s["tts_speed"] != 0.5 {
+	if s["theme"] != "system" || s["tts_speed"] != 0.5 {
 		t.Fatal("failed patch changed accepted state", s)
 	}
 	if err := os.Remove(path); err != nil {
@@ -122,7 +122,7 @@ func TestSettingsWireAndDisk(t *testing.T) {
 	}
 	_, loaded := start()
 	s = read(dial(t, loaded.URL), "current_settings")["settings"].(map[string]any)
-	if s["theme"] != "dark" || s["tts_enabled"] != false || s["tts_speed"] != float64(5) || s["font_size"] != float64(12) || s["max_tool_rounds"] != float64(0) {
+	if s["theme"] != "system" || s["tts_enabled"] != false || s["tts_speed"] != float64(5) || s["font_size"] != float64(12) || s["max_tool_rounds"] != float64(0) {
 		t.Fatal("disk not clamped", s)
 	}
 	if err := os.WriteFile(path, json.RawMessage(`{"theme":`), 0600); err != nil {
