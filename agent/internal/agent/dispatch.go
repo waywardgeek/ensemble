@@ -118,7 +118,7 @@ func (r *runtime) dispatch() {
 		go func() {
 			text, err := run()
 			owner.job.Finish(text, err)
-			r.owner.box.Post(workerDone{job: owner.job})
+			r.owner.box.Post(workerDone{job: owner.job, calledSeq: owner.seq})
 		}()
 	}
 	r.workers++
@@ -136,7 +136,7 @@ func (r *runtime) dispatch() {
 		if notice != "" {
 			text = fmt.Sprintf("[tool_limits consumed by this %s call: %s]\n", call.Name, notice) + text
 		}
-		data := &common.ToolData{CallID: call.CallID, Parts: []common.Part{{Type: "text", Text: text}}, IsError: err != nil}
+		data := &common.ToolData{CallID: call.CallID, CalledSeq: owner.seq, Parts: []common.Part{{Type: "text", Text: text}}, IsError: err != nil}
 		if owner.job != nil {
 			snapshot := owner.job.Data()
 			data.Job = &snapshot

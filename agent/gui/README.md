@@ -42,6 +42,31 @@ the original environment/flag startup remains available for existing callers and
 graders. The public three-argument `gui.New` integration remains unchanged;
 file-configured applications use `gui.LoadApplicationConfig` and `gui.NewConfigured`.
 
+## Requested work-product downloads
+
+Explicitly ask the Agent to offer a completed file, for example: "Offer the
+finished report.pdf for download." The model chooses when to call
+`offer_download(path)`; a successful call adds a **Download** button in chat.
+Mentioning a path in a reply does not create a button. The offer sends no
+file-content bytes to the model and does not transfer the file automatically.
+Click the button to stream the regular file, including binary files, to your
+browser.
+
+If a primary skill restricts tools, include `offer_download` in its `tools:`
+list so the Agent can use it.
+
+Files must be within the Agent's workspace and satisfy its sandbox restrictions.
+Links use opaque capabilities; there is no general filesystem endpoint accepting
+arbitrary paths. This GUI has no authentication: anyone with the link who can
+reach the server can use it.
+
+Downloads read the file's contents at click time, rather than preserving a copy
+from when it was offered. Missing or changed paths can fail. Buttons replay on
+reconnect and are recreated from retained history after a process restart with
+new links; old links stop working. Reopen the conversation to use the recreated
+button. Availability depends on current retained history and the GUI's replay
+window, with no guarantee of permanent links or preserved files.
+
 ## Legacy environment/flag launch
 
 From this directory, run:

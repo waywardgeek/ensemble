@@ -87,8 +87,32 @@ export class ArtifactScroll {
   // History replay is silent. Finals reconcile display text, while already
   // streamed speech is never re-enqueued just because a final arrives.
   receive(message) {
+    if (!message || typeof message !== "object" || Array.isArray(message)) return;
     const id = message.part_id;
-    if (message.type === "part_delta") {
+    if (message.type === "download_offered") {
+      if (typeof message.token !== "string" || !/^[0-9a-f]{64}$/.test(message.token) ||
+          typeof message.filename !== "string" || !message.filename.trim() ||
+          typeof message.call_id !== "string" || !message.call_id.trim() ||
+          (message.replay !== undefined && typeof message.replay !== "boolean")) return;
+      const nearEnd =
+        this.element.clientHeight + this.element.scrollTop >= this.element.scrollHeight - 180;
+      const card = this.card(`download-${message.token}`, "download");
+      const link = document.createElement("a");
+      link.className = "artifact__download";
+      link.setAttribute("role", "button");
+      link.href = `/download/${message.token}`;
+      link.download = message.filename;
+      link.textContent = `Download ${message.filename}`;
+      link.addEventListener("keydown", (event) => {
+        if (event.key === " ") {
+          event.preventDefault();
+          link.click();
+        }
+      });
+      card.text = link.textContent;
+      card.content.replaceChildren(link);
+      if (nearEnd) this.element.scrollTo(0, this.element.scrollHeight);
+    } else if (message.type === "part_delta") {
       const card = this.card(id, message.kind);
       card.text += message.chunk;
       card.streamed = true;

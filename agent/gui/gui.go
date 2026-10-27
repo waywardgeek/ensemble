@@ -24,6 +24,7 @@ type Server struct {
 	agent          ensemble.Agent
 	root           *ensemble.Ensemble
 	views          map[ensemble.Agent]*agentView
+	downloads      map[string]downloadOffer
 	selected       map[*websocket.Conn]*agentView
 	treeWake       chan struct{}
 	treeDone       chan struct{}
@@ -73,6 +74,7 @@ func newServer(root *ensemble.Ensemble, agent ensemble.Agent, log io.Writer, app
 	s.relayConnections = make(map[net.Conn]bool)
 	s.root = root
 	s.views = make(map[ensemble.Agent]*agentView)
+	s.downloads = make(map[string]downloadOffer)
 	s.selected = make(map[*websocket.Conn]*agentView)
 	s.treeWake = make(chan struct{}, 1)
 	s.treeDone = make(chan struct{})
@@ -164,6 +166,9 @@ func (s *agentView) capture() {
 		for _, message := range eventWire(event) {
 			s.broadcast(message)
 		}
+		if link := s.downloadEvent(event); link != nil {
+			s.broadcast(link.message())
+		}
 	}
 }
 
@@ -217,6 +222,9 @@ func (s *Server) trace(direction string, data []byte) {
 	// Compact incoming payloads too: every message is exactly one trace line.
 	var value any
 	if json.Unmarshal(data, &value) == nil {
+		if message, ok := value.(map[string]any); ok && message["type"] == "download_offered" {
+			message["token"] = "[redacted]"
+		}
 		data, _ = json.Marshal(value)
 	} else {
 		data, _ = json.Marshal(string(data))
@@ -234,6 +242,7 @@ func (s *Server) Handler(directory string) http.Handler {
 	}
 	mux.Handle("/", http.FileServer(assets))
 	mux.HandleFunc("/ws", s.socket)
+	mux.HandleFunc("/download/", s.serveDownload)
 	return mux
 }
 func (s *Server) socket(w http.ResponseWriter, r *http.Request) {
@@ -438,6 +447,9 @@ func (s *agentView) replay() [][]byte {
 	for _, event := range s.events[start:] {
 		for _, m := range eventWire(event) {
 			add(m)
+		}
+		if link := s.downloads[event.Seq]; link != nil {
+			add(link.message())
 		}
 	}
 	// Maps do not preserve stream order. Increasing actor-assigned identities

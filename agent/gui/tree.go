@@ -10,20 +10,23 @@ import (
 // A conversation view belongs to the transport server; the core Agent still
 // owns all history. Cursors and partial IDs never cross an Agent boundary.
 type agentView struct {
-	parent   *Server
-	agent    ensemble.Agent
-	settings Settings
-	partials map[uint64]map[string]any
-	events   []ensemble.Event
-	seq      uint64
-	loaded   bool
+	parent           *Server
+	agent            ensemble.Agent
+	settings         Settings
+	partials         map[uint64]map[string]any
+	events           []ensemble.Event
+	pendingDownloads map[string]*downloadRequest
+	downloadJobs     map[uint64]*downloadRequest
+	downloads        map[uint64]*downloadLink
+	seq              uint64
+	loaded           bool
 }
 
 func (s *Server) view(a ensemble.Agent) *agentView {
 	if v := s.views[a]; v != nil {
 		return v
 	}
-	v := &agentView{parent: s, agent: a, partials: make(map[uint64]map[string]any), settings: Settings{Theme: "dark", TTSEnabled: true, TTSSpeed: 1, FontSize: 16}}
+	v := &agentView{parent: s, agent: a, partials: make(map[uint64]map[string]any), pendingDownloads: make(map[string]*downloadRequest), downloadJobs: make(map[uint64]*downloadRequest), downloads: make(map[uint64]*downloadLink), settings: Settings{Theme: "dark", TTSEnabled: true, TTSSpeed: 1, FontSize: 16}}
 	s.views[a] = v
 	return v
 }

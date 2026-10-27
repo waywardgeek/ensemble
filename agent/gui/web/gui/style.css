@@ -90,6 +90,17 @@ button:hover {
 .artifact header button {
   margin-left: auto;
 }
+.artifact__download {
+  display: inline-block;
+  margin-top: 0.4rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--fg);
+  background: var(--surface);
+}
+.artifact__download:hover { background: var(--accent-hover); }
+.artifact__download:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .artifact--thinking {
   background: var(--thinking-bg);
 }

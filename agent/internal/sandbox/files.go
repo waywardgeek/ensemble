@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 
 	"ensemble/internal/common"
 )
@@ -145,6 +146,73 @@ func (s *sandbox) OpenFile(path string, flags int, mode fs.FileMode) (*os.File, 
 	defer root.Close()
 	f, err := root.OpenFile(rel, flags, mode)
 	return f, safeError(path, err)
+}
+
+// OpenWorkspaceFile restricts downloads even when the Agent has no sandbox.
+// OpenRoot keeps the checked workspace boundary during the actual open.
+func (s *sandbox) OpenWorkspaceFile(path string) (*os.File, error) {
+	if s == nil || s.parent == nil || path == "" {
+		return nil, refusal(path)
+	}
+	workspace, err := filepath.Abs(s.parent.Config().Workspace)
+	if err != nil {
+		return nil, refusal(path)
+	}
+	candidate := path
+	if !filepath.IsAbs(candidate) {
+		candidate = filepath.Join(workspace, candidate)
+	}
+	relative, err := filepath.Rel(workspace, candidate)
+	if err != nil || relative == "." || relative == ".." || strings.HasPrefix(relative, ".."+string(filepath.Separator)) {
+		return nil, refusal(path)
+	}
+	var root *os.Root
+	sandboxRoot, err := s.root()
+	if err != nil {
+		return nil, refusal(path)
+	}
+	if sandboxRoot == "" {
+		root, err = os.OpenRoot(workspace)
+	} else {
+		resolvedWorkspace, resolveErr := filepath.EvalSymlinks(workspace)
+		if resolveErr != nil || !inside(sandboxRoot, resolvedWorkspace) {
+			return nil, refusal(path)
+		}
+		sandbox, openErr := os.OpenRoot(sandboxRoot)
+		if openErr != nil {
+			return nil, safeError(path, openErr)
+		}
+		defer sandbox.Close()
+		withinSandbox, relErr := filepath.Rel(sandboxRoot, resolvedWorkspace)
+		if relErr != nil {
+			return nil, refusal(path)
+		}
+		root, err = sandbox.OpenRoot(withinSandbox)
+	}
+	if err != nil {
+		return nil, safeError(path, err)
+	}
+	defer root.Close()
+	info, err := root.Stat(relative)
+	if err != nil {
+		return nil, safeError(path, err)
+	}
+	if !info.Mode().IsRegular() {
+		return nil, fmt.Errorf("download must be a regular file")
+	}
+	file, err := root.OpenFile(relative, os.O_RDONLY|syscall.O_NONBLOCK, 0)
+	if err != nil {
+		return nil, safeError(path, err)
+	}
+	info, err = file.Stat()
+	if err != nil || !info.Mode().IsRegular() {
+		file.Close()
+		if err != nil {
+			return nil, safeError(path, err)
+		}
+		return nil, fmt.Errorf("download must be a regular file")
+	}
+	return file, nil
 }
 
 // ReadFile keeps resolution and opening together instead of trusting callers.

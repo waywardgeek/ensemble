@@ -542,6 +542,29 @@ three checks for each empty or opaque case, while readable controls still
 produced native start/end events. No new model generation was needed to diagnose
 what was already visible in the saved page.
 
+### Offering a finished file
+
+A finished report needs a way out of the workspace. In the current GUI, the
+user explicitly asks the Agent to offer the completed work product for download:
+"Offer the finished report.pdf for download." The model chooses when to invoke
+`offer_download(path)`. A successful call gives the browser a **Download** button;
+mentioning a filename in chat does not. The offer sends no file-content bytes to
+the model and starts no automatic transfer. Clicking the button streams the
+regular file, including binary formats such as PDF, directly to the browser.
+
+The path must be inside the Agent's workspace and satisfy its sandbox
+restrictions. The server issues an opaque capability link for that offer, with
+no general filesystem endpoint accepting arbitrary paths. This GUI has no
+authentication: anyone who has the link and can reach the server can use it.
+
+An offer records a path, not a frozen copy. The download reads the file's
+contents at click time; a missing or changed path can fail. Retained history
+lets the GUI replay the button on reconnect and recreate it after a process
+restart, using a new link. The old link does not survive the restart. This
+depends on the offer remaining in retained history and the GUI's replay window;
+it promises neither permanent links nor file preservation. Save/load arrives
+later in the book.
+
 ---
 
 ## 7.10 The voice

@@ -47,8 +47,9 @@ type flush struct{ reply chan error }
 type stop struct{ discard bool }
 type gateReady struct{ turn *turn }
 type workerDone struct {
-	job common.Job
-	err error
+	job       common.Job
+	err       error
+	calledSeq uint64
 }
 type turn struct {
 	request       request
@@ -679,7 +680,7 @@ func (r *runtime) run() {
 					// A shell handler returns after launch; its job reader still owns
 					// completion. Only a terminal snapshot is a finished-job fact.
 					if data.Status != "running" {
-						r.append(common.Event{Type: "job_finished", Tool: &common.ToolData{Job: &data}})
+						r.append(common.Event{Type: "job_finished", Tool: &common.ToolData{Job: &data, CalledSeq: m.calledSeq}})
 					}
 				}
 			case record:

@@ -197,6 +197,8 @@ type ToolData struct {
 	Args json.RawMessage `json:"args,omitempty"`
 	// CallID ties dispatch or returned testimony to the original model call.
 	CallID string `json:"call_id"`
+	// CalledSeq identifies the dispatch fact even when job handles are reused.
+	CalledSeq uint64 `json:"called_seq,omitempty"`
 	// Parts is the bounded returned content observed at this report.
 	Parts []Part `json:"parts,omitempty"`
 	// IsError marks a handler failure; infrastructure failures use ErrorData.
@@ -470,6 +472,8 @@ type JobData struct {
 	Handle int `json:"handle"`
 	// Status distinguishes running, done and explicitly killed execution.
 	Status string `json:"status"`
+	// Failed records an execution or output failure when the job finishes.
+	Failed bool `json:"failed,omitempty"`
 	// Output names the retained file, independently of bounded inline reports.
 	Output Ref `json:"output"`
 	// Bytes counts all retained output, including content omitted from reports.

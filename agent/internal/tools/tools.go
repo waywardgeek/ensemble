@@ -22,6 +22,14 @@ func Builtins() []common.ToolDefinition {
 		{ToolDeclaration: common.ToolDeclaration{Name: "agent_status", Description: "Report the selected model, last response and session token counts, cache hit rate and derived session USD cost (unknown when prices are unavailable).", Schema: json.RawMessage(`{"type":"object","properties":{}}`)}, Run: agentStatus},
 		{
 			ToolDeclaration: common.ToolDeclaration{
+				Name:        "offer_download",
+				Description: "Offer a completed work-product file for browser download only when the user explicitly requests a download. Supply the path to a regular file in your workspace; file bytes are not sent to the model.",
+				Schema:      json.RawMessage(`{"type":"object","properties":{"path":{"type":"string"}},"required":["path"]}`),
+			},
+			Run: offerDownload,
+		},
+		{
+			ToolDeclaration: common.ToolDeclaration{
 				Name:        "read_file",
 				Description: "Read text with one-based inclusive start_line/end_line. Optional max_bytes bounds the read; job reports cap inline output and preserve the full result on disk.",
 				Schema:      json.RawMessage(`{"type":"object","properties":{"path":{"type":"string"},"start_line":{"type":"integer"},"end_line":{"type":"integer"},"max_bytes":{"type":"integer"}},"required":["path"]}`),
@@ -70,6 +78,24 @@ func Builtins() []common.ToolDefinition {
 		},
 	}
 	return append(append(definitions, supervision()...), contextTools()...)
+}
+
+func offerDownload(owner common.ToolContext, raw json.RawMessage) (string, error) {
+	var args struct {
+		Path string `json:"path"`
+	}
+	if err := decode(raw, &args, "path"); err != nil {
+		return "", err
+	}
+	if strings.TrimSpace(args.Path) == "" {
+		return "", errors.New("download path is empty")
+	}
+	file, err := owner.Agent().Sandbox().OpenWorkspaceFile(args.Path)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+	return fmt.Sprintf("Download offered: %s", filepath.Base(args.Path)), nil
 }
 
 // Presence is different from an empty value: writing an empty file is valid,

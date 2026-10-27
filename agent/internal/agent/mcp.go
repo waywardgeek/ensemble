@@ -108,7 +108,7 @@ func (r *runtime) invoke(q invocation) {
 			// notice. Ordinary callback callers may already have returned, so
 			// publishing completion must not hold up the job's final history fact.
 			completed <- common.Result{Text: text, Err: err}
-			r.owner.box.Post(workerDone{job: call.job})
+			r.owner.box.Post(workerDone{job: call.job, calledSeq: call.seq})
 		}()
 	}
 	r.workers++
@@ -131,7 +131,7 @@ func (r *runtime) invoke(q invocation) {
 		if notice != "" {
 			text = "[tool_limits consumed: " + notice + "]\n" + text
 		}
-		result := &common.ToolData{CallID: data.CallID, Name: q.name, Parts: []common.Part{{Type: "text", Text: text}}, IsError: err != nil}
+		result := &common.ToolData{CallID: data.CallID, CalledSeq: call.seq, Name: q.name, Parts: []common.Part{{Type: "text", Text: text}}, IsError: err != nil}
 		if call.job != nil {
 			snapshot := call.job.Data()
 			result.Job = &snapshot

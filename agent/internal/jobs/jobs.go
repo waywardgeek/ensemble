@@ -221,6 +221,7 @@ func (j *job) complete(text string, err error) {
 		j.err = closeErr
 	}
 	j.data.Status = "done"
+	j.data.Failed = j.err != nil
 	j.cancel()
 	j.notify()
 }

@@ -19,6 +19,9 @@ type Sandbox interface {
 	ReadDir(string) ([]os.DirEntry, error)
 	// OpenFile opens a confined file with the caller's creation policy.
 	OpenFile(string, int, fs.FileMode) (*os.File, error)
+	// OpenWorkspaceFile opens a regular file confined to the Agent's workspace
+	// and sandbox. The caller owns the returned file and must close it.
+	OpenWorkspaceFile(string) (*os.File, error)
 	// WriteFile replaces confined bytes without a check/open gap.
 	WriteFile(string, []byte, fs.FileMode) error
 	// Rename atomically moves two names within the boundary.
