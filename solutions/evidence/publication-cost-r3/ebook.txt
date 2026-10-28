@@ -1,0 +1,6 @@
+scripts/assemble-book.sh > book/the-art-of-building-ai-coding-agents.md
+book/the-art-of-building-ai-coding-agents.md: 158623 words
+scripts/build-ebook.sh
+build-ebook: wrote /Users/bill/projects/ensemble/book/The Art of Building AI Coding Agents.epub
+build-ebook: 33 chapter entries in the nav document, nav not in spine
+build-ebook: 1 images embedded (0 figures plus cover)

@@ -1,0 +1,761 @@
+Title:           The Art of Building AI Coding Agents
+Creator:         Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36
+Producer:        Skia/PDF m154
+CreationDate:    Mon Oct 12 17:10:28 2026 PDT
+ModDate:         Mon Oct 12 17:10:28 2026 PDT
+Custom Metadata: no
+Metadata Stream: no
+Tagged:          yes
+UserProperties:  no
+Suspects:        no
+Form:            none
+JavaScript:      no
+Pages:           372
+Encrypted:       no
+Page    1 size:  432 x 648 pts
+Page    1 rot:   0
+Page    2 size:  432 x 648 pts
+Page    2 rot:   0
+Page    3 size:  432 x 648 pts
+Page    3 rot:   0
+Page    4 size:  432 x 648 pts
+Page    4 rot:   0
+Page    5 size:  432 x 648 pts
+Page    5 rot:   0
+Page    6 size:  432 x 648 pts
+Page    6 rot:   0
+Page    7 size:  432 x 648 pts
+Page    7 rot:   0
+Page    8 size:  432 x 648 pts
+Page    8 rot:   0
+Page    9 size:  432 x 648 pts
+Page    9 rot:   0
+Page   10 size:  432 x 648 pts
+Page   10 rot:   0
+Page   11 size:  432 x 648 pts
+Page   11 rot:   0
+Page   12 size:  432 x 648 pts
+Page   12 rot:   0
+Page   13 size:  432 x 648 pts
+Page   13 rot:   0
+Page   14 size:  432 x 648 pts
+Page   14 rot:   0
+Page   15 size:  432 x 648 pts
+Page   15 rot:   0
+Page   16 size:  432 x 648 pts
+Page   16 rot:   0
+Page   17 size:  432 x 648 pts
+Page   17 rot:   0
+Page   18 size:  432 x 648 pts
+Page   18 rot:   0
+Page   19 size:  432 x 648 pts
+Page   19 rot:   0
+Page   20 size:  432 x 648 pts
+Page   20 rot:   0
+Page   21 size:  432 x 648 pts
+Page   21 rot:   0
+Page   22 size:  432 x 648 pts
+Page   22 rot:   0
+Page   23 size:  432 x 648 pts
+Page   23 rot:   0
+Page   24 size:  432 x 648 pts
+Page   24 rot:   0
+Page   25 size:  432 x 648 pts
+Page   25 rot:   0
+Page   26 size:  432 x 648 pts
+Page   26 rot:   0
+Page   27 size:  432 x 648 pts
+Page   27 rot:   0
+Page   28 size:  432 x 648 pts
+Page   28 rot:   0
+Page   29 size:  432 x 648 pts
+Page   29 rot:   0
+Page   30 size:  432 x 648 pts
+Page   30 rot:   0
+Page   31 size:  432 x 648 pts
+Page   31 rot:   0
+Page   32 size:  432 x 648 pts
+Page   32 rot:   0
+Page   33 size:  432 x 648 pts
+Page   33 rot:   0
+Page   34 size:  432 x 648 pts
+Page   34 rot:   0
+Page   35 size:  432 x 648 pts
+Page   35 rot:   0
+Page   36 size:  432 x 648 pts
+Page   36 rot:   0
+Page   37 size:  432 x 648 pts
+Page   37 rot:   0
+Page   38 size:  432 x 648 pts
+Page   38 rot:   0
+Page   39 size:  432 x 648 pts
+Page   39 rot:   0
+Page   40 size:  432 x 648 pts
+Page   40 rot:   0
+Page   41 size:  432 x 648 pts
+Page   41 rot:   0
+Page   42 size:  432 x 648 pts
+Page   42 rot:   0
+Page   43 size:  432 x 648 pts
+Page   43 rot:   0
+Page   44 size:  432 x 648 pts
+Page   44 rot:   0
+Page   45 size:  432 x 648 pts
+Page   45 rot:   0
+Page   46 size:  432 x 648 pts
+Page   46 rot:   0
+Page   47 size:  432 x 648 pts
+Page   47 rot:   0
+Page   48 size:  432 x 648 pts
+Page   48 rot:   0
+Page   49 size:  432 x 648 pts
+Page   49 rot:   0
+Page   50 size:  432 x 648 pts
+Page   50 rot:   0
+Page   51 size:  432 x 648 pts
+Page   51 rot:   0
+Page   52 size:  432 x 648 pts
+Page   52 rot:   0
+Page   53 size:  432 x 648 pts
+Page   53 rot:   0
+Page   54 size:  432 x 648 pts
+Page   54 rot:   0
+Page   55 size:  432 x 648 pts
+Page   55 rot:   0
+Page   56 size:  432 x 648 pts
+Page   56 rot:   0
+Page   57 size:  432 x 648 pts
+Page   57 rot:   0
+Page   58 size:  432 x 648 pts
+Page   58 rot:   0
+Page   59 size:  432 x 648 pts
+Page   59 rot:   0
+Page   60 size:  432 x 648 pts
+Page   60 rot:   0
+Page   61 size:  432 x 648 pts
+Page   61 rot:   0
+Page   62 size:  432 x 648 pts
+Page   62 rot:   0
+Page   63 size:  432 x 648 pts
+Page   63 rot:   0
+Page   64 size:  432 x 648 pts
+Page   64 rot:   0
+Page   65 size:  432 x 648 pts
+Page   65 rot:   0
+Page   66 size:  432 x 648 pts
+Page   66 rot:   0
+Page   67 size:  432 x 648 pts
+Page   67 rot:   0
+Page   68 size:  432 x 648 pts
+Page   68 rot:   0
+Page   69 size:  432 x 648 pts
+Page   69 rot:   0
+Page   70 size:  432 x 648 pts
+Page   70 rot:   0
+Page   71 size:  432 x 648 pts
+Page   71 rot:   0
+Page   72 size:  432 x 648 pts
+Page   72 rot:   0
+Page   73 size:  432 x 648 pts
+Page   73 rot:   0
+Page   74 size:  432 x 648 pts
+Page   74 rot:   0
+Page   75 size:  432 x 648 pts
+Page   75 rot:   0
+Page   76 size:  432 x 648 pts
+Page   76 rot:   0
+Page   77 size:  432 x 648 pts
+Page   77 rot:   0
+Page   78 size:  432 x 648 pts
+Page   78 rot:   0
+Page   79 size:  432 x 648 pts
+Page   79 rot:   0
+Page   80 size:  432 x 648 pts
+Page   80 rot:   0
+Page   81 size:  432 x 648 pts
+Page   81 rot:   0
+Page   82 size:  432 x 648 pts
+Page   82 rot:   0
+Page   83 size:  432 x 648 pts
+Page   83 rot:   0
+Page   84 size:  432 x 648 pts
+Page   84 rot:   0
+Page   85 size:  432 x 648 pts
+Page   85 rot:   0
+Page   86 size:  432 x 648 pts
+Page   86 rot:   0
+Page   87 size:  432 x 648 pts
+Page   87 rot:   0
+Page   88 size:  432 x 648 pts
+Page   88 rot:   0
+Page   89 size:  432 x 648 pts
+Page   89 rot:   0
+Page   90 size:  432 x 648 pts
+Page   90 rot:   0
+Page   91 size:  432 x 648 pts
+Page   91 rot:   0
+Page   92 size:  432 x 648 pts
+Page   92 rot:   0
+Page   93 size:  432 x 648 pts
+Page   93 rot:   0
+Page   94 size:  432 x 648 pts
+Page   94 rot:   0
+Page   95 size:  432 x 648 pts
+Page   95 rot:   0
+Page   96 size:  432 x 648 pts
+Page   96 rot:   0
+Page   97 size:  432 x 648 pts
+Page   97 rot:   0
+Page   98 size:  432 x 648 pts
+Page   98 rot:   0
+Page   99 size:  432 x 648 pts
+Page   99 rot:   0
+Page  100 size:  432 x 648 pts
+Page  100 rot:   0
+Page  101 size:  432 x 648 pts
+Page  101 rot:   0
+Page  102 size:  432 x 648 pts
+Page  102 rot:   0
+Page  103 size:  432 x 648 pts
+Page  103 rot:   0
+Page  104 size:  432 x 648 pts
+Page  104 rot:   0
+Page  105 size:  432 x 648 pts
+Page  105 rot:   0
+Page  106 size:  432 x 648 pts
+Page  106 rot:   0
+Page  107 size:  432 x 648 pts
+Page  107 rot:   0
+Page  108 size:  432 x 648 pts
+Page  108 rot:   0
+Page  109 size:  432 x 648 pts
+Page  109 rot:   0
+Page  110 size:  432 x 648 pts
+Page  110 rot:   0
+Page  111 size:  432 x 648 pts
+Page  111 rot:   0
+Page  112 size:  432 x 648 pts
+Page  112 rot:   0
+Page  113 size:  432 x 648 pts
+Page  113 rot:   0
+Page  114 size:  432 x 648 pts
+Page  114 rot:   0
+Page  115 size:  432 x 648 pts
+Page  115 rot:   0
+Page  116 size:  432 x 648 pts
+Page  116 rot:   0
+Page  117 size:  432 x 648 pts
+Page  117 rot:   0
+Page  118 size:  432 x 648 pts
+Page  118 rot:   0
+Page  119 size:  432 x 648 pts
+Page  119 rot:   0
+Page  120 size:  432 x 648 pts
+Page  120 rot:   0
+Page  121 size:  432 x 648 pts
+Page  121 rot:   0
+Page  122 size:  432 x 648 pts
+Page  122 rot:   0
+Page  123 size:  432 x 648 pts
+Page  123 rot:   0
+Page  124 size:  432 x 648 pts
+Page  124 rot:   0
+Page  125 size:  432 x 648 pts
+Page  125 rot:   0
+Page  126 size:  432 x 648 pts
+Page  126 rot:   0
+Page  127 size:  432 x 648 pts
+Page  127 rot:   0
+Page  128 size:  432 x 648 pts
+Page  128 rot:   0
+Page  129 size:  432 x 648 pts
+Page  129 rot:   0
+Page  130 size:  432 x 648 pts
+Page  130 rot:   0
+Page  131 size:  432 x 648 pts
+Page  131 rot:   0
+Page  132 size:  432 x 648 pts
+Page  132 rot:   0
+Page  133 size:  432 x 648 pts
+Page  133 rot:   0
+Page  134 size:  432 x 648 pts
+Page  134 rot:   0
+Page  135 size:  432 x 648 pts
+Page  135 rot:   0
+Page  136 size:  432 x 648 pts
+Page  136 rot:   0
+Page  137 size:  432 x 648 pts
+Page  137 rot:   0
+Page  138 size:  432 x 648 pts
+Page  138 rot:   0
+Page  139 size:  432 x 648 pts
+Page  139 rot:   0
+Page  140 size:  432 x 648 pts
+Page  140 rot:   0
+Page  141 size:  432 x 648 pts
+Page  141 rot:   0
+Page  142 size:  432 x 648 pts
+Page  142 rot:   0
+Page  143 size:  432 x 648 pts
+Page  143 rot:   0
+Page  144 size:  432 x 648 pts
+Page  144 rot:   0
+Page  145 size:  432 x 648 pts
+Page  145 rot:   0
+Page  146 size:  432 x 648 pts
+Page  146 rot:   0
+Page  147 size:  432 x 648 pts
+Page  147 rot:   0
+Page  148 size:  432 x 648 pts
+Page  148 rot:   0
+Page  149 size:  432 x 648 pts
+Page  149 rot:   0
+Page  150 size:  432 x 648 pts
+Page  150 rot:   0
+Page  151 size:  432 x 648 pts
+Page  151 rot:   0
+Page  152 size:  432 x 648 pts
+Page  152 rot:   0
+Page  153 size:  432 x 648 pts
+Page  153 rot:   0
+Page  154 size:  432 x 648 pts
+Page  154 rot:   0
+Page  155 size:  432 x 648 pts
+Page  155 rot:   0
+Page  156 size:  432 x 648 pts
+Page  156 rot:   0
+Page  157 size:  432 x 648 pts
+Page  157 rot:   0
+Page  158 size:  432 x 648 pts
+Page  158 rot:   0
+Page  159 size:  432 x 648 pts
+Page  159 rot:   0
+Page  160 size:  432 x 648 pts
+Page  160 rot:   0
+Page  161 size:  432 x 648 pts
+Page  161 rot:   0
+Page  162 size:  432 x 648 pts
+Page  162 rot:   0
+Page  163 size:  432 x 648 pts
+Page  163 rot:   0
+Page  164 size:  432 x 648 pts
+Page  164 rot:   0
+Page  165 size:  432 x 648 pts
+Page  165 rot:   0
+Page  166 size:  432 x 648 pts
+Page  166 rot:   0
+Page  167 size:  432 x 648 pts
+Page  167 rot:   0
+Page  168 size:  432 x 648 pts
+Page  168 rot:   0
+Page  169 size:  432 x 648 pts
+Page  169 rot:   0
+Page  170 size:  432 x 648 pts
+Page  170 rot:   0
+Page  171 size:  432 x 648 pts
+Page  171 rot:   0
+Page  172 size:  432 x 648 pts
+Page  172 rot:   0
+Page  173 size:  432 x 648 pts
+Page  173 rot:   0
+Page  174 size:  432 x 648 pts
+Page  174 rot:   0
+Page  175 size:  432 x 648 pts
+Page  175 rot:   0
+Page  176 size:  432 x 648 pts
+Page  176 rot:   0
+Page  177 size:  432 x 648 pts
+Page  177 rot:   0
+Page  178 size:  432 x 648 pts
+Page  178 rot:   0
+Page  179 size:  432 x 648 pts
+Page  179 rot:   0
+Page  180 size:  432 x 648 pts
+Page  180 rot:   0
+Page  181 size:  432 x 648 pts
+Page  181 rot:   0
+Page  182 size:  432 x 648 pts
+Page  182 rot:   0
+Page  183 size:  432 x 648 pts
+Page  183 rot:   0
+Page  184 size:  432 x 648 pts
+Page  184 rot:   0
+Page  185 size:  432 x 648 pts
+Page  185 rot:   0
+Page  186 size:  432 x 648 pts
+Page  186 rot:   0
+Page  187 size:  432 x 648 pts
+Page  187 rot:   0
+Page  188 size:  432 x 648 pts
+Page  188 rot:   0
+Page  189 size:  432 x 648 pts
+Page  189 rot:   0
+Page  190 size:  432 x 648 pts
+Page  190 rot:   0
+Page  191 size:  432 x 648 pts
+Page  191 rot:   0
+Page  192 size:  432 x 648 pts
+Page  192 rot:   0
+Page  193 size:  432 x 648 pts
+Page  193 rot:   0
+Page  194 size:  432 x 648 pts
+Page  194 rot:   0
+Page  195 size:  432 x 648 pts
+Page  195 rot:   0
+Page  196 size:  432 x 648 pts
+Page  196 rot:   0
+Page  197 size:  432 x 648 pts
+Page  197 rot:   0
+Page  198 size:  432 x 648 pts
+Page  198 rot:   0
+Page  199 size:  432 x 648 pts
+Page  199 rot:   0
+Page  200 size:  432 x 648 pts
+Page  200 rot:   0
+Page  201 size:  432 x 648 pts
+Page  201 rot:   0
+Page  202 size:  432 x 648 pts
+Page  202 rot:   0
+Page  203 size:  432 x 648 pts
+Page  203 rot:   0
+Page  204 size:  432 x 648 pts
+Page  204 rot:   0
+Page  205 size:  432 x 648 pts
+Page  205 rot:   0
+Page  206 size:  432 x 648 pts
+Page  206 rot:   0
+Page  207 size:  432 x 648 pts
+Page  207 rot:   0
+Page  208 size:  432 x 648 pts
+Page  208 rot:   0
+Page  209 size:  432 x 648 pts
+Page  209 rot:   0
+Page  210 size:  432 x 648 pts
+Page  210 rot:   0
+Page  211 size:  432 x 648 pts
+Page  211 rot:   0
+Page  212 size:  432 x 648 pts
+Page  212 rot:   0
+Page  213 size:  432 x 648 pts
+Page  213 rot:   0
+Page  214 size:  432 x 648 pts
+Page  214 rot:   0
+Page  215 size:  432 x 648 pts
+Page  215 rot:   0
+Page  216 size:  432 x 648 pts
+Page  216 rot:   0
+Page  217 size:  432 x 648 pts
+Page  217 rot:   0
+Page  218 size:  432 x 648 pts
+Page  218 rot:   0
+Page  219 size:  432 x 648 pts
+Page  219 rot:   0
+Page  220 size:  432 x 648 pts
+Page  220 rot:   0
+Page  221 size:  432 x 648 pts
+Page  221 rot:   0
+Page  222 size:  432 x 648 pts
+Page  222 rot:   0
+Page  223 size:  432 x 648 pts
+Page  223 rot:   0
+Page  224 size:  432 x 648 pts
+Page  224 rot:   0
+Page  225 size:  432 x 648 pts
+Page  225 rot:   0
+Page  226 size:  432 x 648 pts
+Page  226 rot:   0
+Page  227 size:  432 x 648 pts
+Page  227 rot:   0
+Page  228 size:  432 x 648 pts
+Page  228 rot:   0
+Page  229 size:  432 x 648 pts
+Page  229 rot:   0
+Page  230 size:  432 x 648 pts
+Page  230 rot:   0
+Page  231 size:  432 x 648 pts
+Page  231 rot:   0
+Page  232 size:  432 x 648 pts
+Page  232 rot:   0
+Page  233 size:  432 x 648 pts
+Page  233 rot:   0
+Page  234 size:  432 x 648 pts
+Page  234 rot:   0
+Page  235 size:  432 x 648 pts
+Page  235 rot:   0
+Page  236 size:  432 x 648 pts
+Page  236 rot:   0
+Page  237 size:  432 x 648 pts
+Page  237 rot:   0
+Page  238 size:  432 x 648 pts
+Page  238 rot:   0
+Page  239 size:  432 x 648 pts
+Page  239 rot:   0
+Page  240 size:  432 x 648 pts
+Page  240 rot:   0
+Page  241 size:  432 x 648 pts
+Page  241 rot:   0
+Page  242 size:  432 x 648 pts
+Page  242 rot:   0
+Page  243 size:  432 x 648 pts
+Page  243 rot:   0
+Page  244 size:  432 x 648 pts
+Page  244 rot:   0
+Page  245 size:  432 x 648 pts
+Page  245 rot:   0
+Page  246 size:  432 x 648 pts
+Page  246 rot:   0
+Page  247 size:  432 x 648 pts
+Page  247 rot:   0
+Page  248 size:  432 x 648 pts
+Page  248 rot:   0
+Page  249 size:  432 x 648 pts
+Page  249 rot:   0
+Page  250 size:  432 x 648 pts
+Page  250 rot:   0
+Page  251 size:  432 x 648 pts
+Page  251 rot:   0
+Page  252 size:  432 x 648 pts
+Page  252 rot:   0
+Page  253 size:  432 x 648 pts
+Page  253 rot:   0
+Page  254 size:  432 x 648 pts
+Page  254 rot:   0
+Page  255 size:  432 x 648 pts
+Page  255 rot:   0
+Page  256 size:  432 x 648 pts
+Page  256 rot:   0
+Page  257 size:  432 x 648 pts
+Page  257 rot:   0
+Page  258 size:  432 x 648 pts
+Page  258 rot:   0
+Page  259 size:  432 x 648 pts
+Page  259 rot:   0
+Page  260 size:  432 x 648 pts
+Page  260 rot:   0
+Page  261 size:  432 x 648 pts
+Page  261 rot:   0
+Page  262 size:  432 x 648 pts
+Page  262 rot:   0
+Page  263 size:  432 x 648 pts
+Page  263 rot:   0
+Page  264 size:  432 x 648 pts
+Page  264 rot:   0
+Page  265 size:  432 x 648 pts
+Page  265 rot:   0
+Page  266 size:  432 x 648 pts
+Page  266 rot:   0
+Page  267 size:  432 x 648 pts
+Page  267 rot:   0
+Page  268 size:  432 x 648 pts
+Page  268 rot:   0
+Page  269 size:  432 x 648 pts
+Page  269 rot:   0
+Page  270 size:  432 x 648 pts
+Page  270 rot:   0
+Page  271 size:  432 x 648 pts
+Page  271 rot:   0
+Page  272 size:  432 x 648 pts
+Page  272 rot:   0
+Page  273 size:  432 x 648 pts
+Page  273 rot:   0
+Page  274 size:  432 x 648 pts
+Page  274 rot:   0
+Page  275 size:  432 x 648 pts
+Page  275 rot:   0
+Page  276 size:  432 x 648 pts
+Page  276 rot:   0
+Page  277 size:  432 x 648 pts
+Page  277 rot:   0
+Page  278 size:  432 x 648 pts
+Page  278 rot:   0
+Page  279 size:  432 x 648 pts
+Page  279 rot:   0
+Page  280 size:  432 x 648 pts
+Page  280 rot:   0
+Page  281 size:  432 x 648 pts
+Page  281 rot:   0
+Page  282 size:  432 x 648 pts
+Page  282 rot:   0
+Page  283 size:  432 x 648 pts
+Page  283 rot:   0
+Page  284 size:  432 x 648 pts
+Page  284 rot:   0
+Page  285 size:  432 x 648 pts
+Page  285 rot:   0
+Page  286 size:  432 x 648 pts
+Page  286 rot:   0
+Page  287 size:  432 x 648 pts
+Page  287 rot:   0
+Page  288 size:  432 x 648 pts
+Page  288 rot:   0
+Page  289 size:  432 x 648 pts
+Page  289 rot:   0
+Page  290 size:  432 x 648 pts
+Page  290 rot:   0
+Page  291 size:  432 x 648 pts
+Page  291 rot:   0
+Page  292 size:  432 x 648 pts
+Page  292 rot:   0
+Page  293 size:  432 x 648 pts
+Page  293 rot:   0
+Page  294 size:  432 x 648 pts
+Page  294 rot:   0
+Page  295 size:  432 x 648 pts
+Page  295 rot:   0
+Page  296 size:  432 x 648 pts
+Page  296 rot:   0
+Page  297 size:  432 x 648 pts
+Page  297 rot:   0
+Page  298 size:  432 x 648 pts
+Page  298 rot:   0
+Page  299 size:  432 x 648 pts
+Page  299 rot:   0
+Page  300 size:  432 x 648 pts
+Page  300 rot:   0
+Page  301 size:  432 x 648 pts
+Page  301 rot:   0
+Page  302 size:  432 x 648 pts
+Page  302 rot:   0
+Page  303 size:  432 x 648 pts
+Page  303 rot:   0
+Page  304 size:  432 x 648 pts
+Page  304 rot:   0
+Page  305 size:  432 x 648 pts
+Page  305 rot:   0
+Page  306 size:  432 x 648 pts
+Page  306 rot:   0
+Page  307 size:  432 x 648 pts
+Page  307 rot:   0
+Page  308 size:  432 x 648 pts
+Page  308 rot:   0
+Page  309 size:  432 x 648 pts
+Page  309 rot:   0
+Page  310 size:  432 x 648 pts
+Page  310 rot:   0
+Page  311 size:  432 x 648 pts
+Page  311 rot:   0
+Page  312 size:  432 x 648 pts
+Page  312 rot:   0
+Page  313 size:  432 x 648 pts
+Page  313 rot:   0
+Page  314 size:  432 x 648 pts
+Page  314 rot:   0
+Page  315 size:  432 x 648 pts
+Page  315 rot:   0
+Page  316 size:  432 x 648 pts
+Page  316 rot:   0
+Page  317 size:  432 x 648 pts
+Page  317 rot:   0
+Page  318 size:  432 x 648 pts
+Page  318 rot:   0
+Page  319 size:  432 x 648 pts
+Page  319 rot:   0
+Page  320 size:  432 x 648 pts
+Page  320 rot:   0
+Page  321 size:  432 x 648 pts
+Page  321 rot:   0
+Page  322 size:  432 x 648 pts
+Page  322 rot:   0
+Page  323 size:  432 x 648 pts
+Page  323 rot:   0
+Page  324 size:  432 x 648 pts
+Page  324 rot:   0
+Page  325 size:  432 x 648 pts
+Page  325 rot:   0
+Page  326 size:  432 x 648 pts
+Page  326 rot:   0
+Page  327 size:  432 x 648 pts
+Page  327 rot:   0
+Page  328 size:  432 x 648 pts
+Page  328 rot:   0
+Page  329 size:  432 x 648 pts
+Page  329 rot:   0
+Page  330 size:  432 x 648 pts
+Page  330 rot:   0
+Page  331 size:  432 x 648 pts
+Page  331 rot:   0
+Page  332 size:  432 x 648 pts
+Page  332 rot:   0
+Page  333 size:  432 x 648 pts
+Page  333 rot:   0
+Page  334 size:  432 x 648 pts
+Page  334 rot:   0
+Page  335 size:  432 x 648 pts
+Page  335 rot:   0
+Page  336 size:  432 x 648 pts
+Page  336 rot:   0
+Page  337 size:  432 x 648 pts
+Page  337 rot:   0
+Page  338 size:  432 x 648 pts
+Page  338 rot:   0
+Page  339 size:  432 x 648 pts
+Page  339 rot:   0
+Page  340 size:  432 x 648 pts
+Page  340 rot:   0
+Page  341 size:  432 x 648 pts
+Page  341 rot:   0
+Page  342 size:  432 x 648 pts
+Page  342 rot:   0
+Page  343 size:  432 x 648 pts
+Page  343 rot:   0
+Page  344 size:  432 x 648 pts
+Page  344 rot:   0
+Page  345 size:  432 x 648 pts
+Page  345 rot:   0
+Page  346 size:  432 x 648 pts
+Page  346 rot:   0
+Page  347 size:  432 x 648 pts
+Page  347 rot:   0
+Page  348 size:  432 x 648 pts
+Page  348 rot:   0
+Page  349 size:  432 x 648 pts
+Page  349 rot:   0
+Page  350 size:  432 x 648 pts
+Page  350 rot:   0
+Page  351 size:  432 x 648 pts
+Page  351 rot:   0
+Page  352 size:  432 x 648 pts
+Page  352 rot:   0
+Page  353 size:  432 x 648 pts
+Page  353 rot:   0
+Page  354 size:  432 x 648 pts
+Page  354 rot:   0
+Page  355 size:  432 x 648 pts
+Page  355 rot:   0
+Page  356 size:  432 x 648 pts
+Page  356 rot:   0
+Page  357 size:  432 x 648 pts
+Page  357 rot:   0
+Page  358 size:  432 x 648 pts
+Page  358 rot:   0
+Page  359 size:  432 x 648 pts
+Page  359 rot:   0
+Page  360 size:  432 x 648 pts
+Page  360 rot:   0
+Page  361 size:  432 x 648 pts
+Page  361 rot:   0
+Page  362 size:  432 x 648 pts
+Page  362 rot:   0
+Page  363 size:  432 x 648 pts
+Page  363 rot:   0
+Page  364 size:  432 x 648 pts
+Page  364 rot:   0
+Page  365 size:  432 x 648 pts
+Page  365 rot:   0
+Page  366 size:  432 x 648 pts
+Page  366 rot:   0
+Page  367 size:  432 x 648 pts
+Page  367 rot:   0
+Page  368 size:  432 x 648 pts
+Page  368 rot:   0
+Page  369 size:  432 x 648 pts
+Page  369 rot:   0
+Page  370 size:  432 x 648 pts
+Page  370 rot:   0
+Page  371 size:  432 x 648 pts
+Page  371 rot:   0
+Page  372 size:  432 x 648 pts
+Page  372 rot:   0
+File size:       6895197 bytes
+Optimized:       no
+PDF version:     1.4

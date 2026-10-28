@@ -1,0 +1,8 @@
+Built-in image_gen edit prompt:
+
+Edit this existing book front cover for a new 7-inch-wide by 10-inch-tall portrait trim. Output exact 7:10 aspect ratio, preferably 2100x3000 or 2800x4000 pixels at print quality. The user explicitly wants the composition to MORPH/recompose for the slightly wider proportions, not a simple uniform resize, letterbox, crop, or stretch. Preserve the exact existing design and recognizable artwork: warm ivory background, dark navy traditional serif typography, orange thin rules and circular arrows, the open book with blue technical drawings and curling blueprint pages, the dark metal mechanical drafting arm on the right, gold ribbon, and author and series footer. Gently reposition and recompose the page curl, open book, arm and whitespace to naturally fill a 7:10 canvas. Keep circles round and type undistorted. Keep generous safe margins for all text and the entire illustration. Do not add any new wording, badge, edition number, objects or border. This is a flat front-cover image, not a photographed book, no spine/back cover, no bleed marks. Preserve text VERBATIM, sharp and perfectly spelled: title on two lines 'The Art of Building' / 'AI Coding Agents'; subtitle 'An agentic codebook:' / 'A book that builds the agent that builds the book'; author 'Bill Cox'; bottom line 'Series: The Singularity as it Happened, Book 5'. Match original visual treatment closely; only adapt composition and spacing to the new aspect ratio.
+
+Source: /Users/bill/Downloads/The Art of Building AI Coding Agents (1)_upscayl_4x_digital-art-4x.png
+Generated output: 1049 x 1499 pixels.
+Delivery: resampled with macOS sips to 2100 x 3000 pixels, tagged 300 DPI.
+This is an upscaled front-cover image, not a wraparound paperback cover.

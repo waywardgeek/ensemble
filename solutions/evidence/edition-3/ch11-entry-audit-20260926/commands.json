@@ -1,0 +1,94 @@
+[
+  {
+    "name": "build-driver",
+    "argv": [
+      "/opt/homebrew/bin/go",
+      "build",
+      "-o",
+      "/Users/bill/projects/ensemble/solutions/evidence/edition-3/ch11-entry-audit-20260926/bin/audit",
+      "./solutions/evidence/edition-3/ch11-entry-audit-20260926/driver"
+    ],
+    "cwd": "/Users/bill/projects/ensemble",
+    "time_limit_seconds": 90,
+    "started": "2026-10-19T06:46:45Z",
+    "free_before": 1355841536,
+    "pid": 3428,
+    "pgid": 3428,
+    "exit_code": 0,
+    "elapsed_seconds": 2.062,
+    "minimum_free": 1342509056,
+    "remaining_group_cleanup": false,
+    "free_after": 1338621952
+  },
+  {
+    "name": "build-edition3",
+    "argv": [
+      "/opt/homebrew/bin/go",
+      "build",
+      "-o",
+      "/Users/bill/projects/ensemble/solutions/evidence/edition-3/ch11-entry-audit-20260926/bin/grade-edition3",
+      "./cmd/grade-edition3"
+    ],
+    "cwd": "/Users/bill/projects/ensemble",
+    "time_limit_seconds": 90,
+    "started": "2026-10-19T06:46:47Z",
+    "free_before": 1338617856,
+    "pid": 3443,
+    "pgid": 3443,
+    "exit_code": 0,
+    "elapsed_seconds": 0.52,
+    "minimum_free": 1337700352,
+    "remaining_group_cleanup": false,
+    "free_after": 1326796800
+  },
+  {
+    "name": "edition3-ch11-validation",
+    "argv": [
+      "/Users/bill/projects/ensemble/solutions/evidence/edition-3/ch11-entry-audit-20260926/bin/grade-edition3",
+      "-ch",
+      "11",
+      "-json",
+      "-core",
+      "/Users/bill/projects/ensemble/solutions/ch11",
+      "-consumer",
+      "/Users/bill/projects/ensemble/solutions/ch11/ch05",
+      "-workflow",
+      "/Users/bill/projects/ensemble/solutions/ch11/ch06",
+      "-stream-exercise",
+      "/Users/bill/projects/ensemble/solutions/ch11/ch07",
+      "-stream-model",
+      "claude-sonnet-5",
+      "-gui",
+      "/Users/bill/projects/ensemble/solutions/ch11/gui",
+      "-gui-model",
+      "claude-sonnet-5",
+      "/Users/bill/projects/ensemble/solutions/ch11"
+    ],
+    "cwd": "/Users/bill/projects/ensemble",
+    "time_limit_seconds": 10,
+    "started": "2026-10-19T06:46:48Z",
+    "free_before": 1326796800,
+    "pid": 3452,
+    "pgid": 3452,
+    "exit_code": 2,
+    "elapsed_seconds": 0.26,
+    "minimum_free": 1326796800,
+    "remaining_group_cleanup": false,
+    "free_after": 1328640000
+  },
+  {
+    "name": "historical-ch11",
+    "argv": [
+      "/Users/bill/projects/ensemble/solutions/evidence/edition-3/ch11-entry-audit-20260926/bin/audit",
+      "baseline",
+      "/Users/bill/projects/ensemble",
+      "/Users/bill/projects/ensemble/solutions/evidence/edition-3/ch11-entry-audit-20260926"
+    ],
+    "cwd": "/Users/bill/projects/ensemble",
+    "time_limit_seconds": 300,
+    "started": "2026-10-19T06:46:48Z",
+    "free_before": 1328635904,
+    "pid": 3453,
+    "pgid": 3453
+  }
+]

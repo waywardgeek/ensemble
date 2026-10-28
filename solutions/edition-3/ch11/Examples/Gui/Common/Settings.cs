@@ -1,0 +1,21 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Ensemble;
+
+namespace EnsembleGui;
+
+// Value-like presentation preferences, not an owner or an Agent service. The
+// tool budget deliberately does not live here: the Agent owns that live fact.
+public sealed record Preferences(string Theme = "system", bool TtsEnabled = false,
+    double TtsSpeed = 1, int FontSize = 18, bool PauseWhileSpeaking = true);
+
+public static partial class Gui
+{
+    // Shared validation for disk and wire patches. Invalid/unknown fields leave
+    // their previous values intact; a well-typed out-of-range number is clamped.
+    private static partial (Preferences Preferences, int Budget) MergeSettings(
+        JsonElement patch, Preferences current, int budget);
+    private static partial JsonObject Settings(Preferences preferences, int budget);
+    private static partial (Preferences Preferences, int Budget) LoadSettings(string path);
+    private static partial void SaveSettings(string path, JsonObject settings);
+}

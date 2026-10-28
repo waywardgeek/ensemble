@@ -1,0 +1,139 @@
+{
+  "result": "PASS",
+  "checked_at": "2026-10-17T17:09:57.851189+00:00",
+  "release": "Second Edition \u2014 Update 2 (first update after original release)",
+  "source_head": "b67386ab80cf2afe7985db5a32ab99ec2311f090",
+  "preserved_sources": {
+    "book/preface.md": "915cf8c531169c5aacc4cb81bd743eeba8a181d20bc779d936ac5f7ab9998d96",
+    "book/chapter-00.md": "e3b7e91ddb630b87edfd39affd177858fe9a773398054a5c843219c9f6b48317",
+    "book/chapter-01.md": "f900577d2826a5adc1d6748297b0a20aa23879088ffd027a0fd01fb3c108828a",
+    "book/chapter-02.md": "3bdf466630d594670779af9687f6ab0d6d4bcec6c5a525184f86d175e12bed7b",
+    "book/chapter-03.md": "605a504caa0f7828549e137473706286d7ad9c330069d1624afe770e80e72aa6",
+    "book/chapter-04.md": "b5b89281bdb8aaeee58fc2d5777c2fec8d70f6d048fb83f675487219188a308d",
+    "book/chapter-05.md": "b50de003bcbf2f486fad04e3db608572350001c2a778114201e458a0dfa13297",
+    "book/chapter-06.md": "55e92c2065539b543f09705dc7729cc7fc6b6ec1f7254f5ea17dffce274442c4",
+    "book/chapter-07.md": "a37b55744fecb55ad5a80dbb4e735028a1ef954c2529121e3a6851388ab194b1",
+    "book/chapter-08.md": "ad91434bf006d0353daa184125c9304672d77b6b3dd89e83828cb147e8efe9b0",
+    "book/chapter-09.md": "5ceef9feb707cc2ff1293e82ea1fda50557f86c61e4b56c6289d2584adc03c91",
+    "book/chapter-10.md": "75f1936ca8f1bdd005d2f48411dc00c2d50885cfdf6d93c63cb7015bbcbb9d10",
+    "book/chapter-11.md": "3b6e138ba7bcb0cad8e53b01b23d206b6a26f503670a05d8cf637bbd40378638",
+    "book/chapter-12.md": "1976cc118bbdab5ca48d0b29ee5b3e4a46631367ad711d6bb4dd75fa2fe3bfff",
+    "book/chapter-13.md": "fa4466761e22056e11063b032ff1c4d34e9c6cab6e6a90a940fd9119ab747328",
+    "book/chapter-14.md": "88d9ec81e886f9c8bdc5c5ebbc0865b794fdc4fda1af6005a94665435e775c9b",
+    "book/chapter-15.md": "d2bdcb85251a47207731a4af4067b39cf77dff9e005b0c47e064e29bdd4b5b2f",
+    "book/chapter-16.md": "02b7553faa21a851f07b338d9ee97d73bab2d43abed5b9f18deb56a4529d45a6",
+    "book/chapter-17.md": "bca4ef34f0f5046a9041572b1639948d13f9d9e590b692f05ddb7264eb4d72cd",
+    "book/chapter-18.md": "e823fb61f6c4c1a9a18f0a00f9f25b7942a8943f11c1811ae142d5e817bb1693",
+    "book/chapter-19.md": "c03f200280f489ac3bc80cd86c7f571980c06ce59c5e04b8ecd390c2026bad41",
+    "book/chapter-20.md": "1e3ba55bac4c9c4697619a10184e16c127ecbdd5d9d00ce4fc9978d02363faee",
+    "book/chapter-21.md": "4988341ea73f3479ee3edaaa3f5866ab21d8bfee40bbcc8fbc4354c29834c121",
+    "book/chapter-22.md": "bf04eaf452445667113b0e6365e34cda2a251446ff70cd8524effa04fb289a14",
+    "book/chapter-23.md": "0b88bd6fa42f1cab51c97b2eb1e9969c479fb8d9777213ce01b66ae28eede7f6",
+    "book/chapter-24.md": "2d8cafa7bac9555f79efa927f05f9e8d88a37ca9cff96f21caa3ecc993729351",
+    "book/chapter-25.md": "20d12b52df0d20241adc98f03c65d2242703569e4d1be8116900a75f03ae197a",
+    "book/chapter-26.md": "732145632e7d8724e7079a69e1365a58c04d09f3c5380f854579ba1cbc2cbd1a",
+    "book/epilogue.md": "aa99f2dd1e90413adf4e8fc893ee81aa85c9df282f174709fb98eca931112bb5",
+    "book/cover.png": "e45bf2d857937888c5aaf553bbb34fcd34be7e27bf012566dc3314086318eb4b",
+    "book/print-header.html": "a3d3640ae9a3635d52ab0facb5646c2c1db949dd98899a614ab4555efbc8fc34",
+    "book/epub.css": "d54fdc8903529b82e5c1a25eb92bea92b5923a3914146cde1dfebe1f764bea01",
+    "book/build-print.py": "8390f79cee66bd611bd23f02b9e3247611817a4aa6193d33f29a5236d1301a38",
+    "scripts/build-ebook.sh": "c714fe67f3cd021bf23764714411aeedbffd236f057eb41ed6870ba2a34c3812",
+    "scripts/assemble-book.sh": "be98e9fc366b849c270666aa8c0905cf09927194c8f3a2a4a78f7cb326b24eff"
+  },
+  "release_sources": {
+    "book/front-matter.md": "ebbf106193d7c00563c4db1bf3e7e52ee17871ceb0813b8bbb962a3e3468a2b7",
+    "book/front-matter-print.md": "8d5c103e5e87780ad490fd42b085dfbb477239bc37251d900f716a13e509e50c",
+    "book/note-from-bill.md": "9fc8cf79d72ed4c392a8cd7664bb4e197bc0962347609f348274ef6ba23d12bd"
+  },
+  "epub": {
+    "toc_entries": 31,
+    "ncx_entries": 32,
+    "content_h1": 32,
+    "embedded_images": 1,
+    "internal_links_checked": 1896,
+    "external_urls": 100,
+    "nav_in_spine": false
+  },
+  "pdf": {
+    "interior_pages": 577,
+    "reading_pages": 578,
+    "all_pages_points": [
+      504,
+      720
+    ],
+    "body_pt": 12,
+    "minimum_code_pt": 10,
+    "release_label_pages": [
+      3
+    ],
+    "reading_links_preserved": 142,
+    "internal_links_checked": 30,
+    "black_code_spans": 6895,
+    "text_spans_outside_page": [],
+    "contents_pages": {
+      "Preface": 5,
+      "Chapter 0: The Perpetual Machine": 12,
+      "Chapter 1: One Loop, Sixty Billion Dollars": 21,
+      "Chapter 2: One Log, Three Vendors": 39,
+      "Chapter 3: Six Tools, Ninety-Two Percent of an AI Coding Agent": 78,
+      "Chapter 4: Jobs, or Why a Tool Call Is a Process You Supervise": 103,
+      "Chapter 5: Two Seams and a Loop": 132,
+      "Chapter 6: Streaming, or the Same Answer in Pieces": 160,
+      "Chapter 7: Everything Is an Artifact": 184,
+      "Chapter 8: Build Your Dream GUI": 203,
+      "Chapter 9: Skills": 219,
+      "Chapter 10: Persistence": 232,
+      "Chapter 11: MCP: The Extension Protocol": 244,
+      "Chapter 12: The Agent Sees Itself": 258,
+      "Chapter 13: The Channel Nobody Tested": 278,
+      "Chapter 14: The World\u2019s Best Context Engineering, Before Breakfast": 297,
+      "Chapter 15: The Invisible Invoice": 324,
+      "Chapter 16: Leaving Anthropic for OpenAI": 347,
+      "Chapter 17: The Crossover": 369,
+      "Chapter 18: Giving the Agent the Web, and a Status Line": 387,
+      "Chapter 19: The Sandbox": 416,
+      "Chapter 20: The Ensemble": 441,
+      "Chapter 21: Managing the Swarm": 474,
+      "Chapter 22: Forgetting on Purpose": 493,
+      "Chapter 23: Auto-Recall": 524,
+      "Chapter 24: While the Cache Is Broken": 545,
+      "Chapter 25: Crossing Over to Ensemble": 550,
+      "Chapter 26: Gateway": 551,
+      "Epilogue: What the student changed": 574,
+      "A Note from Bill": 577
+    }
+  },
+  "artifacts": {
+    "the-art-of-building-ai-coding-agents.md": {
+      "bytes": 1062807,
+      "sha256": "045edf6bec47aab39ca3fbf798cac780e3a7e104f2e88113b857043ec883b58b"
+    },
+    "interior-print.html": {
+      "bytes": 1513364,
+      "sha256": "9793d03711e4ff5e89b33129db8bc0fd239061033bc0371a6f7097af71bd22a4"
+    },
+    "The Art of Building AI Coding Agents.epub": {
+      "bytes": 17065925,
+      "sha256": "d742e47b5e20d93d7fa81ecf836518eb3fe16584dbe3016386bf689f3e65b3d6"
+    },
+    "The Art of Building AI Coding Agents - Print Interior.pdf": {
+      "bytes": 6522417,
+      "sha256": "a6ecf1ede75434ea5c1d050d54c48f189dfbac9c8f4343b130ecf3f7a9f9e9ac"
+    },
+    "The Art of Building AI Coding Agents.pdf": {
+      "bytes": 19375667,
+      "sha256": "536c0d5fa38622108b3164a085147a9a20a31a3878ff17fc090d823468fd448c"
+    }
+  },
+  "limitations": [
+    "No Kindle device or Kindle Previewer visual review performed.",
+    "No KDP print preview or physical proof reviewed.",
+    "No new visual PDF inspection performed; bounding-box checks do not establish visual quality.",
+    "External URL reachability not tested.",
+    "Paperback wraparound cover not generated.",
+    "No publication, upload, push, or commit performed."
+  ],
+  "check_corrections": [
+    "Initial check assumed the release label was on PDF page 2; actual label is on page 3. Corrected check searches extracted PDF text rather than assuming page placement."
+  ]
+}

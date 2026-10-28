@@ -1,0 +1,105 @@
+{
+  "base_commit": "9210148ac66a009412cc836aaed1102850489ab0",
+  "preface_owner": "Bill Cox; cost subsection edited at his explicit request, preserved during build",
+  "inputs": {
+    "book/preface.md": "915cf8c531169c5aacc4cb81bd743eeba8a181d20bc779d936ac5f7ab9998d96",
+    "book/chapter-00.md": "f3209f252e92595cac4e3978d64b5a68e0d78bd2f87cf3513641ba8971782ee2",
+    "book/chapter-01.md": "f900577d2826a5adc1d6748297b0a20aa23879088ffd027a0fd01fb3c108828a",
+    "book/chapter-02.md": "3bdf466630d594670779af9687f6ab0d6d4bcec6c5a525184f86d175e12bed7b",
+    "book/chapter-03.md": "605a504caa0f7828549e137473706286d7ad9c330069d1624afe770e80e72aa6",
+    "book/chapter-04.md": "b5b89281bdb8aaeee58fc2d5777c2fec8d70f6d048fb83f675487219188a308d",
+    "book/chapter-05.md": "b50de003bcbf2f486fad04e3db608572350001c2a778114201e458a0dfa13297",
+    "book/chapter-06.md": "55e92c2065539b543f09705dc7729cc7fc6b6ec1f7254f5ea17dffce274442c4",
+    "book/chapter-07.md": "a37b55744fecb55ad5a80dbb4e735028a1ef954c2529121e3a6851388ab194b1",
+    "book/chapter-08.md": "ad91434bf006d0353daa184125c9304672d77b6b3dd89e83828cb147e8efe9b0",
+    "book/chapter-09.md": "41a78b2d12cbfce87380b49aaa82e74a477f72e8033fdced8213374cb8295e17",
+    "book/chapter-10.md": "75f1936ca8f1bdd005d2f48411dc00c2d50885cfdf6d93c63cb7015bbcbb9d10",
+    "book/chapter-11.md": "3b6e138ba7bcb0cad8e53b01b23d206b6a26f503670a05d8cf637bbd40378638",
+    "book/chapter-12.md": "1976cc118bbdab5ca48d0b29ee5b3e4a46631367ad711d6bb4dd75fa2fe3bfff",
+    "book/chapter-13.md": "fa4466761e22056e11063b032ff1c4d34e9c6cab6e6a90a940fd9119ab747328",
+    "book/chapter-14.md": "3fe21cea3e607486e34c36529b8254967ef6b2072381d18a4c2d7f78e8501dc8",
+    "book/chapter-15.md": "d4dbd085d885a0be77955b803c7450aec08385268251d3161314c087f02dbb29",
+    "book/chapter-16.md": "5d2795ee0050c00d3437765c961d501df312cc053fc9bbb6f07565e6dc73aff9",
+    "book/chapter-17.md": "bdaf4a6426b6005fbb31082cb26fecbb115b50d2fbd51fe97e47880e0cde95f1",
+    "book/chapter-18.md": "0475a7c00d279dc11603adb7c4a4173c4e4e853f0e3ce3f935a4122179aa72b6",
+    "book/chapter-19.md": "441cff238ec6aabb48ee8ec14a5afbbb04cdef9325989572dff1845f4e0b84f9",
+    "book/chapter-20.md": "580ee83dfacbe855f4bbd3c58d77e4c00ef974cdd7a540147e1ae61c88e30a0d",
+    "book/chapter-21.md": "7e4c2837221723f522762643250d5266c38fa59418facd5b8c7a1a3c5789b144",
+    "book/chapter-22.md": "fe77041a3cb597cec2ea0bf079495821e9e5703c6541a44494d7c2736907dc75",
+    "book/chapter-23.md": "b0942bb6a979bba449c4e761bad9159fd5efea634aa2074dba0ebe533995f5bd",
+    "book/chapter-24.md": "2d8cafa7bac9555f79efa927f05f9e8d88a37ca9cff96f21caa3ecc993729351",
+    "book/chapter-25.md": "2a065c2dec6227148f8f382d42dcbc2fe1c69f6fd3be4b2c168c2eb2fe24a2a0",
+    "book/chapter-26.md": "732145632e7d8724e7079a69e1365a58c04d09f3c5380f854579ba1cbc2cbd1a",
+    "book/epilogue.md": "5c8c3758b134aa7ffff88547419157c3c7fd4351c256265e14adc01a205fb723",
+    "book/note-from-bill.md": "669ccd62c4df8462aff74152328a2f10dc67d89c303636e96782c31148897948",
+    "book/front-matter.md": "62f8f4f2789959ddd2670b7efa669e337dc8cadee90be04e1b43d3b48ce92506",
+    "book/front-matter-print.md": "6a64689259d03c568befd803cbced41b2062f7a09cab1f7822f5187a6f437df8",
+    "book/cover.png": "e45bf2d857937888c5aaf553bbb34fcd34be7e27bf012566dc3314086318eb4b"
+  },
+  "commands": [
+    {
+      "name": "ebook",
+      "command": [
+        "make",
+        "ebook"
+      ],
+      "exit": 0,
+      "seconds": 3.26
+    },
+    {
+      "name": "print",
+      "command": [
+        "python3",
+        "book/build-print.py"
+      ],
+      "exit": 0,
+      "seconds": 7.444
+    },
+    {
+      "name": "cover-pdf",
+      "command": [
+        "pdfunite",
+        "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/ensemble-preface-cover-5uxl4otv/cover.pdf",
+        "/Users/bill/projects/ensemble/book/The Art of Building AI Coding Agents - Print Interior.pdf",
+        "/Users/bill/projects/ensemble/book/The Art of Building AI Coding Agents.pdf"
+      ],
+      "exit": 0,
+      "seconds": 0.171
+    }
+  ],
+  "unchanged_preexisting_dirty_files": [
+    "agent/ensemble/ensemble.go",
+    "agent/ensemble/fleet.go",
+    "agent/ensemble/fleet_test.go",
+    "agent/gui/settings.go",
+    "agent/gui/settings_test.go",
+    "agent/gui/speech.test.mjs",
+    "agent/gui/web/gui/app.js",
+    "agent/gui/web/gui/index.html",
+    "agent/internal/fleet/fleet.go",
+    "agent/skills/ensemble/SKILL.md",
+    "edition-1/book/chapters.md"
+  ],
+  "artifacts": {
+    "the-art-of-building-ai-coding-agents.md": {
+      "sha256": "a9ab5b12f7b5dd8d59f44a58ba73f1aeb4b9a29856f2bddb1fa7b1602d73c1c5",
+      "bytes": 1030374
+    },
+    "interior-print.html": {
+      "sha256": "42e6b4603c71406d76ab9be85ed7698de31480842b77959977fef61ff666ebaf",
+      "bytes": 1470399
+    },
+    "The Art of Building AI Coding Agents.epub": {
+      "sha256": "a1f6d666047b8aae6779d781cef576c0c22b5cb5e4384762ef914a460d835f1a",
+      "bytes": 17053354
+    },
+    "The Art of Building AI Coding Agents - Print Interior.pdf": {
+      "sha256": "ef8b293511821d0c1ca8a5f9fc73d9818bc8e2b0ac03d2c248137bde7c52a264",
+      "bytes": 6895197
+    },
+    "The Art of Building AI Coding Agents.pdf": {
+      "sha256": "ed2abee11a13eedf332ac5685620a921706edf5719c8403df1e0dc92aa2cea87",
+      "bytes": 3895869
+    }
+  }
+}

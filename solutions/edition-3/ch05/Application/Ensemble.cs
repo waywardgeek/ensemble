@@ -1,0 +1,91 @@
+using System.Collections.Immutable;
+namespace Ensemble;
+
+public sealed partial class Ensemble
+{
+    public partial Ensemble(TextWriter diagnostics)
+    {
+        this.diagnostics = diagnostics;
+        agents = [];
+    }
+
+    public partial ImmutableArray<Agent> Agents() => agents.ToImmutableArray();
+    public partial Agent? FindAgent(string name)
+    {
+        ObjectDisposedException.ThrowIf(destroyed, this);
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        return agents.FirstOrDefault(agent => string.Equals(agent.Name, name, StringComparison.Ordinal));
+    }
+
+    internal partial void AddAgent(Agent child)
+    {
+        ObjectDisposedException.ThrowIf(destroyed, this);
+        if (child.destroyed || child.parent is not null || agents.Contains(child))
+        {
+            throw new InvalidOperationException("Invalid Agent registration");
+        }
+
+        if (child.Name is not null && FindAgent(child.Name) is not null)
+        {
+            throw new InvalidOperationException("An Agent with that name is already owned here.");
+        }
+        agents.Add(child);
+        child.parent = this;
+    }
+
+    internal partial void RemoveAgent(Agent child)
+    {
+        if (!ReferenceEquals(child.parent, this) || !agents.Contains(child))
+        {
+            throw new InvalidOperationException("Agent is not registered here");
+        }
+
+        agents.Remove(child);
+        child.parent = null;
+    }
+
+    internal partial int AllocateJobHandle()
+    {
+        lock (handleGate)
+        {
+            return nextJobHandle++;
+        }
+    }
+
+    public partial void Log(string message)
+    {
+        lock (diagnostics)
+        {
+            diagnostics.WriteLine($"{DateTimeOffset.UtcNow:O} {message}");
+        }
+    }
+    public partial void Destroy()
+    {
+        if (destroyed)
+        {
+            return;
+        }
+
+        destroyed = true;
+        // Children remove themselves from this collection. Enumerate a snapshot.
+        List<Exception>? failures = null;
+        foreach (var child in agents.ToArray())
+        {
+            try
+            {
+                child.Destroy();
+            }
+            catch (Exception ex)
+            {
+                failures ??= [];
+                failures.Add(ex);
+            }
+        }
+        // Complete every ownership cascade even if one log cannot close cleanly.
+        observations.Writer.TryComplete();
+        if (failures is not null)
+        {
+            throw new AggregateException("Agent cleanup failed", failures);
+        }
+    }
+}

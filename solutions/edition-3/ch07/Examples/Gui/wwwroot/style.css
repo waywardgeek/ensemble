@@ -1,0 +1,35 @@
+:root { color-scheme: dark; font: 18px/1.5 system-ui,sans-serif; background: #111827; color: #f3f4f6; }
+* { box-sizing: border-box; }
+body { max-width: 70rem; margin: auto; padding: 1rem; }
+header { border-bottom: 1px solid #64748b; padding-bottom: .7rem; }
+h1 { display: inline; margin-right: 1rem; font-size: 1.6rem; }
+#connection, #state { display: inline-block; padding: .2rem .5rem; }
+.controls { display: flex; flex-wrap: wrap; gap: .5rem; margin: .6rem 0; }
+button, select, textarea { font: inherit; color: inherit; background: #1e293b; border: 1px solid #94a3b8; border-radius: .35rem; padding: .45rem .7rem; }
+button { cursor: pointer; min-height: 2.6rem; }
+button:hover { background: #334155; }
+button:disabled { opacity: .5; cursor: default; }
+:focus-visible { outline: 3px solid #fbbf24; outline-offset: 3px; }
+label { display: block; margin: .4rem 0; }
+select { max-width: 100%; }
+textarea { display: block; width: 100%; resize: vertical; }
+article { border: 1px solid #64748b; border-radius: .5rem; margin: 1rem 0; padding: .8rem; overflow-wrap: anywhere; }
+article[data-role="human"] { border-left: .35rem solid #38bdf8; }
+article[data-role="assistant"] { border-left: .35rem solid #a78bfa; }
+.card-heading { display: flex; align-items: center; justify-content: space-between; gap: .5rem; flex-wrap: wrap; }
+.card-heading strong { min-width: 0; }
+.card-heading button { font-size: .9rem; }
+pre { white-space: pre-wrap; overflow-wrap: anywhere; background: #0b1220; padding: .75rem; }
+code { font-family: ui-monospace,monospace; }
+summary { cursor: pointer; padding: .25rem; }
+.message p { white-space: pre-wrap; margin: .6rem 0; }
+a { color: #7dd3fc; }
+#notice { min-height: 1.5rem; color: #fde68a; }
+form { padding-bottom: 1rem; }
+@media(max-width: 420px) { body { padding: .5rem; } button { flex: 1 1 auto; } }
+
+/* Highlighting changes presentation, never the code's underlying text. */
+.code-keyword { color: #74c0fc; font-weight: 600; }
+.code-string { color: #8ce99a; }
+.code-number { color: #ffd43b; }
+.code-comment { color: #adb5bd; font-style: italic; }

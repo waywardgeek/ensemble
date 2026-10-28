@@ -1,0 +1,23 @@
+{
+  "bin": "/Users/bill/projects/ensemble/solutions/evidence/edition-3/ch11-entry-audit-20260926/tmp/course-grade-2973158204/submission",
+  "consumer": "/Users/bill/projects/ensemble/solutions/ch11/ch05",
+  "consumer_case": {
+    "name": "shout",
+    "arguments": {
+      "text": "hello framework"
+    },
+    "result": "HELLO FRAMEWORK",
+    "diagnostic": "shout called"
+  },
+  "core": "/Users/bill/projects/ensemble/solutions/ch11",
+  "exercise": "/Users/bill/projects/ensemble/solutions/ch11/ch07",
+  "gui": "/Users/bill/projects/ensemble/solutions/ch11/gui",
+  "gui_model": "claude-sonnet-5",
+  "media": {
+    "anthropic": "claude-sonnet-4-6",
+    "gemini": "gemini-3.8-flash",
+    "openai": "gpt-5.4-mini"
+  },
+  "stream_model": "claude-sonnet-5",
+  "workflow": "/Users/bill/projects/ensemble/solutions/ch11/ch06"
+}

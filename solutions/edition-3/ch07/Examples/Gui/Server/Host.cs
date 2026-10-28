@@ -1,0 +1,377 @@
+using Ensemble;
+using Microsoft.Extensions.FileProviders;
+using System.Collections.Immutable;
+using System.Net;
+using System.Net.WebSockets;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Threading.Channels;
+
+namespace EnsembleGui;
+
+public static partial class Gui
+{
+    public static partial async Task RunAsync(Agent agent, string[] args)
+    {
+        int port = 8090;
+        string files = Path.Combine(AppContext.BaseDirectory, "wwwroot");
+        for (int i = 0; i < args.Length; i++)
+        {
+            switch (args[i])
+            {
+                case "--port" when i + 1 < args.Length:
+                    port = int.Parse(args[++i]);
+                    break;
+                case "--gui-dir" when i + 1 < args.Length:
+                    files = Path.GetFullPath(args[++i]);
+                    break;
+                default:
+                    throw new ArgumentException("Expected --port NUMBER or --gui-dir PATH");
+            }
+        }
+        if (port is < 1 or > 65535)
+        {
+            throw new ArgumentException("Port must be between 1 and 65535");
+        }
+        var builder = WebApplication.CreateBuilder(Array.Empty<string>());
+        builder.Logging.ClearProviders();
+        builder.WebHost.ConfigureKestrel(options => options.Listen(IPAddress.Loopback, port));
+        await using var host = builder.Build();
+        using var staticFiles = new PhysicalFileProvider(files);
+        host.Use(async (context, next) =>
+        {
+            // Reject DNS-rebinding hostnames as well as foreign WebSocket origins.
+            if (context.Request.Host.Host is not ("127.0.0.1" or "localhost" or "[::1]"))
+            {
+                context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                return;
+            }
+            await next(context);
+        });
+        host.UseWebSockets();
+        host.UseDefaultFiles(new DefaultFilesOptions { FileProvider = staticFiles });
+        host.UseStaticFiles(new StaticFileOptions { FileProvider = staticFiles });
+
+        // Operation-scoped I/O state. The Agent remains owned by its Ensemble.
+        // Queues and socket lifetimes end when RunAsync ends; no socket is ever
+        // stored on Agent or used to decide whether a model turn is complete.
+        string agentID = agent.Name ?? "root";
+        object gate = new();
+        string tracePath = Environment.GetEnvironmentVariable("CH07_GUI_LOG") ?? "gui.log";
+        using var trace = new StreamWriter(tracePath, append: true) { AutoFlush = true };
+        object traceGate = new();
+        void Trace(string direction, string json)
+        {
+            // Trace data, not HTTP headers. Redact the selected credential even
+            // if user/provider text happens to echo it. Writers have one owner.
+            string key = agent.Configuration().ApiKey;
+            if (key.Length != 0)
+            {
+                string escaped = JsonSerializer.Serialize(key)[1..^1];
+                json = json.Replace(escaped, "[REDACTED]", StringComparison.Ordinal);
+                json = json.Replace(key, "[REDACTED]", StringComparison.Ordinal);
+            }
+            lock (traceGate)
+            {
+                trace.WriteLine($"{DateTimeOffset.UtcNow:O} {direction} {json}");
+            }
+        }
+        var peers = new Dictionary<WebSocket, (Channel<string> Queue, long Cursor)>();
+        var partials = new Dictionary<string, JsonObject>(StringComparer.Ordinal);
+        using var stopping = new CancellationTokenSource();
+
+        JsonObject State(Projection projection) => new()
+        {
+            ["type"] = "agent_state", ["agent_id"] = agentID,
+            ["name"] = agentID, ["state"] = projection.State
+        };
+
+        // Must be called under gate. TryWrite never waits on a browser.
+        void Queue(WebSocket socket, Channel<string> queue, JsonObject frame)
+        {
+            if (!queue.Writer.TryWrite(frame.ToJsonString()))
+            {
+                queue.Writer.TryComplete();
+                socket.Abort();
+            }
+        }
+
+        (HistorySnapshot Snapshot, Projection Projection) Capture(long? through = null)
+        {
+            var snapshot = agent.History().Snapshot();
+            if (through is long sequence)
+            {
+                snapshot = snapshot with { Events = snapshot.Events.Where(e => e.Seq <= sequence).ToImmutableArray() };
+            }
+            var projection = Project(snapshot, agentID);
+            long ended = snapshot.Events.LastOrDefault(e => e.Kind == EventKind.TurnEnded)?.Seq ?? 0;
+            foreach (var key in partials.Keys.ToArray())
+            {
+                var response = partials[key]["response_id"]!.GetValue<long>();
+                if (projection.FinalIDs.Contains(key) || response <= ended)
+                {
+                    partials.Remove(key);
+                }
+            }
+            return (snapshot, projection);
+        }
+
+        void Broadcast(Observation? observation)
+        {
+            lock (gate)
+            {
+                long? through = observation?.Fact?.Seq;
+                if (observation?.Kind == ObservationKind.PartDelta)
+                {
+                    through = observation.ResponseID;
+                }
+                var (snapshot, projection) = Capture(through);
+                long latest = snapshot.Events.LastOrDefault()?.Seq ?? 0;
+                foreach (var (socket, peer) in peers.ToArray())
+                {
+                    foreach (var frame in projection.Frames)
+                    {
+                        if (frame["seq"]!.GetValue<long>() > peer.Cursor)
+                        {
+                            Queue(socket, peer.Queue, frame);
+                        }
+                    }
+                    if (latest > peer.Cursor)
+                    {
+                        Queue(socket, peer.Queue, State(projection));
+                        peers[socket] = (peer.Queue, latest);
+                    }
+                }
+                if (observation?.Kind != ObservationKind.PartDelta || observation.PartID is not int partID)
+                {
+                    return;
+                }
+                string id = PartID(agentID, observation.ResponseID, partID);
+                long ended = snapshot.Events.LastOrDefault(e => e.Kind == EventKind.TurnEnded)?.Seq ?? 0;
+                if (projection.FinalIDs.Contains(id) || observation.ResponseID <= ended)
+                {
+                    return; // Late chunks cannot resurrect finalized/interrupted work.
+                }
+                string kind = observation.Delta!.Kind switch
+                {
+                    ChunkKind.Reply => "text", ChunkKind.Thinking => "thinking", _ => "tool_call"
+                };
+                var delta = new JsonObject
+                {
+                    ["type"] = "part_delta", ["agent_id"] = agentID, ["part_id"] = id,
+                    ["response_id"] = observation.ResponseID, ["kind"] = kind,
+                    ["chunk"] = (observation.Delta!.Kind == ChunkKind.ToolCall ? observation.Delta.ArgsText : observation.Delta.Text), ["tool_name"] = observation.Delta!.ToolName
+                };
+                if (partials.TryGetValue(id, out var previous))
+                {
+                    previous["chunk"] = previous["chunk"]!.GetValue<string>() + (observation.Delta!.Kind == ChunkKind.ToolCall ? observation.Delta.ArgsText : observation.Delta.Text);
+                    previous["tool_name"] = previous["tool_name"]!.GetValue<string>() + observation.Delta!.ToolName;
+                }
+                else
+                {
+                    partials[id] = (JsonObject)delta.DeepClone();
+                }
+                long finalizedAt = agent.History().Snapshot().Events
+                    .FirstOrDefault(e => e.Kind == EventKind.ResponseEnded && e.ResponseID == observation.ResponseID)?.Seq
+                    ?? long.MaxValue;
+                foreach (var (socket, peer) in peers)
+                {
+                    if (peer.Cursor < finalizedAt)
+                    {
+                        Queue(socket, peer.Queue, delta);
+                    }
+                }
+            }
+        }
+
+        async Task Observe()
+        {
+            while (!stopping.IsCancellationRequested)
+            {
+                using var wait = CancellationTokenSource.CreateLinkedTokenSource(stopping.Token);
+                wait.CancelAfter(TimeSpan.FromMilliseconds(200));
+                Observation? observation = null;
+                try
+                {
+                    observation = await agent.WaitAsync(_ => true, wait.Token);
+                }
+                catch (OperationCanceledException) when (!stopping.IsCancellationRequested)
+                {
+                    // Recover durable facts even if every progress wake-up was dropped.
+                }
+                catch (ChannelClosedException)
+                {
+                    return;
+                }
+                if (!stopping.IsCancellationRequested &&
+                    (observation is null || observation.Kind is ObservationKind.EventRecorded or ObservationKind.PartDelta))
+                {
+                    Broadcast(observation);
+                }
+            }
+        }
+
+        host.Map("/ws", async (HttpContext http) =>
+        {
+            // Loopback is not an origin check. A hostile web page must not gain
+            // local tool authority merely by opening this WebSocket endpoint.
+            string origin = http.Request.Headers.Origin.ToString();
+            if (!http.WebSockets.IsWebSocketRequest ||
+                (origin.Length != 0 && origin != $"http://{http.Request.Host}"))
+            {
+                http.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return;
+            }
+            using var socket = await http.WebSockets.AcceptWebSocketAsync();
+            using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(stopping.Token, http.RequestAborted);
+            var queue = Channel.CreateBounded<string>(new BoundedChannelOptions(256)
+            {
+                FullMode = BoundedChannelFullMode.Wait, SingleReader = true, SingleWriter = false
+            });
+            lock (gate)
+            {
+                var (snapshot, projection) = Capture();
+                peers.Add(socket, (queue, snapshot.Events.LastOrDefault()?.Seq ?? 0));
+                Queue(socket, queue, new JsonObject
+                {
+                    ["type"] = "replay", ["data"] = new JsonObject
+                    {
+                        ["events"] = new JsonArray(projection.Frames.Select(f => (JsonNode)f.DeepClone()).ToArray()),
+                        ["partials"] = new JsonArray(partials.Values.Select(f => (JsonNode)f.DeepClone()).ToArray()),
+                        ["agents"] = new JsonArray(State(projection))
+                    }
+                });
+                Queue(socket, queue, State(projection));
+            }
+            async Task Send()
+            {
+                await foreach (string frame in queue.Reader.ReadAllAsync(lifetime.Token))
+                {
+                    await socket.SendAsync(Encoding.UTF8.GetBytes(frame), WebSocketMessageType.Text, true, lifetime.Token);
+                    Trace("<", frame);
+                }
+            }
+            var sender = Send();
+            try
+            {
+                var buffer = new byte[8192];
+                while (!lifetime.IsCancellationRequested)
+                {
+                    using var content = new MemoryStream();
+                    WebSocketReceiveResult received;
+                    do
+                    {
+                        received = await socket.ReceiveAsync(buffer, lifetime.Token);
+                        if (received.MessageType == WebSocketMessageType.Close)
+                        {
+                            return;
+                        }
+                        if (received.MessageType != WebSocketMessageType.Text || content.Length + received.Count > 1024 * 1024)
+                        {
+                            throw new InvalidDataException("Expected a text control under 1 MiB");
+                        }
+                        content.Write(buffer, 0, received.Count);
+                    }
+                    while (!received.EndOfMessage);
+                    try
+                    {
+                        using var json = JsonDocument.Parse(content.ToArray());
+                        Trace(">", json.RootElement.GetRawText());
+                        var command = json.RootElement;
+                        string type = command.GetProperty("type").GetString() ?? "";
+                        string text = command.TryGetProperty("text", out var t) ? t.GetString() ?? "" : "";
+                        switch (type)
+                        {
+                            case "subscribe":
+                                // The initial snapshot is already queued atomically
+                                // with registration. Subscription is idempotent.
+                                break;
+                            case "prompt":
+                                await agent.PostAsync(new AgentInput(InputKind.Message, text));
+                                break;
+                            case "hint":
+                                await agent.PostAsync(new AgentInput(InputKind.Hint, text));
+                                break;
+                            case "pause":
+                                await agent.PostAsync(new AgentInput(InputKind.Pause));
+                                break;
+                            case "unpause":
+                                await agent.PostAsync(new AgentInput(InputKind.Resume));
+                                break;
+                            case "interrupt":
+                                string mode = command.TryGetProperty("mode", out var requestedMode)
+                                    ? requestedMode.GetString() ?? "now" : "now";
+                                InputKind interrupt = mode switch
+                                {
+                                    "now" => InputKind.InterruptNow,
+                                    "after_tool" => InputKind.InterruptAfterTool,
+                                    _ => throw new ArgumentException("Unknown interrupt mode")
+                                };
+                                await agent.PostAsync(new AgentInput(interrupt));
+                                break;
+                            case "shutdown":
+                                await agent.ShutdownAsync();
+                                break;
+                            default:
+                                throw new ArgumentException("Unknown GUI control");
+                        }
+                    }
+                    catch (Exception error) when (error is JsonException or ArgumentException or KeyNotFoundException or InvalidOperationException)
+                    {
+                        lock (gate)
+                        {
+                            Queue(socket, queue, new JsonObject { ["type"] = "error", ["message"] = "Invalid or unavailable control" });
+                        }
+                    }
+                }
+            }
+            catch (Exception error) when (error is OperationCanceledException or WebSocketException or IOException)
+            {
+                // Connection failure detaches display only; it never interrupts the Agent.
+            }
+            finally
+            {
+                lock (gate)
+                {
+                    peers.Remove(socket);
+                    queue.Writer.TryComplete();
+                }
+                lifetime.Cancel();
+                socket.Abort();
+                try
+                {
+                    await sender;
+                }
+                catch (Exception error) when (error is OperationCanceledException or WebSocketException or IOException)
+                {
+                    // The single sender is joined before disposing its socket.
+                }
+            }
+        });
+        var observer = Observe();
+        try
+        {
+            await host.RunAsync();
+        }
+        finally
+        {
+            stopping.Cancel();
+            lock (gate)
+            {
+                foreach (var (socket, peer) in peers)
+                {
+                    peer.Queue.Writer.TryComplete();
+                    socket.Abort();
+                }
+            }
+            try
+            {
+                await observer;
+            }
+            catch (OperationCanceledException) when (stopping.IsCancellationRequested)
+            {
+            }
+        }
+    }
+}

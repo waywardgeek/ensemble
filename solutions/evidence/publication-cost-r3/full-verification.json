@@ -1,0 +1,68 @@
+{
+  "result": "PASS",
+  "counts": {
+    "chapters_00_through_26": 27,
+    "content_h1": 32,
+    "epub_toc": 31,
+    "epub_ncx": 32,
+    "images": 1,
+    "repository_links": 61
+  },
+  "print_heading_pages": {
+    "Preface": 4,
+    "Chapter 0: The Perpetual Machine": 9,
+    "Chapter 1: One Loop, Sixty Billion Dollars": 15,
+    "Chapter 2: One Log, Three Vendors": 27,
+    "Chapter 3: Six Tools, Ninety-Two Percent of an AI Coding Agent": 52,
+    "Chapter 4: Jobs, or Why a Tool Call Is a Process You Supervise": 69,
+    "Chapter 5: Two Seams and a Loop": 88,
+    "Chapter 6: Streaming, or the Same Answer in Pieces": 106,
+    "Chapter 7: Everything Is an Artifact": 122,
+    "Chapter 8: Build Your Dream GUI": 135,
+    "Chapter 9: Skills": 145,
+    "Chapter 10: Persistence": 153,
+    "Chapter 11: MCP: The Extension Protocol": 161,
+    "Chapter 12: The Agent Sees Itself": 170,
+    "Chapter 13: The Channel Nobody Tested": 184,
+    "Chapter 14: The World\u2019s Best Context Engineering, Before Breakfast": 197,
+    "Chapter 15: Forgetting on Purpose": 215,
+    "Chapter 16: Auto-Recall": 231,
+    "Chapter 17: The Invisible Invoice": 244,
+    "Chapter 18: Leaving Anthropic for OpenAI": 259,
+    "Chapter 19: The Crossover": 273,
+    "Chapter 20: Giving the Agent the Web, and a Status Line": 285,
+    "Chapter 21: The Sandbox": 304,
+    "Chapter 22: The Ensemble": 320,
+    "Chapter 23: Managing the Swarm": 339,
+    "Chapter 24: While the Cache Is Broken": 350,
+    "Chapter 25: Crossing Over to Ensemble": 354,
+    "Chapter 26: Gateway": 355,
+    "Epilogue: What the student changed": 370,
+    "A Note from Bill": 372
+  },
+  "interior_pages": 372,
+  "cover_prefixed_pages": 373,
+  "page_size": "432 x 648 pt for every page",
+  "artifacts": {
+    "the-art-of-building-ai-coding-agents.md": {
+      "bytes": 1030374,
+      "sha256": "a9ab5b12f7b5dd8d59f44a58ba73f1aeb4b9a29856f2bddb1fa7b1602d73c1c5"
+    },
+    "interior-print.html": {
+      "bytes": 1470399,
+      "sha256": "42e6b4603c71406d76ab9be85ed7698de31480842b77959977fef61ff666ebaf"
+    },
+    "The Art of Building AI Coding Agents.epub": {
+      "bytes": 17053354,
+      "sha256": "a1f6d666047b8aae6779d781cef576c0c22b5cb5e4384762ef914a460d835f1a"
+    },
+    "The Art of Building AI Coding Agents - Print Interior.pdf": {
+      "bytes": 6895197,
+      "sha256": "ef8b293511821d0c1ca8a5f9fc73d9818bc8e2b0ac03d2c248137bde7c52a264"
+    },
+    "The Art of Building AI Coding Agents.pdf": {
+      "bytes": 3895869,
+      "sha256": "ed2abee11a13eedf332ac5685620a921706edf5719c8403df1e0dc92aa2cea87"
+    }
+  }
+}

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ensemble</title><link rel="stylesheet" href="/style.css"><script src="/speech.js" defer></script><script src="/mcp.js" defer></script><script src="/app.js" defer></script></head>
+<body><header><h1>Ensemble</h1><span id="connection" role="status">Connecting</span><span id="state">idle</span>
+<div class="controls"><button id="pause">Pause</button><button id="resume">Resume</button><button id="interrupt">Interrupt</button><button id="clear-tools">Clear tool traffic</button></div>
+<details id="settings-panel"><summary>Settings</summary>
+<label>Theme <select id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
+<label>Font size <input id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>
+<label>Tool batches per turn <input id="max-tool-rounds" type="number" min="0" step="1" value="0"> (0 = auto, 200)</label>
+<label>Context target <input id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>
+<label>Speech speed <input id="tts-speed" type="range" min="0.25" max="4" step="0.25" value="1"> <output id="speed-label">1×</output></label>
+<label><input id="pause-speaking" type="checkbox" checked> Pause Agent while speaking</label><label><input id="narrate" type="checkbox"> Narrate new assistant answers</label>
+<label>Voice <select id="voice"><option value="">Browser default</option></select></label><button id="stop-speech">Stop speech</button></details><section id="usage-meter" aria-label="Current process token usage and estimated cost" aria-describedby="usage-totals">
+  <span title="Estimated session token cost in USD, not an invoice">COST <output id="usage-cost">$0.00</output></span>
+  <span title="Latest response: new input plus cache writes plus cache reads">ALL <output id="usage-all">?</output></span>
+  <span title="Latest response: cache-read input tokens">CACHE <output id="usage-cache">?</output></span>
+  <span title="Session cache reads divided by all session input tokens">HIT RATE <output id="usage-hit">?</output></span>
+</section>
+<details id="usage-details"><summary>Usage totals and estimate limits</summary>
+  <p id="usage-totals">Waiting for the current process meter.</p>
+  <p>Cost is an estimate for verified model and service-tier prices, not an invoice. ? means unknown, not zero. Failed or cancelled requests may incur charges not observed here. Restored conversation does not restore these process totals.</p>
+</details>
+</header>
+<main id="transcript" aria-label="Conversation"></main><p id="notice" role="status"></p>
+<form id="compose"><label for="prompt">Message or hint</label><textarea id="prompt" rows="3" placeholder="Enter sends; Shift+Enter adds a line; Ctrl+Enter or Alt+H sends a hint"></textarea>
+<div class="controls"><button id="send" type="submit">Send message</button><button id="hint" type="button">Send hint</button></div></form>
+</body></html>
