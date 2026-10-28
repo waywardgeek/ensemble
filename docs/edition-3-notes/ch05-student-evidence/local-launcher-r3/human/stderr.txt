@@ -1,8 +1,0 @@
-Conversation ready. Enter a message; EOF exits.
-input=10 output=10 cache_write=0 cache_read=0
-Hint:  use concise prose
-Interrupted; ready for another prompt.
-input=10 output=10 cache_write=0 cache_read=0
-input=10 output=10 cache_write=0 cache_read=0
-input=10 output=10 cache_write=0 cache_read=0
-cumulative usage: input=40 output=40 cache_write=0 cache_read=0

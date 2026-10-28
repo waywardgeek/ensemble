@@ -85,16 +85,26 @@ func (e *engine) Render(c *common.Context) ([]byte, error) {
 	if c.Compression != nil && c.Compression.Committed != nil {
 		return nil, errors.New("memory commit requires disk recovery before rendering")
 	}
+	system := e.SystemPrompt()
+	if goal, ok := e.parent.(common.GoalController); ok {
+		text, err := goal.GoalSystemPrompt()
+		if err != nil {
+			return nil, err
+		}
+		if text != "" {
+			system += "\n\n" + text
+		}
+	}
 	switch e.parent.Config().Vendor {
 	case common.Anthropic:
-		return e.renderAnthropic(c)
+		return e.renderAnthropic(c, system)
 	case common.OpenAI:
 		if e.Features().Responses {
-			return e.renderResponses(c)
+			return e.renderResponses(c, system)
 		}
-		return e.renderOpenAI(c)
+		return e.renderOpenAI(c, system)
 	case common.Gemini:
-		return e.renderGemini(c)
+		return e.renderGemini(c, system)
 	default:
 		return nil, errors.New("unknown vendor")
 	}

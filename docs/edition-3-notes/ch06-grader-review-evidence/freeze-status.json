@@ -1,9 +1,0 @@
-{
-  "verdict": "PASS: exact thin adapter only",
-  "all_planned_runs_complete": true,
-  "pending_jobs": 0,
-  "children": 0,
-  "no_required_adapter_fix": true,
-  "entry_evidence_untouched": true,
-  "evidence_file_count_including_SHA256SUMS": 86
-}

@@ -1,5 +1,0 @@
-{"log_version":1}
-{"seq":1,"type":"message_received","time":"2026-10-17T20:47:43.956655Z","message":{"actor":"human","parts":[{"display_id":1,"type":"text","text":"slow"}]}}
-{"seq":2,"type":"request_sent","time":"2026-10-17T20:47:43.956668Z","request":{"to":{"vendor":"anthropic","model":"claude-sonnet-4-6","surface":"messages"}}}
-{"seq":3,"type":"response_ended","time":"2026-10-17T20:47:45.000938Z","response":{"parts":[{"display_id":2,"type":"opaque","data":{"signature":"FAKE_OPAQUE_DO_NOT_DISPLAY","thinking":"I am checking the local fixture.","type":"thinking"},"from":{"vendor":"anthropic","model":"claude-sonnet-4-6","surface":"messages"}},{"display_id":3,"type":"text","text":"First phrase. Final phrase."}],"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0},"from":{"vendor":"anthropic","model":"claude-sonnet-4-6","surface":"messages"}}}
-{"seq":4,"type":"turn_ended","time":"2026-10-17T20:47:45.002364Z","error":{"message":"completed"}}

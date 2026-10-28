@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch04-student-r1-evidence/local-boundary-check.py", line 149, in <module>
-    check_one(mode)
-    ~~~~~~~~~^^^^^^
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch04-student-r1-evidence/local-boundary-check.py", line 126, in check_one
-    returned = [e['tool'] for e in events if e['type'] == 'tool_returned' and e['tool']['name'] in [operation[0], 'run_command']]
-                                             ~^^^^^^^^
-KeyError: 'type'

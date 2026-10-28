@@ -1,1 +1,0 @@
-{"model":"fake-model","max_tokens":1024,"messages":[{"role":"system","content":"You are a helpful assistant."},{"role":"user","content":"Look up the sample item"},{"role":"assistant","content":"","tool_calls":[{"id":"c1","type":"function","function":{"name":"lookup","arguments":"{\"item\":\"sample\"}"}}]},{"role":"tool","content":"PRIVATE-FAKE-RESULT","tool_call_id":"c1"}]}

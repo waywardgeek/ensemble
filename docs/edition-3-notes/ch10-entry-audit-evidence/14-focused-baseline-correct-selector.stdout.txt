@@ -1,3 +1,0 @@
-=== RUN   TestChapter10Persistence
---- PASS: TestChapter10Persistence (0.60s)
-PASS

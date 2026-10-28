@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble-edition-3-student/gui/test/settings_process.py", line 122, in <module>
-    a, b = WS(addr), WS(addr); sockets += [a, b]
-           ~~^^^^^^
-  File "/Users/bill/projects/ensemble-edition-3-student/gui/test/settings_process.py", line 63, in __init__
-    assert b'101' in self.file.readline()
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError

@@ -1,5 +1,0 @@
-{
-  "file": "internal/agent/dispatch.go",
-  "original_sha256": "cda6b21e48db87691e2b80697752b3881822379c128a9a4db8d249eceddfb634",
-  "mutant_sha256": "2faa20bd0b0e909bc43484f4e46cc34b7bb0f5c0d300ad7a367bee992b5bb57e"
-}

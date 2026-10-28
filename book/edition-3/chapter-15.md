@@ -6,7 +6,7 @@ correct answers, on time, while quietly losing the discount on repeated input.
 The answers gave him no reason to look for it.
 
 Every request the agent sends carries a prefix: tool declarations, the system
-prompt, then retained memory, skills and conversation. Much of that prefix is
+prompt including skill manuals, then retained conversation. Much of that prefix is
 identical from one turn to the next. A provider cache can make those repeated
 tokens cheaper to read. Lose the cache and the same useful answer arrives with
 a different bill.
@@ -23,836 +23,496 @@ the operator can still do something about it.
 
 ## TL;DR
 
-### Data structures
-
-Prices live on `ModelFeatures`; usage records counts, never money. An unknown
-price displays a dash. It must not turn an unpriced paid model into a free one.
-These shared types use disjoint token categories:
-
-```go
-// Pricing holds full USD rates per million tokens, not surcharges.
-type Pricing struct {
-    Input      float64
-    CacheWrite float64
-    CacheRead  float64
-    Output     float64
-}
-
-// Usage retains measured counts independently of today's prices.
-type Usage struct {
-    Input      int // uncached input only
-    CacheWrite int
-    CacheRead  int
-    Output     int
-}
-```
-
-Engine owns the process-lifetime accumulator and retains the latest
-main-response counts separately. Neither is restored from `save.json`.
-Keep each request's model and applicable price tier with its counts.
-Chapters 22 and 23 later add compressor and judge usage to these totals,
-priced by the model that incurred it.
-
-The cache lens belongs to Engine. Its common interface exposes that required
-parent and two observations:
-
-```go
-// CacheLens observes main requests and compares their predictions with usage.
-type CacheLens interface {
-    Engine() Engine
-    ObserveRequest(name string, body []byte) float64
-    ObserveUsage(usage Usage, predicted float64)
-}
-```
-
-The returned prediction belongs to that request's eventual response. An
-interrupted worker can finish after a new turn begins. Serialize comparison and
-file rotation, but do not hold a lens lock across HTTP. Observe actual main
-sends rather than every `Render` call. Chapters 22 and 23 later introduce
-compressor and judge conversations; those must stay out of this comparison
-while their costs still count.
-
-### Breakpoints
-
-A `cache_control` marker on a content block tells the provider: everything
-before this is a cacheable prefix. Anthropic allows four markers per
-request, and OpenAI allows four cache writes under nearly the same scheme.
-Use these four positions when the corresponding content exists, in cache order:
-
-1. **Tool array.** One marker on the last tool declaration. Tools sit at
-   the front of the cache order, ahead of the system prompt. This is the
-   only marker that survives a change to the system prompt.
-
-2. **System prompt.** One marker at the end of the system block. Stable
-   while its instructions are unchanged; skill changes can invalidate it.
-
-3. **The compaction bound.** One marker at the newest surviving
-   `micro_handoff`. Chapter 22 later adds the last surviving memory entry
-   as the fallback when compression removes that handoff.
-   Mark the projection that actually remains;
-   never resurrect old dialogue to manufacture a boundary. The inherited
-   renderer places the surviving handoff before transient ephemera rather
-   than keeping a handoff dialogue message. Preserve that distinction when
-   choosing a legal content boundary; omit an unavailable slot rather than
-   marking transient content or moving the note into SYSTEM.
-
-4. **Stable end of history.** One rolling marker at the last eligible
-   retained block before ephemera. It advances on each turn. Moving
-   a marker does not invalidate what it previously banked.
-
-That is up to four markers for four jobs, the Anthropic budget.
-OpenAI can write three of these: its breakpoints attach only to message content
-blocks, so the tool-array marker is not expressible there. The system
-marker already covers tools, but cannot keep them independently when the
-prompt changes. There is no room for a fifth idea.
-
-
-Two constraints:
-
-- **Exclude ephemera.** Ephemera are appended last in Render and cleared
-  after delivery. A marker placed after them caches bytes guaranteed to
-  disappear. That boundary cannot match after the content is removed,
-  although an earlier prefix can still hit. Capture the stable boundary
-  before the ephemera append, even when retained and ephemeral parts later
-  share a wire message.
-- **Strip markers before comparing.** The stable-end marker moves
-  between turns, so a block carrying `cache_control` in one request
-  carries none in the next. Compare raw bytes and every healthy turn is
-  classified as edited. The comparison strips markers first: a breakpoint
-  is an instruction to the provider, not conversation content.
-
-### Wire format
-
-Anthropic: explicit `cache_control` markers on content blocks. System
-must be an array of content blocks rather than a string. Up to four
-markers per request.
-
-OpenAI: on this chapter's supported GPT-5.6 Sol Chat Completions route,
-`prompt_cache_breakpoint` markers on content blocks, enabled by a request-level
-`prompt_cache_options: {mode: "explicit"}`. Up to four cache writes per request.
-Select explicit support from the model table; older rows retain implicit caching. Breakpoints
-attach only to message content blocks (text, image, audio, file), not to
-the tool array. The agent therefore writes three markers rather than four;
-the system marker already covers tools, but cannot keep them independently
-when the prompt changes.
-
-The footgun: explicit mode disables implicit caching. A request that
-declares explicit mode but places no markers caches nothing at all,
-which is strictly worse than staying silent. On Anthropic, a missing
-marker costs a cache the agent never had. On OpenAI, it destroys the
-implicit cache the agent already had. The opt-in must follow evidence
-that a marker landed, never intent.
-
-Gemini: implicit caching, with no markers to place. The selected model's
-minimum prefix size matters; Gemini 3.8 Flash documents 4,096 tokens. A small
-prompt reporting zero reads has not established a caching defect. Warm-up and
-the amount granted are observations to measure with the actual growing
-conversation, not fixed numbers of cold turns to enforce.
-
-The provider contracts were rechecked for this entry against the
-[Claude caching guide](https://platform.claude.com/docs/en/build-with-claude/prompt-caching),
-[OpenAI caching guide](https://developers.openai.com/api/docs/guides/prompt-caching),
-[Chat Completions schema](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create),
-and [Gemini generateContent guide](https://ai.google.dev/gemini-api/docs/generate-content/caching).
-OpenAI's explicit fields are model- and API-specific; the Chat Completions
-request schema supports `30m` retention on GPT-5.6 and later. Gemini here stays
-on `generateContent`, not the separately documented Interactions API.
-A documented field and a well-formed request still need a real grant.
-
-### The meter
-
-The GUI header displays four numbers: session cost, last-response input
-tokens, last-response cache read tokens, and session cache hit rate. The
-input and cache-read figures show the most recent response so the
-operator can see how large the current prompt is and how much of it was
-cached. Session totals go to the tooltip. Cost is computed from Usage
-and Price at render time and held only in memory. An unpriced model shows
-token counts and a dash for cost.
-
-The meter reads Engine's current-process accounting rather than the totals
-restored with conversation history. Latest input means all input to the last
-main response, including its cached buckets exactly once. Session cost and
-hit rate include auxiliary calls when Chapters 22 and 23 add them.
-Session cost means cost since the developer sat down.
-
-### Rules
-
-1. Build the lens before the markers. A breakpoint on an unstable prefix
-   buys nothing and looks like it worked.
-2. Prices live on ModelFeatures. Usage lives in the event log. Cost is
-   derived at render time from both.
-3. Token counts only in the event log. Prices change; counts are history.
-4. Recognize the conversation section, including Gemini's `contents`, as
-   the section expected to grow. Report unexpected stable-section changes;
-   a deliberate checkpoint or model change needs its own interpretation.
-5. A growing JSON array is an append rather than an edit. Without this
-   distinction, every turn fires a false alarm.
-6. The meter prices the model in force rather than the model named in
-   settings. The two can differ when the model comes from the environment.
-7. Compare predicted and granted cache rates as ratios. A prediction is
-   bytes from the request; a grant is tokens from the response. Adding
-   them is a type error.
-
-### Yours
-
-How the lens reports its verdict: log file, structured events, or both.
-Whether to display the per-section stability status in the GUI. How much
-detail the cache miss alarm carries. The format of the rotated request
-files, as long as plain `diff` puts the cursor on the first broken byte.
-
-### Exercise
-
-Extend the accepted Chapter 14 source in `solutions/edition-3/main`. Wire a
-`CacheLens` to the main send boundary, place supported breakpoints, build the
-meter, and verify stable prefixes and actual cache reads. Use the explicit
-Chapter 15 GUI target and the separate held CLI regression command in §15.6;
-do not grade a historical answer directory by default.
-
-### Grader checks
-
-```
-cache-lens-exists          (15 pts)  a cache lens observes consecutive
-                                     requests; the actual requests are inspectable
-prefix-is-stable           (20 pts)  tools and system are byte-identical
-                                     across turns
-request-has-breakpoints    (15 pts)  last tool, system and stable history
-                                     blocks carry legal cache_control;
-                                     history advances within four markers
-cost-is-computed-not-stored(15 pts)  event log holds counts only; cost is
-                                     derived at display time
-usage-is-session-scoped    (10 pts)  the meter's tokens come from the last
-                                     response, not the lifetime restored from disk
-cache-read-rate            (10 pts)  cache reads are zero cold, nonzero warm
-all-vendors-report-usage   (15 pts)  vendor parsers normalize the supplied
-                                     usage categories without double counting
-```
-
----
-
-## §15.1 The idea in plain words
-
-A cache miss can produce a completely correct answer. The tool call works. The edit lands. The test passes. Nothing in
-the agent's behavior changes. The failure is pure cost, and it is silent.
-
-Most bugs announce themselves. A bad tool call returns an error. A broken
-parse throws an exception. A wedged job hangs where the operator can see
-it. A cache miss does none of these things. The correct output arrives,
-possibly later, at the uncached input rate. No log line turns red.
-No test fails. The only reporting channel is the invoice, and it arrives
-thirty days late, aggregated across every session, past the point where
-anyone can attribute a cost spike to the change that caused it.
-
-This chapter builds three things, in an order that matters.
-
-**The lens** compares consecutive requests, section by section, and
-reports whether the prefix is stable. A breakpoint placed on an unstable
-prefix buys nothing while looking like it worked, because the agent still
-produces correct output. The lens catches the nothing.
-
-**The markers** tell the provider where the cacheable prefix ends. Place
-them wrong and every turn is a cold read that looks like it should have
-been warm. Place them on something that changes and the cache is
-invalidated anyway. The lens locates stable bytes; the response usage says whether the provider
-actually served them from cache.
-
-**The meter** displays cost in real time. An invoice is not a feedback
-loop. A number that updates on every turn is. The meter does not prevent
-waste, but it makes waste visible at the moment it happens, to the person
-who can fix it.
-
-The economic argument is straightforward. At the October 11, 2026
-[Sonnet-5 rates](https://platform.claude.com/docs/en/models/sonnet-5/overview),
-a million ordinary input tokens cost $2, a five-minute cache write costs $2.50,
-and a cache read costs $0.20. Output has its own $10 rate. Those are alternative
-input buckets: do not charge the full input rate again on a cache write.
-Two hundred repeated turns make a small per-turn difference consequential.
-The saving depends on which tokens actually receive the discount; it is not
-a tenfold reduction in every request's total cost.
-
-## §15.2 The lens
-
-The lens works by rotating two files: the current request and the prior
-one. In the supplied clients they are `cr/cache-current.txt` and
-`cr/cache-prior.txt`, under the owning Agent's directory. Each is split into named sections (tools, system, messages) and
-re-emitted in cache concatenation order: the order the provider lays them
-out in context. For Anthropic, that is tools, then system, then messages,
-regardless of the struct's JSON field order. The ordering matters because
-a prefix is a contiguous run of bytes from the start, and two sections in
-the wrong order produce the wrong prefix boundary.
-
-Each section gets one of three verdicts: identical, appended, or changed.
-"Appended" means a JSON array grew at the tail, as the messages array does
-on every turn. Without this distinction, every turn reports a changed
-prefix, because the closing bracket of the array has moved. A changed
-non-messages section is the alarm. An appended messages section is the
-normal case.
-
-The lens writes its sections to disk so that plain `diff` puts the cursor
-on the first byte that broke the cache. Reading the raw file is the fast
-diagnostic. Structured verdicts are the automation.
-
-### Stripping the markers
-
-Because the stable-end marker moves, a content block that carried
-`cache_control` in one request carries none in the next. That difference
-sits deep inside the prefix, where the trailing-append rule cannot reach.
-Comparing raw bytes classifies every healthy turn as edited, and the
-reported cacheable prefix is truncated at the stale marker position.
-
-The comparison strips markers before diffing. The principle: a breakpoint
-is an instruction to the provider rather than conversation content.
-Removing it from the comparison is the same kind of move as ignoring
-whitespace in a semantic diff.
-
-The wrong way to strip is a JSON round trip. Unmarshalling and
-re-marshalling reorders keys and rewrites byte counts, and those counts
-are reported as a property of the real request and compared against the
-provider's own figures. Both sides of the comparison get the same
-distortion, so equality stays honest while the measurement becomes
-fiction. The lens strips by pattern, in place, preserving every other
-byte.
-
-### Match the shape, not a rendering of it
-
-The first-edition coder recorded a strip built from a constant holding the exact
-marker bytes the renderer emits, with a comment justifying it: "we
-control the emitter." The emitter is controlled. But the lens compares
-what the canonicalizer produced, and the canonicalizer marshals with
-`json.MarshalIndent`. The marker arrives with spaces the constant does
-not have.
-
-Nothing matched the indented marker. The strip left it in place. Nothing crashed. The symptom was a diagnostic reporting a
-prefix fault that was not there, on a path that produces no error when it
-fails to strip, because a strip that misses everything simply leaves the
-markers in place and the comparison fires.
-
-The reason it survived its tests: every test hand-built sections as
-compact JSON, matched the constant, and passed. Test and code shared one
-wrong belief about the format, and the format itself was never consulted.
-The replacement test builds its input the way the agent does, with
-`MarshalIndent`, and it kills the defect. The old compact test still
-passes against the broken code, which measures exactly how much it was
-checking.
-
-The coder's retained review reports this two-turn comparison:
-
-```
-before:  messages:edited     66.6%,  0 breakpoints
-after:   messages:appended   73.3%,  3 breakpoints
-```
-
-The lesson is general. When the instrument and the code share a belief,
-the instrument certifies the code against the belief, not against the
-artifact. Testing against the artifact, built the way the artifact is
-built, exposes the gap.
-
-### The late reply belongs to its own request
-
-There is another way for the instrument to lie while every answer remains
-correct. The new implementation initially assumed the actor serialized lens
-observations. It does serialize turn decisions. An interrupted HTTP worker,
-however, can still be finishing when the next turn begins.
-
-Independent review held an old cold response, interrupted its turn, and let a
-new request complete. The lens predicted 0.0000 for the cold request and 0.8554
-for the new one. When the old response was released, it reported the new
-request's 0.8554 prediction. Locking a shared “latest prediction” would prevent
-a race while preserving the wrong attribution.
-
-Keep the prediction with the request that produced it. The corrected lens
-returns a ratio to Engine, and that exchange's response callback carries it
-back with the granted usage. A short lock protects comparison and artifact
-rotation; no lock spans the network wait. The same held-response probe then
-reports 0.0000 for the old response and 0.8554 for the new one, with both actual
-usages counted. Interrupting the conversation does not make an already incurred
-charge disappear.
-
-## §15.3 Where the markers go
-
-The system marker banks the instructions actually sent. Chapters 9 and 14
-require surviving skill manuals in SYSTEM, alongside the stable base prompt.
-Loading or unloading a skill can therefore change SYSTEM and invalidate part
-of its cache. Keep instruction delivery correct and report that real change;
-never move a manual into a tool result to manufacture a cache hit. With the
-same instructions, a marker at the end of the system block banks that prefix.
-Mutable memory remains a separate concern in Chapter 22.
-
-The message-history marker is harder, because the conversation grows.
-Everything before the current exchange is identical to the previous
-request, and everything after it is new. A marker that banks the identical
-part saves money on every warm turn.
-
-### Why not the first message
-
-An obvious placement is the first user message. Everything before it is
-stable, so a marker there should cache the prefix.
-
-The error is in how the provider serves the cache. A read covers the span
-up to a marker. A marker on the first message caches tools, system, and
-the first message. The system marker already caches tools and system. The
-first-message marker adds one message to the cached span and leaves the
-rest of the conversation cold on every turn, while the conversation is
-the part that grows and the part that costs.
-
-### The tool array
-
-Tools sit at the very front of the cache order, ahead of the system
-prompt and the messages. A marker on the last tool declaration closes a
-prefix containing all of them.
-
-The tool-array marker is the only one that survives a change to the
-system prompt. Without it, editing a single word of the prompt discards
-the tool declarations along with it, and tool schemas are not small. With
-it, the declarations stay cached while the prompt rebuilds. The system
-marker covers tools under normal operation, but the tool-array marker
-is the one that matters under maintenance.
-
-### The stable end
-
-One marker sits on the last eligible retained block before ephemera,
-even when the two share a wire message. Choose that endpoint after final
-tool-result adjacency in the disposable wire view, while preserving canonical
-history.
-It advances on each turn as the conversation grows. Because a marker is
-not part of the cache key, moving it does not invalidate the bytes it
-previously banked. The first-edition Anthropic run recorded a 21-token rise between its two warm
-requests, matching that exchange's size. It demonstrates a moving marker with
-successful cache reads in that run; it does not promise the same increment for
-every response or provider.
-
-A start-of-turn anchor is unnecessary. The rolling marker from the
-previous turn already wrote a cache entry at exactly that prefix, and
-both vendors walk backward past a bounded number of positions to find a
-prior write. The anchor would buy a second copy of something already in
-hand, using one of only four slots.
-
-For this layout, an extra start-of-turn breakpoint duplicates the rolling
-boundary. If adding one appears to help, inspect the actual prefix before
-spending another slot. A rewritten prefix needs its cause fixed; an extra
-marker can make that mistake harder to see.
-
-### The compaction bound
-
-A `micro_handoff` rewrites the conversation above it: tool calls are
-stripped, opaque reasoning and private replay signatures are removed, and the
-affected region settles
-into the redaction ladder's terminal state. The stable-end marker, which
-sat somewhere in the middle of that region, now points at bytes that no
-longer exist. It rebuilds from the new tail and the old prefix is gone,
-along with the cache it banked.
-
-The newest surviving `micro_handoff` gives the renderer a useful boundary
-between completed work and the continuing exchange. The cuts were recorded and
-applied by the reducer, not recomputed to suit today's render. Chapter 22
-extends this boundary: if a memory fold removes that handoff, the projection
-uses the last surviving memory entry instead. The cache marker describes retained
-bytes; it cannot
-preserve a dialogue entry that the memory policy has legitimately replaced.
-
-This is a different answer from an agent that keeps demonstration pairs
-after compaction. Keeping the three most recent tool-call pairs past the
-handoff creates a moving boundary, because what counts as "most recent"
-is recomputed on every render. Pairs kept before an older handoff are
-dropped once a newer handoff pushes the boundary forward. The marker
-must then track the first surviving pair rather than the handoff itself.
-An agent whose compaction strip is uniform avoids the moving boundary
-entirely: the handoff is the bound, and that is where the marker goes.
-
-Chapter 22's memory-band compaction will rewrite data near the front of the
-conversation.
-That invalidates the old suffix from the changed point, while earlier tools
-and system instructions can still be reused. Accept that cost when replacing
-old memory; do not turn memory into frozen instructions to avoid it.
-
-### The vendor asymmetry
-
-Anthropic takes `cache_control` on a tool definition, so it gets all
-four markers. OpenAI cannot. Its breakpoints attach to message content
-blocks, and the tools array is not a content block. OpenAI writes three
-of the four: system, compaction bound, and stable end.
-
-Nothing is lost except independence. A breakpoint includes all prompt
-content before it, and tools precede the system prompt in the cache
-order, so the system marker already covers the tool declarations. The
-system marker simply cannot keep them when the prompt changes. Under
-routine operation this makes no difference. Under maintenance, Anthropic
-holds its tool cache through a prompt edit while OpenAI does not.
-
-The exact provider lookback is not a client-side algorithm to reproduce.
-Earlier documentation even disagreed about its count. What matters here is
-that a read and a write are different observations, and a cache write can have
-its own full rate. This chapter is about an invisible invoice; write tokens
-belong in the accounting too.
-
-That is up to four markers on Anthropic, three on the supported OpenAI route.
-An empty tool array or absent compaction bound does not need a placeholder
-merely to consume a slot.
-
-### Ephemera
-
-Ephemera are content appended last in `Render` and documented as
-"delivered once, then cleared." They may merge into the final user
-message. A marker placed after them includes bytes that disappear on the
-next turn. That exact boundary cannot match afterward, even if an earlier
-part of the prefix still receives a discount.
-
-The stable boundary must be captured before the ephemera append. This is
-a single line of code and a paragraph of explanation, but omitting it
-leaves the rolling boundary beyond transient bytes. Correct answers alone
-will not reveal that placement error.
-
-### The provider minimum
-
-Cache eligibility has a floor, and the floor belongs to a model and route.
-The October 11 documentation lists 1,024 tokens for Sonnet-5 and GPT-5.6 Sol,
-and 4,096 for Gemini 3.8 Flash. These are token counts, not request-file byte
-lengths. Check the selected model's current contract before diagnosing a zero.
-
-A zero can mean the cache failed, or it can mean the request was never
-eligible. An instrument that cannot tell those apart will eventually
-report the second as the first. The original live script used prompts of a
-few hundred tokens and got three Gemini zeroes. Its author first called
-caching unimplemented, then corrected the diagnosis after an eligible run.
-
-The old grader fixture grew from 1,716 to 6,631 bytes when five tool
-declarations were added. That made its prefix test less trivial, but byte
-length alone does not establish a provider's token minimum. A fake can award
-cache reads below any real floor; only a real response supplies the grant.
-
-## §15.4 What the wire shows
-
-The first-edition coder reported these live cache-read counts. They are
-historical measurements under its earlier marker arrangement, not a new run
-of the final implementation:
-
-| vendor | model | cache\_read by turn | what it needs |
-|---|---|---|---|
-| Anthropic | `claude-sonnet-5` | 0, 3627, 3648 | explicit `cache_control` markers |
-| OpenAI | `gpt-5.6-sol` | 0, 7359 | explicit `prompt_cache_breakpoint`; `mode: "explicit"` |
-| Gemini | `gemini-3.8-flash` | 0, 0, 16349, 24531 | implicit; history grew by roughly 8,400 tokens per turn |
-
-Three findings in that table.
-
-Anthropic's two warm counts differ by 21 tokens, the reported size of the
-previous exchange. That is the stable-end marker banking the conversation
-one exchange at a time. It is the direct evidence that a moving marker
-does not invalidate the cache, measured rather than assumed. The
-assumption held for two sessions before anyone thought to check.
-
-The original OpenAI experiment used the explicit scheme, under different field
-names: `prompt_cache_breakpoint` on a content block and
-`prompt_cache_options: {mode: "explicit"}` on the request. It was
-then documented only for the Responses API in the coder's reading; the
-experiment exercised Chat Completions. Its [current reference](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create) also documents
-the content marker and request opt-in. The end-to-end measurement,
-using that version's renderer output, reads 7,359 of 7,362 prompt
-tokens from cache on the second turn. That is 99.96 percent of the
-prefix, which confirms the markers land and the prefix survives.
-
-The measurement that matters is the one that almost did not get made.
-The first probe sent a request with the marker removed from a position
-that had been primed, and got zero reads. The diagnosis that came to
-mind was "removing the marker broke the prefix." But the probe had
-also changed the content encoding of that message from an array of
-parts back to a plain string, and two variables changed at once cannot
-diagnose anything. A second probe changed only the encoding and got
-7,813 of 7,816 tokens cached: the encoding change preserved that tested prefix. The zero meant "no breakpoint at the primed position
-to look up," not "the format change invalidated the cache." This
-chapter is about instruments, and the first instrument an instrument
-builder needs is the controlled experiment.
-
-The asymmetry between the two explicit vendors is the opt-in. On
-Anthropic, a missing marker costs a cache the agent never had.
-On OpenAI, explicit mode disables implicit caching, so a request
-that declares explicit mode and places no markers caches nothing at
-all, which is strictly worse than staying silent. The implementation
-must gate the opt-in on evidence: send `mode: "explicit"` only when
-at least one marker actually landed.
-
-Gemini needs the shape of the experiment alongside its numbers. It caches
-implicitly, detecting the repeated prefix itself, so there are no markers to
-place. The original coder tried three shapes: a fixed large user message, a
-large stable system reference with a small growing history, and a history
-growing by roughly 8,400 tokens each turn.
-
-The first two hit on turn two. The third produced the two leading zeroes in
-the table. An early review had tried to disprove the history claim using the
-fixed-message probe. Bill's prompting led to the growing-history experiment.
-Both measurements were real; the first answered a different question.
-
-The later implementation's browser run used a large stable reference and
-four short questions. Gemini warmed on the second request there too, with
-15,725, 15,801 and 15,910 cache-read tokens. Those changing values do not
-establish a universal 4,096-token block rule. Nor does the earlier four-turn
-run prove that a partial block stays uncached forever.
-
-Put genuinely stable content early and keep nearby requests comparable, as
-the [Gemini guide](https://ai.google.dev/gemini-api/docs/caching) recommends.
-That is not permission to promote editable memories or retrieved documents
-into system instructions. This chapter uses implicit caching for Gemini;
-it needs no marker budget or separately managed cache object. Measure the
-conversation shape the application actually sends before turning a warm-up
-observation into a rule.
-
-### The section name
-
-The instability alarm exempts the conversation section, because the
-conversation is the one section expected to grow every turn. The exemption
-compares against a section name. For Anthropic and OpenAI that name is
-`messages`. For Gemini it is `contents`.
-
-A hardcoded constant gets the wrong answer for one of the three vendors.
-The lens detects the name from the body's shape rather than from a vendor
-table, because the conversation section is the one containing an array
-of objects with `role` fields regardless of what the vendor calls it.
-
-The failure mode before the fix: every ordinary Gemini turn was reported
-as a broken prefix, with a byte offset that moved between runs. The same
-log line already said `contents:appended`, which was the correct
-diagnosis. Two halves of one instrument contradicting each other, and the
-half offering a precise offset was the wrong one. A precise wrong answer
-outranks a vague right one in a reader's attention, and that is exactly
-what happened.
-
-### What the fake cannot see
-
-The grader runs against a fake vendor. A fake vendor grants whatever
-figures it is told to, so it can prove the request is well-formed and the
-lens observes it. It cannot prove the provider agrees.
-
-The first implementation's fake and live runs found different defects.
-Neither replaced the other.
-
-The usage meter failed to find a paid model's price. It looked up prices by the
-model named in the settings store, which is empty when the model comes
-from the environment. An empty name matches nothing, so `claude-sonnet-5`
-reported `priced:false, cost:0`. The instrument built to make spending
-visible was the thing concealing it. It now prices the model actually in
-force, taken from the engine config at the composition root.
-
-The original live `gpt-5.6-sol` Chat Completions run refused requests carrying `reasoning_effort`
-alongside function tools, returning a 400. That exercise exposed tools, so every attempted turn failed. The subtle half: the field must be sent as `"none"`,
-not omitted. Omitting it means "your default," and the default is a
-reasoning effort, so the request comes back refused with the identical
-error while the field appears nowhere in the body. The error names a
-field the developer can grep for and not find.
-
-The price lookup is ordinary application behavior and a good fake-driven
-fixture can catch it. In fact, the retained coder review attributes that
-finding to the grader, not the live run. The tool/reasoning restriction needs
-a faithful provider contract before a fake can reproduce it. Real use found
-the missing fact; a focused regression can preserve it. Keep both kinds of
-checks, and be precise about which one found the defect.
-
-## §15.5 The meter
-
-The GUI header shows four numbers: session cost, last-response input
-tokens, last-response cache read tokens, and session cache hit rate.
-Input and cache-read show the most recent response so the operator can
-see how large the current prompt is and how much of it hit cache, rather
-than a running sum that only grows. Session totals go to the tooltip on
-hover. Cost is computed from Usage and Price at render time and held only
-in memory.
-
-The event log holds token counts in four categories: Input, CacheWrite,
-CacheRead, Output. Prices live on ModelFeatures. Engine's meter multiplies each model/tier's
-counts by its corresponding rates when the GUI asks for a view. A price
-correction can change the derived cost without rewriting the event log.
-Storing computed cost would freeze the wrong price into the permanent
-record.
-
-### Session scope
-
-Cost and hit rate read from Engine's process-lifetime accounting, which
-resets on restart. Input and cache-read display the latest main response.
-Chapters 22 and 23 will add compressor and judge usage to session totals
-and cost without replacing that main-response display. Restored conversation
-usage is a different
-history and does not seed the current process's meter. The
-distinction matters: a developer who opens the GUI and sees yesterday's
-total plus today's spend has no feedback loop. "Session cost" means the
-cost since the developer sat down.
-
-### Units
-
-Usage counts tokens. Prices are dollars per million tokens. The two meet
-only at render time, and the result is denominated in dollars. The event
-log never holds a dollar amount. Normalize vendor buckets before applying
-prices: Anthropic reports disjoint ordinary/write/read input; OpenAI's prompt
-total already includes cached reads and writes; Gemini's prompt total includes
-cache reads, and its charged output includes reported thinking. Subtract the
-included cached buckets when forming ordinary input, then count each once.
-For streams, retain the final usage rather than summing cumulative updates.
-Within a valid usage object, an omitted optional cache bucket is zero. Missing
-usage or required input/output counts remain unknown, as do supplied invalid
-counts; do not turn those into free usage.
-
-The lens predicts a cacheable fraction from the request, measured in
-bytes. The provider reports a cache hit rate in the response, measured
-in tokens. These cannot be added or subtracted because the units differ
-and the tokenizer is not a linear function of byte count. Comparing them
-as ratios is legitimate: the prediction is a fraction, the grant is a
-fraction, and a large gap is a reason to investigate. A small gap is consistent with
-reuse, but is not a tokenization identity or a billing audit. The original Anthropic report paired a 96.8% byte prediction with a
-99.4% token grant. The comparison is useful because both remain visible.
-
-## §15.6 Exercise, graded
-
-Extend the accepted Chapter 14 source in `solutions/edition-3/main`. Observe
-actual main sends with an
-Engine-owned cache lens; exclude auxiliary requests from that comparison.
-Place supported markers at tools, system, the surviving compaction boundary
-and the stable end before ephemera. Build the four-number GUI meter from
-process-scoped accounting. Keep model/tier identity with incurred usage,
-price unknowns honestly and preserve history across a restart that resets
-the current process's spend.
-
-Build the two held artifacts from their own modules, then grade from the
-book repository. Flags precede the explicit GUI or CLI target:
-
-```sh
-(cd /absolute/student && go build -o /absolute/output/ch15-cli ./cmd/ch01)
-(cd /absolute/student/gui && go build -o /absolute/output/ch15-gui ./cmd)
-go run ./cmd/grade-edition3 -ch 15 -json \
-  -cache-prices 3,3.75,0.3,15 /absolute/output/ch15-gui
-go run ./cmd/grade-edition3 -ch 1 -json /absolute/output/ch15-cli
-```
-
-Chapter 15 uses the GUI directly, without unrelated parity-module flags.
-`-cache-current` and `-cache-prior` select its actual diagnostic artifact paths
-relative to the owned scratch launch directory; defaults are
-`cr/cache-current.txt` and `cr/cache-prior.txt`. `-cache-prices` supplies four
-independently checked per-million rates in ordinary-input, cache-write,
-cache-read and output order. The executable fixture uses Sonnet 4.6 at its
-[published standard rates](https://platform.claude.com/docs/en/about-claude/pricing):
-$3 input, $3.75 five-minute write, $0.30 read and $15 output per million tokens.
-These are not universal prices. The earlier Sonnet-5 account remains historical.
-These are grader inputs, not new
-application flags. Require `passed:true` and exit zero on both grades, with
-Chapter 1's genuine 62-second header and body waits on the held source's CLI.
-
-The public GUI uses `--port`, `--gui-dir`, provider environment settings and
-a typed primary skill. Its WebSocket `/ws` accepts a `subscribe` message;
-ordinary browser prompts or stdin `{"kind":"prompt","text":"..."}` enter
-the same Agent. A `usage` frame reports latest disjoint `input`, `cache_write`,
-`cache_read`, `output`; nested `total` contains session counts, and
-`hit_rate`, `cost_usd`, `priced` describe the disposable meter. The header
-adds the three input buckets; the tooltip exposes the session totals. The
-GUI command saves to launch-directory `save.json` by default; its Agent's
-lens files still belong under `cr/`.
-
-| check | pts | what it tests |
+Engine owns an optional `CacheLens` and its process-local meter. History retains
+canonical response counts, never a mutable dollar balance. The lens observes
+actual sends without changing them; an immutable prediction follows each request.
+Marker selection runs on final provider JSON, after tool-result adjacency.
+Anthropic support is explicit opt-in; OpenAI uses implicit caching with an
+optional routing key. Exact response model/tier selects a conservative price.
+Unknown values remain unknown. GUI projects one coherent Engine snapshot.
+
+### In plain words
+
+First ask, “Did we send the same reusable beginning?” Then ask, “Did the provider
+report reading it from cache?” Finally ask, “Do we know the applicable rate?”
+Those are three questions, not one. A correct answer to the user's task answers
+none of them. Keep the evidence separate so a student can find which assumption
+failed without rewriting conversation history or guessing a cheaper bill.
+
+### Prerequisites and scope
+
+Continue the C# Chapter 14 endpoint in `solutions/edition-3/main`. Preserve
+`solutions/edition-3/ch14`; it is a runnable predecessor, not a directory to edit.
+Use C# 14 and .NET 10. The CLI, GUI and public examples reference the same core
+assembly. No new package or caching service is required.
+
+This chapter adds three instruments: an Engine-owned cache lens, explicit
+Anthropic marker placement, and a process-local usage meter. OpenAI Chat
+Completions keeps its implicit caching and may carry a documented routing key.
+Gemini keeps its existing implicit path. A fake can exercise the instruments;
+it cannot award evidence of a real cache hit, model availability or billing.
+
+## §15.1 Correct answers can hide waste
+
+A cache miss can produce a completely correct answer. The tool works, the edit
+lands, and the test passes. Nothing in that behavior tells the operator whether
+the provider read a stable prefix from cache. A cost problem can remain invisible
+until an aggregated invoice arrives, long after the request that caused it.
+
+Build the instruments in an order that makes diagnosis possible:
+
+1. **The lens** shows the actual request and a byte-preserving approximation of
+   its provider-ordered prompt. Compare consecutive requests before guessing
+   which content changed.
+2. **The markers** express supported cache boundaries. A legal marker is not
+   proof that a provider accepted the request or reused its prefix.
+3. **The meter** shows reported tokens and a conservative price estimate. It
+   must not disguise an unknown price as zero dollars.
+
+The distinction between prediction and observation governs all three. A lens
+predicts reusable bytes. A response reports tokens served from cache. A price
+row estimates a charge. None is a substitute for the provider's invoice.
+
+Do not store dollars in History. Record usage in the existing canonical response
+facts, while Engine separately accumulates successful sends for this process.
+Restoring yesterday's conversation must not silently charge yesterday's tokens
+to today's display.
+
+## §15.2 Vocabulary and ownership
+
+Read `Common/Cache.cs` and `Common/Meter.cs` before their implementations in
+`Engine`. Common declares shared state and callable partial members; the
+functional files supply their bodies. The compiler combines these parts into
+one type, not linked wrapper objects.
+
+| Object or value | Responsibility |
+|---|---|
+| `Engine` | HTTP exchange, optional lens ownership, process-local usage rows |
+| `CacheLens` | Consecutive send captures, byte-prefix prediction and diagnostic files |
+| `CacheCapture` | Value-like wire, prompt and options byte arrays |
+| `CachePrediction` | Immutable measurement belonging to one admitted request |
+| `UsageIdentity` | Value-like vendor, actual response model and service tier |
+| `MeterSnapshot` | Coherent immutable latest response, grouped rows and derived totals |
+| `TokenPrices` | Conservative exact-identity price lookup; no mutable balance |
+
+A lens constructor receives its real Engine parent and registers both ends.
+`Engine.Lens()` reaches the child; `CacheLens.Parent()` reaches the owner. A
+second lens cannot silently replace an attached one. Explicit `Destroy()`
+detaches both directions, and Engine destruction destroys its lens. There is
+no global lens registry or copied logger: diagnostics reach the application
+through the existing parent relationships.
+
+Snapshots and identity records are explicitly value-like. They need no parent
+back-pointers merely because an Engine returns them. A retained snapshot remains
+unchanged after another response completes.
+
+The library never reads host environment variables. CLI and GUI composition
+roots translate their flags into explicit configuration and construct the lens.
+Engine owns the resulting object's lifetime.
+
+## §15.3 The lens: observe without rewriting
+
+`new CacheLens(agent.Engine, directory)` attaches private diagnostics. Its
+`Begin` operation runs at actual transport admission, not during offline
+`Render`, parser tests or restored-history replay. Pre-cancelled sends do not
+rotate the captures.
+
+The selected directory contains three pairs:
+
+| Current | Previous | Meaning |
 |---|---|---|
-| `cache-lens-exists` | 15 | a cache lens observes consecutive requests, so the actual requests are inspectable |
-| `prefix-is-stable` | 20 | tools and system are byte-identical across turns |
-| `request-has-breakpoints` | 15 | the last tool declaration, system block and advancing stable history block carry legal `cache_control`, within the four-marker budget |
-| `cost-is-computed-not-stored` | 15 | event log holds counts only; cost is derived at display time |
-| `usage-is-session-scoped` | 10 | the meter's tokens come from this response, not the lifetime total restored from disk |
-| `cache-read-rate` | 10 | cache reads are zero on a cold turn and nonzero on a warm one |
-| `all-vendors-report-usage` | 15 | vendor parsers normalize supplied usage without double counting |
+| `request.wire.json` | `request.prev.wire.json` | Exact UTF-8 request bodies, including provider markers |
+| `request.body` | `request.prev.body` | Marker-stripped prompt properties in provider order |
+| `request.options.json` | `request.prev.options.json` | Remaining model/generation/routing properties |
 
-The numeric checks drive the real GUI and compare its requests, counts and
-artifacts with an external provider fake. Actual browser display, interrupted
-worker attribution and full provider marker rules also retain their focused
-source/integration checks. Auxiliary exclusion and surviving memory boundaries
-join those obligations in Chapters 22 and 23.
-The numeric marker fixture has no handoff or ephemeral tail.
-A fake's warm reply cannot establish a real cache grant.
+`request.prediction.json` also records the latest sequence and byte comparison.
+On completion, the existing application logger receives that request's prediction
+alongside its reported usage. The wire/body/options files are consecutive-send
+diagnostics, not a complete per-request archive.
 
-## §15.7 Taking It for a Spin
+There are no authorization headers in these files. Nevertheless, prompt text,
+file content and tool arguments can be private. Keep captures outside Git and
+publication artifacts. Selecting a diagnostic directory is not permission to
+publish its contents.
 
-Use a fresh directory and a stable reference large enough to make caching
-eligible. The reference belongs in the primary here because it is fixed for
-the demonstration, not because arbitrary retrieved text belongs in instructions.
-From the accepted source after local gates, using an owned output directory:
+### Separate the prompt from options
 
-```sh
-cache_source="$PWD"
-(cd gui && go build -o /tmp/ensemble-ch15-gui ./cmd)
-cache_demo=$(mktemp -d)
-cd "$cache_demo"
-mkdir -p skills/base
-python3 - <<'PY'
-from pathlib import Path
-header = """---
-name: base
-type: primary
-description: Answer questions about the fixed archive reference.
-tools: list_directory read_file
----
-Answer the user's archive question in one short sentence, without tools.
-The archive project code is COPPER-FERRY-18.
-"""
-records = "".join(
-    f"Archive record {i}: color copper; preserve the original source and record the reason for each change.\n"
-    for i in range(1, 701)
-)
-Path("skills/base/SKILL.md").write_text(header + records)
-PY
-```
+Raw JSON property order is not necessarily the provider's context order. The
+C# diagnostic uses these explicit sequences:
 
-With the provider key configured as in Chapter 0, choose an unused nonzero
-loopback port for this owned GUI, not port 8088 or an existing service. Set
-`OWNED_GUI_PORT` only after checking it is available. Start the GUI in that
-terminal and leave stdin open while using the browser:
+- Anthropic: tools, system, messages.
+- OpenAI Chat Completions: tools, messages, including the system message.
+- Gemini: systemInstruction, tools, contents.
 
-```sh
-: "${OWNED_GUI_PORT:?set an unused nonzero loopback port for this run}"
-LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-4-6 \
-EN_PRIMARY_SKILL=base EN_SKILLS_DIR="$PWD/skills" \
-/tmp/ensemble-ch15-gui --port "$OWNED_GUI_PORT" --gui-dir "$cache_source/gui/web/gui"
-```
+The outer diagnostic envelope is new. Each selected property's lexical bytes
+are retained rather than parsed into a DOM and serialized afresh. Options such
+as model and sampling settings belong in the separate options view, not ahead
+of the prompt where they would spoil a prefix comparison.
 
-Open `http://127.0.0.1:$OWNED_GUI_PORT` for this process after successful startup,
-not another GUI's address. The current launcher does not report an assigned
-port when passed zero. Send these in order, waiting for each reply:
+This is a local approximation, not access to a provider's tokenizer or internal
+cache key. Compare the raw wire too. A prompt-only view cannot diagnose a changed
+routing option by itself.
+
+### Strip only genuine markers
+
+The moving stable-end marker changes location as history grows. Comparing it as
+conversation content would report a changed prefix on a healthy request. The
+comparison therefore strips genuine provider `cache_control` fields while the
+actual wire remains untouched.
+
+Do not recursively delete every property named `cache_control`. A user's tool
+argument or JSON schema may legitimately use that name. `CacheBytes.cs` walks
+tokens with their structural paths, identifies legal provider marker locations,
+and copies the untouched byte spans. It handles the adjacent commas without
+normalizing escaped text, whitespace, key order or number spelling.
+
+The first-edition account describes a useful failure here. Its initial strip
+matched one compact spelling of a marker, while the actual formatter inserted
+spaces. Hand-built compact fixtures agreed with the broken implementation.
+A fixture built by the actual formatter exposed the mistake. Those historical
+measurements are not results from this C# implementation; the lesson survives:
+**test the artifact the application produces, not a convenient imitation.**
+
+### Keep each prediction with its request
+
+The lens lock serializes capture rotation, comparison and file writes, not
+HTTP. More importantly, the predicted fraction travels as an immutable value
+with the exchange that produced it. A late response cannot consult a shared
+“latest prediction” and borrow a newer request's result.
+
+The actor normally serializes its turn decisions, but Engine also has direct
+callers, and asynchronous completion deserves its own identity. Merely locking
+one mutable latest value fixes a data race without fixing attribution.
+
+A capture failure is a diagnostic failure, not an inference failure. An
+unwritable directory or malformed caller-supplied request disables that capture
+and logs the problem without changing the bytes sent or inventing a cache
+measurement. The files are a debugging instrument, not a transactional archive;
+inspect reported capture failures before treating a pair as complete.
+
+## §15.4 Mark the final projection
+
+Marker placement belongs in disposable provider JSON. It must not mutate
+History, skill snapshots, tool definitions or provenance-bearing parts.
+
+The order of work matters:
+
+1. Render the frozen Context and its allowed declarations.
+2. Complete provider-specific tool-call/result adjacency and turn merging.
+3. Retain the distinction between stable blocks and request-only ephemera.
+4. Choose legal boundaries in that final shape.
+
+Selecting a marker on the last neutral Context entry before rendering can be
+wrong: the provider adapter may move a result next to its call or merge user
+turns. Likewise, the final user message can contain both stable text and
+transient ephemera. Message position alone does not identify a stable block.
+
+### Anthropic: explicit opt-in, at most four boundaries
+
+`Configuration` accepts `cacheBreakpoints: true`. It is off by default; neither
+a model-name prefix nor a test fake establishes support. The C# renderer may
+mark:
+
+1. The last **non-deferred** tool declaration, if one exists.
+2. Nonempty SYSTEM instructions.
+3. The surviving marked handoff note, if present.
+4. The last legal stable conversation block before transient ephemera.
+
+Coincident boundaries collapse. Missing content does not require placeholder
+text merely to use four slots. Empty text, thinking and unknown opaque blocks
+are not explicit targets. A tool declaration with `defer_loading: true` must
+not receive `cache_control`; if all declarations are deferred, omit that
+boundary rather than choosing an illegal one.
+
+The [Anthropic prompt-caching guide](https://platform.claude.com/docs/en/build-with-claude/prompt-caching)
+and [tool-search guide](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool)
+are the primary references checked for this implementation. Check the current
+selected model and route before live use. No TTL is sent here: the marker uses
+the documented default, not a client promise of retention.
+
+The tool boundary remains useful when SYSTEM changes: an earlier tool prefix
+can still be reusable. The rolling history boundary covers more than the first
+user message; fixing it at the beginning would leave the growing conversation
+outside the intended boundary.
+
+Chapter 9's rule still holds: loaded manuals belong once in SYSTEM. A dynamic
+activation legitimately changes that instruction prefix. Do not move manuals
+into dialogue to conceal the change. Pending manuals remain SYSTEM instructions
+through Chapter 14 cuts, although their pending-only tool authority is revoked.
+
+A handoff changes the working context, so an old suffix may cease to match. The
+marker describes retained bytes after the recorded reduction; it cannot keep
+removed tool traffic alive. This chapter implements the surviving handoff
+boundary, not a future memory-compaction policy.
+
+### OpenAI and Gemini: do not copy an analogy onto the wire
+
+This endpoint uses OpenAI **Chat Completions**, not Responses. It retains
+implicit caching and optionally supplies `prompt_cache_key`, documented in the
+[Chat Completions request reference](https://developers.openai.com/api/reference/resources/chat/subresources/completions/methods/create).
+A routing key is not a breakpoint and is not a credential. Do not put secrets in
+it. Configuration refuses this option on a different provider.
+
+The earlier manuscript describes experiments with `prompt_cache_breakpoint`
+and `prompt_cache_options.mode`. Those descriptions are historical records,
+not current API contracts verified for this C# route. This implementation does
+not emit them or turn off implicit caching by analogy with another provider.
+
+Gemini retains its existing implicit path. No explicit cache object, TTL
+manager or cache registry is introduced. Its
+[caching guide](https://ai.google.dev/gemini-api/docs/caching) is a starting point
+for an authorized live experiment, not proof of a hit here.
+
+### Eligibility is separate from stability
+
+Cache minimums belong to a particular model and route, and are measured in
+tokens. A 6,000-byte fixture does not establish a 1,024-token minimum. A fake can
+award reads to any prompt size. Zero reads can mean ineligibility, expiry,
+routing, changed content or another provider decision; do not pick a cause
+without evidence.
+
+Earlier accounts compared fixed large references with rapidly growing history
+and got different warm-up behavior. A fixed-reference probe cannot refute a
+claim about growing history. Similarly, changing content encoding and removing
+a marker in one probe does not isolate either variable. These are lessons in
+controlled experiments, not universal cache thresholds or token-block rules.
+
+## §15.5 Count first, estimate second
+
+Engine records usage exactly once for each successfully completed send, after
+its completed response facts have been produced. Plain and streaming requests
+share final-response decoding. Cumulative streaming updates are not added as
+separate purchases.
+
+Parsing a fixture, rendering offline, replaying History, failed HTTP and
+cancelled exchanges do not advance this meter. A provider may charge for a
+request whose successful usage never reached the client. The GUI explicitly
+calls this a token-price estimate, not an authoritative account balance.
+
+### Four disjoint buckets
+
+`Usage` retains nullable ordinary input, cache write, cache read and output
+counts. Missing required usage is unknown. Omitted optional cache buckets may
+be zero; malformed supplied values must not become reassuring zeroes.
+
+Normalize before pricing:
+
+- Anthropic input/write/read buckets are disjoint.
+- OpenAI's prompt total includes cached reads; subtract them to obtain ordinary
+  input. The ordinary Chat Completions pricing fixture has no cache-write bucket.
+- Gemini's prompt total includes cached reads. Its output accounting includes
+  separately reported thinking without counting that thinking twice.
+
+`AllInput()` sums the three disjoint input buckets. Unknown operands or overflow
+produce unknown, not wraparound. Session hit rate is:
 
 ```text
-What is the archive project code? Reply in one short sentence.
-What is the rule for archive record 37? Reply in one short sentence.
-What color identifies archive record 402? Reply in one short sentence.
-Remind me of the archive project code, in five words or fewer.
+session cache-read tokens / session ALL-input tokens
 ```
 
-The answers should identify COPPER-FERRY-18, preserving the source and reason,
-and copper. Watch the header, then inspect its session tooltip. Compare the
-last response's usage in `api.log` with the `usage` frame in `gui.log`.
-`debug.log` records predicted and granted ratios; plain `diff` on the two
-`cr/cache-*.txt` files shows the retained prefix and appended conversation.
-Inspect those files before restarting: startup resets them.
-A good answer with zero cache reads is still a zero-cache result. Check the
-actual input size, eligible route and prefix before deciding why.
+A zero or unknown denominator yields unknown. This differs from the lens's
+byte-prefix fraction and from the latest response's cache-read count.
 
-Stop with Ctrl-D in the launch terminal after the last turn. Restart the
-same command in the same directory. Conversation history should return while
-the new process's meter starts at zero; no new response has been charged yet.
-That is a separate check from seeing a warm second turn.
+### The actual response identity owns the rate
 
-The accepted October 22 Sonnet 4.6 run returned four correct answers. Provider
-usage gave an exact calculated cost of $0.0755091; the header displayed $0.0755
-and its tooltip $0.075509. Restart replayed the conversation
-with a zero process meter. This is one observed result, not a cache-hit guarantee.
+`UsageIdentity` retains vendor, actual response model and service tier. Engine
+groups counts by that identity under one short lock. A later model or tier must
+not retroactively reprice earlier requests. `Meter()` captures latest and rows
+together; `MeterSnapshot` derives totals, hit rate and estimated dollars.
 
-The retained October 11 browser sessions made four turns each on the earlier
-implementation `7436fcb`. All twelve answers matched the supplied reference.
-Their raw provider usage and visible meters were independently compared:
+Prices are intentionally narrow. The implementation verified these standard
+text-token rows against the primary [GPT-4o mini](https://developers.openai.com/api/docs/models/gpt-4o-mini)
+and [GPT-4o](https://developers.openai.com/api/docs/models/gpt-4o) pages:
 
-| Historical model | Cache-read tokens by turn | Final session USD | Final session hit rate |
-| --- | --- | ---: | ---: |
-| `claude-haiku-5-5` | 0, 21924, 21968, 22058 | 0.003481475 | 74.8879% |
-| `gpt-5.6-sol` | 0, 16349, 16349, 16349 | 0.1040918 | 74.6439% |
-| `gemini-3.8-flash` | 0, 15725, 15801, 15910 | 0.0226167 | 66.2209% |
+| Response model or documented snapshot | Ordinary input | Cached read | Output |
+|---|---:|---:|---:|
+| `gpt-4o-mini`, `gpt-4o-mini-2024-07-18` | $0.15 | $0.075 | $0.60 |
+| `gpt-4o`, `gpt-4o-2024-08-06` | $2.50 | $1.25 | $10.00 |
 
-The dollar values use the dated model prices captured for those runs. The
-session percentages include the cold first request; they are not the last
-request's hit rate. Haiku 5.5 remains the historical identity, not a current
-choice: the executable example uses supported Sonnet 4.6. Those captures contain
-no restarted process or handoff, and precede the lens-overlap correction.
-Restart and overlap have their separate real-runtime checks.
+Amounts are USD per million tokens, with explicit response tier `default` only.
+A page can list a deprecated model: a price row is not availability evidence.
+Missing tier may imply project-level routing, so it is not silently standard.
+Unknown identity, a different tier, unknown counts or unverified cache-write
+charges make the estimate unknown. Other providers retain valid counts without
+invented prices. Update verified pricing deliberately, not by broad model-name
+matching or aliases invented to make fixtures pass.
 
-The unchanged original grader returned 0/100 because its primary fixture
-omitted the required skill type and never started the GUI. That did not
-measure seven broken cache features. Conversely, twelve correct answers did
-not establish that the instrument could attribute an interrupted reply. The
-useful result is the combination: inspect the actual request, preserve the
-provider's counts, and make the displayed cost answer to both.
+The calculation uses decimal arithmetic at view time:
+
+```text
+(input × input rate + cached reads × read rate + output × output rate)
+/ 1,000,000
+```
+
+The general four-bucket formula also includes cache writes when a verified
+write rate exists. This table does not supply one; nonzero or unknown writes
+must not be treated as free. If any contributing session row is unpriced, the
+whole session estimate stays unknown rather than displaying a partial subtotal
+as its total cost.
+
+## §15.6 A GUI projection, not another meter
+
+The header shows **COST**, **ALL**, **CACHE** and **HITRATE**:
+
+- COST: derived estimate for this Engine's current process.
+- ALL: input total for its latest completed response.
+- CACHE: cache reads for that latest response.
+- HITRATE: the session ratio, including its cold first response.
+
+`Server/Meter.cs` takes one coherent snapshot. The browser formats acknowledged
+values; it does not accumulate tokens or own a price table. Both connected
+clients receive the same projection. Refresh does not create usage. Periodic
+catch-up repairs missed observations, and a cached serialized frame suppresses
+identical notifications without becoming an accounting authority.
+
+The published WebSocket shape is:
+
+```json
+{
+  "type": "usage",
+  "agent_id": "root",
+  "usage": {
+    "input_tokens": 400000,
+    "cache_write_tokens": 0,
+    "cache_read_tokens": 600000,
+    "output_tokens": 100000,
+    "all_input": 1000000,
+    "totals": {
+      "input_tokens": 400000,
+      "cache_write_tokens": 0,
+      "cache_read_tokens": 600000,
+      "output_tokens": 100000
+    }
+  },
+  "total_cost_usd": 0.165,
+  "hit_rate": 0.6
+}
+```
+
+That example uses the mini/default price row. The display rounds its estimate
+to `$0.17`; the frame retains the more precise value. Unknown is JSON null and
+visible `?`, never silently zero. Expanded details expose session counts and
+explain the estimate and restart limits without requiring hover alone.
+
+Before any response, latest counts and hit rate are null, session counts are
+zero, and estimated spend is zero. A new Engine starts this way even after
+restoring a conversation. An HTTP error does not erase or advance its prior
+successful meter. Usage notifications are silent to the speech queue.
+
+## §15.7 Build, exercise and grade
+
+From `solutions/edition-3/main`, with the approved SDK and owned offline
+environment:
+
+```sh
+dotnet run --project Tests/Tests.csproj
+dotnet build Cli/Ch04.csproj
+dotnet build Examples/Gui/Gui.csproj
+dotnet run --project Examples/Cache/Cache.csproj -- /new/owned/cache-exercise
+```
+
+The separate Cache example uses only public library APIs. It runs two actual
+Agent turns against an owned loopback provider, checks exact captures and
+immutable snapshots, changes from a priced tier to an unpriced tier, restores
+saved conversation into a new empty meter, and destroys both directions of the
+lens relationship. It does not access a paid provider.
+
+Both hosts accept:
+
+| Flag | Environment fallback | Meaning |
+|---|---|---|
+| `--cache-lens DIR` | `EN_CACHE_LENS_DIR` | Opt-in private capture directory |
+| `--cache-breakpoints` | `EN_CACHE_BREAKPOINTS=1` | Explicit Anthropic marker support |
+| `--prompt-cache-key KEY` | `EN_PROMPT_CACHE_KEY` | OpenAI routing key |
+
+Explicit value flags override environment values. These are host configuration,
+not saved browser preferences. Missing values and a routing key on the wrong
+provider refuse startup. No flag establishes that a selected model accepts the
+request.
+
+From the repository root, use the existing Go grader's narrow C# adapter:
+
+```sh
+grade-edition2 -ch 15 -executable-only -json \
+  -gui /absolute/path/to/built/Gui \
+  -cache-prices .15,0,.075,.6 solutions/edition-3/main
+```
+
+Use the actual built GUI apphost, with its runtime dependencies and .NET root
+available, or an equivalent launcher. Unlike early chapters, `-gui` here names
+an executable, not static assets. The adapter creates owned workspaces, sends
+real `/ws` prompts, waits for completed turns, and joins SIGTERM shutdown.
+The original Go route and its historical defaults remain unchanged. In this
+C# invocation supply the shown exact mini/default fixture rates; the original
+defaults are not the C# pricing contract. The adapter uses the C# fixed lens
+filenames, not the Go route's `-cache-current`/`-cache-prior` paths.
+
+| Check | Points | C# executable scope |
+|---|---:|---|
+| `cache-lens-exists` | 15 | Current/prior full wire equal the actual sent bodies |
+| `prefix-is-stable` | 20 | Unchanged tools and SYSTEM across a growing conversation |
+| `request-has-breakpoints` | 15 | Legal Anthropic tool/SYSTEM/advancing stable-history markers |
+| `cost-is-computed-not-stored` | 15 | Count-only events, independently priced OpenAI fixture, unknown model/tier |
+| `usage-is-session-scoped` | 10 | Prior dialogue restored while new latest counts stay unknown and totals zero |
+| `cache-read-rate` | 10 | Disjoint cold/warm fixture counts produce the expected session ratio |
+| `all-vendors-report-usage` | 15 | Actual adapter requests and normalized final counts for all three providers |
+
+The marker session and priced session are deliberately separate. An unpriced
+Anthropic fixture must not acquire a fictional tariff merely because the
+historical grader combined those tests.
+
+The marker grade has no handoff or ephemera. Focused component tests separately
+cover final adjacency, deferred declarations, empty instructions, retained
+handoffs and transient tails. Out-of-order completions, malformed/unknown usage,
+streaming, capture failures and ownership also need their own real-component
+checks. A numeric grade is not an architectural review.
+
+### Personally use the application
+
+Run the GUI from a fresh owned workspace on a free loopback port, not a working
+user's port or browser profile. Supply provider values as in earlier chapters;
+keep real credentials out of commands, source files and captures. For example,
+when an authorized Anthropic route has already been configured:
+
+```sh
+dotnet /absolute/path/to/Gui.dll --port 18085 \
+  --cache-lens ./private-cache --cache-breakpoints
+```
+
+For an OpenAI route, omit `--cache-breakpoints`; optionally use
+`--prompt-cache-key chapter15-owned-demo`. For a fake, configure its loopback
+base URL and dummy key instead. Choose the actual model explicitly; the older
+manuscript's model labels are not recommendations or availability checks.
+
+Send two short questions with a genuinely stable reference between them. Wait
+for each completed turn. Inspect the header and expanded totals, then compare
+`request.body` against `request.prev.body` and the raw bodies.
+Check the provider's usage rather than concluding that a plausible answer means
+a cache hit. With a real provider, first verify its current eligibility rules
+and use a small bounded authorized exercise.
+
+Refresh and open a second owned tab: both must show the same meter without
+another request. Stop the owned host gracefully with Ctrl-C, then restart it in
+the same workspace. Conversation should return, but current-process latest
+usage and hit rate should be unknown and cost zero. No inference is required
+to restore the display. Do not use EOF as the GUI's shutdown contract.
+
+### What this endpoint establishes
+
+The preserved C# boundary has 99 passing component groups, a scoped executable
+100/100, a separate public consumer, CLI flag/capture exercises, and owned GUI
+exercises using plain and SSE responses. Browser checks cover two clients,
+refresh, restart isolation, unknown pricing/counts, failed HTTP, speech silence
+and a 360-pixel-wide layout. DOM/geometry evidence is not pixel assessment or
+a human accessibility audit.
+
+Live API testing was authorized, but no approved credential source was available
+in the test session. Thus no C# live-provider cache grant, billing, current model
+availability, native speech or human-accessibility result is claimed. Historical
+cache counts and dollar tables from previous implementations cannot fill that
+gap. Correct fake replies establish the client contract; only an authorized
+real exchange can establish what the real provider did.
+
+The enduring lesson is not “the cache works.” It is that useful engineering
+keeps the wire, prediction, reported counts, estimated cost and evidence limits
+separate enough to diagnose when one of them is wrong.

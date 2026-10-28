@@ -1,3 +1,0 @@
-# wakeaudit_test [wakeaudit.test]
-./review_test.go:31:19: undefined: ensemble.NewEnsemble
-./review_test.go:32:106: unknown field APIURL in struct literal of type ensemble.Config

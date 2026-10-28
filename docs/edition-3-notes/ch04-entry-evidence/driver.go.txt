@@ -1,3 +1,0 @@
-package main
-import("fmt";"os";"github.com/waywardgeek/ensemble/internal/gradeedition2")
-func main(){ example,err:=gradeedition2.ReadConsumerCase(""); if err!=nil { panic(err) }; report,err:=gradeedition2.Chapter4(os.Args[1],os.Args[2],os.Args[3],example); if err!=nil { fmt.Fprintln(os.Stderr,err); os.Exit(2) }; if err=report.WriteJSON(os.Stdout); err!=nil { panic(err) }; if !report.Passed { os.Exit(1) } }

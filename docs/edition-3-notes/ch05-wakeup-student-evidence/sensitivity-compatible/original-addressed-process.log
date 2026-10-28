@@ -1,6 +1,0 @@
-=== RUN   TestChapter5WakeupAddressedProcessInitialAndLater
-    chapter5_wakeup_test.go:622: WAKEUP addressed initial process next HTTP did not arrive promptly
---- FAIL: TestChapter5WakeupAddressedProcessInitialAndLater (2.02s)
-FAIL
-FAIL	ensemble	2.034s
-FAIL

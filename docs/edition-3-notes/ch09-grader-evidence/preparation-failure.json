@@ -1,6 +1,0 @@
-{
-  "failure": "first exact dispatch anchor expected Chapter8 fallback; actual fallback Chapter1; assertion stopped before source writes",
-  "outer_shell_exit": 0,
-  "qualification": "gofmt/diff after failed python masked status; diagnostic inspected; no patch or test success credited",
-  "recovery": "read actual dispatch; corrected exact anchor and fail-fast shell; saved before bytes unchanged"
-}

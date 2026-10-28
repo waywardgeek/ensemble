@@ -348,6 +348,8 @@ func fleetMessagingWith(driver fleetDriver, c *grade.Check) {
 		rootJoins := 1
 		questionJoin := "question-join"
 		questionJoins := 1
+		questionResult := questionJoin
+		questionHandle, questionWaits := 0, 0
 		reqs, err := driver.run(work, func(body []byte) *fakevendor.Reply {
 			b := string(body)
 			if strings.Contains(b, fleetRoot) {
@@ -387,7 +389,31 @@ func fleetMessagingWith(driver fleetDriver, c *grade.Check) {
 						}
 						questionJoins++
 						questionJoin = fmt.Sprintf("question-join-%d", questionJoins)
+						questionResult = questionJoin
 						return fleetCall(questionJoin, "join_agents", map[string]any{"agent_ids": []string{"leaf"}, "ai_callback_delay": 5})
+					}
+					text, failed, err = anthropicToolText(body, questionResult)
+					if err != nil || failed {
+						fail(c, "question observation %s failed: %v %s", questionResult, err, text)
+						return fleetFinish()
+					}
+					text = currentFleetJSON(text)
+					if questionHandle != 0 && !strings.HasPrefix(text, fmt.Sprintf("job %d ", questionHandle)) {
+						fail(c, "question observation lost admitted job %d: %s", questionHandle, text)
+						return fleetFinish()
+					}
+					if !strings.Contains(text, "QUESTION_22") || !strings.Contains(text, "leaf") {
+						handle := fleetRunningJob(text)
+						if handle == 0 || questionWaits >= 3 {
+							fail(c, "question observation lacks pending leaf question: %s", text)
+							return fleetFinish()
+						}
+						// A hint wakes observation, not the admitted join. Follow that
+						// same job until its real question result exists before answering.
+						questionHandle = handle
+						questionWaits++
+						questionResult = fmt.Sprintf("question-wait-%d", questionWaits)
+						return fleetCall(questionResult, "wait_for_job", map[string]any{"handle": handle, "ai_callback_delay": 5})
 					}
 				}
 				if !fleetHas(body, "answer") {
@@ -407,7 +433,7 @@ func fleetMessagingWith(driver fleetDriver, c *grade.Check) {
 			fail(c, "three-generation session: %v", err)
 			return
 		}
-		for id, parts := range map[string][]string{questionJoin: {"QUESTION_22", "leaf"}, "ask": {"ANSWER_22", "middle"}, "leaf-join": {"LEAF_DONE_22"}, rootJoin: {"MIDDLE_DONE_22"}} {
+		for id, parts := range map[string][]string{questionResult: {"QUESTION_22", "leaf"}, "ask": {"ANSWER_22", "middle"}, "leaf-join": {"LEAF_DONE_22"}, rootJoin: {"MIDDLE_DONE_22"}} {
 			text := fleetResult(c, reqs, id, false)
 			if driver.current {
 				text = currentFleetJSON(text)
@@ -434,6 +460,20 @@ func fleetMessagingWith(driver fleetDriver, c *grade.Check) {
 }
 
 var fleetHandle = regexp.MustCompile(`(?i)\b(?:handle|job)[" :=]+([0-9]+)`)
+
+// Only a real running report admits another observation, not a quoted handle
+// in arbitrary result prose. The caller separately rejects error results.
+func fleetRunningJob(text string) int {
+	match := fleetHandle.FindStringSubmatch(text)
+	if len(match) != 2 || !strings.HasPrefix(text, "job "+match[1]+" running;") {
+		return 0
+	}
+	var handle int
+	if _, err := fmt.Sscan(match[1], &handle); err != nil || handle <= 0 {
+		return 0
+	}
+	return handle
+}
 
 func fleetWake(driver fleetDriver, c *grade.Check) {
 	fleetTemp([]*grade.Check{c}, func(work string) {

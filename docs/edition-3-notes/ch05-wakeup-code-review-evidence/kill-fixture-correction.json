@@ -1,5 +1,0 @@
-{
-  "reason": "kill_job public schema accepts handle only; use preceding tool_limits for shared one-shot policy instead of unsupported per-call ai_callback_delay",
-  "production_edits": false,
-  "prior_invalid_kill_and_follow-on_missing_reap_uncredited": true
-}

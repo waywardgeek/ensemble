@@ -1,6 +1,0 @@
-=== RUN   TestReviewDistinctFallbackIDs
-    reviewer_regression_test.go:71: fallback identity must remain distinct and paired: calls=[call-3 call-3] results=[call-3 call-3]
---- FAIL: TestReviewDistinctFallbackIDs (0.00s)
-FAIL
-FAIL	ensemble	0.008s
-FAIL

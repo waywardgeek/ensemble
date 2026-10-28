@@ -1,5 +1,0 @@
---- FAIL: TestChapter8NextTurnBudget (0.01s)
-    chapter8_budget_test.go:75: active turn requests=19 want3 (two executed batches)
-FAIL
-FAIL	ensemble	0.018s
-FAIL

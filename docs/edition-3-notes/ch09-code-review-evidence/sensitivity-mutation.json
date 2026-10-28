@@ -1,7 +1,0 @@
-{
-  "source": "pinned archive extracted into owned sensitivity-archive; all132 relative paths/bytes verified",
-  "file": "internal/skills/registry.go",
-  "original_sha256": "9fba40a4235198e0eb7f562809ee2aba9cce7ea4002d718614613d02b418874b",
-  "mutant_sha256": "5a8571b11d6ea3ed25503929f8d919e25c4e70d69d6e98793371028189012547",
-  "change": "premature capability removal immediately on pending unload; tests unchanged"
-}

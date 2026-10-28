@@ -1,5 +1,0 @@
-{"log_version":1}
-{"seq":1,"type":"message_received","time":"2026-10-17T05:35:07.270252Z","message":{"actor":"human","parts":[{"type":"text","text":"Write roughly 80 words of vivid prose about a rainy library. Author must write_draft and word_count; editor must read_draft and edit_draft; reviewer must review with accept/reject and short notes."}]}}
-{"seq":2,"type":"request_sent","time":"2026-10-17T05:35:07.270277Z","request":{"to":{"vendor":"openai","model":"gpt-4.1-2025-04-14","surface":"chat_completions"}}}
-{"seq":3,"type":"error_occurred","time":"2026-10-17T05:35:07.27206Z","error":{"message":"openai response missing valid prompt_tokens"}}
-{"seq":4,"type":"turn_ended","time":"2026-10-17T05:35:07.272071Z","error":{"message":"openai response missing valid prompt_tokens"}}

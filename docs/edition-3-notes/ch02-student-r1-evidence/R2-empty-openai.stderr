@@ -1,3 +1,0 @@
-input=11 output=2 cache_write=0 cache_read=0
-engine request failed
-error: openai response contained no choices

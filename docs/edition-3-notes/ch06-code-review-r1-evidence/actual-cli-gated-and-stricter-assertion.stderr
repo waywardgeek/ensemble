@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch06-code-review-r1-evidence/cli-gated-control.py", line 5, in <module>
-    CORE='/tmp/e3-ch06-correction-r1/core';assert hashlib.sha256(pathlib.Path(CORE).read_bytes()).hexdigest()=='84b238dd9b82ef797f696c4cfc069e2d429c0b14b4962dc2a77b9ca93ae6a33d'
-                                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError

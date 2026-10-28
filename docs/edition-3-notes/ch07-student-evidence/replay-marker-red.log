@@ -1,5 +1,0 @@
-# ensemble-gui [ensemble-gui.test]
-./hub_test.go:255:2: undefined: appendResponse
-FAIL	ensemble-gui [build failed]
-?   	ensemble-gui/cmd	[no test files]
-FAIL

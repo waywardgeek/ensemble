@@ -1,9 +1,0 @@
-cwd: /Users/bill/projects/ensemble-edition-3-student
-command: go vet ./...
-vet exit: 0
-command: git diff --check
-diff-check exit: 0
-source status:
-source commit: 74eb0265bd8bdbc7857d579704300b317b2365da
-source archive sha256: bff37519226b7aca26b273128cdc4e922e0c458c35234f751139ffd7178b3ad5  -
-1f6494edd754535ff5d1f2ca0f2663ccfa4ea236a5655dd8894b1940dc70f7e4  /Users/bill/projects/ensemble/docs/edition-3-notes/ch02-student-evidence/student-cli

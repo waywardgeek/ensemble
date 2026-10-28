@@ -1,7 +1,0 @@
-{
-  "path": "internal/jobs/jobs.go",
-  "before_sha256": "a98672e0d6075aacf7bced80a77c736f8b32195e2b46dd985fb528fc2929879f",
-  "after_sha256": "46b8baf21fb6e49b162f6dd7ab0f4c117f22d890b995057156777066a913a2a0",
-  "insertion": "base.MaxBytes = defaults().MaxBytes before explicit arguments",
-  "effect": "ignore only pending output cap; explicit override remains"
-}

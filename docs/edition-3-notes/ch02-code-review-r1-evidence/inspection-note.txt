@@ -1,1 +1,0 @@
-Reviewer inspection note: `nl -ba $STUDENT/agent.go` failed because the agent implementation is internal/agent/agent.go. Recovered the correct path. This was a read-only inspection typo, not a candidate defect or a source/test execution failure.

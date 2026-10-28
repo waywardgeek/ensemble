@@ -1,2 +1,0 @@
-go run ./cmd/grade-edition3 -ch 5 -json -core /Users/bill/projects/ensemble-edition-3-student -consumer /Users/bill/projects/ensemble-edition-3-student/examples/ch04-consumer -workflow /Users/bill/projects/ensemble-edition-3-student/examples/ch06 -media-models /tmp/cadence-ch05-evidence-r1/media-models.json /tmp/cadence-ch05-evidence-r1/frozen/ensemble
-go run ./cmd/grade-edition3 -ch 1 -json /tmp/cadence-ch05-evidence-r1/frozen/ensemble

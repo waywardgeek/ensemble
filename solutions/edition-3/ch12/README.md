@@ -1,143 +1,277 @@
-# Edition 3 — Chapter 6
+# Edition 3 — Chapter 12 C# endpoint
 
-This module implements the current Chapter 6, retaining Chapters 1–5 contracts.
-It uses only the Go standard library; there is no provider SDK or framework.
+C# 14 / .NET 10. Common declares the core vocabulary, persistent fields,
+relationships and cross-module operations. Functional directories implement the
+matching partial types in one assembly. CLI, tests and examples are separate
+assemblies using that public API; no additional packages are required.
 
-## Chapter 6 — streaming
+## Read in this order
 
-Engine has one `Parse(resp, callbacks)` path for JSON and SSE, using a shared SSE
-reader and provider-local assembly. Deltas carry response-local part IDs (zero
-is valid); complete parts retain native boundaries, usage, and source identity.
-Unknown streaming capabilities use JSON; `DisableStreaming` and
-`EN_DISABLE_STREAMING=1` opt out. The Agent alone records History and saves before
-publishing finals. Partial calls cannot execute. Jobs reserve their stable handle,
-then the Agent records/saves the actual call before releasing the handler.
+1. `Common/Owners.cs`, `Common/Actor.cs`, `Common/Streaming.cs`: Ensemble owns
+   Agents; Agent owns History, Engine, Jobs, Tools and optional Skills. The Agent mailbox owns
+   conversation mutation and scheduling. Reliable request tasks are separate
+   from bounded, lossy Agent/root observation queues.
+2. `Agent/Actor.cs`: controls remain responsive during HTTP and foreground Job
+   waits. Workers return completion messages; they do not write History. Chunk
+   messages are transient. Recorded final events precede final observations.
+3. `Engine/Engine.cs`, `Engine/Streaming.cs`, `Engine/Parse.cs`: frozen request
+   bytes, untimed cancellable HTTP, one JSON/SSE response seam and shared final
+   decoding. Parser-supplied IDs correlate deltas with finals even when arrival
+   order differs from final order. Partial arguments never authorize effects.
+4. `Engine/Render.cs`, `Engine/Media.cs`: explicit model capabilities, request-only
+   local-media resolution, unknown-model plain fallback, and configuration
+   opt-out. Stream capability is not inferred from media support.
+5. `Jobs`: reserve → record call → start effects; full output on disk, serialized
+   unseen-output cursor, observation bounds, process lifetime and explicit kill.
+   Job handles are Ensemble-wide but each Jobs owner limits lookup to its children.
+6. `History` and `Serialization`: one authoritative conversation, exact JSON
+   arguments and provenance-aware opaque data. Deltas do not inflate history or
+   accounting. Host-only tool observations do not invent model dialogue.
+7. `Application/Ensemble.cs`: complete two-way relationships and optional sanitized
+   tracing through real parents. The caller owns the trace writer and closes it
+   after the root is destroyed.
+8. `Examples/Observer` and `Examples/Workflow`: delivered-stream statistics and
+   multi-Agent display respectively. Reliable tasks govern completion; observations
+   never advance workflow stages. `Examples/Consumer` retains the small custom
+   tool example from Chapter 4.
 
-The CLI drains a lossless observation queue: answer text goes to stdout, thinking
-and tool progress to stderr, with no duplicate final answer. JSON `prompt` records
-can receive observation records; legacy `user` records retain their plain-mode
-contract. Root-owned `api.log` tracing omits headers/authenticated URLs and redacts
-configured keys. `ch07/` is a separate public-library streaming shape example.
-Ephemera updates replace the pending projection (empty clears it), and the next
-`RequestSent` consumes it even when the HTTP request fails.
+## Chapter 9: skill ownership and activation
 
-## Ownership rationale
+Read `Common/Skills.cs`, `Agent/Skills.cs`, then `Skills/Skills.cs` and
+`Skills/Parser.cs`. Agent owns its manager; recorded immutable `SkillPart` values
+supply both instruction bodies and tool grants. There is no second mutable
+active-tool registry. A load validates and publishes one dependency batch.
+Pending unload preserves local instructions and tools; Chapter 11 closes the
+selected skill’s external connections and remote tools immediately. The primary is rendered once;
+loaded bodies appear once in each provider's instruction field, not ordinary
+tool-result dialogue. The actor performs activation before scheduling the next
+request; disabled calls are refused before effects.
 
-The public `ensemble` package is a small composition root. It owns a logger and
-its Agents, constructing both directions of the Agent/Engine relationship before
-returning an Agent. `internal/common` declares shared values and interfaces only;
-`internal/agent` and `internal/engine` never import each other.
+CLI and GUI now default to the shipped `ensemble` primary: inspection tools plus
+an offered `code-tools` manual for editing and job control. For an explicitly
+full local exercise use `EN_PRIMARY_SKILL=full`. Both applications support
+`--skills-dir PATH`, `--primary-skill NAME`, `EN_SKILLS_DIR`, `EN_PRIMARY_SKILL`,
+and the harmless example variable `EN_CUSTOM_VAR`. Files are copied beside the
+executables; the library reads no environment. Open logs before attaching Skills.
 
-Agent holds configuration and completed history. Engine holds the HTTP client
-and measured usage, looking up configuration and diagnostics through its actual
-Agent parent (and that parent's Ensemble). A failed request never commits an
-unanswered user turn. Missing usage is not zero; measured usage from an empty
-answer is still counted. History and usage accessors return copies, not mutable
-internal state. Each Agent serializes conversation state in its actor; HTTP and
-job work run outside that actor. Separate Agents have independent conversation and accounting.
+`EN_DEFERRED_TOOLS=1` explicitly opts an Anthropic host into deferred declarations
+and paired discovery references. It is off by default and is not a model-support
+probe. Deferred schemas still travel in every request. The primary's tools stay
+eager. Canonical discovery metadata survives logging/redaction; offline `render`
+without a manager uses portable enabled declarations and recorded manuals rather
+than rereading the catalog.
 
-The HTTP client has no total response or header deadline. Standard transport
-connection/TLS protections remain, while the caller's context governs model
-work, including reading the body. Redirects are rejected to avoid forwarding
-credentials. Errors omit remote bodies, URLs, and raw transport diagnostics.
-
-## Use
-
-Set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`; discover the model with the
-provider's `GET /v1/models` endpoint rather than guessing. `ANTHROPIC_BASE_URL`
-defaults to `https://api.anthropic.com`, and can select a local HTTP fake.
+`Examples/Skills` is a separate public-API consumer. Give it a new owned directory:
 
 ```sh
-go build -o /tmp/ch01 ./cmd/ch01
-printf '%s\n' '{"user":"Hello"}' | /tmp/ch01
-/tmp/ch01 chat
+dotnet run --project Examples/Skills/Skills.csproj -- /new/owned/skills-exercise
 ```
 
-No arguments selects JSON-lines input/output: one `assistant` object per input,
-then cumulative `usage` at EOF. Errors go to stderr and exit nonzero without
-retrying. `chat` prints human prompts and per-turn usage; Ctrl-D ends it.
-The root accepts an application logger (`ensemble.New(logger)`), then
-`app.NewAgent(ensemble.Config{...})` creates a conversation for synchronous
-`Ask(ctx, text)` calls. A nil logger discards diagnostics; no global logger is used.
+It performs real refused/accepted writes, variable snapshot checks, provenance,
+and a dynamically granted write after pending unload, without provider access.
+The Chapter 9 tests also drive actual actor/HTTP load-and-write loops in ordinary
+and deferred modes. Local CLI exercises cover all three dialects and key-free
+replay with the catalog unavailable; an isolated browser covers skill/result
+cards and stable replay. The scoped executable grade is 85/85, excluding inherited
+Go topology. None of these establishes real-provider support or human hearing.
 
-## Checks
+## Build and exercise
+
+Use the approved SDK in an owned offline environment, with first-run setup and
+telemetry disabled. Build from this endpoint directory:
 
 ```sh
-go test -race ./...
-go vet ./...
+dotnet run --project Tests
+dotnet build Cli/Ch04.csproj
+dotnet build Examples/Observer/Observer.csproj
+dotnet build Examples/Workflow/Workflow.csproj
+dotnet build Examples/Gui/Gui.csproj
 ```
 
-Tests use real local HTTP servers with fake credentials. They cover wire shape,
-parent/configuration/logger isolation, replay and failed-turn retention, usage,
-sanitized errors, caller cancellation, redirects, and the CLI's line/EOF rules.
-JSON input has no arbitrary physical-line size limit; a final unterminated line
-is processed at EOF. The default JSON mode does not print chat prompts.
+The CLI project retains its historical name. Its output is `ch04.dll`, but it
+references this endpoint's current library. Run binaries from an owned scratch
+workspace, not the source directory. Configure `LLM_VENDOR`, `LLM_MODEL`,
+`LLM_BASE_URL`, and `LLM_API_KEY`; use dummy credentials with an owned loopback
+fake. Job output goes to `cr/io/<handle>` under the working directory.
+
+The CLI retains `chat`, `dump`, `render`, `-media-capabilities`, JSON stdin, and
+`CH02_LOG`. JSON inputs include blocking `user`, live `kind: prompt`, `hint`,
+`pause`, `resume`, `interrupt`, `shutdown`, and direct `tool` operations as
+specified in Chapter 5. EOF drains accepted turns; shutdown cancels them.
+
+Streaming is requested for declared capable models unless `-no-stream` or
+`EN_DISABLE_STREAMING=1` opts out. Plain parsing emits finalized parts without
+synthetic deltas. Live JSON (`kind: prompt`) emits flushed `part_delta` and
+`part_final` records with response-local IDs. Legacy blocking requests keep
+reliable reply-only output. Interactive `chat` previews chunks on stderr and
+writes each reliable completed answer once to stdout. It suppresses ANSI styling
+when stderr is redirected. `CH06_API_LOG` selects the sanitized payload trace,
+which defaults to `api.log`; do not commit traces or credentials.
+
+From the repository root, a compiled grader can exercise the CLI and external
+aggregate observer launchers:
+
+```sh
+grade-edition2 -ch 6 -executable-only -json \
+    -stream-model claude-3-haiku-20240307 \
+    -stream-exercise /absolute/observer /absolute/cli
+```
+
+This 80-point scope excludes inherited Chapter 5 and Go-specific consumer/topology
+checks. The full Go route remains intact. All-vendor parser tests, source review,
+gated pre-EOF visibility, interrupts and the actual three-role workflow remain
+separate evidence. See `docs/edition-3-csharp-progress.md` in the repository for
+results and limitations; a green grade is not an architecture verdict.
+
+## Lifetime and evidence limits
+
+`ai_callback_delay`, patterns and inline caps control observation, never job
+execution deadlines. Busy hints and interrupts stop foreground observation but
+preserve independent Jobs. `FlushAsync` waits for accepted turns and foreground
+controls, not independent background work; it does not resume a paused Agent.
+
+Destruction stops and joins work before detaching History or parents. .NET cannot
+forcibly stop an arbitrary managed callback: cooperative cancellation is required,
+and a callback that ignores it can delay shutdown. PTY processes are killed and
+joined. The PTY implementation uses macOS `/usr/bin/script`, not a claimed portable
+Linux implementation. Completed output files remain after logical destruction.
+
+Progress is bounded and lossy. Aggregate counts describe delivered observations,
+not billing or a reliable transcript. Use History usage and reliable request
+results for authoritative facts. Model capability rows and fake-provider passes
+do not establish live provider availability, streaming acceptance, media decoding,
+or paid integration. Those exercises remain incomplete without separate authority.
 
 
-## Retained tool contracts
+## Chapter 8 browser application
 
-The same Agent now owns an independent six-tool registry. Root composition wires
-Agent, Engine, History, and Tools through `internal/common` interfaces; each
-implementation keeps its state locally. Engine owns HTTP, Render, Parse, and all
-provider tool envelopes. Tools do not retain conversation, and the GUI continues
-to call the same Agent rather than providing a second implementation.
+`Examples/Gui` is a separate ASP.NET Core application over the public library,
+not a dependency of the core. It uses the installed shared framework; no packages
+or frontend downloads are needed. Run from an owned workspace and loopback port.
+See its README for flags, logs, and the WebSocket control vocabulary.
 
-`Config.Tools == nil` enables the default six tools. A non-nil empty slice really
-disables every tool and omits `tools` from provider requests. A nonempty slice
-selects names. CLI/GUI environment equivalents are `LLM_TOOLS=default`,
-`LLM_TOOLS=none`, or a comma-separated list of built-in names. Registry declarations
-and configuration are returned as copies, not mutable backing storage. Each
-registry entry joins its declaration with its handler; declarations and dispatch
-use that same per-Agent registered set.
+History now supplies locked immutable snapshots. Completed response events retain
+response/part display identities; old logs without them still load. Admission
+records `ToolStarted` only after validation and before effects. Pause, resume,
+and joined shutdown are recorded, so reconnect need not invent lifecycle state.
+These are canonical facts, not a GUI-owned copy of the actor state.
 
-The selected model's explanation policy is explicit:
-`Config.RequireToolExplanation` / `LLM_REQUIRE_TOOL_EXPLANATION=true`. When enabled,
-a whole batch lacking nonblank ordinary assistant text before its first call is
-refused before effects. Each call gets a matching error result instructing a retry
-with an explanation. Hidden reasoning, opaque blocks, stop reasons, and usage do
-not satisfy this rule. Turn completion is based on returned calls. The default limit is 200 dispatched
-batches (`Config.MaxToolBatches`); refused/invalid batches do not spend that budget.
-A final request consumes the last dispatched batch's results before the limit
-rejects any additional effects.
+The server has bounded per-client queues, replay/live handoff, periodic durable
+catch-up, and transient partials. The browser safely renders typed cards, preserves
+full speaker payloads, and implements edge-triggered typing/queued-speech pause.
+Explicit unpause from another tab wins while a local cause is unchanged.
 
-Tools use strict JSON argument types and reject unknown fields. Their schemas
-are sent with each enabled declaration. `read_file` has optional one-based
-inclusive `start_line`/`end_line` and a `max_bytes` cap. Omitted or zero start
-means line 1, end means EOF, and `max_bytes` means no read cap. Negative bounds
-or caps and an end before the start are errors. The tool selects the requested
-line range first, then caps returned bytes; actual truncation adds an explicit
-`[truncated at max_bytes=N]` marker outside the cap. Exact-size results do not
-claim truncation. Reads use bounded fragments, including for very long lines.
-`list_directory` is sorted and nonrecursive. `search_files` uses Go regular
-expressions, walks regular text files without following symlinks, defaults
-`context_lines` to zero, and merges overlapping/adjacent context ranges. Match
-lines use `path:line:text`; context lines use `path-line-text`. Positive-context
-groups have `--` separators, including across file boundaries; zero-context
-searches emit only matching lines without separators.
+Chapter 7 verification includes core snapshot/identity/admission/shutdown tests,
+real loopback HTTP/WebSocket exercises, an isolated headless-browser exercise,
+and the scoped executable GUI grader. Fake speech verifies payloads and queue
+cleanup, not audible playback. Provider acceptance and human accessibility remain
+separate, incomplete exercises; consult the progress record for exact evidence.
 
-`write_file` creates parents and refuses to replace existing files by default;
-the refusal reports the current size and names the opt-in flags.
-`overwrite:true` opts into replacement, `append:true` preserves existing bytes,
-and using both is rejected. `edit_file` replaces one nonempty, exact, unique
-`old_text` anchor; zero or multiple matches (including overlaps) leave the file
-unchanged. Both refusal diagnostics identify the supplied path. Zero-match
-refusals explicitly report 0 matches and suggest rereading
-the file. Ambiguity refusals report the total count (including overlaps), list
-up to eight one-based match-start line numbers, and say how many locations were
-omitted if the list is truncated. Repeated line numbers represent distinct
-matches on the same line; multiline anchors report their starting lines. No
-file excerpts, fuzzy matching, or automatic match selection are used: reread
-the current file and give a larger exact anchor on ambiguity. A unique anchor
-can be deleted by supplying an empty `new_text`. `run_command` invokes `/bin/sh -c` and returns
-JSON text with separate `stdout`, `stderr`, and `exit_code` fields. A nonzero
-process exit is still a completed tool result; startup failure is a tool error.
-It adds no timeout beyond caller context cancellation. The shell environment
-removes `LLM_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, and `GEMINI_API_KEY`,
-while retaining ordinary build variables. This removes those four credentials;
-it is not a general secret detector or sandbox.
+## Chapter 8 settings and turn budgets
 
-Relative paths and command `cwd` resolve against the registry's launch directory;
-absolute paths and `..` are allowed. This is not a sandbox. No command changes the
-process-wide directory. Ordinary calls return stable job handles with observed
-output; callback limits do not kill jobs. Explicit kill and joined shutdown retain
-their distinct terminal semantics. These tools are for trusted local use.
+`Agent.MaxToolRounds()` reads the runtime policy; `SetMaxToolRounds(int)` accepts
+nonnegative values (zero = auto/200) and refuses negatives without mutation.
+The actor captures the effective limit at turn start. Constructor configuration
+still supports Chapter 5's library-only negative unlimited seed. Rendering a
+budget instruction is request-local and never changes canonical History.
+
+The optional GUI persists its presentation preferences plus the Agent's policy
+snapshot. It saves before applying/broadcasting, validates disk and wire values
+with one policy, and has no second live budget field. See `Examples/Gui/README.md`
+and `Common/Settings.cs` in that application for the protocol and ownership.
+
+## Chapter 10 persistence
+
+Read `Common/Persistence.cs`, `History/Persistence.cs`,
+`Serialization/Persistence.cs`, and `Agent/Persistence.cs` together. History owns
+one reduced Context and its folded sequence; diagnostic retention cannot reset
+that sequence. Save candidates and old primaries are validated before replacement.
+Corrupt primary bytes never rotate over a good backup.
+
+CLI and GUI now load/save `save.json` in their working directory by default.
+Use a separate directory per session, `--save PATH` to choose one, or `--no-save`
+for an intentionally ephemeral exercise. `--save-log N` selects all (negative),
+none (zero), or the newest N diagnostic events. `--archive-log PATH` optionally
+writes a derivative dialogue JSONL file before trimming; it is not a recovery
+source. Environment fallbacks are `EN_SAVE_PATH`, `EN_SAVE_LOG`,
+`EN_ARCHIVE_LOG`, and `EN_DISABLE_SAVE=1`.
+
+Library callers explicitly call `Agent.StartPersistence` before actor admission.
+Construct current skills first, load/reconfigure next, then open the diagnostic
+log. StartLog writes the restored/bootstrap prefix before recording new events.
+Shutdown joins work, records completion and saves before logical destruction.
+Current runtime configuration overrides saved skill grants, not ordinary historic
+system messages. The next primary/skill bodies come from today's explicit inputs.
+
+`Examples/Persistence` is an independent assembly using only public APIs. It takes
+one new directory and demonstrates snapshot-only restore, a runtime model change,
+and continuous numbering without a network provider. Chapter 10's scoped CLI
+grade and isolated GUI restart/browser exercise are separate evidence; neither
+claims real-provider validation or crash-proof unsaved-event recovery.
+
+
+## Chapter 11 MCP and on-demand browser tools
+
+Start with `Common/Mcp.cs` and `Common/McpBrowser.cs`, then read `Mcp/Ownership.cs`,
+`Mcp/Client.cs`, and `Mcp/Service.cs`. The Agent owns its MCP manager; clients have
+real manager, optional skill, and optional browser parents. Remote Tools belong
+to both Agent and client. Destruction closes admission immediately, joins owned
+I/O and reverse work, and removes both directions of these relationships.
+
+`Skills/Connections.cs` prepares connections off-actor and commits one validated
+activation on the actor. Discovery never grants unlisted tools. Construct Skills,
+load persistence, open the diagnostic log, then await `Skills.InitializeAsync`
+before user work. For a server-backed GUI primary, start the listener first;
+`RequiresBrowserStartup()` distinguishes a WebSocket dependency from stdio-only
+startup, which must not wait for a browser. Failed startup cannot overwrite a
+previous good save. Saved configuration is documentary, not a process-restart
+recipe.
+
+`Agent/Automatic.cs`, `Mcp/Automatic.cs`, and the Job completion path collect
+`per_turn_` / `per_round_` definitions as real independent Jobs. Their completed
+output becomes request-only system ephemera. Automatic names never become model
+or reverse-call declarations, `$TOOLS` entries, or discovery references. Interrupt
+abandons collection, not the Job. Failed snapshot bytes remain inspectable in the
+Job; the model receives only a short unavailable/error diagnostic.
+
+The CLI accepts `--mcp-pipe` with ordinary application/skill configuration. An
+external client sends `initialize`, then `notifications/initialized`, before
+`tools/list` or `tools/call`. Stdout is protocol-only; EOF leads to joined shutdown.
+This incoming role differs from outgoing skill connections, where Ensemble sends
+the handshake. File-tool service work requires no model HTTP request.
+
+The shipped `browser` skill is loadable from the default primary. It offers
+`gui_snapshot`, `gui_click`, `gui_input`, `tts_queue`, and `tts_say`; none runs
+automatically. One browser registration can supply tools, while observer tabs
+remain unable to inject its replies. See the GUI README for connection lifetime.
+General MCP resource blocks are explicitly unsupported; media placement is still
+subject to each provider renderer's capabilities.
+
+The scoped executable grader is:
+
+```sh
+grade-edition2 -ch 11 -executable-only -json /absolute/cli-launcher
+```
+
+Its five CLI checks total 80 points. Real local component/GUI/browser exercises and
+a separate public-API consumer are additional evidence, not implied by that grade.
+No live-provider or audible/human-accessibility acceptance is claimed.
+
+## Chapter 12: optional startup skills
+
+`SkillSpec.StartupSkills` is an optional ordered list frozen at construction.
+The primary and selected skills resolve and publish as one initial activation;
+server-backed selections finish through `Skills.InitializeAsync`. Readiness and
+browser-wait decisions cover the complete selection, not only the primary.
+Loaded manuals use each provider's instruction field without invented tool calls.
+
+Both hosts accept `--startup-skills name,other` (default `EN_STARTUP_SKILLS`) and
+`--gui-debug` to append that skill. The shipped `gui-debug` owns a WebSocket
+browser connection; use the GUI host for it. A CLI startup exercise needs its own
+usable stdio declaration, not an imaginary GUI listener. Default startup is unchanged.
+
+The browser's marked MCP input events do not create human typing. Speech callbacks
+use the retained human cause rather than guessing from field contents. Human
+whitespace still pauses; successful submission explicitly clears that cause.
+Snapshots and speech-queue observations remain on demand. See
+`Tests/StartupSkillTests.cs`, `Skills/Startup.cs`, and `skills/gui-debug/SKILL.md`.

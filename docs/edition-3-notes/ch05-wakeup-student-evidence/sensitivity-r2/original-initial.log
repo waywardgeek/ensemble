@@ -1,6 +1,0 @@
-=== RUN   TestChapter5WakeupInitialMixedBatch
-    chapter5_wakeup_test.go:141: WAKEUP same-turn initial observation continuation did not arrive promptly
---- FAIL: TestChapter5WakeupInitialMixedBatch (2.01s)
-FAIL
-FAIL	ensemble	2.021s
-FAIL

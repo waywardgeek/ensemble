@@ -25,9 +25,6 @@ boundary. That router belongs in the framework, not bolted on after.
 
 ## TL;DR
 
-For Edition 3, continue from the exact accepted Chapter 24 commit; Chapter 25
-is a historical-only interlude with no intervening code checkpoint.
-
 The gateway is a standalone edge service that sits at the trust boundary,
 routing messages between agents over Noise-KK encrypted WebSocket
 connections. It uses group-based access control where an agent's
@@ -680,7 +677,7 @@ The launch selected Astra/high and the Codex route; the retained Agent facts
 verify the model, while effort and endpoint retain launch/source evidence.
 All four cache-read counts were zero. A working encrypted interview should
 not be sold as a cache benefit or a productivity experiment. The
-[run and transcript](../../solutions/evidence/ch27/live-interview.md)
+[run and transcript](../solutions/evidence/ch27/live-interview.md)
 retain the actual answers; later local diagnostic and receipt-test corrections
 do not turn that earlier run into a new one.
 
@@ -709,5 +706,12 @@ Build and grade from the repository root:
 go run ./cmd/grade-edition2 -ch 26 solutions/ch26
 ```
 
-The seven checks and their weights are listed in the TL;DR above (100 points
-total).
+| # | Behavior | Check | Points |
+|---|----------|-------|--------|
+| 1 | Noise-KK handshake | Two peers complete mutual authentication over a byte stream. Wrong keys are rejected. | 15 |
+| 2 | Prompt envelope with provenance | Delivered body and authenticated provenance agree, with conversation and response mode preserved. | 10 |
+| 3 | Gateway server accepts connections | Actual binary welcomes multiple authenticated clients with identity, version and empty/nonempty queue counts. | 15 |
+| 4 | Group-based routing | Agent declares contactability by group. Gateway delivers messages only from senders whose group membership the recipient has accepted. Unauthorized sends are rejected. | 15 |
+| 5 | Delivery semantics | Handler return precedes ack; offline and unacknowledged messages survive reconnect with the proper sequence boundary; a clean server restart preserves queued delivery. | 15 |
+| 6 | Client library with Handler interface | Outside consumer compiles and uses the actual public client; its resolved imports exclude private runtime packages. | 10 |
+| 7 | Parent registers child | Connected agent registers a child's public key and grants it a subset of its own groups. Child connects independently via Noise-KK. Gateway rejects group grants the parent does not hold. | 20 |

@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble-edition-3-student/gui/test/sensitivity.py", line 7, in <module>
-    original=path.read_bytes();text=original.decode();assert text.count(old)==1,(name,text.count(old));record={'name':name,'path':str(path.relative_to(root)),'before_sha256':hashlib.sha256(original).hexdigest(),'command':cmd,'cwd':str(cwd)}
-                                                             ^^^^^^^^^^^^^^^^^^
-AssertionError: ('replay-window', 0)

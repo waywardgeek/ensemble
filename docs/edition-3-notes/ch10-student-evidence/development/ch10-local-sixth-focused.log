@@ -1,6 +1,0 @@
---- FAIL: TestChapter10EmptyPrimaryAndWriteFailure (0.03s)
-    chapter10_test.go:370: tool requires name, parameters and handler
-    chapter10_test.go:361: invalid declaration shutdown succeeded
-FAIL
-FAIL	ensemble	0.193s
-FAIL

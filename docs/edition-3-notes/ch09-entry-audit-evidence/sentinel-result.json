@@ -1,8 +1,0 @@
-{
-  "selfcheck_exit": 73,
-  "selfcheck_marker": "launched",
-  "marker_removed_before_entry": true,
-  "no_target_marker_absent": true,
-  "sentinel_marker_absent": true,
-  "sentinel_sha256": "8deb599c65777f139ce69735d1e833c71a50071ecddba0744baadf559d51e0c4"
-}

@@ -1,8 +1,0 @@
-{
-  "carried_forward": "All prior complete governing/historical prerequisite reads were compared against old manifest and remain byte-identical. Current reviewer role and frozen two files read in full again. New diff/candidate/command receipts/entry acceptance read.",
-  "read_only_setup_errors": [
-    "First verifier mistakenly used accepted_predecessor instead of new predecessor key; stopped without changes; corrected keyed verification passed.",
-    "Adjacent lookup used unavailable rg and guessed internal/grade/build.go; corrected definitions read in harness.go and the actual case/media parser files."
-  ],
-  "truncated_reads": "Truncated combined views were not treated as complete; candidate files/diff and necessary parser sections were separately read."
-}

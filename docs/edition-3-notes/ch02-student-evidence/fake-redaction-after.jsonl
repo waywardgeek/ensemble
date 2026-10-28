@@ -1,5 +1,0 @@
-{"log_version": 1}
-{"seq": 1, "type": "message_received", "time": "2026-01-01T00:00:00Z", "message": {"actor": "human", "parts": [{"type": "text", "text": "Look up the sample item"}]}}
-{"seq": 2, "type": "response_ended", "time": "2026-01-01T00:00:01Z", "response": {"parts": [{"type": "tool_call", "call_id": "c1", "name": "lookup", "args": {"item": "sample"}, "from": {"vendor": "anthropic", "model": "fake-model", "surface": "messages"}}], "usage": {"input": 1, "cache_write": 0, "cache_read": 0, "output": 1}, "from": {"vendor": "anthropic", "model": "fake-model", "surface": "messages"}}}
-{"seq": 3, "type": "tool_returned", "time": "2026-01-01T00:00:02Z", "tool": {"call_id": "c1", "name": "lookup", "parts": [{"type": "text", "text": "PRIVATE-FAKE-RESULT"}]}}
-{"seq": 4, "type": "redacted", "time": "2026-01-01T00:00:03Z", "redact": {"level": "redact_result", "reason": "teaching fixture", "from": 3, "to": 3}}

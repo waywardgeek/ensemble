@@ -1,5 +1,0 @@
-{
-  "cmd/grade-edition3/main.go": "a7a9e4b4e499b15a4887e9c10be4bae1ee1241d76b5ce301befdb0189113be2c",
-  "cmd/grade-edition3/main_test.go": "c25ca42eadf65702153b0f28746ed54e8f8c46609106962c3b2c90fbc766b6c6",
-  "internal/gradeedition2/ch06.go": "edfd0ef2ad9e9841bf531ba552a8983ac182fa8b1f61612596343aa102d080b7"
-}

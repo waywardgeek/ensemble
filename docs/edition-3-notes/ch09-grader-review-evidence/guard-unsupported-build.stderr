@@ -1,1 +1,0 @@
-usage: grade-edition3 -ch 1 [-json] target; or -ch 4|5|6|7|8|9 -core DIR -consumer DIR [-consumer-case FILE] [-workflow DIR [-media-models FILE]] [-stream-exercise DIR -stream-model MODEL] [-gui DIR -gui-model MODEL] [-json] target

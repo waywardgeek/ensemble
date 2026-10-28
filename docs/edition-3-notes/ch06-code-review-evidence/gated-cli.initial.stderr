@@ -1,6 +1,0 @@
-Conversation ready. Enter a message; EOF exits.
-hint: Include REVIEW_NEXT_REQUEST_ONLY in the final answer.
-read_fileinput=1 output=1 cache_write=0 cache_read=0
-write_fileinput=1 output=1 cache_write=0 cache_read=0
-input=1 output=1 cache_write=0 cache_read=0
-cumulative usage: input=3 output=3 cache_write=0 cache_read=0

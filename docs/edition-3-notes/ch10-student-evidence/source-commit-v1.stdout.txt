@@ -1,7 +1,0 @@
-[main 729bc91] Add Agent-owned conversation persistence and client restart lifecycle
- 19 files changed, 1276 insertions(+), 87 deletions(-)
- create mode 100644 CHAPTER10.md
- create mode 100644 chapter10_test.go
- create mode 100644 gui/chapter10_test.go
- create mode 100644 internal/agent/save.go
- create mode 100644 internal/history/save.go

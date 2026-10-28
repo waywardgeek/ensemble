@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch02-student-r1-evidence/check-offline.py", line 18, in <module>
-    assert subprocess.check_output(['git','status','--porcelain'],cwd=ROOT) == b''
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError

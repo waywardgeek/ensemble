@@ -1,3 +1,0 @@
-ok  	ensemble-gui-stub	11.461s
-ok  	ensemble-gui-stub/cmd	(cached)
-?   	ensemble-gui-stub/cmd/virtual-user	[no test files]

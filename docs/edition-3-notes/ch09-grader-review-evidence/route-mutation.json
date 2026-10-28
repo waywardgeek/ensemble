@@ -1,8 +1,0 @@
-{
-  "only_changed_file": "cmd/grade-edition3/main.go",
-  "baseline_sha256": "53c301ff0d0859622720357bc1b3d99f4848426173f6a182c378fda5111719d1",
-  "mutant_sha256": "66a66a4df070d4ddc3529f5c3db0fcb6e795f47d4330bdfe0035d2403f5f9e6f",
-  "baseline_adapter_tree": "5af4ea8007250382168c52b7eecc63193149fb8fec0b23092f08bd7f69113e0a",
-  "mutant_adapter_tree": "ae80512947a8f62a07828cb0294a8cd7ef513289482e9e50dab97a1a8d158868",
-  "behavioral_oracle": "Actual -ch 9 JSON must contain Chapter9 title and exact existing nine IDs, including skills and ch8-parity; a passing Chapter8 report fails this oracle."
-}

@@ -1,9 +1,0 @@
-{
-  "reason": "Launch instructions keep binary/temporary artifacts outside main repository. Relocated own just-created source/binary snapshots before final evidence freeze; bytes unchanged.",
-  "old_source_path": "/Users/bill/projects/ensemble/docs/edition-3-notes/ch04-student-r1-evidence/candidate-source.tar.gz",
-  "new_source_path": "/tmp/ch04-r1-candidate-source.tar.gz",
-  "old_binary_path": "/Users/bill/projects/ensemble/docs/edition-3-notes/ch04-student-r1-evidence/candidate-binaries.tar.gz",
-  "new_binary_path": "/tmp/ch04-r1-candidate-binaries.tar.gz",
-  "production_source_changed": false,
-  "initial_evidence_changed": false
-}

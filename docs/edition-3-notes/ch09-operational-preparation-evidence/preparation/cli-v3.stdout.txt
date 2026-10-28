@@ -1,1 +1,0 @@
-LOCAL REAL-FORWARDING REHEARSAL PASSED /Users/bill/projects/ensemble-edition-3-student/.ch09-local/operational-preparation/rehearsals/cli-v3

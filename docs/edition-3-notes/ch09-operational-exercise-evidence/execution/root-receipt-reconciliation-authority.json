@@ -1,8 +1,0 @@
-{
-  "message_id": "main-18",
-  "source": "parent respond_to_parent_message reply, job2863",
-  "authority": "Root approved narrow receipt-only reconciliation after independently verifying direct browser-local/owned-browser-exit.json, artifact-close, proxy-close, result and controller receipt. Original wrapper and outer exit1/gate_passed:false must remain unchanged. New receipt-only wrapper/direct exact paid command allowed after PID/listener/pin/expiry/no-start checks. One unused paid-cli attempt; stop if it fails. No browser replay or sealed changes.",
-  "original_wrapper_sha256": "502fe27a624d682a63e6a14b7683b969fbe97277e98fdcd0ccfdc7b0c99d3635",
-  "new_paid_wrapper_sha256": "9919af6b281fa2cb26c3c95487216840e53da3d75e95226740d2a85e78ae98be",
-  "recorded_unix": 1792360451.193202
-}

@@ -1,5 +1,0 @@
-=== RUN   TestChapter9SkillsOverProductionWebSocket
---- PASS: TestChapter9SkillsOverProductionWebSocket (0.00s)
-PASS
-ok  	ensemble-gui	0.009s
-?   	ensemble-gui/cmd	[no test files]

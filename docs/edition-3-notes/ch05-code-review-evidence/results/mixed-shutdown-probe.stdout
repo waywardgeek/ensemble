@@ -1,6 +1,0 @@
-=== RUN   TestReviewMixedShutdownStopsProcessesBeforeJoiningHandlers
-    review_test.go:25: max tokens must be positive
---- FAIL: TestReviewMixedShutdownStopsProcessesBeforeJoiningHandlers (0.00s)
-FAIL
-FAIL	reviewprobe	0.010s
-FAIL

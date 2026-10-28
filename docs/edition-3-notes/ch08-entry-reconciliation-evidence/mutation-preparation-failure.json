@@ -1,8 +1,0 @@
-{
-  "exit": 1,
-  "error": "AssertionError: original.count(b'return saveSettings(s.path, next)') != 1",
-  "source_modified": false,
-  "compile_started": false,
-  "behavior_started": false,
-  "correction": "Use actual updateSettings rename seam; replace rename with removal of the temporary file in owned scratch only."
-}

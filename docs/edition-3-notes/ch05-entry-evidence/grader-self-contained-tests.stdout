@@ -1,9 +1,0 @@
-ok  	github.com/waywardgeek/ensemble/cmd/grade-edition3	0.009s
---- FAIL: TestGenerationLifetimeControls (0.00s)
-    --- FAIL: TestGenerationLifetimeControls/no_blanket_deadline (0.00s)
-        ch01_test.go:26: stat .: no such file or directory
-    --- FAIL: TestGenerationLifetimeControls/blanket_deadline (0.00s)
-        ch01_test.go:26: stat .: no such file or directory
-FAIL
-FAIL	github.com/waywardgeek/ensemble/internal/gradeedition3	0.008s
-FAIL

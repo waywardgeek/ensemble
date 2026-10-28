@@ -1,1 +1,0 @@
-error: /Users/bill/projects/ensemble-edition-3-student/.ch09-local/operational-prep/rehearsals/r1/cli/skills/writer/SKILL.md: unknown field: depends-on

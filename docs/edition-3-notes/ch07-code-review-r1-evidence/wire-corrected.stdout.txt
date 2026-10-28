@@ -1,4 +1,0 @@
-=== RUN   TestReviewerR1RealWire
-    reviewer_wire_r1_test.go:59: system prompt is required
---- FAIL: TestReviewerR1RealWire (0.00s)
-FAIL

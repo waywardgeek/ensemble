@@ -1,2 +1,0 @@
-root-vet exit 0
-root-race exit 1

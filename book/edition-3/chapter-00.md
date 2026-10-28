@@ -1,10 +1,5 @@
 # Chapter 0: The Perpetual Machine
 
-This is the Edition 3 working manuscript. Its retained Edition 2 stories and
-results are historical evidence, not claims that the new construction has run.
-Execution uses the existing chapter contracts, corrected by actual crossover
-lessons; subsequent clarification comes from the student who did the work.
-
 *The Singularity as it Happened*
 
 *Second-edition note: the opening account and comparison figures below are
@@ -151,7 +146,7 @@ expanded contracts before the student learned from the original exercises
 turned small tasks into larger ones, and review approved the expansion. That
 attempt was stopped. The fresh student built first; these chapters enhance the
 original explanations using its accepted code and reviews. The history is in
-[`docs/edition-2-attempt-1.md`](../../docs/edition-2-attempt-1.md).
+[`docs/edition-2-attempt-1.md`](../docs/edition-2-attempt-1.md).
 
 ## The generation
 

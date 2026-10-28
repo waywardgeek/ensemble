@@ -1,7 +1,0 @@
-SEALED: finite Chapter8 reconciliation complete.
-Valid full historical route: 100/100 Passed=true exit=0.
-Real GUI persistence: old 80/80 exit=0; negative 65/80 exit=1 (settings-persist only); restored 80/80 exit=0. All compiled.
-Invalid first full invocation and pre-compile mutation-anchor failure retained and qualified.
-All owned jobs ended; no process groups/path processes remain. Local artifacts retained for root verification.
-Original bundle preserved; root-restored carryover remains pinned and was not reappended. No new permission/API prerequisite imposed.
-No additional cases; only new reconciliation report/evidence outputs.

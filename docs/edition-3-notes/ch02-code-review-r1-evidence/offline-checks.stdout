@@ -1,1 +1,0 @@
-PASS: affected CLI rendering, measured empty-response captures, original-log replay comparison, no offline HTTP requests, three local fake calls, no real credentials or paid calls, original evidence unchanged.

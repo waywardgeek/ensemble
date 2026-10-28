@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/tmp/cadence-ch05-correction-r1-evidence/local-interface.py", line 89, in <module>
-    if mode=='cli':process.until(lambda:'Hint: '+HINT in process.buffers['stderr'],'actual CLI hint acknowledgement')
-                   ~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/tmp/cadence-ch05-correction-r1-evidence/local-interface.py", line 53, in until
-    if time.monotonic()>deadline:raise AssertionError('timeout waiting for '+label)
-                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: timeout waiting for actual CLI hint acknowledgement

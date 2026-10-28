@@ -1,9 +1,0 @@
-Pinned HEADs and supplied hashes unchanged.
-Student remains clean.
-All archived tracked files and rebuilt binary match recorded provenance.
-No tracked source, grader, chapter, instruction or reference changes.
-Build/vet/tests/grader/grader-tests/mutations/live exits all 0.
-Directory invocation and initial mutation-harness failure remain explicit exit 1 records.
-Grader passed=true, score=100/100, all 9 checks true.
-Formatting output empty.
-Authorized credential value absent from review and all saved review evidence.

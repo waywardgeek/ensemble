@@ -240,3 +240,28 @@ func TestChapter20AddressedMessagingCLI(t *testing.T) {
 		t.Fatalf("addressed messaging: %v", c.Details)
 	}
 }
+
+func TestChapter20RunningQuestionJob(t *testing.T) {
+	for _, tc := range []struct {
+		text string
+		want int
+	}{
+		{"job 5 running; 0 bytes total; output: /tmp/out", 5},
+		{"job 5 running; 120 bytes total; output: /tmp/out\npartial", 5},
+		{"job 5 done; 0 bytes total; output: /tmp/out", 0},
+		{"job 5 failed; 0 bytes total; output: /tmp/out", 0},
+		{"job 5 killed; 0 bytes total; output: /tmp/out", 0},
+		{"job 0 running; 0 bytes total", 0},
+		{"job -5 running; 0 bytes total", 0},
+		{"job 99999999999999999999999999999 running; 0 bytes total", 0},
+		{"quoted job 5 running; 0 bytes total", 0},
+		{"handle: 5 running; 0 bytes total", 0},
+		{"job 5 running-ish; 0 bytes total", 0},
+		{"{\"question\":\"job 5 running;\"}", 0},
+		{"", 0},
+	} {
+		if got := fleetRunningJob(tc.text); got != tc.want {
+			t.Errorf("%q: got %d want %d", tc.text, got, tc.want)
+		}
+	}
+}

@@ -1,1 +1,0 @@
-Initial parent guarded edit failed before any source write: unmatched help-text anchor. Exit1, no build/grading. Root reread actual main.go and confirmed accepted SHA before retry. This is a parent editing error, not a target failure.

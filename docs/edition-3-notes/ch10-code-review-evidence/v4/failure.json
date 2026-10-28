@@ -1,4 +1,0 @@
-{
-  "exception": "atomic oracle baseline did not pass",
-  "traceback": "Traceback (most recent call last):\n  File \"/Users/bill/projects/ensemble/docs/edition-3-notes/ch10-code-review-evidence/v4/continue-probes.py\", line 79, in <module>\n    assert '=== RUN   TestReview' in stdout and '[build failed]' not in stdout and '[build failed]' not in stderr,'reviewer probe compile/setup failure';assert '--- PASS: TestReviewAtomicSavePreservesFile' in stdout,'atomic oracle baseline did not pass';write('12-independent-summary.json',{'exit_code':row['exit_code'],'assertion_failure_present':'--- FAIL:' in stdout,'actual_tests_ran':True,'atomic_oracle_baseline_passed':True,'not_retried':True})\n                                                                                                                                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError: atomic oracle baseline did not pass\n"
-}

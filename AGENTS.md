@@ -1,5 +1,33 @@
 # Ensemble student restart
 
+## Current edition procedure
+
+Edition 3 is governed by `docs/edition-3-execution.md`, not the dated Edition 2
+phase instructions below. Bill selected the Teach Your AI method for all remaining
+applicable Edition 3 chapters and Edition 4: prepare coherent teaching, verify it
+with an isolated fresh student who may run the external grader, and establish
+code/prose quality before advancing. Chapters 1–20 remain closed; Chapter 21 is
+the first current fresh rerun. See `book/chapter-writing-procedure.md`. This does not
+start Edition 4, reopen accepted work or authorize publication. Apply KISS/YAGNI
+to code and coordination; reviewed prose or grader green alone is not evidence
+that a chapter adequately teaches a fresh student.
+
+## Student-owned completion and teaching acceptance
+
+For remaining applicable Edition 3 and Edition 4, follow the current student-owned
+completion rule in `docs/edition-3-execution.md`: complete implementation, tests,
+grader iterations, authorized exercise and one public-input reviewer/correction
+cycle before final submission. No routine early compiling review or duplicate root
+review cycle. Root independently assesses finished work and exercises the app.
+If completed student work is inadequate, improve the chapter and run a fresh isolated
+student. The book must teach success; welcome questions and preserve useful actual
+exchanges under the chapter procedure’s recorded-Q&A rule. Faithful clarifications
+can retain a successful run as verified with recorded Q&A; solution-specific coaching
+is not equivalent. There is no numerical teaching/rerun limit; historical correction-count stops are superseded,
+but operational budgets and authority never reset. Keep the process efficient and
+notes concise. Separate the learning narrative from exhaustive specification under
+`book/chapter-writing-procedure.md`, keeping both consistent.
+
 ## Bill owns the preface, October 12
 
 Bill has rewritten `book/preface.md` and retains authorship and editorial control

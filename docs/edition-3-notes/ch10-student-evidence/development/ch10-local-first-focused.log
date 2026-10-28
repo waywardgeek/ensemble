@@ -1,9 +1,0 @@
---- FAIL: TestChapter10SnapshotReplayTailAndTrim (0.02s)
-    chapter10_test.go:89: config or secret boundary {exact-model anthropic current instruction []}
---- FAIL: TestChapter10ActualAgentDirectoriesAndShutdown (0.01s)
-    chapter10_test.go:233: different
-        {"turn":"input_pending","dialogue":[{"seq":1,"actor":"human","parts":[{"type":"text","text":"only a"}]}],"ephemera":null,"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}
-        {"turn":"input_pending","dialogue":[{"seq":1,"actor":"human","parts":[{"type":"text","text":"only a"}]}],"ephemera":[],"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}
-FAIL
-FAIL	ensemble	0.120s
-FAIL

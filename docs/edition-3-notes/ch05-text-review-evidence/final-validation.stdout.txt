@@ -1,1 +1,0 @@
-PASS: named inputs unchanged; exact frozen chapter and byte-preserved baseline; report links resolve; HEAD and prior status preserved; staged diff empty.

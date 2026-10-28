@@ -1,9 +1,0 @@
-{
-  "original_fixture_path": "/Users/bill/projects/ensemble-edition-3-student/gui/test/correction-r1-page.mjs",
-  "original_fixture_sha256": "21b6e8a483d33de1f9fe6cfbd4b82ba311195800288fd4a09e56b03278957e4b",
-  "owned_fixture_path": "/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/cadence-ch08-code-review-5ndnmg9p/candidate-copy/gui/test/reviewer-page-diagnostic.mjs",
-  "owned_fixture_sha256": "e1340ab8548fe3e171e284a18419f08f4090b44ccae0432968430e029c9ed3e7",
-  "production_app_sha256": "4a98afd641f2ffe678b71898d6727a443c5b95ea913f1e780338972d42d932f3",
-  "candidate_production_app_sha256": "4a98afd641f2ffe678b71898d6727a443c5b95ea913f1e780338972d42d932f3",
-  "scope": "Controlled test-boundary/pane-location/accepted-settings cancellation adaptation only; original behavioral assertions retained. Not a candidate fix or browser/native proof."
-}

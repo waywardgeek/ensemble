@@ -1,5 +1,0 @@
-=== RUN   TestReviewAtomicSavePreservesFile
-    reviewer_ch10_test.go:90: actual save error=save /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/cadence-ch10-remaining-run-8tarw8dh/tmp/TestReviewAtomicSavePreservesFile3501144935/002/sentinel.json: open /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/cadence-ch10-remaining-run-8tarw8dh/tmp/TestReviewAtomicSavePreservesFile3501144935/002/.save-1178681311: permission denied; sentinel unchanged
---- PASS: TestReviewAtomicSavePreservesFile (0.02s)
-PASS
-ok  	ensemble	0.023s

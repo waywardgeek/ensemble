@@ -1,7 +1,0 @@
-{
-  "stage": "read-only prerequisite verifier",
-  "error": "KeyError: 'files' on final reconciliation inventory",
-  "runtime_commands": 0,
-  "scratch_created": false,
-  "correction": "explicit entries member key for final reconciliation inventory only"
-}

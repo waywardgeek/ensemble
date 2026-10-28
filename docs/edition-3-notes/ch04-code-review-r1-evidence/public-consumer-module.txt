@@ -1,7 +1,0 @@
-module independent-review
-
-go 1.25
-
-require ensemble v0.0.0
-require github.com/creack/pty v1.1.24 // indirect
-replace ensemble => /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/e3-ch04-code-review-r1-tp41dwfn/sensitivity

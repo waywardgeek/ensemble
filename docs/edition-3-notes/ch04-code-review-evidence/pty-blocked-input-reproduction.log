@@ -1,5 +1,0 @@
-=== RUN   TestPublicPTYBlockedInputKill
-    public_api_test.go:96: input bytes=262144 blocked=false kill elapsed=631.875µs
---- PASS: TestPublicPTYBlockedInputKill (0.16s)
-PASS
-ok  	ch04-review-consumer	1.174s

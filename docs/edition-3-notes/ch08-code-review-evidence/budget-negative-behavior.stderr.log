@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch08-code-review-evidence/real-process-review.py", line 160, in <module>
-    assert sum(e['type'] == 'tool_dispatched' for e in first) == 2, 'live update rewrote active turn'
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: live update rewrote active turn

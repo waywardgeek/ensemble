@@ -1,4 +1,0 @@
-# ensemble_test [ensemble.test]
-./chapter6_gemini_boundary_test.go:217:32: contextCopy.Turns undefined (type common.Context has no field or method Turns)
-./chapter6_gemini_boundary_test.go:218:33: contextCopy.Turns undefined (type common.Context has no field or method Turns)
-./chapter6_gemini_boundary_test.go:219:25: contextCopy.Turns undefined (type common.Context has no field or method Turns)

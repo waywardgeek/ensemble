@@ -1,3 +1,0 @@
-# ensemble-gui [ensemble-gui.test]
-./reviewer_wire_r1_test.go:78:38: a.Log().SaveJSONL undefined (type common.History has no field or method SaveJSONL)
-./reviewer_wire_r1_test.go:79:172: aa.Log().LoadJSONL undefined (type common.History has no field or method LoadJSONL)

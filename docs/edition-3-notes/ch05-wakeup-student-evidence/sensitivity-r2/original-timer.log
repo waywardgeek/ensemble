@@ -1,6 +1,0 @@
-=== RUN   TestChapter5WakeupShortTimerCannotReleaseLaterWait
-    chapter5_wakeup_test.go:387: WAKEUP addressed question wakes later wait did not arrive promptly
---- FAIL: TestChapter5WakeupShortTimerCannotReleaseLaterWait (2.39s)
-FAIL
-FAIL	ensemble	2.401s
-FAIL

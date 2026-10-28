@@ -1,6 +1,0 @@
-{
-  "script": "fresh-controls.py",
-  "error": "ValueError: '-report' is not in list",
-  "phase": "plan construction before command loop",
-  "controls_started": 0
-}

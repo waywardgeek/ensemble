@@ -1,4 +1,0 @@
-{
-  "old": "Build your own CLI from the core module root, and run it from a scratch\nworkspace with the provider environment configured as in Chapter 0. Discover\nan available streaming-capable model; keep the key in the intended child's\nenvironment without printing it or putting it in a command argument.\n\n```sh\ngo build -o /tmp/ch6agent .\n```",
-  "new": "Build your own CLI from the core module root, selecting its actual main\npackage. The example below uses `./cmd/ch01`; use `.` only if the CLI's main\npackage lives at the module root. Run it from a scratch workspace with the\nprovider environment configured as in Chapter 0. Discover an available\nstreaming-capable model; keep the key in the intended child's environment\nwithout printing it or putting it in a command argument.\n\n```sh\ngo build -o /tmp/ch6agent ./cmd/ch01\n```"
-}

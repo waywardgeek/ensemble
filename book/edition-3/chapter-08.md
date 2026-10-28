@@ -1,620 +1,290 @@
 # Chapter 8: Build Your Dream GUI
 
-Get ready for self-wielding. This is the ignition chapter, where you
-can finally start using your AI coding agent to write itself. At the
-end of this chapter your agent will not compete with Claude Code, and
-that is fine. What matters is making the switch as soon as you can be
-productive with the new system, because living inside your own agent
-is how you discover the bugs and the missing features. This chapter gives you the
-freedom to create whatever GUI makes sense to you.
-
-In my case, text-to-speech is critical, and you will find it built
-into the reference solution. We are wandering into territory where
-the grader cannot help. This is an AI coding agent for you, not for
-the LLM, so you will have to drive. Later GUI-driving work can give
-control back to the LLM so it can test the system end-to-end, but
-for now, you are the one in control.
-
-Chapter 7 gave you one scroll pane on a dark page. It works. You can
-watch the agent think, see tool calls arrive, pause to read. As a
-safety floor it is complete: a human can watch, and that is the
-threshold that matters.
-
-Nobody customizes a safety floor, checks whether their preferences
-survived a restart, or drags a divider to put chat on one side and
-tool calls on the other, unless the tool they are watching is one
-they intend to use every day. This chapter
-crosses that line. By the end, the page has three panes, a settings
-panel that persists through the same WebSocket, theming that redraws
-in fifteen CSS variables, and a sidebar with an agent tree that
-currently shows exactly one node. The graded surface is small: four
-server-side settings checks and a parity gate. Everything else is
-client code you can see working.
-
 ## TL;DR
 
-The optional GUI server gains a small settings store: a mutex, a value, a file
-path. Browser preferences and their persistence belong in that module. The
-Agent owns its effective `max_tool_rounds`; the saved envelope restores that
-existing runtime policy through the public Agent interface.
-Clients send `update_settings` over the WebSocket. The hub applies the
-change, persists it, and broadcasts `settings_changed` to every
-connected client. A new client receives `current_settings` on
-subscribe.
+Make the optional GUI comfortable to use without giving it a second Agent loop.
+The server owns presentation preferences; the Agent owns its next-turn tool
+budget. A browser sends a patch, the server validates and saves a complete
+snapshot, and only then does it publish that snapshot to every connected client.
+An active turn keeps the budget it captured when it began.
 
-The client gains a three-pane layout (sidebar, chat, actions), two
-drag bars, theming via CSS custom properties, a settings panel, and an
-agent tree with one node. Aim for a beautiful, coherent interface with strong
-contrast and clearly styled tabs.
+The deliverable is a working settings panel: theme, narration, speech rate,
+font size, speech-related pausing, and tool batches per turn. Preferences survive
+browser reload and server restart. A failed save changes neither live behavior
+nor the visible acknowledged settings. This is a C#/.NET 10 extension of the
+Chapter 7 endpoint, not another runtime or a Go-package translation exercise.
 
-Build your actual core CLI target. From the book repository root, pass that
-executable and the five separate module identities explicitly:
+## In plain language
 
-```sh
-go run ./cmd/grade-edition3 -ch 8 -json \
-  -core /absolute/path/to/core-module \
-  -consumer /absolute/path/to/consumer-module \
-  -workflow /absolute/path/to/workflow-module \
-  -stream-exercise /absolute/path/to/stream-exercise-module \
-  -stream-model YOUR_DECLARED_STREAMING_MODEL \
-  -gui /absolute/path/to/gui-module \
-  -gui-model YOUR_DECLARED_GUI_MODEL \
-  /absolute/path/to/student-cli
-go run ./cmd/grade-edition3 -ch 1 -json /absolute/path/to/SAME/student-cli
+A setting is a small promise. If the page says the font is 24 pixels or the next
+turn allows three tool batches, the running application should agree. If a write
+fails, the page must not pretend the preference was saved.
+
+There are three different lifetimes:
+
+1. **The browser** displays the last server-acknowledged snapshot. Its controls
+   propose changes; local storage is not a second source of truth.
+2. **The GUI server** loads and saves presentation preferences and shares them
+   with all clients. It reaches the actual Agent to read or change its budget.
+3. **The Agent turn** captures its effective budget once. A later settings change
+   applies to the next turn, not halfway through this one.
+
+Theme and font changes affect existing transcript content immediately. Speech
+rate changes affect the next utterance constructed, not audio already speaking.
+Turning off “Pause Agent while speaking” releases the speech-related pause cause
+without cancelling speech. Typing is still an independent reason to pause.
+
+These distinctions are small enough to explain and important enough to test.
+
+## 8.1 Keep the existing ownership model
+
+Continue from `solutions/edition-3/ch07`; advance `main` and preserve earlier
+endpoints. Core remains independent of ASP.NET, browser APIs, settings paths,
+and user-interface types. The optional `Examples/Gui` assembly references core.
+
+Core `Common/Actor.cs` declares the runtime policy and its public operations:
+
+```csharp
+// Agent owns the next-turn policy. The actor alone uses capturedToolLimit.
+private int nextTurnToolLimit;
+private int capturedToolLimit;
+public partial int MaxToolRounds();
+public partial void SetMaxToolRounds(int value);
 ```
 
-Both model identifiers must select explicit capability rows declared by your
-implementation. Inherited media fixtures may also need
-`-media-models /absolute/path/to/media-map.json` when historical defaults do not
-select your declared rows. That file is a JSON object with exactly the keys
-`anthropic`, `openai` and `gemini`, each mapped to a nonempty model ID for a
-declared row. It selects local grader inputs; it does not discover or establish
-live-provider capabilities.
-Put optional `-consumer-case` and `-media-models` paths before the executable.
+The matching implementations are in `Agent/Agent.cs`; scheduling stays in
+`Agent/Actor.cs`. The getter returns the configured runtime value, including zero.
+The setter accepts zero or a positive integer and rejects a negative integer
+without changing anything. Synchronize reads and writes with the Agent's ingress
+lock. Do not add a service wrapper or have the GUI inspect actor-private state.
 
-Both reports must have `passed=true`, and both commands must exit zero on the
-same frozen core CLI, including Chapter 1's two genuine 62-second delayed-header
-and delayed-body phases (about two minutes). Chapter 8 retains Chapter 7 parity;
-its settings checks do not replace the separate lifetime gate.
+Chapter 5's immutable constructor configuration seeds this live policy; it is not
+updated as a competing settings object. Its existing library-only negative limit
+continues to mean unlimited. The **new runtime setter and GUI** accept only
+nonnegative values. This distinction preserves the older constructor contract
+without making negative numbers a new public preference.
 
-The GUI's existing `--port` and `--gui-dir` launch, provider environment defaults
-and public dependency boundary carry forward from Chapter 7. No model call is
-needed to echo a preference. The restart check launches a new process in the
-same disposable working directory, rather than asking the old process for its
-state.
+At turn start, the actor reads the current policy and resolves zero to the
+default 200 batches. Keep that captured value until the turn ends. A queued turn
+captures when it actually starts, not when the prompt first arrives. A hint that
+continues an active turn does not create a new budget.
 
-| check | pts | what it tests |
+A batch is one model response containing tool calls, regardless of how many
+calls are in it. After the last admitted batch, let the model consume its results.
+Add a short **request-only** instruction to answer without more tools. Extend
+`Engine.Render(Context context, string requestInstruction = "")` for this purpose;
+do not append the instruction to History or modify opaque/signed replay parts.
+If the model still requests another batch, pair its calls with refused results
+before any effects. The limit is a scheduling boundary, not merely advice.
+
+## 8.2 Preferences are values, not another owner graph
+
+`Examples/Gui/Common/Settings.cs` declares a value-like `Preferences` record and
+partial parse/load/save operations. It contains presentation facts only:
+
+```csharp
+public sealed record Preferences(
+    string Theme = "system",
+    bool TtsEnabled = false,
+    double TtsSpeed = 1,
+    int FontSize = 18,
+    bool PauseWhileSpeaking = true);
+```
+
+A record is appropriate because a preference snapshot is a value. It needs no
+parent links or logical destruction. The Agent budget deliberately is not a field
+in this record: read it from the Agent when making a wire or disk snapshot.
+A candidate parsed from JSON may temporarily include a budget value while being
+validated and saved; that is not another authoritative live store.
+
+The host's existing composition scope owns its current preferences, settings
+path, sockets, and transport synchronization. Do not invent a global settings
+registry, browser-owned Agent state, or a second scheduler.
+
+### One validation policy for disk and wire
+
+Use these concrete rules in this endpoint:
+
+| Field | Default | Accepted value |
 |---|---|---|
-| settings-roundtrip | 25 | `update_settings` → `settings_changed` with matching values |
-| settings-on-connect | 20 | `current_settings` sent on subscribe |
-| settings-broadcast | 20 | second client receives `settings_changed` |
-| settings-persist | 15 | settings survive server restart |
-| ch7-parity | 20 | every Chapter 7 check still passes against the appropriate core and GUI clients |
+| `theme` | `"system"` | `system`, `light`, or `dark` |
+| `tts_enabled` | `false` | JSON Boolean |
+| `tts_speed` | `1.0` | finite number, clamped to 0.25–4.0 |
+| `font_size` | `18` | 32-bit integer, clamped to 12–32 pixels |
+| `pause_while_speaking` | `true` | JSON Boolean |
+| `max_tool_rounds` | `0` | nonnegative 32-bit integer; zero means auto/200 |
 
-The settings fixture starts with light theme, TTS true, speed 1.5 and font 18;
-it then patches dark theme/speed 2, false TTS/budget 2, budget 0, and system
-theme. Each full echo and other-client snapshot must preserve the known fields.
-Fresh subscription and process restart must return system, false, 2, 18 and 0.
-These are test inputs, not mandated defaults or UI range endpoints. Runtime
-budget enforcement, invalid-load handling, failed writes and actual browser
-controls still require their source/integration evidence.
+Wrong types, invalid enum values, negative budgets, out-of-range integer
+representations, and unknown fields leave their prior values unchanged. A patch
+must be an object. On load, merge valid fields into defaults using the same
+validation. Missing, unreadable, or malformed files fall back to defaults without
+rewriting or deleting the original file. Do not coerce `"true"`, `1`, and `true`
+into interchangeable values.
 
-The original four checks cover the server, not the client-side layout,
-theming, tree or native speech. Drive the actual browser and inspect the
-effective values. Seeing a saved label is not enough, as the speech-rate
-correction below demonstrates.
+Preserve zero on disk, in snapshots, and in the input control. Do not replace it
+with 200 in the user-facing state. Only the actor's captured effective limit
+normalizes zero.
 
-Four obligations survive the absence of a grader. The first three shipped
-broken in the first edition's reference implementation and stayed broken
-until its Chapter 13 drove the GUI with a second agent. The fourth survived
-until the single-loop retirement audit.
+## 8.3 Save before publication
 
-**Validate where the value enters.** A settings field arriving over the
-wire is untrusted input. Clamp it in the apply path and again on the
-load-from-disk path, rather than at the point of use. The first edition's
-audit recorded a temperature of -5 reaching the engine because both paths
-trusted the sender. Apply the same lesson to this chapter's actual fields;
-that historical example does not add a temperature setting here.
+The default path is `$HOME/.ensemble/settings.json`; `--settings PATH` supplies
+an explicit path, useful for owned local exercises. These are application
+preferences, not conversation events. Do not put credentials in this file.
 
-**Decide whether a settings message is a patch or a snapshot.** The two
-need different handling of absence. A sparse patch changes only fields that
-are present; an explicit zero or false is still a change. `omitempty` on an
-ordinary Go boolean cannot express both "absent" and "set false". Decode a
-sparse object over a copy of the accepted value, or represent presence
-explicitly. A full snapshot must include zero and false. Dropping a clamped
-zero from the broadcast leaves the client displaying the number the server
-already rejected; dropping false prevents the server from turning TTS off.
+For a patch:
 
-**Put control state in an attribute, not a CSS class.** A class styles a
-toggle and tells a screen reader nothing, and an automated observer
-reads the same nothing.
+1. Under the host's short settings/connection lock, merge it with current values
+   and the Agent's current policy.
+2. Serialize the complete candidate to a unique temporary file in the destination
+   directory. Create the parent directory when necessary.
+3. Replace the destination with that completed file.
+4. Only after replacement succeeds, update the Agent policy and presentation
+   preferences, then queue the same full snapshot to every connected client.
 
-**Prove that a setting changes behavior.** Persistence and broadcast can
-both work while the execution path ignores the value. `max_tool_rounds`
-did exactly that: two orchestration loops read a hard-coded limit of 16
-while the GUI faithfully saved 200. Chapter 5 now has one owner and one
-policy: zero selects the named default of 200; positive N permits N tool
-batches per human turn. Read the setting at turn start so an update takes
-effect on the next turn, not halfway through the current one. At that captured
-limit, retain Chapter 5's final-response allowance: put the stop-tools instruction
-in request-local prompt context, without changing History or signed content or
-carrying it into later turns. Test both a small saved limit that stops execution
-and a large one that permits more than 16 batches, through the actual entry
-point and across a restart.
+The lock serializes concurrent patches and their publication order. Network
+sends remain outside it; the existing per-connection bounded queues carry frames.
+This small file write is ordinary blocking I/O, not an invitation to build a
+persistence service. Same-directory replacement prevents exposing partial JSON;
+it does not promise power-loss durability, a backup archive, or recovery from
+arbitrary filesystem damage.
 
-The four visible controls remain theme, TTS enabled, speech speed and font
-size. `max_tool_rounds` already belongs to the execution exercise; it travels
-in the settings envelope without requiring another GUI control. Reject
-negative budgets at the public Agent boundary; the GUI's shared validation
-path may clamp them to zero before calling it. Keep those two boundaries
-distinct rather than teaching the Engine to repair browser preferences.
+If writing or replacing fails, send an `error` to the requester. Do not change
+live values, broadcast success, or overwrite the previous good file with a
+partial candidate. Clean up the owned temporary file. A later valid request may
+try again; do not silently change the persistence path.
 
-## The Why
+## 8.4 WebSocket contract
 
-An agent without preferences is a tool you configure by editing
-source. An agent whose preferences vanish on restart is one that
-wastes the first thirty seconds of every session re-learning what you
-told it. The smallest useful settings system is: accept a change over
-the wire, write it to disk, tell every watcher, read it back on
-startup. That is four operations, and the grader tests each one.
-
-Make a deliberate attempt at a beautiful GUI, not just a functional one.
-Use strong contrast so text and controls remain readable in each theme.
-Give tabs a coherent visual treatment and make the selected tab obvious;
-a row of generic buttons is not the design goal. Choose typography,
-spacing and grouping that make the workspace feel like one application.
-
-There is no prescribed visual style. The student supplies the design judgment
-and inspects the result in a browser; passing the settings grader does not
-establish visual quality.
-
-## Three panes and a drag bar
-
-The layout is three columns: a left sidebar, a center pane for chat,
-and a right pane for tool output. Two vertical drag bars separate
-them.
-
-```css
-.layout {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
-}
-.sidebar    { width: 260px; min-width: 180px; }
-.drag-bar   { width: 6px; cursor: col-resize; background: var(--border); }
-.center     { flex: 1; min-width: 300px; }
-.actions    { width: 380px; min-width: 200px; }
-```
-
-A drag bar is three events:
-
-```javascript
-bar.addEventListener('mousedown', e => {
-  const startX = e.clientX;
-  const startW = left.offsetWidth;
-  const move = e2 => {
-    left.style.width = Math.max(180, startW + e2.clientX - startX) + 'px';
-  };
-  const up = () => {
-    document.removeEventListener('mousemove', move);
-    document.removeEventListener('mouseup', up);
-  };
-  document.addEventListener('mousemove', move);
-  document.addEventListener('mouseup', up);
-});
-```
-
-No library, and the minimum-width clamp is already in
-the `Math.max` call. If you want the right pane to resize too, copy
-the same handler with a sign flip on the delta.
-
-The accepted page uses pointer capture so dragging beyond a six-pixel divider
-does not lose the gesture. Focused dividers also accept arrow keys and expose
-their value as a separator attribute. These are small controls over the same
-width change; they do not need another layout system.
-
-## Routing artifacts to the right pane
-
-Chapter 7 built `ArtifactScroll`. This chapter uses it twice.
-
-```javascript
-const chatScroll    = new ArtifactScroll(centerEl);
-const actionsScroll = new ArtifactScroll(actionsEl);
-```
-
-The WebSocket message handler routes by type:
-
-```javascript
-function handleMessage(msg) {
-  const tool = msg.type === 'tool_dispatched' ||
-    msg.type === 'tool_finished' || msg.kind === 'tool_call' ||
-    msg.part?.type === 'tool_call';
-  (tool ? actionsScroll : chatScroll).receive(msg);
-}
-```
-
-Text/thinking deltas and finals, and `user_message`, go to chat. Tool-call
-argument deltas and finals go to actions, along with `tool_dispatched` and
-`tool_finished`. Preserve their artifact and call identities so dispatch
-updates the card that already showed the parameters. Status messages update
-the workbench's state controls. The routing is a filter, not a fork: both panes use the same
-ArtifactScroll API, the same CSS, the same streaming protocol. The
-abstraction that Chapter 7 promised holds up under reuse. If it had
-not, you would know it here, because the right pane would need its own
-rendering logic. Keep each pane independently scrollable, with the follow
-control clear of the transcript text.
-
-## Settings over the wire
-
-The server needs four things: a place to put settings, a way to
-change them, a way to notify, and a way to persist.
-
-```go
-// Settings is a complete snapshot; false and zero must stay on the wire.
-type Settings struct {
-    // Theme follows dark, light or the browser's system preference.
-    Theme      string  `json:"theme"`
-    // TTSEnabled controls automatic speech.
-    TTSEnabled bool    `json:"tts_enabled"`
-    // TTSSpeed is the approximate requested speed, mapped at the speech consumer.
-    TTSSpeed   float64 `json:"tts_speed"`
-    // FontSize is the interface text size in pixels.
-    FontSize   int     `json:"font_size"`
-    // MaxToolRounds saves the Agent's next-turn policy; zero selects 200.
-    MaxToolRounds int  `json:"max_tool_rounds"`
-}
-```
-
-Keep this value in the optional GUI server, under its existing mutex. The
-student first put browser settings and their file handling in the core Agent;
-review of the ownership boundary moved them back out. Agent-owned configuration
-does not make a theme or a slider a core concern. Only the effective tool budget
-belongs to the Agent, and snapshots read it from that owner.
-
-The original `ApplyRaw` sketch ignored decoding and write errors while mutating
-the live state. Decode a sparse object onto a copy instead. This excerpt uses
-the accepted example's local ranges; those endpoints are implementation choices,
-not additional exercise requirements:
-
-```go
-func settingsPatch(current Settings, raw json.RawMessage) (Settings, error) {
-    raw = bytes.TrimSpace(raw)
-    if len(raw) == 0 || raw[0] != '{' {
-        return current, fmt.Errorf("settings must be a JSON object")
-    }
-    next := current
-    if err := json.Unmarshal(raw, &next); err != nil {
-        return current, fmt.Errorf("invalid settings: %w", err)
-    }
-    switch next.Theme {
-    case "dark", "light", "system":
-    default:
-        next.Theme = "dark"
-    }
-    next.TTSSpeed = max(0.5, min(5, next.TTSSpeed))
-    next.FontSize = max(12, min(24, next.FontSize))
-    next.MaxToolRounds = max(0, next.MaxToolRounds)
-    return next, nil
-}
-```
-
-The same helper validates disk input. A missing file starts with defaults;
-malformed saved JSON reports a startup error rather than silently throwing away
-preferences. A type error halfway through a patch cannot leave half an update
-in the accepted value.
-
-Persist the candidate before publishing it. The accepted server writes a small
-replacement file and renames it over the destination; if either operation fails,
-the previous accepted value stays active and no success snapshot is broadcast.
-This is error handling for one settings file, not a transaction framework or a
-claim of power-loss durability. The existing server mutex orders apply,
-persistence, publication and new subscriptions.
-
-The WebSocket request carries only the changed fields:
+Keep the existing `/ws` protocol and add:
 
 ```json
-{"type":"update_settings","settings":{"tts_enabled":false,"max_tool_rounds":0}}
+{"type":"get_settings"}
+{"type":"update_settings","settings":{"theme":"dark","tts_speed":1.5}}
 ```
 
-After a successful save, update the Agent's effective budget through its public
-setter, then send `settings_changed` with the full settings
-object to every connected client. The sender receives it too, which
-confirms the round trip. A new subscriber receives `current_settings`
-during the subscribe handshake alongside history and current partials; no new
-`event_range` envelope is required. For example, after the other settings have
-been set to system theme, speed 2 and font size 18, the snapshot includes:
+A newly connected client receives a full snapshot automatically. Explicit
+`get_settings` returns the same shape:
 
 ```json
-{"type":"settings_changed","settings":{"theme":"system","tts_enabled":false,"tts_speed":2,"font_size":18,"max_tool_rounds":0}}
-```
-
-If decoding or writing fails, report the error instead of broadcasting success.
-The accepted page displays the existing `settings_error` reply. Test with an
-actual filesystem failure as well as malformed JSON; a happy round trip never
-exercises the publication order. The file path is chosen at the application
-boundary: the accepted command uses `cr/settings.json` under its working
-directory. Restarting that command restores preferences and the next-turn
-budget, not a saved conversation.
-
-No REST endpoint. No `/api/settings`. The WebSocket already carries
-observations, partial text, state changes, and event-log replays. One
-more message type uses the existing ordering. A second transport would add
-two sources of truth, and they will disagree the moment a tab
-hibernates.
-
-The saved budget needs a test that reaches execution. The accepted entry-point
-test builds the actual two-view application, saves a two-batch limit, and
-restarts it. While the first provider response is held, a settings update changes
-the saved limit to eighteen. The active turn still stops after two batches;
-the next terminal turn completes eighteen. Another restart retains eighteen,
-and zero again permits more than sixteen by selecting the existing default 200.
-Only the external provider is fake; the actor, tools, stdin, WebSocket and file
-all remain real.
-
-Reading live configuration on every tool dispatch would look more responsive
-and be wrong. Restoring that defect made the active turn run eighteen batches
-when it should have stopped at two. A setting can change immediately in the
-panel while its documented execution policy starts with the next turn.
-
-## Theming
-
-Fifteen CSS custom properties redraw the entire page:
-
-```css
-:root, [data-theme="dark"] {
-  --bg: #0d0d0d;
-  --fg: #e0e0e0;
-  --surface: #1a1a1a;
-  --border: #333;
-  --accent: #5b9bd5;
-  --accent-hover: #7ab3e8;
-  --thinking-bg: #1a1a2e;
-  --code-bg: #1e1e1e;
-  --input-bg: #1a1a1a;
-  --input-border: #444;
-  --sidebar-bg: #111;
-  --drag-bar: #333;
-  --tool-bg: #1a1a1a;
-  --error-bg: #2d1a1a;
-  --scrollbar-thumb: #444;
-}
-```
-
-Dark is the default because this agent was built for a user who reads
-by speech and does not need brightness. Every element uses `var(--bg)`
-instead of `#0d0d0d`, so adding a light theme is writing fifteen new
-values:
-
-```css
-[data-theme="light"] {
-  --bg: #ffffff;
-  --fg: #1a1a1a;
-  --surface: #f5f5f5;
-  /* ... */
-}
-```
-
-`document.body.dataset.theme = settings.theme` applies a concrete theme. One
-assignment, no class toggling, no re-render. A `system` option first resolves
-`prefers-color-scheme`:
-
-```javascript
-if (theme === 'system') {
-  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
-  document.body.dataset.theme = dark ? 'dark' : 'light';
-}
-```
-
-Also listen for the media query's `change` event while system theme is selected.
-A one-time lookup makes the page follow the operating system only until the
-operating system changes its mind.
-
-## The agent tree
-
-The sidebar shows one node: the agent's name and its state.
-
-```html
-<ul class="agent-tree">
-  <li class="agent-node" data-state="idle">
-    <span class="agent-indicator"></span>
-    <span class="agent-name">Ensemble</span>
-  </li>
-</ul>
-```
-
-The indicator pulses in the accent colour when the agent is working, dims when idle.
-`state_changed` messages update `data-state`, and CSS does the rest:
-
-```css
-.agent-indicator {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-  opacity: 0.3;
-}
-[data-state="in_flight"] .agent-indicator,
-[data-state="tools_pending"] .agent-indicator {
-  opacity: 1;
-  animation: pulse 1.5s ease-in-out infinite;
-}
-```
-
-Those names must match the Agent's actual state vocabulary. The student copied
-the original example's `thinking` and `tool_use` into both the CSS and its first
-browser check. The reducer emitted `in_flight` and `tools_pending`; the indicator
-did not pulse. The corrected check inspects the active node's computed animation,
-not just an attribute the test and CSS agreed to invent. Restoring the old
-selectors makes it fail.
-
-The data model is a tree:
-
-```javascript
-agents = [{
-  id: 'root',
-  name: 'Ensemble',
-  state: 'idle',
-  children: []
-}];
-```
-
-The `children` array stays empty in this exercise. The rendering code walks
-the tree recursively, but there is still only one Agent. The display model
-does not create children, define their lifetimes or invent a sub-agent protocol.
-
-## Sidebar tabs
-
-The left sidebar cycles between two tabs: **Agents** and
-**Settings**. The settings panel contains:
-
-- Theme selector (dark, light, system)
-- TTS toggle
-- TTS speed slider
-- Font size selector
-
-Each control sends `update_settings` with the changed field. The
-server echoes `settings_changed`. The handler applies it locally:
-
-```javascript
-ws.addEventListener('message', e => {
-  const msg = JSON.parse(e.data);
-  if (msg.type === 'settings_changed' || msg.type === 'current_settings') {
-    applySettings(msg.settings);
+{
+  "type":"current_settings",
+  "settings":{
+    "theme":"system",
+    "tts_enabled":false,
+    "tts_speed":1,
+    "font_size":18,
+    "pause_while_speaking":true,
+    "max_tool_rounds":0
   }
-});
+}
 ```
 
-`applySettings` sets the theme, updates TTS and adjusts font size from the
-accepted snapshot. Handle the initial snapshot as well as later changes.
-Disabling Read aloud cancels automatic speech; explicit Speak requests
-(`on demand`) still play. A changed speech rate applies to the next utterance.
-Changing Read aloud releases the old typing pause without deleting the draft.
-Fresh typing must still veto automatic continuation, even if an earlier
-acknowledgement arrives afterward. Explicit Continue in any tab releases that
-veto. A successful update reaches the sender and other connected
-clients; a fresh subscription or restart restores that saved state. Existing
-slow-client progress limits still apply, so this is not a new reliable-message
-transport.
+After successful persistence, all connected clients, including the requester,
+receive `settings_updated` with the complete merged `settings` object. Do not
+broadcast only the patch. New connections and reconnects obtain current values
+from the server, not from another tab. Ignore unknown fields for compatibility.
+The older Go grader used the label `settings_changed`; that historical label is
+not a requirement to add a second product message.
 
-### The saved number that speech never used
+## 8.5 Build a useful settings panel
 
-The settings server accepted and saved speed **1.75**. The label displayed
-**1.75** after restart. Native speech ran at approximately **1.8**.
+Put the panel in the existing optional GUI. Provide clearly labeled controls
+for every table entry. Numeric input steps are integral for font and batch count;
+label zero as auto/default. Keep controls usable on a narrow screen and at the
+largest supported font. Group secondary preferences in a collapsible panel so
+they do not dominate the transcript.
 
-The independent reviewer followed the number past the WebSocket echo. The
-range input had `step="0.1"`, so Chrome sanitized its value to 1.8. The label
-read the saved object; the speech queue read the slider. Both halves behaved
-as written, and they disagreed about what the person had selected.
+Use CSS variables for theme colors and font size. Apply them to the root so
+existing messages, input, controls, and code blocks update together. Explicit
+light/dark settings override the operating system. System mode follows
+`prefers-color-scheme`, including changes while the page is open. Syntax colors,
+links, focus indicators, and notices must remain readable in both themes.
 
-The correction was one attribute, with a reason beside it:
+The browser retains only its last acknowledged settings snapshot. A control
+sends a patch and may retain its proposed edit while saving. Actual presentation
+and speech policy change only when the server acknowledges a snapshot.
+If the connection is unavailable, show a notice rather than pretending to save.
+A save error restores the acknowledged control values. Remove any old local-storage
+copy of these preferences.
 
-```html
-<!-- Saved rates may fall between tenths; preserve them in the slider. -->
-<input id="tts-speed" type="range" min="0.5" max="5" step="any" value="1" />
+### Speech and pause are related, not identical
+
+Keep Chapter 7's one active utterance and FIFO pending text. When constructing
+an utterance, read the **current** acknowledged speech rate. Do not recreate or
+cancel the utterance already speaking just because its rate setting changed.
+Automatic narration is opt-in; speaker buttons still read selected content.
+
+Both queued and active speech count as busy. The local pause cause is:
+
+```text
+typing OR (pause_while_speaking AND speech_busy)
 ```
 
-The crossover extended the approximate range to 5× in both the control and
-saved-setting validation. Preserve arbitrary fractions in the control, but clamp
-the rate to 0.5–3 at every native utterance construction: a saved 2.5 reaches
-native speech as 2.5; a saved 5 reaches it as 3. Native voice rates are nonlinear,
-so these numbers do not establish measured speedups. Verify the saved value,
-control and next utterance separately. The original fractional-rate check below used
-the earlier 2× range; it is not evidence for the later extension.
+Send pause/unpause only when that cause changes. Turning speech pausing off
+immediately removes that cause, even with queued audio, but must not override a
+remaining typing cause. Turning it on while audio is queued or speaking pauses
+immediately. Preserve symmetric onend/onerror cleanup, cancellation identity
+checks, cross-tab explicit unpause, and the separate silent visibility wakeup.
+Speech settings must not introduce another owner of Agent lifecycle.
 
-That focused check saved 1.75, restarted the real application, inspected the
-snapshot, label and slider, then submitted browser input and recorded the
-native utterance's rate. It repeated with **1.2345**, so a smaller fixed step
-could not merely move the defect.
+## 8.6 Test the behavior, not a screenshot of a slider
 
-| Saved value | Correct slider and label | Correct native rate | Native rate with step 0.1 restored |
-| ---: | ---: | ---: | ---: |
-| 1.75 | 1.75 | 1.75 | 1.7999999523162842 |
-| 1.2345 | 1.2345 | 1.2345000505447388 | 1.2000000476837158 |
+Use real components and working external-boundary fakes. The following evidence
+answers different questions; none substitutes for the others.
 
-Both correct and defective utterances produced native start/end events.
-Completion did not establish that the requested speed was used. The
-[baseline](../../solutions/evidence/ch09/speed-r1.json) and
-[restored defect](../../solutions/evidence/ch09/speed-r1-mutation.json)
-capture the values before asserting, so a failing check does not erase the
-wrong rate it was meant to observe.
+### Core budget test
 
-This was separate from an earlier test precision mistake. A saved 0.6 reached
-the native API as `0.6000000238418579`; an exact equality check timed out.
-The focused regression uses a tolerance of 0.00001, small enough for that
-representation noise and much smaller than the 1.75-to-1.8 error. An earlier
-timeout lacked enough retained location detail to assign it the same cause.
-Keep the failed attempts without turning every test failure into a product bug.
+Hold a real loopback HTTP response after the turn has begun. Change the runtime
+policy while it is held. Release it and count actual tool effects: the current
+turn must keep its old limit and the next turn must use the new one. Check the
+request-only stop-tools instruction, paired refusals, negative setter rejection,
+zero preservation, and unchanged History after rendering. Check the instruction
+projection for all three provider dialects without contacting those providers.
 
-Native callbacks and measured rates establish API behavior. They do not claim
-that a person listened or found the speech intelligible. That still belongs
-to driving the interface described in the opener.
+### Protocol and persistence test
 
-## Taking it for a spin
+Use two real WebSocket connections to the GUI server. Test full snapshots,
+partial merges, invalid fields, clamps, explicit zero, concurrent patches,
+new-client state, and actual server restart. Load malformed JSON and a file with
+invalid fields. Force a write failure using an owned temporary path; verify the
+error, unchanged live snapshots, no success broadcast, and preserved prior file.
+Never damage a real user's configuration to create this fixture.
 
-Build and launch the optional GUI module as in Chapter 7, using a scratch
-working directory and its absolute `web/gui` path. Keep the same working
-directory when restarting to test `cr/settings.json`; a fresh empty directory
-would test defaults instead. Provider credentials remain in the intended child
-environment, outside preferences, commands, logs and browser controls.
+### Browser exercise
 
-Open two tabs. Change theme, turn Read aloud off and change font size in one;
-the other should show the accepted values. Select system theme and change the
-browser's OS preference. Drag each divider, focus it and try the arrow keys.
-Start a tool turn: the one tree node should pulse, arguments and output should
-appear in Actions, and the reply should remain in Chat. Restart the process
-and check the visible controls, then the actual next utterance's rate.
+Use an isolated browser profile, not another user's connected browser. Operate
+the real visible controls and verify both tabs update. Check system theme changes,
+existing transcript font, narrow-screen geometry, and reload from server state.
+At a fake speech boundary, inspect each constructed utterance's rate, queue two
+items, change rate between them, and toggle pause while the queue is busy. Test
+error cleanup as well as normal completion. Such a fake establishes wiring and
+selection—not audible quality, correct pronunciation, or human accessibility.
 
-The historical headed-Chrome exercise used the original 0.5–2× control. It
-passed twelve checks covering those client behaviors, including both pointer
-dividers and visible restoration of all four preferences. Its final generic
-speed-control check uses the native End key and rate 2; the separate fractional-rate test supplies the coverage
-that the earlier tenths-aligned input missed. The
-[browser receipt](../../solutions/evidence/ch09/browser-r1.json)
-records the checks and actual native callbacks.
+### Executable grading
 
-The [live receipt](../../solutions/evidence/ch09/live.json) records an OpenAI
-turn after model discovery: saved theme, font and TTS-off controls restored
-after restart; real shell output with exit code 0 appeared in Actions and the
-answer in Chat. A terminal hint reached the same Agent, and the answer's speaker
-produced native start/end events. Unchanged Anthropic and required Gemini 3.8
-coverage reuses Chapter 7's runs; settings did not justify another paid provider
-matrix.
+The existing Go grader can launch the compiled C# GUI; its language does not
+make HTTP/WebSocket tests Go-only. Use the Chapter 8 `-executable-only` route with
+`-gui` pointing to the static asset directory and a GUI executable wrapper as
+the positional target. It reuses four settings checks totaling **80 points**:
+round trip (25), initial snapshot (20), broadcast (20), and persistence (15).
+Inherited Go topology/Chapter 7 scoring is excluded, not silently awarded.
+Budget execution, validation/rollback, and browser checks remain separate proof.
+Require parsed `passed:true` and process exit zero before reporting a pass.
 
-The original student grader returned **80/100 FAIL** on an earlier build:
-all four settings checks passed, but inherited parity checks ran against the
-continuing GUI server. Legacy scored 100/100. Neither score tested the
-speech-rate defect; keep the earlier result separate from the later browser
-correction. The revised grader uses the appropriate GUI and core entry points;
-the [grader review](../../docs/edition-2-notes/enhancement-08-code.md)
-records its new results and limits.
+## 8.7 Use it and report honestly
 
-## What is not graded and why
+With authorized provider access, launch the GUI on an owned loopback port and
+ask the Agent to perform a small useful programming task. Adjust theme, speech,
+font, and the next-turn budget while it works. Inspect the resulting code and
+run its tests. Use the existing four private logs to diagnose behavior; do not
+publish credentials or raw conversation data.
 
-The layout, the drag bars, the theming, the agent tree, the sidebar
-tabs, the TTS controls. All client-side JavaScript and CSS. The grader
-runs Go and connects via WebSocket. It can verify that
-`update_settings` echoes correctly, that a second client sees the
-change, that a restart preserves the file. It cannot verify that the
-center pane is wider than 300 pixels or that the drag bar feels
-smooth.
+Without provider authority, exercise the real application against a local fake
+and leave the provider-dependent task explicitly incomplete. Fake HTTP,
+WebSockets, and speech do not prove remote model compatibility or human hearing.
+Do not restart or deploy a shared application merely to demonstrate this chapter.
 
-The grader covers its chosen machine checks; actual browser tests can also
-measure layout and control behavior. The student supplies the judgment about
-comfort, visibility and listening. Both are
-necessary, and pretending one replaces the other is how codebases end
-up with a green dashboard and a broken product.
-
-## Making the switch
-
-One working Agent, two artifact panes, preferences that survive a restart.
-The value of this workbench is that someone can live in it long enough to
-discover what the next improvement should be. A tree that can draw one node
-does not establish sub-agent execution, and this chapter adds neither model
-selection nor API-key controls. The original next-chapter forecast ran ahead
-of the available exercise; it is not a requirement to invent those features.
-
-Bill's destination for the new Ensemble is explicit: run GPT-6 Astra at high
-reasoning, then use that Ensemble agent to build Edition 3 instead of Codex.
-A usable workbench is progress toward that destination. Model access, the
-reasoning setting and real coding use still need their own verification before
-claiming the crossover. Starting useful work early, as the opener urges, is
-how the remaining gaps become visible.
+Preserve a source-only endpoint, explain the ownership and captured-budget
+choices, record corrections and evidence limitations in the progress record, and
+continue to Chapter 9. The goal is a GUI whose small promises are dependable—not
+an elaborate settings framework.

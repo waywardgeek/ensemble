@@ -1,9 +1,0 @@
-{
-  "pid": 78327,
-  "listener": [
-    "127.0.0.1",
-    56077
-  ],
-  "upstream": "https://api.anthropic.com",
-  "credential_in_artifacts": false
-}

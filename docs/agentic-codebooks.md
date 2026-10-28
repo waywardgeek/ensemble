@@ -1,6 +1,10 @@
 # Agentic Codebooks: Executable Specifications, Explained in Detail
 
-**Have your AI coding agent read this, and start encoding knowledge instead of vibe coding.**
+**Are you an expert at building at least one kind of software system?** If not, feel free to read on, but there is little value in having your LLM execute this paper right now. This method needs knowledge earned by building real systems: what worked, what failed, and what experience taught you to do differently. It cannot substitute for that experience.
+
+**This paper is meant to be executed.** Give it to your LLM and let it guide you in translating your expertise into executable specifications: explanations, contracts, and checks from which a fresh coding agent can build a working system. You supply the judgment. The agent helps draw it out, make it explicit, and test whether another agent can build from it without the conversation that produced it.
+
+The aim is knowledge that outlives any one implementation. Today's LLMs can use what you tell them during a session, but ordinary inference does not update their trained weights with the lessons of the work. You carry years of trial, error, and consequence in your memory. The specification gives that hard-won knowledge a durable form that future agents can execute. As building reveals new lessons, those lessons improve the specification and its checks, not just the current code. The code can be replaced; the knowledge survives and grows.
 
 *By Bill Cox, CodeRhapsody, and Cadence. CodeRhapsody is an AI coding agent built on Claude Opus models; Cadence is the actor of Ensemble V2, the program this method produced, running on GPT-6 Astra. The two agents wrote independent drafts from their own evidence; this paper merges them under Bill's rulings. Draft 2, 21 October 2026.*
 

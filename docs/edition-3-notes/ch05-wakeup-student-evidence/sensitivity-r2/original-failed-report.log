@@ -1,6 +1,0 @@
-=== RUN   TestChapter5WakeupFailedRetainedReport
-    chapter5_wakeup_test.go:547: WAKEUP failed observation discarded retained report: {Text:[{"type":"text","text":"error: ordinary failure"}] Error:true}
---- FAIL: TestChapter5WakeupFailedRetainedReport (0.01s)
-FAIL
-FAIL	ensemble	0.017s
-FAIL

@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "<stdin>", line 20, in <module>
-KeyError: 'tree'
-
-exit_code: 1

@@ -1,4 +1,0 @@
-{
-  "exception": "",
-  "traceback": "Traceback (most recent call last):\n  File \"/Users/bill/projects/ensemble/docs/edition-3-notes/ch10-code-review-evidence/v2/run-review.py\", line 78, in <module>\n    rep=json.loads(stdout);write('01-parsed-report.json',rep);assert len(rep['checks'])==15 and rep['max_score']==100;assert row['duration_seconds']>=120,'not the actual two quiet lifetimes';write('01-ch1-evaluation.json',{'title':rep['title'],'ids':[x['id'] for x in rep['checks']],'checks':len(rep['checks']),'passed':rep['passed'],'score':rep['score'],'exit_code':row['exit_code'],'duration_seconds':row['duration_seconds'],'same_cli_hash':ident(cli),'quiet_lifetimes_not_shortened':True})\n                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\nAssertionError\n"
-}

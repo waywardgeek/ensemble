@@ -1,9 +1,0 @@
-Exact candidate remains clean.
-All archived tracked files match the pinned candidate.
-All production/module bytes match the initially reviewed revision.
-Only ensemble_test.go lines 54-55 differ.
-First-block mutation failed behaviorally; restored control passed.
-Build/vet/full race suite/format checks passed.
-All protected original and student correction artifacts remain unchanged.
-Pinned chapter/grader hashes and HEAD unchanged.
-No grader rerun, provider call or credential access performed in this round.

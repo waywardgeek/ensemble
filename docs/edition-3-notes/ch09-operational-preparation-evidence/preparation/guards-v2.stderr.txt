@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble-edition-3-student/.ch09-local/operational-preparation/guards.py", line 38, in <module>
-    status=request(changed);require(status==403 and len(peer.requests)==0,'invalid request reached upstream');checks.append(dict(name=name,status=status,upstream_requests=0))
-                            ~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/bill/projects/ensemble-edition-3-student/.ch09-local/operational-preparation/launcher.py", line 9, in require
-    if not ok:raise Failure(message)
-              ^^^^^^^^^^^^^^^^^^^^^^
-launcher.Failure: invalid request reached upstream

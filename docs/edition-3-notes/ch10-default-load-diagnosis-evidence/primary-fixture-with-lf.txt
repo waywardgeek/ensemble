@@ -1,7 +1,0 @@
----
-name: current
-type: primary
-description: current runtime primary
-tools: read_file, load_skill, unload_skill
----
-CURRENT_RUNTIME_PROMPT

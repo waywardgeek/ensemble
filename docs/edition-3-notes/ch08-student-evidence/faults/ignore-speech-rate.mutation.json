@@ -1,5 +1,0 @@
-{
-  "file": "gui/web/gui/speech.js",
-  "before": "utterance.rate = nativeSpeechRate(this.speed());",
-  "after": "utterance.rate = 1; // intentional faulty consumer"
-}

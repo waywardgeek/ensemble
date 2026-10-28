@@ -1,5 +1,0 @@
-# ensemble/internal/agent
-internal/agent/actor.go:104:14: undefined: common.Ephemeral
-internal/agent/actor.go:671:16: undefined: common.Ephemeral
-FAIL	ensemble [build failed]
-FAIL

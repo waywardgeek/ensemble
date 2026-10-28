@@ -1,6 +1,0 @@
-=== RUN   TestSkillsThroughLoop
---- PASS: TestSkillsThroughLoop (0.01s)
-=== RUN   TestSkillLoadFailures
---- PASS: TestSkillLoadFailures (0.00s)
-PASS
-ok  	ensemble/ensemble	0.014s

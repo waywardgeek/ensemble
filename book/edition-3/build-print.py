@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
-"""Two-pass print build: render, learn real page numbers, inject them into the TOC.
+"""One-render print build with measured PDF contents references and page labels.
 
-Chrome renders @page margin boxes (so footer page numbers work) but does NOT
-support target-counter(), so a TOC cannot learn its own page references in one
-pass. This renders once, reads where each chapter actually landed, injects those
-numbers, renders again, then re-reads to prove pagination did not shift.
+Chrome does not implement target-counter(). Reserve a TOC number column in CSS,
+render once, resolve its links, and stamp references without changing layout.
+Front matter is unnumbered; the Preface begins Arabic page 1 on a recto page.
 """
 import re, subprocess, sys
 from collections import Counter
@@ -14,6 +13,7 @@ import pymupdf
 
 CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
 BOOK = Path(__file__).resolve().parent
+GEORGIA = Path("/System/Library/Fonts/Supplemental/Georgia.ttf")
 
 
 def render(html: Path, pdf: Path) -> None:
@@ -33,7 +33,7 @@ def page_texts(pdf: Path) -> list[str]:
     return out.split("\f")
 
 
-def check_type_size(pdf: Path) -> None:
+def check_type_size(pdf: Path, expected_body: float = 10.5, expected_code: float = 10) -> None:
     """Check printed type, since correct CSS does not prevent Chrome shrinking it.
 
     Count characters rather than spans so short headings and page numbers
@@ -58,9 +58,9 @@ def check_type_size(pdf: Path) -> None:
         sys.exit("FATAL: could not measure the expected body and code fonts")
     body_size = body.most_common(1)[0][0]
     code_size = min(code_sizes)
-    if abs(body_size - 12) > 0.1 or code_size < 9.9:
+    if abs(body_size - expected_body) > 0.1 or code_size < expected_code - 0.1:
         sys.exit(f"FATAL: printed type is {body_size}pt body / {code_size}pt code; "
-                 "expected 12pt / 10pt. Check overflowing code and tables.")
+                 f"expected {expected_body}pt / {expected_code}pt. Check overflowing code and tables.")
     print(f"  printed type: {body_size}pt body, minimum {code_size}pt code")
 
 
@@ -120,52 +120,115 @@ def build_map(pdf: Path, titles: list[str]) -> dict[str, int]:
     return found
 
 
-def inject(html: str, entries: list[tuple[str, str]], mapping: dict[str, int]) -> str:
-    nav = re.search(r'<nav id="TOC".*?</nav>', html, re.S)
-    block = nav.group(0)
-    new = block
-    done = 0
-    for href, raw in entries:
-        title = strip_tags(raw)
-        if title not in mapping:
-            continue
-        # Pandoc wraps long tags, so the anchor can read '<a\nhref="#id"'.
-        # Matching a literal '<a href=' silently skipped every wrapped entry
-        # and still produced a plausible looking TOC.
-        pat = re.compile(r'<a\s[^>]*href="#' + re.escape(href) + r'"[^>]*>.*?</a>', re.S)
-        m = pat.search(new)
-        if not m:
-            sys.exit(f"FATAL: no anchor found for #{href}")
-        end = m.end()
-        tail = new[end:end + 80]
-        prev = re.match(r'\s*<span class="tocpg">\d+</span>', tail)
-        if prev:  # drop the number a previous pass wrote
-            end += prev.end()
-        new = new[:end] + f'<span class="tocpg">{mapping[title]}</span>' + new[end:]
-        done += 1
-    if done != len(entries):
-        sys.exit(f"FATAL: injected {done} numbers for {len(entries)} TOC entries")
-    return html.replace(block, new)
+def margins(index: int, page_width: float = 504) -> tuple[float, float]:
+    """Physical page parity, never the reset printed counter, owns the gutter."""
+    return (63, page_width - 36) if index % 2 == 0 else (36, page_width - 63)
+
+
+def finish_pagination(pdf: Path, entries: list[tuple[str, str]],
+                      mapping: dict[str, int],
+                      page_size: tuple[float, float] = (504, 720)) -> tuple[int, list]:
+    """Stamp the reserved TOC column and footers; do not reflow any content."""
+    page_width, page_height = page_size
+    first = mapping.get("Preface")
+    if first is None or entries[0][0] != "preface":
+        sys.exit("FATAL: Preface must be the first numbered contents entry")
+    if first % 2 != 1:
+        sys.exit("FATAL: Preface must begin on a physical right-hand page")
+    if not GEORGIA.is_file():
+        sys.exit(f"FATAL: missing pagination font {GEORGIA}")
+    font = pymupdf.Font(fontfile=str(GEORGIA))
+    stamped = []
+    pending = pdf.with_suffix(".numbered.pdf")
+    with pymupdf.open(pdf) as doc:
+        if any(abs(page.rect.width - page_width) > 0.01 or
+               abs(page.rect.height - page_height) > 0.01 for page in doc):
+            sys.exit(f"FATAL: pagination geometry requires "
+                     f"{page_width / 72:g} × {page_height / 72:g} inch pages")
+        for href, raw in entries:
+            title = strip_tags(raw)
+            target = mapping[title] - 1
+            # Only front-matter links are TOC links. Chrome may produce several
+            # rectangles for a wrapped anchor, so stamp once at its last line.
+            hits = []
+            for i in range(first - 1):
+                for link in doc[i].get_links():
+                    if link.get("nameddest") == href:
+                        resolved, _, _ = doc.resolve_link("#" + href)
+                        if resolved != target:
+                            sys.exit(f"FATAL: contents link #{href} disagrees with heading")
+                        hits.append((i, link["from"]))
+            if not hits:
+                sys.exit(f"FATAL: no PDF contents link for #{href}")
+            if len({i for i, _ in hits}) != 1:
+                sys.exit(f"FATAL: contents entry split across pages: {title}")
+            i = hits[0][0]
+            page = doc[i]
+            rects = [rect for _, rect in hits]
+            spans = [span for block in page.get_text("dict")["blocks"]
+                     for line in block.get("lines", []) for span in line["spans"]
+                     if span["text"].strip() and any(
+                         (pymupdf.Rect(span["bbox"]) & rect).get_area() > 1
+                         for rect in rects)]
+            if not spans:
+                sys.exit(f"FATAL: cannot locate TOC text baseline for {title}")
+            baseline = max(span["origin"][1] for span in spans)
+            number = str(mapping[title] - first + 1)
+            right = margins(i, page_width)[1]
+            width = font.text_length(number, fontsize=10.5)
+            if max(span["bbox"][2] for span in spans) > right - width - 8:
+                sys.exit(f"FATAL: insufficient reserved TOC number space for {title}")
+            page.insert_font(fontname="PrintGeorgia", fontfile=str(GEORGIA))
+            page.insert_text((right - width, baseline), number,
+                             fontname="PrintGeorgia", fontsize=10.5, color=(0, 0, 0))
+            stamped.append((i, pymupdf.Rect(right - 43, baseline - 10.5,
+                                          right + 1, baseline + 3), number, target))
+        for i in range(first - 1, len(doc)):
+            page = doc[i]
+            number = str(i - first + 2)
+            left, right = margins(i, page_width)
+            width = font.text_length(number, fontsize=10)
+            page.insert_font(fontname="PrintGeorgia", fontfile=str(GEORGIA))
+            page.insert_text(((left + right - width) / 2, page_height - 24), number,
+                             fontname="PrintGeorgia", fontsize=10, color=(0, 0, 0))
+        doc.set_page_labels([
+            {"startpage": 0, "prefix": "", "style": ""},
+            {"startpage": first - 1, "prefix": "", "style": "D", "firstpagenum": 1},
+        ])
+        doc.save(pending, deflate=True)
+    pending.replace(pdf)
+    return first, stamped
+
+
+def check_pagination(pdf: Path, first: int, stamped: list,
+                     page_size: tuple[float, float] = (504, 720)) -> None:
+    page_width, page_height = page_size
+    with pymupdf.open(pdf) as doc:
+        for i, page in enumerate(doc):
+            footer = page.get_text(clip=pymupdf.Rect(0, page_height - 45, page_width, page_height)).strip()
+            expected = "" if i < first - 1 else str(i - first + 2)
+            if footer != expected or page.get_label() != expected:
+                sys.exit(f"FATAL: footer/page label mismatch on physical page {i + 1}")
+            for block in page.get_text("dict")["blocks"]:
+                for line in block.get("lines", []):
+                    for span in line["spans"]:
+                        if span["text"].strip() and span["color"] != 0:
+                            sys.exit(f"FATAL: non-black print text on page {i + 1}: "
+                                     f"{span['text'][:60]}")
+        for i, rect, expected, target in stamped:
+            actual = doc[i].get_text(clip=rect).strip()
+            if actual != expected or doc[target].get_label() != expected:
+                sys.exit(f"FATAL: TOC number/destination mismatch on physical page {i + 1}")
+    print(f"  verified: {len(stamped)} TOC references, black text, unnumbered front matter")
+    print(f"  Preface: physical page {first}, printed page 1")
 
 
 def clean_html(html: str) -> str:
-    """Fix pandoc output for print before the two-pass TOC build.
+    """Remove the manuscript's duplicate/self-referential Contents.
 
-    1. Force a page break after the pandoc TOC so it doesn't flow into the
-       front matter.
-    2. Remove the self-referential "Contents" entry from the pandoc TOC
-       (the markdown TOC heading appears as a TOC entry pointing at itself).
-    3. Strip the markdown-generated "# Contents" section entirely — the
-       pandoc --toc generates the real TOC with page numbers; the markdown
-       one is for GitHub and has only anchor links (useless in print).
+    CSS breaks after the generated nav itself. An empty break-after div used to
+    create a spurious blank page when the nav already filled its own page.
     """
-    # 1. Page break after TOC nav
-    html = html.replace(
-        '</nav>',
-        '</nav>\n<div style="page-break-after: always;"></div>',
-        1,  # only the first </nav> (the TOC)
-    )
-
     # 2. Remove "Contents" entry from pandoc TOC (self-referential)
     html = re.sub(
         r'<li><a\s[^>]*href="#contents"[^>]*>Contents</a>.*?</li>\s*',
@@ -185,6 +248,13 @@ def clean_html(html: str) -> str:
         flags=re.S,
     )
 
+    # Chrome currently treats break-before:right as an ordinary page break.
+    # The title/TOC/dedication occupy three pages; explicitly leave the fourth
+    # blank. finish_pagination verifies physical recto parity if layout changes.
+    anchor = '<h1 id="preface">'
+    if html.count(anchor) != 1:
+        sys.exit("FATAL: expected exactly one Preface heading")
+    html = html.replace(anchor, '<div class="recto-spacer" aria-hidden="true"></div>\n' + anchor)
     return html
 
 
@@ -213,8 +283,9 @@ def run_pandoc(src: Path) -> None:
         "-M", "author=Bill Cox",
         "-H", header.name,
         "--lua-filter", str(BOOK.parent / "scripts" / "publication-links.lua"),
+        "--lua-filter", str(BOOK.parent / "scripts" / "print-sidebars.lua"),
     ]
-    print("pass 0: pandoc regenerate interior-print.html")
+    print("pandoc: regenerate interior-print.html")
     r = subprocess.run(cmd, cwd=BOOK, capture_output=True, text=True)
     if r.returncode != 0:
         sys.exit(f"FATAL: pandoc failed:\n{r.stderr}")
@@ -249,8 +320,45 @@ def build_reading_pdf(interior_path: Path) -> None:
                     link["page"] += 1
                 reading[index + 1].insert_link(link)
                 count += 1
+        reading.set_page_labels(
+            [{"startpage": 0, "prefix": "", "style": ""}] +
+            [dict(rule, startpage=rule["startpage"] + 1)
+             for rule in interior.get_page_labels()]
+        )
         reading.save(output, deflate=True)
+    check_reading_pdf(interior_path, output)
     print(f"  reading PDF: cover plus interior, {count} links preserved")
+
+
+def check_reading_pdf(interior_pdf: Path, output: Path) -> None:
+    """Reopen the saved artifact to verify labels and cover-offset navigation."""
+    with pymupdf.open(interior_pdf) as interior, pymupdf.open(output) as reading:
+        if len(reading) != len(interior) + 1 or reading[0].get_label() != "":
+            sys.exit("FATAL: reading PDF must contain an unnumbered cover plus interior")
+        for i, page in enumerate(interior):
+            copied = reading[i + 1]
+            if copied.get_label() != page.get_label():
+                sys.exit(f"FATAL: reading label changed on interior page {i + 1}")
+            sources, targets = page.get_links(), copied.get_links()
+            if len(sources) != len(targets):
+                sys.exit(f"FATAL: reading links lost on interior page {i + 1}")
+            for source, target in zip(sources, targets):
+                expected = dict(source)
+                if source.get("nameddest"):
+                    index, x, y = interior.resolve_link("#" + source["nameddest"])
+                    expected.update(kind=pymupdf.LINK_GOTO, page=index + 1,
+                                    to=pymupdf.Point(x, y))
+                elif source.get("kind") == pymupdf.LINK_GOTO:
+                    expected["page"] += 1
+                for key in ("kind", "page", "uri", "file"):
+                    if target.get(key) != expected.get(key):
+                        sys.exit(f"FATAL: reading link {key} changed on interior page {i + 1}")
+                for key in ("from", "to"):
+                    if key in expected and (key not in target or any(
+                        abs(a - b) > 0.05 for a, b in zip(expected[key], target[key])
+                    )):
+                        sys.exit(f"FATAL: reading link position changed on interior page {i + 1}")
+    print("  verified saved reading PDF links, coordinates and labels")
 
 
 def main() -> None:
@@ -260,41 +368,24 @@ def main() -> None:
     run_pandoc(src)
     html = src.read_text()
 
-    print("cleaning HTML: TOC page break, strip duplicate Contents")
+    print("cleaning HTML: strip duplicate Contents")
     html = clean_html(html)
     src.write_text(html)
-
     entries = toc_entries(html)
     titles = [strip_tags(t) for _, t in entries]
     print(f"TOC entries: {len(titles)}")
 
-    print("pass 1: render")
+    print("render: Chrome (single layout pass)")
     render(src, pdf)
     check_type_size(pdf)
-    m1 = build_map(pdf, titles)
-    print(f"  matched {len(m1)}/{len(titles)} headings")
-    missing = [t for t in titles if t not in m1]
+    mapping = build_map(pdf, titles)
+    missing = [t for t in titles if t not in mapping]
     if missing:
-        sys.exit(f"FATAL: {len(missing)} headings never matched a page: {missing[:5]}")
-
-    print("pass 2: inject + render")
-    src.write_text(inject(html, entries, m1))
-    render(src, pdf)
-
-    m2 = build_map(pdf, titles)
-    shifted = {t: (m1.get(t), m2.get(t)) for t in titles if m1.get(t) != m2.get(t)}
-    if shifted:
-        print(f"  pagination SHIFTED for {len(shifted)}; re-injecting with pass-2 map")
-        src.write_text(inject(src.read_text(), entries, m2))
-        render(src, pdf)
-        m3 = build_map(pdf, titles)
-        still = {t for t in titles if m2.get(t) != m3.get(t)}
-        if still:
-            sys.exit(f"FATAL: pagination still shifting for {len(still)} headings")
-        print("  CONVERGED")
-    else:
-        print("  stable: pagination identical across passes")
-
+        sys.exit(f"FATAL: headings never matched a page: {missing[:5]}")
+    first, stamped = finish_pagination(pdf, entries, mapping)
+    if build_map(pdf, titles) != mapping:
+        sys.exit("FATAL: page stamping changed heading locations")
+    check_pagination(pdf, first, stamped)
     check_type_size(pdf)
     n = subprocess.run(["pdfinfo", str(pdf)], capture_output=True, text=True).stdout
     print("\n" + "\n".join(l for l in n.splitlines() if l.startswith(("Pages", "Page size"))))

@@ -1,9 +1,0 @@
-Retained non-behavior incidents; none counted as detections:
-- Bounded combined prerequisite/source reads clipped portions. Read ledger records overlap and endpoint recovery; current carryover1110lines fully read.
-- Inspection git diff invoked an interactive pager. Owned less PID30584 received TERM; no test interrupted. Diff rerun with GIT_PAGER=cat / --no-pager.
-- Guessed publication/preedit baseline filenames were absent. Exact task-specified /tmp/cadence-ch07-publication-preservation-after-body11.json used; older ten-path hashes never treated as current drift.
-- First suffix-comparison helper assumed switch/case and raised AssertionError. Corrected to actual else-if branch, yielding exact unchanged legacy suffix. No source edit.
-- Initial legacy-ch4 argv retained -media-models, correctly rejected with usage exit2/no score/no Passed; measure.py assertion stopped sequence. All stdout/stderr/argv/timing retained. legacy.py reran only appropriate Chapters4/5/6 and all passed.
-- GUI-model unlisted identifier PASSED with changed wire/log counts. Routing evidence only, not a negative behavioral detection or a requirement to reject unknown models.
-- No compile/watchdog/disk failure; no timed-out or canceled test; no paid/provider/browser/liveGUI action or child. No shared cleanup. Existing local fake servers only.
-- Prior expensive Chapter1 receipt is historical accepted-predecessor evidence, not a fresh current-f595 run. All new tests completed; message acknowledgements are not test jobs.

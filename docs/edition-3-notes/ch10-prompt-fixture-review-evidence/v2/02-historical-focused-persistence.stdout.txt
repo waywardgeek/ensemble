@@ -1,4 +1,0 @@
-=== RUN   TestChapter10Persistence
---- PASS: TestChapter10Persistence (1.51s)
-PASS
-ok  	github.com/waywardgeek/ensemble/internal/gradeedition2	1.516s

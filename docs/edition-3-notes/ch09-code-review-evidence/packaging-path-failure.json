@@ -1,8 +1,0 @@
-{
-  "stage": "second final packaging; no final report or verification receipt written",
-  "script": "/tmp/ch09-code-review/finalize-v2.py",
-  "exit": 1,
-  "error": "FileNotFoundError for /Users/bill/projects/ensemble/ch09-student-evidence/binary-hashes-before-adapters.txt",
-  "cause": "student manifest paths are relative to docs/edition-3-notes, unlike prior inventories rooted at repository",
-  "disposition": "preserve failed script/error and fix only manifest base; no behavioral rerun"
-}

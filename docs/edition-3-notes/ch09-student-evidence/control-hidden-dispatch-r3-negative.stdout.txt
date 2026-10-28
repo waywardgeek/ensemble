@@ -1,6 +1,0 @@
-=== RUN   TestChapter9CapabilityLifecycle
-    chapter9_skills_test.go:105: write_file result=&{Dispatched:true DisplayID:1 Job:0x14000020600 CallID:local-1 Name:write_file Args:[123 34 99 111 110 116 101 110 116 34 58 34 104 105 100 100 101 110 34 44 34 112 97 116 104 34 58 34 47 118 97 114 47 102 111 108 100 101 114 115 47 112 95 47 49 49 118 107 54 121 49 49 52 120 113 55 107 57 103 53 114 95 112 99 51 121 118 56 48 48 48 48 103 110 47 84 47 84 101 115 116 67 104 97 112 116 101 114 57 67 97 112 97 98 105 108 105 116 121 76 105 102 101 99 121 99 108 101 50 53 56 51 49 55 55 51 50 51 47 48 48 50 47 119 114 105 116 116 101 110 46 116 120 116 34 125] Parts:[{DisplayID:0 Type:text Text:file written MIME: Ref:<nil> From:{Vendor:invalid Model: Surface:invalid} Data:[] CallID: Name: Args:[] Opaque:[] Parts:[] IsError:false Stub:}] IsError:false} text=file written
---- FAIL: TestChapter9CapabilityLifecycle (0.00s)
-FAIL
-FAIL	ensemble	0.011s
-FAIL

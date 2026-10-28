@@ -1,1 +1,0 @@
-{"mode": "browser", "status": "FAIL", "failure": "browser-page-or-audio-state", "cleanup_complete": true, "run_root": "/Users/bill/projects/ensemble-edition-3-student/.ch10-local/operational-diagnostic-v1/runs/browser-diagnostic-r1", "duration_seconds": 1.3558330424129963, "credential_opens": 0}

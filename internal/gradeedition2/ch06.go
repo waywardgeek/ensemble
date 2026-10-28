@@ -30,7 +30,19 @@ func Chapter6(bin, core, consumer, workflow, exercise, model string, example Con
 	return grade.NewTitledReport("Edition 2, Chapter 6 — Streaming", checks, ""), nil
 }
 
+// Chapter6Executable grades compiled C# applications through their public wire
+// protocols. Plain C# responses publish finals, not synthetic transient deltas.
+// It deliberately excludes inherited Go consumer/topology and Chapter 5 checks.
+func Chapter6Executable(bin, observer, model string) grade.Report {
+	checks := streamingChecksFor(bin, "", observer, model, true)
+	return grade.NewTitledReport("Chapter 6 — executable streaming only (80 points; excludes Go checks and inherited Chapter 5)", checks, "")
+}
+
 func streamingChecks(bin, core, exercise, model string) []grade.Check {
+	return streamingChecksFor(bin, core, exercise, model, false)
+}
+
+func streamingChecksFor(bin, core, exercise, model string, finalOnly bool) []grade.Check {
 	stream, plain := driveStream(bin, model, false, false), driveStream(bin, model, true, false)
 	// Reuse the original five numerical/content checks. Their private launcher
 	// hard-codes the contradictory unknown-model fixture, so only driving and
@@ -41,6 +53,20 @@ func streamingChecks(bin, core, exercise, model string) []grade.Check {
 		correlateStream(&checks[1], stream, "text")
 		correlateStream(&checks[2], stream, "thinking")
 		correlateStream(&checks[3], stream, "tool_call")
+	}
+	if finalOnly {
+		// Replace only the legacy plain-delta contract, not its streaming checks.
+		checks[4] = grade.Check{ID: "delivery-not-content", Title: "Streaming and final-only delivery retain content", Points: 10, Earned: 10, Passed: true}
+		c := &checks[4]
+		if stream.exec.ExitErr != "" || plain.exec.ExitErr != "" {
+			fail(c, "stream error=%s plain error=%s", stream.exec.ExitErr, plain.exec.ExitErr)
+		}
+		if stream.exec.Assistant != streamAnswer || plain.exec.Assistant != streamAnswer {
+			fail(c, "both modes must deliver the fixture's completed answer")
+		}
+		if len(plain.exec.Deltas) != 0 || len(stream.exec.Deltas) == 0 {
+			fail(c, "expected real stream chunks and no synthetic plain chunks")
+		}
 	}
 	delivery := &checks[4]
 	if stream.exec.ExitErr == "" && plain.exec.ExitErr == "" {
@@ -71,11 +97,19 @@ func streamingChecks(bin, core, exercise, model string) []grade.Check {
 	}
 	// The absent unknown fixture must remain usable without acquiring a hidden
 	// stream-capability row merely to satisfy a test. It is a distinct control.
+	expectedPlainText := 2
+	if finalOnly {
+		expectedPlainText = 0
+	}
 	unknown := driveStream(bin, "unknown-stream-model-edition2", false, false)
-	if unknown.exec.ExitErr != "" || unknown.exec.Assistant != streamAnswer || unknown.streamRequested || unknown.exec.KindCount("text") != 2 {
+	if unknown.exec.ExitErr != "" || unknown.exec.Assistant != streamAnswer || unknown.streamRequested || unknown.exec.KindCount("text") != expectedPlainText {
 		fail(delivery, "unknown model must complete in plain mode: error=%s stream=%t text-deltas=%d", unknown.exec.ExitErr, unknown.streamRequested, unknown.exec.KindCount("text"))
 	}
-	shapeExercise(delivery, core, exercise, model)
+	if finalOnly {
+		checkShapeExecutable(delivery, exercise, model, true)
+	} else {
+		shapeExercise(delivery, core, exercise, model)
+	}
 	delivery.Details = append(delivery.Details, "compares observable finals and measured usage, unknown-model fallback and separate aggregate exercise; gated flush, SSE framing and complete opaque replay remain required source/integration proof")
 	return checks
 }
@@ -141,6 +175,10 @@ func shapeExercise(c *grade.Check, core, dir, model string) {
 		fail(c, "stream exercise build: %v: %s", err, out)
 		return
 	}
+	checkShapeExecutable(c, bin, model, false)
+}
+
+func checkShapeExecutable(c *grade.Check, bin, model string, finalOnly bool) {
 	// Supply the public positional prompt to the external application; retain
 	// the stdin envelope for consumers that use it. Aggregate reporting does
 	// not require the external application to implement the core CLI protocol.
@@ -155,6 +193,15 @@ func shapeExercise(c *grade.Check, core, dir, model string) {
 			continue
 		}
 		stats := run.exec.Stats[len(run.exec.Stats)-1]
+		if finalOnly {
+			parts := object(stats["parts"])
+			if number(parts["text"]) != 2 || number(parts["thinking"]) != 2 || number(parts["tool_call"]) != 1 {
+				fail(c, "%s external finalized parts differ from two-response fixture: %v", label, parts)
+			}
+			if run.usage["input"] != 310 || run.usage["output"] != 88 || number(stats["steps"]) != 2 {
+				fail(c, "%s external must report measured usage and two model steps", label)
+			}
+		}
 		// Presence and nonnegative units are observable here. Accurate timing and
 		// final-part count reports still need source review, not a wall-clock race.
 		if n, ok := stats["first_delta_ms"].(float64); !ok || n < 0 {
@@ -165,7 +212,11 @@ func shapeExercise(c *grade.Check, core, dir, model string) {
 		a := object(on.exec.Stats[len(on.exec.Stats)-1]["deltas"])
 		b := object(off.exec.Stats[len(off.exec.Stats)-1]["deltas"])
 		for kind, counts := range map[string][2]float64{"text": {8, 2}, "thinking": {4, 2}, "tool_call": {3, 1}} {
-			if number(a[kind]) < counts[0] || number(b[kind]) != counts[1] {
+			plainCount := counts[1]
+			if finalOnly {
+				plainCount = 0
+			}
+			if number(a[kind]) < counts[0] || number(b[kind]) != plainCount {
 				fail(c, "external exercise %s delta shape: enabled=%v disabled=%v", kind, a[kind], b[kind])
 			}
 		}

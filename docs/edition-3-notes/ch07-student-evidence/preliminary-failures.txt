@@ -1,6 +1,0 @@
-Initial inspection: rg absent; standard grep used. Broad filename listing truncated; subsequent targeted reads recovered required inputs.
-Initial GUI build after hub/transport code failed because embedded assets were not written yet: main.go pattern assets/* no matching files.
-Second GUI build after assets failed: TurnState.String undefined (3 sites); ensemble.Config.API unknown. Corrected by inspecting public types, not grader material.
-No paid calls, credential reads, children, or reference implementation access.
-Scope deviation: preliminary student-authored log files were mistakenly written under reference/edition-3/ch07-student-evidence. On recovering exact task line 24, moved only own newly created files to authorized docs/edition-3-notes/ch07-student-evidence and removed empty mistaken directories. No existing reference files read/changed. Reported to parent.
-Further setup failures retained: GUI fixture omitted System, then MaxTokens, then response provenance vendor/model/surface; grader command initially guessed scripts/grade-ch07.py (not present). No grader internals read; correct public command recovered from task.

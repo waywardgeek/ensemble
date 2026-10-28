@@ -1,8 +1,0 @@
-{
-  "reason": "Chapter4 public ai_callback_delay field; independently diagnosed invalid historical delay input before intended pause boundary",
-  "path": "internal/gradeedition2/ch07_driver.go",
-  "before_sha256": "b2812952e0defd31cec84b06d82335d65e1ac3ef0b387b9004beeb5e75a61e77",
-  "after_sha256": "bcdbcd50397d40de60c9fa871cd9d588403efeee34162aa01830cf6c99913b09",
-  "delta": "single JSON argument name; unchanged assertions/timing/socket schedule/scoring",
-  "student_commit_unchanged": "48e1d12d9c396b5988c0ce6eccdef67e581872ff"
-}

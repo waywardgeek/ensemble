@@ -9,18 +9,46 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/waywardgeek/ensemble/internal/fakevendor"
 )
 
 func webSkills(work, endpoint string) (string, error) {
+	return webSkillsFor(work, endpoint, false, "")
+}
+
+func webSkillsFor(work, endpoint string, executable bool, shipped string) (string, error) {
+	transport := "url"
+	if executable {
+		transport = "http"
+	}
 	dir := filepath.Join(work, "skills")
 	err := recallWrite(dir, map[string]string{
 		"base/SKILL.md":       "---\nname: base\ndescription: Web transport fixture\ntype: primary\ntools: agent_status wait_for_job load_skill unload_skill\nloadable-skills: web-search\n---\nUse the granted web tools when asked.\n",
-		"web-search/SKILL.md": "---\nname: web-search\ndescription: Course HTTP search and fetch\ntype: loadable\ntools: firecrawl_search firecrawl_scrape\nmcp_servers:\n  - name: web\n    transport: url\n    url: " + endpoint + "\n    auth-env: EDITION2_WEB_TOKEN\n---\nSearch for a page and fetch it as evidence.\n",
+		"web-search/SKILL.md": "---\nname: web-search\ndescription: Course HTTP search and fetch\ntype: loadable\ntools: firecrawl_search firecrawl_scrape\nmcp_servers:\n  - name: web\n    transport: " + transport + "\n    url: " + endpoint + "\n    auth-env: EDITION2_WEB_TOKEN\n---\nSearch for a page and fetch it as evidence.\n",
 	})
+	if err != nil || !executable {
+		return dir, err
+	}
+	// Exercise the submitted manual unchanged except for the two external-boundary
+	// values. Its grants, description and instructions remain part of the input.
+	data, err := os.ReadFile(filepath.Join(shipped, "web-search", "SKILL.md"))
+	if err != nil {
+		return dir, err
+	}
+	manual := string(data)
+	for field, value := range map[string]string{"url": endpoint, "auth-env": "EDITION2_WEB_TOKEN"} {
+		pattern := regexp.MustCompile(`(?m)^( +` + field + `:)[^\n]*$`)
+		if len(pattern.FindAllStringIndex(manual, -1)) != 1 {
+			return dir, fmt.Errorf("shipped web-search needs one %s field", field)
+		}
+		manual = pattern.ReplaceAllStringFunc(manual, func(line string) string { before, _, _ := strings.Cut(line, ":"); return before + ": " + value })
+	}
+	err = os.WriteFile(filepath.Join(dir, "web-search", "SKILL.md"), []byte(manual), 0600)
 	return dir, err
 }
 
@@ -28,6 +56,10 @@ func webSkills(work, endpoint string) (string, error) {
 // precedes EOF; closing stdin immediately after sending the prompt would instead
 // test interruption. Exit status is checked even when partial artifacts exist.
 func webLaunch(bin, work, skills, token string, replies []fakevendor.Reply, observe func()) ([]fakevendor.Recorded, string, error) {
+	return webLaunchFor(bin, work, skills, token, replies, false, observe)
+}
+
+func webLaunchFor(bin, work, skills, token string, replies []fakevendor.Reply, executable bool, observe func()) ([]fakevendor.Recorded, string, error) {
 	provider := fakevendor.NewWithOptions(replies, fakevendor.Options{Route: func([]byte) *fakevendor.Reply {
 		if observe != nil {
 			observe()
@@ -36,7 +68,11 @@ func webLaunch(bin, work, skills, token string, replies []fakevendor.Reply, obse
 	}})
 	defer provider.Close()
 	env := append(webStatusEnv(os.Environ(), work, skills, provider.URL(), "claude-sonnet-4-6", "base"), "EDITION2_WEB_TOKEN="+token)
-	p, err := startMCPCommandEnv(bin, work, []string{"chat"}, env)
+	args := []string{"chat"}
+	if executable {
+		args = append(args, "--no-stream", "--skills-dir", skills, "--primary-skill", "base", "--save", filepath.Join(work, "save.json"))
+	}
+	p, err := startMCPCommandEnv(bin, work, args, env)
 	if err != nil {
 		return nil, "", err
 	}
@@ -65,6 +101,11 @@ func webLaunch(bin, work, skills, token string, replies []fakevendor.Reply, obse
 		exit := <-p.done
 		p.done <- exit
 	}
+	if executable {
+		os.WriteFile(filepath.Join(work, "host.stderr"), []byte(p.stderr.String()), 0600)
+		data, _ := json.MarshalIndent(provider.Requests(), "", "  ")
+		os.WriteFile(filepath.Join(work, "provider-requests.json"), data, 0600)
+	}
 	return provider.Requests(), p.stderr.String(), err
 }
 
@@ -89,9 +130,18 @@ func statusLaunch(bin, core string) statusRun {
 }
 
 func statusLaunchModels(bin, core string, models []string, liveModelControl bool) (out statusRun) {
+	return statusLaunchFor(bin, core, models, liveModelControl, false, "anthropic", statusUsage)
+}
+
+// In executable mode core is the explicit shipped skills directory.
+func statusLaunchFor(bin, core string, models []string, liveModelControl, executable bool, vendor string, usages []fakevendor.Canonical) (out statusRun) {
 	var replies []fakevendor.Reply
-	for i, usage := range statusUsage {
-		replies = append(replies, statusReply(models[i], i, usage), fakevendor.Reply{JSONBody: invoiceAnthropicUsage(models[i], fmt.Sprintf("STATUS_TURN_%d_COMPLETE", i), fakevendor.Canonical{})})
+	for i, usage := range usages {
+		if executable && vendor == "openai" {
+			replies = append(replies, statusExecutableReply(models[i], i, usage), fakevendor.Reply{JSONBody: invoiceExecutableOpenAI(models[i], "default", fmt.Sprintf("STATUS_TURN_%d_COMPLETE", i), fakevendor.Canonical{})})
+		} else {
+			replies = append(replies, statusReply(models[i], i, usage), fakevendor.Reply{JSONBody: invoiceAnthropicUsage(models[i], fmt.Sprintf("STATUS_TURN_%d_COMPLETE", i), fakevendor.Canonical{})})
+		}
 	}
 	provider := fakevendor.New(replies)
 	defer provider.Close()
@@ -100,7 +150,11 @@ func statusLaunchModels(bin, core string, models []string, liveModelControl bool
 		out.fatal = err.Error()
 		return
 	}
-	defer os.RemoveAll(work)
+	if executable {
+		fmt.Fprintf(os.Stderr, "Chapter 18 status fixtures retained: %s\n", work)
+	} else {
+		defer os.RemoveAll(work)
+	}
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		out.fatal = err.Error()
@@ -113,14 +167,25 @@ func statusLaunchModels(bin, core string, models []string, liveModelControl bool
 		out.fatal = err.Error()
 		return
 	}
-	skills, err := filepath.Abs(filepath.Join(core, "skills"))
+	skillPath := filepath.Join(core, "skills")
+	if executable {
+		skillPath = core
+	}
+	skills, err := filepath.Abs(skillPath)
 	if err != nil {
 		out.fatal = err.Error()
 		return
 	}
-	cmd := exec.Command(bin, "--port", port, "--gui-dir", assets)
+	args := []string{"--port", port, "--gui-dir", assets}
+	if executable {
+		args = append(args, "--no-stream", "--skills-dir", skills, "--primary-skill", "ensemble", "--save", filepath.Join(work, "save.json"), "--settings", filepath.Join(work, "settings.json"))
+	}
+	cmd := exec.Command(bin, args...)
 	cmd.Dir = work
 	cmd.Env = webStatusEnv(os.Environ(), work, skills, provider.URL(), models[0], "ensemble")
+	if executable {
+		cmd.Env = invoiceEnv(cmd.Env, skills, provider.URL(), invoiceOpts{dir: work, vendor: vendor, model: models[0]})
+	}
 	var stderr bytes.Buffer
 	cmd.Stdout, cmd.Stderr = io.Discard, &stderr
 	stdin, err := cmd.StdinPipe()
@@ -145,6 +210,11 @@ func statusLaunchModels(bin, core string, models []string, liveModelControl bool
 		out.reqs = provider.Requests()
 		if out.fatal != "" {
 			out.fatal += ": " + stderr.String()
+		}
+		if executable {
+			os.WriteFile(filepath.Join(work, "host.stderr"), stderr.Bytes(), 0600)
+			data, _ := json.MarshalIndent(map[string]any{"requests": out.reqs, "before": out.before, "after": out.after, "fatal": out.fatal}, "", "  ")
+			os.WriteFile(filepath.Join(work, "observations.json"), data, 0600)
 		}
 	}()
 	url := "ws://127.0.0.1:" + port + "/ws"
@@ -172,7 +242,7 @@ func statusLaunchModels(bin, core string, models []string, liveModelControl bool
 		return
 	}
 	defer peer.close()
-	if err = peer.send("subscribe", ""); err != nil {
+	if err = invoiceSend(peer, "subscribe", "", executable); err != nil {
 		out.fatal = err.Error()
 		return
 	}
@@ -185,12 +255,17 @@ func statusLaunchModels(bin, core string, models []string, liveModelControl bool
 	for i, model := range models {
 		if i > 0 {
 			agentID, _ := out.after[i-1]["agent_id"].(string)
-			if err = selectStatusModel(peer, agentID, model, liveModelControl); err != nil {
+			if executable {
+				err = selectStatusExecutableModel(peer, model)
+			} else {
+				err = selectStatusModel(peer, agentID, model, liveModelControl)
+			}
+			if err != nil {
 				out.fatal = fmt.Sprintf("model selection %s: %v", model, err)
 				return
 			}
 		}
-		before, p, e := invoiceSnapshot(url)
+		before, p, e := invoiceSnapshotFor(url, executable)
 		if p != nil {
 			defer p.close()
 		}
@@ -199,7 +274,12 @@ func statusLaunchModels(bin, core string, models []string, liveModelControl bool
 			return
 		}
 		out.before = append(out.before, before)
-		if _, err = fmt.Fprintf(stdin, "Report status turn %d.\n", i); err != nil {
+		if executable {
+			err = invoiceSend(peer, "prompt", fmt.Sprintf("Report status turn %d.", i), true)
+		} else {
+			_, err = fmt.Fprintf(stdin, "Report status turn %d.\n", i)
+		}
+		if err != nil {
 			out.fatal = err.Error()
 			return
 		}
@@ -216,7 +296,7 @@ func statusLaunchModels(bin, core string, models []string, liveModelControl bool
 			out.fatal = "status turn did not make exactly a tool request and continuation"
 			return
 		}
-		after, p, e := invoiceSnapshot(url)
+		after, p, e := invoiceSnapshotFor(url, executable)
 		if p != nil {
 			defer p.close()
 		}
@@ -227,6 +307,12 @@ func statusLaunchModels(bin, core string, models []string, liveModelControl bool
 		out.after = append(out.after, after)
 	}
 	stdin.Close()
+	if executable {
+		if err = cmd.Process.Signal(syscall.SIGTERM); err != nil {
+			out.fatal = err.Error()
+			return
+		}
+	}
 	select {
 	case err = <-done:
 		finished = true

@@ -1,4 +1,0 @@
-Verified three live two-turn captures, per-response and cumulative usage.
-Verified three byte-identical dumps and nine repeated cross-vendor render pairs; zero sentinel posts.
-Verified retroactive fake-result redaction through all three actual CLI renderers.
-Additional live calls: 0. Original launcher failure remains recorded.

@@ -1,3 +1,0 @@
-> An append-only event log in a chat app records every message as a distinct, immutable event, like a timeline of "User A sent 'hello'" followed by "User B sent 'hi'". In contrast, a derived context view is a curated representation of this data, perhaps showing only the last 10 messages in a specific conversation, generated on demand from the underlying log.
-> Since the append-only event log is a complete, immutable record of all past messages, rendering it offline simply involves replaying these saved events directly, without needing to consult any external model for new or modified data.
-> 

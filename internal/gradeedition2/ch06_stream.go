@@ -178,17 +178,22 @@ func driveStream(bin, model string, plain, external bool) streamRun {
 				return run
 			}
 			final := streamPart{kind: "thinking"}
-			textValue := m["text"]
-			if textValue == nil && part["type"] == "text" {
+			// Typed parts take precedence over generic observation labels.
+			var textValue any
+			if part["type"] == "text" {
 				textValue = part["text"]
+			} else if len(part) == 0 {
+				textValue = m["text"]
 			}
 			if text, ok := textValue.(string); ok {
 				final.kind, final.text = "text", text
 				run.exec.FinalText[id] = text
 			}
-			nameValue := m["tool"]
-			if nameValue == nil && part["type"] == "tool_call" {
+			var nameValue any
+			if part["type"] == "tool_call" {
 				nameValue = part["name"]
+			} else if len(part) == 0 {
+				nameValue = m["tool"]
 			}
 			if name, ok := nameValue.(string); ok {
 				final.kind, final.name = "tool_call", name

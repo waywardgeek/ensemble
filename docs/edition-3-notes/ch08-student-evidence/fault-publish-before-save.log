@@ -1,5 +1,0 @@
---- FAIL: TestSettingsCommitBroadcastRestartAndFailure (0.00s)
-    settings_test.go:144: failed save mutated or broadcast
-FAIL
-FAIL	ensemble-gui	0.008s
-FAIL

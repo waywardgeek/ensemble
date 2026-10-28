@@ -1,9 +1,0 @@
-# ensemble-gui [ensemble-gui.test]
-./reviewer_wire_r1_test.go:38:248: e.Tool.Result undefined (type *common.ToolEvent has no field or method Result)
-./reviewer_wire_r1_test.go:57:39: undefined: ensemble.VendorAnthropic
-./reviewer_wire_r1_test.go:57:159: unknown field WorkspaceDir in struct literal of type ensemble.Config
-./reviewer_wire_r1_test.go:58:17: undefined: ensemble.NewRoot
-./reviewer_wire_r1_test.go:58:80: undefined: ensemble.ShutdownOptions
-./reviewer_wire_r1_test.go:59:21: undefined: ensemble.FuncTool
-./reviewer_wire_r1_test.go:78:55: undefined: ensemble.NewRoot
-./reviewer_wire_r1_test.go:78:116: undefined: ensemble.ShutdownOptions

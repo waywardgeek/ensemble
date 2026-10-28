@@ -33,7 +33,22 @@ func Chapter9(bin, core, gui, guiModel, consumer, workflow, exercise, streamMode
 
 // Keep the historical eight weighted claims. Their evidence now comes from
 // the actual optional client, while earlier core checks use their own binaries.
+// Chapter9Executable retains the eight skill checks without inherited Go topology.
+func Chapter9Executable(bin, static, model string) grade.Report {
+	return grade.NewTitledReport("Edition 3 C# — Chapter 9 executable skill checks only (85 points)", skillsExecutableChecks(bin, static, model, nil), "")
+}
+
 func skillsChecks(dir, model string) []grade.Check {
+	bin, cleanup, err := grade.Build(dir)
+	if err != nil {
+		return skillsExecutableChecks("", "", model, fmt.Errorf("build: %w", err))
+	}
+	defer cleanup()
+	static, err := filepath.Abs(filepath.Join(dir, "web", "gui"))
+	return skillsExecutableChecks(bin, static, model, err)
+}
+
+func skillsExecutableChecks(bin, static, model string, setupError error) []grade.Check {
 	checks := []grade.Check{
 		{ID: "initial-tools", Title: "Primary limits declarations and actual dispatch", Points: 10},
 		{ID: "system-prompt", Title: "Loaded instructions reach system context", Points: 10},
@@ -48,18 +63,9 @@ func skillsChecks(dir, model string) []grade.Check {
 		checks[i].Earned = checks[i].Points
 		checks[i].Passed = true
 	}
-	bin, cleanup, err := grade.Build(dir)
-	if err != nil {
+	if setupError != nil {
 		for i := range checks {
-			fail(&checks[i], "build: %v", err)
-		}
-		return checks
-	}
-	defer cleanup()
-	static, err := filepath.Abs(filepath.Join(dir, "web", "gui"))
-	if err != nil {
-		for i := range checks {
-			fail(&checks[i], "assets: %v", err)
+			fail(&checks[i], "setup: %v", setupError)
 		}
 		return checks
 	}

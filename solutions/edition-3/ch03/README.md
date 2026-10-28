@@ -1,125 +1,82 @@
-# Chapter 1 — raw HTTP conversation
+# Chapter 3 — Six Tools (C#)
 
-This module starts from the current Edition 3 Chapter 1, not a previous solution.
-It uses only the Go standard library. No tools, retries, streaming, persistence,
-provider framework, or background conversation machinery are introduced.
+C# 14 / .NET 10, standard library only. This is the Chapter 3 endpoint, not an
+installation or replacement of the running Go Ensemble application.
 
-## Ownership rationale
+## Read the model first
 
-The public `ensemble` package is a small composition root. It owns a logger and
-its Agents, constructing both directions of the Agent/Engine relationship before
-returning an Agent. `internal/common` declares shared values and interfaces only;
-`internal/agent` and `internal/engine` never import each other.
+Keep Chapter 2's Ensemble → Agent → History and Engine relationships. Agent now
+also owns six concrete Tools. Start with `Common/Tools.cs` and the additions to
+`Common/Owners.cs`, then read `Agent/Tools.cs` and `Tools/Tool.cs`. Constructors
+call Agent.AddTool; add/remove complete both ends before returning. Agent.Destroy
+cascades through tools. Immutable schemas and conversation parts are values,
+not relationship-bearing children.
 
-Agent holds configuration and completed history. Engine holds the HTTP client
-and measured usage, looking up configuration and diagnostics through its actual
-Agent parent (and that parent's Ensemble). A failed request never commits an
-unanswered user turn. Missing usage is not zero; measured usage from an empty
-answer is still counted. History and usage accessors return copies, not mutable
-internal state. Calls on a single Agent and creation within an Ensemble are
-synchronous; separate Agents have independent conversation and accounting.
+Each Tool holds its name, description and schema once. Engine projects that same
+Agent-owned collection for each vendor; Agent dispatches through it. An empty
+library registry emits no declarations and returns errors for unknown names.
+The CLI explicitly installs the six tools. There is no global registry, service
+bag, callback plumbing or plug-in framework.
 
-The HTTP client has no total response or header deadline. Standard transport
-connection/TLS protections remain, while the caller's context governs model
-work, including reading the body. Redirects are rejected to avoid forwarding
-credentials. Errors omit remote bodies, URLs, and raw transport diagnostics.
+Follow `Agent.SendAsync`: record input; ask Engine for one exchange; inspect the
+recorded ResponseEnded; record and execute every call in order; record every
+result; repeat. Return only the final reply. Pre-tool narration goes through the
+parent diagnostic path to stderr, leaving JSON stdout stable. A sixteen-round
+bound limits repetition, not command or HTTP duration. `LLM_REQUIRE_TOOL_EXPLANATION`
+accepts true/false (default false); when enabled, a calls-only response gets
+paired error results without effects so the model can explain and retry.
 
-## Use
+Then read `Tools/FilesAndShell.cs`. File edits require one exact nonempty anchor,
+including overlapping-match detection. Reads default to 32768 bytes after line
+selection and visibly report truncation. Search merges adjacent context windows.
+Commands use a fresh shell, drain both output pipes, report separate streams and
+exit_code, remove provider credential variables, and honor caller cancellation.
+Nonzero exit is ordinary data; tool validation and file failures are error results.
 
-Set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`; discover the model with the
-provider's `GET /v1/models` endpoint rather than guessing. `ANTHROPIC_BASE_URL`
-defaults to `https://api.anthropic.com`, and can select a local HTTP fake.
+History is still the authoritative event record. Request projection does not
+rewrite it. Call IDs normalize at capture and duplicates within one response
+are rejected before effects. Gemini call- and text-bound signatures survive
+serialization and replay only with exact provenance.
 
-```sh
-go build -o /tmp/ch01 ./cmd/ch01
-printf '%s\n' '{"user":"Hello"}' | /tmp/ch01
-/tmp/ch01 chat
-```
+## Build, test and exercise
 
-No arguments selects JSON-lines input/output: one `assistant` object per input,
-then cumulative `usage` at EOF. Errors go to stderr and exit nonzero without
-retrying. `chat` prints human prompts and per-turn usage; Ctrl-D ends it.
-The root accepts an application logger (`ensemble.New(logger)`), then
-`app.NewAgent(ensemble.Config{...})` creates a conversation for synchronous
-`Ask(ctx, text)` calls. A nil logger discards diagnostics; no global logger is used.
-
-## Checks
+Use .NET 10 from PATH or Bill's approved private SDK by explicit path. In an
+owned environment, disable first-run certificate generation and telemetry.
 
 ```sh
-go test -race ./...
-go vet ./...
+dotnet run --project Tests
+dotnet publish Cli/Ch03.csproj -c Release -o /your/owned/ch03-build
+/your/owned/ch03-build/ch03 chat
+/your/owned/ch03-build/ch03 dump /your/owned/events.jsonl
 ```
 
-Tests use real local HTTP servers with fake credentials. They cover wire shape,
-parent/configuration/logger isolation, replay and failed-turn retention, usage,
-sanitized errors, caller cancellation, redirects, and the CLI's line/EOF rules.
-JSON input has no arbitrary physical-line size limit; a final unterminated line
-is processed at EOF. The default JSON mode does not print chat prompts.
+The CLI retains Chapter 2's JSON-line `user`/`ephemeral`, `chat`, `dump`, `render`
+and CH02_LOG contracts. Provider configuration uses LLM_VENDOR, LLM_MODEL,
+LLM_BASE_URL and LLM_API_KEY (vendor-specific fallbacks remain). Always use an
+explicit loopback endpoint and dummy key for offline exercises.
 
+From the repository root, the existing executable grader accepts the compiled
+apphost; it does not require a Go solution:
 
-## Chapter 3 — synchronous tools
+```sh
+go run ./cmd/grade-edition2 -ch 3 -json /your/owned/ch03-build/ch03
+go run ./cmd/fakevendor -vendor anthropic
+```
 
-The same Agent now owns an independent six-tool registry. Root composition wires
-Agent, Engine, History, and Tools through `internal/common` interfaces; each
-implementation keeps its state locally. Engine owns HTTP, Render, Parse, and all
-provider tool envelopes. Tools do not retain conversation, and the GUI continues
-to call the same Agent rather than providing a second implementation.
+The grader uses the already-installed Go toolchain for small shell fixtures.
+Use its serve-only fake's printed environment with our executable in a disposable
+project containing go.mod; repeat for openai and gemini. Do not use its historical
+`-ch 3` convenience runner as evidence for this C# solution.
 
-`Config.Tools == nil` enables the default six tools. A non-nil empty slice really
-disables every tool and omits `tools` from provider requests. A nonempty slice
-selects names. CLI/GUI environment equivalents are `LLM_TOOLS=default`,
-`LLM_TOOLS=none`, or a comma-separated list of built-in names. Registry declarations
-and configuration are returned as copies, not mutable backing storage. Each
-registry entry joins its declaration with its handler; declarations and dispatch
-use that same per-Agent registered set.
+## Scope and evidence
 
-The selected model's explanation policy is explicit:
-`Config.RequireToolExplanation` / `LLM_REQUIRE_TOOL_EXPLANATION=true`. When enabled,
-a whole batch lacking nonblank ordinary assistant text before its first call is
-refused before effects. Each call gets a matching error result instructing a retry
-with an explanation. Hidden reasoning, opaque blocks, stop reasons, and usage do
-not satisfy this rule. Turn completion is based on returned calls. Up to sixteen
-batches run synchronously; a final request consumes batch sixteen's results. If
-that response asks for more tools, matching refusal results are retained and a
-local limit error ends the turn without additional effects.
+The component suite uses real files, shells, objects and HTTP exchanges; only the
+remote model is faked. It covers the loop, mixed outcomes, strict types, ownership,
+round bound, selected explanation retry, signatures, and cancellation, plus the
+Chapter 2 regressions. The Chapter 3 executable grade and actual CLI exercises
+are recorded in `docs/edition-3-csharp-progress.md` at the repository root.
 
-Tools use strict JSON argument types and reject unknown fields. Their schemas
-are sent with each enabled declaration. `read_file` has optional one-based
-inclusive `start_line`/`end_line` and a `max_bytes` cap. Omitted or zero start
-means line 1, end means EOF, and `max_bytes` means 32,768 bytes. Negative bounds
-or caps and an end before the start are errors. The tool selects the requested
-line range first, then caps returned bytes; actual truncation adds an explicit
-`[truncated at max_bytes=N]` marker outside the cap. Exact-size results do not
-claim truncation. Reads use bounded fragments, including for very long lines.
-`list_directory` is sorted and nonrecursive. `search_files` uses Go regular
-expressions, walks regular text files without following symlinks, defaults
-`context_lines` to zero, and merges overlapping/adjacent context ranges. Match
-lines use `path:line:text`; context lines use `path-line-text`. Positive-context
-groups have `--` separators, including across file boundaries; zero-context
-searches emit only matching lines without separators.
-
-`write_file` creates parents and refuses to replace existing files by default;
-the refusal reports the current size and names the opt-in flags.
-`overwrite:true` opts into replacement, `append:true` preserves existing bytes,
-and using both is rejected. `edit_file` replaces one nonempty, exact, unique
-`old_text` anchor; zero or multiple matches (including overlaps) leave the file
-unchanged. Both refusal diagnostics identify the supplied path. Zero-match
-refusals explicitly report 0 matches and suggest rereading
-the file. Ambiguity refusals report the total count (including overlaps), list
-up to eight one-based match-start line numbers, and say how many locations were
-omitted if the list is truncated. Repeated line numbers represent distinct
-matches on the same line; multiline anchors report their starting lines. No
-file excerpts, fuzzy matching, or automatic match selection are used: reread
-the current file and give a larger exact anchor on ambiguity. A unique anchor
-can be deleted by supplying an empty `new_text`. `run_command` invokes `/bin/sh -c` and returns
-JSON text with separate `stdout`, `stderr`, and `exit_code` fields. A nonzero
-process exit is still a completed tool result; startup failure is a tool error.
-It adds no timeout beyond caller context cancellation. The shell environment
-removes `LLM_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, and `GEMINI_API_KEY`,
-while retaining ordinary build variables. This removes those four credentials;
-it is not a general secret detector or sandbox.
-
-Relative paths and command `cwd` resolve against the registry's launch directory;
-absolute paths and `..` are allowed. This is not a sandbox. No command changes the
-process-wide directory. The synchronous runner returns actual completed output,
-not a job handle. These tools are for trusted local use.
+Real-provider declaration acceptance and coding-work exercises remain incomplete:
+the paid-provider allowance is exhausted. No streaming, background job manager,
+sandbox/confinement, deployment, GUI implementation or account changes are claimed.
+The synchronous command limitation is intentional groundwork for Chapter 4.

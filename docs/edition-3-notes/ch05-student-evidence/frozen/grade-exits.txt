@@ -1,2 +1,0 @@
-chapter5_exit=0
-chapter1_exit=0

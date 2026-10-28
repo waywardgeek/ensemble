@@ -1,4 +1,0 @@
-remaining-live openai-human-stream True {'exit_zero': True, 'provider_success': True, 'within_caps': True, 'genuine_content': True, 'file_effect': True, 'hint_active': True, 'hint_in_next_request': True, 'hint_in_next_visible_response_before_tools': True, 'early_stdout': True}
-remaining-live gemini-human-stream True {'exit_zero': True, 'provider_success': True, 'within_caps': True, 'genuine_content': True, 'file_effect': True, 'hint_active': True, 'hint_in_next_request': True, 'hint_in_next_visible_response_before_tools': True, 'early_stdout': True}
-remaining-live openai-shape-stream True {'exit_zero': True, 'provider_success': True, 'within_caps': True, 'genuine_content': True, 'shape': True, 'multiple_deltas': True}
-remaining-live openai-shape-plain True {'exit_zero': True, 'provider_success': True, 'within_caps': True, 'genuine_content': True, 'shape': True}

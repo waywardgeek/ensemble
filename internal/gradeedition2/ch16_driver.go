@@ -16,16 +16,18 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"time"
 
 	"github.com/waywardgeek/ensemble/internal/grade"
 )
 
 type subscriptionOpts struct {
-	prompts         []string
-	oauth           grade.Edition2OAuthOptions
-	responses       grade.Edition2ResponsesOptions
-	skipLogin, gate bool
+	prompts                   []string
+	oauth                     grade.Edition2OAuthOptions
+	responses                 grade.Edition2ResponsesOptions
+	skipLogin, gate           bool
+	executableOnly, signedOut bool
 }
 type subscriptionOut struct {
 	oauth                          grade.Edition2OAuthObservations
@@ -218,7 +220,14 @@ func subscriptionLaunch(bin, skills, gui, dir string, o subscriptionOpts) (out s
 	} else {
 		env = append(env, "OPENAI_BILLING_MODE=chatgpt")
 	}
-	if !o.skipLogin {
+	if o.executableOnly {
+		env = subscriptionExecutableEnv(endpoint, home, skills, dir, o.skipLogin)
+		if err := subscriptionSeed(home, o.signedOut); err != nil {
+			out.fatal = err.Error()
+			return
+		}
+	}
+	if !o.skipLogin && !o.executableOnly {
 		var err error
 		out.loginOutput, err = subscriptionLogin(bin, dir, env)
 		if err != nil {
@@ -236,7 +245,11 @@ func subscriptionLaunch(bin, skills, gui, dir string, o subscriptionOpts) (out s
 	}
 	port := fmt.Sprint(listener.Addr().(*net.TCPAddr).Port)
 	listener.Close()
-	cmd := exec.Command(bin, "--port", port, "--gui-dir", gui, "--save", filepath.Join(dir, "save.json"))
+	args := []string{"--port", port, "--gui-dir", gui, "--save", filepath.Join(dir, "save.json")}
+	if o.executableOnly {
+		args = []string{"--port", port, "--save", filepath.Join(dir, "save.json"), "--settings", filepath.Join(dir, "settings.json"), "--credentials-dir", filepath.Join(home, "credentials")}
+	}
+	cmd := exec.Command(bin, args...)
 	cmd.Dir = dir
 	cmd.Env = env
 	var output subscriptionBuffer
@@ -305,7 +318,12 @@ func subscriptionLaunch(bin, skills, gui, dir string, o subscriptionOpts) (out s
 		return
 	}
 	defer peer.close()
-	if err = peer.send("subscribe", ""); err != nil {
+	if o.executableOnly {
+		err = peer.conn.WriteJSON(map[string]any{"type": "subscribe", "agent_id": "root"})
+	} else {
+		err = peer.send("subscribe", "")
+	}
+	if err != nil {
 		out.fatal = err.Error()
 		return
 	}
@@ -314,7 +332,12 @@ func subscriptionLaunch(bin, skills, gui, dir string, o subscriptionOpts) (out s
 		return
 	}
 	for i, prompt := range o.prompts {
-		if _, err = fmt.Fprintln(stdin, prompt); err != nil {
+		if o.executableOnly {
+			err = peer.conn.WriteJSON(map[string]any{"type": "prompt", "agent_id": "root", "text": prompt})
+		} else {
+			_, err = fmt.Fprintln(stdin, prompt)
+		}
+		if err != nil {
 			out.fatal = err.Error()
 			return
 		}
@@ -322,18 +345,25 @@ func subscriptionLaunch(bin, skills, gui, dir string, o subscriptionOpts) (out s
 			if o.gate {
 				gate.observe(m)
 			}
-			return m["type"] == "turn_ended"
+			return m["type"] == "turn_ended" || (o.executableOnly && m["type"] == "lifecycle" && m["kind"] == "turn_ended")
 		})
 		out.messages = append(out.messages, messages...)
 		if e != nil {
 			out.fatal = fmt.Sprintf("turn %d: %v", i+1, e)
 			return
 		}
-		out.errors = append(out.errors, subscriptionTurnError(messages))
+		if o.executableOnly {
+			out.errors = append(out.errors, subscriptionExecutableError(messages))
+		} else {
+			out.errors = append(out.errors, subscriptionTurnError(messages))
+		}
 	}
 	// Keep the subscriber connected until the child exits: unrelated legacy
 	// disconnect races must not determine these credential/transport observations.
 	stdin.Close()
+	if o.executableOnly {
+		_ = cmd.Process.Signal(syscall.SIGTERM)
+	}
 	select {
 	case err = <-done:
 		finished = true

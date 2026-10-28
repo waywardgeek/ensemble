@@ -59,11 +59,28 @@ failures, editing a file and passing the unchanged tests. That is a
 concrete step toward replacing a daily driver; it is not the same
 as having written the next edition with it.
 
-**Edition 3 restart scope.** The accepted Chapter 16 implementation
-remains the code predecessor. This chapter adds no implementation
-task, grader, or code snapshot. The October 11 run below is historical
-evidence; no new live crossover or private-memory migration has been
-performed for this restart.
+## In plain words — the C# boundary
+
+A crossover is using the application for real work, not implementing another
+framework. The C# CLI and GUI already submit work to the same Agent; the Agent
+owns its Engine, Jobs and History. The shared Credentials owner belongs to
+Ensemble. A browser projects those facts; it must not invent another model,
+funding selection, transcript or usage meter to make its display convenient.
+
+The historical failures below are questions to ask of that design, not changes
+to apply blindly. For example, the C# GUI identifies content by request and part
+identity rather than adopting the first edition's monotonic counter. Its running
+Configuration is immutable; it does not offer the historical live model picker.
+There is no reason to add a picker merely to reproduce its bugs.
+
+**Edition 3 C# scope.** This chapter adds no implementation or grader. The
+preserved `solutions/edition-3/ch16` endpoint remains its runnable predecessor;
+there is no duplicate `ch17` source snapshot. The October 11 task below is
+historical second-edition evidence, not a C# run. The C# reproduction instructions
+use current public commands, but a fresh model-led repair, live OAuth, and daily
+use remain unverified. No private-memory migration or replacement of Bill's
+running application is part of this chapter. Continue with Chapter 18 while
+keeping that live crossover explicitly open.
 
 ---
 
@@ -691,50 +708,77 @@ summary. This was one bounded coding task, without a steering or
 GUI demonstration. It establishes more than a configuration change
 and less than general project reliability or authorship of Edition 3.
 
-### Try the same task: historical reproduction
+### Try the same task with the C# endpoint
 
-There is no grader for this chapter. The commands below describe a
-reproduction of the recorded task using the historical second-edition
-reference in `solutions/ch17/`. They are not a new Edition 3 student
-assignment or proof that restarted main supports this route. Any fresh
-live run needs separate account authorization. For that reproduction,
-start in the repository root:
+There is no grader for this chapter. This is a bounded real-model exercise,
+not a fake-provider test. It requires your own authorized account, an available
+model and explicit funding consent. Do not run it merely to turn an unavailable
+integration check green. The C# Chapter 16 local checks establish neither live
+account permission nor successful repair of this program.
+
+From the repository root, with the .NET 10 SDK and Python 3 available, build the
+preserved endpoint into a private temporary output directory and copy only the
+broken source and unchanged tests into a fresh workspace:
 
 ```sh
-chapter19_repo=$PWD
-(cd solutions/ch17 && go build -o /tmp/ensemble-ch19 .)
-chapter19_work=$(mktemp -d)
-cp solutions/evidence/ch20/task-before/aggregate.py "$chapter19_work/"
-cp solutions/evidence/ch20/task-before/test_aggregate.py "$chapter19_work/"
-cd "$chapter19_work"
+chapter17_repo=$PWD
+chapter17_bin=$(mktemp -d)
+dotnet build "$chapter17_repo/solutions/edition-3/ch16/Cli/Ch04.csproj" \
+  -warnaserror -o "$chapter17_bin"
+chapter17_work=$(mktemp -d)
+cp "$chapter17_repo/solutions/evidence/ch20/task-before/aggregate.py" "$chapter17_work/"
+cp "$chapter17_repo/solutions/evidence/ch20/task-before/test_aggregate.py" "$chapter17_work/"
+cd "$chapter17_work"
 mkdir -p skills/base
 cat > skills/base/SKILL.md <<'EOF'
 ---
 name: base
 type: primary
 description: Repair the local CSV program using its unchanged tests.
-tools: read_file edit_file run_command
+tools: read_file edit_file run_command wait_for_job
 ---
 Read the source and tests, reproduce the failure, explain the intended edit,
 then change the source and run the unchanged tests. Work in this directory.
+If a command is still running, use its job handle to collect the real result.
+Do not change tests or inspect credentials. These workspace instructions are
+not an operating-system sandbox.
 EOF
 ```
 
-This reproduction uses an explicit primary skill; the recorded live
-run used the default registered tools. Keep `EN_HOME` set to your
-own dedicated Ensemble profile for that historical implementation,
-and use `auth status` and `auth models` to check sign-in and the
-account's available model. If needed, use its Chapter 16 sign-in flow.
-Do not borrow another application's credential files.
+Use the explicitly selected Ensemble credential directory and account from
+Chapter 16. Do not borrow another application's files. These commands read status
+and the current account's visible model list; they do not log in or change funding.
+If a new sign-in is needed, stop and follow the authorized Chapter 16 flow first.
 
 ```sh
-/tmp/ensemble-ch19 auth status
-/tmp/ensemble-ch19 auth models
-LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
-OPENAI_BILLING_MODE=chatgpt OPENAI_REASONING_EFFORT=high \
-OPENAI_REASONING_SUMMARY=detailed EN_PRIMARY_SKILL=base \
-/tmp/ensemble-ch19 --skills-dir skills chat
+: "${EN_CREDENTIALS_DIR:?Set your approved Ensemble credential directory}"
+: "${EN_ACCOUNT:?Set your Ensemble account label}"
+dotnet "$chapter17_bin/ch04.dll" --credentials-dir "$EN_CREDENTIALS_DIR" \
+  --account "$EN_ACCOUNT" auth status
+dotnet "$chapter17_bin/ch04.dll" --credentials-dir "$EN_CREDENTIALS_DIR" \
+  --account "$EN_ACCOUNT" auth models
 ```
+
+Proceed only if the account permits direct plan inference and the selected model
+is available. Catalog visibility alone does not grant capability or permission.
+This example uses the exact supported `gpt-6-astra` row, high effort and `auto`
+public summaries; the historical run's `detailed` setting is not supported by
+this C# row. Start a fresh conversation, inspect the model/funding announcement,
+and do not submit the prompt if it differs from your intent:
+
+```sh
+LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
+dotnet "$chapter17_bin/ch04.dll" \
+  --surface responses --billing chatgpt \
+  --credentials-dir "$EN_CREDENTIALS_DIR" --account "$EN_ACCOUNT" \
+  --reasoning-effort high --reasoning-summary auto \
+  --skills-dir "$chapter17_work/skills" --primary-skill base chat
+```
+
+The explicit plan route ignores ambient API keys and refuses rather than falling
+back to billed API use. Use the normal production base URL from Chapter 16;
+remove stale test-endpoint overrides before an authorized live run. Do not put
+credentials in the prompt or publish the private logs created in this workspace.
 
 Use the recorded prompt:
 
@@ -746,7 +790,7 @@ After the final answer, send EOF. Check the files yourself:
 
 ```sh
 python3 -m unittest -v
-cmp "$chapter19_repo/solutions/evidence/ch20/task-before/test_aggregate.py" test_aggregate.py
+cmp "$chapter17_repo/solutions/evidence/ch20/task-before/test_aggregate.py" test_aggregate.py
 ```
 
 Read the source diff, too. Passing these six cases says something

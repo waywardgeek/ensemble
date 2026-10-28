@@ -1,1 +1,0 @@
-{"ok": false, "type": "Failure", "message": "CLI nonzero exit"}

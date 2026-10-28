@@ -1,2 +1,0 @@
-PASS actual production PhraseQueue ordering/reset/final drain; SpeechQueue phrase/error/end/stale identity/active reference; readable opaque and empty exclusion. Controlled callbacks, NOT native speech proof.
-PASS Chapter 8 real queue next-utterance fractional rate/cancel, extended mapping, independent pane scroll policy. Recording fixtures, NOT native/browser proof.

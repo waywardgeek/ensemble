@@ -1,4 +1,0 @@
-{"log_version":1}
-{"seq":1,"type":"message_received","time":"2026-10-16T21:29:39.63052Z","message":{"actor":"human","parts":[{"type":"text","text":"Give a short answer"}]}}
-{"seq":2,"type":"request_sent","time":"2026-10-16T21:29:39.630521Z","request":{"to":{"vendor":"gemini","model":"exact-model","surface":"generate_content"}}}
-{"seq":3,"type":"error_occurred","time":"2026-10-16T21:29:39.631065Z","error":{"message":"gemini response contained no candidates"}}

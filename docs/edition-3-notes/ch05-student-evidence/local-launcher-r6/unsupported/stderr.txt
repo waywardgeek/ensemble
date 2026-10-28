@@ -1,1 +1,0 @@
-error: model "claude-sonnet-4-6" does not support video media "video/mp4"

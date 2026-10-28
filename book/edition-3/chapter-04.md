@@ -55,27 +55,45 @@ in one afternoon before Bill got it right.
 
 ## TL;DR
 
-Every ordinary tool call becomes a supervised job at the shared dispatch site.
-Give it a handle, preserve its full output on disk, and return a bounded readout
-with its status. A wake delay or matched pattern ends the caller's wait; it does
-not kill the work. Add `wait_for_job`, `send_input`, `kill_job` and one-shot
-`tool_limits`; these controls do not create jobs themselves. Use a PTY for
-interactive commands and keep it alive until the process finishes. Explicit
-kill and application shutdown stop jobs and record why. Preserve Chapter 3's
-tools and CLI behavior.
+A tool call starts work that the Agent supervises; it does not lend the work
+ownership of the Agent's turn. Give each ordinary call a handle and a disk
+output file, record the call, then release its worker. Return the complete
+result when it finishes quickly, or a bounded report and handle when it does
+not. A wake delay, output match, or newly available output ends an observation,
+**never the work**. Only explicit kill and shutdown cancel jobs.
 
-Also build a separate Go application that imports the public library, configures
-an Ensemble and Agent, and registers a custom tool on that Agent. Supply a name,
-nonempty description and object argument schema. Ask for work that invokes it:
-the real handler must run through the same job path, return a successful result
-under the matching call id, and emit a timestamped diagnostic through its actual
-parents to Ensemble's logger. Finish the exchange and shut down cleanly.
+Use the same path for files, commands, and registered custom tools. The four
+controls—`wait_for_job`, `send_input`, `kill_job`, and `tool_limits`—operate on
+that path without becoming jobs themselves. `tool_limits` sets one-shot
+observation options for the very next call, even a control or failed call; its
+consumption must be visible. Interactive commands require a real PTY.
 
-Keep the star imports, behavior in its responsible package, and application
-state with its owners; no mutable global registry or logger. The exercise is
-100 jobs points plus 60 for external execution, topology and diagnostics.
-Source review still checks ownership and mutable state: a printed log line
-cannot prove those relationships.
+## In plain words
+
+Chapter 3 made the Agent wait inside each tool. Chapter 4 gives the work its
+own named place to live. A Job owns its output file, cancellation, process or
+managed task, and output-read position. Returning to the model does not throw
+any of those away. The next observation starts where the last report stopped.
+The full file remains available when the inline report is too large.
+
+The ownership is concrete: Ensemble owns Agents and allocates handles; each
+Agent owns Tools and a Jobs collection; Jobs owns its Job objects. Common
+contains those types, their state, and their partial operation declarations.
+Functional files implement them in the same assembly. Parent add/remove
+operations complete both directions before returning. Shutdown stops jobs
+while their parent paths and History still exist, then detaches them.
+
+A wait is not a deadline. “Look again in three seconds” must not become “kill
+my build in three seconds.” A pattern asks which output matters. A byte cap
+limits what is placed in the model's next request, not what is saved. Those
+three observation choices are all that `tool_limits` changes.
+
+Finally, prove the public boundary with a separately built C# application. It
+registers a custom Tool, executes it through these same jobs, and logs through
+`Job → Jobs → Agent → Ensemble`. The callback is a justified extension point
+for code supplied by another application, not machinery for connecting our
+own functional modules. Compilation and a printed diagnostic are useful
+checks, but neither proves the ownership model; read the actual call path.
 
 ## 4.1 You cannot tell from the name
 
@@ -102,18 +120,14 @@ question came up during the build: "Even `read_file` can hang if an NFS mount
 is unmounted." The cold open is a tool that was on the wrong side of that list.
 
 So the chapter's operating rule is that you cannot tell from a tool's name
-which side of the boundary it is on, and you should stop trying. Every ordinary
-tool call is a job, including a quick `read_file` and a long
-`run_command`. Application-registered tools use that same dispatch path.
-When later chapters introduce `send_message`, `join_agents`, or tools served
-through MCP, their adapters inherit it too; this chapter does not require
-those frameworks. The cost of uniformity is stated in §4.3, and it is one
+which side of the boundary it is on, and you should stop trying. Every tool
+call is a job. The cost of uniformity is stated in §4.3, and it is one
 function. The cost of the list is §4.6, and it was a shipped defect.
 
 ## 4.2 Four lines, and what they do not do
 
-What shipped first, on the afternoon of the screenshot, is what you would
-ship first, and you will be disappointed by how little it is:
+The original Go implementation shipped the following watchdog on the
+afternoon of the screenshot. This is historical code, not the C# solution:
 
 ```go
 done := make(chan toolResult, 1)
@@ -148,7 +162,7 @@ the design stops abandoning anything.
 
 One detail is invisible until it bites. The channel is buffered with capacity
 one, deliberately. On the timeout path nobody reads, so an unbuffered send
-would park the abandoned goroutine forever, and the watchdog would cause the
+would park the abandoned managed task forever, and the watchdog would cause the
 very leak it exists to bound. A safety mechanism that leaks is worse than
 none, because you stop looking.
 
@@ -178,54 +192,33 @@ Here is the dispatch site, cut down to the ordinary-job path and using the
 student's existing ownership. Compare it with Chapter 3's, where the handler
 ran right here and if it never came back, neither did the agent:
 
-```go
-// The handle is allocated here, for every tool, before the dispatcher
-// knows anything about what the tool will do.
-job, err := a.Jobs().Start()
-if err != nil {
-    return err
+```csharp
+// Outline of Jobs.DispatchAsync. The real method also consumes pending
+// observation settings and validates arguments before releasing the worker.
+var job = new Job(this, Parent().Parent().AllocateJobHandle(), call);
+try
+{
+    Parent().History().Append(new Event(EventKind.ToolCalled,
+        callID: call.CallID, name: call.Name, args: call.Args,
+        job: job.Snapshot()));
 }
-data := job.Data()
-if err := a.History().Append(common.Event{
-    Type: "tool_called",
-    Tool: &common.ToolData{
-        CallID: call.CallID, Name: call.Name, Args: call.Args, Job: &data,
-    },
-}); err != nil {
-    return err
+catch
+{
+    job.Destroy(); // No worker was started; no effect can escape the failed log.
+    throw;
 }
-
-// The call retains its actual Agent, rather than a bag of sibling services.
-owner := &callContext{parent: a, job: job, limits: limits}
-// Returning from a wait does not end this handler's lifetime.
-go func() {
-    out, err := tool.Run(owner, call.Args)
-    // Finish completes an ordinary handler. If it started a process,
-    // Finish's guard leaves completion and output closure to the PTY reader.
-    job.Finish(out, err)
-}()
-
-// The wait is on the job, not the tool. If the tool never returns, this
-// returns anyway, with a handle, and the model decides what happens next.
-out, toolErr := job.Wait(limits)
-// Record out and toolErr as the correlated tool_returned event.
+job.Start(tool, sanitizedCall, validationError);
+return await job.ObserveAsync(call.CallID, delay, pattern, maxBytes,
+    callerCancellation, wakeOnOutput: false);
 ```
 
-The sketch omits error-result bookkeeping. If preparing the output file fails,
-do not start the handler; still pair the provider's call with a returned error
-under its exact call id, and continue pairing the remaining calls in that
-response.
-
-The ordering in the sketch is intentional: reserve the job, record
-`tool_called`, then release the handler. A helper named `Prepare` or `Start`
-can hide a goroutine launch and reverse that order. Keep reservation separate
-from execution so a failed call-record append, or its configured save, cannot
-leave a file write or subprocess running without its causal record. Apply the
-same gate to registered handlers and direct invocation, not just built-ins.
-This is an ordering guarantee, not a transaction that can undo arbitrary tool
-effects after a crash.
-
 Three things follow from putting it there and nowhere else.
+
+In C#, `Task.WhenAny` can similarly end a wait without ending the task.
+There is no safe general operation to forcibly abort arbitrary managed code.
+We therefore retain its Job, pass a cancellation token, and tell the truth
+when a handler does not cooperate. PTY processes are different: their owned
+process group can be terminated and drained.
 
 The handle goes at the dispatch site, not in the tools. One funnel, which is
 already where security will be enforced, so nothing bypasses it. Measured on
@@ -238,8 +231,8 @@ dispatcher waits on the job, not in the tool.
 In this edition Agent already owns dispatch. It now owns the Jobs collection;
 each Job retains that collection as its parent. Ensemble allocates handles so
 Agents within one Ensemble cannot accidentally reuse them, while each Agent's
-data directory owns its output files. Shared interfaces and records remain in
-common, job behavior in jobs, and tool behavior in tools. The CLI uses `cr` as
+data directory owns its output files. Shared partial declarations and value-like records remain in
+Common, job behavior in Jobs, and tool behavior in Tools. The CLI uses `cr` as
 its data directory; an embedded application supplies or receives a separate
 directory per Agent. The specimen path `cr/io/N` is the CLI contract, not a
 global filename for every Agent an application creates.
@@ -278,10 +271,8 @@ The log contract, so you do not guess it. Both `tool_called` and
 `tool_returned` carry `tool.job = {handle, status, output, bytes, exit_code?}`,
 with `status` one of `running`, `done`, `killed`, and `output` a
 `Ref{RefHandle, "cr/io/N"}`. The `job` field is absent on the four supervision
-tools; they are the only calls that are not jobs. A control can identify the
-existing job it observes or changes in its arguments and report, but receives
-no new job handle of its own. One new event, `job_killed`, carries the job and
-a `reason` of `kill_job` or `shutdown`.
+tools; they are the only calls that are not jobs. One new event, `job_killed`,
+carries the job and a `reason` of `kill_job` or `shutdown`.
 
 On disk the killed event uses a top-level `job` payload, with the reason inside
 that object. This is an illustrative event, not a live receipt:
@@ -307,34 +298,19 @@ work that is going fine and is waiting for an answer. A test runner asking
 `y/N`. A REPL. A debugger sitting at its prompt. §4.8 spends the whole
 chapter's budget on the last of those.
 
-A common observation result does not give every job an input stream.
-`send_input` actually sends input to jobs that support it, such as a PTY
-process. A file read or a join-like application handler need not accept stdin;
-report unsupported input honestly rather than pretending it was delivered.
-
 `wait_for_job` has one requirement that will cost you an hour if nobody says
 it. It must work on a job that has already finished. A student who
 implements it as "block on the channel" hangs forever on a completed job, and
 diagnoses it as a deadlock in their own code rather than a missing case.
-Return the retained terminal result immediately. Available unseen output can
-also be reported immediately; observing again never starts the handler again.
 
 Completion, new output and kill must also wake a waiter that is already
-blocked. Checking terminal state at entry covers a different ordering.
-Waking the waiter is only the notification. A later no-pattern `wait_for_job`
-must return when unseen output arrives, rather than go back to sleep until
-the delay expires. The initial no-pattern observation instead preserves
-§4.3's fast full-result path. A supplied pattern still matches only unseen
-bytes; nonmatching output alone does not end that wait.
-
-A late Go handler can finish after its job is killed; that completion must not
-turn the retained state back into `done` or reopen the output file.
+blocked. Checking terminal state at entry covers a different ordering. A late
+managed handler can finish after its job is killed; that completion must not turn
+the retained state back into `done` or reopen the output file.
 
 `kill_job` is SIGKILL to the process group, and the killed job is reported as
 `killed`. Never as `done` with a strange exit code. The exercise section has
-the story of how the grader learned that. A wait does not fail merely because
-it observes `killed`; keep genuine job or observation errors separate from
-that terminal status.
+the story of how the grader learned that.
 
 The fourth tool is not a verb and has no row in the table, because it did not
 exist when the corpus was recorded. `tool_limits` sets the wait for the next
@@ -402,10 +378,7 @@ caller supplies it. So there is nothing to declare and no row to be missing
 from. The `send_secret` defect does not get caught by the second design.
 There is no longer anywhere to write it.
 
-Three limits govern each observation: the initial ordinary-tool call and
-later calls that inspect its job. The delay is the maximum observation silence,
-not a timeout on the job; completion, available output or a matched pattern
-can return sooner. They are ordinary arguments on the tools that wait:
+Three limits, and they are ordinary arguments on the tools that wait:
 
 | limit | default | on |
 |---|---|---|
@@ -442,20 +415,6 @@ rule, "applies to the next job-creating or waiting call," is one line of code
 and one more category the model has to hold in its head, and a limit set
 several calls ago and still pending is a persistent escape hatch wearing a
 friendlier name. *The next call* is a rule a model can keep.
-
-Dispatch consumes that setting in model-response order, including when one
-response contains both the setter and its target. Apply and consume the pending
-limits before validating or running the next call: an argument error or tool
-failure spends them too. This orders dispatch, not job completion; it requires
-no separate parallel-call framework. A call-specific override wins for that
-call without becoming a new pending setting.
-
-When that next call is another `tool_limits`, separate what it consumes from
-what it sets. The old pending limits govern observation of this call and are
-then spent. The new pending limits start from defaults plus only the fields
-explicitly supplied to this new setter. A byte cap set by the first call must
-not survive merely because the second sets only a delay; omitted fields go
-back to their defaults, not to the consumed values.
 
 The footgun in a one-shot setting is a silent misfire, and a live model named
 it first: "it's easy to burn it on the wrong thing." You set
@@ -519,16 +478,19 @@ available the tool returns an error. It never silently falls back to pipes,
 which would ship an agent whose debugger works on one machine and refuses on
 another with no message saying why.
 
-`kill_job` on a process is SIGKILL to the process group. `kill_job` on a job
-that is only a goroutine, a `read_file` that never came back, marks the job
-killed and the report says, in those words, that Go cannot stop it. The
-containment sentence from §4.2 survives here and nowhere else, because this is
-the only place the design still cannot do better.
+`kill_job` on a process is SIGKILL to the process group. For a managed handler,
+.NET supplies cooperative cancellation, not a safe way to abort arbitrary code.
+Mark the job killed, report that limitation explicitly, and ignore late output
+and completion. Do not block shutdown forever waiting for an uncooperative
+callback or pretend that its code was forcibly terminated.
 
-There is no `recover` around the tool goroutine. A panic in a tool is an
-invariant violation, and an invariant violation taking the process down is
-working as intended. Unix only, via the process group; Chapter 3 already was,
-via `sh -c`.
+Ordinary argument, JSON, I/O, permission and process-start failures become paired
+tool errors. Unexpected invariant failures must not be disguised as successful
+reports or routine model feedback. In C#, the Task retains the exception;
+observation and completed-job cleanup propagate it to the host. Unlike a Go
+panic, a faulted Task does not automatically terminate the whole process, so the
+host owns that policy. Cleanup must still detach the job and close its resources.
+The PTY implementation here is macOS-specific and never falls back to pipes.
 
 ### Does shell state persist between calls?
 
@@ -625,18 +587,15 @@ ways: the dispatcher would wait for an exit that never comes, and on pipes
 taste and becomes a capability boundary the reader can stand on either side
 of.
 
-Naming that trap is not the same as escaping it, so the rule deserves saying
-plainly. The tool function returns as soon as the process is running. From
-that moment the job owns the process, and a reader goroutine owns the output
-and the eventual exit status. A tool function that waits for exit is a
-blocking call wearing a handle.
+The C# worker awaits the process and its readers; the dispatcher waits only for
+an observation. Returning a report does not finish the worker. From startup to
+drain, Job owns the process and readers, including the eventual exit status.
 
-The dispatcher carries a matching obligation: it must leave the job alone.
-Finishing a job closes its output file, so a dispatcher that finishes the
-instant the tool returns will cut off a reader that is still writing. The
-failure looks like broken output capture and is really a lifetime bug. Watch
-for a job that reports success with an empty result and zero bytes on disk,
-which is what that mistake produces every time.
+Finishing a worker closes its output writer, while reports reopen the retained
+file for reading. A dispatcher that declares completion as soon as it returns a
+handle cuts off a reader that is still writing. The apparent output-capture bug
+is really a lifetime bug. Test both the running state and the eventual bytes;
+an empty successful result proves neither.
 
 It also teaches `ai_callback_pattern` honestly. You do not sleep for a guessed
 interval and hope the prompt has appeared. You wait for the string `(dlv) `,
@@ -662,7 +621,7 @@ from its printed representation. Your agent can now debug the code it wrote.
 
 The first edition put a refactor here. Its agent could read files and drive a
 debugger, but another program could not use the machinery without entering its
-implementation. This edition established the package and ownership boundaries
+implementation. This edition established the assembly and ownership boundaries
 before the first request. The useful proof from that chapter still belongs
 here: a separately built program imports the framework, registers a tool the
 framework has never seen, and runs an Agent that calls it.
@@ -670,10 +629,10 @@ framework has never seen, and runs an Agent that calls it.
 The package names and public API spelling can differ. The external program
 must use the public composition root, with public types for configuration,
 declarations and handler context. It must not import an internal package or
-assemble a second Engine/History/job loop beside the one the CLI uses. Go's
-`internal` rule checks that public boundary when the consumer is outside it.
-A separate module also exposes missing public types that tests inside the
-framework can accidentally reach.
+assemble a second Engine/History/job loop beside the one the CLI uses. The
+consumer is a separate assembly with an ordinary project reference, without
+`InternalsVisibleTo` or reflection. Its compilation exposes missing public
+types that tests inside the framework can accidentally reach.
 
 Register the tool on its Agent during synchronous setup, before asking it to
 work. Keep declaration and dispatch on the same per-Agent registry. A global
@@ -683,8 +642,8 @@ without altering the existing set, and own the declaration's schema bytes so
 the caller cannot change them after setup. No concurrent registration service
 or extra dispatch route is needed.
 
-The accepted consumer defines `shout`, taking `{"text":"hello framework"}`
-and returning `HELLO FRAMEWORK`. Its handler receives the public ToolContext,
+The C# example consumer defines `shout`, taking `{"text":"hello framework"}`
+and returning `HELLO FRAMEWORK`. Its handler receives the actual public Job,
 validates its argument and uppercases the supplied text. There is no special
 case for that name in the core. The declaration goes to the model, the returned
 call follows the ordinary job path, the handler's output is saved, and the
@@ -719,13 +678,13 @@ The root is Ensemble. It owns one logger; Agent retains its Ensemble, Engine
 retains its Agent, and a tool call retains its actual Agent. The custom tool
 reaches the root's narrow logging interface through that chain:
 
-```go
-call.Engine().Agent().Ensemble().Logf("shout called")
+```csharp
+job.Parent().Parent().Parent().Log("shout called");
 ```
 
 The original refactor's per-Agent logger and global-registration examples do
 not describe this ownership. The accepted implementation uses the standard
-logger for synchronized writes and timestamps, behind `Logf`. No caller needs
+writer with synchronized writes and timestamps, behind `Log`. No caller needs
 the concrete logger or a copied service bundle. The external consumer's
 diagnostic is useful proof: a leaf the framework did not know about can reach
 the application's existing facility.
@@ -733,9 +692,10 @@ the application's existing facility.
 Inspect imports and constructor relationships as well as that output. A
 compiler rejects an import cycle, but an acyclic sibling import can still
 violate the star. Likewise, finding `Logf` in a struct does not prove that the
-running tool follows its actual parents. Common holds shared vocabulary;
-free functions keep behavior in its responsible package when Go's receiver
-rule would otherwise move it into common. Those are source-review obligations.
+running tool follows its actual parents. Common holds the actual shared types, persistent fields, and mandatory
+partial declarations. Bodies belong in functional directories. The C# compiler
+joins the parts; it does not police directory-level dependencies or the location
+of every field. Those remain source-review obligations.
 The live diagnostic proves that a message reached the writer, not the entire
 architecture that carried it.
 
@@ -755,9 +715,9 @@ The submission has two working programs: the core CLI with supervised jobs,
 and the external application that proves somebody else can use that machinery.
 For the external application:
 
-1. Create a separate Go module with its own `go.mod` importing your public
-   library. Build it independently, without importing the core's internal
-   packages or assembling another tool loop.
+1. Create a separate C# executable project referencing the public library.
+   Build it independently, without special internal access or another tool loop.
+   `Examples/Consumer` demonstrates this boundary.
 2. Read the established provider environment (`LLM_VENDOR`, `LLM_MODEL`,
    `LLM_API_KEY`, `LLM_BASE_URL`) and construct the Ensemble and its Agent
    through the public API.
@@ -780,9 +740,12 @@ Chapter 5 exercise without its global registration example or a new refactor.
 The topology and ownership requirements apply to both programs; the source
 review obligations below remain part of completing the exercise.
 
-One prerequisite: `dlv` on your `PATH` or in `$(go env GOPATH)/bin`. The
-`debugger` check fails with the `go install` line when it is absent. It does
-not skip.
+The retained debugger fixture needs an installed Go toolchain and `dlv`.
+Those are programs exercised by our C# shell tool, not the solution language.
+Check availability first; a missing prerequisite is not a product failure or
+permission to install software. This endpoint uses macOS's installed `script`
+for its real PTY, with fixed geometry and a fresh process group; other operating
+systems need their own tested launcher. Pipes are not a portability fallback.
 
 ### What the fixture provides
 
@@ -825,49 +788,30 @@ The total is 160, with the 100 jobs points kept visible rather than silently
 rescaling them. An import failure or a custom tool that returns an unknown-tool
 error is a failure of the external proof, not evidence of execution.
 
-Build the consumer in its own module, with its own `go.mod` importing your
-submitted library. It must run one demonstration with no command arguments,
-using the established fake-provider environment. Its normal output may be
-human-readable; no new stdin protocol or framework API spelling is imposed.
-Describe the chosen test call in a grader case file. For the `shout` example,
-save this as `consumer-case.json`:
+### Running the C# endpoint checks
 
-```json
-{"name":"shout","arguments":{"text":"hello framework"},"result":"HELLO FRAMEWORK","diagnostic":"shout called"}
+The inherited 100-point jobs harness accepts our executable. The additional
+60-point consumer adapter builds Go modules and inspects Go imports; it cannot
+grade a C# assembly by being given a different path. Keep that setup limitation
+visible instead of inventing a 160/160 result. Independently build and exercise
+the C# consumer through a local protocol fake and inspect the partial declarations
+and actual parent access paths. A failed overall grade is still a failed grade,
+with its executable and language-specific portions reported separately.
+
+From the repository root, using the approved .NET 10 SDK and controlled offline
+environment:
+
+```sh
+dotnet run --project solutions/edition-3/main/Tests/Tests.csproj
+dotnet publish solutions/edition-3/main/Cli/Ch04.csproj -c Release -o /tmp/ch04-cli
+go run ./cmd/grade-edition2 -ch 4 -json /tmp/ch04-cli/ch04
+dotnet build solutions/edition-3/main/Examples/Consumer/Consumer.csproj
 ```
 
-Build the actual CLI package from your core module. For a public library at
-the module root with a nested command, substitute that command's path here;
-use `.` instead if your CLI is at the module root:
-
-```bash
-go build -o /tmp/ch4agent ./cmd/your-cli
-```
-
-From the book repository root, run both gates against that same executable:
-
-```bash
-go run ./cmd/grade-edition3 -ch 4 -json -core /absolute/path/to/your/core-module -consumer /absolute/path/to/your/consumer-module /tmp/ch4agent
-go run ./cmd/grade-edition3 -ch 1 -json /tmp/ch4agent
-```
-
-The positional target is the executable, not the library directory. `-core`
-names the actual core module resolved by the separate `-consumer` module, not
-a similarly named copy. This keeps the executable under test distinct from
-the source inspected for the public boundary; it does not require a particular
-package layout. The Chapter 4 report retains the 160 points above. The Chapter
-1 pass checks inherited lifetime obligations on the same binary. Both reports
-must have `passed: true` and successful exit status; score alone is not enough.
-The Edition 3 command currently supports Chapters 1 and 4, not Chapters 2 or 3.
-
-The case file is grader input, not a new product configuration format. Choose
-your own tool and a result derived from its arguments; the grader supplies that
-call through its fake and checks the next request. The default case is the
-`shout` case above. For another case, add
-`-consumer-case /absolute/path/to/consumer-case.json` before the executable;
-all flags precede that positional target. The grader builds the consumer
-separately. It does not replace the core binary or need to understand the
-CLI's JSON-lines protocol.
+The component suite tests real tools and PTYs with fake HTTP at the provider
+boundary. The consumer exercise additionally verifies successful, correlated
+custom output—not merely the presence of a result marker—and the timestamped
+root diagnostic. No real-provider acceptance follows from either fake.
 
 The numeric result has limits. Independent source review still checks actual
 parent relationships, Ensemble-owned logging, behavior in the correct package
@@ -956,17 +900,15 @@ scheduler. Four supervision tools and one ordinary-job path.
 Ungraded, and the one to do first, because this is the chapter where the
 frustration from the end of Chapter 3 gets its answer.
 
-Rebuild your own binary from its module directory, naming the actual CLI
-package as in the grading example. Replace `./cmd/your-cli` below with that
-package (`.` for a root command), not a public library package. Configure the
-provider, discovered model, endpoint and selected key as in Chapter 3, keeping
-the key out of command arguments and tool subprocesses. Then go back to a
-disposable project:
+Rebuild your own binary from its module directory. Configure the provider,
+discovered model, endpoint and selected key as in Chapter 3, keeping the key
+out of command arguments and tool subprocesses. Then go back to a disposable
+project:
 
 ```
-go build -o /tmp/ch4agent ./cmd/your-cli
+dotnet publish solutions/edition-3/main/Cli/Ch04.csproj -c Release -o /tmp/ch04-cli
 cd /path/to/scratch/project
-CH02_LOG=session.jsonl /tmp/ch4agent chat
+CH02_LOG=session.jsonl /tmp/ch04-cli/ch04 chat
 ```
 
 Ask it to run the test suite that took ninety seconds. Three seconds in, it
@@ -986,7 +928,7 @@ and read a variable back, it is worth the fifteen minutes on its own.
 The second-edition student drove those paths with all three providers on
 October 9. Each started a delayed job, waited for its end, answered a `NAME>`
 PTY prompt with `Ada`, observed `hello Ada`, and killed a running sleep job.
-The retained [student record](../../docs/edition-2-notes/ch04.md) links the
+The retained [student record](../docs/edition-2-notes/ch04.md) links the
 actual event logs and distinguishes model summaries from inspected output:
 
 | live model | plain input | cache read | output |
@@ -1016,34 +958,18 @@ kill, output and debugger scenarios.
 
 ### Take the library outside
 
-Build your consumer from its own module directory, using the public library.
-The accepted consumer is in
-[`solutions/ch04/ch05/`](../../solutions/ch04/ch05/).
-The nested `ch05` name records when the application was built; its enclosing
-solution now matches this chapter. For a corresponding local
-consumer, the build and invocation are:
+Build the separately compiled C# example from `Examples/Consumer`. Its local
+exercise reads the established environment and refuses a non-loopback endpoint,
+so accidentally inherited provider settings cannot turn a plumbing check into
+a paid request. Registering `shout` preserves the built-ins. A local fake should
+request `shout`, `read_file`, and `run_command`, then verify all three results,
+job files, and the timestamped `shout called` diagnostic before sending its final
+reply. The application has no private access to the library.
 
-```
-go build -o /tmp/custom-agent .
-/tmp/custom-agent 'Call shout with text hello framework, then report its result.'
-```
-
-Configure the provider before launching it, and run the binary in a disposable
-directory. The accepted example reads the shared `ConfigFromEnv`, creates an
-Ensemble and Agent, registers its tool, calls Ask, then shuts down and saves
-`events.jsonl`. It prints the answer and usage; its diagnostic reaches the root
-logger. Builtins are disabled so a successful answer cannot come from a shell
-doing the same task.
-
-The actual external-consumer runs each made one successful `shout` call:
-Anthropic used 932 input/73 output tokens, OpenAI 363/25 and Gemini 222/65,
-with no cache tokens. Each stored exactly `HELLO FRAMEWORK` in its job output,
-returned it under the matching call id and emitted a timestamped diagnostic.
-The [consumer live record](../../solutions/evidence/ch05/live.txt)
-preserves those results. The first successful Anthropic call lost its event
-capture because the launcher treated the log header as an event and deleted
-scratch too early. It was repeated once after fixing capture. Save raw events
-before deriving a summary; a parsing bug should not cost another model call.
+The earlier Edition 2 external-consumer provider runs are historical evidence,
+not C# acceptance. Real-provider exercises require current permission and budget.
+Record blocked portions as incomplete; do not replace model judgment with a
+scripted fake and describe the two as equivalent.
 
 Then try what the original external-use exercise proposed: a small application
 with a tool that knows something about your project. A tool that queries your
@@ -1051,7 +977,8 @@ database, checks CI status or reads a monitoring dashboard. The framework does
 not know those operations and does not need to. These are ideas for using the
 library, not additional tools required by this exercise.
 
-Commit the reviewed state with only your intended paths and a fresh tag. Keep
+Preserve a runnable chapter endpoint and record actual results and limitations.
+Commit or tag only with the repository owner's authorization. Keep
 the actual scores and accepted exceptions; original Chapter 4 scored 90/100
 FAIL, and original Chapter 5 scored 110/120 FAIL with nested Chapter 4 still
 90/100. Those accepted student checkpoints retain their history separately

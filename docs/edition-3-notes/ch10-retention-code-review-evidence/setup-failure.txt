@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "<stdin>", line 12, in <module>
-KeyError: 'candidate_tree'
-
-exit_code: 1

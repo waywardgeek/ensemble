@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch05-text-review-evidence/validate.py", line 138, in <module>
-    assert result.returncode == 0
-           ^^^^^^^^^^^^^^^^^^^^^^
-AssertionError

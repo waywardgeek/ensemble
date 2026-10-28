@@ -37,19 +37,32 @@ func Chapter11(bin, core, gui, guiModel, consumer, workflow, exercise, streamMod
 	return grade.NewTitledReport("Edition 2, Chapter 11 — MCP", append(checks, parity), ""), nil
 }
 
+// Chapter11Executable keeps the actual CLI protocol and model-use probes.
+// The optional GUI is a separate C# host and has its own real browser evidence;
+// this report does not award that check or inherited Go topology/consumer credit.
+func Chapter11Executable(bin string) grade.Report {
+	return grade.NewTitledReport("Edition 3 C#, Chapter 11 — CLI MCP (excludes GUI and inherited Go checks)", mcpCLIchecks(bin), "")
+}
+
 func mcpChecks(bin, gui, model string) []grade.Check {
-	// Preserve the historical six weights and IDs, but replace the old harness
+	checks := mcpCLIchecks(bin)
+	tunnel := grade.Ch12Checks(grade.Ch12Result{WSTunnelOK: true})[5]
+	if err := mcpTunnelCheck(gui, model); err != nil {
+		fail(&tunnel, "%v", err)
+	}
+	return append(checks, tunnel)
+}
+
+func mcpCLIchecks(bin string) []grade.Check {
+	// Preserve the historical five CLI weights and IDs, but replace the old harness
 	// observations: its tool/ephemera booleans followed discovery without model use.
-	checks := grade.Ch12Checks(grade.Ch12Result{HandshakeOK: true, DiscoveryOK: true, ToolCallOK: true, EphemeralOK: true, ReverseOK: true, WSTunnelOK: true})[:6]
+	checks := grade.Ch12Checks(grade.Ch12Result{HandshakeOK: true, DiscoveryOK: true, ToolCallOK: true, EphemeralOK: true, ReverseOK: true})[:5]
 	checks[0].Title = "MCP handshake over the actual protocol pipe"
 	checks[3].Title = "Fresh round and once-per-turn automatic context"
 	// A pipe carries RPC only. Never award engine/declaration credit merely because
 	// a peer completed initialize/list; the actual model conversation is separate.
 	mcpPipeChecks(bin, &checks[0], &checks[4])
 	mcpModelChecks(bin, &checks[1], &checks[2], &checks[3])
-	if err := mcpTunnelCheck(gui, model); err != nil {
-		fail(&checks[5], "%v", err)
-	}
 	return checks
 }
 

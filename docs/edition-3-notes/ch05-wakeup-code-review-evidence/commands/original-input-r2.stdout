@@ -1,6 +1,0 @@
-=== RUN   TestIndependentSendInputWakeAndExit
-    review_test.go:241: system prompt is required
---- FAIL: TestIndependentSendInputWakeAndExit (0.00s)
-FAIL
-FAIL	wakeaudit	0.011s
-FAIL

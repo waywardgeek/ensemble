@@ -1,1 +1,0 @@
-usage: grade-edition3 -ch 1 [-json] target; or -ch 4 -core DIR -consumer DIR [-consumer-case FILE] [-json] target

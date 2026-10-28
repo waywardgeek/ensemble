@@ -1,2 +1,0 @@
-I'm preparing a short teaching note for a chat application. Explain in two sentences why an append-only event log differs from a derived context view. Use a concrete chat-history example.
-Using your example, give one sentence explaining why rendering that saved log offline should not contact the model again.

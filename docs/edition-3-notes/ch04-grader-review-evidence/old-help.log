@@ -1,5 +1,0 @@
-Usage of /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/e3-ch04-entry-fzwmhycr/grade3:
-  -ch int
-    	Edition 3 chapter to grade (only 1 is implemented) (default 1)
-  -json
-    	emit the report as JSON

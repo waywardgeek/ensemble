@@ -1,9 +1,0 @@
-=== RUN   TestIndependentMixedJoinWakeAndResume
-    review_test.go:115: system prompt is required
---- FAIL: TestIndependentMixedJoinWakeAndResume (0.00s)
-=== RUN   TestIndependentSendInputWakeAndExit
-    review_test.go:241: system prompt is required
---- FAIL: TestIndependentSendInputWakeAndExit (0.00s)
-FAIL
-FAIL	wakeaudit	0.014s
-FAIL

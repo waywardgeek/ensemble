@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"ensemble/ensemble"
@@ -173,5 +174,33 @@ func TestCompactionCuratedSelection(t *testing.T) {
 				t.Fatal(err)
 			}
 		})
+	}
+}
+
+// Replacing an active checkpoint invalidates a selection that ends at its old
+// note. The remaining dialogue can still be selected through the newest note.
+func TestCompactionSelectionAfterHandoffReplacement(t *testing.T) {
+	a, cfg := compactionWindowAgent(t)
+	cfg.Memory.Conversation.Budget = 1
+	if err := a.SetMemorySettings(cfg.Memory); err != nil {
+		t.Fatal(err)
+	}
+	appendCompactionFact(t, a, common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: strings.Repeat("old dialogue ", 40)}}}})
+	appendCompactionFact(t, a, common.Event{Type: "micro_handoff", Handoff: &common.MicroHandoffData{Text: "old checkpoint"}})
+	old, err := a.Memory().Conversation()
+	if err != nil || old == nil {
+		t.Fatalf("initial selection: %+v, %v", old, err)
+	}
+	appendCompactionFact(t, a, common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: "current dialogue"}}}})
+	appendCompactionFact(t, a, common.Event{Type: "micro_handoff", Handoff: &common.MicroHandoffData{Text: "new checkpoint"}})
+	if err := a.Memory().ValidateSelection(old); err == nil {
+		t.Fatal("selection survived removal of its checkpoint note")
+	}
+	next, err := a.Memory().Conversation()
+	if err != nil || next == nil || next.From != old.From || next.To != 4 || strings.Contains(next.Text, "old checkpoint") || !strings.Contains(next.Text, "old dialogue") || !strings.Contains(next.Text, "current dialogue") || !strings.Contains(next.Text, "new checkpoint") {
+		t.Fatalf("replacement selection: %+v, %v", next, err)
+	}
+	if err := a.Memory().ValidateSelection(next); err != nil {
+		t.Fatal(err)
 	}
 }

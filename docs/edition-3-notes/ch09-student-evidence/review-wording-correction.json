@@ -1,9 +1,0 @@
-{
-  "reason": "SkillRegistry permits RegisterVar as well as queries; lifecycle mutation remains Agent-dispatched.",
-  "before": "the documented `SkillSpec`/read-only `SkillRegistry` API",
-  "after": "the documented `SkillSpec` and snapshot-oriented `SkillRegistry` API (with variable registration)",
-  "scope": "Review wording only. No source, frozen artifact or test/adapter/control receipt changed.",
-  "superseded_review_sha256": "d6b1778d31c6168e57ca05ec137c3dd772b9a1c8876c6a480c615be64dcc46b1",
-  "superseded_index_sha256": "84efc2b618518cdd09402f7ee4e961724f989e8eca10a8941de4efcfba0234fe",
-  "current_review_sha256": "5134d22865d186cd9dc34cc0b25d85942d6192e5bcc4de6111e8bd24091b79f9"
-}

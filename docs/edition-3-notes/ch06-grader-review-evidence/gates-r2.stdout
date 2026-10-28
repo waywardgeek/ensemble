@@ -1,7 +1,0 @@
-{
-  "candidate_sha256": "8818400c89bb1663cad72faeca99bc92d64fb9a26e9f023a54d5e319c0e2a798",
-  "sentinel_sha256": "0b13f54cd0cf4f2cfec677458840082a74b9b2f6e5c9c40103c7b8dd3693a09b",
-  "gates": 61,
-  "all_expected_exits": true,
-  "marker_absent_after_all_gates": true
-}

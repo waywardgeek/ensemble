@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch06-code-review-r1-evidence/verify.py", line 20, in <module>
-    for d in m['artifacts']:artifact(d)
-                            ~~~~~~~~^^^
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch06-code-review-r1-evidence/verify.py", line 11, in artifact
-    p=Path(d['path']);assert p.is_file(),p;assert sha(p)==d['sha256'],p;assert p.stat().st_size==d['bytes'],p
-                                                                                                 ~^^^^^^^^^
-KeyError: 'bytes'

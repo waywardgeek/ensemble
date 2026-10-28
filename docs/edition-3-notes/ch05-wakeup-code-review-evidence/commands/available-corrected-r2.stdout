@@ -1,5 +1,0 @@
-=== RUN   TestIndependentAvailablePatternAndKill
-    review_test.go:440: available and later-pattern reports used handle=1; actual killed process handle=2; no control jobs
---- PASS: TestIndependentAvailablePatternAndKill (3.15s)
-PASS
-ok  	wakeaudit	4.172s

@@ -1,3 +1,0 @@
-grader: go build . failed:
-owned fake go reached: exiting 73
-

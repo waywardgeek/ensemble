@@ -40,8 +40,32 @@ func guiChecks(core, dir, model string) []grade.Check {
 		return grade.Ch8Evaluate(r)[:4]
 	}
 	defer cleanup()
+	checks := guiExecutableChecks(bin, filepath.Join(dir, "web", "gui"), model)
+	// Preserve observed wire results even when a same-module legacy application
+	// violates the binding optional-client boundary. Inspect the actual executable.
+	target := "."
+	if info, e := os.Stat(filepath.Join(dir, "cmd")); e == nil && info.IsDir() {
+		target = "./cmd"
+	}
+	if e := publicDependencyTarget(core, dir, target); e != nil {
+		wirePassed := checks[0].Passed
+		fail(&checks[0], "GUI public dependency: %v", e)
+		checks[0].Details = append(checks[0].Details, fmt.Sprintf("observed wire checks passed before dependency assessment: %t", wirePassed))
+	}
+	checks[1].Details = append(checks[1].Details, "completed-content/identity replay checked; active partials, handoff and fixed window retain required source/integration proof")
+	return checks
+}
+
+// Chapter7Executable checks the optional server's wire, replay, traffic log and
+// pause behavior. It excludes Go topology and inherited Chapter 6 scoring.
+func Chapter7Executable(bin, static, model string) grade.Report {
+	return grade.NewTitledReport("Edition 3 C# — Chapter 7 executable GUI checks only (80 points)", guiExecutableChecks(bin, static, model), "")
+}
+
+func guiExecutableChecks(bin, static, model string) []grade.Check {
+	r := &grade.Ch8Result{}
 	r.BuildOK = true
-	wire, replay, trace, err := driveGUI(bin, filepath.Join(dir, "web", "gui"), model)
+	wire, replay, trace, err := driveGUI(bin, static, model)
 	replay = guiReplayFrames(replay)
 	r.Messages = oldMessages(wire)
 	r.ReplayMessages = oldMessages(replay)
@@ -59,7 +83,7 @@ func guiChecks(core, dir, model string) []grade.Check {
 			}
 		}
 	}
-	pause, pauseErr := driveGUIPause(bin, filepath.Join(dir, "web", "gui"), model)
+	pause, pauseErr := driveGUIPause(bin, static, model)
 	r.PauseMessages = oldMessages(pause)
 	r.PauseOK = pauseErr == nil
 	if pauseErr != nil {
@@ -71,18 +95,6 @@ func guiChecks(core, dir, model string) []grade.Check {
 		checkGUIReplay(&checks[1], wire, replay)
 		checkGUITrace(&checks[2], trace)
 	}
-	// Preserve observed wire results even when a same-module legacy application
-	// violates the binding optional-client boundary. Inspect the actual executable.
-	target := "."
-	if info, e := os.Stat(filepath.Join(dir, "cmd")); e == nil && info.IsDir() {
-		target = "./cmd"
-	}
-	if e := publicDependencyTarget(core, dir, target); e != nil {
-		wirePassed := checks[0].Passed
-		fail(&checks[0], "GUI public dependency: %v", e)
-		checks[0].Details = append(checks[0].Details, fmt.Sprintf("observed wire checks passed before dependency assessment: %t", wirePassed))
-	}
-	checks[1].Details = append(checks[1].Details, "completed-content/identity replay checked; active partials, handoff and fixed window retain required source/integration proof")
 	return checks
 }
 

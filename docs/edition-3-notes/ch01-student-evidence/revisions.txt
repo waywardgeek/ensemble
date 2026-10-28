@@ -1,7 +1,0 @@
-student baseline: 69859da3328c3f710f8143203b99f934fed778a1
-student submitted: d2baff64055ac33702a91c6d6ee5a4246e84c0c9
-book/grader revision: 7f3d069420112c2136bc95d1d551e12fad6964c1
-chapter sha256: ab016baaff3f6a9d83ecffcbfc3772cd692c9d33c06d9fa1c52ad9a8708d25df  /Users/bill/projects/ensemble/book/edition-3/chapter-01.md
-final binary sha256: b322897974592bb714fdd8dffb6a32c4d00382117fc6a14930a3006ae509a558  /tmp/e3-ch01.VimxYH/ch01-final
-go version go1.25.4 darwin/arm64
-student status (empty means clean):

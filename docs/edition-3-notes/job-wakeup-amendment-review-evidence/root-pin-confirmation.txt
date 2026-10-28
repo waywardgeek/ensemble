@@ -1,1 +1,0 @@
-Root main-17 confirmed the five values in frozen-pins.sha256 as exactly the intended replacement frozen pins, verified against all28 authored entries and the queued-tail diff. Root instructed correction of only reviewer expectations/receipts, retention of the failed local attempt, and completion of this same formal review; no manuscript/source change or new review pass.

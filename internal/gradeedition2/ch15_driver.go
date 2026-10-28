@@ -10,12 +10,14 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/waywardgeek/ensemble/internal/fakevendor"
 )
 
 type invoiceOpts struct {
+	executable         bool // Explicit C# host contract; legacy launch remains unchanged.
 	dir, vendor, model string
 	prompts            []string
 	replies            []fakevendor.Reply
@@ -33,12 +35,16 @@ type invoiceOut struct {
 // Keep these subscribers alive through shutdown: mid-turn disconnect is a
 // separately reviewed lifetime concern, not a prerequisite to meter arithmetic.
 func invoiceSnapshot(url string) (map[string]any, *guiPeer, error) {
+	return invoiceSnapshotFor(url, false)
+}
+
+func invoiceSnapshotFor(url string, executable bool) (map[string]any, *guiPeer, error) {
 	p, err := openGUIPeer(url)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if err = p.send("subscribe", ""); err != nil {
+	if err = invoiceSend(p, "subscribe", "", executable); err != nil {
 		return nil, p, err
 	}
 	meter, err := invoiceReadSnapshot(p)
@@ -108,7 +114,18 @@ func invoiceLaunch(bin, skillsDir, guiDir string, o invoiceOpts) (out invoiceOut
 	port := fmt.Sprint(listener.Addr().(*net.TCPAddr).Port)
 	listener.Close()
 	url := "ws://localhost:" + port + "/ws"
-	cmd := exec.Command(bin, "--port", port, "--gui-dir", guiDir)
+	args := []string{"--port", port, "--gui-dir", guiDir}
+	if o.executable {
+		args = append(args, "--no-stream", "--vendor", o.vendor, "--model", o.model,
+			"--base-url", srv.URL(), "--skills-dir", skillsDir, "--primary-skill", "base",
+			"--event-log", filepath.Join(o.dir, "events.jsonl"), "--settings", filepath.Join(o.dir, "settings.json"),
+			"--save", filepath.Join(o.dir, "save.json"), "--save-log", "-1",
+			"--cache-lens", filepath.Join(o.dir, "lens"))
+		if o.vendor == "anthropic" {
+			args = append(args, "--cache-breakpoints")
+		}
+	}
+	cmd := exec.Command(bin, args...)
 	cmd.Dir = o.dir
 	cmd.Env = invoiceEnv(os.Environ(), skillsDir, srv.URL(), o)
 	var stderr bytes.Buffer
@@ -133,7 +150,16 @@ func invoiceLaunch(bin, skillsDir, guiDir string, o invoiceOpts) (out invoiceOut
 			<-done
 		}
 		out.reqs = srv.Requests()
-		out.events, err = recallReadEvents(o.dir)
+		if o.executable {
+			os.WriteFile(filepath.Join(o.dir, "host.stderr"), stderr.Bytes(), 0600)
+			if b, e := json.Marshal(out.reqs); e == nil {
+				os.WriteFile(filepath.Join(o.dir, "provider-requests.json"), b, 0600)
+			}
+			// Current-process event log, not the saved log containing earlier sessions.
+			out.events, err = contextReadEvents(filepath.Join(o.dir, "events.jsonl"))
+		} else {
+			out.events, err = recallReadEvents(o.dir)
+		}
 		if err != nil && out.fatal == "" {
 			out.fatal = err.Error()
 		}
@@ -162,7 +188,7 @@ func invoiceLaunch(bin, skillsDir, guiDir string, o invoiceOpts) (out invoiceOut
 		return
 	}
 	defer peer.close()
-	if err = peer.send("subscribe", ""); err != nil {
+	if err = invoiceSend(peer, "subscribe", "", o.executable); err != nil {
 		out.fatal = err.Error()
 		return
 	}
@@ -171,7 +197,7 @@ func invoiceLaunch(bin, skillsDir, guiDir string, o invoiceOpts) (out invoiceOut
 		return
 	}
 	// The initial frame is measured even when the save contains earlier usage.
-	initial, snapshot, err := invoiceSnapshot(url)
+	initial, snapshot, err := invoiceSnapshotFor(url, o.executable)
 	if snapshot != nil {
 		defer snapshot.close()
 	}
@@ -181,7 +207,12 @@ func invoiceLaunch(bin, skillsDir, guiDir string, o invoiceOpts) (out invoiceOut
 	}
 	out.meters = append(out.meters, initial)
 	for i, prompt := range o.prompts {
-		if err = json.NewEncoder(stdin).Encode(map[string]string{"kind": "prompt", "text": prompt}); err != nil {
+		if o.executable {
+			err = invoiceSend(peer, "prompt", prompt, true)
+		} else {
+			err = json.NewEncoder(stdin).Encode(map[string]string{"kind": "prompt", "text": prompt})
+		}
+		if err != nil {
 			out.fatal = err.Error()
 			return
 		}
@@ -194,7 +225,7 @@ func invoiceLaunch(bin, skillsDir, guiDir string, o invoiceOpts) (out invoiceOut
 			out.fatal = "turn failed: " + problem
 			return
 		}
-		meter, snapshot, e := invoiceSnapshot(url)
+		meter, snapshot, e := invoiceSnapshotFor(url, o.executable)
 		if snapshot != nil {
 			defer snapshot.close()
 		}
@@ -209,14 +240,22 @@ func invoiceLaunch(bin, skillsDir, guiDir string, o invoiceOpts) (out invoiceOut
 		}
 	}
 	stdin.Close()
+	ending := "EOF"
+	if o.executable {
+		ending = "SIGTERM"
+		if err = cmd.Process.Signal(syscall.SIGTERM); err != nil {
+			out.fatal = err.Error()
+			return
+		}
+	}
 	select {
 	case err = <-done:
 		finished = true
 		if err != nil {
-			out.fatal = "nonzero GUI exit after EOF: " + err.Error()
+			out.fatal = "nonzero GUI exit after " + ending + ": " + err.Error()
 		}
 	case <-time.After(5 * time.Second):
-		out.fatal = "GUI did not save and exit after EOF"
+		out.fatal = "GUI did not save and exit after " + ending
 	}
 	return
 }

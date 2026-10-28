@@ -1,9 +1,0 @@
-{
-  "human_live_binary_sha256": "588c6069397e10a0f272b8416e9b78a9279461264916b6d2033f833782cbe9f9",
-  "final_binary_sha256": "e2ce182d3220ffa05c3584b9c92ef84536925ffbbe0f88f5bccba9ac29b2aa2c",
-  "human_live_source_reconstruction": "/tmp/ensemble-ch03-live-source",
-  "reconstruction_note": "Reconstructed from final candidate by reversing only the recorded audit comment corrections; not falsely described as a contemporaneous source archive. Earlier protocol sessions used hashes recorded per live JSON and pre-Gemini-schema builds for Anthropic/OpenAI.",
-  "human_live_to_final_delta": "human-live-to-final-comments.patch",
-  "behavior_changed_since_human_live": false,
-  "binary_built_before_commit": "Final working-tree bytes compiled, then committed unchanged; embedded Go VCS stamp therefore reports predecessor and modified=true."
-}

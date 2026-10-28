@@ -1,9 +1,0 @@
-{
-  "tool_job": 4004,
-  "exit_code": 127,
-  "scope": "task-local helper setup only",
-  "what_ran": "Tracked endpoint spelling search and command-v node completed. Python heredoc parsing failed before executing its body. No application process, provider call, browser, or completed gate ran.",
-  "observed_diagnostic": "SyntaxError: invalid syntax in a shell-quoted helper-only Python snippet; /bin/sh also reported no: command not found.",
-  "handling": "Preserved failure; used an exact local-file edit and separate syntax commands instead. No product change.",
-  "raw_tool_receipt_preserved_by_tool_job": 4004
-}

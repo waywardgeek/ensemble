@@ -1,4 +1,0 @@
-=== RUN   TestOwnedPauseDiagnostic
-PAUSE_REPORT {"title":"Unchanged pause evaluator; diagnostic only","checks":[{"id":"pause-holds-tools","title":"pause gate holds tool dispatch","points":20,"earned":20,"passed":true,"details":["all 3 tools dispatched and finished; turn ended after unpause"]}],"score":20,"max_score":20,"passed":true}
---- PASS: TestOwnedPauseDiagnostic (0.27s)
-PASS

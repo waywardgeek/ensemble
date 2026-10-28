@@ -10,13 +10,28 @@ import (
 )
 
 // Responses sends complete local history, never provider-owned conversation IDs.
-// Cache markers live on content blocks, so even the constitution is an item.
-func (e *engine) renderResponses(c *common.Context) ([]byte, error) {
+// Skills remain owned by Context; their retained text joins the initial system
+// instruction at rendering time, rather than becoming later conversation items.
+func (e *engine) renderResponses(c *common.Context, system string) ([]byte, error) {
+	for _, entry := range c.Dialogue {
+		if entry.Kind == common.KindSkill {
+			if body := text(entry.Parts); body != "" {
+				if system != "" {
+					system += "\n\n"
+				}
+				system += body
+			}
+		}
+	}
+	cfg := e.parent.Config()
+	codex := cfg.Credentials != nil && cfg.Credentials.Kind() == common.CredentialCodex
 	input := []map[string]any{}
 	message := func(role, kind, value string) map[string]any {
 		return map[string]any{"type": "message", "role": role, "content": []map[string]any{{"type": kind, "text": value}}}
 	}
-	input = append(input, message("developer", "input_text", e.SystemPrompt()))
+	if !codex {
+		input = append(input, message("developer", "input_text", system))
+	}
 	markable := func() int {
 		for i := len(input) - 1; i >= 0; i-- {
 			if _, ok := input[i]["content"].([]map[string]any); ok {
@@ -27,10 +42,13 @@ func (e *engine) renderResponses(c *common.Context) ([]byte, error) {
 	}
 	bound, stable, checkpoint := compactionBound(c), -1, -1
 	for index, entry := range entries(c) {
-		role, kind := "user", "input_text"
 		if entry.Kind == common.KindSkill {
-			role = "developer"
+			if index == bound {
+				checkpoint = markable()
+			}
+			continue
 		}
+		role, kind := "user", "input_text"
 		if entry.Actor == common.AgentActor {
 			role, kind = "assistant", "output_text"
 		}
@@ -86,7 +104,6 @@ func (e *engine) renderResponses(c *common.Context) ([]byte, error) {
 	}
 	request := map[string]any{"model": e.parent.Config().Model, "input": input, "stream": true, "store": false, "include": []string{"reasoning.encrypted_content"}}
 	reasoning := map[string]string{"summary": "auto"}
-	cfg := e.parent.Config()
 	if cfg.ReasoningSummary != "" {
 		reasoning["summary"] = cfg.ReasoningSummary
 	}
@@ -99,10 +116,9 @@ func (e *engine) renderResponses(c *common.Context) ([]byte, error) {
 		tools = append(tools, map[string]any{"type": "function", "name": d.Name, "description": d.Description, "parameters": d.Schema, "strict": false})
 	}
 	caps := capabilitiesFor(cfg)
-	if cfg.Credentials != nil && cfg.Credentials.Kind() == common.CredentialCodex {
-		// Codex requires the instruction field. Keep the same instruction-bearing
-		// input as public Responses so ordinary conversation replay is unchanged.
-		request["instructions"] = e.SystemPrompt()
+	if codex {
+		// Codex uses this instruction field instead of a duplicate input message.
+		request["instructions"] = system
 		request["prompt_cache_key"] = codexCacheKey(cfg)
 	}
 	if len(tools) > 0 {

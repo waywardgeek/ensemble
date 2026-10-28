@@ -25,6 +25,14 @@ func Chapter5(bin, core, consumer, workflow string, example ConsumerCase, models
 	return grade.NewTitledReport("Edition 2, Chapter 5 — Two Seams and a Loop", checks, ""), nil
 }
 
+// Chapter5Executable reuses the unchanged language-neutral boundary checks.
+// Its 25-point report does not credit Go imports, topology, workflow or parity.
+// A non-Go implementation needs separate public-consumer and ownership evidence.
+func Chapter5Executable(bin string, models map[string]string) grade.Report {
+	return grade.NewTitledReport("Edition 2, Chapter 5 — executable replay/media only (excludes Go consumer, workflow, topology and Chapter 4 parity)",
+		[]grade.Check{replayRequests(bin), mediaCapabilities(bin, models)}, "")
+}
+
 func cleanHub(core string) grade.Check {
 	check := grade.Check{ID: "hub-clean", Title: "Common depends only on standard library and first-party leaves", Points: 10, Earned: 10, Passed: true}
 	base := grade.DiscoverBase(core)

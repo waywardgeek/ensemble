@@ -1,9 +1,0 @@
-{
-  "gates": [
-    "chapter8",
-    "chapter1-lifetime-once"
-  ],
-  "chapter1_full_lifetime_runs": 1,
-  "earlier_page_fixture_failure_retained": true,
-  "remaining_process_groups": 0
-}

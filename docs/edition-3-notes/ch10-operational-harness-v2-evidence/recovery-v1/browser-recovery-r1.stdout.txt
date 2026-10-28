@@ -1,1 +1,0 @@
-{"mode": "browser", "status": "FAIL", "failure": "browser-console-or-load-error", "cleanup_complete": true, "run_root": "/Users/bill/projects/ensemble-edition-3-student/.ch10-local/operational-recovery-v1/runs/browser-recovery-r1", "duration_seconds": 1.0876689171418548, "credential_opens": 0}

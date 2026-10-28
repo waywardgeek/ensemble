@@ -1,6 +1,0 @@
-=== RUN   TestChapter9CapabilityLifecycle
-    chapter9_skills_test.go:155: first provenance overwritten
---- FAIL: TestChapter9CapabilityLifecycle (0.00s)
-FAIL
-FAIL	ensemble	0.011s
-FAIL

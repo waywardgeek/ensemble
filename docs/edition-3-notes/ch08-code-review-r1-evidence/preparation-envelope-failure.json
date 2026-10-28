@@ -1,7 +1,0 @@
-{
-  "script": "prepare-finish.py",
-  "exit_code": 1,
-  "reason": "Assumed two-array envelope; actual pinned wire is a provenance object with named streams.",
-  "controls_started": 0,
-  "correction": "Use named streams consumed by the unchanged optional branch; defer behavioral assertions to the fixture."
-}

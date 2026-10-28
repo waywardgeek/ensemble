@@ -1,4 +1,0 @@
-Initial plan creation exited 0; unique-anchor count printed 0. No source modified, no tests launched.
-Inspected internal/history/save.go:211-215 and retention_test.go:360-379.
-Corrected plan-v2 anchor count: 1. Expected assertion: folded tail lost.
-Parent-authorized mechanical pre-execution correction, not assertion/fixture repair.

@@ -1,6 +1,0 @@
-final-rehearsal-first-failure anthropic-human-stream False {'exit_zero': False, 'provider_success': False, 'within_caps': True, 'genuine_content': False, 'file_effect': False, 'hint_active': False, 'hint_in_next_request': False, 'hint_in_answer': False, 'early_stdout': False}
-final-rehearsal anthropic-human-stream True {'exit_zero': True, 'provider_success': True, 'within_caps': True, 'genuine_content': True, 'file_effect': True, 'hint_active': True, 'hint_in_next_request': True, 'hint_in_answer': True, 'early_stdout': True}
-final-rehearsal openai-human-stream True {'exit_zero': True, 'provider_success': True, 'within_caps': True, 'genuine_content': True, 'file_effect': True, 'hint_active': True, 'hint_in_next_request': True, 'hint_in_answer': True, 'early_stdout': True}
-final-rehearsal gemini-human-stream True {'exit_zero': True, 'provider_success': True, 'within_caps': True, 'genuine_content': True, 'file_effect': True, 'hint_active': True, 'hint_in_next_request': True, 'hint_in_answer': True, 'early_stdout': True}
-final-rehearsal openai-shape-stream True {'exit_zero': True, 'provider_success': True, 'within_caps': True, 'genuine_content': True, 'shape': True, 'multiple_deltas': True}
-final-rehearsal openai-shape-plain True {'exit_zero': True, 'provider_success': True, 'within_caps': True, 'genuine_content': True, 'shape': True}

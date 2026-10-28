@@ -1,8 +1,0 @@
-{
-  "process_exit": 0,
-  "timed_out": false,
-  "parsed_report_complete_green": true,
-  "accepted_runtime_result": true,
-  "old_80_report_replaced": false,
-  "same_full_argv_except_grader_executable": true
-}

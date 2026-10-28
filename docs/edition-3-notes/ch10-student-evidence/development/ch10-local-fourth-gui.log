@@ -1,9 +1,0 @@
---- FAIL: TestChapter10GUIEnvelopeAndFailedStartup (0.00s)
-    chapter10_test.go:70: 2 model required
-        
---- FAIL: TestChapter10GUIContextAndLegacyIdentities (0.00s)
-    chapter10_test.go:143: max tokens must be positive
-FAIL
-FAIL	ensemble-gui	0.148s
-?   	ensemble-gui/cmd	[no test files]
-FAIL

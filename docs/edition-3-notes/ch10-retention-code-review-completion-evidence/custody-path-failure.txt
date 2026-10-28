@@ -1,8 +1,0 @@
-Final custody-only script, first attempt; exit 1. No Go command, source change, or original-output change.
-Failing statement: f=s/v["path"]; assert f.is_file(),str(f)
-where s=docs/edition-3-notes/ch10-retention-student-evidence.
-Traceback (most recent call last):
-  File "<stdin>", line 20, in <module>
-AssertionError: /Users/bill/projects/ensemble/docs/edition-3-notes/ch10-retention-student-evidence/ch10-retention-student.md
-No preservation.json or source-assessment.json had been written.
-Correction requires inspecting the inventory root, not editing fixtures or rerunning tests.

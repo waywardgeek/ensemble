@@ -1,6 +1,0 @@
-=== RUN   TestChapter5WakeupSetterDispatchBoundary
-    chapter5_wakeup_test.go:244: WAKEUP literal next rejected call did not consume armed limits {[{"type":"text","text":"[tool_limits consumed by this effect call: ai_callback_delay 1h0m0s, ai_callback_pattern none, max_output_bytes 73]\nreal effect"}] false}
---- FAIL: TestChapter5WakeupSetterDispatchBoundary (0.01s)
-FAIL
-FAIL	ensemble	0.016s
-FAIL

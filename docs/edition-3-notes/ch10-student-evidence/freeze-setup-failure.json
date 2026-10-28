@@ -1,9 +1,0 @@
-{
-  "job": 3502,
-  "exit": 1,
-  "stage": "ignored receipt-runner update after source archive capture",
-  "failure": "shell quoting produced Python SyntaxError: unterminated triple-quoted string literal",
-  "final_build_started": false,
-  "source_changed": false,
-  "repair": "rewrote ignored receipt.py using write_file; source archive retained"
-}

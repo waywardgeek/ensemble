@@ -1,7 +1,0 @@
-=== RUN   TestIndependentAvailablePatternAndKill
-    review_test.go:374: already-available bytes failed to release wait while job remained running
-    review_test.go:377: after actual completion report="job 1 done; 35 bytes; output cr/io/1\nAVAILABLE_BEFORE_WAIT\nREAL_TERMINAL" error=<nil>
---- FAIL: TestIndependentAvailablePatternAndKill (3.51s)
-FAIL
-FAIL	wakeaudit	3.527s
-FAIL

@@ -1,1 +1,0 @@
-PASS: all 142 source members exactly match frozen candidate SHA256 values.

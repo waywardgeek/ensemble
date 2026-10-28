@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch06-code-review-r1-evidence/finalize.py", line 12, in <module>
-    b=(S/name/'internal/engine/stream.go').read_text();start=re.search(r'(?m)^func \(a \*streamAccumulator\) gemini\(',b).start();tail=re.search(r'(?m)^func ',b[start+5:]);parts=(b[:start],b[start+5+tail.start():] if tail else '')
-                                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AttributeError: 'NoneType' object has no attribute 'start'

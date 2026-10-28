@@ -381,6 +381,8 @@ func (s *ch19FakeResponses) ch19RespHandleResponses(w http.ResponseWriter, r *ht
 		s.ch19RespStreamText(cfg)
 	case "summary_around_toolcall":
 		s.ch19RespStreamToolcall(cfg)
+	case "explained_summary_toolcall":
+		s.ch19RespStreamExplainedToolcall(cfg)
 	case "parallel_toolcalls":
 		s.ch19RespStreamParallelToolcalls(cfg)
 	case "reasoning_no_summary":
@@ -1288,4 +1290,15 @@ func (s *ch19FakeResponses) ch19RespHandleModels(w http.ResponseWriter, r *http.
 			},
 		},
 	})
+}
+
+// Ordinary pre-tool explanation satisfies the selected C# model's admission
+// policy. Preserve the historical summary-only scenario for its existing users.
+func (s *ch19FakeResponses) ch19RespStreamExplainedToolcall(c *ch19RespStreamCfg) {
+	s.ch19RespOpen(c)
+	s.ch19RespReasoningItem(c, "rs_ch19_c1", 0, [][]string{ch19RespSummaryPhrasesA})
+	s.ch19RespMessageItem(c, "msg_ch19_c", 1, ch19RespTextChunks)
+	s.ch19RespFunctionCallItem(c, "fc_ch19_c", ch19RespScriptedCallID, "read_file", 2, ch19RespArgChunks)
+	s.ch19RespReasoningItem(c, "rs_ch19_c2", 3, [][]string{ch19RespSummaryPhrasesB})
+	s.ch19RespCompleted(c)
 }

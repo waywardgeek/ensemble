@@ -1,6 +1,0 @@
-# ensemble-gui [ensemble-gui.test]
-./chapter10_test.go:111:12: h.capture() (no value) used as value
-./chapter10_test.go:115:11: newHub(a.Parent().(*ensemble.Ensemble), a).capture() (no value) used as value
-FAIL	ensemble-gui [build failed]
-?   	ensemble-gui/cmd	[no test files]
-FAIL

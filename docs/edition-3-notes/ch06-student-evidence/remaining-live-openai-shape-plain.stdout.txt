@@ -1,1 +1,0 @@
-{"assistant":"The project name is \"stream-study\" and its numeric setting is 7.","deltas":{"text":2,"thinking":0,"tool_call":1},"elapsed_ms":2196.851,"first_delta_ms":1457.792,"observation":"stream_stats","parts":3,"streaming":false,"usage":{"input":1240,"cache_write":0,"cache_read":0,"output":84}}

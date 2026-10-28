@@ -1,6 +1,0 @@
-{
-  "label": "pause-boundary-r3",
-  "binary": "ensemble-gui-frozen-r3",
-  "sha256": "12055680d86647c1f39d0aa4606a5c8684e605b2a822ed85b950b7fc043ef741",
-  "error": "Error: ENOENT: no such file or directory, lstat '/Users/bill/projects/ensemble-edition-3-student/.ch07-local/pause-boundary-r3/survivor.txt'"
-}

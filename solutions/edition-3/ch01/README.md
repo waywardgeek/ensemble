@@ -1,57 +1,62 @@
-# Chapter 1 — raw HTTP conversation
+# Chapter 1 — one conversation loop in C#
 
-This module starts from the current Edition 3 Chapter 1, not a previous solution.
-It uses only the Go standard library. No tools, retries, streaming, persistence,
-provider framework, or background conversation machinery are introduced.
+This is the independent Chapter 1 endpoint, not a reduced copy of Chapter 2.
+It uses C# 14/.NET 10 and the standard library only.
 
-## Ownership rationale
+## Read the code in this order
 
-The public `ensemble` package is a small composition root. It owns a logger and
-its Agents, constructing both directions of the Agent/Engine relationship before
-returning an Agent. `internal/common` declares shared values and interfaces only;
-`internal/agent` and `internal/engine` never import each other.
+1. `Common/Values.cs` defines immutable values, exempt from holder tracking.
+2. `Common/Owners.cs` declares the actual objects, persistent state and operations.
+3. `Application/Ensemble.cs` owns Agents and the diagnostic destination.
+4. `Agent/Agent.cs` retains completed pairs and owns one Engine.
+5. `Engine/Engine.cs` performs one HTTP exchange and counts measured usage.
+6. `Cli/Program.cs` constructs the application and owns the input loop.
 
-Agent holds configuration and completed history. Engine holds the HTTP client
-and measured usage, looking up configuration and diagnostics through its actual
-Agent parent (and that parent's Ensemble). A failed request never commits an
-unanswered user turn. Missing usage is not zero; measured usage from an empty
-answer is still counted. History and usage accessors return copies, not mutable
-internal state. Calls on a single Agent and creation within an Ensemble are
-synchronous; separate Agents have independent conversation and accounting.
+Parent add/remove methods finish both sides of a relationship. `Destroy` cascades
+through strong children and asks parents to detach it. Configuration lives with
+Agent; usage lives with Engine. HTTP does not hold a copied configuration or
+logger. Request messages are temporary snapshots, not a second conversation.
+Only successful exchanges publish new conversation pairs. Measured usage from
+an unusable answer still counts. Calls are serial in this chapter.
 
-The HTTP client has no total response or header deadline. Standard transport
-connection/TLS protections remain, while the caller's context governs model
-work, including reading the body. Redirects are rejected to avoid forwarding
-credentials. Errors omit remote bodies, URLs, and raw transport diagnostics.
+## Build and run
 
-## Use
-
-Set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`; discover the model with the
-provider's `GET /v1/models` endpoint rather than guessing. `ANTHROPIC_BASE_URL`
-defaults to `https://api.anthropic.com`, and can select a local HTTP fake.
+With .NET 10 on PATH, from this directory:
 
 ```sh
-go build -o /tmp/ch01 ./cmd/ch01
-printf '%s\n' '{"user":"Hello"}' | /tmp/ch01
-/tmp/ch01 chat
+dotnet run --project Tests/Tests.csproj
+dotnet publish Cli/Ch01.csproj -c Release -o /your/owned/output
+/your/owned/output/ch01 chat
 ```
 
-No arguments selects JSON-lines input/output: one `assistant` object per input,
-then cumulative `usage` at EOF. Errors go to stderr and exit nonzero without
-retrying. `chat` prints human prompts and per-turn usage; Ctrl-D ends it.
-The root accepts an application logger (`ensemble.New(logger)`), then
-`app.NewAgent(ensemble.Config{...})` creates a conversation for synchronous
-`Ask(ctx, text)` calls. A nil logger discards diagnostics; no global logger is used.
+For the private SDK, use `/Users/bill/.local/share/ensemble-dotnet10/dotnet` and
+set `DOTNET_ROOT=/Users/bill/.local/share/ensemble-dotnet10` when launching the
+apphost. Use an owned `DOTNET_CLI_HOME`; suppress development-certificate creation
+with `DOTNET_GENERATE_ASPNET_CERTIFICATE=false` for SDK commands. No global PATH,
+package installation, application installation or restart is needed.
 
-## Checks
+Set `ANTHROPIC_MODEL` and `ANTHROPIC_API_KEY`. `ANTHROPIC_BASE_URL` defaults to
+Anthropic; tests must explicitly set it to their owned local fake. Dummy keys
+alone are not a network boundary. Do not run a real-provider chat without the
+appropriate account and spending permission.
 
-```sh
-go test -race ./...
-go vet ./...
-```
+No argument selects JSON lines: `{"user":"question"}` in, one
+`{"assistant":"answer"}` out, then cumulative `usage` at normal EOF. `chat`
+selects plain questions and answers, with prompts and usage on stderr. Errors
+exit nonzero without a false normal-EOF record. Long lines are not truncated.
+Generation has no arbitrary timeout; library callers can cancel the request.
 
-Tests use real local HTTP servers with fake credentials. They cover wire shape,
-parent/configuration/logger isolation, replay and failed-turn retention, usage,
-sanitized errors, caller cancellation, redirects, and the CLI's line/EOF rules.
-JSON input has no arbitrary physical-line size limit; a final unterminated line
-is processed at EOF. The default JSON mode does not print chat prompts.
+## Verification boundary
+
+The four real-component test groups passed, including direct relationship
+postconditions, staged history, multi-block responses, measured failed-answer
+usage, safe errors, no retries, and caller cancellation after server admission.
+The published executable passed Edition 3 Chapter 1: 100/100, `passed:true`,
+exit 0, including separate real 62-second header and body delays.
+
+An actual local-fake CLI exercise covered three-turn chat, normal EOF, a
+100,000-character line, an unterminated last line, malformed input and a real
+stdin read error. This does **not** establish real-provider integration; the
+paid-provider exercise remains incomplete because its allowance is exhausted.
+The single project progress record links the saved results. Comments were
+improved after the behavioral checks without changing executable behavior.

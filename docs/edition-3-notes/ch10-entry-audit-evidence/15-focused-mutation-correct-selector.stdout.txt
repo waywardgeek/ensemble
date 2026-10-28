@@ -1,5 +1,0 @@
-=== RUN   TestChapter10Persistence
-    ch10_test.go:24: save-shape: [core: saved config.system_prompt differs from actual wire core: saved config.system_prompt differs from actual wire GUI: saved config.system_prompt differs from actual wire; saved config.system_prompt differs from actual wire]
-    ch10_test.go:24: default-load: [core: saved config.system_prompt differs from actual wire GUI: saved config.system_prompt differs from actual wire]
---- FAIL: TestChapter10Persistence (0.58s)
-FAIL

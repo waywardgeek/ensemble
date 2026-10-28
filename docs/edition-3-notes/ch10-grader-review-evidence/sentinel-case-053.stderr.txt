@@ -1,1 +1,0 @@
-grader: media-models needs nonempty anthropic, openai and gemini identifiers; invalid "other"

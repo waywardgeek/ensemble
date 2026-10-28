@@ -17,6 +17,11 @@ import (
 // imports the other implementation package. Their shared interfaces let the
 // owner coordinate one actor without a second orchestration path.
 type agent struct {
+	goalMu        sync.RWMutex
+	goalStatus    common.GoalStatus
+	goalRevision  uint64
+	goalAutomatic bool
+
 	activityMu   sync.Mutex
 	activity     common.Activity
 	progressTime time.Time
@@ -230,6 +235,9 @@ func (a *agent) allowedTool(name string) bool {
 }
 
 func (a *agent) toolEnabled(name string) bool {
+	if name == "goal_control" && !a.goalAvailable() {
+		return false
+	}
 	if !a.allowedTool(name) {
 		return false
 	}

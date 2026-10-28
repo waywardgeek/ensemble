@@ -1,4 +1,0 @@
-=== RUN   TestReviewerR1RealWire
-    reviewer_wire_r1_test.go:67: frame too large
---- FAIL: TestReviewerR1RealWire (0.01s)
-FAIL

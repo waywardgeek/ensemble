@@ -1,6 +1,0 @@
-{
-  "stage": "initial manifest helper",
-  "error": "KeyError: student_head; actual schema uses source_commit",
-  "production_test_executed": false,
-  "credit": false
-}

@@ -1,6 +1,0 @@
-[
-  {
-    "seconds": 0.002410834189504385,
-    "stdin": "{\"kind\": \"prompt\", \"text\": \"Write roughly 80 words of vivid prose about a rainy library. Author must write_draft and word_count; editor must read_draft and edit_draft; reviewer must review with accept/reject and short notes.\"}"
-  }
-]

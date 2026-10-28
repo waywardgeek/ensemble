@@ -1,7 +1,0 @@
-{
-  "changed": [
-    "internal/agent/actor.go"
-  ],
-  "before": "955a6fa589400bcf4a3e80f6a25069b520d9f9053447f22bf9bfdf01f453d4c6",
-  "after": "571949adc7f3134476b37e881be044facb54dee7d4f2fe70ab0f6a8ebe6688f1"
-}

@@ -1,143 +1,102 @@
-# Edition 3 — Chapter 6
+# Edition 3 — Chapter 6 C# endpoint
 
-This module implements the current Chapter 6, retaining Chapters 1–5 contracts.
-It uses only the Go standard library; there is no provider SDK or framework.
+C# 14 / .NET 10. Common declares the core vocabulary, persistent fields,
+relationships and cross-module operations. Functional directories implement the
+matching partial types in one assembly. CLI, tests and examples are separate
+assemblies using that public API; no additional packages are required.
 
-## Chapter 6 — streaming
+## Read in this order
 
-Engine has one `Parse(resp, callbacks)` path for JSON and SSE, using a shared SSE
-reader and provider-local assembly. Deltas carry response-local part IDs (zero
-is valid); complete parts retain native boundaries, usage, and source identity.
-Unknown streaming capabilities use JSON; `DisableStreaming` and
-`EN_DISABLE_STREAMING=1` opt out. The Agent alone records History and saves before
-publishing finals. Partial calls cannot execute. Jobs reserve their stable handle,
-then the Agent records/saves the actual call before releasing the handler.
+1. `Common/Owners.cs`, `Common/Actor.cs`, `Common/Streaming.cs`: Ensemble owns
+   Agents; Agent owns History, Engine, Jobs and Tools. The Agent mailbox owns
+   conversation mutation and scheduling. Reliable request tasks are separate
+   from bounded, lossy Agent/root observation queues.
+2. `Agent/Actor.cs`: controls remain responsive during HTTP and foreground Job
+   waits. Workers return completion messages; they do not write History. Chunk
+   messages are transient. Recorded final events precede final observations.
+3. `Engine/Engine.cs`, `Engine/Streaming.cs`, `Engine/Parse.cs`: frozen request
+   bytes, untimed cancellable HTTP, one JSON/SSE response seam and shared final
+   decoding. Parser-supplied IDs correlate deltas with finals even when arrival
+   order differs from final order. Partial arguments never authorize effects.
+4. `Engine/Render.cs`, `Engine/Media.cs`: explicit model capabilities, request-only
+   local-media resolution, unknown-model plain fallback, and configuration
+   opt-out. Stream capability is not inferred from media support.
+5. `Jobs`: reserve → record call → start effects; full output on disk, serialized
+   unseen-output cursor, observation bounds, process lifetime and explicit kill.
+   Job handles are Ensemble-wide but each Jobs owner limits lookup to its children.
+6. `History` and `Serialization`: one authoritative conversation, exact JSON
+   arguments and provenance-aware opaque data. Deltas do not inflate history or
+   accounting. Host-only tool observations do not invent model dialogue.
+7. `Application/Ensemble.cs`: complete two-way relationships and optional sanitized
+   tracing through real parents. The caller owns the trace writer and closes it
+   after the root is destroyed.
+8. `Examples/Observer` and `Examples/Workflow`: delivered-stream statistics and
+   multi-Agent display respectively. Reliable tasks govern completion; observations
+   never advance workflow stages. `Examples/Consumer` retains the small custom
+   tool example from Chapter 4.
 
-The CLI drains a lossless observation queue: answer text goes to stdout, thinking
-and tool progress to stderr, with no duplicate final answer. JSON `prompt` records
-can receive observation records; legacy `user` records retain their plain-mode
-contract. Root-owned `api.log` tracing omits headers/authenticated URLs and redacts
-configured keys. `ch07/` is a separate public-library streaming shape example.
-Ephemera updates replace the pending projection (empty clears it), and the next
-`RequestSent` consumes it even when the HTTP request fails.
+## Build and exercise
 
-## Ownership rationale
-
-The public `ensemble` package is a small composition root. It owns a logger and
-its Agents, constructing both directions of the Agent/Engine relationship before
-returning an Agent. `internal/common` declares shared values and interfaces only;
-`internal/agent` and `internal/engine` never import each other.
-
-Agent holds configuration and completed history. Engine holds the HTTP client
-and measured usage, looking up configuration and diagnostics through its actual
-Agent parent (and that parent's Ensemble). A failed request never commits an
-unanswered user turn. Missing usage is not zero; measured usage from an empty
-answer is still counted. History and usage accessors return copies, not mutable
-internal state. Each Agent serializes conversation state in its actor; HTTP and
-job work run outside that actor. Separate Agents have independent conversation and accounting.
-
-The HTTP client has no total response or header deadline. Standard transport
-connection/TLS protections remain, while the caller's context governs model
-work, including reading the body. Redirects are rejected to avoid forwarding
-credentials. Errors omit remote bodies, URLs, and raw transport diagnostics.
-
-## Use
-
-Set `ANTHROPIC_API_KEY` and `ANTHROPIC_MODEL`; discover the model with the
-provider's `GET /v1/models` endpoint rather than guessing. `ANTHROPIC_BASE_URL`
-defaults to `https://api.anthropic.com`, and can select a local HTTP fake.
+Use the approved SDK in an owned offline environment, with first-run setup and
+telemetry disabled. Build from this endpoint directory:
 
 ```sh
-go build -o /tmp/ch01 ./cmd/ch01
-printf '%s\n' '{"user":"Hello"}' | /tmp/ch01
-/tmp/ch01 chat
+dotnet run --project Tests
+dotnet build Cli/Ch04.csproj
+dotnet build Examples/Observer/Observer.csproj
+dotnet build Examples/Workflow/Workflow.csproj
 ```
 
-No arguments selects JSON-lines input/output: one `assistant` object per input,
-then cumulative `usage` at EOF. Errors go to stderr and exit nonzero without
-retrying. `chat` prints human prompts and per-turn usage; Ctrl-D ends it.
-The root accepts an application logger (`ensemble.New(logger)`), then
-`app.NewAgent(ensemble.Config{...})` creates a conversation for synchronous
-`Ask(ctx, text)` calls. A nil logger discards diagnostics; no global logger is used.
+The CLI project retains its historical name. Its output is `ch04.dll`, but it
+references this endpoint's current library. Run binaries from an owned scratch
+workspace, not the source directory. Configure `LLM_VENDOR`, `LLM_MODEL`,
+`LLM_BASE_URL`, and `LLM_API_KEY`; use dummy credentials with an owned loopback
+fake. Job output goes to `cr/io/<handle>` under the working directory.
 
-## Checks
+The CLI retains `chat`, `dump`, `render`, `-media-capabilities`, JSON stdin, and
+`CH02_LOG`. JSON inputs include blocking `user`, live `kind: prompt`, `hint`,
+`pause`, `resume`, `interrupt`, `shutdown`, and direct `tool` operations as
+specified in Chapter 5. EOF drains accepted turns; shutdown cancels them.
+
+Streaming is requested for declared capable models unless `-no-stream` or
+`EN_DISABLE_STREAMING=1` opts out. Plain parsing emits finalized parts without
+synthetic deltas. Live JSON (`kind: prompt`) emits flushed `part_delta` and
+`part_final` records with response-local IDs. Legacy blocking requests keep
+reliable reply-only output. Interactive `chat` previews chunks on stderr and
+writes each reliable completed answer once to stdout. It suppresses ANSI styling
+when stderr is redirected. `CH06_API_LOG` selects the sanitized payload trace,
+which defaults to `api.log`; do not commit traces or credentials.
+
+From the repository root, a compiled grader can exercise the CLI and external
+aggregate observer launchers:
 
 ```sh
-go test -race ./...
-go vet ./...
+grade-edition2 -ch 6 -executable-only -json \
+    -stream-model claude-3-haiku-20240307 \
+    -stream-exercise /absolute/observer /absolute/cli
 ```
 
-Tests use real local HTTP servers with fake credentials. They cover wire shape,
-parent/configuration/logger isolation, replay and failed-turn retention, usage,
-sanitized errors, caller cancellation, redirects, and the CLI's line/EOF rules.
-JSON input has no arbitrary physical-line size limit; a final unterminated line
-is processed at EOF. The default JSON mode does not print chat prompts.
+This 80-point scope excludes inherited Chapter 5 and Go-specific consumer/topology
+checks. The full Go route remains intact. All-vendor parser tests, source review,
+gated pre-EOF visibility, interrupts and the actual three-role workflow remain
+separate evidence. See `docs/edition-3-csharp-progress.md` in the repository for
+results and limitations; a green grade is not an architecture verdict.
 
+## Lifetime and evidence limits
 
-## Retained tool contracts
+`ai_callback_delay`, patterns and inline caps control observation, never job
+execution deadlines. Busy hints and interrupts stop foreground observation but
+preserve independent Jobs. `FlushAsync` waits for accepted turns and foreground
+controls, not independent background work; it does not resume a paused Agent.
 
-The same Agent now owns an independent six-tool registry. Root composition wires
-Agent, Engine, History, and Tools through `internal/common` interfaces; each
-implementation keeps its state locally. Engine owns HTTP, Render, Parse, and all
-provider tool envelopes. Tools do not retain conversation, and the GUI continues
-to call the same Agent rather than providing a second implementation.
+Destruction stops and joins work before detaching History or parents. .NET cannot
+forcibly stop an arbitrary managed callback: cooperative cancellation is required,
+and a callback that ignores it can delay shutdown. PTY processes are killed and
+joined. The PTY implementation uses macOS `/usr/bin/script`, not a claimed portable
+Linux implementation. Completed output files remain after logical destruction.
 
-`Config.Tools == nil` enables the default six tools. A non-nil empty slice really
-disables every tool and omits `tools` from provider requests. A nonempty slice
-selects names. CLI/GUI environment equivalents are `LLM_TOOLS=default`,
-`LLM_TOOLS=none`, or a comma-separated list of built-in names. Registry declarations
-and configuration are returned as copies, not mutable backing storage. Each
-registry entry joins its declaration with its handler; declarations and dispatch
-use that same per-Agent registered set.
-
-The selected model's explanation policy is explicit:
-`Config.RequireToolExplanation` / `LLM_REQUIRE_TOOL_EXPLANATION=true`. When enabled,
-a whole batch lacking nonblank ordinary assistant text before its first call is
-refused before effects. Each call gets a matching error result instructing a retry
-with an explanation. Hidden reasoning, opaque blocks, stop reasons, and usage do
-not satisfy this rule. Turn completion is based on returned calls. The default limit is 200 dispatched
-batches (`Config.MaxToolBatches`); refused/invalid batches do not spend that budget.
-A final request consumes the last dispatched batch's results before the limit
-rejects any additional effects.
-
-Tools use strict JSON argument types and reject unknown fields. Their schemas
-are sent with each enabled declaration. `read_file` has optional one-based
-inclusive `start_line`/`end_line` and a `max_bytes` cap. Omitted or zero start
-means line 1, end means EOF, and `max_bytes` means no read cap. Negative bounds
-or caps and an end before the start are errors. The tool selects the requested
-line range first, then caps returned bytes; actual truncation adds an explicit
-`[truncated at max_bytes=N]` marker outside the cap. Exact-size results do not
-claim truncation. Reads use bounded fragments, including for very long lines.
-`list_directory` is sorted and nonrecursive. `search_files` uses Go regular
-expressions, walks regular text files without following symlinks, defaults
-`context_lines` to zero, and merges overlapping/adjacent context ranges. Match
-lines use `path:line:text`; context lines use `path-line-text`. Positive-context
-groups have `--` separators, including across file boundaries; zero-context
-searches emit only matching lines without separators.
-
-`write_file` creates parents and refuses to replace existing files by default;
-the refusal reports the current size and names the opt-in flags.
-`overwrite:true` opts into replacement, `append:true` preserves existing bytes,
-and using both is rejected. `edit_file` replaces one nonempty, exact, unique
-`old_text` anchor; zero or multiple matches (including overlaps) leave the file
-unchanged. Both refusal diagnostics identify the supplied path. Zero-match
-refusals explicitly report 0 matches and suggest rereading
-the file. Ambiguity refusals report the total count (including overlaps), list
-up to eight one-based match-start line numbers, and say how many locations were
-omitted if the list is truncated. Repeated line numbers represent distinct
-matches on the same line; multiline anchors report their starting lines. No
-file excerpts, fuzzy matching, or automatic match selection are used: reread
-the current file and give a larger exact anchor on ambiguity. A unique anchor
-can be deleted by supplying an empty `new_text`. `run_command` invokes `/bin/sh -c` and returns
-JSON text with separate `stdout`, `stderr`, and `exit_code` fields. A nonzero
-process exit is still a completed tool result; startup failure is a tool error.
-It adds no timeout beyond caller context cancellation. The shell environment
-removes `LLM_API_KEY`, `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, and `GEMINI_API_KEY`,
-while retaining ordinary build variables. This removes those four credentials;
-it is not a general secret detector or sandbox.
-
-Relative paths and command `cwd` resolve against the registry's launch directory;
-absolute paths and `..` are allowed. This is not a sandbox. No command changes the
-process-wide directory. Ordinary calls return stable job handles with observed
-output; callback limits do not kill jobs. Explicit kill and joined shutdown retain
-their distinct terminal semantics. These tools are for trusted local use.
+Progress is bounded and lossy. Aggregate counts describe delivered observations,
+not billing or a reliable transcript. Use History usage and reliable request
+results for authoritative facts. Model capability rows and fake-provider passes
+do not establish live provider availability, streaming acceptance, media decoding,
+or paid integration. Those exercises remain incomplete without separate authority.

@@ -1,1 +1,0 @@
-{"mode": "browser", "status": "FAIL", "failure": "setup-deadline", "cleanup_complete": true, "run_root": "/Users/bill/projects/ensemble-edition-3-student/.ch10-local/operational-preparation-v2/runs/browser-r1", "duration_seconds": 67.27226004190743, "credential_opens": 0}

@@ -1,1 +1,0 @@
-grader: explicit core and consumer (plus workflow for Chapters 5/6/7/8, stream-exercise for Chapters 6/7/8, and gui for Chapters 7/8) module directories containing go.mod are required

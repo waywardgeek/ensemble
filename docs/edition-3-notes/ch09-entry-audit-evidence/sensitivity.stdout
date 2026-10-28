@@ -1,7 +1,0 @@
-=== RUN   TestSkillsThroughLoop
-    skills_test.go:133: tool not enabled: write_file
-    skills_test.go:159: dynamic provenance: {Source: EventSeq:0}, expected 7
---- FAIL: TestSkillsThroughLoop (0.01s)
-FAIL
-FAIL	ensemble/ensemble	0.013s
-FAIL

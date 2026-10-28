@@ -1,7 +1,0 @@
-=== RUN   TestInvalidInputsFailBeforeGrading
-=== RUN   TestInvalidInputsFailBeforeGrading/args=-ch_1_-consumer__/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestInvalidInputsFailBeforeGrading4226668219/001/sentinel
-usage: grade-edition3 -ch 1 [-json] target; or -ch 4 -core DIR -consumer DIR [-consumer-case FILE] [-json] target
---- PASS: TestInvalidInputsFailBeforeGrading (0.00s)
-    --- PASS: TestInvalidInputsFailBeforeGrading/args=-ch_1_-consumer__/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/TestInvalidInputsFailBeforeGrading4226668219/001/sentinel (0.00s)
-PASS
-ok  	github.com/waywardgeek/ensemble/cmd/.ch04-cli-control-9jf8260s	0.007s

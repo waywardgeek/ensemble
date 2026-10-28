@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble-edition-3-student/gui/test/settings_process.py", line 120, in <module>
-    process, addr = start(1)
-                    ~~~~~^^^
-  File "/Users/bill/projects/ensemble-edition-3-student/gui/test/settings_process.py", line 112, in start
-    assert ready.wait(20), 'GUI did not announce its actual listener (see owned process log)'
-           ~~~~~~~~~~^^^^
-AssertionError: GUI did not announce its actual listener (see owned process log)

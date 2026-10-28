@@ -1,5 +1,0 @@
-Independently verified all 21 student-recorded original artifact hashes against current bytes.
-Independently verified both commit SHA256s for all 9 tracked paths in student provenance.
-Student vet/full-race-suite/build exit records are 0.
-Read student focused mutation failure and restored-pass logs, full race output, VCS-stamped build metadata, and hygiene record.
-No original artifact or student file edited.

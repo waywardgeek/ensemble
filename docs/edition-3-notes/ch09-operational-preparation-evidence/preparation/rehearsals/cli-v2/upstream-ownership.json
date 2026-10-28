@@ -1,8 +1,0 @@
-{
-  "pid": 77365,
-  "listener": [
-    "127.0.0.1",
-    55888
-  ],
-  "mode": "local scripted peer"
-}

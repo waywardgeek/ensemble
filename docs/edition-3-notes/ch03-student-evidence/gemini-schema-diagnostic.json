@@ -1,5 +1,0 @@
-{
-  "http_status": 400,
-  "status": "INVALID_ARGUMENT",
-  "message": "Invalid JSON payload received. Unknown name \"additionalProperties\" at 'tools[0].function_declarations[0].parameters': Cannot find field.\nInvalid JSON payload received. Unknown name \"additionalProperties\" at 'tools[0].function_declarations[1].parameters': Cannot find field.\nInvalid JSON payload received. Unknown name \"additionalProperties\" at 'tools[0].function_declarations[2].parameters': Cannot find field.\nInvalid JSON payload received. Unknown name \"additionalProperties\" at 'tools[0].function_declarations[3].parameters': Cannot find field.\nInvalid JSON payload received. Unknown name \"additionalProperties\" at 'tools[0].function_declarations[4].parameters': Cannot find field.\nInvalid JSON payload received. Unknown name \"additionalProperties\" at 'tools[0].function_declarations[5].parameters': Cannot find field."
-}

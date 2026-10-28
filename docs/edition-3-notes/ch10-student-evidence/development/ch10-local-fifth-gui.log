@@ -1,6 +1,0 @@
---- FAIL: TestChapter10GUIContextAndLegacyIdentities (0.01s)
-    chapter10_test.go:147: anthropic response missing measured usage
-FAIL
-FAIL	ensemble-gui	0.155s
-?   	ensemble-gui/cmd	[no test files]
-FAIL

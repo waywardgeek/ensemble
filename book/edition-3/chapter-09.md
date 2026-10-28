@@ -1,540 +1,386 @@
-# Chapter 9: Skills
-
-Every chapter so far has added capability by adding code. That stops
-scaling. The agent already has file tools, process tools and job controls,
-and the system prompt can grow with every feature. A configurable primary
-skill was deliberately deferred until now. The system prompt is an easily abused
-feature in LLM applications: teams stuff instructions, context, tool
-descriptions, and user preferences into a monolith whose supposedly stable
-prefix changes on every edit. Skills fix this before the problem arrives.
-
-A skill is a named unit of capability: instructions, tools, and
-dependencies, in a single markdown file. Loading one changes what the
-agent can do; unloading one marks it for removal at the next
-compaction. This chapter records that pending state; compaction arrives later.
-The primary and preloaded skills form the initial system prompt. Their
-rendered bodies stay intact; instructions from later loads join them in
-the system prompt. Tool availability follows a separate, provider-aware path.
-
-Variable substitution lives here too. A skill body can contain
-`$TOOLS` or `$SKILLS` or any application-specific variable, and the
-renderer replaces them at the point of use. The initial system prompt
-gets creation-time values; a dynamically loaded skill gets the values
-current at load time.
+# Chapter 9 — Skills
 
 ## TL;DR
 
-Extend Chapter 8 with a per-Agent skills registry. A SKILL.md file lives in
-a named directory under the skills root:
+A skill is a small manual that grants a named set of tools. Each Agent owns a
+concrete `Skills` manager. The manager validates a dependency closure, renders
+its manuals, and records the entire activation in History before making it
+visible. Request rendering and tool admission read the same recorded grants.
+A tool that is not granted cannot execute, even if the model guesses its name.
 
+The primary manual is rendered once at creation. Later manuals enter provider
+**instruction context**, not ordinary tool-result prose. Loading never rewrites
+the primary. Unloading in this chapter records a pending marker: instructions
+and tools remain usable until a later chapter implements compaction-time removal.
+
+The runnable endpoint is `solutions/edition-3/ch09`. Its library, CLI, optional
+GUI, and separate public-API example use C# 14/.NET 10 without downloaded packages.
+
+## 9.1 In plain language
+
+### A constitution and a shelf of manuals
+
+The primary skill is the Agent's constitution. It says how to work and lists
+which additional manuals the Agent may request. A loaded manual supplies both
+instructions and the tools needed to follow them. Dependencies are supporting
+manuals loaded automatically before the requested manual.
+
+There are two different questions:
+
+1. **Can this tool run?** Its name must be granted by an active skill.
+2. **Has the model been told how to use it?** The corresponding rendered manual
+   must be present in the request's instruction context.
+
+Satisfying only one question is not enough. A prompt saying “you may write files”
+does not enable a handler. Adding a handler does not teach the model the manual.
+The recorded activation ties both facts together.
+
+### Load once, record what was taught
+
+Suppose a manual contains `$CUSTOM_VAR`. The manager substitutes the current
+registered value when loading that manual, then keeps the resulting text. A
+later variable update does not rewrite what the Agent was already taught.
+The primary receives the same treatment at creation.
+
+History stores these rendered snapshots. Replay therefore does not depend on
+whether a Markdown file was subsequently edited, moved, or deleted. The files
+are the catalog; History records this Agent's actual activations.
+
+### Pending does not mean gone
+
+Immediate revocation would leave a conversation describing tools that suddenly
+cannot run. This chapter does not solve compaction. `unload_skill` therefore
+marks a non-primary skill pending removal and says so honestly. The manual and
+its tools remain active. Test this with a tool granted by the loaded skill, not
+one that was already granted by the primary.
+
+## 9.2 Ownership and the authoritative facts
+
+Keep the existing hub-and-spoke organization:
+
+- `Common/Skills.cs` declares `Skills`, immutable skill values, parent links,
+  fields, and callable partial members.
+- `Skills/Parser.cs` implements the documented front-matter subset and value
+  construction. `Skills/Skills.cs` implements catalog resolution, variable
+  rendering, activation, provenance, and pending removal.
+- `Agent/Skills.cs` implements complete two-way attachment and removal. The
+  manager reaches History and the handler catalog through its actual Agent
+  parent, not copied service references.
+- History owns activation and pending-removal events. Engine projects their
+  immutable snapshots into provider requests. Jobs performs admission through
+  the Agent before starting effects.
+- CLI and GUI composition roots choose the skill directory, primary name, and
+  environment-derived variables. The core library never reads the environment.
+
+The relevant public vocabulary includes:
+
+```csharp
+// Value-like configuration: it does not own an Agent or need holder back-links.
+public sealed record SkillSpec(
+    string Directory,
+    string Primary,
+    IReadOnlyDictionary<string, string>? Variables = null);
+
+// Value-like provenance: the earliest activation granting a tool.
+public readonly record struct ToolSource(string Skill, long Sequence);
 ```
-skills/
-  base/
-    SKILL.md
-  code-tools/
-    SKILL.md
-  search-tools/
-    SKILL.md
-  read-tools/
-    SKILL.md
-  refactor-tools/
-    SKILL.md
-```
 
-Each SKILL.md has flat YAML-style frontmatter between `---` markers and a
-markdown body. This example requires the named dependency and offered skill
-to have their own files:
+`SkillPart` is also value-like. It contains a skill's name, rendered body,
+granted tool names, and whether it is primary. Its immutable arrays are not
+another mutable capability database. There is **no parallel active-tool set**:
+active manuals and grants are derived from the skill parts in History's Context.
+Pending markers remain events; they do not remove those parts.
 
-```yaml
----
-name: code-tools
-description: File editing and search tools
-type: loadable
-tools: edit_file write_file search_files
-depends: read-tools
-loadable-skills: refactor-tools
----
+The manager retains only its catalog definitions, registered variables, and
+lifecycle state. The Agent's ordinary `Tools()` collection remains the handler
+catalog. In a skill-configured Agent, registration alone is not permission to
+run. In a library Agent without skills, the earlier explicit tool-installation
+behavior remains available.
 
-You now have access to file editing tools.
+### Complete relationship operations
 
-Available tools: $TOOLS
-Available skills to load: $SKILLS
-```
+`new Skills(agent, specification)` validates its catalog, attaches through
+`agent.AddSkills`, installs the two control definitions, and activates the
+primary closure. A failed activation removes the added controls and detaches
+the manager. No half-created manager is returned.
 
-**Frontmatter fields:**
+`RemoveSkills` validates membership before changing either end and clears both
+links before returning. `Skills.Destroy` is idempotent and removes that link;
+it does not destroy its parent. Agent destruction first drains jobs while
+History is available, then destroys its manager, tools, Engine, and History
+through the existing protected cleanup path. A retained loader called without
+a manager returns an explicit refusal, not a null-reference fault.
 
-- `name`: skill identifier
-- `description`: one-line summary
-- `type`: `primary` (agent identity, loaded at creation), `loadable`
-  (offered to the agent, loaded on demand), or `dependency` (pulled
-  in automatically, hidden)
-- `tools`: tools this skill enables (FlexibleList: space-separated
-  or YAML list)
-- `depends`: skills to auto-load when this skill loads
-- `loadable-skills`: skills this skill makes available for the agent
-  to discover
+## 9.3 The skill file format
 
-The primary skill defines the agent. Its body, together with the instructions
-of skills loaded at startup, forms the initial system prompt. Declare those
-skills' tools in the provider's usual tool section. Skills supply both
-instructions and tools; returning their text in a tool result is not a substitute
-for placing their instructions in the provider's instruction context.
-`load_skill` and `unload_skill` are always available when skills are configured.
-A minimal `base` skill can declare only `read_file`. A full `ensemble` skill
-declares the tools built so far:
+A host supplies one explicit directory. The manager reads `SKILL.md` files
+recursively in sorted path order and rejects duplicate names. There is no
+implicit home-directory fallback or precedence between competing roots.
 
-```yaml
+```markdown
 ---
 name: ensemble
-description: Full AI coding agent
+description: The default careful coding assistant.
 type: primary
-tools:
-  - read_file
-  - write_file
-  - edit_file
-  - list_directory
-  - search_files
-  - run_command
-  - wait_for_job
-  - send_input
-  - kill_job
-  - tool_limits
-  - load_skill
-  - unload_skill
-loadable-skills: code-tools search-tools
+tools: read_file list_directory search_files
+loadable-skills: code-tools
 ---
-You are an autonomous AI coding agent.
+Explain what you will do and why before using tools.
+Inspect actual files and report failures honestly.
 
-## Available Tools
-
+Enabled tools:
 $TOOLS
 
-## Available Skills
-
+Additional manuals:
 $SKILLS
 ```
 
-The original example named `think` without teaching its behavior or arguments.
-An unknown name cannot create a handler. This list uses the existing
-`tool_limits` capability instead; do not advertise a tool that cannot execute.
+The parser trims front-matter lines, but deliberately does not implement general
+YAML nesting. The supported fields are:
 
-**Provider-aware skill delivery.** For Anthropic, the student must read the
-current official documentation and use its supported incremental message/content
-mechanisms for dynamically loaded skills, including incremental tool disclosure,
-rather than replacing the startup declarations on every load. Verify how skill
-instructions are carried: where no supported incremental instruction channel
-exists, compose them into the system prompt. Do not guess message types or treat
-ordinary tool-result prose as an instruction channel. Startup tools still belong
-in the usual tool section, not the dynamic disclosure path.
+| Field | Meaning |
+| --- | --- |
+| `name` | Required unique identifier: letters, digits, `_`, or `-`. |
+| `description` | Optional plain single-line text for discovery. |
+| `type` | Required `primary`, `loadable`, or `dependency`. |
+| `tools` | Tool names granted by this manual. |
+| `depends` | Manuals activated before this one. |
+| `loadable-skills` | Loadable manuals this manual offers explicitly. |
 
-For other vendors, this chapter uses the system prompt for loaded skill
-instructions, updating it and the usual tool declarations when skills load.
-Accept the resulting cache invalidation rather than keeping instructions in a
-weaker channel to preserve a prefix; changing tool declarations can invalidate
-that prefix too. Anthropic's incremental path is intended to avoid unnecessary
-prefix changes, not to guarantee a cache hit. This policy supersedes the earlier
-creation-only, permanently frozen system-prompt rule.
-
-In the accepted Anthropic path, the full catalog still travels in every request:
-startup tools use ordinary declarations and undisclosed tools have `defer_loading`.
-A successful model-called `load_skill` reveals tools through `tool_reference`
-blocks in its actual paired `tool_result`. That result's content contains only
-references, with no status prose mixed in. Canonical history keeps the textual
-load status; the provider renderer projects the discovery result. Loaded
-instructions join SYSTEM because the documented API supplies no separate
-mid-turn instruction channel. The [tool-search documentation](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool)
-describes this disclosure protocol; it is not an instruction role.
-
-Direct or manual loads, loads without a paired discovery result, and unsupported
-models use ordinary enabled tool definitions. Never fabricate a model call or
-an enabling event to obtain the incremental form.
-
-The exercise is:
-
-1. Discover the files and validate each skill's name and type. Accept both
-   list forms shown below and preserve horizontal rules in the body.
-2. Load the selected primary and its dependencies at Agent creation. Build
-   the initial system prompt and normal tool declarations from the startup set.
-3. Implement `load_skill` and `unload_skill`, each taking a JSON object such
-   as `{"name":"code-tools"}`. A successful load resolves dependencies,
-   enables tools, reveals the next available skills and delivers rendered
-   instructions through the provider-aware path above. The tool result reports
-   the load; it is not the sole instruction delivery mechanism. Reject unavailable
-   names, wrong types, missing dependencies and cycles without partial activation.
-4. Use the same enabled set for vendor declarations and dispatch. A guessed
-   hidden name must not execute. Research Anthropic's current unloading semantics
-   alongside its incremental loading mechanism; do not assume disclosed tools or
-   instructions can be retracted mid-conversation. Record supported behavior and
-   limitations before implementing removal. For now, mark unload pending while
-   retaining instructions and tools; actual removal remains deferred to the later
-   compaction chapter unless that contract is explicitly revised.
-5. Support `$TOOLS`, `$SKILLS` and application variables at point of use.
-   Track each tool's first enabling source and event sequence. Keep registries
-   independent between Agents and preserve earlier behavior without a skill spec.
-
-From the core module, build the command at the accepted `./cmd/ch01` path,
-rather than the importable module root. With ordinary provider settings already
-configured, launch its human chat interface:
-
-```sh
-go build -o /tmp/ensemble-ch09 ./cmd/ch01
-EN_SKILLS_DIR=path/to/skills EN_PRIMARY_SKILL=base /tmp/ensemble-ch09 chat
-```
-
-At the chat prompt, type "load the code-tools skill". Both CLI and optional GUI
-translate the same skill environment values into per-Agent construction inputs.
-The GUI keeps Chapter 7's separate module and launch.
-`EN_CUSTOM_VAR` supplies `$CUSTOM_VAR` for these commands; it is an application
-example rather than a reason for the registry to read process environment.
-
-From the book repository root, grade that executable with the Edition 3
-adapter. Identify the core source and all four separate client modules
-explicitly; the GUI module is required for this gate even if you normally use
-the headless command:
-
-```sh
-go run ./cmd/grade-edition3 -ch 9 -json \
-  -core /absolute/path/to/core-module \
-  -consumer /absolute/path/to/consumer-module \
-  -workflow /absolute/path/to/workflow-module \
-  -stream-exercise /absolute/path/to/stream-exercise-module \
-  -stream-model YOUR_DECLARED_STREAMING_MODEL \
-  -gui /absolute/path/to/gui-module \
-  -gui-model YOUR_DECLARED_GUI_MODEL \
-  -media-models /absolute/path/to/media-models.json \
-  /tmp/ensemble-ch09
-go run ./cmd/grade-edition3 -ch 1 -json /tmp/ensemble-ch09
-```
-
-Each module path must contain its own `go.mod`. The final argument is the built
-CLI, not the core source directory; all flags precede it. Choose streaming and
-GUI model identifiers from your implementation's declared capability rows.
-The media map is a JSON object with exactly `anthropic`, `openai` and `gemini`
-keys, each naming a nonblank model identifier declared by your implementation.
-Supplying this map avoids relying on historical fixture defaults; it does not
-discover live provider capabilities. An optional `-consumer-case FILE` selects
-a different consumer fixture instead of the default shout example.
-
-Both reports must pass and exit zero on the same frozen CLI. The Chapter 9
-skills phases use the actual WebSocket prompt path; Chapter 1 retains the
-headless lifetime checks. A passing WebSocket grade does not replace the
-browser and live-provider exercise below.
-
-| Check | Points | Observable behavior |
-| --- | ---: | --- |
-| Initial tools | 10 | Primary/dependency tools plus both lifecycle tools |
-| Primary body | 10 | Initial rendered bodies stay intact as loaded instructions join SYSTEM |
-| Full primary | 10 | All twelve installed tools in the example are declared |
-| Dynamic tools | 15 | Load adds instructions and executable tools; pending unload retains capability |
-| Progressive disclosure | 15 | A load reveals its offered skills in current `$SKILLS` |
-| Dependencies | 10 | Dependencies contribute both tools and instructions |
-| Variables | 10 | Placeholder values reflect their rendering time |
-| Unavailable skill | 5 | An unreachable skill is refused |
-| Chapter 8 parity | 15 | Prior checks still pass through their appropriate clients |
-
-The numeric checks do not prove every obligation. Dependency cycles, failed-load
-atomicity, provenance and Agent isolation also need focused source tests and
-review. Exercise the real registry and tool loop, replacing only the external
-provider with a small fake where deterministic replies are needed.
-
-## The Format
-
-The parser splits the file on `---` with a limit of 3, protecting
-against horizontal rules in the body. Frontmatter is key-value,
-one field per line. Multi-value fields use FlexibleList. Both
-formats parse to `[]string`:
+The three name-list fields accept either whitespace-separated names or a
+YAML-style dash list:
 
 ```yaml
-# Space-separated on one line
-tools: edit_file write_file search_files
-
-# YAML list
 tools:
-  - edit_file
   - write_file
-  - search_files
+  - edit_file
+  - run_command
 ```
 
-The supported format is deliberately small: scalar fields and these two list
-forms. There is no need for a general YAML document processor. Require the
-opening frontmatter boundary, a name and one of the three types; report a
-malformed file with its path. The directory locates the file, while `name`
-identifies the skill in `depends` and tool arguments. Reject duplicate names
-rather than letting directory order choose an identity.
+This is a small documented subset, not a general YAML implementation. Unknown
+fields, duplicate fields, malformed identifiers, and missing boundaries are
+errors. Quoted scalars, flow arrays, and multiline YAML values are not part of
+the contract. The first closing `---` ends front matter; later separators remain
+literal body text. Empty lines and comment lines in front matter are ignored.
 
-Three skill types control visibility. A `primary` skill loads at
-agent creation and defines the agent's identity. An offered `loadable` skill
-appears in the available-skills list. The initial list is rendered into the
-system prompt; later lists arrive with loaded instructions. The agent
-calls `load_skill` to activate it. A `dependency` skill is invisible
-to the agent; it loads automatically when a skill that depends on it
-loads.
+Catalog syntax is checked at construction. Activation then validates the chosen
+closure: missing dependencies, cycles, wrong primary placement, invalid offered
+names/types, or unknown handlers refuse the operation. A dependency is not
+independently discoverable unless an active manual explicitly offers it as a
+loadable skill; `dependency`-typed entries cannot be offered as loadable entries.
+A loadable manual may offer further manuals, making discovery progressive.
 
-## The Registry
+Both `load_skill` and `unload_skill` are always enabled controls for a configured
+primary, even if it offers no additional manuals. They are not ordinary jobs.
 
-`SkillRegistry` discovers skills from a directory (one subdirectory
-per skill) and tracks their state through a lifecycle. The name describes a
-responsibility; it need not be an exported concrete type:
+## 9.4 Variables and transactional activation
 
-```
-Discovered → LoadInitial (at creation)
-           → LoadDynamic (by load_skill tool)
-           → PendingUnload (by unload_skill; removal is a later chapter)
-```
+Built-in substitutions are:
 
-Loading resolves dependencies recursively. If `search-tools` depends
-on `search-helpers`, both load and both contribute their tools. Cycle
-detection uses a visiting set. A depends B depends A produces an
-error, not infinite recursion.
+| Variable | Snapshot value |
+| --- | --- |
+| `$TOOLS` | Sorted enabled tool names after the proposed activation. |
+| `$SKILLS` | Currently offered, not-yet-active skill names and descriptions. |
+| `$CUSTOM_VAR`, or another registered uppercase name | Host-supplied value at activation. |
 
-Resolve the whole graph before enabling any of it. If the first dependency
-supplies `write_file` and the second is missing, an error accompanied by a newly
-enabled writer is a partial success the caller never asked for. A visiting set
-and a resolved order let the registry validate first, then activate dependencies
-before the requested skill. Their instructions travel with their tools.
+Unknown variables remain visible. Substitution makes one pass: text supplied as
+a variable value is not recursively interpreted. Variable names must match
+`[A-Z][A-Z0-9_]*`; hosts cannot replace the built-ins `TOOLS` and `SKILLS`.
 
-Discovery reads definitions; it grants no capability. The registry belongs to
-one Agent even when several Agents read the same directory. Its required parent
-is that Agent, supplied through the common interface; the composition root
-attaches both sides before loading the primary. Keep parsing, traversal and
-rendering in the skills package. Shared types and interfaces remain in common.
+`RegisterVariable` updates the manager's explicit variable map under its lock.
+It does not mutate existing skill bodies. This is configuration for the next
+activation, not a new conversation event.
 
-The Agent uses a lifecycle interface from common, not the concrete registry in
-the skills package. The root constructs that registry and injects it into the
-Agent. A per-Agent lifetime prevents shared mutable state, but it does not
-justify an Agent-to-skills sibling import. Keeping that implementation behind
-the interface preserves the star-shaped package dependencies as well as the
-registry's owner.
+A successful load performs these steps on the Agent's actor:
 
-The command's environment variables are construction convenience. An embedding
-application passes its skills directory and primary choice to the Agent it is
-creating. Changing a process-wide primary must not change every live Agent's
-identity. Omitting the optional skill specification preserves the earlier
-public tool-registration path.
+1. Require that an active skill currently offers the requested name. An already
+   active name is an idempotent success, including while pending unload.
+2. Resolve dependencies first, checking the entire closure before publication.
+3. Calculate the prospective active names, grants, and discoverable manuals.
+4. Render all new bodies against that prospective snapshot.
+5. Append **one** `SkillLoaded` event containing all new `SkillPart` values.
+6. Return a concise successful tool result naming the loaded manuals.
 
-The registry answers two questions the agent asks constantly: "what
-tools can I use?" and "what skills can I load
-next?" (`LoadableSkills`). The loadable set is the union of all
-loaded skills' `loadable-skills` lists, restricted to discovered `loadable`
-skills and minus anything already loaded. A dependency does not become directly
-loadable merely because someone puts its name in that list.
+History's append is durable before publication. A validation failure grants
+nothing. A persistence failure propagates as a real failure through the actor;
+it is not converted to a successful load or a harmless validation message.
 
-The enabled-tool answer must reach execution as well as the request renderer.
-Hiding `write_file` from the declaration array still leaves a working writer if
-dispatch consults only the installed-handler table. Test the guessed name before
-loading its skill: it should return an ordinary tool error and leave the file
-absent. Then load the skill and prove that the same real handler can write it.
-This checks both sides of the boundary without replacing the tool with a mock.
+The initial event contains the primary and its dependencies. Primary grants also
+include the two controls. Later events contain only newly activated manuals.
+`Source(tool)` walks these entries in activation order and reports the earliest
+granting skill and sequence. A tool shared by two manuals has one effective
+permission, not two mutable copies.
 
-`unload_skill` marks a loaded name pending and reports that fact. It does not
-rewrite old instructions or disable the skill's tools in this exercise. An
-unloaded name returns an error. Compaction later provides the boundary where
-removal becomes effective; adding a compactor now would turn a lifecycle marker
-into another assignment. Anthropic's [context editing](https://platform.claude.com/docs/en/build-with-claude/context-editing)
-can clear selected tool results, but that is not semantic retraction of skill
-instructions or an application-level capability revoke. Pending unload retains
-both instructions and tools until the future compaction boundary.
+`unload_skill` refuses the primary, marks another active skill pending once,
+and returns text explaining that its instructions and tools remain active.
+This chapter adds no replacement primary, file watcher, reload command, or
+compaction framework.
 
-## Progressive Disclosure
+## 9.5 Instructions, dialogue, and dispatch
 
-Loading a skill reveals more skills. The `$SKILLS` variable updates
-to show what the agent can load next: `code-tools` might reveal
-`refactor-tools`, which in turn reveals `architecture-tools`. The
-tree unfolds as the agent explores.
+Loading a file is not enough. A successful activation must reach the outgoing
+request in the correct instruction location:
 
-The agent sees only one level ahead: the skills made available by
-the ones already loaded. Context stays focused and the tool list
-stays manageable.
+| Adapter | Instruction location |
+| --- | --- |
+| Anthropic | Top-level `system`. |
+| OpenAI Chat Completions | The initial `system` message. |
+| Gemini | `systemInstruction.parts`. |
 
-The original `$SKILLS` text in the system prompt does not change as this tree
-unfolds. The newly loaded body's `$SKILLS` is rendered after activation and
-joins the system prompt, where it can name the next level. This is how the
-agent discovers `refactor-tools` while retaining its initial rendered bodies.
+The primary body is emitted first, followed by the other rendered bodies.
+Each occurs once. Skill entries are excluded from ordinary dialogue projection,
+so a loaded body does not also appear as tool-result text. Ordinary human,
+assistant, and tool exchanges retain their existing roles and correlation IDs.
+Signed or opaque provider content is not rewritten to carry instructions.
 
-## Variable Substitution
+The **primary body** stays fixed; the **complete instruction block** grows as
+manuals are activated. Do not assert that the entire block remains byte-identical
+after loading. The loader's result reports success or failure; it is not the
+only carrier of the instructions. Clearing ordinary tool-result text must not
+silently remove a manual or revoke a grant.
 
-Skill bodies contain `$VAR` placeholders. A small map of names to renderer
-functions is enough. The skills package supplies `$TOOLS` and `$SKILLS` from
-the owning Agent's enabled declarations and current loadable set. Application
-variables enter through the public API. Given the Ensemble root `app` and its
-provider configuration `cfg`, the accepted implementation uses `Config.Skills`:
+The actor renders from a captured immutable Context before starting HTTP.
+Declarations use that snapshot's grants rather than consulting a second live
+enabled set halfway through rendering. Tool dispatch checks the recorded active
+grants before reservation or effects. A guessed disabled tool call receives a
+paired error with its real call ID and cannot create a job or file.
 
-```go
-cfg.Skills = &ensemble.SkillSpec{
-    Directory: "skills",
-    Primary: "base",
-    Variables: map[string]func() string{
-        "CUSTOM_VAR": func() string { return "creation value" },
-    },
-}
-agent, err := app.NewAgent(cfg)
-if err != nil {
-    return err
-}
-// Future loads see the new renderer; the primary body is already rendered.
-agent.RegisterVar("CUSTOM_VAR", func() string { return "load-time value" })
-```
+The skill controls run synchronously at the actor's admission point. They still
+consume one-shot observation options, validate arguments, and record call/result
+facts, but allocate no independent job. The next model request sees the new
+manual and permissions. All other scheduling, hint, interrupt, and reliable reply
+behavior remains owned by the existing actor.
 
-Leave `cfg.Skills` nil for the inherited non-skill Agent behavior. You may choose
-different identifiers; the constructor's variables must still be installed before
-primary rendering. `RegisterVar` changes future renderings. It cannot reach back into text already
-sent to a model. Select non-secret settings or context deliberately; substituting
-a value puts it into model-visible instructions, so an environment variable
-holding a credential is not a suitable example.
+### Optional Anthropic deferred declarations
 
-Variables render at point of use: the initial system prompt gets
-creation-time lists, and a skill loaded mid-conversation gets
-whatever the lists contain at load time.
+Portable mode sends full declarations for enabled tools. That is the default.
+For a selected Anthropic model known to support tool search, a host may explicitly
+set `Configuration(..., deferredTools: true)`. The executable equivalent is
+`EN_DEFERRED_TOOLS=1`; other vendors refuse this option. The Boolean is the host's
+capability assertion, not a model-name guess or proof of provider support.
 
-In the accepted implementation, unknown placeholders remain visible verbatim.
-A missing `$CUSTOM_VAR` is easier to diagnose that way than as a silently empty
-sentence. Render callbacks outside the registry lock: `$TOOLS` reads declarations,
-which consult the same enabled-tool state. Holding the lock while calling it
-would deadlock the first useful variable.
+In this mode:
 
-## Tool Provenance
+- Initial tools, including the loader, remain eager.
+- Tools reachable through the primary's catalog but granted only later are sent
+  with `defer_loading: true`. A catalog declaration does not grant dispatch.
+- A successful load records newly granted tool names as result metadata.
+- Anthropic projects those names into the correctly paired loader result:
 
-Every tool in the registry tracks its source:
-
-```go
-// ToolMeta records when this Agent first gained a tool.
-type ToolMeta struct {
-    // Source distinguishes creation-time and later capabilities.
-    Source ToolSource
-    // EventSeq is zero for initial tools, otherwise the enabling tool_called.
-    EventSeq uint64
+```json
+{
+  "type": "tool_result",
+  "tool_use_id": "load-1",
+  "content": [
+    { "type": "tool_reference", "tool_name": "write_file" }
+  ]
 }
 ```
 
-If the primary already enabled `read_file`, loading another skill that also
-names it must preserve its initial provenance. A newly enabled `write_file`
-records the sequence of the actual `load_skill` call that enabled it. Use the
-existing event identity rather than inventing a separate skill counter.
+The declarations stay deferred after activation; references reveal their schemas
+to the model. Other adapters and ordinary mode retain textual load results.
+Result metadata survives event serialization, numbering, replay, and ordinary
+result redaction. It is not reconstructed by searching response text.
 
-The Anthropic renderer uses this metadata to distinguish startup declarations
-from tools enabled by an actual `load_skill` call, without knowing about skills.
-It pairs references with that call's successful result. A manual load has no
-model call to cite and uses ordinary declarations instead.
+Anthropic requires the deferred schemas in **every request**. Deferral saves model
+context, not outbound wire bytes. The [official tool-search documentation](https://platform.claude.com/docs/en/agents-and-tools/tool-use/tool-search-tool)
+describes this client-side custom-search path and its reference format. The local
+tests verify our projection against that contract, not a real provider exchange.
+With no live manager/catalog during offline rendering, use the portable enabled
+declarations; do not invent a deferred catalog from missing files.
 
-Keeping the catalog stable can help preserve a request prefix, but newly loaded
-instructions change SYSTEM and can invalidate the cache. Other providers also
-update ordinary tool declarations. None of these paths promises a cache hit;
-cache markers and measured grants belong to the caching work later in the book.
+## 9.6 Constructing and running the C# applications
 
-## The Constitution
+A library host supplies values directly:
 
-When `load_skill` runs, its status is recorded in history and its rendered
-instructions join the system prompt. This applies to Anthropic too: tool
-references disclose tools, not instructions. The initial identity remains,
-but SYSTEM grows as the agent acquires new manuals.
+```csharp
+var specification = new SkillSpec(
+    "/absolute/path/to/owned/skills",
+    "ensemble",
+    new Dictionary<string, string> { ["CUSTOM_VAR"] = "example" });
 
-That separation matters for memory. Pre-loaded context (memories,
-user preferences, project notes) belongs in the message history as
-data rather than the system prompt as instructions. The system prompt stays
-separate from those changing facts. Chapter 22 builds the memory cascade on
-this foundation; this chapter adds no `save_memory` tool or memory storage.
+var configuration = new Configuration(
+    Vendor.Anthropic,
+    "selected-model",
+    "https://api.anthropic.com",
+    apiKey);
 
-## Taking it for a spin
-
-Use a scratch directory so a successful tool call changes a file you meant to
-change. For a small demonstration, create these three files under its `skills`
-directory. They form a separate example from the larger skill tree above.
-
-`base/SKILL.md`:
-
-```markdown
----
-name: base
-description: Small coding assistant
-type: primary
-tools: read_file
-loadable-skills: code-tools
----
-You are a concise coding assistant. Available tools: $TOOLS.
-Skills you can load: $SKILLS.
+var agent = new Agent(app, configuration, skillSpec: specification);
 ```
 
-`code-tools/SKILL.md`:
+The constructor installs the ordinary handler catalog before activating skills.
+A host with custom handlers can instead construct an Agent, register its tools,
+and then construct `Skills` before accepting input. If logging is required,
+open the log **before** constructing the manager: its initial activation is a
+real event and must be recorded too. The CLI and GUI use that order.
 
-```markdown
----
-name: code-tools
-type: loadable
-description: Write and verify a scratch file
-tools: write_file
-depends: helper
----
-Write note.txt with content $CUSTOM_VAR using write_file, then use
-read_file to verify it. Next available skills: $SKILLS.
-```
-
-`helper/SKILL.md`:
-
-```markdown
----
-name: helper
-description: Scratch directory guidance
-type: dependency
-tools: list_directory
----
-Work only in the current scratch directory.
-```
-
-Launch the built command from that scratch directory, with your chosen model
-and provider credentials already configured in its environment:
+For example, from a chapter endpoint:
 
 ```sh
-EN_SKILLS_DIR=./skills EN_PRIMARY_SKILL=base EN_CUSTOM_VAR=SKILLS_OK /absolute/path/to/ensemble chat
+dotnet build Cli/Ch04.csproj
+dotnet build Examples/Gui/Gui.csproj
+dotnet run --project Examples/Skills/Skills.csproj -- /new/owned/exercise-directory
 ```
 
-Ask it to load `code-tools`, follow its instructions once, mark it for unload,
-and answer with the verified file content. Inspect `note.txt` as well as the
-answer. The next request's SYSTEM should retain the startup bodies and add the helper's
-scratch-directory instruction and the substituted marker. On a supported
-Anthropic model, inspect the actual load result for reference-only content
-naming `write_file` and `list_directory`; their deferred definitions remain in
-the catalog. Other providers and fallback paths use ordinary enabled declarations.
-The canonical load status remains text. Keep credentials out of any retained
-request capture.
+The separate `Examples/Skills` assembly exercises public construction, disabled
+writes, load-time variables, provenance, pending removal, and a real write. It
+uses no reflection, internal API grant, or model provider. It leaves its output
+file for inspection and explicitly destroys the Agent graph.
 
-Historical [Claude](../../solutions/evidence/ch10/anthropic-live.json),
-[OpenAI](../../solutions/evidence/ch10/openai-live.json) and
-[Gemini](../../solutions/evidence/ch10/gemini-live.json) sessions each loaded
-this small skill graph (the published examples add descriptions and wrap the
-body text), wrote and read its own marker, marked `code-tools` pending unload
-and answered with the file content. Each process exited normally, and captured
-requests retain identical system text within each session. Those receipts
-belong to the earlier frozen-system design, not the provider-aware protocol now
-taught here. They retain the actual calls, results, file content and request
-bodies. Discover the models available to your account when repeating the exercise.
+The applications copy the shipped manuals from `Skills/*/SKILL.md` beside their
+executables. They default to that output `skills` directory and primary
+`ensemble`. The primary permits read/inspect tools and offers `code-tools` for
+editing and job control. `full` is an explicit full-capability primary for trusted
+local exercises, not a reason to grant all tools by default.
 
-The accepted Edition 3 Anthropic exercise exposed a wire-format mistake: mixing
-status text with `tool_reference` blocks in the discovery result produced HTTP
-400. A corrected reference-only result was accepted, and the agent then used
-the loaded writer. This supports that specific protocol shape, not new coverage
-of every provider or a cache-hit claim.
+Both composition roots accept:
 
-One successful run invited the wrong conclusion. The OpenAI session called
-`unload_skill` before its final `read_file`, and the read succeeded. That looked
-like proof that pending unload had retained the dynamic tools. But `read_file`
-belonged to `base` all along. The read would have succeeded even if unload had
-incorrectly disabled everything `code-tools` added.
+| Setting | Environment | Explicit flag |
+| --- | --- | --- |
+| Skill root | `EN_SKILLS_DIR` | `--skills-dir PATH` |
+| Primary name | `EN_PRIMARY_SKILL` | `--primary-skill NAME` |
+| Example variable | `EN_CUSTOM_VAR` | None; register other variables in a library host. |
+| Deferred Anthropic mode | `EN_DEFERRED_TOOLS=1` | None. |
 
-The focused source test instead checks that the dynamically added `write_file`
-remains declared after pending unload. Declaration and dispatch share the same
-admission predicate, and restoring early removal makes that check fail. The
-revised grader also exercises a dynamic write after marking unload. Match the
-tool in the assertion to the capability whose lifetime is in question; another
-successful paid run of the same read would prove no more.
+Flags override environment values. Existing `LLM_*` connection settings and
+streaming options remain unchanged. Credentials never belong in a skill file,
+variable value intended for model instructions, or committed request capture.
 
-The historical full grader was interrupted during inherited GUI/headless
-parity and produced no aggregate score. Separately invoked unchanged Skills
-phases failed only the two declaration checks requiring undefined `think`.
-The [independent review](../../docs/edition-2-notes/ch10-code-review.md)
-retains the focused score and accepted exceptions. Edition 2's grader uses
-the implemented tool set and the proper clients, with its results recorded
-separately in the [grader report](../../docs/edition-2-notes/enhancement-09-code.md).
+## 9.7 Exercises and evidence
 
-The agent can now acquire a manual and its tools while retaining its
-initial identity. The next chapter gives the conversation a life beyond the
-process that created it.
+Use an owned scratch directory and a working local provider fake first. Give a
+small primary `read_file` and an offered writer skill `write_file`, with a
+`list_directory` dependency. Set `$CUSTOM_VAR` to a harmless marker. Then:
+
+1. Request a write before loading. Check both the paired error and absence of
+   the file; merely hiding a declaration is not enforcement.
+2. Load the writer. Inspect the next actual request for the primary's unchanged
+   body, the newly rendered manuals in instruction context, and enabled tools.
+3. Write a file, mark the writer pending, then write a **second** file with the
+   dynamically granted writer. Verify bytes, not just the final answer.
+4. Read the result and let the CLI reach normal EOF. Inspect its exit and usage.
+5. Render the log offline with the original skill directory unavailable. Loaded
+   instruction snapshots and control declarations must survive without HTTP.
+6. Repeat through the GUI. Expand the real tool-result cards, check the pending
+   explanation, reload the page, and verify stable replay without duplicates.
+
+Also test cycles, missing dependencies, unknown handlers, malformed metadata,
+idempotent loading, primary unload refusal, variable snapshot timing, two-Agent
+isolation, and both directions of manager removal. A held-turn or fake-provider
+test must use the real Agent and its actor, not invoke private handlers and call
+that an integration test.
+
+The Chapter 9 executable-only grader reuses the existing eight skill checks for
+**85 points**. It excludes the inherited Chapter 8/Go topology campaign; it is
+not a full Go grade. Component tests, the separate C# consumer, and actual
+CLI/browser exercises cover different boundaries and must be reported separately.
+
+Real-provider runs require their own authorization and evidence. Historical Go
+sessions and demonstrations do not verify this C# implementation, deferred-tool
+support on an account, audible speech, or human accessibility. Keep blocked
+integration work explicitly incomplete rather than borrowing an earlier pass.
+
+The next chapter gives recorded conversations a life beyond a single process.
+This chapter provides the prerequisite: the actual manuals and grants are facts
+in History, not an accidental consequence of whichever files happen to exist
+when replay begins.

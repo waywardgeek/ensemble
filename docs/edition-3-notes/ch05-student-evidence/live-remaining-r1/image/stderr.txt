@@ -1,1 +1,0 @@
-input=2045 output=784 cache_write=0 cache_read=0

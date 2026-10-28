@@ -1,1 +1,0 @@
-Final read-only static check first failed with AssertionError: {'json'}. Its regex mistakenly matched the filename native-policy.json as a policy field access. The check stopped before report edits or sealing; no launcher/production/native activity occurred. Corrected check excludes preceding identifier/hyphen characters.

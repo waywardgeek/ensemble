@@ -1,4 +1,0 @@
-signal: terminated
-FAIL	ensemble-gui	58.610s
-?   	ensemble-gui/cmd	[no test files]
-FAIL

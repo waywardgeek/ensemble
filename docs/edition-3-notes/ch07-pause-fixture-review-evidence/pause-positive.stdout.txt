@@ -1,4 +1,0 @@
-=== RUN   TestOwnedPauseDiagnostic
-PAUSE_REPORT {"title":"Repaired pause evaluator; review only","checks":[{"id":"pause-holds-tools","title":"pause gate holds tool dispatch","points":20,"earned":0,"passed":false,"details":["pause test error: GUI did not serve HTTP: gui-dir needs index.html"]}],"score":0,"max_score":20,"passed":false}
---- FAIL: TestOwnedPauseDiagnostic (5.02s)
-FAIL

@@ -1,2 +1,0 @@
-FAIL	ensemble-gui [setup failed]
-FAIL

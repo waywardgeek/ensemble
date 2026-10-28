@@ -1,5 +1,0 @@
-{"log_version":1}
-{"seq":1,"type":"message_received","time":"2026-10-17T05:37:26.954209Z","message":{"actor":"human","parts":[{"type":"text","text":"Summarize this video."},{"type":"blob","mime":"video/mp4","ref":{"kind":1,"locator":"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/cadence-ch05-runtime-unsupported-hhk136_b/unsupported.mp4"}}]}}
-{"seq":2,"type":"request_sent","time":"2026-10-17T05:37:26.95423Z","request":{"to":{"vendor":"anthropic","model":"claude-sonnet-4-6","surface":"messages"}}}
-{"seq":3,"type":"error_occurred","time":"2026-10-17T05:37:26.954601Z","error":{"message":"model \"claude-sonnet-4-6\" does not support video media \"video/mp4\""}}
-{"seq":4,"type":"turn_ended","time":"2026-10-17T05:37:26.954613Z","error":{"message":"model \"claude-sonnet-4-6\" does not support video media \"video/mp4\""}}

@@ -1,7 +1,0 @@
-Final candidate d2baff64055ac33702a91c6d6ee5a4246e84c0c9
-Student git status --porcelain: empty (clean).
-Book/grader HEAD and chapter SHA256 match assignment.
-Final grader passed=true and exit 0; final race suite exit 0.
-Credential value absent from all tracked student files, evidence files and student review.
-Only owned temporary build/live/mutation directory and its path handle removed.
-No binary or credential in student tree; no push, checkpoint tag, acceptance or Chapter 2 work.

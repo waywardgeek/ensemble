@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble-edition-3-student/.ch10-local/process_control.py", line 80, in <module>
-    alt=cli_dir/'selected.json';cli(cli_dir,'{"kind":"ephemeral","text":"pending CLI"}\n',['--save',str(alt)]);assert len(archive(alt)['context']['ephemera'])==1
-                                ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/Users/bill/projects/ensemble-edition-3-student/.ch10-local/process_control.py", line 27, in cli
-    assert (p.returncode==0)==success,(p.returncode,p.stderr.decode())
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: (1, 'error: unknown command kind "ephemeral"\n')

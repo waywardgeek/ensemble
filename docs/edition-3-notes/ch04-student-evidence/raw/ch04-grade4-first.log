@@ -1,2 +1,0 @@
-grader: Chapter 4 requires explicit core and consumer module directories containing go.mod
-exit status 2

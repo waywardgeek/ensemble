@@ -1,9 +1,0 @@
-{
-  "target_source": "package main\nimport \"os\"\nfunc main(){if err:=os.WriteFile(os.Getenv(\"REVIEW_TARGET_MARKER\"),[]byte(\"target launched\\n\"),0600);err!=nil{panic(err)};os.Exit(73)}\n",
-  "target_source_sha256": "7dd18dd89978cdc6c7549bd0cca3120c82b1765b8d4a3af3885e5728f5abc596",
-  "build_wrapper_source": "#!/bin/sh\nprintf \"build invoked\\n\" > \"$REVIEW_BUILD_MARKER\"\nexit 97\n",
-  "build_wrapper_sha256": "913c342ef5338156c5b2366ec50f993830596af446eb84cf28b7f97920706142",
-  "selfcheck_target_marker": "target launched\n",
-  "selfcheck_build_marker": "build invoked\n",
-  "active_markers_absent": true
-}

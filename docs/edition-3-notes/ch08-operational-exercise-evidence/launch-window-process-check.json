@@ -1,6 +1,0 @@
-{
-  "begin_local": "2026-10-18T09:46:52.561144",
-  "end_local": "2026-10-18T09:47:35.617144",
-  "remaining_chrome_updater_processes_started_in_owned_window": [],
-  "method": "ps pid/ppid/start/executable only; no shared-browser attachment or termination"
-}

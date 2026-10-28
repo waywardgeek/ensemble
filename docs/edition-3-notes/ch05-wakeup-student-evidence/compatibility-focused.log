@@ -1,6 +1,0 @@
-# ensemble_test [ensemble.test]
-./chapter5_wakeup_test.go:574:9: cannot use wakeCalled(t, a, "process").Job.Handle (variable of type int) as int64 value in assignment
-./chapter5_wakeup_test.go:630:32: cannot use id (variable of type int64) as int value in argument to a.Parent().Jobs().Get
-./chapter5_wakeup_test.go:639:61: cannot use map[string]any{…} (value of type map[string]any) as json.RawMessage value in argument to a.CallTool
-FAIL	ensemble [build failed]
-FAIL

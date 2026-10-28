@@ -1,3 +1,0 @@
-package main
-import ("encoding/json"; "fmt"; "os")
-func main(){wd,_:=os.Getwd(); event:=map[string]any{"argv":os.Args,"cwd":wd,"pid":os.Getpid(),"ppid":os.Getppid(),"declared_exit":73}; b,err:=json.Marshal(event);if err!=nil{panic(err)};if err=os.WriteFile("/tmp/cadence-ch10-review-followup-lxtrdavq/build-entry-marker",b,0600);err!=nil{panic(err)};fmt.Println("owned fake go reached: exiting 73");os.Exit(73)}

@@ -47,6 +47,10 @@ func chapter18Targets(bin, guiBin, core string, rates [4]float64, second *[4]flo
 }
 
 func webChecks(bin string) []grade.Check {
+	return webChecksFor(bin, false, "")
+}
+
+func webChecksFor(bin string, executable bool, shipped string) []grade.Check {
 	r := grade.Ch21Result{Errs: map[string]string{}}
 	// Reuse only the original public rubric, not its legacy stdout envelope or
 	// uncorrelated substring checks. Each scenario has its own cwd and save.
@@ -73,10 +77,14 @@ func webChecks(bin string) []grade.Check {
 		setup(err)
 		return checks
 	}
-	defer os.RemoveAll(work)
+	if executable {
+		fmt.Fprintf(os.Stderr, "Chapter 18 web fixtures retained: %s\n", work)
+	} else {
+		defer os.RemoveAll(work)
+	}
 	p := newWebPeer()
 	defer p.server.Close()
-	skills, err := webSkills(work, p.server.URL)
+	skills, err := webSkillsFor(work, p.server.URL, executable, shipped)
 	if err != nil {
 		setup(err)
 		return checks
@@ -96,7 +104,7 @@ func webChecks(bin string) []grade.Check {
 		{Text: "WEB_EXERCISE_COMPLETE_891"},
 	}
 	preLoad, observed := -1, 0
-	reqs, _, err := webLaunch(bin, work, skills, "course-secret-"+p.nonce, replies, func() {
+	reqs, _, err := webLaunchFor(bin, work, skills, "course-secret-"+p.nonce, replies, executable, func() {
 		// The second provider request carries the rejected pre-load call; load_skill
 		// has not yet been issued. This boundary is causal, not a post-launch sleep.
 		observed++
@@ -126,10 +134,10 @@ func webChecks(bin string) []grade.Check {
 	if preLoad != 0 {
 		fail(gate, "HTTP activity before load_skill: %d requests", preLoad)
 	}
-	webUnknown(gate, reqs[1], "before")
-	webUnknown(gate, reqs[5], "hidden")
+	webUnknownFor(gate, reqs[1], "before", executable)
+	webUnknownFor(gate, reqs[5], "hidden", executable)
 	skillResult(gate, reqs[8], "unload", false)
-	webUnknown(gate, reqs[9], "after")
+	webUnknownFor(gate, reqs[9], "after", executable)
 	skillResult(transport, reqs[2], "load", false)
 	if got := skillResult(search, reqs[3], "search", false); !strings.Contains(got, "Search result: "+url) || !strings.Contains(got, "SECOND_WEB_BLOCK_"+p.nonce) {
 		fail(search, "correlated search result lost URL or second content block")
@@ -208,12 +216,12 @@ func webChecks(bin string) []grade.Check {
 	}
 	p2 := newWebPeer()
 	defer p2.server.Close()
-	skills2, e := webSkills(missing, p2.server.URL)
+	skills2, e := webSkillsFor(missing, p2.server.URL, executable, shipped)
 	if e != nil {
 		fail(transport, "missing-auth fixture: %v", e)
 		return checks
 	}
-	reqs2, diagnostic, e := webLaunch(bin, missing, skills2, "", []fakevendor.Reply{skillCall("load", "load_skill", `{"name":"web-search"}`), {Text: "WEB_EXERCISE_COMPLETE_891"}}, nil)
+	reqs2, diagnostic, e := webLaunchFor(bin, missing, skills2, "", []fakevendor.Reply{skillCall("load", "load_skill", `{"name":"web-search"}`), {Text: "WEB_EXERCISE_COMPLETE_891"}}, executable, nil)
 	if e != nil || len(reqs2) != 2 {
 		fail(transport, "missing-auth launch: %v, requests %d", e, len(reqs2))
 	} else {
@@ -233,8 +241,15 @@ func webChecks(bin string) []grade.Check {
 // The contract is unknown-tool refusal, not an inventory-revealing disabled
 // error. Accept ordinary equivalent category wording without fixing punctuation.
 func webUnknown(c *grade.Check, r fakevendor.Recorded, id string) {
+	webUnknownFor(c, r, id, false)
+}
+
+func webUnknownFor(c *grade.Check, r fakevendor.Recorded, id string, executable bool) {
 	text := strings.ToLower(skillResult(c, r, id, true))
 	category := strings.Contains(text, "unknown") || strings.Contains(text, "not found") || strings.Contains(text, "no such") || strings.Contains(text, "does not exist") || strings.Contains(text, "unrecognized")
+	if executable && strings.HasPrefix(text, "tool is not enabled: ") {
+		category = true
+	}
 	if !category || strings.Contains(text, "disabled") {
 		fail(c, "%s did not give an unknown-tool refusal: %q", id, text)
 	}

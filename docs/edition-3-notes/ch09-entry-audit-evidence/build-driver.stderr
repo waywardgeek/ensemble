@@ -1,4 +1,0 @@
-# github.com/waywardgeek/ensemble/docs/edition-3-notes/ch09-entry-audit-evidence/driver
-docs/edition-3-notes/ch09-entry-audit-evidence/driver/main.go:16:217: too many arguments in call to gradeedition2.Chapter9
-	have (string, string, string, string, string, string, string, string, string, string, gradeedition2.ConsumerCase, map[string]string)
-	want (string, string, string, string, string, string, string, string, gradeedition2.ConsumerCase, map[string]string)

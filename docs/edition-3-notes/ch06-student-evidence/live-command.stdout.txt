@@ -1,1 +1,0 @@
-live-v2 anthropic-human-stream False {'exit_zero': True, 'provider_success': True, 'within_caps': True, 'genuine_content': True, 'file_effect': True, 'hint_active': True, 'hint_in_next_request': True, 'hint_in_answer': False, 'early_stdout': True}

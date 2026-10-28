@@ -1,9 +1,0 @@
-{
-  "pid": 62717,
-  "exit_code": 2,
-  "cdp_listener": [
-    "127.0.0.1",
-    52107
-  ],
-  "profile_preserved": true
-}

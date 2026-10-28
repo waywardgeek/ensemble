@@ -38,8 +38,8 @@ type openAIMessage struct {
 // Chat Completions uses an explicit tool role and keeps results separate from
 // the next human message. Its system instruction lives inside the ordered
 // message list, unlike Anthropic's top-level system field.
-func (e *engine) renderOpenAI(c *common.Context) ([]byte, error) {
-	system := e.SystemPrompt()
+func (e *engine) renderOpenAI(c *common.Context, goalSystem string) ([]byte, error) {
+	system := goalSystem
 	messages := []openAIMessage{{Role: "system", Content: &system}}
 	bound := compactionBound(c)
 	boundMessage, stableMessage := -1, -1

@@ -130,10 +130,12 @@ Tools from the fake MCP server.
 
 // contextOpts describes one launch.
 type contextOpts struct {
-	dir     string
-	target  int
-	model   string
-	prompts []string
+	// startupManual makes C# runtime configuration explicit across restarts.
+	startupManual bool
+	dir           string
+	target        int
+	model         string
+	prompts       []string
 	// expect[i] is how many requests the vendor must have recorded once
 	// prompt i's turn is over. Count is checked after the observed turn end;
 	// provider arrival alone does not establish completion.
@@ -443,7 +445,9 @@ func contextNullSnapshot(data []byte) ([]byte, error) {
 
 // The same-batch read must actually succeed even though its result is immediately
 // cleared from the next request. The durable public event log supplies that proof.
-func contextHandoffLog(dir string) string {
+func contextHandoffLog(dir string) string { return contextHandoffLogFor(dir, false) }
+
+func contextHandoffLogFor(dir string, executable bool) string {
 	data, err := os.ReadFile(filepath.Join(dir, "save.json"))
 	if err != nil {
 		return err.Error()
@@ -464,7 +468,11 @@ func contextHandoffLog(dir string) string {
 				// Parts carries actual returned content, not the earlier arguments.
 				Parts json.RawMessage `json:"parts"`
 			} `json:"tool"`
-			// Handoff retains the separate checkpoint-note payload.
+			// Parts carries the C# marked note; Handoff is the Go payload.
+			Parts []struct {
+				Type string `json:"type"`
+				Text string `json:"text"`
+			} `json:"parts"`
 			Handoff struct {
 				// Text is the recorded note that must survive tool clearing.
 				Text string `json:"text"`
@@ -474,8 +482,7 @@ func contextHandoffLog(dir string) string {
 	if err := json.Unmarshal(data, &save); err != nil {
 		return err.Error()
 	}
-	var call, result, note uint64
-	sibling := false
+	var call, result, note, sibling uint64
 	for _, event := range save.Log {
 		if event.Tool.CallID == "H2" {
 			if event.Type == "tool_called" {
@@ -485,15 +492,19 @@ func contextHandoffLog(dir string) string {
 				result = event.Seq
 			}
 		}
-		if event.Type == "micro_handoff" && event.Handoff.Text == contextHandoffText {
+		if !executable && event.Type == "micro_handoff" && event.Handoff.Text == contextHandoffText {
+			note = event.Seq
+		}
+		if executable && event.Type == "handoff_recorded" && len(event.Parts) == 1 &&
+			event.Parts[0].Type == "handoff" && event.Parts[0].Text == contextHandoffText {
 			note = event.Seq
 		}
 		if event.Type == "tool_returned" && event.Tool.CallID == "H3" && !event.Tool.IsError && strings.Contains(string(event.Tool.Parts), contextFileMark(contextLadderFiles)) {
-			sibling = true
+			sibling = event.Seq
 		}
 	}
-	if call == 0 || result <= call || note <= result || !sibling {
-		return fmt.Sprintf("handoff log requires call < successful result < separate note and successful same-batch read: call=%d result=%d note=%d sibling=%t", call, result, note, sibling)
+	if call == 0 || result <= call || note <= result || sibling == 0 || sibling >= note {
+		return fmt.Sprintf("handoff log requires call < successful result < separate note and successful same-batch read: call=%d result=%d note=%d sibling=%d", call, result, note, sibling)
 	}
 	return ""
 }

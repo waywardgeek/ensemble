@@ -1,3 +1,0 @@
-cwd=/Users/bill/projects/ensemble
-GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off go run ./cmd/lintprose -v docs/edition-3-notes/ch06-text-review-evidence/baseline/chapter-06.md
-GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off go run ./cmd/lintprose -v docs/edition-3-notes/ch06-text-review-evidence/final/chapter-06.md

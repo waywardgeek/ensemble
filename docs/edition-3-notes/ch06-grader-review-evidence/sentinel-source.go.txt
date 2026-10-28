@@ -1,3 +1,0 @@
-package main
-import("os";"fmt")
-func main(){ f,e:=os.OpenFile("/tmp/ensemble-ch06-adapter-review-c6v5ft04/launched",os.O_CREATE|os.O_WRONLY|os.O_APPEND,0600);if e!=nil{panic(e)};fmt.Fprintln(f,os.Args);f.Close();os.Exit(99) }

@@ -1,6 +1,0 @@
-input=10 output=10 cache_write=0 cache_read=0
-input=10 output=10 cache_write=0 cache_read=0
-input=10 output=10 cache_write=0 cache_read=0
-input=10 output=10 cache_write=0 cache_read=0
-input=10 output=10 cache_write=0 cache_read=0
-input=10 output=10 cache_write=0 cache_read=0

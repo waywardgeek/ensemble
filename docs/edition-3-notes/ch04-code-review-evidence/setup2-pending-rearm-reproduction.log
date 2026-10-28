@@ -1,6 +1,0 @@
-=== RUN   TestPublicPendingRearm
-    public_api_test.go:38: system prompt is required
---- FAIL: TestPublicPendingRearm (0.00s)
-FAIL
-FAIL	ch04-review-consumer	0.006s
-FAIL

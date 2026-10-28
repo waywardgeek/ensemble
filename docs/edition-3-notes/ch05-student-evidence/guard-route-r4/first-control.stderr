@@ -1,3 +1,0 @@
-usage: launch.py [-h] --manifest MANIFEST [--out OUT] [--verify-only] [--live]
-                 [--scenario {human,workflow,image,unsupported,all}]
-launch.py: error: unrecognized arguments: --remaining

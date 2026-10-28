@@ -1,6 +1,7 @@
 package gradeedition2
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
@@ -16,9 +17,17 @@ import (
 // Observe a real completed terminal answer before EOF. The read deadline and
 // process deadline bound broken fixtures; neither is substituted for completion.
 func sandboxLaunch(bin string, f sandboxFixture, safe bool, probes []sandboxProbe, current bool) ([]fakevendor.Recorded, map[string]sandboxObservation, error) {
+	return sandboxLaunchFor(bin, f, safe, probes, current, false)
+}
+
+func sandboxLaunchFor(bin string, f sandboxFixture, safe bool, probes []sandboxProbe, current, executable bool) ([]fakevendor.Recorded, map[string]sandboxObservation, error) {
 	replies := make([]fakevendor.Reply, 0, len(probes)+1)
 	for _, p := range probes {
-		replies = append(replies, p.reply())
+		r := p.reply()
+		if executable {
+			r.Text = "I will exercise the next sandbox boundary."
+		}
+		replies = append(replies, r)
 	}
 	// Seed a known fake credential into the provider trace. We inspect the log
 	// through the real file tool; filtering arbitrary assistant text is not a
@@ -29,7 +38,7 @@ func sandboxLaunch(bin string, f sandboxFixture, safe bool, probes []sandboxProb
 	var script *sandboxScript
 	var provider *fakevendor.Server
 	if current && !safe {
-		script = &sandboxScript{probes: probes, firstText: replies[0].Text, final: final, observed: map[string]sandboxObservation{}}
+		script = &sandboxScript{probes: probes, firstText: replies[0].Text, final: final, explained: executable, observed: map[string]sandboxObservation{}}
 		provider = fakevendor.NewWithOptions(nil, fakevendor.Options{Route: script.route})
 	} else {
 		provider = fakevendor.New(replies)
@@ -50,6 +59,11 @@ func sandboxLaunch(bin string, f sandboxFixture, safe bool, probes []sandboxProb
 			args = append(args, "--safe-mode")
 		}
 		args = append(args, "chat")
+		if executable {
+			args = []string{"chat", "--no-stream", "--sandbox", f.root,
+				"--safe-mode", fmt.Sprint(safe), "--enable-web-search", "false",
+				"--skills-dir", f.skills, "--primary-skill", "base", "--save", filepath.Join(f.root, "save.json")}
+		}
 		if script != nil {
 			p, err = startMCPCommandEnvTimeout(bin, f.root, args, sandboxEnv(os.Environ(), f, provider.URL()), time.Until(deadline))
 		} else {
@@ -115,6 +129,13 @@ func sandboxLaunch(bin string, f sandboxFixture, safe bool, probes []sandboxProb
 	}
 	if err != nil {
 		err = fmt.Errorf("%w; stderr: %s", err, p.stderr.String())
+	}
+	if executable {
+		os.WriteFile(filepath.Join(f.base, "host.stderr"), []byte(p.stderr.String()), 0600)
+		data, _ := json.MarshalIndent(reqs, "", "  ")
+		os.WriteFile(filepath.Join(f.base, "provider-requests.json"), data, 0600)
+		summary, _ := json.MarshalIndent(map[string]any{"requests": len(reqs), "error": fmt.Sprint(err)}, "", "  ")
+		os.WriteFile(filepath.Join(f.base, "session.json"), summary, 0600)
 	}
 	return reqs, observed, err
 }

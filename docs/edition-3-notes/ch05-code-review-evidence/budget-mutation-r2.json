@@ -1,7 +1,0 @@
-{
-  "path": "internal/agent/actor.go",
-  "control": "one extra dispatch batch allowed by >= to > boundary regression",
-  "original_sha256": "add42d37fc827bc3f353dd94d4c27278df04c7c9613dc949598bc45213caef96",
-  "mutant_sha256": "6f0520e12a97fdc6fe9e9da6e7458a2c54bd9af4a9546ba2215e225f1b670f63",
-  "restored_sha256": "add42d37fc827bc3f353dd94d4c27278df04c7c9613dc949598bc45213caef96"
-}

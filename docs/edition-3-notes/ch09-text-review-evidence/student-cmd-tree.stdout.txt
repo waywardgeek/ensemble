@@ -1,4 +1,0 @@
-cmd/ch01/display.go
-cmd/ch01/display_test.go
-cmd/ch01/main.go
-cmd/ch01/main_test.go

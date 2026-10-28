@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch06-code-review-evidence/final-integrity.py", line 15, in <module>
-    assert len([p for p in (S/'source').rglob('*') if p.is_file()])==98
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError

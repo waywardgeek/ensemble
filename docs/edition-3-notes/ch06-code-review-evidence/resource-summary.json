@@ -1,8 +1,0 @@
-{
-  "sequential_grading_and_tests": true,
-  "GOMAXPROCS": 2,
-  "GOFLAGS": "-p=1",
-  "minimum_free_bytes_in_command_receipts": 1317392384,
-  "cache_cleanup": false,
-  "no_timeout_wrapper": true
-}

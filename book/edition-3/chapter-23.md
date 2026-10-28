@@ -150,15 +150,6 @@ uses a `recall` object with lower-snake-case keys, such as `max_snippets`.
 Zero numeric fields select defaults; `disabled` bypasses recall and
 `disable_judge` selects mechanical retrieval.
 
-Add these recall fields to the strict `ApplicationConfig` schema introduced
-in Chapter 21, completing the settings type only now that recall exists.
-In file mode persist root recall patches in that same application file;
-children retain local preferences. Apply successful patches to the live
-Agent before acknowledgment, preserving pending next-launch provider edits
-and unrelated memory fields. Exercise save, restart and a live recall change
-through the GUI path as well as through the recall package; a saved setting
-that the running Agent ignores is not an applied preference.
-
 | Setting | Default | Purpose |
 |---------|---------|---------|
 | `MinScore` | 3.0 | BM25 score floor for plain recall (no judge) |

@@ -1,1057 +1,283 @@
-# Chapter 14: The World's Best Context Engineering, Before Breakfast
+# Chapter 14 — The world's best context engineering, before breakfast
 
-This may be the most important chapter in the book.
+A long session with a coding agent can degrade in a familiar way. The answers get vaguer. The agent reads a file it read an hour ago, then forgets a decision made before lunch. A fresh chat can help because a person decides what to carry over. This chapter moves tool-traffic cleanup inside the Agent and records every cut, so replay can explain what left the working context and reproduce the result.
 
-If you've ever started a new chat because your agent seemed confused,
-well, that's yesterday's context engineering. I did it myself, several
-times, on the day I designed this chapter. As of September 2026, what
-follows is tomorrow's. The book is evergreen, so I hope it always has
-modern advice.
+The title comes from the author's account of the original design: after carrying it around for months, he described it to CodeRhapsody one morning, and the first commit landed at 7:42, before breakfast. That is the book's historical account, not a claim about the time taken by this C# implementation or a benchmark against every other system.
 
-The design had been in my head for a couple of months. On a Tuesday
-morning I typed it out for about twenty minutes while CodeRhapsody
-turned it into a design record and checked it against the code. Then I
-took a shower. The first commit landed at 7:42, before breakfast, and
-frankly it felt good to get it out.
+The important idea is less grand and more useful: **the context window is a working set, not the archive**. Keep the decisions and their reasons. Remove tool bytes deliberately. Do not let a cleanup erase the manual that explains the tools still available.
 
-This is how long-running actors should work: what the actor knows,
-organized by section at several levels of detail, with the most
-critical parts kept longest, instead of some lame summary of the first
-half of the context.
+## TL;DR: what you build
 
-A long session with a coding agent can degrade in a familiar way. The
-answers get vaguer. The agent re-reads a file it read an hour ago, then
-forgets a decision made before lunch. A fresh chat helps because a
-human decides what to carry over. This chapter moves tool-traffic
-cleanup inside the agent and records every cut as an event, so nothing
-leaves the window without a record of what removed it.
+1. **One owner for each decision.** Agent selects reductions at safe actor boundaries; History applies recorded facts; Engine renders the resulting Context. A worker never trims History or decides when another model request may start.
+2. **One target, two bands.** The default target is 400,000 bytes. Results use T/8, calls and stubs T/16. Each band crosses twice its budget before cutting an old prefix back toward one budget. Complete call/result batches are the unit of selection.
+3. **An explicit keep-or-stub option.** For opted-in configurations, a large result is considered once after a successful request presents it. The model may call `keep_tool_results` in the consuming response. Ordinary models do not acquire this policy from a guessed name.
+4. **A real checkpoint kind.** `micro_handoff` records an ordinary result and then `HandoffRecorded`. The reducer removes tool traffic and private replay material, replaces older active handoff notes, and preserves visible dialogue and manuals.
+5. **Immediate revocation, retained instructions.** Pending skill unload removes authority, including deferred references and automatic snapshots. Its manual remains in SYSTEM. Retiring that manual is not this chapter's job.
+6. **Recoverable facts.** Serialize writers, append journal records before publication, validate recovery candidates independently, and retain journal events beyond the validated backup—not merely beyond the current primary.
+7. **A full event archive.** An optional archive contains original facts, including tool payloads and cuts. It is not reconstructed dialogue and does not silently invent missing history.
+8. **Honest verification.** Component, separate-consumer, CLI, GUI, browser and executable-grader checks establish different things. Passing a loopback provider does not establish a real provider, audible speech or human accessibility.
 
-## TL;DR
+The endpoint is still C# 14/.NET 10. Shared vocabulary and persistent state are declared in `Common`; functional partial implementations supply the bodies. The GUI remains a separate application, not another scheduler or transcript owner.
 
-Tool bytes gain a removal policy. Every entry gets
-a kind that says which verb removes it. Tool bytes fall off a ladder of
-recorded redaction events. On a model configured for stubbing, each round
-trip's results are stubbed unless the model keeps them. The actor can
-checkpoint with `micro_handoff`. Loaded skills survive as entries instead
-of as tool results. They still supply instructions through Chapter 9’s SYSTEM
-composition, not ordinary tool-result prose. The log reaches disk as it grows,
-so a process crash can recover the journaled work.
+## In plain words
 
-The shared entry vocabulary gains four kinds. These definitions belong in
-`internal/common`; reduction belongs in History, not on common-package structs:
+Keep the user's words and useful explanations. Once a tool result has done its
+job, replace its bulk with a stub, and later remove the paired call and stub.
+At a deliberate checkpoint, keep one new note and clear tool traffic without
+summarizing away the conversation. Record every cut so replay knows exactly what
+happened. Preserve original facts separately, and make crash recovery depend on
+validated files rather than guesses about what was probably saved.
 
-```go
-// EntryKind identifies what removes an entry. Survivors never contain tool parts.
-type EntryKind uint8
+## 14.1 Why is this byte here?
 
-const (
-    KindDialogue EntryKind = iota + 1
-    KindHandoff
-    KindSkill
-    KindTools
-)
+Ask three questions of every byte sent again with a request:
 
-// MicroHandoffData records the checkpoint text that survives its tool call.
-type MicroHandoffData struct {
-    Text string `json:"text"`
-}
+- Why is it here?
+- What put it here?
+- What can remove it?
+
+A user prompt has a reason to remain. A useful explanation of an edit does too. A large file result often answered a question once and is now occupying the window without another decision to support. The first edition's measurements reported about 42 percent result bytes and another 30 percent call arguments in the measured histories. Those figures motivate examining tool traffic; they are not measurements of this C# endpoint.
+
+A removed file result can often be obtained again by reading the file. That is not the same as recovering the original result: the file may have changed, and repeating a command may have effects. Preserve original facts in the archive when their historical identity matters. A stub should say that bytes were removed, not fabricate a trustworthy locator.
+
+The book records a particularly instructive earlier bug: a stub referred to an output path whose numeric handle was reused after restart. The next reader received plausible output from the wrong command. Wrong data was worse than no data. This endpoint does not turn a result stub into an unverified promise that some path still names its original bytes.
+
+Tool clearing is not dialogue summarization. The automatic policy in this chapter never asks a model to replace the user's goal or a discussion with a compressed paraphrase. Existing reduction primitives can express other operations, but the policy here selects result and tool reductions only.
+
+## 14.2 Keep the relationships simple
+
+The real ownership paths remain:
+
+```text
+Ensemble → Agent → History
+                 → Engine
+                 → Jobs → Job
+                 → Skills / MCP owners, when configured
 ```
 
-Each context entry carries its kind alongside sequence, actor and parts. Reuse
-the existing skill body and redaction payloads. Add `micro_handoff` and
-`tools_changed` facts; the latter carries full `added` declarations and `removed`
-names. A `tool_decls` part holds that delta without becoming a call or result.
+History owns committed Context, retained diagnostic events, sequence numbering and persistence coordination. Agent owns the target, the actor's temporary decisions and request admission. Immutable Context, entries and parts are value-like snapshots; they do not acquire holder back-pointers simply because several readers use them.
 
-1. **Stable base, explicit instruction changes.** Preserve the initial primary
-   instructions. Loaded skill entries contribute their recorded bodies to SYSTEM
-   on subsequent requests, including after restart and tool clearing. Loading a
-   skill changes SYSTEM and may invalidate its cache prefix; do not promise a
-   cache hit or clear history to disguise that change. Only the synthetic
-   `InlineTools` fixture freezes startup declarations, as rule 2 describes.
-2. **Tools arrive through the dialog.** A skill load, a skill unload,
-   or an MCP connect mid-session emits `ToolsChanged`, and the reducer
-   turns it into a `Tools` entry. On a model whose features row sets
-   `InlineTools`, that entry carries the declarations in the dialog.
-   The `tool_decls` part is neither a call nor a result, so rule 3 still
-   holds. The renderer places inline declarations after the complete
-   user/tool-result/ephemeral turn. These inline blocks are a course-only
-   protocol. Real models retain Chapter 9’s supported disclosure paths: updated
-   declarations, or Anthropic’s full deferred catalogue and references in genuinely
-   paired successful load results. Preserve the reference-only result shape;
-   do not mix acknowledgement or manual prose into it.
-3. **Survivors carry no tool parts.** A `Handoff`, `Skill` or `Tools`
-   entry never holds a tool call or a tool result, so no tool clearing
-   can touch it.
-4. **Skills are entries.** The reducer turns `SkillLoaded` into a
-   `Skill` entry holding the rendered body. The paired result is reference-only
-   on the supported Anthropic search path, otherwise an acknowledgement rather than
-   the instruction body. Replay uses the recorded body, without
-   rereading the file. `unload_skill` removes grants no other active skill
-   supplies and stops its servers, but leaves the `Skill` entry where it
-   is, still contributing instructions to SYSTEM. A later chapter's verb
-   removes it; ordinary tool clearing and this chapter’s handoff do not.
-5. **`micro_handoff` is three records:** the tool call, an ordinary
-   result, then a `MicroHandoff` event. Its reducer waits until the
-   batch's last result has arrived, so a call made alongside
-   `micro_handoff` is cleared with it, even if it has not started yet in
-   the serial dispatcher. Then it removes every tool call and tool
-   result part, opaque reasoning and private replay signatures from the context,
-   including signatures attached to visible text. It preserves visible dialogue
-   and the event log, drops entries left empty, and appends one `Handoff` entry.
-   The text appears in the next request exactly
-   once, and no call is ever left without its result or a result without
-   its call. The tool takes `{"text":"..."}`.
-6. **Keep or stub, per round trip.** On a model whose features row sets
-   `StubsToolResults`, every tool result above the stub threshold is
-   replaced by a stub in the request after the one that carried it,
-   unless the actor's next message calls `keep_tool_results({})`, which
-   keeps that whole batch. Called alongside other tools, it keeps the
-   previous batch, not the one it rides in, and its own result is never
-   stubbed. The call survives either way. The stub is an ordinary
-   `RedactResult` event, so replay reproduces it. Other models get no
-   per-round-trip stubbing; the ladder alone applies.
-7. **The ladder records a Seq.** With target size T, whole tool traffic
-   has a T/8 budget. Older results become stubs (`RedactResult`) and
-   their calls stay, for a T/16 budget of calls and stubs. Older tool
-   traffic goes entirely (`RedactTool`). A band is cut in steps: when it
-   passes twice its budget, one event cuts an old prefix back toward its
-   budget. Cut only completed batches the model has already seen. Each
-   event stores `To` as a number, never as "the watermark", so a later
-   settings change cannot rewrite the past.
-8. **The reducer is total over known events.** JSON decoding, version,
-   anchor and sequence validation remain strict. Within a structurally valid
-   event stream, a recognized event whose payload cannot apply, such as a
-   `skill_loaded` with no body payload or a redaction naming absent entries, is
-   diagnosed and skipped before mutation; later valid events still apply. This
-   deliberately advances Chapter 10’s refusal of malformed known payloads, not
-   its whole-candidate validation. Unknown event types still refuse the candidate
-   atomically, without installing an Agent or overwriting either recovery file.
-9. **Backup-anchored recovery.** Complete events reach the independent
-   journal before publication or acknowledgement. Retain every journal event
-   after the validated **backup** snapshot boundary, not merely the new primary
-   boundary. Encode and validate first; preserve Chapter 10’s validated backup
-   rotation and atomic primary replacement before trimming. If no usable backup
-   boundary is established, do not discard the required recovery tail. Recovery
-   selects primary or backup independently, applies its embedded tail, then
-   applies only journal sequences beyond the state already covered, exactly once.
-   Serialize append, save/rotation and trimming at the actual event writer.
-   Process-crash recovery is required; universal power-loss durability is not.
-10. **One knob.** The Context Management settings tab sets
-    `context_target`: T in bytes, 0 for the default of 400,000, clamped
-    to at least 20,000. The stub threshold is T/100 and the bands are
-    rule 7's, so the default gives 4,000, 50,000 and 25,000. Keep Chapter 10’s
-    `log_mode` archive choice and `diagnostic_max_records` separate from recovery:
-    no arbitrary last-N cap may discard the backup’s canonical tail. After a
-    successful `micro_handoff` recovery save, use the same diagnostic writer’s
-    retention operation used at startup and exit. Failed saves preserve recovery
-    and diagnostic bytes. Store settings at the owning Agent’s path and preserve
-    unsent browser edits when a settings snapshot arrives.
+Common declares the new operations and values, including:
 
-The model-feature matrix is part of the exercise:
+```csharp
+public const int DefaultContextByteBudget = 400_000;
+public partial int ContextByteBudget();
+public partial void SetContextByteBudget(int bytes);
+public partial (int ResultsBytes, int CallsBytes) ToolCompactionBudgets();
+```
 
-| Row | `InlineTools` | `StubsToolResults` |
-| --- | --- | --- |
-| `claude-opus-5-course` | true | true |
-| `claude-sonnet-5-course` | false | false |
-| All existing real-model rows | false | false |
+These declarations belong to the existing partial Agent. Their implementation belongs in `Agent/Compaction.cs`. There is no settings service copied into every object and no separate reduction scheduler.
 
-The course rows are deterministic fixtures. Keep both new flags false on
-existing real-model rows. Dialogue and survivors remain outside the tool
-budgets; this chapter does not yet bound the whole window.
+Constructors establish the existing parent relationships. Explicit destruction joins owned work and removes both ends. History remains attached while terminal facts and shutdown persistence need it. A recording failure does not permit cleanup to abandon an Agent in its parent's collection; cleanup must still complete, while preserving the original failure.
 
-For live Anthropic use, choose a supported model such as `claude-sonnet-4-6`.
-Bill reports that 5.5 models do not work with ephemeral context and has
-excluded them from supported use. Historical 5.5 runs below retain their
-actual names; they are not reader model choices.
+## 14.3 Instructions are not disposable tool results
 
-Yours: the on-disk layout of the journal, what a diagnostic says, and the
-settings tab's appearance.
+Chapter 9 already put loaded manuals in provider instruction context. Do not move them into dialogue merely because a historical implementation did so. Primary and loaded `SkillPart` bodies appear once in the provider's instruction field; ordinary transcript messages do not duplicate them.
 
-**Exercise.** Start from your Chapter 13 agent. Add context management until
-the following command, run from the repository root, scores 100/100:
+A skill's recorded grants describe what was activated. Its pending marker changes what is authorized now. Derived Context queries compute active and revoked names from the immutable request snapshot:
+
+- A pending-only grant is unavailable immediately.
+- Another active skill may still grant the same name.
+- Dispatch refuses an unavailable tool even if a caller guesses its name.
+- Ordinary declarations, deferred catalogs and emitted discovery references follow the same rule.
+- Historical discovery metadata stays in canonical events; request projection filters it without rewriting the record.
+
+Automatic MCP operations remain outside callable model tools. A pending skill cannot continue collecting automatic snapshots. Unloading a server-backed skill also closes its owned connection/tools under the existing ownership rules.
+
+Both tool clearing and handoff retain pending manuals in SYSTEM. **Removing permission and retiring an instruction body are different operations.** This chapter implements the former, not a new manual-retirement scheme.
+
+The historical chapter discussed frozen inline declarations. This C# edition uses the Chapter 9 provider declaration mechanism instead. Stable primary instructions and infrequent cuts remain useful, but this endpoint makes no claim to implement that old inline protocol or to have measured a provider's cache benefit.
+
+## 14.4 The two-band ladder
+
+Let T be the Agent's context-byte target. The default is 400,000:
+
+| Use | Derived amount at the default |
+| --- | ---: |
+| Whole-result band, T/8 | 50,000 bytes |
+| Call-and-stub band, T/16 | 25,000 bytes |
+| Optional immediate-stub threshold, T/100 | 4,000 bytes |
+
+A positive target has a one-byte minimum for each ladder band. The public setter refuses negative values without mutation; zero disables automatic byte-budget reduction. These are byte measures of serialized tool material, not token counts, model context capacities or a hard cap on the entire conversation. Dialogue and manuals may grow beyond T.
+
+Each immutable entry caches its tool-byte measure. This is a derived value of immutable content, not another mutable accounting authority. Selection examines complete batches, using response-local call/result pairing. Repeated IDs in later completed batches remain legal. An incomplete, orphaned or ambiguous exchange stops safe prefix selection; the algorithm does not invent a result to make progress.
+
+The result band measures eligible batches with whole results. Above twice its budget, select the oldest prefix sufficient to bring the measured band down toward one budget. Record a `Redacted` event with `Redaction.Result` and fixed sequence bounds. Applying it replaces result bodies with stubs while preserving their calls and identities. Re-stubbing an existing stub preserves its metadata.
+
+Then consider the call/stub band. It may remove only a stub-only prefix, never jump over a still-whole batch. Above twice that band's budget, record `Redaction.Tool` over complete old batches. Calls and results disappear together; surrounding visible text remains.
+
+Why twice the budget? A cut invalidates a region of the request. Cutting larger chunks less often avoids constantly shaving its front. This is hysteresis, not a guarantee about cache hits on an untested provider.
+
+The actor advances its presentation watermark only after a successful response. A new result therefore reaches a successful request before automatic clearing can select it. After restoration, the first request conservatively presents retained results again. Recorded cuts, however, are never reconsidered: raising T later cannot resurrect them.
+
+## 14.5 Keep or stub, once
+
+Some sessions benefit from more aggressive treatment of a large result after its first use. `Configuration(stubsToolResults: true)` enables that explicit policy. The hosts expose `--stub-tool-results`, with `EN_STUB_TOOL_RESULTS=1` as their environment alternative. The default is false; no model-name prefix silently enables it.
+
+The concrete `keep_tool_results` control is installed and granted for this option. It takes no policy arguments. A successful model-dispatched call vetoes the immediate cuts staged for that consuming response. A same-named custom tool is not the control. Invalid arguments, a failed call or an undispatched interrupted call do not count as keeping.
+
+Selection occurs against the Context that was presented, before recording the consuming response. Results larger than T/100 are candidates. The actor holds only temporary proposed cuts while that response's tool batch completes. Successful keep discards those proposals; otherwise the actor records the cuts after all companion outcomes are durable.
+
+Every completed assistant response has a canonical entry, even an empty response. That entry closes the prior batch's once-only decision boundary. A later text-only turn or snapshot-only restart must not reconsider a batch that was kept. This uses the existing conversation structure rather than a persistent batch registry.
+
+Keeping is not unlimited retention. The ordinary ladder may still stub or remove an oversized kept batch when its band requires it. Small results, ordinary-model sessions and a zero target retain their defined behavior.
+
+## 14.6 Explain the work so useful reasons survive
+
+Once a file result disappears, what remains about the edit? Whatever useful explanation the Agent recorded, plus any facts still available in their original sources.
+
+Compare:
+
+```text
+read_file config.cs
+edit_file config.cs
+```
+
+with:
+
+```text
+The port appears to be fixed in config.cs; I'll check it before changing settings.
+read_file config.cs
+The listener uses a literal port here. I'll move that choice to the existing settings owner.
+edit_file config.cs
+```
+
+The second version preserves intent and a reason. It does not need private chain-of-thought or a verbose narration of every keystroke. A concise explanation before an action lets a person supervise it now and helps a future continuation understand it later.
+
+Narration is evidence of what the Agent said, not proof the statement remains true. Record paths, relevant operations, observed outcomes and uncertainties. Re-read a changing source instead of treating an old sentence as a current fact. This is why the chapter keeps words without pretending that words are infallible memory.
+
+## 14.7 A handoff is a fact, not a destructive summary
+
+The book's earlier experiments tried positional `compress_context`: a model chose messages to replace with a summary. Bill's September 2026 account described repeated loss of most of the conversation, including the goal near its beginning. Later whole-task handoffs started a fresh instance from a document, introducing a second path for durable state. Those are historical lessons, not implementations to reproduce here.
+
+`micro_handoff` is smaller and more constrained. The model supplies a nonempty `text` note through the normal tool protocol. Admission validates it; the ordinary successful result is recorded before the note can take effect. If the response also contains another tool, its outcome must be recorded before the cut. Interruption pairs undispatched tails with their exact-ID refusals first. Independent Jobs are not cancelled merely because their observations no longer belong in context.
+
+The actor then records `HandoffRecorded` carrying a value-like `HandoffPart`. History applies that fact by:
+
+1. Removing tool calls and results from working Context.
+2. Removing opaque reasoning and private replay signatures, including signatures attached to otherwise visible text.
+3. Retaining the visible text, ordinary dialogue, system entries and skill manuals.
+4. Removing older active handoff parts and appending the newest note.
+
+Do not recognize a handoff by a magic prose prefix. The marked part makes replacement precise. Engine converts it to ordinary system text only in the disposable provider projection. Canonical Context and snapshots retain its identity. Original notes and private parts remain in the event archive; clearing a working view does not rewrite history.
+
+The note should say what succeeded, what failed, where the source of truth lives, and what comes next. Failed approaches are often the highest-value bytes because they prevent repetition. Record uncertainty too. A note is a continuation aid, not proof of subjective continuity or a substitute for checking current state.
+
+## 14.8 Manual clearing follows the same actor boundary
+
+The public control is `AgentInput(InputKind.ClearTools)`. The CLI accepts `{"kind":"clear_tools"}`; the GUI provides **Clear tool traffic**. Neither creates a new worker that edits History.
+
+The actor stages one pending flag. After current batch outcomes and any staged result cuts/handoff are recorded, it records a tool-only redaction over the actual committed sequence range. Pause blocks a new model request, not this completed-batch control. An idle paused Agent can therefore clear immediately. A repeated clear with no tool traffic creates no synthetic cut.
+
+For a caller that needs to observe completion:
+
+```csharp
+await agent.PostAsync(new AgentInput(InputKind.ClearTools));
+await agent.FlushAsync(cancellationToken);
+```
+
+`PostAsync` admits the control. `FlushAsync` observes accepted foreground work; it does not resume a paused turn or wait for all independent Jobs. Manual clear preserves dialogue, pending manuals and the newest handoff. It does not terminate a command simply because that command's earlier observation is cleared.
+
+## 14.9 Total reduction is not permissive decoding
+
+A recorded cut contains its decision: event kind, level and exact sequence range. History applies that event. It does not ask today's Agent policy to select the range again.
+
+Known but inapplicable facts must not stop all later replay. An inverted or out-of-range reduction, or a known event missing the payload needed to apply it, is a safe no-op on Context. History reports a safe diagnostic with sequence, kind and reason, and later valid facts still apply. Sequence advancement includes the skipped durable fact.
+
+That is different from accepting corrupt data. Unknown event kinds, unsupported versions, invalid supplied values, malformed tool identities and broken journal sequences remain errors. Do not implement totality as a blanket catch that hides invariant faults. Separate strict decoding from explicit applicability checks; keep public `Reduce` pure and put diagnostics on the real History owner.
+
+Snapshot/tail loading stages a complete candidate before publication. A bad candidate cannot leave half a restored conversation live. Replay and incremental append use the same reduction behavior, so a full log and its snapshot produce the same request under the same current runtime configuration.
+
+## 14.10 The recovery journal, primary and backup
+
+Chapter 10 saved on joined shutdown. A killed process cannot perform that shutdown. Chapter 14 adds a journal to the same History owner, not a second event store or scheduler.
+
+`Agent.StartPersistence` restores first, activates `<save-path>.journal.jsonl`, then records current runtime configuration. It runs before accepting input. Direct `History.Save` remains a snapshot operation; it does not silently enable continuous journaling. Explicitly disabled persistence remains available.
+
+All writers serialize through History's existing save gate. Append computes its next event and reduced state under a short state lock, writes and flushes the journal and optional diagnostic writer outside that state lock, then publishes committed events/Context/sequence. Readers can still capture the last committed snapshot during slow disk work. Another writer cannot race past it.
+
+If append fails, publish nothing live and poison further append/save attempts. A partially written sequence must not be reused under the pretense that nothing happened. Shutdown may then report the original recording fault, but explicit destruction still joins work and detaches owners.
+
+Recovery validates candidates independently. Prefer a valid primary plus its contiguous journal suffix; otherwise try a valid backup plus its suffix. With neither snapshot present, a journal beginning at sequence one can recover the initial session. Do not turn corrupt candidates into an empty conversation or use a valid primary to conceal an invalid backup-retention assumption.
+
+Only complete newline-terminated journal records count. An incomplete final suffix, even a partial UTF-8 character, may be ignored with a diagnostic. Malformed complete records, duplicate numbers and gaps refuse. Loading does not repair files. Activating a writer after successful recovery rewrites the validated complete prefix before new appends.
+
+Saving follows a careful order:
+
+1. Capture a consistent snapshot without holding the state lock across disk I/O.
+2. Render and validate the candidate; prepare any requested archive.
+3. Validate the old primary before rotating it into backup. Never overwrite a good backup with corrupt primary bytes.
+4. Replace the primary with the new validated snapshot.
+5. Retain journal records newer than the **validated backup**. Without a valid backup, retain them all.
+6. Only then trim the live diagnostic tail as configured.
+
+The journal is not trimmed merely to the latest primary boundary: that would destroy the facts a backup needs after primary corruption. No `fsync` or hardware power-loss guarantee is claimed here. The executable crash exercise tests process kill and recovery, including a torn final suffix.
+
+## 14.11 A full archive must really be full
+
+An optional `ArchivePath` is an event-complete JSON-lines log. A dialogue-only reconstruction cannot replay cuts, tool outcomes, skill grants or lifecycle facts, so it is not an adequate substitute.
+
+Before changing snapshots or trimming, merge the existing archive, available journal and retained diagnostic events. Require a contiguous sequence from one through the captured boundary. Overlapping sequence identities must serialize identically; missing earlier facts, conflicting overlaps or future events refuse before snapshot/backup changes. Strict UTF-8 prevents silently changing original bytes through replacement characters.
+
+If no source still contains an early event, enabling an archive later cannot manufacture it from reduced Context. Report the missing history. Keep archive, save, backup, journal and open diagnostic paths distinct. Writing an archive successfully before a later snapshot failure is acceptable; a retry must validate and reuse it safely.
+
+The public `History.Load` log path can replay this archive. It recovers the reduced working view because the original payloads and the subsequent cuts are both there. Diagnostic retention zero therefore need not mean lost history—provided journaling/archive saving actually preserved it. A snapshot alone remains a different artifact.
+
+## 14.12 One setting, one authority
+
+The library Agent owns the live byte target. The GUI's settings snapshot reads it rather than keeping a second mutable copy in presentation preferences. Validate a proposed patch and save it before publishing either preferences or policy. A failed save must leave the old file, live policy and both clients' acknowledged values unchanged.
+
+The GUI field is `context_target_bytes`. Its convention is intentionally different from the library setter: zero or a negative value selects the 400,000-byte default, positive values round to thousands, and a rounded zero also selects the default. Large values are bounded safely. A wrong-typed optional field is ignored like the existing preference fields. The control shows acknowledged values, retains a proposed edit while saving, and restores acknowledgement on failure.
+
+The CLI takes `--context-budget-bytes N` or `EN_CONTEXT_BUDGET_BYTES`; an explicit flag wins. Here zero disables automatic reduction, and negative values refuse. Document this difference instead of hiding it behind a shared parser with contradictory semantics.
+
+Live reductions also change already-rendered cards. Incremental frames newer than a cursor cannot remove an older tool card. The GUI therefore uses its existing silent replay envelope when a recorded cut crosses the peer's view. Snapshot Context supplies the transcript; diagnostics cannot resurrect a cleared model dispatch card. The completed-response frontier retires both stored and late streamed partials at `ResponseEnded`, not only at the end of the entire turn.
+
+A replay is presentation recovery, not another speech event. The newest handoff is readable; refresh and a zero-log restart must project the same reduced transcript without automatically sending a model request.
+
+## 14.13 Build and exercise the endpoint
+
+From a preserved source endpoint, use an approved .NET 10 SDK:
 
 ```sh
-# From the evolving student root; GUI and CLI are different executables.
-go build -o /tmp/ch14-cli ./cmd/ch01
-(cd gui && go build -o /tmp/ch14-gui ./cmd)
-# From the book repository root; never rely on a historical default solution.
-go run ./cmd/grade-edition3 -ch 14 -json /tmp/ch14-gui
-go run ./cmd/grade-edition3 -ch 1 -json /tmp/ch14-cli
+dotnet build Ensemble.csproj
+dotnet run --project Tests/Tests.csproj
+dotnet build Cli/Ch04.csproj
+dotnet build Examples/Gui/Gui.csproj
 ```
 
-Chapter 14 takes the explicit GUI executable (or its buildable module directory),
-not the core CLI or the preceding chapters’ parity-artifact flags. Freeze both
-artifacts for the campaign. Require `passed: true` and exit zero from both grades;
-allow Chapter 1’s genuine 62-second header and body waits to finish. Section 14.14
-explains the launch, settings and eight-check contract.
+The CLI project name remains `Ch04.csproj`; renaming it is not part of context engineering. Keep credentials, logs, profiles, captures and build products outside source endpoints. Use a fresh owned workspace and local ports, not another person's running application.
 
-## §14.1 In Plain Words
-
-The context window is not storage. The log is storage: Chapter 2 made
-it append-only, recording what the agent saw or said. The window is a
-working set rendered from that log, sent again on every request. Every
-byte has to answer three questions: why is it here, who put it here, and what removes it. A byte
-that cannot answer the third question stays forever, and a window full
-of such bytes can crowd out the work a person wanted the agent to remember.
-
-Most of the bytes in Chapter 2's measured sessions were tool bytes:
-results were about 42 percent of conversation history by volume, and
-call arguments another 30 percent. Nearly all of those bytes are needed
-once. The agent reads a file, decides, edits; after that, the file's
-contents are recoverable from disk and the decision lives in what the
-agent said about it. Hence the chapter's rule: keep the words, let the
-bytes go. Dialogue stays. Tool results go first, then the calls that
-produced them, oldest first.
-
-Some things must never go with them. A loaded skill's instructions and
-the note an agent writes to its future self at a checkpoint look like
-tool traffic today, because they arrive through tools. If they stay
-tool traffic, the first cleanup deletes the manual and keeps the tools
-it explains. Anything that must survive becomes its own kind of
-entry, removed only by its own verb. Survivors are safe by
-construction.
-
-Every cut is an event in the log with an exact number in it; nothing is
-re-evaluated later. That is what keeps Chapter 10's promise:
-replaying the log reproduces the same window, byte for byte, even after
-the settings that chose the cuts have changed.
-
-Two laws explain the cost of cuts. Preserve stable material where its meaning
-has not changed, but deliver new instructions when skills change: Chapter 9’s
-SYSTEM composition takes priority over a cache prediction. Changing a byte near
-the front can invalidate more of a prefix than changing one near the end. So cuts
-come in steps, not a trickle: one larger cut now and then invalidates that region
-less often than a small one every turn.
-
-The redaction levels are Chapter 2’s, instruction delivery is Chapter 9’s,
-the snapshot and replay are Chapter 10’s. What was missing is the
-policy that decides when to use them, and kinds for the entries that
-must survive.
-
-## §14.2 Why Is This Byte Here?
-
-Chapter 2 built the machinery for this chapter before it had a cleanup
-policy to call it. `RedactData` has four levels. `RedactResult` turns a
-tool result into a stub and keeps the call. `RedactTool` removes both
-and keeps the reasoning around them. `RedactDialogue` and
-`RedactSummary` reach into the conversation itself. The first edition
-left a comment at that boundary:
-
-```go
-case RedactDialogue:
-        // Prose and reasoning go. Survivors are defined by the compaction
-        // policy, which is a later chapter's problem.
-```
-
-This chapter supplies the tool-traffic policy. Dialogue removal remains a later exercise. Context engineering, as the book uses the term,
-is managing every byte in the context data structure as well as
-today's models allow. The management is a policy: for each byte, a
-reason it is in the window, a record of what put it there, and a verb
-that takes it out.
-
-Walk a request from a Chapter 13 agent after an hour of work and ask each
-byte the three questions. The system prompt answers all three: the
-agent's constitution, written at startup, removed by nothing. A user
-prompt answers them. A 9,000-byte file read forty minutes ago answers
-the first question with "the agent needed it once", the second with
-`read_file`, and the third with silence. Nothing removes it. It rides
-along on every request until the session ends or a human copies the
-good parts into a fresh chat.
-
-The fix is that silence. Give the old tool traffic a remover.
-
-## §14.3 Two Laws
-
-The vendor's prompt cache decides where a cut may happen. Under prefix
-caching, everything after the first changed position loses its match.
-This describes reuse, not a bill: bytes are not tokens, and the provider
-must actually grant caching for the stable prefix to save money.
-
-**Law 1: keep unchanged material stable.** The primary instructions remain the
-Agent’s startup base. Dynamic skills add instructions to SYSTEM using Chapter 9’s
-provider-specific projection. That is an intentional change, not a cache defect;
-tool-result text alone is not an instruction channel. Do not claim that a stable
-tool prefix makes a changed SYSTEM free.
-
-The course-only `InlineTools` rows explore a different declaration mechanism.
-Their startup tool list stays stable while declaration changes become events. A skill load, a skill
-unload, or an MCP server connecting mid-session emits `ToolsChanged`,
-a delta of declarations added and names removed. The reducer turns it
-into a `Tools` entry at the tail of the context, where it preserves the earlier declaration prefix. On a model whose features row sets
-`InlineTools`, the renderer sends that entry as a mid-conversation
-system message:
-
-```json
-{"role": "system",
- "content": [{"type": "tool_addition",
-              "tool": {"type": "tool_definition",
-                       "definition": {"name": "gui_click",
-                                      "description": "Click a matching element",
-                                      "input_schema": {"type": "object",
-                                                       "properties": {"selector": {"type": "string"}},
-                                                       "required": ["selector"]}}}}]}
-```
-
-The course renderer sends the header `inline-tools-2026-09-15`. A removal
-uses a `tool_removal` block containing
-`{"type":"tool_reference","name":"gui_click"}` under `tool`. These dated
-wire shapes belong to the course fixture; the exercise does not enable
-them on live models. Without this synthetic feature, the renderer uses the
-supported Chapter 9 path, including updated top-level declarations or deferred
-Anthropic definitions and genuinely paired references. Both paths must reflect
-actual grants; neither permits automatic tools to leak into the model’s menu.
-Match enabling calls and results in the current projection, not by hydrating the
-archive and reviving a pair that tool clearing removed.
-
-The declaration’s position matters as much as its bytes. During the historical student run,
-a new MCP declaration followed a tool result, then automatic ephemera added
-another user message after it. The roles became:
-
-```text
-user, assistant, user, system, user
-```
-
-The initial fake accepted that request, and prefix and replay comparisons passed.
-A faithful placement check rejected it: the contentful system message belongs
-after the complete user turn. The corrected renderer holds declaration blocks
-until the assistant boundary or request end, after tool results and automatic
-context:
-
-```text
-user, assistant, user, system
-```
-
-The fix changes only the disposable wire view. The log keeps its chronology,
-and ephemera remain user content. Equal replay bytes are useful only after
-the request itself is valid.
-
-The primary base changes with a refreshed Agent; skill instructions can change
-within its lifetime. Changing `context_target` leaves both the instructions and
-already recorded cuts alone.
-
-**Law 2: the cost of changing a byte grows with its distance from the
-end.** Everything after the changed position loses its prefix match.
-Stubbing the result that arrived on the last round trip changes bytes
-near the tail. Stubbing a result a hundred thousand bytes back
-invalidates a hundred thousand bytes of later content.
-
-The design record preserves a useful failed prediction:
-stubbing every tool result one round trip after it arrived would wreck
-the cache, since the request changes on every trip. The first session
-run that way, on CodeRhapsody with Opus 5.5 on 2026-09-22, reported a
-cumulative cache hit rate of 77 percent, after a cold first request
-that missed on over 100,000 tokens. The prediction had the law
-backwards: a just-finished result sits at the tail, where less later content loses its prefix match. The cumulative figure also hides the steady state, because that
-one cold miss is averaged into every later request, which is why a
-display of cache rate should show the last request beside the total.
-
-Law 2 has a second consequence. A trickle of small cuts deep in the
-window breaks that prefix match on every turn; one larger cut now and then
-breaks it once. The agent cuts in steps.
-
-## §14.4 What Survives Is Never a Tool Call
-
-A tool result is the wrong sole home for instructions that must survive tool
-clearing. The first edition wrote its load result this way:
-
-```go
-result += "## Instructions\n\n" + body
-```
-
-The arrangement becomes a bug the moment cleanup can discard that result. Tool results are the first bytes
-to go. The first time the ladder stubs old results, the manual becomes
-a one-line stub and the tools it explains stay declared. The agent
-keeps calling `gui_click` with no memory of the rules for calling it.
-A checkpoint note passed as a tool-call argument has the same defect
-one level later, because `RedactTool` deletes calls.
-
-The cure is a naming rule, printed in the code as the comment on
-`EntryKind`: anything that must outlive tool clearing is its own kind.
-
-| Kind | Created by | Holds |
-|---|---|---|
-| `KindDialogue` | prompts, hints, model output | text, reasoning, tool calls and results |
-| `KindHandoff` | `MicroHandoff` | the actor's checkpoint note |
-| `KindSkill` | `SkillLoaded` | a skill's body |
-| `KindTools` | `ToolsChanged` | a declaration delta |
-
-Tool clearing only ever touches tool parts, and tool parts only ever
-live in `Dialogue` entries. The other three kinds hold none, so tool-part clearing cannot remove their contents. Survivors are safe by construction,
-without a list of exceptions for the ladder to consult. `load_skill`
-still returns a result, a one-line acknowledgement that the skill
-loaded on the ordinary fallback path; supported Anthropic tool search instead
-keeps the paired result reference-only. The body arrives through its recorded
-`skill_loaded` fact, and Engine composes it into SYSTEM. The survivor is durable
-instruction material, not a second ordinary message containing the same manual.
-
-One timing problem remains even though dispatch is serial. The model can return several calls together; after the first runs, others from the same reply are still outstanding. A `micro_handoff`
-issued beside a `read_file` clears every tool part in the context. If
-it landed immediately, the `read_file` result would arrive afterwards
-with its call already gone, and a result without its call is a request
-the vendor refuses. So the reducer holds survivors until the batch
-completes:
-
-```go
-// Holding survivors preserves call/result pairing even under serial dispatch:
-// another call from this same model reply may still be waiting to start.
-func survivor(c *common.Context, entry common.Entry) {
-    if !toolsComplete(c.Dialogue) {
-        c.Held = append(c.Held, entry)
-        return
-    }
-    land(c, entry)
-}
-```
-
-When the last result of the batch arrives, the held entries land in
-order. The payoff: nothing is outstanding when the handoff clears tool
-parts, so every call removed takes its result with it, and no result
-loses its call.
-
-Unloading changes executable capability immediately. The registry drops grants
-that no other active skill supplies and stops the skill's external servers.
-The next recorded declaration delta makes the model's view agree with dispatch.
-Its instruction entry remains: removal of old instruction text is a different
-operation, deferred beyond this chapter. Lifecycle and checkpoint tools stay
-available, and a shared grant survives while another active skill owns it.
-Startup restores those shared grants before publishing declarations; construction
-must not record transient tool removals.
-
-This advances the pending-unload policy from Chapter 9: compiled grants
-now disappear too. A stale manual cannot make a removed tool callable;
-guessed names still fail dispatch.
-
-## §14.5 The Layout
-
-With four kinds and two laws, the request has one shape:
-
-```
-[ instructions    ]  stable primary base + surviving skill bodies in SYSTEM
-[ declarations    ]  Chapter 9 provider path; synthetic inline rows freeze startup tools
-[ memory region   ]  empty until the agent has memories
-[ context         ]  dialogue and survivors, with recorded Seq identities
-                     ^ oldest                  newest ^
-                     cheap to keep            cheap to change
-```
-
-This is a semantic layout, not a promise of byte-stable SYSTEM: who the agent is
-and which instructions apply, then what it knows, then what it is doing. Skill
-survivors remain in the recorded context for replay, but the renderer projects
-their bodies as instructions rather than duplicating them as dialogue.
-
-A survivor keeps the sequence identity of its recorded fact. If a tool batch
-is incomplete, the reducer holds it and appends it only after the companion
-results arrive, even when those results have later sequence numbers. That
-batch-completion placement preserves call/result pairing. Moving the survivor
-up next to the prefix would edit bytes far from the end. Reordering is a
-verb of its own.
-
-The kinds also preserve why an entry belongs in context. The system prompt
-and a skill body are instruction: the agent is meant to follow them. A
-tool result is data: the agent reads it and decides. A dialogue entry
-is conversation. Keeping those apart is why `Kind` records the origin
-of an entry instead of guessing it from the text, because text that
-looks like instructions and arrived as a file's contents is still a
-file's contents.
-
-## §14.6 Visible Reasoning Is the Storage Format of the Self
-
-After the ladder runs, what does the agent remember about a file it
-read an hour ago? Exactly what it said about the file. The result is a
-stub and the call may be gone. The words the agent wrote in the dialogue
-remain a readable account through tool clearing. Ordinary tool redaction also
-preserves opaque provider parts under their replay restrictions. A `micro_handoff`
-additionally clears that private replay material and its signatures while keeping
-visible text. Chapter 2 wrote the rule
-into the definition of `RedactTool`: remove calls and results
-entirely, keep visible reasoning.
-
-So an agent that narrates keeps its past, and an agent that works in
-silence loses it. Compare two turns that make the same edit:
-
-```
-(silent)   read_file config.go   edit_file config.go
-
-(narrated) The port is set in config.go; reading it.   read_file config.go
-           Port is 8092 at line 40, hardcoded. Moving it to settings.
-           edit_file config.go
-```
-
-Once both tool bands clear that turn, the silent version may retain no explanation of the edit. The narrated version still says which port, where it was,
-and why it moved. A system prompt should ask for one sentence of intent
-before every tool call, and the ladder turns that habit from courtesy
-into storage.
-
-Narration has a failure mode of its own. An agent rereading its old
-sentences can trust a figure it wrote down over the file that has
-since changed, and a figure written from memory carries the same
-confidence as one copied from the source. The defence is in what the
-narration records: where a fact lives, the path and line and command,
-so the agent's reflex is to re-read the source rather than quote
-itself.
-
-## §14.7 The Ladder
-
-The ladder keeps tool bytes in two bands measured back from the tail,
-with one number, the target size T, setting both:
-
-```
-    stub threshold = T/100    results band = T/8    calls band = T/16
-```
-
-The Agent reads T from its owned configuration. Its policy measures serialized tool parts, excluding ordinary dialogue and survivor bodies. The newest
-T/8 bytes of tool traffic stay whole. Older results become stubs by
-`RedactResult`, and their calls stay, for the next T/16 bytes. Tool
-bytes older than both bands go entirely by `RedactTool`, leaving the
-dialogue around them. At the default T of 400,000 bytes, the stub threshold is 4,000 bytes, the
-results band is 50,000 and the calls band 25,000.
-
-Law 2 sets the rhythm. A band is cut when it reaches twice its budget,
-and one event cuts it back to its budget, so cuts arrive as occasional
-steps. The two doubled budgets sum to 3T/8. That arithmetic describes the eligible tool bands, not a hard maximum for the whole request. A newly presented large result must survive once, whole batches constrain cut boundaries, and dialogue and survivors have no budget here.
-
-Three rules keep the ladder honest.
-
-- **Every cut is an event.** The Agent runs policy before rendering and records `redacted` facts through its existing append path. History alone changes the projection; Engine renders it. Its `To` field is a number, a `Seq` in the log.
-  The watermark is computed once, at the moment of the cut, and never
-  again. Replay applies the recorded number, so lowering T tomorrow
-  cannot reach back and cut yesterday's session differently.
-- **Nothing is cut before the model has seen it.** A result goes out
-  whole at least once, however large. The ladder only reaches entries
-  already sent.
-- **No call loses its result.** The calls-band cut snaps back to a
-  point where every call removed takes its result with it.
-
-The ladder applies to every model, because it needs no judgement from
-the model. It is also blunt: a 40,000-byte file read that the agent
-will never look at again stays whole until the band passes it.
-
-## §14.8 Keep or Stub
-
-A capable model can do better than the ladder, because it knows which
-results it is finished with. On a model whose features row sets
-`StubsToolResults`, every tool result above the stub threshold becomes
-a stub in the request after the one that carried it, unless the
-actor's next message calls `keep_tool_results`. The keep takes no
-arguments and keeps the whole batch.
-
-The keep governs the batch that has already arrived, the one the
-actor is looking at. Called alongside other tools, it keeps the
-previous batch, never the one it rides in, since those results do not
-exist yet when the actor decides. Its own result is never stubbed. The
-call survives either way, so the agent can see what it asked for and
-re-run it. The stub is an ordinary `RedactResult` event, so replay
-reproduces it without asking the model again. This keep-or-stub decision is
-once-only for the batch: later text-only responses or human turns do not repeat
-it. The pressure ladder can still remove kept results later.
-
-Law 2 prices this well. The stub replaces bytes that arrived one round
-trip ago, at the tail, which is the cheapest place in the window to
-change anything. The 77 percent in §14.3 was measured under this rule:
-CodeRhapsody, the agent that co-wrote this book, runs it with its own
-thresholds.
-
-The feature is a column in the model table because deciding which
-results to discard is a model's judgement. Whether it chooses well
-depends on the work it can still do and the rereads it needs.
-The course Opus row lets the grader exercise keep-or-stub; real rows
-use the ladder alone.
-
-> **Open risk.** Per-round-trip stubbing may interfere with the
-> model's thinking: a model reasoning across several round trips has
-> its evidence removed between steps. The retained experiments did not measure
-> that effect on reasoning quality. A useful comparison would hold the task and
-> model fixed, run with stubbing on and off, and assess the work rather than bytes.
-
-## §14.9 From compress_context to micro_handoff
-
-The ladder removes bytes the agent is done with. It gives the agent no
-way to say what it needs in order to keep going. A checkpoint does,
-and the book's own lineage tried two designs for it before this one.
-
-CodeRhapsody's first design was a tool called `compress_context`: the
-model chose a range of messages and replaced them with its own summary.
-Bill described how that went on 2026-09-13:
-
-> "compress_context was the old system that you (Claude) did pretty
-> well, picking a range of messages to summarize, but freaking Gemini
-> almost always deleted 80% of messages, starting with message 1, with
-> a terrible summary, lobotomizing the LLM, so we switched to handoffs
-> instead."
-
-The failure has a shape. The cut ran by position, from message 1, and
-message 1 is where the user stated the goal. The summary was written
-by the model that was about to lose the originals, so nothing could
-check it, and summarized dialogue is in no file the agent can re-read.
-In those trials, the model was handed a choice it could not undo and
-kept making it badly.
-
-The handoffs that replaced it, `handoff_task`, wrote a structured
-document and started a fresh instance from it with an empty window.
-That design assumes continuity lives in a note to a stranger. It also
-added a second path for writing the agent's durable state, and second
-paths drift: CodeRhapsody's handoff path never triggered the memory
-cascade that its `save_memory` path did, and the gap sat in its notes
-as a known bug for months. Ensemble builds neither tool.
-
-`micro_handoff` keeps the same instance and visible dialogue. The actor writes a
-note; after the complete tool batch, the reducer removes calls, results, opaque
-reasoning and private replay
-signatures, including signatures attached to visible text, then appends the note
-as a `Handoff` entry. The event log preserves the original records; this clears
-the working context. Two lessons from the older designs are built in. The model's
-discretion covers tool bytes that can often be regained by re-reading their sources;
-the dialogue, which cannot, stays. And the note travels with the same
-conversation, instead of becoming a stranger's only account of it.
-`micro_handoff` is available on every model row.
-
-In the log it is three records: the tool call, an ordinary result
-that acknowledges it, and a `MicroHandoff` event carrying the text.
-The event is what the reducer acts on. The result is an
-acknowledgement for the same reason `load_skill`'s is: a tool result
-is tool traffic, and the note must outlive tool traffic. Replay sees
-the event and makes the same cut.
-
-What goes in the note decides whether the checkpoint works. The
-version CodeRhapsody uses asks for fields, and its tool description is
-blunt about which one matters. Of `tried_and_failed`, it says: "Highest
-value per byte in the document: it is the only field that prevents
-repeating a mistake, and errors are the part of a record most likely
-to be discarded as noise." It also says when to call the tool: "at a
-completed micro-goal, never at a token threshold." A checkpoint taken
-mid-task drops the tool result that held the task's state. The note has
-to say what the agent worked out and which failed approaches it should
-avoid repeating.
-
-## §14.10 Compaction Is Described, Never Performed
-
-No policy code edits context directly. The policy decides a cut and
-records it as an event; the reducer applies events; the log keeps them.
-While the full log is retained, every window the agent has sent can be
-rebuilt, including windows the current settings would cut differently.
-The grader's `ladder-is-recorded` check does exactly that: it replays a
-session under a changed T and expects the same requests.
-
-A retained log can contain a known event the current reducer cannot apply: a redaction naming an entry a later
-handoff removed, a payload a newer version malformed. Previously, one
-bad event made a whole session unloadable. History now reports and
-moves on:
-
-```go
-func (h *history) replay(e common.Event) {
-    if err := validateFor(&h.context, e); err != nil {
-        h.parent.Ensemble().Logf("restore: skipped event %d: %v", e.Seq, err)
-        return
-    }
-    apply(&h.context, e)
-}
-```
-
-The skip is clean because validation checks an event before it mutates
-anything, so a rejected event leaves the context exactly as it was.
-This tolerance is for semantic application of recognized facts, including a
-missing known payload. It does not turn broken JSON, unknown versions, invalid
-anchors or sequence disorder into a usable save. Validate the whole candidate’s
-structure before installing it; a skipped fact advances the replay position but
-changes no context. Totality covers known event types. An event type the code has never
-heard of is still refused at load, loudly, because a log from a newer
-agent is a different problem than a bad record in a familiar one.
-
-The original design also considered provider-side context editing. Its dated
-API documentation described a server editing the input while the client kept its
-full history. That can coexist with a local log, but it moves the decision about
-what the model reads outside this reducer. Here, the chapter needs a recorded
-keep decision and reproducible local projection, so the existing event path owns
-the cut.
-
-## §14.11 Keep the Words, Let the Bytes Go
-
-A stub removes bytes from the window. It removes nothing from the log.
-The `ToolReturned` event that carried the result stays in the log
-until log retention truncates it, and in the common case the bytes
-were never unique anyway: the file is still on disk. Re-read the source
-when it is needed again; a changed file or a command with side effects
-may of course give a different result.
-
-The stub carries no address. The reason is a bug in the agent that
-co-wrote this book. CodeRhapsody's stubs cite the output file of the
-command they replace, a path like `cr/io/26`. When this chapter was
-designed, its handle counter started again at 1 on every launch, so
-after a restart `cr/io/26` named a different command's output. The
-agent that followed the stub read a file, got plausible output, and
-had no way to tell it was the wrong one. Chapter 12's rule applies:
-wrong data is worse than no data. The first edition records the fix:
-CodeRhapsody's counter kept counting across restarts. Ensemble's stubs
-say the bytes are gone and
-leave recovery to the tools that produced them.
-
-## §14.12 Crash-Safe Persistence
-
-Chapter 10 validates snapshots and preserves one good backup. This chapter adds
-an independent event journal so recovery can also retain completed work after the
-chosen snapshot. Keep that distinction: an archive, a recovery journal, and a
-diagnostic log serve different readers.
-
-Append each complete accepted event before publishing or acknowledging it. Use
-one owner’s serialization for event append, save/rotation and journal trimming;
-a save-only mutex cannot protect an append racing the rewrite. While a save is
-staged, readers can still read the previous committed view; later writers wait.
-Normal shutdown and a successful `micro_handoff` save install a new snapshot using
-Chapter 10’s
-encode-before-write, validated-primary-to-backup and atomic-replacement ordering.
-A corrupt current primary must never overwrite a usable backup.
-
-The retention boundary is the validated **backup**, not the new primary. Suppose
-the backup represents sequence 100, the new primary 150, and the journal reaches
-160. Keep 101–160: if primary 150 is later corrupt or missing, backup 100 still
-needs the intervening events. Keep the complete required suffix when no usable
-backup boundary exists. Trim only after successful save and rotation, never after
-a failed load or save. This is a sequence boundary, not a count of “recent events.”
-
-On recovery, try primary and backup independently as Chapter 10 requires. Load
-the chosen context, apply its embedded post-`as_of` tail, then apply journal events
-strictly beyond the resulting covered sequence. Overlap with already represented
-events is expected, not a second application. Continue sequence allocation beyond
-the recovered tail. Invalid candidates must not install an Agent or destroy the
-remaining recovery bytes. Replay from a null context still requires a complete
-canonical archive; a dialogue-only archive cannot reconstruct discarded history.
-
-After a successful handoff recovery save, invoke the existing diagnostic writer’s
-retention operation, with Chapter 10’s default 200 records, zero unlimited and
-negative values invalid. Preserve whole records and continued writes. Exercise
-successful save, failed save, concurrent append, restart, corrupt-primary and
-missing-primary fallback: the chosen backup and its journal suffix must reproduce
-the same state exactly once. Diagnostics are not substitutes for canonical events.
-
-These orderings establish process-crash recovery, not universal power-loss
-durability. State the interruption guarantees honestly; do not imply that an
-unfsynced journal survives loss of power. Archive policy may discard old raw
-results, so neither a checkpoint nor its tail promises arbitrary historical-window
-reconstruction after those sources are gone.
-
-## §14.13 One Knob
-
-The tool budgets run off one setting. The Context Management tab in the
-settings panel writes `context_target`: T in bytes, 0 for the default
-of 400,000, clamped to at least 20,000. The original budget comment explains its floor: below it, "the stub threshold would fall under the size of a
-directory listing". The existing archive choice and diagnostic-record limit
-remain separate settings; there is no last-N canonical recovery-event setting.
-
-The GUI's file is `DataDir/settings.json`; the supplied application chooses
-`cr`, so use `cr/settings.json` from its launch directory. A file named
-`settings.json` beside the executable is not interchangeable. The browser's
-public settings update reaches the owning Agent before subsequent policy work.
-
-A user changes the tool-traffic target, not a ceiling on every kind of context.
-Every threshold scales with T. `log_mode` controls the saved archive and
-`diagnostic_max_records` controls diagnostic records, not the backup’s recovery
-tail. Changing these settings cannot rewrite already recorded cuts.
-
-The settings browser also exposed an editing race: an acknowledgement for one
-field arrived while another number was typed but not yet committed by blur.
-Replacing every field from the snapshot erased that unsent edit. Keep effective
-settings updates while protecting the person's pending input.
-
-
-The first-edition coder measured a synthetic reference session: the fake
-vendor scripted four prompts, each followed by fifteen `read_file`
-calls on 8,000-byte files, 64 requests per run.
-
-| run | last request | total sent | cuts |
-|---|---|---|---|
-| no ladder (T = 10^12) | 542,600 | 17,470,874 | none |
-| ladder only (T = 400,000, Sonnet row) | 143,152 | 6,172,202 (35%) | 7 `RedactResult` |
-| ladder and stubs (T = 400,000, Opus row) | 62,456 | 2,334,066 (13%) | 59 stubs |
-
-The largest request in the ladder run was 146,378 bytes in total,
-below even the 150,000 bytes allocated to the two doubled tool bands. The
-prefix, 2,991 bytes, was byte-identical across all 64 requests in all
-three runs. The stubs run never triggered the ladder, because stubbing
-kept every band under its budget.
-
-Bytes are the easy half. The table says nothing about cache rates on a
-real vendor, nothing about whether the answers got better or worse,
-and nothing about the open risk in §14.8. Those need real sessions on
-real models, such as the one in §14.15.
-
-## §14.14 The Exercise, Graded
-
-Extend the current core and optional GUI. The Agent chooses policy and follows
-its configuration; History validates, journals and reduces; Engine translates the
-result into vendor requests. Keep those existing ownership paths rather than
-injecting a settings callback or moving runtime behavior into common.
-
-The grader drives the actual GUI executable through newline-delimited stdin
-prompts, using the existing envelope:
-
-```json
-{"kind":"prompt","text":"Load manual and inspect the prepared files."}
-```
-
-It supplies provider environment, the two course model rows, complete skills and
-GUI assets. Public settings updates establish the effective target before traffic;
-the GUI persists them at its own Agent path. Normal EOF drains work, snapshots and
-exits successfully; the crash scenario observes completed work before SIGKILL.
-
-| Check | Points | Observable obligation |
-| --- | ---: | --- |
-| skill-survives-the-ladder | 15 | The manual remains after both tool bands cut old paired traffic |
-| micro-handoff-shape | 15 | Call/result/event, one note, no orphan including a same-batch companion |
-| keep-or-stub | 10 | Previous-batch keep, next-batch distinction and non-stubbing model control |
-| ladder-is-recorded | 15 | Recorded numeric cuts survive restart under changed T |
-| frozen-prefix | 10 | Stable primary/startup fixture tools, dynamic SYSTEM manuals and valid inline declaration placement |
-| replay-equals-snapshot | 15 | Snapshot and sufficient log replay produce the same next vendor bytes |
-| crash-recovery | 15 | Completed journaled work survives a killed process and primary/backup fallback without duplicate application |
-| total-reducer | 5 | Bad known facts are skipped; later good facts still apply |
-
-For the accepted nested layout, build the CLI from the core module with
-`go build -o /absolute/owned-output/ch14-cli ./cmd/ch01` and the GUI from its
-separate `gui` module with `go build -o /absolute/owned-output/ch14-gui ./cmd`.
-From the book repository, grade those two explicit artifacts:
+An ordinary interactive CLI launch can opt in explicitly:
 
 ```sh
-go run ./cmd/grade-edition3 -ch 14 -json /absolute/owned-output/ch14-gui
-go run ./cmd/grade-edition3 -ch 1 -json /absolute/owned-output/ch14-cli
+dotnet Cli/bin/Debug/net10.0/ch04.dll \
+  --context-budget-bytes 400000 --stub-tool-results \
+  --save /owned/session/save.json --save-log 0 \
+  --archive-log /owned/session/archive.jsonl
 ```
 
-Chapter 14 takes a GUI target, not a CLI plus parity-artifact flags. Freeze both
-from the same held source. Require parsed pass and exit zero; allow Chapter 1's
-real 62-second header and body observations to complete.
-
-The eight checks total 100 points. Also check the behaviors a transcript
-cannot show: diagnostics and validation before mutation, disk-failure
-ordering and backups, and unsent edits in the settings browser.
-
-The student's original score was **45/100 FAIL**, with failures caused by
-fixture mistakes. Review separately found the inline-placement bug in §14.3.
-The revised grader
-sets the effective Agent-owned settings and uses the existing
-`list_directory` tool instead of undefined `think`. The [chapter notes](../../docs/edition-2-notes/ch15.md)
-retain the original result and the corrected checks.
-
-The first-edition audit found two other useful holes. Short file paths did not
-fill the calls band, so a supposed two-band test reached only result stubbing.
-Bad events at the very end let a loader stop early without losing any later good
-content. Exercise both watermarks and put valid work after a rejected event.
-The student's inline-ordering failure supplies the same lesson at another
-boundary: replay can faithfully reproduce an invalid provider request.
-
-## §14.15 Taking It for a Spin
-
-The grader exercises the rules on scripted traffic. A real model shows
-what living under them is like. The first edition records this September
-23, 2026 run with `claude-opus-5` and both new features enabled, a different
-configuration from this edition's real-model rows. Its settings were:
-
-```json
-{"context_target":20000}
-```
-
-Twenty thousand is the floor the settings clamp allows. It puts the
-stub threshold at 200 bytes, the results band at 2,500 and the calls
-band at 1,250. The workspace held seven files copied from
-`agent/internal/common`, 60,865 bytes in all, three times the target.
-The prompt:
-
-```text
-Read each .go file in src/ one at a time with read_file (budget.go,
-context.go, save.go, journal.go, model.go, event.go, part.go). Then
-answer in three sentences: how does this agent keep its context from
-growing without bound?
-```
-
-The turn took eleven requests and ten tool calls: a directory
-listing, seven reads, two reads of files already read, and the
-answer. The journal held nine `redacted` events, all of one shape:
-
-```json
-{"seq": 12, "type": "redacted", "time": "2026-09-23T14:44:45.308867Z", "redact": {"from": 6, "to": 6, "level": "redact_result", "reason": "round trip: not kept"}}
-```
-
-Ten results, nine stubs. The tenth result was still in its one full
-request when the turn ended. The reported input tokens, request by request:
-
-| Request | Carried in full        | Input tokens |
-|--------:|------------------------|-------------:|
-| 1       | the prompt             | 3,787        |
-| 2       | directory listing      | 3,955        |
-| 3       | budget.go, 1,683 B     | 4,560        |
-| 4       | context.go, 18,855 B   | 10,889       |
-| 5       | save.go, 6,282 B       | 6,943        |
-| 6       | journal.go, 4,522 B    | 6,347        |
-| 7       | model.go, 7,347 B      | 8,475        |
-| 8       | event.go, 10,742 B     | 10,109       |
-| 9       | part.go, 11,434 B      | 10,655       |
-| 10      | budget.go, again       | 7,112        |
-| 11      | context.go, again      | 13,522       |
-
-Each file is a tooth: it rises for one request and falls on the next.
-The floor under the teeth rises too, because every call, every stub
-and every sentence the model wrote stays. The first request, before
-any file, was already 3,787 tokens of system prompt and tool
-declarations. The target caps neither of those. It sets three numbers,
-and all three govern tool bytes.
-
-The ladder never fired. It never cuts a result that has not yet gone
-out whole once, and the stub rule had already removed every older
-result, so no request held anything the ladder was allowed to cut.
-Ten calls with short paths never reached the calls band's trigger.
-On a stubbing model under this workload the ladder is the backstop.
-On a row without automatic stubbing, the ladder does the tool-byte cleanup.
-
-The interesting part is the dialogue. The model narrated as it read;
-some of that narration, copied from the journal:
-
-```text
-Noting: context.go — Context has bounded fields; redaction/summary/handoff clear tool parts. Next file.
-
-model.go: a per-model feature table; the context-relevant column is `StubsToolResults` — "every tool result above the stub threshold becomes a stub in the request after the one that carried it, unless the model's next message calls keep_tool_results" (on for opus-5/opus-5-course; off for sonnet-5, where "the ladder" alone applies). Next file.
-
-part.go: content is `[]Part`, and `RedactedPart` is the *result* of a redaction — its stub is synthesized deterministically by the reducer (no stored growth) and it carries forward the superseded part's `Ref`, so dropped bytes stay fetchable. Now re-reading the two files whose contents got stubbed out of my own context.
-
-budget.go confirmed: one knob T, with threshold=T/100, results band=T/8, calls band=T/16. Now the policy that spends them.
-```
-
-The model's claim that a `Ref` keeps dropped bytes fetchable is wrong
-for this exercise. Its stubs carry no address, for the reason in §14.11.
-
-The two files it read again were `budget.go`, the one file it wrote
-no note about, and `context.go`, the largest file, which got one line.
-Every file with a fuller note was never read again in this run. The note
-is the model's own compression of a result, and dialogue is the channel the
-stub rule leaves alone, so what the model wrote down, it kept. What
-it did not write down, it fetched again.
-
-`keep_tool_results` was declared in every request and never called.
-That is not a failure. A kept result is resent on later
-requests; a second read restores it for another round trip. This
-run cost two round trips. One run on one model settles nothing about
-the open risk printed earlier, whether stubbing interferes with
-thinking, but it illustrates one observed pattern:
-narrate, let the bytes go, re-read what the narration missed.
-
-Two things in the log belong on the next revision's list. Every request
-reported zero cache writes and zero cache reads: the
-reference renderer sets no `cache_control` breakpoint, so the stable
-prefix this chapter guards is ready for a cache the agent never asks
-for. And the rising floor is dialogue, which nothing in this chapter
-removes. Chapter 22 removes it.
-
-
-## §14.16 Try the Ladder
-
-Use a scratch copy of the accepted solution. Build the optional GUI from the
-core directory; its terminal input and browser share the same Agent:
+Supply provider configuration through the already documented host boundary; do not put credentials in conversation or the archive. For offline replay:
 
 ```sh
-(cd gui && go build -o /tmp/ensemble-ch14-gui ./cmd)
-mkdir -p cr skills/base skills/manual records
+dotnet Cli/bin/Debug/net10.0/ch04.dll dump /owned/session/archive.jsonl
+dotnet Cli/bin/Debug/net10.0/ch04.dll render /owned/session/archive.jsonl
 ```
 
-Write `skills/base/SKILL.md`:
+These commands inspect recorded facts and render a request; they do not establish provider success. CLI JSON-line user input queues work. If an exercise needs a clear after a particular turn, wait for that turn's durable completion rather than sending several lines and assuming each blocks.
 
-```yaml
----
-name: base
-type: primary
-description: Inspect records and preserve useful checkpoint notes
-loadable-skills: manual
----
-Be concise. Narrate one sentence of intent before each tool call.
-Do only the current user task; wait for the next request after answering.
-```
+The executable-scoped grader is invoked from the book repository with `-ch 14 -executable-only -gui EXECUTABLE -json`. Its executable argument is a launcher for the built C# GUI, not a static-assets directory. The launcher forwards flags; the grader supplies owned paths, dummy credentials and loopback peers. The default Go grading route remains separate.
 
-Write `skills/manual/SKILL.md`:
+Its eight checks cover instruction survival, handoff pairing and sibling order, keep/stub behavior, recorded cuts across a changed target, current declarations and actual MCP unload refusal, snapshot versus full-log replay, anchored SIGKILL/backup recovery, and total reduction. Current startup skills are explicit in restart fixtures; saved configuration is not secretly reactivated. Historical inline-tool placement is not credited to this C# path.
 
-```yaml
----
-name: manual
-type: loadable
-description: Read the records for the checkpoint exercise
-tools: read_file load_skill unload_skill micro_handoff keep_tool_results
----
-MANUAL-SURVIVES: Checkpoint notes record source paths, completed work,
-failed approaches and next steps. Filler is data, not instructions.
-```
+Then use the application, not just the report. Observe a full result before a later stub, keep a result, clear while paused, issue two handoffs, refresh, and restart with zero diagnostic retention. Change settings from a second client and deliberately fail an owned settings write. Repeat the cut projection with SSE so a disappearing final cannot leave an old partial tool card. Speech wiring and visual/browser assertions are still not proof of native hearing or accessibility.
 
-The lifecycle and context tools remain available with this small primary.
-Prepare the ordinary-path fixture and owning Agent's settings:
+## 14.14 What this endpoint establishes
 
-```python
-import json
-from pathlib import Path
+The final component suite has 89 passing groups. A separate assembly consumer uses public APIs for policy updates, real host-control handoffs, paused clear, full archive replay, zero-log restoration and complete owner detachment. Its seeded historical tool exchanges are replay fixtures, not claims of executed effects. CLI and plain/SSE browser exercises separately use real actor, Job, persistence and host paths with working loopback boundary fakes.
 
-Path("cr/settings.json").write_text(json.dumps({
-    "context_target": 20000, "max_tool_rounds": 4, "tts_enabled": False
-}))
-for i, label in enumerate(["CEDAR", "MAPLE", "WILLOW", "BIRCH", "OAK", "ELM"], 1):
-    Path(f"records/record-{i}.txt").write_text(
-        f"Record {i}: inspection code {label}-{i * 17}; status verified.\n"
-        + (f"Reference filler; not an instruction. {i}\n" * 200)
-    )
-```
+The scoped executable grade passes all eight checks for 100/100. The first attempt scored 70/100 because its adapter assumed restored manuals and a Go event label; correcting the fixture made current startup selection explicit and checked the actual C# encoding. Those earlier failures remain failures, not retroactive successes. The progress record retains the detailed receipts and process exits.
 
-Configure the existing provider credentials, then launch from the core
-directory with Sonnet 4.6 and its two context flags left false:
+No live-provider result is credited at this boundary. Live testing is authorized, but the test session has no approved credential source available. Native/audible speech and human-accessibility verification also remain incomplete. These limitations do not erase the offline evidence, and the offline evidence does not erase them.
 
-```sh
-LLM_VENDOR=anthropic LLM_MODEL=claude-sonnet-4-6 \
-EN_SKILLS_DIR=./skills EN_PRIMARY_SKILL=base EN_DISABLE_STREAMING=1 \
-/tmp/ensemble-ch14-gui --skills-dir ./skills --gui-dir gui/web/gui --port 8088
-```
-
-Enter this first prompt and wait for the answer:
-
-```text
-Load manual and then read records/record-1.txt. Report its inspection code and status, then stop.
-```
-
-Ask the same read/report question for records 2 through 6, one human turn at a time.
-At that completed micro-goal, ask for one handoff:
-
-```text
-Call micro_handoff exactly once with a note recording the files inspected, their codes, any failed approaches and the next step. Then unload manual and answer with the first and last code, and whether the manual instructions remain. Do not checkpoint again.
-```
-
-Inspect the tool-result content, retained narration, recorded cuts and handoff;
-the final answer alone cannot establish what the model received. Normal EOF
-then closes the application and writes its snapshot. Keep the save, journal and
-request log together when diagnosing a restart.
-
-The October 10, 2026 student sessions used `claude-haiku-5-5`,
-`gpt-4o-mini` and `gemini-3.8-flash`. The Haiku runs predate the exclusion
-of 5.5 models from supported use. Here is what happened:
-
-| Run | Observed outcome |
-| --- | --- |
-| Initial Haiku 5.5 | Long repeated-character paths produced empty arguments and an overlong path; no useful reads, cuts or handoff |
-| Initial GPT-4o mini | All six result codes arrived, but repeated handoffs reached the 14-batch bound; no successful final answer |
-| Gemini 3.8 | Six reads, five result cuts, two paired tool cuts, one handoff and unload; correct first/last codes and recognition that the manual remained |
-| Haiku 5.5 with ordinary paths and separate turns | All six full results arrived, then six result cuts and one tool cut; later denied having read the redacted files and refused the handoff |
-| GPT-4o mini with ordinary paths and separate turns | All six full results arrived, six result cuts and one tool cut; handoff/unload ran, but repeated checkpoints reached the final turn's four-batch bound |
-
-All five processes exited zero. Only Gemini completed the requested task;
-the [full results](../../docs/edition-2-notes/ch15.md#live-use-and-its-limits)
-include the failed attempts.
-
-Haiku 5.5's corrected-path run shows a failure worth inspecting. It first received the codes
-in actual provider-bound result blocks. After those results were redacted, it said:
-
-> That file was redacted, so I never read it.
-
-The transcript disproves the claim. The ladder had removed already-presented
-bytes; it had not prevented the read. This is a failure of the tested Haiku 5.5,
-not a result for Sonnet-5. A smaller request is easy to measure. Check that the
-model can still do the work with what remains.
-
-A separate bounded observation of the accepted Edition 3 build used real
-`claude-sonnet-4-6`. Six human turns completed with full file-read results, six
-result cuts and one tool cut. After handoff and unload, the next captured request
-retained dialogue, SYSTEM manuals and the handoff note but no tool traffic,
-including the handoff and unload calls themselves. The unloaded manual was still
-pending; `read_file` was no longer available. The observation guard then stopped on an
-unexpected/repeated handoff before the seventh final answer. Its receipt remains
-failed: it proves neither a completed post-handoff turn nor normal EOF or live
-recovery. The local Chapter 14 and separate CLI Chapter 1 gates passed on the same
-held source; those fixture results do not turn this paid observation into a
-successful run.
+The lesson is not that smaller context proves better memory. It is that every retained byte has a reason, every cut is an inspectable fact, and recovery can reproduce the working state without guessing what the Agent must have meant.

@@ -1,5 +1,0 @@
-{"log_version": 1}
-{"seq": 1, "time": "2026-01-01T00:00:00Z", "type": "response_ended", "response": {"from": {"vendor": "gemini", "model": "exact-model", "surface": "generate_content"}, "parts": [{"type": "tool_call", "name": "lookup_weather", "args": {}, "from": {"vendor": "gemini", "model": "exact-model", "surface": "generate_content"}}], "usage": {"input": 1, "output": 1}}}
-{"seq": 2, "time": "2026-01-01T00:00:00Z", "type": "tool_returned", "tool": {"parts": [{"type": "text", "text": "lookup_weather result"}]}}
-{"seq": 3, "time": "2026-01-01T00:00:00Z", "type": "response_ended", "response": {"from": {"vendor": "gemini", "model": "exact-model", "surface": "generate_content"}, "parts": [{"type": "tool_call", "name": "lookup_stock", "args": {}, "from": {"vendor": "gemini", "model": "exact-model", "surface": "generate_content"}}], "usage": {"input": 1, "output": 1}}}
-{"seq": 4, "time": "2026-01-01T00:00:00Z", "type": "tool_returned", "tool": {"parts": [{"type": "text", "text": "lookup_stock result"}]}}

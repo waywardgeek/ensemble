@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch02-student-r1-evidence/check-offline.py", line 103, in <module>
-    assert 'input=11 output=2' in result.stderr,(vendor,result.stderr)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: ('anthropic', 'error: unknown command "--protocol"\n')

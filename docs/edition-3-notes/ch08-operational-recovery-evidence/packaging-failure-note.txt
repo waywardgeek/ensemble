@@ -1,1 +1,0 @@
-First assembly stopped before report/manifest sealing on guessed exit-1.json. Actual exit receipt is PID-named; controller.json is the actual serving metadata. Original packager and unsealed draft are preserved. Version2 corrects receipt selection/provenance only. No browser, controller, native, provider, source or test rerun.

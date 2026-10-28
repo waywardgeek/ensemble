@@ -1,1 +1,0 @@
-Syntax checked only. NO launcher invocation, browser, mic, native speech, or model call performed.

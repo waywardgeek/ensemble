@@ -1,3 +1,0 @@
-# ensemble/internal/agent
-internal/agent/dispatch.go:170:7: a.mu.RLock undefined (type "sync".Mutex has no field or method RLock)
-internal/agent/dispatch.go:170:74: a.mu.RUnlock undefined (type "sync".Mutex has no field or method RUnlock)

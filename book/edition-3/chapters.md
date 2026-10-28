@@ -1,8 +1,7 @@
-# Chapters — Edition 3 Working Draft
+# Chapters
 
-This working copy preserves the second-edition sequence through Gateway.
-Chapter 25 now summarizes the observed crossover lessons. Existing execution
-receipts remain historical; the Edition 3 construction has not run.
+The second edition is complete through Gateway. Chapter 25 is reserved for
+the ongoing Codex-to-Ensemble crossover.
 
 - [Preface](preface.md)
 - [Chapter 0: The Perpetual Machine](chapter-00.md)

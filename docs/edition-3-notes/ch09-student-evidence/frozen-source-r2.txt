@@ -1,4 +1,0 @@
-commit 251ce88fb1677897dbcc6b33661096c5cb39cd8e
-tree a2add41c306d567c05d98ae760911bc13c18b75a
-parents f66cfd1a48e85e91ce6ff122a134a673d1ef0ea0
-subject Inject skill registry through Agent lifecycle interface

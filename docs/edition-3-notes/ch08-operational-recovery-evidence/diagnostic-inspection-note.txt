@@ -1,1 +1,0 @@
-One post-failure read-only inspection guessed visual-cdp-raw.jsonl and returned FileNotFoundError. Actual owned inventory located visual-raw-cdp.jsonl. No operational rerun or source change followed; this inspection failure is retained as a limitation, not hidden as a successful command.

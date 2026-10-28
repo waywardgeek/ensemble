@@ -1,5 +1,0 @@
---- historical/gui/go.mod
-+++ private/alternate-gui/go.mod
-@@ -7 +7 @@
--replace ensemble => ..
-+replace ensemble => /tmp/cadence-ch07-adapter-review-independent/alternate-core

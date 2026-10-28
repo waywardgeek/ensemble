@@ -1,8 +1,0 @@
-{
-  "binary": "/tmp/cadence-ch05-wakeup-evidence/candidate-r2/frozen/ensemble",
-  "binary_sha256": "e51138885a359eaf801258a52bc21f28ca41691683256647f8c9911be410b233",
-  "exit": 0,
-  "elapsed_seconds": 1.118890750221908,
-  "http": "loopback fake only",
-  "paid_requests": 0
-}

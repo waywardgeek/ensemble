@@ -23,6 +23,8 @@ func Chapter14(bin string) (grade.Report, error) {
 // contextResult maps each check to its failure. A check present with an
 // empty string passed; a check absent never ran.
 type contextResult struct {
+	// executable selects the C# host contract for this run only.
+	executable bool
 	// Fatal reports a launch/setup failure shared by every check.
 	Fatal string
 	// Errs retains the original eight check outcomes; absent means not run.
@@ -47,14 +49,28 @@ func (r *contextResult) fail(name, format string, a ...any) {
 //	total    T: C's final save with two unappliable events planted
 //	prefix   F: stub model, load manual then mcp-tools
 //	keep     K: stub model, keep one batch and not the next; K' no-stub
-func contextChecks(bin string) contextResult {
-	r := contextResult{Errs: map[string]string{}}
+func contextChecks(bin string) contextResult { return contextChecksFor(bin, false) }
+
+func contextChecksFor(bin string, executable bool) contextResult {
+	r := contextResult{Errs: map[string]string{}, executable: executable}
 	tmp, err := os.MkdirTemp("", "context-grade-*")
 	if err != nil {
 		r.Fatal = err.Error()
 		return r
 	}
-	defer os.RemoveAll(tmp)
+	defer func() {
+		if executable {
+			failed := r.Fatal != ""
+			for _, message := range r.Errs {
+				failed = failed || message != ""
+			}
+			if failed {
+				fmt.Fprintln(os.Stderr, "Failed Chapter 14 executable fixtures retained:", tmp)
+				return
+			}
+		}
+		os.RemoveAll(tmp)
+	}()
 
 	skillsDir := filepath.Join(tmp, "skills")
 	if err := contextCreateSkills(skillsDir); err != nil {
@@ -67,7 +83,24 @@ func contextChecks(bin string) contextResult {
 		return r
 	}
 
-	run := func(o contextOpts) contextOut { return contextLaunch(bin, skillsDir, guiDir, o) }
+	if executable {
+		// The optional keep control is granted by C# startup only when opted in.
+		path := filepath.Join(skillsDir, "base", "SKILL.md")
+		body, e := os.ReadFile(path)
+		if e == nil {
+			e = os.WriteFile(path, []byte(strings.Replace(string(body), " keep_tool_results", "", 1)), 0600)
+		}
+		if e != nil {
+			r.Fatal = e.Error()
+			return r
+		}
+	}
+	run := func(o contextOpts) contextOut {
+		if executable {
+			return contextExecutableLaunch(bin, skillsDir, guiDir, o)
+		}
+		return contextLaunch(bin, skillsDir, guiDir, o)
+	}
 	newDir := func(name string) string {
 		d := filepath.Join(tmp, name)
 		os.MkdirAll(d, 0o755)
@@ -104,7 +137,11 @@ func contextChecks(bin string) contextResult {
 	} else {
 		r.set("total-reducer", "the crash-recovery session it builds on did not complete")
 	}
-	contextPrefix(run, newDir("F"), &r)
+	if executable {
+		contextExecutablePrefix(run, newDir("F"), &r)
+	} else {
+		contextPrefix(run, newDir("F"), &r)
+	}
 	contextKeep(run, newDir("K"), newDir("K2"), &r)
 	return r
 }
@@ -235,7 +272,7 @@ func contextRestart(run func(contextOpts) contextOut, ladder string, fork func(s
 	b := fork(ladder, "B")
 
 	o := func(dir string) contextOpts {
-		return contextOpts{dir: dir, model: contextNoStubModel, prompts: []string{"Still there?"},
+		return contextOpts{dir: dir, startupManual: r.executable, model: contextNoStubModel, prompts: []string{"Still there?"},
 			expect: []int{1}, replies: []fakevendor.Reply{contextText("Yes.")}}
 	}
 	aOpts, bOpts := o(a), o(b)
@@ -282,7 +319,7 @@ func contextHandoff(run func(contextOpts) contextOut, dir string, r *contextResu
 		}},
 		contextText("Checkpoint written."),
 	}
-	out := run(contextOpts{dir: dir, model: contextNoStubModel, prompts: []string{"Checkpoint now."},
+	out := run(contextOpts{dir: dir, startupManual: r.executable, model: contextNoStubModel, prompts: []string{"Checkpoint now."},
 		expect: []int{3}, replies: replies})
 	if out.fatal != "" || len(out.reqs) < 3 {
 		r.fail(name, "handoff session: %s (requests: %d)", out.fatal, len(out.reqs))
@@ -319,7 +356,7 @@ func contextHandoff(run func(contextOpts) contextOut, dir string, r *contextResu
 		r.fail(name, "after the handoff: %s", msg)
 		return dir
 	}
-	if msg := contextHandoffLog(dir); msg != "" {
+	if msg := contextHandoffLogFor(dir, r.executable); msg != "" {
 		r.fail(name, "%s", msg)
 		return dir
 	}
@@ -361,7 +398,11 @@ func contextReplay(run func(contextOpts) contextOut, handoff string, fork func(s
 		json.Unmarshal(raw, &e)
 		seen[e.Type] = true
 	}
-	for _, t := range []string{"skill_loaded", "redacted", "micro_handoff"} {
+	handoffKind := "micro_handoff"
+	if r.executable {
+		handoffKind = "handoff_recorded"
+	}
+	for _, t := range []string{"skill_loaded", "redacted", handoffKind} {
 		if !seen[t] {
 			r.fail(name, "the save's log has no %q event; the session should have produced one", t)
 			return
@@ -376,7 +417,7 @@ func contextReplay(run func(contextOpts) contextOut, handoff string, fork func(s
 	}
 	os.WriteFile(filepath.Join(r2, "save.json"), nulled, 0o644)
 	o := func(dir string) contextOpts {
-		return contextOpts{dir: dir, model: contextNoStubModel, prompts: []string{"Continue."},
+		return contextOpts{dir: dir, startupManual: r.executable, model: contextNoStubModel, prompts: []string{"Continue."},
 			expect: []int{1}, replies: []fakevendor.Reply{contextText("Continuing.")}}
 	}
 	o1, o2 := run(o(r1)), run(o(r2))
@@ -413,6 +454,17 @@ func contextCrash(run func(contextOpts) contextOut, dir string, r *contextResult
 	if o1.fatal != "" {
 		r.fail(name, "clean session: %s", o1.fatal)
 		return ""
+	}
+	if r.executable {
+		// C# snapshots on joined shutdown, not every response. Establish a
+		// second clean save so backup fallback has a genuinely older anchor.
+		anchor := run(contextOpts{dir: dir, model: contextNoStubModel,
+			prompts: []string{"Establish the second recovery anchor."}, expect: []int{1},
+			replies: []fakevendor.Reply{contextText("Second anchor complete.")}})
+		if anchor.fatal != "" {
+			r.fail(name, "second anchor: %s", anchor.fatal)
+			return ""
+		}
 	}
 	o2 := run(contextOpts{dir: dir, model: contextNoStubModel, prompts: contextCrashPrompts[1:],
 		expect: []int{1, 2}, kill: true,

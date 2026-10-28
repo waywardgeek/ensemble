@@ -1,8 +1,0 @@
-{
-  "status": "NOTEXECUTED",
-  "reason": "Neither browser attempt passed; conditional authority not reached.",
-  "approval_materialized": false,
-  "credential_accessed": false,
-  "provider_requests": 0,
-  "provider_usage_or_quota_conclusion": "None; no provider interaction."
-}

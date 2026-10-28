@@ -1,2 +1,0 @@
-# ensemble-gui
-found packages gui (correction_r1_test.go) and main (reviewer_wire_r1_test.go) in /private/tmp/cadence-ch07-code-r1-rereview-independent/source/gui

@@ -1,5 +1,0 @@
-> # Append-Only Event Log vs. Derived Context View
-
-An append-only event log records every message event that occurs (e.g., "User A sent 'Hello'" at 2:15 PM, "User B sent 'Hi there'" at 2:16 PM), preserving the complete immutable history, whereas a derived context view is a computed snapshot showing only the current state needed for the application (e.g., the last 50 messages with formatting, read status, and reactions applied). The event log serves as the source of truth for reconstruction and auditing, while the context view is optimized for real-time chat display and is regenerated as new events arrive.
-> Because the event log contains all the raw data needed to deterministically reconstruct the exact chat history that occurred—no model inference is required, only replaying the stored events in order to regenerate the context view.
-> 

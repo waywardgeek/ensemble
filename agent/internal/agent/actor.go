@@ -15,10 +15,11 @@ import (
 // Private control messages share the same FIFO as public input. Request replies
 // are buffered so an abandoned caller cannot hold up the conversation owner.
 type request struct {
-	ctx   context.Context
-	text  string
-	reply chan common.Result
-	watch common.StreamCallbacks
+	automatic bool
+	ctx       context.Context
+	text      string
+	reply     chan common.Result
+	watch     common.StreamCallbacks
 }
 type response struct {
 	turn    *turn
@@ -70,6 +71,7 @@ type turn struct {
 // All fields below are owned by run. Workers own external work only, and return
 // immutable messages. Interrupt detaches a turn without detaching its workers.
 type runtime struct {
+	goal              goalRuntime
 	owner             *agent
 	active            *turn
 	pending           []request
@@ -347,6 +349,9 @@ func (r *runtime) finish(text string, err error) {
 		r.compactionWaiting = nil
 	}
 	r.active = nil
+	r.owner.goalMu.Lock()
+	r.owner.goalAutomatic = false
+	r.owner.goalMu.Unlock()
 	ended := common.TurnEnded{Text: text}
 	if err != nil {
 		ended.Error = err.Error()
@@ -362,6 +367,11 @@ func (r *runtime) finish(text string, err error) {
 
 // Each request gets its own cancellation context, never the previous turn's state.
 func (r *runtime) begin(q request) {
+	actor := common.Human
+	if q.automatic {
+		actor = common.System
+	}
+
 	if r.owner.spec.Compaction {
 		if r.compactionStarted {
 			if q.reply != nil {
@@ -387,7 +397,10 @@ func (r *runtime) begin(q request) {
 	ctx, cancel := context.WithCancel(q.ctx)
 	r.active = &turn{request: q, cancel: cancel}
 	r.active.request.ctx = ctx
-	if err := r.append(common.Event{Type: "message_received", Message: &common.MessageData{Actor: common.Human, Parts: []common.Part{{Type: "text", Text: q.text}}}}); err != nil {
+	r.owner.goalMu.Lock()
+	r.owner.goalAutomatic = q.automatic
+	r.owner.goalMu.Unlock()
+	if err := r.append(common.Event{Type: "message_received", Message: &common.MessageData{Actor: actor, Parts: []common.Part{{Type: "text", Text: q.text}}}}); err != nil {
 		r.finish("", err)
 		return
 	}
@@ -563,6 +576,23 @@ func (r *runtime) run() {
 		<-r.owner.box.Wake
 		for _, message := range r.owner.box.Drain() {
 			switch m := message.(type) {
+			case goalChange:
+				r.changeGoal(m)
+			case goalWake:
+				if m.generation == r.goal.generation {
+					r.goal.timer = nil
+					r.goal.due = true
+				}
+			case goalRefresh:
+			case goalRead:
+				if m.revision == r.goal.revision {
+					r.goal.err = m.err
+					if m.err != "" {
+						r.goal.config.Enabled = false
+						r.stopGoalTimer()
+					}
+				}
+
 			case request:
 				if r.stopping {
 					m.reply <- common.Result{Err: common.ErrStopped}
@@ -578,6 +608,8 @@ func (r *runtime) run() {
 			case common.Hint:
 				r.input(m.Text)
 			case common.Interrupt:
+				r.goal.config.Enabled = false
+				r.stopGoalTimer()
 				if m.AfterTool && r.active != nil {
 					r.active.afterTool = true
 				} else {
@@ -732,6 +764,7 @@ func (r *runtime) run() {
 			}
 			r.barriers = nil
 		}
+		r.updateGoal()
 		if r.stopping && r.workers == 0 {
 			r.owner.stopErr = errors.Join(r.failure, r.save())
 			r.owner.lifecycle.Lock()

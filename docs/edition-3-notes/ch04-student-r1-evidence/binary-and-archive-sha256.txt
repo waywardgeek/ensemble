@@ -1,3 +1,0 @@
-7342ee1d5e91791c23bc3ce32a73db51a6ed157a8d02ce07c2d3296fdf028cd3  /tmp/ch04-r1-core
-7e032ea5e2692838e2a2a612acc929611e644105809d6b2bc6c6a7856fac95f7  /tmp/ch04-r1-consumer
-e66358c5ecfc1a63701bd387da1cae4147b8ca95cd4886c21f34e0c7452add8c  /Users/bill/projects/ensemble/docs/edition-3-notes/ch04-student-r1-evidence/candidate-source.tar.gz

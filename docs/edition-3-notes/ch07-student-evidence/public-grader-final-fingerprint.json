@@ -1,8 +1,0 @@
-{
-  "checked_at": "2026-10-17T21:17:32.321131+00:00",
-  "main_head": "23c75ede7944d9a912ae74d3f683354d163f0c86",
-  "worktree_main_go_sha256": "1041fe571947f1a17d7e04160a363869c874e9264363c799e0b7d42afa9f06fe",
-  "worktree_test_go_sha256": "55ef77d6191213a9cc11c30dacbe27e94d201c47e5909dbce1c73ac4266525da",
-  "method": "Hash-only metadata check; no grader source or private cases read.",
-  "matches_invocation_metadata": true
-}

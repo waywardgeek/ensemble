@@ -1,2 +1,0 @@
-{"assistant":"{\n  \"left\": \"red\",\n  \"right\": \"blue\"\n}"}
-{"usage":{"input":2045,"cache_write":0,"cache_read":0,"output":784}}

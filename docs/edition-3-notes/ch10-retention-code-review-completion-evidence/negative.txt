@@ -1,6 +1,0 @@
-=== RUN   TestRetentionDialogueArchiveAndModeSwitch
-    retention_test.go:379: folded tail lost {dialogue_only [{7 user tail question} {8 assistant tail answer}] {new runtime anthropic current instruction []} 8 0xc000020c00 []}
---- FAIL: TestRetentionDialogueArchiveAndModeSwitch (0.03s)
-FAIL
-FAIL	ensemble	0.038s
-FAIL

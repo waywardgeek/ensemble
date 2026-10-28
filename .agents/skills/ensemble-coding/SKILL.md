@@ -269,6 +269,27 @@ answer-revealing comparisons out of notes supplied to the student.
 
 ## Required post-chapter code review
 
+For remaining Edition 3 and Edition 4, the current public brief and chapter procedure
+override the historical policy below. The student completes implementation, tests,
+grader iterations and authorized exercises, then calls one separate-context reviewer
+and resolves justified findings before final submission. No routine early compiling
+review. Its reviewer uses only the student’s public inputs: no originals, private
+graders or root repair history. It recommends readiness, not acceptance or exceptions.
+The coordinator assesses finished work and independently exercises the application.
+If the final work is inadequate, improve the chapter and rerun with a fresh student;
+there is no numerical teaching/rerun limit and no reset of operational allowances.
+Keep review consolidated, reuse evidence and avoid duplicate review/paperwork.
+Welcome student questions and explain requirements rather than make students guess.
+Use the chapter procedure’s recorded-Q&A rule: faithful published clarifications may
+retain an otherwise successful run as verified with recorded Q&A. Asking alone does
+not invalidate independence; solution-specific coaching, substantial design/contract
+changes or major teaching restructuring still need fresh verification. Preserve exact useful exchanges in
+existing notes/conversation, without private source, invented quotes or extra paperwork.
+
+The reference-comparison guidance below applies only to privileged coordinator
+acceptance work, never to the student-called reviewer. No reviewer may waive
+requirements or accept a chapter on its own.
+
 The reviewer reads the original chapter, the coder's review for the future
 author, the new implementation and the matching first-edition solution. Consider
 the student's difficulties and interpretations when diagnosing unnecessary work;
@@ -314,61 +335,43 @@ the failed check, explain why its expectation or implementation is wrong, and
 provide evidence for the student's intended behavior. Do not contort correct
 code or add features just to make a broken test pass. Fix genuine implementation
 bugs and satisfy valid checks; passing alone is not sufficient.
-Bill also authorizes the reviewer to read the coder's notes and independently
-accept an exception when the grader is flawed or an exercise requirement is
-unreasonable. Record the requirement, the coder's reasoning, the reviewer's
-agreement, actual grader/live
-results, the accepted departure and any effect on later exercises. Mark the
-chapter accepted with an exception and proceed to the next chapter without
-another permission request. Keep the original chapter and grader unchanged;
-acceptance does not turn a failing or unrun check into a passing result. Leave
-the teaching/grader correction for future maintainers. Difficulty alone is not
-evidence that an exercise is unreasonable; assess the substance of the objection.
-This authority does not waive Bill's explicit architecture rules or add features.
+A suspected bad check or unreasonable requirement goes to the coordinator/human
+with concrete evidence. It is not permission for a reviewer to waive the requirement,
+mark the chapter accepted, alter the grader or authorize another paid attempt.
+A failing or unrun check remains failing or unrun until honestly resolved.
 
 Explain material growth and ask
 whether a simpler design satisfies the same actual requirements. Do not impose
 an arbitrary line quota or remove required behavior to win a size comparison.
-Return concrete findings and rationale without exposing old answer code. State
-whether the chapter is accepted, accepted with an exception, or needs correction; do not
-accept unresolved scope or bloat findings. Ask Bill if a consequential tradeoff
+Return concrete findings and rationale without exposing old answer code. State readiness and unresolved findings; final acceptance belongs to the
+coordinator/human, not the student reviewer. Do not excuse scope or bloat findings. Ask Bill if a consequential tradeoff
 cannot be resolved from his instructions.
 
-The student may revise both code and its chapter review in response to feedback,
-rerun affected checks and submit both for reviewer reassessment. Iterate until
-accepted (including an accepted exception) or the fixed limit is reached. The
-default is three revision rounds after the initial review, unless Bill sets a
-different limit. If still unaccepted, declare the student unable to pass this
-chapter within that limit, stop progression and bring Bill the latest code,
-student review, unresolved findings, actual results and what was tried. Bill
-then helps resolve chapter/grader problems or directs another attempt. Do not
-restart the count with another agent. Record rounds in the existing chapter
-notes; preserve failed results as the review evolves. Escalate consequential
-ambiguity earlier when necessary. Keep this a code review, not another evidence framework.
-Commit completed chapters and exact source snapshots with fresh tags, never
-moving old tags. Chapters and graders remain unchanged during the student run;
-Bill authorizes their joint revision in the later phase below.
+Before final submission, the student resolves justified reviewer findings, reruns
+affected checks and returns to that same reviewer for verification. Collect and close
+that review before submitting. Do not relay routine findings through the coordinator
+or impose historical three-/ten-round stopping rules. If the completed work is still
+inadequate at acceptance, improve the chapter and run another fresh isolated student.
+There is no numerical teaching/rerun limit and no reset of operational allowances.
+Essential missing teaching belongs on the page, not in private coaching. Keep concise
+notes and useful failures; no new evidence framework. Final acceptance and explicit
+commit authority remain separate from a reviewer verdict.
 
-## Author phase comes last
+## Teaching preparation and fresh verification
 
-Finish the whole new Ensemble implementation and its comparative code reviews
-before starting an author agent. A passing grader alone does not establish that
-the implementation is better; the comparisons above must support that judgment.
+For remaining Edition 3 and Edition 4, prepare coherent teaching before the student
+runs. Improve an existing chapter from actual evidence, not a ritual rewrite. Keep
+learning (mental model, ownership, reasons) distinct from clearly labeled exhaustive
+specification/reference, with consistent examples and one authoritative requirement
+location. Prose review checks the writing; only a fresh student using tests, grader
+and its reviewer tests whether the chapter teaches success.
 
-Then the author and coder work together, chapter by chapter, using the original
-chapters, all agents' notes, student reviews, reviewer findings and completed code.
-The author improves the chapters; the coder applies grader corrections and
-meaningful coverage improvements, checking technical claims with the author.
-Reconcile prose and grader expectations through feedback in both directions.
-The prose reviewer reviews chapters; the code reviewer reviews grader changes.
-Run affected checks against student solutions and verify legacy compatibility
-where applicable, documenting baseline failures and corrected expectations.
-Preserve valid coverage and grade behavior rather than this implementation's
-shape. Preserve the original book, graders and actual student-run results as
-history; report revised-grader results separately. Review and test any needed
-implementation corrections without overwriting frozen snapshots. Do not draft
-future chapters during the student run, replace exercises wholesale, or add
-features to justify prose. Keep KISS as the standard in this joint phase too.
+If final completed work is inadequate, diagnose the cause, improve teaching and
+rerun from accepted prerequisites without the prior target code or private repairs.
+Use the appropriate owner for broken fixtures or environment setup; never change
+production to satisfy an invalid check. Preserve earlier attempts and results. A
+material teaching change needs fresh verification; typo-only edits do not. Do not
+accept a privately coached patch as evidence the chapter was sufficient.
 
 ## Surviving an interrupted session
 

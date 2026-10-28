@@ -246,7 +246,7 @@ retiring entries from the source, one adding the compressed version
 to the destination. The events carry the bytes.
 
 **Every compression is a recorded event.** This is the invariant
-that links chapter 14 and this chapter, stated here because it has a new
+that links chapters 14 and 15, stated here because it has a new
 consequence. Chapter 14 records the cut selected under the settings effective then.
 Changing those settings tomorrow must not change yesterday's replay. This
 chapter also records a model's compressed text: nondeterministic, costly,
@@ -469,7 +469,7 @@ also fails before dispatch, even if its partial JSON happens to parse.
 The exported `Engine.Compress` API remains as a deprecated direct operation for
 existing callers. The normal actor uses the child path and has no direct-call
 fallback. The observed role failure and the accepted provider contracts are
-recorded in the [compaction notes](../../docs/edition-2-notes/codex-background-compaction.md).
+recorded in the [compaction notes](../docs/edition-2-notes/codex-background-compaction.md).
 
 ## §22.6 The Graduation Cascade
 
@@ -674,21 +674,6 @@ worker execution; a font change does neither. If a replacement has already
 committed, finish its disk recovery before applying a rescan. Cancellation cannot
 turn that committed fact back into abandoned work.
 
-Extend Chapter 21's `ApplicationConfig` with this chapter's band,
-compression and context/retention settings now that their types exist. Keep
-strict validation and private atomic saves; do not create a parallel root
-memory-settings file in file mode. Child preferences remain local, and a
-memory patch preserves provider values and all unrelated fields.
-
-Memory settings apply immediately, unlike saved next-launch provider settings.
-Acknowledge a patch only after durable persistence and application to the
-live Agent, including its required rescan or policy invalidation. The browser
-must show applied memory state without presenting saved provider edits as
-active. Exercise a memory patch while a provider edit is pending as well as
-during streaming; neither may clobber the other or deadlock observation.
-Recall settings join this same contract in Chapter 23, not before their type
-exists.
-
 The settings acknowledgment created another trap in the student implementation.
 The GUI held its observer mutex while waiting for the Agent to apply a memory
 patch. During streaming, that actor was trying to publish an observation through
@@ -780,8 +765,12 @@ turns, 400 bytes of dialogue per turn, a conversation budget of
 Cascade launches per checkpoint: 0.10. The watermark gap works:
 nine of ten checkpoints find the band under budget and do nothing.
 
-Chapter 14's handoff ladder removes tool traffic; memory bands compress
-dialogue. This fixture tests their combined effect.
+These are the reference test's reported structural numbers. The conversation stays at 1,600
+bytes against 16,000 unbounded. Four memories were written. One fold
+fired. The ladder from chapter 14 and the memory bands from this
+chapter are additive: the ladder removes tool bytes, the bands
+compress dialogue, and the combination holds the total context to a
+fraction of its unmanaged size.
 
 The band sizes are not a compression measurement, and printing them
 as one would be wrong. The compressor in this test is a fake that
@@ -903,7 +892,7 @@ and native browser settings retain their affected checks.
 The original grader scored **20/100 FAIL** on an
 intermediate student build: its settings missed the owning Agent's directory,
 and its awarded recovery points did not require a fold to occur. The
-[student record](../../docs/edition-2-notes/ch16.md) preserves that result and the
+[student record](../docs/edition-2-notes/ch16.md) preserves that result and the
 independent review; revised grading is a separate measurement.
 
 ## §22.12 Taking It for a Spin
@@ -1026,9 +1015,9 @@ be right.
 
 ### What the live runs remembered
 
-These October 11 results concern the direct compressor, not the background
-child. The instructions above describe what to observe in that newer path;
-these historical receipts do not establish its behavior.
+These are the October 11 direct-compressor results, before the background-child
+change. A new live background run remains pending; the instructions above describe
+what to observe, without claiming it has occurred.
 
 Five recorded sessions on October 11 each finished three turns, exited normally,
 and made three compressor calls: two session memories and one graduation to 8x.
@@ -1071,7 +1060,7 @@ facts it had retained.
 
 Measured source-to-memory UTF-8 byte ratios across these calls range from 1.358
 to 3.678. The 8x name describes a tier's intended compression, not an achieved
-ratio. Preserving reasons used more bytes. The [run records and actual memories](../../docs/edition-2-notes/ch16.md#live-mechanics-versus-preservation-and-task-quality)
+ratio. Preserving reasons used more bytes. The [run records and actual memories](../docs/edition-2-notes/ch16.md#live-mechanics-versus-preservation-and-task-quality)
 retain all five outcomes.
 
 Test the three steps separately: did the framework replace and replay the right

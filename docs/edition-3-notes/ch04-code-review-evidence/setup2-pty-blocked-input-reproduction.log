@@ -1,6 +1,0 @@
-=== RUN   TestPublicPTYBlockedInputKill
-    public_api_test.go:96: system prompt is required
---- FAIL: TestPublicPTYBlockedInputKill (0.00s)
-FAIL
-FAIL	ch04-review-consumer	0.008s
-FAIL

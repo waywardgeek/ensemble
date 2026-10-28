@@ -75,7 +75,7 @@ could not compile because it expected an undocumented public field name. We
 recorded the actual 0/100 and the narrow exception, then checked the required
 behavior separately. Later revised grading is a different result. Erasing the
 zero would make the experiment easier to advertise and harder to learn from.
-The [student and review records](../../docs/edition-2-notes/) retain these
+The [student and review records](../docs/edition-2-notes/) retain these
 comparisons, corrections and failed attempts.
 
 There is now a working second-edition Ensemble through the Gateway. It has also

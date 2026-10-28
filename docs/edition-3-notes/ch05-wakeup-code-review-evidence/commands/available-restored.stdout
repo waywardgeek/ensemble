@@ -1,7 +1,0 @@
-=== RUN   TestIndependentAvailablePatternAndKill
-    review_test.go:431: real kill outcome "error: unknown argument ai_callback_delay" <nil> {Handle:2 Status:running Output:{Kind:3 Locator:cr/io/2} Bytes:0 ExitCode:<nil> CWD: Reason:}
-    review_test.go:433: missing actual process reaping
---- FAIL: TestIndependentAvailablePatternAndKill (6.16s)
-FAIL
-FAIL	wakeaudit	6.171s
-FAIL

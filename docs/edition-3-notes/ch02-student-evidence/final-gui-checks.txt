@@ -1,6 +1,0 @@
-cwd: /Users/bill/projects/ensemble-edition-3-student/gui
-command: go test ./...
-?   	ensemble-gui	[no test files]
-test exit: 0
-command: go build -o /Users/bill/projects/ensemble/docs/edition-3-notes/ch02-student-evidence/gui-stub .
-build exit: 0

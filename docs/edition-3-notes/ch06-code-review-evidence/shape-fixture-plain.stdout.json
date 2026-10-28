@@ -1,1 +1,0 @@
-{"assistant":"shape one two","deltas":{"text":1,"thinking":0,"tool_call":0},"elapsed_ms":4.077,"first_delta_ms":2.585,"observation":"stream_stats","parts":1,"streaming":false,"usage":{"input":0,"cache_write":0,"cache_read":0,"output":0}}

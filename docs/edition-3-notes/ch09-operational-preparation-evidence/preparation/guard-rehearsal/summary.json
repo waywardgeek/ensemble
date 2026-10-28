@@ -1,9 +1,0 @@
-{
-  "ok": true,
-  "wrong_pin_no_entry": true,
-  "preauthorization_no_entry": true,
-  "wrong_model_no_forward": true,
-  "wrong_tokens_no_forward": true,
-  "ninth_request_no_forward": true,
-  "first_failure_no_next_case": true
-}

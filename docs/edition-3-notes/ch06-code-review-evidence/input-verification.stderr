@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch06-code-review-evidence/verify-inputs.py", line 8, in <module>
-    for d in c['artifacts']+c['grader_inputs']:
-             ~^^^^^^^^^^^^^
-KeyError: 'artifacts'

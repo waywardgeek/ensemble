@@ -1,9 +1,0 @@
-{
-  "pid": 77956,
-  "listener": [
-    "127.0.0.1",
-    56021
-  ],
-  "proof": "COMMAND     PID USER   FD   TYPE             DEVICE SIZE/OFF NODE NAME\nch09-gui- 77956 bill    8u  IPv4 0x32683588f4774d39      0t0  TCP 127.0.0.1:56021 (LISTEN)\n",
-  "verified_before_client_access": true
-}

@@ -1,2 +1,7 @@
-
-cr/
+**/bin/
+**/obj/
+/api.log
+/event.log
+/debug.log
+/gui.log
+/cr/

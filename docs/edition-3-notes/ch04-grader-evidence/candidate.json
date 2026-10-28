@@ -1,9 +1,0 @@
-{
-  "recorded_utc": "2026-10-17T00:05:00.345189+00:00",
-  "base_revision": "bac07e644facb25ba3e5bffb2961674763fed4c4",
-  "status": "candidate adapter, independent review pending",
-  "files": {
-    "cmd/grade-edition3/main.go": "d08616eee707b4b91363f528abafa85f9b2268af964a0c6d903efbae95c291a4",
-    "cmd/grade-edition3/main_test.go": "f505aebe9a8ef9bea5495c6ee723eea0880b1ae3735e4b36adadff2cceb71a5f"
-  }
-}

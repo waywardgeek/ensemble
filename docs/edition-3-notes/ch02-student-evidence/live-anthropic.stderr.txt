@@ -1,4 +1,0 @@
-Conversation ready. Enter a message; EOF exits.
-input=52 output=151 cache_write=0 cache_read=0
-input=227 output=46 cache_write=0 cache_read=0
-cumulative usage: input=279 output=197 cache_write=0 cache_read=0

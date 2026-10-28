@@ -1,3 +1,0 @@
-> JOB-PASS: observed the command running, then its unseen completion output.
-> CONTEXT-PASS: the earlier job observation remains in this conversation.
-> 

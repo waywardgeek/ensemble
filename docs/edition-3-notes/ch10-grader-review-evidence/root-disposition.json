@@ -1,7 +1,0 @@
-{
-  "message_id": "main-20",
-  "from": "main",
-  "to": "e3-ch10-entry-audit",
-  "content": "Seal the current attempt as qualified/not accepted with all failures and unrun controls explicit. Do not rerun, mutate, or repair source/harness yet. Preserve full commands/env/cwd, selected actual artifacts, persistence settings/save-path isolation, returned reports, cleanup, prior pins and final tail. Your omitted Build-marker selfcheck and unexecuted wrong mutation plan are reviewer setup/scope failures, not student defects. Root will inspect the actual failed ch9 composition before authorizing any bounded follow-up. No additional runtime work in this turn.",
-  "applied": "No further runtime controls or harness/source repair; report and seal only."
-}

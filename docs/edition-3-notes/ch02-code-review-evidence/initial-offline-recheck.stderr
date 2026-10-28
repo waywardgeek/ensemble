@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch02-code-review-evidence/offline-recheck.py", line 22, in <module>
-    for source in summary['vendors']:
-                  ~~~~~~~^^^^^^^^^^^
-TypeError: list indices must be integers or slices, not str

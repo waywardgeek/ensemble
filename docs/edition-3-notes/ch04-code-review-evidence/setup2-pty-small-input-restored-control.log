@@ -1,6 +1,0 @@
-=== RUN   TestPublicPTYNormalInputKillControl
-    public_api_test.go:95: system prompt is required
---- FAIL: TestPublicPTYNormalInputKillControl (0.00s)
-FAIL
-FAIL	ch04-review-consumer	0.009s
-FAIL

@@ -40,7 +40,7 @@ type anthropicMessage struct {
 // Anthropic keeps the startup instruction outside messages and gives tool
 // results no role of their own. Inline declaration updates are system messages;
 // these wire decisions do not change the log's distinct speakers or event order.
-func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
+func (e *engine) renderAnthropic(c *common.Context, goalSystem string) ([]byte, error) {
 	messages := []anthropicMessage{}
 	appendMessage := func(role string, blocks []json.RawMessage) {
 		if len(blocks) == 0 {
@@ -125,7 +125,7 @@ func (e *engine) renderAnthropic(c *common.Context) ([]byte, error) {
 		tools[len(tools)-1]["cache_control"] = map[string]string{"type": "ephemeral"}
 	}
 	system := []map[string]any{}
-	if prompt := e.SystemPrompt(); prompt != "" {
+	if prompt := goalSystem; prompt != "" {
 		system = append(system, map[string]any{"type": "text", "text": prompt, "cache_control": map[string]string{"type": "ephemeral"}})
 	}
 	features, _ := LookupModel(e.parent.Config().Model)

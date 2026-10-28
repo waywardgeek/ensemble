@@ -1,6 +1,0 @@
-[
-  {
-    "seconds": 0.002897083293646574,
-    "stdin": "{\"parts\": [{\"type\": \"text\", \"text\": \"Summarize this video.\"}, {\"type\": \"blob\", \"mime\": \"video/mp4\", \"ref\": {\"kind\": 1, \"locator\": \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/cadence-ch05-runtime-unsupported-s6vlm0s0/unsupported.mp4\"}}]}"
-  }
-]

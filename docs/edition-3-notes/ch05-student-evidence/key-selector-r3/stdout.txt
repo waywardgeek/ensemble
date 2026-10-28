@@ -1,1 +1,0 @@
-{"passed": true, "positive": 3, "rejections": 12, "real_settings_reads": 0, "paid_calls": 0, "hashes": {"launch.py": "4516948d1dc809555bb0cad9c0c055c450f85c9cdd793c574ec4e36d617a34c2", "launcher-controls.py": "382faf4a90bfb06a1760f28f7dac26d92e4f71dee472facedcd1178abb31fe65", "live-checklist-r3.md": "e9d40f9a26b83a0ee5136bf06ba657aa2a157cde602d5baa06ee58694b796126"}}

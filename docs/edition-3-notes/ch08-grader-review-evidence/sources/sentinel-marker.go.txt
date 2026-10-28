@@ -1,3 +1,0 @@
-package main
-import("os";"path/filepath";"encoding/json")
-func main(){kind:="target";code:=98;if filepath.Base(os.Args[0])=="go"{kind="go";code=97};data,_:=json.Marshal(map[string]any{"argv":os.Args,"kind":kind});if err:=os.WriteFile(os.Getenv("SENTINEL_MARKER")+"."+kind,data,0600);err!=nil{panic(err)};os.Exit(code)}

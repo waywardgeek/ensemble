@@ -1,1 +1,0 @@
-{"mode": "cli-rehearsal", "status": "FAIL", "failure": "early-cli-exit", "cleanup_complete": true, "run_root": "/Users/bill/projects/ensemble-edition-3-student/.ch10-local/operational-preparation-v2/runs/cli-rehearsal-r1", "duration_seconds": 0.15629562502726912, "credential_opens": 0}

@@ -124,6 +124,8 @@ func (s *Server) ObserveAgent(a ensemble.Agent, observation ensemble.Observation
 	// start must bring its already-recorded arguments along with it.
 	v.capture()
 	switch o := observation.(type) {
+	case ensemble.GoalChanged:
+		v.broadcast(map[string]any{"type": "goal_status", "goal": o.Status})
 	case ensemble.BillingSelected:
 		v.broadcast(map[string]any{"type": "billing_selected", "source": o.Source})
 	case ensemble.PartDelta:
@@ -458,6 +460,9 @@ func (s *agentView) replay() [][]byte {
 	add(map[string]any{"type": "state_changed", "from": state, "to": state})
 	add(map[string]any{"type": "pause_changed", "paused": s.agent.Paused()})
 	add(map[string]any{"type": "current_settings", "settings": s.snapshotSettings()})
+	if goal, ok := s.agent.(ensemble.GoalController); ok {
+		add(map[string]any{"type": "goal_status", "agent_key": ensemble.AgentKey(s.agent), "goal": goal.GoalStatus()})
+	}
 	add(s.usageWire())
 	return out
 }

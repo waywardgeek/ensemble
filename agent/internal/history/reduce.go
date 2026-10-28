@@ -234,7 +234,9 @@ func land(c *common.Context, entry common.Entry) {
 		// provider's replay material, while the next request starts without it.
 		var kept []common.Entry
 		for _, old := range c.Dialogue {
-			if old.Kind == common.KindRecall {
+			// Only the newest checkpoint note stays active. Earlier notes and
+			// their sequence boundaries remain in the append-only event log.
+			if old.Kind == common.KindRecall || old.Kind == common.KindHandoff {
 				continue
 			}
 			var parts []common.Part

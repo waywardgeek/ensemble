@@ -1,8 +1,0 @@
-{
-  "original_commit": "00489b05b65cfe5209f26cb655667df44b3847e2",
-  "original_archive_sha256": "336b26e12c16c268a1634dd690d4fc9be075aeed4b1f323ff36c42a1436f70df",
-  "all_original_files_verified": 46,
-  "only_added_file": "chapter5_correction_test.go",
-  "added_test_sha256": "abd3055d5c12b9f9f3eeb2fd9b5651192195c7c1a3d24080b8dba55ef4159ef4",
-  "original_production_replaced_in_scratch_only": true
-}

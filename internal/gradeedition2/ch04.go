@@ -6,6 +6,18 @@ import "github.com/waywardgeek/ensemble/internal/grade"
 // consumer. Source review still establishes ownership and absence of globals;
 // observable diagnostics and an import graph cannot prove those properties.
 func Chapter4(bin, core, consumer string, example ConsumerCase) (grade.Report, error) {
+	report, err := Chapter4Jobs(bin)
+	if err != nil {
+		return grade.Report{}, err
+	}
+	checks := append(report.Checks, consumerTopology(core, consumer))
+	checks = append(checks, exerciseConsumer(consumer, example)...)
+	return grade.NewTitledReport("Edition 2, Chapter 4 — Jobs (100) and external consumer (60)", checks, report.Stderr), nil
+}
+
+// Chapter4Jobs grades the executable protocol without assuming the consumer's
+// implementation language. The independent consumer remains a separate task.
+func Chapter4Jobs(bin string) (grade.Report, error) {
 	res, err := grade.Ch4Run(bin)
 	if err != nil {
 		return grade.Report{}, err
@@ -23,7 +35,5 @@ func Chapter4(bin, core, consumer string, example ConsumerCase) (grade.Report, e
 			checks[i].Title = "kill_job stops the process; subsequent waits report killed"
 		}
 	}
-	checks = append(checks, consumerTopology(core, consumer))
-	checks = append(checks, exerciseConsumer(consumer, example)...)
-	return grade.NewTitledReport("Edition 2, Chapter 4 — Jobs (100) and external consumer (60)", checks, res.HelpersErr), nil
+	return grade.NewTitledReport("Chapter 4 — Executable jobs only (100); external consumer not included", checks, res.HelpersErr), nil
 }

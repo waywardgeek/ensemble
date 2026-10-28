@@ -1,7 +1,0 @@
-{
-  "prior_probe_verified_sha256": "fcef27df6128ca2e2c44bfebbbfb4f8905165bd2433e01712bef14175d96bdce",
-  "prior_verdict_unchanged": true,
-  "new_probe_sha256_at_inherited_copy": "2d7c124ba70332b54df27cecf63924dd6fac7d37203a76c2c3fcc807ab0d5049",
-  "final_private_probe_sha256": "aa24f87b737ef02725585f692ce424d14ec02b41d2ece59ff541a8aede2a816a",
-  "final_inherited_probe_sha256": "fcef27df6128ca2e2c44bfebbbfb4f8905165bd2433e01712bef14175d96bdce"
-}

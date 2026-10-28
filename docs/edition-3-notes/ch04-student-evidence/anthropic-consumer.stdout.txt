@@ -1,5 +1,0 @@
-The result returned by the `shout` tool is:
-
-> **HELLO FRAMEWORK**
-
-The input `"hello framework"` was successfully converted to its uppercase form, `"HELLO FRAMEWORK"`.

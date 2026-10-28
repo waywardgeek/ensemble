@@ -1,3 +1,0 @@
-# Local-only/private boundaries
-
-Owned scratch: `/tmp/cadence-ch07-r4-pause-independent` (canonical `/private/tmp` equivalent). Full raw captures include local fake provider data and stay there, not in portable evidence. `observed-facts.json` contains only selected safe call identities, result errors/short marker outputs, pause/replay ordering and job status; not full raw wire/provider payloads. Raw file hashes are provenance only. No historical/student source archive or binary is copied. `initial-verification.json` contains manifest/hash metadata, not source payloads. Unused explanation-only diff is retained transparently, not an executed behavior change. Do not supply private harness controls to a student as public requirements.

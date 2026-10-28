@@ -1,9 +1,0 @@
-{
-  "time": "2026-10-18T05:39:06.644890+00:00",
-  "restored_path": "docs/edition-3-carryover.md",
-  "restored_sha256": "6b3968770fc93c0e2fcb34d53617393e52a40bc3315576f550840fb1e2a5755a",
-  "preserved_original_audit_snapshot": "docs/edition-3-notes/ch08-entry-scope-correction-evidence/carryover-with-unapproved-append.md",
-  "snapshot_sha256": "5d6a77c554971bbd82157c752f18edb90a27542a64c69e3dc350f3299d8ff593",
-  "scope_reason": "Entry task explicitly prohibited guidance edits; exact owned append preserved then removed, no unrelated text changed. Original audit inventory points to a now-historical carryover version preserved at this snapshot.",
-  "inventory_note": "Original evidence paths left in place; reviewer must qualify these output deviations and new-permission recommendation."
-}

@@ -1,9 +1,0 @@
-Temporary mutation: internal/engine/engine.go; append break immediately after text.WriteString(block.Text).
-Command: go test -count=1 -v -run ^TestConversation$ .
-=== RUN   TestConversation
-    ensemble_test.go:71: all text blocks: "hello " <nil>
---- FAIL: TestConversation (0.00s)
-FAIL
-FAIL	ensemble	0.007s
-FAIL
-Exit: 1

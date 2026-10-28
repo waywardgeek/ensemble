@@ -1,9 +1,0 @@
-anthropic exit 0 captured usage {'input': 279, 'cache_write': 0, 'cache_read': 0, 'output': 197}
-openai exit 0 captured usage {'input': 244, 'cache_write': 0, 'cache_read': 0, 'output': 147}
-gemini exit 0 captured usage {'input': 192, 'cache_write': 0, 'cache_read': 0, 'output': 120}
-offline sentinel POST count 0
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch02-student-evidence/run-live-evidence.py", line 129, in <module>
-    assert all(result['exit'] == 0 and result.get('transcript_usage_matches_log') and result.get('event_counts',{}).get('response_ended') == 2 for result in results), 'Live blocker recorded'
-           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError: Live blocker recorded

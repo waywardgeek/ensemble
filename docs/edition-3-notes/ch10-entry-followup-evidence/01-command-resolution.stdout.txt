@@ -1,2 +1,0 @@
-/Users/bill/go/bin/dlv
-/usr/local/go/bin/go

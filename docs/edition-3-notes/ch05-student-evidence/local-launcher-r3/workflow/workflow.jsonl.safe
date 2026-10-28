@@ -1,3 +1,0 @@
-{"agent":"author","from":"idle","observation":"state_changed","to":"input_pending"}
-{"agent":"author","from":"input_pending","observation":"state_changed","to":"in_flight"}
-{"agent":"author","from":"in_flight","observation":"state_changed","to":"idle"}

@@ -1,5 +1,133 @@
 # Chapter writing procedure
 
+## Governing method: remaining Edition 3 chapters and Edition 4
+
+Bill has selected the [Teach Your AI system](https://github.com/waywardgeek/teach-your-ai)
+for the remaining applicable Edition 3 chapters and for Edition 4. Its local checkout is `/Users/bill/projects/teach-your-ai`;
+its chapter-writing procedure governs human-led chapter creation, and its
+book-execution workflow governs fresh-student verification. This is the chosen
+method, not a claim that Edition 4 has started or that its chapters are verified.
+The dated Edition 2 phases below are historical; their useful craft guidance
+remains, but they do not override this choice or restart an earlier run.
+
+Keep the two activities distinct. During creation, the human works with separate
+top-level author and reference-coder conversations: define the need, TL;DR,
+plain-language idea and exercise; implement and test the reference and external
+grader; then complete the chapter from demonstrated experience. A successful
+reference implementation is not evidence that the completed chapter teaches it.
+Verify that with a fresh student using the completed chapter and accepted
+prerequisites—not the reference solution, prior target candidate, private review
+history or solution-specific coaching. The student may run the supplied external
+grader and inspect its reports throughout development; grader source remains
+private.
+
+The student owns a complete implementation, tests, grader feedback, authorized
+exercises and one public-input reviewer’s review-and-fix cycle before submission.
+No routine early compiling review or coordinator relay is required. The reviewer
+uses the same input boundary as the student and recommends readiness, not acceptance.
+The coordinator independently assesses the finished result and exercises the app.
+Keep review consolidated, rerun only affected checks, and keep notes concise.
+
+The student also writes and runs relevant tests and follows the chapter's
+“Take it for a spin” steps through the actual CLI or browser, within authorized
+limits. Producing code or passing a grader is not completing the exercise.
+The coordinator independently performs the exercise for acceptance; neither
+pass replaces the other. Record observed outcomes and any blocked, deferred or
+unverifiable steps honestly in the existing chapter notes, not as completed work.
+
+If the completed student work is not good enough, the chapter is not good enough
+yet: diagnose the failure, improve the teaching and test it with a fresh isolated
+student from accepted prerequisites. Do not repeatedly coach that candidate through
+final acceptance. There is no numerical limit on teaching-improvement/fresh-student
+cycles; historical correction-count stops do not govern this method. Distinguish
+setup and grader failures honestly, and preserve operational/budget limits across
+runs. Substantial design/contract changes, major teaching restructuring or solution-specific implementation coaching require fresh verification from accepted prerequisites. Faithfully incorporated clarifications may retain the successful run as verified with recorded Q&A under the rule below; asking a question alone does not invalidate a run.
+Keep each chapter's requirements, prose, implementation and grader coherent and
+adequately reviewed/validated before advancing. Grader green is not sufficient;
+inspect ownership, correctness, simplicity and actual behavior, and report limits
+honestly. Consequential unresolved choices and authority blockers go to Bill;
+ordinary authorized teaching improvement does not require another permission loop.
+
+Apply **KISS (Keep It Simple)** and **YAGNI (You Aren't Gonna Need It)** to code,
+prose, tests and coordination. Meet the current need with existing owners,
+helpers and suitable libraries; do not add speculative features or frameworks.
+Preserve necessary safeguards and explanations of non-obvious decisions. Fewer
+lines alone are not better code or better teaching. Repeated correction cycles
+should prompt examination of the teaching and our assumptions, not more ceremony.
+
+Edition 3 applies this method through [its execution procedure](../docs/edition-3-execution.md):
+prepare the existing chapter, then verify it with a fresh isolated student who can
+run the grader, and establish code/prose quality before advancing. Chapters 1–20
+remain closed; Chapter 21 is the first current application, not a special quality
+exception. Keep Chapter 25 historical-only and the separately installed Chapter 27
+work distinct from regenerated-student acceptance. This does not restart closed
+chapters or add provider, installation or publication authority.
+
+## Separate learning from specification
+
+Make the chapter efficient to learn from and precise to implement from. Keep two
+clearly labeled, connected parts rather than mixing a tutorial, exhaustive contract
+and debugging history into one stream:
+
+- **Learning:** the problem, simple mental model, ownership, why the design works,
+  tradeoffs, and a small worked example. Introduce concepts in a coherent order and
+  preserve explanations of non-obvious decisions. Teach transferable judgment,
+  not the chronology of every correction.
+- **Specification/reference:** authoritative interfaces, formats, configuration,
+  errors, invariants, compatibility and edge cases needed to implement and grade.
+  Give each requirement one authoritative home and link to it from the explanation
+  and exercise. A concise TL;DR can index or summarize it without becoming another
+  independently maintained contract. Tests and graders must not add hidden rules.
+
+The exercise applies the learning to that specification. Neither part replaces the
+other: exhaustive fields do not teach a design, and a pleasant narrative does not
+settle an implementable contract. Keep examples, specification and grader consistent;
+separation is organization, not permission to omit necessary teaching or detail.
+Use existing chapter sections when they suffice; do not impose a new document set,
+rigid length target or wholesale rewrite on an adequate chapter.
+
+## Student questions and recorded Q&A
+
+Welcome questions. Asking for clarification is part of learning and sound engineering,
+not a failure of independence. Do not make students guess the teacher's intentions,
+ration questions, or wait for formal review. Answer assignment ambiguities from the
+actual requirements and explain the reasons; distinguish clarification from supplying
+an implementation or privately repairing it past acceptance.
+
+Use a **“Questions from the student”** section for useful real exchanges, not an
+invented FAQ or a transcript dump. Preserve the actual question and authoritative
+answer verbatim. Check them against the saved exchange; do not reconstruct quotations
+from memory or silently edit them. Clearly mark excerpts, omissions or redactions.
+If an answer was wrong or withdrawn, include its correction or select the final
+correct exchange; do not publish the withdrawn advice as guidance. Reconcile any
+contradiction in the main teaching/specification rather than create a competing
+contract. Keep concepts and reasons in the narrative and exhaustive requirements in
+their authoritative specification section; Q&A helps readers navigate both.
+
+Select reusable teaching: ambiguity, ownership, rationale and practical interpretation.
+Exclude secrets, private grader/solution material and operational chatter such as
+machine-local paths, progress reports and spending permissions. A chapter with no
+useful actual exchanges needs no fabricated questions. Keep the exchanges in the
+existing conversation/notes for the author; no new logging system or student paperwork.
+
+If a student succeeds using the chapter plus those clarifications, and the chapter
+faithfully incorporates them, retain that run as **verified with recorded Q&A**.
+Check that the answers were available before the affected successful work/checks and
+that the published wording carries the same information. This is verification of the
+chapter with its Q&A, not an unassisted run or proof that the original page was sufficient.
+Adding faithful clarifications alone does not require another student run. Existing
+code-quality, review, exercise and final-acceptance requirements remain unchanged;
+Q&A cannot turn unfinished, failing or unverified work into success.
+
+Substantial design/contract changes, major restructuring of the teaching, or
+solution-specific implementation coaching still require fresh verification from
+accepted prerequisites. Do not disguise a supplied repair as a clarification to avoid
+that test. Actionable review findings against existing public requirements and
+student-authored fixes remain ordinary development, not automatically supplied-solution
+coaching or a reason to restart. Explain the distinction briefly in the existing record.
+If completed work remains inadequate, improve the chapter and run a fresh student; asking questions by
+itself is not inadequacy. Operational budgets and permissions never reset.
+
 ## October 12: Edition 2 is the current top-level tree
 
 Promotion commit `564e316f` moves the accepted second edition to `agent/`,

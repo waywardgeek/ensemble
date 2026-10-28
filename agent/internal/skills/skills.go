@@ -263,11 +263,21 @@ func (r *registry) ToolMeta(name string) (common.ToolMeta, bool) {
 // MarkUnload stops external servers while deferring compiled instruction removal.
 func (r *registry) MarkUnload(name string) error {
 	r.mu.Lock()
-	defer r.mu.Unlock()
+	changed := false
+	defer func() {
+		r.mu.Unlock()
+		// Configuration belongs to the actor; never wait on it under this lock.
+		if changed && name == "goals" {
+			if owner, ok := r.parent.(interface{ GoalSkillUnloaded() }); ok {
+				owner.GoalSkillUnloaded()
+			}
+		}
+	}()
 	if !r.loaded[name] {
 		return fmt.Errorf("skill %q is not loaded", name)
 	}
 	r.pending[name] = true
+	changed = true
 	// Instructions remain in context, but only non-pending skills grant tools.
 	// Shared grants survive while another loaded skill still owns them.
 	for tool := range r.tools {

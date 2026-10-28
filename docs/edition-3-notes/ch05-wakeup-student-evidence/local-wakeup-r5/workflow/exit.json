@@ -1,8 +1,0 @@
-{
-  "binary": "/tmp/cadence-ch05-wakeup-evidence/candidate-r2/frozen/workflow",
-  "binary_sha256": "c724d5018c45152efb47079226d2fce825cc23bdc3b327714dc5bb0d0338caf4",
-  "exit": 0,
-  "elapsed_seconds": 5.116934332996607,
-  "http": "loopback fake only",
-  "paid_requests": 0
-}

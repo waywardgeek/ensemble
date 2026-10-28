@@ -1,8 +1,0 @@
-{
-  "all_historical_positive_files_restored": true,
-  "file_count": 66,
-  "mutation_files": [
-    "gui/gui.go",
-    "internal/agent/dispatch.go"
-  ]
-}

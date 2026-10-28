@@ -1,9 +1,0 @@
-{
-  "pid": 77365,
-  "listener": [
-    "127.0.0.1",
-    55889
-  ],
-  "upstream": "http://127.0.0.1:55888",
-  "credential_in_artifacts": false
-}

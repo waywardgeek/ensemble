@@ -1,7 +1,0 @@
-=== RUN   TestCorrectionR1RefusedProposalIsNotDispatch
-    correction_r1_test.go:124: refusal WebSocket: oversized fixture frame 8872763516171217698
-    correction_r1_test.go:207: unexpected server frame 3a22
---- FAIL: TestCorrectionR1RefusedProposalIsNotDispatch (0.02s)
-FAIL
-FAIL	ensemble-gui	0.031s
-FAIL

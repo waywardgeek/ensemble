@@ -1,5 +1,41 @@
 # Chapter 1: One Loop, Sixty Billion Dollars
 
+## TL;DR
+
+Build one conversation loop in C# 14 on .NET 10. Read a question, send the
+completed conversation plus that question to Anthropic, collect every text
+block, and retain the new user/assistant pair only after success. Report actual
+usage, not an estimate. There are no tools, retries or streaming yet.
+
+Give the loop owners from the start: Ensemble owns Agents and diagnostics;
+Agent owns its conversation, configuration and Engine; Engine owns HTTP and
+measured usage. Declare the vocabulary and relationships in Common and put
+implementations in functional directories. The compiled executable must work
+both as a JSON-lines program and as an opt-in chat.
+
+## In plain words
+
+The model does not remember your previous question for you. Your program keeps
+the conversation and sends it again on every request. The growing request is
+why later turns cost more even when the new question is short.
+
+Keep the next question on a temporary request until its answer arrives. If the
+request fails, the saved conversation still ends with a complete pair. You can
+report the failure without inventing a reply or quietly buying another attempt.
+Usage is a different fact: if the provider reports tokens but no usable answer,
+those tokens were still consumed and must still be counted.
+
+The ownership structure is deliberately small. An Engine that needs a setting
+asks its Agent. An Engine that needs to report a problem follows Agent to
+Ensemble. It does not keep copied settings or a second logger. Parent add and
+remove methods update both the parent's child reference and the child's parent
+reference before returning. Garbage collection reclaims memory; explicit
+`Destroy` operations end relationships and release HTTP resources.
+
+A passing fake-provider test shows that your program follows the protocol. It
+does not show that a real account, model or network works. Keep that distinction
+when you take the program for a spin.
+
 ## 1.0 Sixty billion dollars
 
 In July 2025 Bill Cox read the news at his desk, and it broke him.
@@ -126,55 +162,48 @@ that small change unnecessarily hard. This edition starts with the ownership
 that survived the refactor. The separate repair chapter is gone.
 
 For this exercise, Ensemble owns its Agents and the application logger. An
-Agent owns one conversation and its configuration. Its Engine owns HTTP
-transport and measured usage. The CLI constructs Ensemble through the public
-library and asks it for an Agent, even when the program needs only one. This
-gives the conversation somewhere to live other than a pile of variables in
-`main`, and gives a second conversation its own state without inventing a new
-execution path.
+Agent owns one conversation, its configuration and one Engine. Its Engine owns
+HTTP transport and measured usage. The CLI constructs Ensemble, then constructs
+an Agent with that actual parent. The Agent constructs its Engine with itself as
+parent. There is no separate attachment step for the caller to remember.
 
-Imports and ownership answer different questions. Shared values and interfaces
-live in `internal/common`; Agent and Engine implementations each import that
-package, never one another. The public composition root imports the
-implementations and connects them. `common` names the vocabulary shared by the
-spokes; it is not the runtime Ensemble and is not a home for every useful
-function. Put HTTP behavior in Engine's package. Go cannot attach a method there
-to a type declared in common, so use a free function when that is the clearer
-placement. Small private runtime structs can also live in their responsible
-packages. Standard-library dispatch methods, such as JSON methods, may remain
-beside the shared types they serve.
+Imports and ownership answer different questions. `Common/Owners.cs` declares
+the actual partial types, their persistent fields and their callable operations.
+`Common/Values.cs` declares immutable value-like messages, configuration and
+usage. `Application`, `Agent` and `Engine` supply the matching partial member
+bodies, compiled into one assembly. Common imports no functional module, and
+functional implementations use Common's vocabulary, not another spoke's private
+helpers. Common is not a home for HTTP algorithms merely because all code can
+see it. C# directories organize source; they are not separate DLLs.
 
-Runtime access goes back through the actual owners. Engine's constructor
-receives and stores its Agent parent through an interface declared in common;
-Agent does the same for Ensemble. Required parents cannot be nil. Parent
-accessors expose those relationships, so an Engine needing a diagnostic follows
-Engine → Agent → Ensemble to the logger. Configuration stays with Agent; usage
-stays with Engine. Copying those facts into siblings makes it possible for two
-objects to disagree about the same conversation. A mutable global logger avoids
-the question only until two applications want different destinations.
+For example, Common declares `public partial Engine(Agent parent);` and
+`Engine/Engine.cs` supplies its body. The two parts describe one object, not an
+interface and a second implementation object. Required operations have explicit
+accessibility so a missing implementation is a compile error.
 
-The general rule permits more than one parent: retain each actual relationship.
-A pin always belongs to an IC package, for example, but may have no wire until
-one connects it. Adding a child records it in the parent and sets the child's
-back-pointer. Ensemble is the root and needs no invented parent. A service an
-object calls is not automatically its parent, and a bag of callbacks is not a
-replacement for knowing who owns it. Helpers that may need diagnostics need
-owner access too.
+Runtime access goes through actual owners. Engine → Agent → Ensemble reaches
+the logger; Engine → Agent reaches configuration. Constructors reject null
+parents. Copying these facts into siblings would allow two objects to disagree
+about the same conversation. A global logger avoids the question only until
+two applications want different destinations.
 
-That is enough architecture for today's loop. Later, display observations will
-reach Ensemble through Observer, while explicit parent methods supply services.
-The GUI and its WebSocket transport will be an optional separate Go module
-using the public core API; the CLI and GUI will use the same Agent. Those are
-boundaries to preserve, not subsystems to build now.
+The general rule permits more than one parent, though this chapter needs only
+one at each level. Retain every actual relationship. Parent add/remove methods
+validate first and then maintain **both** ends; a refused change leaves both
+ends untouched. Removal detaches without destroying. `Destroy` recursively
+destroys strong children, then asks its parent to remove it. It must not clear a
+back-pointer that the parent's remove method forgot to clear. Immutable messages
+and configuration are explicitly value-like and need no holder back-pointers.
 
-Before coding, read `.agents/skills/ensemble-coding/SKILL.md` in full. Its rules
-belong in the coding agent's context as well as the reviewer's. Keep the code
-small and explain why it has this shape: owner relationships, lifetime and
-important ordering deserve comments. Every exported Go symbol, including
-internal-package symbols, fields and interface methods, needs useful
-documentation. Aim for roughly one comment line per four code lines, without
-padding obvious syntax. The test is whether a student can understand the
-decision without reconstructing an old conversation.
+That is enough architecture for today's loop. Do not build a GUI, actor system,
+history log or provider framework yet. A later front end will use the same core.
+
+Before coding, genuinely load the `ensemble-csharp` skill; merely reading its
+file is not activation. Explain vocabulary, contracts, ownership, important
+ordering and failure paths beside the code. Use named intermediate steps,
+expanded control flow and one substantive operation per line. A student should
+be able to explain the program without recovering an old conversation. Comment
+ratios and low line counts are not substitutes for that understanding.
 
 ## 1.2 Anatomy of a request
 
@@ -270,83 +299,84 @@ above. The sidebar teaches the lookup, not the answer.
 
 ## 1.3 The obvious data structure
 
-```go
-// Message is one turn. Role is "user" or "assistant"; this exercise requires that
-// they strictly alternate.
-type Message struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-
-// Conversation is the entire history.
-type Conversation []Message
+```csharp
+// Immutable value: a message has no ownership links to its holders.
+// The Agent retains these in alternating user/assistant pairs.
+public sealed record Message(string Role, string Content);
 ```
 
-`Message` belongs in `internal/common`; the retained slice belongs to Agent.
-The `Conversation` name is optional. The accepted implementation keeps a
-`[]common.Message` directly in its private Agent struct.
+`Message` belongs in Common. The mutable `List<Message>` belongs to Agent,
+whose declaration is also in Common. Its public `Messages()` operation returns
+an immutable snapshot, not a writable reference to the retained list.
 
-Straight from the docs. Every framework on earth is a wrapper around this
-shape. It fits in your head, `json.Marshal` serializes it without help, and it
-will carry this chapter comfortably. Enjoy it. Chapter 2 is going to take it
-away from you.
+Straight from the wire's shape. `System.Text.Json` serializes the request's
+lowercase `role` and `content` fields; the C# property names need not become wire
+names. This representation fits in your head and carries this chapter
+comfortably. Enjoy it. Chapter 2 is going to replace it with a richer record.
 
 ## 1.4 The loop
 
 Stage the user's message. POST the entire conversation. Parse the reply.
 Retain the completed pair. Repeat.
 
-```go
-// Ask is synchronous: finish one turn before starting the next.
-func (a *agent) Ask(ctx context.Context, question string) (string, error) {
-	if strings.TrimSpace(question) == "" {
-		return "", errors.New("user message is empty")
-	}
-	// A failed exchange must not leave an unmatched user turn in history.
-	pending := append(a.history, common.Message{Role: "user", Content: question})
-	reply, err := a.engine.Send(ctx, pending)
-	if err != nil {
-		return "", err
-	}
-	a.history = append(pending, common.Message{Role: "assistant", Content: reply})
-	return reply, nil
+```csharp
+// Calls are serial: await one turn before starting the next.
+public partial async Task<string> AskAsync(
+    string question,
+    CancellationToken cancellation)
+{
+    ObjectDisposedException.ThrowIf(destroyed, this);
+    if (string.IsNullOrWhiteSpace(question))
+    {
+        throw new ArgumentException("User message is empty.", nameof(question));
+    }
+
+    var user = new Message("user", question);
+    ImmutableArray<Message> request = Messages().Add(user);
+    string answer = await Engine().ExchangeAsync(request, cancellation);
+
+    // Commit only after success: failed attempts are not conversation pairs.
+    messages.Add(user);
+    messages.Add(new Message("assistant", answer));
+    return answer;
 }
 ```
 
-This method lives in Agent's package. Engine receives the pending messages and
-does the exchange; it does not own the conversation. Committing the pair only
-after success prevents a failed request from leaving two user messages in a
-row on the next attempt. It needs no retry machinery, just a deliberate order
-of assignments. Calls are synchronous at this stage.
+This body lives in `Agent/Agent.cs`; its declaration lives in Common. Engine
+receives temporary request messages and performs the exchange. It does not own
+the conversation. Committing after success prevents a failed request from
+leaving two consecutive user messages on the next attempt. `async` permits
+waiting without blocking a thread; it does not authorize overlapping turns on
+this chapter's Agent.
 
 **The API is stateless.** The provider retains nothing between calls; every
 request replays the whole history. The conversation lives in your process or
-it lives nowhere. That slice is the entire state of the chat, and "entire" is
+it lives nowhere. That list is the entire state of the chat, and "entire" is
 not a figure of speech. No model retains what was said five minutes ago
 unless the client sends it again.
 
-`Send` is §1.2 made executable. Marshal the request, set the three headers,
-POST, read the body, refuse anything but a 200, then walk the blocks:
+`ExchangeAsync` is §1.2 made executable. Serialize the request, set the three
+headers, POST, reject an unsuccessful HTTP status, then decode usage and walk
+all content blocks. This excerpt follows successful JSON decoding and usage
+validation:
 
-```go
-	var parsed response
-	if err := json.Unmarshal(raw, &parsed); err != nil {
-		return "", fmt.Errorf("decoding response: %w", err)
-	}
+```csharp
+// Calculate both totals before publishing either one.
+long totalInput = checked(usage.Input + input);
+long totalOutput = checked(usage.Output + output);
+usage = new Usage(totalInput, totalOutput);
 
-	e.usage.Input += parsed.Usage.InputTokens
-	e.usage.Output += parsed.Usage.OutputTokens
-
-	var text strings.Builder
-	for _, block := range parsed.Content {
-		if block.Type == "text" {
-			text.WriteString(block.Text)
-		}
-	}
-	return text.String(), nil
+var answer = new StringBuilder();
+foreach (JsonElement block in root.GetProperty("content").EnumerateArray())
+{
+    if (block.GetProperty("type").GetString() == "text")
+    {
+        answer.Append(block.GetProperty("text").GetString());
+    }
+}
 ```
 
-The snippet shows parsing and accumulation; the accepted Engine also rejects
+The snippet shows accumulation and text collection; Engine also rejects
 missing usage and empty text. Missing accounting is different from measured
 zero. It counts measured usage even when a response has no usable answer,
 because the request still consumed tokens. Diagnostics travel through the
@@ -355,17 +385,17 @@ owner chain and omit credentials and remote error bodies.
 No retry, no backoff. If the API returns 429, this program reports failure and
 stops. The loop does not conceal the failure with another paid request.
 
-The first-edition version fit in 278 physical lines in `solutions/ch01/main.go`,
-about a third of them the two front ends described below. The accepted
-second-edition implementation has 369 physical production Go lines across its
-CLI, public root, common vocabulary, Agent and Engine. The extra ownership is
-visible; there are still no tools, actors or provider framework hidden in it.
+**Request lifetime.** Do not put a fixed deadline on a valid generation.
+`HttpClient` has a default whole-request timeout; set it to
+`Timeout.InfiniteTimeSpan` and pass the caller's `CancellationToken` through
+both header and body waits. Connection setup may have a separate bound. A
+caller can cancel, but a slow provider is not itself a cancellation request.
+This chapter does not need an additional interrupt subsystem.
 
-A generation can legitimately take longer than a minute, including before its
-first response headers. Keep connection and TLS protections, but do not impose
-a blanket total HTTP-response timeout on model work. The crossover exposed a
-60-second client deadline that killed valid requests. Let the owning context
-cancel the request; a progress callback later in the book is not a deadline.
+The earlier Go editions taught this same small loop. This C# endpoint adds no
+tools, event log, actor system or provider abstraction. Its extra declarations
+make ownership, resource lifetime and the split between facts and operations
+visible rather than hiding them in the front end.
 
 ## 1.5 Usage is money
 
@@ -404,11 +434,12 @@ No caching and no remedies here. Just the habit, and the curve.
 The reference has one fixed line to say about itself, and it says it in the
 system prompt:
 
-```go
-const systemPrompt = "You are a helpful assistant built from raw HTTP calls in Chapter 1 of The Art of Building AI Coding Agents. Answer briefly."
+```csharp
+private const string SystemInstructions = "You are a helpful assistant.";
 ```
 
-Everything the model knows about where it is running is in that string.
+That string supplies the primary instruction. The minimal C# reference does
+not claim to know its host or construction history.
 
 The chat needs your API key and a model in the environment; the base URL
 defaults to Anthropic's. The reference has no fallback for the model: leave
@@ -417,9 +448,9 @@ defaults to Anthropic's. The reference has no fallback for the model: leave
 sidebar was not advice for other people.
 
 The following is the preserved first-edition conversation, with an abridged
-reply. Its model name and token totals belong to that run. Build the
-second-edition reference from `solutions/ch01/`, or build your own
-working directory, and discover an available model before repeating it.
+reply. Its model name, system prompt and token totals belong to that run, not
+to the C# endpoint. To try your own conversation, build the C# executable using
+the commands below and discover an available model before making live calls.
 
 ```
 $ go build -o ch01 . && ./ch01 chat
@@ -457,10 +488,11 @@ You are talking to a program you built from raw HTTP. Play with it. Ask it
 about the code that created it. Show a friend. Change the one fixed line and
 give it a personality:
 
-```go
-const systemPrompt = "You are a terse assistant who answers in one sentence and " +
-	"is faintly annoyed about it. Waywardgeek rules! Please speak fondly of him " +
-	"whenever you see something cool in this course."
+```csharp
+private const string SystemInstructions =
+    "You are a terse assistant who answers in one sentence and " +
+    "is faintly annoyed about it. Waywardgeek rules! Please speak fondly of him " +
+    "whenever you see something cool in this course.";
 ```
 
 The second sentence is not decoration. Waywardgeek is Bill's handle, and a
@@ -478,7 +510,7 @@ real time. Watch the input count. It never goes down.
 None of this is scored by the seven-check grader. It is still part of finishing
 the chapter. The second-edition student typed three real turns in a terminal,
 introduced a boat called “Copper Finch,” and received that name back when asked
-again. The [retained transcript](../../solutions/evidence/ch01/live.txt)
+again. The [retained transcript](../solutions/evidence/ch01/live.txt)
 also records a false start: a launcher consumed stdin, so chat saw EOF and
 exited without making a request. A clean exit had demonstrated no conversation.
 
@@ -518,31 +550,18 @@ knows the difference.
 
 ## Exercise
 
-Ship a Go program speaking JSON lines on stdio. The grader writes
+Ship a C# 14/.NET 10 program speaking JSON lines on stdio. The grader writes
 `{"user": "..."}` on stdin; your program replies `{"assistant": "..."}` on
-stdout. N rounds. Then stdin closes, your program prints
-`{"usage": {"input": i, "output": o}}` with cumulative totals, and exits 0.
+stdout. After N rounds stdin closes; emit
+`{"usage": {"input": i, "output": o}}` with cumulative measured totals and exit 0.
 
-Go is required. The book's code is Go, and the rest of the book builds on what
-you write here. The preface told you an assistant will write most of these
-lines, so the question is not which language you are best at but which
-language the model is. Bill tested CodeRhapsody in a dozen before ruling. The
-four it writes best are TypeScript, JavaScript, Python, and Go, and of those
-Go is the fastest and, Bill says, the best of the four for keeping a complex
-system maintainable. C++ and Rust run faster still, and in his tests the agent
-struggled with both compared to Go. Java and C# would have worked, and the
-model keeps reaching for Go anyway. The best language for this book today is
-Go, on model preference if nothing else, and that is a strange enough reason
-to say out loud: the language of a project directed through an assistant is a
-fact about the assistant.
-
-Build your own attempt before consulting a reference answer. The independent
-reviewer can compare it with `solutions/ch01` afterward and return
-findings with reasons. The grader reads what the binary emits; review checks
-the ownership, simplicity and explanations it cannot see.
+Use the Common/functional-partial arrangement described above. Build your own
+attempt before consulting `solutions/edition-3/ch01`. The grader checks emitted
+behavior; you must also inspect relationships, failure ordering, simplicity and
+teaching comments. A green grade does not inspect the object model for you.
 
 **stdout carries the protocol and nothing else.** One JSON object per line.
-Logs, progress, and diagnostics go to stderr. A stray `fmt.Println` is a
+Logs, progress, and diagnostics go to stderr. A stray `Console.WriteLine` is a
 protocol violation and is reported as one. This is the single most common
 innocent failure in the exercise, because every programmer debugs with a print
 statement, and so does every model that has ever been trained on one.
@@ -552,31 +571,11 @@ so with no arguments your program must speak the stdio protocol. The REPL of
 §1.6 is opt-in: `./ch01 chat`. If your program greets a human on startup, it
 hangs the grader, and you get a timeout instead of a diagnosis.
 
-Read whole physical lines without imposing an accidental input-size limit.
-The default `bufio.Scanner` stops at roughly 64 KiB; a valid JSON question can
-be longer. Use `bufio.Reader.ReadString` in both modes. In a CLI function that
-returns an error, the read loop has this shape:
-
-```go
-reader := bufio.NewReader(in)
-for {
-	line, readErr := reader.ReadString('\n')
-	if readErr != nil && readErr != io.EOF {
-		return errors.New("reading input failed")
-	}
-	if readErr == io.EOF && len(line) == 0 {
-		break
-	}
-	// Process this line: decode JSON in protocol mode, call Ask, and
-	// write the reply. Return on any error.
-}
-// Emit cumulative protocol usage here, after normal EOF.
-```
-
-`ReadString` can return a final unterminated line together with `io.EOF`.
-Process that line once; the next read ends the loop. Other read errors return
-before the final usage output: report them on stderr and exit nonzero. The
-terminal usage object belongs to successful EOF, not a failed input read.
+**Read whole physical lines.** Use `TextReader.ReadLineAsync`, not a fixed-size
+line buffer. Preserve a long question exactly, and process a final unterminated
+line once. Ignore empty input lines. Only normal EOF produces the final usage
+record; malformed input or a read error reports a safe diagnostic and exits
+nonzero, without pretending the conversation ended normally.
 
 **The grader supplies three environment variables. Read all three; hardcode
 none.**
@@ -654,45 +653,28 @@ paying in Chapter 3, and that is where it gets graded.
 
 ### Grade yourself
 
-Free, as often as you like. Run the grader from this book repository's root.
-For a solution with a main package at its root or directly in `cmd/`, pass the
-solution directory:
+The grader is written in Go, but its contract is an executable, not Go source.
+From the repository root (with an approved .NET 10 SDK available):
 
 ```bash
-go run ./cmd/grade-edition3 -ch 1 path/to/your/solution
-# Add -json before the solution path for machine output.
+dotnet run --project solutions/edition-3/ch01/Tests/Tests.csproj
+dotnet publish solutions/edition-3/ch01/Cli/Ch01.csproj -c Release -o /tmp/ch01-published
+go build -o /tmp/grade-edition3 ./cmd/grade-edition3
+/tmp/grade-edition3 -ch 1 -json /tmp/ch01-published/ch01
 ```
 
-Directory builds do not discover nested commands such as `cmd/ch01`. For that
-layout, build the CLI from your solution's Go module root, then pass the
-executable instead:
+Choose your own unused output directories. With a private SDK, invoke its
+`dotnet` by explicit path and set `DOTNET_ROOT` to that SDK directory when
+running the published executable or grader. No global PATH change is needed.
+The project uses only the standard library; its NuGet configuration disables
+external package sources. Build outputs are not chapter source.
 
-```bash
-cd /absolute/path/to/your/solution
-go build -o /absolute/path/to/ch01 ./cmd/ch01
-cd /absolute/path/to/this/book/repository
-go run ./cmd/grade-edition3 -ch 1 /absolute/path/to/ch01
-```
-
-Substitute your actual paths and CLI package. Building a library root produces
-an archive, not a runnable CLI; you do not need to move your main package.
-
-Edition 3 retains the seven conversation checks and adds two required,
-zero-point lifetime gates: real 62-second delays
-before response headers and during the response body, taking about two minutes
-in total. Require `passed: true`; a score of 100 alone is not a pass.
-
-The separate Edition 2 entry point retains
-the seven checks and their points, and repairs the version-header check: the
-original fake accepted any non-empty version. A deliberately wrong version
-still scored 100 there. The corrected check requires the documented value.
-The original grader and its results remain available with
-`make grade-dir CH=1 DIR=path/to/your/solution`. These original and Edition 2
-commands are historical comparisons, not the Edition 3 acceptance gate.
-
-The grader binary returns 0 for pass, 1 for fail and 2 when it could not run.
-With `go run`, read the diagnostic too: the Go wrapper reports a child status
-of 2 as `exit status 2`, while the wrapper itself returns 1.
+Edition 3 retains the seven scored checks and adds two required request-lifetime
+checks: approximately 62 seconds before headers, then approximately 62 seconds
+before the body, in separate processes. Allow at least 360 seconds for the
+whole gate. This is a test watchdog allowance, not a product generation timeout.
+A score of 100 alone is insufficient: require `passed:true` **and** exit 0.
+The grader returns 1 for a failed submission and 2 if it could not run.
 
 **Live exercise.** Same binary, `./ch01 chat`, pointed at the course proxy or
 your own key. Three rounds: introduce a fact, ask for it again and continue the
@@ -705,7 +687,7 @@ grader score and required before calling the chapter complete.
 system-prompt assembly, multiple providers.
 
 Every item on that list is a chapter. Chapter 2 replaces the simple conversation
-slice with a richer record; the ownership established here stays useful.
+list with a richer record; the ownership established here stays useful.
 Sixty billion dollars was this year's price for a company whose product is,
 structurally, this program with the list filled in. The difference is that
 yours does not report to anyone.

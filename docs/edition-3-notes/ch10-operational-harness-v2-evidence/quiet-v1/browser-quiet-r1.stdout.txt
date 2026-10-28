@@ -1,1 +1,0 @@
-{"mode": "browser", "status": "PASS", "failure": null, "cleanup_complete": true, "run_root": "/Users/bill/projects/ensemble-edition-3-student/.ch10-local/operational-quiet-v1/runs/browser-quiet-r1", "duration_seconds": 2.747094334103167, "credential_opens": 0}

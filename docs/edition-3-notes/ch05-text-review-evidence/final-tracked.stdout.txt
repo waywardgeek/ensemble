@@ -1,5 +1,0 @@
-book/edition-3/chapter-05.md
-cmd/grade-edition3/main.go
-cmd/grade-edition3/main_test.go
-docs/edition-3-execution.md
-docs/edition-3-student.md

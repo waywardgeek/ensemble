@@ -43,8 +43,7 @@ No browser means a correlated error. Closing the client, browser or server must
 release the corresponding pending work.
 
 The accepted API uses `gui.New(root, agent, log)`, `gui.Assets()`,
-`server.Handler(directory)` and `server.ServeMCP(listener)`. `gui.New` takes an
-`io.Writer` for diagnostics and returns `(*Server, error)`. Its root and Agent
+`server.Handler(directory)` and `server.ServeMCP(listener)`. Its root and Agent
 already exist; no callback bundle or new ownership layer is needed.
 
 ### A terminal fleet
@@ -56,7 +55,7 @@ Build the fleet in four stages:
    data directory under its parent's directory. The application installs an
    `AgentFactory` on Ensemble; descendants reach it through their actual owner
    chain. Derive each child specification from its parent and enforce Chapter
-   19's narrow-only constraints. Recursive shutdown preserves the saved work.
+   21's narrow-only constraints. Recursive shutdown preserves the saved work.
    These separate state directories do not give children private copies of the
    task workspace. Optional `submit_schema` describes this child's whole submit
    argument object. Validate and defensively copy it before construction, preserve
@@ -97,9 +96,6 @@ Build the fleet in four stages:
    first. Failed turns do not enter this retry loop. Main and named peers have no
    Agent parent and may finish normally in chat, even with a factory installed.
    Explicit root submit remains available under the same admission rules.
-   An app-only submit without a fleet records a local result; it does not establish
-   that delegated children completed. Factory construction alone does not admit a
-   delegated task: `Spawn` owns that transition.
 
 The terminal installs the factory and human sink. A non-fleet embedder keeps its
 ordinary turn behavior. Submission can wake a join before the child's tool-result
@@ -109,15 +105,12 @@ disposing of it. The GUI remains a single-Agent client until Chapter 21.
 ### Submission contract
 
 Absent `submit_schema` retains the default object schema with required string
-`result`. Extra keys remain accepted and ignored on that legacy path; normalize the
-payload to `{"result":"text"}`. Explicit custom schemas preserve the complete
-object, even when their shape happens to resemble the default. Every JSONL row
-in the child's `submit.md` carries `version: 1`, `timestamp`, `agent_id` and
-`parent_id`. A default row adds `result`; a custom row instead adds the complete
-`submit_schema` and `payload`. Validate every row before recovery or append.
+`result`. Extra keys remain accepted and ignored on that legacy path; store the
+normalized row `{"result":"text"}`. Explicit custom schemas preserve the complete
+object, even when their shape happens to resemble the default. Custom JSONL rows
+in the child's `submit.md` contain `version: 1`, `submit_schema` and `payload`.
 Unknown versions or malformed rows are errors, not permission to return an older
-valid result silently. The durable row is authoritative, not the last optimistic
-status label. Return defensive copies of schema and payload bytes.
+valid result silently.
 
 Use the following supported subset of JSON Schema Draft 2020-12. The root must
 declare `type: "object"`; nested schemas can be objects or booleans. An optional
@@ -129,8 +122,13 @@ declare `type: "object"`; nested schemas can be objects or booleans. An optional
 | `properties`, `required`, `additionalProperties`, `minProperties`, `maxProperties` | Object fields and bounds, recursively validated |
 | `items`, `minItems`, `maxItems`, `uniqueItems` | Array item schema, bounds and uniqueness |
 | `minimum`, `maximum`, `exclusiveMinimum`, `exclusiveMaximum`, `multipleOf` | Exact numeric constraints |
-| `minLength`, `maxLength`, `pattern` | String bounds and Go regular-expression syntax |
+| `minLength`, `maxLength`, `pattern` | String bounds and culture-invariant .NET regular-expression syntax |
 | `title`, `description`, `default`, `examples` | Annotations; no default insertion or data coercion |
+
+In C#, string length counts Unicode code points. Invalid regex patterns refuse at
+contract construction; each match has a 100-millisecond engine timeout, and a
+timeout refuses the submission. This is neither Go regex compatibility nor a
+whole-validation CPU deadline.
 
 Refuse all references, combinators, formats/content and other unsupported keywords
 at launch; never fetch schema resources. Validate the schema itself, not merely
@@ -151,11 +149,7 @@ The seven fleet tool names are the contract; extra fleet tools are unnecessary.
 Build and grade from the repository root:
 
 ```sh
-# From the repository root, build the two accepted-layout entry points.
-(cd solutions/edition-3/main && go build -o /tmp/ensemble-ch20 ./cmd/ch01)
-(cd solutions/edition-3/main/gui && go build -o /tmp/ensemble-ch20-gui ./cmd)
-go run ./cmd/grade-edition3 -ch 20 -core solutions/edition-3/main \
-  -gui /tmp/ensemble-ch20-gui -json /tmp/ensemble-ch20
+go run ./cmd/grade-edition2 -ch 20 solutions/ch20
 ```
 
 The combined rubric retains the seven GUI checks and seven fleet checks, 200
@@ -303,7 +297,9 @@ whether the server returned a page. It does not identify the page.
 The headless proof shows what the framework excludes. A reuse test shows what
 the GUI includes. Build both consumers outside the source module, so Go cannot
 accidentally grant them access to internal types. The accepted layout uses two
-module replacements: `ensemble` for core and `ensemble/gui` for the GUI.
+module replacements: `ensemble` for core and `ensemble-gui-stub` for the GUI.
+The latter is the optional module's historical name, not an indication that its
+browser interface is still a stub.
 
 The outside GUI consumer constructs Ensemble and an Agent, appends a public
 `Event` containing `MessageData` and `Part` values, then constructs the server.
@@ -316,11 +312,6 @@ You cannot construct what you cannot name. This was the second gap in the
 original reuse attempt: the server was public, but its event vocabulary lived
 under `internal/`. Public aliases now expose the types consumers actually use.
 An in-tree test cannot establish that this works outside the import boundary.
-
-`gui.New` scopes the existing hub to the supplied Agent. Replay, controls, usage
-and model selection must stay within that view; a second view on the same
-Ensemble must not change its peer's settings. The hub projects actor events. It
-does not own another conversation or a second fleet registry.
 
 The Artifact scroll is a smaller consumer still. Mount only
 `artifact-scroll.js` and `renderers.js` from `gui.Assets()`. Instantiate
@@ -369,47 +360,57 @@ its ordinary chat completion is not proof that delegation succeeded.
 
 ## 20.6 Spawning
 
-Each Agent owns its children through the existing Ensemble and actor machinery.
-A child is a full Agent with its own actor, tool visibility, save file and data
-directory under its parent's directory. These Agents share a process; this is
-not process-crash isolation.
+Give each agent a `SubAgentManager`. The manager holds the children
+map and exposes three operations: spawn, shut down, and list. A child
+is a full agent with its own actor, its own tool visibility, its own
+save file, and its own data directory, created under the parent's
+directory so the filesystem mirrors the ownership tree. A child whose
+task fails can be shut down and respawned without replacing the parent's
+conversation. These Agents share a process; this is not process-crash isolation.
 
-The application supplies construction policy through the public factory:
-
-```go
-type AgentFactory func(context.Context, Config) (Agent, error)
-```
-
-`Config` remains the per-Agent specification. `CreateAgent` calls the factory;
-`NewAgent` is the low-level constructor the factory uses. Neither operation
-starts a delegated task. `Spawn` reserves the child identity and submission
-contract, checks the returned Agent belongs to this Ensemble and parent, then
-starts the task once through its normal mailbox. A constructed Agent is not
-therefore a submitted worker, or even an admitted one.
-
-This separation lets the same library serve a terminal, an outside application
-or a test using the real Agent against a scripted provider. The application
-chooses configuration and credentials. The library owns parentage, admission
-and lifecycle. No parallel manager or provider-resolution path is needed.
-
-The terminal installs the factory on its existing root. The child branch derives
-configuration from the resolved, running parent:
+The manager does not know how to build an agent. That job belongs to an
+`AgentFactory`:
 
 ```go
-config := parent.Config().Child(filepath.Join(parent.Config().DataDir, "children", request.ID))
-config.ID, config.ParentID, config.Prompt = request.ID, request.ParentID, request.Prompt
-config.SubmitSchema = append(json.RawMessage(nil), request.SubmitSchema...)
-// Apply permitted model/preferences overrides here, then:
-return root.NewAgent(config)
+type AgentFactory func(parent Agent, spec AgentSpec) (Agent, error)
 ```
 
-`Config.Child` clears task identity, the inherited submission contract and old
-save/log paths. It copies mutable tool, skill and MCP configuration so the child
-does not share that state accidentally. The new directory owns the child's save;
-it is not a separate task workspace. `NewAgent` checks the actual parent and
-clamps policy. A sandboxed parent cannot spawn an unsandboxed child, and a parent
-without web access cannot grant it. Credentials remain application and Agent
-configuration, not model-visible routing fields.
+The composition root supplies the factory at startup. It receives the actual parent and
+child specification and returns a constructed Agent. The manager loads its
+save, registers it and starts the task. The application selects the child
+configuration through that factory, retaining the existing provider and
+credential-resolution path instead of inventing a second one inside the manager. The library says what it needs. The binary decides how to
+provide it. The split is the same one that `http.Handler` draws between
+"handle this request" and "listen on this port."
+
+The factory seam exists because the same library runs in different
+contexts. The full Ensemble binary supplies a factory that creates
+agents with real models, real API keys, and real file systems. A test
+harness can use the same real Agent against a scripted external provider
+and temporary directories. A headless CLI might supply a factory with
+no GUI hooks at all. The library code that calls `Spawn` does not
+change. What changes is the factory registered at startup, and the
+factory is the only code that knows which kind of agent this binary is
+meant to run.
+
+The terminal installs the factory on its existing root. This is the actual
+construction seam, with configuration inherited from the owning parent:
+
+```go
+app.SetAgentFactory(func(parent ensemble.Agent, child ensemble.AgentSpec) (ensemble.Agent, error) {
+    config := parent.Config()
+    if child.Model != "" {
+        config.Model = child.Model
+    }
+    return app.NewChildAgent(parent, config, child)
+})
+```
+
+The manager derives IDs and paths from the parent; `NewChildAgent` checks the
+real owner relationship and clamps the specification. A sandboxed parent cannot
+spawn an unsandboxed child, and a parent without web access cannot grant it.
+Credentials remain configuration owned by the application and Agent; they are
+not routing fields copied into a model-visible specification.
 
 The shared root makes the factory available at every depth. A child reaches
 Ensemble through its actual parent relationships, rather than receiving a second
@@ -428,22 +429,6 @@ editing a byte slice after launch, or a factory could quietly drop the promised
 validation. Ordinary descendants start with the default text contract unless
 their own launch explicitly supplies a schema; the parent's answer format is
 not automatically appropriate for a different task.
-
-The model's instructions must agree with this runtime distinction. A root
-Agent finishes with ordinary chat; a delegated worker must call `submit`
-with its result or declared structured contract. Compose the child's role
-from authored base instructions, not an already-rendered root prompt with
-a prohibition on submission. Apply the selected model's policy without
-duplicating it or retaining a rule specific to the parent's former model.
-Inspect the actual rendered instructions for a root, a worker and a worker
-selecting a different model; successful construction cannot reveal a role
-conflict.
-
-Children inherit the parent's resolved, running provider configuration.
-They do not re-read launch environment variables or saved next-launch
-settings. Permitted model and local-preference overrides remain explicit.
-When Chapter 21 introduces saved provider edits, those edits must not switch
-a new child's billing or credentials while its parent keeps the old values.
 
 Shutting down a parent cascades to its children, recursively. The
 fleet's lifetime is bounded by its root. A child that outlives its
@@ -467,17 +452,15 @@ Every agent knows two things about its place in the fleet: its own id
 and its parent's.
 
 ```go
-type Config struct {
+type AgentSpec struct {
     ID       string // e.g. "researcher-1"
-    ParentID string // actual parent Agent ID; empty for a root
+    ParentID string // parent's ID, or UserID for root agents
     // ...
 }
 ```
 
 The root agent defaults to `"main"`. A child's parent id is set by the
-spawn call. A root has no Agent parent; its parent-message route goes to the
-human sink. The user gets a reserved address, so the same messaging tool can
-address an Agent parent or the human sink.
+spawn call. And the user gets a reserved address, so the same messaging tool can address an Agent parent or the human sink.
 The routing ID does not replace the runtime back-pointer: a root Agent still
 belongs to Ensemble, and a child retains its actual Agent parent.
 
@@ -620,10 +603,8 @@ fetches a URL or reads a local file.
 Without a custom schema, `submit({"result":"text"})` keeps its existing meaning.
 The public string convenience method encodes that same default shape and enters
 the same validator, so it cannot bypass a custom contract. Structured joins,
-status and retrieval preserve the complete JSON object in independently owned
-bytes. Text-valued displays can format it for a reader without changing its
-stored type. Recovery validates the saved contract and payload before reporting
-completion; a cached successful status cannot excuse a corrupt durable row.
+status and retrieval preserve the complete JSON object. Text-valued displays can
+format it for a reader without changing its stored type.
 
 Questions and fan-in use the ordinary supervised tool path. If the initial
 callback returns a running handle, `wait_for_job` retrieves the later reply or
@@ -700,10 +681,6 @@ Framework wakes and escalation notices are recorded in the Agent's event log.
 The terminal's human sink exposes questions the root sends to the person. These make
 the protocol inspectable: which Agent stopped, how many wakes it received, and
 whether it submitted or exhausted the bound.
-
-Both success and failure close task admission. A terminal worker cannot accept
-a new prompt or child simply because its actor is still draining. Questions,
-submissions and status must agree on that lifecycle boundary.
 
 Submission also precedes quiescence. Publishing the accepted result can wake a
 join while the child's submit tool still has a result to append and its actor
@@ -841,13 +818,13 @@ fresh loopback ports and prints their addresses, avoiding another running
 Ensemble. Begin at the repository root:
 
 ```sh
-ensemble_source=$(pwd)/solutions/edition-3/main
-reuse_dir=$(mktemp -d /tmp/ensemble-ch20-reuse.XXXXXX)
+ensemble_source=$(pwd)/solutions/ch20
+reuse_dir=$(mktemp -d /tmp/ensemble-ch22-reuse.XXXXXX)
 cd "$reuse_dir"
 go mod init example.org/ensemble-reuse
-go mod edit -require=ensemble@v0.0.0 -require=ensemble/gui@v0.0.0
+go mod edit -require=ensemble@v0.0.0 -require=ensemble-gui-stub@v0.0.0
 go mod edit -replace="ensemble=$ensemble_source"
-go mod edit -replace="ensemble/gui=$ensemble_source/gui"
+go mod edit -replace="ensemble-gui-stub=$ensemble_source/gui"
 ```
 
 Save this as `main.go`. The component mode makes no model request. The full mode
@@ -859,12 +836,12 @@ package main
 
 import (
     "context"
-    gui "ensemble/gui"
-    "ensemble"
+    gui "ensemble-gui-stub"
+    "ensemble/authcli"
+    "ensemble/ensemble"
     "flag"
     "fmt"
     "io/fs"
-    "log"
     "net"
     "net/http"
     "os"
@@ -901,22 +878,22 @@ func run() error {
 <div id="scroll"></div><script type="module">
 import { ArtifactScroll } from './artifact-scroll.js';
 const scroll = new ArtifactScroll(document.querySelector('#scroll'));
-scroll.receive({type:'part_final', agent_id:'demo', part_id:1, replay:true,
-  part:{type:'text', role:'agent', text:'An Artifact without the application shell.'}});
+scroll.receive({type:'part_final', part_id:'demo', replay:true,
+  part:{type:'text', text:'An Artifact without the application shell.'}});
 </script>`)
         })
     } else {
-        cfg, err := ensemble.ConfigFromEnv(os.Getenv)
+        cfg, err := ensemble.ConfigFromEnv()
         if err != nil { return err }
-        cfg.DataDir = "cr"
-        root := ensemble.New(log.New(os.Stderr, "", log.LstdFlags))
-        if err := root.SetAuth(ensemble.NewAuth(ensemble.AuthOptionsFromEnv(os.Getenv))); err != nil { return err }
-        agent, err := root.NewAgent(cfg)
+        cfg.DataDir, cfg.BuiltinTools = "cr", true
+        root := ensemble.New(os.Stderr)
+        if err := authcli.Configure(root); err != nil { return err }
+        agent, err := root.NewAgent(cfg, ensemble.AgentSpecFromEnv())
         if err != nil { return err }
         defer agent.Shutdown()
-        if err := agent.RecordFact(ensemble.Event{
+        if err := agent.History().Append(ensemble.Event{
             Type: "message_received",
-            Message: &ensemble.MessageData{Actor: "human",
+            Message: &ensemble.MessageData{Actor: ensemble.Human,
                 Parts: []ensemble.Part{{Type: "text", Text: "PUBLIC_REPLAY"}}},
         }); err != nil { return err }
         server, err := gui.New(root, agent, os.Stderr)
@@ -948,8 +925,8 @@ Build before launching so the supervised process is the application itself:
 
 ```sh
 go mod tidy
-go build -o /tmp/ensemble-ch20-reuse .
-/tmp/ensemble-ch20-reuse --components
+go build -o /tmp/ensemble-ch22-reuse .
+/tmp/ensemble-ch22-reuse --components
 ```
 
 Open `/demo` at the printed HTTP address. It displays one Artifact; `/index.html`
@@ -958,7 +935,7 @@ must return 404. Stop with Control-C, then run the full mode:
 ```sh
 LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
 OPENAI_REASONING_EFFORT=high OPENAI_REASONING_SUMMARY=detailed \
-/tmp/ensemble-ch20-reuse
+/tmp/ensemble-ch22-reuse
 ```
 
 The full page should replay `PUBLIC_REPLAY`. Send a short prompt and inspect its
@@ -968,12 +945,9 @@ control was received; the next request's model field proves it took effect.
 This small embedding intentionally starts a fresh conversation; the terminal
 fleet below supplies the persistent task demonstration.
 
-To check the override, copy the GUI asset directory, change its `index.html`
-distinctively, and run full mode with `--gui-dir /absolute/path/to/that/directory`.
-Keep `app.js`, `style.css` and the imported modules so the browser can resolve
-the page. The built-in launcher validates those three shell files before startup;
-the low-level `Handler(directory)` only mounts a directory, so an embedder owns
-that validation. Inspect the body, then return to the embedded default. To check the relay's no-browser path,
+To check the override, create a directory containing a distinctive `index.html`
+and run full mode with `--gui-dir /absolute/path/to/that/directory`. Inspect the
+body, then return to the embedded default. To check the relay's no-browser path,
 connect to its printed MCP address before opening the page and send a JSONL
 request such as:
 
@@ -994,14 +968,17 @@ consumer gives the negative control a real public-library import:
 mkdir headless
 cat > headless/main.go <<'GO'
 package main
-import "ensemble"
-func main() { _ = ensemble.New(nil) }
+import (
+    "ensemble/ensemble"
+    "io"
+)
+func main() { _ = ensemble.New(io.Discard) }
 GO
-go build -o /tmp/ensemble-ch20-headless ./headless
+go build -o /tmp/ensemble-ch22-headless ./headless
 go list -deps ./headless > headless-deps.txt
 go list -deps . > gui-deps.txt
-grep -E 'ensemble/gui|gorilla/websocket' headless-deps.txt
-grep -E 'ensemble/gui|gorilla/websocket' gui-deps.txt
+rg 'ensemble-gui-stub|gorilla/websocket' headless-deps.txt
+rg 'ensemble-gui-stub|gorilla/websocket' gui-deps.txt
 ```
 
 The first search should find nothing and return status 1. The second should
@@ -1031,8 +1008,8 @@ need; it is not a claim that a tool name in the prompt enables that tool.
 
 ```sh
 cd "$ensemble_source"
-go build -o /tmp/ensemble-ch20 ./cmd/ch01
-fleet_dir=$(mktemp -d /tmp/ensemble-ch20-fleet.XXXXXX)
+go build -o /tmp/ensemble-ch22 .
+fleet_dir=$(mktemp -d /tmp/ensemble-ch22-fleet.XXXXXX)
 mkdir -p "$fleet_dir/skills/fleet"
 cat > "$fleet_dir/skills/fleet/SKILL.md" <<'SKILL'
 ---
@@ -1051,7 +1028,7 @@ cd "$fleet_dir"
 LLM_VENDOR=openai LLM_MODEL=gpt-6-astra \
 OPENAI_REASONING_EFFORT=high OPENAI_REASONING_SUMMARY=detailed \
 EN_SKILLS_DIR="$fleet_dir/skills" EN_PRIMARY_SKILL=fleet \
-/tmp/ensemble-ch20 chat
+/tmp/ensemble-ch22 chat
 ```
 
 Use your already selected billing mode and authenticated profile, or the intended
@@ -1083,35 +1060,6 @@ collected the child results and answered, exit normally with Control-D. Inspect
 success without a file or test result, keep that discrepancy in the record.
 
 ## 20.14 Taking it for a spin
-
-The restarted chapter found another composition failure: the HTML still loaded
-`app.js` as a classic script after that file began importing the reusable modules.
-Root's module-only harness missed the actual page entry point. A rebuilt outside
-consumer in Chrome then exercised the corrected page, replay and two composer
-responses, the disk override and the independent two-file component. Two TCP
-peers reused one request ID without crossing replies. Disconnecting one peer
-with another request pending released its local wait while the other peer, the
-browser and the Agents survived; that does not prove every browser-internal
-operation was aborted.
-The next request used the selected model. Reasoning settings stayed unchanged.
-These were synthetic-provider checks, not a visual-quality or native-audio review.
-
-The live arithmetic exercise completed three children, a correlated question
-about negative integers, the parent's reply and a final join containing all three
-submissions. Root inspected the generated code before an independent 18-case
-check passed. An earlier paid attempt failed because root had omitted the primary
-skill's tool grants; a deferred catalogue did not make those tools available.
-That was setup failure, not evidence against the student or provider. The earlier
-key-free usage-prefix parser failure also belonged to root's controller.
-
-The paid trace established hint delivery, but its first proposed join was skipped
-before the hint arrived. A separate local test exercised the missing order through
-the actual Agent: release a running join, deliver the human hint, observe a
-non-error running result and another parent request while the child remains
-blocked, then let the child submit and collect the typed result from the same
-job handle. Its 20-second context was shorter than the 60-second observation
-limit, excluding ordinary timeout as the wake cause. One race-enabled run proves
-that exercised order, not every possible interleaving.
 
 The second-edition GUI deployment ran from a fresh directory with no source
 asset tree nearby. Chrome loaded the embedded shell and its six supporting

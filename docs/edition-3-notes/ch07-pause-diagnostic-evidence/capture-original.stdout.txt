@@ -1,4 +1,0 @@
-=== RUN   TestOwnedPauseDiagnostic
-PAUSE_REPORT {"title":"Unchanged pause evaluator; diagnostic only","checks":[{"id":"pause-holds-tools","title":"pause gate holds tool dispatch","points":20,"earned":0,"passed":false,"details":["pause test error: fork/exec /tmp/cadence-ch07-r4-pause-independent/built-gui: permission denied"]}],"score":0,"max_score":20,"passed":false}
---- FAIL: TestOwnedPauseDiagnostic (0.00s)
-FAIL

@@ -4,7 +4,7 @@
 
 Series: The Singularity as it Happened, Book 5
 
-Edition 3 Working Draft, October 2026
+Second Edition — Update 2, October 2026
 
 By Bill Cox
 

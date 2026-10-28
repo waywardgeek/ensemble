@@ -55,6 +55,7 @@ type sandboxScript struct {
 	pending                 string
 	handle                  int
 	finished                bool
+	explained               bool // C# requires explanation before every tool, including waits.
 	observed                map[string]sandboxObservation
 	err                     error
 }
@@ -88,6 +89,9 @@ func (s *sandboxScript) route(body []byte) *fakevendor.Reply {
 			s.totalWaits++
 			s.pending = fmt.Sprintf("sandbox-wait-%s-%d", probe.id, s.waits)
 			r := (sandboxProbe{s.pending, "wait_for_job", map[string]any{"handle": h, "ai_callback_delay": 5, "max_output_bytes": 65536}}).reply()
+			if s.explained {
+				r.Text = "I will observe the running command before continuing."
+			}
 			return &r
 		}
 		s.next++
@@ -99,6 +103,9 @@ func (s *sandboxScript) route(body []byte) *fakevendor.Reply {
 	probe := s.probes[s.next]
 	s.pending = probe.id
 	r := probe.reply()
+	if s.explained {
+		r.Text = "I will exercise the next sandbox boundary."
+	}
 	if s.next == 0 {
 		r.Text = s.firstText
 	}

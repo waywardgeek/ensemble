@@ -1,4 +1,0 @@
-# github.com/waywardgeek/ensemble/cmd/grade-edition3 [github.com/waywardgeek/ensemble/cmd/grade-edition3.test]
-cmd/grade-edition3/main.go:71:27: undefined: gradeedition2.MediaModels
-FAIL	github.com/waywardgeek/ensemble/cmd/grade-edition3 [build failed]
-FAIL

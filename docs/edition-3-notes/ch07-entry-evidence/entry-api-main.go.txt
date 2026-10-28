@@ -1,9 +1,0 @@
-package main
-import("flag";"fmt";"os";"github.com/waywardgeek/ensemble/internal/gradeedition2")
-func main(){
- bin:=flag.String("bin","","existing core executable");core:=flag.String("core","","core module");gui:=flag.String("gui","","GUI module");guiModel:=flag.String("gui-model","","GUI known model");consumer:=flag.String("consumer","","consumer module");workflow:=flag.String("workflow","","workflow module");exercise:=flag.String("stream-exercise","","stream module");model:=flag.String("stream-model","","known stream model");examplePath:=flag.String("consumer-case","","case JSON");mediaPath:=flag.String("media-models","","media JSON");flag.Parse()
- example,err:=gradeedition2.ReadConsumerCase(*examplePath);if err!=nil{fmt.Fprintln(os.Stderr,err);os.Exit(2)}
- media,err:=gradeedition2.ReadMediaModels(*mediaPath);if err!=nil{fmt.Fprintln(os.Stderr,err);os.Exit(2)}
- report,err:=gradeedition2.Chapter7(*bin,*core,*gui,*guiModel,*consumer,*workflow,*exercise,*model,example,media);if err!=nil{fmt.Fprintln(os.Stderr,err);os.Exit(2)}
- report.WriteJSON(os.Stdout);if !report.Passed{os.Exit(1)}
-}

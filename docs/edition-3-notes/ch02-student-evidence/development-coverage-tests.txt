@@ -1,6 +1,0 @@
-ok  	ensemble	124.879s	coverage: 75.4% of statements in ./...
-	ensemble/cmd/ch01		coverage: 0.0% of statements
-	ensemble/internal/agent		coverage: 0.0% of statements
-	ensemble/internal/common		coverage: 0.0% of statements
-	ensemble/internal/engine		coverage: 0.0% of statements
-	ensemble/internal/history		coverage: 0.0% of statements

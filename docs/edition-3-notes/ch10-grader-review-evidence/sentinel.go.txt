@@ -1,3 +1,0 @@
-package main
-import ("os")
-func main(){if err:=os.WriteFile("/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/cadence-ch10-grader-review-0bketbht/sentinel-invoked",[]byte("sentinel reached\n"),0600);err!=nil{panic(err)};os.Exit(99)}

@@ -1,2 +1,0 @@
-#!/bin/sh
-exec /usr/bin/env -i PATH=/usr/local/go/bin:/usr/bin:/bin HOME=/tmp/ch08-entry-audit.aTPJZB/home TMPDIR=/tmp/ch08-entry-audit.aTPJZB/tmp GOCACHE=/Users/bill/Library/Caches/go-build GOMODCACHE=/Users/bill/go/pkg/mod GOPROXY=off GOSUMDB=off GOTOOLCHAIN=local GOFLAGS='-p=1 -mod=readonly' GOMAXPROCS=2 "$@"

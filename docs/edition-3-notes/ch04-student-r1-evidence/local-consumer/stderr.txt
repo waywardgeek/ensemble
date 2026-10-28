@@ -1,6 +1,0 @@
-2026/10/16 18:36:07 input=1 output=1 cache_write=0 cache_read=0
-2026/10/16 18:36:07 shout called
-2026/10/16 18:36:07 input=1 output=1 cache_write=0 cache_read=0
-2026/10/16 18:36:07 shout called
-2026/10/16 18:36:07 input=1 output=1 cache_write=0 cache_read=0
-2026/10/16 18:36:07 input=1 output=1 cache_write=0 cache_read=0

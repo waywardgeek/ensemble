@@ -1,6 +1,0 @@
-{
-  "legacy_build_dispatch_output_exit_suffix_identical_after_removing_exact_new_branch": true,
-  "new_branch": "\t} else if *chapter == 7 {\n\t\treport, err = gradeedition2.Chapter7(bin, *core, *gui, *guiModel, *consumer, *workflow, *streamExercise, *streamModel, example, models)\n",
-  "old_suffix_sha256": "d85dbb19ee98de3ba4e9cb48737e2b67de0edce8a1c3cba63a355f0df383b189",
-  "new_without_branch_sha256": "d85dbb19ee98de3ba4e9cb48737e2b67de0edce8a1c3cba63a355f0df383b189"
-}

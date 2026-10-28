@@ -2,9 +2,10 @@
 @page         { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
 @page :left   { size: 7in 10in; margin: 0.75in 0.875in 0.75in 0.5in; }
 @page :right  { size: 7in 10in; margin: 0.75in 0.5in 0.75in 0.875in; }
-@page         { @bottom-center { content: counter(page); font-size: 10pt; font-family: Georgia, serif; } }
+/* Footers and TOC references are stamped after Chrome pagination. */
 /* Page margins own the print measure; pandoc's screen padding must not narrow it. */
-body          { margin: 0; padding: 0; max-width: none; font-family: Georgia, serif; font-size: 12pt; line-height: 1.4; }
+html, body, a, a:visited { color: #000; }
+body          { margin: 0; padding: 0; max-width: none; font-family: Georgia, serif; font-size: 10.5pt; line-height: 1.4; }
 h1            { font-size: 18pt; text-align: center; margin-top: 3em; margin-bottom: 1.5em; page-break-before: always; }
 h2            { font-size: 16pt; margin-top: 2em; }
 h3            { font-size: 14pt; margin-top: 1.5em; }
@@ -26,7 +27,33 @@ pre, code, div.sourceCode, pre *, code * {
   color: #000 !important;
   background: #fff !important;
 }
-blockquote    { margin: 1em 2em; font-style: italic; }
+/* Pandoc defaults blockquotes to #606060: too faint on printed paper. */
+blockquote    { margin: 1em 2em; font-style: italic; color: #000; }
+blockquote *  { color: #000 !important; }
+/* Sidebars are framed callouts, not ordinary chapter subsections. Keep
+   full-size black text, and permit long callouts to split across pages. */
+.print-sidebar {
+  margin: 1.2em 0.1in;
+  padding: 10pt 12pt;
+  border: 0.75pt solid #000;
+  border-left-width: 2pt;
+  color: #000;
+  background: #fff;
+  break-inside: auto;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+.print-sidebar > .print-sidebar-title {
+  font-size: 11pt;
+  font-weight: bold;
+  line-height: 1.25;
+  text-align: left;
+  margin: 0 0 0.6em;
+  break-before: auto;
+  break-after: avoid;
+}
+.print-sidebar p { text-indent: 0; margin: 0 0 0.6em; }
+.print-sidebar > :last-child { margin-bottom: 0; }
 .front-matter          { page-break-after: always; padding-top: 4em; }
 .front-matter p        { text-indent: 0; margin-bottom: 1em; }
 .fm-title              { font-size: 22pt; font-weight: bold; text-align: center; margin-bottom: 0.3em !important; }
@@ -34,5 +61,11 @@ blockquote    { margin: 1em 2em; font-style: italic; }
 .fm-section-head       { font-weight: bold; margin-top: 2em !important; }
 .dedication            { page-break-after: always; padding-top: 10em; text-align: center; font-style: italic; }
 .dedication p          { text-indent: 0; font-size: 14pt; }
-.tocpg                 { float: right; }
+/* Reserve a number column before layout; PDF stamping cannot reflow titles. */
+#TOC                  { break-after: page; }
+#TOC li               { break-inside: avoid; }
+#TOC a                { display: block; padding-right: 0.6in; }
+/* Printed page 1 must be recto; physical page parity still owns the gutters. */
+#preface              { break-before: right; }
+.recto-spacer         { height: 1pt; break-after: page; }
 </style>

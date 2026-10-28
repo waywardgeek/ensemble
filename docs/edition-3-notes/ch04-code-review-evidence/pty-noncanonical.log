@@ -1,8 +1,0 @@
-=== RUN   TestPublicPTYNoncanonicalBlockedInputKill
-    public_api_test.go:106: input bytes=262144 blocked=true kill elapsed=803.417µs
---- PASS: TestPublicPTYNoncanonicalBlockedInputKill (0.16s)
-=== RUN   TestPublicPTYNoncanonicalSmallInputControl
-    public_api_test.go:107: input bytes=1 blocked=false kill elapsed=1.671875ms
---- PASS: TestPublicPTYNoncanonicalSmallInputControl (0.17s)
-PASS
-ok  	ch04-review-consumer	1.343s

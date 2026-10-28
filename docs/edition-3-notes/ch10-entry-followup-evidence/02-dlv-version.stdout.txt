@@ -1,3 +1,0 @@
-Delve Debugger
-Version: 1.27.2
-Build: $Id: 360e7b2181d3da54115aaee4f569954bca95cfe3 $

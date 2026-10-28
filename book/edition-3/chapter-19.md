@@ -36,74 +36,59 @@ This is the chapter where we give those tools a boundary.
 
 ## TL;DR
 
-The Ensemble binary runs outside the sandbox. It holds credentials in
-memory and puts them on outgoing HTTP requests. The workspace
-directory contains model output, which is not trusted. Confine the
-operations that output can request without preventing the trusted
-host from talking to the model.
+This C# chapter adds one Agent-owned `Sandbox`. An empty root retains full
+access. A nonempty root confines the built-in file paths, media reads, Jobs
+output, History persistence, and host-created state. On macOS, `run_command`
+and its descendants additionally run under a kernel filesystem/network profile.
+The trusted host remains able to call the model. Safe mode is a different policy:
+it removes shell and job-control tools, not merely their declarations.
 
-Two boundaries enforce the wall, because two kinds of operation
-cross it and no single mechanism covers both. In-process file tools
-resolve paths against the sandbox root and perform rooted file
-operations. Spawned commands run under the operating system's
-sandbox, because a shell never calls our Go path checker.
-Credentials belong to the transport, outside the conversation.
+Both hosts accept:
 
-The restarted implementation already exposes `Config`; extend that existing
-owner rather than introducing a second authoritative specification. The earlier
-implementation called its public type `AgentSpec`.
-
-1. Add `SandboxRoot`, `SafeMode` and `EnableWebSearch` to the public
-   `Config`. A nonempty root selects confinement. Sandbox retains
-   its required Agent parent and obtains policy through that owner.
-2. Canonicalize the root and candidate, including existing ancestors
-   of a new file. Check directory containment, not a naive string
-   prefix. Perform the actual open through the confined operation;
-   checking a path and reopening it with `os.ReadFile` leaves a race.
-3. Wrap `run_command` and its descendants in macOS `sandbox-exec`.
-   Deny command network access and outside file access, with the
-   explicit system, device and toolchain-cache allowances explained
-   below. Confined commands on unsupported platforms fail closed.
-4. Restrict command environments and redact known transport secrets
-   before logs, errors or echoed responses become model-visible.
-   Keep state writes, media reads and saved job-output reads behind
-   the same file boundary. Do not put credentials in the workspace.
-5. `Config.Child(dataDir)` derives inherited restrictions and
-   clears parent-specific log/save paths. `Clamp(parent)` returns a
-   narrowed specification even when it also reports a widening
-   attempt. The wall and the alarm are separate things.
-6. Safe mode removes `run_command`, `send_input`, `wait_for_job` and
-   `kill_job` from declarations and dispatch while leaving ordinary
-   file tools usable. The accepted implementation also removes
-   `tool_limits`. Disabling web search withholds
-   the existing `web-search` skill. It is not a general network
-   policy for arbitrary additional tools or MCP servers.
-
-The application supports `--sandbox ROOT`, `--safe-mode` and
-`--no-web-search`. The corresponding environment inputs are
-`EN_SANDBOX_ROOT`, `EN_SAFE_MODE=1` and `EN_WEB_SEARCH=0`.
-`SandboxRoot` is independent of safe mode: removing shell tools
-alone does not confine file tools. CLI and GUI application defaults
-enable web search. An explicitly supplied
-`Config` is authoritative: its zero `EnableWebSearch` disables that
-capability. No optional-spec constructor is required.
-
-The child methods prepare a narrow-only policy for later spawning;
-this exercise adds no fleet. Nor does it add a `send_secret` tool:
-the credential discussion below explains a data path, not another
-credential-store assignment.
-
-From the repository root:
-
-```sh
-go run ./cmd/grade-edition3 -ch 19 -core solutions/edition-3/main \
-  solutions/edition-3/main/cmd/ch01
+```text
+--sandbox ROOT              overrides EN_SANDBOX_ROOT
+--safe                      enables safe mode
+--safe-mode true|false      explicit override of EN_SAFE_MODE
+--enable-web-search true|false
+                            overrides EN_ENABLE_WEB_SEARCH
 ```
 
-Substitute your importable module for `-core` and its CLI source target
-or executable for the final argument. Flags precede that target. The
-seven checks total 100 points, with both refused escapes and useful
-allowed work. Exact examples and coverage limits follow below.
+Boolean values also accept `1` and `0`. An explicitly empty sandbox argument
+means full access, even when the environment names a root. The root must already
+exist. Neither host changes the process-wide working directory.
+
+In `Configuration`, `sandboxRoot`, `safeMode`, and `enableWebSearch` are immutable
+launch choices. Library web authority defaults to false; the hosts explicitly
+retain their enabled default unless configured otherwise. Selecting a different
+model preserves these choices. The library never reads environment variables.
+
+The two boundaries solve different problems:
+
+* **In process:** canonicalize the requested path for policy, then perform the
+  operation through the retained root directory handle with no-follow component
+  opens. Checking a string and then calling ordinary `File.Open` is insufficient.
+* **In commands:** prepare a rooted cwd and allowlisted environment, then use
+  macOS `sandbox-exec` before the shell runs. The kernel profile follows
+  grandchildren. There is no unconfined retry on an unsupported platform.
+
+Child policy is a value derivation, not a fleet implementation:
+`parent.Sandbox().DeriveChild(requested)` returns an effective Configuration and
+an optional refusal. The effective result is narrowed **even when the caller
+ignores the refusal**. Construction and lifetime ownership of any future child
+remain separate concerns.
+
+This is not whole-process isolation of Ensemble. Trusted skill/static assets and
+an explicitly selected credential store remain host inputs. Additional MCP
+servers, including stdio processes, are separately trusted extensions; they do
+not acquire the shell profile. The host's provider connection is not disabled.
+Diagnostics mask known credentials before writing, but successful provider
+content is not silently rewritten. None of this detects arbitrary unknown
+secrets or defeats a privileged host changing mounts or the trusted runtime.
+
+The C# executable grade retains 90 host points and excludes the 10-point Go child
+consumer. See the final checks section for the exact table and separate component
+evidence. macOS ARM64 is the exercised native platform; Linux and x64 branches
+are not credited as verified, and confined shell execution requires macOS.
 
 ## 19.1 The lethal trifecta
 
@@ -160,13 +145,6 @@ model can also ask a command to copy bytes it never sees, so keeping
 them out of context is not the whole boundary. File and process
 confinement must prevent those tool operations too.
 
-The application-selected trusted corpus can live outside the workspace;
-that does not authorize file tools to read it. File tools use the
-in-process rooted API. Arbitrary commands and their descendants receive
-the OS profile, including the deliberate system-runtime exceptions
-below. This is not `chroot`: `/` still names the host root, not the
-workspace.
-
 ```
 ┌─────────────────────────────────────────────┐
 │  Ensemble binary (trusted, outside)         │
@@ -175,14 +153,14 @@ workspace.
 │  ● Makes model API requests                 │
 │  ● Dispatches tool calls                    │
 │                                             │
-│  ┌───────────────────────────────────────┐   │
-│  │  Sandbox (workspace directory)        │   │
-│  │  ● Conversation log and saved state   │   │
-│  │  ● File tools confined here           │   │
-│  │  ● run_command confined here          │   │
-│  │  ● NO credentials in any file         │   │
-│  │  ● NO network from commands           │   │
-│  └───────────────────────────────────────┘   │
+│  ┌───────────────────────────────────────┐  │
+│  │  Sandbox (workspace directory)        │  │
+│  │  ● Conversation log and saved state   │  │
+│  │  ● File tools confined here           │  │
+│  │  ● run_command confined here          │  │
+│  │  ● Known keys masked in diagnostics   │  │
+│  │  ● NO network from commands           │  │
+│  └───────────────────────────────────────┘  │
 └─────────────────────────────────────────────┘
 ```
 
@@ -205,8 +183,8 @@ file tool calls one function, the function resolves symlinks, checks
 containment, and rejects escapes. One function, every path.
 
 It is not sufficient, and the flaw is simple. `run_command` spawns a
-shell. The shell never calls our Go code. `cat ../../etc/passwd`
-walks straight past a path check that lives in a Go function, because
+shell. The shell never calls our C# code. `cat ../../etc/passwd`
+walks straight past a path check that lives in a C# function, because
 the process running `cat` has never heard of it.
 
 The draft of this chapter settled for repointing `HOME` to the
@@ -222,7 +200,7 @@ enforce it:
 | Enforcement | What it guards | Why it must be this one |
 |---|---|---|
 | Confined Sandbox operations (userspace) | `read_file`, `write_file`, `edit_file`, `list_directory`, `search_files` | These run in the trusted host process, outside the child process profile |
-| Seatbelt profile on the child process (kernel) | `run_command` and its entire descendant tree | The shell never calls our Go code, so the kernel has to |
+| Seatbelt profile on the child process (kernel) | `run_command` and its entire descendant tree | The shell never calls our C# code, so the kernel has to |
 
 Neither half is redundant. Neither half is sufficient. Together they
 cover these file and command paths. Other tools still require their
@@ -230,87 +208,89 @@ own authorization and trusted implementation.
 
 ### The in-process half
 
-Every file tool reaches its Agent's Sandbox. The resolver first
-checks the requested name; actual file operations follow below. This
-excerpt uses the package's canonicalization and containment helpers:
+`Common/Sandbox.cs` declares the vocabulary and ownership. The implementation
+lives in functional partials under `Sandbox/`; it is the same C# object, not an
+interface pointing at another implementation object. Its strong parent is the
+Agent. Construction opens the physical root directory and registers both ends;
+destruction closes the descriptor and removes that relationship after owned work
+has joined.
 
-```go
-func (s *sandbox) Resolve(path string) (string, error) {
-	root, err := s.root()
-	if err != nil {
-		return "", refusal(path)
-	}
-	if root == "" {
-		return path, nil
-	}
-	candidate := path
-	if !filepath.IsAbs(candidate) {
-		candidate = filepath.Join(root, candidate)
-	}
-	resolved, err := canonical(candidate)
-	if err != nil || !inside(root, resolved) {
-		return "", refusal(path)
-	}
-	return resolved, nil
-}
+`Resolve` canonicalizes a relative or absolute request, follows existing links,
+and appends missing components without creating them. It permits ordinary inward
+links and refuses paths outside the effective root. `Path.GetRelativePath` is
+used for containment, rather than a prefix test that would accept a sibling such
+as `project-old`. Errors report the caller's requested spelling, not the resolved
+outside target.
+
+But `Resolve` does not return an open grant. Between resolution and access, an
+attacker can replace a path component. Therefore `OpenFile`, `ReadDirectory`,
+`CreateDirectory`, `MoveFile`, and `DeleteFile` repeat policy resolution and use
+handle-relative native operations. Each directory component is opened without
+following links; the final open also refuses a replacement link. A changed path
+can produce a refusal, not a fallback to an ordinary host pathname.
+
+For example, after resolving an inward link to `sub/note.txt`, opening `sub`
+relative to the retained root with no-follow semantics prevents a newly swapped
+`sub` symlink from redirecting the file access. Directory enumeration owns its
+native stream and returns names, not reusable authority. Every later descent or
+read passes through Sandbox again. Recursive search tracks canonical directories
+to avoid inward-link cycles.
+
+A root can also contain a FIFO: the .NET runtime's diagnostic endpoints supplied
+one during the executable exercise. A blocking native open held the Sandbox gate
+and stalled search. Confined acquisition now uses `O_NONBLOCK` and refuses
+non-seekable handles before returning a stream. Recursive search skips refused or
+vanished entries and retains ordinary matches; a directly requested outside path
+still refuses. The regression unblocks its own deliberately failing baseline
+reader during cleanup rather than leaving a stuck test behind.
+
+File editing retains one open read/write handle across the read, exact-anchor
+check, and replacement. A second pathname lookup must not redirect the write.
+New files use exclusive creation rather than a separate existence check. Native
+creation permissions are private, and append initializes the managed stream
+position at the end. The Apple ARM64 variadic ABI required special handling for
+`openat`'s creation mode; compiling a declaration was not evidence that the mode
+arrived correctly. Real permission and append tests caught both mistakes.
+
+Use the actual parent paths:
+
+```text
+Tool → Agent → Sandbox
+Engine → Agent → Sandbox             media and CacheLens captures
+Job → Jobs → Agent → Sandbox         retained output and readback
+History → Agent → Sandbox            primary, backup, journal, archive, logs
 ```
 
-The steps address different forms of the path:
+A standalone `BlobRef` remains value-like. Its unconfined `Data()` convenience API
+does not carry an Agent or copied Sandbox. Engine resolves file-backed media
+through its own parent; inline data decoding stays value-like. Unsupported media
+is refused before rendering or HTTP, as in earlier chapters.
 
-1. **Join** a relative path to the root, so `notes.txt` means the
-   sandbox.
-2. **Clean**, collapsing `..` and defeating `../../etc/passwd`.
-3. **EvalSymlinks**, defeating a symlink planted by an earlier
-   `run_command`.
-4. **Containment-check** the resolved path against the canonical root.
-   A sibling named `workspace-other` is not inside `workspace`.
+Persistence retains its existing flush, replacement, replay, and poisoning rules.
+Only the file access changes. Temporary replacement files, backups, journals,
+and archive reads all use the same owner. An append refusal cannot publish a
+History event or reuse its sequence; destruction still detaches after a poisoned
+shutdown. Jobs likewise roots both the initial output writer and later reads.
+Protecting only creation would leave observation as another escape path.
 
-The `root()` call canonicalizes on every invocation. On macOS `/tmp`
-is a symlink to `/private/tmp` and `/var` to `/private/var`, so a
-sandbox created from `mktemp -d` has a raw root that never matches
-the resolved form of any path inside it. An earlier version of this
-code skipped that canonicalization. Every legitimate path on the
-author's own machine was rejected. The fix is the same in both the
-userspace path check and the kernel profile: compare canonical paths
-on both sides, or compare neither.
+A command refusal exposed another incidental disclosure: its job-report header
+contained the absolute output pathname. Confined model-facing reports now use a
+rooted-relative output name. Trusted `JobInfo` metadata retains the actual path
+for host readback; the diagnostic change does not move or duplicate the file.
 
-The error carries the caller's original string, never the resolved
-host path. A refusal that echoes `path outside sandbox:
-/Users/bill/projects/ensemble/sandbox/../../etc/passwd` back to a
-language model teaches it the filesystem layout it is confined away
-from. A test asserts the root does not appear in the error.
+In confined hosts, relative defaults for save, logs, Jobs output, settings, and
+captures resolve beneath the selected root. An explicit outside state path
+refuses rather than silently relocating. GUI settings still save before
+publication: a failed rooted replacement must change neither the live setting
+nor the old file, and must not announce `settings_updated`.
 
-The common interface exposes confined **operations** (`ReadFile`,
-`OpenFile`, `ReadDir`), not a path checker alone. If the library exported only
-`Resolve`, the natural misuse would be to resolve a path and then
-call `os.ReadFile` with the *original* string. That compiles, passes
-casual testing, and is completely unconfined. The safe thing has to
-be the easy thing.
-
-There is a second misuse even with the corrected string: evaluate a
-symlink, then let another process replace it before the open. The
-accepted implementation uses Go's `os.Root` for the operation itself,
-passing a relative name to an open directory root. Go's
-[traversal-resistant API explanation](https://go.dev/blog/osroot)
-shows why canonicalize-then-open alone is insufficient. The
-implementation uses Go 1.25's rooted file, directory and rename
-operations; this is the standard library's traversal protection,
-not a newly measured guarantee against every filesystem attack.
-
-Keep the same boundary around state files and retained job output.
-A trusted filename such as `save.json` is not trustworthy if a
-command can replace it with a symlink. Media reads have the same
-problem. Application-selected skill files remain a separate trusted
-input; do not put secrets in that corpus and expect workspace
-confinement to remove them.
-
-A sandbox that rejects everything is trivial to build and worthless to
-use. Every escape test needs a paired positive control, or the suite
-cannot tell a wall from a brick.
+This is the tested symlink-substitution boundary, not a claim about arbitrary
+privileged directory relocation, mount changes, or an attacker who already
+controls the host process. Keep that threat distinction visible.
 
 ## 19.4 The kernel half -- `sandbox-exec`
 
-The shell never calls our Go code, so the kernel has to enforce the
+The shell never calls our C# code, so the kernel has to enforce the
 boundary. On macOS, that mechanism is Seatbelt, reached through
 `sandbox-exec`.
 
@@ -321,119 +301,78 @@ portable or indefinitely supported security boundary.
 
 ### Wrapping the child, not the binary
 
-A reader's first question: why not sandbox the entire ensemble
-process?
+The trusted host must make the provider request. The command is the untrusted
+part. `Sandbox.PrepareCommand` therefore returns a `ProcessStartInfo`; it does
+not start or own a process. Job retains PTY, input, output, cancellation, joining,
+and process-group ownership.
 
-macOS sandboxes are inherited by descendants. A grandchild process
-three levels of shells deep is still confined, so the model cannot
-shell out to a helper process to launder a read. Wrapping the child
-is sufficient because inheritance makes every descendant confined.
+For confined execution the start description invokes:
 
-Keeping the binary outside lets it reach the model API while the
-child profile says `(deny network*)`. Simply applying one
-network-enabled profile to the whole process tree would not create
-that distinction. The command needs no inherited route to the
-provider; its output returns through the existing job supervisor.
+```text
+/usr/bin/sandbox-exec -p <in-memory profile> /bin/sh ...
+```
+
+No writable profile file controls the launch. The trusted PTY bootstrap reports
+its process group through one bounded, strictly parsed startup line before user
+output and stdin are admitted. A writable `.pgid` file is not an acceptable
+control channel: a command must not choose which unrelated process the host
+signals. A malformed handshake refuses and stops the child. Destruction joins
+process control before releasing the Job relationship.
 
 ### The profile
 
-The implemented shape is `(allow default)` followed by targeted
-denials. The first-edition deny-default experiment killed the
-process before `main` with `execvp() failed: Operation not permitted`;
-importing `bsd.sb` did not fix that experiment. It showed missing
-startup allowances, not that every deny-default design is impossible.
+`Sandbox/Command.cs` denies filesystem reads, writes, and network operations,
+then permits the required local work. The root uses its physical path. The main
+allowances are:
 
-The profile denies `file-read*` and `file-write*` globally, then
-opens narrow allowances:
+| Resource | Allowance and reason |
+|---|---|
+| Root subtree | Read/write working data and rooted temporary files |
+| System binaries, libraries and shared runtime data | Execute ordinary installed system tools |
+| `/System` and `/Library/Developer` | Installed frameworks and developer-toolchain reads |
+| Selected devices | Stdio, PTY, null, zero and randomness |
+| Ancestor paths | Metadata-only traversal, not sibling contents |
+| Immediate Darwin `xcrun_db*` cache files | Narrow toolchain-shim read/write exception |
 
-- The root directory entry (`/`) must be readable, or nothing starts.
-  The denial is on `/` *itself*, not on a library. The only place the
-  real reason appears is the system log:
-  `log show --predicate 'eventMessage CONTAINS "deny"'` shows
-  `deny(1) file-read-data /`.
-- System paths for the loader and standard tools: `/usr`, `/bin`,
-  `/System`, `/Library`, `/dev`.
-- The TLS trust store at `/private/etc/ssl`. Without it, `curl` dies
-  reading `/private/etc/ssl/openssl.cnf`, which looks like a network
-  error and is not.
-- Writable device files: `/dev/null`, `/dev/tty`, `/dev/stdout`,
-  `/dev/stderr`. `git` opens `/dev/null` for reading *and* writing and
-  fails outright without this.
-- The Xcode shim cache, scoped to immediate physical-temp files
-  named `xcrun_db*`, not arbitrary nested files with that basename.
-- Metadata for required ancestor and system-selection paths, so
-  tools can resolve their working directory without reading sibling data.
-- The workspace itself, read and write.
-- `(deny network*)`.
+The profile does **not** grant all of `/Library`, `/usr/local`, the user's home,
+or the shared temporary directory. The cache regex is anchored and excludes
+nested paths. Darwin's cache directory is queried from libc, not taken from an
+untrusted `TMPDIR` or discovered by launching an unconfined helper.
 
-Apple's `/var` alias produced a concrete restart failure. Python and Git
-could not inspect `/var/select/developer_dir`, despite physical-ancestor
-allowances under `/private/var`. Adding metadata literals for `/var`,
-`/private/var/select` and `/private/var/select/developer_dir` restored both
-commands. This tested combination was sufficient on that host; it did
-not prove every literal necessary. The correction stayed with the
-demonstrated metadata access rather than opening a selection subtree or
-global metadata access. Shell-selection warnings remained even though
-the commands succeeded.
-
-The Xcode shim cache deserves a closer look. Developer-tool entries such as
-`git`, `python3` and `clang` can go through Xcode shims that read
-and write a cache in the Darwin per-user temp directory. The obvious
-fix for "the toolchain needs its cache" is to allow that directory.
-That is a real hole: `mktemp -d` and Go's `t.TempDir()` create their
-directories *inside* it, so the allowance silently covers other
-processes' temporary files. The fix is to scope by regex to files
-named `xcrun_db*`. A `literal` cannot substitute: the shim creates
-randomly suffixed files (`xcrun_db-eozhFtQb`).
-
-The second-edition review found the same hole in a less obvious
-form. A temp-directory subpath rule combined with a basename regex
-allowed `xcrun_db-private-marker` inside an unrelated nested temp
-directory. A real `run_command` read its planted contents. Anchoring
-the rule to immediate files under the physical toolchain-cache
-directory closed that escape while keeping Git and Python working.
-The filename looked right; its location was wrong.
+The environment is rebuilt from a short allowlist: locale/timezone values,
+a fixed system PATH, TERM, rooted HOME/TMPDIR, and generated Git configuration.
+Shell startup hooks, injected library settings, arbitrary tokens, and inherited
+provider credentials do not ride along. Full-access launches retain their older
+filtering behavior; they are not falsely described as confined launches.
 
 ### SBPL matches physical paths
 
-This is the same bug class as the uncanonicalized root in section
-19.3, and it cost real debugging time. `getconf DARWIN_USER_TEMP_DIR`
-returns the `/var/folders/.../T` form. `/var` is a symlink to
-`/private/var`. A rule written with the `/var` form never matches,
-because SBPL compares against physical paths.
-
-An earlier hypothesis blamed a trailing slash on the temp-dir path.
-Isolating the two variables showed the realpath was decisive and the
-trailing slash irrelevant. Two things were changed at once, the
-symptom cleared, and the wrong cause was nearly written down as fact.
-The lesson earns a paragraph because it earns a habit: when two
-changes fix a symptom, back one out.
+On macOS, `/var` commonly resolves to `/private/var`. A profile that grants the
+logical spelling while the kernel checks the physical one can deny legitimate
+work. That is a setup defect to diagnose, not a reason to grant the whole shared
+temporary tree. Canonicalize the root and cache directory; quote profile strings
+as SBPL, not as casually substituted JSON. The local tests include a root with
+quotes in its name.
 
 ### Allowed work beside refusals
 
-The original profile experiments paired these operations. The
-positive controls distinguish useful confinement from a profile
-that simply prevents all work:
+A deny-everything profile is not a successful sandbox. The local checks pair
+outside reads, outside writes, grandchild escape attempts, startup hooks, and a
+reachable loopback target with positive in-root shell, Python, Git staging,
+stdin, and process-group cancellation controls.
 
-| Operation | Result |
-|---|---|
-| Read file inside sandbox | allowed |
-| Write file inside sandbox | allowed |
-| `grep -r` inside sandbox | allowed |
-| `python3` reading inside sandbox | allowed |
-| `cat /etc/passwd` | `Operation not permitted` |
-| Read `$HOME/.ssh/id_rsa` | `Operation not permitted` |
-| Write outside sandbox | denied, file not created |
-| `curl https://example.com` | denied |
-| Grandchild (`sh -c 'sh -c "cat ..."'`) | `Operation not permitted` |
+A first toolchain run failed during path resolution. The correction added
+**metadata-only** ancestor access, not broad directory reads. Cache tests prove
+both the permitted immediate file and the refused sibling/nested paths. Git's
+generated identity is published by atomic rename so concurrent launches cannot
+observe a truncated configuration.
 
-The grandchild test is the one that would have caught the original
-design. A userspace path check in Go has no opinion about what a
-grandchild shell does.
+The older Go implementation took a broader allowance set. Its debugging lesson
+still applies, but its profile is not the C# specification.
 
 ### The first experiment that looked like success
 
-The first confinement profile denied everything. Every escape test
+In the historical Go experiment, the first confinement profile denied everything. Every escape test
 passed. The positive controls also failed, because the profile
 denied reading a file *inside* the sandbox. The experiment looked
 like a complete success and was worthless.
@@ -444,87 +383,66 @@ worthless to use. Every test of a denial needs a paired test that the
 legitimate operation still works, or the suite cannot distinguish a
 wall from a brick.
 
-## 19.5 Credentials never enter context
+## 19.5 Keep known credentials out of readable diagnostics
 
-The model's conversation is the attack surface. If a credential
-appears in the conversation, whether as a tool result, a log entry,
-or an error message, the model can repeat it, and a prompt injection
-can direct where it goes. The rule is simple: credentials do not
-enter the conversation, ever.
+The trusted host needs a credential to contact the model; the child shell does
+not. The confined environment therefore uses an allowlist, rather than trying to
+guess every variable that might contain a secret.
 
-**API keys and OAuth tokens.** The binary holds these in memory and
-adds them to the HTTP request at the transport layer. For OpenAI,
-the auth owner supplies the transport credential. The Engine sets
-provider-specific headers: `x-api-key` for Anthropic, `Authorization`
-for OpenAI and `x-goog-api-key` for Gemini. The model's conversation
-contains the request it asked for and the response it received, with
-no authentication headers.
+Readable diagnostics are another path. A fake or real provider may echo an
+Authorization value in response data. If `api.log` contains that value, an
+ordinary successful `read_file` can feed it back to the model. Redaction in the
+file reader is too late: another tool could read the same bytes. Redact before
+the writer receives them.
 
-**OAuth refresh.** When an access token expires mid-session,
-the binary's credential provider uses the refresh token to obtain a
-new one. This happens inside the binary, between the model's request
-and the HTTP call, invisibly. The model does not know the token
-expired, does not see the new token, and does not participate in the
-refresh protocol.
+The root's shared diagnostic scrubber obtains configured keys through its live
+Agent relationships. It handles overlapping known values longest-first, including
+common JSON spellings, and masks diagnostic labels as well as payloads.
+Diagnostic writes are serialized; Agent registration/removal and membership
+snapshots are separately synchronized. An internal read of the authoritative key
+remains valid through teardown, even though public Configuration access refuses
+a destroyed Agent. CLI and GUI logs use this same operation; a separate `gui.log` writer initially escaped both
+the rooted-path review and shared masking, and was corrected after its actual
+outside file was observed.
 
-**Error messages.** At the Engine's HTTP boundary, a transport failure
-returns a generic safe error or the context's cancellation error,
-keeping credential-bearing transport details out of the conversation.
-The same rule extends to every log file written inside the workspace:
+Plan bearers do not belong in Configuration or a global secret cache. Engine
+retains the used bearer values only in the local exchange, including both the
+rejected and rotated bearer during the one permitted HTTP-401 retry. It passes
+that local set through the parser's trace path. Remote HTTP error bodies remain
+omitted at their source; known-value masking is a backstop, not permission to
+publish arbitrary remote error detail.
 
-Known credentials are redacted before writing. The root logger
-scrubs configured API keys; the transport also scrubs current and
-renewed Bearer-token echoes before they become events or traces.
-The accepted logger replaces the whole known value with
-`[redacted]`, rather than publishing the prefix and suffix of a key.
+This is a deliberately narrower promise than “no credential can ever enter
+context.” Successful provider text, tool content, and canonical History are not
+silently rewritten. A user can supply an unknown secret, an external tool can
+return one, and arbitrary encodings are not detected. The library's streaming
+compatibility test explicitly preserves successful content while verifying its
+sanitized trace. Treat trusted stores and additional MCP services accordingly.
 
-A file that briefly held the real key is a file the model may have
-read before a later scrub. Redaction belongs on the write path.
-It is still a backstop for known strings, not a reason to copy a
-credential store into the workspace or a detector for every possible
-encoding of a secret.
-
-**The environment.** A blacklist of names ending in `_KEY`,
-`_SECRET`, `_TOKEN` or `_PASSWORD` misses a credential with another
-name and can retain executable startup hooks. Confined commands
-instead inherit only selected locale/timezone settings, plus an
-explicit system PATH and workspace-rooted HOME, TMPDIR and Git
-configuration. SSH agent access and arbitrary inherited variables
-are absent. HOME redirection makes ordinary `~` lookups local; the
-kernel wall still has to refuse absolute outside paths.
-
-**The `send_secret` pattern.** The original design discussion
-proposed providing a needed credential directly to a trusted
-process's stdin, bypassing the conversation. This chapter adds no
-such tool or secret store. A recipient could echo the secret, so
-its output path would need the same care. Such a tool result would say "credential provided"
-without containing the credential. This is what the October 2025
-secrets manager should have done. The failure was not that the agent
-asked for the credential. The failure was that the credential
-appeared in a tool result, entered the conversation, and was then
-available to be logged, committed, or exfiltrated. The fix is a
-better data path, not a better approval dialog.
+The executable grader seeds a known synthetic credential in provider output and
+reads the resulting API log through the real tool. Separate component tests use
+a signed local issuer, a real 401/refresh exchange, and readable rooted logs to
+check both plan bearer values. Neither exercise uses a live account or proves
+that every possible secret is detected.
 
 ## 19.6 Git inside the sandbox
 
-In the original profile experiment, `git` failed while trying to
-read the user's configuration. The boundary was doing its job, but
-useful Git operations still needed a configuration they could read.
+Git often needs local identity configuration, but the user's `~/.gitconfig` can
+contain credential helpers, includes, signing programs, aliases, or private
+paths. Copying just an apparently harmless subset still requires reading that
+trusted file. This implementation does not read it at all.
 
-The obvious fix is to allow `~/.gitconfig` through the profile. That
-is the dangerous fix. A real `.gitconfig` can carry secrets directly:
-`url.<base>.insteadOf` with an embedded token, or
-`credential.helper = store` pointing at `~/.git-credentials`, which
-is plaintext. "Just allow the config file" would open a credential
-path the sandbox exists to close.
+Sandbox generates a minimal rooted `.ensemble-gitconfig` with an Ensemble local
+name and email. It disables system configuration with `/dev/null`, selects the
+generated file as `GIT_CONFIG_GLOBAL`, and uses a harmless pager. Publication is
+atomic. The generated file is a local tool convenience, not an identity claim or
+authorization to commit.
 
-The clean fix is redirection. `GIT_CONFIG_GLOBAL` points at a minimal
-generated config *inside* the sandbox. `GIT_CONFIG_SYSTEM` points at
-`/dev/null`. The agent gets an identity for commits and nothing
-else: no credential helper, no URL rewrites, no includes. `git init`,
-`add`, `commit`, and `log` all work. The real `~/.gitconfig` stays
-unreadable, and an inherited `GIT_CONFIG_GLOBAL` does not survive
-into the child environment.
+The C# executable exercise initializes an owned repository, stages a file, reads
+the staged blob, and checks that the generated name and email are available. It
+does not create a commit. Earlier historical Go trials did commit; that account
+remains history, not permission for a present exercise. Kernel/network policy
+and the stripped environment still apply to Git and its descendants.
 
 ## 19.7 The trust hierarchy
 
@@ -548,83 +466,45 @@ that a compromised child cannot influence its parent through text.
 
 ### Deriving, not constructing
 
-`Config.Child` copies the parent's spec and overrides the data
-directory:
+`Configuration` is immutable and already owns the launch choices. Do not add a
+parallel mutable Sandbox specification merely to imitate the old Go API. Ask the
+current owner to derive a new effective value:
 
-```go
-func (s Config) Child(dataDir string) Config {
-	s.DataDir, s.LogPath, s.SavePath = dataDir, "", ""
-	return s
+```csharp
+var (effective, refusal) = parent.Sandbox().DeriveChild(requested);
+if (refusal is not null)
+{
+    // Surface the attempt to the human. Do not substitute requested here.
+    parent.Parent().Log(refusal);
 }
+// A future composition root may construct a child from effective.
+// DeriveChild itself creates no Agent or parent/child lifetime relationship.
 ```
 
-Deriving rather than constructing is the mechanism. A child spec that
-starts as a copy of its parent inherits every restriction by
-construction. `SafeMode`, `EnableWebSearch`, and `SandboxRoot` are
-already set to whatever the parent has. Whatever the caller then
-changes, it changed deliberately.
+The implementation preserves all non-policy settings from the requested
+Configuration. A null request inherits the parent configuration. The effective
+root inherits the owner's physical root when omitted; an explicit root can name
+an existing or future descendant but cannot escape through an existing symlink.
+Validation does not create the future directory. A real Agent still requires its
+root to exist when constructed.
 
-This solves a real problem with two-state Booleans. A fresh struct's
-zero value for `SafeMode` is `false`, and a fresh struct's zero value
-for `EnableWebSearch` is `false`. There is no way to tell "nobody
-thought about this field" from "the caller explicitly wants it off."
-With derivation, untouched fields already equal the parent's values,
-and any field that differs was set on purpose. Two-state Booleans are
-then entirely sufficient.
+Safe mode is `parent.SafeMode || requested.SafeMode`. Web authority is
+`parent.EnableWebSearch && requested.EnableWebSearch`. A widening request records
+a refusal while retaining the restrictive result. Invalid roots similarly retain
+the parent's effective root, without leaking an outside resolved target.
 
 ### The wall and the alarm
 
-`Clamp` narrows a child spec to its parent's permissions and reports
-what it narrowed:
+A common mistake is to return the original request with an error. That makes
+safety depend on every caller remembering to check the error. I require the
+narrowed result even on refusal. The wall is the effective value; the diagnostic
+is the alarm. If the caller ignores the alarm, the wall still stands.
 
-```go
-func (s Config) Clamp(parent Config) (Config, error) {
-	var widened []string
-	// SafeMode is a restriction (OR); web search is a capability (AND).
-	if parent.SafeMode && !s.SafeMode {
-		s.SafeMode = true
-		widened = append(widened, "safe mode")
-	}
-	if !parent.EnableWebSearch && s.EnableWebSearch {
-		s.EnableWebSearch = false
-		widened = append(widened, "web search")
-	}
-	if parent.SandboxRoot != "" && !sandbox.Within(parent.SandboxRoot, s.SandboxRoot) {
-		s.SandboxRoot = parent.SandboxRoot
-		widened = append(widened, "sandbox root")
-	}
-	if len(widened) != 0 {
-		return s, fmt.Errorf("child permissions narrowed: %s", strings.Join(widened, ", "))
-	}
-	return s, nil
-}
-```
-
-Two things happen here, and they are deliberately not alternatives.
-The narrowing is unconditional: even if the caller ignores the error,
-the returned spec is no wider than the parent's. The error is a
-diagnostic, not the enforcement.
-
-The distinction matters. The obvious design is to validate first and
-refuse on failure. That makes the error path the security boundary.
-One early return added by mistake in a later chapter silently removes
-the wall, and nothing fails, because the spec was never narrowed. Here,
-deleting the error entirely costs a diagnostic and not a wall. The
-wall and the alarm are separate things, and the error should never be
-the only one of the two.
-
-The caller must use the returned specification. When future child
-construction goes through this operation, an over-request cannot
-widen that returned value even if its diagnostic is ignored. The
-method is an enforceable policy operation, not an instruction for
-the model to obey voluntarily.
-
-One asymmetry the code comments name, because it is a live footgun:
-`EnableWebSearch` is a capability, so narrowing is AND. `SafeMode` is
-a restriction, which is the same statement upside down, so narrowing
-is OR. Writing both as "AND the permissions" is exactly how the
-second one gets implemented backwards, and backwards means a
-safe-mode parent spawning an unrestricted child.
+Tests therefore inspect **both** results, then construct a real Agent from a
+refused request's effective configuration and dispatch tools. They check inherited
+safe/web restrictions, an allowed descendant root, an outward link, omitted
+values, and unchanged unrelated settings. There is no child fleet to invent for
+this chapter; the value derivation is the public foundation for one.
 
 ### What web search actually gates
 
@@ -724,102 +604,88 @@ The four tests existed for zero of the function's lifetime.
 requests without the conversation that originally obtained it.
 Permissions, expiry and provider restrictions still matter, but a
 leak crosses the credential boundary. This chapter's practical
-response is to keep known transport credentials out of tool
-inputs, workspace logs and model-visible results. It does not add
+response is to avoid supplying transport credentials to tools and to mask known
+values in diagnostics before writing. It does not sanitize canonical successful
+provider content or every model-visible result. It does not add
 hardware-backed credentials or change provider authentication.
 
 ## 19.10 The sandbox object
 
-The Sandbox implementation holds its required Agent parent:
+Common declares the Agent's Sandbox relationship, persistent root/handle state,
+and all callable operations. Functional partials implement them. Do not hide a
+second root in each tool or attach a service bag to a value-like media reference.
 
-```go
-type sandbox struct {
-    parent common.Agent
-}
-```
+Construction validates before publishing both ends. Failed Agent construction
+must not start an actor over missing owners merely to clean up: an outside Jobs
+directory refusal exposed that cleanup bug, which was corrected without weakening
+the refusal. Ordinary shutdown closes admission, joins jobs, destroys History and
+other owned work, then closes and detaches Sandbox. A poisoned persistence error
+may still be reported; it must not leave a half-attached Agent.
 
-`Agent()` exposes that relationship. Resolution obtains
-`parent.Config().SandboxRoot`; policy is owned by the Agent rather
-than duplicated in the file or tool package. The root is
-canonicalized again at use, and the file operation opens its own
-`os.Root`. No shared memo or extra policy service is necessary.
+The native layer has a small purpose: no-follow handle-relative opens, directory
+creation/enumeration, rename, and unlink. Safe handles retain descriptors across
+native calls. `fdopendir` transfers ownership only on success, after which
+`closedir` closes the descriptor. Each returned FileStream belongs to its caller.
+These are meaningful lifetimes even in a garbage-collected language.
 
-Construction rejects a nil parent. A nonempty application root
-selects confinement; an empty root remains the existing explicit
-full-access configuration. The first edition's additional
-`Rooted`/`Unconfined` convenience constructors are unnecessary for
-this owner-based API. A confined `Command` on non-Darwin returns an
-unsupported-platform error rather than silently running without
-its profile. Linux and Windows confinement are not implemented by
-this chapter.
-
-The actual boundary has limits. The OS profile deliberately permits
-system libraries, devices and immediate toolchain-cache files.
-Rooted file operations address traversal; they are not protection
-against every hard-link, mount or compromised-native-code scenario.
-The [Go Root documentation](https://pkg.go.dev/os#Root) spells out
-its platform limits. Keep the host, its selected root and its
-trusted configuration outside the model's control. No bounded set
-of escape tests certifies arbitrary hostile native programs.
+Readable layout and comments matter here. A student should be able to trace
+“request name → policy resolution → rooted open → owned handle → disposal”
+without a forest of wrappers, callbacks, or copied services. A passing build
+cannot establish the native ABI, ownership, or kernel policy. Exercise those
+boundaries on the platform for which you claim support.
 
 ## 19.11 Taking it for a spin
 
-Run this exercise on macOS after its host-level operations and provider use have
-been authorized. The restart's Chapter 16 live OAuth exercise remains deferred;
-the subscription recipe below requires its own account consent and valid grant,
-not borrowed credentials. Local fake-provider results do not establish that grant.
-
-Build the CLI from your implementation module. The root stays an importable
-library; its executable is the nested `cmd/ch01` package. The historical session
-account below concerns the earlier implementation, not a new restart result:
+Run the C# exercise on macOS with the approved .NET 10 SDK. Build the
+preserved endpoint's CLI, or the matching implementation under `main`:
 
 ```sh
-go build -o /tmp/ensemble-ch19 ./cmd/ch01
+dotnet build solutions/edition-3/ch19/Cli/Ch04.csproj
 ```
 
-Use a fresh directory and synthetic outside data. An escape test
-needs a file that exists and is readable by the host; a missing
-file cannot demonstrate confinement. Keep real credentials out of
-the test corpus. In the same terminal:
+Set `CLI_DLL` to the resulting `Cli/bin/Debug/net10.0/ch04.dll` using an absolute
+path before changing directories. Use the authorized model/account setup from
+earlier chapters; this exercise neither discovers credentials nor grants
+permission for a live request. If no approved provider is available, use the
+local component and executable checks in the next section instead.
+
+Use a fresh workspace and synthetic outside data. An escape test needs a file
+that exists and is readable by the host; a missing file cannot demonstrate
+confinement. Keep real credentials out of the test corpus:
 
 ```sh
-ensemble_ch19_demo=$(mktemp -d)
-mkdir -p "$ensemble_ch19_demo/work" "$ensemble_ch19_demo/skills/base"
-printf 'OUTSIDE_FIXTURE_ONLY\n' > "$ensemble_ch19_demo/outside.txt"
-ln -s ../outside.txt "$ensemble_ch19_demo/work/escape"
-cat > "$ensemble_ch19_demo/skills/base/SKILL.md" <<'SKILL'
+sandbox_demo=$(mktemp -d)
+mkdir -p "$sandbox_demo/work/sub" "$sandbox_demo/skills/base"
+printf 'OUTSIDE_FIXTURE_ONLY\n' > "$sandbox_demo/outside.txt"
+ln -s ../outside.txt "$sandbox_demo/work/escape"
+cat > "$sandbox_demo/skills/base/SKILL.md" <<'SKILL'
 ---
 name: base
 type: primary
 description: Exercise confined local file and command operations.
 tools: read_file write_file edit_file list_directory search_files run_command send_input wait_for_job kill_job tool_limits
 ---
-Use the dedicated file tools for file operations. Use run_command for
-local programs. Report a refused operation as refused; do not invent
-its result. If a command is still running, wait for its actual result.
+Explain intended tool actions before calling tools. Use the dedicated file
+tools for file operations. Use run_command for local programs. Report a
+refused operation as refused; do not invent its result. If a command is still
+running, wait for its actual result. Do not create a Git commit.
 SKILL
-export EN_SKILLS_DIR="$ensemble_ch19_demo/skills"
+export EN_SKILLS_DIR="$sandbox_demo/skills"
 export EN_PRIMARY_SKILL=base
-export LLM_VENDOR=openai
-export LLM_MODEL=gpt-6-astra
-export OPENAI_REASONING_EFFORT=high
-export OPENAI_REASONING_SUMMARY=detailed
-export OPENAI_BILLING_MODE=chatgpt
 export SANDBOX_FAKE_TEST_TOKEN=sandbox-fixture-only
-cd "$ensemble_ch19_demo/work"
-/tmp/ensemble-ch19 --sandbox "$ensemble_ch19_demo/work" --no-web-search chat
+cd "$sandbox_demo/work"
+dotnet "$CLI_DLL" chat --sandbox "$sandbox_demo/work" --enable-web-search false
 ```
 
-The subscription launch uses the sign-in from Chapter 16. Its profile
-belongs to the host, outside this new workspace. The primary skill is
-also an explicit application input, so the setup keeps it outside the
-model's writable root. The inherited test token is harmless; it lets
-the environment test fail visibly without exposing an actual key.
+The primary skill is a trusted application input outside the model's writable
+root. The inherited test token is harmless; it lets the environment test fail
+visibly without exposing a real key. Keep any explicitly selected credential
+store outside the workspace too.
 
 Start with useful work:
 
 ```text
-Use the file tools to write notes.txt containing "amber apple\n", read it, change apple to plum, search for plum, and list the directory. Then run /usr/bin/python3 to read notes.txt and assert that it contains "amber plum\n". Initialize a local Git repository, add only notes.txt, commit it, and show the latest commit. Report the actual results.
+Use the file tools to write notes.txt containing "amber apple\n", read it, change apple to plum, search for plum, and list the directory. Then run /usr/bin/python3 to read notes.txt and assert that it contains "amber plum\n". Initialize a local Git repository, add only notes.txt, and read the staged blob with git show :notes.txt. Do not commit. Report the actual results.
 ```
 
 Then test the boundary:
@@ -828,44 +694,43 @@ Then test the boundary:
 Use read_file to try ../outside.txt and escape. Use run_command to try a grandchild shell reading ../outside.txt, then try writing ../outside-write.txt. In a separate command, report whether SANDBOX_FAKE_TEST_TOKEN is set, without printing any other environment values. Report each refusal or success separately.
 ```
 
-The file errors should name the supplied path without expanding it
-to the host's full directory. The descendant read and outside write
-should fail, while the earlier Python and Git work succeeds. After
-the turn completes, send EOF to exit normally and check from the host
-that `outside-write.txt` was not created. A compound shell command
-can finish with status zero after an earlier step failed; inspect the
-individual result and file effect, not only the last exit status.
+The file errors should name the supplied path without expanding it to the host's
+full directory. Descendant reads and outside writes should fail, while Python
+and Git staging work. After the turn completes, send EOF, collect the exit, and
+check from the host that `outside-write.txt` was not created. A compound shell
+command can finish with status zero after an earlier failure; inspect each
+result and file effect, not only the last exit status.
 
-Start a second Agent with its own narrower root:
+Start a separate Agent with the narrower existing root:
 
 ```sh
-/tmp/ensemble-ch19 --sandbox "$ensemble_ch19_demo/work/sub" --safe-mode --no-web-search chat
+dotnet "$CLI_DLL" chat --sandbox "$sandbox_demo/work/sub" --safe --enable-web-search false
 ```
 
 ```text
 Write safe.txt containing "safe mode file works\n" and read it back. Try reading ../notes.txt. Check whether run_command is available; do not substitute another tool to execute a command. Report the file result, refusal and available execution tools.
 ```
 
-The file should work. The parent file should not. The four required
-execution and job-supervision tools should be absent. A model saying that a tool
-is unavailable is useful feedback, but declarations and a refused
-guessed dispatch establish the actual boundary.
+The file should work and the parent file should refuse. The four required shell
+and job-control tools should be absent. A model saying a tool is unavailable is
+useful feedback, but declarations and a refused guessed dispatch establish the
+actual boundary; the executable grader checks both.
 
-For the network check, compare a reachable target from the host with
-the same target from `run_command`. The retained live test used a
-local HTTP peer: the host reached it before launch, the peer remained
-alive, and the confined `curl` did not add a request. A failed `curl`
-without that positive control might only mean the server was down.
-The Agent's own provider requests continued throughout.
+For network denial, compare a reachable owned local target from the host with
+the same target from `run_command`, leaving the peer alive throughout. A failed
+`curl` without that positive control might only mean the server was down. The
+Agent's provider requests should continue: the shell's network policy does not
+apply to the trusted host.
 
-Inspect the logs with synthetic credentials in a local provider test,
-as the grader does. Known credential echoes must be redacted before
-`api.log`, saved history or tool results retain them. Do not paste a
-real key into a prompt or a diagnostic command to test its absence.
+Use synthetic credentials in a local provider test to inspect readable API logs,
+as the grader does. Known echoes must be masked before the diagnostic writer
+receives them. Do not paste a real key into a prompt to test its absence, and do
+not infer canonical History filtering from sanitized diagnostics.
 
-### What the actual sessions showed
+### What the historical sessions showed
 
-The recorded Astra/high exercise completed useful file operations,
+The following is the author's historical Go-era account, not a fresh C#
+model-led run. The recorded Astra/high exercise completed useful file operations,
 a local command and a Git commit, then tried outside paths,
 a symlink and a descendant shell. The confined run took 48.394 seconds
 and made 12 model requests; the safe-mode run took 9.847 seconds and
@@ -876,63 +741,70 @@ credential marker was absent from the retained output.
 Those sessions preceded the review's nested toolchain-cache and cwd
 refusal corrections. The corrected source passed their direct
 regressions while keeping allowed Git, Python and file operations;
-no additional paid session was run for those second-edition corrections.
-The useful lesson is the paired
+no additional paid session was run. The useful lesson is the paired
 observation: a refused escape beside work that still finishes. Neither
 a model's compliance nor a small collection of denied paths proves
 that every possible escape has been excluded.
 
-The October 22, 2026 restart exercises used Sonnet 4.6 through the
-API-key CLI. Paired tool results and artifacts showed useful file work,
-Python and Git alongside traversal, symlink and outside-write refusals.
-An explicit Python subprocess-to-shell-to-`cat` chain also failed to read
-outside. A known synthetic token was filtered from returned output and
-absent from retained logs; a confined network attempt added no request
-to a reachable local peer. A narrower safe-mode session completed file
-work and refused a parent read, with command and job tools absent from
-declarations. The completed sessions exited normally at EOF. These
-observations did not exercise the deferred OAuth/browser flow or
-establish universal isolation.
+## 19.12 C# checks and evidence limits
 
-## 19.12 Checks
+Use the preserved `solutions/edition-3/ch19` endpoint after building it with the
+approved .NET 10 SDK. The normal component runner includes the chapter's groups;
+focused selectors include:
 
-| # | Check | Pts | What it tests |
-|---|---|---|---|
-| 1 | `path-confinement` | 15 | File tools refuse `..`, outside absolute paths, and symlinks pointing out |
-| 2 | `kernel-confinement` | 20 | `run_command` cannot read or write outside the root, **and a grandchild process is still confined** |
-| 3 | `no-network` | 15 | A command inside the sandbox cannot reach the network, while the agent itself still can |
-| 4 | `no-credentials` | 15 | Planted credentials are absent from command environment and readable API-log results |
-| 5 | `child-cannot-widen` | 10 | Split: the child's effective permissions are narrowed (survives deleting the validator), and an explicit over-request returns an error (dies with it) |
-| 6 | `safe-mode-absence` | 15 | `run_command`, `send_input`, `wait_for_job` and `kill_job` are absent and refused; ordinary file operations still work |
-| 7 | `no-host-path-leak` | 10 | A refusal names the model's own string and never the resolved host path |
+```text
+--safety-tests
+--sandbox-tests
+--media-tests
+--job-files-tests
+--persistence-files-tests
+--process-files-tests
+--diagnostic-tests
+--child-policy-tests
+--cache-lens-tests
+```
 
-Seven checks, 100 points. The numeric safe-mode check observes the
-four original command/job tools; the accepted implementation also
-removes `tool_limits`. Its source tests separately cover that
-supervisor, the named web-skill gate and state/media confinement.
-No numerical score certifies every filesystem or credential path.
+Check the runner's exact selector before interpreting a result. A misspelled
+selector can run a different group or nothing useful. No provider credentials
+are needed for these local fake-boundary checks.
 
-Check 2 is the one the original design would have failed. A
-userspace path check has no opinion about what a grandchild shell
-does. Check 5 must observe narrowing and its diagnostic separately. A
-failed library build establishes neither; inspect the returned
-specification even when Clamp reports the widening attempt. Check 6 has a positive
-control because section 19.9's `RemoveTool` bug proves what happens
-when removal is tested only by the absence of failure.
+The executable route is explicit and leaves the historical Go route intact:
 
-**Yours.** The internal implementation of `Sandbox.Resolve`, the
-exact error messages, the mechanism for stripping environment
-variables. The grader checks the observable property: the escape
-fails, the legitimate operation succeeds, and the credential is
-absent.
+```sh
+go run ./cmd/grade-edition2 -ch 19 -executable-only -json "$CLI_EXECUTABLE"
+```
 
----
+`CLI_EXECUTABLE` is an executable wrapper that invokes the built C# CLI DLL with
+the approved `dotnet` and forwards `"$@"`. Run the grader in an isolated environment
+with owned HOME/TMPDIR, not by borrowing the working application's credentials.
+The scope is macOS-only and observes real host shutdown, correlated tool results,
+actual files, descendants, and a reachable local network control.
 
-The useful result is an agent that can still edit a file, run local
-tests and make a Git commit, while its file tools and command
-descendants cannot take the tested outside paths. Credentials stay
-with the trusted transport. Permission reduction is explicit, and
-a child specification cannot widen the parent it is clamped to.
+| Executable check | Points |
+|---|---:|
+| Path confinement, with allowed file work | 15 |
+| Kernel confinement, with shell/Python/Git positive controls | 20 |
+| Child network denial against a reachable target | 15 |
+| Stripped child credentials and known-value readable-log masking | 15 |
+| Safe-mode declaration and dispatch removal, retaining file tools | 15 |
+| Refusals retain requested paths without leaking resolved host paths | 10 |
+| **C# executable scope** | **90** |
 
-The next chapter combines public GUI reuse with the first actual
-child-agent work, using the boundaries established here.
+The historical Go child-consumer check is excluded (10 points), not silently
+awarded from a C# unit test. `DeriveChild` has its own real-consumer component
+coverage. Web capability gates, rooted media/persistence/settings/captures,
+concurrent symlink substitution, refresh-bearer diagnostics, and GUI behavior
+also have separate evidence; do not infer them from this table.
+
+The local C# host exercises use owned CLI workspaces and a separate muted browser
+profile. They verify flag/environment precedence including an empty override,
+inside effects and outside refusals, rooted artifacts, readable-log masking,
+settings restart, and failed-save nonpublication. They do not establish native
+speech, human accessibility, hosted web service behavior, live OAuth, provider
+availability, or billing. The current progress record names exact runs, failures,
+and preserved endpoint verification; a green grade does not erase a missed
+writer or a mistaken test assertion.
+
+The larger rule is unchanged: a sandbox is a property of what the running program
+can reach, not of whether its source contains a method named `Resolve`. Positive
+controls, meaningful failure assertions, and ownership review are all necessary.

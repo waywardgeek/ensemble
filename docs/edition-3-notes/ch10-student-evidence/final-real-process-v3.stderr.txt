@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble-edition-3-student/.ch10-local/process_control.py", line 91, in <module>
-    ids=[m['id'] for m in first+second if m.get('type')=='part_final'];assert len(ids)==len(set(map(str,ids)))
-         ~^^^^^^
-KeyError: 'id'

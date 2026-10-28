@@ -1,8 +1,0 @@
-{
-  "first_cleanup": "removed only owned TMPDIR contents and reviewer-added copied test files; source-byte/mode checks passed but final exact-file-set check found api.log and cmd/ch01/api.log",
-  "unexpected_extras": "test-created logs inside owned copy, not real candidate",
-  "per_temp_file_hash_inventory": "computed in memory but NOT DURABLY WRITTEN before guard failure; not claimed as preserved",
-  "previous_completed_run_temp_names_and_counts": "v3/completion.json and v4/completion.json retain actual pre-cleanup lists",
-  "existing_transient_executable_observations": "remain available but explicitly non-exhaustive",
-  "recovery": "remaining owned logs hash-pinned in remaining-owned-log-identities.json before removal; exact 137 original files/modes rechecked; no shared cleanup"
-}

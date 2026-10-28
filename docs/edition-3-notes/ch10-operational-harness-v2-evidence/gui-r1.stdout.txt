@@ -1,1 +1,0 @@
-{"mode": "gui-rehearsal", "status": "PASS", "failure": null, "cleanup_complete": true, "run_root": "/Users/bill/projects/ensemble-edition-3-student/.ch10-local/operational-preparation-v2/runs/gui-rehearsal-r1", "duration_seconds": 0.500134208239615, "credential_opens": 0}

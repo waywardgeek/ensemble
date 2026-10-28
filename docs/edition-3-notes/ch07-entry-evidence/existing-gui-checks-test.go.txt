@@ -1,9 +1,0 @@
-package gradeedition2
-import("os";"testing";"github.com/waywardgeek/ensemble/internal/grade")
-func TestEntryAuditExistingGUIChecks(t *testing.T){
- core,gui:=os.Getenv("ENTRY_CORE"),os.Getenv("ENTRY_GUI")
- if core=="" || gui==""{t.Fatal("explicit private core/gui required")}
- r:=grade.NewTitledReport("Entry audit: existing Chapter 7 GUI checks only",guiChecks(core,gui,"claude-sonnet-4-6"),"")
- r.WriteJSON(os.Stdout)
- if !r.Passed{t.Fail()}
-}

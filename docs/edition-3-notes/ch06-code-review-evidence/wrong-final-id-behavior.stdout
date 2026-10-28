@@ -1,4 +1,0 @@
-=== RUN   TestOpenAISparseInterleavedToolsAndUsage
-    public_checks_test.go:131: missing exact final 0
---- FAIL: TestOpenAISparseInterleavedToolsAndUsage (0.00s)
-FAIL

@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch06-code-review-r1-evidence/verify.py", line 13, in <module>
-    for p,h in pins.items():assert sha(R/p)==h,p
-                                   ^^^^^^^^^^^
-AssertionError: docs/edition-3-notes/ch06-student-review-r1.md

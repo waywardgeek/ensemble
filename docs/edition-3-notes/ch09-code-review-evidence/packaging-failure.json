@@ -1,9 +1,0 @@
-{
-  "stage": "first final verification/packaging script; no report, new verification receipt or inventory written before failure",
-  "script": "/tmp/ch09-code-review/finalize.py",
-  "exit": 1,
-  "error": "TypeError: string indices must be integers, not 'str'",
-  "location": "line10, p=base/rec[path]",
-  "cause": "reviewer treated input manifest path->record mappings as lists of records",
-  "disposition": "preserve script and error; correct packaging schema only; no behavioral command rerun"
-}

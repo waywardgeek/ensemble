@@ -381,8 +381,10 @@ func ch4SendInputReplies(h map[string]string) []fakevendor.Reply {
 			`{"handle":1,"input":"hello world","ai_callback_delay":10,"ai_callback_pattern":"ECHO_READY"}`, "toolu_si_hello"),
 		ch4step("Telling it to quit.", "send_input",
 			`{"handle":1,"input":"quit","ai_callback_delay":10}`, "toolu_si_quit"),
+		// Fresh output can precede exit. Ask for terminal evidence rather than
+		// assuming one unqualified observation must mean completion.
 		ch4step("Confirming it exited.", "wait_for_job",
-			`{"handle":1,"ai_callback_delay":5}`, "toolu_si_wait"),
+			`{"handle":1,"ai_callback_delay":5,"ai_callback_pattern":"(?i)exit"}`, "toolu_si_wait"),
 		ch4done("It echoed and exited."),
 	}
 }

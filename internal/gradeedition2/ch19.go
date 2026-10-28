@@ -121,6 +121,10 @@ func sandboxCommand(c *grade.Check, observation sandboxObservation, id string, s
 }
 
 func sandboxChecks(bin string, checks []grade.Check, current bool) {
+	sandboxChecksFor(bin, checks, current, false)
+}
+
+func sandboxChecksFor(bin string, checks []grade.Check, current, executable bool) {
 	path, kernel, network, credentials, leak := &checks[0], &checks[1], &checks[2], &checks[3], &checks[6]
 	failed := func(err error) {
 		for _, c := range []*grade.Check{path, kernel, network, credentials, leak} {
@@ -128,7 +132,7 @@ func sandboxChecks(bin string, checks []grade.Check, current bool) {
 		}
 	}
 	f, err := newSandboxFixture()
-	if f.base != "" {
+	if f.base != "" && !executable {
 		defer os.RemoveAll(f.base)
 	}
 	if err != nil {
@@ -176,8 +180,15 @@ func sandboxChecks(bin string, checks []grade.Check, current bool) {
 		{"environment", "run_command", map[string]any{"command": "env", "ai_callback_delay": 5}},
 		{"cwd", "run_command", map[string]any{"command": "true", "cwd": "escape", "ai_callback_delay": 5}},
 	}
+	if executable {
+		for i := range probes {
+			if probes[i].id == "git" {
+				probes[i].args["command"] = sandboxExecutableGitCommand
+			}
+		}
+	}
 	probes = append(probes, sandboxLogProbes(current)...)
-	reqs, result, err := sandboxLaunch(bin, f, false, probes, current)
+	reqs, result, err := sandboxLaunchFor(bin, f, false, probes, current, executable)
 	if err != nil {
 		failed(err)
 		return
@@ -218,7 +229,7 @@ func sandboxChecks(bin string, checks []grade.Check, current bool) {
 	if !strings.Contains(env, "HOME=") {
 		fail(credentials, "environment positive observation absent")
 	}
-	if current {
+	if current && !executable {
 		result["log-limit"].skill(credentials, "log-limit", false)
 	}
 	log := result["log"].skill(credentials, "log", false)
@@ -252,8 +263,12 @@ func sandboxChecks(bin string, checks []grade.Check, current bool) {
 }
 
 func sandboxSafe(bin string, c *grade.Check, current bool) {
+	sandboxSafeFor(bin, c, current, false)
+}
+
+func sandboxSafeFor(bin string, c *grade.Check, current, executable bool) {
 	f, err := newSandboxFixture()
-	if f.base != "" {
+	if f.base != "" && !executable {
 		defer os.RemoveAll(f.base)
 	}
 	if err != nil {
@@ -267,7 +282,7 @@ func sandboxSafe(bin string, c *grade.Check, current bool) {
 	for _, name := range banned {
 		probes = append(probes, sandboxProbe{name, name, map[string]any{"command": "printf BAD > escaped.txt", "handle": 1}})
 	}
-	reqs, _, err := sandboxLaunch(bin, f, true, probes, current)
+	reqs, _, err := sandboxLaunchFor(bin, f, true, probes, current, executable)
 	if err != nil {
 		fail(c, "safe session: %v", err)
 		return
@@ -291,7 +306,11 @@ func sandboxSafe(bin string, c *grade.Check, current bool) {
 		fail(c, "safe file result absent")
 	}
 	for i, name := range banned {
-		sandboxSafeRefusal(c, reqs[i+3], name, current)
+		if executable {
+			sandboxExecutableRefusal(c, reqs[i+3], name)
+		} else {
+			sandboxSafeRefusal(c, reqs[i+3], name, current)
+		}
 	}
 	if b, e := os.ReadFile(filepath.Join(f.root, "safe.txt")); e != nil || string(b) != "SAFE_"+f.nonce {
 		fail(c, "actual safe write missing")

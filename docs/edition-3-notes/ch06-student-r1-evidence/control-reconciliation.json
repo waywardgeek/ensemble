@@ -1,9 +1,0 @@
-{
-  "original_production_matches_800da21": true,
-  "final_test_bytes_equal_original_behavioral_failure_test_bytes": true,
-  "test_sha256": "b4017c6e6b5e6cadf0d9a9db9d0c229ff07826d28e3ffa7619dfe9c85ddb1936",
-  "original_behavioral_exit": 1,
-  "corrected_boundary_exit": 0,
-  "focused_existing_regression_exit": 0,
-  "compile_and_fixture_setup_failures_are_not_mutation_evidence": true
-}

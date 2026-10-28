@@ -1,7 +1,0 @@
-{
-  "script": "prepare.py",
-  "exit_code": 1,
-  "reason": "Guessed raw wire path absent; stopped before scratch creation or controls.",
-  "actual_wire_source": "wire-provenance.json raw_wire_local_only; used in prepare-finish.py",
-  "controls_started": 0
-}

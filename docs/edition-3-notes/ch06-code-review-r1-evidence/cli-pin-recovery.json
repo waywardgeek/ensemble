@@ -1,8 +1,0 @@
-{
-  "manifest_sha256": "1d60d5c3374d1199731f0a4ad09981ca4226c9545402fae9807b0368f2139fae",
-  "expected_core_sha256": "06c26681699a1cc67bfb1eb28280bd4c323e22923395e7714aefeb47edd5a0d4",
-  "actual_core_sha256": "06c26681699a1cc67bfb1eb28280bd4c323e22923395e7714aefeb47edd5a0d4",
-  "binary_drift": false,
-  "prior_attempt_launched_target": false,
-  "correction": "reviewer hash transcription only; fresh owned output directory; assertions unchanged"
-}

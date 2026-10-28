@@ -1,9 +1,0 @@
-{
-  "status": "passed",
-  "expected_candidate_regressions_exit": 1,
-  "both_required_graders_passed": true,
-  "durations_match_saved_records": true,
-  "candidate_clean": true,
-  "authoritative_tracked_diff_empty": true,
-  "initial_validation_failure_preserved": "initial-final-validation.txt"
-}

@@ -1,7 +1,0 @@
-{
-  "python": "Python 3.13.14",
-  "platform": "Darwin arm64",
-  "receipt_environments": "exact argv/cwd/environment names in per-attempt receipts; GUI got isolated HOME and dummy Anthropic key only",
-  "paid_and_browser_native_paths_executed": false,
-  "children_created": false
-}

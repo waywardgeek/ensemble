@@ -1,1 +1,0 @@
-{"scenario":"read_file","phase":"live speaker","queued":"Tool call: read file\n\nArguments:\n{\n  \"path\": \"safe.txt\",\n  \"start_line\": 2,\n  \"end_line\": 3\n}\n\nTool result:\nLINE_TWO visible result\n<script>literal only</script>\nLINE_THREE"}

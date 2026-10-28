@@ -1,5 +1,0 @@
-=== RUN   TestPublicPTYNormalInputKillControl
-    public_api_test.go:95: input bytes=1 blocked=false kill elapsed=743.042µs
---- PASS: TestPublicPTYNormalInputKillControl (0.16s)
-PASS
-ok  	ch04-review-consumer	1.175s

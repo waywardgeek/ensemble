@@ -1,9 +1,0 @@
-# ensemble-gui [ensemble-gui.test]
-./chapter10_test.go:110:14: cannot use a (variable of interface type ensemble.Agent) as *ensemble.Ensemble value in argument to newHub
-./chapter10_test.go:111:14: h.resetLocked undefined (type *hub has no field or method resetLocked)
-./chapter10_test.go:115:18: cannot use a (variable of interface type ensemble.Agent) as *ensemble.Ensemble value in argument to newHub
-./chapter10_test.go:115:26: newHub(a, nil).resetLocked undefined (type *hub has no field or method resetLocked)
-./chapter10_test.go:136:23: resumed.Send undefined (type ensemble.Agent has no field or method Send)
-FAIL	ensemble-gui [build failed]
-?   	ensemble-gui/cmd	[no test files]
-FAIL

@@ -1,8 +1,0 @@
-{
-  "source_commit": "729bc919e734405307b4ac0060e65c40e33652e5",
-  "source_tree": "025ef3744b42c8f9daec34e76661edc40583ca6a",
-  "restored_files_verified": 137,
-  "restored_history_sha256": "03930e8dcd36dcf13b594939e3fa309b5b2c136977da1aebc73d905f2c7c9eaa",
-  "compile_valid_negative_assertion_observed": true,
-  "source_worktree_was_not_mutated": true
-}

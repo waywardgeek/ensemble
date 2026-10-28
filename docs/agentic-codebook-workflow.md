@@ -1,5 +1,37 @@
 # Agentic codebook: edition workflow and learning record
 
+## Current procedure: remaining Edition 3 chapters and Edition 4
+
+Bill selected [Teach Your AI](https://github.com/waywardgeek/teach-your-ai) for
+the remaining applicable Edition 3 chapters and Edition 4: prepare coherent
+teaching, then verify it through isolated fresh-student execution. New chapter
+creation retains human-led author/reference development; an existing chapter
+need not be rewritten or given another reference implementation merely for ceremony. See the governing section in
+[the chapter procedure](../book/chapter-writing-procedure.md) and the local
+`/Users/bill/projects/teach-your-ai` procedures/skills. The student may run the
+external grader and inspect reports, but not its private source or target answers.
+Welcome questions and follow the chapter procedure’s recorded-Q&A rule: a successful
+run using faithfully incorporated clarifications need not be repeated merely because
+the student asked for help. Label it verified with recorded Q&A. Substantial design/contract
+changes, major teaching restructuring or solution-specific implementation coaching still
+need fresh verification; text review alone is insufficient. Require solid teaching and
+reviewed, simple, adequately validated code before advancing—not just grader green.
+KISS and YAGNI apply equally to the solution and the workflow.
+
+The student completes development, tests, grader iterations and authorized exercises,
+then owns one public-input reviewer and the necessary corrections before submission.
+No routine early compiling review or second coordinator-mediated review cycle. Final
+acceptance includes coordinator source assessment and independent actual exercise.
+If completed work is inadequate, improve the chapter and run a fresh isolated student,
+not repeated final-acceptance repairs of the coached candidate. There is no numerical
+limit on these teaching/rerun cycles; earlier correction-count stops are superseded.
+Keep feedback consolidated, reuse unchanged evidence and use concise existing notes.
+
+This does not launch Edition 4, reset an operational allowance or authorize publication.
+Edition 3 applies the method through [its execution procedure](edition-3-execution.md),
+beginning with the Chapter 21 fresh rerun; Chapters 1–20 remain closed. The dated entries below retain
+historical decisions, not competing current phase instructions.
+
 ## October 14: background compaction dependency audit
 
 Bill authorized Cadence's structured-submission/background-compaction handoff.

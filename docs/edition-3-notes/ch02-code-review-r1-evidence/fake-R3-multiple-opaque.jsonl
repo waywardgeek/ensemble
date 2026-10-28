@@ -1,2 +1,0 @@
-{"log_version": 1}
-{"seq": 1, "time": "2026-01-01T00:00:00Z", "type": "response_ended", "response": {"from": {"vendor": "openai", "model": "exact-model", "surface": "chat_completions"}, "parts": [{"type": "text", "text": "answer"}, {"type": "opaque", "from": {"vendor": "openai", "model": "exact-model", "surface": "chat_completions"}, "data": {"reasoning_content": "opaque-first"}}, {"type": "opaque", "from": {"vendor": "openai", "model": "exact-model", "surface": "chat_completions"}, "data": {"reasoning": {"text": "opaque-second"}}}], "usage": {"input": 1, "output": 1}}}

@@ -1,7 +1,0 @@
-{
-  "covered_statements": 749,
-  "total_statements": 838,
-  "uncovered_statements": 89,
-  "percent": 89.37947494033413,
-  "scope": "Root Go module production statements selected by -coverpkg=./..., including CLI; excludes separate GUI module and external grader/live processes."
-}

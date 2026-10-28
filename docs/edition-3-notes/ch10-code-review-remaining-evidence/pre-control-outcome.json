@@ -1,6 +1,0 @@
-{
-  "all_five_passed_as_expected": false,
-  "error": "[Errno 2] No such file or directory: '/Users/bill/projects/ensemble/docs/edition-3-notes/ch10-student-final-evidence/inventory.json'",
-  "executed_commands": 0,
-  "no_retry": true
-}

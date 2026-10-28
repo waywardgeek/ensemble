@@ -1,1 +1,0 @@
-{"assistant":"stream-study setting 7","deltas":{"text":2,"thinking":0,"tool_call":1},"elapsed_ms":77.695,"first_delta_ms":37.976,"observation":"stream_stats","parts":3,"streaming":false,"usage":{"input":2,"cache_write":0,"cache_read":0,"output":2}}

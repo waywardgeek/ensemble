@@ -1,8 +1,0 @@
-{
-  "requests": 5,
-  "listener_closed": true,
-  "active_upstreams": 0,
-  "elapsed_seconds": 3.943,
-  "max_requests": 8,
-  "retries": 0
-}

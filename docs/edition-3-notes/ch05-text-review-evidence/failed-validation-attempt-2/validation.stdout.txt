@@ -1,5 +1,0 @@
-status-before exit 0
-tracked-before exit 0
-staged-before exit 0
-main-head exit 0
-accepted-tag exit 0

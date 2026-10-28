@@ -1,6 +1,0 @@
-=== RUN   TestChapter5WakeupLaterProcessWait
-    chapter5_wakeup_test.go:293: WAKEUP later 3600-second wait continuation did not arrive promptly
---- FAIL: TestChapter5WakeupLaterProcessWait (2.02s)
-FAIL
-FAIL	ensemble	2.031s
-FAIL

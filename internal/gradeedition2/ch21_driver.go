@@ -25,6 +25,13 @@ const managementTools = "spawn_sub_agent join_agents agents_status shutdown_agen
 // This launches the actual optional application. A free port is not readiness:
 // check the launched child's exit channel before trusting the connected socket.
 func managementStart(bin, work, base string) (*mcpCommand, *guiPeer, error) {
+	return managementStartWith(bin, work, base, false)
+}
+
+func managementStartWith(bin, work, base string, current bool) (*mcpCommand, *guiPeer, error) {
+	if current {
+		return chapter21GUIStart(bin, work, base)
+	}
 	l, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return nil, nil, err
@@ -74,10 +81,42 @@ func managementEOF(p *mcpCommand) error {
 // Selection replay has an existing effective-settings trailer, not a new grader
 // protocol. Retain all preceding historical records and the current state frame.
 func managementSelect(peer *guiPeer, key string) ([]map[string]any, error) {
-	if err := peer.conn.WriteJSON(map[string]string{"type": "select_agent", "key": key}); err != nil {
+	return managementSelectWith(peer, key, false)
+}
+
+func managementSelectWith(peer *guiPeer, key string, current bool) ([]map[string]any, error) {
+	field := "key"
+	if current {
+		field = "agent_id"
+	}
+	if err := peer.conn.WriteJSON(map[string]string{"type": "select_agent", field: key}); err != nil {
 		return nil, err
 	}
-	return peer.until(2*time.Second, messageKind("current_settings"))
+	if !current {
+		frames, err := peer.until(2*time.Second, messageKind("current_settings"))
+		return managementReplayFrames(frames), err
+	}
+	// A fresh socket may have its default selection queued. The requested,
+	// self-identifying replay completes selection; settings are not universally
+	// labelled or emitted on selection and cannot establish that boundary.
+	frames, err := peer.until(2*time.Second, func(frame map[string]any) bool {
+		return managementSelected(frame) == key && managementReplayAgent(frame, key) != nil
+	})
+	return managementSelectionFrames(frames, key), err
+}
+
+// Unwrap only actual replay events, never arbitrary nested tool arguments.
+func managementReplayFrames(frames []map[string]any) []map[string]any {
+	var result []map[string]any
+	for _, frame := range frames {
+		if frame["type"] == "replay" {
+			for _, event := range list(object(frame["data"])["events"]) {
+				result = append(result, object(event))
+			}
+		}
+		result = append(result, frame)
+	}
+	return result
 }
 func managementNode(v any, id string) map[string]any {
 	m, ok := v.(map[string]any)
@@ -118,6 +157,8 @@ func managementContains(frames []map[string]any, text string) bool {
 			part := object(m["part"])
 			if part["type"] == "text" {
 				content, _ = part["text"].(string)
+			} else if m["kind"] == "text" {
+				content, _ = m["text"].(string)
 			}
 		case "tool_finished":
 			content, _ = m["result"].(string)
@@ -132,6 +173,14 @@ func managementContains(frames []map[string]any, text string) bool {
 }
 
 func managementGUI(bin string, checks []grade.Check) {
+	managementGUIWith(bin, checks, false)
+}
+
+func managementGUIWith(bin string, checks []grade.Check, currentRoute bool) {
+	submitPrefix := "submitted: "
+	if currentRoute {
+		submitPrefix = ""
+	}
 	fleetTemp([]*grade.Check{&checks[0], &checks[1], &checks[2], &checks[3], &checks[5]}, func(work string) {
 		skill := "---\nname: %s\ndescription: Fleet management fixture\ntype: primary\ntools: " + managementTools + "\n---\n%s\n"
 		if err := recallWrite(filepath.Join(work, "skills"), map[string]string{"base/SKILL.md": fmt.Sprintf(skill, "base", "Main and named-peer Agents finish in chat; delegated Agents submit."), "peer/SKILL.md": fmt.Sprintf(skill, "peer", "PEER_SKILL_BODY_23. Main and named-peer Agents finish in chat; delegated Agents submit.")}); err != nil {
@@ -144,7 +193,11 @@ func managementGUI(bin string, checks []grade.Check) {
 			if len(list(r["tools"])) == 0 && !fleetHas(body, "peer-submit") && !fleetHas(body, "manage-submit") && !fleetHas(body, "child-submit") && !fleetHas(body, "intruder-submit") {
 				return &fakevendor.Reply{Text: "[]"}
 			}
-			return managementReply(body, work)
+			reply := managementReply(body, work, currentRoute)
+			if currentRoute {
+				return chapter21ToolReply(body, reply)
+			}
+			return reply
 		}})
 		defer provider.Close()
 		entered, release := make(chan struct{}), make(chan struct{})
@@ -189,14 +242,13 @@ func managementGUI(bin string, checks []grade.Check) {
 					}
 				}
 			}
-			// Restart creates an owned child with a fresh current task while its old
-			// submission remains on disk. Keep that task pending until explicit kill.
-			if strings.Contains(conversation, "REOPEN_TASK_23") && !strings.Contains(conversation, "RESTORE_ROOT_23") {
+			// Only the legacy route reconstructs a pending child after restart.
+			if !currentRoute && strings.Contains(conversation, "REOPEN_TASK_23") && !strings.Contains(conversation, "RESTORE_ROOT_23") {
 				reopenOnce.Do(func() { close(reopened) })
 				<-r.Context().Done()
 				return
 			}
-			if strings.Contains(conversation, "RESTORE_ROOT_23") && fleetHas(raw, "respawn-worker") {
+			if !currentRoute && strings.Contains(conversation, "RESTORE_ROOT_23") && fleetHas(raw, "respawn-worker") {
 				select {
 				case <-reopened:
 				case <-r.Context().Done():
@@ -240,7 +292,7 @@ func managementGUI(bin string, checks []grade.Check) {
 		}))
 		defer boundary.Close()
 		defer unpark()
-		p, peer, err := managementStart(bin, work, boundary.URL)
+		p, peer, err := managementStartWith(bin, work, boundary.URL, currentRoute)
 		if err != nil {
 			reuseFail(checks, err, 0, 1, 2, 3, 5)
 			return
@@ -248,24 +300,49 @@ func managementGUI(bin string, checks []grade.Check) {
 		defer p.close()
 		defer peer.close()
 		peer.send("subscribe", "")
-		initial, err := peer.until(2*time.Second, func(m map[string]any) bool { return m["type"] == "agent_tree" || m["type"] == "agents_tree" })
-		if err != nil || len(initial) == 0 || len(object(initial[len(initial)-1]["root"])) == 0 {
+		initial, err := peer.until(2*time.Second, func(m map[string]any) bool { return managementTree(m, currentRoute) })
+		if err != nil || len(initial) == 0 || managementTreeNode(initial[len(initial)-1], "main", currentRoute) == nil {
 			reuseFail(checks, fmt.Errorf("initial real tree: %v", err), 0, 1, 2, 3, 5)
 			return
 		}
-		peer.send("prompt", "MANAGEMENT_ROOT_23")
+		peer.conn.WriteJSON(managementInputCommand("MANAGEMENT_ROOT_23", currentRoute))
 		released := false
+		waitCalled, waiting := false, false
+		childID := "main/worker23"
+		if currentRoute {
+			childID = ""
+		}
 		phases := []string{}
 		nested := false
 		live, err := peer.until(9*time.Second, func(m map[string]any) bool {
 			phase := ""
-			if m["type"] == "agent_activity" && strings.HasSuffix(fmt.Sprint(m["key"]), "/worker23") {
-				phase = managementPhase(m["activity"])
-			}
-			if m["type"] == "agent_tree" || m["type"] == "agents_tree" {
-				if n := managementNode(m["root"], "worker23"); n != nil {
-					nested = true
-					phase = managementPhase(n["activity"])
+			if currentRoute {
+				if id := managementOwnedChildID(m, "worker23", "main"); id != "" {
+					if childID != "" && childID != id {
+						fail(&checks[5], "child roster identity changed from %q to %q", childID, id)
+					} else {
+						childID, nested = id, true
+					}
+				}
+				if childID != "" {
+					phase = managementActivityPhase(m, childID, "main")
+				} else if m["type"] == "agent_status" || m["type"] == "agent_activity" {
+					// A direct activity event may precede the first roster. It does
+					// not choose the browser ID or establish live tree membership.
+					for _, id := range []string{"worker23", "main/worker23"} {
+						if phase = managementActivityPhase(m, id, "main"); phase != "" {
+							break
+						}
+					}
+				}
+			} else {
+				if m["type"] == "agent_activity" && strings.HasSuffix(fmt.Sprint(m["key"]), "/worker23") {
+					phase = managementPhase(m["activity"])
+				}
+				if managementTree(m, false) {
+					if n := managementTreeNode(m, "worker23", false); n != nil {
+						nested, phase = true, managementPhase(n["activity"])
+					}
 				}
 			}
 			if phase != "" && (len(phases) == 0 || phases[len(phases)-1] != phase) {
@@ -274,14 +351,28 @@ func managementGUI(bin string, checks []grade.Check) {
 			// Waiting activity precedes handler execution. It only starts this
 			// bounded no-progress control; it is not an entry acknowledgment.
 			// The child's shell is already held and has no output/state change.
-			raw, _ := json.Marshal(m)
-			if !released && strings.Contains(string(raw), "wait_for_agent_change") && strings.Contains(string(raw), "waiting") {
+			waitObserved := false
+			if currentRoute {
+				part := managementLiveToolPart(m, "main", "wait-change", "tool_call")
+				waitCalled = waitCalled || part["name"] == "wait_for_agent_change"
+				waiting = waiting || managementActivityPhase(m, "main", "") == "waiting"
+				waitObserved = waitCalled && waiting
+			} else {
+				raw, _ := json.Marshal(m)
+				waitObserved = strings.Contains(string(raw), "wait_for_agent_change") && strings.Contains(string(raw), "waiting")
+			}
+			if !released && waitObserved {
 				quiet, e := peer.until(200*time.Millisecond, nil)
 				if e != nil {
 					fail(&checks[3], "held wait observation: %v", e)
 				}
 				for _, observed := range quiet {
-					if observed["type"] == "tool_finished" && observed["call_id"] == "wait-change" {
+					finished := observed["type"] == "tool_finished" && observed["call_id"] == "wait-change"
+					if currentRoute {
+						finished = (finished && observed["agent_id"] == "main" && observed["replay"] != true) ||
+							managementLiveToolPart(observed, "main", "wait-change", "tool_result") != nil
+					}
+					if finished {
 						fail(&checks[3], "change wait completed while selected child had no progress")
 					}
 				}
@@ -296,12 +387,15 @@ func managementGUI(bin string, checks []grade.Check) {
 			reuseFail(checks, fmt.Errorf("management turn: %v", err), 0, 2, 3)
 			_ = os.WriteFile(filepath.Join(work, "release"), nil, 0600)
 		}
-		managementResults(provider.Requests(), checks)
+		managementResultsWith(provider.Requests(), checks, currentRoute)
 		// Extra real transitions are allowed; require the promised phases in order,
 		// not one implementation-specific number of observations.
 		at := 0
 		for _, phase := range phases {
 			want := []string{"thinking", "tool_call", "idle"}
+			if currentRoute && at == 2 && phase == "stopped" {
+				phase = "idle" // A completed child need not pretend its actor is live.
+			}
 			if at < len(want) && strings.ReplaceAll(phase, "toolcall", "tool_call") == want[at] {
 				at++
 			}
@@ -316,25 +410,31 @@ func managementGUI(bin string, checks []grade.Check) {
 			fail(&checks[5], "no live nested child in GUI tree")
 		}
 		managementSubmissionFrame(&checks[5], live, "child-retrieve", "", "worker23")
-		childReplay, selectErr := managementSelect(peer, "main/worker23")
-		if selectErr != nil {
-			fail(&checks[5], "structured child selection: %v", selectErr)
+		if childID == "" {
+			fail(&checks[5], "no unambiguous owned child roster ID for selection")
 		} else {
-			managementSubmissionFrame(&checks[5], childReplay, "child-submit", "submitted: ", "")
+			childReplay, selectErr := managementSelectWith(peer, childID, currentRoute)
+			if selectErr != nil {
+				fail(&checks[5], "structured child selection: %v", selectErr)
+			} else {
+				managementSubmissionFrame(&checks[5], childReplay, "child-submit", submitPrefix, "")
+			}
 		}
 		// Named peer creation is a real client command, not a planted registry file.
-		peer.conn.WriteJSON(map[string]string{"type": "create_agent", "name": "named23", "model": "claude-opus-4-6", "skill": "peer"})
+		create := managementNamedCommand("create_agent", "named23", currentRoute)
+		create["model"], create["skill"] = "claude-opus-4-6", "peer"
+		peer.conn.WriteJSON(create)
 		_, err = peer.until(2*time.Second, func(m map[string]any) bool {
-			return (m["type"] == "agent_tree" || m["type"] == "agents_tree") && managementNode(m["root"], "named23") != nil
+			return managementTree(m, currentRoute) && managementTreeNode(m, "named23", currentRoute) != nil
 		})
 		if err == nil {
-			_, err = managementSelect(peer, "named23")
+			_, err = managementSelectWith(peer, "named23", currentRoute)
 		}
 		if err != nil {
 			reuseFail(checks, fmt.Errorf("named create/select: %v", err), 1, 5)
 			return
 		}
-		peer.send("prompt", "PEER_TASK_23")
+		peer.conn.WriteJSON(managementInputCommand("PEER_TASK_23", currentRoute))
 		_, err = peer.until(3*time.Second, func(m map[string]any) bool {
 			return m["type"] == "turn_ended" && m["replay"] != true && strings.Contains(fmt.Sprint(m["text"]), "NAMED_CONVERSATION_23")
 		})
@@ -342,9 +442,9 @@ func managementGUI(bin string, checks []grade.Check) {
 			reuseFail(checks, err, 1, 5)
 			return
 		}
-		replay, err := managementSelect(peer, "named23")
-		if err != nil || managementState(replay) != "idle" || !managementContains(replay, "NAMED_CONVERSATION_23") {
-			reuseFail(checks, fmt.Errorf("completed selected replay: state=%s history=%t err=%v", managementState(replay), managementContains(replay, "NAMED_CONVERSATION_23"), err), 1, 5)
+		replay, err := managementSelectWith(peer, "named23", currentRoute)
+		if err != nil || managementStateWith(replay, currentRoute) != "idle" || !managementContains(replay, "NAMED_CONVERSATION_23") {
+			reuseFail(checks, fmt.Errorf("completed selected replay: state=%s history=%t err=%v", managementStateWith(replay, currentRoute), managementContains(replay, "NAMED_CONVERSATION_23"), err), 1, 5)
 		}
 		// An acknowledgment alone cannot prove constructor inputs took effect.
 		// Inspect the actual named Agent request, including its primary instruction.
@@ -364,32 +464,32 @@ func managementGUI(bin string, checks []grade.Check) {
 		// Keep the provider alive across restart: retained words must come from
 		// the saved conversation, with no request to reconstruct them.
 		count := len(provider.Requests())
-		second, view, err := managementStart(bin, work, boundary.URL)
+		second, view, err := managementStartWith(bin, work, boundary.URL, currentRoute)
 		if err != nil {
 			reuseFail(checks, err, 1, 5)
 			return
 		}
 		defer second.close()
 		defer view.close()
-		replay, err = managementSelect(view, "named23")
-		if err != nil || managementState(replay) != "idle" || !managementContains(replay, "NAMED_CONVERSATION_23") || len(provider.Requests()) != count {
-			reuseFail(checks, fmt.Errorf("restart did not restore idle named conversation without inference: state=%s err=%v", managementState(replay), err), 1, 5)
+		replay, err = managementSelectWith(view, "named23", currentRoute)
+		if err != nil || managementStateWith(replay, currentRoute) != "idle" || !managementContains(replay, "NAMED_CONVERSATION_23") || len(provider.Requests()) != count {
+			reuseFail(checks, fmt.Errorf("restart did not restore idle named conversation without inference: state=%s err=%v", managementStateWith(replay, currentRoute), err), 1, 5)
 			return
 		}
-		// Selecting the restored owner replays the retained retrieval result, with
-		// no new inference and no automatic resurrection of its ephemeral child.
-		ownerReplay, e := managementSelect(view, "main")
+		// Selecting the restored owner replays the retained retrieval result
+		// without inference. A current persisted child may remain listed on disk.
+		ownerReplay, e := managementSelectWith(view, "main", currentRoute)
 		if e != nil || len(provider.Requests()) != count {
 			reuseFail(checks, fmt.Errorf("structured owner replay: %v", e), 1, 5)
 			return
 		}
 		managementSubmissionFrame(&checks[5], ownerReplay, "child-retrieve", "", "worker23")
 		for _, frame := range ownerReplay {
-			if frame["type"] == "agent_tree" && managementNode(frame["root"], "worker23") != nil {
+			if !currentRoute && managementTree(frame, currentRoute) && managementTreeNode(frame, "worker23", currentRoute) != nil {
 				fail(&checks[1], "ephemeral task child was recreated by restart")
 			}
 		}
-		view.send("prompt", "RESTORE_ROOT_23")
+		view.conn.WriteJSON(managementInputCommand("RESTORE_ROOT_23", currentRoute))
 		restored, e := view.until(4*time.Second, func(m map[string]any) bool {
 			return m["type"] == "turn_ended" && m["replay"] != true && strings.Contains(fmt.Sprint(m["text"]), "RESTORED_RESULT_23")
 		})
@@ -400,25 +500,33 @@ func managementGUI(bin string, checks []grade.Check) {
 		managementSubmissionFrame(&checks[1], restored, "durable-retrieve", "", "worker23")
 		reqs := provider.Requests()
 		managementPayload(&checks[2], fleetResult(&checks[2], reqs, "durable-retrieve", false), "worker23")
-		var current map[string]any
-		if e := json.Unmarshal([]byte(fleetResult(&checks[2], reqs, "durable-status", false)), &current); e != nil || current["agent_id"] != "worker23" || current["state"] != "running" || current["payload"] != nil {
-			fail(&checks[2], "historical fallback completed the pending current task: %v (%v)", current, e)
+		if currentRoute {
+			for _, request := range reqs[count:] {
+				if !strings.Contains(memoryConversation(request.Body), "RESTORE_ROOT_23") {
+					fail(&checks[1], "saved-answer retrieval caused an unrequested model turn")
+				}
+			}
+		} else {
+			current, e := managementStatus(fleetResult(&checks[2], reqs, "durable-status", false), false)
+			if e != nil || current["agent_id"] != "worker23" || current["state"] != "running" || current["payload"] != nil {
+				fail(&checks[2], "historical fallback completed the pending current task: %v (%v)", current, e)
+			}
+			fleetResult(&checks[2], reqs, "stop-reopened", false)
 		}
-		fleetResult(&checks[2], reqs, "stop-reopened", false)
-		if _, e = managementSelect(view, "named23"); e != nil {
+		if _, e = managementSelectWith(view, "named23", currentRoute); e != nil {
 			fail(&checks[5], "return to named peer: %v", e)
 			return
 		}
-		view.send("prompt", "PENDING_TASK_23")
+		view.conn.WriteJSON(managementInputCommand("PENDING_TASK_23", currentRoute))
 		select {
 		case <-entered:
 		case <-time.After(3 * time.Second):
 			fail(&checks[5], "real pending request never entered provider boundary")
 			return
 		}
-		pending, e := managementSelect(view, "named23")
-		if e != nil || managementState(pending) != "in_flight" {
-			fail(&checks[5], "genuinely pending selected state=%s err=%v", managementState(pending), e)
+		pending, e := managementSelectWith(view, "named23", currentRoute)
+		if e != nil || managementStateWith(pending, currentRoute) != "in_flight" {
+			fail(&checks[5], "genuinely pending selected state=%s err=%v", managementStateWith(pending, currentRoute), e)
 		}
 		unpark()
 		_, e = view.until(3*time.Second, func(m map[string]any) bool {
@@ -428,12 +536,17 @@ func managementGUI(bin string, checks []grade.Check) {
 			fail(&checks[5], "pending request did not complete: %v", e)
 			return
 		}
-		completed, e := managementSelect(view, "named23")
-		if e != nil || managementState(completed) != "idle" {
-			fail(&checks[5], "completed pending request state=%s err=%v", managementState(completed), e)
+		completed, e := managementSelectWith(view, "named23", currentRoute)
+		if e != nil || managementStateWith(completed, currentRoute) != "idle" {
+			fail(&checks[5], "completed pending request state=%s err=%v", managementStateWith(completed, currentRoute), e)
 		}
-		view.conn.WriteJSON(map[string]string{"type": "delete_agent", "name": "named23"})
-		_, err = view.until(2*time.Second, messageKind("agent_deleted"))
+		view.conn.WriteJSON(managementNamedCommand("delete_agent", "named23", currentRoute))
+		_, err = view.until(2*time.Second, func(m map[string]any) bool {
+			if currentRoute {
+				return managementTree(m, true) && managementTreeNode(m, "main", true) != nil && managementTreeNode(m, "named23", true) == nil
+			}
+			return m["type"] == "agent_deleted"
+		})
 		if err != nil {
 			fail(&checks[1], "named deletion: %v", err)
 		}
@@ -441,7 +554,7 @@ func managementGUI(bin string, checks []grade.Check) {
 			fail(&checks[1], "%v", err)
 			return
 		}
-		third, last, err := managementStart(bin, work, boundary.URL)
+		third, last, err := managementStartWith(bin, work, boundary.URL, currentRoute)
 		if err != nil {
 			fail(&checks[1], "delete restart: %v", err)
 			return
@@ -449,8 +562,8 @@ func managementGUI(bin string, checks []grade.Check) {
 		defer third.close()
 		defer last.close()
 		last.send("subscribe", "")
-		frames, e := last.until(2*time.Second, func(m map[string]any) bool { return m["type"] == "agent_tree" || m["type"] == "agents_tree" })
-		if e != nil || len(frames) == 0 || managementNode(frames[len(frames)-1]["root"], "named23") != nil {
+		frames, e := last.until(2*time.Second, func(m map[string]any) bool { return managementTree(m, currentRoute) })
+		if e != nil || len(frames) == 0 || managementTreeNode(frames[len(frames)-1], "main", currentRoute) == nil || managementTreeNode(frames[len(frames)-1], "named23", currentRoute) != nil {
 			fail(&checks[1], "deleted peer returned after restart: %v", e)
 		}
 		if err = managementEOF(third); err != nil {

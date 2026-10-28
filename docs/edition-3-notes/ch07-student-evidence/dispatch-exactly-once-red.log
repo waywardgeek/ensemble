@@ -1,8 +1,0 @@
---- FAIL: TestToolDispatchExactlyOnceAcrossCaptureAndReplay (0.00s)
-    hub_test.go:211: subscribe between dispatch and commit got 0 starts, want 1
-    hub_test.go:222: one admitted tool published 2 starts, want 1
-    hub_test.go:232: late observation repeated captured start
-FAIL
-FAIL	ensemble-gui	0.007s
-?   	ensemble-gui/cmd	[no test files]
-FAIL

@@ -1,2 +1,0 @@
-{"assistant":"DIAGNOSIS_OK"}
-{"usage":{"input":40,"cache_write":0,"cache_read":0,"output":4}}

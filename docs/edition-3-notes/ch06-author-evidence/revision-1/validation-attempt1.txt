@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch06-author-evidence/revision-1/validate_revision.py", line 27, in <module>
-    assert before.count('/tmp/ch6agent chat') == after.count('/tmp/ch6agent chat') == 1
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError

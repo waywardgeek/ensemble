@@ -1,8 +1,0 @@
-{"Time":"2026-10-18T07:05:10.414116-07:00","Action":"start","Package":"ensemble"}
-{"Time":"2026-10-18T07:05:10.421209-07:00","Action":"run","Package":"ensemble","Test":"TestChapter8NextTurnBudget"}
-{"Time":"2026-10-18T07:05:10.421256-07:00","Action":"output","Package":"ensemble","Test":"TestChapter8NextTurnBudget","Output":"=== RUN   TestChapter8NextTurnBudget\n"}
-{"Time":"2026-10-18T07:05:11.308487-07:00","Action":"output","Package":"ensemble","Test":"TestChapter8NextTurnBudget","Output":"--- PASS: TestChapter8NextTurnBudget (0.89s)\n"}
-{"Time":"2026-10-18T07:05:11.308522-07:00","Action":"pass","Package":"ensemble","Test":"TestChapter8NextTurnBudget","Elapsed":0.89}
-{"Time":"2026-10-18T07:05:11.308541-07:00","Action":"output","Package":"ensemble","Output":"PASS\n"}
-{"Time":"2026-10-18T07:05:11.309093-07:00","Action":"output","Package":"ensemble","Output":"ok  \tensemble\t0.895s\n"}
-{"Time":"2026-10-18T07:05:11.309102-07:00","Action":"pass","Package":"ensemble","Elapsed":0.895}

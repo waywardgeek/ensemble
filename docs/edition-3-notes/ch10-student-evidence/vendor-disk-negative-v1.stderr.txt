@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble-edition-3-student/.ch10-local/wire_observation.py", line 17, in <module>
-    assert p.returncode!=0 and 'cannot unmarshal string' in p.stderr and len(requests)==1 and path.read_bytes()==before
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError

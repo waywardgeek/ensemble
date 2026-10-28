@@ -1,7 +1,0 @@
-{
-  "path": "/tmp/cadence-ch10-entry-audit-tr4jypr8/focused/solutions/ch10/internal/history/save.go",
-  "baseline_sha256": "a2af97cbc6a11f34d4e0b222850fad1ff0e92ccd494a7fab5d775c3c582eff7c",
-  "mutant_sha256": "bdfbf7a0facf055f4635e6edbdc800e5ae4f5408c47c67899bf45aa542258697",
-  "property": "effective system_prompt metadata saved must equal actual wire instruction",
-  "expected": "save-shape and current-config default-load detect mismatched metadata; compilation must remain valid"
-}

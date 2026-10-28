@@ -1,8 +1,0 @@
-{
-  "launcher_sha256": "c582a4e322b9dd60b672a0133c673a54f09a59d80bb9947f2d6b396fc6613c82",
-  "controls_sha256": "4ec1c1bd1d1d7319f5190d3b75291cd00c3e98c55aad46a5d6f92ace6dad7332",
-  "frozen_manifest_sha256": "950d5c3fb732ad49ff132bbb240e3e0405628c623313cc28da23baa458c6ac19",
-  "fixture_stdout_sha256": "17302fbc5593eee44bd50b0c1f83f4fe61f636798eb7e4afeee62141ba73776e",
-  "real_credentials_read": false,
-  "paid_calls": 0
-}

@@ -4,6 +4,53 @@
 Those measurements and dated API observations belong to that work. The
 second-edition student's implementation and live results are identified below.*
 
+## TL;DR
+
+Give the Agent six concrete tools: read, list, search, write, edit, and run a
+command. Declare those same tools to the model. When a response asks for work,
+record the calls, execute them in order, record every result—including failures—
+and ask the model again. Return only its final answer. Keep a sixteen-round
+limit so repetition cannot become an endless loop; do not confuse that limit
+with a command or generation timeout.
+
+## In plain words
+
+Chapter 2 gave us a trustworthy record and three ways to speak to a provider.
+This chapter gives that conversation hands. The model does not directly open a
+file. It proposes a named operation with arguments. Our Agent validates and
+performs it, tells the model what actually happened, and keeps the evidence.
+A failed read is an answer the model can learn from, not a reason to drop the
+call and leave the conversation hanging.
+
+Keep the owners already built. Agent owns History, Engine, and now its Tools.
+History records facts; Engine performs one provider exchange; Agent runs the
+conversation loop. Each Tool retains its real Agent parent. It can reach
+configuration or diagnostics through that relationship, without copied services,
+global lookup, or a callback bag. Constructors use Agent's add operation, and
+Tool destruction uses Agent's remove operation. Each operation completes both
+ends before returning. Destroying Agent destroys its Tools as well as History
+and Engine.
+
+A tool's name, description, and argument schema are immutable facts held once,
+on that Tool. The renderer and dispatcher consult the same Agent-owned set.
+An empty set means no declarations—not a hidden global fallback. Six known
+operations need a small switch, not a plug-in framework or inheritance tree.
+Common declares their vocabulary, state, and partial operations; `Tools/`
+implements them in the same assembly.
+
+The record and the reply still have different jobs. Keep the model's narration
+and calls in their original order in History. Show pre-tool narration on the
+CLI's stderr channel before effects, but reserve JSON stdout's `assistant` field
+for the final answer. A result always carries its call ID, even if two calls
+have the same name. A failed command that really ran returns its exit code as
+ordinary data; an invalid request or file error returns an error result.
+
+Start with small real operations in a disposable directory. Use a local HTTP
+fake to ask for them and inspect the next request. That tests our loop and the
+actual file changes, not a simulated internal call. It cannot establish that a
+paid provider accepts the requests or chooses useful work. Keep those two claims
+separate when reporting what passed.
+
 ## 3.0 I counted
 
 I have a directory containing every session I have ever run. Five hundred
@@ -53,7 +100,7 @@ conversation. At the end of this chapter it writes code.
 
 ## 3.1 Fifty-one rows
 
-The complete table is [the original tool exhibit](../../edition-1/book/exhibit-ch03-tools.md): all fifty-one tools, with
+The complete table is [the original tool exhibit](../edition-1/book/exhibit-ch03-tools.md): all fifty-one tools, with
 counts, share, cumulative share, and a status column. It rewards a slow
 read, and three things in it matter more than the rest.
 
@@ -108,50 +155,45 @@ CLI installs the six tools; an ordinary library client can construct an Agent
 with none. Empty-registry omission is a library property to check directly,
 not a hidden CLI switch or a special case that recognizes the grader.
 
-The Engine projects the common JSON Schema into each provider's declaration
-dialect. In the Edition 3 live exercise, Gemini's `parameters` rejected
-top-level `additionalProperties`. For the current built-in object schemas,
-omit that unsupported keyword in the Gemini projection; keep the shared
-schemas, strict local argument validation and other providers' declarations
-unchanged. This is a projection for these six tools, not a general recursive
-schema translator or a promise that every provider accepts every JSON Schema
-keyword.
+A Tool joins an immutable model-facing definition to a concrete operation.
+The following excerpt shows the shape; the complete Common declarations also
+include the internal relationship methods and read-only definition accessors.
 
-A tool is a name, a description, a schema, and a function. The function also
-needs access to its owner, so it can reach existing services without adding
-globals when it needs a diagnostic:
+```csharp
+public sealed partial class Tool
+{
+    internal Agent? parent;
+    internal bool destroyed;
+    private readonly ToolKind kind;
+    private readonly string name;
+    private readonly string description;
+    private readonly JsonElement schema;
 
-```go
-// ToolContext is implemented by the Agent dispatching this call.
-type ToolContext interface {
-    // Engine exposes its parent Agent and the existing ownership chain.
-    Engine() Engine
-}
-
-// ToolFunc performs one blocking operation for its actual owner.
-type ToolFunc func(owner ToolContext, args json.RawMessage) (string, error)
-
-// Tool joins a model-facing declaration to its implementation.
-type Tool struct {
-    Name        string          // Name is the identifier declared and dispatched.
-    Description string          // Description tells the model when to use the tool.
-    Schema      json.RawMessage // Schema describes the accepted argument object.
-    Run         ToolFunc        // Run returns content or a recoverable tool failure.
+    public partial Tool(Agent parent, ToolKind kind);
+    public partial Agent Parent();
+    public partial JsonObject Declaration(Vendor vendor);
+    public partial Task<ToolResultPart> ExecuteAsync(
+        ToolCallPart call, CancellationToken cancellation = default);
+    public partial void Destroy();
 }
 ```
 
-Keep these shared values and interfaces in `internal/common`; the six function
-bodies belong in `internal/tools`. The composition root installs definitions
-for each Agent. Visibility is per-Agent, and declaration and dispatch use that
-same set. An ordered slice is sufficient for six tools; a mutable global
-registry would make one Agent's configuration change another's capabilities.
-The functions receive the actual Agent through the narrow interface above,
-not copied sibling services or an invented parent object. No tool runtime or
-registration framework is needed for this synchronous chapter.
+The matching bodies live in `Tools/`. Agent's declarations include `Tools()`,
+`InstallTools()`, and `DispatchAsync()`. `InstallTools` constructs the six
+children; their constructors register through Agent's complete two-way add
+method. An ordered list is sufficient. There is no mutable global registry,
+service interface, or delegate field linking these partial declarations to their
+bodies. The C# compiler does that linking.
 
-The registry answers two questions: `Declarations()` for the renderer, and
-`Dispatch(name, args)` for the loop. That is the entire surface. The loop
-itself:
+Declaration is a projection, not another authoritative schema. Anthropic uses
+`input_schema`, OpenAI uses `function.parameters`, and Gemini uses
+`functionDeclarations[].parameters`. Build a fresh tree for each request.
+Recursively project Gemini's schema vocabulary, including nested `properties`
+and `items`; never mutate the stored JSON Schema or assume copying it verbatim
+will satisfy every provider. Test unsupported-key removal and repeat rendering
+for another vendor to catch accidental mutation.
+
+The loop itself:
 
 1. Parse the reply into parts, dispatching on block type. This is where
    Chapter 1's deferred type filter finally bites: an implementation that only
@@ -174,6 +216,14 @@ in the protocol's `assistant` field. The student's first loop concatenated
 “I'll check” with the eventual answer; the original grader scored 55/100 until
 that interface mistake was corrected. Preserving the whole conversation and
 returning one final answer are separate responsibilities.
+
+Ask every model for a brief visible explanation before a tool batch. Some
+selected models require that policy to be enforced: this solution exposes the
+explicit boolean `LLM_REQUIRE_TOOL_EXPLANATION` (default false) in Configuration,
+not a guess based on vendor name. When enabled and a response has only calls,
+return one explanatory error result per call without executing any of them.
+The next model round can explain and retry. The same sixteen-round bound applies.
+Test both that no effect occurred and that the retry receives a useful error.
 
 Six things about that loop are each a real bug students hit, so each gets
 said plainly.
@@ -209,38 +259,13 @@ right. The `toolerror` points depend on this distinction being drawn.
 
 The loop needs a round bound, and the bound is not a timeout. Without one, a
 model that keeps asking, or a fake that repeats its last reply, loops
-forever. The reference solution stops at sixteen rounds, and sixteen is
-plenty. Nothing is interrupted, nothing runs concurrently, no context
+forever. This C# solution stops at sixteen rounds. Nothing is interrupted, nothing runs concurrently, no context
 deadline is involved. A student who reaches for cancellation here has
 learned the wrong lesson one chapter early.
 
 Tool calls run one at a time, on purpose. Ordering is observable to the
 model, and a shell command that changes the working tree changes what the
 next tool sees. Run them in the order the model asked.
-
-For a model whose policy requires explanation before tools, enforce that
-policy at this dispatch boundary as well as stating it in the model's
-instructions. The same response must contain nonblank ordinary assistant
-text before its first tool call, explaining what will run and why. Earlier
-conversation, tool output, hidden thinking and a readable reasoning summary
-are not that explanation. One explanation may cover a coherent batch; text
-after the first call is too late. The runtime checks presence and order, not
-the quality of the explanation.
-
-Do not mistake signed ordinary text for hidden thinking. The Edition 3
-student's inherited Gemini parser did, producing blank answers and false
-explanation refusals. Keep that text visible and portable. Bind each signature
-to its exact text part and source vendor, API surface and model, and replay it
-only to that same source. Genuine hidden thinking remains hidden.
-
-Reject the whole unexplained batch before invoking any handler. Preserve the
-assistant response and return a matching error result for every call, saying
-that nothing ran and asking for explanation before retrying. The retry uses
-the existing round budget, not an unbounded repair loop. This is a selected
-model policy, not a reason to change every model's behavior. Test the refused
-batch with a handler that would leave an observable effect, then test an
-explained retry; the first attempt must leave no effect. Chapter 6 carries
-this check into real stream arrival order.
 
 An unexpected call still needs an error result when the registry is empty.
 The student initially returned early in that case, silently leaving the call
@@ -323,20 +348,29 @@ while a missing field or `null` is not one.
 
 | tool | required fields | optional fields and behavior |
 | --- | --- | --- |
-| `run_command` | `command` string | fresh blocking shell; report stdout, stderr and exit code separately |
+| `run_command` | `command` string | fresh blocking shell; report stdout, stderr and exit code separately; optional `cwd` string applies only to that call |
 | `read_file` | `path` string | `start_line`, `end_line` integers: one-based inclusive range; `max_bytes` integer caps returned text and reports truncation |
 | `edit_file` | `path`, `old_text`, `new_text` strings | declare the mismatch/ambiguity policy discussed in §3.5 |
 | `search_files` | `path`, `pattern` strings | `context_lines` integer, default 0; matching lines use `path:line:text`, context lines `path-line-text`; merge overlapping or adjacent windows and separate groups with `--` |
 | `write_file` | `path`, `content` strings | `overwrite` boolean permits replacement; `append` boolean preserves existing bytes and adds content without requiring overwrite |
 | `list_directory` | `path` string | list the immediate entries, rather than recursively filling the response |
 
-Document small usable defaults where the exercise leaves a choice. The accepted
-student treats omitted/zero start as line 1, omitted/zero end as EOF, and
+Document small usable defaults where the exercise leaves a choice. This solution treats omitted/zero start as line 1, omitted/zero end as EOF, and
 omitted/zero `max_bytes` as 32,768. It selects the line range before applying
 the output cap. The cap's value remains an implementation choice.
-Its search uses Go regular expressions; its directory listing sorts names and
+Its search uses .NET regular expressions; its directory listing sorts names and
 marks directories with `/`. A write can create a path beneath a new directory.
 Keep these choices visible in the tool descriptions so the model can use them.
+`edit_file` takes the conservative policy here: reject an empty anchor, zero
+matches, or multiple matches (including overlapping sites), with no write.
+Name the path and tell the model to read and choose an exact unique anchor.
+Refusal is not a miniature automatic patcher.
+
+Some Gemini replies attach opaque signatures to visible text as well as calls.
+Keep each signature attached to its original part, serialize it with provenance,
+and replay it only for that exact vendor and model. Normalize string, numeric,
+and missing call IDs once on capture. Reject duplicate IDs within a response
+before dispatch; a later response may legitimately reuse the same ID.
 
 The shell starts fresh for each call; a `cd` in one call does not silently
 change the next call's directory. Provider credentials belong to the HTTP
@@ -431,14 +465,6 @@ different question from “is this edit location unique?” The corrected tool
 refuses both sites, reports the count and leaves the file unchanged. This
 demonstrates the student's chosen policy, not a requirement to replace every
 other coherent policy with it.
-
-For the student's strict exact-unique policy, make each refusal useful to the
-model. On zero matches, report zero matches and suggest rereading the file.
-On multiple matches, report the actual match count, including overlapping
-sites, and a bounded list of their one-based starting line numbers so the model
-can choose a more specific anchor. Say when the location list is truncated;
-the count still covers every match. Both refusals identify the target file and
-leave its bytes unchanged, without choosing a match or relaxing exact comparison.
 
 The question is open in a way a riddle is not, and the proof is in
 CodeRhapsody's own code. Both answers ship. `edit_file` refuses on an
@@ -570,15 +596,6 @@ of command arguments, prompts, transcripts and files in the exercise. Pass
 only the selected key to the intended process; §3.3 keeps it out of the shell
 that process launches.
 
-When exercising Gemini signatures bound to an exact producer, the runtime also
-needs a known resolved target identity. Set `LLM_RESOLVED_MODEL` from an
-observed returned model on the same vendor, API surface and route, not from
-the routing alias in `LLM_MODEL`. An unknown identity correctly suppresses
-private extras. The Edition 3 exercise omitted this field in both the launch
-authorization and the harness; correcting that setup required no source
-change. A missing launch identity is not evidence that the parser lost a
-signature.
-
 The first edition recorded September 2026 coding defaults of `claude-opus-5`,
 `gemini-3.8-flash`, and `gpt-5.6-sol`, each verified against its vendor's
 models endpoint on its writing date. This is a historical list, not the
@@ -652,8 +669,10 @@ scripts.
 
 ### Commands your agent must run
 
-The `go` toolchain is the one binary every student is guaranteed to have,
-since the course requires it, so the fixtures are built on it.
+The existing language-independent grader uses small Go programs as shell
+fixtures. Keep the already-installed Go toolchain on the grader process's PATH,
+with module downloads disabled in offline runs. These are fixture programs,
+not a requirement to write the solution in Go. The C# solution needs .NET 10.
 
 | scenario | command |
 |---|---|
@@ -707,27 +726,12 @@ rest, because this is the first chapter that could plausibly break Chapter
 2's work, and folding it would hide the one failure a student is most likely
 to cause and least likely to notice.
 
-Build the CLI package, not the library at your module root. With the inherited
-`cmd/ch01` layout, run this from the student module (substitute your actual CLI
-package if it lives elsewhere):
+From the repository root, run:
 
 ```bash
-go build -o /tmp/ch3agent ./cmd/ch01
+dotnet publish solutions/edition-3/main/Cli/Ch03.csproj -c Release -o /your/owned/ch03-build
+go run ./cmd/grade-edition2 -ch 3 -json /your/owned/ch03-build/ch03
 ```
-
-Then, from the course repository root, run both graders against that same
-executable:
-
-```bash
-go run ./cmd/grade-edition2 -ch 3 -json /tmp/ch3agent
-go run ./cmd/grade-edition3 -ch 1 -json /tmp/ch3agent
-```
-
-Both must report `passed: true` and exit 0. The Chapter 3 grader includes
-Chapter 2's checks; the Edition 3 Chapter 1 run preserves the transport and
-lifetime checks. A score alone does not establish the selected-model
-explanation policy: its rejection-before-effects, explained retry and
-unaffected nonselected path still need public-API tests and source review.
 
 The revised grader keeps all ten checks and their weights. It uses the
 corrected Chapter 2 checks and adds observations for search context and append,
@@ -783,18 +787,15 @@ commands on your machine. The first time it fixes a typo you pointed at
 vaguely, the abstraction collapses into something physical.
 
 Start the serve-only fake from §3.7 and use its printed environment with your
-own binary. This costs nothing and needs no provider key. If you kept the
-`cmd/ch01` layout, build the CLI from your module directory as in §3.7:
+own binary. This costs nothing and needs no provider key. From your module
+directory, build once:
 
 ```
-go build -o /tmp/ch3agent ./cmd/ch01
+dotnet publish Cli/Ch03.csproj -c Release -o /your/owned/ch03-build
 ```
 
-Then launch `/tmp/ch3agent chat` from the disposable project, with `CH02_LOG`
-pointing outside it. Repeat for each dialect using its printed environment.
-Keep prompts, logs, harness files, and the exercise's `HOME` and temporary
-directories outside the tool workspace, so a search cannot answer a memory
-test from its fixtures.
+Then launch `/your/owned/ch03-build/ch03 chat` from the disposable project, with `CH02_LOG`
+pointing to a log there. Repeat for each dialect using its printed environment.
 
 Watch the trace line the fake prints on every request. It reports the request
 size, whether tools were declared, and how many tool results the request is
@@ -822,16 +823,15 @@ endpoint, discovered model and selected key before leaving the fake. From the
 scratch project, run your binary:
 
 ```
-LLM_VENDOR=anthropic CH02_LOG=../anthropic-session.jsonl /tmp/ch3agent chat
+LLM_VENDOR=anthropic CH02_LOG=session.jsonl /your/owned/ch03-build/ch03 chat
 ```
 
 Repeat in separate scratch projects for Gemini and OpenAI, setting each one's
 model, endpoint and key. Their logs and files should remain separate.
 
 First give it a codename to remember, ask it to do work with the tools, then
-ask for the codename back. Check that third turn's actual answer, not the last
-available text from a failed run. Recall shows the conversation survived the
-work; the log and actual file changes establish which tools ran. Do not accept
+ask for the codename back. Recall shows the conversation survived the work;
+the log and actual file changes establish which tools ran. Do not accept
 “I fixed it” as evidence of a changed file.
 
 Then go off script. Things worth trying, roughly in order of
@@ -847,7 +847,7 @@ how much they teach:
   is the behaviour §3.2 argued about, and reading about it is not the same
   as seeing it.
 
-### The student's repair
+### Historical Edition 2 student repair
 
 On October 9, the student drove its own `chat` binary in three disposable Go
 projects. Each contained a `Greeting` function returning `"helo"` and a test
@@ -861,7 +861,7 @@ read the file, made a targeted edit and reran the test. The inspected diff was:
 
 The failed test came back as ordinary command data with exit code 1; the
 second run had exit code 0. Each model also recalled its codename and received
-a real missing-file tool error. The [retained live record](../../solutions/evidence/ch03/live.txt)
+a real missing-file tool error. The [retained live record](../solutions/evidence/ch03/live.txt)
 contains the tool calls, results and inspected diffs:
 
 | model used in that run | recalled codename | total input / output tokens |
@@ -885,16 +885,11 @@ failure path. One clearer follow-up for each produced an actual `read_file`
 error. The original turns remain in the logs. A model declining to try and a
 tool returning a failure teach different things.
 
-Commit the moment it passes, and tag it. You are about to spend Chapter 4
-taking `run_command` apart, and a tag is the difference between an experiment
-and a demolition:
-
-Commit only the intended paths and use a fresh tag. Record the actual grader
-result and any independently accepted exception, rather than putting a score
-of 100 in the commit message when the grader failed.
-
-Every chapter from here ends the same way. The tag is how you get back to
-working code after a chapter that does not go well, and there will be one.
+Preserve a source-only runnable chapter endpoint before changing `run_command`
+in Chapter 4. Record actual test and grader outcomes and any integration limits.
+A Git commit or tag is useful only when the repository owner authorizes it;
+passing a grade does not grant that authority. This run preserves `ch03/`
+without committing or installing anything.
 
 ### Then use it for real work
 
@@ -906,19 +901,18 @@ repository it invented a project codename and saved it to a file in the root.
 The demo worked perfectly. It also left something behind, which a demo has no
 business doing.
 
-Build your own binary from your implementation directory and put it somewhere
-on your path instead:
+With the owner's authorization, build your own binary in a dedicated directory.
+You can invoke it explicitly without changing PATH or installing the application:
 
 ```
-mkdir -p "$HOME/bin"
-go build -o "$HOME/bin/ch3agent" ./cmd/ch01
+dotnet publish Cli/Ch03.csproj -c Release -o /your/owned/ch03-build
 ```
 
 Then go to a project you care about and run it there:
 
 ```
 cd ~/some/project
-~/bin/ch3agent chat
+/your/owned/ch03-build/ch03 chat
 ```
 
 Set the discovered model, endpoint and credential beforehand using the same

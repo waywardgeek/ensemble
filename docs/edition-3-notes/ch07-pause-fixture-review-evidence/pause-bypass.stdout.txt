@@ -1,4 +1,0 @@
-=== RUN   TestOwnedPauseDiagnostic
-PAUSE_REPORT {"title":"Repaired pause evaluator; review only","checks":[{"id":"pause-holds-tools","title":"pause gate holds tool dispatch","points":20,"earned":0,"passed":false,"details":["pause test error: pause allowed 3 tool starts before other-tab unpause"]}],"score":0,"max_score":20,"passed":false}
---- FAIL: TestOwnedPauseDiagnostic (0.24s)
-FAIL

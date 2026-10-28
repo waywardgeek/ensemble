@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble-edition-3-student/.ch10-local/process_control.py", line 76, in <module>
-    cli_dir=work/'cli';cli(cli_dir,'{"kind":"prompt","text":"first CLI"}\n');path=cli_dir/'save.json';a=archive(path);before=a['asof']
-                                                                                                        ~~~~~~~^^^^^^
-  File "/Users/bill/projects/ensemble-edition-3-student/.ch10-local/process_control.py", line 20, in archive
-    s=json.loads(p.read_text());assert set(s)=={'config','context','asof','log'};assert 'offline-fixture-not-a-secret' not in p.read_text();return s
-                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError

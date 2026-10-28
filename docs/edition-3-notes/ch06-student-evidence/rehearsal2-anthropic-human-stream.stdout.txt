@@ -1,3 +1,0 @@
-> I will inspect config.json now. 
-I will write the requested file. 
-Done without hint

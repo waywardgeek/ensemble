@@ -1,8 +1,0 @@
---- FAIL: TestReplayMarkedWithoutMutatingLiveOrHistory (0.00s)
-    hub_test.go:262: subscription part_final not explicitly replay-marked
-    hub_test.go:262: subscription part_delta not explicitly replay-marked
-    hub_test.go:262: subscription state_changed not explicitly replay-marked
-FAIL
-FAIL	ensemble-gui	0.007s
-?   	ensemble-gui/cmd	[no test files]
-FAIL

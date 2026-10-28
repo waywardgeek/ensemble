@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch06-student-evidence/shape_fixture.py", line 26, in <module>
-    summary=json.loads(p.stdout);assert p.returncode==0 and state['stream']!=plain and summary['reply'].strip()=='shape one two' and summary['num_part_final']==1
-                                                                                       ~~~~~~~^^^^^^^^^
-KeyError: 'reply'

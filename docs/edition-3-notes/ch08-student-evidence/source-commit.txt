@@ -1,7 +1,0 @@
-commit f97a6850468a9cdc6875507f2821ccf6c397654d
-Author:     Bill Cox <waywardgeek@gmail.com>
-AuthorDate: Sun Oct 18 06:53:46 2026 -0700
-Commit:     Bill Cox <waywardgeek@gmail.com>
-CommitDate: Sun Oct 18 06:53:46 2026 -0700
-
-    ch08: transactional GUI settings and captured per-turn tool budgets

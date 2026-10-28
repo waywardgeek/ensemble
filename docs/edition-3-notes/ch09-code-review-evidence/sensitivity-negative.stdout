@@ -1,4 +1,0 @@
-=== RUN   TestChapter9CapabilityLifecycle
-    chapter9_skills_test.go:160: pending unload removed capability
---- FAIL: TestChapter9CapabilityLifecycle (0.00s)
-FAIL

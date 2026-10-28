@@ -1,7 +1,0 @@
---- FAIL: TestChapter10SnapshotReplayTailAndTrim (0.03s)
-    chapter10_test.go:113: different
-        {"turn":"input_pending","dialogue":[{"seq":4,"actor":"human","parts":[{"type":"text","text":"tail"}]},{"seq":5,"actor":"agent","parts":[{"display_id":53,"type":"text","text":"tail answer"}]}],"ephemera":[],"usage":{"input":3,"cache_write":4,"cache_read":5,"output":6}}
-        {"turn":"input_pending","dialogue":[{"seq":1,"actor":"human","parts":[{"type":"text","text":"first"}]},{"seq":2,"actor":"agent","parts":[{"display_id":52,"type":"text","text":"answer"}]},{"seq":4,"actor":"human","parts":[{"type":"text","text":"tail"}]},{"seq":5,"actor":"agent","parts":[{"display_id":53,"type":"text","text":"tail answer"}]}],"ephemera":[{"type":"text","text":"Message addressing: {\"sender\":\"source\",\"recipient\":\"target\",\"request_id\":\"request\",\"turn_id\":\"turn\"}"},{"type":"text","text":"pending"}],"usage":{"input":6,"cache_write":8,"cache_read":10,"output":12}}
-FAIL
-FAIL	ensemble	0.039s
-FAIL

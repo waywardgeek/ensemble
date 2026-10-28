@@ -1,7 +1,0 @@
-{
-  "minimum_free_bytes_in_receipts": 951214080,
-  "sequential_graders_and_test_processes": true,
-  "no_manual_cache_or_tmp_cleanup": true,
-  "disk_increase_at_restart_cause_unknown": true,
-  "recorder_count": 29
-}

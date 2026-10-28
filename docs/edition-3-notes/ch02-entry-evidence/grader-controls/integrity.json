@@ -1,7 +1,0 @@
-{
-  "historical_source_unchanged": true,
-  "scratch_only_timeout_and_unused_import_removed": true,
-  "scratch_source_unchanged_during_runs": true,
-  "same_positive_binary_for_both_graders": true,
-  "historical_head": "5351583208988f8370937cd0494727645efa8b46"
-}

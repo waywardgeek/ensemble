@@ -1,2 +1,0 @@
---- docs/edition-3-notes/ch08-text-review.md, lines 37-37 ---
-37: - The initial independent review's blocker was one-tab TTS cancellation after another tab changed the global setting. The r1 review closes that specific defect and related coverage; the earlier failure remains part of the record.

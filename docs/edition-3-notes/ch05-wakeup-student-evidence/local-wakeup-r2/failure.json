@@ -1,5 +1,0 @@
-{
-  "error": "later wait admitted",
-  "traceback": "Traceback (most recent call last):\n  File \"/tmp/cadence-ch05-wakeup-evidence/local-wakeup.py\", line 115, in <module>\n    cli();workflow();(OUT/'summary.json').write_text(json.dumps({'source_commit':identity['source_commit'],'binaries':identity['binaries'],'passed':True,'scenarios':results,'paid_requests':0},indent=2)+'\\n')\n    ~~~^^\n  File \"/tmp/cadence-ch05-wakeup-evidence/local-wakeup.py\", line 82, in cli\n    wait(lambda:sum(x.get('kind')=='state_changed' and x.get('to')=='tool_wait' for x in rows(p.stdout))>=3,'later wait admitted');t2=time.monotonic();p.send({'kind':'hint','text':'CLI_LATER_WAKE'})\n    ~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"/tmp/cadence-ch05-wakeup-evidence/local-wakeup.py\", line 20, in wait\n    raise AssertionError(label)\nAssertionError: later wait admitted\n",
-  "completed": []
-}

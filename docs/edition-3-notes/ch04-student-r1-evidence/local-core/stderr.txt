@@ -1,6 +1,0 @@
-Conversation ready. Enter a message; EOF exits.
-input=1 output=1 cache_write=0 cache_read=0
-input=1 output=1 cache_write=0 cache_read=0
-input=1 output=1 cache_write=0 cache_read=0
-input=1 output=1 cache_write=0 cache_read=0
-cumulative usage: input=4 output=4 cache_write=0 cache_read=0

@@ -1,8 +1,0 @@
-=== RUN   TestPublicPendingRearm
-    public_api_test.go:42: second=[tool_limits consumed by this tool_limits call: ai_callback_delay 3s, ai_callback_pattern none, max_output_bytes 1024]
-        tool_limits set: the next call, whichever tool that is, will report the consumption.; following read bytes=1080
-    public_api_test.go:44: old 1024-byte pending cap survived consumption by tool_limits; following read=1080 bytes, want default 16KiB payload
---- FAIL: TestPublicPendingRearm (0.00s)
-FAIL
-FAIL	independent-review	0.007s
-FAIL

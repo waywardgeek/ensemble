@@ -1,6 +1,0 @@
-cwd=/Users/bill/projects/ensemble-edition-3-student/gui
-go test ./...
-?   	ensemble-gui	[no test files]
-test exit=0
-go build ./...
-build exit=0

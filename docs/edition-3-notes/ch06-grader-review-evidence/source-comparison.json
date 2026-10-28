@@ -1,7 +1,0 @@
-{
-  "old_source_sha256": "a7a9e4b4e499b15a4887e9c10be4bae1ee1241d76b5ce301befdb0189113be2c",
-  "legacy_build_dispatch_output_exit_suffix_exactly_equal_after_removing_ch6_branch": true,
-  "production_lines_before": 111,
-  "production_lines_after": 126,
-  "diff_numstat": "27\t12\tcmd/grade-edition3/main.go\n71\t1\tcmd/grade-edition3/main_test.go\n"
-}

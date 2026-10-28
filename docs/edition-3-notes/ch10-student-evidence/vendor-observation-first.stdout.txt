@@ -1,2 +1,0 @@
-{"assistant":"wire observation reply"}
-{"usage":{"input":2,"cache_write":0,"cache_read":0,"output":1}}

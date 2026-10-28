@@ -1,3 +1,0 @@
-COMMAND ['go', 'version']
-CWD /var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/e3-ch01-rereview1.bgnxbjz9
-go version go1.25.4 darwin/arm64

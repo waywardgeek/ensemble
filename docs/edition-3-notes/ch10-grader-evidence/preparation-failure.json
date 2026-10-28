@@ -1,4 +1,0 @@
-{
-  "failure": "Initial exact-count assertion expected one *ch != 9; actual two intended guards. Assertion before source write. Outer shell set -e returned1; no tests/builds ran.",
-  "source_unchanged_verified": true
-}

@@ -1,2 +1,0 @@
-ok  	ensemble-gui	0.189s
-?   	ensemble-gui/cmd	[no test files]

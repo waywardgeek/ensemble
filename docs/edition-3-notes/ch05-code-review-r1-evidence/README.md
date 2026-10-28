@@ -1,9 +1,0 @@
-# Chapter 5 correction-round-1 independent review evidence
-
-Read `../ch05-code-review-r1.md` for scope and verdict. All 23 child command records are retained as `.meta.json`, `.stdout`, and `.stderr`, including six module-setup failures. `result-index.json` lists every recorded child exit and duration. `manifest-helper-failed.raw.txt` retains the separate early schema-helper failure. None of those setup failures is behavioral sensitivity credit.
-
-The valid external probe cycle has suffix `-r2` (a reviewer harness retry, **not** student code correction round 2): corrected public probes pass; original compile succeeds; original R1/R2/R3 subsets fail behaviorally; restored public probes pass. `*-resolution.stdout` independently records each actual Go module source directory. The original R3 run includes one favorable ordering and three blocked orderings. No negative is counted from a compiler/setup failure.
-
-Placeholders: `<MAIN>` is the main repository; `<STUDENT>` the pinned corrected checkout; `<REVIEW_SCRATCH>` the reviewer's private extracted trees and external probes; `<STUDENT_R1_LOCAL>` the student's correction evidence root; `<ORIGINAL_LOCAL>` its original Chapter 5 evidence root; `<PRE_AMENDMENT_CONTRACT>` the pinned saved chapter; `<USER>`, `<SYSTEM_TEMP>` and `<REVIEW_LOGS>` remove machine-specific roots. These are portable text records, not executable fixtures.
-
-No provider histories, credentials, binaries, private probe source, production source copies, or repair fixtures are exported. The private source/probe/launcher hashes and original/resolved identities are retained. Recorded process IDs and durations are actual local observations, not portable timing requirements. Only the pre-amendment R1–R3 closure is adjudicated; the authorized job-wakeup amendment remains unevaluated.

@@ -1,4 +1,0 @@
-go version go1.25.4 darwin/arm64
-v24.20.0
-Python 3.13.14
-Darwin arm64

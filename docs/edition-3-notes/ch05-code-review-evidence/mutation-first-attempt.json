@@ -1,7 +1,0 @@
-{
-  "credited": false,
-  "reason": "setup anchor used turn.batches; actual source uses t.batches; assertion failed before mutation, shell continued and mutant-labelled test passed on baseline",
-  "baseline_record": "budget-baseline",
-  "invalid_mutant_record": "budget-mutant",
-  "restored_record": "budget-restored"
-}

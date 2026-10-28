@@ -1,7 +1,0 @@
-{
-  "reason": "private fixture omitted required Config.System; constructor validation failed before intended probes",
-  "old_probe_sha256": "4d989c1af7c7f99417186af3043fddfef3c015674e7bba1415c93154d224c646",
-  "new_probe_sha256": "7581a09f68f2a92ae487261c8be93a2c2d18b31252bed988345b27d8416b247c",
-  "production_edits": false,
-  "earlier_attempts_uncredited": true
-}

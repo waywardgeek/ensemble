@@ -1,8 +1,0 @@
-{
-  "files_scanned": 144,
-  "credential_fields_checked": 3,
-  "credential_findings": [],
-  "unredacted_opaque_findings": [],
-  "scope": "own evidence/report, all staged source files, and own temporary binaries/live artifacts only",
-  "no_provider_calls": true
-}

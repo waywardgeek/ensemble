@@ -1,3 +1,0 @@
-A premature JSON parse of chapter1-r4-report.json failed while its legitimate lifetime job was still writing; no finished result was inferred. Final report waits for completion.
-Marker patch anchors twice refused uniqueness assertions without source changes; tests stayed red. Full successful marker receipt is replay-marker-snapshot-green.log / replay-marker-confirmed-green.log, not the earlier misleading green filenames.
-Native proposal is syntax checked ONLY and has never been launched.

@@ -1,7 +1,0 @@
-{
-  "corrected_dispatch_sha256": "38540d80927f50b4221bb6beeadd618ccd0703dc8432225ab1c1d7a45ab2055b",
-  "reverted_dispatch_sha256": "965474418d9a0762a24fe77b0d78d448f0f6200f2eb9ef4efa507d553cfff287",
-  "regression_test_sha256": "c7426f678afe07cecf696441983b1d3232809103bff01043c52191dcea250a8f",
-  "public_probe_sha256": "da51a9680c25f731e3a45f855958df80d8ab2119903579146821dde8fcd6d24a",
-  "reversion_is_exact_initial_candidate_file": true
-}

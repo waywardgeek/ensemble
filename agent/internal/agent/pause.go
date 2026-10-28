@@ -4,7 +4,7 @@ package agent
 // it; disconnecting or another tab's local typing state cannot retain a veto.
 func (a *agent) Pause() {
 	a.pauseMu.Lock()
-	defer a.pauseMu.Unlock()
+	defer func() { a.pauseMu.Unlock(); a.box.Post(goalRefresh{}) }()
 	if a.resume == nil {
 		a.resume = make(chan struct{})
 	}
@@ -13,7 +13,7 @@ func (a *agent) Pause() {
 // Unpause wakes the current boundary waiter without cancelling running jobs.
 func (a *agent) Unpause() {
 	a.pauseMu.Lock()
-	defer a.pauseMu.Unlock()
+	defer func() { a.pauseMu.Unlock(); a.box.Post(goalRefresh{}) }()
 	if a.resume != nil {
 		close(a.resume)
 		a.resume = nil

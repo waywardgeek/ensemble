@@ -1,8 +1,0 @@
-{
-  "student_commit": "74eb0265bd8bdbc7857d579704300b317b2365da",
-  "source_archive_sha256": "bff37519226b7aca26b273128cdc4e922e0c458c35234f751139ffd7178b3ad5",
-  "submitted_cli_sha256": "1f6494edd754535ff5d1f2ca0f2663ccfa4ea236a5655dd8894b1940dc70f7e4",
-  "authoritative_head": "5351583208988f8370937cd0494727645efa8b46",
-  "independent_build_sha256": "1f6494edd754535ff5d1f2ca0f2663ccfa4ea236a5655dd8894b1940dc70f7e4",
-  "independent_build_matches_submitted": true
-}

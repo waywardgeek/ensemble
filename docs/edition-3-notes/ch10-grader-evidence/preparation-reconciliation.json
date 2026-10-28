@@ -1,4 +1,0 @@
-{
-  "cause": "Root incorrectly assumed *ch/switch/grade aliases. Actual committed adapter uses *chapter/if/gradeedition2. Neither failed assertion modified source. No repository drift or concurrent edit demonstrated. First failure description also guessed two occurrences; actual *ch occurrences zero.",
-  "corrected_scope": "Only two adapter files; exact committed baseline preserved."
-}

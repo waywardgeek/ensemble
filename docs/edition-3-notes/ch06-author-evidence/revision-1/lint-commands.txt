@@ -1,2 +1,0 @@
-GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off go run ./cmd/lintprose -v docs/edition-3-notes/ch06-author-evidence/revision-1/baseline/chapter-06.md
-GOTOOLCHAIN=local GOPROXY=off GOSUMDB=off go run ./cmd/lintprose -v docs/edition-3-notes/ch06-author-evidence/revision-1/final/chapter-06.md

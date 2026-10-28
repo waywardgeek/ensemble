@@ -32,11 +32,24 @@ func Chapter12(bin, core, gui, guiModel, consumer, workflow, exercise, streamMod
 	return grade.NewTitledReport("Edition 2, Chapter 12 — The Agent Sees Itself", append(checks, parity), ""), nil
 }
 
-func guiDebugChecks(bin, gui, model string) []grade.Check {
+// Chapter12Executable retains the six CLI assertions. It makes no GUI, native
+// browser, speech, Go topology or inherited-parity claim.
+func Chapter12Executable(bin string) grade.Report {
+	checks := guiDebugCriteria()
+	guiDebugClient(bin, "test-model", nil, "core", checks)
+	return grade.NewTitledReport("Edition 3 C#, Chapter 12 — CLI startup skills (excludes GUI and inherited Go checks)", checks, "")
+}
+
+func guiDebugCriteria() []grade.Check {
 	checks := grade.Ch13Checks(grade.Ch13Result{SkillLoadsOK: true, EphemeralInjectedOK: true, SnapshotUpdatesOK: true, TTSVisibilityOK: true, GUIInteractionOK: true, SkillUnloadOK: true})[:6]
 	checks[1].Title = "Explicit snapshots without unsolicited browser context"
 	checks[2].Title = "Requested snapshots reflect interaction"
 	checks[3].Title = "Explicit TTS queue result preserves text and status"
+	return checks
+}
+
+func guiDebugChecks(bin, gui, model string) []grade.Check {
+	checks := guiDebugCriteria()
 	// The two commands must actually use their startup flags. A passing core
 	// constructor does not prove the independently built GUI passes those inputs.
 	guiDebugClient(bin, model, nil, "core", checks)

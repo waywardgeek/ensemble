@@ -1,5 +1,0 @@
-{
-  "file": "internal/agent/actor.go",
-  "before": "if t.batches >= t.batchLimit {",
-  "after": "limit := a.ToolBatchLimit()\n\tif limit == 0 { limit = common.DefaultToolBatchLimit }\n\tif t.batches >= limit {"
-}

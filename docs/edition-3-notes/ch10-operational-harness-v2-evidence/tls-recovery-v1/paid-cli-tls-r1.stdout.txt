@@ -1,1 +1,0 @@
-{"mode": "paid-cli", "status": "PASS", "failure": null, "cleanup_complete": true, "run_root": "/Users/bill/projects/ensemble-edition-3-student/.ch10-local/operational-tls-recovery-v1/runs/paid-cli-tls-r1", "duration_seconds": 5.660398832987994, "credential_opens": 1}

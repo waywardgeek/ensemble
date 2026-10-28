@@ -325,7 +325,7 @@ func (e *Ensemble) newAgent(parent Agent, cfg Config, specs ...AgentSpec) (Agent
 		}
 		a.AttachSkills(sr)
 		// Lifecycle tools exist even when the application omitted builtin file tools.
-		for _, definition := range tools.SkillTools() {
+		for _, definition := range append(tools.SkillTools(), tools.GoalTools()...) {
 			if err := a.RegisterTool(definition.ToolDeclaration, definition.Run); err != nil {
 				return nil, err
 			}

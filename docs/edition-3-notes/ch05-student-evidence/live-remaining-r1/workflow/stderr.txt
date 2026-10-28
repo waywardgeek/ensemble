@@ -1,7 +1,0 @@
-input=182 output=263 cache_write=0 cache_read=0
-input=465 output=395 cache_write=0 cache_read=0
-input=199 output=67 cache_write=0 cache_read=0
-input=376 output=226 cache_write=0 cache_read=0
-input=616 output=146 cache_write=0 cache_read=0
-input=213 output=251 cache_write=0 cache_read=0
-input=534 output=77 cache_write=0 cache_read=0

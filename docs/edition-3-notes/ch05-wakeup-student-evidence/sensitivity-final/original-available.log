@@ -1,6 +1,0 @@
-=== RUN   TestChapter5WakeupTimerAndAvailableOutput
-    chapter5_wakeup_test.go:332: WAKEUP later available bytes waited for callback:  context deadline exceeded
---- FAIL: TestChapter5WakeupTimerAndAvailableOutput (0.30s)
-FAIL
-FAIL	ensemble	0.313s
-FAIL

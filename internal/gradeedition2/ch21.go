@@ -3,7 +3,6 @@ package gradeedition2
 import (
 	"encoding/json"
 	"fmt"
-	"reflect"
 	"strings"
 
 	"github.com/waywardgeek/ensemble/internal/fakevendor"
@@ -14,6 +13,15 @@ import (
 // construction and the stronger interruption/slow-client lifetime obligations
 // also require the separately recorded source review; a reply cannot prove them.
 func Chapter21(bin, gui string) (grade.Report, error) {
+	return chapter21(bin, gui, false)
+}
+
+// Chapter21CLI preserves the seven checks with current executable contracts.
+func Chapter21CLI(bin, gui string) (grade.Report, error) {
+	return chapter21(bin, gui, true)
+}
+
+func chapter21(bin, gui string, current bool) (grade.Report, error) {
 	checks := grade.Ch26Checks(grade.Ch26Result{})
 	for i := range checks {
 		checks[i].Passed = true
@@ -26,24 +34,33 @@ func Chapter21(bin, gui string) (grade.Report, error) {
 	checks[3].Title = "Selected child progress wakes its change wait; command and submission complete"
 	checks[4].Title = "Actual CLI recursively constructs and completes a three-generation fleet"
 	checks[5].Title = "Live nested GUI tree, exact structured replay and truthful state"
-	fleetMessaging(bin, &checks[4])
-	fleetIdle(bin, &checks[6], &checks[6])
+	fleetMessagingWith(fleetDriver{bin: bin, current: current}, &checks[4])
+	fleetIdleWith(fleetDriver{bin: bin, current: current}, &checks[6], &checks[6])
 	guiBin, cleanup, err := grade.Build(gui)
 	if err != nil {
 		reuseFail(checks, err, 0, 1, 2, 3, 5, 6)
 	} else {
 		defer cleanup()
-		fleetRootChat(guiBin, &checks[6])
-		managementGUI(guiBin, checks)
+		fleetRootChatWith(guiBin, &checks[6], current)
+		managementGUIWith(guiBin, checks, current)
 	}
-	return grade.NewTitledReport("Edition 2, Chapter 21 — Managing the Swarm", checks, ""), nil
+	title := "Edition 2, Chapter 21 — Managing the Swarm"
+	if current {
+		title = "Edition 3, Chapter 21 — Managing the Swarm"
+	}
+	return grade.NewTitledReport(title, checks, ""), nil
 }
 
 // Tool results are matched to the actual call, including error status. Foreign
 // and missing IDs differ by necessity; normalize only those requested names.
 func managementResults(reqs []fakevendor.Recorded, checks []grade.Check) {
+	managementResultsWith(reqs, checks, false)
+}
+
+func managementResultsWith(reqs []fakevendor.Recorded, checks []grade.Check, current bool) {
 	status := fleetResult(&checks[0], reqs, "child-status", false)
-	if !strings.Contains(strings.ToLower(status), "activity") || !strings.Contains(strings.ToLower(status), "idle") {
+	terminalActivity := strings.Contains(strings.ToLower(status), "idle") || (current && strings.Contains(strings.ToLower(status), "stopped"))
+	if !strings.Contains(strings.ToLower(status), "activity") || !terminalActivity {
 		fail(&checks[0], "completed child status lacks idle activity: %s", status)
 	}
 	for _, name := range []string{"get_sub_agent_status", "shutdown_agent", "get_submission"} {
@@ -57,11 +74,12 @@ func managementResults(reqs []fakevendor.Recorded, checks []grade.Check) {
 	}
 	fleetResult(&checks[2], reqs, "child-status", false)
 	fleetResult(&checks[0], reqs, "child-invalid", true)
-	var rejected, completed map[string]any
-	if err := json.Unmarshal([]byte(fleetResult(&checks[0], reqs, "invalid-status", false)), &rejected); err != nil || rejected["agent_id"] != "worker23" || rejected["state"] != "running" || rejected["payload"] != nil {
+	rejected, err := managementStatus(fleetResult(&checks[0], reqs, "invalid-status", false), current)
+	if err != nil || rejected["agent_id"] != "worker23" || rejected["state"] != "running" || rejected["payload"] != nil {
 		fail(&checks[0], "rejected submission completed the child: %v (%v)", rejected, err)
 	}
-	if err := json.Unmarshal([]byte(status), &completed); err != nil || completed["state"] != "submitted" || !reflect.DeepEqual(completed["payload"], fleetJSON(fleetReviewPayload)) {
+	completed, err := managementStatus(status, current)
+	if err != nil || completed["state"] != "submitted" || !managementSubmitted(completed, "payload", current) {
 		fail(&checks[0], "accepted status lost structured result: %s (%v)", status, err)
 	}
 	managementPayload(&checks[2], fleetResult(&checks[2], reqs, "child-retrieve", false), "worker23")
@@ -74,17 +92,36 @@ func managementResults(reqs []fakevendor.Recorded, checks []grade.Check) {
 		fail(&checks[3], "held child command did not complete: %s", output)
 	}
 	joined := fleetResult(&checks[3], reqs, "join-worker", false)
-	var joinedRows []map[string]any
-	if err := json.Unmarshal([]byte(joined), &joinedRows); err != nil || len(joinedRows) != 1 || !reflect.DeepEqual(joinedRows[0]["payload"], fleetJSON(fleetReviewPayload)) {
+	if !managementJoinedPayload(joined, current) {
 		fail(&checks[3], "selected child submission missing: %s", joined)
 	}
 }
 
-func managementReply(body []byte, work string) *fakevendor.Reply {
+func managementJoinedPayload(text string, current bool) bool {
+	var rows []map[string]any
+	var err error
+	key := "payload"
+	if current {
+		rows, err = fleetStatuses(text, true, true)
+		key = "submission"
+	} else {
+		err = json.Unmarshal([]byte(text), &rows)
+	}
+	return err == nil && len(rows) == 1 && managementSubmitted(rows[0], key, current)
+}
+
+func managementReply(body []byte, work string, current bool) *fakevendor.Reply {
 	b := string(body)
-	// A restored owner explicitly reconstructs its task child before using the
-	// durable fallback. Registry restoration alone must not revive task children.
 	if strings.Contains(memoryConversation(body), "RESTORE_ROOT_23") {
+		// Current children remain registered on disk. Reading the saved answer
+		// needs no Agent construction, new task, or model request from the child.
+		if current {
+			if !fleetHas(body, "durable-retrieve") {
+				return fleetCall("durable-retrieve", "get_submission", map[string]any{"agent_id": "worker23"})
+			}
+			return &fakevendor.Reply{Text: "RESTORED_RESULT_23"}
+		}
+		// Preserve the historical route's explicit reconstruction scenario.
 		for _, p := range []sandboxProbe{
 			{"respawn-worker", "spawn_sub_agent", map[string]any{"agent_id": "worker23", "task": "REOPEN_TASK_23"}},
 			{"durable-retrieve", "get_submission", map[string]any{"agent_id": "worker23"}},

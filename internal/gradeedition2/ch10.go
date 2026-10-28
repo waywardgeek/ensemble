@@ -41,6 +41,13 @@ func Chapter10(bin, core, gui, guiModel, consumer, workflow, exercise, streamMod
 	return grade.NewTitledReport("Edition 2, Chapter 10 — Persistence", append(checks, parity), ""), nil
 }
 
+// Chapter10Executable preserves the six existing CLI persistence checks.
+// The C# GUI has a WebSocket/host lifetime rather than stdin/EOF; its restart
+// exercise is separate evidence, not silently counted as another CLI pass.
+func Chapter10Executable(bin string) grade.Report {
+	return grade.NewTitledReport("Edition 3 C#, Chapter 10 — CLI persistence (excludes GUI and inherited Go checks)", persistenceClient(bin, nil), "")
+}
+
 // Earlier CLI probes are independent conversations, even when their harness
 // reuses a working directory. Persistence makes that old fixture assumption
 // false. Give each no-argument parity process its own explicit save, retaining

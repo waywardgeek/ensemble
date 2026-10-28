@@ -172,3 +172,6 @@ a {
 #agent-tree button { text-align:left; margin: 3px 0; }
 #create-agent { display:grid; gap:6px; margin-top:1rem; }
 #create-agent input { width:100%; box-sizing:border-box; }
+
+/* Goal state is readable text; color is not its only signal. */
+#goal-status { font-size: 0.85em; color: inherit; }

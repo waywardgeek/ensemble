@@ -1,6 +1,0 @@
-{
-  "exception": "AttributeError(\"'list' object has no attribute 'items'\")",
-  "traceback": "Traceback (most recent call last):\n  File \"/Users/bill/projects/ensemble/docs/edition-3-notes/ch10-prompt-fixture-review-evidence/run-review.py\", line 76, in <module>\n    E.mkdir(parents=True,exist_ok=True);before=verify();write('verification-before.json',before);old=source_and_carry();assert shutil.disk_usage(R).free>=1024**3\n                                               ~~~~~~^^\n  File \"/Users/bill/projects/ensemble/docs/edition-3-notes/ch10-prompt-fixture-review-evidence/run-review.py\", line 22, in verify\n    for rel,want in C['tracked_files'].items():assert ident(S/rel)==want,rel;files[rel]=want\n                    ^^^^^^^^^^^^^^^^^^^^^^^^\nAttributeError: 'list' object has no attribute 'items'\n",
-  "no_retry_or_tuning": true,
-  "remaining_controls_not_run": true
-}

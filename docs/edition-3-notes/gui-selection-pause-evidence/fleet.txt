@@ -1,1 +1,0 @@
-{"browser":"pass","requests":10,"treeFrames":136,"selected":["main","peer","main","peer","peer/peer/peer","main"],"phases":["thinking","tool_call","idle","waiting"]}

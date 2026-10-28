@@ -1,5 +1,6 @@
 import { ArtifactScroll } from "./artifact-scroll.js";
 import { browserMCP } from "./mcp.js";
+import { renderGoalStatus } from "./goal-status.js";
 import { SpeechBuffer, speechText } from "./speech.js";
 
 // Each pane owns its artifacts through the same renderer. Renderers construct DOM nodes from text;
@@ -8,6 +9,7 @@ const input = document.querySelector("#input");
 const voice = document.querySelector("#voice");
 const state = document.querySelector("#state");
 const pauseState = document.querySelector("#pause-state");
+const goalStatus = document.querySelector("#goal-status");
 const speechStatus = document.querySelector("#speech-status");
 let socket,
   localPaused = false,
@@ -383,6 +385,7 @@ function connect() {
         editingContext.clear();
       }
       selectedAgent = message.key;
+      renderGoalStatus(goalStatus, null);
       document.querySelector("#conversation-title").textContent = message.key;
     }
     if (message.type === "agent_tree") {
@@ -399,6 +402,7 @@ function connect() {
       document.querySelector("#agent-status").textContent = `Deleted ${message.key}`;
       if (selectedAgent === message.key || selectedAgent.startsWith(message.key + "/")) selectAgent();
     }
+    if (message.type === "goal_status" && message.agent_key === selectedAgent) renderGoalStatus(goalStatus, message.goal);
     route(message);
     if (["current_settings", "settings_changed", "settings_update"].includes(message.type)) applySettings(message.settings, message.request_id);
     if (message.type === "settings_error") {
@@ -439,6 +443,7 @@ function connect() {
   };
   socket.onclose = () => {
     state.textContent = "disconnected — reconnecting";
+    renderGoalStatus(goalStatus, null, "Goal: disconnected");
     setTimeout(connect, 1000);
   };
 }

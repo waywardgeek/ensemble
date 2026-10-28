@@ -1,5 +1,0 @@
-{
-  "failed": "input pin script guessed notes/extra-ch10-student-local-report.txt, which does not exist",
-  "effect": "stopped before input manifest write; no evidence or source changes",
-  "recovery": "use exact seal report paths"
-}

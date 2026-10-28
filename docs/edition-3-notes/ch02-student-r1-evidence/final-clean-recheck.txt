@@ -1,4 +1,0 @@
-cwd=/Users/bill/projects/ensemble-edition-3-student
-89cc874b3c32e65ee43f44a72ad9ca48c9dd3323
-7c9452a578e718f3b86dc45b2ee574ea4027801a0c3685839ae68e27197feb08  -
-b9b29b73e0da79393dc8c499aaee1437e73cfcb260da57b1ee1fef7f4325624a  /Users/bill/projects/ensemble/docs/edition-3-notes/ch02-student-r1-evidence/student-cli

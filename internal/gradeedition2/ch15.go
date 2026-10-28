@@ -178,6 +178,19 @@ func invoiceCost(u fakevendor.Canonical, r [4]float64) float64 {
 // distinction between last response and session usage.
 func invoiceCounts(m map[string]any, scope string, u fakevendor.Canonical) bool {
 	prefix := ""
+	// C# publishes the same disjoint counts in its documented usage envelope.
+	if usage, ok := m["usage"].(map[string]any); ok {
+		m = usage
+		if scope == "total" {
+			m, _ = m["totals"].(map[string]any)
+		}
+		for key, want := range map[string]int{"input_tokens": u.Input, "cache_write_tokens": u.CacheWrite, "cache_read_tokens": u.CacheRead, "output_tokens": u.Output} {
+			if !invoiceNear(m[key], float64(want)) {
+				return false
+			}
+		}
+		return true
+	}
 	if scope == "total" {
 		if nested, ok := m["total"].(map[string]any); ok {
 			m = nested
@@ -239,8 +252,12 @@ func invoiceUsage(r *contextResult, id string, out invoiceOut, want []fakevendor
 		if !invoiceCounts(meter, "", u) || !invoiceCounts(meter, "total", total) {
 			r.fail(id, "response %d last/session meter buckets differ: %v", i+1, meter)
 		}
-		if priced && (meter["priced"] != true || !invoiceNear(meter["cost_usd"], invoiceCost(total, rates))) {
-			r.fail(id, "response %d cost %v priced=%v, want %.12f at supplied rates %v", i+1, meter["cost_usd"], meter["priced"], invoiceCost(total, rates), rates)
+		cost, priceKnown := meter["cost_usd"], meter["priced"] == true
+		if value, present := meter["total_cost_usd"]; present {
+			cost, priceKnown = value, value != nil
+		}
+		if priced && (!priceKnown || !invoiceNear(cost, invoiceCost(total, rates))) {
+			r.fail(id, "response %d cost %v priced=%v, want %.12f at supplied rates %v", i+1, cost, priceKnown, invoiceCost(total, rates), rates)
 		}
 	}
 }

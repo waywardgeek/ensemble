@@ -1,8 +1,0 @@
-{"Time":"2026-10-18T07:42:47.195987-07:00","Action":"start","Package":"ensemble-gui"}
-{"Time":"2026-10-18T07:42:47.203836-07:00","Action":"run","Package":"ensemble-gui","Test":"TestCorrectionR1RefusedProposalIsNotDispatch"}
-{"Time":"2026-10-18T07:42:47.203881-07:00","Action":"output","Package":"ensemble-gui","Test":"TestCorrectionR1RefusedProposalIsNotDispatch","Output":"=== RUN   TestCorrectionR1RefusedProposalIsNotDispatch\n"}
-{"Time":"2026-10-18T07:42:47.21566-07:00","Action":"output","Package":"ensemble-gui","Test":"TestCorrectionR1RefusedProposalIsNotDispatch","Output":"--- PASS: TestCorrectionR1RefusedProposalIsNotDispatch (0.01s)\n"}
-{"Time":"2026-10-18T07:42:47.215684-07:00","Action":"pass","Package":"ensemble-gui","Test":"TestCorrectionR1RefusedProposalIsNotDispatch","Elapsed":0.01}
-{"Time":"2026-10-18T07:42:47.215706-07:00","Action":"output","Package":"ensemble-gui","Output":"PASS\n"}
-{"Time":"2026-10-18T07:42:47.216213-07:00","Action":"output","Package":"ensemble-gui","Output":"ok  \tensemble-gui\t0.020s\n"}
-{"Time":"2026-10-18T07:42:47.216232-07:00","Action":"pass","Package":"ensemble-gui","Elapsed":0.02}

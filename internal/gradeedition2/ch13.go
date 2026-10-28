@@ -34,6 +34,12 @@ func Chapter13(bin, core, gui, guiModel, consumer, workflow, exercise, streamMod
 	return grade.NewTitledReport("Edition 2, Chapter 13 — The Channel Nobody Tested", append(checks, parity), ""), nil
 }
 
+// Chapter13Executable retains all nine speech assertions and their five real
+// launches. It does not claim inherited Go checks, listener restriction or sound.
+func Chapter13Executable(core string) grade.Report {
+	return grade.NewTitledReport("Edition 3 C#, Chapter 13 — executable speech (excludes inherited checks and acoustic proof)", speechChecks(core), "")
+}
+
 // Keep the original executable input/log vocabulary. Source and exact local
 // object names are not part of this contract; source-aware tests live separately.
 type speechEntry struct {

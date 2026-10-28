@@ -88,7 +88,7 @@ with Ensemble's public OAuth credential and with Codex's credential at its
 own endpoint. Both completed public requests reported zero cached tokens out
 of 4,998. Both completed Codex requests reported 4,864 cached tokens out of
 4,998, about 97.3%. A third request on each route failed with an overload
-error; those failures supplied no cache measurement. The [probe record](../../docs/codex-endpoint-probe.md)
+error; those failures supplied no cache measurement. The [probe record](../docs/codex-endpoint-probe.md)
 contains the receipts and reproduction details. This retest gave no evidence
 that the problem had been fixed.
 
@@ -167,7 +167,7 @@ The real tool loop made these requests on October 11:
 The last two requests reused about 97.2% and 98.1% of their input. The session
 finished normally in 7.844 seconds, and a separate execution verified the
 generated function. These are measured cache grants during tool use. The
-earlier misses remain part of the [implementation record](../../docs/edition-2-notes/codex-endpoint-chapter.md),
+earlier misses remain part of the [implementation record](../docs/edition-2-notes/codex-endpoint-chapter.md),
 including the source of the header requirement. This is a bounded successful
 run, not a promise of that hit rate on every request.
 

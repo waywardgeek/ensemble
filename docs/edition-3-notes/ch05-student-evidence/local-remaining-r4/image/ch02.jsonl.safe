@@ -1,5 +1,0 @@
-{"log_version":1}
-{"seq":1,"type":"message_received","time":"2026-10-17T05:59:33.596904Z","message":{"actor":"human","parts":[{"type":"text","text":"Describe the two regions as JSON with keys left and right and their color names. No extra prose."},{"type":"blob","mime":"image/png","ref":{"kind":1,"locator":"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/cadence-ch05-runtime-image-9xpu47wc/fixture.png"}}]}}
-{"seq":2,"type":"request_sent","time":"2026-10-17T05:59:33.596946Z","request":{"to":{"vendor":"gemini","model":"gemini-3.8-flash","surface":"generate_content"}}}
-{"seq":3,"type":"response_ended","time":"2026-10-17T05:59:33.604394Z","response":{"parts":[{"type":"text","text":"{\"left\":\"red\",\"right\":\"blue\"}"}],"usage":{"input":10,"cache_write":0,"cache_read":0,"output":10},"from":{"vendor":"gemini","model":"gemini-3.8-flash","surface":"generate_content"}}}
-{"seq":4,"type":"turn_ended","time":"2026-10-17T05:59:33.604427Z","error":{"message":"completed"}}

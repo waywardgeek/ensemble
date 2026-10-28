@@ -1,6 +1,0 @@
-MODULE gui
-?   	ensemble-gui	[no test files]
-MODULE examples/ch04-consumer
-?   	chapter4consumer	[no test files]
-MODULE examples/ch06
-ok  	chapter5workflow	1.036s

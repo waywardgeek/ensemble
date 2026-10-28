@@ -1,7 +1,0 @@
---- FAIL: TestAdd (0.00s)
-    add_test.go:5: Add(7,5)=2; want 12
-FAIL
-FAIL	repairdemo	0.004s
-FAIL
-
-exit_status=1

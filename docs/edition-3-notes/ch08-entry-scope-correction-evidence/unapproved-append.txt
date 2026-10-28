@@ -1,7 +1,0 @@
-
-
-## Chapter 8 finite entry audit — 2026-10-18
-
-The read-only entry audit is complete, not a student run or readiness approval. See [audit](edition-3-notes/ch08-entry-audit.md), [contract matrix](edition-3-notes/ch08-entry-matrix.md), [bounded next-step request](edition-3-notes/ch08-entry-next-steps.md), and [actual local controls](edition-3-notes/ch08-entry-controls/README.md). The Edition 3 publication command still rejects Chapter 8 before launch. Existing settings controls cover sparse patch/broadcast/subscription/restart, but an initial snapshot missing `max_tool_rounds` passes; a no-persistence mutant correctly fails restart. Saved budget execution/next-turn policy, failed persistence/decode atomicity, and actual browser consumers remain separate acceptance obligations.
-
-Only one focused package-test command, two temporary binary builds, two publication no-launch controls, and two settings-only mutants ran; all owned jobs ended. No inherited parity, source/grader edit, student change/run, child, browser, paid/provider-key call or reference repair occurred. Main/student pins and protected files were verified; unrelated changes were preserved. The accepted student remains `edition-3-ch07-r1`; request separate bounded publication/settings-readiness authorization before any Chapter 8 student launch.

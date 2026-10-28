@@ -1,6 +1,0 @@
-[
-  {
-    "seconds": 0.0018790420144796371,
-    "stdin": "{\"parts\": [{\"type\": \"text\", \"text\": \"Describe the relative arrangement of the two colored regions in this image.\"}, {\"type\": \"blob\", \"mime\": \"image/png\", \"ref\": {\"kind\": \"path\", \"locator\": \"/var/folders/p_/11vk6y114xq7k9g5r_pc3yv80000gn/T/cadence-ch05-runtime-image-ozshz7sq/fixture.png\"}}]}"
-  }
-]

@@ -1,9 +1,0 @@
-{
-  "error": "nested earlier verifier refreshed timestamped root receipt; no behavioral execution",
-  "recovery": "original JSON recovered from saved successful job3829 stdout, exact pinned hash required before write",
-  "original_bytes": 1743,
-  "original_sha256": "daabbe177b083a854cb0accde5bcfd0c3bb56697d3703a042555e30c58b4557a",
-  "refreshed_preserved_sha256": "b7858b48053deb989287ea2f9c8f1cde9101813abcc3325082a8a256a4ede597",
-  "candidate_and_reviewer_seals_changed": false,
-  "new_verifier_uses_inventory_checks_not_nested_writer": true
-}

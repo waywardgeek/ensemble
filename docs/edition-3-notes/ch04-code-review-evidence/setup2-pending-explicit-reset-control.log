@@ -1,6 +1,0 @@
-=== RUN   TestPublicPendingRearmExplicitDefaultControl
-    public_api_test.go:47: system prompt is required
---- FAIL: TestPublicPendingRearmExplicitDefaultControl (0.00s)
-FAIL
-FAIL	ch04-review-consumer	0.006s
-FAIL

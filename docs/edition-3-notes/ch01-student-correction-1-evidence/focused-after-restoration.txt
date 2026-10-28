@@ -1,6 +1,0 @@
-=== RUN   TestConversation
---- PASS: TestConversation (0.00s)
-PASS
-ok  	ensemble	0.008s
-Exit: 0
-Engine SHA256 after restoration: 925aa38b2c15673ee22663f818f52d0fefadae6758169f5ec9789a3cbb76e970

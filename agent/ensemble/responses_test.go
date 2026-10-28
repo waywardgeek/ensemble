@@ -296,3 +296,125 @@ func TestResponsesCapturedPlanStream(t *testing.T) {
 		})
 	}
 }
+
+// Loading through the real tool records a retained instruction, not tool-output
+// prose. Responses must put that instruction beside the primary prompt even
+// after a handoff, without maintaining another copy in the renderer.
+func TestResponsesLoadedSkillsInInitialInstructions(t *testing.T) {
+	for _, codex := range []bool{false, true} {
+		name := "api-key"
+		if codex {
+			name = "codex"
+		}
+		t.Run(name, func(t *testing.T) {
+			dir := skillFiles(t, map[string]string{
+				"base":   "---\nname: base\ntype: primary\ntools: micro_handoff\nloadable-skills: extra\n---\nPRIMARY INSTRUCTION",
+				"extra":  "---\nname: extra\ntype: loadable\ndepends: helper\n---\nDYNAMIC INSTRUCTION",
+				"helper": "---\nname: helper\ntype: dependency\n---\nDEPENDENCY INSTRUCTION",
+			})
+			calls := 0
+			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				var body map[string]any
+				if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+					t.Error(err)
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+				calls++
+				wire, _ := json.Marshal(body)
+				input, ok := body["input"].([]any)
+				if !ok {
+					t.Errorf("missing Responses input: %s", wire)
+					w.WriteHeader(http.StatusBadRequest)
+					return
+				}
+				var system string
+				if codex {
+					system, _ = body["instructions"].(string)
+				} else if len(input) > 0 {
+					first := input[0].(map[string]any)
+					if first["role"] != "developer" {
+						t.Errorf("initial instruction role: %v", first["role"])
+					}
+					content, _ := json.Marshal(first["content"])
+					system = string(content)
+					input = input[1:]
+				}
+				want := []string{"PRIMARY INSTRUCTION"}
+				if calls > 1 {
+					want = append(want, "DYNAMIC INSTRUCTION", "DEPENDENCY INSTRUCTION")
+				} else if strings.Contains(string(wire), "DYNAMIC INSTRUCTION") {
+					t.Error("unloaded instructions leaked")
+				}
+				for _, instruction := range want {
+					if strings.Count(system, instruction) != 1 || strings.Count(string(wire), instruction) != 1 {
+						t.Errorf("request %d: %q must occur once in initial instructions: %s", calls, instruction, wire)
+					}
+				}
+				for _, raw := range input {
+					item := raw.(map[string]any)
+					if item["role"] == "system" || item["role"] == "developer" {
+						t.Errorf("later instruction message: %v", item)
+					}
+				}
+				if calls == 2 {
+					acknowledged := false
+					for _, raw := range input {
+						item := raw.(map[string]any)
+						if item["type"] == "function_call_output" && item["call_id"] == "load" && item["output"] == "Loaded skill extra." {
+							acknowledged = true
+						}
+					}
+					if !acknowledged {
+						t.Error("load acknowledgment missing")
+					}
+				}
+				var output []map[string]any
+				switch calls {
+				case 1:
+					output = []map[string]any{{"type": "function_call", "call_id": "load", "name": "load_skill", "arguments": `{"name":"extra"}`}}
+				case 2:
+					output = []map[string]any{{"type": "function_call", "call_id": "checkpoint", "name": "micro_handoff", "arguments": `{"text":"Continue with loaded instructions."}`}}
+				default:
+					output = []map[string]any{{"type": "message", "content": []map[string]any{{"type": "output_text", "text": "done"}}}}
+				}
+				w.Header().Set("Content-Type", "text/event-stream")
+				frame(w, wireFrame{"response.completed", map[string]any{"response": map[string]any{"status": "completed", "model": "gpt-ch19-course", "output": output, "usage": map[string]any{"input_tokens": 10, "output_tokens": 1}}}})
+			}))
+			defer server.Close()
+			cfg := ensemble.Config{Vendor: ensemble.OpenAI, Model: "gpt-ch19-course", BaseURL: server.URL, DataDir: t.TempDir(), Recall: ensemble.RecallSettings{Disabled: true}}
+			if codex {
+				cfg.BillingMode = ensemble.CredentialCodex
+				cfg.CodexAuthFile = filepath.Join(t.TempDir(), "auth.json")
+				writeCodex(t, cfg.CodexAuthFile, "test-token", "test-account")
+			}
+			a, err := ensemble.New(io.Discard).NewAgent(cfg, ensemble.AgentSpec{SkillsDir: dir, PrimarySkill: "base"})
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer a.Shutdown()
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			if answer, err := a.Ask(ctx, "Load the skill, then checkpoint."); err != nil || answer != "done" {
+				t.Fatalf("turn: %q %v", answer, err)
+			}
+			if calls != 3 {
+				t.Fatalf("requests=%d, want load, handoff, final", calls)
+			}
+			projection := a.History().Context()
+			before, _ := json.Marshal(projection)
+			if _, err := a.Engine().Render(projection); err != nil {
+				t.Fatal(err)
+			}
+			after, _ := json.Marshal(projection)
+			if string(before) != string(after) {
+				t.Fatal("render mutated the canonical context projection")
+			}
+			projection.Dialogue = nil
+			wire, err := a.Engine().Render(projection)
+			if err != nil || strings.Contains(string(wire), "DYNAMIC INSTRUCTION") || strings.Contains(string(wire), "DEPENDENCY INSTRUCTION") {
+				t.Fatalf("renderer retained instructions absent from Context: %s %v", wire, err)
+			}
+		})
+	}
+}

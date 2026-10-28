@@ -1,7 +1,0 @@
-# github.com/waywardgeek/ensemble/cmd/grade-edition3 [github.com/waywardgeek/ensemble/cmd/grade-edition3.test]
-cmd/grade-edition3/main_test.go:112:20: undefined: bytes
-cmd/grade-edition3/main_test.go:113:45: too many arguments in call to run
-	have ([]string, unknown type, unknown type)
-	want ([]string)
-FAIL	github.com/waywardgeek/ensemble/cmd/grade-edition3 [build failed]
-FAIL

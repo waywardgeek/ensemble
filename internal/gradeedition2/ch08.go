@@ -38,9 +38,28 @@ func settingsChecks(dir, model string) []grade.Check {
 		return grade.Ch9Evaluate(r)[:4]
 	}
 	defer cleanup()
-	r.BuildOK = true
-	problems := driveSettings(r, bin, filepath.Join(dir, "web", "gui"), model)
+	return settingsExecutableChecks(bin, filepath.Join(dir, "web", "gui"), model)
+}
+
+// Chapter8Executable retains the four settings protocol/persistence checks.
+// Core budget and actual browser controls need separate C# integration evidence;
+// inherited Go consumer/topology scoring is deliberately excluded.
+func Chapter8Executable(bin, static, model string) grade.Report {
+	return grade.NewTitledReport("Edition 3 C# — Chapter 8 executable settings checks only (80 points)", settingsExecutableChecks(bin, static, model), "")
+}
+
+func settingsExecutableChecks(bin, static, model string) []grade.Check {
+	r := &grade.Ch9Result{BuildOK: true}
+	problems := driveSettings(r, bin, static, model)
 	checks := grade.Ch9Evaluate(r)[:4]
+	// Report the checked semantics rather than mislabeling the observed wire
+	// when the executable uses the chapter's settings_updated spelling.
+	checks[0].Title = "update_settings returns a full acknowledged snapshot"
+	for i := range checks {
+		for j := range checks[i].Details {
+			checks[i].Details[j] = strings.ReplaceAll(checks[i].Details[j], "settings_changed", "settings update")
+		}
+	}
 	for i, messages := range problems {
 		for _, message := range messages {
 			fail(&checks[i], "%s", message)
@@ -51,7 +70,11 @@ func settingsChecks(dir, model string) []grade.Check {
 }
 
 func readSettings(peer *guiPeer, kind string) (map[string]any, error) {
-	messages, err := peer.until(3*time.Second, messageKind(kind))
+	messages, err := peer.until(3*time.Second, func(message map[string]any) bool {
+		// The public chapter names the acknowledgement settings_updated.
+		// Retain the older Go fixture spelling without requiring a product alias.
+		return message["type"] == kind || (kind == "settings_changed" && message["type"] == "settings_updated")
+	})
 	if err != nil {
 		return nil, err
 	}

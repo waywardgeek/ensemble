@@ -1,9 +1,0 @@
-{
-  "failure": "wrong older student inventory pathname; FileNotFoundError",
-  "controls_executed": 0,
-  "authoritative_path_source": "immutable completion verification-before.json",
-  "correct_path": "docs/edition-3-notes/ch10-student-final-reconciliation-evidence/inventory.json",
-  "only_driver_change": "inventory directory spelling",
-  "probe_selector_deadline_changes": false,
-  "old_seals_modified": false
-}

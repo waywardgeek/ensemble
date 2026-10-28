@@ -1,9 +1,0 @@
-{
-  "boundary": "Chapter 1 rejects Chapter 4-only flags before invoking target",
-  "source_sha256": "d08616eee707b4b91363f528abafa85f9b2268af964a0c6d903efbae95c291a4",
-  "mutation": " || (*chapter == 1 && chapter4Flags) changed to guarded && false",
-  "mutant_exit": 1,
-  "restored_exit": 0,
-  "output_contains": "invalid input launched executable",
-  "scratch_removed": "/Users/bill/projects/ensemble/cmd/.ch04-cli-control-9jf8260s"
-}

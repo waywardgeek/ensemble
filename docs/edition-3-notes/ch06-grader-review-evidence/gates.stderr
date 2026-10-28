@@ -1,5 +1,0 @@
-Traceback (most recent call last):
-  File "/Users/bill/projects/ensemble/docs/edition-3-notes/ch06-grader-review-evidence/gates.py", line 37, in <module>
-    if name.startswith('JSON validation before'):assert 'nonexistent-target' not in p.stderr.decode() and ('consumer case:' in p.stderr.decode() or 'media models:' in p.stderr.decode())
-                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-AssertionError

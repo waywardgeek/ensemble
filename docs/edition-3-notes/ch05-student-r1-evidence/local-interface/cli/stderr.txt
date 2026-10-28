@@ -1,2 +1,0 @@
-Conversation ready. Enter a message; EOF exits.
-Hint:  R1_WIRE_HINT_71d

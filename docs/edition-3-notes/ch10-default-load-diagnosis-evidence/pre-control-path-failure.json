@@ -1,8 +1,0 @@
-{
-  "stage": "read-only preservation verification before workspace, server, or client launch",
-  "process_exit": 1,
-  "exception": "FileNotFoundError: docs/edition-3-notes/ch10-entry-audit-followup-evidence/inventory.json",
-  "actual_existing_package": "docs/edition-3-notes/ch10-entry-followup-evidence",
-  "change": "Corrected exactly one obsolete directory spelling in owned verifier; no runtime control was run or retried.",
-  "original_driver_retained": "run-diagnosis-before-path-fix.py.txt"
-}

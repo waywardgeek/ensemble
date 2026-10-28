@@ -1,3 +1,0 @@
-# reviewer-public-smoke_test [reviewer-public-smoke.test]
-./public_test.go:18:81: a.Parent().Agents undefined (type common.Ensemble has no field or method Agents)
-./public_test.go:22:20: a.Parent().NewAgent undefined (type common.Ensemble has no field or method NewAgent)

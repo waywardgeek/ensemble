@@ -1,5 +1,0 @@
---- FAIL: TestChapter5CorrectionR1TextOnlyHintContinuation (0.00s)
-    chapter5_correction_test.go:75: R1 successful text-only turn stranded its acknowledged hint: {Text:initial text Err:<nil>}
-FAIL
-FAIL	ensemble	0.014s
-FAIL

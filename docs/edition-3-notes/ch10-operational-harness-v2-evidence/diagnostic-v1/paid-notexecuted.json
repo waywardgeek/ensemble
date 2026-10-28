@@ -1,8 +1,0 @@
-{
-  "status": "NOTEXECUTED",
-  "reason": "Browser A still did not pass.",
-  "paid_approval_materialized": false,
-  "credential_reads": 0,
-  "actual_provider_requests": 0,
-  "provider_usage_observation": null
-}

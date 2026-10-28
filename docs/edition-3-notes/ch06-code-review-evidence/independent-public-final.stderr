@@ -1,2 +1,0 @@
-# reviewchecks [reviewchecks.test]
-./batch_interrupt_test.go:80:6: invalid operation: operator ! not defined on ok (variable of interface type error)

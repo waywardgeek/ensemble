@@ -1,4 +1,0 @@
-{"log_version":1}
-{"seq":1,"type":"message_received","time":"2026-10-16T21:29:39.625814Z","message":{"actor":"human","parts":[{"type":"text","text":"Give a short answer"}]}}
-{"seq":2,"type":"request_sent","time":"2026-10-16T21:29:39.625815Z","request":{"to":{"vendor":"openai","model":"exact-model","surface":"chat_completions"}}}
-{"seq":3,"type":"error_occurred","time":"2026-10-16T21:29:39.626472Z","error":{"message":"openai response contained no choices"}}

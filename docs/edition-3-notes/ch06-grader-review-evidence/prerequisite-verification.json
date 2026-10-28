@@ -1,8 +1,0 @@
-{
-  "unchanged_full_prerequisite_reads_retained_from_entry": true,
-  "changed_inputs_since_entry": [
-    "cmd/grade-edition3/main.go"
-  ],
-  "entry_evidence_all_checksums_verified": true,
-  "entry_report_sha256": "a47915de7ce6f9d317f70efe84208d32cbc5a465ceee80026e55a1bb7577f7d6"
-}

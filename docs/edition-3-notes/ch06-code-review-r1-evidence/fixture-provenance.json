@@ -1,7 +1,0 @@
-{
-  "shape_input_sha256": "2e8c6dbf6427bf89cde2d7dbe24e6ab0427f1b4f9e69b3cf7de5db1d43f062f7",
-  "shape_input_path": "/Users/bill/projects/ensemble/docs/edition-3-notes/ch06-student-r1-evidence/shape_fixture.py",
-  "cli_input_path": "/Users/bill/projects/ensemble/docs/edition-3-notes/ch06-code-review-evidence/cli-gated-control.py",
-  "cli_input_sha256": "d92007774f53eb3ab9abdb314b45fbc1e0ab0efb853b9baa53520e797ab753a2",
-  "assertions_unchanged": true
-}

@@ -56,7 +56,7 @@ type geminiContent struct {
 // Gemini calls the assistant role model, but still renders tool testimony as
 // user content. systemInstruction is a Content object outside contents;
 // putting a system role inside contents would be an invalid request.
-func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
+func (e *engine) renderGemini(c *common.Context, goalSystem string) ([]byte, error) {
 	var contents []geminiContent
 	for _, entry := range entries(c) {
 		role := "user"
@@ -136,7 +136,7 @@ func (e *engine) renderGemini(c *common.Context) ([]byte, error) {
 	if len(declarations) > 0 {
 		tools = []map[string]any{{"functionDeclarations": declarations}}
 	}
-	prompt := e.SystemPrompt()
+	prompt := goalSystem
 
 	features, _ := LookupModel(e.parent.Config().Model)
 	generation := map[string]any{"maxOutputTokens": 4096}

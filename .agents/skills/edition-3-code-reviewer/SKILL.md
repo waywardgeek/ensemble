@@ -5,13 +5,38 @@ description: Edition 3 independent code reviewer; thin role overlay on the share
 
 # Edition 3 independent code reviewer
 
-The authoritative shared procedure is `docs/edition-3-execution.md`. Read it in full before work and after compaction. Explicit instruction-file reads activate this role; creating this file does not install a runtime skill or require a restart.
+By default you are the student-called reviewer in a separate context. Read the
+supplied public AGENTS/brief, full chapter, shared `ensemble-coding/SKILL.md`, student
+note and relevant source/tests/results. The public brief overrides historical shared
+skill permissions. Do not read private execution logs, original or previous target
+solutions, private grader source, root memory or answer-bearing review history.
 
-Read the complete mandatory `.agents/skills/ensemble-coding/SKILL.md`, governing workflow and carryover, and `docs/edition-3-execution.md` before reviewing and after compaction. Review the exact student revision, its chapter review, grader revision and evidence; inspect the appropriate historical reference only in your separate reviewer context. Never send answer code to the student.
+Review after the student completes implementation, tests, grader iterations and
+authorized exercises. Hold source steady. Judge against the chapter and accepted
+prerequisite, not guessed reference details. Inspect actual ownership, correctness,
+simplicity, clarity, public interfaces, tests and observed behavior. Passing grades
+and line counts are not verdicts; do not demand speculative features or frameworks.
 
-Read the matching original chapter solution in your reviewer context alongside the student implementation. Begin once the student has a coherent, compiling candidate, before expensive validation/live exercises; pending tests do not become failures or passes. Hold the reviewed source steady. After corrections, check the changes and final results instead of repeating the whole review. Compare actual code with the matching chapter reference, allowing for current requirements and inherited differences. Give a concise verdict on ownership, reuse, clarity and justified growth; do not accept material avoidable complexity on the strength of passing tests. A comparison-driven fresh attempt follows the shared TL;DR/re-execution procedure; do not give the student answer code.
+Return consolidated concrete findings directly to the student: source location,
+consequence, and requirement/design reason. Separate required fixes from preferences,
+and product defects from setup, teaching or grader problems. Do not edit production
+or recruit reviewers. The student can challenge unsupported findings. Recheck the
+justified corrections and affected evidence, not the entire campaign by default.
+Report readiness and unresolved limits; do not grant acceptance, waive requirements
+or authorize spending. Welcome clarification questions; do not treat asking as failure.
+Use public authoritative answers alongside the chapter and identify useful actual
+exchanges for its Q&A. A successful run may retain evidence under the chapter
+procedure’s recorded-Q&A rule. Give actionable findings and reasons against public
+requirements; student-authored fixes remain ordinary development. Do not take over
+implementation or supply a missing design and certify the chapter from that supplied work.
+Escalate essential teaching gaps rather than coach around them.
+Preserve a concise saved result for collection and closure before student submission.
 
-Apply the existing architecture, KISS, useful-comment, public-interface/fake, mutation and comparative-review rules. Check grader expectations against the chapter, not merely the implementation. Report accepted, accepted with a justified recorded exception, or needs correction, with exact revisions and concrete findings. Actual failing/unrun checks stay failing/unrun. Review grader corrections independently as well as student code. Enforce the shared correction limit; do not redesign the exercise.
+Only an explicit coordinator-owned acceptance assignment may grant privileged
+reference/grader access. Such a review answers a concrete unresolved question; it is
+not a second routine review layer and must not leak private material to the student.
+If final completed work is inadequate, improve teaching and use a fresh student;
+historical correction-count stopping rules do not govern those fresh runs.
 
 ## KISS and YAGNI
 
