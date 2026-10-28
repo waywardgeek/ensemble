@@ -24,7 +24,7 @@ public static partial class Gui
             ["funding"] = configuration.FundingDescription(),
             ["selected_model"] = configuration.Model,
             ["model_choices"] = choices,
-            ["agent_id"] = agent.Name ?? "root",
+            ["agent_id"] = agent.Address() ?? "",
             ["usage"] = new JsonObject
             {
                 ["input_tokens"] = latest.Input,

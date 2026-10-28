@@ -379,7 +379,7 @@ public sealed partial class Skills
                 var closure = Resolve(name, initial: false).ToImmutableArray();
                 if (closure.Any(skill => !skill.McpServers.IsDefaultOrEmpty))
                 {
-                    var manager = Parent().Mcp() ?? new Mcp(Parent());
+                    var manager = Parent().EnsureMcp();
                     ImmutableDictionary<string, string> values;
                     lock (gate)
                     {

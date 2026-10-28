@@ -95,7 +95,7 @@ function browserCall(name, args) {
 function handleMcp(connection, frame) {
     // Replies belong to the receiving connection, not the mutable global socket.
     // A reconnect cannot accidentally receive an old session's RPC response.
-    if (frame.agent_id !== agentID) throw new Error("MCP targets a different Agent.");
+    if (frame.agent_id !== connection.relayAgentID) throw new Error("MCP targets a different Agent.");
     const request = frame.data;
     if (!request || request.jsonrpc !== "2.0" || typeof request.method !== "string") {
         throw new Error("Invalid MCP request.");

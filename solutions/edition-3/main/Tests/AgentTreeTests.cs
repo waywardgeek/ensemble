@@ -102,6 +102,59 @@ internal static class AgentTreeTests
         }
     }
 
+    public static async Task Addresses(string directory)
+    {
+        var app = new Application(TextWriter.Null);
+        var config = new Configuration(Vendor.Anthropic, "address-fixture", "http://127.0.0.1:1");
+        string output = Path.Combine(directory, "tree-addresses");
+        try
+        {
+            var left = new Agent(app, config, outputDirectory: output, name: "left");
+            var right = new Agent(app, config, outputDirectory: output, name: "right");
+            var unusual = new Agent(app, config, outputDirectory: output, name: "研究/a% b");
+            var unnamed = new Agent(app, config, outputDirectory: output);
+            var one = new Agent(app, left, "helper", config, outputDirectory: output);
+            var two = new Agent(app, right, "helper", config, outputDirectory: output);
+            var nested = new Agent(app, one, "deep", config, outputDirectory: output);
+            var local = new Agent(app, unnamed, "helper", config, outputDirectory: output);
+            var escaped = new Agent(app, unusual, "helper", config, outputDirectory: output);
+            Check(one.Address() == "left/helper" && two.Address() == "right/helper"
+                && nested.Address() == "left/helper/deep", "Qualified ownership paths differ from real parents.");
+            Check(unnamed.Address() is null && local.Address() is null,
+                "Unnamed library root acquired a fabricated global identity.");
+            Check(unusual.Address() == "%E7%A0%94%E7%A9%B6%2Fa%25%20b",
+                "Root name escaping is ambiguous.");
+            foreach (Agent actor in new[] { left, right, unusual, one, two, nested, escaped })
+            {
+                Check(ReferenceEquals(app.FindAgentAddress(actor.Address()!), actor),
+                    "Address lookup did not round-trip to the actual Agent.");
+            }
+            Check(left.FindChild("right/helper") is null && left.FindChild("helper") == one,
+                "Trusted lookup broadened direct-child authority.");
+            foreach (string invalid in new[] { "/left", "left/", "left//helper", "%6Ceft", "left%2fhelper",
+                "left/missing", "missing/helper", "left/../right", "%", "left/%68elper" })
+            {
+                Check(app.FindAgentAddress(invalid) is null, "Noncanonical or unknown address resolved: " + invalid);
+            }
+            var snapshot = app.AgentTree();
+            Check(snapshot[0].Address == "left" && snapshot[0].Children.Single().Address == "left/helper"
+                && snapshot[3].Address is null, "Tree projection lost nullable ownership addresses.");
+            await one.ShutdownAsync();
+            Check(app.FindAgentAddress("left/helper") == one, "Stopping alone detached the address.");
+            one.Destroy();
+            Check(one.Address() is null && nested.Address() is null
+                && app.FindAgentAddress("left/helper/deep") is null,
+                "Destroyed subtree retained a current address.");
+            Check(snapshot[0].Children.Single().Address == "left/helper",
+                "An immutable snapshot rewrote its historical address.");
+            Check(app.FindAgentAddress("right/helper") == two, "Detachment damaged a different branch.");
+        }
+        finally
+        {
+            app.Destroy();
+        }
+    }
+
     private static void Check(bool condition, string message)
     {
         if (!condition)

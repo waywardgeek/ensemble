@@ -51,7 +51,7 @@ internal static class ChildSubmissionTests
             string saved = File.ReadAllText(path);
             using (var row = JsonDocument.Parse(saved))
             {
-                Check(row.RootElement.GetProperty("version").GetInt32() == 1, "Wrong row version.");
+                Check(row.RootElement.GetProperty("version").GetInt32() == 2, "Wrong row version.");
                 Check(row.RootElement.GetProperty("agent_id").GetString() == "reviewer", "Wrong owner.");
                 Check(JsonElement.DeepEquals(row.RootElement.GetProperty("submit_schema"), schema), "Schema was not retained.");
                 Check(JsonElement.DeepEquals(row.RootElement.GetProperty("payload"), payload), "Payload was not retained.");

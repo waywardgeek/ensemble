@@ -27,8 +27,8 @@ internal static partial class ActorTests
                     await release.Task.WaitAsync(cancellation);
                     return "companion completed";
                 }, waitForCompletion: true);
-            // Retained facts are not another memory store. The old note exists in
-            // canonical history but must disappear from active Context later.
+            // Checkpoints remain active source until a memory replacement
+            // commits. A later note alone must not erase the earlier reasons.
             agent.History().Append(new Event(EventKind.HintReceived, actor: Actor.System,
                 parts: [new TextPart("ordinary system instructions")]));
             agent.History().Append(new Event(EventKind.HandoffRecorded, parts: [new HandoffPart("old note")]));
@@ -55,7 +55,7 @@ internal static partial class ActorTests
                     else
                     {
                         string expected = round == 1 ? "first replacement" : "newest replacement";
-                        Check(request.Contains(expected) && !request.Contains("old note"), "Wrong active note on next request");
+                        Check(request.Contains(expected) && request.Contains("old note"), "Wrong active note on next request");
                         using var document = JsonDocument.Parse(request);
                         string messages = document.RootElement.GetProperty("messages").GetRawText();
                         Check(!messages.Contains("\"tool_use\"") && !messages.Contains("\"tool_result\""), "Handoff retained tool traffic");
@@ -69,7 +69,7 @@ internal static partial class ActorTests
                         }
                         else
                         {
-                            Check(!request.Contains("first replacement"), "Older active note survived replacement");
+                            Check(request.Contains("first replacement"), "Earlier checkpoint disappeared before memory commit");
                             await Reply(stream, "handoff complete", deadline.Token);
                         }
                     }
@@ -91,8 +91,9 @@ internal static partial class ActorTests
             Check(events.Single(fact => fact.Kind == EventKind.ToolReturned && fact.CallID == "companion").Seq < firstNote,
                 "Companion result recorded after reduction");
             var context = agent.History().View();
-            Check(context.Dialogue.SelectMany(entry => entry.Parts).OfType<HandoffPart>().Single().Text == "newest replacement",
-                "Newest note not sole active handoff");
+            Check(context.Dialogue.SelectMany(entry => entry.Parts).OfType<HandoffPart>().Select(note => note.Text)
+                .SequenceEqual(["old note", "first replacement", "newest replacement"]),
+                "Completed checkpoint boundaries were not retained in order");
             Check(JsonCodec.Text(context.Dialogue.SelectMany(entry => entry.Parts)).Contains("ordinary system instructions"),
                 "Ordinary system content lost");
             Check(events.Count(fact => fact.Kind == EventKind.HandoffRecorded) == 3, "Canonical history lost older notes");
@@ -107,7 +108,9 @@ internal static partial class ActorTests
             Check(!(await agent.DispatchAsync(direct)).IsError, "Direct handoff refused");
             await agent.FlushAsync(deadline.Token);
             Check(agent.History().View().Dialogue.SelectMany(entry => entry.Parts)
-                .OfType<HandoffPart>().Single().Text == "direct replacement", "Direct handoff not applied");
+                .OfType<HandoffPart>().Select(note => note.Text)
+                .SequenceEqual(["old note", "first replacement", "newest replacement", "direct replacement"]),
+                "Direct handoff did not retain completed source");
         }
         finally
         {
@@ -139,7 +142,7 @@ internal static class HandoffTests
             if (!restored.History().LoadSave(save)) throw new Exception("Handoff save absent");
             var context = restored.History().View();
             var parts = context.Dialogue.SelectMany(entry => entry.Parts).ToArray();
-            if (parts.OfType<HandoffPart>().Single().Text != "new"
+            if (!parts.OfType<HandoffPart>().Select(note => note.Text).SequenceEqual(["old", "new"])
                 || parts.OfType<TextPart>().Single().Text != "dialogue"
                 || !parts.OfType<SkillPart>().Single().Pending
                 || restored.ToolEnabled("write_file"))

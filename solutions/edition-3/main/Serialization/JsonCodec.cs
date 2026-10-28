@@ -202,6 +202,10 @@ public static partial class JsonCodec
             ["seq"] = value.Seq,
             ["type"] = Label(value.Kind)
         };
+        if (value.TaskID.Length != 0)
+        {
+            o["task_id"] = value.TaskID;
+        }
         if (value.Time is DateTimeOffset time)
         {
             o["time"] = time.ToString("O");
@@ -274,6 +278,18 @@ public static partial class JsonCodec
                 }
                 o["tool"] = tool;
                 break;
+            case EventKind.CompressionLaunched:
+                o["compression"] = value.Compression is null ? null : WriteCompressionLaunch(value.Compression);
+                break;
+            case EventKind.CompressionFinished:
+                o["outcome"] = value.Outcome is null ? null : WriteCompressionOutcome(value.Outcome);
+                break;
+            case EventKind.MemoryPopulated:
+                o["memory"] = value.Memory is null ? null : WriteMemory(value.Memory);
+                break;
+            case EventKind.MemoryRetired:
+                o["retirement"] = value.Retirement is null ? null : WriteMemoryRetirement(value.Retirement);
+                break;
             case EventKind.HandoffRecorded:
             case EventKind.RuntimeConfigured:
             case EventKind.SkillLoaded:
@@ -328,6 +344,18 @@ public static partial class JsonCodec
 
         DateTimeOffset? time = root.TryGetProperty("time", out var stamp) ? stamp.GetDateTimeOffset() : null;
         var kind = EnumValue<EventKind>(String(root, "type"));
+        string taskID = "";
+        if (root.TryGetProperty("task_id", out var identity))
+        {
+            // Presence is explicit correlation, never the legacy empty default.
+            // A damaged ID must not turn a held removal into an immediate cut.
+            if (identity.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(identity.GetString())
+                || kind is not (EventKind.Redacted or EventKind.MemoryPopulated or EventKind.MemoryRetired))
+            {
+                throw new FormatException("Invalid compression task identity");
+            }
+            taskID = identity.GetString()!;
+        }
         switch (kind)
         {
             case EventKind.HintReceived:
@@ -362,6 +390,20 @@ public static partial class JsonCodec
                         job.GetProperty("handle").GetInt32(), String(job, "status"),
                         String(job.GetProperty("output"), "locator"), job.GetProperty("bytes").GetInt64(),
                         Flag(job, "truncated"), job.TryGetProperty("exit_code", out var exit) && exit.ValueKind == JsonValueKind.Number ? exit.GetInt32() : null, OptionalString(job, "cwd")) : null);
+            case EventKind.CompressionLaunched:
+                return new(kind, seq, time, compression: root.TryGetProperty("compression", out var launch) && launch.ValueKind != JsonValueKind.Null
+                    ? ReadCompressionLaunch(launch) : null);
+            case EventKind.CompressionFinished:
+                return new(kind, seq, time, outcome: root.TryGetProperty("outcome", out var outcome) && outcome.ValueKind != JsonValueKind.Null
+                    ? ReadCompressionOutcome(outcome) : null);
+            case EventKind.MemoryPopulated:
+                return new(kind, seq, time, memory:
+                    root.TryGetProperty("memory", out var memory) && memory.ValueKind != JsonValueKind.Null
+                        ? ReadMemory(memory) : null, taskID: taskID);
+            case EventKind.MemoryRetired:
+                return new(kind, seq, time, retirement:
+                    root.TryGetProperty("retirement", out var retirement) && retirement.ValueKind != JsonValueKind.Null
+                        ? ReadMemoryRetirement(retirement) : null, taskID: taskID);
             case EventKind.HandoffRecorded:
             case EventKind.RuntimeConfigured:
             case EventKind.SkillLoaded:
@@ -382,7 +424,7 @@ public static partial class JsonCodec
             case EventKind.Redacted:
                 if (!root.TryGetProperty("redact", out var r))
                 {
-                    return new(kind, seq, time);
+                    return new(kind, seq, time, taskID: taskID);
                 }
                 Redaction? level = r.TryGetProperty("level", out var levelValue) && levelValue.ValueKind != JsonValueKind.Null
                     ? EnumValue<Redaction>(levelValue.GetString()!) : null;
@@ -390,7 +432,7 @@ public static partial class JsonCodec
                     parts: r.TryGetProperty("replacement", out var replacement) ? replacement.EnumerateArray().Select(ReadPart) : [],
                     redactFrom: r.TryGetProperty("from", out var first) ? first.GetInt64() : 0,
                     redactTo: r.TryGetProperty("to", out var last) ? last.GetInt64() : 0,
-                    level: level, reason: OptionalString(r, "reason"));
+                    level: level, reason: OptionalString(r, "reason"), taskID: taskID);
             default:
                 var err = root.GetProperty("error");
                 return new(kind, seq, time, error: err.ValueKind == JsonValueKind.String ? err.GetString()! : String(err, "message"));

@@ -1,8 +1,23 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ensemble</title><link rel="stylesheet" href="./style.css"><script src="./speech.js" defer></script><script src="./mcp.js" defer></script><script src="./app.js" defer></script><script src="./auth.js" defer></script></head>
+<title>Ensemble</title><link rel="stylesheet" href="./style.css"><script src="./speech.js" defer></script><script src="./mcp.js" defer></script><script src="./app.js" defer></script><script src="./auth.js" defer></script><script src="./peers.js" defer></script></head>
 <body><header><h1>Ensemble</h1><span id="connection" role="status">Connecting</span><span id="state">idle</span>
+<label for="agent-choice">Displayed conversation</label>
+<select id="agent-choice" aria-describedby="agent-help"></select>
+<p id="agent-help">Selection changes this tab only. Browser tools stay attached to <span id="relay-agent">the connection's original Agent</span>.</p>
+<a id="relay-link" target="_blank" rel="noopener" hidden>Open an independent browser relay for this Agent</a>
 <div class="controls"><button id="pause">Pause</button><button id="resume">Resume</button><button id="interrupt">Interrupt</button><button id="clear-tools">Clear tool traffic</button></div>
+<details id="peers-panel"><summary>Persistent peers</summary>
+<p>Create a top-level peer using this host's current defaults. Blank model and primary skill inherit those defaults. Creation leaves the displayed conversation unchanged. Deleting the displayed peer returns that tab to the mounted Agent.</p>
+<label>Name <input id="peer-name" autocomplete="off"></label>
+<label>Model <input id="peer-model" autocomplete="off"></label>
+<label>Primary skill <input id="peer-skill" autocomplete="off"></label>
+<button id="peer-create" type="button">Create peer</button>
+<button id="peer-cancel" type="button" hidden>Cancel creation request</button>
+<label><input id="peer-delete-confirm" type="checkbox"> Stop and delete the named peer's registry entry; retain its saved files</label>
+<button id="peer-delete" type="button">Delete named peer</button>
+<p id="peer-notice" role="status" aria-live="polite"></p>
+</details>
 <details id="settings-panel"><summary>Settings</summary>
 <label>Theme <select id="theme"><option value="system">System</option><option value="light">Light</option><option value="dark">Dark</option></select></label>
 <label>Font size <input id="font-size" type="number" min="12" max="32" step="1" value="18"> px</label>

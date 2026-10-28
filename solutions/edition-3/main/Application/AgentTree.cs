@@ -20,6 +20,40 @@ public sealed partial class Ensemble
         return roots.ToImmutable();
     }
 
+    public partial Agent? FindAgentAddress(string address)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(address);
+        string[] components = address.Split('/');
+        var names = new string[components.Length];
+        for (int index = 0; index < components.Length; index++)
+        {
+            string component = components[index];
+            string name = Uri.UnescapeDataString(component);
+            // Reject malformed escapes and alternate spellings. In particular,
+            // an encoded slash belongs to a name, not another ownership level.
+            if (string.IsNullOrWhiteSpace(name)
+                || Uri.EscapeDataString(name) != component)
+            {
+                return null;
+            }
+            names[index] = name;
+        }
+        Agent? selected = FindAgent(names[0]);
+        if (selected is null || selected.ChildID() is not null)
+        {
+            return null;
+        }
+        for (int index = 1; index < names.Length; index++)
+        {
+            selected = selected.FindChild(names[index]);
+            if (selected is null)
+            {
+                return null;
+            }
+        }
+        return selected;
+    }
+
     private static partial AgentTreeNode CaptureTree(Agent agent)
     {
         var descendants = ImmutableArray.CreateBuilder<AgentTreeNode>();
@@ -29,6 +63,6 @@ public sealed partial class Ensemble
         {
             descendants.Add(CaptureTree(child));
         }
-        return new AgentTreeNode(agent, descendants.ToImmutable());
+        return new AgentTreeNode(agent, descendants.ToImmutable(), agent.Address());
     }
 }

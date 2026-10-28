@@ -18,6 +18,35 @@ public sealed partial class History
         // configuration must not first remove the current instruction/grant set.
         switch (value.Kind)
         {
+            case EventKind.CompressionLaunched:
+                if (value.Compression is null)
+                {
+                    return "missing compression launch";
+                }
+                break;
+            case EventKind.CompressionFinished:
+                if (value.Outcome is null)
+                {
+                    return "missing compression outcome";
+                }
+                break;
+            case EventKind.MemoryPopulated:
+                if (value.Memory is null)
+                {
+                    return "missing memory population";
+                }
+                break;
+            case EventKind.MemoryRetired:
+                if (value.Retirement is null)
+                {
+                    return "missing memory retirement";
+                }
+                if (!before.Memories.Any(item => item.Band == value.Retirement.Band
+                    && (value.Retirement.IDs.IsEmpty || value.Retirement.IDs.Contains(item.ID))))
+                {
+                    return "memory retirement has no retained entries";
+                }
+                break;
             case EventKind.MessageReceived:
             case EventKind.HintReceived:
                 if (value.Actor is null)

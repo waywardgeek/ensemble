@@ -149,8 +149,10 @@ public sealed partial class Agent
     // Wait for quiescence of turns and foreground controls, not background Jobs.
     // Does not close admission or resume paused work; later inputs may extend it.
     public partial Task FlushAsync(CancellationToken cancellation = default);
-    // Close admission, settle active work, terminate owned jobs, then join the
-    // actor. Repeated calls join the same lifetime; no actor can be resurrected.
+    // Forceful lifetime teardown: close admission, cancel active work and owned
+    // jobs, then join the actor and descendants. This is not graceful draining.
+    // The shutdown_agent tool first awaits FlushAsync; kill_agent skips that wait.
+    // Repeated calls join the same lifetime; no actor can be resurrected.
     public partial Task ShutdownAsync();
 
     // Every public submission publishes one admission outcome, including refusal.

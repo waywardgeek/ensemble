@@ -167,6 +167,48 @@ public sealed partial class Tool
                 Field("mode", "string", "now (default) or after_tool.");
                 properties["mode"]!["enum"] = new JsonArray("now", "after_tool");
                 break;
+            case ToolKind.SendMessage:
+            case ToolKind.AskAgent:
+            case ToolKind.WaitForAgent:
+                name = kind switch
+                {
+                    ToolKind.SendMessage => "send_message",
+                    ToolKind.AskAgent => "ask_agent",
+                    _ => "wait_for_agent"
+                };
+                description = kind switch
+                {
+                    ToolKind.SendMessage => "Send live steering to a direct child: a hint when busy, a new turn when idle. Return finalized output since cursor without waiting for the turn to finish.",
+                    ToolKind.AskAgent => "Queue a separate question to a direct child and wait for that turn's reliable reply. Cancellation stops observation, not the admitted turn.",
+                    _ => "Wait for finalized output after a child-local History cursor, or return when the child is no longer busy. This does not wait for submission and never consumes shared GUI observations."
+                };
+                Field("agent_id", "string", "Direct owned child ID.", true);
+                if (kind != ToolKind.AskAgent)
+                {
+                    Field("cursor", "integer", "Nonnegative child-local History sequence, no greater than current History; defaults to zero.");
+                    properties["cursor"]!["minimum"] = 0;
+                }
+                if (kind != ToolKind.WaitForAgent)
+                {
+                    Field("content", "string", "Nonempty message for this child.", true);
+                }
+                break;
+            case ToolKind.WaitForAgentChange:
+                name = "wait_for_agent_change";
+                description = "Observe fixed direct-child membership for status, finalized History or transient stream progress, removal, questions, pattern match, or lack of progress. Omitted/empty IDs means all current children. Cancellation only stops observation.";
+                Field("agent_ids", "array", "Direct child IDs, captured at admission.");
+                properties["agent_ids"]!["items"] = new JsonObject { ["type"] = "string" };
+                Field("pattern", "string", "Optional regex on finalized output; matching is time bounded.");
+                Field("timeout_seconds", "number", "Overall observation deadline; default 300, zero disables.");
+                Field("stuck_seconds", "number", "Busy without observed progress; default 15, zero disables.");
+                properties["timeout_seconds"]!["minimum"] = 0;
+                properties["stuck_seconds"]!["minimum"] = 0;
+                break;
+            case ToolKind.GetSubmission:
+                name = "get_submission";
+                description = "Read a direct child's retained typed submission freshly from its owned storage, even after shutdown. Historical data is not current-task completion; this never respawns the child or satisfies a join. Missing or invalid artifacts refuse.";
+                Field("agent_id", "string", "Direct owned child ID, not a qualified tree address.", true);
+                break;
             case ToolKind.GetSubAgentStatus:
                 name = "get_sub_agent_status";
                 description = "Read one direct owned child’s actor status, work phase and current-process usage. Selected and measured models are distinct; costs are estimates and unknown usage remains null. This observes without stopping or joining the child.";
@@ -178,7 +220,7 @@ public sealed partial class Tool
                 break;
             case ToolKind.SpawnSubAgent:
                 name = "spawn_sub_agent";
-                description = "Create an owned child, restore its conversation, and admit task. A running Job reports the child ID while retaining its task reply. Canceling that Job only stops observing; use shutdown_agent to stop the child. Completion requires explicit submit, not ordinary final text.";
+                description = "Create an owned child, restore its conversation, and admit task. A running Job reports the child ID while retaining its task reply. Canceling that Job only stops observing; use shutdown_agent to drain or kill_agent to cancel the child. Completion requires explicit submit, not ordinary final text.";
                 Field("agent_id", "string", "Unique direct child ID.", true);
                 Field("task", "string", "Delegated task.", true);
                 Field("model", "string", "Optional compatible same-provider model.");
@@ -186,8 +228,13 @@ public sealed partial class Tool
                 break;
             case ToolKind.ShutdownAgent:
                 name = "shutdown_agent";
-                description = "Stop and join one direct child and its descendants, then remove their live ownership links. Saved conversations and submissions remain on disk.";
+                description = "Wait for a direct child's current and queued turns and foreground controls, then stop and remove its subtree. Paused work is not resumed; later input may extend waiting. Canceling the waiting Job leaves the child alive. Independent Jobs and descendants are cancelled during final teardown; saved files remain. Use kill_agent to cancel without draining.";
                 Field("agent_id", "string", "Direct child ID.", true);
+                break;
+            case ToolKind.KillAgent:
+                name = "kill_agent";
+                description = "Cancel one direct child's lifetime immediately, join owned work and descendants, and remove the subtree. Does not wait for turns to finish normally. Saved conversations and submissions remain; siblings survive. Once teardown starts it is joined even if observation is cancelled.";
+                Field("agent_id", "string", "Direct owned child ID.", true);
                 break;
             case ToolKind.JoinAgents:
                 name = "join_agents";
@@ -413,7 +460,8 @@ public sealed partial class Tool
                 ToolKind.GetSubAgentStatus => await DetailedChildStatusAsync(job, call.Args, cancellation),
                 ToolKind.JoinAgents => await JoinAgentsAsync(job, call.Args, cancellation),
                 ToolKind.Submit or ToolKind.SendMessageToParent or ToolKind.RespondToParentMessage
-                    or ToolKind.ShutdownAgent or ToolKind.SpawnSubAgent or ToolKind.AgentsStatus or ToolKind.InterruptAgent => await ChildOperationAsync(job, call.Args, cancellation),
+                    or ToolKind.ShutdownAgent or ToolKind.KillAgent or ToolKind.SpawnSubAgent or ToolKind.AgentsStatus or ToolKind.InterruptAgent or ToolKind.GetSubmission or ToolKind.SendMessage or ToolKind.AskAgent
+                    or ToolKind.WaitForAgent or ToolKind.WaitForAgentChange => await ChildOperationAsync(job, call.Args, cancellation),
                 ToolKind.ReadFile => ReadFile(call.Args),
                 ToolKind.ListDirectory => ListDirectory(call.Args),
                 ToolKind.SearchFiles => SearchFiles(call.Args),

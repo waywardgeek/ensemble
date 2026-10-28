@@ -103,6 +103,10 @@ public sealed partial class Agent
 
     internal partial void Publish(Observation value)
     {
+        if (value.Kind == ObservationKind.PartDelta)
+        {
+            Interlocked.Increment(ref streamProgress);
+        }
         // TryWrite with DropOldest never waits for a GUI or a forgotten waiter.
         observations.Writer.TryWrite(value);
         // Shutdown keeps observation open for admission refusals. Logical

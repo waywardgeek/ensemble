@@ -197,17 +197,61 @@ public sealed partial class History
 
     public static partial Context Reduce(Context before, Event value)
     {
+        ValidateCompressionEvent(before, value);
         if (ReductionProblem(before, value) is not null)
         {
             return before;
         }
         // Work on a fresh collection. Existing Context snapshots remain usable.
+        var compression = before.Compression;
+        var compressionOutcome = before.CompressionOutcome;
         var dialogue = before.Dialogue.ToList();
+        var memories = before.Memories.ToList();
         var ephemeral = before.Ephemeral;
         var usage = before.Usage;
         var phase = before.Phase;
         switch (value.Kind)
         {
+            case EventKind.CompressionLaunched:
+                compression = new PendingCompression(value.Compression!);
+                break;
+            case EventKind.CompressionFinished:
+                compressionOutcome = value.Outcome;
+                compression = null;
+                break;
+            case EventKind.MemoryPopulated:
+                if (value.TaskID.Length != 0)
+                {
+                    var removal = compression!.Removal!;
+                    if (removal.Kind == EventKind.Redacted)
+                    {
+                        // The band replaces the conversation, not instructions.
+                        // No source leaves the projection before this commit.
+                        dialogue.RemoveAll(entry => entry.Seq >= removal.RedactFrom && entry.Seq <= removal.RedactTo
+                            && !entry.Parts.Any(part => part is SkillPart));
+                    }
+                    else
+                    {
+                        var retired = removal.Retirement!;
+                        memories.RemoveAll(item => item.Band == retired.Band && retired.IDs.Contains(item.ID));
+                    }
+                    compression = new PendingCompression(compression.Launch, removal, value.Memory);
+                }
+                var memory = value.Memory!;
+                // Human edits replace a stable identity, not append duplicates.
+                memories.RemoveAll(item => item.Band == memory.Band && item.ID == memory.ID);
+                memories.Add(memory);
+                break;
+            case EventKind.MemoryRetired:
+                if (value.TaskID.Length != 0)
+                {
+                    compression = new PendingCompression(compression!.Launch, value);
+                    break;
+                }
+                var retirement = value.Retirement!;
+                memories.RemoveAll(item => item.Band == retirement.Band
+                    && (retirement.IDs.IsEmpty || retirement.IDs.Contains(item.ID)));
+                break;
             case EventKind.SkillUnloadPending:
                 // Diagnostic retention may discard the source event. Preserve its
                 // effect in the authoritative snapshot without editing prior values.
@@ -299,6 +343,11 @@ public sealed partial class History
                 phase = Phase.Idle;
                 break;
             case EventKind.Redacted:
+                if (value.TaskID.Length != 0)
+                {
+                    compression = new PendingCompression(compression!.Launch, value);
+                    break;
+                }
                 dialogue = Redact(dialogue, value);
                 break;
             case EventKind.ErrorOccurred:
@@ -311,7 +360,7 @@ public sealed partial class History
                 // Start and dispatch facts affect neither dialogue nor turn state.
                 // Every other known event/state pair keeps the existing phase.
         }
-        return new Context(dialogue, ephemeral, phase, usage);
+        return new Context(dialogue, ephemeral, phase, usage, memories, compression, compressionOutcome);
     }
 
     // Only the latest assistant call group determines whether this turn can

@@ -1,20 +1,40 @@
-# Edition 3 — Chapter 21 C# in progress
+# Edition 3 — Chapter 22 C# in progress
 
 C# 14 / .NET 10. Common declares the core vocabulary, persistent fields,
 relationships and cross-module operations. Functional directories implement the
 matching partial types in one assembly. CLI, tests and examples are separate
 assemblies using that public API; no additional packages are required.
 
-The preserved `../ch20` directory is the locally verified Chapter 20 endpoint.
-Its scoped executable grade is 100/100 across seven fleet checks; the separate
-100-point Go GUI/reuse exercise is excluded. Final assembled source review and
-C# teaching prose are complete. Earlier endpoints remain unchanged, including
+Main has Chapter 22's replayable memory bands, retained checkpoint selection,
+and pure task-correlated compression transactions with snapshot/journal receipts.
+Memory blocks remain labeled user data across the four provider surfaces. Live
+compression, rooted staging/recovery, policy/controls and Chapter 22 verification
+remain unfinished. Detailed evidence and the next implementation boundary are in
+`docs/edition-3-csharp-progress.md`.
+
+The preserved `../ch21` directory is the locally verified Chapter 21 endpoint.
+Final assembled source/test review and C# teaching prose are complete. Earlier
+endpoints remain unchanged, including Chapter 20's 100-point fleet scope,
 Chapter 19's 90-point sandbox scope, Chapter 18's 135-point web/status scope and
 Chapter 16's separate 70-point transport scope. Hosted web access, live OAuth,
 successful host sign-in, actual provider billing, audible quality and human
 accessibility remain unverified.
 
-## Chapter 21 — activity foundation (in progress)
+Child messaging now includes `send_message` (live steering), `ask_agent`
+(a separately queued reliable reply), `wait_for_agent` (finalized History cursors),
+and `wait_for_agent_change` (fixed-child progress/question/status observation).
+Cancellation stops the observing Job, not the child. Change waits use 100ms
+snapshots, a 300-second timeout and 15-second stuck interval by default; zero
+disables either bound. Stream progress is observed without consuming GUI events.
+`--child-message-tests` exercises these contracts. Chapter 21's scoped executable
+grade is 70/70 across five CLI rows; named-peer persistence and GUI tree rows
+(30 points) remain excluded and have separate local host/browser evidence. The
+C# manuscript and assembled implementation are reviewed; the source-only endpoint
+preserves this local boundary. See the progress record for the exact regression
+scope and retained failures, rather than treating the executable score as full
+integration or architectural acceptance.
+
+## Chapter 21 — supervision, named peers and independent conversations
 
 Current main adds actor-derived work phases (`idle`, `thinking`, `tool_call`,
 `waiting`) to progress observations and reliable work status. Lifecycle and
@@ -25,13 +45,39 @@ registry. `get_sub_agent_status` reports one direct child's phase and current
 Engine usage, separating selected and measured models and preserving unknown
 counts/prices. `interrupt_agent` delivers `now` or `after_tool` through the
 child's existing mailbox without destroying it or its independent Jobs. Its
-acknowledgment means delivery, not joined quiescence. The shipped ensemble skill
-grants both operations. Ensemble now has an explicit data container; named actors,
+acknowledgment means delivery, not joined quiescence. `shutdown_agent` waits for
+current/queued turns and foreground controls, then joins cancelling teardown;
+`kill_agent` skips that wait. Paused work stays paused, later input can extend the
+drain, and cancelling the waiting Job leaves the child alive. Final teardown
+cancels remaining independent Jobs and descendants, retains files, and leaves
+siblings alive. Library `ShutdownAsync` remains forceful. The shipped ensemble
+skill grants these management operations. Ensemble now has an explicit data container; named actors,
 including the initial actor, have sibling homes at `agents/<name>/`. Delegated
 children live beneath their owning actor at `children/<id>/`. These homes are
 separate from History save paths and are declared in `Common/Storage.cs`.
-Named-peer registry creation/restoration, browser addresses/selection, durable
-retrieval, remaining management, chapter grading and preservation are unfinished.
+Ensemble's `CreatePeerAsync`, `RestorePeersAsync` and `DeletePeerAsync` use a
+caller-supplied top-level Agent's current runtime configuration and parsed skills,
+without retaining a defaults-Agent relationship. `ensemble.json` stores immutable
+name/model/primary-skill/creation-time launch choices, never later running model
+selection. Both standalone hosts restore peers; ordinary close preserves their
+registry, and explicit deletion retains data while refusing unfinished children.
+The initial host actor is not duplicated in that registry. Borrowed GUI hosting
+remains caller-owned. Canonical Ensemble-relative ownership addresses derive from
+actual parents; unnamed transient roots remain unaddressable globally. Fresh
+`get_submission` reads owned historical artifacts even after shutdown without
+respawning children or reviving completion. New version-2 artifacts retain parent
+address provenance; version-1 artifacts do not invent it. GUI selection is now
+per connection, with independent projection buffers and a live ownership/activity
+picker. A display switch preserves the socket's fixed MCP relay; an explicit
+peer-relay link opens a separate browser connection. Standalone GUI startup serves
+while restoring, opting into each browser peer's own cancellable readiness wait.
+Headless/default peer APIs refuse a missing browser promptly. Trusted GUI peer
+create/delete controls use bounded guarded HTTP requests, leaving the WebSocket
+available during browser-dependent creation. The mounted Agent supplies current
+defaults and cannot be deleted through its own controls. Deletion joins shutdown,
+retains files, and returns deleted display selections to the mounted Agent by
+replay. Request cancellation is not proof that a concurrent commit did not win.
+The management, scoped grading, review and preservation work is locally complete.
 See the top of `docs/edition-3-csharp-progress.md` for evidence and limitations.
 
 ## Chapter 20 — reusable GUI and owned child workflows

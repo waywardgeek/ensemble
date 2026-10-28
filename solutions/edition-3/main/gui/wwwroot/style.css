@@ -60,3 +60,7 @@ input[type="range"] { width: 12rem; max-width: 100%; }
 #model-controls { margin-block: .5rem; }
 #model-choice { max-width: 100%; }
 #model-help { overflow-wrap: anywhere; }
+
+/* Keep long ownership paths readable without widening the conversation column. */
+#agent-choice { display:block; width:100%; max-width:100%; padding:8px; margin:8px 0; background:#0b1220; color:inherit; border:1px solid #334155; border-radius:8px; }
+#agent-help { color:#94a3b8; font-size:.9rem; }

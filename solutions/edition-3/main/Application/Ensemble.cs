@@ -170,14 +170,32 @@ public sealed partial class Ensemble
     }
     public partial void Destroy()
     {
-        if (destroyed)
+        lock (agents)
         {
-            return;
+            if (destroyed)
+            {
+                return;
+            }
+            destroyed = true;
         }
 
-        destroyed = true;
-        // Children remove themselves from this collection. Enumerate a snapshot.
+        // Closing admission precedes cancellation. Never hold the membership
+        // lock while joining startup: its rollback must remove Agent links.
         List<Exception>? failures = null;
+        try
+        {
+            peerLifetime.Cancel();
+        }
+        catch (Exception error)
+        {
+            failures = [error];
+        }
+        peerOperations.Wait();
+        // Every admitted operation has completed or rolled back. New operations
+        // refuse at admission, and cancelled queued waits cannot construct peers.
+        peerOperations.Release();
+        peerLifetime.Dispose();
+        // Children remove themselves from this collection. Enumerate a snapshot.
         foreach (var child in Agents())
         {
             try

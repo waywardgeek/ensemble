@@ -4,7 +4,26 @@ namespace Ensemble;
 
 public sealed partial class Agent
 {
-    public partial Mcp? Mcp() => mcp;
+    public partial Mcp? Mcp()
+    {
+        lock (ingress)
+        {
+            return mcp;
+        }
+    }
+
+    public partial Mcp EnsureMcp()
+    {
+        lock (ingress)
+        {
+            if (admissionClosed || destroying || destroyed)
+            {
+                throw new ObjectDisposedException(nameof(Agent));
+            }
+            // The constructor registers through AddMcp under this reentrant lock.
+            return mcp ?? new Mcp(this);
+        }
+    }
 
     internal partial async Task<ToolResultPart> DispatchReverseAsync(ToolCallPart call,
         CancellationToken cancellation)
@@ -16,23 +35,30 @@ public sealed partial class Agent
 
     public partial void AddMcp(Mcp child)
     {
-        if (destroyed || child.destroyed || mcp is not null || child.parent is not null)
+        lock (ingress)
         {
-            throw new InvalidOperationException("MCP manager is destroyed or already owned.");
+            if (admissionClosed || destroying || destroyed || child.destroyed || mcp is not null || child.parent is not null)
+            {
+                throw new InvalidOperationException("MCP manager is closed, destroyed or already owned.");
+            }
+            mcp = child;
+            child.parent = this;
         }
-        mcp = child;
-        child.parent = this;
     }
 
     public partial void RemoveMcp(Mcp child)
     {
-        if (!ReferenceEquals(mcp, child) || !ReferenceEquals(child.parent, this))
+        lock (ingress)
         {
-            throw new InvalidOperationException("MCP manager belongs to another Agent.");
+            if (!ReferenceEquals(mcp, child) || !ReferenceEquals(child.parent, this))
+            {
+                throw new InvalidOperationException("MCP manager belongs to another Agent.");
+            }
+            mcp = null;
+            child.parent = null;
         }
-        mcp = null;
-        child.parent = null;
     }
+
 }
 
 public sealed partial class Mcp
@@ -86,6 +112,7 @@ public sealed partial class Mcp
         lock (gate)
         {
             destroyed = true;
+            SignalBrowserChanged();
             destruction ??= Task.Run(DestroyCoreAsync);
             return destruction;
         }

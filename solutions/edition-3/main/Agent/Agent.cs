@@ -39,6 +39,7 @@ public sealed partial class Agent
                 Sandbox().CreateDirectory(this.dataDirectory);
                 outputDirectory ??= Path.Combine(this.dataDirectory, "jobs");
             }
+            _ = new Memory(this);
             _ = new History(this);
             _ = new Engine(this);
             _ = new Jobs(this, outputDirectory);
@@ -200,6 +201,7 @@ public sealed partial class Agent
             Attempt(() => history?.Destroy());
             // Jobs and History finish with rooted files before the shared root
             // handle is closed. Only then remove both strong-parent memberships.
+            Attempt(() => memory?.Destroy());
             Attempt(() => sandbox?.Destroy());
             observations.Writer.TryComplete();
             Attempt(() => agentParent?.RemoveChild(this));

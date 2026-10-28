@@ -29,6 +29,7 @@ public sealed partial class Agent
         CancellationToken cancellation = default);
     public partial Agent? AgentParent();
     public partial string? ChildID();
+    internal static partial void ValidateChildID(string childID);
     public partial ImmutableArray<Agent> Children();
     public partial Agent? FindChild(string id);
     internal partial void AddChild(Agent child);

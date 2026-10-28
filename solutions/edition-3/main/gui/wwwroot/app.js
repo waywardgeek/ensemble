@@ -4,7 +4,8 @@
 const transcript = document.querySelector("#transcript");
 const cards = new Map();
 let socket;
-let agentID = null; // Identity comes from this connection's replay/state frames.
+let agentID = null; // Display identity changes only on admitted replay.
+let agentRows = []; // Bounded server tree projection, not a client Agent registry.
 let reconnectTimer;
 let replaying = false;
 let activeSpeech = null;
@@ -305,12 +306,54 @@ function showUsage(frame) {
     document.querySelector("#usage-totals").textContent = text;
     document.querySelector("#usage-meter").title = text;
 }
+function showAgents() {
+    const picker = document.querySelector("#agent-choice");
+    picker.replaceChildren();
+    for (const row of agentRows) {
+        const option = document.createElement("option");
+        // Disabled unnamed rows must not share the initial view's empty value.
+        if (row.key != null) option.value = row.key;
+        option.disabled = row.key == null;
+        const activity = [row.phase, row.tool, row.detail].filter(Boolean).join(" — ");
+        const label = row.key === "" ? "Original unnamed conversation" : row.key ?? row.id;
+        option.textContent = `${label} — ${row.paused ? "paused" : row.state}${activity ? " — " + activity : ""}`;
+        picker.append(option);
+    }
+    // An unnamed borrowed host can still display its original conversation,
+    // but does not acquire a fabricated global address in the tree.
+    if (agentID === "" && !agentRows.some(row => row.key === "")) {
+        const original = document.createElement("option");
+        original.value = "";
+        original.textContent = "Original unnamed conversation";
+        picker.append(original);
+    }
+    picker.value = agentID ?? "";
+}
 function handle(frame) {
+    if (frame.type === "agent_tree") {
+        agentRows = frame.agents || [];
+        showAgents();
+        return;
+    }
+    if (frame.type !== "replay" && frame.agent_id != null && frame.agent_id !== agentID) return;
     if (frame.type === "usage") {
         showUsage(frame);
         return;
     }
     if (frame.type === "replay") {
+        if (agentID !== frame.agent_id) {
+            cancelSpeech(false);
+            localPauseCause = false;
+        }
+        agentID = frame.agent_id;
+        const relayLink = document.querySelector("#relay-link");
+        relayLink.hidden = !agentID;
+        if (agentID) {
+            const relayURL = new URL(location.href);
+            relayURL.searchParams.set("agent_id", agentID);
+            relayLink.href = relayURL.href;
+        }
+        showAgents();
         replaying = true;
         cards.clear();
         transcript.replaceChildren();
@@ -318,6 +361,7 @@ function handle(frame) {
         for (const part of frame.data.partials || []) handle(part);
         for (const agent of frame.data.agents || []) handle(agent);
         replaying = false;
+        updatePauseCause();
         return;
     }
     if (frame.type === "current_settings" || frame.type === "settings_updated") {
@@ -327,7 +371,6 @@ function handle(frame) {
         return;
     }
     if (frame.type === "agent_state") {
-        agentID = frame.agent_id;
         document.querySelector("#state").textContent = frame.state;
         agentClosed = frame.state === "shutdown";
         document.querySelector("#pause").disabled = agentClosed || frame.state === "paused";
@@ -400,6 +443,8 @@ function handle(frame) {
 }
 function connect() {
     const endpoint = new URL("./ws", document.baseURI);
+    const relay = new URLSearchParams(location.search).get("agent_id");
+    if (relay !== null) endpoint.searchParams.set("agent_id", relay);
     endpoint.protocol = location.protocol === "https:" ? "wss:" : "ws:";
     socket = new WebSocket(endpoint);
     const connection = socket;
@@ -413,7 +458,10 @@ function connect() {
         if (connection !== socket) return;
         try {
             const frame = JSON.parse(event.data);
-            if (frame.type === "mcp") handleMcp(connection, frame);
+            if (frame.type === "connection") {
+                connection.relayAgentID = frame.relay_agent_id;
+                document.querySelector("#relay-agent").textContent = frame.relay_agent_id || "Original unnamed Agent";
+            } else if (frame.type === "mcp") handleMcp(connection, frame);
             else handle(frame);
         }
         catch { notice("An invalid display frame was refused."); }
@@ -435,6 +483,19 @@ function send(type, text = "") {
     notice("");
     return true;
 }
+document.querySelector("#agent-choice").onchange = event => {
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+        showAgents();
+        notice("Not connected; selection was not sent.");
+        return;
+    }
+    // Release this tab's old pause cause before asking the server to switch.
+    // The next replay can apply a still-present typing cause to the new view.
+    cancelSpeech(false);
+    if (localPauseCause) send("unpause");
+    localPauseCause = false;
+    socket.send(JSON.stringify({ type: "select_agent", agent_id: event.target.value }));
+};
 function submit(type) {
     const input = document.querySelector("#prompt");
     if (input.value.trim() && send(type, input.value)) {

@@ -33,7 +33,13 @@ public enum ToolKind
     SpawnSubAgent,
     AgentsStatus,
     GetSubAgentStatus,
-    InterruptAgent
+    InterruptAgent,
+    GetSubmission,
+    KillAgent,
+    SendMessage,
+    AskAgent,
+    WaitForAgent,
+    WaitForAgentChange
 }
 
 public sealed partial class Tool
@@ -78,6 +84,7 @@ public sealed partial class Tool
     private static partial JsonObject UsageValue(Usage counts);
     private static partial Task<string> JoinAgentsAsync(Job job, JsonElement args, CancellationToken cancellation);
     // Ordinary Jobs own question waits and joined child teardown.
+    private static partial object ChildOutputValue(ChildOutput output);
     private partial Task<string> ChildOperationAsync(Job job, JsonElement args, CancellationToken cancellation);
     public partial string Name();
     public partial JsonObject Declaration(Vendor vendor);

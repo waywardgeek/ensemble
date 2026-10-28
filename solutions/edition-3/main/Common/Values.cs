@@ -32,7 +32,7 @@ public enum Phase
 }
 public enum EventKind
 {
-    MessageReceived = 1, RequestSent, ResponseStarted, ResponseEnded, ToolCalled, ToolReturned, Redacted, ErrorOccurred, JobKilled, HintReceived, TurnInterrupted, TurnEnded, ToolObserved, ToolStarted, AgentPaused, AgentResumed, AgentShutdown, SkillLoaded, SkillUnloadPending, RuntimeConfigured, HandoffRecorded
+    MessageReceived = 1, RequestSent, ResponseStarted, ResponseEnded, ToolCalled, ToolReturned, Redacted, ErrorOccurred, JobKilled, HintReceived, TurnInterrupted, TurnEnded, ToolObserved, ToolStarted, AgentPaused, AgentResumed, AgentShutdown, SkillLoaded, SkillUnloadPending, RuntimeConfigured, HandoffRecorded, MemoryPopulated, MemoryRetired, CompressionLaunched, CompressionFinished
 }
 public enum Redaction
 {
@@ -255,12 +255,22 @@ public sealed partial class Event
     // including zero. Empty metadata means a historical/non-response event.
     public readonly long ResponseID;
     public readonly ImmutableArray<int> PartIDs;
+    // Captured data, never re-read from disk during pure reduction.
+    public readonly MemoryEntry? Memory;
+    public readonly MemoryRetirement? Retirement;
+    // Empty is an independent legacy fact. Explicit IDs never borrow another
+    // launch or fall back to an uncorrelated cut/population during replay.
+    public readonly string TaskID;
+    public readonly CompressionLaunch? Compression;
+    public readonly CompressionOutcome? Outcome;
     public partial Event(EventKind kind, long seq = 0, DateTimeOffset? time = null,
         Actor? actor = null, IEnumerable<Part>? parts = null, Provenance? from = null,
         Usage? usage = null, string callID = "", string name = "", JsonElement? args = null,
         bool isError = false, string error = "", long redactFrom = 0, long redactTo = 0,
         Redaction? level = null, string reason = "", JobInfo? job = null,
-        long responseID = 0, IEnumerable<int>? partIDs = null, IEnumerable<string>? toolReferences = null);
+        long responseID = 0, IEnumerable<int>? partIDs = null, IEnumerable<string>? toolReferences = null,
+        MemoryEntry? memory = null, MemoryRetirement? retirement = null, string taskID = "",
+        CompressionLaunch? compression = null, CompressionOutcome? outcome = null);
     // Attach finalized parser identities without altering canonical parts.
     public partial Event WithDisplay(long responseID, IEnumerable<int> partIDs);
     // Copy with History-assigned ordering; the original value is unchanged.
@@ -290,6 +300,12 @@ public sealed partial class Context
     public readonly ImmutableArray<Part> Ephemeral;
     public readonly Phase Phase;
     public readonly Usage Usage;
+    // Canonical band/chronological order, independent of dialogue/event order.
+    public readonly ImmutableArray<MemoryEntry> Memories;
+    // Replay receipt, not a live worker. Committed replacement and removal
+    // identity stay here until disk promotion/archival reaches a terminal outcome.
+    public readonly PendingCompression? Compression;
+    public readonly CompressionOutcome? CompressionOutcome;
     // Derived permission, not another registry. Without policy these queries
     // describe recorded grants. Admission/projection supply current launch policy
     // to narrow them. Pending or disabled manuals retain their historical bodies
@@ -297,7 +313,8 @@ public sealed partial class Context
     public partial ImmutableHashSet<string> EnabledTools(Configuration? policy = null);
     public partial ImmutableHashSet<string> RevokedTools(Configuration? policy = null);
     public partial Context(IEnumerable<Entry>? dialogue = null, IEnumerable<Part>? ephemeral = null,
-        Phase phase = Phase.Idle, Usage? usage = null);
+        Phase phase = Phase.Idle, Usage? usage = null, IEnumerable<MemoryEntry>? memories = null,
+        PendingCompression? compression = null, CompressionOutcome? compressionOutcome = null);
 }
 
 // Value-like atomic read, not another authoritative transcript.

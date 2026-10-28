@@ -192,11 +192,40 @@ try
         AssetsDirectory: hostFlags.GetValueOrDefault("--gui-dir"),
         SettingsPath: hostFlags.GetValueOrDefault("--settings", defaultSettings),
         TracePath: Env("CH07_GUI_LOG") is { Length: > 0 } guiLog ? guiLog : Path.Combine(actorHome, "gui.log"));
-    await Gui.RunAsync(agent, guiOptions);
+    // Fleet restoration belongs to this application composition root, not the
+    // reusable GUI mount, which only borrows the Agent supplied by its caller.
+    // A browser-dependent peer cannot finish startup before its own relay can
+    // connect. Serve first, then restore alongside it; neither borrows the
+    // initial Agent's browser. The tree exposes pending peers for a dedicated tab.
+    using var fleetStop = new CancellationTokenSource();
+    Task serving = Gui.RunAsync(agent, guiOptions, fleetStop.Token);
+    Task restoring = app.RestorePeersAsync(agent, fleetStop.Token, waitForBrowser: true);
+    Task first = await Task.WhenAny(serving, restoring);
+    if (ReferenceEquals(first, restoring) && restoring.IsCompletedSuccessfully)
+    {
+        // Wait for serving to finish without choosing one failure before both
+        // lifetimes are joined below. Task.WhenAny observes completion only.
+        await Task.WhenAny(serving);
+    }
+    fleetStop.Cancel();
+    Task joined = Task.WhenAll(serving, restoring);
+    try
+    {
+        await joined;
+    }
+    catch (OperationCanceledException) when (fleetStop.IsCancellationRequested)
+    {
+        // Host exit cancels a peer still waiting for its independent browser.
+    }
+    catch when (joined.Exception is not null)
+    {
+        // If startup and hosting both fail, retain both causes after cleanup.
+        throw joined.Exception;
+    }
     await agent.ShutdownAsync();
     return 0;
 }
-catch (Exception error) when (error is ArgumentException or IOException or InvalidDataException or InvalidOperationException or FormatException or OverflowException)
+catch (Exception error) when (error is ArgumentException or IOException or InvalidDataException or InvalidOperationException or FormatException or OverflowException or AggregateException)
 {
     Console.Error.WriteLine("GUI failed: " + error.GetType().Name);
     return 1;

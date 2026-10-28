@@ -34,7 +34,7 @@ func run() int {
 	cacheCurrent := flag.String("cache-current", "cr/cache-current.txt", "Chapter 15 current capture relative to scratch cwd")
 	cachePrior := flag.String("cache-prior", "cr/cache-prior.txt", "Chapter 15 prior capture relative to scratch cwd")
 	cachePrices := flag.String("cache-prices", "2,2.5,0.2,10", "Chapter 15 Sonnet-5 dollars/million: fresh,write,read,output (accepted October 11 table)")
-	fleetSkills := flag.String("fleet-skills", "", "Chapter 20 executable scope: absolute shipped skill directory")
+	fleetSkills := flag.String("fleet-skills", "", "Chapters 20/21 executable scope: absolute shipped skill directory")
 	statusSkills := flag.String("status-skills", "", "Chapter 18 executable scope: shipped skill directory")
 	statusPrices := flag.String("status-prices", "2,2.5,0.2,10", "Chapter 18 Sonnet-5 dollars/million: fresh,write,read,output")
 	statusSecondPrices := flag.String("status-second-prices", "unknown", "Chapter 18 Opus 4.6 rates in same order, or unknown (frozen accepted table)")
@@ -54,16 +54,16 @@ func run() int {
 		fmt.Fprintln(os.Stderr, "-jobs-only requires Chapter 4 and excludes consumer flags")
 		return 2
 	}
-	if *executableOnly && ((*chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 14 && *chapter != 15 && *chapter != 16 && *chapter != 18 && *chapter != 19 && *chapter != 20) || *jobsOnly || *consumer != "" || *consumerCase != "" || *workflow != "" || (*chapter == 6 && *streamExercise == "") || ((*chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 14 || *chapter == 15 || *chapter == 16 || *chapter == 18) && *gui == "")) {
-		fmt.Fprintln(os.Stderr, "-executable-only requires Chapter 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19 or 20, excludes jobs-only/consumer/workflow flags; Chapter 6 requires -stream-exercise EXECUTABLE; Chapters 7/8/9 require -gui STATIC-DIRECTORY; Chapters 14/15/16/18 require -gui EXECUTABLE; Chapter 18 also requires -status-skills DIRECTORY")
+	if *executableOnly && ((*chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 14 && *chapter != 15 && *chapter != 16 && *chapter != 18 && *chapter != 19 && *chapter != 20 && *chapter != 21) || *jobsOnly || *consumer != "" || *consumerCase != "" || *workflow != "" || (*chapter == 6 && *streamExercise == "") || ((*chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 14 || *chapter == 15 || *chapter == 16 || *chapter == 18) && *gui == "")) {
+		fmt.Fprintln(os.Stderr, "-executable-only requires Chapter 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20 or 21, excludes jobs-only/consumer/workflow flags; Chapter 6 requires -stream-exercise EXECUTABLE; Chapters 7/8/9 require -gui STATIC-DIRECTORY; Chapters 14/15/16/18 require -gui EXECUTABLE; Chapter 18 also requires -status-skills DIRECTORY")
 		return 2
 	}
 	if *executableOnly && *chapter == 19 && (*gui != "" || *sandboxLibrary != "ensemble") {
 		fmt.Fprintln(os.Stderr, "Chapter 19 -executable-only excludes GUI and Go sandbox-library flags")
 		return 2
 	}
-	if (*fleetSkills != "" && (!*executableOnly || *chapter != 20)) || (*executableOnly && *chapter == 20 && (!filepath.IsAbs(*fleetSkills) || *gui != "" || *reuseLegacy)) {
-		fmt.Fprintln(os.Stderr, "grader: Chapter 20 executable scope requires an absolute -fleet-skills and excludes GUI/Go consumer flags")
+	if (*fleetSkills != "" && (!*executableOnly || (*chapter != 20 && *chapter != 21))) || (*executableOnly && (*chapter == 20 || *chapter == 21) && (!filepath.IsAbs(*fleetSkills) || *gui != "" || *reuseLegacy)) {
+		fmt.Fprintln(os.Stderr, "grader: Chapters 20/21 executable scope requires an absolute -fleet-skills and excludes GUI/Go consumer flags")
 		return 2
 	}
 	if (*statusSkills != "" && (!*executableOnly || *chapter != 18)) || (*executableOnly && *chapter == 18 && *statusSkills == "") {
@@ -125,7 +125,11 @@ func run() int {
 	case 26:
 		report, err = gradeedition2.Chapter26(bin, path, *gatewayWelcome)
 	case 21:
-		report, err = gradeedition2.Chapter21(bin, *gui)
+		if *executableOnly {
+			report, err = gradeedition2.Chapter21Executable(bin, *fleetSkills)
+		} else {
+			report, err = gradeedition2.Chapter21(bin, *gui)
+		}
 	case 20:
 		if *executableOnly {
 			report, err = gradeedition2.Chapter20Executable(bin, *fleetSkills)

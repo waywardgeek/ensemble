@@ -353,7 +353,9 @@ public sealed partial class Event
     public partial Event(EventKind kind, long seq, DateTimeOffset? time, Actor? actor, IEnumerable<Part>? parts,
         Provenance? from, Usage? usage, string callID, string name, JsonElement? args, bool isError,
         string error, long redactFrom, long redactTo, Redaction? level, string reason, JobInfo? job,
-        long responseID, IEnumerable<int>? partIDs, IEnumerable<string>? toolReferences)
+        long responseID, IEnumerable<int>? partIDs, IEnumerable<string>? toolReferences,
+        MemoryEntry? memory, MemoryRetirement? retirement, string taskID,
+        CompressionLaunch? compression, CompressionOutcome? outcome)
     {
         if (!Enum.IsDefined(kind) || (actor.HasValue && !Enum.IsDefined(actor.Value)))
         {
@@ -365,6 +367,24 @@ public sealed partial class Event
             throw new ArgumentException("Negative sequence");
         }
 
+        if ((memory is not null && kind != EventKind.MemoryPopulated)
+            || (retirement is not null && kind != EventKind.MemoryRetired))
+        {
+            throw new ArgumentException("Memory payload does not match event kind");
+        }
+        ArgumentNullException.ThrowIfNull(taskID);
+        if ((compression is not null && kind != EventKind.CompressionLaunched)
+            || (outcome is not null && kind != EventKind.CompressionFinished)
+            || (taskID.Length != 0 && (string.IsNullOrWhiteSpace(taskID)
+                || kind is not (EventKind.Redacted or EventKind.MemoryPopulated or EventKind.MemoryRetired))))
+        {
+            throw new ArgumentException("Compression payload does not match event kind");
+        }
+        Memory = memory;
+        Retirement = retirement;
+        TaskID = taskID;
+        Compression = compression;
+        Outcome = outcome;
         Kind = kind;
         Seq = seq;
         Time = time;
@@ -416,11 +436,11 @@ public sealed partial class Event
         }
     }
 
-    public partial Event Numbered(long seq, DateTimeOffset time) => new(Kind, seq, time, Actor, Parts, From, Usage, CallID, Name, Args, IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, ResponseID, PartIDs, ToolReferences);
+    public partial Event Numbered(long seq, DateTimeOffset time) => new(Kind, seq, time, Actor, Parts, From, Usage, CallID, Name, Args, IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, ResponseID, PartIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome);
 
     public partial Event WithDisplay(long responseID, IEnumerable<int> partIDs) =>
         new(Kind, Seq, Time, Actor, Parts, From, Usage, CallID, Name, Args,
-            IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, responseID, partIDs, ToolReferences);
+            IsError, Error, RedactFrom, RedactTo, Level, Reason, Job, responseID, partIDs, ToolReferences, Memory, Retirement, TaskID, Compression, Outcome);
 }
 public sealed partial class Entry
 {
@@ -446,7 +466,8 @@ public sealed partial class Entry
 }
 public sealed partial class Context
 {
-    public partial Context(IEnumerable<Entry>? dialogue, IEnumerable<Part>? ephemeral, Phase phase, Usage? usage)
+    public partial Context(IEnumerable<Entry>? dialogue, IEnumerable<Part>? ephemeral, Phase phase, Usage? usage,
+        IEnumerable<MemoryEntry>? memories, PendingCompression? compression, CompressionOutcome? compressionOutcome)
     {
         if (!Enum.IsDefined(phase))
         {
@@ -457,6 +478,25 @@ public sealed partial class Context
         Ephemeral = ephemeral?.ToImmutableArray() ?? [];
         Phase = phase;
         Usage = usage ?? new Usage();
+        if (compression is not null && compressionOutcome?.TaskID == compression.Launch.TaskID)
+        {
+            throw new ArgumentException("Compression cannot be both pending and terminal");
+        }
+        Compression = compression;
+        CompressionOutcome = compressionOutcome;
+        // Capture once: callers may supply a mutable or one-shot enumerable.
+        var capturedMemories = memories?.ToImmutableArray() ?? [];
+        if (capturedMemories.Any(item => item is null))
+        {
+            throw new ArgumentException("Null memory entry", nameof(memories));
+        }
+        // Memory order is independent of which scan or worker completed first.
+        Memories = capturedMemories.OrderBy(item => item.Band)
+            .ThenBy(item => item.Timestamp).ThenBy(item => item.ID, StringComparer.Ordinal).ToImmutableArray();
+        if (Memories.Select(item => (item.Band, item.ID)).Distinct().Count() != Memories.Length)
+        {
+            throw new ArgumentException("Duplicate memory identity", nameof(memories));
+        }
     }
 }
 

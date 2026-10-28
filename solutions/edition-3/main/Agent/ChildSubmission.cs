@@ -74,6 +74,14 @@ public sealed partial class Agent
 
     private partial JsonElement StoreSubmission(JsonElement validated)
     {
+        Agent? owner;
+        lock (ingress)
+        {
+            owner = agentParent;
+        }
+        // Resolve provenance before taking child ingress. Walking to a parent
+        // while holding the child lock would invert construction's lock order.
+        string? parentAddress = owner?.Address();
         lock (ingress)
         {
             ObjectDisposedException.ThrowIf(destroyed || destroying || admissionClosed, this);
@@ -100,13 +108,19 @@ public sealed partial class Agent
             // a recovery artifact, not a Markdown rendering or a chat echo.
             string row = JsonSerializer.Serialize(new
             {
-                version = 1,
+                version = 2,
                 agent_id = childID,
+                parent_address = parentAddress,
                 generation = admittedWorkGeneration,
                 submit_schema = submissionContract.Schema(),
                 payload = validated
             }) + "\n";
-            Sandbox().ReplaceFile(path, Encoding.UTF8.GetBytes(row));
+            byte[] bytes = Encoding.UTF8.GetBytes(row);
+            if (bytes.Length > SubmissionArtifactBytes)
+            {
+                throw new ArgumentException("Submission artifact byte limit exceeded.");
+            }
+            Sandbox().ReplaceFile(path, bytes);
             // Publication is last. Validation, open, flush or rename refusal
             // leaves the earlier visible completion and saved file intact.
             submittedPayload = validated;

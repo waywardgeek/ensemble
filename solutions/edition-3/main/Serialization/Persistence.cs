@@ -24,7 +24,10 @@ public static partial class JsonCodec
             ["dialogue"] = dialogue,
             ["ephemeral"] = new JsonArray(context.Ephemeral.Select(WritePart).ToArray()),
             ["usage"] = WriteUsage(context.Usage),
-            ["phase"] = Label(context.Phase)
+            ["phase"] = Label(context.Phase),
+            ["memories"] = new JsonArray(context.Memories.Select(item => (JsonNode?)WriteMemory(item)).ToArray()),
+            ["compression"] = context.Compression is null ? null : WritePendingCompression(context.Compression),
+            ["compression_outcome"] = context.CompressionOutcome is null ? null : WriteCompressionOutcome(context.CompressionOutcome)
         };
     }
 
@@ -64,7 +67,18 @@ public static partial class JsonCodec
             }
         }
         var usage = ReadUsage(usageValue);
-        return new Context(entries, ephemeral, phase, usage);
+        // Older snapshots predate memory bands and remain readable.
+        var memories = value.TryGetProperty("memories", out var corpus)
+            ? corpus.EnumerateArray().Select(ReadMemory).ToImmutableArray() : [];
+        var compression = value.TryGetProperty("compression", out var pending) && pending.ValueKind != JsonValueKind.Null
+            ? ReadPendingCompression(pending) : null;
+        var outcome = value.TryGetProperty("compression_outcome", out var terminal) && terminal.ValueKind != JsonValueKind.Null
+            ? ReadCompressionOutcome(terminal) : null;
+        if (compression is not null && (compression.Launch.To > sequence || compression.Removal?.Seq > sequence))
+        {
+            throw new FormatException("Compression selection exceeds snapshot boundary");
+        }
+        return new Context(entries, ephemeral, phase, usage, memories, compression, outcome);
     }
 
     public static partial string WriteSave(SaveDocument document)

@@ -51,12 +51,17 @@ public sealed partial class Agent
         {
             "spawn_sub_agent" => "Observing delegated work",
             "join_agents" => "Waiting for child submissions",
+            "shutdown_agent" => "Waiting for child quiescence",
+            "ask_agent" => "Waiting for a child reply",
+            "wait_for_agent" => "Waiting for child output",
+            "wait_for_agent_change" => "Waiting for child progress",
             "send_message_to_parent" => "Waiting for a reply",
             "wait_for_job" => "Observing a Job",
             _ => "Executing a tool"
         };
         WorkPhase phase = call.Name is "spawn_sub_agent" or "join_agents"
-            or "send_message_to_parent" or "wait_for_job"
+            or "send_message_to_parent" or "wait_for_job" or "shutdown_agent" or "ask_agent"
+            or "wait_for_agent" or "wait_for_agent_change"
             ? WorkPhase.Waiting : WorkPhase.ToolCall;
         return new WorkActivity(phase, call.Name, detail);
     }

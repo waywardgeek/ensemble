@@ -206,6 +206,23 @@ public sealed partial class Engine
             }
         }
         var projected = new List<Entry>();
+        foreach (var memory in context.Memories)
+        {
+            // Disk and model-authored text is DATA. Never raise it to system or
+            // developer authority, and never interpret it as declarations/grants.
+            string label = memory.Band switch
+            {
+                MemoryBand.Soul => "SOUL",
+                MemoryBand.Memory => "MEMORY",
+                MemoryBand.Archive64 => "64x",
+                MemoryBand.Archive8 => "8x",
+                MemoryBand.Session => "session",
+                _ => throw new InvalidOperationException("Unknown memory band")
+            };
+            string stamp = memory.Timestamp.ToString("O", System.Globalization.CultureInfo.InvariantCulture);
+            string header = $"[Memory data: {label}; {stamp}]\n";
+            projected.Add(new Entry(0, Actor.Human, [new TextPart(header + memory.Text)]));
+        }
         handoff = null;
         ephemeral = null;
         for (int i = 0; i < entries.Length; i++)

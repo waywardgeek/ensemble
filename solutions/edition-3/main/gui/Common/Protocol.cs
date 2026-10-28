@@ -37,6 +37,10 @@ public static partial class Gui
     private static partial void MapAuth(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
         Microsoft.AspNetCore.Routing.IEndpointRouteBuilder? callbackRoutes,
         Agent agent, int port, CancellationToken stopping);
+    // Trusted mounted peer controls use HTTP so browser-dependent construction
+    // cannot block the WebSocket carrying that peer's initialization replies.
+    private static partial void MapPeers(Microsoft.AspNetCore.Routing.IEndpointRouteBuilder routes,
+        Agent source, int port, CancellationToken stopping);
     // Current-process accounting comes from Engine, never reconstructed from replay.
     public static partial JsonObject MeterFrame(Agent agent);
     // Replay and live durable delivery use this exact same projection.

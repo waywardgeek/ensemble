@@ -103,10 +103,10 @@ public static partial class Gui
         // Operation-scoped I/O state. The Agent remains owned by its Ensemble.
         // Queues and socket lifetimes end when ServeAsync ends; no socket is ever
         // stored on Agent or used to decide whether a model turn is complete.
-        string agentID = agent.Name ?? "root";
+        static string AddressOf(Agent target) => target.Address() ?? "";
         object gate = new();
         // Notification deduplication only; Engine remains the accounting authority.
-        string? lastMeterWire = null;
+        var lastMeterWire = new Dictionary<Agent, string>();
         string tracePath = options.TracePath;
         using var trace = new StreamWriter(agent.Sandbox().OpenFile(
             tracePath, FileMode.Append, FileAccess.Write)) { AutoFlush = true };
@@ -116,8 +116,12 @@ public static partial class Gui
             // diagnostic policy before bytes reach this caller-owned writer.
             agent.Parent().Log($"{direction} {json}", trace);
         }
-        var peers = new Dictionary<WebSocket, (Channel<string> Queue, long Cursor)>();
-        var partials = new Dictionary<string, JsonObject>(StringComparer.Ordinal);
+        var peers = new Dictionary<WebSocket, (Channel<string> Queue, Agent Selected, long Cursor)>();
+        // One reader and preview buffer per viewed conversation. A tab switch
+        // never makes two readers compete for the Agent's lossy observation queue.
+        var previews = new Dictionary<Agent, Dictionary<string, JsonObject>>();
+        var observers = new Dictionary<Agent, Task>();
+        JsonObject? latestTree = null;
         using var stopping = CancellationTokenSource.CreateLinkedTokenSource(
             cancellation, host.Lifetime.ApplicationStopping);
         int activeRequests = 0;
@@ -169,29 +173,41 @@ public static partial class Gui
             ((IEndpointConventionBuilder)callbackRoutes).Add(GuardEndpoint);
         }
         MapAuth(routes, callbackRoutes, agent, port, stopping.Token);
+        MapPeers(routes, agent, port, stopping.Token);
         MapAssets(routes, options.AssetsDirectory);
-        var manager = agent.Mcp() ?? new Mcp(agent);
-        var browserConnected = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var initialMcp = agent.EnsureMcp();
 
-        JsonObject State(Projection projection) => new()
+        JsonObject State(Agent selected, Projection projection) => new()
         {
-            ["type"] = "agent_state", ["agent_id"] = agentID,
-            ["name"] = agentID, ["state"] = projection.State
+            ["type"] = "agent_state", ["agent_id"] = AddressOf(selected),
+            ["name"] = selected.ChildID() ?? selected.Name ?? "(unnamed)", ["state"] = projection.State
         };
 
         // Must be called under gate. TryWrite never waits on a browser.
-        void Queue(WebSocket socket, Channel<string> queue, JsonObject frame)
+        bool Queue(WebSocket socket, Channel<string> queue, JsonObject frame)
         {
             if (!queue.Writer.TryWrite(frame.ToJsonString()))
             {
                 queue.Writer.TryComplete();
                 socket.Abort();
+                return false;
             }
+            return true;
         }
 
-        (HistorySnapshot Snapshot, Projection Projection) Capture(long? through = null)
+        // Called under gate. Readers are operation-scoped and joined on exit;
+        // retaining a projection never grants ownership of its Agent.
+        void ObserveOnce(Agent selected)
         {
-            var snapshot = agent.History().Snapshot();
+            if (observers.ContainsKey(selected)) return;
+            previews.Add(selected, new Dictionary<string, JsonObject>(StringComparer.Ordinal));
+            observers.Add(selected, Task.Run(() => Observe(selected)));
+        }
+
+        (HistorySnapshot Snapshot, Projection Projection) Capture(Agent selected, long? through = null)
+        {
+            var partials = previews[selected];
+            var snapshot = selected.History().Snapshot();
             if (through is long sequence)
             {
                 snapshot = snapshot with
@@ -201,7 +217,7 @@ public static partial class Gui
                     Sequence = Math.Min(snapshot.Sequence, sequence)
                 };
             }
-            var projection = Project(snapshot, agentID);
+            var projection = Project(snapshot, AddressOf(selected));
             // A completed response retires its previews even when a mid-turn
             // cut removes the corresponding final tool cards from Context.
             long ended = snapshot.Events.LastOrDefault(e =>
@@ -217,39 +233,42 @@ public static partial class Gui
             return (snapshot, projection);
         }
 
-        JsonObject Replay(Projection projection) => new()
+        JsonObject Replay(Agent selected, Projection projection) => new()
         {
-            ["type"] = "replay", ["data"] = new JsonObject
+            ["type"] = "replay", ["agent_id"] = AddressOf(selected), ["data"] = new JsonObject
             {
                 ["events"] = new JsonArray(projection.Frames.Select(frame => (JsonNode)frame.DeepClone()).ToArray()),
-                ["partials"] = new JsonArray(partials.Values.Select(frame => (JsonNode)frame.DeepClone()).ToArray()),
-                ["agents"] = new JsonArray(State(projection))
+                ["partials"] = new JsonArray(previews[selected].Values.Select(frame => (JsonNode)frame.DeepClone()).ToArray()),
+                ["agents"] = new JsonArray(State(selected, projection))
             }
         };
 
-        void Broadcast(Observation? observation)
+        void Broadcast(Agent selected, Observation? observation)
         {
             lock (gate)
             {
-                var meter = MeterFrame(agent);
+                var partials = previews[selected];
+                string agentID = AddressOf(selected);
+                var meter = MeterFrame(selected);
                 string meterWire = meter.ToJsonString();
-                if (meterWire != lastMeterWire)
+                if (!lastMeterWire.TryGetValue(selected, out string? previousMeter) || meterWire != previousMeter)
                 {
                     foreach (var (socket, peer) in peers.ToArray())
                     {
-                        Queue(socket, peer.Queue, meter);
+                        if (peer.Selected == selected) Queue(socket, peer.Queue, meter);
                     }
-                    lastMeterWire = meterWire;
+                    lastMeterWire[selected] = meterWire;
                 }
                 long? through = observation?.Fact?.Seq;
                 if (observation?.Kind == ObservationKind.PartDelta)
                 {
                     through = observation.ResponseID;
                 }
-                var (snapshot, projection) = Capture(through);
+                var (snapshot, projection) = Capture(selected, through);
                 long latest = snapshot.Sequence;
                 foreach (var (socket, peer) in peers.ToArray())
                 {
+                    if (peer.Selected != selected) continue;
                     bool reduced = snapshot.Events.Any(fact => fact.Seq > peer.Cursor
                         && fact.Kind is EventKind.Redacted or EventKind.HandoffRecorded);
                     bool missedTail = latest > peer.Cursor && (snapshot.Events.IsEmpty
@@ -259,7 +278,7 @@ public static partial class Gui
                         // A cut changes older card contents/identities, not just
                         // the newest sequence. Reuse silent replay rather than
                         // leave stale cards or invent a second transcript store.
-                        Queue(socket, peer.Queue, Replay(projection));
+                        Queue(socket, peer.Queue, Replay(selected, projection));
                     }
                     else
                     {
@@ -273,8 +292,8 @@ public static partial class Gui
                     }
                     if (latest > peer.Cursor)
                     {
-                        Queue(socket, peer.Queue, State(projection));
-                        peers[socket] = (peer.Queue, latest);
+                        Queue(socket, peer.Queue, State(selected, projection));
+                        peers[socket] = (peer.Queue, selected, latest);
                     }
                 }
                 if (observation?.Kind != ObservationKind.PartDelta || observation.PartID is not int partID)
@@ -311,12 +330,12 @@ public static partial class Gui
                 {
                     partials[id] = (JsonObject)delta.DeepClone();
                 }
-                long finalizedAt = agent.History().Snapshot().Events
+                long finalizedAt = selected.History().Snapshot().Events
                     .FirstOrDefault(e => e.Kind == EventKind.ResponseEnded && e.ResponseID == observation.ResponseID)?.Seq
                     ?? long.MaxValue;
                 foreach (var (socket, peer) in peers)
                 {
-                    if (peer.Cursor < finalizedAt)
+                    if (peer.Selected == selected && peer.Cursor < finalizedAt)
                     {
                         Queue(socket, peer.Queue, delta);
                     }
@@ -324,7 +343,7 @@ public static partial class Gui
             }
         }
 
-        async Task Observe()
+        async Task Observe(Agent selected)
         {
             while (!stopping.IsCancellationRequested)
             {
@@ -333,21 +352,101 @@ public static partial class Gui
                 Observation? observation = null;
                 try
                 {
-                    observation = await agent.WaitAsync(_ => true, wait.Token);
+                    observation = await selected.WaitAsync(_ => true, wait.Token);
                 }
                 catch (OperationCanceledException) when (!stopping.IsCancellationRequested)
                 {
                     // Recover durable facts even if every progress wake-up was dropped.
                 }
-                catch (ChannelClosedException)
-                {
-                    return;
-                }
+                catch (ChannelClosedException) { return; }
+                catch (ObjectDisposedException) { return; }
                 if (!stopping.IsCancellationRequested &&
                     (observation is null || observation.Kind is ObservationKind.EventRecorded or ObservationKind.PartDelta))
                 {
-                    Broadcast(observation);
+                    try { Broadcast(selected, observation); }
+                    catch (ObjectDisposedException) { return; }
                 }
+            }
+        }
+
+        bool Select(WebSocket socket, Channel<string> queue, Agent target)
+        {
+            lock (gate)
+            {
+                ObserveOnce(target);
+                var (snapshot, projection) = Capture(target);
+                // A single bounded queue item contains the entire replay.
+                // Publish selection only after nonblocking admission succeeds.
+                if (!Queue(socket, queue, Replay(target, projection))) return false;
+                peers[socket] = (queue, target, snapshot.Sequence);
+                Queue(socket, queue, MeterFrame(target));
+                Queue(socket, queue, State(target, projection));
+                Queue(socket, queue, new JsonObject
+                {
+                    ["type"] = "current_settings", ["agent_id"] = AddressOf(target),
+                    ["settings"] = Settings(preferences, target.MaxToolRounds(), target.ContextByteBudget())
+                });
+                if (latestTree is not null) Queue(socket, queue, latestTree);
+                return true;
+            }
+        }
+
+        async Task RefreshTree()
+        {
+            while (!stopping.IsCancellationRequested)
+            {
+                var rows = new JsonArray();
+                var present = new HashSet<Agent>();
+                async Task Visit(AgentTreeNode node, string? parent)
+                {
+                    try
+                    {
+                        var status = await node.Agent.WorkStatusAsync(stopping.Token);
+                        present.Add(node.Agent);
+                        rows.Add(new JsonObject
+                        {
+                            // Only this mount's initial Agent has a local empty
+                            // address. Other unnamed roots remain unaddressable.
+                            ["key"] = node.Address ?? (ReferenceEquals(node.Agent, agent) ? "" : null),
+                            ["id"] = node.Agent.ChildID() ?? node.Agent.Name ?? "(unnamed)",
+                            ["parent"] = parent,
+                            ["state"] = status.Activity.ToString().ToLowerInvariant(),
+                            ["paused"] = status.Paused,
+                            ["submitted"] = status.Submitted,
+                            ["phase"] = status.Work?.Phase.ToString().ToLowerInvariant() ?? "idle",
+                            ["tool"] = status.Work?.Tool ?? "",
+                            ["detail"] = status.Work?.Detail ?? ""
+                        });
+                    }
+                    catch (ObjectDisposedException) { return; }
+                    foreach (var child in node.Children) await Visit(child, node.Address);
+                }
+                // Never hold the socket gate while awaiting an actor query.
+                foreach (var root in agent.Parent().AgentTree()) await Visit(root, null);
+                var frame = new JsonObject { ["type"] = "agent_tree", ["agents"] = rows };
+                lock (gate)
+                {
+                    // Deletion removes an owned conversation, not a socket's
+                    // fixed browser relay. Admit a fresh default replay before
+                    // changing displays whose selected Agent has disappeared.
+                    foreach (var (socket, peer) in peers.ToArray())
+                    {
+                        if (present.Contains(peer.Selected)) continue;
+                        // The tree was captured before its asynchronous status
+                        // queries. A newly created/selected Agent may be newer
+                        // than that snapshot; recheck current ownership first.
+                        string? address = peer.Selected.Address();
+                        if (address is not null && ReferenceEquals(agent.Parent().FindAgentAddress(address), peer.Selected)) continue;
+                        Select(socket, peer.Queue, agent);
+                    }
+                    if (latestTree is null || frame.ToJsonString() != latestTree.ToJsonString())
+                    {
+                        latestTree = frame;
+                        foreach (var (socket, peer) in peers) Queue(socket, peer.Queue, frame);
+                    }
+                }
+                // Coalesce activity bursts; this also finds membership-only changes.
+                await Task.Delay(200, stopping.Token);
             }
         }
 
@@ -362,6 +461,22 @@ public static partial class Gui
                 http.Response.StatusCode = StatusCodes.Status403Forbidden;
                 return;
             }
+            // Relay identity is chosen at connection admission and never follows
+            // display selection. A separate tab may explicitly serve another Agent.
+            Agent relayAgent = agent;
+            if (http.Request.Query.TryGetValue("agent_id", out var requested))
+            {
+                Agent? found = requested.Count == 1
+                    ? agent.Parent().FindAgentAddress(requested[0] ?? "") : null;
+                if (found is null)
+                {
+                    http.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    return;
+                }
+                relayAgent = found;
+            }
+            var manager = relayAgent.EnsureMcp();
+            string relayID = AddressOf(relayAgent);
             using var socket = await http.WebSockets.AcceptWebSocketAsync();
             using var lifetime = CancellationTokenSource.CreateLinkedTokenSource(
                 stopping.Token, http.RequestAborted, host.Lifetime.ApplicationStopping);
@@ -369,36 +484,8 @@ public static partial class Gui
             {
                 FullMode = BoundedChannelFullMode.Wait, SingleReader = true, SingleWriter = false
             });
-            await using var tunnel = new McpTunnel(queue.Writer, agentID);
+            await using var tunnel = new McpTunnel(queue.Writer, relayID);
             McpBrowser? browser = null;
-            lock (gate)
-            {
-                // First connected tab is the one active browser target. Other
-                // tabs still observe/control this Agent, but cannot inject RPC.
-                if (ReferenceEquals(agent.Mcp(), manager) && manager.Browser() is null)
-                {
-                    try
-                    {
-                        browser = new McpBrowser(manager, tunnel);
-                        browserConnected.TrySetResult();
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        // Agent shutdown may close admission concurrently.
-                        // This socket can still observe the finalized replay.
-                    }
-                }
-                var (snapshot, projection) = Capture();
-                peers.Add(socket, (queue, snapshot.Sequence));
-                Queue(socket, queue, Replay(projection));
-                Queue(socket, queue, MeterFrame(agent));
-                Queue(socket, queue, State(projection));
-                Queue(socket, queue, new JsonObject
-                {
-                    ["type"] = "current_settings",
-                    ["settings"] = Settings(preferences, agent.MaxToolRounds(), agent.ContextByteBudget())
-                });
-            }
             async Task Send()
             {
                 await foreach (string frame in queue.Reader.ReadAllAsync(lifetime.Token))
@@ -410,6 +497,28 @@ public static partial class Gui
             var sender = Send();
             try
             {
+                lock (gate)
+                {
+                    Queue(socket, queue, new JsonObject
+                    {
+                        ["type"] = "connection", ["relay_agent_id"] = relayID
+                    });
+                    // First tab for this relay Agent is its active browser. Viewing
+                    // another conversation never destroys that attachment or its clients.
+                    if (ReferenceEquals(relayAgent.Mcp(), manager) && manager.Browser() is null)
+                    {
+                        try
+                        {
+                            browser = new McpBrowser(manager, tunnel);
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            // Agent shutdown may close admission concurrently.
+                            // This socket can still observe the finalized replay.
+                        }
+                    }
+                }
+                if (!Select(socket, queue, relayAgent)) return;
                 var buffer = new byte[8192];
                 while (!lifetime.IsCancellationRequested)
                 {
@@ -434,12 +543,17 @@ public static partial class Gui
                         using var json = JsonDocument.Parse(content.ToArray());
                         Trace(">", json.RootElement.GetRawText());
                         var command = json.RootElement;
-                        if (command.TryGetProperty("agent_id", out var target)
-                            && (target.ValueKind != JsonValueKind.String || target.GetString() != agentID))
+                        string type = command.GetProperty("type").GetString() ?? "";
+                        // Capture the acknowledged display target for this command.
+                        // Tree recovery may change future admissions, never this one.
+                        Agent selected;
+                        lock (gate) selected = peers[socket].Selected;
+                        string expectedID = type == "mcp" ? relayID : AddressOf(selected);
+                        if (type != "select_agent" && command.TryGetProperty("agent_id", out var target)
+                            && (target.ValueKind != JsonValueKind.String || target.GetString() != expectedID))
                         {
                             throw new InvalidDataException("Command targets a different Agent.");
                         }
-                        string type = command.GetProperty("type").GetString() ?? "";
                         string text = command.TryGetProperty("text", out var t) ? t.GetString() ?? "" : "";
                         switch (type)
                         {
@@ -450,6 +564,13 @@ public static partial class Gui
                                 }
                                 tunnel.Accept(command.GetProperty("data"));
                                 break;
+                            case "select_agent":
+                                string address = command.GetProperty("agent_id").GetString() ?? "";
+                                Agent? choice = address.Length == 0 && agent.Address() is null
+                                    ? agent : agent.Parent().FindAgentAddress(address);
+                                if (choice is null) throw new InvalidDataException("Unknown Agent address.");
+                                Select(socket, queue, choice);
+                                break;
                             case "subscribe":
                                 // The initial snapshot is already queued atomically
                                 // with registration. Subscription is idempotent.
@@ -459,28 +580,31 @@ public static partial class Gui
                                 {
                                     Queue(socket, queue, new JsonObject
                                     {
-                                        ["type"] = "current_settings",
-                                        ["settings"] = Settings(preferences, agent.MaxToolRounds(), agent.ContextByteBudget())
+                                        ["type"] = "current_settings", ["agent_id"] = AddressOf(selected),
+                                        ["settings"] = Settings(preferences, selected.MaxToolRounds(), selected.ContextByteBudget())
                                     });
                                 }
                                 break;
                             case "update_settings":
                                 lock (gate)
                                 {
-                                    var candidate = MergeSettings(command.GetProperty("settings"), preferences, agent.MaxToolRounds(), agent.ContextByteBudget());
+                                    var candidate = MergeSettings(command.GetProperty("settings"), preferences, selected.MaxToolRounds(), selected.ContextByteBudget());
                                     var saved = Settings(candidate.Preferences, candidate.Budget, candidate.ContextTarget);
                                     try
                                     {
                                         // Serialize save/publication across clients. Only after
                                         // replacement succeeds may new turns see the new policy.
                                         SaveSettings(agent, settingsPath, saved);
-                                        agent.SetMaxToolRounds(candidate.Budget);
-                                        agent.SetContextByteBudget(candidate.ContextTarget);
+                                        selected.SetMaxToolRounds(candidate.Budget);
+                                        selected.SetContextByteBudget(candidate.ContextTarget);
                                         preferences = candidate.Preferences;
-                                        var frame = new JsonObject { ["type"] = "settings_updated", ["settings"] = saved };
                                         foreach (var (peerSocket, peer) in peers.ToArray())
                                         {
-                                            Queue(peerSocket, peer.Queue, frame);
+                                            Queue(peerSocket, peer.Queue, new JsonObject
+                                            {
+                                                ["type"] = "settings_updated", ["agent_id"] = AddressOf(peer.Selected),
+                                                ["settings"] = Settings(preferences, peer.Selected.MaxToolRounds(), peer.Selected.ContextByteBudget())
+                                            });
                                         }
                                     }
                                     catch (Exception error) when (error is IOException or UnauthorizedAccessException)
@@ -493,16 +617,16 @@ public static partial class Gui
                                 }
                                 break;
                             case "prompt":
-                                await agent.PostAsync(new AgentInput(InputKind.Message, text));
+                                await selected.PostAsync(new AgentInput(InputKind.Message, text));
                                 break;
                             case "hint":
-                                await agent.PostAsync(new AgentInput(InputKind.Hint, text));
+                                await selected.PostAsync(new AgentInput(InputKind.Hint, text));
                                 break;
                             case "pause":
-                                await agent.PostAsync(new AgentInput(InputKind.Pause));
+                                await selected.PostAsync(new AgentInput(InputKind.Pause));
                                 break;
                             case "unpause":
-                                await agent.PostAsync(new AgentInput(InputKind.Resume));
+                                await selected.PostAsync(new AgentInput(InputKind.Resume));
                                 break;
                             case "interrupt":
                                 string mode = command.TryGetProperty("mode", out var requestedMode)
@@ -513,13 +637,13 @@ public static partial class Gui
                                     "after_tool" => InputKind.InterruptAfterTool,
                                     _ => throw new ArgumentException("Unknown interrupt mode")
                                 };
-                                await agent.PostAsync(new AgentInput(interrupt));
+                                await selected.PostAsync(new AgentInput(interrupt));
                                 break;
                             case "set_model":
                                 try
                                 {
-                                    await agent.SetModelAsync(text);
-                                    Broadcast(null);
+                                    await selected.SetModelAsync(text);
+                                    Broadcast(selected, null);
                                 }
                                 catch (Exception error) when (error is ArgumentException or InvalidOperationException)
                                 {
@@ -534,14 +658,14 @@ public static partial class Gui
                                 // without inventing a second model-setting store.
                                 lock (gate)
                                 {
-                                    Queue(socket, queue, MeterFrame(agent));
+                                    Queue(socket, queue, MeterFrame(selected));
                                 }
                                 break;
                             case "clear_tools":
-                                await agent.PostAsync(new AgentInput(InputKind.ClearTools));
+                                await selected.PostAsync(new AgentInput(InputKind.ClearTools));
                                 break;
                             case "shutdown":
-                                await agent.ShutdownAsync();
+                                await selected.ShutdownAsync();
                                 break;
                             default:
                                 throw new ArgumentException("Unknown GUI control");
@@ -556,8 +680,9 @@ public static partial class Gui
                     }
                 }
             }
-            catch (Exception error) when (error is OperationCanceledException or WebSocketException or IOException)
+            catch (Exception error) when (error is OperationCanceledException or WebSocketException or IOException or ObjectDisposedException)
             {
+                // A selected peer can close after lookup; selection is not a lease.
                 // Disconnect ends this tab's browser tools, not the Agent turn.
                 // An in-flight call reports its real connection failure.
             }
@@ -584,7 +709,8 @@ public static partial class Gui
                 }
             }
         });
-        var observer = Observe();
+        lock (gate) { ObserveOnce(agent); }
+        var treeRefresh = RefreshTree();
         try
         {
             var started = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -596,7 +722,7 @@ public static partial class Gui
                 // must be able to answer initialize/tools/list before user work.
                 if (skills.RequiresBrowserStartup())
                 {
-                    await browserConnected.Task.WaitAsync(stopping.Token);
+                    await initialMcp.WaitForBrowserAsync(stopping.Token);
                 }
                 await skills.InitializeAsync(stopping.Token);
             }
@@ -624,7 +750,9 @@ public static partial class Gui
             await drained.Task;
             try
             {
-                await observer;
+                Task[] readers;
+                lock (gate) { readers = observers.Values.ToArray(); }
+                await Task.WhenAll(readers.Append(treeRefresh));
             }
             catch (OperationCanceledException) when (stopping.IsCancellationRequested)
             {

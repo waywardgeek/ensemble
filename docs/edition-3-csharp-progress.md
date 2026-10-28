@@ -1,3 +1,563 @@
+## Chapter 22 — retained checkpoints and pure compression transactions
+
+Chapter 22 remains in progress; ch21 is untouched. I reconciled actual C# handoff
+and compaction with `solutions/ch22/internal/{context,memory,common}` and the
+manuscript's transaction requirements. Handoff still removes tool/private replay
+material after companion results, but now retains earlier handoff notes as
+completed segment boundaries. The pure selector uses UTF-8 readable dialogue
+bytes, skips skill entries, selects whole oldest prefixes through checkpoints,
+never cuts an unfinished/unsafe tail, and returns immutable exact source entries
+plus readable input without mutating History.
+
+Corrections to the imported next-step note: conversation selection is over-budget
+whole-prefix selection, not a T/4 minimum leaving two checkpoint segments. At least
+two applies to memory files during graduation. The chapter's worker limits are
+three Engine sends and three tool batches with only validated submit, not the
+note's one-tool/text-only worker. These were source reconciliation, not changes
+to the book's requirements. Worker execution is still unimplemented.
+
+Common now declares immutable CompressionLaunch/PendingCompression/Outcome values
+and appended launch/finish event kinds. A launch binds task, source range or exact
+IDs, destination identity/time, SHA-256 selection fingerprint and documentary trace
+path. Correlated summary cuts/retirements are held; only matching population applies
+source removal and replacement together. Conversation removal preserves skill
+entries within the sequence interval. Failure clears pending state without removing
+source; committed receipts remain until a matching committed outcome. Explicit task
+IDs cannot fall back to legacy facts. A second launch, mismatched removal/population,
+empty replacement, contradictory outcome and same-task pending/terminal snapshot
+refuse. Ordinary independent populations remain independent. Replay is pure: it
+neither validates disk bytes nor runs workers/recovery. Source/stage fingerprint
+production and verification belong to the upcoming actor/disk implementation.
+
+Snapshots, event copies/codecs, tail/journal replay and unrelated context changes
+retain pending state and the bounded last outcome. Old snapshots lacking these
+fields load. Invalid appends refuse before journal/sequence publication. Review
+caught a real decoder gap: optional-string decoding accepted task_id:null as the
+legacy empty ID. `correlation-baseline.log` retains the demonstrated 3/1 failure;
+strict explicit-ID decoding now rejects null/empty/nonstring/wrong-kind values.
+The receipt wording was corrected: it retains replacement/removal identity, not a
+second source transcript. No archive durability claim follows from replay tests.
+
+Evidence under `/private/tmp/ch22-csharp.UJzRJ5`: `selection-tests.log` 5/0 includes
+real actor handoff/interruption and snapshot tests; `transaction-final-tests.log`
+4/0 covers conversation and graduation atomicity, correlation, real append
+admission, trimmed snapshots and journal-only recovery. `transaction-shared.log`
+233/0; actual CLI/GUI builds in `transaction-{cli,gui}-build.log` clean. Fail-fast
+chain 5097 exited 0. Later changes are comment/signature-layout-only. Reviewed new
+Common, selector, transaction validation/reducer, codecs and fixtures; recovered
+clipped spans. Initial guarded edit anchors refused before writes; fixture builds
+used wrong provenance/Configuration/WithDisplay contracts and omitted the existing
+Application alias. Those setup failures are retained, not product results. My
+repeated guessed signatures and overpacked reads were avoidable overhead.
+
+Next: implement the Agent-owned Memory relationship and rooted staging/recovery
+operations, after reading the actual Sandbox/lifecycle paths and complete v2 staged
+algorithm. Recovery must precede scans; hidden candidates and committed receipts
+must close crash windows before any source archival. Then connect one actor-owned
+worker through immutable mailbox results, fingerprint/policy revalidation, forcing
+and accounting, settings/GUI, prose and scoped grading. No scanner, transcript
+archive, live worker, disk transaction recovery, forcing/accounting, controls,
+Chapter 22 grader or endpoint exists yet. No live integration is credited.
+
+## Chapter 22 — replayable memory-band foundation; implementation in progress
+
+Main now contains the first Chapter 22 slice; `ch21` remains untouched and is the
+latest preserved endpoint. I read the complete current chapter (identical to
+`book/chapter-22.md`), the preserved-revision diff, the original grader score/host
+route and v2 memory vocabulary/startup ordering. The preserved revision's useful
+settings-acknowledgment requirements do not authorize copying its obsolete Go
+ApplicationConfig/factory architecture. No Chapter 22 executable scope is chosen.
+
+Implemented immutable value-like memory entries (band, stable ID, UTC timestamp,
+exact text) and explicit retirement. IDs are data, not filesystem authority.
+Common declares the values and appended event kinds; functional Serialization
+implements them. Pure History reduction upserts an identity and retires exact IDs
+or a complete band without disk access or changing dialogue, ephemera, phase,
+usage or grants. Context orders SOUL/MEMORY/64x/8x/session oldest-first, with an
+ordinal ID tie-break. Save snapshots, events and journal replay retain these facts;
+old snapshots without memories remain readable. Shared provider normalization
+prepends labeled timestamped **user data**, never primary/system/developer
+instructions, across Chat Completions, Responses, Anthropic and Gemini.
+
+Evidence in `/private/tmp/ch22-csharp.UJzRJ5`: `memory-tests-final.log` **5/0**
+(replay/edit/retirement, invalid values/codec, trimmed snapshots and tails,
+journal-only recovery, four provider wire surfaces); `memory-shared.log`
+**227/0**; `memory-cli-build.log` and `memory-gui-build.log` clean actual hosts.
+Fail-fast chain 5054 joined exit 0. Reviewed the saved integration and focused
+tests; 11-file delta in `foundation-delta.txt`; added-line whitespace clean.
+No HTTP inference or new GUI campaign was needed for this pure foundation.
+
+Retained setup failures: I overpacked several reads and guessed legacy filenames;
+relevant integration spans were recovered from actual files. The first editing
+script stopped at an enum anchor after writing only two value files, but its shell
+continued to build; `memory-build.log` therefore proves only those value files.
+I corrected the enum/readonly-field conventions and made the remaining integration
+script validate all anchors before writing (`memory-build-2.log` clean). The first
+test-runner insertion refused before building; actual selector syntax and Render's
+JsonObject return were inspected and corrected. No behavior failure or product
+repair is concealed by these setup mistakes. Earlier four-group evidence is
+superseded by the final five-group run above.
+
+Next: inspect exact C# Handoff/Compaction/actor startup and v2 reducer/selection.
+Resolve how retained completed checkpoint segments coexist with the earlier eager
+handoff cut, then implement the actor-owned transactional compression contract and
+Memory's rooted disk ownership. Recovery must precede scans; source remains live
+until matching durable replacement. This slice does **not** implement disk scans,
+transcript archival, workers/staging/commit recovery, compression policies,
+forcing/accounting, controls or Chapter 22 prose/grading/preservation. No live
+provider/OAuth/billing/native/audible/accessibility completion is claimed.
+
+## Chapter 21 — locally complete and preserved
+
+Final assembled review is complete: the 72-file delta against preserved ch20,
+Common declarations and actual ownership/lifetime paths, peer registry and storage,
+activity/status and message observers, submission publication/retrieval, MCP startup,
+CLI/GUI composition, socket replay/selection, guarded peer controls, frontend,
+changed/new tests, and scoped grader contracts. The manuscript's prior complete
+assembled read remains valid. This final review required no C# product change;
+it corrected stale README completion/endpoint wording. Added-line/source/prose
+whitespace checks passed. No unchanged test or browser campaign was repeated.
+
+`solutions/edition-3/ch21` now preserves **268 source/support files**, byte-identical
+to reviewed main at preservation. All **13 project references** resolve within the
+endpoint. Destination was absent before copying; no symlinks, bin/obj, runtime,
+credential or diagnostic artifacts were copied. Earlier endpoints, including ch20,
+were not changed. Main is the continuing workspace, not the immutable endpoint.
+
+Verification remains precisely scoped below: shared222/0 before the final small
+message cleanup, focused5/0 and clean actual hosts afterward; final executable
+70/70, passed:true/exit0, five joined sessions/41 local requests. The 30 Go
+GUI/persistence points remain excluded from this executable score. Completed C#
+consumer, real host, isolated-browser selection/startup/control and fresh retrieval
+evidence is reused, not relabeled as a new full regression or live integration.
+No live provider/OAuth/billing, native Linux/x64, audible or human-accessibility
+completion is claimed. Detailed retained failures and corrections remain below in
+this record and `/private/tmp/ch21-csharp.llwp67`.
+
+Next: Chapter22 current/prior manuscript and grader/source contract discovery, then
+personal implementation. Continue without workers or renewed permission loops;
+retain the existing operational boundaries and defer live OAuth to Bill's joint
+session. Bill encouraged continued work this morning; the dinner hope is not a
+verification deadline or additional authority.
+
+## Chapter 21 — executable scope and C# manuscript (review/preservation remain)
+
+Implemented personally, without workers. The current Chapter 21 manuscript has
+been rewritten and read assembled: Common/functional partials and actual owners,
+all top-level sibling homes, launch choices versus runtime state, strict registry
+format, direct-child authority versus trusted addresses, graceful/forceful tools,
+History cursors versus reliable replies, snapshot change waits, fresh historical
+submissions, fixed browser relays versus display selection, guarded peer routes,
+and explicit startup browser waiting. Authorial requirements and useful Go failure
+history remain attributed; Go manager/factory and append-log instructions are not
+presented as C# behavior. Review corrected the overstatement that historical
+retrieval requires a live FindChild: it uses this parent's actual live home or
+owned child directory without resurrection. Final assembled source/test review
+is NOT yet complete. Main is not preserved21; ch20 remains untouched.
+
+`internal/gradeedition2/ch21_executable.go` adds an opt-in C# CLI route to
+`cmd/grade-edition2 -ch 21 -executable-only -fleet-skills ABSOLUTE-DIRECTORY CLI`.
+The original Go route remains unchanged. Exact original rows 0/2/3/4/6 total70:
+activity15, ownership15, change-wait15, composition15, submit/idle10. Named-peer
+persistence15 and GUI tree15 are excluded, not credited from existing tests.
+Their already-recorded real C# host/consumer/browser evidence remains applicable;
+no GUI campaign was repeated. Reuses the proven Chapter20 CLI process lifecycle,
+correlation and EOF join, but checks Chapter21 homes and v2 artifacts explicitly.
+Five retained sessions exercise held thinking/idle status and unknown pricing,
+owned success/cross-tree refusal, selected change wait before release and timeout,
+cursors without repetition, queued reply identity, live message then graceful
+shutdown/fresh retrieval/no resurrection, nested questions, exact unfinished-child
+submission refusal, four-response idle exhaustion and ordinary root chat.
+
+Final scratch `/private/tmp/ch21-csharp.llwp67/grade-final.json`:70/70,
+passed:true, exit0, empty grade-final.stderr. Five clean joined sessions retain
+41 local requests at tmp/c20-executable-{3751240348,1812486725,3038839703,
+1137198817,2091533103} (9/10/16/4/2 respectively). controls.json retains direct
+CLI responses where used; provider-requests.json and host stdout/stderr retain
+wire/lifecycle evidence. `grader-contract-final.log` passes Chapter20 executable
+and Chapter21 contracts; `grader-build-final.log` clean. Six scope refusals in
+`grader-scope-refusals.json` exit2 before executable resolution. Chain4991 joined
+exit0. Adapter/test source readback complete; full chapter review still remains.
+
+Failures retained: first compiler run used a nonexistent score helper; reviewing
+the actual table also corrected draft row indices before behavior. First grade
+failed because the harness demanded unknown price before any response completed
+(correct aggregate then is zero), and blocked inside a globally serialized fake
+provider route, preventing its releasing request. Product code did not change.
+The corrected gate is a real child question Job. grade-second.json70/70 preceded
+only strengthening the bottom-up assertion from any error to the exact unresolved-
+child refusal; final above reruns that stronger check. These are harness
+corrections, not successive product defects. No new C# production change or full
+shared-suite claim. Prior222/0 plus final focused5/0 and clean hosts retain their
+recorded boundaries. No live provider/OAuth/billing, native Linux/x64, audible or
+human-accessibility completion is claimed.
+
+Next: final assembled 72-file delta review (inventory final-delta.txt in scratch),
+readback/whitespace and runnable source-only preservation, then chapter-boundary
+handoff and Chapter22. Reuse completed GUI evidence. Latest free-space observation
+12,089,828KiB; maintain the reserve rather than treating that value as permanent.
+
+## Chapter 21 — child messaging and change observation (locally verified)
+
+Implemented personally, without workers. `send_message` uses the actor's existing
+Message admission (busy hint / idle turn); `ask_agent` queues a distinct Submit and
+awaits that turn's reliable reply. `wait_for_agent` reads finalized assistant and
+tool-result text after a child-local History sequence, returning on output or
+nonbusy status. Cursors must be nonnegative and no greater than that History;
+ordinary hints, private reasoning and deltas are not finalized output. Ask has no
+cursor parameter (v2's composite returns its own reply). All tools resolve only
+direct children and use existing Jobs for callback delays, cancellation and output.
+
+`Common/ChildOutput.cs` declares value-like results and Agent operations;
+`Agent/ChildOutput.cs` uses cancellable 100ms snapshot polling, following v2's
+simple monitoring approach rather than creating another notification graph.
+Change waits capture actual selected children once, inspect only their questions,
+and report changed/stopped/removed/question/pattern/stuck/timeout/empty. Defaults:
+300 seconds overall, 15 seconds busy without observed progress; zero disables the
+respective bound. Regex execution is bounded to 100ms. History owns durable
+progress; one Agent counter advances only on transient delta publication, so
+streaming progress counts without consuming the GUI's lossy observation queue or
+making status polling count as work. Snapshots are not globally atomic. Stuck is
+an observation interval, not proof of a provider fault. Cancellation never stops
+child work. Shipped skill, tool catalog and waiting activity labels are updated.
+
+Review corrected two lifetime/timing assumptions before final verification:
+History destruction clears its events, so observers retain their last immutable
+snapshot locally; membership capture can race History detachment, so change waits
+capture the actual nullable History relationship under child ingress. History and
+stream baselines are captured before the first status await. No replacement child
+is resolved by name. No new output store, manager, admission state or scheduler.
+
+Scratch `/private/tmp/ch21-csharp.llwp67`: `messages-build-final.log` clean,
+`messages-tests-final.log` **5/0**, `messages-shared.log` **222/0**, and actual-host
+`messages-cli-build.log`/`messages-gui-build.log` clean. That shared run precedes
+only removal of ask's unnecessary cursor/readback and the initial-detachment
+read guard. Final source: `messages-review-build.log`, `messages-review-tests.log`
+**5/0**, `messages-review-cli.log`, `messages-review-gui.log` clean. Tests cover
+exact text/cursors, simultaneous readers, closure, idle/live steering, reliable
+queued answers, scoped questions and fixed membership, timeout/stuck/cancellation,
+real held SSE delta progress versus finalized output, unchanged GUI observations,
+direct-child authority and the actual shipped skill. No fresh GUI/live campaign.
+
+Retained setup failures: `messages-build.log` found nullable Work-phase access;
+`messages-build-2.log` found guessed question API names and generic Task
+SuppressThrowing usage. No behavior ran in those builds. Corrected build3 and
+`messages-tests.log` passed4/0 before the fifth stream group was added. No failing
+behavior run was relabeled as a product regression. The guessed TryObserve helper
+was caught and removed before compilation. Existing completed GUI evidence stands.
+
+Next: reconcile the complete Chapter21 manuscript and original grader scope,
+implement a suitable scoped C# executable adapter, then final assembled review
+and source-only preservation. The original Go grader route is not C# acceptance.
+Main remains unpreserved Chapter21; ch20 is untouched. No live providers/OAuth,
+billing, audible or human accessibility completion is claimed.
+
+## Chapter 21 — graceful shutdown versus kill (locally verified)
+
+Resolved the remaining lifecycle ambiguity against current chapter §21.5 and
+`solutions/ch21/internal/fleet/management.go`: v2 graceful shutdown composes its
+existing Flush barrier with forceful teardown. C# now does the same in
+`shutdown_agent`; `kill_agent` skips the barrier. No second scheduler, admission
+state, completion store or manager was added. Library `Agent.ShutdownAsync` and
+application destruction remain explicitly cancelling lifetime operations.
+
+`Tools/Children.cs` waits for the selected direct child's current/queued turns
+and foreground controls before graceful teardown. It keeps controls available;
+paused work is not resumed, later input may extend waiting, and cancellation of
+the waiting Job leaves the child alive. This is quiescence, not a reservation
+against concurrent new input. After a final cancellation check, both operations
+join the existing shutdown and destruction path regardless of observer
+cancellation, preserving cleanup errors and saved files while detaching only the
+owned subtree. Independent Jobs and descendants are cancelled in final teardown,
+not part of the graceful foreground barrier. Submitted-but-draining is not done.
+`KillAgent` is appended to Common's tool enum; catalog, shipped ensemble skill,
+Common lifetime comments and activity labels now teach that distinction.
+
+`Tests/ChildLifetimeTests.cs` uses actual actors/Jobs and gated loopback HTTP:
+two accepted turns finish normally through graceful shutdown; a durable result
+while transport is held cannot finish the drain; cancelling a graceful observer
+leaves paused queued work intact; kill terminates an unresponsive model request
+and joins an independent worker's finally, detaches nested children and preserves
+siblings. Both tools refuse other trees/descendants identically to unknown IDs.
+The real shipped skill advertises kill. Existing poisoned-journal cleanup tests
+still verify failure plus complete detachment.
+
+Evidence in `/private/tmp/ch21-csharp.llwp67`: `lifetime-build-final.log` clean,
+`lifetime-tests-final.log` **4/0**, `lifetime-shared-final.log` **217/0**, and actual
+`lifetime-cli-build-final.log` / `lifetime-gui-build-final.log` both clean. Chain
+4916 exited zero. Saved implementation/test review and nine-file whitespace check
+completed. No repeated GUI campaign or live-provider claim.
+
+Retained setup failures: `lifetime-tests.log` was 3/1 because the fixture's custom
+held worker lacked a grant under inherited skills; corrected by using a direct
+no-skill child for that explicit boundary worker, while retaining real parent
+skill verification. `lifetime-tests-2.log` passed 4/0; `lifetime-shared.log` was
+217/1 because my runner invoked the existing shutdown fixture twice in one temp
+home, encountering its deliberately poisoned journal on the second invocation.
+Runner registration was corrected; neither failure required a production repair.
+Failed chains 4909/4912 and successful final chain were collected.
+
+Next: `send_message`, `ask_agent`, `wait_for_agent`, `wait_for_agent_change` remain
+unimplemented. Read actual History snapshot/append and v2 cursor/wait contracts
+in bounded spans; do not consume the GUI's shared lossy observation stream for
+reliable output. Then prose, scoped grader, assembled review and preservation.
+Main is not a Chapter 21 endpoint; Chapter 20 remains untouched.
+
+## Chapter 21 — trusted GUI peer controls (locally verified)
+
+The mounted GUI now exposes POST-only `peers/create` and `peers/delete` with
+loopback/Host/exact-Origin checks, a dedicated required header, JSON content type,
+and a 4 KiB streamed/exact-field request bound. Replies are noncacheable and use
+fixed diagnostics rather than reflecting storage/startup exceptions. Routes use
+the existing mounted admission/draining lifetime; they are not socket messages.
+The mounted Agent is the explicit current configuration/template source, not a
+retained defaults-Agent relationship. Its caller-owned lifetime cannot be deleted
+through these controls. Existing peer APIs remain authoritative for startup,
+registry commit, unfinished-child refusal, joined deletion and retained files.
+
+The page has name/model/primary-skill inputs, explicit deletion confirmation and
+cancellable creation. Blank overrides inherit the mounted Agent's defaults.
+Creation opts into independent browser waiting while its HTTP response is pending;
+the socket remains free to publish the pending Agent, select it, and carry MCP.
+The operator opens its separate relay tab. Cancellation text deliberately does not
+claim rollback won a race against commit. Deletion is described as stopping and
+removing a registry entry, not as graceful shutdown or file erasure. Selection of
+a deleted peer returns through the existing replay-admission operation to the
+mounted Agent; fixed relay ownership does not transfer. Command admission now
+reads the one existing per-socket selection, without the old second local copy.
+A missing tree row is rechecked against current ownership, since asynchronous
+status snapshots may predate a newly created/selected Agent.
+
+Actual changes: `Gui/Common/Protocol.cs` declares `MapPeers`; implementation is
+`Gui/Server/Peers.cs`, with route/lifetime and shared selection handling in
+`Gui/Server/Host.cs`. Controls live in `Gui/wwwroot/peers.js`, page/style additions;
+`Gui/Common/Hosting.cs` and README describe the contract. New external consumer
+`GuiTests/PeerControlsTests.cs` runs from the existing consumer program. No core
+Agent/Ensemble change, second registry, scheduler or manager was added.
+
+Evidence in `/private/tmp/ch21-csharp.llwp67`:
+- Final `peer-controls-build-final.log`, `peer-controls-tests-final.log`, and
+  `peer-controls-host-build-final.log`: external GUI consumer passed and actual
+  GUI host built with zero warnings/errors, chain4893 exit0. The new mounted
+  consumer at `tmp/gui-peers-95e4617763f74a27a65f9e5dfba12c22` covers guards and
+  malformed/duplicate/unknown/oversized requests without mutation; durable create;
+  duplicate/protected mounted-Agent/unfinished-child deletion refusal; retained
+  files; pending HTTP creation with live socket selection and actual browser MCP
+  initialize/list; deleted-selection replay; and joined rollback on mount stop
+  while caller `/health`, Agent and committed peer remain alive. Existing complete
+  GUI consumer also passed, including prior selection and relay lifetime checks.
+- Actual isolated Chrome/standalone host: `peer-controls-browser.log` and
+  `tmp/peer-controls-browser-rJKFAa/result.json`, port52330, clean host exit0,
+  zero model requests and no page errors. Actual controls created/deleted peers,
+  refused duplicate/protected deletion, required confirmation, cancelled pending
+  browser creation, kept socket selection live, completed creation only through
+  an independent relay, preserved files and returned a deleted display to the
+  mounted Agent. This run precedes only the current-ownership snapshot-race guard;
+  final consumer above exercises the saved guarded implementation. No unchanged
+  browser campaign repeated. Final wording-only page correction clarifies deletion
+  recovery; it adds no behavior.
+- JS syntax and `peer-controls-speech.log` passed. Shared214/0 and CLI evidence
+  remain the earlier scoped results, not a new full regression. No core source
+  changed here. No live provider, audible speech or human-accessibility claim.
+
+Retained setup failures: route lambdas first selected ASP.NET's RequestDelegate
+rather than result-producing handler overload (analyzer build failure); explicit
+`Func<HttpContext, Task<IResult>>` resolves it. The external fixture incorrectly
+called internal `DestroyAsync`; public `Destroy()` performs joined cleanup.
+Its first HTTP run expected403 for a hostile Host, but the existing outer mount
+correctly refuses400 before the inner route. No product defect credited from
+those failures. Guarded edit-anchor refusals, including partial scripts, were
+inspected and completed before verification; failed chains were not credited.
+
+Next: reconcile remaining child management and graceful shutdown versus kill,
+then chapter prose, scoped grading, final assembled review and source-only
+preservation. Chapter21 remains in progress; ch20 is untouched. Reuse completed
+selection/startup/control evidence instead of another unchanged campaign.
+
+## Chapter 21 — per-connection GUI selection and independent browser startup (locally verified)
+
+The GUI now projects existing ownership-qualified Agents per connection. Each viewed
+Agent has one observer/partial buffer; each socket has its own selected Agent and
+replay cursor. Replay is one nonblocking bounded-queue item, admitted before selection
+changes; failed queue admission closes the socket rather than partially switching.
+No new Agent registry, scheduler, transcript or accounting owner was added. Coalesced
+`agent_tree` refresh queries actor status outside the socket lock. Controls use the
+selected Agent; stale explicit targets refuse. Unnamed library roots retain null
+global addresses. Only the borrowed initial Agent has a connection-local empty key;
+other unnamed rows remain disabled and cannot steal its picker selection.
+
+A socket's browser relay target is fixed at admission, independently of its displayed
+conversation. `connection` announces that identity before MCP registration. Ordinary
+switching preserves the existing McpBrowser/client and replies route to the originating
+relay, not the current view. An explicit `?agent_id=<address>` page/socket URL opens
+an independent relay; the UI offers that link rather than silently borrowing another
+Agent's browser. Replay replaces cards silently, cancels previous-view narration and
+rejects late old-view frames. GUI preferences remain host-scoped; displayed/runtime
+limits and model controls follow selection. Borrowed hosting still owns neither the
+Ensemble nor Agents and joins only its mounted requests/relays on teardown.
+
+Standalone GUI serving and registry restoration now run together and join on either
+failure or shutdown. The initial attempt demonstrated a real integration gap: MCP
+claims deliberately fail when no browser is attached, so concurrent serving alone
+could not initialize a browser peer. Agent.EnsureMcp now serializes lazy construction
+with admission; existing skill/GUI paths use it. Mcp.WaitForBrowserAsync observes the
+actual relationship, releases locks before awaiting, and wakes on attachment/removal/
+destruction; waiter cancellation neither closes a browser nor changes other waits.
+Peer creation/restoration opt into this wait only with `waitForBrowser:true`. GUI
+restoration opts in; default/headless callers retain prompt missing-browser refusal,
+not an unbounded wait in CLI startup. An awaiting peer is already owned/addressable,
+but gains no browser tool authority or durable creation success until normal skill
+startup and save complete. No source/default browser is inherited. Cancellation and
+Ensemble destruction join removal of pending peers. Ordinary activation still refuses
+missing browsers; the new wait is an explicit startup operation, not automatic retry.
+
+Evidence in `/private/tmp/ch21-csharp.llwp67`: `gui-fleet-shared.log`214/0 covers the
+shared MCP ownership/wait change. It predates ONLY the explicit headless-default guard
+and unnamed-picker review correction. Final `browser-startup-tests-final.log`2/0,
+`gui-fleet-peers-final.log`5/0, clean actual CLI/GUI builds and external consumer results
+cover the guard (chain4850 exit0). `gui-selection-review-tests.log` and
+`gui-selection-review-*-build.log` cover final GUI source (chain4861 exit0). The real
+mounted consumer verifies independent tabs, repeated local child names, two unnamed
+roots, stale-target/refused-selection behavior, selected controls, an outstanding MCP
+call surviving a display switch, a separate peer relay, and joined caller-owned mount
+teardown. Speech formatter tests and changed JavaScript syntax passed. No final full
+suite after those two narrow corrections is claimed.
+
+`selection-browser.json` / `gui-selection-review-browser.log` record owned muted Chrome
+at `tmp/selection-browser-Hmhr8F`: real picker/replay/control isolation, explicit peer
+relay and reload, no page errors, clean host exit. In-page transport fake separately
+checks successful MCP reply identity and late-frame exclusion; that portion is not a
+real provider call. The unnamed-picker assertion is also a focused in-page projection
+check. `peer-browser-startup-guard.log` and `tmp/peer-browser-startup-nuk3W7/result.json`
+record actual standalone hosts: selecting a waiting peer alone does not initialize
+its browser skill; a dedicated tab does, reaching durable startup save. Waiting-startup
+SIGINT exits0; malformed registry and headless CLI missing-browser launches exit1
+promptly, with no surviving owned server. All four preserve registry bytes and make
+zero inference requests. Earlier three-case startup results are superseded, not added
+to a new campaign count. Final disk observation:12,670,488KiB free.
+
+Retained failures/corrections: `peer-browser-startup.log` is the demonstrated initial
+missing-browser failure. The first browser selection fixture waited for animation-frame
+polling in a background tab; both pages were responsive and correctly selected, and
+foregrounding the owned tab released the test. The corrected fixture explicitly
+foregrounds its action page and bounds protocol waits. Unapplied guessed-host edit,
+refused anchors, incorrect runner/scratch names and partially applied guarded scripts
+were my setup errors; saved state was inspected and completed before testing. Review
+also moved relay registration/initial replay into joined socket cleanup, preserved
+headless refusal, and fixed unnamed-picker identity. No queue-byte cap was invented;
+there is no claimed forced queue-saturation test. This is local integration, not live
+providers/OAuth, audible speech or human accessibility acceptance.
+
+Next: trusted GUI peer create/delete controls, remaining management tools and a truthful
+graceful-shutdown/kill distinction, then chapter prose, scoped executable grading,
+assembled review and preservation. A create request must not block the socket needed
+for tree/relay traffic while startup waits. Current ShutdownAsync still cancels; do
+not label it graceful or alias it to kill. Main is not a Chapter21 endpoint; ch20 and
+older endpoints remain untouched. Reuse the verified selection/startup evidence.
+
+## Chapter 21 — ownership addresses and fresh historical retrieval (locally verified)
+
+`Agent.Address()` derives a canonical Ensemble-relative path from actual parents;
+`Ensemble.FindAgentAddress()` walks existing root/child membership. Root names are
+percent-escaped, child IDs retain their existing restricted syntax, and alternate
+encodings/empty segments refuse. Unnamed transient roots and their descendants have
+no global address: no fabricated root ID or duplicate registry. AgentTree values now
+include the address alongside the actual Agent reference. These are trusted lookup
+APIs, not broader model-tool authority or lifetime leases. Review corrected the new
+getter to retain provenance during joined destruction while parent links remain.
+
+`RetrieveSubmission` and shipped `get_submission` read owned artifacts freshly even
+when a child is live. They never spawn/restore an Agent, activate skills, update live
+completion or satisfy a join. The current child's actual home is used while attached;
+after removal, lookup uses the caller's `children/<local-id>/submit.md`. Explicit
+nonstandard library homes are not rediscovered through a new registry. One bounded
+Sandbox read validates exact versioned fields, local identity, generation and the
+existing schema/payload contract, returning independent typed JSON. Publication now
+writes version 2 with nullable owning-parent address; named-parent provenance must
+match. Existing version-1 rows remain readable from owned storage with explicitly
+absent address provenance, never fabricated identity. The complete envelope has a
+shared 2 MiB read/write cap; existing schema64KiB/payload1MiB/product limits remain.
+The tool marks data `historical:true` and uses bounded errors without file contents
+or host paths. Canonical addresses are scoped to this Ensemble, not cryptographic
+cross-installation identity. Direct-child tools still refuse qualified/cross-tree IDs.
+
+Evidence in `/private/tmp/ch21-csharp.llwp67`: `retrieval-tests-3.log`3/0 and
+`retrieval-shared.log`212/0 (job4749 exit0) cover new work/reconstruction not reviving
+saved completion, fresh disk replacement, exact large integers, legacy rows, malformed
+fields/duplicates/schema, byte bounds, outward links and real shipped-skill dispatch.
+The shared binary predates only the teardown address guard correction. Final
+`address-final-tests.log`3/0, `retrieval-final-tests.log`3/0 and both actual-host
+`retrieval-final-*-build.log` clean (job4753 exit0) cover final source. No later full
+suite claimed. `retrieval-cli.json` records two actual CLI processes in owned
+`tmp/retrieval-cli-bwokl78m`: first dispatch spawned/submitted/shut down a child with
+one local model request; restart retrieved exact payload9007199254740993, no child
+resurrection, unchanged artifact, zero further inference, both exit0. Shutdown may
+cancel the child's post-submit continuation; this is durable recovery evidence, not
+a claim that its final prose drained. No GUI/browser/live-provider claim added.
+
+Retained setup failures: initial address edit missed the actual helper name (build
+failed); retrieval fixture first treated shutdown's expected queued-task rejection
+as success and omitted InvalidDataException, then consumed a stale pause observation.
+Fixed explicit exception handling and an actor status barrier; no timeout swallowed.
+Tool corruption diagnostics now explicitly handle InvalidDataException too. Source
+review kept publication outside parent/child lock inversion and current completion
+separate from historical bytes. Do not rerun completed peer/directory campaigns.
+
+Next: per-connection GUI selection and independent browser relay/startup, then
+remaining management (honest graceful shutdown versus kill), integrated GUI, prose,
+scoped grade, review and preservation. Source comparison found v2 kept the initial
+browser attachment when selecting another conversation; current C# has one manager
+per Agent and one shared GUI projection. A naive detach/recreate on each display
+switch would destroy active MCP clients. Preserve originating-agent reply routing
+and separate display selection from relay lifetime. No GUI changes were saved in
+this slice. Chapter21 remains in progress; main is not an endpoint; ch20 untouched.
+
+## Chapter 21 — persistent sibling peers (locally verified; chapter still in progress)
+
+Ensemble now declares `CreatePeerAsync`, `RestorePeersAsync` and `DeletePeerAsync`
+in Common/Peers.cs, implemented through existing Agent/Skills/History/Sandbox owners.
+The caller supplies a current top-level source Agent; no defaults-Agent relationship,
+factory, copied services or second live registry is retained. `ensemble.json` is the
+sole durable launch record, using v2's array fields `name`, `model`, `skill`, `created`.
+Entries are read afresh under one operation gate; later running model changes cannot
+rewrite earlier launch choices. Registry syntax/identity is validated before restore.
+Creation restores/saves the peer's own History, independently initializes parsed skill
+templates, then atomically replaces the registry before returning. Failure joins and
+detaches constructed peers while preserving files. Ensemble destruction closes
+admission, cancels and joins peer startup before destroying owned Agents/credentials.
+
+V2 comparison resolved startup treatment: the initial host-configured actor is not
+also a registry entry, though its physical home remains a sibling under `agents/`.
+Both standalone hosts now restore registered peers; reusable borrowed GUI hosting is
+unchanged. Peers complete ordinary chat without delegated submission correction and
+do not reconstruct children. Explicit deletion refuses a retained child without a
+current submission, closes admission and joins shutdown, removes the registry entry,
+then destroys the subtree without deleting saved files. Cancellation before admission
+refuses; after closing admission deletion joins to a definite result. Failed registry
+replacement leaves the stopped peer and old entry for retry. This is NOT a new
+claim that current cancelling ShutdownAsync is graceful or identical to kill.
+
+Evidence in `/private/tmp/ch21-csharp.llwp67`: `peers-tests-4.log`4/0 and
+`peers-shared.log`207/0 cover creation/restoration, separate launch/running models,
+parsed-template/value independence, own History, no child resurrection, malformed
+registry/partial-startup rollback, ordinary model chat across restart (two local
+requests), HTTP MCP cancellation/retry and Ensemble destruction with active/queued
+startup. Later deletion-only addition: `peers-delete-tests.log`5/0 and clean
+`peers-final-cli-build.log`/`peers-final-gui-build.log`; no later full-suite claim.
+`peer-hosts.json` records actual CLI/GUI HTTP launches, exit0, two restored peers,
+unchanged registry and zero inference; it predates only deletion. Saved peer source
+and declarations reviewed; whitespace checked. Test setup mistakes retained: first
+refusal helper omitted InvalidDataException; chat fixture guessed a SubmitAsync
+cancellation overload (build-3 failed before behavior). Neither was a product defect.
+
+Next: qualified ownership addresses and per-connection browser selection/relay,
+then durable retrieval, remaining management, integrated GUI/prose/grading/review and
+preservation. Browser-dependent peer startup is an explicit gap: current single-Agent
+GUI cannot supply an independent peer relay; do not silently borrow the initial
+actor's browser or call HTTP restoration evidence browser-switching evidence. Existing
+current peers use ordinary/HTTP skills. Main is not a Chapter21 endpoint; ch20 is
+untouched. No workers, deployment/restart, credentials, live OAuth or Bill browser used.
+
 ## Chapter 21 — explicit Ensemble and actor homes (locally verified foundation)
 
 Bill clarified that GUI-created top-level actors remain Ensemble-owned and that

@@ -7,11 +7,12 @@ public sealed partial class History
         var retained = new List<Entry>();
         foreach (var entry in dialogue)
         {
-            // Notes have an explicit identity, not a prose prefix. Ordinary
-            // system instructions and every skill body remain unchanged.
+            // Notes close completed segments. Retain older notes until a memory
+            // replacement commits; tool clearing alone must not erase their
+            // reasons. Ordinary system text and skills also remain unchanged.
             var indices = Enumerable.Range(0, entry.Parts.Length)
                 .Where(index => entry.Parts[index] is not ToolCallPart and not ToolResultPart
-                    and not HandoffPart and not OpaquePart)
+                    and not OpaquePart)
                 .ToArray();
             if (indices.Length == 0)
             {

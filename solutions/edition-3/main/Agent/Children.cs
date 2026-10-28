@@ -13,13 +13,7 @@ public sealed partial class Agent
         ArgumentNullException.ThrowIfNull(parent);
         ArgumentNullException.ThrowIfNull(owner);
         ArgumentNullException.ThrowIfNull(configuration);
-        ArgumentException.ThrowIfNullOrWhiteSpace(childID);
-        // IDs are addresses, never paths. Restrict their syntax before any file
-        // or relationship is created so later per-child storage can use them.
-        if (!childID.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_'))
-        {
-            throw new ArgumentException("Child ID must contain only ASCII letters, digits, '-' or '_'.", nameof(childID));
-        }
+        ValidateChildID(childID);
         this.childID = childID;
         var derived = owner.Sandbox().DeriveChild(configuration);
         if (derived.Refusal is not null)
@@ -47,6 +41,17 @@ public sealed partial class Agent
     }
 
     public partial Agent? AgentParent() => agentParent;
+    internal static partial void ValidateChildID(string childID)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(childID);
+        // The same local syntax governs construction and durable child lookup.
+        // An address of another branch can never become a filesystem path here.
+        if (!childID.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_'))
+        {
+            throw new ArgumentException("Child ID must contain only ASCII letters, digits, '-' or '_'.", nameof(childID));
+        }
+    }
+
     public partial string? ChildID() => childID;
 
     public partial ImmutableArray<Agent> Children()

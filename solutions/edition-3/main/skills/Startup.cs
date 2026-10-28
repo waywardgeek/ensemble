@@ -75,7 +75,7 @@ public sealed partial class Skills
             var additions = ResolveStartup().ToImmutableArray();
             var values = initialVariables
                 ?? throw new InvalidOperationException("Primary startup has no construction snapshot.");
-            var manager = Parent().Mcp() ?? new Mcp(Parent());
+            var manager = Parent().EnsureMcp();
             string workspace = Directory.GetCurrentDirectory();
             // The actor keeps processing reverse calls and shutdown while the
             // worker prepares. Commit returns to this same actor before grants.

@@ -10,6 +10,34 @@ public sealed partial class Mcp
         }
     }
 
+    public partial async Task WaitForBrowserAsync(CancellationToken cancellation)
+    {
+        while (true)
+        {
+            cancellation.ThrowIfCancellationRequested();
+            Task changed;
+            lock (gate)
+            {
+                ObjectDisposedException.ThrowIf(destroyed, this);
+                if (browser is not null)
+                {
+                    return;
+                }
+                changed = browserChanged.Task;
+            }
+            await changed.WaitAsync(cancellation);
+        }
+    }
+
+    // Caller holds gate. Publish both relationship ends before waking observers;
+    // a later waiter always checks current membership, not a sticky arrival flag.
+    private partial void SignalBrowserChanged()
+    {
+        var previous = browserChanged;
+        browserChanged = new(TaskCreationOptions.RunContinuationsAsynchronously);
+        previous.TrySetResult();
+    }
+
     public partial void AddBrowser(McpBrowser child)
     {
         lock (gate)
@@ -20,6 +48,7 @@ public sealed partial class Mcp
             }
             browser = child;
             child.parent = this;
+            SignalBrowserChanged();
         }
     }
 
@@ -33,6 +62,7 @@ public sealed partial class Mcp
             }
             browser = null;
             child.parent = null;
+            SignalBrowserChanged();
         }
     }
 

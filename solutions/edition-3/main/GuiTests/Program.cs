@@ -74,6 +74,9 @@ using var http = new HttpClient();
 var root = new Ensemble.Ensemble(TextWriter.Null);
 try
 {
+    // Unnamed library roots stay distinct; only the mounted initial one has a
+    // connection-local default address. Construction order must not choose it.
+    _ = new Agent(root, new Configuration(Vendor.Anthropic, "offline", apiKey: "", baseUrl: "http://127.0.0.1:1"));
     var agent = new Agent(root, new Configuration(Vendor.Anthropic, "offline", apiKey: "", baseUrl: "http://127.0.0.1:1"), outputDirectory: "jobs");
     for (int attempt = 0; attempt < 2; attempt++)
     {
@@ -96,6 +99,10 @@ try
             socket.Options.SetRequestHeader("Origin", origin);
             await socket.ConnectAsync(new Uri($"ws://127.0.0.1:{port}/ws"), cancellation);
             await Frame(socket, "current_settings", cancellation);
+            var unnamedRows = (await Frame(socket, "agent_tree", cancellation)).GetProperty("agents").EnumerateArray().ToArray();
+            Check(unnamedRows.Count(row => row.GetProperty("key").ValueKind == JsonValueKind.Null) == 1
+                && unnamedRows.Count(row => row.GetProperty("key").GetString() == "") == 1,
+                "Unnamed roots collapsed or acquired invented global identity");
             Check(agent.Mcp()!.Browser() is not null, "Socket did not register browser relay");
             Check(agent.Mcp()!.Clients().Length == 0, "Discovery started without a granting skill");
             await socket.SendAsync(Encoding.UTF8.GetBytes("{\"type\":\"pause\"}"), WebSocketMessageType.Text, true, cancellation);
@@ -141,6 +148,11 @@ try
         name: "mounted", skillSpec: new SkillSpec(skillDirectory, "browser"));
     mountedAgent.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
         parts: [new TextPart("Canonical replay from the borrowed Agent")]));
+    var peerAgent = new Agent(root, mountedAgent.Configuration(), name: "peer");
+    peerAgent.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
+        parts: [new TextPart("Peer conversation only")]));
+    var firstChild = new Agent(root, mountedAgent, "worker", mountedAgent.Configuration());
+    var otherChild = new Agent(root, peerAgent, "worker", peerAgent.Configuration());
     using var mountedStop = CancellationTokenSource.CreateLinkedTokenSource(cancellation);
     Task mounted = Gui.ServeAsync(custom, mountedAgent, new GuiOptions(customPort,
         SettingsPath: "mounted-settings.json", TracePath: "mounted.log", BasePath: "/assistant"), mountedStop.Token);
@@ -219,7 +231,68 @@ try
         var request = (await Frame(mountedSocket, "mcp", cancellation)).GetProperty("data");
         Check(request.GetProperty("method").GetString() == "tools/call"
             && request.GetProperty("params").GetProperty("name").GetString() == "page_echo", "Wrong browser call");
-        await RpcReply(mountedSocket, request, new { content = new[] { new { type = "text", text = "Mounted browser result" } } }, cancellation);
+        // Hold a real MCP call while changing only this connection's display.
+        var relayBefore = mountedAgent.Mcp()!.Browser();
+        var clientsBefore = mountedAgent.Mcp()!.Clients();
+        using var otherSocket = new ClientWebSocket();
+        otherSocket.Options.SetRequestHeader("Origin", url);
+        await otherSocket.ConnectAsync(new Uri($"ws://127.0.0.1:{customPort}/assistant/ws"), cancellation);
+        Check((await Frame(otherSocket, "replay", cancellation)).GetProperty("agent_id").GetString() == "mounted",
+            "Second tab inherited the first tab's selection");
+        var tree = await Frame(otherSocket, "agent_tree", cancellation);
+        var keys = tree.GetProperty("agents").EnumerateArray().Select(row => row.GetProperty("key").GetString()).ToArray();
+        Check(keys.Contains("mounted/worker") && keys.Contains("peer/worker"), "Tree lost ownership-qualified child identity");
+        await mountedSocket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"select_agent","agent_id":"peer"}"""),
+            WebSocketMessageType.Text, true, cancellation);
+        var peerReplay = await Frame(mountedSocket, "replay", cancellation);
+        Check(peerReplay.GetProperty("agent_id").GetString() == "peer"
+            && peerReplay.GetProperty("data").GetProperty("events").EnumerateArray().Any(frame =>
+                frame.TryGetProperty("part", out var part) && part.TryGetProperty("text", out var text)
+                && text.GetString() == "Peer conversation only"), "Selection did not replace conversation replay");
+        Check(ReferenceEquals(relayBefore, mountedAgent.Mcp()!.Browser())
+            && clientsBefore.SequenceEqual(mountedAgent.Mcp()!.Clients()), "Display switch destroyed active MCP clients");
+        Check(peerAgent.Mcp()?.Browser() is null, "Display switch silently borrowed the original browser for peer");
+        await mountedSocket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"pause","agent_id":"mounted"}"""),
+            WebSocketMessageType.Text, true, cancellation);
+        await Frame(mountedSocket, "error", cancellation);
+        Check(!(await mountedAgent.WorkStatusAsync(cancellation)).Paused, "Stale display target controlled old Agent");
+        await mountedSocket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"pause","agent_id":"peer"}"""),
+            WebSocketMessageType.Text, true, cancellation);
+        JsonElement peerState;
+        do { peerState = await Frame(mountedSocket, "agent_state", cancellation); }
+        while (peerState.GetProperty("agent_id").GetString() != "peer" || peerState.GetProperty("state").GetString() != "paused");
+        Check((await peerAgent.WorkStatusAsync(cancellation)).Paused
+            && !(await mountedAgent.WorkStatusAsync(cancellation)).Paused, "Selected control affected another Agent");
+        await otherSocket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"get_settings","agent_id":"mounted"}"""),
+            WebSocketMessageType.Text, true, cancellation);
+        Check((await Frame(otherSocket, "current_settings", cancellation)).GetProperty("agent_id").GetString() == "mounted",
+            "Selection was shared across tabs");
+        using var peerSocket = new ClientWebSocket();
+        peerSocket.Options.SetRequestHeader("Origin", url);
+        await peerSocket.ConnectAsync(new Uri($"ws://127.0.0.1:{customPort}/assistant/ws?agent_id=peer"), cancellation);
+        Check((await Frame(peerSocket, "connection", cancellation)).GetProperty("relay_agent_id").GetString() == "peer",
+            "Explicit relay admission lost peer identity");
+        await Frame(peerSocket, "replay", cancellation);
+        Check(peerAgent.Mcp()!.Browser() is not null && ReferenceEquals(relayBefore, mountedAgent.Mcp()!.Browser()),
+            "Independent peer relay displaced original relay");
+        await mountedSocket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"select_agent","agent_id":"missing/worker"}"""),
+            WebSocketMessageType.Text, true, cancellation);
+        await Frame(mountedSocket, "error", cancellation);
+        await mountedSocket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"get_settings","agent_id":"peer"}"""),
+            WebSocketMessageType.Text, true, cancellation);
+        Check((await Frame(mountedSocket, "current_settings", cancellation)).GetProperty("agent_id").GetString() == "peer",
+            "Refused selection changed target");
+        // The reply still carries the originating relay's identity, not the view.
+        await mountedSocket.SendAsync(JsonSerializer.SerializeToUtf8Bytes(new
+        {
+            type = "mcp", agent_id = "mounted",
+            data = new { jsonrpc = "2.0", id = request.GetProperty("id"),
+                result = new { content = new[] { new { type = "text", text = "Mounted browser result" } } } }
+        }), WebSocketMessageType.Text, true, cancellation);
+        await mountedSocket.SendAsync(Encoding.UTF8.GetBytes("""{"type":"select_agent","agent_id":"mounted"}"""),
+            WebSocketMessageType.Text, true, cancellation);
+        await Frame(mountedSocket, "replay", cancellation);
+        Console.WriteLine("PASS GUI selection: independent tabs, qualified tree, control targeting, refusal, fixed and independent relay lifetimes");
         var result = await dispatch;
         Check(!result.IsError && result.Parts.OfType<TextPart>().Single().Text == "Mounted browser result",
             "Browser reply did not reach ordinary Agent dispatch");
@@ -292,4 +365,5 @@ finally
         Directory.SetCurrentDirectory(originalDirectory);
     }
 }
+await PeerControlsTests.RunAsync();
 Console.WriteLine("PASS external GUI consumer: embedded assets, disk override, full caller-owned mount, WebSocket controls, two hosting lifetimes, Agent survival");

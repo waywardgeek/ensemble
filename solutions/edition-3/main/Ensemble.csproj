@@ -8,6 +8,6 @@
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Common/**/*.cs;Application/**/*.cs;Auth/**/*.cs;Agent/**/*.cs;History/**/*.cs;Engine/**/*.cs;Serialization/**/*.cs;Tools/**/*.cs;Jobs/**/*.cs;Skills/**/*.cs;Mcp/**/*.cs;Sandbox/**/*.cs" />
+    <Compile Include="Common/**/*.cs;Application/**/*.cs;Auth/**/*.cs;Agent/**/*.cs;History/**/*.cs;Engine/**/*.cs;Serialization/**/*.cs;Tools/**/*.cs;Jobs/**/*.cs;Skills/**/*.cs;Mcp/**/*.cs;Sandbox/**/*.cs;Memory/**/*.cs" />
   </ItemGroup>
 </Project>

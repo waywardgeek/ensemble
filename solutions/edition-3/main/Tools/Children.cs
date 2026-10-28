@@ -4,6 +4,17 @@ namespace Ensemble;
 
 public sealed partial class Tool
 {
+    private static partial object ChildOutputValue(ChildOutput output)
+    {
+        return new
+        {
+            agent_id = output.AgentID, cursor = output.Cursor, output = output.Output,
+            activity = output.Status.Activity.ToString().ToLowerInvariant(),
+            paused = output.Status.Paused, submitted = output.Status.Submitted,
+            failure = output.Status.Failure, phase = output.Status.Work?.Phase.ToString().ToLowerInvariant()
+        };
+    }
+
     private partial async Task<string> ChildOperationAsync(Job job, JsonElement args,
         CancellationToken cancellation)
     {
@@ -12,6 +23,79 @@ public sealed partial class Tool
         {
             switch (kind)
             {
+                case ToolKind.WaitForAgentChange:
+                    string[]? selected = args.TryGetProperty("agent_ids", out JsonElement selection)
+                        ? selection.EnumerateArray().Select(item => item.GetString()!).ToArray() : null;
+                    ChildChange change = await owner.WaitForChildChangeAsync(selected,
+                        args.TryGetProperty("pattern", out JsonElement pattern) ? pattern.GetString() : null,
+                        args.TryGetProperty("timeout_seconds", out JsonElement timeout) ? timeout.GetDouble() : 300,
+                        args.TryGetProperty("stuck_seconds", out JsonElement stuck) ? stuck.GetDouble() : 15,
+                        cancellation);
+                    return JsonSerializer.Serialize(new
+                    {
+                        reason = change.Reason,
+                        agents = change.Agents.Select(ChildOutputValue),
+                        pending_questions = change.Questions.Select(question => new
+                        {
+                            agent_id = question.AgentID, message_id = question.MessageID, content = question.Content
+                        })
+                    });
+                case ToolKind.AskAgent:
+                    Agent asked = owner.FindChild(String(args, "agent_id"))
+                        ?? throw new ArgumentException("No owned child has that ID.");
+                    string question = String(args, "content");
+                    if (string.IsNullOrWhiteSpace(question))
+                    {
+                        throw new ArgumentException("Message content must not be empty.");
+                    }
+                    cancellation.ThrowIfCancellationRequested();
+                    // Queue a distinct turn even if busy. This reliable reply
+                    // cannot be consumed by another output observer or satisfied
+                    // by an older final. Cancellation detaches this waiter only.
+                    string response = await asked.SubmitAsync([new TextPart(question)]).WaitAsync(cancellation);
+                    return JsonSerializer.Serialize(new { agent_id = asked.ChildID(), response });
+                case ToolKind.SendMessage:
+                case ToolKind.WaitForAgent:
+                    Agent target = owner.FindChild(String(args, "agent_id"))
+                        ?? throw new ArgumentException("No owned child has that ID.");
+                    long cursor = 0;
+                    if (args.TryGetProperty("cursor", out JsonElement suppliedCursor)
+                        && !suppliedCursor.TryGetInt64(out cursor))
+                    {
+                        throw new ArgumentException("Cursor must be a nonnegative 64-bit History sequence.");
+                    }
+                    // Validate the cursor before admitting any message effect.
+                    _ = await target.ReadOutputAsync(cursor, cancellation: cancellation);
+                    if (kind != ToolKind.WaitForAgent)
+                    {
+                        string content = String(args, "content");
+                        if (string.IsNullOrWhiteSpace(content))
+                        {
+                            throw new ArgumentException("Message content must not be empty.");
+                        }
+                        cancellation.ThrowIfCancellationRequested();
+                        await target.PostAsync(new AgentInput(InputKind.Message, content)).WaitAsync(cancellation);
+                    }
+                    ChildOutput output = await target.ReadOutputAsync(cursor,
+                        wait: kind == ToolKind.WaitForAgent, cancellation: cancellation);
+                    return JsonSerializer.Serialize(ChildOutputValue(output));
+                case ToolKind.GetSubmission:
+                    cancellation.ThrowIfCancellationRequested();
+                    StoredSubmission stored;
+                    try
+                    {
+                        stored = owner.RetrieveSubmission(String(args, "agent_id"));
+                    }
+                    catch (Exception error) when (error is IOException or InvalidDataException or UnauthorizedAccessException)
+                    {
+                        throw new ArgumentException("The owned submission artifact is missing, unreadable or invalid.");
+                    }
+                    return JsonSerializer.Serialize(new
+                    {
+                        agent_id = stored.AgentID, parent_address = stored.ParentAddress,
+                        historical = true, generation = stored.Generation,
+                        submit_schema = stored.Schema, payload = stored.Payload
+                    });
                 case ToolKind.AgentsStatus:
                     // Capture membership once. Each child's actor supplies its
                     // own coherent snapshot; this is not a global time barrier.
@@ -84,10 +168,25 @@ public sealed partial class Tool
                     {
                         agent_id = interruptID, mode, interrupt_delivered = true
                     });
+                case ToolKind.KillAgent:
                 case ToolKind.ShutdownAgent:
                     string id = String(args, "agent_id");
                     Agent child = owner.FindChild(id)
                         ?? throw new ArgumentException("No owned child has that ID.");
+                    if (kind == ToolKind.ShutdownAgent)
+                    {
+                        // Graceful means waiting for current/queued turns and
+                        // foreground controls, not merely seeing a submission.
+                        // Keep controls available (including resume and answers)
+                        // while waiting. Later input can extend this barrier;
+                        // cancelling this Job abandons the wait, not the child.
+                        await child.FlushAsync(cancellation);
+                    }
+                    cancellation.ThrowIfCancellationRequested();
+                    // From here teardown is irreversible and must be joined even
+                    // if the observing Job is cancelled. Kill skips the graceful
+                    // barrier; application destruction uses this same forceful
+                    // lifetime operation to avoid waiting on a stuck provider.
                     // Shutdown closes admission and joins descendants. Destroy
                     // observes that same task again, collects any failure and
                     // attempts every detach. Do not let a failed shutdown skip
@@ -100,7 +199,7 @@ public sealed partial class Tool
             }
         }
         catch (OperationCanceledException error) when (!cancellation.IsCancellationRequested
-            && kind is ToolKind.SendMessageToParent or ToolKind.SpawnSubAgent)
+            && kind is ToolKind.SendMessageToParent or ToolKind.SpawnSubAgent or ToolKind.AskAgent)
         {
             // The question or child task can end before this observing Job is
             // cancelled (inbox teardown deliberately precedes Jobs teardown).

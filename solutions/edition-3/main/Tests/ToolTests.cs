@@ -30,7 +30,7 @@ internal static class ToolTests
             agent.InstallTools();
             string[] expectedTools = ["read_file", "write_file", "edit_file", "run_command", "list_directory", "search_files",
                 "wait_for_job", "send_input", "kill_job", "tool_limits", "micro_handoff", "agent_status", "join_agents", "submit", "send_message_to_parent",
-                "respond_to_parent_message", "shutdown_agent", "spawn_sub_agent", "agents_status", "get_sub_agent_status", "interrupt_agent"];
+                "respond_to_parent_message", "shutdown_agent", "spawn_sub_agent", "agents_status", "get_sub_agent_status", "interrupt_agent", "get_submission", "kill_agent", "send_message", "ask_agent", "wait_for_agent", "wait_for_agent_change"];
             Check(agent.Tools().Select(value => value.Name()).Order().SequenceEqual(expectedTools.Order()),
                 "install file/process tools, job controls and read-only Agent status");
             var other = new Agent(app, agent.Configuration());

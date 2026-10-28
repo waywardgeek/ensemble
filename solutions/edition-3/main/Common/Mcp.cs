@@ -82,6 +82,9 @@ public sealed partial class Agent
 {
     private Mcp? mcp;
     public partial Mcp? Mcp();
+    // Lazy construction is serialized with Agent admission, so hosting and
+    // skill startup cannot publish two managers for the same owning Agent.
+    public partial Mcp EnsureMcp();
     // Prefix and discovered annotation classification; never an execution grant.
     internal partial bool IsAutomaticTool(string name);
     // Reverse RPC enters the actor's independent observation lane. It still
@@ -102,12 +105,17 @@ public sealed partial class Mcp
     private readonly object gate = new();
     private readonly List<McpClient> clients = [];
     private McpBrowser? browser;
+    private TaskCompletionSource browserChanged = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private Task? destruction;
     public partial Mcp(Agent parent);
     public partial Agent Parent();
     public partial ImmutableArray<McpClient> Clients();
     // At most one browser target. Registration is not discovery or a tool grant.
     public partial McpBrowser? Browser();
+    // Wait for this owner's actual browser relationship. Cancellation abandons
+    // only this observer; availability is not a lease or a tool grant.
+    public partial Task WaitForBrowserAsync(CancellationToken cancellation = default);
+    private partial void SignalBrowserChanged();
     public partial void AddBrowser(McpBrowser child);
     public partial void RemoveBrowser(McpBrowser child);
     internal partial McpClient ClaimBrowser(Skills owner, string skill, string server);

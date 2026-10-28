@@ -74,6 +74,57 @@ static string Wire(Vendor vendor, Context context, string model = "model-a")
 }
 try
 {
+    if (args is ["--memory-disk-tests"] || args.Length == 0)
+    {
+        CheckCase("memory disk ownership and fresh scan", MemoryDiskTests.OwnershipAndScan);
+        CheckCase("memory conversation staging", MemoryDiskTests.ConversationStaging);
+        CheckCase("memory graduation crash recovery", MemoryDiskTests.GraduationRecovery);
+        CheckCase("memory stale corrupt and confined inputs", MemoryDiskTests.RefusalAndConfinement);
+        CheckCase("memory persisted receipt recovery", MemoryDiskTests.PersistedReceiptRecovery);
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--compression-tests"] || args.Length == 0)
+    {
+        CheckCase("compression conversation replay", CompressionTests.ConversationReplay);
+        CheckCase("compression graduation replay", CompressionTests.GraduationReplay);
+        CheckCase("compression task correlation", CompressionTests.Correlation);
+        CheckCase("compression snapshot and journal", CompressionTests.Persistence);
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--memory-selection-tests"] || args.Length == 0)
+    {
+        CheckCase("memory complete-prefix selection", MemorySelectionTests.Prefix);
+        CheckCase("memory unsafe and incomplete selection", MemorySelectionTests.Boundaries);
+        if (args.Length != 0)
+        {
+            await AsyncCase("handoff actor retains checkpoints", ActorTests.HandoffBatch);
+            CheckCase("handoff retained snapshot replay", HandoffTests.Replay);
+            await AsyncCase("handoff interrupted batch", ActorTests.InterruptedHandoff);
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--memory-band-tests"] || args.Length == 0)
+    {
+        CheckCase("memory pure replay", MemoryBandTests.Replay);
+        CheckCase("memory values and codec", MemoryBandTests.ValuesAndCodec);
+        CheckCase("memory snapshot persistence", MemoryBandTests.Persistence);
+        CheckCase("memory journal recovery", MemoryBandTests.Journal);
+        CheckCase("memory provider data ordering", MemoryBandTests.Wire);
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args is ["--cache-lens-tests"])
     {
         CheckCase("cache lens rooted captures", () => CacheLensTests.Confined(temp));
@@ -91,6 +142,31 @@ try
         await AsyncCase("Chapter 20 inherited child MCP clients", () => McpTests.ChildSkills(temp));
         if (args.Length != 0)
         {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--child-message-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 21 finalized child output cursors", () => ActorTests.ChildOutputCursors(temp));
+        await AsyncCase("Chapter 21 live messages and authority", () => ActorTests.ChildLiveMessages(temp));
+        await AsyncCase("Chapter 21 queued reliable question", () => ActorTests.ChildQueuedQuestion(temp));
+        await AsyncCase("Chapter 21 fixed child change waits", () => ActorTests.ChildChangeWaits(temp));
+        await AsyncCase("Chapter 21 transient child stream progress", () => ActorTests.ChildStreamingProgress(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--child-lifetime-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 21 graceful queued drain", () => ActorTests.ChildGracefulDrain(temp));
+        await AsyncCase("Chapter 21 graceful observer cancellation", () => ActorTests.ChildGracefulCancellation(temp));
+        await AsyncCase("Chapter 21 forceful child lifetime", () => ActorTests.ChildKillLifetime(temp));
+        if (args.Length != 0)
+        {
+            await AsyncCase("Chapter 20 subtree cleanup and failure", () => ChildToolTests.Shutdown(temp));
             Console.WriteLine($"{passed} passed; {failures} failed");
             return failures == 0 ? 0 : 1;
         }
@@ -115,6 +191,29 @@ try
             return failures == 0 ? 0 : 1;
         }
     }
+    if (args is ["--browser-startup-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 21 browser availability and synchronized ownership", McpTests.BrowserAvailability);
+        await AsyncCase("Chapter 21 independent peer browser startup lifetime", () => McpTests.BrowserPeerStartup(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--peer-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 21 durable peer launch and restoration", () => PeerTests.Persistence(temp));
+        await AsyncCase("Chapter 21 ordinary peer chat across restart", () => ActorTests.PeerChat(temp));
+        await AsyncCase("Chapter 21 peer registry refusals and rollback", () => PeerTests.Refusals(temp));
+        await AsyncCase("Chapter 21 explicit peer deletion and retained data", () => PeerTests.Deletion(temp));
+        await AsyncCase("Chapter 21 peer startup cancellation and application lifetime", () => McpTests.PeerStartup(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args is ["--storage-tests"] || args.Length == 0)
     {
         await AsyncCase("Chapter 21 named actor homes and restoration", () => StorageTests.NamedHomes(temp));
@@ -125,10 +224,22 @@ try
             return failures == 0 ? 0 : 1;
         }
     }
+    if (args is ["--submission-retrieval-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 21 fresh historical submission", () => SubmissionRetrievalTests.FreshHistory(temp));
+        await AsyncCase("Chapter 21 submission artifact validation", () => SubmissionRetrievalTests.Validation(temp));
+        await AsyncCase("Chapter 21 retrieval tool dispatch", () => SubmissionRetrievalTests.Tool(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args is ["--agent-tree-tests"] || args.Length == 0)
     {
         await AsyncCase("Chapter 21 ownership tree membership", () => AgentTreeTests.Membership(temp));
         await AsyncCase("Chapter 21 concurrent ownership tree", () => AgentTreeTests.ConcurrentMembership(temp));
+        await AsyncCase("Chapter 21 qualified ownership addresses", () => AgentTreeTests.Addresses(temp));
         if (args.Length != 0)
         {
             Console.WriteLine($"{passed} passed; {failures} failed");
@@ -503,7 +614,7 @@ CheckCase("validated backup recovery and failure nonmutation", PersistenceTests.
 await AsyncCase("automatic lifecycle and current runtime reconfiguration", PersistenceTests.Runtime);
 await AsyncCase("Chapter 14 pending skill authority and frozen projections", SkillAuthorityTests.PendingAuthority);
 CheckCase("Chapter 14 total reduction and strict unknown-event refusal", ReductionTests.TotalReplay);
-await AsyncCase("Chapter 14 handoff waits for batch and replaces prior note", ActorTests.HandoffBatch);
+await AsyncCase("handoff waits for batch and retains completed notes", ActorTests.HandoffBatch);
 CheckCase("Chapter 14 handoff snapshot-only replay", HandoffTests.Replay);
 await AsyncCase("Chapter 14 interrupted handoff pairs tail and preserves Job", ActorTests.InterruptedHandoff);
 await AsyncCase("Chapter 14 manual clear waits for outcomes and preserves context/Jobs", ActorTests.ManualToolClear);
