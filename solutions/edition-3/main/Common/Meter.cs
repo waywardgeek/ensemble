@@ -51,6 +51,10 @@ public sealed partial class Engine
     public partial MeterSnapshot Meter();
     // Only completed SendAsync calls record usage. Parse/Render/replay do not.
     private partial void RecordUsage(UsageIdentity identity, Usage usage);
+
+    // The owning actor imports a joined auxiliary worker once. This changes
+    // cumulative rows only, never the last direct response or cache lens.
+    internal partial void ImportUsage(MeterSnapshot usage);
     // Same decoder for plain and completed streaming responses. Public Parse
     // discards transient billing identity and never mutates the process meter.
     private partial ImmutableArray<Event> ParseResponse(int status, string body, out UsageIdentity? billing);

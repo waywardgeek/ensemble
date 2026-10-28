@@ -105,6 +105,9 @@ public static partial class Gui
         // stored on Agent or used to decide whether a model turn is complete.
         static string AddressOf(Agent target) => target.Address() ?? "";
         object gate = new();
+        // Serialize memory read/patch/save/apply across tabs without holding
+        // the projection lock while the actor joins an invalidated compressor.
+        using var memorySettingsGate = new SemaphoreSlim(1, 1);
         // Notification deduplication only; Engine remains the accounting authority.
         var lastMeterWire = new Dictionary<Agent, string>();
         string tracePath = options.TracePath;
@@ -384,7 +387,7 @@ public static partial class Gui
                 Queue(socket, queue, new JsonObject
                 {
                     ["type"] = "current_settings", ["agent_id"] = AddressOf(target),
-                    ["settings"] = Settings(preferences, target.MaxToolRounds(), target.ContextByteBudget())
+                    ["settings"] = AgentSettings(preferences, target)
                 });
                 if (latestTree is not null) Queue(socket, queue, latestTree);
                 return true;
@@ -518,6 +521,7 @@ public static partial class Gui
                         }
                     }
                 }
+                await relayAgent.WorkStatusAsync(lifetime.Token);
                 if (!Select(socket, queue, relayAgent)) return;
                 var buffer = new byte[8192];
                 while (!lifetime.IsCancellationRequested)
@@ -569,6 +573,7 @@ public static partial class Gui
                                 Agent? choice = address.Length == 0 && agent.Address() is null
                                     ? agent : agent.Parent().FindAgentAddress(address);
                                 if (choice is null) throw new InvalidDataException("Unknown Agent address.");
+                                await choice.WorkStatusAsync(lifetime.Token);
                                 Select(socket, queue, choice);
                                 break;
                             case "subscribe":
@@ -576,16 +581,71 @@ public static partial class Gui
                                 // with registration. Subscription is idempotent.
                                 break;
                             case "get_settings":
+                                await selected.WorkStatusAsync(lifetime.Token);
                                 lock (gate)
                                 {
                                     Queue(socket, queue, new JsonObject
                                     {
                                         ["type"] = "current_settings", ["agent_id"] = AddressOf(selected),
-                                        ["settings"] = Settings(preferences, selected.MaxToolRounds(), selected.ContextByteBudget())
+                                        ["settings"] = AgentSettings(preferences, selected)
                                     });
                                 }
                                 break;
                             case "update_settings":
+                                var patch = command.GetProperty("settings");
+                                if (patch.TryGetProperty("memory", out var memoryPatch))
+                                {
+                                    // Separate documents cannot form one atomic update.
+                                    // The frontend sends memory-only patches; reject mixed
+                                    // patches rather than partly save appearance and policy.
+                                    if (patch.EnumerateObject().Count() != 1)
+                                    {
+                                        throw new InvalidDataException("Memory settings must be updated separately");
+                                    }
+                                    await memorySettingsGate.WaitAsync(lifetime.Token);
+                                    try
+                                    {
+                                        await selected.WorkStatusAsync(lifetime.Token);
+                                        var desired = MergeMemorySettings(memoryPatch, selected.MemorySettings());
+                                        // Once admitted, await the definite actor outcome even
+                                        // if this tab disconnects. Observer cancellation cannot
+                                        // roll back a durable settings replacement.
+                                        await selected.SaveMemorySettingsAsync(desired);
+                                        lock (gate)
+                                        {
+                                            foreach (var (peerSocket, peer) in peers.ToArray())
+                                            {
+                                                if (!ReferenceEquals(peer.Selected, selected))
+                                                {
+                                                    continue;
+                                                }
+                                                Queue(peerSocket, peer.Queue, new JsonObject
+                                                {
+                                                    ["type"] = "settings_updated", ["agent_id"] = AddressOf(selected),
+                                                    ["settings"] = AgentSettings(preferences, selected)
+                                                });
+                                            }
+                                        }
+                                    }
+                                    catch (Exception error) when (error is IOException or InvalidDataException
+                                        or UnauthorizedAccessException or ArgumentException or InvalidOperationException
+                                        or FormatException or JsonException)
+                                    {
+                                        lock (gate)
+                                        {
+                                            Queue(socket, queue, new JsonObject
+                                            {
+                                                ["type"] = "error",
+                                                ["message"] = "Memory settings were not acknowledged. Reload settings to inspect the current policy; a saved change may apply on restart."
+                                            });
+                                        }
+                                    }
+                                    finally
+                                    {
+                                        memorySettingsGate.Release();
+                                    }
+                                    break;
+                                }
                                 lock (gate)
                                 {
                                     var candidate = MergeSettings(command.GetProperty("settings"), preferences, selected.MaxToolRounds(), selected.ContextByteBudget());
@@ -603,7 +663,7 @@ public static partial class Gui
                                             Queue(peerSocket, peer.Queue, new JsonObject
                                             {
                                                 ["type"] = "settings_updated", ["agent_id"] = AddressOf(peer.Selected),
-                                                ["settings"] = Settings(preferences, peer.Selected.MaxToolRounds(), peer.Selected.ContextByteBudget())
+                                                ["settings"] = AgentSettings(preferences, peer.Selected)
                                             });
                                         }
                                     }

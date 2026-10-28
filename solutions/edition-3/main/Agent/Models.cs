@@ -34,6 +34,7 @@ public sealed partial class Agent
                 // nor saved preferences becomes a second selection authority.
                 Configuration candidate = configuration.WithModel(message.Model!);
                 configuration = candidate;
+                ResetMemoryPressure();
             }
             message.Reply!.TrySetResult("");
         }

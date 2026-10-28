@@ -6,6 +6,10 @@ public sealed partial class Agent
 {
     private partial bool BeginAutomaticCollection()
     {
+        if (RequiresMemoryHandoff())
+        {
+            return false;
+        }
         if (roundSnapshotsCollected)
         {
             return false;

@@ -35,6 +35,9 @@ public sealed partial class History
     // All path resolution and file operations reach Sandbox through this History's
     // Agent parent. Relative paths are rooted there; no second root is retained.
     public partial void Save(PersistenceOptions options);
+    // Preserve the complete canonical event stream before conversation retirement.
+    // Uses the existing archive merge/validation, not reduced compressor input.
+    internal partial void ArchiveMemory();
     internal partial PersistenceOptions NormalizePersistence(PersistenceOptions options);
     // Validate primary and backup independently. Publish only a complete replay.
     // Replay the sibling journal exactly once beyond the chosen snapshot. Returns

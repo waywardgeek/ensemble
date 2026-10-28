@@ -18,7 +18,7 @@ public sealed partial class Agent
     {
         lock (ingress)
         {
-            if (agentParent is null || submittedPayload is not null || admissionClosed
+            if (memoryCompressor || agentParent is null || submittedPayload is not null || admissionClosed
                 || runningWorkGeneration != admittedWorkGeneration)
             {
                 return false;

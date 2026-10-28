@@ -165,6 +165,14 @@ public sealed partial class Engine
                 var identity = parsed.Billing ?? new UsageIdentity(config.Vendor, "", null);
                 RecordUsage(identity, completedUsage ?? new Usage(null, null, null, null));
             }
+            // Meter a completed exchange even when its output cannot authorize
+            // a memory write. No finalized call from an incomplete reply reaches
+            // the child actor. Ordinary-agent acceptance is unchanged.
+            if (parsed.IncompleteCompression)
+            {
+                return new ParsedResponse([new Event(EventKind.ErrorOccurred,
+                    error: "Compressor response did not finish successfully.")], []);
+            }
             return parsed;
         }
         catch (Exception ex) when (ex is HttpRequestException or IOException)

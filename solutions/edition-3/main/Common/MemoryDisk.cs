@@ -19,7 +19,10 @@ public sealed partial class Memory
     public partial Memory(Agent parent);
     public partial Agent Parent();
     public partial void Destroy();
-    internal partial ImmutableArray<MemoryEntry> Scan(Context recovered, MemoryBand band);
+    // A live capture permits only unrelated-band scans before staging. Startup
+    // callers omit it and must have fully recovered the persisted receipt.
+    internal partial ImmutableArray<MemoryEntry> Scan(Context recovered, MemoryBand band,
+        MemoryCapture? live = null);
     internal partial MemoryCapture? CaptureConversation(Context context, long budget, DateTimeOffset now);
     internal partial MemoryCapture? CaptureGraduation(Context context, MemoryBand band,
         long highWatermark, long lowWatermark, DateTimeOffset now);
@@ -34,6 +37,9 @@ public sealed partial class Memory
     // calling again with that terminal Context releases the receipt.
     internal partial CompressionOutcome? Recover(Context context);
 
+    // Agent-local human policy, independent of corpus and canonical History.
+    internal partial MemorySettings? ReadSettings();
+    internal partial void WriteSettings(MemorySettings settings);
     private partial string HomePath(string relative);
     private partial string CorpusPath(MemoryBand band, string id);
     private static partial string BandDirectory(MemoryBand band);

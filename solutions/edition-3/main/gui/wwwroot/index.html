@@ -25,7 +25,49 @@
 <label>Context target <input id="context-target-bytes" type="number" min="0" step="1000" value="400000"> UTF-8 bytes (0 = default, 400,000)</label>
 <label>Speech speed <input id="tts-speed" type="range" min="0.25" max="4" step="0.25" value="1"> <output id="speed-label">1×</output></label>
 <label><input id="pause-speaking" type="checkbox" checked> Pause Agent while speaking</label><label><input id="narrate" type="checkbox"> Narrate new assistant answers</label>
-<label>Voice <select id="voice"><option value="">Browser default</option></select></label><button id="stop-speech">Stop speech</button></details><p id="funding-source" role="status">Connecting to selected model and funding source…</p><div id="model-controls">
+<label>Voice <select id="voice"><option value="">Browser default</option></select></label><button id="stop-speech">Stop speech</button></details><details id="memory-settings"><summary>Selected Agent’s memory</summary>
+<form id="memory-settings-form">
+<p>Sizes are UTF-8 bytes, not tokens. Zero selects the band default. Disabling hides memory from requests but preserves files. Re-enabling reads current disk contents. Settings save in this Agent’s home, separately from appearance preferences.</p>
+<fieldset><legend>Conversation</legend>
+<label><input id="memory-conversation-enabled" type="checkbox"> Enabled</label>
+<label>Budget (bytes) <input id="memory-conversation-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>High watermark (bytes) <input id="memory-conversation-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Low watermark (bytes) <input id="memory-conversation-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+</fieldset>
+<fieldset><legend>SOUL.md</legend>
+<label><input id="memory-soul-enabled" type="checkbox"> Enabled</label>
+<label>Budget (bytes) <input id="memory-soul-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>High watermark (bytes) <input id="memory-soul-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Low watermark (bytes) <input id="memory-soul-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+</fieldset>
+<fieldset><legend>MEMORY.md</legend>
+<label><input id="memory-memory-enabled" type="checkbox"> Enabled</label>
+<label>Budget (bytes) <input id="memory-memory-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>High watermark (bytes) <input id="memory-memory-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Low watermark (bytes) <input id="memory-memory-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+</fieldset>
+<fieldset><legend>64× archive</legend>
+<label><input id="memory-archive64-enabled" type="checkbox"> Enabled</label>
+<label>Budget (bytes) <input id="memory-archive64-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>High watermark (bytes) <input id="memory-archive64-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Low watermark (bytes) <input id="memory-archive64-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+</fieldset>
+<fieldset><legend>8× archive</legend>
+<label><input id="memory-archive8-enabled" type="checkbox"> Enabled</label>
+<label>Budget (bytes) <input id="memory-archive8-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>High watermark (bytes) <input id="memory-archive8-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Low watermark (bytes) <input id="memory-archive8-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+</fieldset>
+<fieldset><legend>Session</legend>
+<label><input id="memory-session-enabled" type="checkbox"> Enabled</label>
+<label>Budget (bytes) <input id="memory-session-budget" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>High watermark (bytes) <input id="memory-session-high_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+<label>Low watermark (bytes) <input id="memory-session-low_watermark" type="number" min="0" max="9007199254740991" step="1" required></label>
+</fieldset>
+<p>Low watermark must be positive and no greater than high watermark after defaults resolve. A relevant policy change cancels and joins pending compression before acknowledgment.</p>
+<button type="submit">Save memory settings</button>
+<button id="memory-settings-reload" type="button">Reload acknowledged settings</button>
+</form></details><p id="funding-source" role="status">Connecting to selected model and funding source…</p><div id="model-controls">
   <label for="model-choice">Session model</label>
   <select id="model-choice" aria-describedby="model-help" disabled></select>
   <button id="set-model" type="button" disabled>Select model</button>

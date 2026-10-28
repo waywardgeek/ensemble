@@ -1,3 +1,718 @@
+## Chapter22 — locally complete and preserved; next Chapter23
+
+I completed the assembled review of the 73-file Chapter21→main delta, recovering
+omitted source/test spans rather than crediting clipped reads. The pass covered
+Common declarations and ownership, replay/codec validation, rooted capture and
+recovery, actor launch/commit/cancellation, joined accounting, pressure/cache
+projection, durable settings and selected-Agent GUI acknowledgment, associated
+real-component tests, and the saved C# chapter. The already reviewed scoped grader
+and actual-host/browser evidence remain unchanged. The concrete source finding was
+the duplicate terminal-worker MEMORY.md input described immediately below; no
+additional production change followed its verified correction. The manuscript now
+records both prompt corrections and their evidence boundaries.
+
+`solutions/edition-3/ch22` now preserves **305 source/support files**, all
+byte-identical to reviewed main at preservation. All **13 ProjectReference edges**
+across 14 projects resolve inside the endpoint. No symlinks, bin/obj, runtime data,
+private files or dependency directories were copied. Main remains the continuing
+workspace; Chapter21 and earlier endpoints were not modified. Main/endpoint README
+now states this local completion boundary. Last observed free space was
+11,817,340 KiB, comfortably above the 1 GiB floor.
+
+Evidence remains deliberately layered: `reconcile-shared.log` **266/0** and
+`grade-fifth.json` **40/40**, passed:true/exit0, precede the later prompt-only
+attribution and duplication corrections. Final `review-worker-fixed.log` **4/0**
+and clean actual CLI/GUI builds cover the final production source; the duplicate
+input failing baseline is retained. Four joined executable sessions made 72 local
+requests; 60 ungraded points remain excluded. Prior isolated browser controls,
+real WebSocket settings, same-home CLI restart, external consumer, runtime,
+pressure/cache and accounting evidence retain their original scope. No unchanged
+campaign was repeated simply to create a newer receipt. Request assertions do not
+prove model obedience or compression quality. No live-provider/cache/OAuth/billing,
+native Linux/x64, audible or human-accessibility success is claimed.
+
+Narrow final documentation whitespace check passed with GIT_PAGER=cat. An initial
+check accidentally opened a pager; only its verified owned PID was terminated.
+Earlier failed GUI reads used nonexistent guessed paths and reviewed nothing; I
+then read the actual Gui/Server and Gui/wwwroot changes and socket tests. These are
+execution mistakes, not extra verification credit.
+
+Next: read Chapter23's actual requirements and relevant existing implementation,
+then implement and teach personally without workers. Chapter24 still begins with
+the joint Chapter16 real-OAuth exercise and a current official-endpoint cache test
+before any workaround decision. Chapter27 Goals and the Cadence epilogue remain.
+No installs, deployment/restarts, commits, private credential searches or use of
+Bill's browser/8088 were authorized. Chapter-boundary handoff follows this entry.
+
+---
+
+## Chapter22 — assembled review underway; duplicate worker input corrected
+
+Chapter22 remains **incomplete, with no endpoint**; ch21 is untouched. I began
+assembled production review through Common declarations/ownership, disk capture,
+recovery, replay, actor orchestration, request projection/accounting and GUI settings.
+Large clipped reads are not full coverage; remaining spans and the full test/prose
+pass still need completion. I fully inspected Memory disk ownership, scanning,
+selection/staging/recovery and `Tests/MemoryDiskTests.cs`, including real-file
+conflicts, interrupted retirement and restored-receipt cases. No disk format change
+was needed.
+
+A concrete review finding: terminal graduation supplied existing MEMORY.md twice.
+`MemoryCapture.Input()` already includes its exact captured destination; the worker
+also appended `DestinationText` separately. I removed that redundant prompt block
+and retained the capture formatter as the single source. The existing worker success
+test now exercises both session and Archive64→Memory graduation and checks that the
+actual request contains the distinctive old curated text exactly once.
+
+Scratch `review-worker-baseline-build.log` is clean; `review-worker-baseline.log`
+reproduces the assertion (3 pass/1 fail). After correction,
+`review-worker-fixed.log` is **4/0**, and `review-worker-fixed-build.log`,
+`review-cli-build.log`, `review-gui-build.log` are clean (joined job5653 exit0).
+These verify local request construction, not real-model quality. Earlier shared266/0,
+scoped grade40/40 and browser checks were not rerun or relabeled. The new change is
+prompt-only; receipt/replay/accounting behavior is unchanged. No grade campaign is
+needed merely for freshness.
+
+**Next:** finish assembled source/test/prose review, inspect omitted spans rather
+than assuming clipped output was reviewed, then preserve a source-only endpoint and
+perform the required chapter-boundary handoff. Scratch remains
+`/private/tmp/ch22-csharp.UJzRJ5`. No live provider/OAuth/cache/billing/accessibility
+claim or added restart/install/commit authority.
+
+## Chapter22 — C# manuscript saved; assembled review and endpoint still open
+
+Main remains Chapter22 in progress, with **no ch22 endpoint**; Chapter21 is
+unchanged. I rewrote `book/edition-3/chapter-22.md` around the current C# ownership,
+replay transaction, rooted recovery, worker, pressure/accounting and durable settings
+contracts. I retained Bill's opening, one-door/reasoned-handoff rationale, the
+October14 direct-call failure, synthetic measurement caveats, attributed historical
+live results and the Cedar Lantern/Harbor Finch semantic-quality cases. Historical
+Go measurements are separate from C# verification. The exercise now uses .NET10,
+a temporary Agent home/skill, an unused non-8088 port and current GUI controls.
+The three shell blocks pass `/bin/sh -n`; they were not live-executed in this slice.
+Named source-map paths/test selectors and local Markdown links resolve.
+
+Prose review found the worker prompt did not request the chapter's first-person
+continuation voice. `Agent/MemoryWorker.cs` now asks for source-supported first-person
+continuation, attribution and uncertainty, forbidding invented experiences/decisions
+or successful verification. `Tests/MemoryWorkerTests.cs` asserts those request
+instructions. Scratch `prose-worker-baseline.log` has 3 pass/1 fail before the prompt
+change; `prose-worker-fixed.log` has 4/0 afterward. `prose-worker-fixed-build.log`,
+`prose-cli-build.log` and `prose-gui-build.log` report clean builds. These are prompt
+and local component checks, not real-model compliance or semantic quality evidence.
+Previous shared266/0, browser/CLI and scoped executable40/40 retain their original
+scope; they predate this prompt-only change and were not rerun or relabeled.
+
+I made avoidable editing mistakes: a repository-relative test path from the main
+cwd refused before editing; several manuscript assembly guards refused guessed
+heading/content anchors before writing. I recovered exact saved sections and used
+a direct assembly. Draft review corrected defaults (conversation3000, each corpus
+band1500, high2x/low1x), dated archive endpoints, a false inherited-prompt anecdote,
+source filenames and navigation titles. The faulty draft/scripts remain scratch,
+not authority and **must not be replayed over the saved manuscript**. Static checks
+caught the nonexistent Engine/Stream.cs map; corrected names are Streaming.cs and
+MemoryWorker.cs. README now distinguishes 60 ungraded points from imaginary rows.
+These errors are mine, not evidence of product defects or thoroughness.
+
+**Next:** complete the assembled Chapter22 source/test/prose review against ch21,
+including actual Common declarations, ownership/add-remove paths, transaction/error
+paths and the saved manuscript. Source-map and syntax checks do not complete that
+review. Resolve concrete findings with relevant checks, preserve the source-only
+endpoint, then mandatory chapter-boundary handoff. Reuse unchanged evidence; no
+fresh grade campaign without a changed input/correctness question. Scratch remains
+`/private/tmp/ch22-csharp.UJzRJ5`. No live provider/cache/OAuth/billing/native Linux/
+audible/human accessibility claim, worker delegation, commit or restart.
+
+## Chapter22 — scoped executable verification; manuscript/review still open
+
+Current main remains Chapter22 in progress; **no ch22 endpoint**. Chapter21 is
+unchanged. Scratch remains `/private/tmp/ch22-csharp.UJzRJ5`. I read the Chapter22
+Go grader, its driver/lifecycle contracts and C# host seams. That reconciliation
+found one real public-contract mismatch: the compressor advertised `summary` plus
+a nonblank pattern instead of the chapter's exact `{"memory": string}` object.
+The ordinary declaration builder also appended observation fields to that supposedly
+exact schema. `Agent/MemoryWorker.cs` now requires only the string `memory`, with
+`additionalProperties:false`; compressor-only declarations omit observation options.
+Blank/whitespace is a terminal failed candidate after joined submission, not a schema
+correction retry. Wrong-type/missing fields still get the existing bounded corrections.
+Internal immutable result/disk receipt `Summary` names did not change. The stale
+`micro_handoff` help now explains retaining older checkpoint notes until memory commit.
+
+The strengthened exact-schema/blank-output baseline is `schema-baseline-tests.log`
+(1 pass/3 failures). Final worker4/0, runtime6/0, accounting4/0 and pressure6/0 are
+`schema-fixed-worker-2.log`, `schema-fixed-runtime-2.log`,
+`schema-final-accounting-2.log`, `schema-final-pressure-2.log`. Accounting fixtures
+now use wrong-type values for retries rather than blank strings; the earlier timed-out
+runs preserved their obsolete assumption. A missed nullable helper signature caused
+build-only failures. Final **shared266/0** is `reconcile-shared.log`; actual hosts are
+clean in `reconcile-cli-build.log` and `reconcile-gui-build.log`. This full regression
+includes the correction; production has not changed afterward. No repeated browser
+campaign was needed: the changed boundary is compressor-only declaration/submission.
+
+`internal/gradeedition2/ch22_executable.go` and its tests add an opt-in C# scope to
+`grade-edition2 -ch 22 -executable-only -json EXECUTABLE`. Original Go route/assertions
+remain intact. The five complete rows are planted facts10, oldest-first graduation12,
+disabled neighbor8, memory-as-data5 and fresh start5: **40 points**, not 100. Excluded
+60 are checkpoint/background15, toggle/GUI12, forcing/headroom12, replay/accounting10,
+restart/abandon8 and inherited parity3. Separate C# library/actual-GUI tests remain
+separate evidence, not awarded points. Shared wire assertions are reused; C# startup,
+Agent-local strict settings and durable events use actual C# contracts. Fresh restart
+copies only live corpus Markdown from actual Agent homes, never child `submit.md`,
+saved conversations, retired files or staged receipts. A normal actor control barrier
+and reread close the waterfall-launch race; elapsed quiet alone is not completion.
+The actual terminal success is `CompressionFinished` with `state:"committed"`, emitted
+after disk recovery/promotion; there is no C# `Finalized` enum. Earlier verbal references
+to a separate finalized outcome were wrong, not product behavior.
+
+Final `grade-fifth.json`: **40/40, passed:true, exit0**, empty `grade-fifth.stderr`.
+Retained root `tmp/c22-executable-3042409255` contains four clean joined sessions:
+facts19, graduation27, neighbor25, fresh1 = **72 local requests**; each final event is
+`agent_shutdown`. Host stderr retains ordinary diagnostic output. Pinned reviewed
+CLI is `grade-hosts-reconciled` / `cli-grade-reconciled`; the wrapper preserves the
+already-isolated grader environment. Contract tests `grader-contract-tests-8.log`
+pass; `grade-scope-refusals.json` records eight incompatible scopes rejected before
+executable resolution. No live provider/caching/billing claim follows.
+
+Retained failed grades were harness repairs, not four more product defects:
+`grade-first.json` is human-readable despite its suffix and never launched a host
+(guessed handoff translation; actual historical fake already sends `text`);
+`grade-second.json` caught invalid fixture skill syntax and a double env-i wrapper
+that stripped model configuration; `grade-third.json` exposed missing required
+pre-tool explanation in the fake and wrong outcome-field decoding; `grade-fourth.json`
+was5/40 because the adapter expected nonexistent `finalized` rather than `committed`.
+Fixture explanations now precede the actual submit call without changing memory text.
+Build-only mistakes included fake callback/type signatures and the nested settings
+shape. Repeated guessed interfaces/ranges caused avoidable overhead; they are not
+quality evidence. The successful grade does not erase that process correction.
+
+Narrow changed-source/test/adapter review is complete, including receipt-order and
+CLI route checks; **final assembled Chapter22 review is not**. Next: rewrite/read the
+C# manuscript and exercises against actual behavior, inspect the entire Chapter22
+delta/tests as assembled, then source-only preservation and chapter-boundary handoff.
+The source chapter's TL;DR has been reread; its body remains unreconciled. Correct
+selection remains complete old prefixes over budget (no T/4 or minimum-two checkpoint
+rule), and graduation requires at least two files. Preserve Chapter24's joint OAuth/
+current-endpoint gate and Chapter27 Goals/epilogue direction below. No deployment,
+installation, restart, commit, private credential access or new authority is implied.
+
+## Chapter27 teaching direction — substantial rewrite after implementation
+
+Bill says the Goals TL;DR is probably usable, but the plain-language explanation,
+body, exercises, and Take It for a Spin may never have been completed. Inspect the
+actual restored source when reaching Chapter27; do not assume those sections are
+finished merely because the file exists. Implement personally from the TL;DR,
+consult the prior Goals implementation to resolve ambiguities, verify the result,
+then substantially upgrade/rewrite the chapter around the actual C# behavior.
+Bill points to Edition1 for the prior solution; locate the Goals implementation
+rather than assuming numbered ch27 is it (that inspected chapter is Gateway).
+
+Required motivational cold open, in Bill's authorial voice: until this chapter,
+Ensemble suffered the same problem as Codex: the LLM would stop at a seemingly
+random point, perhaps an hour into a day-long effort, and all progress halted
+until Bill noticed and poked it. The feature serves two distinct purposes:
+(1) keep work progressing through reminders, and (2) keep the goal clearly
+available even after multiple rounds of context compression. Preserve that
+motivation while explaining actual session-local idle reminder/file semantics;
+a reminder is an opportunity to continue, not a guarantee of useful progress.
+The new epilogue in Cadence's own voice still follows Chapter27 completion.
+
+## Final scope — Chapter27 Goals, then Cadence's epilogue
+
+Bill confirmed Edition3 ends at Chapter27, implementing Goals. After completing
+that chapter, write a new epilogue in Cadence's own voice, distinct from Bill's.
+His requested framing: agentic codebooks encode knowledge chapter by chapter,
+with expert-present pair programming and verification through re-running chapters,
+not a specification thrown over the wall. Bill describes this as the third
+successful run and the first closed loop: Ensemble creating the next Ensemble.
+Treat that account with its provenance and report actual completed scope when
+writing. Code becomes a rebuildable secondary artifact, analogous to compiled
+binaries; this does not relax source quality, architecture or test requirements.
+The durable work includes the knowledge, reasons and executable checks that make
+rebuilding possible. Do not draft a retrospective as if unfinished chapters passed.
+
+The proposed Edition1/chapter27 was inspected: it is Gateway, as are its solution
+and numbered ch27 graders. The correct Goals manuscript was found in the preserved
+backup `/Users/bill/projects/cadence-backups/edition-3-manuscript-before-restart-20261025T042452/chapter-27.md`
+and restored byte-for-byte into the previously absent `book/edition-3/chapter-27.md`.
+It is adaptation source, not C# completion. Relevant Go references are
+`agent/internal/{common,agent,tools}/goal.go`, `agent/ensemble/{goal.go,goal_test.go}`,
+and GUI goal tests/status code under `agent/gui`; design/history is
+`docs/edition-3-notes/ch27-design.md`. The companion already has a Goals chapter.
+Review its exercises/current tests when adapting verification; Gateway's numbered
+grader is not a Goals grader. Chapter22 continues first. Chapter24 still requires
+the joint Chapter16 OAuth exercise and current official-endpoint cache test.
+
+## Upcoming Chapter24 gate — Bill's live OAuth/cache direction
+
+Bill is home with his laptop and asked that, on reaching Chapter24, we first
+return together to Chapter16's real OAuth exercise. Before executing Chapter24,
+check OpenAI's current official endpoint guidance and verify whether the historical
+cache defect remains with a small controlled live test. Do not infer present
+failure from the chapter. If fixed, omit the workaround and adapt the prose; if
+reproducibly still broken, proceed with the prior Chapter24 Codex-endpoint approach
+after checking current requirements. This is future authorized work, not a test
+already performed, and grants no credential/account changes or restart authority.
+Chapter22 continues personally without workers. Its current implementation and
+verification boundary is recorded immediately below.
+
+## Chapter22 — durable per-Agent settings and local host exercise verified
+
+Current boundary: settings persistence/UI is implemented in main, not a Chapter22
+endpoint or chapter acceptance. Continue with actual grader reconciliation, prose,
+assembled review and preservation. Do not repeat unchanged pressure/worker checks.
+Scratch remains `/private/tmp/ch22-csharp.UJzRJ5`; no workers were used.
+
+**Ownership and order.** `Memory/Preferences.cs` owns bounded (16KiB), strict,
+versioned `<Agent home>/settings.json` reads and Sandbox atomic replacement. The
+shared `Serialization/MemorySettings.cs` codec contains all six resolved policies
+(conversation plus five bands), rejects missing/extra/duplicate fields, invalid
+integers/booleans/watermarks and unsupported versions. Only absence selects defaults.
+Startup recovers transactions first, then loads policy before scanning; compressor
+children retain their explicitly disabled policy. No second GUI policy cache or
+host-only consent owner was added. Existing SetMemorySettingsAsync stays in-memory;
+new SaveMemorySettingsAsync uses the same typed mailbox with an explicit durable
+flag. Preflight scans and the abnormal-pending guard precede save, then relevant
+worker cancellation/join and actual application precede acknowledgment. Save refusal
+leaves policy and a live compressor unchanged. A failure after successful save is
+not success: restart may apply that saved policy. Observer cancellation does not
+retract an admitted durable operation. No power-loss guarantee is claimed.
+
+**GUI.** `Gui/Server/MemorySettings.cs` merges strict patches against current Agent
+policy, using the shared codec. A serving-scope asynchronous gate serializes patches;
+no display/socket lock is held across actor awaits. `current_settings` and
+`settings_updated` include memory. Update acknowledgment reaches only connections
+currently viewing the affected Agent, not every tab and not its fixed MCP relay.
+Initial/selected/get-settings barriers load startup policy before rendering it.
+Memory patches must be separate from appearance patches: the two files are not one
+transaction. Appearance preferences keep their existing shared file. The new
+accessible-text fieldsets expose enable, budget/high/low byte watermarks for all six
+policies, explicit Save and Reload, zero-default semantics, and acknowledged state.
+Browser integers beyond its exact range refuse rather than silently round/save.
+Malformed/IO refusals emit no settings_updated; the bounded error warns that a saved
+change may apply on restart. Borrowed hosts retain their owners. A durable update
+requires an Agent data home; transient library Agents remain usable without one.
+
+**Evidence.** `settings-shared.log`:266/0, actual hosts clean. This precedes only the
+final GUI InvalidDataException diagnostic catch, comment/layout cleanup and one
+additional startup-failure assertion. `settings-runtime-tests.log`:6/0 covers failed
+save preserving a held worker, unrelated durable re-enable, relevant durable joined
+cancellation and orphan-pending refusal before saving. Final
+`settings-final-tests.log`:3/0 includes restart/off-edit-on, atomic save/scan refusal,
+strict codec and malformed startup failing before inference. Final
+`settings-final-gui-tests.log`:real public consumer verifies durable ack/fresh scan,
+selected-Agent isolation, patch/save refusal and borrowed lifetime, no inference.
+`settings-final-{cli,gui}-build.log`:actual projects clean0warnings/errors.
+`settings-gui-consumer.log`:unchanged full external GUI consumer PASS;
+`settings-speech-tests.log`:frontend speech wiring PASS, not audible verification.
+Frontend node syntax check passed. Saved changed declarations, actor ordering,
+codec/disk operations and GUI helpers/handlers/frontend/tests were inspected; this
+is a slice review, not the final assembled Chapter22 review.
+
+**Actual hosts.** Owned isolated Chrome/actual GUI exercised visible form save,
+budget5678, SOUL disable/edit/re-enable with fresh canonical text, disable/reload,
+zero model requests and clean exit. Workspace
+`tmp/memory-host-GDuMcZ/result.json` has overall success:false because its subsequent
+CLI launch used unsupported GUI flags, NOT a failed browser control assertion.
+Retain that result and `settings-host-exercise.log` as split-scope evidence.
+`settings-cli-explicit-route.log` and workspace `cli-explicit-route.json` then verify
+actual CLI restart against that same saved policy, exit0, one loopback request
+excluding the changed disabled SOUL text, and unchanged settings bytes. Earlier
+CLI attempts failed with unsupported flags, reserved offline model name, then an
+Anthropic-default request answered by the Chat fake. Last was one failed local
+request; corrected route explicitly sets OpenAI/Chat. Five total host launches
+(GUI plus four CLI), two local requests including the mismatched fake. No external
+provider, OAuth, billing, audible or human-accessibility success is implied.
+
+**Retained setup failures.** First fixture declaration wrongly made MeterTests
+public; the codec refusal helper omitted InvalidDataException; preflight initially
+used nonexistent Compression.Pending; a guarded HTML anchor refused before frontend
+writes. GUI isolation initially sent select_agent text instead of destination
+agent_id: both tabs still viewed initial, so its acknowledgment was correct.
+Corrected fixture asserts peer selection first. These are my setup mistakes, not
+product defects. CLI argument-order diagnosis was also wrong; parser scans options
+throughout. Repeated guessed interfaces/paths added avoidable overhead.
+
+**Next.** Read the complete actual ch22 grader and choose honest C# executable scope,
+then rewrite/review the manuscript against verified behavior and preserve only after
+final assembled review. A wire inspection found stale micro_handoff description
+“replaces older active handoff notes”; correct it to retained-checkpoint semantics
+in the reconciliation. No ch22 endpoint, grader result or revised prose yet.
+Historical ch21 stays untouched. Latest disk free11742184KiB is an observation,
+not a guarantee. Chapter24 OAuth/cache prerequisite and final27/epilogue directions
+above remain governing.
+
+## Chapter22 — forcing, headroom and cache boundary locally verified
+
+Main now observes input occupancy only from the actor's accepted main ResponseEnded,
+not cumulative Engine totals, direct library sends, restored usage or compressors.
+Usage.AllInput sums disjoint fresh/cache-write/cache-read buckets; unknown counts
+or model windows produce no invented ratio. The exact selected routing row supplies
+the window; dated billing identity is not used as a capability alias. Transient
+pressure is reset on model selection, never persisted as a restored measurement.
+At 90% the next request receives a request-only warning. At 95% an ingress-protected
+latch filters declarations, deferred references, ToolEnabled admission and automatic
+snapshots to existing micro_handoff authority only. It grants no tool. Successful
+handoff releases it at the normal complete-batch boundary. Later short/unknown
+responses cannot silently release the latch or its explanatory instruction.
+
+Before another main render at 95%, a pending compressor creates a foreground wait
+correlated with the existing task ID. The mailbox remains live; activity reports
+waiting for memory headroom. Matching commit resumes from the new Context, even
+if another waterfall attempt starts. Failure/invalidation surfaces an explicit
+headroom error without sending another main request. Pause/resume/settings remain
+responsive. Interrupt detaches only the foreground wait; compressor work continues.
+Shutdown joins it through the existing lifetime. No extra scheduler or worker owner.
+
+The disposable cache boundary now selects the newest surviving checkpoint, else
+the last memory block. Anthropic projection preserves it through message merging;
+coincident stable/tail boundaries deduplicate and transient ephemera remain excluded.
+Canonical Context and historical tool-reference grants are unchanged.
+
+Model metadata was verified from primary pages (not live model availability):
+- GPT-4o and GPT-4o-mini: 128,000 tokens,
+  https://developers.openai.com/api/docs/models/gpt-4o and
+  https://developers.openai.com/api/docs/models/gpt-4o-mini . The latter page marks
+  mini deprecated; this is deliberately not an entitlement/availability claim.
+- Gemini 2.5 Flash: documented input-token limit 1,048,576,
+  https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash .
+- Claude 3 Haiku: historical launch window 200K,
+  https://www.anthropic.com/news/claude-3-family . The current overview omits it;
+  targeted extraction returned an irrelevant quote, so the full announcement was
+  fetched and read instead. No beta/current-family limit was inferred.
+The gpt-6-astra course row and unknown IDs remain without a verified window.
+
+MemoryPressureTests plus MemoryCacheTests add six focused groups: exact90/95 and
+below-threshold controls; all cache categories counted once; effects refused before
+dispatch; unchanged canonical warnings/grants; direct/deferred admission and handoff
+release; unknown usage/window and direct/auxiliary isolation; model switch reset;
+real held-worker headroom commit with new rendered memory; responsive policy/pause;
+failure/invalidation/interrupt/shutdown and no extra request; memory/handoff/retired
+cache boundaries. Tests use real actors, HTTP and authoritative status barriers.
+
+Scratch /private/tmp/ch22-csharp.UJzRJ5: pressure-verified-build.log clean;
+pressure-verified-tests.log6/0; pressure-shared.log263/0; pressure-cli-build.log and
+pressure-gui-build.log actual hosts clean (zero warnings/errors). These include all
+behavior corrections; the later renderer edit only wraps the long filter expression.
+No new live-provider, browser, audible or accessibility campaign is credited.
+
+Retained failures: pressure-cache-baseline.log demonstrates missing memory fallback;
+pressure-latch-baseline.log demonstrates the retained latch losing its instruction
+after a small response. Both corrected. Its direct handoff restoration assertion
+needed the existing Flush barrier (reply availability is not application boundary).
+Other failed build logs are fixture/API mistakes: Engine type shadowing; wrong codec
+return/signature; omitted nonnullable Provenance, then guessed Source instead of the
+actual Configuration.Target accessor. An interrupted foreground reply correctly
+throws cancellation, which the fixture now asserts. No behavior is credited from
+those aborted chains. A Gemini string replacement silently missed its real row;
+saved-source review caught and corrected it before the final build. These were
+avoidable setup mistakes, not provider/product evidence.
+
+Next: wire memory settings through actual host persistence and GUI with durable-save
+then actor-application acknowledgment; local host exercise; scoped grader, C# prose,
+assembled review and source-only preservation. Chapter22 remains unfinished and has
+no endpoint. Chapter21 and earlier endpoints remain untouched. Retain the Chapter24
+joint OAuth/current-endpoint cache gate and Chapter27/epilogue direction above.
+
+## Chapter22 — exactly-once auxiliary accounting verified; forcing next
+
+The retained actor attempt now imports its joined child's immutable meter rows
+once, before any terminal journal write. Matching completion mail imports even
+while main transport delays memory commit; cancellation and fatal cleanup use the
+same helper/actor-owned flag, reset only when releasing that attempt. Engine's
+internal ImportUsage aggregates original provider/model/tier/billing identities
+and nullable counts under its existing meter lock. It does not change Latest,
+cache-lens captures, pricing rules or History. No global dedupe registry, copied
+transcript, or restored accounting state was introduced.
+
+CompressionOutcome carries immutable documentary usage rows. The event/context
+codec preserves them, including plan funding and unknown counts; old outcomes
+without rows still load empty. Invalid supplied arrays/counts/duplicate identities
+refuse. Commit, invalidation, cancellation and failed workers record available
+rows. A failed journal still leaves measured usage in the current process meter;
+crash recovery cannot reconstruct missing billing receipts and does not promise
+a cross-process ledger. Replay never imports saved rows into a new Engine.
+
+New MemoryAccountingTests (four groups) exercise real actors/HTTP: import while a
+main request is held, unchanged latest-main snapshot, actual pricing identities,
+failed three-send work across default/unknown tiers, policy/shutdown cancellation
+after completed usage, poisoned-journal cleanup, and completion-mail followed by
+policy invalidation while main transport is held. Saved receipt restoration starts
+a zero meter. Codec checks cover immutable values, plan/unknown import, old-format
+compatibility and damaged input. Existing waterfall test now verifies two receipts
+sum to parent totals without becoming Latest. No live provider billing is claimed.
+
+Scratch /private/tmp/ch22-csharp.UJzRJ5: account-tests-2.log 4/0;
+account-runtime.log 6/0; account-shared.log **257/0**; account-cli-build.log and
+account-gui-build.log clean, chain5390 exit0. This production source is unchanged
+by the final delivered-completion race fixture; account-review-build.log clean
+and account-review-tests.log 4/0 (chain5394 exit0) cover that fixture. All these
+jobs joined. Setup failures remain: guarded patch refused before writes, but my
+first shell lacked fail-fast and built unchanged code; result member is Meter,
+not checkpoint note's Usage; first codec fixture serialized seq0 and was correctly
+rejected (three actor groups passed, codec setup failed). No product defect was
+claimed from those failures. Saved meter/runtime/outcome/codec changes reviewed;
+no chapter acceptance/endpoint or repeated host/browser campaign.
+
+Next: latest-main occupancy, 90% warning, 95% declaration AND dispatch restriction,
+headroom wait on pending worker with usable settings/interrupt controls, then
+cache-breakpoint selection, durable GUI settings, local host exercise, scoped
+grader, prose/final review/preservation. C# ModelFeatures currently has no window
+field; unknown models must remain unknown. Read actual chapter TL;DR items8–9 and
+internal/gradeedition2/ch22_headroom.go, ch22.go forcing cases. V2 forceCheckpoint
+in solutions/ch22/internal/agent/memory.go only supplies the warning/flag; dispatch
+and tool admission implement enforcement. No forcing code or window constants
+have been saved. Chapter21 endpoint remains untouched.
+
+## Chapter22 — actor-owned automatic transactions verified; accounting next
+
+Main now starts at most one compressor at a completed handoff. Conversation
+selection has first priority; successful file commits may continue the 8x waterfall
+without inventing another conversation checkpoint. Failure waits for a later
+handoff. Disabled destinations warn rather than discard source. Common/MemoryRuntime
+owns the retained immutable capture/policy, cancellation source, joined task and
+immutable mailbox result; Agent/MemoryRuntime implements the lifecycle. A durable
+launch precedes child construction. The worker still publishes no parent History
+or disk effects. Its completion is joined and retained through the mailbox, then
+accepted only at Advance's complete main-batch boundary. Ordinary parent requests
+continue while the child waits. Late completion from invalidated work is ignored
+by exact task identity.
+
+The actor revalidates selected replay/disk source and destination, stages hidden
+candidate bytes, archives full canonical History for conversation cuts, and
+revalidates again after archive I/O. It journals the held cut/explicit retirement
+and matching population, finalizes through existing Memory.Recover, records the
+terminal outcome, then releases the receipt. Preparation failures retain active
+source; post-commit faults preserve the committed receipt for startup recovery,
+not a fabricated failed cut. Exact-byte checks do not claim a filesystem-wide
+transaction against external writers racing the final operation.
+
+Relevant source/destination policy changes now cancel and join the live child
+before invalidating the transaction and applying settings. An unrelated band may
+re-enable from fresh bytes only with the exact live uncommitted capture, no staged
+receipt, and a band distinct from source/destination. Startup/ordinary scans remain
+recovery-first. Normal shutdown cancels, joins and journals cancellation; fatal
+actor cleanup joins without attempting another write to a potentially poisoned
+journal. Existing child ownership and bottom-up submission rules remain intact.
+Parent usage import is NOT implemented yet.
+
+Tests/MemoryRuntimeTests adds six real-actor/local-HTTP groups: completion held
+behind a main request with later dialogue retained; unrelated re-enable versus
+joined relevant-policy invalidation; stale source and next-checkpoint-only retry;
+joined shutdown; conversation promotion/full canonical archive and deliberate
+archive-I/O refusal; two-stage file waterfall. Source review added the final
+wrapper-task join and post-archive revalidation. A further regression demonstrated
+that removing the old blanket settings refusal also allowed externally pending
+replay (without an actor capture) to be mutated: runtime-orphan-baseline.log is
+5/1. The corrected ReadMemoryChanges guard refuses that state unchanged, while
+legitimate live policy changes remain supported.
+
+Evidence in /private/tmp/ch22-csharp.UJzRJ5: runtime-tests-final.log6/0 and
+runtime-shared.log253/0 with clean actual CLI/GUI builds, joined chain5359. That
+broad run predates only the final unmatched-pending-replay guard. Corrected source
+has runtime-review-tests.log6/0, runtime-review-startup-tests.log5/0 and clean
+runtime-review-{cli,gui}-build.log, chain5369. Earlier compiler/setup failures
+are retained: wrong working-directory write, disk method/constructor guesses,
+fixture listener/reply/application APIs, then canonical-event vocabulary. They
+ran no new behavior; initial four-group and later six-group passes are superseded
+as indicated, not relabeled. Saved implementation/declarations, mailbox/Advance/
+teardown paths, scan/settings guards and tests were reviewed. No live provider,
+new browser campaign, executable Chapter22 grade or endpoint is claimed.
+
+Next: exactly-once parent import of completed child meter (including failure and
+cancellation), latest-main-request occupancy/forcing separate from that meter,
+durable host settings/application acknowledgment, local host exercise, grader
+scope, C# prose and final review/preservation. Main remains Chapter22 in progress;
+Chapter21 endpoint is untouched. Reuse unchanged evidence.
+
+## Chapter22 — bounded compressor child verified; parent integration still open
+
+Main now has an internal runner for one ordinary owned child, with immutable
+MemoryWorkerResult and no parent disk/History effects. Common/MemoryWorker declares
+the role/result/operations; Agent/MemoryWorker implements joined execution and
+cleanup; Serialization/MemoryWorker copies actual provider/funding/security choices
+but no inherited primary instructions or skill bootstrap. The child is skill-free,
+installs only validated submit, has all memory bands disabled and context budget0,
+and cannot accept a second task. Only nonblank summary is accepted. It writes its
+full event log and retained save under children/compress-<taskID>; launch TracePath
+now names that real owned events.jsonl rather than a fictitious compactor path.
+The runner returns only after shutdown and destruction, preserving files and a
+meter snapshot even on a failed/cancelled attempt. It does not stage or commit.
+
+Existing actor machinery enforces lifetime three-send allowance and three tool
+batches, refuses the entire batch unless it contains exactly one submit, pairs
+refused calls without executing them, fails no-call prose without ordinary fleet
+correction reminders, and finishes after recording the successful submit result
+(no closing-prose request). Existing bounded HTTP/auth retries remain inside a send.
+Compressor render removes optional Chat cap, leaves Responses unchanged and uses
+required Anthropic allowance16384 per manuscript; unsupported provider allowances
+remain visible failures, not live-tested compatibility. Terminal reason is retained
+through native SSE assembly. Engine meters a completed exchange, then replaces
+incomplete compressor output with an error before actor publication/dispatch;
+ordinary-agent acceptance remains unchanged. Responses reuses its existing strict
+terminal-success parser. No parent usage import or main occupancy logic exists yet.
+
+Tests/MemoryWorkerTests (--memory-worker-tests), four groups, use real actors,
+HTTP/JSON/SSE, source captures and owned files. They verify one request success,
+only submit advertised, no skills/recursive memory, live actor ownership followed
+by complete detach, full trace/save/submission artifacts, unchanged parent source,
+three invalid submissions/three forbidden-tool responses, whole multi-call refusal
+then recovery, one-send prose failure, and cancellation after an observed HTTP
+request with source retention. JSON and SSE terminal controls cover Chat,
+Anthropic and Gemini with completed usage retained on refused length finishes.
+Final fixture uses known local capability rows and asserts requested transport,
+not merely parser tolerance of unsolicited SSE. No live provider claim follows.
+
+Evidence in /private/tmp/ch22-csharp.UJzRJ5: worker-tests-final.log4/0;
+worker-shared.log247/0; worker-cli-build.log and worker-gui-build.log clean actual
+hosts, chain5282 exit0. Final fixture-only transport assertion/model changes:
+worker-stream-build.log clean, worker-stream-tests.log4/0, chain5297 exit0.
+No production changes followed the shared run. Startup/disk/replay evidence carries
+forward. Source review covered declarations, runner/config cloning, actor admission,
+response/batch/finalization/send points, engine meter-before-refusal ordering,
+stream reason retention, render caps and tests. No Chapter22 grade/endpoint yet.
+
+Retained failures were editing/fixture setup: guarded actor anchors first assumed
+nonexistent RunEngine/FinishTurn names; those refused before writes. Compile logs
+retain guessed capture.ID vs Launch, SubmitAsync parts and destruction APIs,
+then Skills vs SkillManager fixture typo. worker-tests-2 had three source-retention
+assertion failures because fixture omitted CompressionLaunched; StillCurrent
+correctly requires pending correlation. Corrected launch setup passed. Review
+corrected the advertised trace path; no failed product baseline was claimed.
+Do not rerun scratch editing scripts or turn those failures into product defects.
+
+NEXT: connect the existing runner as one actor-owned pending task with immutable
+mailbox completion. Parent alone selects/revalidates/stages/journals atomic commit,
+archives full canonical History and finalizes/retires files. Policy updates must
+replace the temporary pending refusal with explicit invalidation and joined
+cancellation, without invoking crash recovery on a live worker. Join during shutdown
+and account actual completed usage once. Preserve ordinary foreground progress and
+retry failures only on a later checkpoint. Automatic scheduling, parent usage import,
+forcing, settings persistence/GUI, prose/grader adaptation and endpoint remain open.
+
+## Chapter 22 — actor startup, band policy, canonical archive primitive
+
+Chapter 22 remains in progress. The actor now recovers before its first ordinary
+mailbox operation, journals the returned outcome through Record, releases staging,
+and only then scans enabled bands. Shutdown does not start recovery. A first
+settings message supplies the startup policy, so disabled corrupt bands need not
+be read. Fresh scans retire missing identities and upsert changed bytes without
+redundant facts. Agents without homes retain pure supplied replay data; they do
+not acquire implicit disk state. A failed startup settles the triggering typed
+reply before the actor drains other admitted work and performs joined cleanup.
+
+Common/MemorySettings declares immutable per-band byte settings and Agent-owned
+policy/readiness; Memory/Settings implements effective defaults (conversation
+3,000, corpus 1,500; high twice budget, low budget). Zero sizes mean defaults.
+SetMemorySettingsAsync applies through the mailbox, even idle, and acknowledges
+only after reconciliation. Cancellation after admission detaches the observer.
+Disable retires provider entries without deleting files; re-enable reads fresh
+bytes. All required scans finish before any policy facts are recorded, so a bad
+band refuses without partial application. Recovery/publication failures follow
+the fatal recording path, not a recoverable settings refusal. Hosts have NOT yet
+been wired to persist these settings. An unresolved live transaction currently
+refuses an update: worker integration must replace that temporary boundary with
+explicit invalidation/cancellation. Budgets do not yet schedule a compressor.
+
+History.ArchiveMemory reuses existing full canonical archive merge/serialization
+under saveGate at owned archive/events.jsonl. It preserves private replay fields
+removed by handoff, validates complete contiguous history, refuses gaps rather
+than reconstructing from a reduced snapshot, and checks resolved aliases against
+active writer/journal/primary/backup. It is an internal tested primitive, NOT yet
+called by a compression commit or a continuously maintained host archive.
+
+Evidence in /private/tmp/ch22-csharp.UJzRJ5: actor-memory-review-tests.log 5/0,
+review-build and review-cli/gui-build clean; chain5190 exit0. Real loopback first
+requests verify fresh startup/re-enabled bytes, idle updates send no requests,
+multi-band read refusal preserves policy/History, real persisted pending and
+committed receipts recover before inference without respawning, failed recovery
+settles the caller and retains its error through joined detached cleanup. Archive
+checks compare canonical serialized events, bridge a snapshot from a complete
+archive, reject missing history, and refuse a rooted symlink to active primary.
+Shared actor-memory-shared.log is 243/0, chain5186 exit0, before ONLY the final
+archive path resolution/alias assertion; final focused/hosts cover that guard.
+No new browser or live-provider evidence. Saved source review covered new settings,
+actor recovery/apply paths, mailbox failure settlement, archive reuse and fixtures.
+
+Setup failures retained: actor-memory-build used wrong outcome event/argument;
+build-2 fixture used StartPersistence(path) instead of PersistenceOptions. Initial
+focused run had valid startup/policy passes but invalid zero-watermark recovery
+fixtures; next run recovered correctly but expected faulted teardown success.
+Corrected assertions require the retained IOException and detached ownership.
+Source review moved recovery outside recoverable scan catch to preserve fatal
+journal failures; no experimentally reproduced journal-failure baseline claimed.
+
+Next: one skill-free submit-only compressor child, bounded to three sends/three
+tool batches, immutable mailbox result, actor revalidation/commit/archive/finalize,
+policy invalidation and joined cancellation. Then forcing/latest-main occupancy,
+once-only compressor accounting, durable host/GUI settings, grader/prose/final
+review/preservation. No Chapter 22 endpoint and no automatic compaction claim.
+
+## Chapter 22 — rooted corpus and staged disk recovery
+
+Chapter 22 remains in progress; ch21 is untouched. I completed the v2 staged and
+selection algorithm read and inspected actual Sandbox/lifecycle contracts. Every
+Agent now owns one Memory through declared two-way add/remove operations; teardown
+detaches it before Sandbox closes, retaining files. Transient actors need no home
+until a disk operation is requested. Memory reaches home and Sandbox through its
+actual Agent, retains no copied services/content cache, and never publishes History.
+
+The disk component freshly reads strict UTF-8 SOUL.md/MEMORY.md and dated `memory`,
+`bucket-0`, `bucket-1` files. It validates numeric/ranged IDs, rejects overlapping
+coverage, excludes retired/temp files, reserves retired session numbers, and keeps
+empty distinct from missing. Context's existing timestamp ordering uses deterministic
+date-plus-sequence ticks for scanned numeric IDs, not mutable filesystem mtime.
+A 64 MiB per-file/whole-receipt safety bound refuses rather than truncates; it is
+not a policy budget. Exact selected Context serialization or selected file texts
+and the previous destination bytes produce SHA-256 capture fingerprints. Unrelated
+appended work remains valid; selected-source or destination changes refuse.
+Graduation chooses whole oldest files down to low watermark, with at least two;
+terminal input includes the exact existing MEMORY.md document.
+
+The versioned `.memory-stage.json` is hidden outside active corpus scans, stores
+immutable captured input plus candidate, and has exact fields/types and recursive
+duplicate rejection. Paths derive only from validated IDs and owning home, not
+receipt trace paths. Startup recovery abandons uncommitted candidates without
+removing source. Committed replay authority must match the receipt and accepted
+summary before promotion/retirement. Preflight reads every source/destination;
+already-promoted bytes and partially completed `.retired` renames recover
+idempotently. Conflicts/missing or corrupt committed receipts refuse and preserve
+remaining source. The receipt stays until the actor journals the returned terminal
+outcome; only a later call releases it. Scans refuse pending/unreleased receipts.
+Recovery must not be called on a still-live uncommitted worker. File checks are
+optimistic, not an OS lock against external editors racing the final rename, and
+these tests do not claim power-loss/directory-fsync guarantees.
+
+Evidence in `/private/tmp/ch22-csharp.UJzRJ5`: `disk-review-final-tests.log` **5/0**
+(ownership/fresh scan, conversation staging, all three graduation steps and partial
+retirement, stale/corrupt/confined input, actual saved-History restart recovery);
+`disk-review-replay-tests.log` **4/0**. Final test and actual-host builds are clean
+in `disk-review-final-build.log`, `disk-review-cli-build.log`, and
+`disk-review-gui-build.log`; fail-fast chain 5142 joined exit 0. `disk-shared.log`
+is **238/0**, chain 5137 exit 0, preceding only the final receipt string/null checks;
+focused tests and rebuilt hosts cover those checks. No fresh browser/provider
+campaign. Later declaration-comment clarification is nonbehavioral.
+
+Retained failures: `disk-build.log` used nonexistent bounded-read/rename overloads;
+corrected against actual Sandbox APIs before behavior. `disk-tests.log` **4/1**
+was fixture load-after-writers ordering, corrected without changing recovery.
+`disk-review-baseline.log` **3/2** demonstrated real numeric Context-order and
+replay-destination stale-check defects; both corrected. Review additionally found
+optional-string decoding would accept a supplied null conversation as empty in
+file receipts; strict decoding and refusal tests now cover it. An exclusive-copy
+retirement idea was rejected before acceptance because it creates a partial-copy
+crash state; existing atomic same-directory rename is simpler. Guarded lifecycle
+anchors refused before writes; an incorrect review filename was corrected to the
+methods actually implemented in Memory/Corpus.cs.
+
+Next: wire this component into actor-owned startup recovery/rescanning and policy,
+then one bounded skill-free compressor child with immutable result mailbox flow,
+stale-policy checks, cancellation/joining and canonical transcript archiving.
+There is still no automatic scan/scheduling, worker, transcript archive writer,
+forcing/accounting, settings/GUI integration, C# grader, adapted prose or ch22
+endpoint. Disk tests drive the component with real History explicitly; they do
+not establish working automatic compaction. Keep the preceding corrected whole-
+prefix and three-send/three-tool-batch requirements; reuse unchanged ch21 evidence.
+
 ## Chapter 22 — retained checkpoints and pure compression transactions
 
 Chapter 22 remains in progress; ch21 is untouched. I reconciled actual C# handoff

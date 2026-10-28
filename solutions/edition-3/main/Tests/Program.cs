@@ -74,6 +74,82 @@ static string Wire(Vendor vendor, Context context, string model = "model-a")
 }
 try
 {
+    if (args is ["--memory-settings-tests"] || args.Length == 0)
+    {
+        await AsyncCase("memory settings persistence", () => MeterTests.MemorySettingsPersistence(temp));
+        await AsyncCase("memory settings refusal", () => MeterTests.MemorySettingsRefusal(temp));
+        await AsyncCase("memory settings codec", () => MeterTests.MemorySettingsCodec(temp));
+        if (args is ["--memory-settings-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--memory-pressure-tests"] || args.Length == 0)
+    {
+        await AsyncCase("memory pressure thresholds", MeterTests.MemoryPressureThresholds);
+        await AsyncCase("memory pressure deferred", MeterTests.MemoryPressureDeferred);
+        await AsyncCase("memory cache boundary", () => { MeterTests.MemoryCacheBoundary(); return Task.CompletedTask; });
+        await AsyncCase("memory pressure unknown", () => MeterTests.MemoryPressureUnknown(temp));
+        await AsyncCase("memory pressure headroom", () => MeterTests.MemoryPressureHeadroom(temp));
+        await AsyncCase("memory pressure headroom exit", () => MeterTests.MemoryPressureHeadroomExit(temp));
+        if (args is ["--memory-pressure-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--memory-accounting-tests"] || args.Length == 0)
+    {
+        await AsyncCase("memory accounting commit", () => MeterTests.MemoryAccountingCommit(temp));
+        await AsyncCase("memory accounting failure", () => MeterTests.MemoryAccountingFailure(temp));
+        await AsyncCase("memory accounting cancellation", () => MeterTests.MemoryAccountingCancellation(temp));
+        await AsyncCase("memory accounting codec", () => { MeterTests.MemoryAccountingCodec(); return Task.CompletedTask; });
+        if (args is ["--memory-accounting-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--memory-runtime-tests"] || args.Length == 0)
+    {
+        await AsyncCase("memory runtime commit", () => MeterTests.MemoryRuntimeCommit(temp));
+        await AsyncCase("memory runtime policy", () => MeterTests.MemoryRuntimePolicy(temp));
+        await AsyncCase("memory runtime stale", () => MeterTests.MemoryRuntimeStale(temp));
+        await AsyncCase("memory runtime shutdown", () => MeterTests.MemoryRuntimeShutdown(temp));
+        await AsyncCase("memory runtime conversation", () => MeterTests.MemoryRuntimeConversation(temp));
+        await AsyncCase("memory runtime cascade", () => MeterTests.MemoryRuntimeCascade(temp));
+        if (args is ["--memory-runtime-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--memory-worker-tests"] || args.Length == 0)
+    {
+        await AsyncCase("memory worker success", () => MeterTests.MemoryWorkerSuccess(temp));
+        await AsyncCase("memory worker bounds", () => MeterTests.MemoryWorkerBounds(temp));
+        await AsyncCase("memory worker terminal", () => MeterTests.MemoryWorkerTerminal(temp));
+        await AsyncCase("memory worker cancellation", () => MeterTests.MemoryWorkerCancellation(temp));
+        if (args is ["--memory-worker-tests"])
+        {
+            Console.WriteLine($"{passed} passed, {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--memory-actor-tests"] || args.Length == 0)
+    {
+        await AsyncCase("memory actor startup and policy", () => MeterTests.MemoryStartupAndPolicy(temp));
+        await AsyncCase("memory actor policy refusal", () => MeterTests.MemoryPolicyRefusal(temp));
+        await AsyncCase("memory actor persisted recovery", () => MeterTests.MemoryActorRecovery(temp));
+        await AsyncCase("memory actor recovery failure", () => MeterTests.MemoryRecoveryFailure(temp));
+        await AsyncCase("memory full canonical archive", () => MeterTests.MemoryCanonicalArchive(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args is ["--memory-disk-tests"] || args.Length == 0)
     {
         CheckCase("memory disk ownership and fresh scan", MemoryDiskTests.OwnershipAndScan);

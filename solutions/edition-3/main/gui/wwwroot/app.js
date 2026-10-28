@@ -535,6 +535,12 @@ function applySettings() {
     document.querySelector("#font-size").value = settings.font_size;
     document.querySelector("#max-tool-rounds").value = settings.max_tool_rounds;
     document.querySelector("#context-target-bytes").value = settings.context_target_bytes;
+    for (const [band, policy] of Object.entries(settings.memory || {})) {
+        document.querySelector(`#memory-${band}-enabled`).checked = !policy.disabled;
+        for (const field of ["budget", "high_watermark", "low_watermark"]) {
+            document.querySelector(`#memory-${band}-${field}`).value = policy[field];
+        }
+    }
     document.querySelector("#tts-speed").value = settings.tts_speed;
     document.querySelector("#speed-label").value = `${settings.tts_speed}×`;
     document.querySelector("#narrate").checked = settings.tts_enabled;
@@ -551,6 +557,24 @@ function patchSettings(patch) {
     // Keep a proposed edit while saving; only acknowledged settings affect policy.
     notice("Saving settings…");
 }
+document.querySelector("#memory-settings-form").addEventListener("submit", event => {
+    event.preventDefault();
+    const memory = {};
+    for (const band of ["conversation", "soul", "memory", "archive64", "archive8", "session"]) {
+        const policy = {disabled: !document.querySelector(`#memory-${band}-enabled`).checked};
+        for (const field of ["budget", "high_watermark", "low_watermark"]) {
+            const value = Number(document.querySelector(`#memory-${band}-${field}`).value);
+            if (!Number.isSafeInteger(value) || value < 0) {
+                notice("Memory sizes must be nonnegative whole bytes within the browser’s exact integer range.");
+                return;
+            }
+            policy[field] = value;
+        }
+        memory[band] = policy;
+    }
+    patchSettings({memory});
+});
+document.querySelector("#memory-settings-reload").onclick = () => send("get_settings");
 document.querySelector("#theme").onchange = event => patchSettings({ theme: event.target.value });
 document.querySelector("#font-size").onchange = event => patchSettings({ font_size: Number(event.target.value) });
 document.querySelector("#max-tool-rounds").onchange = event => patchSettings({ max_tool_rounds: Number(event.target.value) });

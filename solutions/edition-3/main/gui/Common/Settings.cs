@@ -21,4 +21,8 @@ public static partial class Gui
     // Disk and wire share this normalization; Agent owns the effective value.
     private static partial int ContextTarget(int bytes);
     private static partial void SaveSettings(Agent agent, string path, JsonObject settings);
+    // Runtime memory comes from the selected Agent, never Preferences or the
+    // shared appearance file. Patches are strict and preserve untouched fields.
+    private static partial JsonObject AgentSettings(Preferences preferences, Agent agent);
+    private static partial MemorySettings MergeMemorySettings(JsonElement patch, MemorySettings current);
 }

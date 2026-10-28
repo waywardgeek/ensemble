@@ -27,7 +27,7 @@ public sealed partial class Agent
     public partial bool ToolEnabled(string name)
     {
         var policy = Configuration();
-        if (!policy.AllowsTool(name) || IsAutomaticTool(name))
+        if (!AllowsMemoryTool(name) || !policy.AllowsTool(name) || IsAutomaticTool(name))
         {
             return false;
         }

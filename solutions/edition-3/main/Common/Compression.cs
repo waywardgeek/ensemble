@@ -45,7 +45,11 @@ public sealed partial class CompressionOutcome
     public readonly string TaskID;
     public readonly CompressionState State;
     public readonly string Error;
-    public partial CompressionOutcome(string taskID, CompressionState state, string error = "");
+    // Documentary rows preserve actual billing identities and unknown counts.
+    // Loading this receipt never changes an Engine's process-local meter.
+    public readonly ImmutableArray<MeterEntry> Usage;
+    public partial CompressionOutcome(string taskID, CompressionState state, string error = "",
+        IEnumerable<MeterEntry>? usage = null);
 }
 
 public sealed partial class History
@@ -61,6 +65,8 @@ public static partial class JsonCodec
     private static partial CompressionLaunch ReadCompressionLaunch(JsonElement value);
     private static partial JsonObject WriteCompressionOutcome(CompressionOutcome value);
     private static partial CompressionOutcome ReadCompressionOutcome(JsonElement value);
+    private static partial JsonObject WriteCompressionUsage(MeterEntry value);
+    private static partial MeterEntry ReadCompressionUsage(JsonElement value);
     private static partial JsonObject WritePendingCompression(PendingCompression value);
     private static partial PendingCompression ReadPendingCompression(JsonElement value);
 }

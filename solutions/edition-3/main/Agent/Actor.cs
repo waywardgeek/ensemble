@@ -126,6 +126,11 @@ public sealed partial class Agent
 
     private partial void ValidateInput(Mail message)
     {
+        if (memoryCompressor && (message.Kind is MailKind.Submit or MailKind.Input)
+            && admittedWorkGeneration != 0)
+        {
+            throw new InvalidOperationException("A compressor accepts exactly one task.");
+        }
         if (message.Kind == MailKind.Input)
         {
             ArgumentNullException.ThrowIfNull(message.Input);
@@ -194,7 +199,42 @@ public sealed partial class Agent
                 // launching the next effect. No worker enters this loop.
                 while (mailbox.Reader.TryRead(out var message))
                 {
-                    Receive(message);
+                    try
+                    {
+                        // Joining a compressor never depends on this parent's
+                        // mailbox. Its child has an independent actor lifetime.
+                        if (message.Kind == MailKind.MemorySettings)
+                        {
+                            if (message.PersistMemorySettings && !SaveMemorySettingsBeforeApply(message))
+                            {
+                                continue;
+                            }
+                            await InvalidateMemoryPolicy(message.MemorySettings!);
+                        }
+                        else if (message.Kind == MailKind.Shutdown)
+                        {
+                            await StopMemoryCompression(CompressionState.Canceled, "Owner shutdown");
+                        }
+                        else if (message.Kind == MailKind.MemoryDone && memoryTask is not null
+                            && message.MemoryCompletion!.TaskID == memoryCapture!.Launch.TaskID)
+                        {
+                            // The runner posts its immutable result immediately
+                            // before returning. Join even that final wrapper step.
+                            await memoryTask;
+                        }
+                        Receive(message);
+                    }
+                    catch (Exception error)
+                    {
+                        // A startup or recording failure can occur before Receive
+                        // attaches this message to active work. Settle that caller
+                        // here; the outer fault path drains every other owner.
+                        message.Reply?.TrySetException(error);
+                        message.ToolReply?.TrySetException(error);
+                        message.SkillReply?.TrySetException(error);
+                        message.StatusReply?.TrySetException(error);
+                        throw;
+                    }
                     PublishWorkActivity();
                 }
                 if (stopping && !workerPending && controlReplies.Count == 0 && startupReplies.Count == 0)
@@ -297,6 +337,10 @@ public sealed partial class Agent
         }
         finally
         {
+            // The fault path may have bypassed Shutdown mail. Join before any
+            // owner can destroy History, Memory or Sandbox; do not try to append
+            // to a journal that may be the original source of the actor failure.
+            await StopMemoryCompression(CompressionState.Canceled, "Owner stopped", record: false);
             lock (ingress)
             {
                 admissionClosed = true;
@@ -328,6 +372,23 @@ public sealed partial class Agent
 
     private partial void Receive(Mail message)
     {
+        if (message.Kind == MailKind.MemoryDone)
+        {
+            if (memoryCapture?.Launch.TaskID == message.MemoryCompletion!.TaskID)
+            {
+                AcceptMemoryCompletion(message.MemoryCompletion);
+            }
+            return;
+        }
+        if (message.Kind == MailKind.MemorySettings)
+        {
+            ApplyMemorySettings(message);
+            return;
+        }
+        if (message.Kind != MailKind.Shutdown)
+        {
+            EnsureMemoryReady();
+        }
         if (message.Kind == MailKind.IncomingQuestion)
         {
             if (!stopping)
@@ -680,6 +741,7 @@ public sealed partial class Agent
             // A completed response proves this request's older results were
             // presented. New calls/results from this response are not yet seen.
             presentedThrough = responseID;
+            ObserveMemoryPressure(response);
             calls = response.Parts.OfType<ToolCallPart>().ToImmutableArray();
             nextCall = 0;
             responseText = JsonCodec.Text(response.Parts);
@@ -692,6 +754,21 @@ public sealed partial class Agent
                 // Repeated IDs across responses are valid; ambiguous IDs within
                 // this response must be refused before even its first effect.
                 Finish(new InvalidDataException("Duplicate tool-call IDs in one response."));
+                return;
+            }
+            if (memoryCompressor && (calls.Length != 1 || calls[0].Name != "submit"))
+            {
+                // Refuse the entire batch before any effect, including the
+                // first of two submits. No-call prose is terminal failure.
+                SkipRemaining("Compressor requires exactly one submit call; not executed.");
+                if (calls.IsEmpty)
+                {
+                    Finish(new InvalidOperationException("Compressor ended without submit."));
+                }
+                else
+                {
+                    batches++;
+                }
                 return;
             }
             if (calls.IsEmpty)
@@ -733,6 +810,13 @@ public sealed partial class Agent
             {
                 StageKeepResults(completedCall, result);
             }
+            if (memoryCompressor && !result.IsError && Submission() is not null)
+            {
+                // A valid durable submission and its paired result finish this
+                // worker. Do not spend a fourth request on closing prose.
+                Finish();
+                return;
+            }
             if (active?.Kind == MailKind.DirectTool)
             {
                 if (hintPending && !interruptPending && !stopping)
@@ -766,9 +850,15 @@ public sealed partial class Agent
         }
         if (nextCall >= calls.Length)
         {
+            CompleteMemoryCompression();
             ApplyResultStubs();
             ApplyHandoff();
             ApplyToolClear();
+        }
+        if (memoryHeadroomError is not null && active is not null)
+        {
+            Finish(new InvalidOperationException(memoryHeadroomError));
+            return;
         }
         if (paused || stopping)
         {
@@ -791,6 +881,13 @@ public sealed partial class Agent
             {
                 Record(new Event(EventKind.MessageReceived, actor: Actor.Human, parts: active.Parts));
             }
+        }
+        // Waiting is actor state, not an awaited child task on the mailbox.
+        // Controls, completion mail, pause and interruption remain responsive.
+        if (active.Kind != MailKind.DirectTool && nextCall >= calls.Length
+            && WaitForMemoryHeadroom())
+        {
+            return;
         }
         try
         {
@@ -815,6 +912,16 @@ public sealed partial class Agent
             }
             else
             {
+                // A compressor has a lifetime budget, not a fresh allowance
+                // for another delegated turn or framework correction.
+                if (memoryCompressor && compressorSends == 3)
+                {
+                    throw new InvalidOperationException("Compressor exhausted three Engine sends.");
+                }
+                if (memoryCompressor)
+                {
+                    compressorSends++;
+                }
                 CompactTools();
                 if (BeginAutomaticCollection())
                 {
@@ -825,6 +932,11 @@ public sealed partial class Agent
                 string budgetInstruction = capturedToolLimit > 0 && batches >= capturedToolLimit
                     ? "Tool batch limit reached. Do not call more tools; answer using the results already received."
                     : "";
+                string pressureInstruction = MemoryPressureInstruction();
+                if (pressureInstruction.Length != 0)
+                {
+                    budgetInstruction = pressureInstruction + "\n" + budgetInstruction;
+                }
                 if (!turnSnapshots.IsEmpty || !roundSnapshots.IsEmpty)
                 {
                     // Combine with the caller's current slot immediately before
@@ -935,6 +1047,8 @@ public sealed partial class Agent
         }
         ApplyToolClear();
         active = null;
+        memoryHeadroomTaskID = null;
+        memoryHeadroomError = null;
         automaticPending = false;
         turnSnapshotsCollected = false;
         roundSnapshotsCollected = false;

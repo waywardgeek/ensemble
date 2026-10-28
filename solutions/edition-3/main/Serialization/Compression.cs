@@ -71,7 +71,8 @@ public sealed partial class PendingCompression
 
 public sealed partial class CompressionOutcome
 {
-    public partial CompressionOutcome(string taskID, CompressionState state, string error)
+    public partial CompressionOutcome(string taskID, CompressionState state, string error,
+        IEnumerable<MeterEntry>? usage)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(taskID);
         ArgumentNullException.ThrowIfNull(error);
@@ -79,9 +80,18 @@ public sealed partial class CompressionOutcome
         {
             throw new ArgumentException("Unknown compression outcome", nameof(state));
         }
+        var rows = usage?.ToImmutableArray() ?? [];
+        if (rows.Any(row => row is null || row.Identity is null || row.Counts is null
+            || row.Identity.Model is null || !Enum.IsDefined(row.Identity.Vendor)
+            || !Enum.IsDefined(row.Identity.Billing))
+            || rows.Select(row => row.Identity).Distinct().Count() != rows.Length)
+        {
+            throw new ArgumentException("Usage receipt needs distinct valid billing identities", nameof(usage));
+        }
         TaskID = taskID;
         State = state;
         Error = error;
+        Usage = rows;
     }
 }
 
@@ -113,11 +123,39 @@ public static partial class JsonCodec
     {
         ["task_id"] = value.TaskID,
         ["state"] = Label(value.State),
-        ["error"] = value.Error
+        ["error"] = value.Error,
+        ["usage"] = new JsonArray(value.Usage.Select(row => (JsonNode?)WriteCompressionUsage(row)).ToArray())
     };
 
     private static partial CompressionOutcome ReadCompressionOutcome(JsonElement value) => new(
-        String(value, "task_id"), EnumValue<CompressionState>(String(value, "state")), String(value, "error"));
+        String(value, "task_id"), EnumValue<CompressionState>(String(value, "state")), String(value, "error"),
+        value.TryGetProperty("usage", out var usage)
+            ? usage.EnumerateArray().Select(ReadCompressionUsage) : null);
+
+    private static partial JsonObject WriteCompressionUsage(MeterEntry value) => new()
+    {
+        ["vendor"] = Label(value.Identity.Vendor),
+        ["model"] = value.Identity.Model,
+        ["service_tier"] = value.Identity.ServiceTier,
+        ["billing"] = Label(value.Identity.Billing),
+        ["counts"] = WriteUsage(value.Counts)
+    };
+
+    private static partial MeterEntry ReadCompressionUsage(JsonElement value)
+    {
+        var tier = value.GetProperty("service_tier");
+        var counts = value.GetProperty("counts");
+        // Unlike old optional response fields, a supplied receipt has all four
+        // buckets. Null means unknown; an omitted bucket is damaged data.
+        foreach (string key in new[] { "input", "cache_write", "cache_read", "output" })
+        {
+            _ = counts.GetProperty(key);
+        }
+        return new MeterEntry(new UsageIdentity(
+            EnumValue<Vendor>(String(value, "vendor")), value.GetProperty("model").GetString()!,
+            tier.ValueKind == JsonValueKind.Null ? null : tier.GetString(),
+            EnumValue<BillingMode>(String(value, "billing"))), ReadUsage(counts));
+    }
 
     private static partial JsonObject WritePendingCompression(PendingCompression value) => new()
     {

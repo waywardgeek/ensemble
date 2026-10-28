@@ -6,6 +6,32 @@ namespace Ensemble;
 
 public sealed partial class History
 {
+    internal partial void ArchiveMemory()
+    {
+        var sandbox = Parent().Sandbox();
+        string directory = sandbox.Resolve(Path.Combine(Parent().DataDirectory(), "archive"));
+        string path = sandbox.Resolve(Path.Combine(directory, "events.jsonl"));
+        lock (saveGate)
+        {
+            if (appendFaulted)
+            {
+                throw new IOException("Cannot archive after an uncertain History append");
+            }
+            string? primary = journalPath is null ? null : journalPath[..^".journal.jsonl".Length];
+            if (writerPath == path || journalPath == path
+                || (primary is not null && (path == primary || path == primary + ".bak")))
+            {
+                throw new ArgumentException("Memory archive conflicts with active History files");
+            }
+            // Validate the whole prefix before even creating the archive folder.
+            // A retained snapshot cannot invent canonical facts already pruned
+            // without an older archive or recovery journal to supply them.
+            string text = ArchiveText(path, Snapshot());
+            sandbox.CreateDirectory(directory);
+            ReplaceFile(path, text);
+        }
+    }
+
     private partial ImmutableArray<Event> ReadLog(string path)
     {
         // Invalid UTF-8 must not silently become replacement characters in a

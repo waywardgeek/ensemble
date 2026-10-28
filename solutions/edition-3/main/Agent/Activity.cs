@@ -13,6 +13,10 @@ public sealed partial class Agent
                 return new WorkActivity(WorkPhase.Thinking, Detail: "Waiting for the model response");
             }
         }
+        if (memoryHeadroomTaskID is not null)
+        {
+            return new WorkActivity(WorkPhase.Waiting, Detail: "Waiting for memory headroom");
+        }
         if (automaticPending)
         {
             return new WorkActivity(WorkPhase.ToolCall, Detail: "Collecting automatic snapshots");

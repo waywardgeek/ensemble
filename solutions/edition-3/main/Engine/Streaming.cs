@@ -59,7 +59,8 @@ public sealed partial class Engine
                     TrackArrival(chunk, ref seenText, ref earlyTool);
                 }
             }
-            return new ParsedResponse(events, ids.ToImmutable(), earlyTool, billing);
+            return new ParsedResponse(events, ids.ToImmutable(), earlyTool, billing,
+                IncompleteCompression(body));
         }
 
         if (Parent().Configuration().Surface == Surface.Responses)
@@ -165,7 +166,8 @@ public sealed partial class Engine
             {
                 throw new FormatException("Final part identity mismatch");
             }
-            return new ParsedResponse(events, state.Order.ToImmutableArray(), state.ToolBeforeText, billing);
+            return new ParsedResponse(events, state.Order.ToImmutableArray(), state.ToolBeforeText, billing,
+                IncompleteCompression(completed.ToJsonString()));
         }
         catch (Exception error) when (error is JsonException or FormatException or InvalidOperationException
             or ArgumentException or KeyNotFoundException or OverflowException)
@@ -240,6 +242,10 @@ public sealed partial class Engine
         }
         if (type == "message_delta")
         {
+            if (frame["delta"]?["stop_reason"] is JsonNode reason)
+            {
+                state.Root["stop_reason"] = reason.DeepClone();
+            }
             if (frame["usage"] is JsonObject usage)
             {
                 var accumulated = state.Root["usage"] as JsonObject ?? new JsonObject();
@@ -360,6 +366,7 @@ public sealed partial class Engine
             if (choice["finish_reason"] is not null)
             {
                 state.FinishSeen = true;
+                state.Root["finish_reason"] = choice["finish_reason"]!.DeepClone();
             }
             var delta = Required(choice, "delta").AsObject();
             foreach (string field in new[] { "content", "reasoning_content" })
@@ -441,6 +448,7 @@ public sealed partial class Engine
                 throw new FormatException("Unsuccessful Gemini completion");
             }
             state.Terminal = true;
+            state.Root["finishReason"] = candidate["finishReason"]!.DeepClone();
         }
         if (candidate["content"]?["parts"] is not JsonArray parts)
         {
@@ -508,7 +516,8 @@ public sealed partial class Engine
             {
                 state.Root["candidates"] = new JsonArray(new JsonObject
                 {
-                    ["content"] = new JsonObject { ["parts"] = blocks }
+                    ["content"] = new JsonObject { ["parts"] = blocks },
+                    ["finishReason"] = state.Root["finishReason"]?.DeepClone()
                 });
             }
             return state.Root;
@@ -534,7 +543,11 @@ public sealed partial class Engine
         {
             message["tool_calls"] = blocks;
         }
-        state.Root["choices"] = new JsonArray(new JsonObject { ["message"] = message });
+        state.Root["choices"] = new JsonArray(new JsonObject
+        {
+            ["message"] = message,
+            ["finish_reason"] = state.Root["finish_reason"]?.DeepClone()
+        });
         return state.Root;
     }
 }

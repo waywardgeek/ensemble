@@ -1,4 +1,4 @@
-# Edition 3 — Chapter 22 C# in progress
+# Edition 3 — Chapter 22 C# locally verified
 
 C# 14 / .NET 10. Common declares the core vocabulary, persistent fields,
 relationships and cross-module operations. Functional directories implement the
@@ -6,11 +6,40 @@ matching partial types in one assembly. CLI, tests and examples are separate
 assemblies using that public API; no additional packages are required.
 
 Main has Chapter 22's replayable memory bands, retained checkpoint selection,
-and pure task-correlated compression transactions with snapshot/journal receipts.
-Memory blocks remain labeled user data across the four provider surfaces. Live
-compression, rooted staging/recovery, policy/controls and Chapter 22 verification
-remain unfinished. Detailed evidence and the next implementation boundary are in
-`docs/edition-3-csharp-progress.md`.
+task-correlated transactions, and an Agent-owned rooted corpus/staging/recovery
+component, actor startup recovery/scans, immutable band settings, and a bounded
+submit-only compressor child. Automatic checkpoint launch, safe-boundary commit,
+canonical archive integration, waterfall progression and joined policy/shutdown
+cancellation are locally verified. Memory blocks remain labeled user data across
+four provider surfaces. Joined compressor usage is imported once without changing
+latest-main usage; saved outcome receipts never rebill replay. Main-response occupancy
+now supplies 90% warnings, 95% tool restrictions and responsive task-correlated
+headroom waits. Cache boundaries prefer the latest checkpoint, then the last memory
+block. These are locally verified, not live-provider cache evidence. Durable per-Agent
+memory settings and GUI controls are locally verified, including an isolated browser
+exercise and CLI restart. The C# executable scope passes 40/40 across five wire/file
+rows; the remaining 60 points are ungraded, not credited from library tests. The compressor
+uses the exact `{"memory": string}` submit contract; blank output fails without a cut.
+The Chapter 22 C# manuscript and assembled source/test/prose review are complete
+within the local scope described here. The source-only `../ch22` endpoint preserves
+this boundary; main remains the continuing workspace. Review corrected duplicated
+curated-memory worker input, with a failing request-level baseline followed by
+focused worker checks and clean actual hosts. The earlier broad regression and
+executable grade predate that prompt-only correction and are not relabeled.
+Detailed evidence and the next chapter are in `docs/edition-3-csharp-progress.md`.
+
+Memory policy lives in `<Agent home>/settings.json`, separate from the GUI's shared
+appearance preferences. Startup reads it before loading enabled bands. The GUI's
+selected-Agent memory form saves enable/budget/high/low policy for conversation and
+all five memory bands; sizes are UTF-8 bytes, and zero means the band default.
+Disable retires request entries but preserves files; re-enable reads current bytes.
+`SaveMemorySettingsAsync` saves before applying and acknowledges only actual actor
+application (including relevant compressor cancellation/join). A failed save leaves
+live policy unchanged; a later application failure is not success, although the save
+may apply on restart. `SetMemorySettingsAsync` remains an in-memory library operation.
+Durable settings need an Agent home. Unknown versions or malformed saved policy
+refuse startup instead of silently enabling bands. Memory and appearance patches
+are separate operations, not a two-file transaction.
 
 The preserved `../ch21` directory is the locally verified Chapter 21 endpoint.
 Final assembled source/test review and C# teaching prose are complete. Earlier

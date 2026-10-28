@@ -21,5 +21,7 @@ public sealed partial class Agent
         // clear the staged note or pretend that reduction succeeded.
         Record(new Event(EventKind.HandoffRecorded, parts: [pendingHandoff]));
         pendingHandoff = null;
+        AcknowledgeMemoryPressure();
+        StartMemoryCompression(includeConversation: true);
     }
 }

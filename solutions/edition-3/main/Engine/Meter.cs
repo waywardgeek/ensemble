@@ -4,6 +4,19 @@ namespace Ensemble;
 
 public sealed partial class Engine
 {
+    internal partial void ImportUsage(MeterSnapshot usage)
+    {
+        ArgumentNullException.ThrowIfNull(usage);
+        lock (meterGate)
+        {
+            foreach (var row in usage.Rows)
+            {
+                meterRows[row.Identity] = meterRows.TryGetValue(row.Identity, out var previous)
+                    ? previous.Add(row.Counts) : row.Counts;
+            }
+        }
+    }
+
     public partial MeterSnapshot Meter()
     {
         lock (meterGate)

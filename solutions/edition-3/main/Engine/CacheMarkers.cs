@@ -5,8 +5,8 @@ namespace Ensemble;
 public sealed partial class Engine
 {
     // These operate only on the disposable, final Anthropic request. The API
-    // permits four explicit breakpoints: tools, SYSTEM, handoff, and tail here.
-    // Assigning twice to the same block collapses coincident handoff/tail points.
+    // permits four explicit breakpoints: tools, SYSTEM, checkpoint/memory, and tail here.
+    // Assigning twice to the same block collapses coincident stable-boundary/tail points.
     // No TTL means the provider's default five minutes, not a retention promise.
     private static void MarkCache(JsonObject block)
     {

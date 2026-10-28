@@ -20,7 +20,8 @@ public enum Media
 public readonly record struct ModelFeatures(Media Media, bool Stream = false,
     ImmutableArray<string> ReasoningEfforts = default,
     ImmutableArray<string> ReasoningSummaries = default,
-    bool RequireToolExplanation = false, bool ResponsesOnly = false);
+    bool RequireToolExplanation = false, bool ResponsesOnly = false,
+    long? ContextWindow = null);
 
 public sealed partial class Engine
 {
@@ -28,16 +29,24 @@ public sealed partial class Engine
     // not account discovery, pricing, or a guarantee of current availability.
     private static readonly ImmutableArray<(Vendor Vendor, string Name, ModelFeatures Features)> modelCatalog =
     [
-        (Vendor.Anthropic, "claude-3-haiku-20240307", new(Media.Image, Stream: true)),
-        (Vendor.OpenAI, "gpt-4o", new(Media.Image, Stream: true)),
-        (Vendor.OpenAI, "gpt-4o-mini", new(Media.Image, Stream: true)),
+        // Historical launch window, not current availability or a beta limit.
+        // https://www.anthropic.com/news/claude-3-family
+        (Vendor.Anthropic, "claude-3-haiku-20240307", new(Media.Image, Stream: true, ContextWindow: 200_000)),
+        // https://developers.openai.com/api/docs/models/gpt-4o
+        (Vendor.OpenAI, "gpt-4o", new(Media.Image, Stream: true, ContextWindow: 128_000)),
+        // Documented 128,000-token window (not availability or entitlement):
+        // https://developers.openai.com/api/docs/models/gpt-4o-mini
+        (Vendor.OpenAI, "gpt-4o-mini", new(Media.Image, Stream: true, ContextWindow: 128_000)),
         // Ordinary pre-tool explanation is Ensemble policy. Responses media
         // remains unsupported even if the provider itself can accept images.
         (Vendor.OpenAI, "gpt-6-astra", new(Media.None, Stream: true,
             ReasoningEfforts: ["low", "medium", "high", "xhigh", "max"],
             ReasoningSummaries: ["auto"], RequireToolExplanation: true, ResponsesOnly: true)),
+        // Documented input-token limit, not a combined input/output allowance.
+        // https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash
         (Vendor.Gemini, "gemini-2.5-flash",
-            new(Media.Image | Media.Audio | Media.Video | Media.Document, Stream: true))
+            new(Media.Image | Media.Audio | Media.Video | Media.Document,
+                Stream: true, ContextWindow: 1_048_576))
     ];
 
     // Current selection first (including unknown IDs), then same-vendor local

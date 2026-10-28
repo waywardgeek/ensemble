@@ -252,7 +252,7 @@ public sealed partial class Tool
                 break;
             case ToolKind.MicroHandoff:
                 name = "micro_handoff";
-                description = "Record a continuation note and clear tool traffic after this batch finishes. Replaces older active handoff notes, not dialogue or skill instructions.";
+                description = "Record a continuation checkpoint and clear tool traffic after this batch finishes. Retains earlier checkpoints until a matching memory replacement commits; preserves dialogue and skill instructions.";
                 Field("text", "string", "Nonempty continuation note: decisions, evidence limits, and next work.", true);
                 break;
             case ToolKind.LoadSkill:
@@ -307,10 +307,15 @@ public sealed partial class Tool
         {
             parameters["properties"] = new JsonObject();
         }
-        var properties = parameters["properties"]!.AsObject();
-        properties["ai_callback_delay"] = new JsonObject { ["type"] = "number", ["description"] = "Seconds before waking; default 3, zero immediate. Does not cancel." };
-        properties["ai_callback_pattern"] = new JsonObject { ["type"] = "string", ["description"] = "Regex matching only fresh output." };
-        properties["max_output_bytes"] = new JsonObject { ["type"] = "integer", ["description"] = "Positive inline report cap; default 16384. Full output stays on disk." };
+        // The memory worker has an exact submit-only contract, not public
+        // observation controls. Ordinary tools retain their existing options.
+        if (!Parent().IsMemoryCompressor())
+        {
+            var properties = parameters["properties"]!.AsObject();
+            properties["ai_callback_delay"] = new JsonObject { ["type"] = "number", ["description"] = "Seconds before waking; default 3, zero immediate. Does not cancel." };
+            properties["ai_callback_pattern"] = new JsonObject { ["type"] = "string", ["description"] = "Regex matching only fresh output." };
+            properties["max_output_bytes"] = new JsonObject { ["type"] = "integer", ["description"] = "Positive inline report cap; default 16384. Full output stays on disk." };
+        }
         if (vendor == Vendor.Gemini)
         {
             parameters = GeminiSchema(JsonSerializer.SerializeToElement(parameters));

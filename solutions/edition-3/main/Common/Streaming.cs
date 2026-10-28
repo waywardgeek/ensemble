@@ -9,7 +9,8 @@ public enum ChunkKind { Reply, Thinking, ToolCall, ReasoningSummary }
 public sealed record Chunk(int PartID, ChunkKind Kind, string Text = "",
     string ToolName = "", string ArgsText = "");
 public sealed record ParsedResponse(ImmutableArray<Event> Events,
-    ImmutableArray<int> PartIDs, bool ToolBeforeText = false, UsageIdentity? Billing = null);
+    ImmutableArray<int> PartIDs, bool ToolBeforeText = false, UsageIdentity? Billing = null,
+    bool IncompleteCompression = false);
 
 public sealed partial class Engine
 {

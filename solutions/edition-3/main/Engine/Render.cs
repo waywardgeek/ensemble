@@ -7,14 +7,27 @@ public sealed partial class Engine
     public partial JsonObject Render(Context context, string requestInstruction)
     {
         var config = Parent().Configuration();
-        var entries = Project(context, config, out var handoff, out var ephemeral);
+        var entries = Project(context, config, out var cacheBoundary, out var ephemeral);
         var request = config.Vendor switch
         {
-            Vendor.Anthropic => RenderAnthropic(entries, config, handoff, ephemeral),
+            Vendor.Anthropic => RenderAnthropic(entries, config, cacheBoundary, ephemeral),
             Vendor.OpenAI => config.Surface == Surface.Responses ? RenderResponses(entries, config) : RenderOpenAI(entries, config),
             Vendor.Gemini => RenderGemini(entries, config),
             _ => throw new ArgumentException("Unknown vendor")
         };
+        // Memory writing is bounded by requests and tool batches, not by a
+        // small ordinary-chat output cap which could truncate a durable note.
+        if (Parent().IsMemoryCompressor())
+        {
+            if (config.Vendor == Vendor.Anthropic)
+            {
+                request["max_tokens"] = 16384;
+            }
+            else if (config.Surface != Surface.Responses)
+            {
+                request.Remove("max_completion_tokens");
+            }
+        }
         if (!config.DisableStreaming && config.Vendor != Vendor.Gemini
             && (config.Surface == Surface.Responses
                 || (LookupModel(config.Vendor, config.Model, out var features) && features.Stream)))
@@ -34,7 +47,8 @@ public sealed partial class Engine
         IReadOnlySet<string> declared = deferred
             ? Parent().SkillManager()!.CatalogTools(context).ToHashSet(StringComparer.Ordinal)
             : enabled;
-        var tools = Parent().Tools().Where(tool => config.AllowsTool(tool.Name())
+        var tools = Parent().Tools().Where(tool => Parent().AllowsMemoryTool(tool.Name())
+            && config.AllowsTool(tool.Name())
             && !Parent().IsAutomaticTool(tool.Name())
             && ((skills.Length == 0 && Parent().SkillManager() is null) || declared.Contains(tool.Name()))).ToArray();
         if (tools.Length > 0)
@@ -172,7 +186,7 @@ public sealed partial class Engine
     // later completed exchange. Refuse ambiguous/foreign results instead of guessing.
     // This disposable projection moves complete result groups ahead of interleaved
     // human messages. Neither the entries nor their immutable parts are changed.
-    private static List<Entry> Project(Context context, Configuration config, out Entry? handoff, out Entry? ephemeral)
+    private List<Entry> Project(Context context, Configuration config, out Entry? cacheBoundary, out Entry? ephemeral)
     {
         var entries = context.Dialogue.Where(entry => !entry.Parts.Any(part => part is SkillPart)).ToArray();
         var revoked = context.RevokedTools(config);
@@ -200,7 +214,9 @@ public sealed partial class Engine
                     // A historical discovery result is evidence, not a permanent
                     // capability. Filter only the disposable request projection.
                     var projectedResult = new ToolResultPart(result.CallID, result.Parts,
-                        result.IsError, result.Job, result.ToolReferences.Where(name => config.AllowsTool(name) && !revoked.Contains(name)));
+                        result.IsError, result.Job, result.ToolReferences.Where(name =>
+                            Parent().AllowsMemoryTool(name) && config.AllowsTool(name)
+                            && !revoked.Contains(name)));
                     results.Add((match.Index, result.CallID), projectedResult);
                 }
             }
@@ -223,7 +239,10 @@ public sealed partial class Engine
             string header = $"[Memory data: {label}; {stamp}]\n";
             projected.Add(new Entry(0, Actor.Human, [new TextPart(header + memory.Text)]));
         }
-        handoff = null;
+        // The newest surviving checkpoint wins; without one, the last
+        // projected memory block is the stable-prefix boundary. Both are
+        // temporary Entry identities, not extra canonical marker state.
+        cacheBoundary = projected.LastOrDefault();
         ephemeral = null;
         for (int i = 0; i < entries.Length; i++)
         {
@@ -236,7 +255,7 @@ public sealed partial class Engine
                 projected.Add(retainedEntry);
                 if (entry.Parts.Any(part => part is HandoffPart))
                 {
-                    handoff = retainedEntry;
+                    cacheBoundary = retainedEntry;
                 }
             }
 
@@ -360,14 +379,14 @@ public sealed partial class Engine
 
     // Anthropic places tool results in user messages. Merge adjacent same-role
     // entries while preserving the required result-before-text order.
-    private JsonObject RenderAnthropic(List<Entry> entries, Configuration config, Entry? handoff, Entry? ephemeral)
+    private JsonObject RenderAnthropic(List<Entry> entries, Configuration config, Entry? cacheBoundary, Entry? ephemeral)
     {
         var messages = new JsonArray();
         var target = config.Target();
         // These tags are temporary projection identities, not canonical data or
         // provider fields. Moving nodes during merging keeps the tags accurate.
         var transientBlocks = new HashSet<JsonObject>();
-        var handoffBlocks = new HashSet<JsonObject>();
+        var boundaryBlocks = new HashSet<JsonObject>();
         foreach (var entry in entries)
         {
             var blocks = AnthropicParts(entry.Parts, target, config.DeferredTools);
@@ -381,9 +400,9 @@ public sealed partial class Engine
                 {
                     transientBlocks.Add(block);
                 }
-                if (ReferenceEquals(entry, handoff))
+                if (ReferenceEquals(entry, cacheBoundary))
                 {
-                    handoffBlocks.Add(block);
+                    boundaryBlocks.Add(block);
                 }
             }
             var role = entry.Actor == Actor.Agent ? "assistant" : "user";
@@ -416,7 +435,7 @@ public sealed partial class Engine
         if (config.CacheBreakpoints)
         {
             JsonObject? lastStable = null;
-            JsonObject? lastHandoff = null;
+            JsonObject? lastBoundary = null;
             var finalBlocks = messages.OfType<JsonObject>().SelectMany(message =>
                 message["content"]!.AsArray().OfType<JsonObject>());
             foreach (var block in finalBlocks)
@@ -430,15 +449,15 @@ public sealed partial class Engine
                 if (CacheableBlock(block))
                 {
                     lastStable = block;
-                    if (handoffBlocks.Contains(block))
+                    if (boundaryBlocks.Contains(block))
                     {
-                        lastHandoff = block;
+                        lastBoundary = block;
                     }
                 }
             }
-            if (lastHandoff is not null)
+            if (lastBoundary is not null)
             {
-                MarkCache(lastHandoff);
+                MarkCache(lastBoundary);
             }
             if (lastStable is not null)
             {

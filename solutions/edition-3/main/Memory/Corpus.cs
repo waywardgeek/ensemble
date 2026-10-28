@@ -154,12 +154,23 @@ public sealed partial class Memory
         }
     }
 
-    internal partial ImmutableArray<MemoryEntry> Scan(Context recovered, MemoryBand band)
+    internal partial ImmutableArray<MemoryEntry> Scan(Context recovered, MemoryBand band,
+        MemoryCapture? live)
     {
         ArgumentNullException.ThrowIfNull(recovered);
         lock (gate)
         {
-            RequireRecovered(recovered);
+            if (live is null)
+            {
+                RequireRecovered(recovered);
+            }
+            else if (recovered.Compression is not { Committed: null } pending
+                || !JsonCodec.SameCompressionLaunch(live.Launch, pending.Launch)
+                || band == live.Launch.Source || band == live.Launch.Destination
+                || ReadOptional(HomePath(".memory-stage.json")) is not null)
+            {
+                throw new InvalidOperationException("Only an unrelated band may be scanned during a live unstaged attempt");
+            }
             var entries = new List<MemoryEntry>();
             if (band is MemoryBand.Soul or MemoryBand.Memory)
             {

@@ -19,7 +19,7 @@ func main() {
 // Return an exit status so deferred build cleanup runs even after a failed grade.
 func run() int {
 	chapter := flag.Int("ch", 1, "Edition 2 chapter to grade")
-	executableOnly := flag.Bool("executable-only", false, "Chapters 5–16, 18–20 executable checks only; excludes Go consumers, topology and inherited checks")
+	executableOnly := flag.Bool("executable-only", false, "Chapters 5–16, 18–22 executable checks only; excludes Go consumers, topology and inherited checks")
 	jobsOnly := flag.Bool("jobs-only", false, "Chapter 4 executable jobs only; excludes the separate Go consumer checks")
 	asJSON := flag.Bool("json", false, "emit the report as JSON")
 	consumer := flag.String("consumer", "", "Chapter 4–13 separate consumer module (default: ch05 under or beside submission)")
@@ -54,8 +54,12 @@ func run() int {
 		fmt.Fprintln(os.Stderr, "-jobs-only requires Chapter 4 and excludes consumer flags")
 		return 2
 	}
-	if *executableOnly && ((*chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 14 && *chapter != 15 && *chapter != 16 && *chapter != 18 && *chapter != 19 && *chapter != 20 && *chapter != 21) || *jobsOnly || *consumer != "" || *consumerCase != "" || *workflow != "" || (*chapter == 6 && *streamExercise == "") || ((*chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 14 || *chapter == 15 || *chapter == 16 || *chapter == 18) && *gui == "")) {
-		fmt.Fprintln(os.Stderr, "-executable-only requires Chapter 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20 or 21, excludes jobs-only/consumer/workflow flags; Chapter 6 requires -stream-exercise EXECUTABLE; Chapters 7/8/9 require -gui STATIC-DIRECTORY; Chapters 14/15/16/18 require -gui EXECUTABLE; Chapter 18 also requires -status-skills DIRECTORY")
+	if *executableOnly && ((*chapter != 5 && *chapter != 6 && *chapter != 7 && *chapter != 8 && *chapter != 9 && *chapter != 10 && *chapter != 11 && *chapter != 12 && *chapter != 13 && *chapter != 14 && *chapter != 15 && *chapter != 16 && *chapter != 18 && *chapter != 19 && *chapter != 20 && *chapter != 21 && *chapter != 22) || *jobsOnly || *consumer != "" || *consumerCase != "" || *workflow != "" || (*chapter == 6 && *streamExercise == "") || ((*chapter == 7 || *chapter == 8 || *chapter == 9 || *chapter == 14 || *chapter == 15 || *chapter == 16 || *chapter == 18) && *gui == "")) {
+		fmt.Fprintln(os.Stderr, "-executable-only requires Chapter 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 20, 21 or 22, excludes jobs-only/consumer/workflow flags; Chapter 6 requires -stream-exercise EXECUTABLE; Chapters 7/8/9 require -gui STATIC-DIRECTORY; Chapters 14/15/16/18 require -gui EXECUTABLE; Chapter 18 also requires -status-skills DIRECTORY")
+		return 2
+	}
+	if *executableOnly && *chapter == 22 && (*gui != "" || *fleetSkills != "" || *reuseLegacy || *streamExercise != "" || *statusSkills != "" || *sandboxLibrary != "ensemble") {
+		fmt.Fprintln(os.Stderr, "Chapter 22 -executable-only excludes GUI, fleet, streaming and Go library flags")
 		return 2
 	}
 	if *executableOnly && *chapter == 19 && (*gui != "" || *sandboxLibrary != "ensemble") {
@@ -108,7 +112,7 @@ func run() int {
 	case 14, 15, 16, 18, 22, 23:
 		buildPath = *gui
 	}
-	if *chapter == 18 && *executableOnly {
+	if (*chapter == 18 || *chapter == 22) && *executableOnly {
 		buildPath = path
 	}
 	if *chapter == 26 {
@@ -247,7 +251,11 @@ func run() int {
 	case 23:
 		report, err = gradeedition2.Chapter23(bin, path, *gui, *recallData)
 	case 22:
-		report, err = gradeedition2.Chapter22(bin)
+		if *executableOnly {
+			report, err = gradeedition2.Chapter22Executable(bin)
+		} else {
+			report, err = gradeedition2.Chapter22(bin)
+		}
 	case 14:
 		if *executableOnly {
 			report, err = gradeedition2.Chapter14Executable(bin)

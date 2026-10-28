@@ -62,6 +62,12 @@ static async Task<JsonElement> Frame(ClientWebSocket socket, string type, Cancel
             return json.RootElement.Clone();
     }
 }
+if (args is ["--memory-settings-tests"])
+{
+    await MemorySettingsTests.RunAsync();
+    return;
+}
+
 // Relative fixture paths must never overwrite a caller's shipped skills, even
 // when a developer launches this consumer from the solution directory.
 string originalDirectory = Environment.CurrentDirectory;

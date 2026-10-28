@@ -118,14 +118,14 @@ public sealed partial class Agent
     // Transient immutable transfer envelope. Completion sources belong to the
     // caller's request, not the persistent object graph. Exactly one terminal
     // result is published; cancelling a caller's wait never cancels its work.
-    private enum MailKind { Submit, Input, DirectTool, ReverseTool, RegisterMcpTools, CommitSkill, InitializeSkills, Delta, HttpDone, ToolDone, AutomaticDone, ControlDone, Flush, Shutdown, Wake, SelectModel, WorkStatus, IncomingQuestion }
+    private enum MailKind { Submit, Input, DirectTool, ReverseTool, RegisterMcpTools, CommitSkill, InitializeSkills, Delta, HttpDone, ToolDone, AutomaticDone, ControlDone, Flush, Shutdown, Wake, SelectModel, WorkStatus, IncomingQuestion, MemorySettings, MemoryDone }
     private sealed record Mail(MailKind Kind, ImmutableArray<Part> Parts = default,
         AgentInput? Input = null, ToolCallPart? Call = null, string? Model = null,
         TaskCompletionSource<string>? Reply = null,
         TaskCompletionSource<ToolResultPart>? ToolReply = null,
         ImmutableArray<Event> Events = default, ToolResultPart? Result = null,
         Exception? Error = null, ParsedResponse? Parsed = null, Chunk? Chunk = null, McpClient? Client = null, ImmutableArray<AutomaticResult> AutomaticResults = default, SkillActivation? Activation = null, TaskCompletionSource<ImmutableArray<string>>? SkillReply = null,
-        long WorkGeneration = 0, TaskCompletionSource<AgentWorkStatus>? StatusReply = null, QuestionInfo? Question = null);
+        long WorkGeneration = 0, TaskCompletionSource<AgentWorkStatus>? StatusReply = null, QuestionInfo? Question = null, MemorySettings? MemorySettings = null, MemoryCompletion? MemoryCompletion = null, bool PersistMemorySettings = false);
 
     // Human session control, not a model tool. Reject busy/queued work; retain
     // conversation, Engine, meter, lens, provider, surface and funding route.
