@@ -29,7 +29,8 @@ internal static class ToolTests
             Check(!agent.Engine().Render(new Context()).ContainsKey("tools"), "omit empty tools field");
             agent.InstallTools();
             string[] expectedTools = ["read_file", "write_file", "edit_file", "run_command", "list_directory", "search_files",
-                "wait_for_job", "send_input", "kill_job", "tool_limits", "micro_handoff", "agent_status"];
+                "wait_for_job", "send_input", "kill_job", "tool_limits", "micro_handoff", "agent_status", "join_agents", "submit", "send_message_to_parent",
+                "respond_to_parent_message", "shutdown_agent", "spawn_sub_agent", "agents_status", "get_sub_agent_status", "interrupt_agent"];
             Check(agent.Tools().Select(value => value.Name()).Order().SequenceEqual(expectedTools.Order()),
                 "install file/process tools, job controls and read-only Agent status");
             var other = new Agent(app, agent.Configuration());
@@ -226,7 +227,11 @@ internal static class ToolTests
                     var original = tool.Declaration(Vendor.Anthropic).ToJsonString();
                     var gemini = tool.Declaration(Vendor.Gemini).ToJsonString();
                     Check(!gemini.Contains("additionalProperties"), "Gemini strips unsupported schema fields");
-                    Check(tool.Declaration(Vendor.Anthropic).ToJsonString() == original && original.Contains("additionalProperties"), "projection cannot mutate definition");
+                    Check(tool.Declaration(Vendor.Anthropic).ToJsonString() == original, "projection cannot mutate definition");
+                    if (tool.Name() == "read_file")
+                    {
+                        Check(original.Contains("additionalProperties"), "projection stripping needs a positive control");
+                    }
                 }
                 agent.Destroy();
             }

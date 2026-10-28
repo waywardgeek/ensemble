@@ -1,19 +1,40 @@
-# Edition 3 — Chapter 20 C# work in progress
+# Edition 3 — Chapter 21 C# in progress
 
 C# 14 / .NET 10. Common declares the core vocabulary, persistent fields,
 relationships and cross-module operations. Functional directories implement the
 matching partial types in one assembly. CLI, tests and examples are separate
 assemblies using that public API; no additional packages are required.
 
-The preserved `../ch19` directory is the locally verified Chapter 19 endpoint.
-Its scoped executable grade is 90/90 for six sandbox host checks; the historical
-Go-only child-consumer check is excluded. Final assembled source review and C#
-teaching prose are complete. Earlier endpoints remain unchanged, including
-Chapter 18's 135-point web/status scope and Chapter 16's separate 70-point transport
-scope. Hosted web access, live OAuth, successful host sign-in, actual provider
-billing, audible quality and human accessibility remain unverified.
+The preserved `../ch20` directory is the locally verified Chapter 20 endpoint.
+Its scoped executable grade is 100/100 across seven fleet checks; the separate
+100-point Go GUI/reuse exercise is excluded. Final assembled source review and
+C# teaching prose are complete. Earlier endpoints remain unchanged, including
+Chapter 19's 90-point sandbox scope, Chapter 18's 135-point web/status scope and
+Chapter 16's separate 70-point transport scope. Hosted web access, live OAuth,
+successful host sign-in, actual provider billing, audible quality and human
+accessibility remain unverified.
 
-## Chapter 20 — reusable GUI hosting verified locally
+## Chapter 21 — activity foundation (in progress)
+
+Current main adds actor-derived work phases (`idle`, `thinking`, `tool_call`,
+`waiting`) to progress observations and reliable work status. Lifecycle and
+submission remain separate. Activity labels never become canonical History or
+provider instructions; details describe operations without copying arguments.
+Ownership-tree snapshots retain actual Agent identities without a parallel
+registry. `get_sub_agent_status` reports one direct child's phase and current
+Engine usage, separating selected and measured models and preserving unknown
+counts/prices. `interrupt_agent` delivers `now` or `after_tool` through the
+child's existing mailbox without destroying it or its independent Jobs. Its
+acknowledgment means delivery, not joined quiescence. The shipped ensemble skill
+grants both operations. Ensemble now has an explicit data container; named actors,
+including the initial actor, have sibling homes at `agents/<name>/`. Delegated
+children live beneath their owning actor at `children/<id>/`. These homes are
+separate from History save paths and are declared in `Common/Storage.cs`.
+Named-peer registry creation/restoration, browser addresses/selection, durable
+retrieval, remaining management, chapter grading and preservation are unfinished.
+See the top of `docs/edition-3-csharp-progress.md` for evidence and limitations.
+
+## Chapter 20 — reusable GUI and owned child workflows
 
 The optional `Gui/Ensemble.Gui.csproj` owns the existing GUI partials and embedded
 assets; `Examples/Gui` is its composition root. `RunAsync` owns a private host;
@@ -29,17 +50,18 @@ nested validation and default text normalization. Its declarations are in
 `Common/Submission.cs`; implementation is in `Agent/SubmissionContract.cs`.
 `--submission-contract-tests` covers that validator. The child now retains its
 contract and publishes validated typed rows to `submit.md` through one rooted
-atomic replacement operation shared with History. Its data directory comes from
-configured persistence, not a second setting. Accepted work invalidates earlier
+atomic replacement operation shared with History. In current main, its data home
+is supplied at construction or derived from its parent; History persistence does
+not assign that home. The preserved ch20 endpoint retains its earlier contract. Accepted work invalidates earlier
 completion; an older turn cannot submit for newer queued work. The additional
 `--child-submission-tests` checks durable publication, restoration, admission and
 concurrent policy derivation. `CreateChildAsync` creates and initializes a child
-under the parent's persistence directory, with independently owned Skills/MCP
+under the parent's data home, with independently owned Skills/MCP
 clients inherited from parsed templates and current values. It restores only the
 child's History before initialization and admits no task. Failed creation joins
 cleanup while retaining state files; `--child-creation-tests` covers inheritance,
 restoration, refusals and cancellation during real local MCP startup. These are
-public library operations, not yet the model-facing child workflow.
+public library operations also used by the model-facing tools described below.
 `WaitForSubmissionAsync` now observes current durable completion without consuming
 another waiter's notification or cancelling child work. Parent submission refuses
 unresolved retained children. `SendMessageToParentAsync`, `PendingQuestions`,
@@ -52,9 +74,59 @@ named in the correction. Exhaustion and execution errors retain `ChildFailure()`
 and wake submission waiters with failure, never fabricated completion. Durable
 submission resets the correction budget; new admitted work clears old failure.
 `--child-completion-tests` covers exhaustion, recovery, reset, drain separation,
-provider failure and unchanged standalone chat. Question-aware joins, task limits,
-ordinary tool/CLI wiring, prose and grading remain unfinished.
-No Chapter 20 executable grade or preserved endpoint exists yet.
+provider failure and unchanged standalone chat. `JoinChildrenAsync` captures a
+fixed direct-child selection, yields pending questions once, and returns typed
+submissions or explicit child failure. The ordinary `join_agents` Job yields
+urgent questions even with a long callback delay/nonmatching pattern, retaining
+its running handle for `wait_for_job`. `--child-join-tests` covers fan-in, question
+routing, cancellation and failures; joining is not a shutdown barrier.
+The ordinary `submit`, `send_message_to_parent`, `respond_to_parent_message` and
+`shutdown_agent` tools now use these same owners. Submission exposes and validates
+the child's exact contract, questions retain an ordinary Job waiter, and targeted
+shutdown joins and detaches a subtree while preserving saved files and errors.
+`--child-tool-tests` covers direct dispatch plus a loopback model-led typed submit.
+Provider schema projections remain reduced descriptions; exact local validation
+is authoritative. `spawn_sub_agent` creates/restores an owned child, admits its
+separate task, urgently reports the child ID and retains the reliable task reply
+in its existing Job. Cancelling that Job detaches observation, not the child;
+`shutdown_agent` remains the explicit lifetime operation. Task completion and
+explicit typed submission are separate report fields. `agents_status` queries
+live scheduling state through each child's actor, including paused queues and
+direct Engine sends, and reports submission/failure independently of activity.
+`WorkStatusAsync` is a cancellable snapshot, not a completion barrier. Closed
+Agents report synchronized stopping/stopped state without restarting their actor.
+`--child-spawn-tests` covers real loopback spawning, typed submit and draining,
+observer cancellation, refusal, bounded failure, status and shutdown races.
+Incoming human messages and child questions wake current Job observations without
+cancelling work or interrupting a later wait. Child notices are ordinary tool data;
+an idle parent does not start inference, and root-human questions stay in their inbox.
+`--message-wake-tests` covers these boundaries. The shipped ensemble skill grants
+and teaches all seven child tools. CLI stdin remains live during chat work, with
+actor-decided turn/hint admission, reliable answer output and a separate human
+question display. `/reply TEXT`, `/reply MESSAGE_ID TEXT`, and JSON `kind: reply`
+answer that inbox without admitting a model task. `--chat-input-tests` covers
+admission and unseen-question waits. Actual JSON/chat CLI runs with a local model
+peer completed a root/child/grandchild workflow, answered parent/human questions,
+joined typed submissions and explicitly shut down the subtree. A pending-human-
+question `/quit` regression now passes too: independent question cancellation is
+a tool error, not an unhandled Job task failure. Question replies carry both
+`sender` and `response`: the actual replying Agent address, or the human address
+(default `user`). Library hosts can name the human at `RespondToQuestion` without
+overriding Agent senders. Final shared suite after this correction: 191 groups.
+
+Scoped executable grading passes **100/100** across the seven fleet checks,
+including typed submissions and durable nested results. The separate 100-point
+Go GUI/reuse exercise is excluded, not credited from C# library tests. From the
+repository root, invoke the built grader with `-ch 20 -executable-only
+-fleet-skills /absolute/path/to/Skills /absolute/path/to/cli-wrapper` (the wrapper
+starts the compiled C# CLI). Five actual host sessions completed 59 requests to
+an owned local provider peer; this is not live-provider evidence.
+
+The source-only `ch20` endpoint preserves this assembled implementation and its
+support files. See `docs/edition-3-csharp-progress.md` at the repository root for
+retained failures, verification details and scope limitations. Local synthetic
+peers establish the exercised protocols, not unscripted model judgment or live
+provider integration.
 
 ## Chapter 19 — locally verified implementation
 
@@ -497,6 +569,16 @@ The CLI retains `chat`, `dump`, `render`, `-media-capabilities`, JSON stdin, and
 `pause`, `resume`, `interrupt`, `shutdown`, and direct `tool` operations as
 specified in Chapter 5. EOF drains accepted turns; shutdown cancels them.
 
+Chapter 20 adds human questions independently of transient progress: JSON output
+uses `{"human_question":{"message_id":1,"content":"..."}}`. Answer with
+`{"kind":"reply","message_id":1,"text":"..."}`; omit `message_id` only when
+one human question is pending. A wrong/ambiguous reply reports an error and leaves
+the inbox and stdin open. In `chat`, use `/reply TEXT` or `/reply MESSAGE_ID TEXT`.
+Ordinary chat text starts a turn when idle or hints the active turn; `/reply`
+never starts a turn. `/quit` cancels active work and joins teardown. EOF still
+drains, so answer pending questions before closing stdin, or explicitly quit/shut
+down instead. Child-to-parent questions are not routed to this human sink.
+
 Streaming is requested for declared capable models unless `-no-stream` or
 `EN_DISABLE_STREAMING=1` opts out. Plain parsing emits finalized parts without
 synthetic deltas. Live JSON (`kind: prompt`) emits flushed `part_delta` and
@@ -586,9 +668,17 @@ one reduced Context and its folded sequence; diagnostic retention cannot reset
 that sequence. Save candidates and old primaries are validated before replacement.
 Corrupt primary bytes never rotate over a good backup.
 
-CLI and GUI now load/save `save.json` in their working directory by default.
-Use a separate directory per session, `--save PATH` to choose one, or `--no-save`
-for an intentionally ephemeral exercise. `--save-log N` selects all (negative),
+Current CLI and GUI accept `--data-dir DIR` / `EN_DATA_DIR` for the Ensemble
+container and `--agent-name NAME` / `EN_AGENT_NAME` for the initial actor (default
+`root`). Explicit flags override environment values. The container defaults to the
+sandbox root when configured, otherwise the working directory; relative explicit
+containers use that same base. Default saves, event logs and diagnostics belong
+under `agents/<name>/`, and default Job output is its `jobs/` directory. GUI
+preferences default to `settings.json` in the shared Ensemble container, not a
+personal user-profile store. Explicit path options retain their meanings.
+
+Use `--save PATH` for an independent conversation path or `--no-save` to disable
+History persistence. Neither changes the actor home or disables all file output. `--save-log N` selects all (negative),
 none (zero), or the newest N diagnostic events. `--archive-log PATH` optionally
 writes a complete event archive before trimming; `History.Load` can replay it.
 The recovery journal is independent of this optional archive. Environment fallbacks are `EN_SAVE_PATH`, `EN_SAVE_LOG`,

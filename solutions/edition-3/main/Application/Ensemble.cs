@@ -3,8 +3,14 @@ namespace Ensemble;
 
 public sealed partial class Ensemble
 {
-    public partial Ensemble(TextWriter diagnostics, TextWriter? apiTrace)
+    public partial Ensemble(TextWriter diagnostics, TextWriter? apiTrace, string? dataDirectory)
     {
+        ArgumentNullException.ThrowIfNull(diagnostics);
+        if (dataDirectory is not null)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(dataDirectory);
+            this.dataDirectory = Path.GetFullPath(dataDirectory);
+        }
         this.diagnostics = diagnostics;
         this.apiTrace = apiTrace;
         agents = [];

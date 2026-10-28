@@ -5,20 +5,12 @@ namespace Ensemble;
 
 public sealed partial class Agent
 {
-    public partial string DataDirectory()
-    {
-        lock (ingress)
-        {
-            ObjectDisposedException.ThrowIf(destroyed, this);
-            if (persistence is null)
-            {
-                throw new InvalidOperationException("Configure Agent persistence before using child storage.");
-            }
-            return Path.GetDirectoryName(persistence.Path)!;
-        }
-    }
-
     public partial JsonElement SubmissionSchema() => submissionContract.Schema();
+
+    internal partial void ValidateSubmission(JsonElement payload)
+    {
+        _ = submissionContract.Validate(payload);
+    }
 
     public partial JsonElement? Submission()
     {

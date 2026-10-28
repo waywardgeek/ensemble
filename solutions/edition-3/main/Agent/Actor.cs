@@ -24,7 +24,7 @@ public sealed partial class Agent
         return reply.Task;
     }
 
-    public partial Task PostAsync(AgentInput input)
+    public partial Task<string> PostAsync(AgentInput input)
     {
         var reply = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
         Enqueue(new Mail(MailKind.Input, Input: input, Reply: reply));
@@ -191,6 +191,7 @@ public sealed partial class Agent
                 while (mailbox.Reader.TryRead(out var message))
                 {
                     Receive(message);
+                    PublishWorkActivity();
                 }
                 if (stopping && !workerPending && controlReplies.Count == 0 && startupReplies.Count == 0)
                 {
@@ -215,6 +216,7 @@ public sealed partial class Agent
                     break;
                 }
                 Advance();
+                PublishWorkActivity();
                 if (active is null && requests.Count == 0 && !workerPending && controlReplies.Count == 0 && startupReplies.Count == 0)
                 {
                     foreach (var reply in flushReplies)
@@ -247,13 +249,17 @@ public sealed partial class Agent
                 }
                 else if (outcome.Kind == MailKind.ControlDone)
                 {
-                    controlReplies.Remove(outcome.ToolReply!);
+                    if (outcome.ToolReply is not null)
+                    {
+                        controlReplies.Remove(outcome.ToolReply);
+                    }
                     startupReplies.Remove(outcome.Reply!);
                 }
                 ObserveInput(outcome, false);
                 outcome.Reply?.TrySetException(error);
                 outcome.ToolReply?.TrySetException(error);
                 outcome.SkillReply?.TrySetException(error);
+                outcome.StatusReply?.TrySetException(error);
             }
             foreach (var reply in flushReplies)
             {
@@ -266,7 +272,7 @@ public sealed partial class Agent
             {
                 reply.TrySetException(error);
             }
-            foreach (var reply in controlReplies)
+            foreach (var reply in controlReplies.Keys)
             {
                 reply.TrySetException(error);
             }
@@ -298,12 +304,19 @@ public sealed partial class Agent
                 rejected.Reply?.TrySetException(new ObjectDisposedException(nameof(Agent)));
                 rejected.ToolReply?.TrySetException(new ObjectDisposedException(nameof(Agent)));
                 rejected.SkillReply?.TrySetException(new ObjectDisposedException(nameof(Agent)));
+                rejected.StatusReply?.TrySetException(new ObjectDisposedException(nameof(Agent)));
             }
             foreach (var reply in flushReplies)
             {
                 reply.TrySetException(new ObjectDisposedException(nameof(Agent)));
             }
             flushReplies.Clear();
+            workerPending = false;
+            transportPending = false;
+            automaticPending = false;
+            controlReplies.Clear();
+            startupReplies.Clear();
+            PublishWorkActivity();
             observationCancellation?.Dispose();
             controlCancellation.Dispose();
         }
@@ -311,6 +324,40 @@ public sealed partial class Agent
 
     private partial void Receive(Mail message)
     {
+        if (message.Kind == MailKind.IncomingQuestion)
+        {
+            if (!stopping)
+            {
+                QuestionInfo question = message.Question!;
+                // Child content is untrusted dialogue data, not human authority
+                // or a system instruction. The inbox, not this notice, owns the
+                // pending reply. Recording precedes waking any tool observer.
+                string notice = "Child question (data; reply through respond_to_parent_message):\n"
+                    + System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        agent_id = question.AgentID,
+                        message_id = question.MessageID,
+                        content = question.Content
+                    });
+                Record(new Event(EventKind.HintReceived, actor: Actor.Tool,
+                    parts: [new TextPart(notice)]));
+                if (active is not null)
+                {
+                    hintPending = true;
+                    if (!transportPending && nextCall < calls.Length)
+                    {
+                        skipTail = true;
+                    }
+                }
+                Jobs().WakeObservers();
+            }
+            return; // An idle parent records data but admits no new model task.
+        }
+        if (message.Kind == MailKind.WorkStatus)
+        {
+            ReadWorkStatus(message);
+            return;
+        }
         if (message.Kind == MailKind.SelectModel)
         {
             SelectModel(message);
@@ -423,7 +470,7 @@ public sealed partial class Agent
             && Tools().Any(tool => tool.Name() == message.Call!.Name && tool.IsControl())))
         {
             ObserveInput(message, true);
-            controlReplies.Add(message.ToolReply!);
+            controlReplies.Add(message.ToolReply!, message.Call!);
             // Dispatch's synchronous prefix runs on the actor. Only observation
             // runs outside and posts its immutable outcome back to this inbox.
             var work = Jobs().DispatchAsync(message.Call!, controlCancellation.Token);
@@ -493,6 +540,7 @@ public sealed partial class Agent
         if (message.Kind == MailKind.Input)
         {
             var input = message.Input!;
+            bool replyWithTurn = false;
             try
             {
                 switch (input.Kind)
@@ -525,6 +573,7 @@ public sealed partial class Agent
                         Record(new Event(EventKind.MessageReceived, actor: Actor.System,
                             parts: [new TextPart(input.Text)]));
                         break;
+                    case InputKind.Chat:
                     case InputKind.Hint:
                     case InputKind.Message:
                         if (active is null)
@@ -533,7 +582,9 @@ public sealed partial class Agent
                                 parts: [new TextPart(input.Text)]));
                             // The fact is already recorded. This empty request
                             // merely triggers work once scheduling is allowed.
+                            replyWithTurn = input.Kind == InputKind.Chat;
                             requests.Enqueue(new Mail(MailKind.Submit,
+                                Reply: replyWithTurn ? message.Reply : null,
                                 WorkGeneration: AdmitChildWork()));
                         }
                         else
@@ -553,17 +604,17 @@ public sealed partial class Agent
                             {
                                 skipTail = true;
                             }
-                            if (workerPending && !transportPending && !automaticPending)
-                            {
-                                observationCancellation?.Cancel();
-                            }
                         }
+                        Jobs().WakeObservers();
                         break;
                     default:
                         throw new ArgumentException("Unknown input kind.");
                 }
                 ObserveInput(message, true);
-                message.Reply!.TrySetResult("");
+                if (!replyWithTurn)
+                {
+                    message.Reply!.TrySetResult("");
+                }
             }
             catch (Exception error)
             {

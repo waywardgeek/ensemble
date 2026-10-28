@@ -1,4 +1,4 @@
-# Optional GUI library — Chapter 20 work in progress
+# Optional GUI library — Chapter 20
 
 `Ensemble.Gui.csproj` references the core; the core does not reference this
 assembly or ASP.NET. The existing GUI vocabulary remains in `Common`, with
@@ -89,4 +89,8 @@ survival, and Agent usability before destruction.
 This is not live-provider, OAuth, browser-rendering, audible-speech or
 human-accessibility evidence. The separately recorded isolated browser exercise
 covers mounted page rendering and controls only; see the top progress record.
-Chapter 20's child workflow, grader adaptation, prose and endpoint remain unfinished.
+The child workflows and scoped executable fleet grade are separately verified;
+they do not add GUI credit to that grade. The reviewed source-only `ch20` endpoint
+preserves this library alongside the core and consumers. See
+`docs/edition-3-csharp-progress.md` at the repository root for the current boundary
+and retained evidence.

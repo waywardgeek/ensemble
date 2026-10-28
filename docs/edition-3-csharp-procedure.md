@@ -25,13 +25,24 @@ one substantive operation per line, meaningful intermediate values and clear
 names. Do not hide work in dense assignments or create helpers just to shorten
 methods. Tests and examples must be readable too. Fewer lines are not a target.
 
+Simplify execution, not communication. Preserve the current level of explanation
+of what Cadence is doing and why, including visible intent before every tool batch
+and substantive reasons for decisions. Bill values that explanation for oversight
+and collaboration; it is not the overhead to remove.
+
 ## One chapter at a time
 
 1. **Read and compare.** Read the actual current chapter completely in bounded
    reads. Compare the preserved abandoned Edition 3 chapter and retain worthwhile
    improvements, not its old process history. Inspect the existing grader and
    relevant earlier implementations for contracts and useful simplicity; neither
-   is an unquestionable answer key. Do not reopen unrelated chapters.
+   is an unquestionable answer key. Cadence may examine any prior edition for
+   guidance on how it resolved an issue. Record the demonstrated ambiguity, the
+   relevant source and the resolution in the existing chapter progress note so
+   the updated chapter can clarify it. Prior code does not override current
+   requirements. Resolve factual uncertainty from these sources before proposing
+   new architecture or asking Bill; ask when a consequential choice remains
+   genuinely unresolved. Do not reopen unrelated chapters.
 2. **Teach the model.** Write or refine the TL;DR and In plain words sections.
    Explain ownership and the main data flow before exhaustive specifications.
    Adapt the existing chapter to C#, preserving its purpose, worthwhile narrative
@@ -41,14 +52,22 @@ methods. Tests and examples must be readable too. Fewer lines are not a target.
    architecture. Inspect Common declarations and access paths before accumulating
    implementation. Use the simplest adequate design, normal .NET facilities and
    existing suitable code. No routine worker delegation, external review cycle,
-   per-finding permission gate or numerical correction-round quota.
+   per-finding permission gate or numerical correction-round quota. Work in
+   coherent features, not administrative milestones for each helper or test group.
+   Read the actual declarations and wire contracts before writing code or fixtures;
+   do not compensate for guessed interfaces with a repair campaign.
 4. **Test and grade.** Compile with warnings treated as errors. Test actual
    components and working fakes at external boundaries, including the changed
    behavior and relevant adjacent contracts. Use public-format fixtures as well
    as the solution's own serializer. Reuse language-independent graders by
    supplying the compiled executable; rewrite grading only where an actual
-   language dependency requires it. Run gates sequentially and stop on failure.
-   Inspect parsed results and actual exit status. Distinguish setup mistakes,
+   language dependency requires it. Read its actual assertions before adapting
+   the language-specific mechanics; do not create a second testing framework or
+   invent acceptance hurdles. Use focused tests during implementation and broader
+   regression when shared behavior changes or at integration. Do not repeat whole
+   campaigns for each small milestone, a documentation edit or a fresh timestamp.
+   Run gates sequentially and stop on failure. Inspect parsed results and actual
+   exit status. Distinguish setup mistakes,
    product failures and grader defects; never weaken a requirement to earn green.
 5. **Exercise the application.** Personally follow the chapter's actual exercise
    through its CLI or, when applicable, an owned real browser and application.
@@ -68,7 +87,11 @@ methods. Tests and examples must be readable too. Fewer lines are not a target.
 7. **Finish and hand off.** Preserve a runnable chapter solution, excluding
    binaries, obj/bin directories, credentials and raw diagnostics. Update one
    concise progress entry with results, important decisions, genuine limitations
-   and the next step. Then call `micro_handoff` at the chapter boundary. Its note
+   and the next step. Keep README and GOAL focused on their own contracts and
+   current direction, pointing to progress for evidence rather than repeating its
+   history. Useful raw logs may remain in scratch; routine separate checkpoint
+   reports are not another deliverable. Then call `micro_handoff` at the chapter
+   boundary. Its note
    must retain the architecture, reasons, useful failure/correction evidence,
    remaining risks, source locations and next authorized work. A handoff is not
    a substitute for a saved solution or observed results. Resume the next chapter

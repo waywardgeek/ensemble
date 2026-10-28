@@ -1,4 +1,4 @@
-# Optional GUI executable — Chapter 20 work in progress
+# Optional GUI executable — Chapter 20
 
 This composition root uses the public [optional GUI library](../../Gui/README.md).
 Its `Common`, `Server` and embedded `wwwroot` now live in `../../Gui`; the core
@@ -133,7 +133,8 @@ The GUI constructs current skills, restores/reconfigures the saved conversation,
 then opens its event log and writes the bootstrap prefix. It accepts
 `--skills-dir`, `--primary-skill`, `EN_SKILLS_DIR`, `EN_PRIMARY_SKILL`, and
 `EN_CUSTOM_VAR`; defaults are the output `skills` directory and `ensemble`.
-The shipped default grants inspection and offers `code-tools`; `full` is an
+The shipped default grants inspection and the seven child-workflow tools, and
+offers `code-tools`; `full` is an
 explicit broader primary for trusted exercises. No browser preference or local
 storage entry enables tools. A guessed disabled call is refused by the core.
 

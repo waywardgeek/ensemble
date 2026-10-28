@@ -2,7 +2,7 @@ namespace Ensemble;
 
 public sealed partial class Agent
 {
-    public partial Agent(Ensemble parent, Configuration configuration, string? outputDirectory, string? name, SkillSpec? skillSpec)
+    public partial Agent(Ensemble parent, Configuration configuration, string? outputDirectory, string? name, SkillSpec? skillSpec, string? dataDirectory)
     {
         ArgumentNullException.ThrowIfNull(parent);
         ArgumentNullException.ThrowIfNull(configuration);
@@ -13,17 +13,32 @@ public sealed partial class Agent
         Name = name;
         this.configuration = configuration;
         nextTurnToolLimit = configuration.ToolRoundLimit;
-        ConstructOwners(parent, null, outputDirectory, skillSpec);
+        string? namedHome = parent.AgentDirectory(name);
+        if (namedHome is not null && dataDirectory is not null)
+        {
+            throw new ArgumentException(
+                "Ensemble assigns the home of a named Agent; omit the explicit data directory.", nameof(dataDirectory));
+        }
+        ConstructOwners(parent, null, outputDirectory, skillSpec, namedHome ?? dataDirectory);
     }
 
     private partial void ConstructOwners(Ensemble root, Agent? owner,
-        string? outputDirectory, SkillSpec? skillSpec)
+        string? outputDirectory, SkillSpec? skillSpec, string? dataDirectory)
     {
         root.AddAgent(this);
         try
         {
             owner?.AddChild(this);
             _ = new Sandbox(this);
+            if (dataDirectory is not null)
+            {
+                ArgumentException.ThrowIfNullOrWhiteSpace(dataDirectory);
+                // Resolve and create through this Agent's actual filesystem owner.
+                // This home is independent of the optional History save policy.
+                this.dataDirectory = Sandbox().Resolve(dataDirectory);
+                Sandbox().CreateDirectory(this.dataDirectory);
+                outputDirectory ??= Path.Combine(this.dataDirectory, "jobs");
+            }
             _ = new History(this);
             _ = new Engine(this);
             _ = new Jobs(this, outputDirectory);

@@ -17,6 +17,7 @@ static partial class McpTests
         try
         {
             var parent = new Agent(app, new Configuration(Vendor.Anthropic, "fake", "http://127.0.0.1:1"),
+                dataDirectory: Path.Combine(home, "state"),
                 skillSpec: new SkillSpec(manuals, "primary", StartupSkills: ["remote"],
                     McpEnvironment: new Dictionary<string, string> { ["CHILD_TEST_TOKEN"] = peer.Token }));
             parent.StartPersistence(new PersistenceOptions(Path.Combine(home, "state", "save.json")));

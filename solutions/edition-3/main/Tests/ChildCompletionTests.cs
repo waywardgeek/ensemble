@@ -53,7 +53,7 @@ internal static partial class ActorTests
             var config = new Configuration(Vendor.Anthropic, "fixture",
                 "http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port, "local-only", sandboxRoot: work);
             var parent = new Agent(app, config);
-            var child = new Agent(app, parent, "child", config);
+            var child = new Agent(app, parent, "child", config, dataDirectory: Path.Combine(work, "child"));
             child.StartPersistence(new PersistenceOptions(Path.Combine(work, "child", "save.json")));
             Task<JsonElement> waiting = child.WaitForSubmissionAsync(deadline.Token);
             string failure = await CompletionFailure(child.SubmitAsync([new TextPart("do the task")]), deadline.Token);
@@ -126,7 +126,7 @@ internal static partial class ActorTests
             var config = new Configuration(Vendor.Anthropic, "fixture",
                 "http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port, "local-only", sandboxRoot: work);
             var parent = new Agent(app, config);
-            var child = new Agent(app, parent, "child", config);
+            var child = new Agent(app, parent, "child", config, dataDirectory: Path.Combine(work, "child"));
             child.StartPersistence(new PersistenceOptions(Path.Combine(work, "child", "save.json")));
             var descendant = new Agent(app, child, "unfinished", config);
             for (int task = 0; task < 2; task++)
@@ -189,7 +189,7 @@ internal static partial class ActorTests
             var config = new Configuration(Vendor.Anthropic, "fixture",
                 "http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port, "local-only", sandboxRoot: work);
             var root = new Agent(app, config);
-            var child = new Agent(app, root, "child", config);
+            var child = new Agent(app, root, "child", config, dataDirectory: Path.Combine(work, "child"));
             child.StartPersistence(new PersistenceOptions(Path.Combine(work, "child", "save.json")));
             string failure = await CompletionFailure(child.SubmitAsync([new TextPart("child task")]), deadline.Token);
             Check(child.ChildFailure() == failure, "Real execution failure was not retained.");

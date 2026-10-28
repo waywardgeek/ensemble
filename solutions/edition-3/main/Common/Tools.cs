@@ -24,7 +24,16 @@ public enum ToolKind
     KeepToolResults,
     Custom,
     Remote,
-    AgentStatus
+    AgentStatus,
+    JoinAgents,
+    Submit,
+    SendMessageToParent,
+    RespondToParentMessage,
+    ShutdownAgent,
+    SpawnSubAgent,
+    AgentsStatus,
+    GetSubAgentStatus,
+    InterruptAgent
 }
 
 public sealed partial class Tool
@@ -63,6 +72,13 @@ public sealed partial class Tool
     internal partial Task<ToolResultPart> ExecuteJobAsync(Job job, ToolCallPart call, CancellationToken cancellation);
     // Read-only projection through the executing Job’s real owning Agent.
     private static partial string Status(Job job);
+    // Shared state projection; detailed child status adds the existing Engine meter.
+    private static partial JsonObject ChildStatusValue(Agent child, AgentWorkStatus status);
+    private static partial Task<string> DetailedChildStatusAsync(Job job, JsonElement args, CancellationToken cancellation);
+    private static partial JsonObject UsageValue(Usage counts);
+    private static partial Task<string> JoinAgentsAsync(Job job, JsonElement args, CancellationToken cancellation);
+    // Ordinary Jobs own question waits and joined child teardown.
+    private partial Task<string> ChildOperationAsync(Job job, JsonElement args, CancellationToken cancellation);
     public partial string Name();
     public partial JsonObject Declaration(Vendor vendor);
 

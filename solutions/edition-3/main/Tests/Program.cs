@@ -95,6 +95,116 @@ try
             return failures == 0 ? 0 : 1;
         }
     }
+    if (args is ["--child-interrupt-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 21 interrupt ownership and grant", () => ActorTests.ChildInterruptOwnership(temp));
+        await AsyncCase("Chapter 21 child interrupt now", () => ActorTests.ChildInterruptBoundary(temp, false));
+        await AsyncCase("Chapter 21 child interrupt after tool", () => ActorTests.ChildInterruptBoundary(temp, true));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--child-status-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 21 detailed child telemetry", () => MeterTests.ChildStatus(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--storage-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 21 named actor homes and restoration", () => StorageTests.NamedHomes(temp));
+        CheckCase("Chapter 21 storage admission and independent save paths", () => StorageTests.Admission(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--agent-tree-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 21 ownership tree membership", () => AgentTreeTests.Membership(temp));
+        await AsyncCase("Chapter 21 concurrent ownership tree", () => AgentTreeTests.ConcurrentMembership(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--activity-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 21 activity model/tool cycle", () => ActorTests.ActivityModelCycle(temp));
+        await AsyncCase("Chapter 21 control wait activity", () => ActorTests.ActivityControlWait(temp));
+        await AsyncCase("Chapter 21 activity interrupt/failure", () => ActorTests.ActivityInterruptAndFailure(temp));
+        await AsyncCase("Chapter 21 activity transport endings", ActorTests.ActivityTransportEnds);
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--chat-input-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 20 actor-decided interactive chat", () => ActorTests.ChatAdmission(temp));
+        await AsyncCase("Chapter 20 unseen human question display", () => ActorTests.UnseenHumanQuestions(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--message-wake-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 20 non-sticky observation pulse", () => ActorTests.MessagePulse(temp));
+        await AsyncCase("Chapter 20 human control observation wake", () => ActorTests.MessageControlWake(temp));
+        await AsyncCase("Chapter 20 question wake and inbox isolation", () => ActorTests.MessageQuestionIsolation(temp));
+        await AsyncCase("Chapter 20 model-led question wake", () => ActorTests.MessageQuestionModel(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--child-spawn-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 20 spawn Job and actor status", () => ActorTests.ChildSpawnLifecycle(temp));
+        await AsyncCase("Chapter 20 spawn cancellation and refusal", () => ActorTests.ChildSpawnCancellation(temp));
+        await AsyncCase("Chapter 20 spawn failure and paused status", () => ActorTests.ChildSpawnFailure(temp));
+        await AsyncCase("Chapter 20 status observes direct Engine sends", () => ActorTests.ChildStatusDirectSend(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--child-tool-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 20 submit tool admission and durability", () => ChildToolTests.Submission(temp));
+        await AsyncCase("Chapter 20 question tools and human inbox", () => ChildToolTests.Questions(temp));
+        await AsyncCase("Chapter 20 targeted shutdown tool", () => ChildToolTests.Shutdown(temp));
+        await AsyncCase("Chapter 20 model-led submit tool", () => ActorTests.ChildToolSubmission(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
+    if (args is ["--child-join-tests"] || args.Length == 0)
+    {
+        await AsyncCase("Chapter 20 selected typed fan-in", () => ChildJoinTests.Selection(temp));
+        await AsyncCase("Chapter 20 running join yields questions", () => ChildJoinTests.Questions(temp));
+        await AsyncCase("Chapter 20 join cancellation isolation", () => ChildJoinTests.Cancellation(temp));
+        await AsyncCase("Chapter 20 join refusals and shutdown", () => ChildJoinTests.Failures(temp));
+        if (args.Length != 0)
+        {
+            Console.WriteLine($"{passed} passed; {failures} failed");
+            return failures == 0 ? 0 : 1;
+        }
+    }
     if (args is ["--child-completion-tests"] || args.Length == 0)
     {
         await AsyncCase("Chapter 20 bounded submission corrections", () => ActorTests.ChildCompletionExhaustion(temp));

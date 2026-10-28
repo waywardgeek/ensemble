@@ -4,12 +4,38 @@ namespace Ensemble;
 
 public sealed partial class Agent
 {
-    public partial Task<string> SendMessageToParentAsync(string content, CancellationToken cancellation)
+    public partial Task<QuestionReply> SendMessageToParentAsync(string content, CancellationToken cancellation)
     {
         ArgumentNullException.ThrowIfNull(content);
         cancellation.ThrowIfCancellationRequested();
-        var question = new AgentQuestion(this, agentParent ?? this, content);
+        Agent recipient = agentParent ?? this;
+        AgentQuestion question;
+        QuestionInfo notice;
+        lock (Parent().questionGate)
+        {
+            question = new AgentQuestion(this, recipient, content);
+            notice = question.Snapshot();
+        }
+        // No ingress acquisition under the graph lock. The root's human inbox
+        // is not a message to its own model and must never self-answer.
+        if (!notice.ForHuman)
+        {
+            recipient.NotifyQuestion(notice);
+        }
         return question.WaitAsync(cancellation);
+    }
+
+    private partial void NotifyQuestion(QuestionInfo question)
+    {
+        lock (ingress)
+        {
+            if (admissionClosed || destroyed)
+            {
+                return; // Shutdown owns the already-admitted question edge.
+            }
+            actorTask ??= Task.Run(ActorLoop);
+            mailbox.Writer.TryWrite(new Mail(MailKind.IncomingQuestion, Question: question));
+        }
     }
 
     public partial ImmutableArray<QuestionInfo> PendingQuestions()
@@ -21,8 +47,9 @@ public sealed partial class Agent
     }
 
     public partial async Task<ImmutableArray<QuestionInfo>> WaitForQuestionsAsync(bool humanOnly,
-        CancellationToken cancellation)
+        CancellationToken cancellation, IEnumerable<long>? excludedIDs)
     {
+        HashSet<long> excluded = excludedIDs?.ToHashSet() ?? [];
         Ensemble owner = Parent();
         while (true)
         {
@@ -32,7 +59,8 @@ public sealed partial class Agent
             {
                 ObjectDisposedException.ThrowIf(Volatile.Read(ref admissionClosed) || Volatile.Read(ref destroyed), this);
                 ImmutableArray<QuestionInfo> pending = incomingQuestions.Select(question => question.Snapshot())
-                    .Where(question => !humanOnly || question.ForHuman).ToImmutableArray();
+                    .Where(question => (!humanOnly || question.ForHuman)
+                        && !excluded.Contains(question.MessageID)).ToImmutableArray();
                 if (!pending.IsEmpty)
                 {
                     return pending;
@@ -43,9 +71,14 @@ public sealed partial class Agent
         }
     }
 
-    public partial void RespondToQuestion(string response, string? childID, long? messageID)
+    public partial void RespondToQuestion(string response, string? childID, long? messageID, string humanAddress)
     {
         ArgumentNullException.ThrowIfNull(response);
+        ArgumentException.ThrowIfNullOrWhiteSpace(humanAddress);
+        if (childID is not null && humanAddress != "user")
+        {
+            throw new ArgumentException("A human address cannot override an Agent sender.", nameof(humanAddress));
+        }
         // FindChild takes ingress: resolve that actual ownership relationship
         // before entering the graph lock, never from inside it.
         Agent sender = childID is null ? this : FindChild(childID)
@@ -63,7 +96,7 @@ public sealed partial class Agent
             {
                 throw new InvalidOperationException("Several questions are pending; provide message_id.");
             }
-            matches[0].Answer(response);
+            matches[0].Answer(response, humanAddress);
         }
     }
 
@@ -156,12 +189,19 @@ internal sealed partial class AgentQuestion
     // The recipient holds the graph lock for snapshots, replies and destruction.
     internal partial QuestionInfo Snapshot() => new(id, sender!.ChildID(), content, ReferenceEquals(sender, recipient));
 
-    internal partial Task<string> WaitAsync(CancellationToken cancellation) => reply.Task.WaitAsync(cancellation);
+    internal partial Task<QuestionReply> WaitAsync(CancellationToken cancellation) => reply.Task.WaitAsync(cancellation);
 
-    internal partial void Answer(string response)
+    internal partial void Answer(string response, string humanAddress)
     {
+        // Derive attribution from the actual recipient before RemoveQuestion
+        // clears both links. A root's unnamed Agent address is the role "root";
+        // its human inbox uses the separately supplied host address instead.
+        string address = ReferenceEquals(sender, recipient)
+            ? humanAddress
+            : recipient!.ChildID() ?? recipient.Name ?? "root";
+        var answer = new QuestionReply(address, response);
         sender!.RemoveQuestion(this);
-        reply.TrySetResult(response);
+        reply.TrySetResult(answer);
     }
 
     internal partial void Destroy()

@@ -47,6 +47,9 @@ public sealed partial class Jobs
     internal partial Task<ToolResultPart> DispatchAsync(ToolCallPart call, CancellationToken cancellation = default, string? refusal = null);
     // Validate before replacing the one pending observation override.
     public partial void SetLimits(JobLimits limits);
+    // Wake only observers already waiting. Execution and future observations
+    // remain untouched; the owning Agent calls this after recording a message.
+    internal partial void WakeObservers();
     // Stop owned work, close OS resources, detach both relationship ends.
     // Output files intentionally remain available to recorded references.
     public partial void Destroy();
@@ -65,6 +68,9 @@ public sealed partial class Job
     private readonly FileStream output;
     private readonly ToolCallPart call;
     private TaskCompletionSource changed = new(TaskCreationOptions.RunContinuationsAsynchronously);
+    // Replaceable pulse, captured once by the active serialized observer.
+    // Unlike output attention, a message wake is not retained for later callers.
+    private TaskCompletionSource observationWake = new(TaskCreationOptions.RunContinuationsAsynchronously);
     private Task? worker;
     private JobStatus status = JobStatus.Running;
     private bool isError;
@@ -76,6 +82,9 @@ public sealed partial class Job
     private ToolResultPart? structuredResult;
     private long bytes;
     private long cursor;
+    // End of the latest urgent progress range. The shared byte cursor consumes
+    // attention with its output; this is not a second question/completion store.
+    private long attentionEnd;
     private int? exitCode;
     private Process? process;
     private int processGroup;
@@ -98,6 +107,10 @@ public sealed partial class Job
     internal partial Task<ToolResultPart> CompletionAsync(CancellationToken cancellation);
     // Custom handlers may stream progress. Publication flushes disk before waking.
     public partial void AppendOutput(string text);
+    // Actionable progress must yield even with a nonmatching observer pattern.
+    // Flush the text before marking its unread byte range for immediate delivery.
+    internal partial void AppendAttention(string text);
+    internal partial void WakeObservation();
     // Bootstrap publishes its process group before executing the command. The
     // host consumes it once; it never becomes model-visible output or a file.
     private partial Task<int> ReadProcessGroupAsync(Stream source, CancellationToken token);

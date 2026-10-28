@@ -25,10 +25,9 @@ public sealed partial class Agent
     // submittedPayload under ingress; no observer can consume another's wake.
     private TaskCompletionSource submissionChanged = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
-    /// <summary>The configured conversation's directory, not Jobs' output directory.
-    /// Persistence must be configured before this operation can succeed.</summary>
-    public partial string DataDirectory();
     public partial JsonElement SubmissionSchema();
+    // Tool admission uses the same immutable contract as durable publication.
+    internal partial void ValidateSubmission(JsonElement payload);
     /// <summary>Return only an explicitly validated, durably stored submission.
     /// New admitted work invalidates completion without erasing saved files.</summary>
     public partial JsonElement? Submission();

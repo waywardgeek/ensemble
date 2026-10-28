@@ -13,6 +13,10 @@ public sealed partial class Tool
         }
         this.kind = kind;
         (name, description, schema) = Define(kind);
+        if (kind == ToolKind.Submit)
+        {
+            schema = parent.SubmissionSchema();
+        }
         parent.AddTool(this);
     }
 
@@ -138,6 +142,59 @@ public sealed partial class Tool
                 Field("old_text", "string", "Exact nonempty anchor.", true);
                 Field("new_text", "string", "Replacement text, possibly empty.", true);
                 break;
+            case ToolKind.Submit:
+                name = "submit";
+                description = "Validate and durably submit this delegated Agent's whole argument object. Ordinary final text is not submission. Resolve or shut down unresolved children first; standalone Agents finish in chat.";
+                // The constructor replaces this placeholder with the owning
+                // Agent's exact immutable contract, not a result-wrapper schema.
+                break;
+            case ToolKind.SendMessageToParent:
+                name = "send_message_to_parent";
+                description = "Ask the owning Agent, or the human for a root Agent, and wait for its reply. A running Job is still waiting, not submitted. Use wait_for_job on its handle; observation does not cancel the question.";
+                Field("content", "string", "Question for the parent or human.", true);
+                break;
+            case ToolKind.RespondToParentMessage:
+                name = "respond_to_parent_message";
+                description = "Answer an owned child's pending question. Omit message_id only when that child has exactly one pending question. Does not submit or destroy the child.";
+                Field("agent_id", "string", "Direct child ID.", true);
+                Field("response", "string", "Answer text.", true);
+                Field("message_id", "integer", "Receiver-scoped pending question ID.");
+                break;
+            case ToolKind.InterruptAgent:
+                name = "interrupt_agent";
+                description = "Interrupt a direct child's current turn without destroying the Agent or its independent Jobs. now interrupts the current turn immediately; after_tool stops at the next tool-report boundary. Omitted mode means now. Delivery is acknowledged, not a drain barrier.";
+                Field("agent_id", "string", "Direct owned child ID.", true);
+                Field("mode", "string", "now (default) or after_tool.");
+                properties["mode"]!["enum"] = new JsonArray("now", "after_tool");
+                break;
+            case ToolKind.GetSubAgentStatus:
+                name = "get_sub_agent_status";
+                description = "Read one direct owned child’s actor status, work phase and current-process usage. Selected and measured models are distinct; costs are estimates and unknown usage remains null. This observes without stopping or joining the child.";
+                Field("agent_id", "string", "Direct owned child ID.", true);
+                break;
+            case ToolKind.AgentsStatus:
+                name = "agents_status";
+                description = "List direct owned children with actor-observed activity, pause state, explicit submission and retained failure. Idle is not submitted; submitted can still be draining. Snapshots do not join or stop children.";
+                break;
+            case ToolKind.SpawnSubAgent:
+                name = "spawn_sub_agent";
+                description = "Create an owned child, restore its conversation, and admit task. A running Job reports the child ID while retaining its task reply. Canceling that Job only stops observing; use shutdown_agent to stop the child. Completion requires explicit submit, not ordinary final text.";
+                Field("agent_id", "string", "Unique direct child ID.", true);
+                Field("task", "string", "Delegated task.", true);
+                Field("model", "string", "Optional compatible same-provider model.");
+                Field("submit_schema", "object", "Optional complete bounded submission schema; validated before child creation.");
+                break;
+            case ToolKind.ShutdownAgent:
+                name = "shutdown_agent";
+                description = "Stop and join one direct child and its descendants, then remove their live ownership links. Saved conversations and submissions remain on disk.";
+                Field("agent_id", "string", "Direct child ID.", true);
+                break;
+            case ToolKind.JoinAgents:
+                name = "join_agents";
+                description = "Wait for selected direct children to submit. Omitted or empty agent_ids selects all current children. Pending questions yield a running Job; answer them and wait_for_job on that same handle. Submission is not a shutdown barrier.";
+                Field("agent_ids", "array", "Direct child IDs, captured when the join starts.");
+                properties["agent_ids"]!["items"] = new JsonObject { ["type"] = "string" };
+                break;
             case ToolKind.AgentStatus:
                 name = "agent_status";
                 description = "Report selected model, last completed response and session token counts, session cache hit rate, and estimated USD cost. Unknown counts or prices remain unknown; this is not a billing statement.";
@@ -232,6 +289,14 @@ public sealed partial class Tool
     // property may legitimately be named "additionalProperties" or "format".
     private static JsonObject GeminiSchema(JsonElement schema)
     {
+        // The provider's reduced declaration format has no boolean schema
+        // nodes. Omit that constraint here, just as we omit unsupported object
+        // keywords below. The owning submission contract still validates the
+        // original schema before effects; projection never widens admission.
+        if (schema.ValueKind is JsonValueKind.True or JsonValueKind.False)
+        {
+            return new JsonObject();
+        }
         var projected = new JsonObject();
         foreach (var property in schema.EnumerateObject())
         {
@@ -261,6 +326,13 @@ public sealed partial class Tool
 
     internal partial void Validate(JsonElement args)
     {
+        if (kind == ToolKind.Submit)
+        {
+            // Structured submission permits nested/boolean schemas, exact
+            // integers and additional properties beyond the shallow tool subset.
+            Parent().ValidateSubmission(args);
+            return;
+        }
         if (args.ValueKind != JsonValueKind.Object)
         {
             throw new ArgumentException("Arguments must be a JSON object.");
@@ -338,6 +410,10 @@ public sealed partial class Tool
             var text = kind switch
             {
                 ToolKind.AgentStatus => Status(job),
+                ToolKind.GetSubAgentStatus => await DetailedChildStatusAsync(job, call.Args, cancellation),
+                ToolKind.JoinAgents => await JoinAgentsAsync(job, call.Args, cancellation),
+                ToolKind.Submit or ToolKind.SendMessageToParent or ToolKind.RespondToParentMessage
+                    or ToolKind.ShutdownAgent or ToolKind.SpawnSubAgent or ToolKind.AgentsStatus or ToolKind.InterruptAgent => await ChildOperationAsync(job, call.Args, cancellation),
                 ToolKind.ReadFile => ReadFile(call.Args),
                 ToolKind.ListDirectory => ListDirectory(call.Args),
                 ToolKind.SearchFiles => SearchFiles(call.Args),

@@ -10,16 +10,19 @@ public enum InputKind
     Message, Hint, Pause, Resume, InterruptNow, InterruptAfterTool, Ephemeral,
     // Admission is acknowledged immediately; the recorded tool-only cut waits
     // until current batch outcomes are paired. It does not cancel owned Jobs.
-    ClearTools
+    ClearTools,
+    // Interactive text: starts an idle turn with a reliable answer, or becomes
+    // a hint to the active turn and returns an empty acknowledgment immediately.
+    Chat
 }
 public sealed record AgentInput(InputKind Kind, string Text = "");
 
 // Observations are disposable progress, not acknowledgments. Part carries the
 // full neutral value; Seq identifies its durable event, not a second transcript.
-public enum ObservationKind { Input, StateChanged, PartDelta, PartFinal, TurnEnded, EventRecorded }
+public enum ObservationKind { Input, StateChanged, PartDelta, PartFinal, TurnEnded, EventRecorded, ActivityChanged }
 public sealed record Observation(ObservationKind Kind, long Seq = 0, Part? Part = null,
     string Text = "", Phase? From = null, Phase? To = null, bool? Accepted = null, Chunk? Delta = null,
-    int? PartID = null, long ResponseID = 0, bool? Succeeded = null, bool HasReply = false, Event? Fact = null);
+    int? PartID = null, long ResponseID = 0, bool? Succeeded = null, bool HasReply = false, Event? Fact = null, WorkActivity? Activity = null);
 public sealed record AgentObservation(Agent Agent, Observation Observation);
 
 public sealed partial class Ensemble
@@ -48,7 +51,7 @@ public sealed partial class Agent
     private readonly List<TaskCompletionSource<string>> flushReplies = [];
     // Caller-owned job controls may observe/kill independent jobs while a turn
     // is busy or paused. Their replies identify those outstanding observations.
-    private readonly HashSet<TaskCompletionSource<ToolResultPart>> controlReplies = [];
+    private readonly Dictionary<TaskCompletionSource<ToolResultPart>, ToolCallPart> controlReplies = [];
     // Initialization has no tool identity. Track its ordinary reliable replies
     // separately while joining it at the same shutdown/flush boundary.
     private readonly HashSet<TaskCompletionSource<string>> startupReplies = [];
@@ -115,14 +118,14 @@ public sealed partial class Agent
     // Transient immutable transfer envelope. Completion sources belong to the
     // caller's request, not the persistent object graph. Exactly one terminal
     // result is published; cancelling a caller's wait never cancels its work.
-    private enum MailKind { Submit, Input, DirectTool, ReverseTool, RegisterMcpTools, CommitSkill, InitializeSkills, Delta, HttpDone, ToolDone, AutomaticDone, ControlDone, Flush, Shutdown, Wake, SelectModel }
+    private enum MailKind { Submit, Input, DirectTool, ReverseTool, RegisterMcpTools, CommitSkill, InitializeSkills, Delta, HttpDone, ToolDone, AutomaticDone, ControlDone, Flush, Shutdown, Wake, SelectModel, WorkStatus, IncomingQuestion }
     private sealed record Mail(MailKind Kind, ImmutableArray<Part> Parts = default,
         AgentInput? Input = null, ToolCallPart? Call = null, string? Model = null,
         TaskCompletionSource<string>? Reply = null,
         TaskCompletionSource<ToolResultPart>? ToolReply = null,
         ImmutableArray<Event> Events = default, ToolResultPart? Result = null,
         Exception? Error = null, ParsedResponse? Parsed = null, Chunk? Chunk = null, McpClient? Client = null, ImmutableArray<AutomaticResult> AutomaticResults = default, SkillActivation? Activation = null, TaskCompletionSource<ImmutableArray<string>>? SkillReply = null,
-    long WorkGeneration = 0);
+        long WorkGeneration = 0, TaskCompletionSource<AgentWorkStatus>? StatusReply = null, QuestionInfo? Question = null);
 
     // Human session control, not a model tool. Reject busy/queued work; retain
     // conversation, Engine, meter, lens, provider, surface and funding route.
@@ -132,7 +135,9 @@ public sealed partial class Agent
     // Reliable request reply. The actor remains alive after a turn completes.
     public partial Task<string> SubmitAsync(IEnumerable<Part> parts);
     // Controls acknowledge acceptance independently of the active turn's reply.
-    public partial Task PostAsync(AgentInput input);
+    // Chat alone returns the answer when it starts a turn; busy Chat returns ""
+    // after recording its hint. The actor decides, not an off-thread idle check.
+    public partial Task<string> PostAsync(AgentInput input);
     // A sequential channel facade over SubmitAsync, never a second agent loop.
     // Cancellation stops this facade's observation, not the Agent or its jobs.
     public partial IAsyncEnumerable<string> RunAsync(ChannelReader<string> input,

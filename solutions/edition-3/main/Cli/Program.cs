@@ -86,6 +86,8 @@ static async Task<int> Run(string[] args)
         string primarySkill = Env("EN_PRIMARY_SKILL");
         string startupSelection = Env("EN_STARTUP_SKILLS");
         string savePath = Env("EN_SAVE_PATH");
+        string dataDirectory = Env("EN_DATA_DIR");
+        string agentName = Env("EN_AGENT_NAME");
         string archivePath = Env("EN_ARCHIVE_LOG");
         string saveLog = Env("EN_SAVE_LOG");
         bool guiDebug = false;
@@ -131,6 +133,22 @@ static async Task<int> Run(string[] args)
                     throw new ArgumentException("Missing sandbox root");
                 }
                 sandboxRoot = args[index];
+            }
+            else if (args[index] is "--data-dir" or "--agent-name")
+            {
+                string flag = args[index];
+                if (++index == args.Length || args[index].StartsWith("--") || string.IsNullOrWhiteSpace(args[index]))
+                {
+                    throw new ArgumentException("Missing actor storage option value");
+                }
+                if (flag == "--data-dir")
+                {
+                    dataDirectory = args[index];
+                }
+                else
+                {
+                    agentName = args[index];
+                }
             }
             else if (args[index] == "--safe")
             {
@@ -248,10 +266,14 @@ static async Task<int> Run(string[] args)
         }
         bool disableStreaming = args.Contains("--no-stream") || args.Contains("-no-stream");
         args = args.Where(value => value is not ("--no-stream" or "-no-stream")).ToArray();
-        app = new Application(Console.Error);
+        // The application container is not the initial actor's home. Relative
+        // explicit storage follows the same sandbox root as other host paths.
+        string storageBase = sandboxRoot.Length == 0 ? Directory.GetCurrentDirectory() : Path.GetFullPath(sandboxRoot);
+        string container = dataDirectory.Length == 0 ? storageBase : Path.GetFullPath(dataDirectory, storageBase);
+        app = new Application(Console.Error, dataDirectory: container);
         if (args.Length > 2)
         {
-            throw new ArgumentException("Usage: ch04 [--sandbox ROOT] [--safe | --safe-mode BOOL] [--enable-web-search BOOL] [--surface chat-completions|responses] [--billing api|chatgpt] [--account LABEL] [--credentials-dir DIR] [--no-stream] [--cache-lens DIR] [--cache-breakpoints] [--prompt-cache-key KEY] [--stub-tool-results] [--context-budget-bytes N] [chat | dump [logfile] | render logfile | auth status|models|login|logout|signout]");
+            throw new ArgumentException("Usage: ch04 [--data-dir DIR] [--agent-name NAME] [--sandbox ROOT] [--safe | --safe-mode BOOL] [--enable-web-search BOOL] [--surface chat-completions|responses] [--billing api|chatgpt] [--account LABEL] [--credentials-dir DIR] [--no-stream] [--cache-lens DIR] [--cache-breakpoints] [--prompt-cache-key KEY] [--stub-tool-results] [--context-budget-bytes N] [chat | dump [logfile] | render logfile | auth status|models|login|logout|signout]");
         }
 
         // Authentication is a host operation, never a model turn or a tool.
@@ -320,12 +342,13 @@ static async Task<int> Run(string[] args)
             // tokens through that parent path, never a host-held token copy.
         }
         Console.Error.WriteLine(config.FundingDescription());
-        var agent = new Agent(app, config, "cr/io");
+        var agent = new Agent(app, config, name: agentName.Length == 0 ? "root" : agentName);
+        string actorHome = agent.DataDirectory();
         if (args.Length == 0 || args[0] == "chat")
         {
             string tracePath = Env("CH06_API_LOG");
             apiTrace = new StreamWriter(agent.Sandbox().OpenFile(
-                tracePath.Length == 0 ? "api.log" : tracePath, FileMode.Append, FileAccess.Write));
+                tracePath.Length == 0 ? Path.Combine(actorHome, "api.log") : tracePath, FileMode.Append, FileAccess.Write));
             app.AttachDiagnostics(Console.Error, apiTrace);
         }
         if (cacheLensDirectory.Length != 0)
@@ -345,7 +368,7 @@ static async Task<int> Run(string[] args)
         var log = Env("CH02_LOG");
         if (log == "")
         {
-            log = "ch02.jsonl";
+            log = Path.Combine(actorHome, "events.jsonl");
         }
 
         var command = args.FirstOrDefault() ?? "";
@@ -395,7 +418,7 @@ static async Task<int> Run(string[] args)
                 .ToDictionary(entry => (string)entry.Key, entry => (string)entry.Value!)));
         if (persistenceEnabled)
         {
-            string selectedPath = savePath.Length == 0 ? "save.json" : savePath;
+            string selectedPath = savePath.Length == 0 ? Path.Combine(actorHome, "save.json") : savePath;
             int retained = saveLog.Length == 0 ? -1 : int.Parse(saveLog, System.Globalization.CultureInfo.InvariantCulture);
             agent.StartPersistence(new PersistenceOptions(selectedPath, retained,
                 archivePath.Length == 0 ? null : archivePath));
@@ -424,22 +447,62 @@ static async Task<int> Run(string[] args)
         JsonObject usage;
         if (command == "chat")
         {
-            // Progress is lossy by contract, so stderr is a preview. Stdout
-            // receives the reliable completed answer exactly once per turn.
+            // Stdin never waits for a model turn. The actor decides whether a
+            // line starts a turn or hints the current one; this queue only
+            // prints reliable answers in admission order.
+            var replies = Channel.CreateUnbounded<Task<JsonObject>>(new UnboundedChannelOptions
+            {
+                SingleReader = true,
+                SingleWriter = true
+            });
+            Task writer = WriteReplies(replies.Reader, chat: true);
             Task preview = WriteChatProgress(agent);
+            using var questionCancellation = new CancellationTokenSource();
+            Task questions = WriteHumanQuestions(agent, chat: true, questionCancellation.Token);
+            bool quit = false;
             try
             {
                 while (true)
                 {
                     Console.Error.Write("You: ");
                     Console.Error.Flush();
-                    var line = await Console.In.ReadLineAsync();
-                    if (line is null or "/quit" or "quit" or "exit")
+                    string? line = await Console.In.ReadLineAsync();
+                    if (line is null)
                     {
+                        break;
+                    }
+                    if (line is "/quit" or "quit" or "exit")
+                    {
+                        quit = true;
                         break;
                     }
                     if (string.IsNullOrWhiteSpace(line))
                     {
+                        continue;
+                    }
+                    if (line == "/reply" || line.StartsWith("/reply ", StringComparison.Ordinal))
+                    {
+                        try
+                        {
+                            string response = line[6..].Trim();
+                            if (response.Length == 0)
+                            {
+                                throw new ArgumentException("Use /reply TEXT or /reply MESSAGE_ID TEXT.");
+                            }
+                            long? id = null;
+                            int separator = response.IndexOf(' ');
+                            if (separator > 0 && long.TryParse(response[..separator], out long parsed))
+                            {
+                                id = parsed;
+                                response = response[(separator + 1)..].Trim();
+                            }
+                            agent.RespondToQuestion(response, messageID: id);
+                            Console.Error.WriteLine("Reply delivered.");
+                        }
+                        catch (Exception error) when (error is ArgumentException or InvalidOperationException)
+                        {
+                            Console.Error.WriteLine("Reply refused: " + error.Message);
+                        }
                         continue;
                     }
                     if (line == "/model" || line.StartsWith("/model ", StringComparison.Ordinal))
@@ -461,21 +524,32 @@ static async Task<int> Run(string[] args)
                         continue;
                     }
                     RequireKey(agent.Configuration());
-                    string answer = await agent.SendAsync(line);
-                    Console.WriteLine(answer);
-                    Console.Out.Flush();
+                    replies.Writer.TryWrite(AssistantReply(agent.PostAsync(new AgentInput(InputKind.Chat, line))));
+                }
+                if (!quit)
+                {
+                    await agent.FlushAsync(); // EOF drains; /quit explicitly stops.
                 }
                 usage = JsonCodec.WriteUsage(agent.History().View().Usage);
             }
             finally
             {
+                questionCancellation.Cancel();
                 try
                 {
-                    agent.Destroy();
+                    await agent.ShutdownAsync();
                 }
                 finally
                 {
-                    await preview;
+                    replies.Writer.TryComplete();
+                    try
+                    {
+                        agent.Destroy();
+                    }
+                    finally
+                    {
+                        await Task.WhenAll(preview, questions, writer);
+                    }
                 }
             }
         }
@@ -723,6 +797,8 @@ static async Task<JsonObject> RunJson(Agent agent)
     var writer = WriteReplies(replies.Reader);
     using var observing = new CancellationTokenSource();
     Task? progress = null;
+    using var questionCancellation = new CancellationTokenSource();
+    Task questions = WriteHumanQuestions(agent, chat: false, questionCancellation.Token);
     bool shutdown = false;
     JsonObject? usage = null;
     try
@@ -813,6 +889,20 @@ static async Task<JsonObject> RunJson(Agent agent)
                             ["model"] = agent.Configuration().Model });
                     }
                     continue;
+                case "reply":
+                    Fields(input, "kind", "text", "message_id");
+                    try
+                    {
+                        long? id = input.TryGetProperty("message_id", out var idValue)
+                            ? idValue.GetInt64() : null;
+                        agent.RespondToQuestion(RequiredText(input, "text"), messageID: id);
+                        Print(new JsonObject { ["ack"] = kind, ["message_id"] = id });
+                    }
+                    catch (Exception error) when (error is ArgumentException or InvalidOperationException or FormatException)
+                    {
+                        Print(new JsonObject { ["error"] = "Reply refused: " + error.Message });
+                    }
+                    continue;
                 case "clear_tools":
                     Fields(input, "kind");
                     await agent.PostAsync(new AgentInput(InputKind.ClearTools));
@@ -840,6 +930,7 @@ static async Task<JsonObject> RunJson(Agent agent)
     }
     finally
     {
+        questionCancellation.Cancel();
         // On malformed input or read failure, shutdown unblocks pending replies
         // before we join the output writer. Independent Jobs are stopped here.
         try
@@ -862,7 +953,7 @@ static async Task<JsonObject> RunJson(Agent agent)
                 {
                     await progress;
                 }
-                await writer;
+                await Task.WhenAll(questions, writer);
             }
         }
     }
@@ -897,27 +988,88 @@ static async Task<JsonObject> ToolReply(Task<ToolResultPart> reply)
     return new JsonObject { ["tool_result"] = JsonCodec.WritePart(await reply) };
 }
 
-static async Task WriteReplies(ChannelReader<Task<JsonObject>> replies)
+// The human inbox is authoritative and separate from the lossy progress queue.
+// IDs here track display only; replying never removes entries from a UI cache.
+static async Task WriteHumanQuestions(Agent agent, bool chat, CancellationToken cancellation)
+{
+    var displayed = new HashSet<long>();
+    try
+    {
+        while (true)
+        {
+            var questions = await agent.WaitForQuestionsAsync(humanOnly: true, cancellation, displayed);
+            foreach (QuestionInfo question in questions)
+            {
+                displayed.Add(question.MessageID);
+                if (chat)
+                {
+                    Console.Error.WriteLine($"Question {question.MessageID}: {question.Content}");
+                    Console.Error.WriteLine($"Use /reply {question.MessageID} TEXT (or /reply TEXT for the sole question).");
+                }
+                else
+                {
+                    Print(new JsonObject
+                    {
+                        ["human_question"] = new JsonObject
+                        {
+                            ["message_id"] = question.MessageID,
+                            ["content"] = question.Content
+                        }
+                    });
+                }
+            }
+        }
+    }
+    catch (OperationCanceledException) when (cancellation.IsCancellationRequested) { }
+    catch (ObjectDisposedException) { }
+}
+
+static async Task WriteReplies(ChannelReader<Task<JsonObject>> replies, bool chat = false)
 {
     bool failed = false;
     await foreach (var reply in replies.ReadAllAsync())
     {
         try
         {
-            Print(await reply);
+            JsonObject result = await reply;
+            if (chat)
+            {
+                string? answer = result["assistant"]?.GetValue<string>();
+                // Busy chat input is an acknowledged hint, not another answer.
+                if (!string.IsNullOrEmpty(answer))
+                {
+                    Console.WriteLine(answer);
+                    Console.Out.Flush();
+                }
+            }
+            else
+            {
+                Print(result);
+            }
         }
         catch (Exception error) when (error is OperationCanceledException or ObjectDisposedException)
         {
             // Interrupt/shutdown is an explicit terminal outcome, not success.
-            Print(new JsonObject { ["error"] = error is OperationCanceledException
-                ? "Turn interrupted." : "Agent shut down before completion." });
+            string message = error is OperationCanceledException
+                ? "Turn interrupted." : "Agent shut down before completion.";
+            if (chat)
+            {
+                Console.Error.WriteLine(message);
+            }
+            else
+            {
+                Print(new JsonObject { ["error"] = message });
+            }
         }
         catch (Exception error) when (error is ArgumentException or InvalidOperationException
             or IOException or JsonException or NotSupportedException)
         {
             failed = true;
             Console.Error.WriteLine(error.Message);
-            Print(new JsonObject { ["error"] = error.Message });
+            if (!chat)
+            {
+                Print(new JsonObject { ["error"] = error.Message });
+            }
         }
     }
     if (failed)

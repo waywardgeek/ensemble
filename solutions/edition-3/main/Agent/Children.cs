@@ -6,7 +6,7 @@ public sealed partial class Agent
 {
     public partial Agent(Ensemble parent, Agent owner, string childID,
         Configuration configuration, string? outputDirectory, SkillSpec? skillSpec,
-        System.Text.Json.JsonElement? submitSchema)
+        System.Text.Json.JsonElement? submitSchema, string? dataDirectory)
     {
         // Schema admission precedes ownership, directory creation and other effects.
         submissionContract = new SubmissionContract(submitSchema);
@@ -37,7 +37,12 @@ public sealed partial class Agent
             nextTurnToolLimit = this.configuration.ToolRoundLimit;
             // Registration and construction hold the owning Agent's admission
             // gate: shutdown cannot miss a child whose construction has begun.
-            ConstructOwners(parent, owner, outputDirectory, skillSpec);
+            string? home = dataDirectory;
+            if (home is null && owner.dataDirectory is not null)
+            {
+                home = Path.Combine(owner.dataDirectory, "children", childID);
+            }
+            ConstructOwners(parent, owner, outputDirectory, skillSpec, home);
         }
     }
 

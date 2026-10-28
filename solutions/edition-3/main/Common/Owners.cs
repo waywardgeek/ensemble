@@ -16,7 +16,7 @@ public sealed partial class Ensemble
     private bool destroyed;
 
     // Begin with no Agents; the supplied writer remains owned by the caller.
-    public partial Ensemble(TextWriter diagnostics, TextWriter? apiTrace = null);
+    public partial Ensemble(TextWriter diagnostics, TextWriter? apiTrace = null, string? dataDirectory = null);
     // Startup attachment after an Agent can open rooted diagnostic files.
     // Writers remain caller-owned; attach before admitting model work.
     public partial void AttachDiagnostics(TextWriter diagnostics, TextWriter? apiTrace = null);
@@ -70,9 +70,11 @@ public sealed partial class Agent
     private Engine? engine;
     internal bool destroyed;
 
-    // Register with Ensemble and construct History, Engine and Jobs. Failed construction
-    // tears down any children already made and removes the Agent from Ensemble.
-    public partial Agent(Ensemble parent, Configuration configuration, string? outputDirectory = null, string? name = null, SkillSpec? skillSpec = null);
+    // Register with Ensemble and construct History, Engine and Jobs. A configured
+    // Ensemble assigns agents/<name>/; explicit dataDirectory is for library Agents
+    // without that assignment. Failed construction tears down created children and
+    // removes the Agent from Ensemble.
+    public partial Agent(Ensemble parent, Configuration configuration, string? outputDirectory = null, string? name = null, SkillSpec? skillSpec = null, string? dataDirectory = null);
     public partial Jobs Jobs();
     internal partial void AddJobs(Jobs child);
     internal partial void RemoveJobs(Jobs child);

@@ -15,7 +15,7 @@ internal static class ChildCreationTests
         {
             var config = new Configuration(Vendor.Anthropic, "model-a", "http://127.0.0.1:1",
                 safeMode: true, sandboxRoot: home);
-            var parent = new Agent(app, config, skillSpec: new SkillSpec(manuals, "primary",
+            var parent = new Agent(app, config, dataDirectory: Path.Combine(home, "state"), skillSpec: new SkillSpec(manuals, "primary",
                 new Dictionary<string, string> { ["ROLE"] = "original" }, ["extra"]));
             parent.StartPersistence(new PersistenceOptions(Path.Combine(home, "state", "save.json")));
             await parent.SkillManager()!.InitializeAsync();
@@ -70,6 +70,11 @@ internal static class ChildCreationTests
             var parent = new Agent(app, new Configuration(Vendor.Anthropic, "model-a", "http://127.0.0.1:1",
                 sandboxRoot: home));
             await Refuses(() => parent.CreateChildAsync("no-storage"));
+            parent.StartPersistence(new PersistenceOptions(Path.Combine(home, "save.json")));
+            await Refuses(() => parent.CreateChildAsync("still-no-home"));
+            Configuration configuration = parent.Configuration();
+            parent.Destroy();
+            parent = new Agent(app, configuration, dataDirectory: home);
             parent.StartPersistence(new PersistenceOptions(Path.Combine(home, "save.json")));
             using var badSchema = JsonDocument.Parse("{\"type\":\"object\",\"unsupported\":true}");
             await Refuses(() => parent.CreateChildAsync("bad-schema", submitSchema: badSchema.RootElement));

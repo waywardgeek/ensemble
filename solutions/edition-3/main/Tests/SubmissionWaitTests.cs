@@ -18,7 +18,7 @@ internal static class SubmissionWaitTests
         try
         {
             var config = new Configuration(Vendor.Anthropic, "fixture", "http://127.0.0.1:1", "local-only", sandboxRoot: work);
-            var parent = new Agent(app, config);
+            var parent = new Agent(app, config, dataDirectory: work);
             parent.StartPersistence(new PersistenceOptions(Path.Combine(work, "save.json")));
             Agent child = await parent.CreateChildAsync("worker", cancellation: deadline.Token);
             using var cancelled = new CancellationTokenSource();
@@ -72,7 +72,7 @@ internal static class SubmissionWaitTests
         try
         {
             var config = new Configuration(Vendor.Anthropic, "fixture", "http://127.0.0.1:1", "local-only", sandboxRoot: work);
-            var root = new Agent(app, config);
+            var root = new Agent(app, config, dataDirectory: work);
             root.StartPersistence(new PersistenceOptions(Path.Combine(work, "save.json")));
             Agent parent = await root.CreateChildAsync("parent", cancellation: deadline.Token);
             Agent leaf = await parent.CreateChildAsync("leaf", cancellation: deadline.Token);

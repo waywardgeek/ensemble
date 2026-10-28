@@ -30,11 +30,11 @@ internal static class QuestionTests
             var leaf = new Agent(app, a, "leaf", config);
             var observed = root.WaitForQuestionsAsync(cancellation: deadline.Token);
             var humanObserved = root.WaitForQuestionsAsync(humanOnly: true, cancellation: deadline.Token);
-            Task<string> first = a.SendMessageToParentAsync("first", deadline.Token);
+            Task<QuestionReply> first = a.SendMessageToParentAsync("first", deadline.Token);
             Check((await observed).Single().Content == "first" && !humanObserved.IsCompleted,
                 "Child question did not wake parent, or reached the human-only sink.");
-            Task<string> second = a.SendMessageToParentAsync("second", deadline.Token);
-            Task<string> other = b.SendMessageToParentAsync("other", deadline.Token);
+            Task<QuestionReply> second = a.SendMessageToParentAsync("second", deadline.Token);
+            Task<QuestionReply> other = b.SendMessageToParentAsync("other", deadline.Token);
             QuestionInfo[] pending = root.PendingQuestions().ToArray();
             Check(pending.Length == 3 && pending.Select(question => question.MessageID).Distinct().Count() == 3,
                 "Receiver did not allocate unique question IDs.");
@@ -47,22 +47,22 @@ internal static class QuestionTests
             root.RespondToQuestion("answer one", "a", firstID);
             root.RespondToQuestion("answer two", "a");
             root.RespondToQuestion("answer b", "b");
-            Check(await first == "answer one" && await second == "answer two" && await other == "answer b",
+            Check((await first).Response == "answer one" && (await second).Response == "answer two" && (await other).Response == "answer b",
                 "Reply was delivered to the wrong question.");
             Refuses(() => root.RespondToQuestion("duplicate", "a", firstID));
 
-            Task<string> nested = leaf.SendMessageToParentAsync("nested", deadline.Token);
+            Task<QuestionReply> nested = leaf.SendMessageToParentAsync("nested", deadline.Token);
             Check(root.PendingQuestions().IsEmpty && a.PendingQuestions().Single().AgentID == "leaf",
                 "Question skipped its actual Agent parent.");
             a.RespondToQuestion("nested reply", "leaf");
-            Check(await nested == "nested reply", "Nested reply lost.");
+            Check(await nested == new QuestionReply("a", "nested reply"), "Nested reply lost its parent address.");
 
-            Task<string> human = root.SendMessageToParentAsync("human please", deadline.Token);
+            Task<QuestionReply> human = root.SendMessageToParentAsync("human please", deadline.Token);
             QuestionInfo humanInfo = (await humanObserved).Single();
             Check(humanInfo.ForHuman && humanInfo.AgentID is null && humanInfo.MessageID > otherID,
                 "Human inbox does not share the receiver's stable ID sequence.");
-            root.RespondToQuestion("human answer");
-            Check(await human == "human answer" && root.PendingQuestions().IsEmpty,
+            root.RespondToQuestion("human answer", humanAddress: "operator");
+            Check(await human == new QuestionReply("operator", "human answer") && root.PendingQuestions().IsEmpty,
                 "Human reply failed to detach its self-edge.");
         }
         finally { app.Destroy(); }
@@ -86,7 +86,7 @@ internal static class QuestionTests
             stopObserver.Cancel();
             await Cancelled(cancelledObserver, deadline.Token);
             using var stopCaller = new CancellationTokenSource();
-            Task<string> caller = child.SendMessageToParentAsync("retain this question", stopCaller.Token);
+            Task<QuestionReply> caller = child.SendMessageToParentAsync("retain this question", stopCaller.Token);
             Check((await observer1).Single().MessageID == (await observer2).Single().MessageID,
                 "One observer consumed the other's notification.");
             stopCaller.Cancel();
@@ -96,16 +96,16 @@ internal static class QuestionTests
             root.RespondToQuestion("late answer", "child");
             Check(root.PendingQuestions().IsEmpty, "Late reply did not detach the cancelled caller's question.");
 
-            Task<string> outgoing = child.SendMessageToParentAsync("child stops", deadline.Token);
+            Task<QuestionReply> outgoing = child.SendMessageToParentAsync("child stops", deadline.Token);
             await child.ShutdownAsync().WaitAsync(deadline.Token);
             await Cancelled(outgoing, deadline.Token);
             Check(root.PendingQuestions().IsEmpty, "Sender shutdown left its recipient link.");
             child.Destroy();
             var replacement = new Agent(app, root, "child", config);
-            Task<string> pending = replacement.SendMessageToParentAsync("parent stops", deadline.Token);
-            Task<string> human = root.SendMessageToParentAsync("human stops", deadline.Token);
+            Task<QuestionReply> pending = replacement.SendMessageToParentAsync("parent stops", deadline.Token);
+            Task<QuestionReply> human = root.SendMessageToParentAsync("human stops", deadline.Token);
             root.RespondToQuestion("human done");
-            Check(await human == "human done", "Human reply selected a child's question.");
+            Check((await human).Response == "human done", "Human reply selected a child's question.");
             var emptyHumanInbox = root.WaitForQuestionsAsync(humanOnly: true, cancellation: deadline.Token);
             await root.ShutdownAsync().WaitAsync(deadline.Token);
             await Cancelled(pending, deadline.Token);

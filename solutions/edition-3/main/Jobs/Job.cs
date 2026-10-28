@@ -174,6 +174,15 @@ public sealed partial class Job
         }
     }
 
+    internal partial void AppendAttention(string text)
+    {
+        lock (gate)
+        {
+            AppendOutput(text);
+            attentionEnd = bytes;
+        }
+    }
+
     internal partial void AppendBytes(ReadOnlySpan<byte> data)
     {
         lock (gate)
@@ -253,6 +262,16 @@ public sealed partial class Job
         }
     }
 
+    internal partial void WakeObservation()
+    {
+        lock (gate)
+        {
+            TaskCompletionSource previous = observationWake;
+            observationWake = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            previous.TrySetResult();
+        }
+    }
+
     public partial async Task<ToolResultPart> ObserveAsync(string callID, double delay, string pattern,
         int maxBytes, CancellationToken cancellation, bool wakeOnOutput)
     {
@@ -275,6 +294,13 @@ public sealed partial class Job
     private async Task<ToolResultPart> ObserveLocked(string callID, double delay, Regex? pattern,
         int maxBytes, CancellationToken token, bool wakeOnOutput)
     {
+        Task wake;
+        lock (gate)
+        {
+            // Capture only after acquiring the observation semaphore. Queued
+            // callers must not inherit a message aimed at the current waiter.
+            wake = observationWake.Task;
+        }
         var expires = Task.Delay(TimeSpan.FromSeconds(delay), token);
         while (true)
         {
@@ -283,12 +309,14 @@ public sealed partial class Job
             JobInfo info;
             byte[] fresh;
             bool error;
+            bool attention;
             lock (gate)
             {
                 signal = changed.Task;
                 info = Snapshot();
                 finished = status == JobStatus.Done ? worker : null;
                 error = isError;
+                attention = cursor < attentionEnd;
                 // Retained output is untrusted: a command may have replaced its
                 // name since creation. Reopen through the same Agent boundary.
                 using var reader = Parent().Parent().Sandbox().OpenFile(OutputPath, FileMode.Open, FileAccess.Read);
@@ -304,7 +332,7 @@ public sealed partial class Job
                 await finished.WaitAsync(token);
             }
             var text = Encoding.UTF8.GetString(fresh);
-            bool ready = info.Status != "running" || expires.IsCompleted
+            bool ready = wake.IsCompleted || attention || info.Status != "running" || expires.IsCompleted
                 || (pattern is not null ? pattern.IsMatch(text) : wakeOnOutput && fresh.Length > 0);
             if (ready)
             {
@@ -362,7 +390,7 @@ public sealed partial class Job
                     Truncated = truncated
                 });
             }
-            await Task.WhenAny(signal, expires).WaitAsync(token);
+            await Task.WhenAny(signal, expires, wake).WaitAsync(token);
         }
     }
 

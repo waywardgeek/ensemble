@@ -56,6 +56,15 @@ public sealed partial class Jobs
         }
     }
 
+    internal partial void WakeObservers()
+    {
+        // Snapshot membership without holding the owner lock across child calls.
+        foreach (Job child in Children())
+        {
+            child.WakeObservation();
+        }
+    }
+
     public partial Job Find(int handle)
     {
         lock (gate)

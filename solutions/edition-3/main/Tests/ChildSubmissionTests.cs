@@ -36,9 +36,12 @@ internal static class ChildSubmissionTests
             var child = new Agent(app, parent, "reviewer", config, submitSchema: schema);
             Refuses(() => child.PublishSubmission(Json("""{"summary":"ok","items":[]}""")));
             Check(child.Submission() is null, "Unconfigured child published completion.");
-            string save = Path.Combine(work, "children", "reviewer", "save.json");
+            child.Destroy();
+            string childHome = Path.Combine(work, "children", "reviewer");
+            child = new Agent(app, parent, "reviewer", config, submitSchema: schema, dataDirectory: childHome);
+            string save = Path.Combine(childHome, "session", "save.json");
             Check(!child.StartPersistence(new PersistenceOptions(save)), "Unexpected restore.");
-            Check(child.DataDirectory() == Path.GetDirectoryName(save), "Data directory differs from persistence.");
+            Check(child.DataDirectory() == childHome, "History persistence changed the actor home.");
             child.History().Append(new Event(EventKind.MessageReceived, actor: Actor.Human,
                 parts: [new TextPart("reviewer task survives reconstruction")]));
             JsonElement payload = Json("""{"summary":"done","items":[9007199254740993,null,false]}""");
@@ -59,12 +62,13 @@ internal static class ChildSubmissionTests
                 "Invalid submission changed durable or visible completion.");
             child.Destroy();
             Check(File.Exists(save) && File.ReadAllText(path) == saved, "Destruction erased saved work.");
-            var restored = new Agent(app, parent, "reviewer", config, submitSchema: schema);
+            var restored = new Agent(app, parent, "reviewer", config, submitSchema: schema, dataDirectory: childHome);
             Check(restored.StartPersistence(new PersistenceOptions(save)), "Own History did not restore.");
             Check(restored.History().Events().SelectMany(e => e.Parts).OfType<TextPart>()
                 .Any(p => p.Text == "reviewer task survives reconstruction"), "Restored wrong conversation.");
             Check(restored.Submission() is null, "Old artifact became fresh completion.");
-            var sibling = new Agent(app, parent, "ordinary", config);
+            var sibling = new Agent(app, parent, "ordinary", config,
+                dataDirectory: Path.Combine(work, "children", "ordinary"));
             sibling.StartPersistence(new PersistenceOptions(Path.Combine(work, "children", "ordinary", "save.json")));
             JsonElement legacy = sibling.PublishSubmission(Json("""{"result":"legacy","ignored":false}"""));
             Check(legacy.EnumerateObject().Count() == 1 && legacy.GetProperty("result").GetString() == "legacy",
@@ -84,7 +88,7 @@ internal static class ChildSubmissionTests
             var config = new Configuration(Vendor.Anthropic, "fixture", "http://127.0.0.1:1", "local-only",
                 safeMode: true, sandboxRoot: work);
             var parent = new Agent(app, config);
-            var child = new Agent(app, parent, "child", config);
+            var child = new Agent(app, parent, "child", config, dataDirectory: Path.Combine(work, "child"));
             child.StartPersistence(new PersistenceOptions(Path.Combine(work, "child", "save.json")));
             var start = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             Task publishing = Task.Run(async () =>
@@ -121,7 +125,7 @@ internal static class ChildSubmissionTests
         {
             var config = new Configuration(Vendor.Anthropic, "fixture", "http://127.0.0.1:1", "local-only", sandboxRoot: work);
             var parent = new Agent(app, config);
-            var child = new Agent(app, parent, "child", config);
+            var child = new Agent(app, parent, "child", config, dataDirectory: Path.Combine(work, "child"));
             child.StartPersistence(new PersistenceOptions(Path.Combine(work, "child", "save.json")));
             child.PublishSubmission("first");
             string path = Path.Combine(child.DataDirectory(), "submit.md");
@@ -188,7 +192,7 @@ internal static partial class ActorTests
             var config = new Configuration(Vendor.Anthropic, "fixture",
                 "http://127.0.0.1:" + ((IPEndPoint)listener.LocalEndpoint).Port, "local-only", sandboxRoot: work);
             var parent = new Agent(app, config);
-            var child = new Agent(app, parent, "child", config);
+            var child = new Agent(app, parent, "child", config, dataDirectory: Path.Combine(work, "child"));
             child.StartPersistence(new PersistenceOptions(Path.Combine(work, "child", "save.json")));
             Task<string> turn = child.SubmitAsync([new TextPart("first task")]);
             await first.Task.WaitAsync(deadline.Token);
@@ -201,6 +205,9 @@ internal static partial class ActorTests
             Check(child.Submission() is null, "New admitted work retained early completion.");
             Task<JsonElement> currentSubmission = child.WaitForSubmissionAsync(deadline.Token);
             Check(!currentSubmission.IsCompleted, "Wait accepted an earlier generation submission.");
+            await using var joined = parent.JoinChildrenAsync(cancellation: deadline.Token).GetAsyncEnumerator();
+            Task<bool> joinedResult = joined.MoveNextAsync().AsTask();
+            Check(!joinedResult.IsCompleted, "Join accepted an earlier generation submission.");
             bool refused = false;
             try { child.PublishSubmission("old turn cannot finish new task"); }
             catch (InvalidOperationException) { refused = true; }
@@ -215,6 +222,9 @@ internal static partial class ActorTests
             child.PublishSubmission("second done");
             Check((await currentSubmission).GetProperty("result").GetString() == "second done",
                 "Current-generation publication did not wake the waiting observer.");
+            Check(await joinedResult
+                && joined.Current.Submissions!["child"].GetProperty("result").GetString() == "second done",
+                "Join did not return the current accepted generation.");
             finish.TrySetResult();
             await next.WaitAsync(deadline.Token);
             Check(child.Submission()!.Value.GetProperty("result").GetString() == "second done", "Current submission lost.");

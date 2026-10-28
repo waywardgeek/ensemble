@@ -36,12 +36,12 @@ try
             flags[flag] = "1";
             continue;
         }
-        if (flag is not ("--sandbox" or "--port" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--account" or "--credentials-dir" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
+        if (flag is not ("--data-dir" or "--agent-name" or "--sandbox" or "--port" or "--gui-dir" or "--vendor" or "--model" or "--base-url" or "--workspace" or "--event-log" or "--settings" or "--skills-dir" or "--primary-skill" or "--startup-skills" or "--save" or "--save-log" or "--archive-log" or "--cache-lens" or "--prompt-cache-key" or "--surface" or "--billing" or "--account" or "--credentials-dir" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search") || i + 1 >= args.Length)
         {
             throw new ArgumentException("Unknown or incomplete GUI flag");
         }
         string value = args[++i];
-        if (flag is "--sandbox" or "--surface" or "--billing" or "--account" or "--credentials-dir" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search")
+        if (flag is "--data-dir" or "--agent-name" or "--sandbox" or "--surface" or "--billing" or "--account" or "--credentials-dir" or "--reasoning-effort" or "--reasoning-summary" or "--safe-mode" or "--enable-web-search")
         {
             if ((flag != "--sandbox" && string.IsNullOrWhiteSpace(value)) || value.StartsWith("--"))
             {
@@ -67,7 +67,12 @@ try
     {
         throw new ArgumentException("Set LLM_BASE_URL explicitly");
     }
-    app = new Application(Console.Error);
+    string sandboxRoot = Selected("--sandbox", "EN_SANDBOX_ROOT");
+    string dataDirectory = Selected("--data-dir", "EN_DATA_DIR");
+    string agentName = Selected("--agent-name", "EN_AGENT_NAME");
+    string storageBase = sandboxRoot.Length == 0 ? Directory.GetCurrentDirectory() : Path.GetFullPath(sandboxRoot);
+    string container = dataDirectory.Length == 0 ? storageBase : Path.GetFullPath(dataDirectory, storageBase);
+    app = new Application(Console.Error, dataDirectory: container);
     Surface? surface = Selected("--surface", "EN_SURFACE") switch
     {
         "" => null,
@@ -123,20 +128,21 @@ try
         reasoningSummary: Selected("--reasoning-summary", "OPENAI_REASONING_SUMMARY"),
         safeMode: PolicyBoolean(Selected("--safe-mode", "EN_SAFE_MODE"), false),
         enableWebSearch: PolicyBoolean(Selected("--enable-web-search", "EN_ENABLE_WEB_SEARCH"), true),
-        sandboxRoot: Selected("--sandbox", "EN_SANDBOX_ROOT"));
+        sandboxRoot: sandboxRoot);
     if (billing == BillingMode.ChatGptPlan && string.IsNullOrWhiteSpace(credentialsDirectory))
     {
         throw new ArgumentException("Plan billing requires --credentials-dir or EN_CREDENTIALS_DIR");
     }
     // Account management changes the saved next-launch default, not this
     // immutable Configuration. No implicit credential location is searched.
-    var agent = new Agent(app, config, name: "root");
+    var agent = new Agent(app, config, name: agentName.Length == 0 ? "root" : agentName);
+    string actorHome = agent.DataDirectory();
     trace = new StreamWriter(agent.Sandbox().OpenFile(
-        Env("CH06_API_LOG") is { Length: > 0 } path ? path : "api.log", FileMode.Append, FileAccess.Write))
+        Env("CH06_API_LOG") is { Length: > 0 } path ? path : Path.Combine(actorHome, "api.log"), FileMode.Append, FileAccess.Write))
     {
         AutoFlush = true
     };
-    diagnostics = new StreamWriter(agent.Sandbox().OpenFile("debug.log", FileMode.Append, FileAccess.Write))
+    diagnostics = new StreamWriter(agent.Sandbox().OpenFile(Path.Combine(actorHome, "debug.log"), FileMode.Append, FileAccess.Write))
     {
         AutoFlush = true
     };
@@ -151,7 +157,7 @@ try
     string log = Selected("--event-log", "CH02_LOG");
     if (log.Length == 0)
     {
-        log = "event.log";
+        log = Path.Combine(actorHome, "events.jsonl");
     }
     string skillsDirectory = Selected("--skills-dir", "EN_SKILLS_DIR");
     string primarySkill = Selected("--primary-skill", "EN_PRIMARY_SKILL");
@@ -172,22 +178,20 @@ try
         string savePath = Selected("--save", "EN_SAVE_PATH");
         string retention = Selected("--save-log", "EN_SAVE_LOG");
         string archive = Selected("--archive-log", "EN_ARCHIVE_LOG");
-        agent.StartPersistence(new PersistenceOptions(savePath.Length == 0 ? "save.json" : savePath,
+        agent.StartPersistence(new PersistenceOptions(savePath.Length == 0 ? Path.Combine(actorHome, "save.json") : savePath,
             retention.Length == 0 ? -1 : int.Parse(retention, System.Globalization.CultureInfo.InvariantCulture),
             archive.Length == 0 ? null : archive));
     }
     agent.History().StartLog(log);
-    // Environment and user-home defaults belong to this executable, not the
-    // reusable GUI library. An outside host supplies its own explicit options.
-    string defaultSettings = agent.Sandbox().Root().Length == 0
-        ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".ensemble", "settings.json")
-        : "settings.json";
+    // Shared GUI preferences belong to the application container. The reusable
+    // GUI still borrows an Agent and accepts explicit caller-owned options.
+    string defaultSettings = Path.Combine(app.DataDirectory(), "settings.json");
     var guiOptions = new GuiOptions(
         Port: hostFlags.TryGetValue("--port", out var portText)
             ? int.Parse(portText, System.Globalization.CultureInfo.InvariantCulture) : 8090,
         AssetsDirectory: hostFlags.GetValueOrDefault("--gui-dir"),
         SettingsPath: hostFlags.GetValueOrDefault("--settings", defaultSettings),
-        TracePath: Env("CH07_GUI_LOG") is { Length: > 0 } guiLog ? guiLog : "gui.log");
+        TracePath: Env("CH07_GUI_LOG") is { Length: > 0 } guiLog ? guiLog : Path.Combine(actorHome, "gui.log"));
     await Gui.RunAsync(agent, guiOptions);
     await agent.ShutdownAsync();
     return 0;

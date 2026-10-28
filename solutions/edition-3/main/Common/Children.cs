@@ -18,8 +18,8 @@ public sealed partial class Agent
     /// Output directory ownership remains with Jobs; destruction preserves files.</summary>
     public partial Agent(Ensemble parent, Agent owner, string childID,
         Configuration configuration, string? outputDirectory = null, SkillSpec? skillSpec = null,
-        System.Text.Json.JsonElement? submitSchema = null);
-    /// <summary>Create a ready child beneath this Agent's persistence directory.
+        System.Text.Json.JsonElement? submitSchema = null, string? dataDirectory = null);
+    /// <summary>Create a ready child beneath this Agent's data home.
     /// Inherits current configuration and parsed skill templates, not live grants
     /// or clients. Restores only the child's History before initialization. Does
     /// not submit a task. Failed/cancelled creation destroys the child, retaining
@@ -34,6 +34,6 @@ public sealed partial class Agent
     internal partial void AddChild(Agent child);
     internal partial void RemoveChild(Agent child);
     private partial void ConstructOwners(Ensemble root, Agent? owner,
-        string? outputDirectory, SkillSpec? skillSpec);
+        string? outputDirectory, SkillSpec? skillSpec, string? dataDirectory);
     private partial void DestroyChildren();
 }
